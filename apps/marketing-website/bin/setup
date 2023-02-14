@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+
+set -e
+
+rm -rf node_modules
+rm -rf .venv
+
+if command -v nvm
+then
+    nvm install
+fi
+
+npm install --force
+
+python -m venv .venv
+pip install --quiet -r requirements.txt -r requirements-dev.txt
+
+bin/lint
+
+echo "Ready to go. Run bin/dev-server to get started."

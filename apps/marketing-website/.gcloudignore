@@ -1,0 +1,13 @@
+#!include:.gitignore
+!/static/dist
+
+.*
+*LICENSE*
+package*.json
+*.md
+webpack.config.js
+bin/
+src/
+certs/
+requirements-dev.txt
+pyproject.toml

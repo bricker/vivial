@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -e
+
+rm -rf .venv
+python -m venv .venv
+
+source .venv/bin/activate
+
+if test -f requirements.txt
+then
+    pip install -r requirements.txt
+fi
+
+if test -f requirements-dev.txt
+then
+    pip install -r requirements-dev.txt
+fi
+
+if test -f tooling/requirements.txt
+then
+    pip install -r tooling/requirements.txt
+fi
+
+pip install -e .

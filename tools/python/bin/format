@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+set -e
+
+echo "(format) isort..."
+isort .
+
+echo "(format) black..."
+black --quiet .

@@ -1,0 +1,9 @@
+#!include:.gitignore
+
+pyproject.toml
+.*
+*.md
+requirements-dev.txt
+bin
+__tests__
+*_test.py

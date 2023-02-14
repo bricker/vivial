@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+set -e
+
+isort --quiet --check .
+black --quiet --check .
+mypy .

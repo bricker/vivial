@@ -1,0 +1,28 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: FastAPI (HTTPS)",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "--host",
+        "api.eave.dev",
+        "--port",
+        "5100",
+        "--ssl-certfile",
+        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/cert.pem",
+        "--ssl-keyfile",
+        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/key.pem",
+        "--reload",
+        "eave.app:app"
+      ],
+      "jinja": true,
+      "justMyCode": true
+    }
+  ]
+}

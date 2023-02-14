@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- window -->
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        window.eave = {
+            cookieDomain: '{{app_config.cookie_domain}}',
+            apiBase: '{{app_config.api_base}}',
+            assetBase: '{{app_config.asset_base}}',
+        };
+        </script>
+
+        {% if app_config.analytics_enabled %}
+        <!-- Google Tag Manager -->
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-WWSBJ4T');</script>
+        <!-- End Google Tag Manager -->
+        {% endif %}
+
+        <!-- Google Fonts (DM Sans, Pattaya) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Pattaya&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+        <!-- End Google Fonts -->
+
+        {% if app_config.monitoring_enabled %}
+        <!-- Datadog -->
+        <script>
+        (function(h,o,u,n,d) {
+            h=h[d]=h[d]||{q:[],onReady:function(c){h.q.push(c)}}
+            d=o.createElement(u);d.async=1;d.src=n
+            n=o.getElementsByTagName(u)[0];n.parentNode.insertBefore(d,n)
+        })(window,document,'script','https://www.datadoghq-browser-agent.com/datadog-rum-v4.js','DD_RUM')
+        DD_RUM.onReady(function() {
+            DD_RUM.init({
+                clientToken: 'pub7ed59374ca780623613da9a861572cee',
+                applicationId: '412153d9-b948-4b83-98ef-550f98ea4332',
+                site: 'us5.datadoghq.com',
+                service: 'eave-marketing-website',
+                env: '{{ app_config.app_env }}',
+                // Specify a version number to identify the deployed version of your application in Datadog
+                version: '{{app_config.app_version}}',
+                sampleRate: 100,
+                premiumSampleRate: 100,
+                trackInteractions: true,
+                defaultPrivacyLevel: 'allow',
+            });
+
+            DD_RUM.startSessionReplayRecording();
+        });
+        </script>
+        <!-- End Datadog -->
+        {% endif %}
+
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/x-icon" href="{{app_config.asset_base}}/images/e-icon-small.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="Eave is an AI-powered tool that automatically creates, updates and organizes documentation." />
+        <title>{{ page_title|default("Eave, for your information.") }}</title>
+
+        <script defer src="{{app_config.asset_base}}/dist/main.js"></script>
+    </head>
+    <body style="margin:0px;">
+
+        {% if app_config.analytics_enabled %}
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WWSBJ4T"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+        {% endif %}
+
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+    </body>
+</html>

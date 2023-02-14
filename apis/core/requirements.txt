@@ -1,0 +1,12 @@
+atlassian-python-api
+fastapi
+uvicorn[standard]
+gunicorn
+google-cloud-secret-manager
+google-crc32c
+sqlalchemy[asyncio]>=2.*
+asyncpg
+slack_sdk
+aiohttp
+email-validator
+google-cloud-logging

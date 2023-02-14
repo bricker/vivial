@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+# Run socket mode in development
+python eave/app.py

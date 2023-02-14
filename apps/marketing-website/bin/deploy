@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+bin/lint
+
+rm -rf static/dist
+npx webpack --mode=production --no-devtool
+
+gcloud meta list-files-for-upload
+gcloud app deploy

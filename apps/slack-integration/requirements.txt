@@ -1,0 +1,13 @@
+fastapi
+slack-bolt
+uvicorn[standard]
+gunicorn
+google-cloud-secret-manager
+google-cloud-pubsub
+google-crc32c
+aiohttp
+openai
+pandas
+numpy
+python-dotenv
+google-cloud-logging

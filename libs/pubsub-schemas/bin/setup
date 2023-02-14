@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+touch .env
+pip install -r requirements.txt -r requirements-dev.txt

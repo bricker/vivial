@@ -1,0 +1,6 @@
+mypy
+black
+isort
+types-requests
+python-dotenv
+mockito

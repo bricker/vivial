@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+set -e
+
+echo "eslint..."
+npx eslint .
+
+echo "isort..."
+isort --check .
+
+echo "black..."
+black --check .
+
+echo "mypy..."
+mypy .

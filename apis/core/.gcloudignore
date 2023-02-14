@@ -1,0 +1,10 @@
+#!include:.gitignore
+
+.*
+alembic.ini
+*.md
+requirements-dev.txt
+pyproject.toml
+alembic
+bin
+tests

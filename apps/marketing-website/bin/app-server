@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+set -e
+
+if ! test -z "$FLASK_SSL"
+then
+    flask --debug run --cert="$EAVE_HOME/eave-dev-certs/eave.dev/cert.pem" --key="$EAVE_HOME/eave-dev-certs/eave.dev/key.pem"
+else
+    flask --debug run
+fi

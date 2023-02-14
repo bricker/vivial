@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "googlecloudtools.cloudcode",
+    "ms-python.isort",
+    "ms-python.vscode-pylance",
+    "ms-python.python"
+  ]
+}

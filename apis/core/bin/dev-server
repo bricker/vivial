@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+set -o allexport
+source .env
+set +o allexport
+
+uvicorn \
+    --host api.eave.dev \
+    --port 5100 \
+    --ssl-certfile ${EAVE_HOME}/eave-dev-certs/eave.dev/cert.pem \
+    --ssl-keyfile ${EAVE_HOME}/eave-dev-certs/eave.dev/key.pem \
+    --reload \
+    eave.app:app

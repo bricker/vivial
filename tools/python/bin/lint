@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+set -e
+
+echo "(lint) isort..."
+isort --quiet --check .
+
+echo "(lint) black..."
+black --quiet --check .
+
+echo "(lint) mypy..."
+mypy .
