@@ -1,5 +1,0 @@
-#!/usr/bin/env sh
-
-set -e
-echo "no tests"
-# python -m unittest discover -t . -s tests -p '*_test.py'
