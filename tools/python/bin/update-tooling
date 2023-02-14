@@ -1,6 +1,0 @@
-#!/usr/bin/env sh
-
-git subtree \
-    --squash \
-    --prefix=tooling/python \
-    pull git@github.com:eave-fyi/eave-python-tooling.git main
