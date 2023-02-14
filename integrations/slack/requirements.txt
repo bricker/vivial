@@ -7,7 +7,5 @@ google-cloud-pubsub
 google-crc32c
 aiohttp
 openai
-pandas
-numpy
-python-dotenv
 google-cloud-logging
+tiktoken

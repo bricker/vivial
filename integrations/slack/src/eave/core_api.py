@@ -1,13 +1,14 @@
+from collections import namedtuple
 import enum
 from dataclasses import dataclass
+from functools import cache
 from typing import Optional
 from uuid import UUID
 
 import aiohttp
 
-from eave.json_object import JsonObject
 from eave.settings import APP_SETTINGS
-
+import eave.util
 
 class DocumentPlatform(enum.Enum):
     eave = "eave"
@@ -21,7 +22,7 @@ class DocumentReference:
     document_url: str
 
     @classmethod
-    def from_json(cls, json: JsonObject) -> "DocumentReference":
+    def from_json(cls, json: eave.util.JsonObject) -> "DocumentReference":
         return cls(
             id=json["id"],
             document_id=json["document_id"],
@@ -39,14 +40,25 @@ class SubscriptionSource:
     event: SubscriptionSourceEvent
     id: str
 
+    @dataclass
+    class Details:
+        team: str
+        channel: str
+        ts: str
+
+    @property
+    def details(self) -> Details:
+        team, channel, ts = self.id.split("#")
+        return SubscriptionSource.Details(team=team, channel=channel, ts=ts)
+
     @classmethod
-    def from_json(cls, json: JsonObject) -> "SubscriptionSource":
+    def from_json(cls, json: eave.util.JsonObject) -> "SubscriptionSource":
         return cls(
             id=json["id"],
             event=SubscriptionSourceEvent(json["event"]),
         )
 
-    def to_json(self) -> JsonObject:
+    def to_json(self) -> eave.util.JsonObject:
         return {
             "platform": self.platform,
             "event": self.event.value,
@@ -61,14 +73,14 @@ class Subscription:
     source: SubscriptionSource
 
     @classmethod
-    def from_json(cls, json: JsonObject) -> "Subscription":
+    def from_json(cls, json: eave.util.JsonObject) -> "Subscription":
         return cls(
             id=json["id"],
             document_reference_id=json.get("document_reference_id"),
             source=SubscriptionSource.from_json(json["source"]),
         )
 
-    def to_json(self) -> JsonObject:
+    def to_json(self) -> eave.util.JsonObject:
         return {
             "id": self.id,
             "document_reference_id": self.document_reference_id,
@@ -83,7 +95,7 @@ class Team:
     document_platform: DocumentPlatform
 
     @classmethod
-    def from_json(cls, json: JsonObject) -> "Team":
+    def from_json(cls, json: eave.util.JsonObject) -> "Team":
         return cls(
             id=json["id"],
             name=json["name"],
@@ -102,7 +114,7 @@ class EaveCoreClient:
         subscription: Subscription
         document_reference: DocumentReference
 
-        def __init__(self, json: JsonObject) -> None:
+        def __init__(self, json: eave.util.JsonObject) -> None:
             self.team = Team.from_json(json["team"])
             self.subscription = Subscription.from_json(json["subscription"])
             self.document_reference = DocumentReference.from_json(json["document_reference"])
@@ -132,7 +144,7 @@ class EaveCoreClient:
         subscription: Subscription
         document_reference: Optional[DocumentReference] = None
 
-        def __init__(self, json: JsonObject) -> None:
+        def __init__(self, json: eave.util.JsonObject) -> None:
             self.team = Team.from_json(json["team"])
             self.subscription = Subscription.from_json(json["subscription"])
 
@@ -169,8 +181,10 @@ class EaveCoreClient:
                 },
             )
 
-        if resp.status > 299:
+        if resp.status >= 300:
             return None
 
         json = await resp.json()
         return EaveCoreClient.SubscriptionResponse(json)
+
+client = EaveCoreClient()

@@ -1,6 +1,7 @@
 import logging
 import os
 from functools import cache, cached_property
+import sys
 from typing import Optional
 
 import google_crc32c
@@ -8,6 +9,10 @@ from google.cloud import secretmanager
 
 
 class Settings:
+    @property
+    def dev_mode(self) -> bool:
+        return sys.flags.dev_mode
+
     @property
     def eave_core_api_url(self) -> str:
         return os.environ["EAVE_CORE_API_URL"]

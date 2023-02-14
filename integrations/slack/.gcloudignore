@@ -5,5 +5,5 @@ pyproject.toml
 *.md
 requirements-dev.txt
 bin
-__tests__
+tests
 *_test.py

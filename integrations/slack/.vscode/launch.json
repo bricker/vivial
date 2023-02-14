@@ -13,6 +13,26 @@
       "justMyCode": true
     },
     {
+      "name": "Python: FastAPI (HTTPS)",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "--host",
+        "slack.eave.dev",
+        "--port",
+        "5200",
+        "--ssl-certfile",
+        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/cert.pem",
+        "--ssl-keyfile",
+        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/key.pem",
+        "--reload",
+        "eave.app:api"
+      ],
+      "jinja": true,
+      "justMyCode": true
+    },
+    {
       "name": "Python: Slack socketmode",
       "type": "python",
       "request": "launch",
