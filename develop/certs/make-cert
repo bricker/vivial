@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+dest="eave.dev"
+mkdir -p $dest
+
+openssl req \
+    -x509 \
+    -newkey rsa:4096 \
+    -keyout "${dest}/key.pem" \
+    -out "${dest}/cert.pem" \
+    -sha256 \
+    -nodes \
+    -days 36500 \
+    -subj "/CN=eave.dev" \
+    -addext "subjectAltName=DNS:api.eave.dev,DNS:www.eave.dev,DNS:slack.eave.dev" \
+    -addext "basicConstraints=CA:FALSE"
