@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+set -eu
+
+${EAVE_HOME}/develop/python/bin/lint
+${EAVE_HOME}/develop/python/bin/test
+
+gcloud meta list-files-for-upload
+gcloud app deploy

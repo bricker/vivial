@@ -5,15 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Current File",
-      "type": "python",
-      "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal",
-      "justMyCode": true
-    },
-    {
-      "name": "Python: FastAPI (HTTPS)",
+      "name": "Slack App API",
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
@@ -23,9 +15,9 @@
         "--port",
         "5200",
         "--ssl-certfile",
-        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/cert.pem",
+        "${env:EAVE_HOME}/develop/certs/eave.dev/cert.pem",
         "--ssl-keyfile",
-        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/key.pem",
+        "${env:EAVE_HOME}/develop/certs/eave.dev/key.pem",
         "--reload",
         "eave.app:api"
       ],
@@ -33,27 +25,12 @@
       "justMyCode": true
     },
     {
-      "name": "Python: Slack socketmode",
+      "name": "Slack Socket Mode",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/src/socketmode.py",
+      "program": "./src/socketmode.py",
       "console": "integratedTerminal",
       "justMyCode": true
     },
-    {
-      "name": "Python: pip install",
-      "type": "python",
-      "request": "launch",
-      "program": "pip",
-      "args": [
-        "install",
-        "-r",
-        "requirements.txt",
-        "-r",
-        "requirements-dev.txt"
-      ],
-      "console": "integratedTerminal",
-      "justMyCode": true
-    }
   ]
 }

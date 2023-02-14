@@ -14,10 +14,10 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from eave.internal.confluence import ConfluencePage
+import eave.internal.confluence
 import eave.internal.openai
 import eave.internal.util
-import eave.internal.confluence
+from eave.internal.confluence import ConfluencePage
 from eave.public.shared import (
     DocumentContentInput,
     DocumentPlatform,
@@ -229,7 +229,6 @@ class ConfluenceDestinationOrm(Base):
         session.add(document_reference)
         return document_reference
 
-
     async def update_document(
         self, document: DocumentContentInput, document_reference: DocumentReferenceOrm
     ) -> DocumentReferenceOrm:
@@ -322,6 +321,7 @@ class ConfluenceDestinationOrm(Base):
         page = ConfluencePage(json, self.confluence_context)
         return page
 
+
 class TeamOrm(Base):
     __tablename__ = "teams"
 
@@ -361,6 +361,7 @@ class TeamOrm(Base):
         team = await session.scalar(lookup)
         return team
 
+
 class EmbeddingsOrm(Base):
     __tablename__ = "embeddings"
     __table_args__ = (
@@ -371,10 +372,11 @@ class EmbeddingsOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(default=uuid4)
-    vector: Mapped[str] = mapped_column() # comma-separated list of vector values (floats)
+    vector: Mapped[str] = mapped_column()  # comma-separated list of vector values (floats)
     document_reference_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 # class ApiKeyOrm(Base):
 #     __tablename__ = "api_keys"

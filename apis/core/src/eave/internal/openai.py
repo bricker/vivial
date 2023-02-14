@@ -1,21 +1,23 @@
-from dataclasses import asdict, dataclass
 import enum
 import logging
+from dataclasses import asdict, dataclass
 from typing import Any, Optional, cast
 
 import openai as openai_sdk
 import openai.openai_object
-import eave.internal.util
 import tiktoken
-import eave.internal.settings
 
-tokencoding = tiktoken.get_encoding('gpt2')
+import eave.internal.settings
+import eave.internal.util
+
+tokencoding = tiktoken.get_encoding("gpt2")
 
 PROMPT_PREFIX = (
     "You are Eave, an AI documentation expert. "
     "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
     "You are responsible for the quality and integrity of this organization's documentation."
 )
+
 
 class OpenAIModel(str, enum.Enum):
     ADA = "text-ada-001"
@@ -25,7 +27,8 @@ class OpenAIModel(str, enum.Enum):
     DAVINCI = "text-davinci-003"
 
 
-MAX_TOKENS = 4096 # 2048 if using older models
+MAX_TOKENS = 4096  # 2048 if using older models
+
 
 @dataclass
 class CompletionParameters:
@@ -40,14 +43,20 @@ class CompletionParameters:
         params = dict[str, Any]()
         params["prompt"] = self.prompt
         params["model"] = OpenAIModel.DAVINCI
-        params["max_tokens"] = (MAX_TOKENS - len(tokencoding.encode(self.prompt)))
+        params["max_tokens"] = MAX_TOKENS - len(tokencoding.encode(self.prompt))
 
-        if self.best_of is not None: params["best_of"] = self.best_of
-        if self.n is not None: params["n"] = self.n
-        if self.frequency_penalty is not None: params["frequency_penalty"] = self.frequency_penalty
-        if self.presence_penalty is not None: params["presence_penalty"] = self.presence_penalty
-        if self.temperature is not None: params["temperature"] = self.temperature
+        if self.best_of is not None:
+            params["best_of"] = self.best_of
+        if self.n is not None:
+            params["n"] = self.n
+        if self.frequency_penalty is not None:
+            params["frequency_penalty"] = self.frequency_penalty
+        if self.presence_penalty is not None:
+            params["presence_penalty"] = self.presence_penalty
+        if self.temperature is not None:
+            params["temperature"] = self.temperature
         return params
+
 
 async def summarize(params: CompletionParameters) -> Optional[str]:
     """
@@ -60,7 +69,7 @@ async def summarize(params: CompletionParameters) -> Optional[str]:
 
     response = await openai_sdk.Completion.acreate(**params.compile())
     response = cast(openai.openai_object.OpenAIObject, response)
-    candidates = [c for c in response.choices if c['finish_reason'] == 'stop']
+    candidates = [c for c in response.choices if c["finish_reason"] == "stop"]
 
     if len(candidates) < 1:
         logging.warn("No valid choices from openAI")

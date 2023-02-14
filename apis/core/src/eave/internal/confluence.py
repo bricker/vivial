@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import enum
+from dataclasses import dataclass
 from typing import Any, Optional
 
 import eave.internal.util
@@ -11,10 +11,12 @@ class ConfluenceUserType(enum.Enum):
     anonymous = "anonymous"
     user = "user"
 
+
 class ConfluenceUserAccountType(enum.Enum):
     atlassian = "atlassian"
     app = "app"
     unavailable = ""
+
 
 class ConfluenceContentBodyRepresentation(enum.Enum):
     view = "view"
@@ -30,9 +32,11 @@ class ConfluenceContentBodyRepresentation(enum.Enum):
     raw = "raw"
     _unknown = "_unknown"
 
+
 @dataclass
 class ConfluenceContext:
     base_url: str
+
 
 class ConfluenceGenericLinks:
     self_: str
@@ -74,6 +78,7 @@ class ConfluenceGenericLinks:
 
         return self.base_url + "/wiki" + self.tinyui
 
+
 class ConfluenceBaseModel:
     _data: eave.internal.util.JsonObject
     expandable: Optional[eave.internal.util.JsonObject] = None
@@ -88,17 +93,22 @@ class ConfluenceBaseModel:
         if (expandable := data.get("_expandable")) is not None:
             self.expandable = expandable
 
+
 class ConfluencePageVersion(ConfluenceBaseModel):
     pass
+
 
 class ConfluenceOperationCheckResult(ConfluenceBaseModel):
     pass
 
+
 class ConfluenceUserIcon(ConfluenceBaseModel):
     pass
 
+
 class ConfluenceSpace(ConfluenceBaseModel):
     pass
+
 
 class ConfluenceUserDetails(ConfluenceBaseModel):
     pass
@@ -159,6 +169,7 @@ class ConfluenceUsersUserKeys(ConfluenceBaseModel):
         self.users = data["users"]
         self.user_keys = data["userKeys"]
 
+
 class ConfluencePageContributors(ConfluenceBaseModel):
     publishers: Optional[ConfluenceUsersUserKeys] = None
 
@@ -167,6 +178,7 @@ class ConfluencePageContributors(ConfluenceBaseModel):
 
         if (publishers := data.get("publishers")) is not None:
             self.publishers = ConfluenceUsersUserKeys(publishers, ctx)
+
 
 class ConfluencePageHistory(ConfluenceBaseModel):
     latest: bool
@@ -219,11 +231,14 @@ class ConfluenceMediaToken(ConfluenceBaseModel):
         self.file_ids = data["fileIds"]
         self.token = data["token"]
 
+
 class ConfluenceWebResourceDependencies(ConfluenceBaseModel):
     pass
 
+
 class ConfluenceEmbeddable(ConfluenceBaseModel):
     pass
+
 
 class ConfluenceEmbeddedContent(ConfluenceBaseModel):
     entity_id: int
@@ -237,6 +252,7 @@ class ConfluenceEmbeddedContent(ConfluenceBaseModel):
         self.entity_type = data["entityType"]
         self.entity = ConfluenceEmbeddable(data["entity"], ctx)
 
+
 class ConfluenceContentBody(ConfluenceBaseModel):
     value: str
     representation: ConfluenceContentBodyRepresentation
@@ -249,13 +265,16 @@ class ConfluenceContentBody(ConfluenceBaseModel):
 
         self.value = data["value"]
         self.representation = ConfluenceContentBodyRepresentation(value=data["representation"])
-        self.embedded_content = [ConfluenceEmbeddedContent(embedded_content, ctx) for embedded_content in data["embeddedContent"]]
+        self.embedded_content = [
+            ConfluenceEmbeddedContent(embedded_content, ctx) for embedded_content in data["embeddedContent"]
+        ]
 
         if (media_token := data.get("mediaToken")) is not None:
             self.media_token = ConfluenceMediaToken(media_token, ctx)
 
         if (webresource := data.get("webresource")) is not None:
             self.webresource = ConfluenceWebResourceDependencies(webresource, ctx)
+
 
 class ConfluencePageBody(ConfluenceBaseModel):
     content: Optional[ConfluenceContentBody] = None
@@ -307,6 +326,7 @@ class ConfluencePageBody(ConfluenceBaseModel):
         if (content := data.get(ConfluenceContentBodyRepresentation.raw.value)) is not None:
             self.content = ConfluenceContentBody(content, ctx)
             self.representation = ConfluenceContentBodyRepresentation.raw
+
 
 class ConfluencePage(ConfluenceBaseModel):
     ctx: ConfluenceContext

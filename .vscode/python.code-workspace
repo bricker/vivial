@@ -1,0 +1,33 @@
+{
+	"folders": [
+		{
+			"path": "../apis/core"
+		},
+		{
+			"path": "../integrations/slack"
+		},
+		{
+			"path": "../develop/python"
+		},
+		{
+			"path": "../libs/pubsub-schemas"
+		}
+	],
+	"settings": {
+		"python.formatting.provider": "black",
+		"python.linting.mypyArgs": [
+			"--ignore-missing-imports",
+			"--show-column-numbers",
+			"--no-pretty",
+			"--follow-imports=silent"
+		],
+		"python.linting.mypyEnabled": true,
+		"python.linting.enabled": true,
+		"python.analysis.typeCheckingMode": "basic",
+		"[python]": {
+			"editor.insertSpaces": true,
+			"editor.tabSize": 4,
+			"editor.indentSize": "tabSize"
+		},
+	}
+}

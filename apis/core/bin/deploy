@@ -1,8 +1,0 @@
-#!/usr/bin/env sh
-
-set -e
-
-bin/lint
-bin/test
-gcloud meta list-files-for-upload
-gcloud app deploy

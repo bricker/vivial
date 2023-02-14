@@ -5,8 +5,8 @@ import mockito
 import mockito.matchers
 from atlassian import Confluence
 
-import eave.internal.orm as orm
 import eave.internal.openai
+import eave.internal.orm as orm
 import tests
 from eave.public.shared import (
     DocumentPlatform,
@@ -215,9 +215,13 @@ class TestDocumentsEndpoints(BaseTestCase):
     async def test_update_document_with_existing_content(self) -> None:
         existing_page = fixtures.confluence_document_response(self)
 
-        mockito.when2(Confluence.get_page_by_id, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(existing_page)
+        mockito.when2(Confluence.get_page_by_id, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(
+            existing_page
+        )
         mockito.when2(Confluence.update_page, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(existing_page)
-        mockito.when2(eave.internal.openai.summarize, **mockito.KWARGS).thenReturn(mock_coroutine(self.anystring("openairesponse")))
+        mockito.when2(eave.internal.openai.summarize, **mockito.KWARGS).thenReturn(
+            mock_coroutine(self.anystring("openairesponse"))
+        )
 
         self._subscription.document_reference_id = self._document_reference.id
         await self.save(self._subscription)
@@ -241,8 +245,8 @@ class TestDocumentsEndpoints(BaseTestCase):
 
         mockito.verify(Confluence).update_page(
             page_id=existing_page["id"],
-            title=existing_page["title"], # testing that title wasn't changed
-            body=self.anystring("openairesponse"), # testing that the openai response was used
+            title=existing_page["title"],  # testing that title wasn't changed
+            body=self.anystring("openairesponse"),  # testing that the openai response was used
             representation="wiki",
         )
 

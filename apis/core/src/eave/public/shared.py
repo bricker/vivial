@@ -28,9 +28,11 @@ class SubscriptionSource(BaseModel):
     event: SubscriptionSourceEvent
     id: str
 
+
 class SubscriptionInput(BaseModel):
     source: SubscriptionSource
     context: Optional[str]
+
 
 class PromptInput(BaseModel):
     prompt: str

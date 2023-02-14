@@ -6,8 +6,8 @@ from fastapi import HTTPException, Request, Response
 from pydantic import UUID4, BaseModel, EmailStr
 
 import eave.internal.slack as _slack
-from eave.internal.database import session_factory
 import eave.internal.util
+from eave.internal.database import session_factory
 from eave.internal.orm import AccessRequestOrm, PromptOrm, SubscriptionOrm, TeamOrm
 from eave.public.models import DocumentReferencePublic, SubscriptionPublic, TeamPublic
 from eave.public.shared import DocumentContentInput, PromptInput, SubscriptionInput
@@ -197,6 +197,7 @@ class CreateSubscription:
             document_reference=document_reference_public,
         )
 
+
 class SavePrompt:
     class RequestBody(BaseModel):
         prompt: PromptInput
@@ -204,10 +205,7 @@ class SavePrompt:
     @staticmethod
     async def handler(input: RequestBody, response: Response) -> None:
         async with session_factory() as session:
-            prompt = PromptOrm(
-                prompt=input.prompt.prompt,
-                response=input.prompt.response
-            )
+            prompt = PromptOrm(prompt=input.prompt.prompt, response=input.prompt.response)
 
             session.add(prompt)
             await session.commit()

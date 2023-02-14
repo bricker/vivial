@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: FastAPI (HTTPS)",
+      "name": "Core API",
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
@@ -15,9 +15,9 @@
         "--port",
         "5100",
         "--ssl-certfile",
-        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/cert.pem",
+        "${env:EAVE_HOME}/develop/certs/eave.dev/cert.pem",
         "--ssl-keyfile",
-        "${env:EAVE_HOME}/eave-dev-certs/eave.dev/key.pem",
+        "${env:EAVE_HOME}/develop/certs/eave.dev/key.pem",
         "--reload",
         "eave.app:app"
       ],

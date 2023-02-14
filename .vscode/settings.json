@@ -1,0 +1,11 @@
+{
+  "git.openRepositoryInParentFolders": "always",
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "tests",
+    "-p",
+    "_test.py"
+  ],
+  "python.analysis.typeCheckingMode": "basic"
+}

@@ -1,8 +1,8 @@
 import unittest
-import mockito
 from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID, uuid4
 
+import mockito
 from httpx import AsyncClient
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
@@ -12,6 +12,7 @@ import eave.app
 import eave.internal.orm as orm
 from eave.internal.database import engine, session_factory
 
+
 class AnyStandardOrm(Protocol):
     id: Mapped[UUID]
 
@@ -19,8 +20,10 @@ class AnyStandardOrm(Protocol):
 T = TypeVar("T")
 P = TypeVar("P", bound=AnyStandardOrm)
 
+
 async def mock_coroutine(value: T) -> T:
     return value
+
 
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     _dbconnection: AsyncConnection
