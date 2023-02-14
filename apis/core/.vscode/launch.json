@@ -15,9 +15,9 @@
         "--port",
         "5100",
         "--ssl-certfile",
-        "${env:EAVE_ROOT}/develop/certs/eave.dev/cert.pem",
+        "${env:EAVE_HOME}/develop/certs/eave.dev/cert.pem",
         "--ssl-keyfile",
-        "${env:EAVE_ROOT}/develop/certs/eave.dev/key.pem",
+        "${env:EAVE_HOME}/develop/certs/eave.dev/key.pem",
         "--reload",
         "eave.app:app"
       ],

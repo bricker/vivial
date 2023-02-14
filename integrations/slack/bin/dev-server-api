@@ -9,7 +9,7 @@ set +o allexport
 uvicorn \
     --host slack.eave.dev \
     --port 5200 \
-    --ssl-certfile ${EAVE_ROOT}/eave-dev-certs/eave.dev/cert.pem \
-    --ssl-keyfile ${EAVE_ROOT}/eave-dev-certs/eave.dev/key.pem \
+    --ssl-certfile ${EAVE_HOME}/eave-dev-certs/eave.dev/cert.pem \
+    --ssl-keyfile ${EAVE_HOME}/eave-dev-certs/eave.dev/key.pem \
     --reload \
     eave.app:api
