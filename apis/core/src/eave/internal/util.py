@@ -1,8 +1,13 @@
-from typing import Optional, cast
+from typing import Any, Generic, Optional, TypeVar, cast
 from uuid import UUID
-
 from starlette.datastructures import State
 
+JsonObject = dict[str, Any]
+
+# JsonScalar = str | int | bool
+# JsonObject = dict[str, "AnyJsonType"]
+# JsonArray = list["AnyJsonType"]
+# AnyJsonType = JsonObject | JsonArray | JsonScalar
 
 class StateWrapper:
     """

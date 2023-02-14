@@ -48,6 +48,10 @@ class Settings:
         return self.get_secret("DB_PASS")
 
     @cached_property
+    def eave_openapi_key(self) -> Optional[str]:
+        return self.get_secret("OPENAI_API_KEY")
+
+    @cached_property
     def eave_slack_system_bot_token(self) -> Optional[str]:
         return self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
 

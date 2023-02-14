@@ -15,6 +15,10 @@ class TeamLookupMiddleware:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         request = Request(scope)
 
         team_id = request.headers.get("eave-team-id")

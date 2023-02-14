@@ -10,3 +10,5 @@ slack_sdk
 aiohttp
 email-validator
 google-cloud-logging
+openai
+tiktoken

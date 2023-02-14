@@ -1,19 +1,16 @@
 import json
-import logging
 from http import HTTPStatus
-from typing import Optional, TypeVar
-from uuid import UUID
+from typing import Optional
 
-from fastapi import Depends, HTTPException, Request, Response
+from fastapi import HTTPException, Request, Response
 from pydantic import UUID4, BaseModel, EmailStr
 
 import eave.internal.slack as _slack
 from eave.internal.database import session_factory
-from eave.internal.json_object import JsonObject
-from eave.internal.orm import AccessRequestOrm, SubscriptionOrm, TeamOrm
-from eave.internal.state_wrapper import StateWrapper
+import eave.internal.util
+from eave.internal.orm import AccessRequestOrm, PromptOrm, SubscriptionOrm, TeamOrm
 from eave.public.models import DocumentReferencePublic, SubscriptionPublic, TeamPublic
-from eave.public.shared import DocumentContentInput, SubscriptionInput
+from eave.public.shared import DocumentContentInput, PromptInput, SubscriptionInput
 
 
 class GetStatus:
@@ -29,7 +26,7 @@ class CreateAccessRequest:
     class RequestBody(BaseModel):
         visitor_id: Optional[UUID4]
         email: EmailStr
-        opaque_input: Optional[JsonObject]
+        opaque_input: Optional[eave.internal.util.JsonObject]
 
     @staticmethod
     async def handler(input: RequestBody, response: Response) -> Response:
@@ -68,7 +65,7 @@ class UpsertDocument:
 
     @staticmethod
     async def handler(input: RequestBody, request: Request, response: Response) -> ResponseBody:
-        state = StateWrapper(request.state)
+        state = eave.internal.util.StateWrapper(request.state)
         if state.team_id is None:
             raise HTTPException(HTTPStatus.FORBIDDEN)
 
@@ -122,7 +119,7 @@ class GetSubscription:
 
     @staticmethod
     async def handler(input: RequestBody, request: Request, response: Response) -> ResponseBody:
-        state = StateWrapper(request.state)
+        state = eave.internal.util.StateWrapper(request.state)
         if state.team_id is None:
             raise HTTPException(HTTPStatus.FORBIDDEN)
 
@@ -163,7 +160,7 @@ class CreateSubscription:
 
     @staticmethod
     async def handler(input: RequestBody, request: Request, response: Response) -> ResponseBody:
-        state = StateWrapper(request.state)
+        state = eave.internal.util.StateWrapper(request.state)
         if state.team_id is None:
             raise HTTPException(HTTPStatus.FORBIDDEN)
 
@@ -199,3 +196,20 @@ class CreateSubscription:
             subscription=SubscriptionPublic.from_orm(subscription_orm),
             document_reference=document_reference_public,
         )
+
+class SavePrompt:
+    class RequestBody(BaseModel):
+        prompt: PromptInput
+
+    @staticmethod
+    async def handler(input: RequestBody, response: Response) -> None:
+        async with session_factory() as session:
+            prompt = PromptOrm(
+                prompt=input.prompt.prompt,
+                response=input.prompt.response
+            )
+
+            session.add(prompt)
+            await session.commit()
+
+        response.status_code = HTTPStatus.ACCEPTED

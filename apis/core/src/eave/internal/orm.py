@@ -15,7 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from eave.internal.confluence import ConfluencePage
-from eave.internal.json_object import JsonObject
+import eave.internal.openai
+import eave.internal.util
+import eave.internal.confluence
 from eave.public.shared import (
     DocumentContentInput,
     DocumentPlatform,
@@ -197,53 +199,128 @@ class ConfluenceDestinationOrm(Base):
 
     @cache
     def confluence_client(self) -> atlassian.Confluence:
+        """
+        Atlassian Python API Docs: https://atlassian-python-api.readthedocs.io/
+        """
         return atlassian.Confluence(
             url=self.url,
             username=self.api_username,
             password=self.api_key,
         )
 
-    async def create_document(self, document: DocumentContentInput, session: AsyncSession) -> DocumentReferenceOrm:
-        response = self.confluence_client().create_page(
-            space=self.space,
-            representation="wiki",
-            title=document.title,
-            body=document.content,
-        )
-        if response is None:
-            raise Exception("No response data returned from Confluence")
+    @property
+    @cache
+    def confluence_context(self) -> eave.internal.confluence.ConfluenceContext:
+        return eave.internal.confluence.ConfluenceContext(base_url=self.url)
 
-        json = cast(JsonObject, response)
-        page = ConfluencePage(json)
+    async def create_document(self, document: DocumentContentInput, session: AsyncSession) -> DocumentReferenceOrm:
+        confluence_page = await self.get_or_create_confluence_page(document=document)
+
+        url = None
+        if confluence_page.links is not None and confluence_page.links.tinyui_url is not None:
+            url = confluence_page.links.tinyui_url
+
         document_reference = DocumentReferenceOrm(
             team_id=self.team_id,
-            document_id=page.id,
-            document_url=page.links.tinyui_url,
+            document_id=confluence_page.id,
+            document_url=url,
         )
 
         session.add(document_reference)
         return document_reference
 
+
     async def update_document(
         self, document: DocumentContentInput, document_reference: DocumentReferenceOrm
     ) -> DocumentReferenceOrm:
         """
-        This function pushes the given content to a new Confluence document.
-        We currently leverage the Atlassian Python API to communicate with Confluence.
-
-        Atlassian Python API Docs: https://atlassian-python-api.readthedocs.io/
+        Update an existing Confluence document with the new body.
+        Notably, the title and parent are not changed.
         """
+        existing_page = await self.get_confluence_page_by_id(document_reference=document_reference)
+        if existing_page is None:
+            # TODO: This page was probably deleted. Remove it from our database?
+            raise NotImplementedError()
+
+        # TODO: Use a different body format? Currently it will probably return the "storage" format,
+        # which is XML (HTML), and probably not great for an OpenAI prompt.
+        if existing_page.body is not None and existing_page.body.content is not None:
+            # TODO: Token counting
+            prompt = (
+                f"{eave.internal.openai.PROMPT_PREFIX}\n"
+                "Combine the following two documents together such that all important information is retained, "
+                "but duplicate, unnecessary, irrelevant, or outdated information is removed.\n\n"
+                "###\n\n"
+                "=== Document 1: ===\n\n"
+                f"{existing_page.body.content}\n\n"
+                "=== Document 2: ===\n\n"
+                f"{document.content}\n\n"
+                "###\n\n"
+                "=== Result: ===\n\n"
+            )
+            openai_params = eave.internal.openai.CompletionParameters(
+                temperature=0.2,
+                prompt=prompt,
+            )
+            resolved_document_body = await eave.internal.openai.summarize(params=openai_params)
+            assert resolved_document_body is not None
+        else:
+            resolved_document_body = document.content
+
         response = self.confluence_client().update_page(
             page_id=document_reference.document_id,
             representation="wiki",
-            title=document.title,
-            body=document.content,
+            title=existing_page.title,
+            body=resolved_document_body,
         )
-        if response is None:
-            raise Exception("No response data returned from Confluence")
-
+        assert response is not None
         return document_reference
 
+    async def get_or_create_confluence_page(self, document: DocumentContentInput) -> ConfluencePage:
+        existing_page = await self.get_confluence_page_by_title(document=document)
+        if existing_page is not None:
+            return existing_page
+
+        parent_page = None
+        if document.parent is not None:
+            parent_page = await self.get_or_create_confluence_page(document=document.parent)
+
+        response = self.confluence_client().create_page(
+            space=self.space,
+            representation="wiki",
+            title=document.title,
+            body=document.content,
+            parent_id=parent_page.id if parent_page is not None else None,
+        )
+        assert response is not None
+
+        json = cast(eave.internal.util.JsonObject, response)
+        page = ConfluencePage(json, self.confluence_context)
+        return page
+
+    async def get_confluence_page_by_id(self, document_reference: DocumentReferenceOrm) -> ConfluencePage | None:
+        response = self.confluence_client().get_page_by_id(
+            page_id=document_reference.document_id,
+            expand=["history"],
+        )
+        if response is None:
+            return None
+
+        json = cast(eave.internal.util.JsonObject, response)
+        page = ConfluencePage(json, self.confluence_context)
+        return page
+
+    async def get_confluence_page_by_title(self, document: DocumentContentInput) -> ConfluencePage | None:
+        response = self.confluence_client().get_page_by_title(
+            space=self.space,
+            title=document.title,
+        )
+        if response is None:
+            return None
+
+        json = cast(eave.internal.util.JsonObject, response)
+        page = ConfluencePage(json, self.confluence_context)
+        return page
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -284,6 +361,20 @@ class TeamOrm(Base):
         team = await session.scalar(lookup)
         return team
 
+class EmbeddingsOrm(Base):
+    __tablename__ = "embeddings"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        make_team_composite_fk("document_reference_id", "document_references"),
+    )
+
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(default=uuid4)
+    vector: Mapped[str] = mapped_column() # comma-separated list of vector values (floats)
+    document_reference_id: Mapped[UUID] = mapped_column()
+    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
 # class ApiKeyOrm(Base):
 #     __tablename__ = "api_keys"

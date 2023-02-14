@@ -6,6 +6,7 @@ import mockito.matchers
 from atlassian import Confluence
 
 import eave.internal.orm as orm
+import eave.internal.openai
 import tests
 from eave.public.shared import (
     DocumentPlatform,
@@ -13,8 +14,7 @@ from eave.public.shared import (
     SubscriptionSourcePlatform,
 )
 from tests import fixtures
-from tests.base import BaseTestCase
-from tests.fixtures import confluence_document_response
+from tests.base import BaseTestCase, mock_coroutine
 
 
 class TestStatusEndpoint(BaseTestCase):
@@ -135,7 +135,7 @@ class TestDocumentsEndpoints(BaseTestCase):
 
         document_reference = orm.DocumentReferenceOrm(
             team_id=self._team.id,
-            document_id=self.anystring("cdid"),
+            document_id=self.anystring("confluence_document_response.id"),
             document_url=self.anystring("cdurl"),
         )
         self._document_reference = await self.save(document_reference)
@@ -148,26 +148,26 @@ class TestDocumentsEndpoints(BaseTestCase):
         )
         self._subscription = await self.save(subscription)
 
-    async def test_create_document(self) -> None:
-        with mockito.when2(Confluence.create_page, **mockito.KWARGS).thenReturn(
-            fixtures.confluence_document_response(self)
-        ):
-            response = await self.httpclient.post(
-                "/documents/upsert",
-                headers={
-                    "eave-team-id": str(self._team.id),
-                },
-                json={
-                    "document": {"title": self.anystring("title"), "content": self.anystring("content")},
-                    "subscription": {
-                        "source": {
-                            "platform": self._subscription.source.platform,
-                            "event": self._subscription.source.event,
-                            "id": self._subscription.source.id,
-                        },
+    async def test_create_document_with_unique_title(self) -> None:
+        mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(None)
+        mockito.when2(Confluence.create_page, **mockito.KWARGS).thenReturn(fixtures.confluence_document_response(self))
+
+        response = await self.httpclient.post(
+            "/documents/upsert",
+            headers={
+                "eave-team-id": str(self._team.id),
+            },
+            json={
+                "document": {"title": self.anystring("title"), "content": self.anystring("content")},
+                "subscription": {
+                    "source": {
+                        "platform": self._subscription.source.platform,
+                        "event": self._subscription.source.event,
+                        "id": self._subscription.source.id,
                     },
                 },
-            )
+            },
+        )
 
         self._subscription = await self.reload(self._subscription)
         document_reference = await self._subscription.get_document_reference(session=self.dbsession)
@@ -199,29 +199,52 @@ class TestDocumentsEndpoints(BaseTestCase):
             },
         )
 
-    async def test_update_document(self) -> None:
+    async def test_create_document_with_duplicate_title(self) -> None:
+        self.fail()
+
+        existing_document = fixtures.confluence_document_response(self)
+        mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(existing_document)
+
+    async def test_update_document_with_missing_page(self) -> None:
+        """
+        Test what happens if the page was deleted
+        """
+        self.skipTest("Not implemented")
+        mockito.when2(Confluence.get_page_by_id, **mockito.KWARGS).thenReturn(None)
+
+    async def test_update_document_with_existing_content(self) -> None:
+        existing_page = fixtures.confluence_document_response(self)
+
+        mockito.when2(Confluence.get_page_by_id, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(existing_page)
+        mockito.when2(Confluence.update_page, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(existing_page)
+        mockito.when2(eave.internal.openai.summarize, **mockito.KWARGS).thenReturn(mock_coroutine(self.anystring("openairesponse")))
+
         self._subscription.document_reference_id = self._document_reference.id
         await self.save(self._subscription)
 
-        with mockito.when2(Confluence.update_page, **mockito.KWARGS).thenReturn(
-            fixtures.confluence_document_response(self)
-        ):
-            response = await self.httpclient.post(
-                "/documents/upsert",
-                headers={
-                    "eave-team-id": str(self._team.id),
-                },
-                json={
-                    "document": {"title": self.anystring("title"), "content": self.anystring("content")},
-                    "subscription": {
-                        "source": {
-                            "platform": self._subscription.source.platform,
-                            "event": self._subscription.source.event,
-                            "id": self._subscription.source.id,
-                        },
+        response = await self.httpclient.post(
+            "/documents/upsert",
+            headers={
+                "eave-team-id": str(self._team.id),
+            },
+            json={
+                "document": {"title": self.anystring("title"), "content": self.anystring("content")},
+                "subscription": {
+                    "source": {
+                        "platform": self._subscription.source.platform,
+                        "event": self._subscription.source.event,
+                        "id": self._subscription.source.id,
                     },
                 },
-            )
+            },
+        )
+
+        mockito.verify(Confluence).update_page(
+            page_id=existing_page["id"],
+            title=existing_page["title"], # testing that title wasn't changed
+            body=self.anystring("openairesponse"), # testing that the openai response was used
+            representation="wiki",
+        )
 
         self.assertEqual(response.status_code, HTTPStatus.ACCEPTED)
         self.assertDictEqual(

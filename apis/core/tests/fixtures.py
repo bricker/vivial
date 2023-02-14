@@ -1,11 +1,10 @@
 import json
 from random import randint
 
-from eave.internal.json_object import JsonObject
+import eave.internal.util
 from tests.base import BaseTestCase
 
-
-def confluence_document_response(test_case: BaseTestCase) -> JsonObject:
+def confluence_document_response(test_case: BaseTestCase) -> eave.internal.util.JsonObject:
     return {
         "id": test_case.anystring("confluence_document_response.id"),
         "type": "page",

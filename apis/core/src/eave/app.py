@@ -19,11 +19,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://www.eave.fyi",
-        "https://www.eave.dev:5000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -34,8 +30,9 @@ app.get("/status")(_requests.GetStatus.handler)
 app.get("/_ah/start")(_requests.GetStatus.handler)
 app.get("/_ah/stop")(_requests.GetStatus.handler)
 app.get("/_ah/warmup")(_requests.GetStatus.handler)
-app.post("/access_request")(_requests.CreateAccessRequest.handler)
 
+app.post("/access_request")(_requests.CreateAccessRequest.handler)
 app.post("/documents/upsert")(_requests.UpsertDocument.handler)
 app.post("/subscriptions/create")(_requests.CreateSubscription.handler)
 app.post("/subscriptions/query")(_requests.GetSubscription.handler)
+app.post("/prompts/save")(_requests.SavePrompt.handler)

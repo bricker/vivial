@@ -1,4 +1,5 @@
 import enum
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -11,6 +12,7 @@ class DocumentPlatform(str, enum.Enum):
 class DocumentContentInput(BaseModel):
     title: str
     content: str
+    parent: Optional["DocumentContentInput"]
 
 
 class SubscriptionSourcePlatform(str, enum.Enum):
@@ -26,6 +28,10 @@ class SubscriptionSource(BaseModel):
     event: SubscriptionSourceEvent
     id: str
 
-
 class SubscriptionInput(BaseModel):
     source: SubscriptionSource
+    context: Optional[str]
+
+class PromptInput(BaseModel):
+    prompt: str
+    response: str

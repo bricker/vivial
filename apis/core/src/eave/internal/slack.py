@@ -8,7 +8,7 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 import eave.public.requests as _requests
-from eave.internal.json_object import JsonObject
+import eave.internal.util
 from eave.internal.settings import APP_SETTINGS
 
 slack_client = AsyncWebClient(token=APP_SETTINGS.eave_slack_system_bot_token)
@@ -25,7 +25,7 @@ def notify_slack(*args: Any, **kwargs: Any) -> None:
     _slacktasks.add(task)
 
 
-async def _task_notify_slack(email: EmailStr, visitor_id: Optional[UUID4], opaque_input: Optional[JsonObject]) -> None:
+async def _task_notify_slack(email: EmailStr, visitor_id: Optional[UUID4], opaque_input: Optional[eave.internal.util.JsonObject]) -> None:
     try:
         slackresponse = await slack_client.chat_postMessage(
             channel=slack_channels["sign_ups"],

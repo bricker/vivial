@@ -1,4 +1,5 @@
 import unittest
+import mockito
 from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID, uuid4
 
@@ -11,7 +12,6 @@ import eave.app
 import eave.internal.orm as orm
 from eave.internal.database import engine, session_factory
 
-
 class AnyStandardOrm(Protocol):
     id: Mapped[UUID]
 
@@ -19,6 +19,8 @@ class AnyStandardOrm(Protocol):
 T = TypeVar("T")
 P = TypeVar("P", bound=AnyStandardOrm)
 
+async def mock_coroutine(value: T) -> T:
+    return value
 
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     _dbconnection: AsyncConnection
@@ -45,6 +47,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
+        mockito.verifyStubbedInvocationsAreUsed()
+        mockito.unstub()
         await self._dbconnection.close()
         await self.httpclient.aclose()
         await self.dbsession.close()
