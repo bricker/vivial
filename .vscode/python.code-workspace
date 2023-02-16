@@ -11,6 +11,12 @@
 		},
 		{
 			"path": "../libs/pubsub-schemas"
+		},
+		{
+			"path": "../integrations/confluence"
+		},
+		{
+			"path": "../develop/javascript"
 		}
 	],
 	"settings": {

@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+gunicorn
+google-cloud-secret-manager
+google-cloud-pubsub
+google-crc32c
+aiohttp
+openai
+google-cloud-logging
+tiktoken
