@@ -198,16 +198,16 @@ class CreateSubscription:
         )
 
 
-class SavePrompt:
-    class RequestBody(BaseModel):
-        prompt: PromptInput
+# class SavePrompt:
+#     class RequestBody(BaseModel):
+#         prompt: PromptInput
 
-    @staticmethod
-    async def handler(input: RequestBody, response: Response) -> None:
-        async with session_factory() as session:
-            prompt = PromptOrm(prompt=input.prompt.prompt, response=input.prompt.response)
+#     @staticmethod
+#     async def handler(input: RequestBody, response: Response) -> None:
+#         async with session_factory() as session:
+#             prompt = PromptOrm(prompt=input.prompt.prompt, response=input.prompt.response)
 
-            session.add(prompt)
-            await session.commit()
+#             session.add(prompt)
+#             await session.commit()
 
-        response.status_code = HTTPStatus.ACCEPTED
+#         response.status_code = HTTPStatus.ACCEPTED

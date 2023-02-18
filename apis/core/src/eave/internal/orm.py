@@ -362,20 +362,20 @@ class TeamOrm(Base):
         return team
 
 
-class EmbeddingsOrm(Base):
-    __tablename__ = "embeddings"
-    __table_args__ = (
-        make_team_composite_pk(),
-        make_team_fk(),
-        make_team_composite_fk("document_reference_id", "document_references"),
-    )
+# class EmbeddingsOrm(Base):
+#     __tablename__ = "embeddings"
+#     __table_args__ = (
+#         make_team_composite_pk(),
+#         make_team_fk(),
+#         make_team_composite_fk("document_reference_id", "document_references"),
+#     )
 
-    team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(default=uuid4)
-    vector: Mapped[str] = mapped_column()  # comma-separated list of vector values (floats)
-    document_reference_id: Mapped[UUID] = mapped_column()
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+#     team_id: Mapped[UUID] = mapped_column()
+#     id: Mapped[UUID] = mapped_column(default=uuid4)
+#     vector: Mapped[str] = mapped_column()  # comma-separated list of vector values (floats)
+#     document_reference_id: Mapped[UUID] = mapped_column()
+#     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+#     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 # class ApiKeyOrm(Base):

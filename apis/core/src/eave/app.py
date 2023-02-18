@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import eave.public.requests as _requests
@@ -35,4 +35,4 @@ app.post("/access_request")(_requests.CreateAccessRequest.handler)
 app.post("/documents/upsert")(_requests.UpsertDocument.handler)
 app.post("/subscriptions/create")(_requests.CreateSubscription.handler)
 app.post("/subscriptions/query")(_requests.GetSubscription.handler)
-app.post("/prompts/save")(_requests.SavePrompt.handler)
+# app.post("/prompts/save")(_requests.SavePrompt.handler)

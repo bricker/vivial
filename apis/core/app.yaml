@@ -12,5 +12,5 @@ entrypoint: gunicorn --chdir src --worker-class uvicorn.workers.UvicornWorker ea
 
 env_variables:
   EAVE_DB_NAME: "eave"
-  EAVE_DB_HOST: "/cloudsql/eave-production:us-central1:eave-development"
+  EAVE_DB_HOST: "/cloudsql/eave-production:us-central1:eave-pg-core"
   EAVE_MONITORING_ENABLED: "1"
