@@ -10,6 +10,7 @@ class DocumentPlatform(str, enum.Enum):
     google_drive = "google_drive"
     unspecified = "unspecified"
 
+
 class DocumentContentInput(BaseModel):
     title: str
     content: str

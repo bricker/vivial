@@ -7,6 +7,7 @@ from logging.config import fileConfig
 
 from sqlalchemy import Connection
 
+import eave.internal.orm
 from alembic import context
 from eave.internal.database import engine
 
@@ -21,7 +22,6 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-import eave.internal.orm
 
 target_metadata = eave.internal.orm.Base.metadata
 

@@ -1,5 +1,5 @@
-from datetime import datetime
 import enum
+from datetime import datetime
 from functools import cache
 from typing import Optional, cast
 from uuid import UUID, uuid4
@@ -322,6 +322,7 @@ class ConfluenceDestinationOrm(Base):
         page = ConfluencePage(json, cast(ConfluenceContext, self.confluence_context))
         return page
 
+
 # class SlackSource(Base):
 #     __tablename__ = "slack_sources"
 #     __table_args__ = (
@@ -342,6 +343,7 @@ class ConfluenceDestinationOrm(Base):
 #     slack_install_id: Mapped[str] = mapped_column()
 #     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 #     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -382,17 +384,21 @@ class TeamOrm(Base):
         team = await session.scalar(lookup)
         return team
 
+
 class AuthProvider(enum.Enum):
     google = "google"
+
 
 class AccountOrm(Base):
     __tablename__ = "accounts"
     __table_args__ = (
-        make_team_composite_pk(),
+        PrimaryKeyConstraint("id"),
         make_team_fk(),
-        PrimaryKeyConstraint(
+        Index(
+            "auth_provider_auth_id",
             "auth_provider",
             "auth_id",
+            unique=True,
         ),
     )
 
@@ -406,15 +412,11 @@ class AccountOrm(Base):
 
     @classmethod
     async def find_one(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Optional["AccountOrm"]:
-        lookup = (
-            select(cls)
-                .where(cls.auth_provider == auth_provider)
-                .where(cls.auth_id == auth_id)
-                .limit(1)
-        )
+        lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
 
         account = await session.scalar(lookup)
         return account
+
 
 # class EmbeddingsOrm(Base):
 #     __tablename__ = "embeddings"

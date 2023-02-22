@@ -6,14 +6,20 @@ from fastapi import HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from pydantic import UUID4, BaseModel, EmailStr
 
+import eave.internal.google_oauth
 import eave.internal.slack as _slack
 import eave.internal.util
-import eave.internal.google_oauth
-from eave.internal.settings import APP_SETTINGS
 from eave.internal.database import session_factory
-from eave.internal.orm import AccessRequestOrm, AuthProvider, SubscriptionOrm, TeamOrm, AccountOrm
+from eave.internal.orm import (
+    AccessRequestOrm,
+    AccountOrm,
+    AuthProvider,
+    SubscriptionOrm,
+    TeamOrm,
+)
+from eave.internal.settings import APP_SETTINGS
 from eave.public.models import DocumentReferencePublic, SubscriptionPublic, TeamPublic
-from eave.public.shared import DocumentContentInput, SubscriptionInput, DocumentPlatform
+from eave.public.shared import DocumentContentInput, DocumentPlatform, SubscriptionInput
 
 
 class GetStatus:
@@ -201,6 +207,7 @@ class CreateSubscription:
             document_reference=document_reference_public,
         )
 
+
 class GoogleOauthInit:
     @staticmethod
     async def handler() -> Response:
@@ -211,6 +218,7 @@ class GoogleOauthInit:
             value=oauth_flow_info.state,
         )
         return response
+
 
 class GoogleOauthCallback:
     class RequestBody(BaseModel):
@@ -223,10 +231,7 @@ class GoogleOauthCallback:
         state = request.cookies.get("ev_oauth_state")
         assert state is not None
 
-        credentials = eave.internal.google_oauth.get_oauth_credentials(
-            uri=str(request.url),
-            state=state
-        )
+        credentials = eave.internal.google_oauth.get_oauth_credentials(uri=str(request.url), state=state)
 
         assert credentials.id_token is not None
         token = eave.internal.google_oauth.decode_id_token(id_token=credentials.id_token)
@@ -235,16 +240,12 @@ class GoogleOauthCallback:
         given_name = token.get("given_name")
 
         async with session_factory() as session:
-            account_orm = await AccountOrm.find_one(
-                session=session,
-                auth_provider=AuthProvider.google,
-                auth_id=userid
-            )
+            account_orm = await AccountOrm.find_one(session=session, auth_provider=AuthProvider.google, auth_id=userid)
 
             if account_orm is None:
                 team = TeamOrm(
                     name=f"{given_name}'s Team" if given_name is not None else "Your Team",
-                    document_platform=DocumentPlatform.unspecified
+                    document_platform=DocumentPlatform.unspecified,
                 )
 
                 session.add(team)
@@ -264,6 +265,7 @@ class GoogleOauthCallback:
 
         response = RedirectResponse(url=f"{APP_SETTINGS.eave_www_base}/setup")
         response.delete_cookie(**shared_state_cookie_params())
+
 
 def shared_state_cookie_params() -> eave.internal.util.JsonObject:
     params = {
