@@ -11,13 +11,9 @@
       "module": "uvicorn",
       "args": [
         "--host",
-        "slack.eave.dev",
+        "localhost",
         "--port",
         "5200",
-        "--ssl-certfile",
-        "${env:EAVE_HOME}/develop/certs/eave.dev/cert.pem",
-        "--ssl-keyfile",
-        "${env:EAVE_HOME}/develop/certs/eave.dev/key.pem",
         "--reload",
         "eave.app:api"
       ],
@@ -29,8 +25,15 @@
       "type": "python",
       "request": "launch",
       "program": "./src/socketmode.py",
+      "autoReload": {
+        "enable": true,
+        "include": [
+          "**/*.py",
+        ]
+      },
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env"
     },
   ]
 }

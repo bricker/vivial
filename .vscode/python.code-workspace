@@ -17,6 +17,15 @@
 		},
 		{
 			"path": "../develop/javascript"
+		},
+		{
+			"path": "../web/marketing"
+		},
+		{
+			"path": "../libs/api-schemas"
+		},
+		{
+			"path": "../bin"
 		}
 	],
 	"settings": {

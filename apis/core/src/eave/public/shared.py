@@ -7,7 +7,8 @@ from pydantic import BaseModel
 class DocumentPlatform(str, enum.Enum):
     eave = "eave"
     confluence = "confluence"
-
+    google_drive = "google_drive"
+    unspecified = "unspecified"
 
 class DocumentContentInput(BaseModel):
     title: str

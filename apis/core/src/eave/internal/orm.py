@@ -1,4 +1,5 @@
 from datetime import datetime
+import enum
 from functools import cache
 from typing import Optional, cast
 from uuid import UUID, uuid4
@@ -17,7 +18,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import eave.internal.confluence
 import eave.internal.openai
 import eave.internal.util
-from eave.internal.confluence import ConfluencePage
+from eave.internal.confluence import ConfluenceContext, ConfluencePage
 from eave.public.shared import (
     DocumentContentInput,
     DocumentPlatform,
@@ -294,7 +295,7 @@ class ConfluenceDestinationOrm(Base):
         assert response is not None
 
         json = cast(eave.internal.util.JsonObject, response)
-        page = ConfluencePage(json, self.confluence_context)
+        page = ConfluencePage(json, cast(ConfluenceContext, self.confluence_context))
         return page
 
     async def get_confluence_page_by_id(self, document_reference: DocumentReferenceOrm) -> ConfluencePage | None:
@@ -306,7 +307,7 @@ class ConfluenceDestinationOrm(Base):
             return None
 
         json = cast(eave.internal.util.JsonObject, response)
-        page = ConfluencePage(json, self.confluence_context)
+        page = ConfluencePage(json, cast(ConfluenceContext, self.confluence_context))
         return page
 
     async def get_confluence_page_by_title(self, document: DocumentContentInput) -> ConfluencePage | None:
@@ -318,9 +319,29 @@ class ConfluenceDestinationOrm(Base):
             return None
 
         json = cast(eave.internal.util.JsonObject, response)
-        page = ConfluencePage(json, self.confluence_context)
+        page = ConfluencePage(json, cast(ConfluenceContext, self.confluence_context))
         return page
 
+# class SlackSource(Base):
+#     __tablename__ = "slack_sources"
+#     __table_args__ = (
+#         make_team_composite_pk(),
+#         make_team_fk(),
+#         Index(
+#             "slack_install_id",
+#             "team_id",
+#             "source_platform",
+#             "source_event",
+#             "source_id",
+#             unique=True,
+#         ),
+#     )
+
+#     team_id: Mapped[UUID] = mapped_column()
+#     id: Mapped[UUID] = mapped_column(default=uuid4)
+#     slack_install_id: Mapped[str] = mapped_column()
+#     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+#     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -361,6 +382,39 @@ class TeamOrm(Base):
         team = await session.scalar(lookup)
         return team
 
+class AuthProvider(enum.Enum):
+    google = "google"
+
+class AccountOrm(Base):
+    __tablename__ = "accounts"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        PrimaryKeyConstraint(
+            "auth_provider",
+            "auth_id",
+        ),
+    )
+
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(default=uuid4)
+    auth_provider: Mapped[AuthProvider] = mapped_column()
+    auth_id: Mapped[str] = mapped_column(unique=True)
+    oauth_token: Mapped[str] = mapped_column()
+    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @classmethod
+    async def find_one(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Optional["AccountOrm"]:
+        lookup = (
+            select(cls)
+                .where(cls.auth_provider == auth_provider)
+                .where(cls.auth_id == auth_id)
+                .limit(1)
+        )
+
+        account = await session.scalar(lookup)
+        return account
 
 # class EmbeddingsOrm(Base):
 #     __tablename__ = "embeddings"

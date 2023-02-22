@@ -8,7 +8,7 @@ automatic_scaling:
 inbound_services:
 - warmup
 
-entrypoint: gunicorn app:app
+entrypoint: gunicorn --chdir src/server eave.app:app
 
 env_variables:
   EAVE_ANALYTICS_ENABLED: "1"

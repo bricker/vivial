@@ -1,4 +1,4 @@
-runtime: python310
+runtime: python311
 service: api
 instance_class: F1
 automatic_scaling:
@@ -14,3 +14,6 @@ env_variables:
   EAVE_DB_NAME: "eave"
   EAVE_DB_HOST: "/cloudsql/eave-production:us-central1:eave-pg-core"
   EAVE_MONITORING_ENABLED: "1"
+  EAVE_COOKIE_DOMAIN: ".eave.fyi"
+  EAVE_API_BASE: "https://api.eave.fyi"
+  EAVE_WWW_BASE: "https://www.eave.fyi"

@@ -89,4 +89,7 @@ async def slack_event(req: Request) -> None:
 @api.get("/_ah/warmup")
 @api.get("/_ah/stop")
 def health() -> dict[str, str]:
-    return {"status": "1"}
+    return {
+        "status": "1",
+        "service": "slack",
+    }

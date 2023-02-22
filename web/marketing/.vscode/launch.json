@@ -5,46 +5,47 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Flask (HTTPS)",
+      "name": "Marketing Website (Server)",
       "type": "python",
       "request": "launch",
       "module": "flask",
-      "env": {
-        "FLASK_APP": "app.py",
-        "FLASK_DEBUG": "1",
-      },
+      "envFile": ".env",
       "args": [
+        "--app",
+        "src/server/eave/app.py",
         "run",
         "--no-debugger",
         "--host",
-        "www.eave.dev",
+        "localhost",
         "--port",
-        "5000",
-        "--cert=${env:EAVE_HOME}/eave-dev-certs/eave.dev/cert.pem",
-        "--key=${env:EAVE_HOME}/eave-dev-certs/eave.dev/key.pem"
+        "5000"
       ],
       "jinja": true,
       "justMyCode": true
     },
     {
-      "name": "Python: Flask (HTTP)",
-      "type": "python",
+      "name": "Marketing Website (Client)",
+      "type": "node",
       "request": "launch",
-      "module": "flask",
-      "env": {
-        "FLASK_APP": "app.py",
-        "FLASK_DEBUG": "1",
-      },
+      "envFile": ".env",
+      "program": "./node_modules/.bin/webpack",
       "args": [
-        "run",
-        "--no-debugger",
-        "--host",
-        "www.eave.dev",
+        "serve",
         "--port",
-        "5000",
+        "5001"
       ],
-      "jinja": true,
-      "justMyCode": true
+      "console": "integratedTerminal"
+    },
+
+  ],
+  "compounds": [
+    {
+      "name": "Marketing Website",
+      "configurations": [
+        "Marketing Website (Client)",
+        "Marketing Website (Server)"
+      ],
+      "stopAll": true
     }
   ]
 }

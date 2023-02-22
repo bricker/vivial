@@ -7,7 +7,6 @@ package*.json
 *.md
 webpack.config.js
 bin/
-src/
-certs/
+src/client
 requirements-dev.txt
 pyproject.toml

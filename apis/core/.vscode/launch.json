@@ -11,7 +11,7 @@
       "module": "uvicorn",
       "args": [
         "--host",
-        "api.eave.dev",
+        "localhost",
         "--port",
         "5100",
         // "--ssl-certfile",
@@ -19,6 +19,8 @@
         // "--ssl-keyfile",
         // "${env:EAVE_HOME}/develop/certs/eave.dev/key.pem",
         "--reload",
+        "--app-dir",
+        "src",
         "eave.app:app"
       ],
       "jinja": true,

@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
-  entry: path.join(__dirname, 'src', 'index.js'),
+  entry: path.join(__dirname, 'src', 'client', 'index.js'),
   devtool: 'eval-source-map',
   output: {
     path: path.resolve(__dirname, 'static', 'dist'),
@@ -30,7 +30,7 @@ module.exports = {
     ],
   },
   devServer: {
-    server: 'https',
+    server: 'http',
     client: {
       overlay: false,
     },

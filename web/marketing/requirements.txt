@@ -1,3 +1,7 @@
 gunicorn
-python-dotenv
 flask
+google-cloud-secret-manager
+google-crc32c
+google-cloud-logging
+google-cloud-pubsub
+google-cloud-kms
