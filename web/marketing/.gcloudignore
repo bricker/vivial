@@ -10,3 +10,4 @@ bin/
 src/client
 requirements-dev.txt
 pyproject.toml
+cloudbuild.json

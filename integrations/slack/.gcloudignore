@@ -7,3 +7,4 @@ requirements-dev.txt
 bin
 tests
 *_test.py
+cloudbuild.json
