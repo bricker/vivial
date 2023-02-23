@@ -10,7 +10,7 @@ class Footer extends React.Component {
     return (
       <footer className={classes.outerContainer}>
         <Copy className={classes.innerContainer} variant="footnote">
-          © {year} Eave, Inc. All rights reserved.
+          © {year} Eave Technologies, Inc. All rights reserved.
         </Copy>
       </footer>
     );
