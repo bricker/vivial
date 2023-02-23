@@ -8,3 +8,4 @@ bin
 tests
 *_test.py
 cloudbuild.json
+src/socketmode.py

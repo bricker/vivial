@@ -1,12 +1,15 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 echo "This script requires the gcloud SDK to be installed and in your path"
 echo "Additionally, a python2 program must be installed and in your PATH."
 echo "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"
 
+set -o allexport
+source .env
+set +o allexport
+
 dev_appserver.py \
-    --host www.eave.dev \
+    --host localhost \
     --port 5000 \
-    --ssl_certificate_path "$EAVE_HOME/eave-dev-certs/eave.dev/cert.pem" \
-    --ssl_certificate_key_path "$EAVE_HOME/eave-dev-certs/eave.dev/key.pem" \
+    --addn_host "www.eave.dev" \
     app.yaml

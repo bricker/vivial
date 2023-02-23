@@ -1,10 +1,12 @@
 import base64
-from functools import cached_property
 import json
 import os
+from functools import cached_property
 from typing import Any, Mapping, Optional
-from google.cloud import secretmanager
+
 import eave.util
+from google.cloud import secretmanager
+
 
 class Settings:
     @property
@@ -66,5 +68,6 @@ class Settings:
             raise Exception("Data corruption detected.")
 
         return data.decode("UTF-8")
+
 
 APP_SETTINGS = Settings()

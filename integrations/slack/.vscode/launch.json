@@ -18,7 +18,8 @@
         "eave.app:api"
       ],
       "jinja": true,
-      "justMyCode": true
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env"
     },
     {
       "name": "Slack Socket Mode",

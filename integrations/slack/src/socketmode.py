@@ -6,6 +6,8 @@ from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
 import eave.settings
 import eave.slack
+import eave.event_handlers
+eave.event_handlers.ensure_import()
 
 
 async def start_socket_mode() -> None:

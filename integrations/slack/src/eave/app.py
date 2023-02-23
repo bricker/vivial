@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 import eave.core_api
 import eave.event_handlers
+eave.event_handlers.ensure_import()
 import eave.openai
 import eave.slack
 from eave.settings import APP_SETTINGS

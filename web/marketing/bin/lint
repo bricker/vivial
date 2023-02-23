@@ -1,15 +1,8 @@
 #!/usr/bin/env sh
 
-set -e
+set -eu
 
 echo "eslint..."
 npx eslint .
 
-echo "isort..."
-isort --check .
-
-echo "black..."
-black --check .
-
-echo "mypy..."
-mypy .
+${EAVE_HOME}/develop/python/bin/lint

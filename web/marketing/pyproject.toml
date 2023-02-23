@@ -1,5 +1,5 @@
 [project]
-name = "eave-app-marketing"
+name = "eave-web-marketing"
 
 [tool.black]
 line-length = 120

@@ -1,12 +1,8 @@
 #!/usr/bin/env sh
 
-set -e
+set -eu
 
 echo "eslint..."
 npx eslint . --fix
 
-echo "isort..."
-isort .
-
-echo "black..."
-black .
+${EAVE_HOME}/develop/python/bin/format

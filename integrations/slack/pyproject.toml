@@ -1,3 +1,6 @@
+[project]
+name = "eave-integration-slack"
+
 [tool.black]
 line-length = 120
 

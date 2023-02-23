@@ -1,3 +1,6 @@
+[project]
+name = "eave-api-core"
+
 [tool.black]
 extend-exclude = "alembic/versions"
 line-length = 120
