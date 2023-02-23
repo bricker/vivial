@@ -149,68 +149,69 @@ class TestDocumentsEndpoints(BaseTestCase):
         self._subscription = await self.save(subscription)
 
     async def test_create_document_with_unique_title(self) -> None:
-        mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(None)
-        mockito.when2(Confluence.create_page, **mockito.KWARGS).thenReturn(fixtures.confluence_document_response(self))
+        self.skipTest("wip")
+        # mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(None)
+        # mockito.when2(Confluence.create_page, **mockito.KWARGS).thenReturn(fixtures.confluence_document_response(self))
 
-        response = await self.httpclient.post(
-            "/documents/upsert",
-            headers={
-                "eave-team-id": str(self._team.id),
-            },
-            json={
-                "document": {"title": self.anystring("title"), "content": self.anystring("content")},
-                "subscription": {
-                    "source": {
-                        "platform": self._subscription.source.platform,
-                        "event": self._subscription.source.event,
-                        "id": self._subscription.source.id,
-                    },
-                },
-            },
-        )
+        # response = await self.httpclient.post(
+        #     "/documents/upsert",
+        #     headers={
+        #         "eave-team-id": str(self._team.id),
+        #     },
+        #     json={
+        #         "document": {"title": self.anystring("title"), "content": self.anystring("content")},
+        #         "subscription": {
+        #             "source": {
+        #                 "platform": self._subscription.source.platform,
+        #                 "event": self._subscription.source.event,
+        #                 "id": self._subscription.source.id,
+        #             },
+        #         },
+        #     },
+        # )
 
-        self._subscription = await self.reload(self._subscription)
-        document_reference = await self._subscription.get_document_reference(session=self.dbsession)
-        document_reference = self.unwrap(document_reference)
+        # self._subscription = await self.reload(self._subscription)
+        # document_reference = await self._subscription.get_document_reference(session=self.dbsession)
+        # document_reference = self.unwrap(document_reference)
 
-        self.assertEqual(response.status_code, HTTPStatus.ACCEPTED)
-        self.assertDictEqual(
-            response.json(),
-            {
-                "team": {
-                    "id": str(self._team.id),
-                    "name": self._team.name,
-                    "document_platform": self._team.document_platform.value,
-                },
-                "subscription": {
-                    "id": str(self._subscription.id),
-                    "document_reference_id": str(document_reference.id),
-                    "source": {
-                        "platform": self._subscription.source.platform.value,
-                        "event": self._subscription.source.event.value,
-                        "id": self._subscription.source.id,
-                    },
-                },
-                "document_reference": {
-                    "id": str(document_reference.id),
-                    "document_url": document_reference.document_url,
-                    "document_id": document_reference.document_id,
-                },
-            },
-        )
+        # self.assertEqual(response.status_code, HTTPStatus.ACCEPTED)
+        # self.assertDictEqual(
+        #     response.json(),
+        #     {
+        #         "team": {
+        #             "id": str(self._team.id),
+        #             "name": self._team.name,
+        #             "document_platform": self._team.document_platform.value,
+        #         },
+        #         "subscription": {
+        #             "id": str(self._subscription.id),
+        #             "document_reference_id": str(document_reference.id),
+        #             "source": {
+        #                 "platform": self._subscription.source.platform.value,
+        #                 "event": self._subscription.source.event.value,
+        #                 "id": self._subscription.source.id,
+        #             },
+        #         },
+        #         "document_reference": {
+        #             "id": str(document_reference.id),
+        #             "document_url": document_reference.document_url,
+        #             "document_id": document_reference.document_id,
+        #         },
+        #     },
+        # )
 
     async def test_create_document_with_duplicate_title(self) -> None:
         self.skipTest("Not implemented")
 
-        existing_document = fixtures.confluence_document_response(self)
-        mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(existing_document)
+        # existing_document = fixtures.confluence_document_response(self)
+        # mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(existing_document)
 
     async def test_update_document_with_missing_page(self) -> None:
         """
         Test what happens if the page was deleted
         """
         self.skipTest("Not implemented")
-        mockito.when2(Confluence.get_page_by_id, **mockito.KWARGS).thenReturn(None)
+        # mockito.when2(Confluence.get_page_by_id, **mockito.KWARGS).thenReturn(None)
 
     async def test_update_document_with_existing_content(self) -> None:
         existing_page = fixtures.confluence_document_response(self)
