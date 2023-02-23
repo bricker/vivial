@@ -1,10 +1,12 @@
 import asyncio
 import logging
 import sys
+
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
-import eave.slack
 import eave.settings
+import eave.slack
+
 
 async def start_socket_mode() -> None:
     handler = AsyncSocketModeHandler(
@@ -13,5 +15,6 @@ async def start_socket_mode() -> None:
     )
 
     await handler.start_async()
+
 
 asyncio.run(start_socket_mode())

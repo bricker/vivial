@@ -5,8 +5,9 @@ from typing import Optional
 from slack_bolt.async_app import AsyncAck
 
 import eave.brain
-import eave.util
 import eave.slack_models
+import eave.util
+
 
 class WatchRequestEventHandler:
     @staticmethod
@@ -24,6 +25,7 @@ class WatchRequestEventHandler:
         brain = eave.brain.Brain(message=message)
         eave.util.do_in_background(brain.process_shortcut_event())
 
+
 class MessageEventHandler:
     @staticmethod
     async def handler(event: Optional[eave.util.JsonObject]) -> None:
@@ -39,6 +41,7 @@ class MessageEventHandler:
 
         brain = eave.brain.Brain(message=message)
         eave.util.do_in_background(brain.process_message())
+
 
 class NoopEventHandler:
     @staticmethod

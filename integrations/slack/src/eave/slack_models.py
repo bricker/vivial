@@ -1,17 +1,18 @@
-from abc import ABC, abstractmethod
 import asyncio
 import enum
 import logging
 import re
+from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Generator, Iterable, Optional
 
 from pydantic import BaseModel, HttpUrl
 from slack_sdk.errors import SlackApiError
-import eave.core_api
-from eave.settings import APP_SETTINGS
 
+import eave.core_api
 import eave.slack
 import eave.util
+from eave.settings import APP_SETTINGS
+
 
 class SlackProfile:
     title: str
@@ -345,9 +346,7 @@ class SlackMessage:
     @eave.util.memoized
     async def check_eave_is_mentioned(self) -> bool:
         await self.get_expanded_text()
-        value = any(
-            profile.api_app_id == APP_SETTINGS.eave_slack_app_id for profile in self.user_mentions
-        )
+        value = any(profile.api_app_id == APP_SETTINGS.eave_slack_app_id for profile in self.user_mentions)
         return value
 
     @eave.util.memoized
@@ -662,7 +661,7 @@ class SlackMessage:
         )
 
         assert expanded_text is not None
-        assert user_profile is not None # FIXME: Maybe this will break for deactivated users?
+        assert user_profile is not None  # FIXME: Maybe this will break for deactivated users?
 
         # TODO: Add job titles
         formatted_message = f"{user_profile.real_name}: {expanded_text}\n\n"
@@ -671,6 +670,7 @@ class SlackMessage:
     @eave.util.memoized
     async def full_format(self) -> str | None:
         raise NotImplementedError
+
 
 class SlackShortcut:
     pass

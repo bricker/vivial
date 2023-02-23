@@ -1,5 +1,5 @@
-from collections import namedtuple
 import enum
+from collections import namedtuple
 from dataclasses import dataclass
 from functools import cache
 from typing import Optional
@@ -7,8 +7,9 @@ from uuid import UUID
 
 import aiohttp
 
-from eave.settings import APP_SETTINGS
 import eave.util
+from eave.settings import APP_SETTINGS
+
 
 class DocumentPlatform(enum.Enum):
     eave = "eave"
@@ -186,5 +187,6 @@ class EaveCoreClient:
 
         json = await resp.json()
         return EaveCoreClient.SubscriptionResponse(json)
+
 
 client = EaveCoreClient()

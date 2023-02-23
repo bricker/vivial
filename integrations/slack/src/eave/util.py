@@ -6,6 +6,7 @@ JsonObject = dict[str, Any]
 
 T = TypeVar("T")
 
+
 def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
     @wraps(f)
     def wrapper(self: Any, *args: Any, **kwargs: Any) -> T:
@@ -23,6 +24,7 @@ def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
         return value
 
     return wrapper
+
 
 def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
     @wraps(f)
@@ -42,7 +44,9 @@ def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
 
     return wrapper
 
+
 tasks = set[asyncio.Task]()
+
 
 def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
     task = asyncio.create_task(coro)

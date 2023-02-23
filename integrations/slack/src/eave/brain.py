@@ -1,19 +1,20 @@
 import asyncio
-from dataclasses import dataclass
 import enum
 import logging
 import os
 import re
 import traceback
+from dataclasses import dataclass
 from typing import Optional
 
 import tiktoken
-import eave.slack_models
-import eave.openai
-import eave.slack
+
 import eave.core_api
-import eave.util
+import eave.openai
 import eave.settings
+import eave.slack
+import eave.slack_models
+import eave.util
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
@@ -22,9 +23,8 @@ PROMPT_PREFIX = (
     "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
     "You are responsible for the quality and integrity of this organization's documentation."
 )
-TONE_DIRECTION = (
-    "Your response should be in the form of a chat message: brief, casual, friendly, and may end with at most one of the following emojis: 🗒✏😎📝👩‍💻😄👍😀."
-)
+TONE_DIRECTION = "Your response should be in the form of a chat message: brief, casual, friendly, and may end with at most one of the following emojis: 🗒✏😎📝👩‍💻😄👍😀."
+
 
 class MessagePurpose(enum.Enum):
     REQUEST = "REQUEST"
@@ -32,6 +32,7 @@ class MessagePurpose(enum.Enum):
     WATCH = "WATCH"
     OTHER = "OTHER"
     UNKNOWN = "UNKNOWN"
+
 
 class RequestType(enum.Enum):
     CREATE_DOCUMENTATION = "CREATE_DOCUMENTATION"
@@ -42,6 +43,7 @@ class RequestType(enum.Enum):
     OTHER = "OTHER"
     UNKNOWN = "UNKNOWN"
 
+
 @dataclass
 class GeneratedDocument:
     title: str
@@ -50,6 +52,7 @@ class GeneratedDocument:
     # category: Optional[str]
     # topics: list[str]
 
+
 class Brain:
     message: eave.slack_models.SlackMessage
     subscription_source: eave.core_api.SubscriptionSource
@@ -57,8 +60,7 @@ class Brain:
     def __init__(self, message: eave.slack_models.SlackMessage) -> None:
         self.message = message
         self.subscription_source = eave.core_api.SubscriptionSource(
-            event=eave.core_api.SubscriptionSourceEvent.slack_message,
-            id=message.subscription_id
+            event=eave.core_api.SubscriptionSourceEvent.slack_message, id=message.subscription_id
         )
 
     async def process_message(self) -> None:
@@ -101,7 +103,6 @@ class Brain:
                 eave.util.do_in_background(self.process_watch_request())
             case MessagePurpose.OTHER | MessagePurpose.UNKNOWN:
                 logging.warning(f"Unexpected message purpose: {purpose}")
-
 
     async def process_shortcut_event(self) -> None:
         await self.acknowledge_receipt()
@@ -184,7 +185,6 @@ class Brain:
         assert openai_completion is not None
         await self.respond_to_message(text=openai_completion, caller_id=f"send_preliminary_response:{purpose.value}")
 
-
     """
     Intent Processors
     """
@@ -215,7 +215,7 @@ class Brain:
         try:
             purpose = RequestType(value=self.normalize_for_enum(response))
         except ValueError as e:
-            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response":response})
+            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": response})
             purpose = RequestType.UNKNOWN
 
         match purpose:
@@ -234,7 +234,10 @@ class Brain:
                 await self.subscribe_to_conversation()
                 await self.create_documentation()
             case RequestType.OTHER | RequestType.UNKNOWN:
-                await self.respond_to_message(text="I haven't yet been taught how to handle this request.", caller_id=f"process_request:{purpose.value}")
+                await self.respond_to_message(
+                    text="I haven't yet been taught how to handle this request.",
+                    caller_id=f"process_request:{purpose.value}",
+                )
 
     async def process_question(self) -> None:
         expanded_text = await self.message.get_expanded_text()
@@ -262,7 +265,7 @@ class Brain:
         try:
             purpose = RequestType(value=self.normalize_for_enum(response))
         except ValueError as e:
-            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response":response})
+            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": response})
             purpose = RequestType.UNKNOWN
 
         match purpose:
@@ -292,7 +295,6 @@ class Brain:
 
         # FIXME: If Eave is already subscribed to this conversation, this actually updates the document; function should be renamed.
         await self.create_documentation()
-
 
     async def subscribe_to_conversation(self) -> None:
         """
@@ -335,14 +337,14 @@ class Brain:
             purpose = MessagePurpose(value=self.normalize_for_enum(response))
             return purpose
         except ValueError as e:
-            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response":response})
+            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": response})
             return MessagePurpose.UNKNOWN
 
     """
     Document Management
     """
 
-    async def create_documentation(self, user_provided_prompt: Optional[str]=None) -> None:
+    async def create_documentation(self, user_provided_prompt: Optional[str] = None) -> None:
         """
         A procedure to execute the following tasks:
         1. Generate documentation from the conversation
@@ -350,6 +352,7 @@ class Brain:
         3. Send the final document to Core API (i.e. save the document to the organization's documentation destination)
         4. Send a follow-up response to the original Slack thread with a link to the documentation
         """
+
         async def get_raw_documentation() -> str:
             """
             Sends the conversation to OpenAI and asks for documentation.
@@ -467,7 +470,6 @@ class Brain:
         upsert_document_response = await eave.core_api.client.upsert_document(
             title=document.title,
             content=document.content,
-
             source=self.message.subscription_source,
         )
 
@@ -495,7 +497,9 @@ class Brain:
 
             openai_response = await eave.openai.summarize(openai_params)
             assert openai_response is not None
-            await self.respond_to_message(text=f"{openai_response}\n<{upsert_document_response.document_reference.document_url}|{document.title}>")
+            await self.respond_to_message(
+                text=f"{openai_response}\n<{upsert_document_response.document_reference.document_url}|{document.title}>"
+            )
 
         await send_follow_up_message()
 
@@ -508,15 +512,13 @@ class Brain:
     async def archive_documentation(self) -> None:
         await self.respond_to_message(text="I haven't yet been taught how to archive existing documentation.")
 
-
-
     """
     Context Building
     """
 
     async def build_context(self) -> str:
         context = await self.build_concatenated_context()
-        if len(tokencoding.encode(context)) > (eave.openai.MAX_TOKENS/2):
+        if len(tokencoding.encode(context)) > (eave.openai.MAX_TOKENS / 2):
             context = await self.build_rolling_context()
 
         return context
@@ -550,12 +552,13 @@ class Brain:
 
         for thread_message in messages_without_self:
             formatted_text = await thread_message.simple_format()
-            if formatted_text is None: continue
+            if formatted_text is None:
+                continue
 
             tokens = tokencoding.encode(formatted_text)
             total_tokens += len(tokens)
 
-            if total_tokens > (eave.openai.MAX_TOKENS/2):
+            if total_tokens > (eave.openai.MAX_TOKENS / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
                 prompt = (
                     f"{PROMPT_PREFIX}\n"
@@ -579,10 +582,7 @@ class Brain:
             messages_for_prompt.append(formatted_text)
 
         recent_messages = "\n\n".join(messages_for_prompt)
-        return (
-            f"{condensed_context}\n\n"
-            f"{recent_messages}"
-        )
+        return f"{condensed_context}\n\n" f"{recent_messages}"
 
     """
     Utility
@@ -592,8 +592,7 @@ class Brain:
     def normalize_for_enum(value: str) -> str:
         return re.sub(pattern="\\W", repl="", string=value).upper()
 
-
-    async def respond_to_message(self, text: str, caller_id: Optional[str]=None) -> None:
+    async def respond_to_message(self, text: str, caller_id: Optional[str] = None) -> None:
         assert self.message.channel is not None
 
         msg = f"<@{self.message.user}> {text}"

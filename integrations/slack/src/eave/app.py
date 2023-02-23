@@ -3,10 +3,10 @@ import sys
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
-import eave.core_api
-import eave.openai
 
+import eave.core_api
 import eave.event_handlers
+import eave.openai
 import eave.slack
 from eave.settings import APP_SETTINGS
 from eave.slack_models import SlackMessage
@@ -36,6 +36,7 @@ api = FastAPI()
 @api.post("/slack/events")
 async def slack_event(req: Request) -> None:
     await eave.slack.handler.handle(req)
+
 
 # class GenerateInput(BaseModel):
 #     subscription_id: str
@@ -83,6 +84,7 @@ async def slack_event(req: Request) -> None:
 #     params.prompt = full_prompt
 #     answer = await eave.openai.summarize(params)
 #     return answer
+
 
 @api.get("/status")
 @api.get("/_ah/start")

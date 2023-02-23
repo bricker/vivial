@@ -1,7 +1,7 @@
 import logging
 import os
-from functools import cache, cached_property
 import sys
+from functools import cache, cached_property
 from typing import Optional
 
 import google_crc32c
