@@ -9,8 +9,10 @@ import eave.slack
 import eave.slack_models
 import eave.util
 
+
 def ensure_import() -> None:
     pass
+
 
 @eave.slack.app.shortcut("eave_watch_request")
 async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave.util.JsonObject]) -> None:

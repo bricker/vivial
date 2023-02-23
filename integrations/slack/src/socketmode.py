@@ -4,9 +4,10 @@ import sys
 
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
+import eave.event_handlers
 import eave.settings
 import eave.slack
-import eave.event_handlers
+
 eave.event_handlers.ensure_import()
 
 
