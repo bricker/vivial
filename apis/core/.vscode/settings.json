@@ -3,8 +3,6 @@
   "python.testing.unittestEnabled": true,
   "python.testing.unittestArgs": [
     "-v",
-    "-t",
-    ".",
     "-s",
     ".",
     "-p",

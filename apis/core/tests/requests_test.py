@@ -21,7 +21,7 @@ class TestStatusEndpoint(BaseTestCase):
     async def test_status(self) -> None:
         response = await self.httpclient.get("/status")
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(response.json(), {"status": "1"})
+        self.assertEqual(response.json(), {"status": "1", "service": "api"})
 
     async def test_appengine_start(self) -> None:
         response = await self.httpclient.get("/_ah/start")
