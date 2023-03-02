@@ -1,0 +1,7 @@
+query ($repoOwner: String!, $repoName: String!, $labelName: String!) {
+  repository(owner: $repoOwner, name: $repoName) {
+    label(name: $labelName) {
+      id
+    }
+  }
+}

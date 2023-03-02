@@ -1,0 +1,6 @@
+.*
+*LICENSE*
+*.md
+bin
+
+#!include:.gitignore

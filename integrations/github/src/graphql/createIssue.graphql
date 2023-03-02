@@ -1,0 +1,5 @@
+mutation ($input: CreateIssueInput!) {
+  createIssue(input: $input) {
+    clientMutationId
+  }
+}

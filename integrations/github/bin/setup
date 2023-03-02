@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+set -e
+
+cp -n secrets.example.json secrets.json
+
+echo "Update secrets.json with a GitHub Personal Access Token."
+echo "Necessary scopes will depend on current capabilities of this application. Try: 'repo' and 'project' scopes."

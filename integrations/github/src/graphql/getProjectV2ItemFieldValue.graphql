@@ -1,0 +1,27 @@
+query ($itemNodeId: ID!, $fieldName: String!) {
+  node(id: $itemNodeId) {
+    ...on ProjectV2Item {
+      fieldValueByName(name: $fieldName) {
+        ...on ProjectV2ItemFieldSingleSelectValue {
+          name
+          id
+          optionId
+        }
+
+        ...on ProjectV2ItemFieldLabelValue {
+          labels {
+            nodes {
+              name
+            }
+          }
+        }
+      }
+
+      content {
+        ...on Issue {
+          id
+        }
+      }
+    }
+  }
+}

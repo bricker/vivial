@@ -1,0 +1,12 @@
+query ($milestoneNodeId: ID!, $first: Int!, $issueFilters: IssueFilters, $orderBy: IssueOrder) {
+  node(id: $milestoneNodeId) {
+    ...on Milestone {
+      issues(filterBy: $issueFilters, first: $first, orderBy: $orderBy) {
+        nodes {
+          id
+          title
+        }
+      }
+    }
+  }
+}

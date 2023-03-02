@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eu
+
+bin/lint
+bin/test
+${EAVE_HOME}/develop/shared/bin/deploy-appengine

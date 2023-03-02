@@ -1,0 +1,17 @@
+query ($repoOwner: String!, $repoName: String!, $projectNumber: Int!, $fieldName: String!) {
+  repository(owner: $repoOwner, name: $repoName) {
+    projectV2(number: $projectNumber) {
+      field(name: $fieldName) {
+        ...on ProjectV2SingleSelectField {
+          id
+          name
+          options {
+            id
+            name
+          }
+        }
+        
+      }
+    }
+  }
+}
