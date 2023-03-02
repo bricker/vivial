@@ -7,16 +7,10 @@
 			"path": "../integrations/slack"
 		},
 		{
-			"path": "../develop/python"
-		},
-		{
 			"path": "../libs/pubsub-schemas"
 		},
 		{
 			"path": "../integrations/confluence"
-		},
-		{
-			"path": "../develop/javascript"
 		},
 		{
 			"path": "../web/marketing"
@@ -25,7 +19,10 @@
 			"path": "../libs/api-schemas"
 		},
 		{
-			"path": "../bin"
+			"path": "../integrations/github"
+		},
+		{
+			"path": "../develop"
 		}
 	],
 	"settings": {
