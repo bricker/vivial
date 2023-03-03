@@ -14,6 +14,10 @@ class Settings:
         return sys.flags.dev_mode
 
     @property
+    def eave_demo_mode(self) -> bool:
+        return os.getenv("EAVE_DEMO_MODE") is not None
+
+    @property
     def eave_core_api_url(self) -> str:
         return os.environ["EAVE_CORE_API_URL"]
 

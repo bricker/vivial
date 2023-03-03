@@ -47,14 +47,6 @@ class RequestType(enum.Enum):
     UNKNOWN = "UNKNOWN"
 
 
-@dataclass
-class GeneratedDocument:
-    title: str
-    content: str
-    bucket: Optional[str]
-    # category: Optional[str]
-    # topics: list[str]
-
 
 class Brain:
     message: eave.slack_models.SlackMessage
@@ -82,7 +74,6 @@ class Brain:
                 await self.send_message_info()
                 return
 
-            await self.send_preliminary_response()
         else:
             """
             Eave is not mentioned in this message.
@@ -90,7 +81,7 @@ class Brain:
             1. If she is not subscribed, then ignore the message and stop processing.
             1. Otherwise, continue processing.
             """
-            subscription_response = await eave.core_api.client.get_subscription(source=self.subscription_source)
+            subscription_response = await self.get_subscription()
             if subscription_response is None:
                 logging.debug("Eave is not subscribed to this thread; ignoring.")
                 return
@@ -105,7 +96,7 @@ class Brain:
             case MessagePurpose.WATCH:
                 eave.util.do_in_background(self.process_watch_request())
             case MessagePurpose.OTHER | MessagePurpose.UNKNOWN:
-                logging.warning(f"Unexpected message purpose: {purpose}")
+                eave.util.do_in_background(self.process_unknown_request())
 
     async def process_shortcut_event(self) -> None:
         await self.acknowledge_receipt()
@@ -119,81 +110,14 @@ class Brain:
         # manager = DocumentManager(message=message, subscription=response.subscription)
         # await manager.process_message()
 
-    async def send_preliminary_response(self) -> None:
-        """
-        Generates and sends an acknowledgement to the initial user-provided prompt.
-
-        The prompt to OpenAI depends on the nature ("purpose") of the user-provided prompt.
-
-        The goal is to provide the user some quick feedback that the message has been received, while we process it in
-        the background. `acknowledge`
-        """
-        purpose = await self.determine_message_purpose()
-        expanded_text = await self.message.get_expanded_text()
-        assert expanded_text is not None
-
-        # TODO: include conversation context in the prompts
-        match purpose:
-            case MessagePurpose.REQUEST:
-                prompt = (
-                    f"{PROMPT_PREFIX}\n"
-                    "You were called on to handle the following request. "
-                    "Say that you'll work on it, and will send an update when it's completed. "
-                    f"{TONE_DIRECTION}"
-                    "\n\n###\n\n"
-                    f"Request: {expanded_text}\n\n"
-                    "Response: "
-                )
-
-            case MessagePurpose.QUESTION:
-                prompt = (
-                    f"{PROMPT_PREFIX}\n"
-                    f"You were asked the following question. "
-                    "If you're able to answer the question with high confidence, go ahead and answer it. "
-                    "It is important that you only answer the question if you are confident in the answer. "
-                    "Otherwise, say that you'll look into it, and will send an update when you have the answer. "
-                    f"{TONE_DIRECTION}"
-                    "\n\n###\n\n"
-                    f"Question: {expanded_text}\n\n"
-                    "Response: "
-                )
-
-            case MessagePurpose.WATCH:
-                prompt = (
-                    f"{PROMPT_PREFIX}\n"
-                    "You were told to keep an eye on this conversation and document the details. "
-                    "Say that you'll document this conversation and will send a link when it's ready. "
-                    f"{TONE_DIRECTION}"
-                    "\n\n###\n\n"
-                )
-
-            case MessagePurpose.OTHER | MessagePurpose.UNKNOWN:
-                prompt = (
-                    f"{PROMPT_PREFIX}\n"
-                    "Write a response to the following message, and ask if you should watch this conversation and document this information. "
-                    "In parentheses, make it clear that this feature isn't implemented yet, and that this is just a demonstration. "
-                    f"{TONE_DIRECTION}"
-                    "\n\n###\n\n"
-                    f"Message: {expanded_text}\n\n"
-                    "Response: "
-                )
-                # TODO: handle the response to this, eg if the user says "Yes please" or "No thanks"
-
-        params = eave.openai.CompletionParameters(
-            prompt=prompt,
-            temperature=0,
-        )
-
-        openai_completion = await eave.openai.summarize(params)
-        assert openai_completion is not None
-        await self.respond_to_message(text=openai_completion, caller_id=f"send_preliminary_response:{purpose.value}")
-
     """
     Intent Processors
     """
 
     async def process_request(self) -> None:
         expanded_text = await self.message.get_expanded_text()
+        assert expanded_text is not None
+
         prompt = (
             f"{PROMPT_PREFIX}\n"
             f"If the following request is for you to create some documentation, say: {RequestType.CREATE_DOCUMENTATION.value}\n"
@@ -204,108 +128,77 @@ class Brain:
             f"Otherwise, say: {RequestType.OTHER.value}"
             "\n\n###\n\n"
             f"Request: {expanded_text}\n\n"
-            "Answer: "
+            "Your Answer: "
         )
 
-        params = eave.openai.CompletionParameters(
-            prompt=prompt,
-            temperature=0,
-        )
-
-        response = await eave.openai.summarize(params)
-        assert response is not None
-
-        try:
-            purpose = RequestType(value=self.normalize_for_enum(response))
-        except ValueError as e:
-            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": response})
-            purpose = RequestType.UNKNOWN
-
-        match purpose:
-            case RequestType.CREATE_DOCUMENTATION:
-                await self.subscribe_to_conversation()
-                await self.create_documentation(user_provided_prompt=expanded_text)
-            case RequestType.SEARCH_DOCUMENTATION:
-                await self.search_documentation()
-            case RequestType.UPDATE_DOCUMENTATION:
-                await self.subscribe_to_conversation()
-                await self.update_documentation()
-            case RequestType.DELETE_DOCUMENTATION:
-                # TODO: Unsubscribe from conversation
-                await self.archive_documentation()
-            case RequestType.WATCH:
-                await self.subscribe_to_conversation()
-                await self.create_documentation()
-            case RequestType.OTHER | RequestType.UNKNOWN:
-                await self.respond_to_message(
-                    text="I haven't yet been taught how to handle this request.",
-                    caller_id=f"process_request:{purpose.value}",
-                )
+        await self.handle_request(prompt=prompt)
 
     async def process_question(self) -> None:
         expanded_text = await self.message.get_expanded_text()
+        assert expanded_text is not None
+
         prompt = (
             f"{PROMPT_PREFIX}\n"
-            f"If the following question is asking for new documentation, say: {RequestType.CREATE_DOCUMENTATION.value}\n"
-            f"If the question is asking you to search existing documentation, say: {RequestType.SEARCH_DOCUMENTATION.value}\n"
-            f"If the question is asking you to update some documentation, say: {RequestType.UPDATE_DOCUMENTATION.value}\n"
-            f"If the question is asking you to delete or archive some documentation, say: {RequestType.DELETE_DOCUMENTATION.value}\n"
-            f"If the question is asking you to subscribe, listen, or watch a conversation, say: {RequestType.WATCH.value}\n"
+            f"If the following question is asking if you can create documentation, say: {RequestType.CREATE_DOCUMENTATION.value}\n"
+            f"If the question is asking if you can search existing documentation, or asking if there is existing documentation, say: {RequestType.SEARCH_DOCUMENTATION.value}\n"
+            f"If the question is asking if you to can update some documentation, say: {RequestType.UPDATE_DOCUMENTATION.value}\n"
+            f"If the question is asking if you can delete or archive some documentation, say: {RequestType.DELETE_DOCUMENTATION.value}\n"
+            f"If the question is asking if you can subscribe, listen, or watch a conversation, say: {RequestType.WATCH.value}\n"
             f"Otherwise, say: {RequestType.OTHER.value}"
             "\n\n###\n\n"
             f"Question: {expanded_text}\n\n"
-            "Answer: "
+            "Your Response: "
         )
 
-        params = eave.openai.CompletionParameters(
-            prompt=prompt,
-            temperature=0,
-        )
-
-        response = await eave.openai.summarize(params)
-        assert response is not None
-
-        try:
-            purpose = RequestType(value=self.normalize_for_enum(response))
-        except ValueError as e:
-            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": response})
-            purpose = RequestType.UNKNOWN
-
-        match purpose:
-            case RequestType.CREATE_DOCUMENTATION:
-                await self.subscribe_to_conversation()
-                await self.create_documentation(user_provided_prompt=expanded_text)
-            case RequestType.SEARCH_DOCUMENTATION:
-                await self.search_documentation()
-            case RequestType.UPDATE_DOCUMENTATION:
-                await self.subscribe_to_conversation()
-                await self.update_documentation()
-            case RequestType.DELETE_DOCUMENTATION:
-                # TODO: Unsubscribe from conversation
-                await self.archive_documentation()
-            case RequestType.WATCH:
-                await self.subscribe_to_conversation()
-                await self.create_documentation()
-            case RequestType.OTHER | RequestType.UNKNOWN:
-                await self.respond_to_message(text="I haven't yet been taught how to handle this request.")
+        await self.handle_request(prompt=prompt)
 
     async def process_watch_request(self) -> None:
         """
-        Subscribes to the thread if not already subscribed, and then either creates or updates the documentation.
+        Subscribes to the thread and creates initial documentation if not already subscribed,
+        otherwise notifies the user that I'm already watching this conversation.
         """
-        # FIXME: subscribe_to_conversation is a noop if Eave is already subscribed; function should be renamed
-        await self.subscribe_to_conversation()
+        subscription = await self.get_or_create_subscription()
 
-        # FIXME: If Eave is already subscribed to this conversation, this actually updates the document; function should be renamed.
-        await self.create_documentation()
+        if subscription.created is True:
+            await self.respond_to_message(text=(
+                "Acknowledged! Because you tagged me, I'll continuously watch this conversation and document the information. "
+                "I'll get started on the initial documentation right away and send an update when it's ready."
+            ))
+            await self.create_documentation()
+            return
+        else:
+            await self.notify_existing_subscription(subscription=subscription)
+            return
 
-    async def subscribe_to_conversation(self) -> None:
+    async def process_unknown_request(self) -> None:
         """
-        If Eave is not already subscribed to this conversation:
-        1. Subscribes to the conversation
-        2. Generates initial documentation
+        Processes a request that wasn't recognized.
+        Basically lets the user know that I wasn't able to process the message, and reminds them if I'm already documenting this conversation.
         """
-        await eave.core_api.client.get_or_create_subscription(source=self.subscription_source)
+        subscription = await self.get_subscription()
+
+        if subscription is None:
+            await self.respond_to_message(text=(
+                "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                f"Do you want me to watch and document this conversation? (This feature is not yet implemented) "
+                "If you needed something else, try phrasing it differently."
+            ))
+
+            # TODO: handle the response to this, eg if the user says "Yes please" or "No thanks"
+
+        elif subscription.document_reference is not None:
+            await self.respond_to_message(text=(
+                "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                "As a reminder, I'm watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                "If you needed something else, try phrasing it differently."
+            ))
+
+        else:
+            await self.respond_to_message(text=(
+                "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                f"I'm currently working on the documentation for this conversation, and I'll send an update when it's ready. "
+                "If you needed something else, try phrasing it differently."
+            ))
 
     @eave.util.memoized
     async def determine_message_purpose(self) -> MessagePurpose:
@@ -328,26 +221,67 @@ class Brain:
             "Response: "
         )
 
-        params = eave.openai.CompletionParameters(
-            prompt=prompt,
-            temperature=0,
-        )
-
-        response = await eave.openai.summarize(params)
-        assert response is not None
+        openai_response = await self.get_openai_response(prompt=prompt, temperature=0)
 
         try:
-            purpose = MessagePurpose(value=self.normalize_for_enum(response))
+            purpose = MessagePurpose(value=self.normalize_for_enum(openai_response))
             return purpose
         except ValueError as e:
-            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": response})
+            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": openai_response})
             return MessagePurpose.UNKNOWN
+
+    async def handle_request(self, prompt: str) -> None:
+        """
+        Determines the RequestType, and then handles the message accordingly.
+        """
+        openai_response = await self.get_openai_response(prompt=prompt, temperature=0)
+
+        try:
+            request_type = RequestType(value=self.normalize_for_enum(openai_response))
+        except ValueError as e:
+            logging.exception(f"Unexpected request type response", exc_info=e, extra={"response": openai_response})
+            request_type = RequestType.UNKNOWN
+
+        match request_type:
+            case RequestType.CREATE_DOCUMENTATION:
+                subscription = await self.get_or_create_subscription()
+                if subscription.created is True:
+                    await self.respond_to_message(text=("Sure! I'll work on this now and send an update when it's ready."))
+                    await self.create_documentation()
+                else:
+                    await self.notify_existing_subscription(subscription=subscription)
+
+                return
+
+            case RequestType.SEARCH_DOCUMENTATION:
+                await self.respond_to_message(text="One moment while I look...")
+                await self.search_documentation()
+                return
+
+            case RequestType.UPDATE_DOCUMENTATION:
+                await self.respond_to_message(text="On it!")
+                await self.update_documentation()
+                return
+
+            case RequestType.DELETE_DOCUMENTATION:
+                # TODO: Unsubscribe from conversation
+                await self.respond_to_message(text="On it!")
+                await self.archive_documentation()
+                return
+
+            case RequestType.WATCH:
+                await self.process_watch_request()
+                return
+
+            case RequestType.OTHER | RequestType.UNKNOWN:
+                await self.process_unknown_request()
+                return
 
     """
     Document Management
     """
 
-    async def create_documentation(self, user_provided_prompt: Optional[str] = None) -> None:
+    async def create_documentation(self) -> None:
         """
         A procedure to execute the following tasks:
         1. Generate documentation from the conversation
@@ -366,20 +300,18 @@ class Brain:
 
             prompt = (
                 f"{PROMPT_PREFIX}\n"
-                "Generate a bucket name, title, and formatted documentation for the information in this conversation. "
+                "Generate a category, title, and formatted documentation for the information in this conversation. "
+                "Example categories: Engineering, Product, Marketing, Website, Design\n\n"
             )
-
-            if user_provided_prompt is not None:
-                prompt += f"Specifically: {user_provided_prompt}\n\n"
 
             prompt += (
                 "Desired Format:\n"
+                "CATEGORY: -||-\n"
                 "TITLE: -||-\n"
-                "BUCKET NAME: -||-\n"
                 "FORMATTED DOCUMENTATION: -||-"
                 "\n\n###\n\n"
                 f"{context}\n\n"
-                "TITLE: "
+                "CATEGORY: "
             )
 
             openai_params = eave.openai.CompletionParameters(
@@ -429,17 +361,39 @@ class Brain:
         # title = await eave.openai.summarize(openai_params)
         # assert title is not None
 
-        async def parse_raw_documentation() -> GeneratedDocument:
+        async def parse_raw_documentation() -> eave.core_api.Document:
             """
             1. Parses the OpenAI response. Makes assumptions about the format of the text returned by OpenAI.
             2. Adds context to the document (eg links and source)
             """
-            title, bucket_name, body = initial_generated_documentation.split("\n", maxsplit=2)
+            category, title, body = initial_generated_documentation.split("\n", maxsplit=2)
+            category = category.strip()
             title = re.sub("^TITLE:\\s*", "", title, flags=re.RegexFlag.IGNORECASE).strip()
-            bucket_name = re.sub("^BUCKET NAME:\\s*", "", title, flags=re.RegexFlag.IGNORECASE).strip()
             body = re.sub("^FORMATTED DOCUMENTATION:\\s*", "", body, flags=re.RegexFlag.IGNORECASE).strip()
 
-            generated_document = GeneratedDocument(title=title, content=body, bucket=bucket_name)
+            if eave.settings.APP_SETTINGS.eave_demo_mode:
+                generated_document = eave.core_api.Document(
+                    title=DEMO_DOCUMENT_TITLE(),
+                    content=DEMO_DOCUMENT_CONTENT(),
+                    parent=eave.core_api.Document(
+                        title="System Architecture",
+                        content="",
+                        parent=eave.core_api.Document(
+                            title="Engineering",
+                            content="",
+                        ),
+                    ),
+                )
+
+            else:
+                generated_document = eave.core_api.Document(
+                    title=title,
+                    content=body,
+                    parent=eave.core_api.Document(
+                        title=category,
+                        content="",
+                    ),
+                )
 
             all_messages = await self.message.get_conversation_messages()
             assert all_messages is not None
@@ -470,9 +424,9 @@ class Brain:
             return generated_document
 
         document = await parse_raw_documentation()
+
         upsert_document_response = await eave.core_api.client.upsert_document(
-            title=document.title,
-            content=document.content,
+            document=document,
             source=self.message.subscription_source,
         )
 
@@ -483,30 +437,44 @@ class Brain:
             slack_profile = await self.message.get_user_profile()
             assert slack_profile is not None
 
-            prompt = (
-                f"{PROMPT_PREFIX}\n"
-                "You were recently asked to create documentation, and you've now completed that documentation. "
-                f"Let {slack_profile.display_name} know about it, and remind them that you'll continously update the document as this conversation continues."
-                f"{TONE_DIRECTION}"
-            )
+            message = f"Here's the documentation that you asked for! I'll keep the documentation up-to-date at this conversation evolves."
 
-            openai_params = eave.openai.CompletionParameters(
-                prompt=prompt,
-                n=1,
-                frequency_penalty=0,
-                presence_penalty=0,
-                temperature=0.2,
-            )
-
-            openai_response = await eave.openai.summarize(openai_params)
-            assert openai_response is not None
             await self.respond_to_message(
-                text=f"{openai_response}\n<{upsert_document_response.document_reference.document_url}|{document.title}>"
+                text=f"{message}\n<{upsert_document_response.document_reference.document_url}|{document.title}>"
             )
 
         await send_follow_up_message()
 
     async def search_documentation(self) -> None:
+        # blocks = [
+        #     slack_sdk.models.blocks.SectionBlock(
+        #         text=slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+        #             text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
+        #         ),
+        #     ),
+        #     slack_sdk.models.blocks.DividerBlock(),
+        #     slack_sdk.models.blocks.SectionBlock(
+        #         text=slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+        #             text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
+        #         ),
+        #     ),
+        #     slack_sdk.models.blocks.DividerBlock(),
+        #     slack_sdk.models.blocks.SectionBlock(
+        #         text=slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+        #             text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
+        #         ),
+        #     ),
+        #     slack_sdk.models.blocks.DividerBlock(),
+        #     slack_sdk.models.blocks.ActionsBlock(
+        #         elements=[
+        #             slack_sdk.models.blocks.block_elements.ButtonElement(
+        #                 text="Load more results (noop)",
+        #             ),
+        #         ],
+        #     ),
+        # ]
+        # await self.respond_to_message(blocks=blocks)
+
         await self.respond_to_message(text="I haven't yet been taught how to search existing documentation.")
 
     async def update_documentation(self) -> None:
@@ -595,22 +563,45 @@ class Brain:
     def normalize_for_enum(value: str) -> str:
         return re.sub(pattern="\\W", repl="", string=value).upper()
 
-    async def respond_to_message(self, text: str, caller_id: Optional[str] = None) -> None:
+    async def respond_to_message(self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None) -> None:
         assert self.message.channel is not None
 
-        msg = f"<@{self.message.user}> {text}"
-        if eave.settings.APP_SETTINGS.dev_mode:
+        debug_text = ""
+        if eave.settings.APP_SETTINGS.dev_mode is True and eave.settings.APP_SETTINGS.eave_demo_mode is False:
             stack = traceback.extract_stack(limit=2)
             frame = stack[0]
             filename = os.path.basename(frame.filename)
             formatted_frame = f"{filename}:{frame.lineno}"
-            msg += f" ({formatted_frame})"
+            debug_text = f" ({formatted_frame})"
 
-        await eave.slack.client.chat_postMessage(
-            channel=self.message.channel,
-            text=msg,
-            thread_ts=self.message.parent_ts,
-        )
+        if text is not None:
+            msg = f"<@{self.message.user}> {text}{debug_text}"
+
+            await eave.slack.client.chat_postMessage(
+                channel=self.message.channel,
+                text=msg,
+                thread_ts=self.message.parent_ts,
+            )
+            return
+
+#         if blocks is not None:
+#             blocks.extend([
+#                 slack_sdk.models.blocks.DividerBlock(),
+#                 slack_sdk.models.blocks.ContextBlock(
+#                     elements=[
+# slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+#                         text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
+#                     ),
+#                     ]
+#                     text=
+#                 ),
+#             ])
+#             await eave.slack.client.chat_postMessage(
+#                 channel=self.message.channel,
+#                 blocks=blocks,
+#                 thread_ts=self.message.parent_ts,
+#             )
+#             return
 
     async def react_to_message(self, name: str) -> None:
         assert self.message.channel is not None
@@ -623,3 +614,46 @@ class Brain:
     async def send_message_info(self) -> None:
         info = f"Subscription ID: {self.message.subscription_id}"
         await self.respond_to_message(text=info)
+
+    async def get_openai_response(self, prompt: str, temperature: int) -> str:
+        params = eave.openai.CompletionParameters(
+            prompt=prompt,
+            temperature=temperature,
+        )
+
+        openai_completion = await eave.openai.summarize(params)
+        assert openai_completion is not None
+        return openai_completion
+
+    async def get_subscription(self) -> eave.core_api.EaveCoreClient.SubscriptionResponse | None:
+        subscription = await eave.core_api.client.get_subscription(source=self.subscription_source)
+        return subscription
+
+    async def get_or_create_subscription(self) -> eave.core_api.EaveCoreClient.SubscriptionResponse:
+        """
+        Gets and returns the subscription if it already exists, otherwise creates and returns a new subscription.
+        """
+        subscription = await eave.core_api.client.get_or_create_subscription(source=self.subscription_source)
+        return subscription
+
+    async def notify_existing_subscription(self, subscription: eave.core_api.EaveCoreClient.SubscriptionResponse) -> None:
+        if subscription.document_reference is not None:
+            await self.respond_to_message(text=(
+                f"Hey! I'm already watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                "Let me know if you need anything else!"
+            ))
+            return
+
+        else:
+            await self.respond_to_message(text=(
+                f"Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready."
+            ))
+            return
+
+
+def DEMO_DOCUMENT_CONTENT() -> str:
+    with open("demo-document-01.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+def DEMO_DOCUMENT_TITLE() -> str:
+    return "Finny Credit Application System Overview"

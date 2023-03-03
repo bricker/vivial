@@ -1,6 +1,6 @@
 import asyncio
 from functools import wraps
-from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar
+from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar, cast
 
 JsonObject = dict[str, Any]
 
@@ -29,7 +29,7 @@ def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
 def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
     @wraps(f)
     async def wrapper(self: Any, *args: Any, **kwargs: Any) -> T:
-        if not hasattr(self, "__memo__"):
+        if hasattr(self, "__memo__") is False:
             # FIXME: This is not threadsafe
             self.__memo__ = dict[str, Any]()
 
@@ -44,10 +44,7 @@ def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
 
     return wrapper
 
-
 tasks = set[asyncio.Task]()
-
-
 def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
     task = asyncio.create_task(coro)
     tasks.add(task)

@@ -31,6 +31,18 @@ class DocumentReference:
             document_url=json["document_url"],
         )
 
+@dataclass
+class Document:
+    title: str
+    content: str
+    parent: Optional["Document"] = None
+
+    def to_json(self) -> eave.util.JsonObject:
+        return {
+            "title": self.title,
+            "content": self.content,
+            "parent": self.parent.to_json() if self.parent is not None else None,
+        }
 
 class SubscriptionSourceEvent(enum.Enum):
     slack_message = "slack.message"
@@ -121,12 +133,9 @@ class EaveCoreClient:
             self.subscription = Subscription.from_json(json["subscription"])
             self.document_reference = DocumentReference.from_json(json["document_reference"])
 
-    async def upsert_document(self, title: str, content: str, source: SubscriptionSource) -> UpsertDocumentResponse:
+    async def upsert_document(self, document: Document, source: SubscriptionSource) -> UpsertDocumentResponse:
         data = {
-            "document": {
-                "title": title,
-                "content": content,
-            },
+            "document": document.to_json(),
             "subscription": {"source": source.to_json()},
         }
 
@@ -145,10 +154,13 @@ class EaveCoreClient:
         team: Team
         subscription: Subscription
         document_reference: Optional[DocumentReference] = None
+        status: int
+        created: bool
 
-        def __init__(self, json: eave.util.JsonObject) -> None:
+        def __init__(self, json: eave.util.JsonObject, status: int) -> None:
             self.team = Team.from_json(json["team"])
             self.subscription = Subscription.from_json(json["subscription"])
+            self.created = status == HTTPStatus.CREATED
 
             drjson = json.get("document_reference")
             if drjson is not None:
@@ -168,7 +180,7 @@ class EaveCoreClient:
             )
 
         json = await resp.json()
-        return EaveCoreClient.SubscriptionResponse(json)
+        return EaveCoreClient.SubscriptionResponse(json, status=resp.status)
 
     async def get_subscription(self, source: SubscriptionSource) -> Optional[SubscriptionResponse]:
         async with aiohttp.ClientSession() as session:
@@ -187,7 +199,7 @@ class EaveCoreClient:
             return None
 
         json = await resp.json()
-        return EaveCoreClient.SubscriptionResponse(json)
+        return EaveCoreClient.SubscriptionResponse(json, status=resp.status)
 
 
 client = EaveCoreClient()

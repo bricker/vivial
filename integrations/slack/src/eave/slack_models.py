@@ -355,7 +355,7 @@ class SlackMessage:
         if eave_is_mentioned is False:
             return False
 
-        info_match = re.match(f"^info", self.text_without_leading_mention)
+        info_match = re.match(f"^info$", self.text_without_leading_mention)
         if info_match is None:
             return False
 
