@@ -46,6 +46,12 @@ async def event_message_handler(event: Optional[eave.util.JsonObject]) -> None:
     eave.util.do_in_background(brain.process_message())
 
 
+@eave.slack.app.event("url_verification")
+async def event_url_verification_handler(event: eave.util.JsonObject) -> str:
+    challenge = event["challenge"]
+    assert isinstance(challenge, str)
+    return challenge
+
 @eave.slack.app.event("app_mention")
 @eave.slack.app.event("reaction_added")
 @eave.slack.app.event("file_deleted")
