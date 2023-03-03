@@ -91,7 +91,10 @@ async def slack_event(req: Request) -> None:
 
 @api.get("/slack/status")
 def status() -> str:
-    return json.dumps({
-        "service": "slack",
-        "status": "OK",
-    }, sort_keys=True)
+    return json.dumps(
+        {
+            "service": "slack",
+            "status": "OK",
+        },
+        sort_keys=True,
+    )

@@ -44,7 +44,10 @@ def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
 
     return wrapper
 
+
 tasks = set[asyncio.Task]()
+
+
 def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
     task = asyncio.create_task(coro)
     tasks.add(task)

@@ -7,10 +7,10 @@ import traceback
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence
 
-import tiktoken
 import slack_sdk.models.blocks
 import slack_sdk.models.blocks.basic_components
 import slack_sdk.models.blocks.block_elements
+import tiktoken
 
 import eave.core_api
 import eave.openai
@@ -45,7 +45,6 @@ class RequestType(enum.Enum):
     WATCH = "WATCH"
     OTHER = "OTHER"
     UNKNOWN = "UNKNOWN"
-
 
 
 class Brain:
@@ -160,10 +159,12 @@ class Brain:
         subscription = await self.get_or_create_subscription()
 
         if subscription.created is True:
-            await self.respond_to_message(text=(
-                "Acknowledged! Because you tagged me, I'll continuously watch this conversation and document the information. "
-                "I'll get started on the initial documentation right away and send an update when it's ready."
-            ))
+            await self.respond_to_message(
+                text=(
+                    "Acknowledged! Because you tagged me, I'll continuously watch this conversation and document the information. "
+                    "I'll get started on the initial documentation right away and send an update when it's ready."
+                )
+            )
             await self.create_documentation()
             return
         else:
@@ -178,27 +179,33 @@ class Brain:
         subscription = await self.get_subscription()
 
         if subscription is None:
-            await self.respond_to_message(text=(
-                "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                f"Do you want me to watch and document this conversation? (This feature is not yet implemented) "
-                "If you needed something else, try phrasing it differently."
-            ))
+            await self.respond_to_message(
+                text=(
+                    "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                    f"Do you want me to watch and document this conversation? (This feature is not yet implemented) "
+                    "If you needed something else, try phrasing it differently."
+                )
+            )
 
             # TODO: handle the response to this, eg if the user says "Yes please" or "No thanks"
 
         elif subscription.document_reference is not None:
-            await self.respond_to_message(text=(
-                "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                "As a reminder, I'm watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
-                "If you needed something else, try phrasing it differently."
-            ))
+            await self.respond_to_message(
+                text=(
+                    "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                    "As a reminder, I'm watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                    "If you needed something else, try phrasing it differently."
+                )
+            )
 
         else:
-            await self.respond_to_message(text=(
-                "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                f"I'm currently working on the documentation for this conversation, and I'll send an update when it's ready. "
-                "If you needed something else, try phrasing it differently."
-            ))
+            await self.respond_to_message(
+                text=(
+                    "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                    f"I'm currently working on the documentation for this conversation, and I'll send an update when it's ready. "
+                    "If you needed something else, try phrasing it differently."
+                )
+            )
 
     @eave.util.memoized
     async def determine_message_purpose(self) -> MessagePurpose:
@@ -246,7 +253,9 @@ class Brain:
             case RequestType.CREATE_DOCUMENTATION:
                 subscription = await self.get_or_create_subscription()
                 if subscription.created is True:
-                    await self.respond_to_message(text=("Sure! I'll work on this now and send an update when it's ready."))
+                    await self.respond_to_message(
+                        text=("Sure! I'll work on this now and send an update when it's ready.")
+                    )
                     await self.create_documentation()
                 else:
                     await self.notify_existing_subscription(subscription=subscription)
@@ -563,7 +572,9 @@ class Brain:
     def normalize_for_enum(value: str) -> str:
         return re.sub(pattern="\\W", repl="", string=value).upper()
 
-    async def respond_to_message(self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None) -> None:
+    async def respond_to_message(
+        self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None
+    ) -> None:
         assert self.message.channel is not None
 
         debug_text = ""
@@ -584,24 +595,24 @@ class Brain:
             )
             return
 
-#         if blocks is not None:
-#             blocks.extend([
-#                 slack_sdk.models.blocks.DividerBlock(),
-#                 slack_sdk.models.blocks.ContextBlock(
-#                     elements=[
-# slack_sdk.models.blocks.basic_components.MarkdownTextObject(
-#                         text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
-#                     ),
-#                     ]
-#                     text=
-#                 ),
-#             ])
-#             await eave.slack.client.chat_postMessage(
-#                 channel=self.message.channel,
-#                 blocks=blocks,
-#                 thread_ts=self.message.parent_ts,
-#             )
-#             return
+    #         if blocks is not None:
+    #             blocks.extend([
+    #                 slack_sdk.models.blocks.DividerBlock(),
+    #                 slack_sdk.models.blocks.ContextBlock(
+    #                     elements=[
+    # slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+    #                         text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
+    #                     ),
+    #                     ]
+    #                     text=
+    #                 ),
+    #             ])
+    #             await eave.slack.client.chat_postMessage(
+    #                 channel=self.message.channel,
+    #                 blocks=blocks,
+    #                 thread_ts=self.message.parent_ts,
+    #             )
+    #             return
 
     async def react_to_message(self, name: str) -> None:
         assert self.message.channel is not None
@@ -636,24 +647,31 @@ class Brain:
         subscription = await eave.core_api.client.get_or_create_subscription(source=self.subscription_source)
         return subscription
 
-    async def notify_existing_subscription(self, subscription: eave.core_api.EaveCoreClient.SubscriptionResponse) -> None:
+    async def notify_existing_subscription(
+        self, subscription: eave.core_api.EaveCoreClient.SubscriptionResponse
+    ) -> None:
         if subscription.document_reference is not None:
-            await self.respond_to_message(text=(
-                f"Hey! I'm already watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
-                "Let me know if you need anything else!"
-            ))
+            await self.respond_to_message(
+                text=(
+                    f"Hey! I'm already watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                    "Let me know if you need anything else!"
+                )
+            )
             return
 
         else:
-            await self.respond_to_message(text=(
-                f"Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready."
-            ))
+            await self.respond_to_message(
+                text=(
+                    f"Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready."
+                )
+            )
             return
 
 
 def DEMO_DOCUMENT_CONTENT() -> str:
     with open("demo-document-01.html", "r", encoding="utf-8") as f:
         return f.read()
+
 
 def DEMO_DOCUMENT_TITLE() -> str:
     return "Finny Credit Application System Overview"

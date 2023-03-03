@@ -31,6 +31,7 @@ class DocumentReference:
             document_url=json["document_url"],
         )
 
+
 @dataclass
 class Document:
     title: str
@@ -43,6 +44,7 @@ class Document:
             "content": self.content,
             "parent": self.parent.to_json() if self.parent is not None else None,
         }
+
 
 class SubscriptionSourceEvent(enum.Enum):
     slack_message = "slack.message"
