@@ -1,3 +1,4 @@
+import json
 import logging
 import sys
 
@@ -35,7 +36,7 @@ else:
 api = FastAPI()
 
 
-@api.post("/events")
+@api.post("/slack/events")
 async def slack_event(req: Request) -> None:
     await eave.slack.handler.handle(req)
 
@@ -88,12 +89,9 @@ async def slack_event(req: Request) -> None:
 #     return answer
 
 
-@api.get("/status")
-@api.get("/_ah/start")
-@api.get("/_ah/warmup")
-@api.get("/_ah/stop")
-def health() -> dict[str, str]:
-    return {
-        "status": "1",
+@api.get("/slack/status")
+def status() -> str:
+    return json.dumps({
         "service": "slack",
-    }
+        "status": "OK",
+    }, sort_keys=True)

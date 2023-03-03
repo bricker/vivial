@@ -2,6 +2,7 @@ import enum
 from collections import namedtuple
 from dataclasses import dataclass
 from functools import cache
+from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 

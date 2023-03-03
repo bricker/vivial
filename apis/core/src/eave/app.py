@@ -1,7 +1,9 @@
+import json
 import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from eave.internal.util import JsonObject
 
 import eave.public.requests as _requests
 from eave.internal.middleware import TeamLookupMiddleware
@@ -26,10 +28,13 @@ app.add_middleware(
 
 app.add_middleware(TeamLookupMiddleware)
 
-app.get("/status")(_requests.GetStatus.handler)
-app.get("/_ah/start")(_requests.GetStatus.handler)
-app.get("/_ah/stop")(_requests.GetStatus.handler)
-app.get("/_ah/warmup")(_requests.GetStatus.handler)
+@app.get("/status")
+def status() -> str:
+    return json.dumps({
+        "service": "api",
+        "status": "OK",
+    }, sort_keys=True)
+
 
 app.post("/access_request")(_requests.CreateAccessRequest.handler)
 app.post("/documents/upsert")(_requests.UpsertDocument.handler)

@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 from typing import Any
 
@@ -10,15 +11,11 @@ app.secret_key = eave.settings.APP_SETTINGS.eave_web_session_encryption_key
 
 
 @app.get("/status")
-@app.get("/_ah/start")
-@app.get("/_ah/stop")
-@app.get("/_ah/warmup")
-def status() -> dict[str, str]:
-    return {
-        "status": "1",
+def status() -> str:
+    return json.dumps({
         "service": "www",
-    }
-
+        "status": "OK",
+    }, sort_keys=True)
 
 @app.get("/")
 def spa_home() -> str:

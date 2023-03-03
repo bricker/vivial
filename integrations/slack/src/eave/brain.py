@@ -5,9 +5,12 @@ import os
 import re
 import traceback
 from dataclasses import dataclass
-from typing import Optional
+from typing import Iterable, List, Optional, Sequence
 
 import tiktoken
+import slack_sdk.models.blocks
+import slack_sdk.models.blocks.basic_components
+import slack_sdk.models.blocks.block_elements
 
 import eave.core_api
 import eave.openai

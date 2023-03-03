@@ -1,6 +1,3 @@
-import os
-from typing import Optional
-
 import sqlalchemy
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 

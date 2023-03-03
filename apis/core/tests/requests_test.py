@@ -23,19 +23,6 @@ class TestStatusEndpoint(BaseTestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.json(), {"status": "1", "service": "api"})
 
-    async def test_appengine_start(self) -> None:
-        response = await self.httpclient.get("/_ah/start")
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    async def test_appengine_stop(self) -> None:
-        response = await self.httpclient.get("/_ah/stop")
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    async def test_appengine_warmup(self) -> None:
-        response = await self.httpclient.get("/_ah/warmup")
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-
 class TestAccessRequestEndpoint(BaseTestCase):
     async def test_new_email(self) -> None:
         response = await self.httpclient.post(

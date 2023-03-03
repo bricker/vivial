@@ -11,18 +11,13 @@ app.use((req, _, next) => {
   next();
 });
 
-const statusHandler = (_: unknown, res: Response) => {
-  res.json({ status: '1', service: 'github' })
+app.get('/github/status', (_: unknown, res: Response) => {
+  res.json({ service: 'github', status: 'OK' })
     .status(200)
     .end();
-};
+});
 
-app.get('/status', statusHandler);
-app.get('/_ah/start', statusHandler);
-app.get('/_ah/stop', statusHandler);
-app.get('/_ah/warmup', statusHandler);
-
-app.post('/webhook/github', async (req, res) => {
+app.post('/github/events', async (req, res) => {
   await dispatch(req, res);
 });
 

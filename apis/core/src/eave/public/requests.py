@@ -22,16 +22,6 @@ from eave.public.models import DocumentReferencePublic, SubscriptionPublic, Team
 from eave.public.shared import DocumentContentInput, DocumentPlatform, SubscriptionInput
 
 
-class GetStatus:
-    class ResponseBody(BaseModel):
-        status = "1"
-        service = "api"
-
-    @staticmethod
-    def handler() -> ResponseBody:
-        return GetStatus.ResponseBody()
-
-
 class CreateAccessRequest:
     class RequestBody(BaseModel):
         visitor_id: Optional[UUID4]
