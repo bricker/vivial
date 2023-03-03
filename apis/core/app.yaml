@@ -1,4 +1,4 @@
-runtime: python311
+runtime: python310
 service: api
 instance_class: F1
 automatic_scaling:

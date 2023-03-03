@@ -1,4 +1,4 @@
-runtime: python311
+runtime: python310
 service: slack
 instance_class: F1
 automatic_scaling:
