@@ -11,11 +11,11 @@ app.secret_key = eave.settings.APP_SETTINGS.eave_web_session_encryption_key
 
 
 @app.get("/status")
-def status() -> str:
-    return json.dumps({
+def status() -> dict[str, str]:
+    return {
         "service": "www",
         "status": "OK",
-    }, sort_keys=True)
+    }
 
 @app.get("/")
 def spa_home() -> str:

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 import eave.core_api
 import eave.event_handlers
+from eave.util import JsonObject
 
 eave.event_handlers.ensure_import()
 import eave.openai
@@ -90,11 +91,8 @@ async def slack_event(req: Request) -> None:
 
 
 @api.get("/slack/status")
-def status() -> str:
-    return json.dumps(
-        {
-            "service": "slack",
-            "status": "OK",
-        },
-        sort_keys=True,
-    )
+def status() -> JsonObject:
+    return {
+        "service": "slack",
+        "status": "OK",
+    }

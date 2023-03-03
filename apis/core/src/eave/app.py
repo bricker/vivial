@@ -29,11 +29,11 @@ app.add_middleware(
 app.add_middleware(TeamLookupMiddleware)
 
 @app.get("/status")
-def status() -> str:
-    return json.dumps({
+def status() -> JsonObject:
+    return {
         "service": "api",
         "status": "OK",
-    }, sort_keys=True)
+    }
 
 
 app.post("/access_request")(_requests.CreateAccessRequest.handler)
