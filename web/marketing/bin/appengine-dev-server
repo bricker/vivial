@@ -11,5 +11,4 @@ set +o allexport
 dev_appserver.py \
     --host localhost \
     --port 5000 \
-    --addn_host "www.eave.dev" \
     app.yaml

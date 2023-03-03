@@ -37,4 +37,4 @@ then
     install_tinyproxy
 fi
 
-tinyproxy -d -c tinyproxy.conf
+tinyproxy -d -c "${EAVE_HOME}/develop/proxy/tinyproxy.conf"

@@ -35,7 +35,7 @@ else:
 api = FastAPI()
 
 
-@api.post("/slack/events")
+@api.post("/events")
 async def slack_event(req: Request) -> None:
     await eave.slack.handler.handle(req)
 
