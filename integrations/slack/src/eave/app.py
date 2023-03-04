@@ -1,6 +1,8 @@
 import json
 import logging
+import os
 import sys
+from typing import Any
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
@@ -38,8 +40,8 @@ api = FastAPI()
 
 
 @api.post("/slack/events")
-async def slack_event(req: Request) -> None:
-    await eave.slack.handler.handle(req)
+async def slack_event(req: Request) -> Any:
+    return await eave.slack.handler.handle(req)
 
 
 # class GenerateInput(BaseModel):
@@ -95,4 +97,5 @@ def status() -> JsonObject:
     return {
         "service": "slack",
         "status": "OK",
+        "version": os.getenv("GAE_VERSION", "unknown"),
     }

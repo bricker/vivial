@@ -1,5 +1,6 @@
 import json
 from http import HTTPStatus
+import os
 from typing import Any
 
 import eave.settings
@@ -15,6 +16,7 @@ def status() -> dict[str, str]:
     return {
         "service": "www",
         "status": "OK",
+        "version": os.getenv("GAE_VERSION", "unknown"),
     }
 
 @app.get("/")

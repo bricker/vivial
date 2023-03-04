@@ -12,9 +12,11 @@ app.use((req, _, next) => {
 });
 
 app.get('/github/status', (_: unknown, res: Response) => {
-  res.json({ service: 'github', status: 'OK' })
-    .status(200)
-    .end();
+  res.json({
+    service: 'github',
+    status: 'OK',
+    version: process.env['GAE_VERSION'] || 'unknown',
+  }).status(200).end();
 });
 
 app.post('/github/events', async (req, res) => {
