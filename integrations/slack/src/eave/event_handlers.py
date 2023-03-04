@@ -52,6 +52,7 @@ async def event_url_verification_handler(event: eave.util.JsonObject) -> str:
     assert isinstance(challenge, str)
     return challenge
 
+
 @eave.slack.app.event("app_mention")
 @eave.slack.app.event("reaction_added")
 @eave.slack.app.event("file_deleted")
