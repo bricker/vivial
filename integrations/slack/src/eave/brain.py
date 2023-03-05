@@ -54,7 +54,9 @@ class Brain:
     def __init__(self, message: eave.slack_models.SlackMessage) -> None:
         self.message = message
         self.subscription_source = eave.core_api.SubscriptionSource(
-            event=eave.core_api.SubscriptionSourceEvent.slack_message, id=message.subscription_id
+            platform=eave.core_api.SubscriptionSourcePlatform.slack,
+            event=eave.core_api.SubscriptionSourceEvent.slack_message,
+            id=message.subscription_id,
         )
 
     async def process_message(self) -> None:
