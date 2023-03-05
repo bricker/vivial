@@ -91,8 +91,8 @@ class UpsertDocument:
 
             if APP_SETTINGS.eave_demo_mode is True:
                 mock_id = request.headers.get("eave-demo-mock-id")
-                assert mock_id is not None
-                input.document = get_mock_document(mock_id=mock_id)
+                if mock_id is not None:
+                    input.document = get_mock_document(mock_id=mock_id)
 
             if existing_document_reference is None:
                 document_reference = await destination.create_document(

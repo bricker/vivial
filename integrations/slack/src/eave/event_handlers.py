@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from slack_bolt.async_app import AsyncAck, AsyncApp
 

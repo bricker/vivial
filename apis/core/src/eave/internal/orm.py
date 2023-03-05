@@ -297,7 +297,7 @@ class ConfluenceDestinationOrm(Base):
 
         response = self.confluence_client().create_page(
             space="FIN" if APP_SETTINGS.eave_demo_mode is True else self.space,
-            representation="wiki",
+            representation="storage" if APP_SETTINGS.eave_demo_mode is True else "wiki",
             title=document.title,
             body=document.content,
             parent_id=parent_page.id if parent_page is not None else None,

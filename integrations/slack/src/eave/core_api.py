@@ -46,12 +46,12 @@ class Document:
         }
 
 
-class SubscriptionSourcePlatform(enum.Enum):
+class SubscriptionSourcePlatform(str, enum.Enum):
     slack = "slack"
     github = "github"
 
 
-class SubscriptionSourceEvent(enum.Enum):
+class SubscriptionSourceEvent(str, enum.Enum):
     slack_message = "slack.message"
     github_file_change = "github.file_change"
 
