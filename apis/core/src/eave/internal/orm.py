@@ -17,9 +17,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 import eave.internal.confluence
 import eave.internal.openai
-from eave.internal.settings import APP_SETTINGS
 import eave.internal.util
 from eave.internal.confluence import ConfluenceContext, ConfluencePage
+from eave.internal.settings import APP_SETTINGS
 from eave.public.shared import (
     DocumentContentInput,
     DocumentPlatform,
@@ -372,6 +372,7 @@ class ConfluenceDestinationOrm(Base):
 #     github_install_id: Mapped[str] = mapped_column()
 #     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 #     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 class TeamOrm(Base):
     __tablename__ = "teams"

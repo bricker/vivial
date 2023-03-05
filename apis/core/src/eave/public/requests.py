@@ -1,6 +1,6 @@
 import json
-from http import HTTPStatus
 import re
+from http import HTTPStatus
 from typing import Optional
 
 from fastapi import HTTPException, Request, Response
@@ -20,7 +20,12 @@ from eave.internal.orm import (
 )
 from eave.internal.settings import APP_SETTINGS
 from eave.public.models import DocumentReferencePublic, SubscriptionPublic, TeamPublic
-from eave.public.shared import DocumentContentInput, DocumentPlatform, DocumentReferenceInput, SubscriptionInput
+from eave.public.shared import (
+    DocumentContentInput,
+    DocumentPlatform,
+    DocumentReferenceInput,
+    SubscriptionInput,
+)
 
 
 class CreateAccessRequest:
@@ -185,7 +190,7 @@ class CreateSubscription:
                 subscription_orm = SubscriptionOrm(
                     team_id=team.id,
                     source=input.subscription.source,
-                    document_reference_id=input.document_reference.id if input.document_reference is not None else None
+                    document_reference_id=input.document_reference.id if input.document_reference is not None else None,
                 )
 
                 session.add(subscription_orm)
@@ -276,9 +281,10 @@ def shared_state_cookie_params() -> eave.internal.util.JsonObject:
 
     return params
 
+
 def get_mock_document(mock_id: str) -> DocumentContentInput:
     fn = f"{mock_id}.html"
-    with open(fn, 'r') as f:
+    with open(fn, "r") as f:
         content = f.read()
 
     if re.match("^demo-doc-arch", mock_id):
@@ -286,10 +292,7 @@ def get_mock_document(mock_id: str) -> DocumentContentInput:
         parent = DocumentContentInput(
             title="System Architecture",
             content="",
-            parent=DocumentContentInput(
-                title="Engineering",
-                content=""
-            ),
+            parent=DocumentContentInput(title="Engineering", content=""),
         )
 
     elif re.match("^demo-doc-onboarding", mock_id):
