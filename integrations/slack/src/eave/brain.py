@@ -428,6 +428,7 @@ class Brain:
 
             if re.search("create documentation for this system", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-arch-01"
+                document.title = "Finny Credit Application System Architecture"
 
         upsert_document_response = await eave.core_api.client.upsert_document(
             document=document,
@@ -463,7 +464,7 @@ class Brain:
             slack_profile = await self.message.get_user_profile()
             assert slack_profile is not None
 
-            message = f"Here's the documentation that you asked for! I'll keep the documentation up-to-date at this conversation evolves."
+            message = f"Here's the documentation that you asked for! I'll keep it up-to-date and accurate."
 
             await self.respond_to_message(
                 text=f"{message}\n<{upsert_document_response.document_reference.document_url}|{document.title}>"

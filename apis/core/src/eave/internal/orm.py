@@ -322,7 +322,7 @@ class ConfluenceDestinationOrm(Base):
 
     async def get_confluence_page_by_title(self, document: DocumentContentInput) -> ConfluencePage | None:
         response = self.confluence_client().get_page_by_title(
-            space=self.space,
+            space="FIN" if APP_SETTINGS.eave_demo_mode is True else self.space,
             title=document.title,
         )
         if response is None:
