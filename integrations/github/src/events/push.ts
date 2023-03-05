@@ -16,13 +16,14 @@ const PROMPT_PREFIX =
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   console.info('Processing push', event, context);
 
-  await Bluebird.all(event.commits.map(async (commit) => {
-    const modifiedFiles = Array.from(new Set([...commit.added, ...commit.removed, ...commit.modified]));
+  await Bluebird.all(event.commits.map(async (eventCommit) => {
+    const modifiedFiles = Array.from(new Set([...eventCommit.added, ...eventCommit.removed, ...eventCommit.modified]));
 
-    await Bluebird.all(modifiedFiles.map(async (filePath) => {
+    await Bluebird.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
+      const fileId = Buffer.from(eventCommitTouchedFilename).toString('base64');
       const eventId = [
         `R${event.repository.id}`,
-        `F${modifiedFile}`,
+        `F${fileId}`,
       ].join('#');
 
       const subscriptionSource: SubscriptionSource = {
@@ -34,40 +35,38 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       if (subscription === null) { return; }
       const query = await GraphQLUtil.loadQuery('getFileContents');
 
-      const variables: { nodeId: Scalars['ID'], filePath: Scalars['String'] } = {
-        nodeId: commit.id,
-        filePath,
+      const variables: {
+        repoOwner: Scalars['String'],
+        repoName: Scalars['String'],
+        commitOid: Scalars['String'],
+        filePath: Scalars['String']
+      } = {
+        repoOwner: event.repository.owner.name!,
+        repoName: event.repository.name,
+        commitOid: eventCommit.id, // FIXME: Is oid and id the same here?
+        filePath: eventCommitTouchedFilename,
       };
 
-      const response = await context.octokit.graphql<{ node: Query['node'] }>(query, variables);
-      const commit = <Commit | undefined>response.node;
-      if (commit === undefined) { return; }
-
-      const repository = <Repository | undefined>commit.repository;
-      if (repository === undefined) { return; }
-
-      const file = <TreeEntry | undefined>commit.file;
-      if (file === undefined) { return; }
-
-      const blob = <Blob | undefined>file.object;
-      if (blob === undefined) { return; }
-
-      const fileContents = blob.text;
-      if (fileContents === undefined) { return; }
+      const fileContentsResponse = await context.octokit.graphql<{ repository: Query['repository'] }>(query, variables);
+      const fileContentsRepository = <Repository>fileContentsResponse.repository!;
+      const fileContentsCommit = <Commit>fileContentsRepository.object!;
+      const fileContentsTreeEntry = <TreeEntry>fileContentsCommit.file!;
+      const fileContentsBlob = <Blob>fileContentsTreeEntry.object!;
+      const fileContents = fileContentsBlob.text!;
 
       const codeDescription = [];
 
-      const languageName = file.language?.name;
+      const languageName = fileContentsTreeEntry.language?.name;
       if (languageName !== undefined) {
         codeDescription.push(`written in ${languageName}`);
       }
 
-      const filePath = file.path;
+      const filePath = fileContentsTreeEntry.path;
       if (filePath !== undefined) {
         codeDescription.push(`in a file called "${filePath}"`);
       }
 
-      const repositoryName = repository.name;
+      const repositoryName = fileContentsRepository.name;
       codeDescription.push(`in a Github repository called "${repositoryName}"`);
 
       const codeDescriptionString = codeDescription.length > 0
