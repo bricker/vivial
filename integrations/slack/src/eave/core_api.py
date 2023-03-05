@@ -45,13 +45,16 @@ class Document:
             "parent": self.parent.to_json() if self.parent is not None else None,
         }
 
+
 class SubscriptionSourcePlatform(enum.Enum):
     slack = "slack"
     github = "github"
 
+
 class SubscriptionSourceEvent(enum.Enum):
     slack_message = "slack.message"
     github_file_change = "github.file_change"
+
 
 @dataclass
 class SubscriptionSource:
@@ -139,7 +142,9 @@ class EaveCoreClient:
             self.subscription = Subscription.from_json(json["subscription"])
             self.document_reference = DocumentReference.from_json(json["document_reference"])
 
-    async def upsert_document(self, document: Document, source: SubscriptionSource, addl_headers: dict[str,str] = {}) -> UpsertDocumentResponse:
+    async def upsert_document(
+        self, document: Document, source: SubscriptionSource, addl_headers: dict[str, str] = {}
+    ) -> UpsertDocumentResponse:
         data = {
             "document": document.to_json(),
             "subscription": {"source": source.to_json()},
@@ -175,7 +180,9 @@ class EaveCoreClient:
             if drjson is not None:
                 self.document_reference = DocumentReference.from_json(json["document_reference"])
 
-    async def get_or_create_subscription(self, source: SubscriptionSource, document_reference: Optional[DocumentReference] = None) -> SubscriptionResponse:
+    async def get_or_create_subscription(
+        self, source: SubscriptionSource, document_reference: Optional[DocumentReference] = None
+    ) -> SubscriptionResponse:
         request_body: eave.util.JsonObject = {
             "subscription": {
                 "source": source.to_json(),
@@ -183,10 +190,7 @@ class EaveCoreClient:
         }
 
         if document_reference is not None:
-            request_body["document_reference"] = {
-                "id": str(document_reference.id)
-            }
-
+            request_body["document_reference"] = {"id": str(document_reference.id)}
 
         async with aiohttp.ClientSession() as session:
             resp = await session.request(

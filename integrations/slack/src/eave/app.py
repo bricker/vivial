@@ -43,6 +43,7 @@ api = FastAPI()
 async def slack_event(req: Request) -> Any:
     return await eave.slack.handler.handle(req)
 
+
 @api.get("/slack/status")
 def status() -> JsonObject:
     return {

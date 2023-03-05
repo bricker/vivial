@@ -418,7 +418,7 @@ class Brain:
             return generated_document
 
         document = await parse_raw_documentation()
-        addl_headers = dict[str,str]()
+        addl_headers = dict[str, str]()
 
         if eave.settings.APP_SETTINGS.eave_demo_mode is True:
             expanded_text = await self.message.get_expanded_text()
@@ -439,7 +439,7 @@ class Brain:
                     platform=eave.core_api.SubscriptionSourcePlatform.github,
                     event=eave.core_api.SubscriptionSourceEvent.github_file_change,
                     # FIXME: Remove this hardcoded id and get the real github information
-                    id="R_kgDOJDutMQ#YXBwLnB5" # finny-credit-application-processor/app.py
+                    id="R_kgDOJDutMQ#YXBwLnB5",  # finny-credit-application-processor/app.py
                 ),
                 document_reference=upsert_document_response.document_reference,
             )
@@ -449,7 +449,7 @@ class Brain:
                     platform=eave.core_api.SubscriptionSourcePlatform.github,
                     event=eave.core_api.SubscriptionSourceEvent.github_file_change,
                     # FIXME: Remove this hardcoded id and get the real github information
-                    id="R_kgDOJDurIQ#anMvQ3JlZGl0QXBwbGljYXRpb24uanN4" # finny-website/js/CreditApplication.jsx
+                    id="R_kgDOJDurIQ#anMvQ3JlZGl0QXBwbGljYXRpb24uanN4",  # finny-website/js/CreditApplication.jsx
                 ),
                 document_reference=upsert_document_response.document_reference,
             )
@@ -502,7 +502,7 @@ class Brain:
         await self.respond_to_message(text="I haven't yet been taught how to search existing documentation.")
 
     async def update_documentation(self) -> None:
-        addl_headers = dict[str,str]()
+        addl_headers = dict[str, str]()
         if eave.settings.APP_SETTINGS.eave_demo_mode is True:
             expanded_text = await self.message.get_expanded_text()
             assert expanded_text is not None
@@ -518,7 +518,6 @@ class Brain:
 
             elif re.search("update the onboarding documentation with this information", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-05"
-
 
             await eave.core_api.client.upsert_document(
                 # This is just a stub to pass to the API. In demo mode, the server uses a mock document.
