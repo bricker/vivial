@@ -20,7 +20,7 @@ from eave.internal.orm import (
 )
 from eave.internal.settings import APP_SETTINGS
 from eave.public.models import DocumentReferencePublic, SubscriptionPublic, TeamPublic
-from eave.public.shared import DocumentContentInput, DocumentPlatform, SubscriptionInput
+from eave.public.shared import DocumentContentInput, DocumentPlatform, DocumentReferenceInput, SubscriptionInput
 
 
 class CreateAccessRequest:
@@ -159,6 +159,7 @@ class GetSubscription:
 class CreateSubscription:
     class RequestBody(BaseModel):
         subscription: SubscriptionInput
+        document_reference: Optional[DocumentReferenceInput]
 
     class ResponseBody(BaseModel):
         team: TeamPublic
@@ -184,6 +185,7 @@ class CreateSubscription:
                 subscription_orm = SubscriptionOrm(
                     team_id=team.id,
                     source=input.subscription.source,
+                    document_reference_id=input.document_reference.id if input.document_reference is not None else None
                 )
 
                 session.add(subscription_orm)

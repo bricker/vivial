@@ -23,6 +23,7 @@ export enum SubscriptionSourceEvent {
 }
 
 export type SubscriptionSource = {
+  platform: string;
   event: SubscriptionSourceEvent;
   id: string;
 }

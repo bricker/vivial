@@ -14,13 +14,12 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   const signature = req.header('x-hub-signature-256');
   const installationId = req.header('x-github-hook-installation-target-id');
 
-  const bodyBuffer = req.body as Buffer;
-  const bodyJSON = JSON.stringify(bodyBuffer);
+  const requestBody = (<Buffer>req.body).toString();
 
   const payload: EmitterWebhookEvent<EmitterWebhookEventName> & {
     installation: InstallationLite,
     action?: string,
-  } = JSON.parse(bodyJSON);
+  } = JSON.parse(requestBody);
 
   if (!eventName || !id || !signature || !payload) {
     res.status(400).end();
@@ -47,7 +46,7 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
     webhooks: { secret },
   });
 
-  const verified = await app.webhooks.verify(bodyJSON, signature);
+  const verified = await app.webhooks.verify(requestBody, signature);
 
   if (!verified) {
     console.warn('signature verification failed');

@@ -21,12 +21,14 @@ export default async function handler(event: PushEvent, context: GitHubOperation
 
     await Bluebird.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
       const fileId = Buffer.from(eventCommitTouchedFilename).toString('base64');
+      // TODO: Move this eventId algorithm into a shared location
       const eventId = [
-        `R${event.repository.id}`,
-        `F${fileId}`,
+        `${event.repository.node_id}`,
+        `${fileId}`,
       ].join('#');
 
       const subscriptionSource: SubscriptionSource = {
+        platform: 'github',
         event: SubscriptionSourceEvent.github_file_change,
         id: eventId,
       };
@@ -95,10 +97,16 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const addlHeaders: {[key: string]: string} = {};
 
       if (appSettings.eaveDemoMode) {
-        addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-02';
+        if (repositoryName === 'finny-website' && filePath === 'js/CreditApplication.jsx') {
+          addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-02';
+        }
+        if (repositoryName === 'finny-credit-application-processor' && filePath === 'app.py') {
+          addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-03';
+        }
       }
 
-      await coreApiClient.upsertDocument(document, subscriptionSource, addlHeaders);
+      const upsertDocumentResponse = await coreApiClient.upsertDocument(document, subscriptionSource, addlHeaders);
+      console.log(upsertDocumentResponse);
     }));
   }));
 }

@@ -433,6 +433,27 @@ class Brain:
             addl_headers=addl_headers,
         )
 
+        if eave.settings.APP_SETTINGS.eave_demo_mode is True:
+            await eave.core_api.client.get_or_create_subscription(
+                source=eave.core_api.SubscriptionSource(
+                    platform=eave.core_api.SubscriptionSourcePlatform.github,
+                    event=eave.core_api.SubscriptionSourceEvent.github_file_change,
+                    # FIXME: Remove this hardcoded id and get the real github information
+                    id="R_kgDOJDutMQ#YXBwLnB5" # finny-credit-application-processor/app.py
+                ),
+                document_reference=upsert_document_response.document_reference,
+            )
+
+            await eave.core_api.client.get_or_create_subscription(
+                source=eave.core_api.SubscriptionSource(
+                    platform=eave.core_api.SubscriptionSourcePlatform.github,
+                    event=eave.core_api.SubscriptionSourceEvent.github_file_change,
+                    # FIXME: Remove this hardcoded id and get the real github information
+                    id="R_kgDOJDurIQ#anMvQ3JlZGl0QXBwbGljYXRpb24uanN4" # finny-website/js/CreditApplication.jsx
+                ),
+                document_reference=upsert_document_response.document_reference,
+            )
+
         async def send_follow_up_message() -> None:
             """
             Generated a nice message and sends it back to the original Slack thread, along with a link to the new documentation.

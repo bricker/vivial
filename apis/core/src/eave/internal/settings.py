@@ -58,7 +58,7 @@ class Settings:
 
     @property
     def eave_demo_mode(self) -> bool:
-        return os.getenv("EAVE_DEMO_MODE") is not None;
+        return os.getenv("EAVE_DEMO_MODE") is not None
 
     @property
     def eave_cookie_domain(self) -> str:
