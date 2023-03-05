@@ -2,9 +2,9 @@ import { App } from 'octokit';
 import { Request, Response } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';
-import * as Registry from './registry';
-import appSettings from './settings';
-import pushHandler from './events/push';
+import * as Registry from './registry.js';
+import appSettings from './settings.js';
+import pushHandler from './events/push.js';
 
 Registry.registerHandler('push', pushHandler);
 

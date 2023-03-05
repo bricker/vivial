@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import appSettings from '../settings';
+import appSettings from '../settings.js';
 
 enum DocumentPlatform {
   eave = 'eave',
@@ -22,19 +22,9 @@ export enum SubscriptionSourceEvent {
   github_file_change = 'github.file_change',
 }
 
-type SubscriptionSourceDetails = {
-  team: string;
-  channel: string;
-  ts: string;
-}
-
 export type SubscriptionSource = {
   event: SubscriptionSourceEvent;
   id: string;
-  // details(): SubscriptionSourceDetails {
-  //   team, channel, ts = self.id.split("#")
-  //   return SubscriptionSourceDetails({ team, channel, ts });
-  // }
 }
 
 type Subscription = {

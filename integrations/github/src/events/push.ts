@@ -2,10 +2,10 @@ import Bluebird from 'bluebird';
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
 import { GitHubOperationsContext } from '../types';
-import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api';
-import openai, { OpenAIModel } from '../lib/openai';
-import * as GraphQLUtil from '../lib/graphql-util';
-import appSettings from '../settings';
+import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api.js';
+import openai, { OpenAIModel } from '../lib/openai.js';
+import * as GraphQLUtil from '../lib/graphql-util.js';
+import appSettings from '../settings.js';
 
 // eslint-disable-next-line operator-linebreak
 const PROMPT_PREFIX =
