@@ -14,7 +14,7 @@ class DocumentPlatform(str, enum.Enum):
 class DocumentContentInput(BaseModel):
     title: str
     content: str
-    parent: Optional["DocumentContentInput"]
+    parent: Optional["DocumentContentInput"] = None
 
 
 class SubscriptionSourcePlatform(str, enum.Enum):

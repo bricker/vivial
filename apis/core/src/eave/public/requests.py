@@ -1,5 +1,6 @@
 import json
 from http import HTTPStatus
+import re
 from typing import Optional
 
 from fastapi import HTTPException, Request, Response
@@ -82,6 +83,12 @@ class UpsertDocument:
 
             destination = await team.get_document_destination(session=session)
             existing_document_reference = await subscription.get_document_reference(session=session)
+
+            if APP_SETTINGS.eave_demo_mode is True:
+                mock_id = request.headers.get("eave-demo-mock-id")
+                assert mock_id is not None
+                input.document = get_mock_document(mock_id=mock_id)
+
             if existing_document_reference is None:
                 document_reference = await destination.create_document(
                     document=input.document,
@@ -266,3 +273,35 @@ def shared_state_cookie_params() -> eave.internal.util.JsonObject:
     }
 
     return params
+
+def get_mock_document(mock_id: str) -> DocumentContentInput:
+    fn = f"{mock_id}.html"
+    with open(fn, 'r') as f:
+        content = f.read()
+
+    if re.match("^demo-doc-arch", mock_id):
+        title = "Finny Credit Application System Architecture"
+        parent = DocumentContentInput(
+            title="System Architecture",
+            content="",
+            parent=DocumentContentInput(
+                title="Engineering",
+                content=""
+            ),
+        )
+
+    elif re.match("^demo-doc-onboarding", mock_id):
+        title = "Finny Engineer Onboarding"
+        parent = DocumentContentInput(
+            title="Engineering",
+            content="",
+        )
+
+    else:
+        raise
+
+    return DocumentContentInput(
+        title=title,
+        content=content,
+        parent=parent,
+    )

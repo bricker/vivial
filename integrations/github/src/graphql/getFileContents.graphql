@@ -1,0 +1,26 @@
+query ($nodeId: ID!, $filePath: String!) {
+  node(id: $nodeId) {
+    id
+    ...on Commit {
+      repository {
+        name
+      }
+      file(path: $filePath) {
+        oid
+        language {
+          name
+        }
+        path
+        object {
+          id
+          oid
+          ...on Blob {
+            id
+            oid
+            text
+          }
+        }
+      }
+    }
+  }
+}

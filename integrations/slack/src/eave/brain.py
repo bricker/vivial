@@ -380,29 +380,14 @@ class Brain:
             title = re.sub("^TITLE:\\s*", "", title, flags=re.RegexFlag.IGNORECASE).strip()
             body = re.sub("^FORMATTED DOCUMENTATION:\\s*", "", body, flags=re.RegexFlag.IGNORECASE).strip()
 
-            if eave.settings.APP_SETTINGS.eave_demo_mode:
-                generated_document = eave.core_api.Document(
-                    title=DEMO_DOCUMENT_TITLE(),
-                    content=DEMO_DOCUMENT_CONTENT(),
-                    parent=eave.core_api.Document(
-                        title="System Architecture",
-                        content="",
-                        parent=eave.core_api.Document(
-                            title="Engineering",
-                            content="",
-                        ),
-                    ),
-                )
-
-            else:
-                generated_document = eave.core_api.Document(
-                    title=title,
-                    content=body,
-                    parent=eave.core_api.Document(
-                        title=category,
-                        content="",
-                    ),
-                )
+            generated_document = eave.core_api.Document(
+                title=title,
+                content=body,
+                parent=eave.core_api.Document(
+                    title=category,
+                    content="",
+                ),
+            )
 
             all_messages = await self.message.get_conversation_messages()
             assert all_messages is not None
@@ -433,10 +418,19 @@ class Brain:
             return generated_document
 
         document = await parse_raw_documentation()
+        addl_headers = dict[str,str]()
+
+        if eave.settings.APP_SETTINGS.eave_demo_mode is True:
+            expanded_text = await self.message.get_expanded_text()
+            assert expanded_text is not None
+
+            if re.search("create documentation for this system", expanded_text):
+                addl_headers["eave-demo-mock-id"] = "demo-doc-arch-01"
 
         upsert_document_response = await eave.core_api.client.upsert_document(
             document=document,
             source=self.message.subscription_source,
+            addl_headers=addl_headers,
         )
 
         async def send_follow_up_message() -> None:
@@ -487,7 +481,37 @@ class Brain:
         await self.respond_to_message(text="I haven't yet been taught how to search existing documentation.")
 
     async def update_documentation(self) -> None:
-        await self.respond_to_message(text="I haven't yet been taught how to update existing documentation.")
+        addl_headers = dict[str,str]()
+        if eave.settings.APP_SETTINGS.eave_demo_mode is True:
+            expanded_text = await self.message.get_expanded_text()
+            assert expanded_text is not None
+
+            if re.search("add Alice to the team roster", expanded_text):
+                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-02"
+
+            elif re.search("add this to our onboarding documentation", expanded_text):
+                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-03"
+
+            elif re.search("add Amelia to the list of team members in Confluence", expanded_text):
+                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-04"
+
+            elif re.search("update the onboarding documentation with this information", expanded_text):
+                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-05"
+
+
+            await eave.core_api.client.upsert_document(
+                # This is just a stub to pass to the API. In demo mode, the server uses a mock document.
+                document=eave.core_api.Document(
+                    title="stub",
+                    content="stub",
+                    parent=None,
+                ),
+                source=self.message.subscription_source,
+                addl_headers=addl_headers,
+            )
+
+        else:
+            await self.respond_to_message(text="I haven't yet been taught how to update existing documentation.")
 
     async def archive_documentation(self) -> None:
         await self.respond_to_message(text="I haven't yet been taught how to archive existing documentation.")
@@ -666,12 +690,3 @@ class Brain:
                 )
             )
             return
-
-
-def DEMO_DOCUMENT_CONTENT() -> str:
-    with open("demo-document-01.html", "r", encoding="utf-8") as f:
-        return f.read()
-
-
-def DEMO_DOCUMENT_TITLE() -> str:
-    return "Finny Credit Application System Overview"

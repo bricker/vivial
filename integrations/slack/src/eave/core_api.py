@@ -135,7 +135,7 @@ class EaveCoreClient:
             self.subscription = Subscription.from_json(json["subscription"])
             self.document_reference = DocumentReference.from_json(json["document_reference"])
 
-    async def upsert_document(self, document: Document, source: SubscriptionSource) -> UpsertDocumentResponse:
+    async def upsert_document(self, document: Document, source: SubscriptionSource, addl_headers: dict[str,str] = {}) -> UpsertDocumentResponse:
         data = {
             "document": document.to_json(),
             "subscription": {"source": source.to_json()},
@@ -145,7 +145,10 @@ class EaveCoreClient:
             resp = await session.request(
                 "POST",
                 f"{self.api_base_url}/documents/upsert",
-                headers={"eave-team-id": APP_SETTINGS.eave_team_id},
+                headers={
+                    "eave-team-id": APP_SETTINGS.eave_team_id,
+                    **addl_headers,
+                },
                 json=data,
             )
 

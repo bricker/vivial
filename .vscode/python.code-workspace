@@ -41,5 +41,8 @@
 			"editor.tabSize": 4,
 			"editor.indentSize": "tabSize"
 		},
-	}
+		// FIXME: These should use relative paths. It wasn't working with relative paths when I tried.
+		"graphql-config.load.rootDir": "/home/bryan/code/eave/eave-monorepo/integrations/github",
+		"graphql-config.dotEnvPath": "/home/bryan/code/eave/eave-monorepo/integrations/github/.env"
+	},
 }

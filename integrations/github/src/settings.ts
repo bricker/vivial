@@ -12,7 +12,26 @@ class Settings {
     return process.env['NODE_ENV'] || 'development';
   }
 
+  get openaiApiKey(): Promise<string> {
+    return this.getSecret('OPENAI_API_KEY');
+  }
+
+  get eaveDemoMode(): boolean {
+    return process.env['EAVE_DEMO_MODE'] !== undefined;
+  }
+
   eaveGithubAppId = '300560';
+
+  get eaveCoreApiUrl(): string {
+    const value = process.env['EAVE_CORE_API_URL'];
+    assert(value !== undefined);
+    return value;
+  }
+
+  get eaveTeamId(): string {
+    // FIXME: Pull this from database
+    return '3345217c-fb27-4422-a3fc-c404b49aff8c';
+  }
 
   get eaveGithubAppWebhookSecret(): Promise<string> {
     return this.getSecret('EAVE_GITHUB_APP_WEBHOOK_SECRET');

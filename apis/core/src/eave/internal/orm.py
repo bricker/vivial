@@ -17,6 +17,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 import eave.internal.confluence
 import eave.internal.openai
+from eave.internal.settings import APP_SETTINGS
 import eave.internal.util
 from eave.internal.confluence import ConfluenceContext, ConfluencePage
 from eave.public.shared import (
@@ -267,12 +268,21 @@ class ConfluenceDestinationOrm(Base):
         else:
             resolved_document_body = document.content
 
-        response = self.confluence_client().update_page(
-            page_id=document_reference.document_id,
-            representation="wiki",
-            title=existing_page.title,
-            body=resolved_document_body,
-        )
+        if APP_SETTINGS.eave_demo_mode is True:
+            response = self.confluence_client().update_page(
+                page_id=document_reference.document_id,
+                representation="storage",
+                title=existing_page.title,
+                body=document.content,
+            )
+        else:
+            response = self.confluence_client().update_page(
+                page_id=document_reference.document_id,
+                representation="wiki",
+                title=existing_page.title,
+                body=resolved_document_body,
+            )
+
         assert response is not None
         return document_reference
 
@@ -286,7 +296,7 @@ class ConfluenceDestinationOrm(Base):
             parent_page = await self.get_or_create_confluence_page(document=document.parent)
 
         response = self.confluence_client().create_page(
-            space=self.space,
+            space="FIN" if APP_SETTINGS.eave_demo_mode is True else self.space,
             representation="wiki",
             title=document.title,
             body=document.content,
@@ -331,7 +341,6 @@ class ConfluenceDestinationOrm(Base):
 #         Index(
 #             "slack_install_id",
 #             "team_id",
-#             "source_platform",
 #             "source_event",
 #             "source_id",
 #             unique=True,
@@ -344,6 +353,25 @@ class ConfluenceDestinationOrm(Base):
 #     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 #     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
+# class GithubSource(Base):
+#     __tablename__ = "github_sources"
+#     __table_args__ = (
+#         make_team_composite_pk(),
+#         make_team_fk(),
+#         Index(
+#             "github_install_id",
+#             "team_id",
+#             "source_event",
+#             "source_id",
+#             unique=True,
+#         ),
+#     )
+
+#     team_id: Mapped[UUID] = mapped_column()
+#     id: Mapped[UUID] = mapped_column(default=uuid4)
+#     github_install_id: Mapped[str] = mapped_column()
+#     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+#     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class TeamOrm(Base):
     __tablename__ = "teams"
