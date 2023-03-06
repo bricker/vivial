@@ -181,7 +181,7 @@ class EaveCoreClient:
                 self.document_reference = DocumentReference.from_json(json["document_reference"])
 
     async def get_or_create_subscription(
-        self, source: SubscriptionSource, document_reference: Optional[DocumentReference] = None
+        self, source: SubscriptionSource, document_reference_id: Optional[UUID] = None
     ) -> SubscriptionResponse:
         request_body: eave.util.JsonObject = {
             "subscription": {
@@ -189,8 +189,8 @@ class EaveCoreClient:
             },
         }
 
-        if document_reference is not None:
-            request_body["document_reference"] = {"id": str(document_reference.id)}
+        if document_reference_id is not None:
+            request_body["document_reference"] = {"id": str(document_reference_id)}
 
         async with aiohttp.ClientSession() as session:
             resp = await session.request(

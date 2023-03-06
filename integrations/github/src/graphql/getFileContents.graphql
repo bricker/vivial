@@ -23,6 +23,7 @@ query ($repoOwner: String!, $repoName: String!, $commitOid: String!, $filePath: 
               text
             }
           }
+        }
       }
     }
   }

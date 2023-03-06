@@ -6,6 +6,7 @@ import re
 import traceback
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence
+from uuid import UUID
 
 import slack_sdk.models.blocks
 import slack_sdk.models.blocks.basic_components
@@ -444,7 +445,7 @@ class Brain:
                     # FIXME: Remove this hardcoded id and get the real github information
                     id="R_kgDOJDutMQ#YXBwLnB5",  # finny-credit-application-processor/app.py
                 ),
-                document_reference=upsert_document_response.document_reference,
+                document_reference_id=upsert_document_response.document_reference.id,
             )
 
             await eave.core_api.client.get_or_create_subscription(
@@ -454,7 +455,7 @@ class Brain:
                     # FIXME: Remove this hardcoded id and get the real github information
                     id="R_kgDOJDurIQ#anMvQ3JlZGl0QXBwbGljYXRpb24uanN4",  # finny-website/js/CreditApplication.jsx
                 ),
-                document_reference=upsert_document_response.document_reference,
+                document_reference_id=upsert_document_response.document_reference.id,
             )
 
         async def send_follow_up_message() -> None:
@@ -510,17 +511,22 @@ class Brain:
             expanded_text = await self.message.get_expanded_text()
             assert expanded_text is not None
 
-            if re.search("add Alice to the team roster", expanded_text):
+            if re.search("add Alice", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-02"
 
-            elif re.search("add this to our onboarding documentation", expanded_text):
+            elif re.search("troubleshooting", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-03"
 
-            elif re.search("add Amelia to the list of team members in Confluence", expanded_text):
+            elif re.search("add Amelia", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-04"
 
-            elif re.search("update the onboarding documentation with this information", expanded_text):
+            elif re.search("Google Drive", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-05"
+
+            await eave.core_api.client.get_or_create_subscription(
+                source=self.subscription_source,
+                document_reference_id=UUID("3345217c-fb27-4422-a3fc-c404b49aff8a"),
+            )
 
             await eave.core_api.client.upsert_document(
                 # This is just a stub to pass to the API. In demo mode, the server uses a mock document.
