@@ -44,54 +44,6 @@ async def slack_event(req: Request) -> Any:
     return await eave.slack.handler.handle(req)
 
 
-# class GenerateInput(BaseModel):
-#     subscription_id: str
-#     algorithm: ContextAlgorithm
-#     prompt_prefix: str
-#     prompt_suffix: str
-#     openai_params: eave.openai.CompletionParameters
-
-# @api.post("/_generate")
-# async def generator(input: GenerateInput) -> str|None:
-#     source = eave.core_api.SubscriptionSource(
-#         id=input.subscription_id,
-#         event=eave.core_api.SubscriptionSourceEvent.slack_message
-#     )
-
-#     source_details = source.details
-#     msg = await eave.slack.client.conversations_history(
-#         channel=source_details.channel,
-#         oldest=source_details.ts,
-#         inclusive=True,
-#         limit=1
-#     )
-
-#     msgs_json = msg.get("messages")
-#     assert msgs_json is not None
-#     message = SlackMessage(msgs_json[0], channel=source_details.channel)
-
-#     match input.algorithm:
-#         case ContextAlgorithm.mapreduce:
-#             context = await MapReduceAlgorithm.build_context(message=message)
-#         case ContextAlgorithm.concat:
-#             context = await SimpleConcatenationAlgorithm.build_context(message=message)
-#         case ContextAlgorithm.rolling:
-#             context = await RollingContextAlgorithm.build_context(message=message)
-
-#     full_prompt = (
-#         f"{input.prompt_prefix}"
-#         f"\n\n###\n\n"
-#         f"Context:\n"
-#         f"{context}"
-#         f"{input.prompt_suffix}"
-#     )
-
-#     params = input.openai_params
-#     params.prompt = full_prompt
-#     answer = await eave.openai.summarize(params)
-#     return answer
-
-
 @api.get("/slack/status")
 def status() -> JsonObject:
     return {

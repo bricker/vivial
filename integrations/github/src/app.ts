@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import dispatch from './dispatch';
+import dispatch from './dispatch.js';
 
 const PORT = parseInt(process.env['PORT'] || '8080', 10);
 const app = express();

@@ -1,4 +1,4 @@
-runtime: nodejs16
+runtime: nodejs18
 service: github
 instance_class: F1
 automatic_scaling:
@@ -13,3 +13,9 @@ handlers:
   secure: always
   redirect_http_response_code: 301
   script: auto
+
+env_variables:
+  EAVE_CORE_API_URL: "https://api.eave.fyi"
+  EAVE_MONITORING_ENABLED: "1"
+  EAVE_DEMO_MODE: "1"
+  EAVE_TEAM_ID: "3345217c-fb27-4422-a3fc-c404b49aff8c"

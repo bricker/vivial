@@ -15,6 +15,8 @@ function buildConfig() {
         parser: '@typescript-eslint/parser',
         rules: {
           '@typescript-eslint/no-non-null-assertion': 'off',
+          '@typescript-eslint/no-shadow': 'error',
+          'no-shadow': 'off',
           'import/prefer-default-export': 'off',
           'dot-notation': 'off',
           'no-use-before-define': ['error', {

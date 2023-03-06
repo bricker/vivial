@@ -1,23 +1,27 @@
-query ($nodeId: ID!, $filePath: String!) {
-  node(id: $nodeId) {
+query ($repoOwner: String!, $repoName: String!, $commitOid: String!, $filePath: String!) {
+  repository(owner: $repoOwner, name: $repoName) {
     id
-    ...on Commit {
-      repository {
-        name
-      }
-      file(path: $filePath) {
-        oid
-        language {
-          name
-        }
-        path
-        object {
-          id
+    owner {
+      name
+    }
+    name
+    object(oid: $commitOid) {
+      id
+      oid
+      ...on Commit {
+        file(path: $filePath) {
           oid
-          ...on Blob {
+          name
+          path
+          language {
+            name
+          }
+          object {
             id
             oid
-            text
+            ...on Blob {
+              text
+            }
           }
         }
       }

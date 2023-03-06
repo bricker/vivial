@@ -335,6 +335,7 @@ class SlackMessage:
     @property
     def subscription_source(self) -> eave.core_api.SubscriptionSource:
         return eave.core_api.SubscriptionSource(
+            platform=eave.core_api.SubscriptionSourcePlatform.slack,
             event=eave.core_api.SubscriptionSourceEvent.slack_message,
             id=self.subscription_id,
         )

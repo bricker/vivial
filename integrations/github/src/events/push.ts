@@ -2,10 +2,10 @@ import Bluebird from 'bluebird';
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
 import { GitHubOperationsContext } from '../types';
-import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api';
-import openai, { OpenAIModel } from '../lib/openai';
-import * as GraphQLUtil from '../lib/graphql-util';
-import appSettings from '../settings';
+import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api.js';
+import openai, { OpenAIModel } from '../lib/openai.js';
+import * as GraphQLUtil from '../lib/graphql-util.js';
+import appSettings from '../settings.js';
 
 // eslint-disable-next-line operator-linebreak
 const PROMPT_PREFIX =
@@ -16,16 +16,19 @@ const PROMPT_PREFIX =
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   console.info('Processing push', event, context);
 
-  await Bluebird.all(event.commits.map(async (commit) => {
-    const modifiedFiles = Array.from(new Set([...commit.added, ...commit.removed, ...commit.modified]));
+  await Bluebird.all(event.commits.map(async (eventCommit) => {
+    const modifiedFiles = Array.from(new Set([...eventCommit.added, ...eventCommit.removed, ...eventCommit.modified]));
 
-    await Bluebird.all(modifiedFiles.map(async (filePath) => {
+    await Bluebird.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
+      const fileId = Buffer.from(eventCommitTouchedFilename).toString('base64');
+      // TODO: Move this eventId algorithm into a shared location
       const eventId = [
-        `R${event.repository.id}`,
-        `F${modifiedFile}`,
+        `${event.repository.node_id}`,
+        `${fileId}`,
       ].join('#');
 
       const subscriptionSource: SubscriptionSource = {
+        platform: 'github',
         event: SubscriptionSourceEvent.github_file_change,
         id: eventId,
       };
@@ -34,40 +37,38 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       if (subscription === null) { return; }
       const query = await GraphQLUtil.loadQuery('getFileContents');
 
-      const variables: { nodeId: Scalars['ID'], filePath: Scalars['String'] } = {
-        nodeId: commit.id,
-        filePath,
+      const variables: {
+        repoOwner: Scalars['String'],
+        repoName: Scalars['String'],
+        commitOid: Scalars['String'],
+        filePath: Scalars['String']
+      } = {
+        repoOwner: event.repository.owner.name!,
+        repoName: event.repository.name,
+        commitOid: eventCommit.id, // FIXME: Is oid and id the same here?
+        filePath: eventCommitTouchedFilename,
       };
 
-      const response = await context.octokit.graphql<{ node: Query['node'] }>(query, variables);
-      const commit = <Commit | undefined>response.node;
-      if (commit === undefined) { return; }
-
-      const repository = <Repository | undefined>commit.repository;
-      if (repository === undefined) { return; }
-
-      const file = <TreeEntry | undefined>commit.file;
-      if (file === undefined) { return; }
-
-      const blob = <Blob | undefined>file.object;
-      if (blob === undefined) { return; }
-
-      const fileContents = blob.text;
-      if (fileContents === undefined) { return; }
+      const fileContentsResponse = await context.octokit.graphql<{ repository: Query['repository'] }>(query, variables);
+      const fileContentsRepository = <Repository>fileContentsResponse.repository!;
+      const fileContentsCommit = <Commit>fileContentsRepository.object!;
+      const fileContentsTreeEntry = <TreeEntry>fileContentsCommit.file!;
+      const fileContentsBlob = <Blob>fileContentsTreeEntry.object!;
+      const fileContents = fileContentsBlob.text!;
 
       const codeDescription = [];
 
-      const languageName = file.language?.name;
+      const languageName = fileContentsTreeEntry.language?.name;
       if (languageName !== undefined) {
         codeDescription.push(`written in ${languageName}`);
       }
 
-      const filePath = file.path;
+      const filePath = fileContentsTreeEntry.path;
       if (filePath !== undefined) {
         codeDescription.push(`in a file called "${filePath}"`);
       }
 
-      const repositoryName = repository.name;
+      const repositoryName = fileContentsRepository.name;
       codeDescription.push(`in a Github repository called "${repositoryName}"`);
 
       const codeDescriptionString = codeDescription.length > 0
@@ -96,10 +97,16 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const addlHeaders: {[key: string]: string} = {};
 
       if (appSettings.eaveDemoMode) {
-        addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-02';
+        if (repositoryName === 'finny-website' && filePath === 'js/CreditApplication.jsx') {
+          addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-02';
+        }
+        if (repositoryName === 'finny-credit-application-processor' && filePath === 'app.py') {
+          addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-03';
+        }
       }
 
-      await coreApiClient.upsertDocument(document, subscriptionSource, addlHeaders);
+      const upsertDocumentResponse = await coreApiClient.upsertDocument(document, subscriptionSource, addlHeaders);
+      console.log(upsertDocumentResponse);
     }));
   }));
 }

@@ -1,8 +1,5 @@
 {
-  "engineStrict": true,
-  "engines": {
-    "node": "16"
-  },
+  "type": "module",
   "scripts": {
     "//": "The following script is used by AppEngine",
     "start": "node dist/app.js",

@@ -1,0 +1,13 @@
+modules:
+  webtrigger:
+    - key: eave-webtrigger-sync
+      function: sync
+    - key: eave-webtrigger-async
+      function: async
+  function:
+    - key: sync
+      handler: index.runSync
+    - key: async
+      handler: index.runAsync
+app:
+  id: ari:cloud:ecosystem::app/0aeb246d-23c7-462e-8fb2-8c1ce5a9f0c0

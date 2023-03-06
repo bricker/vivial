@@ -4,11 +4,11 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from eave.internal.util import JsonObject
 
 import eave.public.requests as _requests
 from eave.internal.middleware import TeamLookupMiddleware
 from eave.internal.settings import APP_SETTINGS
+from eave.internal.util import JsonObject
 
 if APP_SETTINGS.monitoring_enabled:
     import google.cloud.logging
@@ -28,6 +28,7 @@ app.add_middleware(
 )
 
 app.add_middleware(TeamLookupMiddleware)
+
 
 @app.get("/status")
 def status() -> JsonObject:

@@ -6,6 +6,7 @@ import re
 import traceback
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence
+from uuid import UUID
 
 import slack_sdk.models.blocks
 import slack_sdk.models.blocks.basic_components
@@ -54,7 +55,9 @@ class Brain:
     def __init__(self, message: eave.slack_models.SlackMessage) -> None:
         self.message = message
         self.subscription_source = eave.core_api.SubscriptionSource(
-            event=eave.core_api.SubscriptionSourceEvent.slack_message, id=message.subscription_id
+            platform=eave.core_api.SubscriptionSourcePlatform.slack,
+            event=eave.core_api.SubscriptionSourceEvent.slack_message,
+            id=message.subscription_id,
         )
 
     async def process_message(self) -> None:
@@ -418,7 +421,7 @@ class Brain:
             return generated_document
 
         document = await parse_raw_documentation()
-        addl_headers = dict[str,str]()
+        addl_headers = dict[str, str]()
 
         if eave.settings.APP_SETTINGS.eave_demo_mode is True:
             expanded_text = await self.message.get_expanded_text()
@@ -426,12 +429,34 @@ class Brain:
 
             if re.search("create documentation for this system", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-arch-01"
+                document.title = "Finny Credit Application System Architecture"
 
         upsert_document_response = await eave.core_api.client.upsert_document(
             document=document,
             source=self.message.subscription_source,
             addl_headers=addl_headers,
         )
+
+        if eave.settings.APP_SETTINGS.eave_demo_mode is True:
+            await eave.core_api.client.get_or_create_subscription(
+                source=eave.core_api.SubscriptionSource(
+                    platform=eave.core_api.SubscriptionSourcePlatform.github,
+                    event=eave.core_api.SubscriptionSourceEvent.github_file_change,
+                    # FIXME: Remove this hardcoded id and get the real github information
+                    id="R_kgDOJDutMQ#YXBwLnB5",  # finny-credit-application-processor/app.py
+                ),
+                document_reference_id=upsert_document_response.document_reference.id,
+            )
+
+            await eave.core_api.client.get_or_create_subscription(
+                source=eave.core_api.SubscriptionSource(
+                    platform=eave.core_api.SubscriptionSourcePlatform.github,
+                    event=eave.core_api.SubscriptionSourceEvent.github_file_change,
+                    # FIXME: Remove this hardcoded id and get the real github information
+                    id="R_kgDOJDurIQ#anMvQ3JlZGl0QXBwbGljYXRpb24uanN4",  # finny-website/js/CreditApplication.jsx
+                ),
+                document_reference_id=upsert_document_response.document_reference.id,
+            )
 
         async def send_follow_up_message() -> None:
             """
@@ -440,7 +465,7 @@ class Brain:
             slack_profile = await self.message.get_user_profile()
             assert slack_profile is not None
 
-            message = f"Here's the documentation that you asked for! I'll keep the documentation up-to-date at this conversation evolves."
+            message = f"Here's the documentation that you asked for! I'll keep it up-to-date and accurate."
 
             await self.respond_to_message(
                 text=f"{message}\n<{upsert_document_response.document_reference.document_url}|{document.title}>"
@@ -481,23 +506,27 @@ class Brain:
         await self.respond_to_message(text="I haven't yet been taught how to search existing documentation.")
 
     async def update_documentation(self) -> None:
-        addl_headers = dict[str,str]()
+        addl_headers = dict[str, str]()
         if eave.settings.APP_SETTINGS.eave_demo_mode is True:
             expanded_text = await self.message.get_expanded_text()
             assert expanded_text is not None
 
-            if re.search("add Alice to the team roster", expanded_text):
+            if re.search("add Alice", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-02"
 
-            elif re.search("add this to our onboarding documentation", expanded_text):
+            elif re.search("troubleshooting", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-03"
 
-            elif re.search("add Amelia to the list of team members in Confluence", expanded_text):
+            elif re.search("add Amelia", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-04"
 
-            elif re.search("update the onboarding documentation with this information", expanded_text):
+            elif re.search("Google Drive", expanded_text):
                 addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-05"
 
+            await eave.core_api.client.get_or_create_subscription(
+                source=self.subscription_source,
+                document_reference_id=UUID("3345217c-fb27-4422-a3fc-c404b49aff8a"),
+            )
 
             await eave.core_api.client.upsert_document(
                 # This is just a stub to pass to the API. In demo mode, the server uses a mock document.

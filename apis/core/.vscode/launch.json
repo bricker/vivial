@@ -14,17 +14,14 @@
         "localhost",
         "--port",
         "5100",
-        // "--ssl-certfile",
-        // "${env:EAVE_HOME}/develop/certs/eave.dev/cert.pem",
-        // "--ssl-keyfile",
-        // "${env:EAVE_HOME}/develop/certs/eave.dev/key.pem",
         "--reload",
         "--app-dir",
         "src",
         "eave.app:app"
       ],
       "jinja": true,
-      "justMyCode": true
+      "justMyCode": false,
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }

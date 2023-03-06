@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "../develop"
+		},
+		{
+			"path": "../integrations/jira"
 		}
 	],
 	"settings": {

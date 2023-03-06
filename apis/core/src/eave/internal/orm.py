@@ -17,9 +17,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 import eave.internal.confluence
 import eave.internal.openai
-from eave.internal.settings import APP_SETTINGS
 import eave.internal.util
 from eave.internal.confluence import ConfluenceContext, ConfluencePage
+from eave.internal.settings import APP_SETTINGS
 from eave.public.shared import (
     DocumentContentInput,
     DocumentPlatform,
@@ -297,7 +297,7 @@ class ConfluenceDestinationOrm(Base):
 
         response = self.confluence_client().create_page(
             space="FIN" if APP_SETTINGS.eave_demo_mode is True else self.space,
-            representation="wiki",
+            representation="storage" if APP_SETTINGS.eave_demo_mode is True else "wiki",
             title=document.title,
             body=document.content,
             parent_id=parent_page.id if parent_page is not None else None,
@@ -322,7 +322,7 @@ class ConfluenceDestinationOrm(Base):
 
     async def get_confluence_page_by_title(self, document: DocumentContentInput) -> ConfluencePage | None:
         response = self.confluence_client().get_page_by_title(
-            space=self.space,
+            space="FIN" if APP_SETTINGS.eave_demo_mode is True else self.space,
             title=document.title,
         )
         if response is None:
@@ -372,6 +372,7 @@ class ConfluenceDestinationOrm(Base):
 #     github_install_id: Mapped[str] = mapped_column()
 #     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 #     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 class TeamOrm(Base):
     __tablename__ = "teams"

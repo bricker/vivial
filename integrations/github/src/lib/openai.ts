@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { Configuration, OpenAIApi, CreateCompletionRequest } from 'openai';
-import appSettings from '../settings';
+import appSettings from '../settings.js';
 
 export enum OpenAIModel {
   davinciText = 'text-davinci-003',

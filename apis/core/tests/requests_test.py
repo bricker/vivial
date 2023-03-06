@@ -23,6 +23,7 @@ class TestStatusEndpoint(BaseTestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.json(), {"status": "1", "service": "api"})
 
+
 class TestAccessRequestEndpoint(BaseTestCase):
     async def test_new_email(self) -> None:
         response = await self.httpclient.post(
