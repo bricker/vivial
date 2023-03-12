@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import appSettings from '../settings.js';
+import appSettings from '../settings';
 
 enum DocumentPlatform {
   eave = 'eave',
@@ -18,8 +18,15 @@ export type EaveDocument = {
   parent?: EaveDocument;
 }
 
+export enum SubscriptionSourcePlatform {
+  slack = 'slack',
+  github = 'github',
+  jira = 'jira',
+}
+
 export enum SubscriptionSourceEvent {
-  github_file_change = 'github.file_change',
+  jira_issue_comment = 'jira_issue_comment',
+  github_file_change = 'github_file_change',
 }
 
 export type SubscriptionSource = {
@@ -75,12 +82,18 @@ class EaveCoreClient {
     return data;
   }
 
-  async getOrCreateSubscription(source: SubscriptionSource): Promise<SubscriptionResponseWithMetadata> {
+  async getOrCreateSubscription(source: SubscriptionSource, document_reference_id: string | undefined = undefined): Promise<SubscriptionResponseWithMetadata> {
+    const body = {
+      subscription: { source },
+    };
+
+    if (document_reference_id !== undefined) {
+      body['document_reference'] = { id: document_reference_id };
+    }
+
     const resp = await fetch(`${appSettings.eaveCoreApiUrl}/subscriptions/create`, {
       method: 'post',
-      body: JSON.stringify({
-        subscription: { source },
-      }),
+      body: JSON.stringify(body),
       headers: {
         'content-type': 'application/json',
         'eave-team-id': appSettings.eaveTeamId,

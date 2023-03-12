@@ -6,6 +6,7 @@
 package*.json
 *.md
 webpack.config.js
+eslint.config.js
 bin/
 src/client
 requirements-dev.txt

@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "@forge/api": "^2.11.1"
+  },
+  "devDependencies": {
     "@forge/cli": "^6.4.3"
   }
 }

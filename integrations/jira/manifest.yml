@@ -1,13 +1,29 @@
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+
+  external:
+    fetch:
+      backend:
+        - 'api.eave.fyi'
+
 modules:
-  webtrigger:
-    - key: eave-webtrigger-sync
-      function: sync
-    - key: eave-webtrigger-async
-      function: async
+  # https://developer.atlassian.com/platform/forge/events-reference/jira/#comment-events
+  trigger:
+    - key: issue-comment-event
+      function: main
+      events:
+        - avi:jira:commented:issue
+
+    # - key: issue-mentioned-comment-event
+    #   function: main
+    #   events:
+    #     - avi:jira:mentioned:comment
+
   function:
-    - key: sync
-      handler: index.runSync
-    - key: async
-      handler: index.runAsync
+    - key: main
+      handler: app.run
+
 app:
   id: ari:cloud:ecosystem::app/0aeb246d-23c7-462e-8fb2-8c1ce5a9f0c0

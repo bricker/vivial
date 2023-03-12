@@ -1,9 +1,2 @@
 alembic
-black
-isort
-mypy
-types-requests
 aiosqlite
-httpx
-python-dotenv
-mockito

@@ -16,8 +16,6 @@
 	},
 	"scripts": {
 		"start": "bin/dev-server",
-		"//": "DEPRECATED: use npm run webpack",
-		"webpack-server": "bin/webpack-server",
 		"flask": "bin/app-server",
 		"build": "webpack",
 		"lint": "bin/lint",

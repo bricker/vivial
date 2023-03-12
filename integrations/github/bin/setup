@@ -1,8 +1,7 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -e
+set -eu
 
-cp -n secrets.example.json secrets.json
+${EAVE_HOME}/develop/javascript/bin/setup
 
-echo "Update secrets.json with a GitHub Personal Access Token."
-echo "Necessary scopes will depend on current capabilities of this application. Try: 'repo' and 'project' scopes."
+bin/lint

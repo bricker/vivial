@@ -268,20 +268,12 @@ class ConfluenceDestinationOrm(Base):
         else:
             resolved_document_body = document.content
 
-        if APP_SETTINGS.eave_demo_mode is True:
-            response = self.confluence_client().update_page(
-                page_id=document_reference.document_id,
-                representation="storage",
-                title=existing_page.title,
-                body=document.content,
-            )
-        else:
-            response = self.confluence_client().update_page(
-                page_id=document_reference.document_id,
-                representation="wiki",
-                title=existing_page.title,
-                body=resolved_document_body,
-            )
+        response = self.confluence_client().update_page(
+            page_id=document_reference.document_id,
+            representation="wiki",
+            title=existing_page.title,
+            body=resolved_document_body,
+        )
 
         assert response is not None
         return document_reference
@@ -296,8 +288,8 @@ class ConfluenceDestinationOrm(Base):
             parent_page = await self.get_or_create_confluence_page(document=document.parent)
 
         response = self.confluence_client().create_page(
-            space="FIN" if APP_SETTINGS.eave_demo_mode is True else self.space,
-            representation="storage" if APP_SETTINGS.eave_demo_mode is True else "wiki",
+            space=self.space,
+            representation="wiki",
             title=document.title,
             body=document.content,
             parent_id=parent_page.id if parent_page is not None else None,
@@ -322,7 +314,7 @@ class ConfluenceDestinationOrm(Base):
 
     async def get_confluence_page_by_title(self, document: DocumentContentInput) -> ConfluencePage | None:
         response = self.confluence_client().get_page_by_title(
-            space="FIN" if APP_SETTINGS.eave_demo_mode is True else self.space,
+            space=self.space,
             title=document.title,
         )
         if response is None:

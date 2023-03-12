@@ -2,7 +2,5 @@
 
 set -eu
 
-echo "eslint..."
-npx eslint .
-
 ${EAVE_HOME}/develop/python/bin/lint
+${EAVE_HOME}/develop/javascript/bin/lint

@@ -3,6 +3,5 @@
 set -eu
 
 ${EAVE_HOME}/develop/python/bin/setup
-${EAVE_HOME}/develop/javascript/bin/setup
 
 bin/lint

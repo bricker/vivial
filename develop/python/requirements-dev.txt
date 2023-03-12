@@ -1,6 +1,7 @@
 mypy
 black
 isort
+httpx
 types-requests
 python-dotenv
 mockito

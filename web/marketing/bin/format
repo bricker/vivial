@@ -2,7 +2,5 @@
 
 set -eu
 
-echo "eslint..."
-npx eslint . --fix
-
 ${EAVE_HOME}/develop/python/bin/format
+${EAVE_HOME}/develop/javascript/bin/format

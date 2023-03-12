@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eu
+
+rm -rf node_modules
+
+if command -v nvm
+then
+    nvm install
+fi
+
+npm install --force

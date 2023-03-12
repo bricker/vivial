@@ -235,15 +235,17 @@ class Brain:
 
         try:
             purpose = MessagePurpose(value=self.normalize_for_enum(openai_response))
-            return purpose
         except ValueError as e:
             logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": openai_response})
-            return MessagePurpose.UNKNOWN
+            purpose = MessagePurpose.UNKNOWN
+
+        return purpose
 
     async def handle_request(self, prompt: str) -> None:
         """
         Determines the RequestType, and then handles the message accordingly.
         """
+
         openai_response = await self.get_openai_response(prompt=prompt, temperature=0)
 
         try:
@@ -423,40 +425,11 @@ class Brain:
         document = await parse_raw_documentation()
         addl_headers = dict[str, str]()
 
-        if eave.settings.APP_SETTINGS.eave_demo_mode is True:
-            expanded_text = await self.message.get_expanded_text()
-            assert expanded_text is not None
-
-            if re.search("create documentation for this system", expanded_text):
-                addl_headers["eave-demo-mock-id"] = "demo-doc-arch-01"
-                document.title = "Finny Credit Application System Architecture"
-
         upsert_document_response = await eave.core_api.client.upsert_document(
             document=document,
             source=self.message.subscription_source,
             addl_headers=addl_headers,
         )
-
-        if eave.settings.APP_SETTINGS.eave_demo_mode is True:
-            await eave.core_api.client.get_or_create_subscription(
-                source=eave.core_api.SubscriptionSource(
-                    platform=eave.core_api.SubscriptionSourcePlatform.github,
-                    event=eave.core_api.SubscriptionSourceEvent.github_file_change,
-                    # FIXME: Remove this hardcoded id and get the real github information
-                    id="R_kgDOJDutMQ#YXBwLnB5",  # finny-credit-application-processor/app.py
-                ),
-                document_reference_id=upsert_document_response.document_reference.id,
-            )
-
-            await eave.core_api.client.get_or_create_subscription(
-                source=eave.core_api.SubscriptionSource(
-                    platform=eave.core_api.SubscriptionSourcePlatform.github,
-                    event=eave.core_api.SubscriptionSourceEvent.github_file_change,
-                    # FIXME: Remove this hardcoded id and get the real github information
-                    id="R_kgDOJDurIQ#anMvQ3JlZGl0QXBwbGljYXRpb24uanN4",  # finny-website/js/CreditApplication.jsx
-                ),
-                document_reference_id=upsert_document_response.document_reference.id,
-            )
 
         async def send_follow_up_message() -> None:
             """
@@ -506,41 +479,7 @@ class Brain:
         await self.respond_to_message(text="I haven't yet been taught how to search existing documentation.")
 
     async def update_documentation(self) -> None:
-        addl_headers = dict[str, str]()
-        if eave.settings.APP_SETTINGS.eave_demo_mode is True:
-            expanded_text = await self.message.get_expanded_text()
-            assert expanded_text is not None
-
-            if re.search("add Alice", expanded_text):
-                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-02"
-
-            elif re.search("troubleshooting", expanded_text):
-                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-03"
-
-            elif re.search("add Amelia", expanded_text):
-                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-04"
-
-            elif re.search("Google Drive", expanded_text):
-                addl_headers["eave-demo-mock-id"] = "demo-doc-onboarding-05"
-
-            await eave.core_api.client.get_or_create_subscription(
-                source=self.subscription_source,
-                document_reference_id=UUID("3345217c-fb27-4422-a3fc-c404b49aff8a"),
-            )
-
-            await eave.core_api.client.upsert_document(
-                # This is just a stub to pass to the API. In demo mode, the server uses a mock document.
-                document=eave.core_api.Document(
-                    title="stub",
-                    content="stub",
-                    parent=None,
-                ),
-                source=self.message.subscription_source,
-                addl_headers=addl_headers,
-            )
-
-        else:
-            await self.respond_to_message(text="I haven't yet been taught how to update existing documentation.")
+        await self.respond_to_message(text="I haven't yet been taught how to update existing documentation.")
 
     async def archive_documentation(self) -> None:
         await self.respond_to_message(text="I haven't yet been taught how to archive existing documentation.")
@@ -631,7 +570,7 @@ class Brain:
         assert self.message.channel is not None
 
         debug_text = ""
-        if eave.settings.APP_SETTINGS.dev_mode is True and eave.settings.APP_SETTINGS.eave_demo_mode is False:
+        if eave.settings.APP_SETTINGS.dev_mode is True:
             stack = traceback.extract_stack(limit=2)
             frame = stack[0]
             filename = os.path.basename(frame.filename)

@@ -94,18 +94,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         content: openaiResponse,
       };
 
-      const addlHeaders: {[key: string]: string} = {};
-
-      if (appSettings.eaveDemoMode) {
-        if (repositoryName === 'finny-website' && filePath === 'js/CreditApplication.jsx') {
-          addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-02';
-        }
-        if (repositoryName === 'finny-credit-application-processor' && filePath === 'app.py') {
-          addlHeaders['eave-demo-mock-id'] = 'demo-doc-arch-03';
-        }
-      }
-
-      const upsertDocumentResponse = await coreApiClient.upsertDocument(document, subscriptionSource, addlHeaders);
+      const upsertDocumentResponse = await coreApiClient.upsertDocument(document, subscriptionSource);
       console.log(upsertDocumentResponse);
     }));
   }));

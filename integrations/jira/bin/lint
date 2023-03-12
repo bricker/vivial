@@ -3,3 +3,4 @@
 set -eu
 
 ${EAVE_HOME}/develop/javascript/bin/lint
+npx forge lint

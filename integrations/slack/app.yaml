@@ -1,18 +1,21 @@
 runtime: python311
 service: slack
-instance_class: F1
-automatic_scaling:
-  max_instances: 10
-  min_idle_instances: 1
 
-inbound_services:
-- warmup
+instance_class: B2
+basic_scaling:
+  max_instances: 1
+
+# instance_class: F1
+# automatic_scaling:
+#   max_instances: 10
+#   min_idle_instances: 1
+# inbound_services:
+# - warmup
 
 entrypoint: gunicorn --bind :$PORT --chdir src --worker-class uvicorn.workers.UvicornWorker eave.app:api
 
 env_variables:
   EAVE_CORE_API_URL: "https://api.eave.fyi"
   EAVE_MONITORING_ENABLED: "1"
-  EAVE_DEMO_MODE: "1"
   EAVE_SLACK_APP_ID: "A04HD948UHE"
   EAVE_TEAM_ID: "3345217c-fb27-4422-a3fc-c404b49aff8c"
