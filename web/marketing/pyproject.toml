@@ -1,5 +1,6 @@
 [project]
 name = "eave-web-marketing"
+requires-python = "3.11"
 
 [tool.black]
 line-length = 120

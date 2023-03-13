@@ -2,11 +2,9 @@
 
 set -eu
 
+source ${EAVE_HOME}/develop/javascript/functions.bash
+node-validate-version
+node-activate-venv
+
 rm -rf node_modules
-
-if command -v nvm
-then
-    nvm install
-fi
-
 npm install --force

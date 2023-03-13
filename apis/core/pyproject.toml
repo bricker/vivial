@@ -1,5 +1,6 @@
 [project]
 name = "eave-api-core"
+requires-python = "3.11"
 
 [tool.black]
 extend-exclude = "alembic/versions"

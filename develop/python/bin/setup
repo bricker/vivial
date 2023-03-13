@@ -2,21 +2,21 @@
 
 set -eu
 
-rm -rf .venv
-python -m venv .venv
-
-source .venv/bin/activate
+source ${EAVE_HOME}/develop/python/functions.bash
+python-validate-version
+python-create-venv
+python-activate-venv
 
 if test -f requirements.txt
 then
-    pip install -r requirements.txt
+    python -m pip install -r requirements.txt
 fi
 
 if test -f requirements-dev.txt
 then
-    pip install -r requirements-dev.txt
+    python -m pip install -r requirements-dev.txt
 fi
 
-pip install -r ${EAVE_HOME}/develop/python/requirements-dev.txt
+python -m pip install -r ${EAVE_HOME}/develop/python/requirements-dev.txt
 
-pip install -e .
+python -m pip install -e .

@@ -1,9 +1,19 @@
 {
-  "name": "eave-web-app",
-  "version": "0.1.0",
-  "homepage": "https://www.eave.fyi",
-  "private": true,
+  "engines": {
+    "node": "18",
+    "npm": "8"
+  },
   "type": "module",
+  "scripts": {
+    "start": "bin/dev-server",
+    "flask": "bin/app-server",
+    "build": "webpack",
+    "lint": "bin/lint",
+    "format": "bin/format",
+    "deploy": "bin/deploy",
+    "dev": "webpack serve",
+    "watch": "webpack --watch"
+  },
   "dependencies": {
     "@material-ui/core": "^4.12.4",
     "@material-ui/styles": "^4.11.5",
@@ -14,16 +24,6 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.6.1",
     "uuid": "^9.0.0"
-  },
-  "scripts": {
-    "start": "bin/dev-server",
-    "flask": "bin/app-server",
-    "build": "webpack",
-    "lint": "bin/lint",
-    "format": "bin/format",
-    "deploy": "bin/deploy",
-    "dev": "webpack serve",
-    "watch": "webpack --watch"
   },
   "devDependencies": {
     "@babel/core": "^7.20.7",

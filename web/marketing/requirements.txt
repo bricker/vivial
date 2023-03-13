@@ -1,7 +1,7 @@
-gunicorn
-flask
-google-cloud-secret-manager
-google-crc32c
-google-cloud-logging
-google-cloud-pubsub
-google-cloud-kms
+gunicorn==20.1.0
+Flask==2.2.3
+google-cloud-secret-manager==2.16.0
+google-crc32c==1.5.0
+google-cloud-logging==3.5.0
+google-cloud-pubsub==2.15.0
+google-cloud-kms==2.15.0

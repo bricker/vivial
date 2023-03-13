@@ -10,9 +10,6 @@
 			"path": "../libs/pubsub-schemas"
 		},
 		{
-			"path": "../integrations/confluence"
-		},
-		{
 			"path": "../web/marketing"
 		},
 		{

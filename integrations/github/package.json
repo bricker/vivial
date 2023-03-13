@@ -1,4 +1,8 @@
 {
+  "engines": {
+    "node": "18",
+    "npm": "8"
+  },
   "scripts": {
     "//": "The following script is used by AppEngine",
     "start": "node dist/app.js",
