@@ -2,11 +2,10 @@ permissions:
   scopes:
     - read:jira-work
     - write:jira-work
-
   external:
     fetch:
       backend:
-        - 'api.eave.fyi'
+        - api.eave.fyi
 
 modules:
   # https://developer.atlassian.com/platform/forge/events-reference/jira/#comment-events
@@ -15,7 +14,6 @@ modules:
       function: main
       events:
         - avi:jira:commented:issue
-
     # - key: issue-mentioned-comment-event
     #   function: main
     #   events:

@@ -82,13 +82,13 @@ class EaveCoreClient {
     return data;
   }
 
-  async getOrCreateSubscription(source: SubscriptionSource, document_reference_id: string | undefined = undefined): Promise<SubscriptionResponseWithMetadata> {
-    const body = {
+  async getOrCreateSubscription(source: SubscriptionSource, documentReferenceId: string | undefined = undefined): Promise<SubscriptionResponseWithMetadata> {
+    const body: { subscription: { source: SubscriptionSource }, document_reference?: { id: string } } = {
       subscription: { source },
     };
 
-    if (document_reference_id !== undefined) {
-      body['document_reference'] = { id: document_reference_id };
+    if (documentReferenceId !== undefined) {
+      body.document_reference = { id: documentReferenceId };
     }
 
     const resp = await fetch(`${appSettings.eaveCoreApiUrl}/subscriptions/create`, {

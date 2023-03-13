@@ -1,6 +1,9 @@
 const config = {
   extends: [
-    '@eave-fyi/eslint-config',
+    'plugin:yaml/recommended',
+  ],
+  plugins: [
+    'yaml',
   ],
 };
 

@@ -39,6 +39,17 @@
 		"python.linting.mypyEnabled": true,
 		"python.linting.enabled": true,
 		"python.analysis.typeCheckingMode": "basic",
+		"python.testing.unittestEnabled": true,
+		"python.testing.pytestEnabled": false,
+		"python.testing.unittestArgs": [
+			"-v",
+			"-t",
+			".",
+			"-s",
+			".",
+			"-p",
+			"*_test.py"
+		],
 		"[python]": {
 			"editor.insertSpaces": true,
 			"editor.tabSize": 4,
@@ -46,6 +57,25 @@
 		},
 		// FIXME: These should use relative paths. It wasn't working with relative paths when I tried.
 		"graphql-config.load.rootDir": "/home/bryan/code/eave/eave-monorepo/integrations/github",
-		"graphql-config.dotEnvPath": "/home/bryan/code/eave/eave-monorepo/integrations/github/.env"
+		"graphql-config.dotEnvPath": "/home/bryan/code/eave/eave-monorepo/integrations/github/.env",
+		"eslint.experimental.useFlatConfig": false,
+		"eslint.format.enable": true,
+		"eslint.lintTask.enable": true,
+		"eslint.codeAction.showDocumentation": {
+			"enable": true
+		},
+		"typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+		"typescript.inlayHints.enumMemberValues.enabled": true,
+		"typescript.inlayHints.parameterNames.enabled": "all",
+		"typescript.inlayHints.parameterTypes.enabled": true,
+		"typescript.inlayHints.propertyDeclarationTypes.enabled": true,
+		"typescript.inlayHints.variableTypes.enabled": true,
+		"typescript.referencesCodeLens.enabled": true,
+		"javascript.inlayHints.enumMemberValues.enabled": true,
+		"javascript.inlayHints.functionLikeReturnTypes.enabled": true,
+		"javascript.inlayHints.parameterNames.enabled": "all",
+		"javascript.inlayHints.parameterTypes.enabled": true,
+		"javascript.inlayHints.propertyDeclarationTypes.enabled": true,
+		"javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true
 	},
 }

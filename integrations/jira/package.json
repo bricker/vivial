@@ -1,8 +1,16 @@
 {
   "dependencies": {
-    "@forge/api": "^2.11.1"
+    "@forge/api": "2.11.x",
+    "node-fetch": "3.x"
   },
   "devDependencies": {
-    "@forge/cli": "^6.4.3"
+    "@forge/cli": "6.x",
+    "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
+    "eslint": "8.x",
+    "eslint-config-airbnb-base": "15.x",
+    "eslint-plugin-import": "2.x",
+    "eslint-plugin-yaml": "0.5.x",
+    "@typescript-eslint/eslint-plugin": "5.x",
+    "@typescript-eslint/parser": "5.x"
   }
 }

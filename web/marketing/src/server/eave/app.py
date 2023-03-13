@@ -1,10 +1,9 @@
-import json
-from http import HTTPStatus
 import os
+from http import HTTPStatus
 from typing import Any
 
 import eave.settings
-from flask import Flask, redirect, render_template, session
+from flask import Flask, redirect, render_template
 from werkzeug import Response
 
 app = Flask(__name__)
@@ -18,6 +17,7 @@ def status() -> dict[str, str]:
         "status": "OK",
         "version": os.getenv("GAE_VERSION", "unknown"),
     }
+
 
 @app.get("/")
 def spa_home() -> str:

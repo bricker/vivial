@@ -5,7 +5,6 @@ import { GitHubOperationsContext } from '../types';
 import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api.js';
 import openai, { OpenAIModel } from '../lib/openai.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
-import appSettings from '../settings.js';
 
 // eslint-disable-next-line operator-linebreak
 const PROMPT_PREFIX =

@@ -1,40 +1,19 @@
 // Copied from https://developer.atlassian.com/platform/forge/events-reference/jira/
 // As of this writing, Atlassian does not publicly provide these type definitions.
 
-// Incoming Event Payloads
-// The names of these payloads are based on the event name
-// Example: "avi:jira:commented:issue" -> CommentedIssueEventPayload"
-export interface EventPayload {
-  eventType: string;
-}
-
-export interface CommentedIssueEventPayload extends EventPayload {
-  issue: Issue;
-  atlassianId: string;
-  associatedUsers: AssociatedUsers;
-  comment: Comment;
-}
-
-export interface MentionedCommentEventPayload extends EventPayload {
-  issue: Issue;
-  atlassianId: string;
-  mentionedAccountIds: string[];
-  comment: Comment;
-}
-
+// Objects
 interface ApiResource {
   self: string;
 }
 
-// Objects
 // This enum definition is incomplete
 // https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/
 export enum ContentType {
-  doc = "doc",
-  paragraph = "paragraph",
-  text = "text",
-  mention = "mention",
-  link = "link",
+  doc = 'doc',
+  paragraph = 'paragraph',
+  text = 'text',
+  mention = 'mention',
+  link = 'link',
 }
 
 // LinkAttrs: https://developer.atlassian.com/cloud/jira/platform/apis/document/marks/link/#attributes
@@ -46,7 +25,7 @@ export interface Content {
   text?: string;
   content?: Content[];
   marks?: Content[];
-  attrs?: any;
+  attrs?: unknown;
 }
 
 export interface Project extends ApiResource {
@@ -82,6 +61,10 @@ export interface Status extends ApiResource {
   statusCategory: StatusCategory;
 }
 
+export interface User {
+  accountId: string;
+}
+
 export interface Issue {
   id: string;
   key: string;
@@ -102,19 +85,11 @@ export interface AssociatedUsers {
   associatedUsers: User[];
 }
 
-export interface User {
-  accountId: string;
-}
-
 export interface IssueLinkType {
   id: string;
   name: string;
   inward: string;
   outward: string;
-}
-
-export interface Changelog {
-  items: Change[];
 }
 
 export interface Change {
@@ -126,26 +101,27 @@ export interface Change {
   toString: string | null;
 }
 
+export interface Changelog {
+  items: Change[];
+}
+
 export interface Comment {
   id: string;
   author: User;
-  body: any;
+  body: unknown;
   updateAuthor: User;
   created: string;
   updated: string;
   jsdPublic: boolean;
 }
 
-export interface Context {
-  issue: IdKey;
-  project: IdKey;
-  user: User;
-  transition: Transition;
-}
-
 export interface IdKey {
   id: string;
   key: string;
+}
+
+export interface StatusId {
+  id: string;
 }
 
 export interface Transition {
@@ -155,6 +131,30 @@ export interface Transition {
   to: StatusId;
 }
 
-export interface StatusId {
-  id: string;
+export interface Context {
+  issue: IdKey;
+  project: IdKey;
+  user: User;
+  transition: Transition;
+}
+
+// Incoming Event Payloads
+// The names of these payloads are based on the event name
+// Example: "avi:jira:commented:issue" -> CommentedIssueEventPayload"
+export interface EventPayload {
+  eventType: string;
+}
+
+export interface CommentedIssueEventPayload extends EventPayload {
+  issue: Issue;
+  atlassianId: string;
+  associatedUsers: AssociatedUsers;
+  comment: Comment;
+}
+
+export interface MentionedCommentEventPayload extends EventPayload {
+  issue: Issue;
+  atlassianId: string;
+  mentionedAccountIds: string[];
+  comment: Comment;
 }

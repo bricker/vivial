@@ -1,12 +1,9 @@
 function buildConfig() {
   const config = {
-    schema: {
-      'https://api.github.com/graphql': {
-        headers: {
-          authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-        },
-      },
-    },
+    schema: './node_modules/@octokit/graphql-schema/schema.graphql',
+    documents: [
+      './src/graphql/**/*.graphql',
+    ],
   };
 
   return config;
