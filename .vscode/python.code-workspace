@@ -7,13 +7,7 @@
 			"path": "../integrations/slack"
 		},
 		{
-			"path": "../libs/pubsub-schemas"
-		},
-		{
 			"path": "../web/marketing"
-		},
-		{
-			"path": "../libs/api-schemas"
 		},
 		{
 			"path": "../integrations/github"
@@ -73,6 +67,11 @@
 		"javascript.inlayHints.parameterNames.enabled": "all",
 		"javascript.inlayHints.parameterTypes.enabled": true,
 		"javascript.inlayHints.propertyDeclarationTypes.enabled": true,
-		"javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true
+		"javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
+		"python.analysis.extraPaths": [
+			"app",
+			"lib",
+			"src"
+		]
 	},
 }
