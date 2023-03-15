@@ -52,8 +52,8 @@ class SubscriptionSourcePlatform(str, enum.Enum):
 
 
 class SubscriptionSourceEvent(str, enum.Enum):
-    slack_message = "slack.message"
-    github_file_change = "github.file_change"
+    slack_message = "slack_message"
+    github_file_change = "github_file_change"
 
 
 @dataclass

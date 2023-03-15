@@ -59,7 +59,7 @@ async def summarize(params: CompletionParameters) -> Optional[str]:
 
     # Set this here so that the openai key is pulled from GCP Secrets Manager lazily
     if openai_sdk.api_key is None:
-        openai_sdk.api_key = APP_SETTINGS.eave_openapi_key
+        openai_sdk.api_key = APP_SETTINGS.eave_openai_api_key
 
     response = await openai_sdk.Completion.acreate(**params.compile())
     response = cast(openai.openai_object.OpenAIObject, response)

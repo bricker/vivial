@@ -1,20 +1,22 @@
 {
   "engines": {
     "node": "18",
-    "npm": "8"
+    "npm": "9"
   },
   "dependencies": {
     "@forge/api": "2.11.x",
+    "jws": "4.x",
     "node-fetch": "3.x"
   },
   "devDependencies": {
-    "@forge/cli": "6.x",
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
+    "@forge/cli": "6.x",
+    "@types/jws": "3.x",
+    "@typescript-eslint/eslint-plugin": "5.x",
+    "@typescript-eslint/parser": "5.x",
     "eslint": "8.x",
     "eslint-config-airbnb-base": "15.x",
     "eslint-plugin-import": "2.x",
-    "eslint-plugin-yaml": "0.5.x",
-    "@typescript-eslint/eslint-plugin": "5.x",
-    "@typescript-eslint/parser": "5.x"
+    "eslint-plugin-yaml": "0.5.x"
   }
 }

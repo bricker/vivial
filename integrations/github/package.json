@@ -1,7 +1,7 @@
 {
   "engines": {
     "node": "18",
-    "npm": "8"
+    "npm": "9"
   },
   "scripts": {
     "//": "The following script is used by AppEngine",
@@ -14,21 +14,23 @@
     "@octokit/webhooks": "10.x",
     "bluebird": "3.x",
     "express": "4.x",
+    "jws": "4.x",
     "node-fetch": "3.x",
     "octokit": "2.x",
     "openai": "3.x"
   },
   "devDependencies": {
+    "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
     "@types/bluebird": "3.x",
     "@types/express": "4.x",
-    "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
-    "eslint": "8.x",
-    "eslint-config-airbnb-base": "15.x",
-    "eslint-plugin-import": "2.x",
-    "eslint-plugin-yaml": "0.5.x",
+    "@types/jws": "^3.2.5",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
+    "eslint": "8.x",
+    "eslint-config-airbnb-base": "15.x",
     "eslint-plugin-graphql": "4.x",
+    "eslint-plugin-import": "2.x",
+    "eslint-plugin-yaml": "0.5.x",
     "nodemon": "2.x",
     "ts-node": "10.x",
     "typescript": "4.x"

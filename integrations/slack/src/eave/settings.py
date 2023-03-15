@@ -35,7 +35,13 @@ class Settings:
         return os.getenv("GOOGLE_CLOUD_PROJECT")
 
     @cached_property
-    def eave_openapi_key(self) -> Optional[str]:
+    def eave_signing_secret(self) -> str:
+        value = self.get_secret("EAVE_SIGNING_SECRET")
+        assert value is not None
+        return value
+
+    @cached_property
+    def eave_openai_api_key(self) -> Optional[str]:
         return self.get_secret("OPENAI_API_KEY")
 
     @cached_property

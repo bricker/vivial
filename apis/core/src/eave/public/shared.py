@@ -9,8 +9,17 @@ class DocumentPlatform(str, enum.Enum):
     eave = "eave"
     confluence = "confluence"
     google_drive = "google_drive"
-    unspecified = "unspecified"
 
+class SubscriptionSourcePlatform(str, enum.Enum):
+    slack = "slack"
+    github = "github"
+    jira = "jira"
+
+
+class SubscriptionSourceEvent(str, enum.Enum):
+    slack_message = "slack_message"
+    github_file_change = "github_file_change"
+    jira_issue_comment = "jira_issue_comment"
 
 class DocumentContentInput(BaseModel):
     title: str
@@ -20,19 +29,6 @@ class DocumentContentInput(BaseModel):
 
 class DocumentReferenceInput(BaseModel):
     id: UUID
-
-
-class SubscriptionSourcePlatform(str, enum.Enum):
-    slack = "slack"
-    github = "github"
-    jira = "jira"
-
-
-class SubscriptionSourceEvent(str, enum.Enum):
-    slack_message = "slack.message"
-    github_file_change = "github.file_change"
-    jira_issue_comment = "jira_issue_comment"
-
 
 class SubscriptionSource(BaseModel):
     platform: SubscriptionSourcePlatform

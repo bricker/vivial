@@ -10,7 +10,9 @@ from sqlalchemy import (
     Index,
     PrimaryKeyConstraint,
     UnicodeText,
+    func,
     select,
+    text,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -28,10 +30,10 @@ from eave.public.shared import (
     SubscriptionSourcePlatform,
 )
 
+UUID_DEFAULT_EXPR = text("gen_random_uuid()")
 
 class Base(DeclarativeBase):
     pass
-
 
 def make_team_composite_pk() -> PrimaryKeyConstraint:
     return PrimaryKeyConstraint(
@@ -59,11 +61,11 @@ class AccessRequestOrm(Base):
         Index(None, "email", unique=True),
     )
 
-    id: Mapped[UUID] = mapped_column(default=uuid4)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     visitor_id: Mapped[Optional[UUID]] = mapped_column()
     email: Mapped[str] = mapped_column()
     opaque_input: Mapped[Optional[str]] = mapped_column()
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
 
     @classmethod
     async def find_one(cls, session: AsyncSession, email: str) -> Optional["AccessRequestOrm"]:
@@ -71,17 +73,6 @@ class AccessRequestOrm(Base):
 
         access_request = await session.scalar(statement)
         return access_request
-
-
-class PromptOrm(Base):
-    __tablename__ = "prompts"
-
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    prompt: Mapped[str] = mapped_column(UnicodeText)
-    response: Mapped[str] = mapped_column(UnicodeText)
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
-
 
 class DocumentReferenceOrm(Base):
     __tablename__ = "document_references"
@@ -97,11 +88,11 @@ class DocumentReferenceOrm(Base):
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(default=uuid4)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     document_id: Mapped[str] = mapped_column()
     document_url: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def find_one(cls, team_id: UUID, id: UUID, session: AsyncSession) -> "DocumentReferenceOrm":
@@ -133,13 +124,13 @@ class SubscriptionOrm(Base):
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(default=uuid4)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     source_platform: Mapped[SubscriptionSourcePlatform] = mapped_column()
     source_event: Mapped[SubscriptionSourceEvent] = mapped_column()
     source_id: Mapped[str] = mapped_column()
     document_reference_id: Mapped[Optional[UUID]] = mapped_column()
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     async def get_document_reference(self, session: AsyncSession) -> Optional[DocumentReferenceOrm]:
         if self.document_reference_id is None:
@@ -191,13 +182,13 @@ class ConfluenceDestinationOrm(Base):
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(default=uuid4)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     url: Mapped[str] = mapped_column()
     api_username: Mapped[str] = mapped_column()
     api_key: Mapped[str] = mapped_column()
     space: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @cache
     def confluence_client(self) -> atlassian.Confluence:
@@ -340,10 +331,10 @@ class ConfluenceDestinationOrm(Base):
 #     )
 
 #     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(default=uuid4)
+#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
 #     slack_install_id: Mapped[str] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-#     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
 # class GithubSource(Base):
 #     __tablename__ = "github_sources"
@@ -360,20 +351,20 @@ class ConfluenceDestinationOrm(Base):
 #     )
 
 #     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(default=uuid4)
+#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
 #     github_install_id: Mapped[str] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-#     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
 
 class TeamOrm(Base):
     __tablename__ = "teams"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    document_platform: Mapped[DocumentPlatform]
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    document_platform: Mapped[Optional[DocumentPlatform]] = mapped_column(server_default=None)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     # api_keys: Mapped[list["ApiKeyOrm"]] = relationship(back_populates="team")
     subscriptions: Mapped[list["SubscriptionOrm"]] = relationship()
@@ -409,11 +400,10 @@ class TeamOrm(Base):
 class AuthProvider(enum.Enum):
     google = "google"
 
-
 class AccountOrm(Base):
     __tablename__ = "accounts"
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
+        make_team_composite_pk(),
         make_team_fk(),
         Index(
             "auth_provider_auth_id",
@@ -424,17 +414,16 @@ class AccountOrm(Base):
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(default=uuid4)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     auth_provider: Mapped[AuthProvider] = mapped_column()
-    auth_id: Mapped[str] = mapped_column(unique=True)
+    auth_id: Mapped[str] = mapped_column()
     oauth_token: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def find_one(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Optional["AccountOrm"]:
         lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
-
         account = await session.scalar(lookup)
         return account
 
@@ -448,11 +437,11 @@ class AccountOrm(Base):
 #     )
 
 #     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(default=uuid4)
+#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
 #     vector: Mapped[str] = mapped_column()  # comma-separated list of vector values (floats)
 #     document_reference_id: Mapped[UUID] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-#     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
 
 # class ApiKeyOrm(Base):
@@ -470,13 +459,13 @@ class AccountOrm(Base):
 #     )
 
 #     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(default=uuid4)
-#     key: Mapped[UUID] = mapped_column(default=uuid4)
+#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+#     key: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
 #     description: Mapped[Optional[str]]
 #     accessed: Mapped[Optional[datetime]]
 #     revoked: Mapped[Optional[datetime]] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-#     updated: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
 #     team: Mapped["TeamOrm"] = relationship(back_populates="api_keys")
 

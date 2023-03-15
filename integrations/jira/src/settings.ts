@@ -1,6 +1,5 @@
 class Settings {
   // FIXME: Forge runtime doesn't support the ES version necessary to use accessors.
-  eaveDemoMode = true;
 
   eaveForgeAppId = '0aeb246d-23c7-462e-8fb2-8c1ce5a9f0c0';
 

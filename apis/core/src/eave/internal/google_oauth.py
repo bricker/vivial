@@ -59,7 +59,7 @@ def build_flow(state: Optional[str] = None) -> google_auth_oauthlib.flow.Flow:
             "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/openid",
         ],
-        redirect_uri=f"{APP_SETTINGS.eave_api_base}/_oauth/google/callback",
+        redirect_uri=f"{APP_SETTINGS.eave_api_base}/oauth/google/callback",
         state=state,
     )
 

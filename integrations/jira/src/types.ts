@@ -1,3 +1,13 @@
+export declare type JsonValue =
+  string |
+  number |
+  null |
+  string[] |
+  number[] |
+  null[] |
+  {[key: string]: JsonValue} |
+  {[key: string]: JsonValue}[];
+
 // Copied from https://developer.atlassian.com/platform/forge/events-reference/jira/
 // As of this writing, Atlassian does not publicly provide these type definitions.
 

@@ -47,6 +47,12 @@ class Settings:
         return os.getenv("EAVE_ASSET_BASE", "/static")
 
     @cached_property
+    def eave_signing_secret(self) -> str:
+        value = self.get_secret("EAVE_SIGNING_SECRET")
+        assert value is not None
+        return value
+
+    @cached_property
     def eave_web_session_encryption_key(self) -> str:
         key = self.get_secret("EAVE_WEB_SESSION_ENCRYPTION_KEY")
         assert key is not None

@@ -29,7 +29,6 @@ app.add_middleware(
 
 app.add_middleware(TeamLookupMiddleware)
 
-
 @app.get("/status")
 def status() -> JsonObject:
     return {
@@ -40,9 +39,11 @@ def status() -> JsonObject:
 
 
 app.post("/access_request")(_requests.CreateAccessRequest.handler)
+
+# TODO: These need auth
 app.post("/documents/upsert")(_requests.UpsertDocument.handler)
 app.post("/subscriptions/create")(_requests.CreateSubscription.handler)
 app.post("/subscriptions/query")(_requests.GetSubscription.handler)
 
-app.get("/_oauth/google/authorize")(_requests.GoogleOauthInit.handler)
-app.get("/_oauth/google/callback")(_requests.GoogleOauthCallback.handler)
+app.get("/oauth/google/authorize")(_requests.GoogleOauthInit.handler)
+app.get("/oauth/google/callback")(_requests.GoogleOauthCallback.handler)

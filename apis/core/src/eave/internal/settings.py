@@ -45,18 +45,6 @@ class Settings:
         return os.getenv("EAVE_MONITORING_ENABLED") is not None
 
     @property
-    def db_user(self) -> str:
-        value = self.get_secret("DB_USER")
-        assert value is not None
-        return value
-
-    @cached_property
-    def db_pass(self) -> str:
-        value = self.get_secret("DB_PASS")
-        assert value is not None
-        return value
-
-    @property
     def eave_cookie_domain(self) -> str:
         return os.getenv("EAVE_COOKIE_DOMAIN", ".eave.fyi")
 
@@ -69,7 +57,25 @@ class Settings:
         return os.getenv("EAVE_WWW_BASE", "https://www.eave.fyi")
 
     @cached_property
-    def eave_openapi_key(self) -> str:
+    def db_user(self) -> str:
+        value = self.get_secret("DB_USER")
+        assert value is not None
+        return value
+
+    @cached_property
+    def db_pass(self) -> str:
+        value = self.get_secret("DB_PASS")
+        assert value is not None
+        return value
+
+    @cached_property
+    def eave_signing_secret(self) -> str:
+        value = self.get_secret("EAVE_SIGNING_SECRET")
+        assert value is not None
+        return value
+
+    @cached_property
+    def eave_openai_api_key(self) -> str:
         value = self.get_secret("OPENAI_API_KEY")
         assert value is not None
         return value
