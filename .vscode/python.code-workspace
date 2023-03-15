@@ -1,22 +1,25 @@
 {
 	"folders": [
 		{
-			"path": "../apis/core"
+			"path": "../apps/core"
 		},
 		{
-			"path": "../integrations/slack"
+			"path": "../apps/slack"
 		},
 		{
-			"path": "../web/marketing"
+			"path": "../apps/marketing"
 		},
 		{
-			"path": "../integrations/github"
+			"path": "../apps/github"
+		},
+		{
+			"path": "../apps/jira"
 		},
 		{
 			"path": "../develop"
 		},
 		{
-			"path": "../integrations/jira"
+			"path": "../libs/python/eave-lib-standard"
 		}
 	],
 	"settings": {
@@ -47,8 +50,8 @@
 			"editor.indentSize": "tabSize"
 		},
 		// FIXME: These should use relative paths. It wasn't working with relative paths when I tried.
-		"graphql-config.load.rootDir": "/home/bryan/code/eave/eave-monorepo/integrations/github",
-		"graphql-config.dotEnvPath": "/home/bryan/code/eave/eave-monorepo/integrations/github/.env",
+		"graphql-config.load.rootDir": "/home/bryan/code/eave/eave-monorepo/apps/github",
+		"graphql-config.dotEnvPath": "/home/bryan/code/eave/eave-monorepo/apps/github/.env",
 		"eslint.experimental.useFlatConfig": false,
 		"eslint.format.enable": true,
 		"eslint.lintTask.enable": true,

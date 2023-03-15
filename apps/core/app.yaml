@@ -12,7 +12,12 @@ basic_scaling:
 # inbound_services:
 # - warmup
 
-entrypoint: gunicorn --bind :$PORT --chdir src --worker-class uvicorn.workers.UvicornWorker eave.app:app
+entrypoint: |-
+  gunicorn \
+    --bind :$PORT \
+    --pythonpath app,lib \
+    --worker-class uvicorn.workers.UvicornWorker \
+    eave:app
 
 env_variables:
   EAVE_DB_NAME: "eave"

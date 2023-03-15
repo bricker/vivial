@@ -16,12 +16,13 @@
         "5100",
         "--reload",
         "--app-dir",
-        "src",
-        "eave.app:app"
+        "app",
+        "eave:app"
       ],
       "jinja": true,
       "justMyCode": false,
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+
     }
   ]
 }
