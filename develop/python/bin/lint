@@ -2,15 +2,16 @@
 
 set -eu
 
+source ${EAVE_HOME}/develop/shared/functions.bash
 source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
 python-activate-venv
 
-echo "(lint) isort..."
+statusmsg -i "(lint) isort..."
 isort --quiet --check .
 
-echo "(lint) black..."
+statusmsg -i "(lint) black..."
 black --quiet --check .
 
-echo "(lint) mypy..."
+statusmsg -i  "(lint) mypy..."
 mypy .

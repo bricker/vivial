@@ -39,10 +39,6 @@ export const AFFILIATE_LOGOS = {
     src: imageUrl('honey-logo-3x.png'),
     alt: 'Honey logo',
   },
-  openai: {
-    src: imageUrl('openai-logo-3x.png'),
-    alt: 'OpenAI logo',
-  },
 };
 
 export const INTEGRATION_LOGOS = {

@@ -2,9 +2,26 @@
 
 set -eu
 
+source ${EAVE_HOME}/develop/shared/functions.bash
 source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
-python-create-venv
+
+while getopts "ih" argname
+do
+    case $argname in
+        i)
+            statusmsg -i "re-initializing venv"
+            rm -rf .venv
+            ;;
+        h)
+            echo "Usage: bin/setup [-i]"
+            echo "Options:"
+            echo "  -i : (init) Re-initializes the environment."
+            exit 0
+            ;;
+    esac
+done
+
 python-activate-venv
 
 if test -f requirements.txt
@@ -18,5 +35,3 @@ then
 fi
 
 python -m pip install -r ${EAVE_HOME}/develop/python/requirements-dev.txt
-
-python -m pip install -e .

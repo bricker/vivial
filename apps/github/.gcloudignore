@@ -1,6 +1,7 @@
+#!include:.gitignore
+
 .*
-*LICENSE*
 *.md
 bin
-
-#!include:.gitignore
+tests
+node_modules

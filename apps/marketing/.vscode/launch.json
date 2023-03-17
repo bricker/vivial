@@ -12,7 +12,7 @@
       "envFile": ".env",
       "args": [
         "--app",
-        "src/server/eave/app.py",
+        "eave_server:app",
         "run",
         "--no-debugger",
         "--host",

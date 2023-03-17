@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eu
+
+if test -f requirements-vendor.txt
+then
+	rm -rf vendor
+	python -m pip install -t vendor -r requirements-vendor.txt
+fi
+
+${EAVE_HOME}/develop/shared/bin/deploy-appengine

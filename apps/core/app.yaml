@@ -15,9 +15,9 @@ basic_scaling:
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
-    --pythonpath app,lib \
+    --pythonpath vendor \
     --worker-class uvicorn.workers.UvicornWorker \
-    eave:app
+    eave_core:app
 
 env_variables:
   EAVE_DB_NAME: "eave"

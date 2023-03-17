@@ -1,8 +1,8 @@
 from uuid import uuid4
 
-import eave.internal.orm as orm
+import eave_core.internal.orm as orm
 import tests
-from eave.public.shared import (
+from eave_core.public.shared import (
     DocumentPlatform,
     SubscriptionSource,
     SubscriptionSourceEvent,

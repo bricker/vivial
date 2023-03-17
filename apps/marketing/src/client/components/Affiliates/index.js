@@ -34,17 +34,6 @@ class Affiliates extends React.Component {
             alt={AFFILIATE_LOGOS.honey.alt}
           />
         </div>
-
-        <div className={classes.chatgptLine}>
-          <img
-            className={classes.openaiLogo}
-            src={AFFILIATE_LOGOS.openai.src}
-            alt={AFFILIATE_LOGOS.openai.alt}
-          />
-          <Copy className={classes.chatgptText} variant="footnote">
-            Powered by the AI behind ChatGPT
-          </Copy>
-        </div>
       </div>
     );
   }
@@ -66,21 +55,6 @@ const styles = (theme) => ({
       marginBottom: 21,
       maxWidth: 543,
     },
-  },
-  chatgptLine: {},
-  openaiLogo: {
-    display: 'inline',
-    verticalAlign: 'middle',
-    maxWidth: 21,
-    marginRight: 5,
-    [theme.breakpoints.up('sm')]: {
-      maxWidth: 25,
-      marginRight: 11,
-    },
-  },
-  chatgptText: {
-    display: 'inline',
-    verticalAlign: 'middle',
   },
   amazonLogo: {
     position: 'relative',

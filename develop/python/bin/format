@@ -2,12 +2,13 @@
 
 set -eu
 
+source ${EAVE_HOME}/develop/shared/functions.bash
 source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
 python-activate-venv
 
-echo "(format) isort..."
+statusmsg -i "(format) isort..."
 isort .
 
-echo "(format) black..."
+statusmsg -i  "(format) black..."
 black --quiet .

@@ -14,7 +14,7 @@
     "@octokit/webhooks": "10.x",
     "bluebird": "3.x",
     "express": "4.x",
-    "jws": "4.x",
+    "jose": "^4.13.1",
     "node-fetch": "3.x",
     "octokit": "2.x",
     "openai": "3.x"

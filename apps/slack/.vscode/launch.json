@@ -15,9 +15,7 @@
         "--port",
         "5200",
         "--reload",
-        "--app-dir",
-        "src",
-        "eave.app:api"
+        "eave_slack:api"
       ],
       "justMyCode": false,
       "envFile": "${workspaceFolder}/.env"
@@ -26,7 +24,7 @@
       "name": "Slack Socket Mode",
       "type": "python",
       "request": "launch",
-      "program": "./src/socketmode.py",
+      "program": "./socketmode.py",
       "autoReload": {
         "enable": true,
         "include": [

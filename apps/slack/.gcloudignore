@@ -1,11 +1,13 @@
 #!include:.gitignore
 
-pyproject.toml
 .*
+pyproject.toml
 *.md
 requirements-dev.txt
+requirements-vendor.txt
 bin
 tests
-*_test.py
-cloudbuild.json
-src/socketmode.py
+socketmode.py
+
+__pycache__
+*.egg-info

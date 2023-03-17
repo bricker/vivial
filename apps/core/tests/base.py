@@ -8,9 +8,9 @@ from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 from sqlalchemy.orm import Mapped
 
-import eave.app
-import eave.internal.orm as orm
-from eave.internal.database import engine, session_factory
+import eave_core.app
+import eave_core.internal.orm as orm
+from eave_core.internal.database import engine, session_factory
 
 
 class AnyStandardOrm(Protocol):

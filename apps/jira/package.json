@@ -5,13 +5,12 @@
   },
   "dependencies": {
     "@forge/api": "2.11.x",
-    "jws": "4.x",
+    "jose": "^4.13.1",
     "node-fetch": "3.x"
   },
   "devDependencies": {
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
     "@forge/cli": "6.x",
-    "@types/jws": "3.x",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
     "eslint": "8.x",

@@ -9,7 +9,11 @@ automatic_scaling:
 inbound_services:
 - warmup
 
-entrypoint: gunicorn --bind :$PORT --chdir src/server eave.app:app
+entrypoint: |-
+  gunicorn \
+    --bind :$PORT \
+    --chdir src/server \
+    eave_server:app
 
 env_variables:
   EAVE_ANALYTICS_ENABLED: "1"

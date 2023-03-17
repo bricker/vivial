@@ -1,11 +1,12 @@
 #!include:.gitignore
+!/vendor
 
 .*
 alembic.ini
 *.md
 requirements-dev.txt
+requirements-vendor.txt
 pyproject.toml
 alembic
 bin
 tests
-cloudbuild.json
