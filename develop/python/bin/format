@@ -8,7 +8,7 @@ python-validate-version
 python-activate-venv
 
 statusmsg -i "(format) isort..."
-isort .
+python -m isort .
 
 statusmsg -i  "(format) black..."
-black --quiet .
+python -m black --quiet .

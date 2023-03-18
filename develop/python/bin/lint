@@ -8,10 +8,10 @@ python-validate-version
 python-activate-venv
 
 statusmsg -i "(lint) isort..."
-isort --quiet --check .
+python -m isort --quiet --check .
 
 statusmsg -i "(lint) black..."
-black --quiet --check .
+python -m black --quiet --check .
 
 statusmsg -i  "(lint) mypy..."
-mypy .
+python -m mypy .

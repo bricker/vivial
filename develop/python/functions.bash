@@ -14,7 +14,7 @@ function python-validate-version () {
 function python-activate-venv () {
 	if ! test -d .venv
 	then
-		python -m venv .venv
+		python -m venv --upgrade-deps .venv
 	fi
 
 	source .venv/bin/activate

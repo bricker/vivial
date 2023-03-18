@@ -8,30 +8,41 @@ python-validate-version
 
 while getopts "ih" argname
 do
-    case $argname in
-        i)
-            statusmsg -i "re-initializing venv"
-            rm -rf .venv
-            ;;
-        h)
-            echo "Usage: bin/setup [-i]"
-            echo "Options:"
-            echo "  -i : (init) Re-initializes the environment."
-            exit 0
-            ;;
-    esac
+	case $argname in
+		i)
+			statusmsg -i "re-initializing venv"
+			rm -rf .venv
+			;;
+		h)
+			echo "Usage: bin/setup [-i]"
+			echo "Options:"
+			echo "  -i : (init) Re-initializes the environment."
+			exit 0
+			;;
+	esac
 done
 
 python-activate-venv
 
 if test -f requirements.txt
 then
-    python -m pip install -r requirements.txt
+	python -m pip install -r requirements.txt
 fi
 
 if test -f requirements-dev.txt
 then
-    python -m pip install -r requirements-dev.txt
+	python -m pip install -r requirements-dev.txt
 fi
 
 python -m pip install -r ${EAVE_HOME}/develop/python/requirements-dev.txt
+
+statusmsg -s "Your Python environment is now setup."
+
+case $(basename "$SHELL") in
+	fish)
+		statusmsg -i "Run 'source .venv/bin/activate.fish' to activate the virtual environment in your shell."
+		;;
+	bash | zsh | sh | *)
+		statusmsg -i "Run 'source .venv/bin/activate' to activate the virtual environment in your shell."
+		;;
+esac
