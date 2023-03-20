@@ -1,0 +1,30 @@
+{
+  "insomnia": {
+    "name": "request-signature",
+    "displayName": "HS256 Request Signature",
+    "description": "Generates an HS256 request signature"
+  },
+  "main": "dist/main.js",
+  "engines": {
+    "node": "18",
+    "npm": "9"
+  },
+  "scripts": {
+    "build": "tsc --project .",
+    "link-plugin": "ln -sf $(pwd) $XDG_CONFIG_HOME/Insomnia/plugins/insomnia-plugin-request-signature"
+  },
+  "dependencies": {
+    "jose": "^4.13.1"
+  },
+  "devDependencies": {
+    "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
+    "@typescript-eslint/eslint-plugin": "5.x",
+    "@typescript-eslint/parser": "5.x",
+    "eslint": "8.x",
+    "eslint-config-airbnb-base": "15.x",
+    "eslint-plugin-import": "2.x",
+    "nodemon": "2.x",
+    "ts-node": "10.x",
+    "typescript": "4.x"
+  }
+}
