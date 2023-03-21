@@ -1,6 +1,5 @@
 {
   "name": "@eave-fyi/eave-stdlib-ts",
-  "main": "src/main.ts",
   "engines": {
     "node": "18",
     "npm": "9"
@@ -10,7 +9,8 @@
   "dependencies": {
     "node-fetch": "3.x",
     "@google-cloud/secret-manager": "4.x",
-    "openai": "3.x"
+    "openai": "3.x",
+    "uuid": "9.x"
   },
   "devDependencies": {
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
@@ -22,6 +22,7 @@
     "nodemon": "2.x",
     "ts-node": "10.x",
     "typescript": "4.x",
-    "@types/node": "18.x"
+    "@types/node": "18.x",
+    "@types/uuid": "9.x"
   }
 }

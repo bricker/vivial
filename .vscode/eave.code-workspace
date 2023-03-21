@@ -121,7 +121,7 @@
 			"-p",
 			"*_test.py"
 		],
-		"git.openRepositoryInParentFolders": "never",
+		"git.openRepositoryInParentFolders": "always",
 	},
 	"extensions": {
 		"recommendations": [

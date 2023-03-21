@@ -12,11 +12,20 @@ function node-validate-version () {
 }
 
 function node-activate-venv () {
-	if ! command -v nvm
+	if ! command_exists "nvm"
 	then
 		statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
 		return 0
 	fi
 
-	nvm install $EAVE_NODE_VERSION
+	local usershell=$(shellname)
+	case $usershell in
+		"fish")
+			# This is necessary because `nvm` in Fish might be a function, which can't be used from Bash.
+			fish -c "nvm install $EAVE_NODE_VERSION"
+			;;
+		*)
+			nvm install $EAVE_NODE_VERSION
+			;;
+	esac
 }

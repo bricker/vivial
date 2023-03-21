@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable
 from .util import JsonObject
 from .config import shared_config
+from .core_api.operations import Status
 
-def status_payload() -> JsonObject:
-    return {
-        "service": shared_config.app_service,
-        "version": shared_config.app_version,
-        "status": "OK",
-    }
+def status_payload() -> Status.ResponseBody:
+    return Status.ResponseBody(
+        service=shared_config.app_service,
+        version=shared_config.app_version,
+        status="OK",
+    )
 
 class RouterInterface(ABC):
     @abstractmethod

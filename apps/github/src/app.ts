@@ -1,4 +1,5 @@
-import express, { Response } from 'express';
+import express from 'express';
+import { addStandardEndpoints } from '@eave-fyi/eave-stdlib-ts/src/api-util';
 import dispatch from './dispatch.js';
 
 const PORT = parseInt(process.env['PORT'] || '8080', 10);
@@ -11,13 +12,7 @@ app.use((req, _, next) => {
   next();
 });
 
-app.get('/github/status', (_: unknown, res: Response) => {
-  res.json({
-    service: 'github',
-    status: 'OK',
-    version: process.env['GAE_VERSION'] || 'unknown',
-  }).status(200).end();
-});
+addStandardEndpoints(app, '/github');
 
 app.post('/github/events', async (req, res) => {
   await dispatch(req, res);

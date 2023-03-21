@@ -1,20 +1,19 @@
 import Bluebird from 'bluebird';
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
+import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai';
+import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client';
+import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations';
+import * as eaveModels from '@eave-fyi/eave-stdlib-ts/src/core-api/models';
 import { GitHubOperationsContext } from '../types';
-import { getSubscription, upsertDocument, SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api.js';
-import openai, { OpenAIModel } from '../lib/openai.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
-
-// eslint-disable-next-line operator-linebreak
-const PROMPT_PREFIX =
-  'You are Eave, an AI documentation expert. '
-  + "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
-  + "You are responsible for the quality and integrity of this organization's documentation.";
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   console.info('Processing push', event, context);
 
+  // TODO: This event only contains a maximum of 20 commits. Additional commits need to be fetched from the API.
+  // Also, this event is not triggered when more than 3 tags are pushed.
+  // https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#push
   await Bluebird.all(event.commits.map(async (eventCommit) => {
     const modifiedFiles = Array.from(new Set([...eventCommit.added, ...eventCommit.removed, ...eventCommit.modified]));
 
@@ -26,15 +25,18 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         `${fileId}`,
       ].join('#');
 
-      const subscriptionSource: SubscriptionSource = {
-        platform: 'github',
-        event: SubscriptionSourceEvent.github_file_change,
-        id: eventId,
-      };
-
       // FIXME: Hardcoded team ID
-      const subscription = await getSubscription(subscriptionSource, '3345217c-fb27-4422-a3fc-c404b49aff8c');
-      if (subscription === null) { return; }
+      const subscriptionResponse = await eaveCoreApiClient.getSubscription('3345217c-fb27-4422-a3fc-c404b49aff8c', {
+        subscription: {
+          source: {
+            platform: eaveModels.SubscriptionSourcePlatform.github,
+            event: eaveModels.SubscriptionSourceEvent.github_file_change,
+            id: eventId,
+          },
+        },
+      });
+
+      if (subscriptionResponse === null) { return; }
       const query = await GraphQLUtil.loadQuery('getFileContents');
 
       const variables: {
@@ -45,7 +47,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       } = {
         repoOwner: event.repository.owner.name!,
         repoName: event.repository.name,
-        commitOid: eventCommit.id, // FIXME: Is oid and id the same here?
+        commitOid: eventCommit.id,
         filePath: eventCommitTouchedFilename,
       };
 
@@ -78,23 +80,30 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       // FIXME: Add this eslint exception to eslint config
       // eslint-disable-next-line operator-linebreak
       const prompt =
-        `${PROMPT_PREFIX}\n\n`
+        `${openai.PROMPT_PREFIX}\n\n`
         + `${fileContents}\n\n`
         + `${codeDescriptionString}. `
         + 'Explain what the above code does: ';
 
       const openaiResponse = await openai.createCompletion({
         prompt,
-        model: OpenAIModel.davinciCode,
+        model: openai.OpenAIModel.davinciCode,
         max_tokens: 500,
       });
 
-      const document: EaveDocument = {
+      const document: eaveOps.DocumentInput = {
         title: `Description of code in ${repositoryName} ${filePath}`,
         content: openaiResponse,
       };
 
-      const upsertDocumentResponse = await upsertDocument(document, subscriptionSource, '3345217c-fb27-4422-a3fc-c404b49aff8c');
+      const upsertDocumentResponse = await eaveCoreApiClient.upsertDocument(
+        '3345217c-fb27-4422-a3fc-c404b49aff8c',
+        {
+          document,
+          subscription: subscriptionResponse.subscription,
+        },
+      );
+
       console.log(upsertDocumentResponse);
     }));
   }));

@@ -77,6 +77,10 @@ if __name__ == "__main__":
             )
             configs.append(stdlib_config)
         case ".ts":
+            stdlib_config = os.path.join(
+                os.environ["EAVE_HOME"], "libs", "javascript", "eave-stdlib-ts", "src", "config.ts"
+            )
+            configs.append(stdlib_config)
             pass
         case _:
             pass

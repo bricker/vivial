@@ -6,5 +6,5 @@ source ${EAVE_HOME}/develop/javascript/functions.bash
 node-validate-version
 node-activate-venv
 
-echo "(lint) eslint..."
+statusmsg -i "(lint) eslint..."
 npx eslint .

@@ -9,15 +9,31 @@ export class EaveConfig {
   }
 
   get nodeEnv(): string {
-    return process.env['NODE_ENV'] || 'development';
+    return process.env['NODE_ENV'] || 'unknown';
   }
 
-  eaveGithubAppId = '300560';
+  get monitoringEnabled(): boolean {
+    return process.env['EAVE_MONITORING_ENABLED'] !== undefined;
+  }
+
+  get appService(): string {
+    return process.env['GAE_SERVICE'] || 'unknown';
+  }
+
+  get appVersion(): string {
+    return process.env['GAE_VERSION'] || 'unknown';
+  }
 
   get eaveApiBase(): string {
-    const value = process.env['EAVE_API_BASE'];
-    assert(value !== undefined);
-    return value;
+    return process.env['EAVE_API_BASE'] || 'https://api.eave.fyi';
+  }
+
+  get eaveWwwBase(): string {
+    return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
+  }
+
+  get eaveCookieDomain(): string {
+    return process.env['EAVE_COOKIE_DOMAIN'] || '.eave.fyi';
   }
 
   get openaiApiKey(): Promise<string> {
@@ -28,18 +44,17 @@ export class EaveConfig {
     return this.getSecret('EAVE_SIGNING_SECRET');
   }
 
-  get eaveGithubAppWebhookSecret(): Promise<string> {
-    return this.getSecret('EAVE_GITHUB_APP_WEBHOOK_SECRET');
-  }
-
-  get eaveGithubAppPrivateKey(): Promise<string> {
-    return this.getSecret('EAVE_GITHUB_APP_PRIVATE_KEY');
-  }
+  private cache: {[key: string]: string} = {};
 
   async getSecret(name: string): Promise<string> {
     const envValue = process.env[name];
     if (envValue !== undefined) {
       return envValue;
+    }
+
+    const cachedValue = this.cache[name];
+    if (cachedValue !== undefined) {
+      return cachedValue;
     }
 
     const client = new SecretManagerServiceClient();
@@ -50,6 +65,8 @@ export class EaveConfig {
     if (!value) {
       throw new Error(`secret not found: ${name}`);
     }
+
+    this.cache[name] = value;
     return value;
   }
 }

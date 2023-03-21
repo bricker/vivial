@@ -2,12 +2,14 @@ function statusmsg () {
 	local usage="
 		Usage: statusmsg [-diwesh] MESSAGE
 		Options:
-		  -d : Debug
-		  -i : Info (default)
-		  -w : Warn
-		  -e : Error
-		  -s : Success
-		  -h : Prints this message and exits.
+			-o : [o]ff - No styling (pass-through to echo)
+		  -d : [d]ebug
+		  -i : [i]nfo (default)
+		  -w : [w]arn
+		  -e : [e]rror
+		  -s : [s]uccess
+			-n : [n]o message prefix
+		  -h : [h]elp - Prints this message and exits.
 		EOS
 	"
 
@@ -22,16 +24,19 @@ function statusmsg () {
 	local _cc_reset=$(tput sgr0)
 
 	local msgtype="info"
+	local noprefix=""
 	local OPTIND OPTARG argname
 
-	while getopts "diwesh" argname
+	while getopts "odiwesnh" argname
 	do
 		case "$argname" in
+			o) msgtype="off";;
 			d) msgtype="debug";;
 			i) msgtype="info";;
 			w) msgtype="warn";;
 			e) msgtype="error";;
 			s) msgtype="success";;
+			n) noprefix="1";;
 			h)
 				echo $usage
 				exit 0
@@ -46,9 +51,18 @@ function statusmsg () {
 		exit 1
 	fi
 
+	if test "$msgtype" = "off"
+	then
+		echo -e $msg
+		return 0
+	fi
+
 	if command -v tput > /dev/null
 	then
 		case $msgtype in
+			off)
+				;;
+
 			debug)
 				tput -S <<-EOC
 					setaf $_cc_white
@@ -90,21 +104,39 @@ function statusmsg () {
 		esac
 	fi
 
-	echo "[$msgtype] $msg$_cc_reset"
+	if test -z "$noprefix"
+	then
+		prefix="[$msgtype] "
+	else
+		prefix=""
+	fi
+
+	echo -e "$prefix$msg$_cc_reset"
 	return 0
 }
 
 function shellname () {
-	return $(basename "$SHELL")
+	echo -n "$(basename $SHELL)"
 }
 
 function command_exists () {
-	case shellname in
-		fish)
-			test command -v "$1" > /dev/null || functions -q "$1"
+	if command -v "$1" > /dev/null
+	then
+		return 0
+	fi
+
+	local usershell=$(shellname)
+	case $usershell in
+		"fish")
+			if fish -c "functions -q $1"
+			then
+				return 0
+			else
+				return 1
+			fi
 			;;
-		bash | zsh)
-			test command -v "$1" > /dev/null
+		"bash" | "zsh")
+			return 1
 			;;
 		*)
 			return 0

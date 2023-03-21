@@ -1,153 +1,59 @@
-import crypto from 'crypto';
 import fetch, { RequestInit } from 'node-fetch';
-import appConfig from '../config.js';
-import { JsonValue } from '../types';
+import { sharedConfig } from '../config';
+import * as ops from './operations';
+import { computeSignature } from './signing';
 
-enum DocumentPlatform {
-  eave = 'eave',
-  confluence = 'confluence',
-}
-
-type DocumentReference = {
-  id: string;
-  document_id: string;
-  document_url: string;
-}
-
-export type EaveDocument = {
-  title: string;
-  content: string;
-  parent?: EaveDocument;
-}
-
-export enum SubscriptionSourcePlatform {
-  slack = 'slack',
-  github = 'github',
-  jira = 'jira',
-}
-
-export enum SubscriptionSourceEvent {
-  jira_issue_comment = 'jira_issue_comment',
-  github_file_change = 'github_file_change',
-}
-
-export type SubscriptionSource = {
-  platform: string;
-  event: SubscriptionSourceEvent;
-  id: string;
-}
-
-type Subscription = {
-  id: string;
-  document_reference_id?: string;
-  source: SubscriptionSource;
-}
-
-type Team = {
-  id: string;
-  name: string;
-  document_platform: DocumentPlatform;
-}
-
-type UpsertDocumentResponse = {
-  team: Team;
-  subscription: Subscription;
-  document_reference: DocumentReference;
-}
-
-type SubscriptionResponse = {
-  team: Team;
-  subscription: Subscription;
-  document_reference?: DocumentReference;
-}
-
-type SubscriptionResponseWithMetadata = SubscriptionResponse & {
-  status: number;
-  created: boolean;
-}
-
-type StatusResponse = {
-  service: string;
-  version: string;
-  status: string;
-}
-
-export async function status(): Promise<StatusResponse> {
-  const resp = await fetch(`${appConfig.eaveApiBase}/status`, {
+export async function status(): Promise<ops.Status.ResponseBody> {
+  const resp = await fetch(`${sharedConfig.eaveApiBase}/status`, {
     method: 'get',
   });
 
-  const responseData = <StatusResponse>(await resp.json());
+  const responseData = <ops.Status.ResponseBody>(await resp.json());
   return responseData;
 }
-export async function upsertDocument(document: EaveDocument, source: SubscriptionSource, teamId: string): Promise<UpsertDocumentResponse> {
-  const inputData = {
-    document,
-    subscription: { source },
-  };
+export async function upsertDocument(teamId: string, input: ops.UpsertDocument.RequestBody): Promise<ops.UpsertDocument.ResponseBody> {
+  const request = await initRequest(input, teamId);
+  const resp = await fetch(`${sharedConfig.eaveApiBase}/documents/upsert`, request);
 
-  const request = await initRequest(inputData, teamId);
-  const resp = await fetch(`${appConfig.eaveApiBase}/documents/upsert`, request);
-
-  const responseData = <UpsertDocumentResponse>(await resp.json());
+  const responseData = <ops.UpsertDocument.ResponseBody>(await resp.json());
   return responseData;
 }
 
-export async function createSubscription(source: SubscriptionSource, teamId: string): Promise<SubscriptionResponseWithMetadata> {
-  const inputData = {
-    subscription: { source },
-  };
+export async function createSubscription(teamId: string, input: ops.CreateSubscription.RequestBody): Promise<ops.CreateSubscription.ResponseBody> {
+  const request = await initRequest(input, teamId);
+  const resp = await fetch(`${sharedConfig.eaveApiBase}/subscriptions/create`, request);
 
-  const request = await initRequest(inputData, teamId);
-  const resp = await fetch(`${appConfig.eaveApiBase}/subscriptions/create`, request);
-
-  const responseData = <SubscriptionResponse>(await resp.json());
-  return {
-    ...responseData,
-    status: resp.status,
-    created: resp.status === 201,
-  };
+  const responseData = <ops.CreateSubscription.ResponseBody>(await resp.json());
+  return responseData;
 }
 
-export async function getSubscription(source: SubscriptionSource, teamId: string): Promise<SubscriptionResponse | null> {
-  const inputData = {
-    subscription: { source },
-  };
+export async function getSubscription(teamId: string, input: ops.GetSubscription.RequestBody): Promise<ops.GetSubscription.ResponseBody | null> {
+  const request = await initRequest(input, teamId);
+  const resp = await fetch(`${sharedConfig.eaveApiBase}/subscriptions/query`, request);
 
-  const request = await initRequest(inputData, teamId);
-  const resp = await fetch(`${appConfig.eaveApiBase}/subscriptions/query`, request);
-
-  if (resp.status > 299) {
+  if (resp.status >= 300) {
     return null;
   }
 
-  const responseData = <SubscriptionResponse>(await resp.json());
+  const responseData = <ops.GetSubscription.ResponseBody>(await resp.json());
   return responseData;
 }
 
-async function initRequest(data: JsonValue, teamId: string | undefined = undefined): Promise<RequestInit> {
+async function initRequest(data: unknown, teamId?: string): Promise<RequestInit> {
   const payload = JSON.stringify(data);
   const signature = await computeSignature(payload, teamId);
+  const headers = {
+    'content-type': 'application/json',
+    'eave-signature': signature,
+  };
+
+  if (teamId !== undefined) {
+    headers['eave-team-id'] = teamId;
+  }
 
   return {
     method: 'post',
     body: payload,
-    headers: {
-      'content-type': 'application/json',
-      'eave-team-id': appConfig.eaveTeamId,
-      'eave-signature': signature,
-    },
+    headers,
   };
-}
-
-async function computeSignature(payload: string, teamId: string | undefined = undefined): Promise<string> {
-  const key = await appConfig.eaveSigningSecret;
-  const hmac = crypto.createHmac('sha256', key);
-
-  if (teamId !== undefined) {
-    hmac.update(teamId);
-  }
-
-  hmac.update(payload);
-  return hmac.digest('hex');
 }
