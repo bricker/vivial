@@ -31,7 +31,6 @@ else:
 
 api = FastAPI()
 
-eave_api_util.RouterInterface.register(FastAPI)
 eave_api_util.add_standard_endpoints(app=api, path_prefix="/slack")
 
 @api.post("/slack/events")

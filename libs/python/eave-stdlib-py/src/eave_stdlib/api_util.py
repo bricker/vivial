@@ -1,6 +1,4 @@
-from abc import ABC, abstractmethod
-from typing import Any, Callable
-from .util import JsonObject
+from typing import Any
 from .config import shared_config
 from .core_api.operations import Status
 
@@ -11,10 +9,14 @@ def status_payload() -> Status.ResponseBody:
         status="OK",
     )
 
-class RouterInterface(ABC):
-    @abstractmethod
-    def get(self, rule: str, **options: Any) -> Callable[[Callable[..., Any]], Any]:
-        ...
+# This would be better than "Any" but I couldn't quite get it working.
+# The goal is to accept anything conforming to RouterInterface (eg FastAPI or Flask),
+# without having to add those libraries as dependencies to this library.
 
-def add_standard_endpoints(app: RouterInterface, path_prefix: str = ""):
+# class RouterInterface(ABC):
+#     @abstractmethod
+#     def get(self, rule: str, **options: Any) -> Callable[[Callable[..., Any]], Any]:
+#         ...
+
+def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
     app.get(f"{path_prefix}/status")(status_payload)

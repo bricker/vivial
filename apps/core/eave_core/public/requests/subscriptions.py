@@ -9,7 +9,7 @@ import eave_core.internal.database as eave_db
 from . import util as eave_request_util
 
 async def get_subscription(input: eave_ops.GetSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response) -> eave_ops.GetSubscription.ResponseBody:
-    await eave_signing.validate_signature_or_fail(request=request)
+    await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:
         team = await eave_request_util.get_team_or_fail(session=session, request=request)
@@ -34,7 +34,7 @@ async def get_subscription(input: eave_ops.GetSubscription.RequestBody, request:
 
 
 async def create_subscription(input: eave_ops.CreateSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response) -> eave_ops.CreateSubscription.ResponseBody:
-    await eave_signing.validate_signature_or_fail(request=request)
+    await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:
         team = await eave_request_util.get_team_or_fail(session=session, request=request)

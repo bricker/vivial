@@ -22,9 +22,8 @@ if app_config.monitoring_enabled:
 
 app = FastAPI()
 
-eave_stdlib.api_util.RouterInterface.register(FastAPI)
-eave_stdlib.api_util.add_standard_endpoints(app)
-eave_request_util.add_standard_exception_handlers(app)
+eave_stdlib.api_util.add_standard_endpoints(app=app)
+eave_request_util.add_standard_exception_handlers(app=app)
 
 app.post("/access_request")(access_requests.create_access_request)
 app.post("/documents/upsert")(documents.upsert_document)

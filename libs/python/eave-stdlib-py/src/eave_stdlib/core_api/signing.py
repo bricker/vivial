@@ -1,7 +1,6 @@
 import hmac
 from typing import Optional
 
-import fastapi
 from eave_stdlib.config import shared_config
 
 ALGORITHM = "sha256"
@@ -24,15 +23,5 @@ async def sign(payload: str, team_id: Optional[str] = None) -> str:
     signature = hm.hexdigest()
     return signature
 
-async def validate_signature_or_fail(request: fastapi.Request) -> None:
-    payload = await request.json()
-    signature = request.headers.get(SIGNATURE_HEADER_NAME)
-    team_id = request.headers.get(TEAM_ID_HEADER_NAME)
-
-    if not signature or not payload:
-        # reject None or empty strings
-        raise InvalidSignatureError()
-
-    expected_signature = await sign(payload=payload, team_id=team_id)
-    if hmac.compare_digest(signature, expected_signature) == False:
-        raise InvalidSignatureError()
+def compare_signatures(expected: str, actual: str) -> bool:
+    return hmac.compare_digest(expected, actual)

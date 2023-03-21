@@ -14,7 +14,7 @@ def spa_home() -> str:
 def spa_early() -> str:
     return _render_spa()
 
-async def api_access_request() -> None:
+async def api_access_request() -> str:
     body = request.get_json()
 
     await eave_core_api_client.create_access_request(
@@ -24,6 +24,8 @@ async def api_access_request() -> None:
             opaque_input=body["opaque_input"],
         ),
     )
+
+    return "OK"
 
 def catch_all(**kwargs: Any) -> Response:
     return redirect(location="/", code=HTTPStatus.FOUND)
@@ -45,9 +47,7 @@ async def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = await app_config.eave_web_session_encryption_key
 
-    eave_api_util.RouterInterface.register(Flask)
-    # https://github.com/python/mypy/issues/2922
-    eave_api_util.add_standard_endpoints(app)
+    eave_api_util.add_standard_endpoints(app=app)
 
     app.get("/")(spa_home)
     app.get("/early")(spa_early)

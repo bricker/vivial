@@ -25,6 +25,19 @@ async def get_team_or_fail(session: AsyncSession, request: fastapi.Request) -> e
     except sqlalchemy.exc.SQLAlchemyError as error:
         raise HTTPException(HTTPStatus.UNAUTHORIZED) from error
 
+async def validate_signature_or_fail(request: fastapi.Request) -> None:
+    payload = await request.json()
+    actual_signature = request.headers.get(eave_signing.SIGNATURE_HEADER_NAME)
+    team_id = request.headers.get(eave_signing.TEAM_ID_HEADER_NAME)
+
+    if not actual_signature or not payload:
+        # reject None or empty strings
+        raise eave_signing.InvalidSignatureError()
+
+    expected_signature = await eave_signing.sign(payload=payload, team_id=team_id)
+    if not eave_signing.compare_signatures(expected=expected_signature, actual=actual_signature):
+        raise eave_signing.InvalidSignatureError()
+
 def not_found() -> fastapi.Response:
     return fastapi.responses.Response(status_code=HTTPStatus.NOT_FOUND)
 

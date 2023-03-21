@@ -2,15 +2,15 @@ from http import HTTPStatus
 import json
 import fastapi
 import eave_stdlib.core_api.operations as eave_ops
-import eave_stdlib.core_api.signing as eave_signing
 from eave_stdlib.slack import eave_slack_client
 import eave_core.internal.database as eave_db
 import eave_core.internal.orm as eave_orm
+from . import util as eave_request_util
 
 SIGNUPS_SLACK_CHANNEL_ID="C04HH2N08LD"
 
 async def create_access_request(input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response) -> fastapi.Response:
-    await eave_signing.validate_signature_or_fail(request=request)
+    await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:
         access_request = await eave_orm.AccessRequestOrm.one_or_none(session=session, email=input.email)

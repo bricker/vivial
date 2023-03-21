@@ -2,13 +2,12 @@ from http import HTTPStatus
 import fastapi
 import eave_stdlib.core_api.operations as eave_ops
 import eave_stdlib.core_api.models as eave_models
-import eave_stdlib.core_api.signing as eave_signing
 import eave_core.internal.orm as eave_orm
 import eave_core.internal.database as eave_db
 from . import util as eave_request_util
 
 async def upsert_document(input: eave_ops.UpsertDocument.RequestBody, request: fastapi.Request, response: fastapi.Response) -> eave_ops.UpsertDocument.ResponseBody:
-    await eave_signing.validate_signature_or_fail(request=request)
+    await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:
         team = await eave_request_util.get_team_or_fail(session=session, request=request)
