@@ -4,19 +4,18 @@
     "npm": "9"
   },
   "scripts": {
-    "//": "The following script is used by AppEngine",
+    "//": "The following scripts are used by AppEngine",
     "start": "node dist/app.js",
     "gcp-build": "tsc --project ."
   },
   "dependencies": {
-    "@google-cloud/secret-manager": "4.x",
     "@octokit/graphql-schema": "12.x",
     "@octokit/webhooks": "10.x",
     "bluebird": "3.x",
     "express": "4.x",
     "node-fetch": "3.x",
     "octokit": "2.x",
-    "openai": "3.x"
+    "@eave-fyi/eave-stdlib-ts": "file:../../libs/javascript/eave-stdlib-ts"
   },
   "devDependencies": {
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",

@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "../libs/python/eave-stdlib-py"
+		},
+		{
+			"path": "../libs/javascript/eave-stdlib-ts"
 		}
 	],
 	"settings": {
