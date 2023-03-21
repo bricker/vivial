@@ -2,7 +2,8 @@
 
 set -eu
 
-${EAVE_HOME}/develop/python/bin/setup
+${EAVE_HOME}/develop/python/bin/setup "$@"
+${EAVE_HOME}/develop/shared/bin/build-dotenv eave_server/config.py
 ${EAVE_HOME}/develop/javascript/bin/setup
 
 bin/lint

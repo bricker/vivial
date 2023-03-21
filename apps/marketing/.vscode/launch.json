@@ -12,7 +12,7 @@
       "envFile": ".env",
       "args": [
         "--app",
-        "eave_server:app",
+        "'eave_server.app:create_app()'",
         "run",
         "--no-debugger",
         "--host",

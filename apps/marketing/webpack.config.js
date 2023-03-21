@@ -2,10 +2,10 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
-  entry: path.join(__dirname, 'src', 'client', 'index.js'),
+  entry: path.join(__dirname, 'eave_client', 'index.js'),
   devtool: 'eval-source-map',
   output: {
-    path: path.resolve(__dirname, 'static', 'dist'),
+    path: path.resolve(__dirname, 'eave_static', 'dist'),
   },
   module: {
     rules: [
@@ -31,6 +31,7 @@ module.exports = {
   },
   devServer: {
     server: 'http',
+    path: '/static',
     client: {
       overlay: false,
     },

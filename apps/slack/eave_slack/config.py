@@ -1,12 +1,5 @@
-import base64
-import json
 import os
 from functools import cached_property
-from typing import Any, Mapping, Optional
-
-import google_crc32c
-from google.cloud import secretmanager
-
 import eave_stdlib.config
 
 class AppConfig(eave_stdlib.config.EaveConfig):
@@ -15,11 +8,42 @@ class AppConfig(eave_stdlib.config.EaveConfig):
         return os.environ["EAVE_SLACK_APP_ID"]
 
     @cached_property
-    def eave_slack_app_token(self) -> Optional[str]:
-        return eave_stdlib.config.get_secret("SLACK_APP_TOKEN")
+    async def eave_slack_app_client_id(self) -> str:
+        value = await self.get_secret("EAVE_SLACK_APP_CLIENT_ID")
+        assert value is not None
+        return value
 
     @cached_property
-    def eave_slack_bot_signing_secret(self) -> Optional[str]:
-        return eave_stdlib.config.get_secret("SLACK_SIGNING_SECRET")
+    async def eave_slack_app_client_secret(self) -> str:
+        value = await self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
+        assert value is not None
+        return value
+
+    @cached_property
+    async def eave_slack_app_signing_secret(self) -> str:
+        value = await self.get_secret("EAVE_SLACK_APP_SIGNING_SECRET")
+        assert value is not None
+        return value
+
+    @cached_property
+    async def eave_slack_app_socketmode_token(self) -> str:
+        """
+        This is for socketmode only
+        """
+        value = await self.get_secret("EAVE_SLACK_APP_SOCKETMODE_TOKEN")
+        assert value is not None
+        return value
+
+    @cached_property
+    async def eave_slack_bot_token(self) -> str:
+        """
+        This is an oauth token.
+        This is only needed while the app is being developed. Once it's published, this token will come from the
+        OAuth2 flow, and each customer will have their own token.
+        """
+        value = await self.get_secret("SLACK_BOT_TOKEN")
+        assert value is not None
+        return value
+
 
 app_config = AppConfig()

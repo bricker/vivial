@@ -17,10 +17,9 @@ entrypoint: |-
     --bind :$PORT \
     --pythonpath vendor \
     --worker-class uvicorn.workers.UvicornWorker \
-    eave_slack:api
+    eave_slack.app:api
 
 env_variables:
   EAVE_CORE_API_URL: "https://api.eave.fyi"
   EAVE_MONITORING_ENABLED: "1"
   EAVE_SLACK_APP_ID: "A04HD948UHE"
-  EAVE_TEAM_ID: "3345217c-fb27-4422-a3fc-c404b49aff8c"

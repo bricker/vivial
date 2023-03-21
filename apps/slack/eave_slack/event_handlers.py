@@ -1,21 +1,19 @@
-import asyncio
 import logging
-from typing import Any, Optional
-
+from typing import Optional
+import eave_stdlib.util as eave_util
 from slack_bolt.async_app import AsyncAck, AsyncApp
+from . import slack_models
+from . import brain
 
-import eave.brain
-import eave.slack
-import eave.slack_models
-import eave.util
+async def register_event_handlers(app: AsyncApp) -> None:
+    app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
+    app.event("message")(event_message_handler)
+    app.event("app_mention")(noop_handler)
+    app.event("reaction_added")(noop_handler)
+    app.event("file_deleted")(noop_handler)
+    app.event("member_joined_channel")(noop_handler)
 
-
-def ensure_import() -> None:
-    pass
-
-
-@eave.slack.app.shortcut("eave_watch_request")
-async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave.util.JsonObject]) -> None:
+async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave_util.JsonObject]) -> None:
     logging.info("WatchRequestEventHandler %s", shortcut)
     await ack()
     assert shortcut is not None
@@ -25,30 +23,23 @@ async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[
 
     # TODO: Use Shortcut slack model, and get shortcut actor
     channel = shortcut["channel"]["id"]
-    message = eave.slack_models.SlackMessage(message_json, channel=channel)
-    brain = eave.brain.Brain(message=message)
-    eave.util.do_in_background(brain.process_shortcut_event())
+    message = slack_models.SlackMessage(message_json, channel=channel)
+    b = brain.Brain(message=message)
+    eave_util.do_in_background(b.process_shortcut_event())
 
-
-@eave.slack.app.event("message")
-async def event_message_handler(event: Optional[eave.util.JsonObject]) -> None:
+async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
     logging.info("MessageEventHandler %s", event)
     assert event is not None
 
-    message = eave.slack_models.SlackMessage(event)
+    message = slack_models.SlackMessage(event)
     if message.subtype in ["bot_message", "bot_remove", "bot_add"]:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
         logging.info("ignoring bot message")
         return
 
-    brain = eave.brain.Brain(message=message)
-    eave.util.do_in_background(brain.process_message())
+    b = brain.Brain(message=message)
+    eave_util.do_in_background(b.process_message())
 
-
-@eave.slack.app.event("app_mention")
-@eave.slack.app.event("reaction_added")
-@eave.slack.app.event("file_deleted")
-@eave.slack.app.event("member_joined_channel")
 async def noop_handler() -> None:
     pass

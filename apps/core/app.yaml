@@ -17,7 +17,7 @@ entrypoint: |-
     --bind :$PORT \
     --pythonpath vendor \
     --worker-class uvicorn.workers.UvicornWorker \
-    eave_core:app
+    eave_core.app:app
 
 env_variables:
   EAVE_DB_NAME: "eave"

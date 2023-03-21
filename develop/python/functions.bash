@@ -1,6 +1,6 @@
 EAVE_PYTHON_VERSION=3.11
 
-# TODO: Install pyenv
+source ${EAVE_HOME}/develop/shared/functions.bash
 
 function python-validate-version () {
 	local current_version=$(python --version)
@@ -12,6 +12,12 @@ function python-validate-version () {
 }
 
 function python-activate-venv () {
+	if ! command_exists pyenv
+	then
+		statusmsg -w "automatic environment management is disabled because pyenv was not found in your PATH. It is recommended to install pyenv."
+		return 0
+	fi
+
 	if ! test -d .venv
 	then
 		python -m venv --upgrade-deps .venv

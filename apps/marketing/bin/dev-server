@@ -1,9 +1,0 @@
-#!/usr/bin/env sh
-
-set -e
-
-npx concurrently \
-  --kill-others \
-  "npx webpack --watch" \
-  "npx webpack serve" \
-  "bin/app-server"

@@ -4,4 +4,4 @@ set -eu
 
 bin/lint
 bin/test
-${EAVE_HOME}/develop/shared/bin/deploy-appengine
+${EAVE_HOME}/develop/python/bin/deploy-appengine

@@ -19,7 +19,7 @@
 			"path": "../develop"
 		},
 		{
-			"path": "../libs/python/eave-stdlib"
+			"path": "../libs/python/eave-stdlib-py"
 		}
 	],
 	"settings": {
@@ -58,7 +58,7 @@
 			"editor.tabSize": 2
 		},
 		"[typescript]": {
-			"editor.defaultFormatter": "dbaeumer.vscode-eslint"
+			"editor.defaultFormatter": "vscode.typescript-language-features"
 		},
 		"yaml.schemas": {
 			"https://json.schemastore.org/github-action": ["action.yml"],

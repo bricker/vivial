@@ -93,3 +93,21 @@ function statusmsg () {
 	echo "[$msgtype] $msg$_cc_reset"
 	return 0
 }
+
+function shellname () {
+	return $(basename "$SHELL")
+}
+
+function command_exists () {
+	case shellname in
+		fish)
+			test command -v "$1" > /dev/null || functions -q "$1"
+			;;
+		bash | zsh)
+			test command -v "$1" > /dev/null
+			;;
+		*)
+			return 0
+			;;
+	esac
+}

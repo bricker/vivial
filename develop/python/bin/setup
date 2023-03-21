@@ -2,7 +2,6 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/shared/functions.bash
 source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
 
@@ -38,11 +37,11 @@ python -m pip install -r ${EAVE_HOME}/develop/python/requirements-dev.txt
 
 statusmsg -s "Your Python environment is now setup."
 
-case $(basename "$SHELL") in
+case shellname in
 	fish)
 		statusmsg -i "Run 'source .venv/bin/activate.fish' to activate the virtual environment in your shell."
 		;;
-	bash | zsh | sh | *)
+	bash | zsh)
 		statusmsg -i "Run 'source .venv/bin/activate' to activate the virtual environment in your shell."
 		;;
 esac

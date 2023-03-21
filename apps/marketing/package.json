@@ -5,14 +5,6 @@
   },
   "type": "module",
   "scripts": {
-    "start": "bin/dev-server",
-    "flask": "bin/app-server",
-    "build": "webpack",
-    "lint": "bin/lint",
-    "format": "bin/format",
-    "deploy": "bin/deploy",
-    "dev": "webpack serve",
-    "watch": "webpack --watch"
   },
   "dependencies": {
     "@material-ui/core": "^4.12.4",

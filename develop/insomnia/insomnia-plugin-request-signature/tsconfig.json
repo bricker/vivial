@@ -1,6 +1,10 @@
 {
   "extends": "../../javascript/configs/tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist"
-  }
+    "module": "CommonJS", // Required by Insomnia
+    "outDir": "dist",
+  },
+  "include": [
+    "src/*"
+  ]
 }

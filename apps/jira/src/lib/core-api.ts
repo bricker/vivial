@@ -1,6 +1,6 @@
 import fetch, { RequestInit } from 'node-fetch';
 import jws from 'jws';
-import appSettings from '../settings.js';
+import appSettings from '../config.js';
 import { JsonValue } from '../types.js';
 
 enum DocumentPlatform {

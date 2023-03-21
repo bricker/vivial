@@ -9,7 +9,7 @@ from sqlalchemy import Connection
 
 import eave_core.internal.orm
 from alembic import context
-from eave_core.internal.database import engine
+import eave_core.internal.database as eave_db
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -31,7 +31,7 @@ target_metadata = eave_core.internal.orm.Base.metadata
 # ... etc.
 
 
-def run_migrations_offline() -> None:
+async def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -43,6 +43,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
+    engine = await eave_db.get_engine()
     context.configure(
         url=engine.url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
@@ -68,7 +69,7 @@ async def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine
+    connectable = await eave_db.get_engine()
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
@@ -77,6 +78,6 @@ async def run_migrations_online() -> None:
 
 
 if context.is_offline_mode():
-    run_migrations_offline()
+    asyncio.run(run_migrations_offline())
 else:
     asyncio.run(run_migrations_online())

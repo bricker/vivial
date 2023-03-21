@@ -12,8 +12,7 @@ inbound_services:
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
-    --chdir src/server \
-    eave_server:app
+    'eave_server.app:create_app()'
 
 env_variables:
   EAVE_ANALYTICS_ENABLED: "1"
@@ -23,7 +22,7 @@ env_variables:
 
 handlers:
 - url: /static
-  static_dir: static
+  static_dir: eave_static
 
 - url: .*
   script: auto

@@ -1,14 +1,15 @@
 #!include:.gitignore
-!/static/dist
+!/eave_static/dist
 
 .*
 *.md
 webpack.config.js
 bin
 tests
-src/client
+eave_client
 requirements-dev.txt
 requirements-vendor.txt
 pyproject.toml
-
 node_modules
+package.json
+package-lock.json

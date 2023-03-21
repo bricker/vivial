@@ -5,20 +5,24 @@ import os
 import re
 import traceback
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence
+from typing import List, Optional
 from uuid import UUID
 
 import slack_sdk.models.blocks
 import slack_sdk.models.blocks.basic_components
 import slack_sdk.models.blocks.block_elements
+import slack_sdk.web.async_client
+
 import tiktoken
 
-import eave.core_api
-import eave.openai
-import eave.settings
-import eave.slack
-import eave.slack_models
-import eave.util
+import eave_stdlib.core_api.models as eave_models
+import eave_stdlib.core_api.operations as eave_ops
+import eave_stdlib.core_api.client as eave_core_api_client
+import eave_stdlib.util as eave_util
+import eave_stdlib.openai as eave_openai
+from .slack_app import get_slack_client
+from . import slack_models
+from .config import app_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
@@ -49,16 +53,15 @@ class RequestType(enum.Enum):
 
 
 class Brain:
-    message: eave.slack_models.SlackMessage
-    subscription_source: eave.core_api.SubscriptionSource
+    message: slack_models.SlackMessage
+    subscription_source: eave_models.SubscriptionSource
+    team_id: UUID
 
-    def __init__(self, message: eave.slack_models.SlackMessage) -> None:
+    def __init__(self, message: slack_models.SlackMessage) -> None:
         self.message = message
-        self.subscription_source = eave.core_api.SubscriptionSource(
-            platform=eave.core_api.SubscriptionSourcePlatform.slack,
-            event=eave.core_api.SubscriptionSourceEvent.slack_message,
-            id=message.subscription_id,
-        )
+        # FIXME: Hardcoded ID
+        self.team_id = UUID('3345217c-fb27-4422-a3fc-c404b49aff8c')
+        # self.team = await eave_core_api_client.get_team(slack_org_id: xxx)
 
     async def process_message(self) -> None:
         i_am_mentioned = await self.message.check_eave_is_mentioned()
@@ -92,23 +95,23 @@ class Brain:
 
         match purpose:
             case MessagePurpose.REQUEST:
-                eave.util.do_in_background(self.process_request())
+                eave_util.do_in_background(self.process_request())
             case MessagePurpose.QUESTION:
-                eave.util.do_in_background(self.process_question())
+                eave_util.do_in_background(self.process_question())
             case MessagePurpose.WATCH:
-                eave.util.do_in_background(self.process_watch_request())
+                eave_util.do_in_background(self.process_watch_request())
             case MessagePurpose.OTHER | MessagePurpose.UNKNOWN:
-                eave.util.do_in_background(self.process_unknown_request())
+                eave_util.do_in_background(self.process_unknown_request())
 
     async def process_shortcut_event(self) -> None:
         await self.acknowledge_receipt()
 
-        # source = eave.core_api.SubscriptionSource(
-        #     event=eave.core_api.SubscriptionSourceEvent.slack_message,
+        # source = eave_models.SubscriptionSource(
+        #     event=eave_models.SubscriptionSourceEvent.slack_message,
         #     id=message.subscription_id,
         # )
 
-        # response = await eave.core_api.client.get_or_create_subscription(source=source)
+        # response = await eave_models.client.get_or_create_subscription(source=source)
         # manager = DocumentManager(message=message, subscription=response.subscription)
         # await manager.process_message()
 
@@ -211,7 +214,7 @@ class Brain:
                 )
             )
 
-    @eave.util.memoized
+    @eave_util.memoized
     async def determine_message_purpose(self) -> MessagePurpose:
         """
         Asks OpenAI to determine why the user mentioned Eave.
@@ -330,7 +333,7 @@ class Brain:
                 "CATEGORY: "
             )
 
-            openai_params = eave.openai.CompletionParameters(
+            openai_params = eave_openai.CompletionParameters(
                 prompt=prompt,
                 n=1,
                 frequency_penalty=0.6,
@@ -338,7 +341,7 @@ class Brain:
                 temperature=0.2,
             )
 
-            openai_response = await eave.openai.summarize(openai_params)
+            openai_response = await eave_openai.completion(openai_params)
             assert openai_response is not None
             return openai_response
 
@@ -352,7 +355,7 @@ class Brain:
         #         "PROJECT NAME: -||-\n"
         #         "DOCUMENTATION TYPE: -||-\n"
         #     )
-        #     openai_params = eave.openai.CompletionParameters(
+        #     openai_params = eave_openai.CompletionParameters(
         #         prompt=prompt,
         #         n=1,
         #         frequency_penalty=0.6,
@@ -360,7 +363,7 @@ class Brain:
         #         temperature=0.2,
         #     )
 
-        #     openai_response = await eave.openai.summarize(openai_params)
+        #     openai_response = await eave_openai.summarize(openai_params)
         #     assert openai_response is not None
         #     return openai_response
 
@@ -368,16 +371,16 @@ class Brain:
 
         # tokens = tokencoding.encode(response)
         # truncated_content = ""
-        # openai_params = eave.openai.CompletionParameters(
+        # openai_params = eave_openai.CompletionParameters(
         #     prompt=f"Create a title for this document.\n\n###\n\n{content}\n\nTitle:\n",
         #     n=1,
         #     frequency_penalty=0,
         #     temperature=0.2,
         # )
-        # title = await eave.openai.summarize(openai_params)
+        # title = await eave_openai.summarize(openai_params)
         # assert title is not None
 
-        async def parse_raw_documentation() -> eave.core_api.Document:
+        async def parse_raw_documentation() -> eave_ops.DocumentInput:
             """
             1. Parses the OpenAI response. Makes assumptions about the format of the text returned by OpenAI.
             2. Adds context to the document (eg links and source)
@@ -387,10 +390,10 @@ class Brain:
             title = re.sub("^TITLE:\\s*", "", title, flags=re.RegexFlag.IGNORECASE).strip()
             body = re.sub("^FORMATTED DOCUMENTATION:\\s*", "", body, flags=re.RegexFlag.IGNORECASE).strip()
 
-            generated_document = eave.core_api.Document(
+            generated_document = eave_ops.DocumentInput(
                 title=title,
                 content=body,
-                parent=eave.core_api.Document(
+                parent=eave_ops.DocumentInput(
                     title=category,
                     content="",
                 ),
@@ -425,12 +428,13 @@ class Brain:
             return generated_document
 
         document = await parse_raw_documentation()
-        addl_headers = dict[str, str]()
 
-        upsert_document_response = await eave.core_api.client.upsert_document(
-            document=document,
-            source=self.message.subscription_source,
-            addl_headers=addl_headers,
+        upsert_document_response = await eave_core_api_client.upsert_document(
+            team_id=self.team_id,
+            input=eave_ops.UpsertDocument.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+                document=document,
+            ),
         )
 
         async def send_follow_up_message() -> None:
@@ -492,7 +496,7 @@ class Brain:
 
     async def build_context(self) -> str:
         context = await self.build_concatenated_context()
-        if len(tokencoding.encode(context)) > (eave.openai.MAX_TOKENS / 2):
+        if len(tokencoding.encode(context)) > (eave_openai.MAX_TOKENS / 2):
             context = await self.build_rolling_context()
 
         return context
@@ -532,7 +536,7 @@ class Brain:
             tokens = tokencoding.encode(formatted_text)
             total_tokens += len(tokens)
 
-            if total_tokens > (eave.openai.MAX_TOKENS / 2):
+            if total_tokens > (eave_openai.MAX_TOKENS / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
                 prompt = (
                     f"{PROMPT_PREFIX}\n"
@@ -541,13 +545,13 @@ class Brain:
                     f"{condensed_context}\n\n"
                     f"{joined_messages}\n\n"
                 )
-                openai_params = eave.openai.CompletionParameters(
+                openai_params = eave_openai.CompletionParameters(
                     prompt=prompt,
                     temperature=0.9,
                     frequency_penalty=1.0,
                     presence_penalty=1.0,
                 )
-                response = await eave.openai.summarize(params=openai_params)
+                response = await eave_openai.completion(params=openai_params)
                 assert response is not None
                 condensed_context = response
                 total_tokens = 0
@@ -572,7 +576,7 @@ class Brain:
         assert self.message.channel is not None
 
         debug_text = ""
-        if eave.settings.APP_SETTINGS.dev_mode is True:
+        if app_config.dev_mode is True:
             stack = traceback.extract_stack(limit=2)
             frame = stack[0]
             filename = os.path.basename(frame.filename)
@@ -582,7 +586,8 @@ class Brain:
         if text is not None:
             msg = f"<@{self.message.user}> {text}{debug_text}"
 
-            await eave.slack.client.chat_postMessage(
+            slack_client = await get_slack_client()
+            await slack_client.chat_postMessage(
                 channel=self.message.channel,
                 text=msg,
                 thread_ts=self.message.parent_ts,
@@ -611,7 +616,8 @@ class Brain:
     async def react_to_message(self, name: str) -> None:
         assert self.message.channel is not None
         assert self.message.ts is not None
-        await eave.slack.client.reactions_add(name=name, channel=self.message.channel, timestamp=self.message.ts)
+        slack_client = await get_slack_client()
+        await slack_client.reactions_add(name=name, channel=self.message.channel, timestamp=self.message.ts)
 
     async def acknowledge_receipt(self) -> None:
         await self.react_to_message("eave")
@@ -621,28 +627,38 @@ class Brain:
         await self.respond_to_message(text=info)
 
     async def get_openai_response(self, prompt: str, temperature: int) -> str:
-        params = eave.openai.CompletionParameters(
+        params = eave_openai.CompletionParameters(
             prompt=prompt,
             temperature=temperature,
         )
 
-        openai_completion = await eave.openai.summarize(params)
+        openai_completion = await eave_openai.completion(params)
         assert openai_completion is not None
         return openai_completion
 
-    async def get_subscription(self) -> eave.core_api.EaveCoreClient.SubscriptionResponse | None:
-        subscription = await eave.core_api.client.get_subscription(source=self.subscription_source)
+    async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
+        subscription = await eave_core_api_client.get_subscription(
+            team_id=self.team_id,
+            input=eave_ops.GetSubscription.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+            ),
+        )
         return subscription
 
-    async def create_subscription(self) -> eave.core_api.EaveCoreClient.SubscriptionResponse:
+    async def create_subscription(self) -> eave_ops.CreateSubscription.ResponseBody:
         """
         Gets and returns the subscription if it already exists, otherwise creates and returns a new subscription.
         """
-        subscription = await eave.core_api.client.get_or_create_subscription(source=self.subscription_source)
+        subscription = await eave_core_api_client.create_subscription(
+            team_id=self.team_id,
+            input=eave_ops.CreateSubscription.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+            ),
+        )
         return subscription
 
     async def notify_existing_subscription(
-        self, subscription: eave.core_api.EaveCoreClient.SubscriptionResponse
+        self, subscription: eave_ops.GetSubscription.ResponseBody
     ) -> None:
         if subscription.document_reference is not None:
             await self.respond_to_message(

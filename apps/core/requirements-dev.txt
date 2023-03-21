@@ -2,4 +2,4 @@
 alembic
 aiosqlite
 
--e ../../libs/python/eave-stdlib
+-e ../../libs/python/eave-stdlib-py

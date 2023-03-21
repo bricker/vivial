@@ -1,15 +1,15 @@
 import enum
 from datetime import datetime
 from functools import cache
-from typing import Optional, cast
-from uuid import UUID, uuid4
+from typing import Optional, ParamSpec, Self, Tuple, cast
+from uuid import UUID
 
 import atlassian
 from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     PrimaryKeyConstraint,
-    UnicodeText,
+    Select,
     func,
     select,
     text,
@@ -17,21 +17,15 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-import eave_core.internal.confluence
-import eave_core.internal.openai
-import eave_core.internal.util
-from eave_core.internal.confluence import ConfluenceContext, ConfluencePage
-from eave_core.internal.config import APP_SETTINGS
-from eave_core.public.shared import (
-    DocumentContentInput,
-    DocumentPlatform,
-    SubscriptionSource,
-    SubscriptionSourceEvent,
-    SubscriptionSourcePlatform,
-)
+from . import confluence
+import eave_stdlib.openai
+import eave_stdlib.core_api.models as eave_models
+import eave_stdlib.util as eave_util
+import eave_stdlib.core_api.operations as eave_ops
 
 UUID_DEFAULT_EXPR = text("gen_random_uuid()")
 
+P = ParamSpec("P")
 
 class Base(DeclarativeBase):
     pass
@@ -70,7 +64,7 @@ class AccessRequestOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
 
     @classmethod
-    async def find_one(cls, session: AsyncSession, email: str) -> Optional["AccessRequestOrm"]:
+    async def one_or_none(cls, session: AsyncSession, email: str) -> Optional["AccessRequestOrm"]:
         statement = select(cls).where(cls.email == email).limit(1)
 
         access_request = await session.scalar(statement)
@@ -98,7 +92,7 @@ class DocumentReferenceOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def find_one(cls, team_id: UUID, id: UUID, session: AsyncSession) -> "DocumentReferenceOrm":
+    async def one_or_exception(cls, team_id: UUID, id: UUID, session: AsyncSession) -> "DocumentReferenceOrm":
         stmt = (
             select(DocumentReferenceOrm)
             .where(DocumentReferenceOrm.team_id == team_id)
@@ -128,8 +122,8 @@ class SubscriptionOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    source_platform: Mapped[SubscriptionSourcePlatform] = mapped_column()
-    source_event: Mapped[SubscriptionSourceEvent] = mapped_column()
+    source_platform: Mapped[eave_models.SubscriptionSourcePlatform] = mapped_column()
+    source_event: Mapped[eave_models.SubscriptionSourceEvent] = mapped_column()
     source_id: Mapped[str] = mapped_column()
     document_reference_id: Mapped[Optional[UUID]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -139,7 +133,7 @@ class SubscriptionOrm(Base):
         if self.document_reference_id is None:
             return None
 
-        result = await DocumentReferenceOrm.find_one(
+        result = await DocumentReferenceOrm.one_or_exception(
             team_id=self.team_id,
             id=self.document_reference_id,
             session=session,
@@ -147,23 +141,37 @@ class SubscriptionOrm(Base):
         return result
 
     @property
-    def source(self) -> SubscriptionSource:
-        return SubscriptionSource(
+    def source(self) -> eave_models.SubscriptionSource:
+        return eave_models.SubscriptionSource(
             platform=self.source_platform,
             event=self.source_event,
             id=self.source_id,
         )
 
     @source.setter
-    def source(self, source: SubscriptionSource) -> None:
+    def source(self, source: eave_models.SubscriptionSource) -> None:
         self.source_platform = source.platform
         self.source_event = source.event
         self.source_id = source.id
 
     @classmethod
-    async def find_one(
-        cls, session: AsyncSession, team_id: UUID, source: SubscriptionSource
-    ) -> Optional["SubscriptionOrm"]:
+    async def one_or_none(
+        cls, session: AsyncSession, team_id: UUID, source: eave_models.SubscriptionSource
+    ) -> Optional[Self]:
+        lookup = cls._select_one(team_id=team_id, source=source)
+        subscription = await session.scalar(lookup)
+        return subscription
+
+    @classmethod
+    async def one_or_exception(
+        cls, session: AsyncSession, team_id: UUID, source: eave_models.SubscriptionSource
+    ) -> Self:
+        lookup = cls._select_one(team_id=team_id, source=source)
+        subscription = (await session.scalars(lookup)).one()
+        return subscription
+
+    @classmethod
+    def _select_one(cls, team_id: UUID, source: eave_models.SubscriptionSource) -> Select[Tuple[Self]]:
         lookup = (
             select(cls)
             .where(cls.team_id == team_id)
@@ -172,9 +180,8 @@ class SubscriptionOrm(Base):
             .where(cls.source_id == source.id)
             .limit(1)
         )
+        return lookup
 
-        subscription = await session.scalar(lookup)
-        return subscription
 
 
 class ConfluenceDestinationOrm(Base):
@@ -206,10 +213,10 @@ class ConfluenceDestinationOrm(Base):
 
     @property
     @cache
-    def confluence_context(self) -> eave_core.internal.confluence.ConfluenceContext:
-        return eave_core.internal.confluence.ConfluenceContext(base_url=self.url)
+    def confluence_context(self) -> confluence.ConfluenceContext:
+        return confluence.ConfluenceContext(base_url=self.url)
 
-    async def create_document(self, document: DocumentContentInput, session: AsyncSession) -> DocumentReferenceOrm:
+    async def create_document(self, document: eave_ops.DocumentInput, session: AsyncSession) -> DocumentReferenceOrm:
         confluence_page = await self.get_or_create_confluence_page(document=document)
 
         url = None
@@ -226,7 +233,7 @@ class ConfluenceDestinationOrm(Base):
         return document_reference
 
     async def update_document(
-        self, document: DocumentContentInput, document_reference: DocumentReferenceOrm
+        self, document: eave_ops.DocumentInput, document_reference: DocumentReferenceOrm
     ) -> DocumentReferenceOrm:
         """
         Update an existing Confluence document with the new body.
@@ -242,7 +249,7 @@ class ConfluenceDestinationOrm(Base):
         if existing_page.body is not None and existing_page.body.content is not None:
             # TODO: Token counting
             prompt = (
-                f"{eave_core.internal.openai.PROMPT_PREFIX}\n"
+                f"{eave_stdlib.openai.PROMPT_PREFIX}\n"
                 "Combine the following two documents together such that all important information is retained, "
                 "but duplicate, unnecessary, irrelevant, or outdated information is removed.\n\n"
                 "###\n\n"
@@ -253,11 +260,11 @@ class ConfluenceDestinationOrm(Base):
                 "###\n\n"
                 "=== Result: ===\n\n"
             )
-            openai_params = eave_core.internal.openai.CompletionParameters(
+            openai_params = eave_stdlib.openai.CompletionParameters(
                 temperature=0.2,
                 prompt=prompt,
             )
-            resolved_document_body = await eave_core.internal.openai.summarize(params=openai_params)
+            resolved_document_body = await eave_stdlib.openai.completion(params=openai_params)
             assert resolved_document_body is not None
         else:
             resolved_document_body = document.content
@@ -272,7 +279,7 @@ class ConfluenceDestinationOrm(Base):
         assert response is not None
         return document_reference
 
-    async def get_or_create_confluence_page(self, document: DocumentContentInput) -> ConfluencePage:
+    async def get_or_create_confluence_page(self, document: eave_ops.DocumentInput) -> confluence.ConfluencePage:
         existing_page = await self.get_confluence_page_by_title(document=document)
         if existing_page is not None:
             return existing_page
@@ -290,11 +297,11 @@ class ConfluenceDestinationOrm(Base):
         )
         assert response is not None
 
-        json = cast(eave_core.internal.util.JsonObject, response)
-        page = ConfluencePage(json, cast(ConfluenceContext, self.confluence_context))
+        json = cast(eave_util.JsonObject, response)
+        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
-    async def get_confluence_page_by_id(self, document_reference: DocumentReferenceOrm) -> ConfluencePage | None:
+    async def get_confluence_page_by_id(self, document_reference: DocumentReferenceOrm) -> confluence.ConfluencePage | None:
         response = self.confluence_client().get_page_by_id(
             page_id=document_reference.document_id,
             expand=["history"],
@@ -302,11 +309,11 @@ class ConfluenceDestinationOrm(Base):
         if response is None:
             return None
 
-        json = cast(eave_core.internal.util.JsonObject, response)
-        page = ConfluencePage(json, cast(ConfluenceContext, self.confluence_context))
+        json = cast(eave_util.JsonObject, response)
+        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
-    async def get_confluence_page_by_title(self, document: DocumentContentInput) -> ConfluencePage | None:
+    async def get_confluence_page_by_title(self, document: eave_ops.DocumentInput) -> confluence.ConfluencePage | None:
         response = self.confluence_client().get_page_by_title(
             space=self.space,
             title=document.title,
@@ -314,8 +321,8 @@ class ConfluenceDestinationOrm(Base):
         if response is None:
             return None
 
-        json = cast(eave_core.internal.util.JsonObject, response)
-        page = ConfluencePage(json, cast(ConfluenceContext, self.confluence_context))
+        json = cast(eave_util.JsonObject, response)
+        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
 
@@ -365,7 +372,7 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    document_platform: Mapped[Optional[DocumentPlatform]] = mapped_column(server_default=None)
+    document_platform: Mapped[Optional[eave_models.DocumentPlatform]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -374,31 +381,21 @@ class TeamOrm(Base):
 
     async def get_document_destination(self, session: AsyncSession) -> ConfluenceDestinationOrm:
         match self.document_platform:
-            case DocumentPlatform.confluence:
+            case eave_models.DocumentPlatform.confluence:
                 stmt = select(ConfluenceDestinationOrm).where(ConfluenceDestinationOrm.team_id == self.id).limit(1)
                 destination = (await session.scalars(stmt)).one()
                 return destination
 
-            case DocumentPlatform.eave:
+            case eave_models.DocumentPlatform.eave:
                 raise Exception("eave documentation platform not yet implemented.")
 
         raise Exception("unsupported platform")
 
-    # @classmethod
-    # def find_by_api_key(cls, api_key: UUID, session: AsyncSession):
-    #     team = (
-    #         select(TeamOrm)
-    #         .join(ApiKeyOrm)
-    #         .where(ApiKeyOrm.key == api_key)
-    #     )
-
     @classmethod
-    async def find_one(cls, session: AsyncSession, team_id: UUID) -> Optional["TeamOrm"]:
+    async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
         lookup = select(cls).where(cls.id == team_id).limit(1)
-
-        team = await session.scalar(lookup)
+        team = (await session.scalars(lookup)).one() # throws if not exists
         return team
-
 
 class AuthProvider(enum.Enum):
     google = "google"
@@ -426,10 +423,27 @@ class AccountOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def find_one(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Optional["AccountOrm"]:
-        lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
+    async def one_or_exception(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Self:
+        lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
+        account = (await session.scalars(lookup)).one()
+        return account
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Self | None:
+        lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
         account = await session.scalar(lookup)
         return account
+
+    @classmethod
+    def _select_one(cls, auth_provider: AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
+        lookup = (
+            select(cls)
+            .where(cls.auth_provider == auth_provider)
+            .where(cls.auth_id == auth_id)
+            .limit(1)
+        )
+        return lookup
+
 
 
 # class EmbeddingsOrm(Base):
@@ -446,41 +460,3 @@ class AccountOrm(Base):
 #     document_reference_id: Mapped[UUID] = mapped_column()
 #     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
 #     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
-
-
-# class ApiKeyOrm(Base):
-#     __tablename__ = "api_keys"
-#     __table_args__ = (
-#         make_team_composite_pk(),
-#         make_team_fk(),
-#         Index(None, "key", unique=True),
-#         Index(None, "revoked"),
-#         Index(
-#             "not_revoked",
-#             "key",
-#             "revoked",
-#         ),
-#     )
-
-#     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-#     key: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-#     description: Mapped[Optional[str]]
-#     accessed: Mapped[Optional[datetime]]
-#     revoked: Mapped[Optional[datetime]] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
-
-#     team: Mapped["TeamOrm"] = relationship(back_populates="api_keys")
-
-#     @classmethod
-#     async def validate(cls, api_key: str, session: AsyncSession) -> TeamOrm:
-#         uuid_key = UUID(api_key)
-#         statement = (
-#             select(cls)
-#             .where(cls.key == uuid_key)
-#             .where(cls.revoked == None)
-#         )
-
-#         record = (await session.scalars(statement)).one()
-#         return record.team

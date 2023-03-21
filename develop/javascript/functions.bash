@@ -1,5 +1,7 @@
 EAVE_NODE_VERSION=18
 
+source ${EAVE_HOME}/develop/shared/functions.bash
+
 function node-validate-version () {
 	local current_version=$(node --version)
 	if ! $(echo -n "$current_version" | grep -q "v$EAVE_NODE_VERSION")
@@ -10,9 +12,11 @@ function node-validate-version () {
 }
 
 function node-activate-venv () {
-	if command -v nvm
+	if ! command -v nvm
 	then
-		# FIXME: Install nvm into bash if not already installed
-		nvm install $EAVE_NODE_VERSION
+		statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
+		return 0
 	fi
+
+	nvm install $EAVE_NODE_VERSION
 }

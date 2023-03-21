@@ -14,7 +14,6 @@
     "@octokit/webhooks": "10.x",
     "bluebird": "3.x",
     "express": "4.x",
-    "jose": "^4.13.1",
     "node-fetch": "3.x",
     "octokit": "2.x",
     "openai": "3.x"
@@ -23,7 +22,6 @@
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
     "@types/bluebird": "3.x",
     "@types/express": "4.x",
-    "@types/jws": "^3.2.5",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
     "eslint": "8.x",

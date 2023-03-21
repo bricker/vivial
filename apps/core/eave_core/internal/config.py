@@ -32,28 +32,29 @@ class AppConfig(eave_stdlib.config.EaveConfig):
         return int(port)
 
     @cached_property
-    def db_user(self) -> str:
-        value = eave_stdlib.config.get_secret("DB_USER")
+    async def db_user(self) -> str:
+        value = await self.get_secret("DB_USER")
         assert value is not None
         return value
 
     @cached_property
-    def db_pass(self) -> str:
-        value = self.get_secret("DB_PASS")
+    async def db_pass(self) -> str:
+        value = await self.get_secret("DB_PASS")
         assert value is not None
         return value
 
     @cached_property
-    def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
-        encoded = eave_stdlib.config.get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
+    async def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
+        encoded = await self.get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
         assert encoded is not None
         bytes = base64.b64decode(encoded)
         credentials: dict[str, Any] = json.loads(bytes)
         return credentials
 
     @cached_property
-    def eave_google_oauth_client_id(self) -> str:
-        client_id: str = self.eave_google_oauth_client_credentials["web"]["client_id"]
+    async def eave_google_oauth_client_id(self) -> str:
+        credentials = await self.eave_google_oauth_client_credentials
+        client_id: str = credentials["web"]["client_id"]
         return client_id
 
 app_config = AppConfig()

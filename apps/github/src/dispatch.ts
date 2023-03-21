@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';
 import * as Registry from './registry.js';
-import appSettings from './settings.js';
+import appConfig from './config.js';
 import pushHandler from './events/push.js';
 
 Registry.registerHandler('push', pushHandler);
@@ -37,11 +37,11 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
     return;
   }
 
-  const secret = await appSettings.eaveGithubAppWebhookSecret;
-  const privateKey = await appSettings.eaveGithubAppPrivateKey;
+  const secret = await appConfig.eaveGithubAppWebhookSecret;
+  const privateKey = await appConfig.eaveGithubAppPrivateKey;
 
   const app = new App({
-    appId: appSettings.eaveGithubAppId,
+    appId: appConfig.eaveGithubAppId,
     privateKey,
     webhooks: { secret },
   });
@@ -51,7 +51,7 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   if (!verified) {
     console.warn('signature verification failed');
 
-    if (!['test', 'development'].includes(appSettings.nodeEnv)) {
+    if (!['test', 'development'].includes(appConfig.nodeEnv)) {
       res.status(400).end();
       return;
     }

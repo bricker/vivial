@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { Configuration, OpenAIApi, CreateCompletionRequest } from 'openai';
-import appSettings from '../settings.js';
+import appConfig from '../config.js';
 
 export enum OpenAIModel {
   davinciText = 'text-davinci-003',
@@ -23,7 +23,7 @@ class OpenAIClient {
       return this.client;
     }
 
-    const apiKey = await appSettings.openaiApiKey;
+    const apiKey = await appConfig.openaiApiKey;
     const configuration = new Configuration({ apiKey });
     this.client = new OpenAIApi(configuration);
     return this.client;

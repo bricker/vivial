@@ -4,17 +4,16 @@
     "displayName": "HS256 Request Signature",
     "description": "Generates an HS256 request signature"
   },
-  "main": "dist/main.js",
+  "main": "main.js",
   "engines": {
     "node": "18",
     "npm": "9"
   },
   "scripts": {
     "build": "tsc --project .",
-    "link-plugin": "ln -sf $(pwd) $XDG_CONFIG_HOME/Insomnia/plugins/insomnia-plugin-request-signature"
+    "link-plugin": "ln -si $(pwd) $XDG_CONFIG_HOME/Insomnia/plugins/"
   },
   "dependencies": {
-    "jose": "^4.13.1"
   },
   "devDependencies": {
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",

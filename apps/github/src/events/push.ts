@@ -2,7 +2,7 @@ import Bluebird from 'bluebird';
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
 import { GitHubOperationsContext } from '../types';
-import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api.js';
+import { getSubscription, upsertDocument, SubscriptionSource, SubscriptionSourceEvent, EaveDocument } from '../lib/core-api.js';
 import openai, { OpenAIModel } from '../lib/openai.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
@@ -32,7 +32,8 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         id: eventId,
       };
 
-      const subscription = await coreApiClient.getSubscription(subscriptionSource);
+      // FIXME: Hardcoded team ID
+      const subscription = await getSubscription(subscriptionSource, '3345217c-fb27-4422-a3fc-c404b49aff8c');
       if (subscription === null) { return; }
       const query = await GraphQLUtil.loadQuery('getFileContents');
 
@@ -93,7 +94,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         content: openaiResponse,
       };
 
-      const upsertDocumentResponse = await coreApiClient.upsertDocument(document, subscriptionSource);
+      const upsertDocumentResponse = await upsertDocument(document, subscriptionSource, '3345217c-fb27-4422-a3fc-c404b49aff8c');
       console.log(upsertDocumentResponse);
     }));
   }));
