@@ -25,11 +25,9 @@ def parse_config(filepath: str) -> None:
     existing_values = dotenv.dotenv_values(dotenv_path)
 
     with open(dotenv_path, "a+") as f:
-        f.write("\n\n")
-
         for varname in varnames:
             if varname not in existing_values.keys():
-                f.write(f"{varname}\n")
+                f.write(f"\n{varname}")
                 print(f"Added {varname} to .env")
 
 def parse_python_config(filepath: str) -> list[str]:
@@ -81,7 +79,6 @@ if __name__ == "__main__":
                 os.environ["EAVE_HOME"], "libs", "javascript", "eave-stdlib-ts", "src", "config.ts"
             )
             configs.append(stdlib_config)
-            pass
         case _:
             pass
 
