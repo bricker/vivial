@@ -1,9 +1,11 @@
 import logging
 from typing import Optional
+
 import eave.stdlib.util as eave_util
 from slack_bolt.async_app import AsyncAck, AsyncApp
-from . import slack_models
-from . import brain
+
+from . import brain, slack_models
+
 
 async def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
@@ -12,6 +14,7 @@ async def register_event_handlers(app: AsyncApp) -> None:
     app.event("reaction_added")(noop_handler)
     app.event("file_deleted")(noop_handler)
     app.event("member_joined_channel")(noop_handler)
+
 
 async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave_util.JsonObject]) -> None:
     logging.info("WatchRequestEventHandler %s", shortcut)
@@ -27,6 +30,7 @@ async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[
     b = brain.Brain(message=message)
     eave_util.do_in_background(b.process_shortcut_event())
 
+
 async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
     logging.info("MessageEventHandler %s", event)
     assert event is not None
@@ -40,6 +44,7 @@ async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
 
     b = brain.Brain(message=message)
     eave_util.do_in_background(b.process_message())
+
 
 async def noop_handler() -> None:
     pass

@@ -2,9 +2,9 @@ import logging
 import sys
 from typing import Any
 
+import eave.stdlib.api_util as eave_api_util
 from fastapi import FastAPI, Request
 
-import eave.stdlib.api_util as eave_api_util
 from . import slack_app
 from .config import app_config
 
@@ -32,6 +32,7 @@ else:
 api = FastAPI()
 
 eave_api_util.add_standard_endpoints(app=api, path_prefix="/slack")
+
 
 @api.post("/slack/events")
 async def slack_event(req: Request) -> Any:

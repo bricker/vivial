@@ -1,9 +1,11 @@
 import base64
-from functools import cached_property
 import json
 import os
+from functools import cached_property
 from typing import Any, Mapping, Optional
+
 import eave.stdlib.config
+
 
 class AppConfig(eave.stdlib.config.EaveConfig):
     @property
@@ -56,5 +58,6 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         credentials = self.eave_google_oauth_client_credentials
         client_id: str = credentials["web"]["client_id"]
         return client_id
+
 
 app_config = AppConfig()

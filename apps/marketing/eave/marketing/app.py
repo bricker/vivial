@@ -4,22 +4,26 @@ from typing import Any
 import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.operations as eave_ops
-from .config import app_config
 from flask import Flask, redirect, render_template, request
 from werkzeug import Response
+
+from .config import app_config
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
 
 eave_api_util.add_standard_endpoints(app=app)
 
+
 @app.get("/")
 def spa_home() -> str:
     return _render_spa()
 
+
 @app.get("/early")
 def spa_early() -> str:
     return _render_spa()
+
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
@@ -34,6 +38,7 @@ async def api_access_request() -> str:
     )
 
     return "OK"
+
 
 @app.route("/<path:path>")
 def catch_all(**kwargs: Any) -> Response:

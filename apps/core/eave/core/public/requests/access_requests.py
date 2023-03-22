@@ -1,15 +1,21 @@
-from http import HTTPStatus
 import json
-import fastapi
+from http import HTTPStatus
+
 import eave.stdlib.core_api.operations as eave_ops
+import fastapi
 from eave.stdlib.slack import eave_slack_client
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
+
 from . import util as eave_request_util
 
-SIGNUPS_SLACK_CHANNEL_ID="C04HH2N08LD"
+SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
 
-async def create_access_request(input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response) -> fastapi.Response:
+
+async def create_access_request(
+    input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response
+) -> fastapi.Response:
     await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:
@@ -42,11 +48,7 @@ async def create_access_request(input: eave_ops.CreateAccessRequest.RequestBody,
     await eave_slack_client.chat_postMessage(
         channel=SIGNUPS_SLACK_CHANNEL_ID,
         ts=slack_response.get("ts"),
-        text=(
-            f"Email: `{input.email}`\n"
-            f"Visitor ID: `{input.visitor_id}`\n"
-            f"```{prettyjson}```"
-        ),
+        text=(f"Email: `{input.email}`\n" f"Visitor ID: `{input.visitor_id}`\n" f"```{prettyjson}```"),
     )
 
     return response

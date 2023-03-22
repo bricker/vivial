@@ -1,18 +1,21 @@
 from dataclasses import dataclass
 from typing import Optional, cast
-import fastapi
-import pydantic
-import google.oauth2.credentials
-import google.oauth2.id_token
-import google_auth_oauthlib.flow
-from google.auth.transport import requests
 
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
-import eave.core.internal.orm as eave_orm
+import fastapi
+import google.oauth2.credentials
+import google.oauth2.id_token
+import google_auth_oauthlib.flow
+import pydantic
+from google.auth.transport import requests
+
 import eave.core.internal.database as eave_db
+import eave.core.internal.orm as eave_orm
 from eave.core.internal.config import app_config
+
 from . import util
+
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = get_oauth_flow_info()
@@ -25,6 +28,7 @@ class RequestBody(pydantic.BaseModel):
     state: Optional[str]
     code: Optional[str]
     error: Optional[str]
+
 
 async def google_oauth_callback(input: RequestBody, request: fastapi.Request, response: fastapi.Response) -> None:
     state = _get_state_cookie(request=request)
@@ -79,19 +83,23 @@ _STATE_COOKIE_PARAMS = {
     "httponly": True,
 }
 
+
 def _save_state_cookie(response: fastapi.responses.Response, state: str) -> None:
     response.set_cookie(
         **_STATE_COOKIE_PARAMS,
         value=state,
     )
 
+
 def _get_state_cookie(request: fastapi.Request) -> str:
     state = request.cookies.get(_STATE_COOKIE_NAME)
     assert state is not None
     return state
 
+
 def _delete_state_cookie(response: fastapi.responses.Response) -> None:
     response.delete_cookie(**_STATE_COOKIE_PARAMS)
+
 
 @dataclass
 class GoogleOauthFlowInfo:

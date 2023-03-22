@@ -4,12 +4,14 @@ import logging
 import re
 from typing import Any, AsyncGenerator, Optional
 
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.util as eave_util
 from pydantic import BaseModel, HttpUrl
 from slack_sdk.errors import SlackApiError
-import eave.stdlib.util as eave_util
-import eave.stdlib.core_api.models as eave_models
-from .slack_app import client as slack_client
+
 from .config import app_config
+from .slack_app import client as slack_client
+
 
 class SlackProfile:
     title: str

@@ -1,9 +1,16 @@
 import sqlalchemy
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+
 from .config import app_config
 
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
+
 
 async def get_engine() -> AsyncEngine:
     global _engine
@@ -31,6 +38,7 @@ async def get_engine() -> AsyncEngine:
     _engine = create_async_engine(db_uri, echo=True)
     return _engine
 
+
 async def get_session_factory() -> async_sessionmaker[AsyncSession]:
     global _session_factory
 
@@ -40,6 +48,7 @@ async def get_session_factory() -> async_sessionmaker[AsyncSession]:
     engine = await get_engine()
     _session_factory = async_sessionmaker(engine, expire_on_commit=False)
     return _session_factory
+
 
 async def get_session() -> AsyncSession:
     factory = await get_session_factory()

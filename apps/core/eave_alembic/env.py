@@ -5,11 +5,11 @@ load_dotenv()
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import Connection
 
-import eave.core.internal.orm
-from alembic import context
 import eave.core.internal.database as eave_db
+import eave.core.internal.orm
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

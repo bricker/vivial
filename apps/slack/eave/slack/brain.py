@@ -8,21 +8,20 @@ from dataclasses import dataclass
 from typing import List, Optional
 from uuid import UUID
 
+import eave.stdlib.core_api.client as eave_core_api_client
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.openai as eave_openai
+import eave.stdlib.util as eave_util
 import slack_sdk.models.blocks
 import slack_sdk.models.blocks.basic_components
 import slack_sdk.models.blocks.block_elements
 import slack_sdk.web.async_client
-
 import tiktoken
 
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.core_api.client as eave_core_api_client
-import eave.stdlib.util as eave_util
-import eave.stdlib.openai as eave_openai
-from .slack_app import client as slack_client
 from . import slack_models
 from .config import app_config
+from .slack_app import client as slack_client
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
@@ -60,7 +59,7 @@ class Brain:
     def __init__(self, message: slack_models.SlackMessage) -> None:
         self.message = message
         # FIXME: Hardcoded ID
-        self.team_id = UUID('3345217c-fb27-4422-a3fc-c404b49aff8c')
+        self.team_id = UUID("3345217c-fb27-4422-a3fc-c404b49aff8c")
         # self.team = await eave_core_api_client.get_team(slack_org_id: xxx)
 
     async def process_message(self) -> None:
@@ -655,9 +654,7 @@ class Brain:
         )
         return subscription
 
-    async def notify_existing_subscription(
-        self, subscription: eave_ops.GetSubscription.ResponseBody
-    ) -> None:
+    async def notify_existing_subscription(self, subscription: eave_ops.GetSubscription.ResponseBody) -> None:
         if subscription.document_reference is not None:
             await self.respond_to_message(
                 text=(

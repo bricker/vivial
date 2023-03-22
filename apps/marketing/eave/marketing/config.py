@@ -26,4 +26,5 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         assert key is not None
         return key
 
+
 app_config = AppConfig()

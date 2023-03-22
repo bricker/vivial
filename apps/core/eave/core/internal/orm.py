@@ -5,6 +5,10 @@ from typing import Optional, ParamSpec, Self, Tuple, cast
 from uuid import UUID
 
 import atlassian
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.openai
+import eave.stdlib.util as eave_util
 from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
@@ -18,14 +22,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from . import confluence
-import eave.stdlib.openai
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.util as eave_util
-import eave.stdlib.core_api.operations as eave_ops
 
 UUID_DEFAULT_EXPR = text("gen_random_uuid()")
 
 P = ParamSpec("P")
+
 
 class Base(DeclarativeBase):
     pass
@@ -183,7 +184,6 @@ class SubscriptionOrm(Base):
         return lookup
 
 
-
 class ConfluenceDestinationOrm(Base):
     __tablename__ = "confluence_destinations"
     __table_args__ = (
@@ -301,7 +301,9 @@ class ConfluenceDestinationOrm(Base):
         page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
-    async def get_confluence_page_by_id(self, document_reference: DocumentReferenceOrm) -> confluence.ConfluencePage | None:
+    async def get_confluence_page_by_id(
+        self, document_reference: DocumentReferenceOrm
+    ) -> confluence.ConfluencePage | None:
         response = self.confluence_client().get_page_by_id(
             page_id=document_reference.document_id,
             expand=["history"],
@@ -394,8 +396,9 @@ class TeamOrm(Base):
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
         lookup = select(cls).where(cls.id == team_id).limit(1)
-        team = (await session.scalars(lookup)).one() # throws if not exists
+        team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
+
 
 class AuthProvider(enum.Enum):
     google = "google"
@@ -436,14 +439,8 @@ class AccountOrm(Base):
 
     @classmethod
     def _select_one(cls, auth_provider: AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
-        lookup = (
-            select(cls)
-            .where(cls.auth_provider == auth_provider)
-            .where(cls.auth_id == auth_id)
-            .limit(1)
-        )
+        lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
         return lookup
-
 
 
 # class EmbeddingsOrm(Base):

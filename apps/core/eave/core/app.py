@@ -1,16 +1,11 @@
 import logging
 
+import eave.stdlib.api_util
 from fastapi import FastAPI
 
-from .public.requests import (
-    access_requests,
-    documents,
-    google_oauth,
-    subscriptions,
-)
-from .public.requests import util as eave_request_util
 from .internal.config import app_config
-import eave.stdlib.api_util
+from .public.requests import access_requests, documents, google_oauth, subscriptions
+from .public.requests import util as eave_request_util
 
 if app_config.monitoring_enabled:
     import google.cloud.logging
