@@ -13,4 +13,4 @@ statusmsg -i "(lint) black..."
 python -m black --quiet --check .
 
 statusmsg -i  "(lint) mypy..."
-python -m mypy .
+python -m mypy --namespace-packages --explicit-package-bases .
