@@ -9,7 +9,7 @@ This is recommended for development. WARNING: I have not tested this flow, if th
 1. Install postgres for your operating system
 1. Create a database called `eave`
 1. Update your `.env` file to use your local PG credentials
-1. Run `python alembic/init_database.py`
+1. Run `PYTHONPATH=. python eave_alembic/init_database.py`
 
 ### Cloud SQL Proxy
 
@@ -20,4 +20,3 @@ Then run the proxy with a command like this:
 ```bash
 ./cloud_sql_proxy -instances=eave-production:us-central1:eave-pg-core=tcp:5431
 ```
-

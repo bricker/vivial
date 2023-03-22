@@ -1,14 +1,14 @@
 [tool.black]
-extend-exclude = "alembic/versions"
+extend-exclude = "eave_alembic/versions"
 line-length = 120
 
 [tool.isort]
 profile = "black"
 skip_gitignore = "true"
-extend_skip = ["alembic/versions"]
+extend_skip = ["eave_alembic/versions"]
 
 [tool.mypy]
-exclude = ["alembic/versions"]
+exclude = ["eave_alembic/versions"]
 warn_unused_ignores = true
 warn_redundant_casts = true
 warn_return_any = true

@@ -7,6 +7,6 @@ alembic.ini
 requirements-dev.txt
 requirements-vendor.txt
 pyproject.toml
-alembic
+eave_alembic
 bin
 tests

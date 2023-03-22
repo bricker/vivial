@@ -3,16 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.black]
-extend-exclude = "alembic/versions"
 line-length = 120
 
 [tool.isort]
 profile = "black"
 skip_gitignore = "true"
-extend_skip = ["alembic/versions"]
 
 [tool.mypy]
-exclude = ["alembic/versions"]
 warn_unused_ignores = true
 warn_redundant_casts = true
 warn_return_any = true
