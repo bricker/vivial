@@ -33,3 +33,5 @@ Now, you can develop using more meaningful URLs, that more closely match product
 - `http://www.eave.dev:8080`
 
 Note: Although the proxy is running and forwarding requests, you still need to run the apps (through the VSCode Launch configurations, for example) to be able to access them through the proxy.
+
+![image](https://user-images.githubusercontent.com/978899/226800490-6137c8c4-4a8c-4785-aec2-d333aa31d003.png)
