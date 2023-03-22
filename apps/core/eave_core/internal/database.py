@@ -16,8 +16,8 @@ async def get_engine() -> AsyncEngine:
     else:
         assert app_config.db_driver is not None
 
-        db_user = await app_config.db_user
-        db_pass = await app_config.db_pass
+        db_user = app_config.db_user
+        db_pass = app_config.db_pass
 
         db_uri = sqlalchemy.engine.url.URL.create(
             drivername=app_config.db_driver,

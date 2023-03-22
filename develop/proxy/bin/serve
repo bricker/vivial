@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-set -e
+set -eu
+
+source ${EAVE_HOME}/develop/shared/functions.bash
 
 install_tinyproxy() (
-    echo "Installing tinyproxy (this is a one-time setup)..."
+    statusmsg -i "Installing tinyproxy (this is a one-time setup)..."
 
     local VERSION="1.11.1"
     local workdir="/tmp/tinyproxy"
@@ -26,13 +28,13 @@ install_tinyproxy() (
 
     make
 
-    echo "root privileges are required to install tinyproxy into /usr/local/bin"
+    statusmsg -w "root privileges are required to install tinyproxy into /usr/local/bin"
     sudo make install
 
     rm -rf $workdir
 )
 
-if ! command -v tinyproxy > /dev/null || ! test -z "${FORCE_INSTALL_TINYPROXY}"
+if ! command -v tinyproxy > /dev/null || test -n "${FORCE_INSTALL_TINYPROXY:-}"
 then
     install_tinyproxy
 fi

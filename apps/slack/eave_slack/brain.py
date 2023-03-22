@@ -20,7 +20,7 @@ import eave_stdlib.core_api.operations as eave_ops
 import eave_stdlib.core_api.client as eave_core_api_client
 import eave_stdlib.util as eave_util
 import eave_stdlib.openai as eave_openai
-from .slack_app import get_slack_client
+from .slack_app import client as slack_client
 from . import slack_models
 from .config import app_config
 
@@ -586,7 +586,6 @@ class Brain:
         if text is not None:
             msg = f"<@{self.message.user}> {text}{debug_text}"
 
-            slack_client = await get_slack_client()
             await slack_client.chat_postMessage(
                 channel=self.message.channel,
                 text=msg,
@@ -616,7 +615,6 @@ class Brain:
     async def react_to_message(self, name: str) -> None:
         assert self.message.channel is not None
         assert self.message.ts is not None
-        slack_client = await get_slack_client()
         await slack_client.reactions_add(name=name, channel=self.message.channel, timestamp=self.message.ts)
 
     async def acknowledge_receipt(self) -> None:

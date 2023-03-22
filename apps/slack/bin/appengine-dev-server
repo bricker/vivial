@@ -5,6 +5,6 @@ echo "Additionally, a python2 program must be installed and in your PATH."
 echo "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"
 
 dev_appserver.py \
-    --host slack.eave.dev \
+    --host localhost \
     --port 5200 \
     app.yaml

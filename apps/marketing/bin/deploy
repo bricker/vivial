@@ -5,7 +5,7 @@ set -eu
 bin/lint
 bin/test
 
-rm -rf eave_static/dist
+rm -rf static/dist
 npx webpack --mode=production --no-devtool
 
 ${EAVE_HOME}/develop/python/bin/deploy-appengine

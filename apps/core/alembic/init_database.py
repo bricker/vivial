@@ -11,7 +11,7 @@ from alembic import command, context
 import eave_core.internal.database as eave_db
 
 # FIXME: A better way to do this.
-raise Exception("Do not run this against the production database.")
+raise Exception("Do not run this against the production database. You can remove this line for development.")
 
 
 async def init_database() -> None:

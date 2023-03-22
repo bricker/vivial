@@ -11,8 +11,8 @@ TEAM_ID_HEADER_NAME = "eave-team-id"
 class InvalidSignatureError(Exception):
     pass
 
-async def sign(payload: str, team_id: Optional[str] = None) -> str:
-    secret_key = await shared_config.eave_signing_secret
+def sign(payload: str, team_id: Optional[str] = None) -> str:
+    secret_key = shared_config.eave_signing_secret
 
     hm = hmac.new(key=secret_key.encode(), digestmod=ALGORITHM)
 

@@ -2,12 +2,12 @@ from typing import Any
 from .config import shared_config
 from .core_api.operations import Status
 
-def status_payload() -> Status.ResponseBody:
+def status_payload() -> str:
     return Status.ResponseBody(
         service=shared_config.app_service,
         version=shared_config.app_version,
         status="OK",
-    )
+    ).json()
 
 # This would be better than "Any" but I couldn't quite get it working.
 # The goal is to accept anything conforming to RouterInterface (eg FastAPI or Flask),

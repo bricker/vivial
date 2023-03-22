@@ -22,5 +22,5 @@ yarn-error.log*
 .venv
 .env
 __pycache__
-/eave_static/dist
+/static/dist
 .mypy_cache

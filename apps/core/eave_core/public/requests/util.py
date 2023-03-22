@@ -34,7 +34,7 @@ async def validate_signature_or_fail(request: fastapi.Request) -> None:
         # reject None or empty strings
         raise eave_signing.InvalidSignatureError()
 
-    expected_signature = await eave_signing.sign(payload=payload, team_id=team_id)
+    expected_signature = eave_signing.sign(payload=payload, team_id=team_id)
     if not eave_signing.compare_signatures(expected=expected_signature, actual=actual_signature):
         raise eave_signing.InvalidSignatureError()
 

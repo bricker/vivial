@@ -42,24 +42,24 @@ class EaveConfig:
         return os.getenv("GAE_VERSION", "unknown")
 
     @cached_property
-    async def eave_signing_secret(self) -> str:
-        value = await self.get_secret("EAVE_SIGNING_SECRET")
+    def eave_signing_secret(self) -> str:
+        value = self.get_secret("EAVE_SIGNING_SECRET")
         assert value is not None
         return value
 
     @cached_property
-    async def eave_openai_api_key(self) -> str:
-        value = await self.get_secret("OPENAI_API_KEY")
+    def eave_openai_api_key(self) -> str:
+        value = self.get_secret("OPENAI_API_KEY")
         assert value is not None
         return value
 
     @cached_property
-    async def eave_slack_system_bot_token(self) -> str:
-        value = await self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
+    def eave_slack_system_bot_token(self) -> str:
+        value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
         assert value is not None
         return value
 
-    async def get_secret(self, name: str) -> Optional[str]:
+    def get_secret(self, name: str) -> Optional[str]:
         env_value = os.getenv(name)
         if env_value is not None:
             return env_value

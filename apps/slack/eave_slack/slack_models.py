@@ -8,7 +8,7 @@ from pydantic import BaseModel, HttpUrl
 from slack_sdk.errors import SlackApiError
 import eave_stdlib.util as eave_util
 import eave_stdlib.core_api.models as eave_models
-from .slack_app import get_slack_client
+from .slack_app import client as slack_client
 from .config import app_config
 
 class SlackProfile:
@@ -74,7 +74,6 @@ class SlackProfile:
 
     @classmethod
     async def get(cls, user_id: str) -> Optional["SlackProfile"]:
-        slack_client = await get_slack_client()
         response = await slack_client.users_profile_get(user=user_id)
         json = response.get("profile")
         if json is None:
@@ -130,7 +129,6 @@ class SlackConversation:
 
     @classmethod
     async def get(cls, channel_id: str) -> Optional["SlackConversation"]:
-        slack_client = await get_slack_client()
         response = await slack_client.conversations_info(channel=channel_id)
         json = response.get("channel")
         if json is None:
@@ -366,7 +364,6 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        slack_client = await get_slack_client()
         response = await slack_client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.parent_ts,
@@ -385,7 +382,6 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        slack_client = await get_slack_client()
         response = await slack_client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.ts,
@@ -403,7 +399,6 @@ class SlackMessage:
     async def get_conversation_messages(self) -> list["SlackMessage"] | None:
         assert self.channel is not None
 
-        slack_client = await get_slack_client()
         response = await slack_client.conversations_replies(
             channel=self.channel,
             ts=self.parent_ts,

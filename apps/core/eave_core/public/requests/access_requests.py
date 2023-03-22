@@ -30,8 +30,7 @@ async def create_access_request(input: eave_ops.CreateAccessRequest.RequestBody,
     response.status_code = HTTPStatus.CREATED
 
     # Notify #sign-ups Slack channel.
-    slack_client = await eave_slack_client()
-    slack_response = await slack_client.chat_postMessage(
+    slack_response = await eave_slack_client.chat_postMessage(
         channel=SIGNUPS_SLACK_CHANNEL_ID,
         text="Someone signed up for early access!",
     )
@@ -40,7 +39,7 @@ async def create_access_request(input: eave_ops.CreateAccessRequest.RequestBody,
         input.opaque_input,
         indent=2,
     )
-    await slack_client.chat_postMessage(
+    await eave_slack_client.chat_postMessage(
         channel=SIGNUPS_SLACK_CHANNEL_ID,
         ts=slack_response.get("ts"),
         text=(

@@ -2,28 +2,6 @@
 
 [https://www.eave.fyi/](https://www.eave.fyi/)
 
-## Getting Started
-
-Local development on port 5000 (Flask)
-
-```
-npm run start
-```
-
-Formatting with Eslint
-
-```
-npm run format
-```
-
-## Deployment
-
-After setting up the `gcloud` cli, run the following command:
-
-```
-npm run deploy
-```
-
 ## Connecting to Prod Database
 
 Cloud SQL Proxy

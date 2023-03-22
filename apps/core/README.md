@@ -1,50 +1,23 @@
-## Install Requirements
+## Database
 
-SQL Proxy.
+You can either connect to Cloud SQL using Cloud SQL proxy, or run a Postgres server locally.
+
+### Local Postgres server
+
+This is recommended for development. WARNING: I have not tested this flow, if there are issues please fix them.
+
+1. Install postgres for your operating system
+1. Create a database called `eave`
+1. Update your `.env` file to use your local PG credentials
+1. Run `python alembic/init_database.py`
+
+### Cloud SQL Proxy
 
 https://cloud.google.com/sql/docs/postgres/sql-proxy#install
 
-```
-wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
-```
+Then run the proxy with a command like this:
 
-Switch to Python 3.10 (pyenv recommended).
-
-```
-pyenv shell 3.10
+```bash
+./cloud_sql_proxy -instances=eave-production:us-central1:eave-pg-core=tcp:5431
 ```
 
-Install Python requirements (in a vritual env if u wanna).
-
-```
-pip install -r requirements.txt
-```
-
-Aquire a `.env` file from someone on the team.
-
-
-## Local Development
-
-Start Uvicorn.
-
-```
-uvicorn main:app --reload
-```
-
-Run CloudSQL proxy.
-
-```
-./cloud_sql_proxy -dir /tmp/cloud_sql
-```
-
-Make requsts to the API (you can use curl or something like Postman).
-
-```
-curl -H "Content-Type:application/json" http://127.0.01:8000/access_request -d '{"email": "test"}'
-```
-
-## Deploying the App
-
-```
-gcloud app deploy
-```
