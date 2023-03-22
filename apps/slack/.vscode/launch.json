@@ -15,7 +15,7 @@
         "--port",
         "5200",
         "--reload",
-        "eave_slack.app:api"
+        "eave.slack.app:api"
       ],
       "justMyCode": false,
       "envFile": "${workspaceFolder}/.env"

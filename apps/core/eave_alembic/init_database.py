@@ -6,14 +6,11 @@ load_dotenv()
 
 import asyncio
 
-import eave_core.internal.orm
+import eave.core.internal.orm
 from alembic import command, context
-import eave_core.internal.database as eave_db
-import eave_core.internal.orm as eave_orm
-import eave_stdlib.core_api.models as eave_models
-import eave.stdlib.main
-
-eave.stdlib.main.test()
+import eave.core.internal.database as eave_db
+import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.models as eave_models
 
 # FIXME: A better way to do this.
 # raise Exception("Do not run this against the production database. You can remove this line for development.")
@@ -23,7 +20,7 @@ async def init_database() -> None:
     """
     https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
     """
-    metadata = eave_core.internal.orm.Base.metadata
+    metadata = eave.core.internal.orm.Base.metadata
     connectable = await eave_db.get_engine()
 
     async with connectable.connect() as connection:

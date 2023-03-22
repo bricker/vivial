@@ -5,10 +5,10 @@
 # import mockito.matchers
 # from atlassian import Confluence
 
-# import eave_core.internal.openai
-# import eave_core.internal.orm as orm
+# import eave.core.internal.openai
+# import eave.core.internal.orm as orm
 # import tests
-# from eave_core.public.shared import (
+# from eave.core.public.shared import (
 #     DocumentPlatform,
 #     SubscriptionSourceEvent,
 #     SubscriptionSourcePlatform,
@@ -208,7 +208,7 @@
 #             existing_page
 #         )
 #         mockito.when2(Confluence.update_page, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(existing_page)
-#         mockito.when2(eave_core.internal.openai.summarize, **mockito.KWARGS).thenReturn(
+#         mockito.when2(eave.core.internal.openai.summarize, **mockito.KWARGS).thenReturn(
 #             mock_coroutine(self.anystring("openairesponse"))
 #         )
 

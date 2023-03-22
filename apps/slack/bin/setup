@@ -3,6 +3,6 @@
 set -eu
 
 ${EAVE_HOME}/develop/python/bin/setup "$@"
-${EAVE_HOME}/develop/shared/bin/build-dotenv eave_slack/config.py
+${EAVE_HOME}/develop/shared/bin/build-dotenv eave/slack/config.py
 
 bin/lint

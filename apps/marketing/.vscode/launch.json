@@ -12,7 +12,7 @@
       "envFile": ".env",
       "args": [
         "--app",
-        "eave_marketing.app:app",
+        "eave.marketing.app:app",
         "run",
         "--no-debugger",
         "--host",

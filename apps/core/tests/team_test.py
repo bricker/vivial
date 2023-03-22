@@ -1,6 +1,6 @@
-# import eave_core.internal.orm as orm
+# import eave.core.internal.orm as orm
 # import tests
-# from eave_core.public.shared import DocumentPlatform
+# from eave.core.public.shared import DocumentPlatform
 # from tests.base import BaseTestCase
 
 

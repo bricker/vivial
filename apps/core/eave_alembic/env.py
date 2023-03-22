@@ -7,9 +7,9 @@ from logging.config import fileConfig
 
 from sqlalchemy import Connection
 
-import eave_core.internal.orm
+import eave.core.internal.orm
 from alembic import context
-import eave_core.internal.database as eave_db
+import eave.core.internal.database as eave_db
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,7 +23,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-target_metadata = eave_core.internal.orm.Base.metadata
+target_metadata = eave.core.internal.orm.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

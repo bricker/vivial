@@ -1,12 +1,12 @@
 #!include:.gitignore
-!/eave_marketing/static/dist
+!/eave/marketing/static/dist
 
 .*
 *.md
 webpack.config*
 bin
 tests
-eave_marketing/js
+eave/marketing/js
 requirements-dev.txt
 requirements-vendor.txt
 pyproject.toml

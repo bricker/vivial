@@ -2,6 +2,6 @@
 
 # load_dotenv(".env.test")
 
-# import eave_core.internal.config as _settings
+# import eave.core.internal.config as _settings
 
 # _settings.APP_SETTINGS = _settings.Settings()
