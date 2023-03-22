@@ -22,8 +22,7 @@ class AppConfig(eave.stdlib.config.EaveConfig):
 
     @cached_property
     def eave_web_session_encryption_key(self) -> str:
-        key = self.get_secret("EAVE_WEB_SESSION_ENCRYPTION_KEY")
-        assert key is not None
+        key: str = self.get_secret("EAVE_WEB_SESSION_ENCRYPTION_KEY")
         return key
 
 

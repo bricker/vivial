@@ -1,12 +1,11 @@
 import json
 from http import HTTPStatus
 
+import eave.core.internal.database as eave_db
+import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
 from eave.stdlib.slack import eave_slack_client
-
-import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
 
 from . import util as eave_request_util
 

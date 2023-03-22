@@ -481,7 +481,7 @@ class SlackMessage:
 
         expanded_text = self.text
 
-        def replace_user_mention(match: re.Match) -> str | Any:
+        def replace_user_mention(match: re.Match[str]) -> str:
             user_id = match.groups()[0]
             profile = self.user_mentions_dict.get(user_id)
 
@@ -492,7 +492,7 @@ class SlackMessage:
 
         expanded_text = re.sub("<@([UW]\\w+).*?>", replace_user_mention, expanded_text)
 
-        def replace_channel_mention(match: re.Match) -> str | Any:
+        def replace_channel_mention(match: re.Match[str]) -> str:
             groups = match.groups()
             channel_id = groups[0]
 
@@ -505,7 +505,7 @@ class SlackMessage:
 
         expanded_text = re.sub("<#(C\\w+).*?>", replace_channel_mention, expanded_text)
 
-        def replace_subteam_mention(match: re.Match) -> str | Any:
+        def replace_subteam_mention(match: re.Match[str]) -> str:
             id = match.groups()[0]
             obj = self.subteam_mentions_dict.get(id)
 
@@ -516,7 +516,7 @@ class SlackMessage:
 
         expanded_text = re.sub("<!subteam\\^(\\w+).*?>", replace_subteam_mention, expanded_text)
 
-        def replace_special_mention(match: re.Match) -> str | Any:
+        def replace_special_mention(match: re.Match[str]) -> str:
             id = match.groups()[0]
             obj = self.special_mentions_dict.get(id)
 
@@ -527,7 +527,7 @@ class SlackMessage:
 
         expanded_text = re.sub("<![(here)|(channel)|(everyone)]>", replace_special_mention, expanded_text)
 
-        def replace_url(match: re.Match) -> str | Any:
+        def replace_url(match: re.Match[str]) -> str:
             groups = match.groups()
             if len(groups) == 1:
                 url = groups[0]

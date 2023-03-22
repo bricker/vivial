@@ -1,6 +1,6 @@
 function statusmsg () {
 	local usage="
-		Usage: statusmsg [-diwesh] MESSAGE
+		Usage: statusmsg [-odiwesnh] MESSAGE
 		Options:
 			-o : [o]ff - No styling (pass-through to echo)
 		  -d : [d]ebug
@@ -104,11 +104,10 @@ function statusmsg () {
 		esac
 	fi
 
+	prefix=""
 	if test -z "$noprefix"
 	then
 		prefix="[$msgtype] "
-	else
-		prefix=""
 	fi
 
 	echo -e "$prefix$msg$_cc_reset"
@@ -142,4 +141,38 @@ function command_exists () {
 			return 0
 			;;
 	esac
+}
+
+function activate_venv () {
+	if test -f .venv/bin/activate
+	then
+		source .venv/bin/activate
+	fi
+}
+
+function run_in_all_projects () {
+	if test -z "$1"
+	then
+		statusmsg -e "Usage: run_in_all_projects bin/lint"
+		exit 1
+	fi
+
+	local cmd=$1
+
+	for dir in $(ls -d ./apps/*/ ./libs/*/)
+	do
+		statusmsg -i "$dir"
+
+		if test -x $dir$cmd
+		then
+			cd $dir
+			activate_venv
+			$cmd
+			cd - > /dev/null
+		else
+			statusmsg -w "No $cmd executable found in $dir"
+		fi
+
+		echo -e "\n"
+	done
 }

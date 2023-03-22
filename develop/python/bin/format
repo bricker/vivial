@@ -6,8 +6,12 @@ source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
 python-activate-venv
 
+configfile=${EAVE_HOME}/develop/python/pyproject.toml
+
 statusmsg -i "(format) isort..."
-python -m isort .
+python -m isort --settings-file=$configfile .
 
 statusmsg -i  "(format) black..."
-python -m black --quiet .
+python -m black --config=$configfile .
+
+statusmsg -s "Formatting completed ✔"

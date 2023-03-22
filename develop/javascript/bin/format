@@ -8,3 +8,5 @@ node-activate-venv
 
 statusmsg -i "(format) eslint..."
 npx eslint . --fix
+
+statusmsg -s "Formatting completed ✔"

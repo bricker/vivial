@@ -1,10 +1,10 @@
 import os
-from functools import cached_property
 import sys
-from typing import Optional
+from functools import cached_property
 
 import google_crc32c
 from google.cloud import secretmanager
+
 
 class EaveConfig:
     @property
@@ -44,22 +44,19 @@ class EaveConfig:
     @cached_property
     def eave_signing_secret(self) -> str:
         value = self.get_secret("EAVE_SIGNING_SECRET")
-        assert value is not None
         return value
 
     @cached_property
     def eave_openai_api_key(self) -> str:
         value = self.get_secret("OPENAI_API_KEY")
-        assert value is not None
         return value
 
     @cached_property
     def eave_slack_system_bot_token(self) -> str:
         value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
-        assert value is not None
         return value
 
-    def get_secret(self, name: str) -> Optional[str]:
+    def get_secret(self, name: str) -> str:
         env_value = os.getenv(name)
         if env_value is not None:
             return env_value
@@ -76,5 +73,6 @@ class EaveConfig:
             raise Exception("Data corruption detected.")
 
         return data.decode("UTF-8")
+
 
 shared_config = EaveConfig()

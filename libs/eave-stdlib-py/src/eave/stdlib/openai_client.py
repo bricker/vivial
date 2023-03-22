@@ -18,6 +18,7 @@ PROMPT_PREFIX = (
     "You are responsible for the quality and integrity of this organization's documentation."
 )
 
+
 class OpenAIModel(str, enum.Enum):
     ADA = "text-ada-001"
     ADA_EMBEDDING = "text-embedding-ada-002"
@@ -26,6 +27,7 @@ class OpenAIModel(str, enum.Enum):
     DAVINCI = "text-davinci-003"
     DAVINCI_CODE = "code-davinci-002"
     GPT_35_TURBO = "gpt-3.5-turbo"
+
 
 MAX_TOKENS = 4096  # 2048 if using older models
 
@@ -57,9 +59,11 @@ class CompletionParameters:
             params["temperature"] = self.temperature
         return params
 
-def ensure_api_key():
+
+def ensure_api_key() -> None:
     if openai_sdk.api_key is None:
         openai_sdk.api_key = shared_config.eave_openai_api_key
+
 
 async def completion(params: CompletionParameters) -> Optional[str]:
     """

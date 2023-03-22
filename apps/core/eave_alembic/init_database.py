@@ -7,12 +7,11 @@ load_dotenv()
 
 import asyncio
 
-import eave.stdlib.core_api.models as eave_models
-from alembic import command, context
-
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.models as eave_models
+from alembic import command, context
 
 # FIXME: A better way to do this.
 # raise Exception("Do not run this against the production database. You can remove this line for development.")

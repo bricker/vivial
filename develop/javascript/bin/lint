@@ -8,3 +8,5 @@ node-activate-venv
 
 statusmsg -i "(lint) eslint..."
 npx eslint .
+
+statusmsg -s "Linting passed ✔"

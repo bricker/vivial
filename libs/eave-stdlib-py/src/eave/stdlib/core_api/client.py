@@ -1,11 +1,13 @@
-from typing import Optional
 import urllib.parse
+from typing import Optional
 from uuid import UUID
+
 import aiohttp
 import pydantic
-from . import operations
-from . import signing
+
 from ..config import shared_config
+from . import operations, signing
+
 
 async def status() -> operations.Status.ResponseBody:
     async with aiohttp.ClientSession() as session:
@@ -16,6 +18,7 @@ async def status() -> operations.Status.ResponseBody:
 
     response_json = await response.json()
     return operations.Status.ResponseBody(**response_json)
+
 
 async def create_access_request(
     input: operations.CreateAccessRequest.RequestBody,
@@ -30,6 +33,7 @@ async def create_access_request(
     )
 
     return None
+
 
 async def upsert_document(
     team_id: UUID,
@@ -47,6 +51,7 @@ async def upsert_document(
     response_json = await response.json()
     return operations.UpsertDocument.ResponseBody(**response_json)
 
+
 async def create_subscription(
     team_id: UUID,
     input: operations.CreateSubscription.RequestBody,
@@ -63,9 +68,9 @@ async def create_subscription(
     response_json = await response.json()
     return operations.CreateSubscription.ResponseBody(**response_json)
 
+
 async def get_subscription(
-    team_id: UUID,
-    input: operations.GetSubscription.RequestBody
+    team_id: UUID, input: operations.GetSubscription.RequestBody
 ) -> Optional[operations.GetSubscription.ResponseBody]:
     """
     POST /subscriptions/query
@@ -82,14 +87,16 @@ async def get_subscription(
     response_json = await response.json()
     return operations.GetSubscription.ResponseBody(**response_json)
 
+
 def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)
+
 
 async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[UUID]) -> aiohttp.ClientResponse:
     payload = input.json()
     signature = signing.sign(payload=payload, team_id=str(team_id))
 
-    headers={
+    headers = {
         signing.SIGNATURE_HEADER_NAME: signature,
     }
 

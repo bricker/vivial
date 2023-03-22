@@ -7,7 +7,7 @@ from uuid import UUID
 import atlassian
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.openai
+import eave.stdlib.openai_client
 import eave.stdlib.util as eave_util
 from sqlalchemy import (
     ForeignKeyConstraint,
@@ -249,7 +249,7 @@ class ConfluenceDestinationOrm(Base):
         if existing_page.body is not None and existing_page.body.content is not None:
             # TODO: Token counting
             prompt = (
-                f"{eave.stdlib.openai.PROMPT_PREFIX}\n"
+                f"{eave.stdlib.openai_client.PROMPT_PREFIX}\n"
                 "Combine the following two documents together such that all important information is retained, "
                 "but duplicate, unnecessary, irrelevant, or outdated information is removed.\n\n"
                 "###\n\n"
@@ -260,11 +260,11 @@ class ConfluenceDestinationOrm(Base):
                 "###\n\n"
                 "=== Result: ===\n\n"
             )
-            openai_params = eave.stdlib.openai.CompletionParameters(
+            openai_params = eave.stdlib.openai_client.CompletionParameters(
                 temperature=0.2,
                 prompt=prompt,
             )
-            resolved_document_body = await eave.stdlib.openai.completion(params=openai_params)
+            resolved_document_body = await eave.stdlib.openai_client.completion(params=openai_params)
             assert resolved_document_body is not None
         else:
             resolved_document_body = document.content

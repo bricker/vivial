@@ -1,10 +1,9 @@
 import asyncio
 
-from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
-
 from eave.slack.config import app_config
 from eave.slack.event_handlers import register_event_handlers
 from eave.slack.slack_app import app as slack_app
+from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
 
 async def start_socket_mode() -> None:

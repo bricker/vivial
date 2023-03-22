@@ -1,13 +1,28 @@
 [tool.black]
+extend-exclude = '''
+(
+  eave_alembic/versions
+  | \\.venv
+  | node_modules
+)
+'''
 line-length = 120
 
 [tool.isort]
 profile = "black"
 skip_gitignore = true
-quiet = true
+extend_skip = [
+  "eave_alembic/versions",
+  "node_modules",
+  ".venv",
+]
 
 [tool.mypy]
-exclude = ["node_modules", ".venv"]
+exclude = [
+  "eave_alembic/versions",
+  "node_modules",
+  ".venv",
+]
 warn_unused_ignores = true
 warn_redundant_casts = true
 warn_return_any = true
@@ -18,3 +33,5 @@ disallow_any_explicit = false
 disallow_any_generics = true
 disallow_subclassing_any = false
 ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true

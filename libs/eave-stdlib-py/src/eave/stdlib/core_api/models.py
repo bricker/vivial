@@ -1,10 +1,11 @@
-from datetime import datetime
 import enum
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
 import pydantic
+
 
 class DocumentPlatform(str, enum.Enum):
     eave = "eave"
@@ -12,10 +13,12 @@ class DocumentPlatform(str, enum.Enum):
     google_drive = "google_drive"
     unspecified = "unspecified"
 
+
 class SubscriptionSourcePlatform(str, enum.Enum):
     slack = "slack"
     github = "github"
     jira = "jira"
+
 
 class SubscriptionSourceEvent(str, enum.Enum):
     slack_message = "slack_message"
@@ -29,10 +32,12 @@ class AccessRequest(pydantic.BaseModel):
     email: pydantic.EmailStr
     created: datetime
 
+
 class DocumentReference(pydantic.BaseModel):
     id: pydantic.UUID4
     document_id: str
     document_url: str
+
 
 class SubscriptionSource(pydantic.BaseModel):
     platform: SubscriptionSourcePlatform
@@ -50,10 +55,12 @@ class SubscriptionSource(pydantic.BaseModel):
         team, channel, ts = self.id.split("#")
         return SubscriptionSource.Details(team=team, channel=channel, ts=ts)
 
+
 class Subscription(pydantic.BaseModel):
     id: pydantic.UUID4
     document_reference_id: Optional[pydantic.UUID4]
     source: SubscriptionSource
+
 
 class Team(pydantic.BaseModel):
     id: pydantic.UUID4

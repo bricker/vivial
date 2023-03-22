@@ -46,3 +46,5 @@ case $usershell in
 		statusmsg -i "Run 'source .venv/bin/activate' to activate the virtual environment in your shell."
 		;;
 esac
+
+statusmsg -s "Setup completed ✔"

@@ -1,6 +1,5 @@
 import mockito
 import mockito.matchers
-
 import tests
 from tests.base import BaseTestCase
 

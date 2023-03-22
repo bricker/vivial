@@ -35,14 +35,12 @@ class AppConfig(eave.stdlib.config.EaveConfig):
 
     @cached_property
     def db_user(self) -> str:
-        value = self.get_secret("DB_USER")
-        assert value is not None
+        value: str = self.get_secret("DB_USER")
         return value
 
     @cached_property
     def db_pass(self) -> str:
-        value = self.get_secret("DB_PASS")
-        assert value is not None
+        value: str = self.get_secret("DB_PASS")
         return value
 
     @cached_property

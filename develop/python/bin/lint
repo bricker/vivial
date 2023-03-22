@@ -6,11 +6,15 @@ source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
 python-activate-venv
 
+configfile=${EAVE_HOME}/develop/python/pyproject.toml
+
 statusmsg -i "(lint) isort..."
-python -m isort --quiet --check .
+python -m isort --settings-file=$configfile --check .
 
 statusmsg -i "(lint) black..."
-python -m black --quiet --check .
+python -m black --config=$configfile --check .
 
 statusmsg -i  "(lint) mypy..."
-python -m mypy --namespace-packages --explicit-package-bases .
+python -m mypy --config-file=${EAVE_HOME}/develop/python/pyproject.toml .
+
+statusmsg -s "Linting passed ✔"

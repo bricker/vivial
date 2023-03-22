@@ -2,14 +2,13 @@ from http import HTTPStatus
 from http.client import HTTPException
 from uuid import UUID
 
+import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.signing as eave_signing
 import eave.stdlib.util as eave_util
 import fastapi
 import sqlalchemy.exc
-from sqlalchemy.ext.asyncio import AsyncSession
-
-import eave.core.internal.orm as eave_orm
 from eave.core.internal.config import app_config
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def get_team_or_fail(session: AsyncSession, request: fastapi.Request) -> eave_orm.TeamOrm:

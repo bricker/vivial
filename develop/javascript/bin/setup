@@ -19,3 +19,5 @@ case $usershell in
 		npm install --force
 		;;
 esac
+
+statusmsg -s "Setup completed ✔"

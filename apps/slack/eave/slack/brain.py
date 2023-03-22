@@ -11,7 +11,7 @@ from uuid import UUID
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.openai as eave_openai
+import eave.stdlib.openai_client as eave_openai
 import eave.stdlib.util as eave_util
 import slack_sdk.models.blocks
 import slack_sdk.models.blocks.basic_components
@@ -340,7 +340,7 @@ class Brain:
                 temperature=0.2,
             )
 
-            openai_response = await eave_openai.completion(openai_params)
+            openai_response: str | None = await eave_openai.completion(openai_params)
             assert openai_response is not None
             return openai_response
 
@@ -629,7 +629,7 @@ class Brain:
             temperature=temperature,
         )
 
-        openai_completion = await eave_openai.completion(params)
+        openai_completion: str | None = await eave_openai.completion(params)
         assert openai_completion is not None
         return openai_completion
 

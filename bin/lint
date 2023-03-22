@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source $EAVE_HOME/develop/shared/functions.bash
+
+run_in_all_projects bin/lint

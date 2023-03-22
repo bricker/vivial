@@ -19,10 +19,14 @@
 			"path": "../develop"
 		},
 		{
-			"path": "../libs/python/eave-stdlib-py"
+			"path": "../libs/eave-stdlib-py"
 		},
 		{
-			"path": "../libs/javascript/eave-stdlib-ts"
+			"path": "../libs/eave-stdlib-ts"
+		},
+		{
+			"path": "../bin",
+			"name": "monorepo-bin"
 		}
 	],
 	"settings": {
@@ -99,7 +103,8 @@
 			"--ignore-missing-imports",
 			"--show-column-numbers",
 			"--no-pretty",
-			"--follow-imports=silent"
+			"--follow-imports=silent",
+			"--config-file=${workspaceFolder:develop}/python/pyproject.toml"
 		],
 		"python.linting.mypyEnabled": true,
 		"python.linting.enabled": true,
@@ -122,6 +127,13 @@
 			"*_test.py"
 		],
 		"git.openRepositoryInParentFolders": "always",
+		"python.formatting.blackArgs": [
+			"--config=${workspaceFolder:develop}/python/pyproject.toml"
+		],
+		"isort.args": [
+			"--settings-file=${workspaceFolder:develop}/python"
+		],
+		"isort.check": true,
 	},
 	"extensions": {
 		"recommendations": [
