@@ -21,7 +21,7 @@ import tiktoken
 
 from . import slack_models
 from .config import app_config
-from .slack_app import client as slack_client
+import eave.slack.slack_app as slack_app
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
@@ -585,7 +585,7 @@ class Brain:
         if text is not None:
             msg = f"<@{self.message.user}> {text}{debug_text}"
 
-            await slack_client.chat_postMessage(
+            await slack_app.client.chat_postMessage(
                 channel=self.message.channel,
                 text=msg,
                 thread_ts=self.message.parent_ts,
@@ -614,7 +614,7 @@ class Brain:
     async def react_to_message(self, name: str) -> None:
         assert self.message.channel is not None
         assert self.message.ts is not None
-        await slack_client.reactions_add(name=name, channel=self.message.channel, timestamp=self.message.ts)
+        await slack_app.client.reactions_add(name=name, channel=self.message.channel, timestamp=self.message.ts)
 
     async def acknowledge_receipt(self) -> None:
         await self.react_to_message("eave")

@@ -1,5 +1,0 @@
-#!/usr/bin/env sh
-
-set -e
-
-curl https://apps.eave.fyi/slack/status

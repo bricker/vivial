@@ -7,10 +7,9 @@ from typing import Any, AsyncGenerator, Optional
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 from pydantic import BaseModel, HttpUrl
-from slack_sdk.errors import SlackApiError
 
 from .config import app_config
-from .slack_app import client as slack_client
+import eave.slack.slack_app as slack_app
 
 
 class SlackProfile:
@@ -76,7 +75,7 @@ class SlackProfile:
 
     @classmethod
     async def get(cls, user_id: str) -> Optional["SlackProfile"]:
-        response = await slack_client.users_profile_get(user=user_id)
+        response = await slack_app.client.users_profile_get(user=user_id)
         json = response.get("profile")
         if json is None:
             return None
@@ -131,7 +130,7 @@ class SlackConversation:
 
     @classmethod
     async def get(cls, channel_id: str) -> Optional["SlackConversation"]:
-        response = await slack_client.conversations_info(channel=channel_id)
+        response = await slack_app.client.conversations_info(channel=channel_id)
         json = response.get("channel")
         if json is None:
             return None
@@ -366,7 +365,7 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        response = await slack_client.chat_getPermalink(
+        response = await slack_app.client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.parent_ts,
         )
@@ -384,7 +383,7 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        response = await slack_client.chat_getPermalink(
+        response = await slack_app.client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.ts,
         )
@@ -401,7 +400,7 @@ class SlackMessage:
     async def get_conversation_messages(self) -> list["SlackMessage"] | None:
         assert self.channel is not None
 
-        response = await slack_client.conversations_replies(
+        response = await slack_app.client.conversations_replies(
             channel=self.channel,
             ts=self.parent_ts,
         )
