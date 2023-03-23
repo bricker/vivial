@@ -15,8 +15,6 @@
         "eave.marketing.app:app",
         "run",
         "--no-debugger",
-        "--host",
-        "localhost",
         "--port",
         "5000"
       ],

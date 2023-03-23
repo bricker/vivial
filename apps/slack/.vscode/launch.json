@@ -10,8 +10,6 @@
       "request": "launch",
       "module": "uvicorn",
       "args": [
-        "--host",
-        "localhost",
         "--port",
         "5200",
         "--reload",

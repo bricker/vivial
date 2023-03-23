@@ -4,12 +4,12 @@ from .config import shared_config
 from .core_api.operations import Status
 
 
-def status_payload() -> str:
+def status_payload() -> dict[str, str]:
     return Status.ResponseBody(
         service=shared_config.app_service,
         version=shared_config.app_version,
         status="OK",
-    ).json()
+    ).dict()
 
 
 # This would be better than "Any" but I couldn't quite get it working.

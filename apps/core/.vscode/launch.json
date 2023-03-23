@@ -10,14 +10,11 @@
       "request": "launch",
       "module": "uvicorn",
       "args": [
-        "--host",
-        "localhost",
         "--port",
         "5100",
         "--reload",
         "eave.core.app:app"
       ],
-      "jinja": true,
       "justMyCode": false,
       "envFile": "${workspaceFolder}/.env",
 

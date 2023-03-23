@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Any
 
 import eave.stdlib.util as eave_util
 from slack_bolt.async_app import AsyncAck, AsyncApp
@@ -11,10 +11,10 @@ import eave.slack.slack_models
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
-    # app.event("app_mention")(noop_handler)
-    # app.event("reaction_added")(noop_handler)
-    # app.event("file_deleted")(noop_handler)
-    # app.event("member_joined_channel")(noop_handler)
+    app.event("app_mention")(noop_handler)
+    app.event("reaction_added")(noop_handler)
+    app.event("file_deleted")(noop_handler)
+    app.event("member_joined_channel")(noop_handler)
 
 async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave_util.JsonObject]) -> None:
     logging.info("WatchRequestEventHandler %s", shortcut)
