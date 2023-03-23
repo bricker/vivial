@@ -33,19 +33,33 @@ exports.signatureTemplateTag = {
 };
 function signatureRequestHook(context) {
     const textBody = context.request.getBody().text;
-    if (textBody === undefined) {
-        throw new Error('Request body not present. Signature cannot be computed.');
+    console.log('[signatureRequestHook]', { textBody });
+    if (textBody === undefined || textBody === null) {
+        return;
     }
-    context.request.getHeaders().forEach((header) => {
-        if (header.value.indexOf(SIGNATURE_PLACEHOLDER) !== -1) {
-            const [_, key] = header.value.split(':');
-            if (key === undefined) {
-                throw new Error('Key was not specified. The hmac template requires the key as an argument.');
-            }
-            const signature = computeSignature(textBody, key);
-            header.value = signature;
-        }
+    const teamIdHeader = context.request.getHeaders().find((header) => {
+        return header.name.toLowerCase() === 'eave-team-id';
     });
+    const signatureHeader = context.request.getHeaders().find((header) => {
+        return header.name.toLowerCase() === 'eave-signature';
+    });
+    if (signatureHeader === undefined) {
+        console.log('[signatureRequestHook]', 'no eave-signature header');
+        return;
+    }
+    const [_, key] = signatureHeader.value.split(':');
+    if (key === undefined) {
+        throw new Error('Key was not specified. The hmac template requires the key as an argument.');
+    }
+    const parts = [];
+    if (teamIdHeader !== undefined) {
+        console.log('[signatureRequestHook]', { teamIdHeader });
+        parts.push(teamIdHeader.value);
+    }
+    parts.push(textBody);
+    const signature = computeSignature(parts.join(''), key);
+    console.log('[signatureRequestHook]', { signature });
+    context.request.setHeader(signatureHeader.name, signature);
 }
 exports.signatureRequestHook = signatureRequestHook;
 //# sourceMappingURL=main.js.map

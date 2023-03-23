@@ -45,7 +45,7 @@ async def upsert_document(
     response = await _make_request(
         path="/documents/upsert",
         input=input,
-        team_id=team_id,
+        team_id=str(team_id),
     )
 
     response_json = await response.json()
@@ -62,7 +62,7 @@ async def create_subscription(
     response = await _make_request(
         path="/subscriptions/create",
         input=input,
-        team_id=team_id,
+        team_id=str(team_id),
     )
 
     response_json = await response.json()
@@ -78,7 +78,7 @@ async def get_subscription(
     response = await _make_request(
         path="/subscriptions/query",
         input=input,
-        team_id=team_id,
+        team_id=str(team_id),
     )
 
     if response.status >= 300:
@@ -92,23 +92,26 @@ def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)
 
 
-async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[UUID]) -> aiohttp.ClientResponse:
+async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[str]) -> aiohttp.ClientResponse:
     payload = input.json()
-    signature = signing.sign(payload=payload, team_id=str(team_id))
+    signature = signing.sign(
+        payload=payload,
+        team_id=team_id,
+    )
 
     headers = {
         signing.SIGNATURE_HEADER_NAME: signature,
     }
 
     if team_id is not None:
-        headers[signing.TEAM_ID_HEADER_NAME] = str(team_id)
+        headers[signing.TEAM_ID_HEADER_NAME] = team_id
 
     async with aiohttp.ClientSession() as session:
         response = await session.request(
             "POST",
             _makeurl(path),
             headers=headers,
-            json=input.json(),
+            data=payload,
         )
 
     return response

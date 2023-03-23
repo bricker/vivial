@@ -26,7 +26,7 @@ async def create_access_request(
         access_request = eave_orm.AccessRequestOrm(
             visitor_id=input.visitor_id,
             email=input.email,
-            opaque_input=json.dumps(input.opaque_input),
+            opaque_input=input.opaque_input,
         )
 
         session.add(access_request)
@@ -40,14 +40,16 @@ async def create_access_request(
         text="Someone signed up for early access!",
     )
 
-    prettyjson = json.dumps(
-        input.opaque_input,
-        indent=2,
-    )
+    # because we're passing this through json.loads(), quick prevention of DOS
+    if len(input.opaque_input) < 1000:
+        jsonoutput = json.dumps(json.loads(input.opaque_input), indent=2)
+    else:
+        jsonoutput = input.opaque_input
+
     await eave_slack_client.chat_postMessage(
         channel=SIGNUPS_SLACK_CHANNEL_ID,
-        ts=slack_response.get("ts"),
-        text=(f"Email: `{input.email}`\n" f"Visitor ID: `{input.visitor_id}`\n" f"```{prettyjson}```"),
+        thread_ts=slack_response.get("ts"),
+        text=(f"Email: `{input.email}`\n" f"Visitor ID: `{input.visitor_id}`\n" f"```{jsonoutput}```"),
     )
 
     return response

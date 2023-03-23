@@ -75,7 +75,6 @@ async def run_migrations_online() -> None:
 
     await connectable.dispose()
 
-
 if context.is_offline_mode():
     asyncio.run(run_migrations_offline())
 else:

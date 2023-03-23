@@ -36,7 +36,7 @@ class CreateAccessRequest:
     class RequestBody(pydantic.BaseModel):
         visitor_id: Optional[pydantic.UUID4]
         email: pydantic.EmailStr
-        opaque_input: Optional[util.JsonObject] = None
+        opaque_input: str
 
 
 class GetSubscription:

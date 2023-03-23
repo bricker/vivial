@@ -29,7 +29,8 @@ async def get_team_or_fail(session: AsyncSession, request: fastapi.Request) -> e
 
 
 async def validate_signature_or_fail(request: fastapi.Request) -> None:
-    payload = await request.json()
+    body = await request.body()
+    payload = body.decode()
     actual_signature = request.headers.get(eave_signing.SIGNATURE_HEADER_NAME)
     team_id = request.headers.get(eave_signing.TEAM_ID_HEADER_NAME)
 
@@ -42,15 +43,15 @@ async def validate_signature_or_fail(request: fastapi.Request) -> None:
         raise eave_signing.InvalidSignatureError()
 
 
-def not_found() -> fastapi.Response:
+def not_found(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     return fastapi.responses.Response(status_code=HTTPStatus.NOT_FOUND)
 
 
-def internal_server_error() -> fastapi.Response:
+def internal_server_error(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     return fastapi.responses.Response(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-def bad_request() -> fastapi.Response:
+def bad_request(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     return fastapi.responses.Response(status_code=HTTPStatus.BAD_REQUEST)
 
 
