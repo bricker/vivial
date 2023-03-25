@@ -4,5 +4,9 @@
   "engines": {
     "node": "18",
     "npm": "9"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^5.56.0",
+    "eslint-config-airbnb-base": "^15.0.0"
   }
 }

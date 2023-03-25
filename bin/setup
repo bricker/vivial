@@ -59,6 +59,12 @@ statusmsg -ni "Next, I'm going to visit each of the app and lib directories and 
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"
 then
+  # install airbnb-base dep for shared eslint config
+  statusmsg -ni "Setting up shared eslint config"
+  cd ${EAVE_HOME}/develop/javascript/eslint/
+  bin/setup
+  cd - > /dev/null
+
 	run_in_all_projects bin/setup
 fi
 
