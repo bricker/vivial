@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source ./develop/shared/functions.bash
+source ./develop/python/functions.bash
 
 statusmsg -ns "Hi! Welcome to Eave. I will help you setup this repository."
 
@@ -60,10 +60,14 @@ read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"
 then
   # install airbnb-base dep for shared eslint config
-  statusmsg -ni "Setting up shared eslint config"
+  statusmsg -ni "Setting up shared dev dependencies"
   cd ${EAVE_HOME}/develop/javascript/eslint/
   bin/setup
   cd - > /dev/null
+
+  # setup python dev dep
+	python-activate-venv
+	python -m pip install python-dotenv
 
 	run_in_all_projects bin/setup
 fi
