@@ -3,47 +3,54 @@
 source ./develop/shared/functions.bash
 
 statusmsg -ns "Hi! Welcome to Eave. I will help you setup this repository."
-statusmsg -i "Before getting started, it is recommended to install the "nvm" and "pyenv" version management tools into your environment."
 
 echo ""
 
 usershell=$(shellname)
 
-case $usershell in
-	"bash" | "zsh")
-		case $usershell in
-			"bash") loginfile="~/.bashrc";;
-			"zsh") loginfile="~/.zshrc";;
-		esac
-		varcmd="export EAVE_HOME=\"$(pwd)\""
-		statusmsg -ni "First, I'll add the following line to $loginfile:"
-		echo ""
-		statusmsg -o "\t$varcmd"
-		echo ""
-
-		read -p "Should I proceed? [y/n] " proceed
-		if test "$proceed" = "y"
-		then
-			echo -e "\n$varcmd" >> $loginfile
-		fi
-		;;
-	"fish")
-		varcmd="set -Ux EAVE_HOME $(pwd)"
-		statusmsg -ni "First, I'll add a Universal variable to your Fish environment with the following command:"
-		echo ""
-		echo -e "\t$varcmd"
-		echo ""
-
-		read -p "Should I proceed? [y/n] " proceed
-		if test "$proceed" = "y"
-		then
-			fish -c "$varcmd"
-		fi
-		;;
-	*)
-		statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
-		;;
-esac
+if [[ -z "$EAVE_HOME" ]]
+then
+  case $usershell in
+  	"bash" | "zsh")
+  		case $usershell in
+  			"bash") loginfile=~/.bashrc ;;
+  			"zsh") loginfile=~/.zshrc ;;
+  		esac
+  		varcmd="export EAVE_HOME=\"$(pwd)\""
+  		statusmsg -ni "First, I'll add the following line to $loginfile:"
+  		echo ""
+  		statusmsg -o "\t$varcmd"
+  		echo ""
+  
+  		read -p "Should I proceed? [y/n] " proceed
+  		if test "$proceed" = "y"
+  		then
+  			echo -e "\n$varcmd" >> "$loginfile"
+  		fi
+  
+      statusmsg "Updating current shell to set EAVE_HOME"
+      source "$loginfile"
+  		;;
+  	"fish")
+  		varcmd="set -Ux EAVE_HOME $(pwd)"
+  		statusmsg -ni "First, I'll add a Universal variable to your Fish environment with the following command:"
+  		echo ""
+  		echo -e "\t$varcmd"
+  		echo ""
+  
+  		read -p "Should I proceed? [y/n] " proceed
+  		if test "$proceed" = "y"
+  		then
+  			fish -c "$varcmd"
+  		fi
+  		;;
+  	*)
+  		statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
+  		;;
+  esac
+else
+  statusmsg -ni "EAVE_HOME already set. Continuing..."
+fi
 
 echo ""
 

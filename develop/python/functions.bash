@@ -1,4 +1,4 @@
-EAVE_PYTHON_VERSION=3.11
+EAVE_PYTHON_VERSION=$(cat "${EAVE_HOME}/.python-version")
 
 source ${EAVE_HOME}/develop/shared/functions.bash
 

@@ -1,4 +1,4 @@
-EAVE_NODE_VERSION=18
+EAVE_NODE_VERSION=$(cat "${EAVE_HOME}/.node-version")
 
 source ${EAVE_HOME}/develop/shared/functions.bash
 
@@ -12,6 +12,9 @@ function node-validate-version () {
 }
 
 function node-activate-venv () {
+  # nvm might need some help to be available in scripts
+  source "$NVM_DIR/nvm.sh" 2> /dev/null
+
 	if ! command_exists "nvm"
 	then
 		statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
@@ -22,10 +25,10 @@ function node-activate-venv () {
 	case $usershell in
 		"fish")
 			# This is necessary because `nvm` in Fish might be a function, which can't be used from Bash.
-			fish -c "nvm install $EAVE_NODE_VERSION"
+			fish -c "nvm use $EAVE_NODE_VERSION"
 			;;
 		*)
-			nvm install $EAVE_NODE_VERSION
+			nvm use $EAVE_NODE_VERSION
 			;;
 	esac
 }
