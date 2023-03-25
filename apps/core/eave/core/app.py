@@ -23,7 +23,7 @@ eave_request_util.add_standard_exception_handlers(app=app)
 
 # @app.middleware("http")
 # async def log_body(request: Request, call_next: Any):
-#     body = await request.json()
+#     body = await request.body()
 #     print(body)
 #     response = await call_next(request)
 #     return response
