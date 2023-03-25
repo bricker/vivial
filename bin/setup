@@ -29,8 +29,8 @@ then
   			echo -e "\n$varcmd" >> "$loginfile"
   		fi
   
-      statusmsg "Updating current shell to set EAVE_HOME"
-      source "$loginfile"
+			statusmsg "Updating current shell to set EAVE_HOME"
+			source "$loginfile"
   		;;
   	"fish")
   		varcmd="set -Ux EAVE_HOME $(pwd)"
@@ -60,13 +60,13 @@ statusmsg -ni "Next, I'm going to visit each of the app and lib directories and 
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"
 then
-  # install airbnb-base dep for shared eslint config
-  statusmsg -ni "Setting up shared dev dependencies"
-  cd ${EAVE_HOME}/develop/javascript/eslint/
-  bin/setup
-  cd - > /dev/null
+	# install airbnb-base dep for shared eslint config
+	statusmsg -ni "Setting up shared dev dependencies"
+	cd ${EAVE_HOME}/develop/javascript/eslint/
+	bin/setup
+	cd - > /dev/null
 
-  # setup python dev dep
+	# setup python dev dep
 	python-activate-venv
 	python -m pip install python-dotenv
 
