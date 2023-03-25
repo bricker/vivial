@@ -93,14 +93,14 @@ def _makeurl(path: str) -> str:
 
 
 async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[str]) -> aiohttp.ClientResponse:
-    payload = input.json()
     signature = signing.sign(
-        payload=payload,
+        payload=input.json(),
         team_id=team_id,
     )
 
     headers = {
         signing.SIGNATURE_HEADER_NAME: signature,
+        "Content-Type": "application/json",
     }
 
     if team_id is not None:
@@ -111,7 +111,7 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
             "POST",
             _makeurl(path),
             headers=headers,
-            data=payload,
+            data=input.json(),
         )
 
     return response
