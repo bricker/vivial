@@ -3,6 +3,7 @@
 source ./develop/python/functions.bash
 
 statusmsg -ns "Hi! Welcome to Eave. I will help you setup this repository."
+statusmsg -i "Before getting started, it is recommended to install the "nvm" and "pyenv" version management tools into your environment."
 
 echo ""
 
