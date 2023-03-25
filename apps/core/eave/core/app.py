@@ -21,12 +21,12 @@ app = FastAPI()
 eave.stdlib.api_util.add_standard_endpoints(app=app)
 eave_request_util.add_standard_exception_handlers(app=app)
 
-@app.middleware("http")
-async def log_body(request: Request, call_next: Any):
-    body = await request.json()
-    print(body)
-    response = await call_next(request)
-    return response
+# @app.middleware("http")
+# async def log_body(request: Request, call_next: Any):
+#     body = await request.json()
+#     print(body)
+#     response = await call_next(request)
+#     return response
 
 app.post("/access_request")(access_requests.create_access_request)
 app.post("/documents/upsert")(documents.upsert_document)

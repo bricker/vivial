@@ -28,17 +28,17 @@ async def init_database() -> None:
     async with asyncengine.begin() as connection:
         await connection.run_sync(metadata.create_all)
 
-    # async with await eave_db.get_session() as session:
-    #     team = eave_orm.TeamOrm(
-    #         name=f"{socket.gethostname()}", document_platform=eave_models.DocumentPlatform.confluence
-    #     )
+    async with await eave_db.get_session() as session:
+        team = eave_orm.TeamOrm(
+            name=f"{socket.gethostname()}", document_platform=eave_models.DocumentPlatform.confluence
+        )
 
-    #     session.add(team)
-    #     await session.commit()
+        session.add(team)
+        await session.commit()
 
-    # print(
-    #     f"Team created ({team.id}). You'll want to create a ConfluenceDestination for the team. You can do it from a python REPL"
-    # )
+    print(
+        f"Team created ({team.id}). You'll want to create a ConfluenceDestination for the team. You can do it from a python REPL"
+    )
 
 
 if __name__ == "__main__":
