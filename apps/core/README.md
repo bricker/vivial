@@ -28,7 +28,7 @@ EAVE_DB_CONNECTION_STRING=postgresql+asyncpg://your user:your password@localhost
 
 ### Cloud SQL Proxy
 
-<https://cloud.google.com/sql/docs/postgres/sql-proxy#install>
+https://cloud.google.com/sql/docs/postgres/sql-proxy#install
 
 Then run the proxy with a command like this:
 
