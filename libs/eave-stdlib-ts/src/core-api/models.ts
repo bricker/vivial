@@ -2,7 +2,6 @@ export enum DocumentPlatform {
   eave = 'eave',
   confluence = 'confluence',
   google_drive = 'google_drive',
-  unspecified = 'unspecified',
 }
 
 export enum SubscriptionSourcePlatform {

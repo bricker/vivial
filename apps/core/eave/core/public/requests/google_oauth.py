@@ -52,7 +52,7 @@ async def google_oauth_callback(input: RequestBody, request: fastapi.Request, re
             # The Team is what is used for integrations, not an individual account.
             team = eave_orm.TeamOrm(
                 name=f"{given_name}'s Team" if given_name is not None else "Your Team",
-                document_platform=eave_models.DocumentPlatform.unspecified,
+                document_platform=None,
             )
 
             session.add(team)
