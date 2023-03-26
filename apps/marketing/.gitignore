@@ -22,5 +22,7 @@ yarn-error.log*
 .venv
 .env
 __pycache__
-/eave/marketing/static/dist
 .mypy_cache
+
+/eave/marketing/static/dist
+/vendor
