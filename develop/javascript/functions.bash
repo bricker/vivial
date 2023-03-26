@@ -24,10 +24,10 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		case $usershell in
 		"fish")
 			# This is necessary because `nvm` in Fish might be a function, which can't be used from Bash.
-			fish -c "nvm use $EAVE_NODE_VERSION"
+			fish -c "nvm install $EAVE_NODE_VERSION"
 			;;
 		*)
-			nvm use $EAVE_NODE_VERSION
+			nvm install $EAVE_NODE_VERSION
 			;;
 		esac
 	}
