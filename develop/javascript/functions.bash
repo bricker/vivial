@@ -12,9 +12,6 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function node-activate-venv() {
-		# nvm might need some help to be available in scripts
-		source "$NVM_DIR/nvm.sh" 2>/dev/null
-
 		if ! command_exists "nvm"; then
 			statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
 			return 0
