@@ -19,16 +19,16 @@ EAVE_DB_HOST=localhost
 EAVE_DB_NAME=eave
 EAVE_DB_DRIVER=postgresql+asyncpg
 EAVE_DB_PORT=5432
-DB_USER=your user
-DB_PASS=your password
-EAVE_DB_CONNECTION_STRING=postgresql+asyncpg://your user:your password@localhost:5432/eave
+DB_USER=your_user
+DB_PASS=your_password
+EAVE_DB_CONNECTION_STRING=postgresql+asyncpg://your_user:your_password@localhost:5432/eave
 ```
 
-1. Run `PYTHONPATH=. python eave_alembic/init_database.py`
+7. From the `apps/core/` directory (with venv active) run `PYTHONPATH=. python eave_alembic/init_database.py`
 
 ### Cloud SQL Proxy
 
-https://cloud.google.com/sql/docs/postgres/sql-proxy#install
+Download the cloud sql proxy [from Google Cloud](https://cloud.google.com/sql/docs/postgres/sql-proxy#install).
 
 Then run the proxy with a command like this:
 
