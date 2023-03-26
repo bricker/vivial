@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 from uuid import UUID
 
+import eave.slack.slack_app as slack_app
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
@@ -21,7 +22,6 @@ import tiktoken
 
 from . import slack_models
 from .config import app_config
-import eave.slack.slack_app as slack_app
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
