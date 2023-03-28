@@ -56,6 +56,16 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         credentials = self.eave_google_oauth_client_credentials
         client_id: str = credentials["web"]["client_id"]
         return client_id
+    
+    @cached_property
+    def eave_slack_client_id(self) -> str:
+        value: str = self.get_secret("EAVE_SLACK_APP_CLIENT_ID")
+        return value
+    
+    @cached_property
+    def eave_slack_client_secret(self) -> str:
+        value: str = self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
+        return value
 
 
 app_config = AppConfig()
