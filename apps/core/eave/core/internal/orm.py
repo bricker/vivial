@@ -327,7 +327,7 @@ class ConfluenceDestinationOrm(Base):
         page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
-
+# TODO: use?
 # class SlackSource(Base):
 #     __tablename__ = "slack_sources"
 #     __table_args__ = (
@@ -402,6 +402,7 @@ class TeamOrm(Base):
 
 class AuthProvider(enum.Enum):
     google = "google"
+    slack = "slack"
 
 
 class AccountOrm(Base):
