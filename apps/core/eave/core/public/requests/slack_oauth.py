@@ -16,6 +16,7 @@ from . import oauth_cookies as oauth
 
 # factory for for tamper-detection code (convert to generator function?)
 # TODO: where are the docs for this stupid thing??
+# probs shouldnt write to random ./data dir
 state_store = FileOAuthStateStore(expiration_seconds=300, base_dir="./data")
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
@@ -50,6 +51,7 @@ authorize_url_generator = AuthorizeUrlGenerator(
         "users:read.email",
     ],
     user_scopes=[],
+    redirect_uri=f"{app_config.eave_api_base}/oauth/slack/callback",
 )
 
 
@@ -68,11 +70,12 @@ async def slack_oauth_authorize() -> fastapi.responses.RedirectResponse:
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
     oauth.save_state_cookie(response=response, state=state)
-    return response # TODO: is this supposed to render the "add to slack" button html????
+    return response
 
 
 # GET TODO: does slack expect a response from this? docs send back some generic string
 async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, response: fastapi.Response) -> None:
+    # TODO: check input for error?
     state = oauth.get_state_cookie(request=request)
     assert state_store.consume(
         state=state
@@ -86,11 +89,9 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
         code=input.code,
     )
 
-    installed_enterprise: dict[str, str] = oauth_response.get("enterprise", {})
     is_enterprise_install: bool = oauth_response.get("is_enterprise_install", False)
     installed_team: dict[str, str] = oauth_response.get("team", {})
     installer: dict[str, str] = oauth_response.get("authed_user", {})
-    incoming_webhook: dict[str, str] = oauth_response.get("incoming_webhook", {})
     user_id: Optional[str] = installer.get("id")
     assert user_id is not None
 
@@ -99,6 +100,7 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
     assert bot_token is not None
 
     # oauth.v2.access doesn't include bot_id in response
+    # TODO: what is bot_id?
     bot_id = None
     enterprise_url = None
     auth_test = client.auth_test(token=bot_token)
@@ -107,7 +109,7 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
     if is_enterprise_install:
         enterprise_url = auth_test.get("url")
 
-    # TODO: save our shiny new oauth token in db
+    # save our shiny new oauth token in db
     async with await eave_db.get_session() as session:
         # try fetch existing team account from db
         account_orm = await eave_orm.AccountOrm.one_or_none(
