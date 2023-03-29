@@ -18,9 +18,6 @@ from . import oauth_cookies as oauth
 # TODO: where are the docs for this stupid thing??
 state_store = FileOAuthStateStore(expiration_seconds=300, base_dir="./data")
 
-# TODO not prod ready, dont use
-installation_store = FileInstallationStore(base_dir="./data")
-
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 authorize_url_generator = AuthorizeUrlGenerator(
     client_id=app_config.eave_slack_client_id,
@@ -71,7 +68,7 @@ async def slack_oauth_authorize() -> fastapi.responses.RedirectResponse:
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
     oauth.save_state_cookie(response=response, state=state)
-    return response
+    return response # TODO: is this supposed to render the "add to slack" button html????
 
 
 # GET TODO: does slack expect a response from this? docs send back some generic string
@@ -79,17 +76,13 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
     state = oauth.get_state_cookie(request=request)
     assert state_store.consume(
         state=state
-    )  # TODO: more graceful handling? "Try the installation again (the state value is already expired)""
-
-    redirect_uri = ""
-    # TODO: must match the redirect uri passed to oauth/authorization
+    )  # TODO: more graceful err handling? "Try the installation again (the state value is already expired)""
 
     client = WebClient()
     # Complete the installation by calling oauth.v2.access API method
     oauth_response: SlackResponse = client.oauth_v2_access(
         client_id=app_config.eave_slack_client_id,
         client_secret=app_config.eave_slack_client_secret,
-        redirect_uri=redirect_uri,
         code=input.code,
     )
 
@@ -113,31 +106,6 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
     # TODO: do we need this?
     if is_enterprise_install:
         enterprise_url = auth_test.get("url")
-
-    # TODO: wtf is this. do we need?
-    installation = Installation(
-        app_id=oauth_response.get("app_id"),
-        enterprise_id=installed_enterprise.get("id"),
-        enterprise_name=installed_enterprise.get("name"),
-        enterprise_url=enterprise_url,
-        team_id=installed_team.get("id"),
-        team_name=installed_team.get("name"),
-        bot_token=bot_token,
-        bot_id=bot_id,
-        bot_user_id=oauth_response.get("bot_user_id"),
-        bot_scopes=oauth_response.get("scope", ""),  # comma-separated string
-        user_id=user_id,
-        user_token=installer.get("access_token"),
-        user_scopes=installer.get("scope", ""),  # comma-separated string
-        incoming_webhook_url=incoming_webhook.get("url"),
-        incoming_webhook_channel=incoming_webhook.get("channel"),
-        incoming_webhook_channel_id=incoming_webhook.get("channel_id"),
-        incoming_webhook_configuration_url=incoming_webhook.get("configuration_url"),
-        is_enterprise_install=is_enterprise_install,
-        token_type=oauth_response.get("token_type"),
-    )
-    # Store the installation
-    installation_store.save(installation)
 
     # TODO: save our shiny new oauth token in db
     async with await eave_db.get_session() as session:
