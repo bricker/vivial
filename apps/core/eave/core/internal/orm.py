@@ -327,26 +327,33 @@ class ConfluenceDestinationOrm(Base):
         page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
-# TODO: use?
-# class SlackSource(Base):
-#     __tablename__ = "slack_sources"
-#     __table_args__ = (
-#         make_team_composite_pk(),
-#         make_team_fk(),
-#         Index(
-#             "slack_install_id",
-#             "team_id",
-#             "source_event",
-#             "source_id",
-#             unique=True,
-#         ),
-#     )
+class SlackSource(Base):
+    __tablename__ = "slack_sources"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        Index(
+            "slack_team_id",
+            "team_id",
+            "source_event",
+            "source_id",
+            unique=True,
+        ),
+    )
 
-#     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-#     slack_install_id: Mapped[str] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    # eave TeamOrm id
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    # team[id] here: https://api.slack.com/methods/oauth.v2.access#examples
+    slack_team_id: Mapped[str] = mapped_column()
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
+        lookup = select(cls).where(cls.team_id == team_id).limit(1)
+        source: Self | None = (await session.scalars(lookup)).one_or_none()
+        return source
 
 # class GithubSource(Base):
 #     __tablename__ = "github_sources"

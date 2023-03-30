@@ -55,7 +55,7 @@ authorize_url_generator = AuthorizeUrlGenerator(
 )
 
 
-# TODO: any params input to callback. keep separate from google one?
+# TODO: any params input to callback. keep separate from google one? are any of these even real optoins?
 class RequestBody(pydantic.BaseModel):
     state: Optional[str]
     code: Optional[str]
@@ -89,25 +89,16 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
         code=input.code,
     )
 
-    is_enterprise_install: bool = oauth_response.get("is_enterprise_install", False)
     installed_team: dict[str, str] = oauth_response.get("team", {})
     installer: dict[str, str] = oauth_response.get("authed_user", {})
-    user_id: Optional[str] = installer.get("id")
+    user_id: Optional[str] = installer.get("id") # TODO: this probs isnt the user_id i want (this is slack user id)
+    slack_team_id: Optional[str] = installed_team.get("id")
     assert user_id is not None
+    assert slack_team_id is not None
 
     bot_token: Optional[str] = oauth_response.get("access_token")
     # we are authing a slack bot, so this should never be None
     assert bot_token is not None
-
-    # oauth.v2.access doesn't include bot_id in response
-    # TODO: what is bot_id?
-    bot_id = None
-    enterprise_url = None
-    auth_test = client.auth_test(token=bot_token)
-    bot_id = auth_test["bot_id"]
-    # TODO: do we need this?
-    if is_enterprise_install:
-        enterprise_url = auth_test.get("url")
 
     # save our shiny new oauth token in db
     async with await eave_db.get_session() as session:
@@ -115,7 +106,7 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
             auth_provider=eave_orm.AuthProvider.slack,
-            auth_id=user_id,
+            auth_id=user_id,  # TODO: pretty sure this param isnt right
         )
 
         if account_orm is None:
@@ -128,7 +119,7 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
             )
 
             session.add(team)
-            await session.commit()
+            await session.commit()  # TODO: do we need to commit here when we'll just commit later too?
 
             account_orm = eave_orm.AccountOrm(
                 team_id=team.id, auth_provider=eave_orm.AuthProvider.slack, auth_id=user_id, oauth_token=bot_token
@@ -136,6 +127,15 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
 
             session.add(account_orm)
 
+        # try fetch slack source for eave team
+        slack_source = await eave_orm.SlackSource.one_or_none(team_id=account_orm.team_id, session=session)
+
+        if slack_source is None:
+            # create new slack source associated with the TeamOrm
+            slack_source = eave_orm.SlackSource(team_id=account_orm.team_id, slack_team_id=slack_team_id)
+            session.add(slack_source)
+
+        slack_source.slack_team_id = slack_team_id
         account_orm.oauth_token = bot_token
         await session.commit()
 
