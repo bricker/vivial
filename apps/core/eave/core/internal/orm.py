@@ -335,8 +335,6 @@ class SlackSource(Base):
         Index(
             "slack_team_id",
             "team_id",
-            "source_event",
-            "source_id",
             unique=True,
         ),
     )
