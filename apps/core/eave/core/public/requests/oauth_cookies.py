@@ -18,7 +18,7 @@ def save_state_cookie(response: fastapi.responses.Response, state: str) -> None:
 
 
 def get_state_cookie(request: fastapi.Request) -> str:
-    state = request.cookies.get(STATE_COOKIE_NAME)
+    state: str | None = request.cookies.get(STATE_COOKIE_NAME)
     assert state is not None
     return state
 

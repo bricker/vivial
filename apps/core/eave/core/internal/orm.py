@@ -17,6 +17,7 @@ from sqlalchemy import (
     func,
     select,
     text,
+    delete,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -327,6 +328,7 @@ class ConfluenceDestinationOrm(Base):
         page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
+
 class SlackSource(Base):
     __tablename__ = "slack_sources"
     __table_args__ = (
@@ -352,6 +354,33 @@ class SlackSource(Base):
         lookup = select(cls).where(cls.team_id == team_id).limit(1)
         source: Self | None = (await session.scalars(lookup)).one_or_none()
         return source
+
+
+class OAuthStateOrm(Base):
+    __tablename__ = "oauth_states"
+    __table_args__ = (
+        PrimaryKeyConstraint("id"),
+        Index(
+            "state",
+            "expire_at",
+            unique=True,
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    state: Mapped[str] = mapped_column()
+    expire_at: Mapped[datetime] = mapped_column()
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, state: str) -> Optional[Self]:
+        lookup = select(cls).where(cls.state == state).limit(1)
+        oauth_obj: Self | None = (await session.scalars(lookup)).one_or_none()
+        return oauth_obj
+
+    @classmethod
+    async def delete_by_id(cls, session: AsyncSession, id: UUID) -> None:
+        delete(cls).where(cls.id == id)
+
 
 # class GithubSource(Base):
 #     __tablename__ = "github_sources"

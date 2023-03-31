@@ -1,9 +1,8 @@
 from typing import Optional
-
+from uuid import uuid4
 import fastapi
 import pydantic
 from slack_sdk.oauth import AuthorizeUrlGenerator
-from slack_sdk.oauth.installation_store import FileInstallationStore, Installation
 from slack_sdk.oauth.state_store import FileOAuthStateStore
 from slack_sdk.web import WebClient, SlackResponse
 
@@ -14,10 +13,28 @@ from eave.core.internal.config import app_config
 from . import oauth_cookies as oauth
 
 
+# TODO move to own file?
+# TODO make new tabel for state tokens
+class EavePostgresOAuthStateStore:
+    def __init__(self, expiration_seconds: int) -> None:
+        self.expiration_seconds = expiration_seconds
+
+    async def issue(self) -> str:
+        state = str(uuid4())
+        # TODO db stuff
+
+        return state
+
+    async def consume(self, state: str) -> bool:
+        # TODO read db to find provided state
+        return True
+
+
 # factory for for tamper-detection code (convert to generator function?)
-# TODO: where are the docs for this stupid thing??
-# probs shouldnt write to random ./data dir
+# TODO: use eave db store
 state_store = FileOAuthStateStore(expiration_seconds=300, base_dir="./data")
+# state_store = EavePostgresOAuthStateStore(expiration_seconds=300)
+
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 authorize_url_generator = AuthorizeUrlGenerator(
@@ -51,7 +68,7 @@ authorize_url_generator = AuthorizeUrlGenerator(
         "users:read.email",
     ],
     user_scopes=[],
-    redirect_uri=f"{app_config.eave_api_base}/oauth/slack/callback",
+    redirect_uri=f"https://17eb-2601-281-8100-82b0-00-928.ngrok.io/oauth/slack/callback",  # f"{app_config.eave_api_base}/oauth/slack/callback",
 )
 
 
@@ -60,6 +77,9 @@ class RequestBody(pydantic.BaseModel):
     state: Optional[str]
     code: Optional[str]
     error: Optional[str]
+
+    def __repr__(self) -> str:  # DEBGU
+        return f"RequestBody(state={self.state}, code={self.code}, error={self.error})"
 
 
 # GET
@@ -75,6 +95,7 @@ async def slack_oauth_authorize() -> fastapi.responses.RedirectResponse:
 
 # GET TODO: does slack expect a response from this? docs send back some generic string
 async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, response: fastapi.Response) -> None:
+    print(input)  # DBEUG
     # TODO: check input for error?
     state = oauth.get_state_cookie(request=request)
     assert state_store.consume(
@@ -91,7 +112,7 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
 
     installed_team: dict[str, str] = oauth_response.get("team", {})
     installer: dict[str, str] = oauth_response.get("authed_user", {})
-    user_id: Optional[str] = installer.get("id") # TODO: this probs isnt the user_id i want (this is slack user id)
+    user_id: Optional[str] = installer.get("id")  # TODO: this probs isnt the user_id i want (this is slack user id)
     slack_team_id: Optional[str] = installed_team.get("id")
     assert user_id is not None
     assert slack_team_id is not None
