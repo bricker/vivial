@@ -27,7 +27,8 @@ def parse_config(filepath: str) -> None:
     with open(dotenv_path, "a+") as f:
         for varname in varnames:
             if varname not in existing_values.keys():
-                f.write(f"\n{varname}")
+                # if env var is available, auto set it in .env, otherwise set placeholder
+                f.write(f"\n{varname}={envval if (envval := os.getenv(varname)) else 'TODO_value'}")
                 print(f"Added {varname} to .env")
 
 def parse_python_config(filepath: str) -> list[str]:

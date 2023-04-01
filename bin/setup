@@ -9,11 +9,12 @@ echo ""
 
 usershell=$(shellname)
 
-case $usershell in
+if [[ -z "$EAVE_HOME" ]]; then
+	case $usershell in
 	"bash" | "zsh")
 		case $usershell in
-			"bash") loginfile="~/.bashrc";;
-			"zsh") loginfile="~/.zshrc";;
+		"bash") loginfile=~/.bashrc ;;
+		"zsh") loginfile=~/.zshrc ;;
 		esac
 		varcmd="export EAVE_HOME=\"$(pwd)\""
 		statusmsg -ni "First, I'll add the following line to $loginfile:"
@@ -22,10 +23,12 @@ case $usershell in
 		echo ""
 
 		read -p "Should I proceed? [y/n] " proceed
-		if test "$proceed" = "y"
-		then
-			echo -e "\n$varcmd" >> $loginfile
+		if test "$proceed" = "y"; then
+			echo -e "\n$varcmd" >>"$loginfile"
 		fi
+
+		statusmsg "Updating current shell to set EAVE_HOME"
+		source "$loginfile"
 		;;
 	"fish")
 		varcmd="set -Ux EAVE_HOME $(pwd)"
@@ -35,25 +38,32 @@ case $usershell in
 		echo ""
 
 		read -p "Should I proceed? [y/n] " proceed
-		if test "$proceed" = "y"
-		then
+		if test "$proceed" = "y"; then
 			fish -c "$varcmd"
 		fi
 		;;
 	*)
 		statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
 		;;
-esac
+	esac
+else
+	statusmsg -ni "EAVE_HOME already set. Continuing..."
+fi
 
 echo ""
 
 statusmsg -ni "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
 
 read -p "Should I proceed? [y/n] " proceed
-if test "$proceed" = "y"
-then
+if test "$proceed" = "y"; then
+	statusmsg -ni "Setting up shared dev dependencies"
+	cd ${EAVE_HOME}/develop/javascript/eslint/
+	bin/setup
+	cd - >/dev/null
+
 	python-activate-venv
 	python -m pip install python-dotenv
+
 	run_in_all_projects bin/setup
 fi
 
