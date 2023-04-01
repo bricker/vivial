@@ -4,8 +4,10 @@ from typing import Any
 import eave.stdlib.api_util
 from fastapi import FastAPI, Request
 
+from .public.requests.oauth_handlers import google_oauth, slack_oauth
+
 from .internal.config import app_config
-from .public.requests import access_requests, documents, google_oauth, subscriptions, slack_oauth
+from .public.requests import access_requests, documents, subscriptions
 from .public.requests import util as eave_request_util
 
 if app_config.monitoring_enabled:

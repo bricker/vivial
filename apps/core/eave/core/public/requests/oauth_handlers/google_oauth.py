@@ -13,7 +13,7 @@ import pydantic
 from eave.core.internal.config import app_config
 from google.auth.transport import requests
 
-from . import util
+from .. import util
 from . import oauth_cookies as oauth
 
 
