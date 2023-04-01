@@ -1,9 +1,7 @@
 from typing import Optional
 from uuid import uuid4
 import fastapi
-import pydantic
 from slack_sdk.oauth import AuthorizeUrlGenerator
-from slack_sdk.oauth.state_store import FileOAuthStateStore
 from slack_sdk.web import WebClient, SlackResponse
 
 import eave.core.internal.database as eave_db
@@ -42,7 +40,7 @@ class EavePostgresOAuthStateStore:
         assume the request is a forgery
         """
 
-        async with await eave_db.get_session() as session:
+        async with await eave_db.get_session() as session, session.begin():
             # read db to find provided state
             state_obj = await eave_orm.OAuthStateOrm.one_or_none(session=session, state=state)
             if state_obj is None:
@@ -53,13 +51,12 @@ class EavePostgresOAuthStateStore:
             return True
 
 
-# factory for for tamper-detection code (convert to generator function?)
-# TODO: use eave db store
-state_store = FileOAuthStateStore(expiration_seconds=300, base_dir="./data")
-# state_store = EavePostgresOAuthStateStore(expiration_seconds=300)
+state_store = EavePostgresOAuthStateStore(expiration_seconds=300)
 
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
+# TODO: no ngrok
+redirect_uri = "https://0293-2601-281-8100-82b0-00-928.ngrok.io/oauth/slack/callback"  # f"{app_config.eave_api_base}/oauth/slack/callback"
 authorize_url_generator = AuthorizeUrlGenerator(
     client_id=app_config.eave_slack_client_id,
     scopes=[
@@ -91,14 +88,14 @@ authorize_url_generator = AuthorizeUrlGenerator(
         "users:read.email",
     ],
     user_scopes=[],
-    redirect_uri=f"https://0293-2601-281-8100-82b0-00-928.ngrok.io/oauth/slack/callback",  # f"{app_config.eave_api_base}/oauth/slack/callback",
+    redirect_uri=redirect_uri,
 )
 
 
 # GET
 async def slack_oauth_authorize() -> fastapi.responses.RedirectResponse:
     # random value for verifying request wasnt tampered with
-    state: str = state_store.issue()
+    state: str = await state_store.issue()
 
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
@@ -106,13 +103,10 @@ async def slack_oauth_authorize() -> fastapi.responses.RedirectResponse:
 
 
 # GET TODO: does slack expect a response from this? docs send back some generic string
-async def slack_oauth_callback(request: fastapi.Request, response: fastapi.Response) -> None:
-    state: str = request.query_params["state"]
-    code: str = request.query_params["code"]
-
-    assert state_store.consume(
-        state=state
-    )  # TODO: more graceful err handling? "Try the installation again (the state value is already expired)""
+async def slack_oauth_callback(state: str, code: str) -> None:
+    # verify request not tampered
+    # TODO: more graceful err handling? "Try the installation again (the state value is already expired)""
+    assert state_store.consume(state=state)
 
     client = WebClient()
     # Complete the installation by calling oauth.v2.access API method
@@ -120,6 +114,7 @@ async def slack_oauth_callback(request: fastapi.Request, response: fastapi.Respo
         client_id=app_config.eave_slack_client_id,
         client_secret=app_config.eave_slack_client_secret,
         code=code,
+        redirect_uri=redirect_uri,
     )
 
     installed_team: dict[str, str] = oauth_response.get("team", {})
