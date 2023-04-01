@@ -10,24 +10,47 @@ import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
 from eave.core.internal.config import app_config
-from . import oauth_cookies as oauth
+
+import time
 
 
 # TODO move to own file?
-# TODO make new tabel for state tokens
+# TODO make more modular; pass in db?
 class EavePostgresOAuthStateStore:
     def __init__(self, expiration_seconds: int) -> None:
         self.expiration_seconds = expiration_seconds
 
     async def issue(self) -> str:
+        """
+        generate random string to help prevent request forgery
+        https://api.slack.com/authentication/oauth-v2#exchanging
+        """
         state = str(uuid4())
-        # TODO db stuff
+        async with await eave_db.get_session() as session:
+            saved_state = eave_orm.OAuthStateOrm(
+                state=state,
+                expire_at=time.time() + self.expiration_seconds,
+            )
+            session.add(saved_state)
+            await session.commit()
 
         return state
 
     async def consume(self, state: str) -> bool:
-        # TODO read db to find provided state
-        return True
+        """
+        verify that `state` is in our oauth state db table. If not,
+        assume the request is a forgery
+        """
+
+        async with await eave_db.get_session() as session:
+            # read db to find provided state
+            state_obj = await eave_orm.OAuthStateOrm.one_or_none(session=session, state=state)
+            if state_obj is None:
+                return False
+
+            # "consume" (delete) the saved state now that its verified
+            await eave_orm.OAuthStateOrm.delete_one_or_exception(session=session, id=state_obj.id)
+            return True
 
 
 # factory for for tamper-detection code (convert to generator function?)
@@ -68,18 +91,8 @@ authorize_url_generator = AuthorizeUrlGenerator(
         "users:read.email",
     ],
     user_scopes=[],
-    redirect_uri=f"https://17eb-2601-281-8100-82b0-00-928.ngrok.io/oauth/slack/callback",  # f"{app_config.eave_api_base}/oauth/slack/callback",
+    redirect_uri=f"https://0293-2601-281-8100-82b0-00-928.ngrok.io/oauth/slack/callback",  # f"{app_config.eave_api_base}/oauth/slack/callback",
 )
-
-
-# TODO: any params input to callback. keep separate from google one? are any of these even real optoins?
-class RequestBody(pydantic.BaseModel):
-    state: Optional[str]
-    code: Optional[str]
-    error: Optional[str]
-
-    def __repr__(self) -> str:  # DEBGU
-        return f"RequestBody(state={self.state}, code={self.code}, error={self.error})"
 
 
 # GET
@@ -89,15 +102,14 @@ async def slack_oauth_authorize() -> fastapi.responses.RedirectResponse:
 
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
-    oauth.save_state_cookie(response=response, state=state)
     return response
 
 
 # GET TODO: does slack expect a response from this? docs send back some generic string
-async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, response: fastapi.Response) -> None:
-    print(input)  # DBEUG
-    # TODO: check input for error?
-    state = oauth.get_state_cookie(request=request)
+async def slack_oauth_callback(request: fastapi.Request, response: fastapi.Response) -> None:
+    state: str = request.query_params["state"]
+    code: str = request.query_params["code"]
+
     assert state_store.consume(
         state=state
     )  # TODO: more graceful err handling? "Try the installation again (the state value is already expired)""
@@ -107,7 +119,7 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
     oauth_response: SlackResponse = client.oauth_v2_access(
         client_id=app_config.eave_slack_client_id,
         client_secret=app_config.eave_slack_client_secret,
-        code=input.code,
+        code=code,
     )
 
     installed_team: dict[str, str] = oauth_response.get("team", {})
@@ -127,7 +139,7 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
             auth_provider=eave_orm.AuthProvider.slack,
-            auth_id=user_id,  # TODO: pretty sure this param isnt right
+            auth_id=user_id,  # TODO: pretty sure this param isnt right value
         )
 
         if account_orm is None:
@@ -148,6 +160,8 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
 
             session.add(account_orm)
 
+        assert account_orm is not None
+
         # try fetch slack source for eave team
         slack_source = await eave_orm.SlackSource.one_or_none(team_id=account_orm.team_id, session=session)
 
@@ -161,5 +175,4 @@ async def slack_oauth_callback(input: RequestBody, request: fastapi.Request, res
         await session.commit()
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
-    oauth.delete_state_cookie(response=response)
-    # TODO: return response?
+    # TODO: return response

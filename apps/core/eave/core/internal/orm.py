@@ -378,8 +378,9 @@ class OAuthStateOrm(Base):
         return oauth_obj
 
     @classmethod
-    async def delete_by_id(cls, session: AsyncSession, id: UUID) -> None:
-        delete(cls).where(cls.id == id)
+    async def delete_one_or_exception(cls, session: AsyncSession, id: UUID) -> None:
+        lookup = delete(cls).where(cls.id == id)
+        (await session.scalar(lookup)).one()
 
 
 # class GithubSource(Base):
