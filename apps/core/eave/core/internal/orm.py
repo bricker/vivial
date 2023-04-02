@@ -335,8 +335,9 @@ class SlackSource(Base):
         make_team_composite_pk(),
         make_team_fk(),
         Index(
-            "slack_team_id",
+            "slack_team_id_eave_team_id"
             "team_id",
+            "slack_team_id",
             unique=True,
         ),
     )
@@ -345,7 +346,7 @@ class SlackSource(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     # team[id] here: https://api.slack.com/methods/oauth.v2.access#examples
-    slack_team_id: Mapped[str] = mapped_column()
+    slack_team_id: Mapped[str] = mapped_column(unique=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -361,8 +362,8 @@ class OAuthStateOrm(Base):
     __table_args__ = (
         PrimaryKeyConstraint("id"),
         Index(
+            "state_id",
             "state",
-            "expire_at",
             unique=True,
         ),
     )
