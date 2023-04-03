@@ -10,49 +10,6 @@ import eave.stdlib.core_api.models as eave_models
 from eave.core.internal.config import app_config
 
 from . import oauth_cookie as oauth
-# import time
-
-
-# TODO move to own file?
-# TODO make more modular; pass in db?
-# class EavePostgresOAuthStateStore:
-#     def __init__(self, expiration_seconds: int) -> None:
-#         self.expiration_seconds = expiration_seconds
-
-#     async def issue(self) -> str:
-#         """
-#         generate random string to help prevent request forgery
-#         https://api.slack.com/authentication/oauth-v2#exchanging
-#         """
-#         state = str(uuid4())
-#         async with await eave_db.get_session() as session:
-#             saved_state = eave_orm.OAuthStateOrm(
-#                 state=state,
-#                 expire_at=time.time() + self.expiration_seconds,
-#             )
-#             session.add(saved_state)
-#             await session.commit()
-
-#         return state
-
-#     async def consume(self, state: str) -> bool:
-#         """
-#         verify that `state` is in our oauth state db table. If not,
-#         assume the request is a forgery
-#         """
-
-#         async with await eave_db.get_session() as session, session.begin():
-#             # read db to find provided state
-#             state_obj = await eave_orm.OAuthStateOrm.one_or_none(session=session, state=state)
-#             if state_obj is None:
-#                 return False
-
-#             # "consume" (delete) the saved state now that its verified
-#             await eave_orm.OAuthStateOrm.delete_one_or_exception(session=session, id=state_obj.id)
-#             return True
-
-
-# state_store = EavePostgresOAuthStateStore(expiration_seconds=300)
 
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
@@ -93,10 +50,9 @@ authorize_url_generator = AuthorizeUrlGenerator(
 )
 
 
-async def slack_oauth_authorize() -> fastapi.responses.RedirectResponse:
+async def slack_oauth_authorize() -> fastapi.Response:
     # random value for verifying request wasnt tampered with
     state: str = str(uuid4())
-
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
     oauth.save_state_cookie(response=response, state=state)

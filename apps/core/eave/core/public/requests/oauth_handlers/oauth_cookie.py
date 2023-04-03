@@ -1,5 +1,4 @@
 import fastapi
-from .. import util
 from eave.core.internal.config import app_config
 
 
@@ -7,7 +6,7 @@ from eave.core.internal.config import app_config
 STATE_COOKIE_NAME = "eave-oauth-state"
 STATE_COOKIE_PARAMS = {
     "key": STATE_COOKIE_NAME,
-    "domain": app_config.eave_cookie_domain,
+    "domain": "1848-2601-281-8100-82b0-00-928.ngrok.io", # TODO: app_config.eave_cookie_domain,
     "secure": True,
     "httponly": True,
 }
