@@ -335,8 +335,7 @@ class SlackSource(Base):
         make_team_composite_pk(),
         make_team_fk(),
         Index(
-            "slack_team_id_eave_team_id"
-            "team_id",
+            "slack_team_id_eave_team_id" "team_id",
             "slack_team_id",
             unique=True,
         ),
@@ -355,33 +354,6 @@ class SlackSource(Base):
         lookup = select(cls).where(cls.team_id == team_id).limit(1)
         source: Self | None = (await session.scalars(lookup)).one_or_none()
         return source
-
-
-class OAuthStateOrm(Base):
-    __tablename__ = "oauth_states"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-        Index(
-            "state_id",
-            "state",
-            unique=True,
-        ),
-    )
-
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    state: Mapped[str] = mapped_column()
-    expire_at: Mapped[datetime] = mapped_column()
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, state: str) -> Optional[Self]:
-        lookup = select(cls).where(cls.state == state).limit(1)
-        oauth_obj: Self | None = (await session.scalars(lookup)).one_or_none()
-        return oauth_obj
-
-    @classmethod
-    async def delete_one_or_exception(cls, session: AsyncSession, id: UUID) -> None:
-        lookup = delete(cls).where(cls.id == id)
-        (await session.scalar(lookup)).one()
 
 
 # class GithubSource(Base):
