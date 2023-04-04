@@ -59,9 +59,13 @@ async def slack_oauth_authorize() -> fastapi.Response:
     return response
 
 
-async def slack_oauth_callback(state: str, code: str, request: fastapi.Request, response: fastapi.Response) -> None:
+async def slack_oauth_callback(
+    state: str,
+    code: str,
+    request: fastapi.Request,
+    response: fastapi.Response
+) -> fastapi.Response:
     # verify request not tampered
-    # TODO: more graceful err handling? "Try the installation again (the state value is already expired)""
     cookie_state = oauth.get_state_cookie(request=request)
     assert state == cookie_state
 
@@ -128,4 +132,4 @@ async def slack_oauth_callback(state: str, code: str, request: fastapi.Request, 
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
     oauth.delete_state_cookie(response=response)
-    # TODO: return response
+    return response

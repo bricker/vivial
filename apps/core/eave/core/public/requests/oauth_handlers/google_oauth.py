@@ -28,7 +28,7 @@ class RequestBody(pydantic.BaseModel):
     error: Optional[str]
 
 
-async def google_oauth_callback(input: RequestBody, request: fastapi.Request, response: fastapi.Response) -> None:
+async def google_oauth_callback(input: RequestBody, request: fastapi.Request, response: fastapi.Response) -> fastapi.Response:
     state = oauth.get_state_cookie(request=request)
 
     credentials = get_oauth_credentials(uri=str(request.url), state=state)
@@ -71,6 +71,7 @@ async def google_oauth_callback(input: RequestBody, request: fastapi.Request, re
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
     oauth.delete_state_cookie(response=response)
+    return response
 
 
 @dataclass
