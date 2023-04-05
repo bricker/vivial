@@ -32,12 +32,17 @@ class AccessRequest(pydantic.BaseModel):
     email: pydantic.EmailStr
     created: datetime
 
+    class Config:
+        orm_mode = True
+
 
 class DocumentReference(pydantic.BaseModel):
     id: pydantic.UUID4
     document_id: str
     document_url: str
 
+    class Config:
+        orm_mode = True
 
 class SubscriptionSource(pydantic.BaseModel):
     platform: SubscriptionSourcePlatform
@@ -61,8 +66,13 @@ class Subscription(pydantic.BaseModel):
     document_reference_id: Optional[pydantic.UUID4]
     source: SubscriptionSource
 
+    class Config:
+        orm_mode = True
 
 class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
     document_platform: DocumentPlatform
+
+    class Config:
+        orm_mode = True

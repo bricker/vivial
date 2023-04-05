@@ -17,7 +17,7 @@ def register_event_handlers(app: AsyncApp) -> None:
     app.event("member_joined_channel")(noop_handler)
 
 async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave_util.JsonObject]) -> None:
-    logging.info("WatchRequestEventHandler %s", shortcut)
+    logging.debug("WatchRequestEventHandler %s", shortcut)
     await ack()
     assert shortcut is not None
 
@@ -32,14 +32,14 @@ async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[
 
 
 async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
-    logging.info("MessageEventHandler %s", event)
+    logging.debug("MessageEventHandler %s", event)
     assert event is not None
 
     message = eave.slack.slack_models.SlackMessage(event)
     if message.subtype in ["bot_message", "bot_remove", "bot_add"]:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
-        logging.info("ignoring bot message")
+        logging.debug("ignoring bot message")
         return
 
     b = eave.slack.brain.Brain(message=message)

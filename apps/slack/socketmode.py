@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from eave.slack.config import app_config
 from eave.slack.slack_app import app as slack_app

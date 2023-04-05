@@ -100,6 +100,7 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
     )
 
     headers = {
+        "content-type": "application/json",
         signing.SIGNATURE_HEADER_NAME: signature,
     }
 

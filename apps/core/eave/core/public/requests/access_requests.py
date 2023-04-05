@@ -1,3 +1,4 @@
+import logging
 import json
 from http import HTTPStatus
 
@@ -15,6 +16,8 @@ SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
 async def create_access_request(
     input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
+    logging.debug("access_requests.create_access_request")
+
     await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:

@@ -2,7 +2,8 @@ import logging
 from typing import Any
 
 import eave.stdlib.api_util
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
 
 from .internal.config import app_config
 from .public.requests import access_requests, documents, google_oauth, subscriptions
@@ -16,17 +17,20 @@ if app_config.monitoring_enabled:
 
     logging.info("Google Cloud Logging started for eave-api-core")
 
+# logging.basicConfig(level=logging.DEBUG)
+
 app = FastAPI()
 
 eave.stdlib.api_util.add_standard_endpoints(app=app)
 eave_request_util.add_standard_exception_handlers(app=app)
 
-@app.middleware("http")
-async def log_body(request: Request, call_next: Any):
-    body = await request.json()
-    print(body)
-    response = await call_next(request)
-    return response
+# @app.exception_handler(RequestValidationError)
+# async def validation_exception_handler(request: Request, exc: RequestValidationError):
+#     exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
+#     print(exc_str)
+#     print(exc.body)
+#     return Response(status_code=422)
+
 
 app.post("/access_request")(access_requests.create_access_request)
 app.post("/documents/upsert")(documents.upsert_document)

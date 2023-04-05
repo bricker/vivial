@@ -2,11 +2,12 @@ import asyncio
 import enum
 import logging
 import re
-from typing import Any, AsyncGenerator, Optional
+from typing import Any, AsyncGenerator, List, Optional
 
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 from pydantic import BaseModel, HttpUrl
+import slack_sdk.models.blocks
 
 from .config import app_config
 import eave.slack.slack_app as slack_app
@@ -341,6 +342,43 @@ class SlackMessage:
     @property
     def is_eave(self) -> bool:
         return self.app_id == app_config.eave_slack_app_id
+
+    async def send_response(self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None) -> None:
+        assert self.channel is not None
+
+        if text is not None:
+            msg = f"<@{self.user}> {text}"
+
+            await slack_app.client.chat_postMessage(
+                channel=self.channel,
+                text=msg,
+                thread_ts=self.parent_ts,
+            )
+            return
+
+    #         if blocks is not None:
+    #             blocks.extend([
+    #                 slack_sdk.models.blocks.DividerBlock(),
+    #                 slack_sdk.models.blocks.ContextBlock(
+    #                     elements=[
+    # slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+    #                         text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
+    #                     ),
+    #                     ]
+    #                     text=
+    #                 ),
+    #             ])
+    #             await eave.slack.client.chat_postMessage(
+    #                 channel=self.message.channel,
+    #                 blocks=blocks,
+    #                 thread_ts=self.message.parent_ts,
+    #             )
+    #             return
+
+    async def add_reaction(self, name: str) -> None:
+        assert self.channel is not None
+        assert self.ts is not None
+        await slack_app.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
 
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:

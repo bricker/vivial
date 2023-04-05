@@ -249,29 +249,28 @@ class ConfluenceDestinationOrm(Base):
         if existing_page.body is not None and existing_page.body.content is not None:
             # TODO: Token counting
             prompt = (
-                f"{eave.stdlib.openai_client.PROMPT_PREFIX}\n"
-                "Combine the following two documents together such that all important information is retained, "
-                "but duplicate, unnecessary, irrelevant, or outdated information is removed.\n\n"
-                "###\n\n"
-                "=== Document 1: ===\n\n"
-                f"{existing_page.body.content}\n\n"
-                "=== Document 2: ===\n\n"
-                f"{document.content}\n\n"
-                "###\n\n"
-                "=== Result: ===\n\n"
+                "Merge the following two documents."
+                "\n\n"
+                "First Document:\n"
+                "=========================\n"
+                f"{existing_page.body.content}\n"
+                "=========================\n\n"
+                "Second Document:\n"
+                "=========================\n"
+                f"{document.content}\n"
+                "=========================\n"
             )
-            openai_params = eave.stdlib.openai_client.CompletionParameters(
+            openai_params = eave.stdlib.openai_client.ChatCompletionParameters(
                 temperature=0.2,
-                prompt=prompt,
+                messages=[prompt],
             )
-            resolved_document_body = await eave.stdlib.openai_client.completion(params=openai_params)
+            resolved_document_body = await eave.stdlib.openai_client.chat_completion(params=openai_params)
             assert resolved_document_body is not None
         else:
             resolved_document_body = document.content
 
         response = self.confluence_client().update_page(
             page_id=document_reference.document_id,
-            representation="wiki",
             title=existing_page.title,
             body=resolved_document_body,
         )
@@ -290,7 +289,6 @@ class ConfluenceDestinationOrm(Base):
 
         response = self.confluence_client().create_page(
             space=self.space,
-            representation="wiki",
             title=document.title,
             body=document.content,
             parent_id=parent_page.id if parent_page is not None else None,
