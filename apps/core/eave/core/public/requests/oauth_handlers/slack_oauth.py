@@ -103,7 +103,7 @@ async def slack_oauth_callback(
             # The Team is what is used for integrations, not an individual account.
             team_name = installed_team.get("name")
             team = eave_orm.TeamOrm(
-                name=f"{team_name}'s Team" if team_name is not None else "Your Team",
+                name=team_name if team_name is not None else "Your Team",
                 document_platform=None,
             )
 
