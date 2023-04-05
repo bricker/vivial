@@ -1,5 +1,4 @@
 from typing import Optional
-from uuid import uuid4
 import fastapi
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web import WebClient, SlackResponse
@@ -10,6 +9,7 @@ import eave.stdlib.core_api.models as eave_models
 from eave.core.internal.config import app_config
 
 from . import oauth_cookie as oauth
+from . import oauth_state
 
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
@@ -52,7 +52,7 @@ authorize_url_generator = AuthorizeUrlGenerator(
 
 async def slack_oauth_authorize() -> fastapi.Response:
     # random value for verifying request wasnt tampered with
-    state: str = str(uuid4())
+    state: str = oauth_state.generate_token()
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
     oauth.save_state_cookie(response=response, state=state)
