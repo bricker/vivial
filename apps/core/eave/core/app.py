@@ -24,12 +24,12 @@ app = FastAPI()
 eave.stdlib.api_util.add_standard_endpoints(app=app)
 eave_request_util.add_standard_exception_handlers(app=app)
 
-# @app.exception_handler(RequestValidationError)
-# async def validation_exception_handler(request: Request, exc: RequestValidationError):
-#     exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
-#     print(exc_str)
-#     print(exc.body)
-#     return Response(status_code=422)
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
+    print(exc_str)
+    print(exc.body)
+    return Response(status_code=422)
 
 
 app.post("/access_request")(access_requests.create_access_request)

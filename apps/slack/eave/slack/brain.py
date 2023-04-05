@@ -16,6 +16,7 @@ import tiktoken
 from . import slack_models
 from . import document_metadata
 
+logging.basicConfig(level=logging.DEBUG)
 tokencoding = tiktoken.get_encoding("gpt2")
 
 class MessagePurpose(enum.Enum):
@@ -87,7 +88,9 @@ class Brain:
         self.expanded_text = expanded_text
 
         purpose_prompt = (
-            f"{self.user_profile.real_name_normalized}, whose job title is \"{self.user_profile.title}\", sent you the following message:\n\n"
+            f"{self.user_profile.real_name_normalized} sent you a message.\n"
+            f"{self.message_context()}\n\n"
+            f"The message is as follows:\n\n"
             f"{self.expanded_text}\n\n"
             f"- If they are requesting something from you, or asking you to do something that you are able to do, say: {MessagePurpose.REQUEST.value}\n"
             f"- If they are asking you another type of question, say: {MessagePurpose.QUESTION.value}\n"
@@ -134,18 +137,12 @@ class Brain:
         logging.debug("Brain.process_request")
 
         caller_name = self.user_profile.real_name_normalized
-        caller_job_title = self.user_profile.title or "unknown"
 
         prompt = (
-            f"{caller_name} is requesting something from you. "
-            f"{caller_name}'s job title is \"{caller_job_title}\"."
-            # f"The request was made in a Slack channel called \"\". "
-            # f"The description of that channel is: \"\" "
-            "\n\n"
-            f"The request is as follows:"
-            "\n\n"
-            f"{self.expanded_text}"
-            "\n\n"
+            f"{caller_name} is requesting something from you.\n"
+            f"{self.message_context()}\n\n"
+            f"The request is as follows:\n\n"
+            f"{self.expanded_text}\n\n"
             f"- If they want you to create some documentation, say: {RequestType.CREATE_DOCUMENTATION.value}\n"
             f"- If they want you to find or search for some documentation, say: {RequestType.SEARCH_DOCUMENTATION.value}\n"
             f"- If they want you to update some documentation, say: {RequestType.UPDATE_DOCUMENTATION.value}\n"
@@ -160,18 +157,12 @@ class Brain:
         logging.debug("Brain.process_question")
 
         caller_name = self.user_profile.real_name_normalized
-        caller_job_title = self.user_profile.title or "unknown"
 
         prompt = (
-            f"{caller_name} is asking you a question. "
-            f"{caller_name}'s job title is \"{caller_job_title}\"."
-            # f"The question was asked in a Slack channel called \"\". "
-            # f"The description of that channel is: \"\" "
-            "\n\n"
-            f"The question is as follows:"
-            "\n\n"
-            f"{self.expanded_text}"
-            "\n\n"
+            f"{caller_name} is asking you a question.\n"
+            f"{self.message_context()}\n\n"
+            f"The question is as follows:\n\n"
+            f"{self.expanded_text}\n\n"
             f"- If they are asking if you can create documentation, say: {RequestType.CREATE_DOCUMENTATION.value}\n"
             f"- If they are asking if you can search existing documentation, or asking if there is existing documentation, say: {RequestType.SEARCH_DOCUMENTATION.value}\n"
             f"- If they are asking if you to can update some documentation, say: {RequestType.UPDATE_DOCUMENTATION.value}\n"
@@ -516,6 +507,20 @@ class Brain:
     """
     Utility
     """
+
+    def message_context(self) -> str:
+        caller_name = self.user_profile.real_name_normalized
+        caller_job_title = self.user_profile.title
+
+        context: list[str] = []
+
+        if caller_job_title:
+            context.append(f"{caller_name}'s job title is \"{caller_job_title}\".")
+
+        # f"The question was asked in a Slack channel called \"\". "
+        # f"The description of that channel is: \"\" "
+
+        return "\n".join(context)
 
     @staticmethod
     def normalize_for_enum(value: str) -> str:

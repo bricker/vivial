@@ -3,7 +3,8 @@ import eave.stdlib.openai_client as eave_openai
 
 async def get_topic(conversation: str) -> str:
     prompt = (
-        "Create a short title for the following conversation:\n\n"
+        "Create a short title for the following conversation. Respond with only the title and nothing else.\n\n"
+        "The conversation is as follows:\n\n"
         f"{conversation}"
     )
 

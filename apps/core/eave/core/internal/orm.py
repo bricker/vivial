@@ -269,10 +269,11 @@ class ConfluenceDestinationOrm(Base):
         else:
             resolved_document_body = document.content
 
+        content = resolved_document_body.replace("&", "&amp;")
         response = self.confluence_client().update_page(
             page_id=document_reference.document_id,
             title=existing_page.title,
-            body=resolved_document_body,
+            body=content,
         )
 
         assert response is not None
@@ -287,10 +288,12 @@ class ConfluenceDestinationOrm(Base):
         if document.parent is not None:
             parent_page = await self.get_or_create_confluence_page(document=document.parent)
 
+
+        content = document.content.replace("&", "&amp;")
         response = self.confluence_client().create_page(
             space=self.space,
             title=document.title,
-            body=document.content,
+            body=content,
             parent_id=parent_page.id if parent_page is not None else None,
         )
         assert response is not None
