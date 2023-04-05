@@ -1,13 +1,14 @@
 import asyncio
 import enum
-import logging
 import re
 from typing import Any, AsyncGenerator, List, Optional
 
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
+from eave.stdlib import logger
 from pydantic import BaseModel, HttpUrl
 import slack_sdk.models.blocks
+import slack_sdk.errors
 
 from .config import app_config
 import eave.slack.slack_app as slack_app
@@ -378,7 +379,12 @@ class SlackMessage:
     async def add_reaction(self, name: str) -> None:
         assert self.channel is not None
         assert self.ts is not None
-        await slack_app.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
+
+        try:
+            await slack_app.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
+        except slack_sdk.errors.SlackApiError:
+            # Usually this is because Eave already reacted to this message (error: already_reacted)
+            return
 
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:
@@ -476,7 +482,7 @@ class SlackMessage:
     @eave_util.memoized
     async def get_formatted_message(self) -> str | None:
         if self.is_bot_message:
-            logging.info("skipping bot message")
+            logger.info("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -485,7 +491,7 @@ class SlackMessage:
         )
 
         if expanded_text is None or user_profile is None:
-            logging.warning("expanded_text or user_profile were None")
+            logger.warning("expanded_text or user_profile were None")
             return None
 
         formatted_message = f"- Message from {user_profile.real_name}: {expanded_text}\n"
@@ -689,7 +695,7 @@ class SlackMessage:
     @eave_util.memoized
     async def simple_format(self) -> str | None:
         if self.is_bot_message:
-            logging.info("skipping bot message")
+            logger.info("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(

@@ -31,7 +31,10 @@
       },
       "console": "integratedTerminal",
       "justMyCode": true,
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "SLACK_SOCKETMODE": "1"
+      }
     },
   ]
 }

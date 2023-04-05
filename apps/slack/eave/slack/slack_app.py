@@ -1,6 +1,5 @@
 from slack_bolt.adapter.fastapi.async_handler import AsyncSlackRequestHandler
 from slack_bolt.async_app import AsyncApp
-from slack_sdk.web.async_client import AsyncWebClient
 
 import eave.slack.event_handlers
 from .config import app_config

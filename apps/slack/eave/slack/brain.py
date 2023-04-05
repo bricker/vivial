@@ -1,6 +1,5 @@
 import asyncio
 import enum
-import logging
 import random
 import re
 from typing import Optional
@@ -11,12 +10,12 @@ import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai
 import eave.stdlib.util as eave_util
+from eave.stdlib import logger
 import tiktoken
 
 from . import slack_models
 from . import document_metadata
 
-logging.basicConfig(level=logging.DEBUG)
 tokencoding = tiktoken.get_encoding("gpt2")
 
 class MessagePurpose(enum.Enum):
@@ -40,7 +39,6 @@ class Brain:
     message: slack_models.SlackMessage
     user_profile: slack_models.SlackProfile
     expanded_text: str
-    subscription_source: eave_models.SubscriptionSource
     team_id: UUID
 
     def __init__(self, message: slack_models.SlackMessage) -> None:
@@ -50,7 +48,7 @@ class Brain:
         # self.team = await eave_core_api_client.get_team(slack_org_id: xxx)
 
     async def process_message(self) -> None:
-        logging.debug("Brain.process_message")
+        logger.debug("Brain.process_message")
 
         i_am_mentioned = await self.message.check_eave_is_mentioned()
         if i_am_mentioned is True:
@@ -76,48 +74,46 @@ class Brain:
             """
             subscription_response = await self.get_subscription()
             if subscription_response is None:
-                logging.debug("Eave is not subscribed to this thread; ignoring.")
+                logger.debug("Eave is not subscribed to this thread; ignoring.")
                 return
 
-        user_profile = await self.message.get_user_profile()
-        assert user_profile is not None
-        self.user_profile = user_profile
-
-        expanded_text = await self.message.get_expanded_text()
-        assert expanded_text is not None
-        self.expanded_text = expanded_text
+        await self.load_data()
 
         purpose_prompt = (
             f"{self.user_profile.real_name_normalized} sent you a message.\n"
             f"{self.message_context()}\n\n"
             f"The message is as follows:\n\n"
             f"{self.expanded_text}\n\n"
-            f"- If they are requesting something from you, or asking you to do something that you are able to do, say: {MessagePurpose.REQUEST.value}\n"
+            f"- If they are requesting something from you, or asking you to do something, say: {MessagePurpose.REQUEST.value}\n"
             f"- If they are asking you another type of question, say: {MessagePurpose.QUESTION.value}\n"
             f"- If they are simply notifying or tagging you, say: {MessagePurpose.WATCH.value}\n"
             f"- Otherwise, say: {MessagePurpose.OTHER.value}"
         )
 
+        logger.info(f"purpose_prompt:\n{purpose_prompt}")
         purpose_openai_response = await self.get_openai_response(messages=[purpose_prompt], temperature=0)
+        logger.info(f"purpose_openai_response: {purpose_openai_response}")
 
         try:
             purpose = MessagePurpose(value=self.normalize_for_enum(purpose_openai_response))
         except ValueError as e:
-            logging.exception(f"Unexpected purpose response", exc_info=e, extra={"response": purpose_openai_response})
+            logger.exception(f"Unexpected purpose response", exc_info=e, extra={"response": purpose_openai_response})
             purpose = MessagePurpose.UNKNOWN
+
+        logger.info(f"purpose: {purpose}")
 
         match purpose:
             case MessagePurpose.REQUEST:
-                eave_util.do_in_background(self.process_request())
+                await self.process_request()
             case MessagePurpose.QUESTION:
-                eave_util.do_in_background(self.process_question())
+                await self.process_question()
             case MessagePurpose.WATCH:
-                eave_util.do_in_background(self.process_watch_request())
+                await self.process_watch_request()
             case MessagePurpose.OTHER | MessagePurpose.UNKNOWN:
-                eave_util.do_in_background(self.process_unknown_request())
+                await self.process_unknown_request()
 
     async def process_shortcut_event(self) -> None:
-        logging.debug("Brain.shortcut_event")
+        logger.debug("Brain.shortcut_event")
         await self.acknowledge_receipt()
 
         # source = eave_models.SubscriptionSource(
@@ -134,7 +130,7 @@ class Brain:
     """
 
     async def process_request(self) -> None:
-        logging.debug("Brain.process_request")
+        logger.debug("Brain.process_request")
 
         caller_name = self.user_profile.real_name_normalized
 
@@ -150,11 +146,11 @@ class Brain:
             f"- If they want you to subscribe, listen, or watch a conversation, say: {RequestType.WATCH.value}\n"
             f"- Otherwise, say: {RequestType.OTHER.value}"
         )
-
+        logger.info(f"prompt: {prompt}")
         await self.handle_request(prompt=prompt)
 
     async def process_question(self) -> None:
-        logging.debug("Brain.process_question")
+        logger.debug("Brain.process_question")
 
         caller_name = self.user_profile.real_name_normalized
 
@@ -170,7 +166,7 @@ class Brain:
             f"- If they are asking if you can subscribe, listen, or watch a conversation, say: {RequestType.WATCH.value}\n"
             f"- Otherwise, say: {RequestType.OTHER.value}"
         )
-
+        logger.info(f"prompt: {prompt}")
         await self.handle_request(prompt=prompt)
 
     async def process_watch_request(self) -> None:
@@ -178,7 +174,7 @@ class Brain:
         Subscribes to the thread and creates initial documentation if not already subscribed,
         otherwise notifies the user that I'm already watching this conversation.
         """
-        logging.debug("Brain.process_watch_request")
+        logger.debug("Brain.process_watch_request")
         existing_subscription = await self.get_subscription()
 
         if existing_subscription is None:
@@ -206,7 +202,7 @@ class Brain:
         Processes a request that wasn't recognized.
         Basically lets the user know that I wasn't able to process the message, and reminds them if I'm already documenting this conversation.
         """
-        logging.debug("Brain.process_unknown_request")
+        logger.debug("Brain.process_unknown_request")
         subscription = await self.get_subscription()
 
         if subscription is None:
@@ -242,15 +238,17 @@ class Brain:
         """
         Determines the RequestType, and then handles the message accordingly.
         """
-        logging.debug("Brain.handle_request")
+        logger.debug("Brain.handle_request")
 
         openai_response = await self.get_openai_response(messages=[prompt], temperature=0)
 
         try:
             request_type = RequestType(value=self.normalize_for_enum(openai_response))
         except ValueError as e:
-            logging.exception(f"Unexpected request type response", exc_info=e, extra={"response": openai_response})
+            logger.exception(f"Unexpected request type response", exc_info=e, extra={"response": openai_response})
             request_type = RequestType.UNKNOWN
+
+        logger.info(f"request_type: {request_type}")
 
         match request_type:
             case RequestType.CREATE_DOCUMENTATION:
@@ -302,16 +300,42 @@ class Brain:
         3. Send the final document to Core API (i.e. save the document to the organization's documentation destination)
         4. Send a follow-up response to the original Slack thread with a link to the documentation
         """
-        logging.debug("Brain.create_documentation")
+        logger.debug("Brain.create_documentation")
 
+        api_document = await self.build_documentation()
+
+        upsert_document_response = await eave_core_api_client.upsert_document(
+            team_id=self.team_id,
+            input=eave_ops.UpsertDocument.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+                document=api_document,
+            ),
+        )
+
+
+        await self.message.send_response(
+            text=(
+                "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
+                f"<{upsert_document_response.document_reference.document_url}|{api_document.title}>"
+            )
+        )
+
+    async def build_documentation(self) -> eave_ops.DocumentInput:
+        logger.debug("Brain.build_documentation")
         conversation = await self.build_context()
 
         document_topic = await document_metadata.get_topic(conversation)
+        logger.info(f"document_topic: {document_topic}")
         document_hierarchy = await document_metadata.get_hierarchy(conversation)
+        logger.info(f"document_hierarchy: {document_hierarchy}")
         project_title = await document_metadata.get_project_title(conversation)
+        logger.info(f"project_title: {project_title}")
         documentation_type = await document_metadata.get_documentation_type(conversation)
+        logger.info(f"documentation_type: {documentation_type}")
         documentation = await document_metadata.get_documentation(conversation)
+        logger.info(f"documentation:\n{documentation}")
         document_resources = await self.build_resources()
+        logger.info(f"document_resources: {document_resources}")
 
         api_document = eave_ops.DocumentInput(
             title=document_topic,
@@ -327,21 +351,7 @@ class Brain:
             current.parent = p
             current = p
 
-
-        upsert_document_response = await eave_core_api_client.upsert_document(
-            team_id=self.team_id,
-            input=eave_ops.UpsertDocument.RequestBody(
-                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
-                document=api_document,
-            ),
-        )
-
-        await self.message.send_response(
-            text=(
-                "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
-                f"<{upsert_document_response.document_reference.document_url}|{document_topic}>"
-            )
-        )
+        return api_document
 
     async def build_resources(self) -> str:
         all_messages = await self.message.get_conversation_messages()
@@ -581,3 +591,12 @@ class Brain:
                 )
             )
             return
+
+    async def load_data(self) -> None:
+        user_profile = await self.message.get_user_profile()
+        assert user_profile is not None
+        self.user_profile = user_profile
+
+        expanded_text = await self.message.get_expanded_text()
+        assert expanded_text is not None
+        self.expanded_text = expanded_text

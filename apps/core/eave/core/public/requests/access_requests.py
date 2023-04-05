@@ -1,10 +1,10 @@
-import logging
 import json
 from http import HTTPStatus
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.operations as eave_ops
+from eave.stdlib import logger
 import fastapi
 from eave.stdlib.slack import eave_slack_client
 
@@ -16,7 +16,7 @@ SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
 async def create_access_request(
     input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    logging.debug("access_requests.create_access_request")
+    logger.debug("access_requests.create_access_request")
 
     await eave_request_util.validate_signature_or_fail(request=request)
 

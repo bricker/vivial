@@ -7,7 +7,7 @@ import openai as openai_sdk
 import openai.openai_object
 import tiktoken
 
-from . import util
+from . import util, logger
 from .config import shared_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
@@ -122,13 +122,16 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
 
     ensure_api_key()
 
+    logger.debug(f"OpenAI Params: {params}")
     response = await openai_sdk.ChatCompletion.acreate(**params.compile())
+    logger.debug(f"OpenAI Response: {response}")
+
     response = cast(openai.openai_object.OpenAIObject, response)
     candidates = [c for c in response.choices if c["finish_reason"] == "stop"]
     choice = candidates[0]
 
     if len(candidates) < 1:
-        logging.warn("No valid choices from openAI; using the first result.")
+        logger.warn("No valid choices from openAI; using the first result.")
         choice = response.choices[0]
 
     assert choice is not None

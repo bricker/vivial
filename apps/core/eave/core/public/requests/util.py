@@ -8,6 +8,7 @@ import fastapi
 import sqlalchemy.exc
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from eave.stdlib import logger
 
 async def get_team_or_fail(session: AsyncSession, request: fastapi.Request) -> eave_orm.TeamOrm:
     try:
@@ -52,8 +53,13 @@ def internal_server_error(request: fastapi.Request, exc: Exception) -> fastapi.R
 def bad_request(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     return fastapi.responses.Response(status_code=HTTPStatus.BAD_REQUEST)
 
+def validation_error(request: fastapi.Request, exc: fastapi.exceptions.RequestValidationError) -> fastapi.Response:
+    logger.error(exc)
+    logger.info(exc.body)
+    return fastapi.Response(status_code=HTTPStatus.UNPROCESSABLE_ENTITY)
 
 def add_standard_exception_handlers(app: fastapi.FastAPI) -> None:
     app.exception_handler(sqlalchemy.exc.NoResultFound)(not_found)
     app.exception_handler(sqlalchemy.exc.MultipleResultsFound)(internal_server_error)
     app.exception_handler(eave_signing.InvalidSignatureError)(bad_request)
+    app.exception_handler(fastapi.exceptions.RequestValidationError)(validation_error)
