@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request
 from .public.requests.oauth_handlers import google_oauth, slack_oauth
 
 from .internal.config import app_config
-from .public.requests import access_requests, documents, subscriptions
+from .public.requests import access_requests, documents, subscriptions, slack_sources
 from .public.requests import util as eave_request_util
 
 if app_config.monitoring_enabled:
@@ -38,3 +38,4 @@ app.get("/oauth/google/authorize")(google_oauth.google_oauth_authorize)
 app.get("/oauth/google/callback")(google_oauth.google_oauth_callback)
 app.get("/oauth/slack/authorize")(slack_oauth.slack_oauth_authorize)
 app.get("/oauth/slack/callback")(slack_oauth.slack_oauth_callback)
+app.post("/slack_sources/query")(slack_sources.query)
