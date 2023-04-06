@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/shared/functions.bash
+
+statusmsg -i "Compiling protobuf schemas..."
+
+python -m grpc_tools.protoc \
+	--fatal_warnings \
+	--proto_path=proto \
+	--python_out=eave/pubsub_schemas/generated \
+	--pyi_out=eave/pubsub_schemas/generated \
+	proto/*
+
+statusmsg -s "Done!"

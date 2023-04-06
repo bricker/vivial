@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+message EaveEngagement {
+  // enum EaveEngagementSourcePlatform {
+  //   EESP_UNSPECIFIED = 0;
+  //   SLACK = 1;
+  //   GITHUB = 2;
+  //   JIRA = 3;
+  // }
+
+  // enum EaveEngagementSourceEvent {
+  //   EESE_UNSPECIFIED = 0;
+  //   SLACK_MESSAGE = 1;
+  //   GITHUB_FILE_CHANGE = 2;
+  //   JIRA_ISSUE_COMMENT = 3;
+  // }
+
+  // message EaveEngagementSource {
+  //   EaveEngagementSourcePlatform platform = 1;
+  //   EaveEngagementSourceEvent event = 2;
+  //   string id = 3;
+  // }
+
+
+  // EaveEngagementSource source = 1;
+  string content = 2;
+  string eave_user_id = 3;
+  string eave_team_id = 4;
+  uint64 client_ts = 5;
+}

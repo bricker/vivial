@@ -1,0 +1,3 @@
+import eave.pubsub_schemas.generated.eave_engagement_pb2 as eave_engagement
+
+print(eave_engagement.EaveEngagement)

@@ -8,7 +8,7 @@ from google.cloud.pubsub import SchemaServiceClient
 from google.pubsub_v1.types import Schema
 
 class Environment:
-    GCLOUD_PROJECT = os.environ["GCLOUD_PROJECT"]
+    GCLOUD_PROJECT = os.environ["GOOGLE_CLOUD_PROJECT"]
 
 project_path = f"projects/{Environment.GCLOUD_PROJECT}"
 schema_client = SchemaServiceClient()

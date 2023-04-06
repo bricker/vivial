@@ -2,6 +2,7 @@
 extend-exclude = '''
 (
   eave_alembic/versions
+  | generated
   | \\.venv
   | node_modules
 )
@@ -13,6 +14,7 @@ profile = "black"
 skip_gitignore = true
 extend_skip = [
   "eave_alembic/versions",
+  "generated",
   "node_modules",
   ".venv",
 ]
@@ -20,6 +22,7 @@ extend_skip = [
 [tool.mypy]
 exclude = [
   "eave_alembic/versions",
+  "generated",
   "node_modules",
   ".venv",
 ]
