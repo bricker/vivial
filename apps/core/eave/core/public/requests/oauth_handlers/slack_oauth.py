@@ -13,7 +13,7 @@ from . import oauth_state
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 # TODO: no ngrok
-redirect_uri = "https://3d37-2601-281-8100-82b0-00-928.ngrok.io/oauth/slack/callback"  # f"{app_config.eave_api_base}/oauth/slack/callback"
+redirect_uri = "https://fa6b-2601-281-8100-82b0-00-928.ngrok.io/oauth/slack/callback"  # f"{app_config.eave_api_base}/oauth/slack/callback"
 authorize_url_generator = AuthorizeUrlGenerator(
     client_id=app_config.eave_slack_client_id,
     scopes=[
