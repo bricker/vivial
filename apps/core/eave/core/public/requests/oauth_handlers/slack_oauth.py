@@ -177,6 +177,7 @@ async def slack_oauth_callback(
                 slack_team_id=slack_team_id,
                 bot_token=bot_token,
                 bot_id=bot_id,
+                bot_user_id=bot_user_id,
             )
             session.add(slack_source)
         else:

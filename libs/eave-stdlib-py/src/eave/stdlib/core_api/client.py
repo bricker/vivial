@@ -88,6 +88,28 @@ async def get_subscription(
     return operations.GetSubscription.ResponseBody(**response_json)
 
 
+# TODO: need eave teamid input?
+async def get_slack_source(
+    input: operations.GetSlackSource.RequestBody,
+) -> Optional[operations.GetSlackSource.ResponseBody]:
+    """
+    POST /slack_sources/query
+    """
+    # fetch slack bot details
+    response = await _make_request(
+        path="/slack_sources/query",
+        input=input,
+        team_id=None,
+    )
+
+    if response.status >= 300:
+        # TODO: log?
+        return None
+
+    response_json = await response.json()
+    return operations.GetSlackSource.ResponseBody(**response_json)
+
+
 def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)
 

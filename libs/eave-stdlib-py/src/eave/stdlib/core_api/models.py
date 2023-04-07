@@ -65,3 +65,13 @@ class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
     document_platform: DocumentPlatform
+
+# TODO copy this to ts models
+class SlackSource(pydantic.BaseModel):
+    id: pydantic.UUID4
+    # eave Team model id
+    team_id: pydantic.UUID4
+    slack_team_id: str
+    bot_token: str
+    bot_id: str
+    bot_user_id: str

@@ -1,4 +1,7 @@
+from typing import Any
 import eave.slack.event_handlers
+import eave.stdlib.core_api.client as eave_client
+import eave.stdlib.core_api.operations
 from slack_bolt.adapter.fastapi.async_handler import AsyncSlackRequestHandler
 from slack_bolt.async_app import AsyncApp
 from slack_sdk.web.async_client import AsyncWebClient
@@ -6,23 +9,22 @@ from slack_bolt.authorization import AuthorizeResult
 
 from .config import app_config
 
-# move this somewhere?
-async def authorize(enterprise_id, team_id, logger) -> AuthorizeResult:
-    # TODO: make req to /slack_sources/query for bot deets
-    res = make req
-    if not res:
-        logger.error("No authorization information was found")
-
-    # TODO: do we care about enterprise stuff yet??
+async def authorize(enterprise_id: str, team_id: str, logger: Any) -> AuthorizeResult:
+    input = eave.stdlib.core_api.operations.GetSlackSource.RequestBody(
+        slack_source=eave.stdlib.core_api.operations.SlackSourceInput(slack_team_id=team_id),
+    )
+    data = await eave_client.get_slack_source(input=input)
+    assert data is not None
+    # TODO: do we care about enterprise stuff yet?? what even is it for
     # enterprise_id doesn't exist for some teams
-    is_valid_enterprise = True if (("enterprise_id" not in team) or (enterprise_id == team["enterprise_id"])) else False
-    assert ((is_valid_enterprise == True) and (team["team_id"] == team_id)):
+    # is_valid_enterprise = ("enterprise_id" not in data) or (enterprise_id == data["enterprise_id"])
+    # assert ((is_valid_enterprise == True) and (team["team_id"] == team_id)):
     return AuthorizeResult(
         enterprise_id=enterprise_id,
         team_id=team_id,
-        bot_token=team["bot_token"],
-        bot_id=team["bot_id"],
-        bot_user_id=team["bot_user_id"]
+        bot_token=data.slack_source.bot_token,
+        bot_id=data.slack_source.bot_id,
+        bot_user_id=data.slack_source.bot_user_id,
     )
     
 
