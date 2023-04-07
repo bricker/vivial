@@ -52,6 +52,44 @@ authorize_url_generator = AuthorizeUrlGenerator(
 )
 
 
+class SlackTeam:
+    id: str
+    name: str
+
+    def __init__(self, **kwargs: str):
+        assert "id" in kwargs
+        self.id = kwargs["id"]
+        assert "name" in kwargs
+        self.name = kwargs["name"]
+
+
+class SlackAuthorizedUser:
+    id: str
+    access_token: str
+
+    def __init__(self, **kwargs: str):
+        assert "id" in kwargs
+        self.id = kwargs["id"]
+        assert "access_token" in kwargs
+        self.access_token = kwargs["access_token"]
+
+
+class SlackOAuthResponse:
+    access_token: str
+    team: SlackTeam
+    authed_user: SlackAuthorizedUser
+
+    def __init__(self, response: SlackResponse):
+        access_token: Optional[str] = response.get("access_token")
+        assert access_token is not None
+        installed_team: dict[str, str] = response.get("team", {})
+        installer: dict[str, str] = response.get("authed_user", {})
+
+        self.access_token = access_token
+        self.team = SlackTeam(**installed_team)
+        self.authed_user = SlackAuthorizedUser(**installer)
+
+
 async def slack_oauth_authorize() -> fastapi.Response:
     # random value for verifying request wasnt tampered with via CSRF
     state: str = oauth_state.generate_token()
@@ -74,25 +112,19 @@ async def slack_oauth_callback(
 
     client = WebClient()
     # Complete the installation by calling oauth.v2.access API method
-    oauth_response: SlackResponse = client.oauth_v2_access(
+    raw_response: SlackResponse = client.oauth_v2_access(
         client_id=app_config.eave_slack_client_id,
         client_secret=app_config.eave_slack_client_secret,
         code=code,
         redirect_uri=redirect_uri,
     )
 
-    installed_team: dict[str, str] = oauth_response.get("team", {})
-    installer: dict[str, str] = oauth_response.get("authed_user", {})
-    user_id: Optional[str] = installer.get("id")
-    slack_team_id: Optional[str] = installed_team.get("id")
-    access_token: Optional[str] = installer.get("access_token")
-    assert user_id is not None
-    assert slack_team_id is not None
-    assert access_token is not None
+    oauth_data = SlackOAuthResponse(response=raw_response)
+    bot_token = oauth_data.access_token
+    user_id = oauth_data.authed_user.id
+    oauth_token = oauth_data.access_token
+    slack_team_id = oauth_data.team.id
 
-    bot_token: Optional[str] = oauth_response.get("access_token")
-    # we are authing a slack bot, so this should never be None
-    assert bot_token is not None
     # oauth.v2.access doesn't include bot_id in response, so we have to fetch it
     bot_id = None
     if bot_token is not None:
@@ -111,9 +143,8 @@ async def slack_oauth_callback(
         if account_orm is None:
             # If this is a new account, then also create a new team.
             # The Team is what is used for integrations, not an individual account.
-            team_name = installed_team.get("name")
             team = eave_orm.TeamOrm(
-                name=team_name if team_name is not None else "Your Team",
+                name=team_name if (team_name := oauth_data.team.name) else "Your Team",
                 document_platform=None,
             )
 
@@ -124,12 +155,12 @@ async def slack_oauth_callback(
                 team_id=team.id,
                 auth_provider=eave_orm.AuthProvider.slack,
                 auth_id=user_id,
-                oauth_token=access_token,
+                oauth_token=oauth_token,
             )
 
             session.add(account_orm)
         else:
-            account_orm.oauth_token = access_token
+            account_orm.oauth_token = oauth_token
 
         # try fetch slack source for eave team
         slack_source = await eave_orm.SlackSource.one_or_none(
