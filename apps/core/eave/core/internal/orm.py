@@ -342,11 +342,12 @@ class SlackSource(Base):
         ),
     )
 
-    # eave TeamOrm id
     team_id: Mapped[UUID] = mapped_column()
+    """eave TeamOrm id"""
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    # team[id] here: https://api.slack.com/methods/oauth.v2.access#examples
     slack_team_id: Mapped[str] = mapped_column(unique=True)
+    """team[id] from here: https://api.slack.com/methods/oauth.v2.access#examples"""
+
     # bot identification data for authorizing slack api calls
     bot_token: Mapped[str] = mapped_column()
     bot_id: Mapped[str] = mapped_column()
@@ -432,12 +433,12 @@ class AccountOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    # 3rd party login provider
     auth_provider: Mapped[AuthProvider] = mapped_column()
-    # userid from 3rd party auth_provider
+    """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
-    # oauth token from 3rd party
+    """userid from 3rd party auth_provider"""
     oauth_token: Mapped[str] = mapped_column()
+    """oauth token from 3rd party"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
