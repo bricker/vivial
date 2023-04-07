@@ -345,9 +345,8 @@ class SlackSource(Base):
     team_id: Mapped[UUID] = mapped_column()
     """eave TeamOrm id"""
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    slack_team_id: Mapped[str] = mapped_column(unique=True)
+    slack_team_id: Mapped[str] = mapped_column(unique=True, index=True)
     """team[id] from here: https://api.slack.com/methods/oauth.v2.access#examples"""
-
     # bot identification data for authorizing slack api calls
     bot_token: Mapped[str] = mapped_column()
     bot_id: Mapped[str] = mapped_column()
@@ -356,8 +355,14 @@ class SlackSource(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
+    async def one_or_none_by_eave_team_id(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
         lookup = select(cls).where(cls.team_id == team_id).limit(1)
+        source: Self | None = (await session.scalars(lookup)).one_or_none()
+        return source
+    
+    @classmethod
+    async def one_or_none_by_slack_team_id(cls, session: AsyncSession, slack_team_id: str) -> Optional[Self]:
+        lookup = select(cls).where(cls.slack_team_id == slack_team_id).limit(1)
         source: Self | None = (await session.scalars(lookup)).one_or_none()
         return source
 

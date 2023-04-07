@@ -165,7 +165,7 @@ async def slack_oauth_callback(
             account_orm.oauth_token = oauth_token
 
         # try fetch slack source for eave team
-        slack_source = await eave_orm.SlackSource.one_or_none(
+        slack_source = await eave_orm.SlackSource.one_or_none_by_eave_team_id(
             team_id=account_orm.team_id,
             session=session,
         )
