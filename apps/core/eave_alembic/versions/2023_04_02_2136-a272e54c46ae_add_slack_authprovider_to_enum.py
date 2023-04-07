@@ -26,7 +26,7 @@ def upgrade():
 
 
 def downgrade():
-    # this is destructive to the validity of the data... soooo not sure if good idea
-    op.execute(tcr.update().where(tcr.c.authprovider == "slack").values(authprovider="google"))
+    # this is destructive to the validity of the data... soooo never do it
+    # op.execute(tcr.update().where(tcr.c.authprovider == "slack").values(authprovider="google"))
     # op.alter_column("accounts", "auth_provider", type_=old_type, existing_type=new_type)
-    op.execute("ALTER TYPE authprovider DROP VALUE 'slack'")
+    pass
