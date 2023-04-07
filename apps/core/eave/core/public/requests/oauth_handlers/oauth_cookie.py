@@ -1,29 +1,34 @@
+from typing import Any
 import fastapi
 from eave.core.internal.config import app_config
+from eave.core.internal.orm import AuthProvider
 
 
-# oauth cookie helpers
-STATE_COOKIE_NAME = "eave-oauth-state"
-STATE_COOKIE_PARAMS = {
-    "key": STATE_COOKIE_NAME,
-    "domain": app_config.eave_cookie_domain,
-    "secure": True,
-    "httponly": True,
-}
+def _build_cookie_name(postfix: str) -> str:
+    return f"eave-oauth-state-{postfix}"
 
 
-def save_state_cookie(response: fastapi.responses.Response, state: str) -> None:
+def _build_cookie_params(cookie_postfix: str) -> dict[str, Any]:
+    return {
+        "key": _build_cookie_name(cookie_postfix),
+        "domain": app_config.eave_cookie_domain,
+        "secure": True,
+        "httponly": True,
+    }
+
+
+def save_state_cookie(response: fastapi.responses.Response, state: str, provider: AuthProvider) -> None:
     response.set_cookie(
-        **STATE_COOKIE_PARAMS,
+        **_build_cookie_params(provider.value),
         value=state,
     )
 
 
-def get_state_cookie(request: fastapi.Request) -> str:
-    state: str | None = request.cookies.get(STATE_COOKIE_NAME)
+def get_state_cookie(request: fastapi.Request, provider: AuthProvider) -> str:
+    state: str | None = request.cookies.get(_build_cookie_name(provider.value))
     assert state is not None
     return state
 
 
-def delete_state_cookie(response: fastapi.responses.Response) -> None:
-    response.delete_cookie(**STATE_COOKIE_PARAMS)
+def delete_state_cookie(response: fastapi.responses.Response, provider: AuthProvider) -> None:
+    response.delete_cookie(**_build_cookie_params(provider.value))

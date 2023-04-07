@@ -7,7 +7,7 @@ import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 from eave.core.internal.config import app_config
 
-from . import oauth_cookie as oauth
+from . import oauth_cookie
 from . import oauth_state
 
 
@@ -57,7 +57,11 @@ async def slack_oauth_authorize() -> fastapi.Response:
     state: str = oauth_state.generate_token()
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
-    oauth.save_state_cookie(response=response, state=state)
+    oauth_cookie.save_state_cookie(
+        response=response,
+        state=state,
+        provider=eave_orm.AuthProvider.slack,
+    )
     return response
 
 
@@ -65,7 +69,7 @@ async def slack_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
     # verify request not tampered
-    cookie_state = oauth.get_state_cookie(request=request)
+    cookie_state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.slack)
     assert state == cookie_state
 
     client = WebClient()
@@ -149,5 +153,5 @@ async def slack_oauth_callback(
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
     # clear state cookie now that it's been verified
-    oauth.delete_state_cookie(response=response)
+    oauth_cookie.delete_state_cookie(response=response, provider=eave_orm.AuthProvider.slack)
     return response
