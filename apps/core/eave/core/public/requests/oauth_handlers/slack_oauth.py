@@ -134,6 +134,8 @@ async def slack_oauth_callback(
     # save our shiny new oauth token in db
     async with await eave_db.get_session() as session:
         # try fetch existing team account from db
+        # TODO: check session token once exists
+        # https://github.com/eave-fyi/eave-monorepo/pull/3#discussion_r1160880115 
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
             auth_provider=eave_orm.AuthProvider.slack,
