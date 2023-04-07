@@ -124,6 +124,8 @@ async def slack_oauth_callback(
             )
 
             session.add(account_orm)
+        else:
+            account_orm.oauth_token = access_token
 
         # try fetch slack source for eave team
         slack_source = await eave_orm.SlackSource.one_or_none(
@@ -140,9 +142,9 @@ async def slack_oauth_callback(
                 bot_id=bot_id,
             )
             session.add(slack_source)
+        else:
+            slack_source.slack_team_id = slack_team_id
 
-        slack_source.slack_team_id = slack_team_id
-        account_orm.oauth_token = access_token
         await session.commit()
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
