@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-protoc \
-  -I protobuf \
-  --python_out=python/src \
-  protobuf/*.proto

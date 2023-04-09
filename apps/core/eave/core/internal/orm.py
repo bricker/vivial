@@ -288,7 +288,6 @@ class ConfluenceDestinationOrm(Base):
         if document.parent is not None:
             parent_page = await self.get_or_create_confluence_page(document=document.parent)
 
-
         content = document.content.replace("&", "&amp;")
         response = self.confluence_client().create_page(
             space=self.space,

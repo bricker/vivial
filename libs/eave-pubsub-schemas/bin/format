@@ -3,3 +3,4 @@
 set -eu
 
 ${EAVE_HOME}/develop/python/bin/format
+${EAVE_HOME}/develop/javascript/bin/format

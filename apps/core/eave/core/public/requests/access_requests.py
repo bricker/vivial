@@ -4,8 +4,8 @@ from http import HTTPStatus
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.operations as eave_ops
-from eave.stdlib import logger
 import fastapi
+from eave.stdlib import logger
 from eave.stdlib.slack import eave_slack_client
 
 from . import util as eave_request_util

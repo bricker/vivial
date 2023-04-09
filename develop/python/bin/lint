@@ -15,6 +15,6 @@ statusmsg -i "(lint) black..."
 python -m black --config=$configfile --check .
 
 statusmsg -i  "(lint) mypy..."
-python -m mypy --config-file=${EAVE_HOME}/develop/python/pyproject.toml .
+python -m mypy --config-file=$configfile .
 
 statusmsg -s "Linting passed ✔"

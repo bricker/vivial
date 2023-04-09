@@ -1,3 +1,4 @@
+import json
 import asyncio
 import enum
 import random
@@ -9,8 +10,9 @@ import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai
-import eave.stdlib.util as eave_util
+import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
 from eave.stdlib import logger
+import eave.stdlib.analytics
 import tiktoken
 
 from . import slack_models
@@ -64,6 +66,19 @@ class Brain:
             if is_info_request is True:
                 await self.send_message_info()
                 return
+
+            action = eave_user_action.EaveUserAction(
+                action=eave_user_action.EaveUserAction.Action(
+                    platform=eave_models.SubscriptionSourcePlatform.slack,
+                    name="eave_mention",
+                    description="Eave was mentioned in Slack",
+                    eave_user_id="xxxx",
+                    opaque_params=json.dumps({}),
+                    user_ts=int(self.message.ts),
+                ),
+                message_source=__name__
+            )
+            eave.stdlib.analytics.log_user_action(action=action)
 
         else:
             """

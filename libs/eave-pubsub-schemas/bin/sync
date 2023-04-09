@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
-set -e
+set -eu
+
+source ${EAVE_HOME}/develop/python/functions.bash
+python-validate-version
+python-activate-venv
 
 set -o allexport
 source .env
 set +o allexport
 
-source .venv/bin/activate
 
 python sync_schemas.py

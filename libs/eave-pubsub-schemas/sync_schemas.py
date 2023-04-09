@@ -1,22 +1,27 @@
-import os
 import logging
+import os
 import sys
+
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 from google.api_core.exceptions import AlreadyExists
 from google.cloud.pubsub import SchemaServiceClient
 from google.pubsub_v1.types import Schema
 
+
 class Environment:
     GCLOUD_PROJECT = os.environ["GOOGLE_CLOUD_PROJECT"]
 
+
 project_path = f"projects/{Environment.GCLOUD_PROJECT}"
 schema_client = SchemaServiceClient()
+
 
 class DuplicateSchemaIdError(Exception):
     def __init__(self, schema_id: str):
         msg = f"Duplicate schema ID: {schema_id}"
         super().__init__(msg)
+
 
 class SchemaDiscrepancyError(Exception):
     def __init__(self, schema_id: str):
@@ -27,6 +32,7 @@ class SchemaDiscrepancyError(Exception):
         )
 
         super().__init__(msg)
+
 
 def load_remote_schemas() -> dict[str, str]:
     remote_schemas = schema_client.list_schemas(parent=project_path)
@@ -40,11 +46,12 @@ def load_remote_schemas() -> dict[str, str]:
 
     return definitions
 
+
 def load_local_schemas() -> dict[str, str]:
     # schema_id -> definition
     schemas = dict[str, str]()
 
-    for (dirpath, _, filenames) in os.walk("protobuf"):
+    for dirpath, _, filenames in os.walk("protos"):
         for f in filenames:
             (schema_id, ext) = os.path.splitext(f)
             if ext != ".proto":
@@ -54,12 +61,13 @@ def load_local_schemas() -> dict[str, str]:
                 raise DuplicateSchemaIdError(schema_id)
 
             filepath = os.path.join(dirpath, f)
-            with open(filepath, "rb") as f:
-                definition = f.read().decode("utf-8")
+            with open(filepath, "rb") as fd:
+                definition = fd.read().decode("utf-8")
 
             schemas[schema_id] = definition
 
     return schemas
+
 
 def publish_schema(schema_id: str, schema_definition: str) -> None:
     schema_path = schema_client.schema_path(Environment.GCLOUD_PROJECT, schema_id)
@@ -71,18 +79,15 @@ def publish_schema(schema_id: str, schema_definition: str) -> None:
 
     try:
         schema_client.create_schema(
-            request={
-                "parent": project_path,
-                "schema": schema,
-                "schema_id": schema_id
-            },
+            request={"parent": project_path, "schema": schema, "schema_id": schema_id},
         )
 
         logging.info(f"Schema {schema_id} published to remote.")
     except AlreadyExists:
         logging.info(f"Schema {schema_id} already exists on remote. This is normal. Skipping.")
 
-def run():
+
+def run() -> None:
     print("run")
     remote_schemas = load_remote_schemas()
     local_schemas = load_local_schemas()
@@ -99,6 +104,7 @@ def run():
             continue
 
         publish_schema(schema_id, local_definition)
+
 
 if __name__ == "__main__":
     run()

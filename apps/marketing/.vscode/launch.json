@@ -25,14 +25,13 @@
       "name": "Marketing Website (Client)",
       "type": "node",
       "request": "launch",
-      "envFile": ".env",
+      "envFile": "${env:EAVE_HOME}/.env",
       "program": "./node_modules/.bin/webpack",
       "args": [
         "-w",
       ],
       "console": "integratedTerminal"
-    },
-
+    }
   ],
   "compounds": [
     {
