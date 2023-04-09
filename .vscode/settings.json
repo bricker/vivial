@@ -41,8 +41,8 @@
     "https://json.schemastore.org/github-workflow": ".github/workflows/*.yml",
   },
   // FIXME: These should use relative paths. It wasn't working with relative paths when I tried.
-  "graphql-config.load.rootDir": "/home/bryan/code/eave/eave-monorepo/apps/github",
-  "graphql-config.dotEnvPath": "/home/bryan/code/eave/eave-monorepo/apps/github/.env",
+  "graphql-config.load.rootDir": "${workspaceFolder}/apps/github",
+  "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
   "eslint.experimental.useFlatConfig": false,
   "eslint.format.enable": true,
   "eslint.lintTask.enable": true,
@@ -99,9 +99,5 @@
   "python.formatting.blackArgs": [
     "--config=${workspaceFolder}/develop/python/pyproject.toml"
   ],
-  "isort.args": [
-    "--settings-file=${workspaceFolder:develop}/python"
-  ],
-  "isort.check": true,
   "python.analysis.autoImportCompletions": true,
 }
