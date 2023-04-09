@@ -347,7 +347,7 @@ class Brain:
         logger.info(f"project_title: {project_title}")
         documentation_type = await document_metadata.get_documentation_type(conversation)
         logger.info(f"documentation_type: {documentation_type}")
-        documentation = await document_metadata.get_documentation(conversation)
+        documentation = await document_metadata.get_documentation(conversation=conversation, documentation_type=documentation_type)
         logger.info(f"documentation:\n{documentation}")
         document_resources = await self.build_resources()
         logger.info(f"document_resources: {document_resources}")

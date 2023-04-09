@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from dotenv import load_dotenv
 
@@ -64,7 +65,24 @@ async def test_document_builder() -> None:
     brain = eave.slack.brain.Brain(message=message)
     await brain.load_data()
     doc = await brain.build_documentation()
-    logger.info(doc)
+
+    with open("/tmp/doc.html", "w+") as f:
+      f.write("<p>CATEGORIES:</p>")
+      f.write("<ol>")
+      c = doc
+      while c.parent is not None:
+        f.write(f"<li>{c.parent.title}</li>")
+        c = c.parent
+      f.write("</ol>")
+
+      f.write("<hr>")
+      f.write(f"<p>TITLE: {doc.title}</p>")
+      f.write("<hr>")
+
+      f.write(doc.content)
+
+    os.system('open /tmp/doc.html')
+
 
 if __name__ == "__main__":
     asyncio.run(test_document_builder())
