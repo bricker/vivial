@@ -15,6 +15,7 @@ async def authorize(enterprise_id: str, team_id: str, logger: Any) -> AuthorizeR
     )
     data = await eave_client.get_slack_source(input=input)
     assert data is not None
+    assert data.slack_source is not None
     # TODO: do we care about enterprise stuff yet?? what even is it for
     # enterprise_id doesn't exist for some teams
     # is_valid_enterprise = ("enterprise_id" not in data) or (enterprise_id == data["enterprise_id"])

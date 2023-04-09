@@ -22,8 +22,10 @@ class SubscriptionInput(pydantic.BaseModel):
 class TeamInput(pydantic.BaseModel):
     id: pydantic.UUID4
 
+
 class SlackSourceInput(pydantic.BaseModel):
     slack_team_id: str
+
 
 class Status:
     class ResponseBody(pydantic.BaseModel):
@@ -70,10 +72,11 @@ class UpsertDocument:
         subscription: models.Subscription
         document_reference: models.DocumentReference
 
+
 # TODO: copy to ts
 class GetSlackSource:
     class RequestBody(pydantic.BaseModel):
         slack_source: SlackSourceInput
 
     class ResponseBody(pydantic.BaseModel):
-        slack_source: models.SlackSource
+        slack_source: Optional[models.SlackSource] = None
