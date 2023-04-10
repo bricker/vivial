@@ -4,23 +4,6 @@ set -eu
 
 source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
-
-while getopts "ih" argname
-do
-	case $argname in
-		i)
-			statusmsg -i "re-initializing venv"
-			rm -rf .venv
-			;;
-		h)
-			echo "Usage: bin/setup [-i]"
-			echo "Options:"
-			echo "  -i : (init) Re-initializes the environment."
-			exit 0
-			;;
-	esac
-done
-
 python-activate-venv
 
 if test -f requirements.txt
@@ -34,17 +17,5 @@ then
 fi
 
 python -m pip install -q -r ${EAVE_HOME}/develop/python/requirements-dev.txt
-
-statusmsg -s "Your Python environment is now setup."
-
-usershell=$(shellname)
-case $usershell in
-	"fish")
-		statusmsg -i "Run 'source .venv/bin/activate.fish' to activate the virtual environment in your shell."
-		;;
-	"bash" | "zsh")
-		statusmsg -i "Run 'source .venv/bin/activate' to activate the virtual environment in your shell."
-		;;
-esac
 
 statusmsg -s "Setup completed ✔"

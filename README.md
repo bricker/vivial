@@ -4,7 +4,7 @@ Start by running `./bin/setup` in your current shell.
 
 ### Environment Variables
 
-The setup script will create a gitignored `.env` file in each of the app roots, with a list of environment variables that the app uses. Before running an app, you should fill these out. Some environment variables have defaults and can be left undefined (see the corresponding config.* file for more info).
+The setup script will create a gitignored `.env` file in EAVE_HOME, with a list of environment variables that the apps use. Before running an app, you should fill these out. Some environment variables have defaults and can be left undefined (see the corresponding config.* file for more info).
 
 The format of the `.env` file isn't formally specified anywhere, but it should be parseable by [python-dotenv](https://github.com/theskumar/python-dotenv#file-format).
 
@@ -12,11 +12,11 @@ The format of the `.env` file isn't formally specified anywhere, but it should b
 
 For the fastest setup, built-in configuration, debug scripts, and more, it is recommended to use VSCode for development in this repository.
 
-To get started, open `.vscode/eave.code-workspace` in VSCode.
+To get started, open EAVE_HOME (this directory) in VSCode.
 
 ## Running apps
 
-Each app has a VSCode launch configuration, which you can use from the "Run and Debug" pane in VSCode.
+This VSCode workspace defines launch configurations for each app, which you can use from the "Run and Debug" pane in VSCode.
 
 ### Running the proxy
 

@@ -1,7 +1,6 @@
 import eave.slack.event_handlers
 from slack_bolt.adapter.fastapi.async_handler import AsyncSlackRequestHandler
 from slack_bolt.async_app import AsyncApp
-from slack_sdk.web.async_client import AsyncWebClient
 
 from .config import app_config
 
@@ -17,7 +16,7 @@ app = AsyncApp(
     request_verification_enabled=True,
 )
 
-eave.slack.event_handlers.register_event_handlers(app)
+eave.slack.event_handlers.register_event_handlers(app=app)
 
 client = app.client
 

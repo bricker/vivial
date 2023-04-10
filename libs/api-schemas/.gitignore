@@ -1,5 +1,0 @@
-.mypy_cache
-.venv
-.env
-*.tar.gz*
-*.zip*

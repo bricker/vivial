@@ -5,6 +5,7 @@ import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
+from eave.stdlib import logger
 from eave.stdlib.slack import eave_slack_client
 
 from . import util as eave_request_util
@@ -15,6 +16,8 @@ SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
 async def create_access_request(
     input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
+    logger.debug("access_requests.create_access_request")
+
     await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:

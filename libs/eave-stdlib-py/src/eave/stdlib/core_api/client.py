@@ -5,6 +5,7 @@ from uuid import UUID
 import aiohttp
 import pydantic
 
+from .. import logger
 from ..config import shared_config
 from . import operations, signing
 
@@ -99,6 +100,7 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
     )
 
     headers = {
+        "content-type": "application/json",
         signing.SIGNATURE_HEADER_NAME: signature,
         "Content-Type": "application/json",
     }
@@ -106,12 +108,17 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
     if team_id is not None:
         headers[signing.TEAM_ID_HEADER_NAME] = team_id
 
+    method = "POST"
+    url = _makeurl(path)
+    logger.debug(f"Eave Core API request: {method}\t{url}\t{headers}\t{payload}")
+
     async with aiohttp.ClientSession() as session:
         response = await session.request(
-            "POST",
-            _makeurl(path),
+            method=method,
+            url=url,
             headers=headers,
             data=input.json(),
         )
 
+    logger.debug(f"Eave Core API response: {response}")
     return response

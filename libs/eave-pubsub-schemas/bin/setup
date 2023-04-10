@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eu
+
+${EAVE_HOME}/develop/python/bin/setup "$@"
+python -m pip install -e ./python
+
+${EAVE_HOME}/develop/javascript/bin/setup "$@"
+
+bin/lint

@@ -1,23 +1,28 @@
-import logging
-from typing import Any, Optional
+import json
+import os
+from typing import Optional
+
+import eave.stdlib.util as eave_util
+from eave.stdlib import logger
+from slack_bolt.async_app import AsyncAck, AsyncApp
 
 import eave.slack.brain
 import eave.slack.slack_models
-import eave.stdlib.util as eave_util
-from slack_bolt.async_app import AsyncAck, AsyncApp
-
+from eave.slack.config import app_config
 
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
     app.event("app_mention")(noop_handler)
     app.event("reaction_added")(noop_handler)
+    app.event("file_shared")(noop_handler)
+    app.event("file_public")(noop_handler)
     app.event("file_deleted")(noop_handler)
     app.event("member_joined_channel")(noop_handler)
 
 
 async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave_util.JsonObject]) -> None:
-    logging.info("WatchRequestEventHandler %s", shortcut)
+    logger.debug("WatchRequestEventHandler %s", shortcut)
     await ack()
     assert shortcut is not None
 
@@ -32,14 +37,18 @@ async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[
 
 
 async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
-    logging.info("MessageEventHandler %s", event)
+    logger.debug("MessageEventHandler %s", event)
     assert event is not None
 
     message = eave.slack.slack_models.SlackMessage(event)
+
+    if fixture_collection_enabled:
+        save_fixture(event=event)
+
     if message.subtype in ["bot_message", "bot_remove", "bot_add"]:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
-        logging.info("ignoring bot message")
+        logger.debug("ignoring bot message")
         return
 
     b = eave.slack.brain.Brain(message=message)
@@ -48,3 +57,16 @@ async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
 
 async def noop_handler() -> None:
     pass
+
+fixture_collection_enabled = (
+    app_config.dev_mode \
+    and os.getenv("SLACK_SOCKETMODE") is not None \
+    and os.getenv("FIXTURE_COLLECTION") is not None
+)
+
+def save_fixture(event: eave_util.JsonObject) -> None:
+    os.makedirs(".event_fixtures/message", exist_ok=True)
+
+    fn = event["ts"]
+    with open(f".event_fixtures/message/{fn}.json", mode="w") as f:
+        f.write(json.dumps(event, indent=2, sort_keys=True))

@@ -1,13 +1,15 @@
 import asyncio
 import enum
-import logging
 import re
-from typing import Any, AsyncGenerator, Optional
+from typing import Any, AsyncGenerator, List, Optional
 
 import eave.slack.slack_app as slack_app
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
+from eave.stdlib import logger
 from pydantic import BaseModel, HttpUrl
+import slack_sdk.models.blocks
+import slack_sdk.errors
 
 from .config import app_config
 
@@ -342,23 +344,55 @@ class SlackMessage:
     def is_eave(self) -> bool:
         return self.app_id == app_config.eave_slack_app_id
 
+    async def send_response(self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None) -> None:
+        assert self.channel is not None
+
+        if text is not None:
+            msg = f"<@{self.user}> {text}"
+
+            await slack_app.client.chat_postMessage(
+                channel=self.channel,
+                text=msg,
+                thread_ts=self.parent_ts,
+            )
+            return
+
+    #         if blocks is not None:
+    #             blocks.extend([
+    #                 slack_sdk.models.blocks.DividerBlock(),
+    #                 slack_sdk.models.blocks.ContextBlock(
+    #                     elements=[
+    # slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+    #                         text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
+    #                     ),
+    #                     ]
+    #                     text=
+    #                 ),
+    #             ])
+    #             await eave.slack.client.chat_postMessage(
+    #                 channel=self.message.channel,
+    #                 blocks=blocks,
+    #                 thread_ts=self.message.parent_ts,
+    #             )
+    #             return
+
+    async def add_reaction(self, name: str) -> None:
+        assert self.channel is not None
+        assert self.ts is not None
+
+        try:
+            await slack_app.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
+        except slack_sdk.errors.SlackApiError as e:
+            # https://api.slack.com/methods/reactions.add#errors
+            error_code = e.response.get("error")
+            logger.warn(f"Error reacting to message: {error_code}", exc_info=e)
+            return
+
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:
         await self.get_expanded_text()
         value = any(profile.api_app_id == app_config.eave_slack_app_id for profile in self.user_mentions)
         return value
-
-    @eave_util.memoized
-    async def check_is_info_request(self) -> bool:
-        eave_is_mentioned = await self.check_eave_is_mentioned()
-        if eave_is_mentioned is False:
-            return False
-
-        info_match = re.match(f"^info$", self.text_without_leading_mention)
-        if info_match is None:
-            return False
-
-        return True
 
     @eave_util.memoized
     async def get_parent_permalink(self) -> SlackPermalink | None:
@@ -438,7 +472,7 @@ class SlackMessage:
     @eave_util.memoized
     async def get_formatted_message(self) -> str | None:
         if self.is_bot_message:
-            logging.info("skipping bot message")
+            logger.info("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -447,7 +481,7 @@ class SlackMessage:
         )
 
         if expanded_text is None or user_profile is None:
-            logging.warning("expanded_text or user_profile were None")
+            logger.warning("expanded_text or user_profile were None")
             return None
 
         formatted_message = f"- Message from {user_profile.real_name}: {expanded_text}\n"
@@ -651,7 +685,7 @@ class SlackMessage:
     @eave_util.memoized
     async def simple_format(self) -> str | None:
         if self.is_bot_message:
-            logging.info("skipping bot message")
+            logger.info("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(

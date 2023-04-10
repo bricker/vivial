@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/shared/functions.bash
+
+statusmsg -i "Compiling protobuf schemas..."
+
+python -m grpc_tools.protoc --version
+
+python -m grpc_tools.protoc \
+	--fatal_warnings \
+	--proto_path=protos \
+	--python_out=python/src/eave/pubsub_schemas/generated \
+	--pyi_out=python/src/eave/pubsub_schemas/generated \
+	protos/*
+
+python -m grpc_tools.protoc \
+	--fatal_warnings \
+	--proto_path=protos \
+	--plugin=typescript/node_modules/.bin/protoc-gen-ts_proto \
+	--ts_proto_out=typescript/src/generated \
+	--ts_proto_opt=onlyTypes=true \
+	--ts_proto_opt=outputPartialMethods=false \
+	--ts_proto_opt=stringEnums=true \
+	--ts_proto_opt=snakeToCamel=false \
+	--ts_proto_opt=unrecognizedEnum=false \
+	--ts_proto_opt=removeEnumPrefix=false \
+	--ts_proto_opt=exportCommonSymbols=false \
+	--ts_proto_opt=enumsAsLiterals=true \
+	protos/*
+
+statusmsg -s "Done!"

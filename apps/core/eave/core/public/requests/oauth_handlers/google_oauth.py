@@ -33,6 +33,14 @@ class RequestBody(pydantic.BaseModel):
     error: Optional[str]
 
 
+@dataclass
+class OAuthResponseBody(pydantic.BaseModel):
+    sub: str
+    """Google globally unique and immutable user ID"""
+
+    given_name: Optional[str]
+
+
 async def google_oauth_callback(
     input: RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
@@ -42,10 +50,8 @@ async def google_oauth_callback(
     assert credentials.id_token is not None
     token = decode_id_token(id_token=credentials.id_token)
 
-    userid = token.get("sub")
-    assert userid is not None
-    given_name = token.get("given_name")
-
+    userid = token.sub
+    given_name = token.given_name
     async with await eave_db.get_session() as session:
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
@@ -112,13 +118,14 @@ def get_oauth_credentials(uri: str, state: str) -> google.oauth2.credentials.Cre
     return credentials
 
 
-def decode_id_token(id_token: str) -> eave_util.JsonObject:
-    token: eave_util.JsonObject = google.oauth2.id_token.verify_oauth2_token(
+def decode_id_token(id_token: str) -> OAuthResponseBody:
+    token_json: eave_util.JsonObject = google.oauth2.id_token.verify_oauth2_token(
         id_token=id_token,
         audience=app_config.eave_google_oauth_client_id,
         request=requests.Request(),
     )
 
+    token = OAuthResponseBody(**token_json)
     return token
 
 

@@ -1,19 +1,19 @@
 from http import HTTPStatus
-from http.client import HTTPException
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.core_api.signing as eave_signing
 import fastapi
+from eave.stdlib import logger
 
 from . import util as eave_request_util
 
 
 async def get_subscription(
-    input: eave_ops.GetSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response
+    input: eave_ops.GetSubscription.RequestBody, request: fastapi.Request
 ) -> eave_ops.GetSubscription.ResponseBody:
+    logger.info("subscriptions.get_subscription")
     await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:
@@ -41,6 +41,7 @@ async def get_subscription(
 async def create_subscription(
     input: eave_ops.CreateSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> eave_ops.CreateSubscription.ResponseBody:
+    logger.debug("subscriptions.create_subscription")
     await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:

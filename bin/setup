@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source ./develop/shared/functions.bash
 source ./develop/python/functions.bash
 
 statusmsg -ns "Hi! Welcome to Eave. I will help you setup this repository."
@@ -52,6 +53,27 @@ fi
 
 echo ""
 
+statusmsg -ni "Next, I will setup the python virtual environment."
+read -p "Should I proceed? [y/n] " proceed
+if test "$proceed" = "y"
+then
+	if ! command_exists pyenv
+	then
+		pythonversion="$(python --version)"
+		pythonpath="$(which python)"
+		statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
+		statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
+		statusmsg -w "I did not find pyenv, so I will proceed with the available python executable ($pythonpath)."
+	else
+		pyenv install -s
+		pyenv version
+	fi
+
+	python -m venv --clear --upgrade-deps .venv
+
+	source .venv/bin/activate
+fi
+
 statusmsg -ni "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
 
 read -p "Should I proceed? [y/n] " proceed
@@ -69,4 +91,4 @@ fi
 
 statusmsg -s "Done!"
 
-statusmsg -i "Now, open the file .vscode/eave.code-workspace in VSCode, and you're ready to go."
+statusmsg -i "Now, open EAVE_HOME (this directory) in VSCode and you're ready to go."

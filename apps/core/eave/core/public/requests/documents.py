@@ -5,6 +5,7 @@ import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
+from eave.stdlib import logger
 
 from . import util as eave_request_util
 
@@ -12,6 +13,8 @@ from . import util as eave_request_util
 async def upsert_document(
     input: eave_ops.UpsertDocument.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> eave_ops.UpsertDocument.ResponseBody:
+    logger.debug("documents.upsert_document")
+
     await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:

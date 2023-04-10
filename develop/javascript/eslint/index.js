@@ -8,6 +8,7 @@ const config = {
     '*.doccarchive',
     '!.github',
     'dist',
+    'generated',
   ],
   env: {
     browser: true,
