@@ -40,7 +40,6 @@
     "https://json.schemastore.org/github-action": ["action.yml"],
     "https://json.schemastore.org/github-workflow": ".github/workflows/*.yml",
   },
-  // FIXME: These should use relative paths. It wasn't working with relative paths when I tried.
   "graphql-config.load.rootDir": "${workspaceFolder}/apps/github",
   "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
   "eslint.experimental.useFlatConfig": false,
