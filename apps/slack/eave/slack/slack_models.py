@@ -382,8 +382,10 @@ class SlackMessage:
 
         try:
             await slack_app.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
-        except slack_sdk.errors.SlackApiError:
-            # Usually this is because Eave already reacted to this message (error: already_reacted)
+        except slack_sdk.errors.SlackApiError as e:
+            # https://api.slack.com/methods/reactions.add#errors
+            error_code = e.response.get("error")
+            logger.warn(f"Error reacting to message: {error_code}", exc_info=e)
             return
 
     @eave_util.memoized

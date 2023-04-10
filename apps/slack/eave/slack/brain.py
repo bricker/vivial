@@ -1,12 +1,9 @@
 import json
 import asyncio
-import enum
 import random
-import re
 from typing import Optional
 from uuid import UUID
 
-import eave.slack.slack_app as slack_app
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
@@ -155,6 +152,8 @@ class Brain:
         """
         logger.debug("Brain.process_unknown_request")
         subscription = await self.get_subscription()
+
+        # TODO: Create a Jira ticket (or similar) when Eave doesn't know how to handle a message.
 
         if subscription is None:
             await self.message.send_response(
@@ -421,6 +420,7 @@ class Brain:
     """
 
     async def acknowledge_receipt(self) -> None:
+        # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
         await self.message.add_reaction("eave")
 
     async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:

@@ -270,6 +270,7 @@ class ConfluenceDestinationOrm(Base):
         else:
             resolved_document_body = document.content
 
+        # TODO: Hack
         content = resolved_document_body.replace("&", "&amp;")
         response = self.confluence_client().update_page(
             page_id=document_reference.document_id,
@@ -289,6 +290,7 @@ class ConfluenceDestinationOrm(Base):
         if document.parent is not None:
             parent_page = await self.get_or_create_confluence_page(document=document.parent)
 
+        # TODO: Hack
         content = document.content.replace("&", "&amp;")
         response = self.confluence_client().create_page(
             space=self.space,
