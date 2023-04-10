@@ -6,6 +6,7 @@ export const run = async (payload: CommentedIssueEventPayload) => {
   console.debug(payload.eventType);
   // console.debug(JSON.stringify(payload, undefined, 2));
 
+  return;
   // FIXME: Hardcoded ID.
   if (payload.comment.author.accountId === '6406455093cf2599462fbd53') {
     return;

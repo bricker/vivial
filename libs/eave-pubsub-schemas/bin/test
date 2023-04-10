@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/shared/functions.bash
+
+function run-python-tests() (
+	statusmsg -i "Running python tests..."
+	cd ./python
+	python test.py
+	statusmsg -s "Done!"
+)
+
+run-python-tests
+statusmsg -w "No typescript tests"

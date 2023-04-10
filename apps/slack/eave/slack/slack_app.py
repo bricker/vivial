@@ -40,7 +40,7 @@ app = AsyncApp(
     authorize=authorize,
 )
 
-eave.slack.event_handlers.register_event_handlers(app)
+eave.slack.event_handlers.register_event_handlers(app=app)
 
 client = app.client
 

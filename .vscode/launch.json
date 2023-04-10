@@ -1,0 +1,113 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Core API",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/core",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "--port",
+        "5100",
+        "--reload",
+        "eave.core.app:app"
+      ],
+      "justMyCode": false,
+    },
+    {
+      "name": "Slack App API",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/slack",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "--port",
+        "5200",
+        "--reload",
+        "eave.slack.app:api"
+      ],
+      "justMyCode": false,
+    },
+    {
+      "name": "Slack Socket Mode",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/slack",
+      "type": "python",
+      "request": "launch",
+      "program": "./socketmode.py",
+      "autoReload": {
+        "enable": true,
+        "include": [
+          "**/*.py",
+        ]
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "SLACK_SOCKETMODE": "1"
+      }
+    },
+    {
+      "name": "GitHub App API",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/github",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "./src/app.ts",
+      "restart": true,
+      "runtimeExecutable": "./node_modules/.bin/nodemon",
+      "env": {
+        "PORT": "5300"
+      },
+    },
+    {
+      "name": "Marketing Website (Server)",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/marketing",
+      "type": "python",
+      "request": "launch",
+      "module": "flask",
+      "args": [
+        "--app",
+        "eave.marketing.app:app",
+        "run",
+        "--no-debugger",
+        "--port",
+        "5000"
+      ],
+      "jinja": true,
+      "justMyCode": true
+    },
+    {
+      "name": "Marketing Website (Client)",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/marketing",
+      "type": "node",
+      "request": "launch",
+      "program": "./node_modules/.bin/webpack",
+      "args": [
+        "-w",
+      ],
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Marketing Website",
+      "configurations": [
+        "Marketing Website (Client)",
+        "Marketing Website (Server)"
+      ],
+      "stopAll": true
+    },
+  ]
+}

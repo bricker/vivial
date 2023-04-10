@@ -145,13 +145,6 @@ then
 		esac
 	}
 
-	function activate_venv () {
-		if test -f .venv/bin/activate
-		then
-			source .venv/bin/activate
-		fi
-	}
-
 	function run_in_all_projects () {
 		if test -z "$1"
 		then
@@ -168,7 +161,6 @@ then
 			if test -x $dir$cmd
 			then
 				cd $dir
-				activate_venv
 				$cmd
 				cd - > /dev/null
 			else

@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { Configuration, OpenAIApi, CreateCompletionRequest } from 'openai';
+import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 import { sharedConfig } from './config';
 
 // eslint-disable-next-line operator-linebreak
@@ -9,14 +9,23 @@ export const PROMPT_PREFIX =
   + "You are responsible for the quality and integrity of this organization's documentation.";
 
 export enum OpenAIModel {
-  davinciText = 'text-davinci-003',
-  davinciCode = 'code-davinci-002',
+  GPT_35_TURBO = "gpt-3.5-turbo",
+  GPT4 = "gpt-4",
+  GPT4_32K = "gpt-4-32k",
 }
 
-export async function createCompletion(parameters: CreateCompletionRequest): Promise<string> {
+export const MAX_TOKENS = {
+    [OpenAIModel.GPT_35_TURBO]: 4096,
+    [OpenAIModel.GPT4]: 8192,
+    [OpenAIModel.GPT4_32K]: 32768,
+}
+
+export async function createChatCompletion(parameters: CreateChatCompletionRequest): Promise<string> {
+  parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX })
+
   const client = await getOpenAIClient();
-  const completion = await client.createCompletion(parameters);
-  const text = completion.data.choices[0]?.text;
+  const completion = await client.createChatCompletion(parameters);
+  const text = completion.data.choices[0]?.message?.content;
   assert(text !== undefined);
   return text;
 }

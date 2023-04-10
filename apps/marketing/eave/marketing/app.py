@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import Any
 
+import eave.stdlib.logging
 import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.operations as eave_ops
@@ -8,6 +9,8 @@ from flask import Flask, redirect, render_template, request
 from werkzeug import Response
 
 from .config import app_config
+
+eave.stdlib.logging.setup_logging()
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key

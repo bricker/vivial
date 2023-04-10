@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-enum DocumentPlatform {
-    DOCUMENT_PLATFORM_UNSPECIFIED = 0;
-    EAVE = 1;
-    CONFLUENCE = 2;
-    GOOGLE_DRIVE = 3;
-}

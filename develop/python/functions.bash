@@ -11,17 +11,15 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		fi
 	}
 
-	function python-activate-venv() {
-		if ! command_exists pyenv; then
-			statusmsg -w "automatic environment management is disabled because pyenv was not found in your PATH. It is recommended to install pyenv."
-			return 0
+	function python-activate-venv () {
+		ved=${EAVE_HOME}/.venv
+		if ! test -d $ved
+		then
+			statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
+			exit 1
 		fi
 
-		if ! test -d .venv; then
-			python -m venv --upgrade-deps .venv
-		fi
-
-		source .venv/bin/activate
+		source $ved/bin/activate
 	}
 
 	_PYTHON_FUNCTIONS_LOADED=1

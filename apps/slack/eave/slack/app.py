@@ -1,33 +1,12 @@
-import logging
-import sys
 from typing import Any
 
 import eave.stdlib.api_util as eave_api_util
+import eave.stdlib.logging
 from fastapi import FastAPI, Request
 
 from . import slack_app
-from .config import app_config
 
-if app_config.monitoring_enabled:
-    # TODO: Move this into eave.stdlib
-    import google.cloud.logging
-
-    client = google.cloud.logging.Client()
-    client.setup_logging()
-
-    logging.info("Google Cloud Logging started for eave-app-slack")
-else:
-    # TODO: A better way to direct logs to stdout in dev
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-# https://github.com/slackapi/bolt-python/tree/main/examples/fastapi
-
+eave.stdlib.logging.setup_logging()
 
 api = FastAPI()
 
