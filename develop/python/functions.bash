@@ -1,13 +1,11 @@
-if test -z "${_PYTHONSCRIPTS_LOADED:-}"
-then
-	EAVE_PYTHON_VERSION=3.11
+if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
+	EAVE_PYTHON_VERSION=$(cat "${EAVE_HOME}/.python-version")
 
 	source ${EAVE_HOME}/develop/shared/functions.bash
 
-	function python-validate-version () {
+	function python-validate-version() {
 		local current_version=$(python --version)
-		if ! $(echo -n "$current_version" | grep -q "Python $EAVE_PYTHON_VERSION")
-		then
+		if ! $(echo -n "$current_version" | grep -q "Python $EAVE_PYTHON_VERSION"); then
 			echo "ERROR: The 'python' executable in your path must be version $EAVE_PYTHON_VERSION. Your current version: $current_version"
 			exit 1
 		fi
@@ -24,5 +22,5 @@ then
 		source $ved/bin/activate
 	}
 
-	_PYTHONSCRIPTS_LOADED=1
+	_PYTHON_FUNCTIONS_LOADED=1
 fi

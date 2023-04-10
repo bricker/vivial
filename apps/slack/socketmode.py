@@ -17,5 +17,6 @@ async def start_socket_mode() -> None:
 
     await handler.start_async()
 
+
 if __name__ == "__main__":
     asyncio.run(start_socket_mode())

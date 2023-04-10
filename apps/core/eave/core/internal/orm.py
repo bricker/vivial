@@ -17,6 +17,7 @@ from sqlalchemy import (
     func,
     select,
     text,
+    delete,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -328,25 +329,37 @@ class ConfluenceDestinationOrm(Base):
         return page
 
 
-# class SlackSource(Base):
-#     __tablename__ = "slack_sources"
-#     __table_args__ = (
-#         make_team_composite_pk(),
-#         make_team_fk(),
-#         Index(
-#             "slack_install_id",
-#             "team_id",
-#             "source_event",
-#             "source_id",
-#             unique=True,
-#         ),
-#     )
+class SlackSource(Base):
+    __tablename__ = "slack_sources"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        Index(
+            "slack_team_id_eave_team_id",
+            "team_id",
+            "slack_team_id",
+            unique=True,
+        ),
+    )
 
-#     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-#     slack_install_id: Mapped[str] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    team_id: Mapped[UUID] = mapped_column()
+    """eave TeamOrm id"""
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    slack_team_id: Mapped[str] = mapped_column(unique=True)
+    """team[id] from here: https://api.slack.com/methods/oauth.v2.access#examples"""
+
+    # bot identification data for authorizing slack api calls
+    bot_token: Mapped[str] = mapped_column()
+    bot_id: Mapped[str] = mapped_column()
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
+        lookup = select(cls).where(cls.team_id == team_id).limit(1)
+        source: Self | None = (await session.scalars(lookup)).one_or_none()
+        return source
+
 
 # class GithubSource(Base):
 #     __tablename__ = "github_sources"
@@ -402,6 +415,7 @@ class TeamOrm(Base):
 
 class AuthProvider(enum.Enum):
     google = "google"
+    slack = "slack"
 
 
 class AccountOrm(Base):
@@ -420,8 +434,11 @@ class AccountOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     auth_provider: Mapped[AuthProvider] = mapped_column()
+    """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
+    """userid from 3rd party auth_provider"""
     oauth_token: Mapped[str] = mapped_column()
+    """oauth token from 3rd party"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 

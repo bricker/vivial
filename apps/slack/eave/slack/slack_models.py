@@ -3,6 +3,7 @@ import enum
 import re
 from typing import Any, AsyncGenerator, List, Optional
 
+import eave.slack.slack_app as slack_app
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 from eave.stdlib import logger
@@ -11,7 +12,6 @@ import slack_sdk.models.blocks
 import slack_sdk.errors
 
 from .config import app_config
-import eave.slack.slack_app as slack_app
 
 
 class SlackProfile:

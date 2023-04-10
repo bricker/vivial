@@ -11,7 +11,6 @@ class DocumentPlatform(str, enum.Enum):
     eave = "eave"
     confluence = "confluence"
     google_drive = "google_drive"
-    unspecified = "unspecified"
 
 
 class SubscriptionSourcePlatform(str, enum.Enum):

@@ -1,7 +1,7 @@
+import eave.slack.event_handlers
 from slack_bolt.adapter.fastapi.async_handler import AsyncSlackRequestHandler
 from slack_bolt.async_app import AsyncApp
 
-import eave.slack.event_handlers
 from .config import app_config
 
 token = app_config.eave_slack_bot_token

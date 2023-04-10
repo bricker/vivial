@@ -1,9 +1,7 @@
-from typing import Optional
-from uuid import UUID
+from typing import Any, Optional
 
 import pydantic
 
-from .. import util
 from . import models
 
 

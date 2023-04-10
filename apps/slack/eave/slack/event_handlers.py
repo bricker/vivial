@@ -20,6 +20,7 @@ def register_event_handlers(app: AsyncApp) -> None:
     app.event("file_deleted")(noop_handler)
     app.event("member_joined_channel")(noop_handler)
 
+
 async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave_util.JsonObject]) -> None:
     logger.debug("WatchRequestEventHandler %s", shortcut)
     await ack()

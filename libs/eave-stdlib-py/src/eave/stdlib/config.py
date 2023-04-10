@@ -55,6 +55,16 @@ class EaveConfig:
         value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
+    @cached_property
+    def eave_slack_client_id(self) -> str:
+        value: str = self.get_secret("EAVE_SLACK_APP_CLIENT_ID")
+        return value
+
+    @cached_property
+    def eave_slack_client_secret(self) -> str:
+        value: str = self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
+        return value
+
     def get_secret(self, name: str) -> str:
         env_value = os.getenv(name)
         if env_value is not None:

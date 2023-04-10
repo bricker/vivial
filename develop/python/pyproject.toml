@@ -5,6 +5,7 @@ extend-exclude = '''
   | generated
   | \\.venv
   | node_modules
+  | vendor
 )
 '''
 line-length = 120
@@ -17,6 +18,7 @@ extend_skip = [
   "generated",
   "node_modules",
   ".venv",
+  "vendor",
 ]
 
 [tool.mypy]
@@ -25,6 +27,7 @@ exclude = [
   "generated",
   "node_modules",
   ".venv",
+  "vendor",
 ]
 warn_unused_ignores = true
 warn_redundant_casts = true

@@ -12,6 +12,7 @@ inbound_services:
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
+    --pythonpath vendor \
     eave.marketing.app:app
 
 env_variables:

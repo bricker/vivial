@@ -1,3 +1,4 @@
+import logging
 from http import HTTPStatus
 from http.client import HTTPException
 from uuid import UUID
@@ -43,14 +44,17 @@ async def validate_signature_or_fail(request: fastapi.Request) -> None:
 
 
 def not_found(request: fastapi.Request, exc: Exception) -> fastapi.Response:
+    logging.error("not found", exc_info=exc)
     return fastapi.responses.Response(status_code=HTTPStatus.NOT_FOUND)
 
 
 def internal_server_error(request: fastapi.Request, exc: Exception) -> fastapi.Response:
+    logging.error("internal server error", exc_info=exc)
     return fastapi.responses.Response(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def bad_request(request: fastapi.Request, exc: Exception) -> fastapi.Response:
+    logging.error("bad request", exc_info=exc)
     return fastapi.responses.Response(status_code=HTTPStatus.BAD_REQUEST)
 
 

@@ -1,4 +1,4 @@
-if test -z "${_SHAREDSCRIPTS_LOADED:-}"
+if test -z "${_SHARED_FUNCTIONS_LOADED:-}"
 then
 	function statusmsg () {
 		local usage="
@@ -171,5 +171,5 @@ then
 		done
 	}
 
-	_SHAREDSCRIPTS_LOADED=1
+	_SHARED_FUNCTIONS_LOADED=1
 fi

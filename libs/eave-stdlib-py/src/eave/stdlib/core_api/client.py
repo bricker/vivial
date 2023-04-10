@@ -94,15 +94,15 @@ def _makeurl(path: str) -> str:
 
 
 async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[str]) -> aiohttp.ClientResponse:
-    payload = input.json()
     signature = signing.sign(
-        payload=payload,
+        payload=input.json(),
         team_id=team_id,
     )
 
     headers = {
         "content-type": "application/json",
         signing.SIGNATURE_HEADER_NAME: signature,
+        "Content-Type": "application/json",
     }
 
     if team_id is not None:
@@ -117,7 +117,7 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
             method=method,
             url=url,
             headers=headers,
-            data=payload,
+            data=input.json(),
         )
 
     logger.debug(f"Eave Core API response: {response}")
