@@ -2,6 +2,7 @@ import enum
 import logging
 from dataclasses import asdict, dataclass
 from typing import Any, List, LiteralString, Optional, cast
+import textwrap
 
 import openai as openai_sdk
 import openai.openai_object
@@ -137,3 +138,7 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
 # df["ada_embedding"] = df.ada_embedding.apply(eval).apply(numpy.array)
 # df["ada_embedding"] = df.combined.apply(lambda x: get_embedding(x, model=OpenAIModel.ADA_EMBEDDING))
 # df.to_csv("output/embedded_1k_reviews.csv", index=False)
+
+
+def formatprompt(*strings: str) -> str:
+    return "\n\n".join([textwrap.dedent(string) for string in strings])

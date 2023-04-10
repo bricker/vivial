@@ -393,18 +393,6 @@ class SlackMessage:
         return value
 
     @eave_util.memoized
-    async def check_is_info_request(self) -> bool:
-        eave_is_mentioned = await self.check_eave_is_mentioned()
-        if eave_is_mentioned is False:
-            return False
-
-        info_match = re.match(f"^info$", self.text_without_leading_mention)
-        if info_match is None:
-            return False
-
-        return True
-
-    @eave_util.memoized
     async def get_parent_permalink(self) -> SlackPermalink | None:
         if self.channel is None:
             return None

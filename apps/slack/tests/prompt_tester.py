@@ -9,6 +9,8 @@ import json
 import asyncio
 import eave.slack.brain
 import eave.slack.slack_models
+import eave.slack.message_prompts
+import eave.stdlib.openai_client
 
 import eave.stdlib.logging
 eave.stdlib.logging.setup_logging(level=logging.DEBUG)
@@ -16,34 +18,13 @@ from eave.stdlib import logger
 
 jsonstring = """
 {
-  "blocks": [
-    {
-      "block_id": "DOIx",
-      "elements": [
-        {
-          "elements": [
-            {
-              "type": "user",
-              "user_id": "U04JKG95GUC"
-            },
-            {
-              "text": " please document this thread",
-              "type": "text"
-            }
-          ],
-          "type": "rich_text_section"
-        }
-      ],
-      "type": "rich_text"
-    }
-  ],
   "channel": "C051LAJE4ES",
   "channel_type": "channel",
   "client_msg_id": "1dc45313-c09c-4f10-96d5-3486fad0db5e",
   "event_ts": "1680720718.400389",
   "parent_user_id": "U03H23466MN",
   "team": "T03G5LV6R7Y",
-  "text": "<@U04JKG95GUC> please document this thread",
+  "text": "<@U04JKG95GUC> is there any existing documentation about this?",
   "thread_ts": "1680637189.965309",
   "ts": "1680720718.400389",
   "type": "message",
@@ -51,12 +32,21 @@ jsonstring = """
 }
 """
 
-async def test_request_processor() -> None:
-    logger.info("test_request_processor")
+async def test_slack_message_processing() -> None:
+    logger.info("test_slack_message_processing")
     event = json.loads(jsonstring)
     message = eave.slack.slack_models.SlackMessage(event)
     brain = eave.slack.brain.Brain(message=message)
     await brain.process_message()
+
+async def test_action_prompt() -> None:
+    logger.info("test_action_prompt")
+    event = json.loads(jsonstring)
+    message = eave.slack.slack_models.SlackMessage(event)
+    brain = eave.slack.brain.Brain(message=message)
+    await brain.load_data()
+    message_action = await eave.slack.message_prompts.message_action(context=brain.message_context)
+    logger.info(message_action)
 
 async def test_document_builder() -> None:
     logger.info("test_document_builder")
@@ -85,4 +75,4 @@ async def test_document_builder() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(test_document_builder())
+    asyncio.run(test_action_prompt())

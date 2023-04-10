@@ -17,30 +17,15 @@ import tiktoken
 
 from . import slack_models
 from . import document_metadata
+from . import message_prompts
 
 tokencoding = tiktoken.get_encoding("gpt2")
-
-class MessagePurpose(enum.Enum):
-    REQUEST = "REQUEST"
-    QUESTION = "QUESTION"
-    WATCH = "WATCH"
-    OTHER = "OTHER"
-    UNKNOWN = "UNKNOWN"
-
-
-class RequestType(enum.Enum):
-    CREATE_DOCUMENTATION = "CREATE_DOCUMENTATION"
-    SEARCH_DOCUMENTATION = "SEARCH_DOCUMENTATION"
-    UPDATE_DOCUMENTATION = "UPDATE_DOCUMENTATION"
-    DELETE_DOCUMENTATION = "DELETE_DOCUMENTATION"
-    WATCH = "WATCH"
-    OTHER = "OTHER"
-    UNKNOWN = "UNKNOWN"
 
 class Brain:
     message: slack_models.SlackMessage
     user_profile: slack_models.SlackProfile
     expanded_text: str
+    message_context: str
     team_id: UUID
 
     def __init__(self, message: slack_models.SlackMessage) -> None:
@@ -62,11 +47,6 @@ class Brain:
             """
             await self.acknowledge_receipt()
 
-            is_info_request = await self.message.check_is_info_request()
-            if is_info_request is True:
-                await self.send_message_info()
-                return
-
             action = eave_user_action.EaveUserAction(
                 action=eave_user_action.EaveUserAction.Action(
                     platform=eave_models.SubscriptionSourcePlatform.slack,
@@ -74,7 +54,7 @@ class Brain:
                     description="Eave was mentioned in Slack",
                     eave_user_id="xxxx",
                     opaque_params=json.dumps({}),
-                    user_ts=int(self.message.ts),
+                    user_ts=int(float(self.message.ts)),
                 ),
                 message_source=__name__
             )
@@ -94,38 +74,8 @@ class Brain:
 
         await self.load_data()
 
-        purpose_prompt = (
-            f"{self.user_profile.real_name_normalized} sent you a message.\n"
-            f"{self.message_context()}\n\n"
-            f"The message is as follows:\n\n"
-            f"{self.expanded_text}\n\n"
-            f"- If they are requesting something from you, or asking you to do something, say: {MessagePurpose.REQUEST.value}\n"
-            f"- If they are asking you another type of question, say: {MessagePurpose.QUESTION.value}\n"
-            f"- If they are simply notifying or tagging you, say: {MessagePurpose.WATCH.value}\n"
-            f"- Otherwise, say: {MessagePurpose.OTHER.value}"
-        )
-
-        logger.info(f"purpose_prompt:\n{purpose_prompt}")
-        purpose_openai_response = await self.get_openai_response(messages=[purpose_prompt], temperature=0)
-        logger.info(f"purpose_openai_response: {purpose_openai_response}")
-
-        try:
-            purpose = MessagePurpose(value=self.normalize_for_enum(purpose_openai_response))
-        except ValueError as e:
-            logger.exception(f"Unexpected purpose response", exc_info=e, extra={"response": purpose_openai_response})
-            purpose = MessagePurpose.UNKNOWN
-
-        logger.info(f"purpose: {purpose}")
-
-        match purpose:
-            case MessagePurpose.REQUEST:
-                await self.process_request()
-            case MessagePurpose.QUESTION:
-                await self.process_question()
-            case MessagePurpose.WATCH:
-                await self.process_watch_request()
-            case MessagePurpose.OTHER | MessagePurpose.UNKNOWN:
-                await self.process_unknown_request()
+        message_action = await message_prompts.message_action(context=self.message_context)
+        await self.handle_action(message_action=message_action)
 
     async def process_shortcut_event(self) -> None:
         logger.debug("Brain.shortcut_event")
@@ -144,47 +94,33 @@ class Brain:
     Intent Processors
     """
 
-    async def process_request(self) -> None:
-        logger.debug("Brain.process_request")
+    async def handle_action(self, message_action: message_prompts.MessageAction) -> None:
+        match message_action:
+            case message_prompts.MessageAction.CREATE_DOCUMENTATION | message_prompts.MessageAction.WATCH:
+                await self.create_documentation_and_subscribe()
+                return
 
-        caller_name = self.user_profile.real_name_normalized
+            case message_prompts.MessageAction.SEARCH_DOCUMENTATION:
+                await self.message.send_response(text="One moment while I look...")
+                await self.search_documentation()
+                return
 
-        prompt = (
-            f"{caller_name} is requesting something from you.\n"
-            f"{self.message_context()}\n\n"
-            f"The request is as follows:\n\n"
-            f"{self.expanded_text}\n\n"
-            f"- If they want you to create some documentation, say: {RequestType.CREATE_DOCUMENTATION.value}\n"
-            f"- If they want you to find or search for some documentation, say: {RequestType.SEARCH_DOCUMENTATION.value}\n"
-            f"- If they want you to update some documentation, say: {RequestType.UPDATE_DOCUMENTATION.value}\n"
-            f"- If they want you to delete or archive some documentation, say: {RequestType.DELETE_DOCUMENTATION.value}\n"
-            f"- If they want you to subscribe, listen, or watch a conversation, say: {RequestType.WATCH.value}\n"
-            f"- Otherwise, say: {RequestType.OTHER.value}"
-        )
-        logger.info(f"prompt: {prompt}")
-        await self.handle_request(prompt=prompt)
+            case message_prompts.MessageAction.UPDATE_DOCUMENTATION:
+                await self.message.send_response(text="On it!")
+                await self.update_documentation()
+                return
 
-    async def process_question(self) -> None:
-        logger.debug("Brain.process_question")
+            case message_prompts.MessageAction.DELETE_DOCUMENTATION:
+                # TODO: Unsubscribe from conversation
+                await self.message.send_response(text="On it!")
+                await self.archive_documentation()
+                return
 
-        caller_name = self.user_profile.real_name_normalized
+            case _:
+                await self.handle_unknown_request()
+                return
 
-        prompt = (
-            f"{caller_name} is asking you a question.\n"
-            f"{self.message_context()}\n\n"
-            f"The question is as follows:\n\n"
-            f"{self.expanded_text}\n\n"
-            f"- If they are asking if you can create documentation, say: {RequestType.CREATE_DOCUMENTATION.value}\n"
-            f"- If they are asking if you can search existing documentation, or asking if there is existing documentation, say: {RequestType.SEARCH_DOCUMENTATION.value}\n"
-            f"- If they are asking if you to can update some documentation, say: {RequestType.UPDATE_DOCUMENTATION.value}\n"
-            f"- If they are asking if you can delete or archive some documentation, say: {RequestType.DELETE_DOCUMENTATION.value}\n"
-            f"- If they are asking if you can subscribe, listen, or watch a conversation, say: {RequestType.WATCH.value}\n"
-            f"- Otherwise, say: {RequestType.OTHER.value}"
-        )
-        logger.info(f"prompt: {prompt}")
-        await self.handle_request(prompt=prompt)
-
-    async def process_watch_request(self) -> None:
+    async def create_documentation_and_subscribe(self) -> None:
         """
         Subscribes to the thread and creates initial documentation if not already subscribed,
         otherwise notifies the user that I'm already watching this conversation.
@@ -201,8 +137,7 @@ class Brain:
             ))
             await self.message.send_response(
                 text=(
-                    f"{message_prefix} Because you tagged me, I'll continuously watch this conversation and document the information. "
-                    "I'll get started on the initial documentation right away and send an update when it's ready."
+                    f"{message_prefix} I'll get started on the documentation right now and send an update when it's ready."
                 )
             )
             await self.create_subscription()
@@ -212,7 +147,7 @@ class Brain:
             await self.notify_existing_subscription(subscription=existing_subscription)
             return
 
-    async def process_unknown_request(self) -> None:
+    async def handle_unknown_request(self) -> None:
         """
         Processes a request that wasn't recognized.
         Basically lets the user know that I wasn't able to process the message, and reminds them if I'm already documenting this conversation.
@@ -248,60 +183,6 @@ class Brain:
                     "If you needed something else, try phrasing it differently."
                 )
             )
-
-    async def handle_request(self, prompt: str) -> None:
-        """
-        Determines the RequestType, and then handles the message accordingly.
-        """
-        logger.debug("Brain.handle_request")
-
-        openai_response = await self.get_openai_response(messages=[prompt], temperature=0)
-
-        try:
-            request_type = RequestType(value=self.normalize_for_enum(openai_response))
-        except ValueError as e:
-            logger.exception(f"Unexpected request type response", exc_info=e, extra={"response": openai_response})
-            request_type = RequestType.UNKNOWN
-
-        logger.info(f"request_type: {request_type}")
-
-        match request_type:
-            case RequestType.CREATE_DOCUMENTATION:
-                existing_subscription = await self.get_subscription()
-                if existing_subscription is None:
-                    await self.message.send_response(
-                        text=("Sure! I'll work on this now and send an update when it's ready.")
-                    )
-                    await self.create_subscription()
-                    await self.create_documentation()
-                else:
-                    await self.notify_existing_subscription(subscription=existing_subscription)
-
-                return
-
-            case RequestType.SEARCH_DOCUMENTATION:
-                await self.message.send_response(text="One moment while I look...")
-                await self.search_documentation()
-                return
-
-            case RequestType.UPDATE_DOCUMENTATION:
-                await self.message.send_response(text="On it!")
-                await self.update_documentation()
-                return
-
-            case RequestType.DELETE_DOCUMENTATION:
-                # TODO: Unsubscribe from conversation
-                await self.message.send_response(text="On it!")
-                await self.archive_documentation()
-                return
-
-            case RequestType.WATCH:
-                await self.process_watch_request()
-                return
-
-            case RequestType.OTHER | RequestType.UNKNOWN:
-                await self.process_unknown_request()
-                return
 
     """
     Document Management
@@ -505,12 +386,17 @@ class Brain:
 
             if total_tokens > (eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
-                prompt = (
-                    "Condense the following conversation. Maintain the important information."
-                    "\n\n###\n\n"
-                    f"{condensed_context}\n\n"
-                    f"{joined_messages}\n\n"
-                )
+                prompt = eave_openai.formatprompt(f"""
+                    Condense the following conversation. Maintain the important information.
+
+                    ###
+
+                    {condensed_context}
+
+                    {joined_messages}
+
+                    ###
+                """)
                 openai_params = eave_openai.ChatCompletionParameters(
                     model=eave_openai.OpenAIModel.GPT4,
                     messages=[prompt],
@@ -533,40 +419,8 @@ class Brain:
     Utility
     """
 
-    def message_context(self) -> str:
-        caller_name = self.user_profile.real_name_normalized
-        caller_job_title = self.user_profile.title
-
-        context: list[str] = []
-
-        if caller_job_title:
-            context.append(f"{caller_name}'s job title is \"{caller_job_title}\".")
-
-        # f"The question was asked in a Slack channel called \"\". "
-        # f"The description of that channel is: \"\" "
-
-        return "\n".join(context)
-
-    @staticmethod
-    def normalize_for_enum(value: str) -> str:
-        return re.sub(pattern="\\W", repl="", string=value).upper()
-
     async def acknowledge_receipt(self) -> None:
         await self.message.add_reaction("eave")
-
-    async def send_message_info(self) -> None:
-        info = f"Subscription ID: {self.message.subscription_id}"
-        await self.message.send_response(text=info)
-
-    async def get_openai_response(self, messages: list[str], temperature: int) -> str:
-        params = eave_openai.ChatCompletionParameters(
-            messages=messages,
-            temperature=temperature,
-        )
-
-        openai_completion: str | None = await eave_openai.chat_completion(params)
-        assert openai_completion is not None
-        return openai_completion
 
     async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
         subscription = await eave_core_api_client.get_subscription(
@@ -615,3 +469,29 @@ class Brain:
         expanded_text = await self.message.get_expanded_text()
         assert expanded_text is not None
         self.expanded_text = expanded_text
+
+        await self.build_message_context()
+
+    async def build_message_context(self) -> None:
+        caller_name = self.user_profile.real_name_normalized
+        caller_job_title = self.user_profile.title
+
+        context: list[str] = []
+        context.append(f"{caller_name} sent you a message.")
+
+        if caller_job_title:
+            context.append(f"{caller_name}'s job title is \"{caller_job_title}\".")
+
+        # f"The question was asked in a Slack channel called \"\". "
+        # f"The description of that channel is: \"\" "
+
+        compiled_context = "\n".join(context)
+
+        message_context = eave_openai.formatprompt(compiled_context, f"""
+            Message:
+            ###
+            {self.expanded_text}
+            ###
+        """)
+
+        self.message_context = message_context
