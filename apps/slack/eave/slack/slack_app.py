@@ -11,6 +11,8 @@ from .config import app_config
 
 
 async def authorize(enterprise_id: str, team_id: str, logger: Any) -> AuthorizeResult:
+    # TODO: team_id can be None for org-wide installed apps
+    # https://slack.dev/bolt-python/api-docs/slack_bolt/authorization/async_authorize.html
     input = eave.stdlib.core_api.operations.GetSlackSource.RequestBody(
         slack_source=eave.stdlib.core_api.operations.SlackSourceInput(slack_team_id=team_id),
     )
