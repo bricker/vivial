@@ -91,4 +91,4 @@ fi
 
 statusmsg -s "Done!"
 
-statusmsg -i "Now, open the file .vscode/eave.code-workspace in VSCode, and you're ready to go."
+statusmsg -i "Now, open EAVE_HOME (this directory) in VSCode and you're ready to go."
