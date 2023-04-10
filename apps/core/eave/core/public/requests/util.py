@@ -5,7 +5,6 @@ from uuid import UUID
 
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.signing as eave_signing
-import eave.stdlib.util as eave_util
 import fastapi
 import sqlalchemy.exc
 from eave.core.internal.config import app_config

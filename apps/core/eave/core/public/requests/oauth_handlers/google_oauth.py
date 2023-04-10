@@ -13,13 +13,17 @@ import pydantic
 from eave.core.internal.config import app_config
 from google.auth.transport import requests
 
-from . import util
+from . import oauth_cookie
 
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = get_oauth_flow_info()
     response = fastapi.responses.RedirectResponse(url=oauth_flow_info.authorization_url)
-    _save_state_cookie(response=response, state=oauth_flow_info.state)
+    oauth_cookie.save_state_cookie(
+        response=response,
+        state=oauth_flow_info.state,
+        provider=eave_orm.AuthProvider.google,
+    )
     return response
 
 
@@ -29,8 +33,10 @@ class RequestBody(pydantic.BaseModel):
     error: Optional[str]
 
 
-async def google_oauth_callback(input: RequestBody, request: fastapi.Request, response: fastapi.Response) -> None:
-    state = _get_state_cookie(request=request)
+async def google_oauth_callback(
+    input: RequestBody, request: fastapi.Request, response: fastapi.Response
+) -> fastapi.Response:
+    state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.google)
 
     credentials = get_oauth_credentials(uri=str(request.url), state=state)
     assert credentials.id_token is not None
@@ -71,33 +77,8 @@ async def google_oauth_callback(input: RequestBody, request: fastapi.Request, re
         await session.commit()
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
-    _delete_state_cookie(response=response)
-
-
-_STATE_COOKIE_NAME = "eave-oauth-state"
-_STATE_COOKIE_PARAMS = {
-    "key": _STATE_COOKIE_NAME,
-    "domain": app_config.eave_cookie_domain,
-    "secure": True,
-    "httponly": True,
-}
-
-
-def _save_state_cookie(response: fastapi.responses.Response, state: str) -> None:
-    response.set_cookie(
-        **_STATE_COOKIE_PARAMS,
-        value=state,
-    )
-
-
-def _get_state_cookie(request: fastapi.Request) -> str:
-    state = request.cookies.get(_STATE_COOKIE_NAME)
-    assert state is not None
-    return state
-
-
-def _delete_state_cookie(response: fastapi.responses.Response) -> None:
-    response.delete_cookie(**_STATE_COOKIE_PARAMS)
+    oauth_cookie.delete_state_cookie(response=response, provider=eave_orm.AuthProvider.google)
+    return response
 
 
 @dataclass
