@@ -110,6 +110,7 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
 
     method = "POST"
     url = _makeurl(path)
+    payload = input.json()
     logger.debug(f"Eave Core API request: {method}\t{url}\t{headers}\t{payload}")
 
     async with aiohttp.ClientSession() as session:
@@ -117,7 +118,7 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
             method=method,
             url=url,
             headers=headers,
-            data=input.json(),
+            data=payload,
         )
 
     logger.debug(f"Eave Core API response: {response}")
