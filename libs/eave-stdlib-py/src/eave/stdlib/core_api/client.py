@@ -89,7 +89,6 @@ async def get_subscription(
     return operations.GetSubscription.ResponseBody(**response_json)
 
 
-# TODO: need eave teamid input?
 async def get_slack_source(
     input: operations.GetSlackSource.RequestBody,
 ) -> Optional[operations.GetSlackSource.ResponseBody]:
@@ -104,7 +103,6 @@ async def get_slack_source(
     )
 
     if response.status >= 300:
-        # TODO: log?
         return None
 
     response_json = await response.json()
@@ -116,8 +114,9 @@ def _makeurl(path: str) -> str:
 
 
 async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[str]) -> aiohttp.ClientResponse:
+    payload = input.json()
     signature = signing.sign(
-        payload=input.json(),
+        payload=payload,
         team_id=team_id,
     )
 

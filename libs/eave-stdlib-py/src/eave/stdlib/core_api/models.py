@@ -43,6 +43,7 @@ class DocumentReference(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class SubscriptionSource(pydantic.BaseModel):
     platform: SubscriptionSourcePlatform
     event: SubscriptionSourceEvent
@@ -68,6 +69,7 @@ class Subscription(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
@@ -76,11 +78,11 @@ class Team(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
-# TODO copy this to ts models
+
 class SlackSource(pydantic.BaseModel):
     id: pydantic.UUID4
-    # eave Team model id
     team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
     slack_team_id: str
     bot_token: str
     bot_id: str

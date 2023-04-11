@@ -73,7 +73,6 @@ class UpsertDocument:
         document_reference: models.DocumentReference
 
 
-# TODO: copy to ts
 class GetSlackSource:
     class RequestBody(pydantic.BaseModel):
         slack_source: SlackSourceInput
