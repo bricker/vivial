@@ -1,6 +1,7 @@
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.core_api.models as models
 import fastapi
 
 
@@ -13,4 +14,15 @@ async def query(
             slack_team_id=input.slack_source.slack_team_id,
         )
 
-        return eave_ops.GetSlackSource.ResponseBody(slack_source=slack_source)
+        if slack_source is not None:
+            return eave_ops.GetSlackSource.ResponseBody(
+                slack_source=models.SlackSource(
+                    id=slack_source.id,
+                    team_id=slack_source.team_id,
+                    slack_team_id=slack_source.slack_team_id,
+                    bot_token=slack_source.bot_token,
+                    bot_id=slack_source.bot_id,
+                    bot_user_id=slack_source.bot_user_id,
+                )
+            )
+        return eave_ops.GetSlackSource.ResponseBody(slack_source=None)
