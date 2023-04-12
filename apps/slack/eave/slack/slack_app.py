@@ -17,7 +17,6 @@ async def authorize(enterprise_id: str, team_id: str, logger: Any) -> AuthorizeR
         slack_source=eave.stdlib.core_api.operations.SlackSourceInput(slack_team_id=team_id),
     )
     data = await eave_client.get_slack_source(input=input)
-    # TODO: return optional instead??
     assert data is not None
     assert data.slack_source is not None
     return AuthorizeResult(
