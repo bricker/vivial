@@ -28,7 +28,7 @@ async def init_database() -> None:
     async with asyncengine.begin() as connection:
         await connection.run_sync(metadata.create_all)
 
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         team = eave_orm.TeamOrm(
             name=f"{socket.gethostname()}", document_platform=eave_models.DocumentPlatform.confluence
         )

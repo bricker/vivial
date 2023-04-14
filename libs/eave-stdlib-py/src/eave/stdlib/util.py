@@ -7,8 +7,10 @@ logger = logging.getLogger("eave-stdlib-py")
 JsonScalar = str | int | bool | None
 JsonObject = dict[str, Any]
 
-T = TypeVar("T")
+class MaxRetryAttemptsReachedError(Exception):
+    pass
 
+T = TypeVar("T")
 
 def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
     @wraps(f)

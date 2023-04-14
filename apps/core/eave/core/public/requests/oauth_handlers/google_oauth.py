@@ -14,7 +14,7 @@ from eave.core.internal.config import app_config
 from google.auth.transport import requests
 
 from . import oauth_cookie
-
+from . import oauth_state
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = get_oauth_flow_info()
@@ -27,12 +27,6 @@ async def google_oauth_authorize() -> fastapi.Response:
     return response
 
 
-class RequestBody(pydantic.BaseModel):
-    state: Optional[str]
-    code: Optional[str]
-    error: Optional[str]
-
-
 @dataclass
 class OAuthResponseBody(pydantic.BaseModel):
     sub: str
@@ -42,17 +36,25 @@ class OAuthResponseBody(pydantic.BaseModel):
 
 
 async def google_oauth_callback(
-    input: RequestBody, request: fastapi.Request, response: fastapi.Response
+    state: str, code: str,
+    request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.google)
+    expected_oauth_state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.google)
+    assert state == expected_oauth_state
 
-    credentials = get_oauth_credentials(uri=str(request.url), state=state)
+    flow = build_flow(state=state)
+    flow.fetch_token(code=code)
+
+    # flow.credentials returns a `google.auth.credentials.Credentials`, which is the base class of
+    # google.oauth2.credentials.Credentials and doesn't contain common oauth properties like refresh_token.
+    # The `cast` here gives us type hints, autocomplete, etc. for `flow.credentials`
+    credentials = cast(google.oauth2.credentials.Credentials, flow.credentials)
     assert credentials.id_token is not None
     token = decode_id_token(id_token=credentials.id_token)
 
     userid = token.sub
     given_name = token.given_name
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
             auth_provider=eave_orm.AuthProvider.google,
@@ -87,13 +89,7 @@ async def google_oauth_callback(
     return response
 
 
-@dataclass
-class GoogleOauthFlowInfo:
-    authorization_url: str
-    state: str
-
-
-def get_oauth_flow_info() -> GoogleOauthFlowInfo:
+def get_oauth_flow_info() -> oauth_state.OauthFlowInfo:
     """
     https://developers.google.com/identity/protocols/oauth2/web-server#python_1
     """
@@ -104,18 +100,7 @@ def get_oauth_flow_info() -> GoogleOauthFlowInfo:
         include_granted_scopes="true",
     )
 
-    return GoogleOauthFlowInfo(authorization_url=authorization_url, state=state)
-
-
-def get_oauth_credentials(uri: str, state: str) -> google.oauth2.credentials.Credentials:
-    flow = build_flow(state=state)
-    flow.fetch_token(authorization_response=uri)
-
-    # flow.credentials returns a `google.auth.credentials.Credentials`, which is the base class of
-    # google.oauth2.credentials.Credentials and doesn't contain common oauth properties like refresh_token.
-    # The `cast` here gives us type hints, autocomplete, etc. for `flow.credentials`
-    credentials = cast(google.oauth2.credentials.Credentials, flow.credentials)
-    return credentials
+    return oauth_state.OauthFlowInfo(authorization_url=authorization_url, state=state)
 
 
 def decode_id_token(id_token: str) -> OAuthResponseBody:

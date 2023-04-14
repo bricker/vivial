@@ -16,7 +16,7 @@ async def get_subscription(
     logger.info("subscriptions.get_subscription")
     await eave_request_util.validate_signature_or_fail(request=request)
 
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         team = await eave_request_util.get_team_or_fail(session=session, request=request)
 
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_exception(
@@ -44,7 +44,7 @@ async def create_subscription(
     logger.debug("subscriptions.create_subscription")
     await eave_request_util.validate_signature_or_fail(request=request)
 
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         team = await eave_request_util.get_team_or_fail(session=session, request=request)
 
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(

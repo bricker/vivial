@@ -1,11 +1,12 @@
 import enum
-import logging
 from dataclasses import asdict, dataclass
+import time
 from typing import Any, List, LiteralString, Optional, cast
 import textwrap
 
 import openai as openai_sdk
 import openai.openai_object
+import openai.error
 import tiktoken
 
 from . import util, logger
@@ -104,7 +105,6 @@ def ensure_api_key() -> None:
     if openai_sdk.api_key is None:
         openai_sdk.api_key = shared_config.eave_openai_api_key
 
-
 async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
     """
     https://beta.openai.com/docs/api-reference/completions/create
@@ -113,8 +113,19 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
     ensure_api_key()
 
     logger.debug(f"OpenAI Params: {params}")
-    response = await openai_sdk.ChatCompletion.acreate(**params.compile())
-    logger.debug(f"OpenAI Response: {response}")
+
+    max_attempts = 3
+    for i in range(max_attempts):
+        try:
+            response = await openai_sdk.ChatCompletion.acreate(**params.compile())
+            logger.debug(f"OpenAI Response: {response}")
+            break
+        except openai.error.RateLimitError as e:
+            logger.warn("OpenAI RateLimitError", exc_info=e)
+            if i+1 < max_attempts:
+                time.sleep(i+1)
+    else:
+        raise util.MaxRetryAttemptsReachedError("OpenAI")
 
     response = cast(openai.openai_object.OpenAIObject, response)
     candidates = [c for c in response.choices if c["finish_reason"] == "stop"]

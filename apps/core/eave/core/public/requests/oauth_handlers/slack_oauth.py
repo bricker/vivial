@@ -2,13 +2,13 @@ from typing import Optional
 import fastapi
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web import WebClient, SlackResponse
+import oauthlib.common
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 from eave.core.internal.config import app_config
 
 from . import oauth_cookie
-from . import oauth_state
 
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
@@ -92,7 +92,7 @@ class SlackOAuthResponse:
 
 async def slack_oauth_authorize() -> fastapi.Response:
     # random value for verifying request wasnt tampered with via CSRF
-    state: str = oauth_state.generate_token()
+    state: str = oauthlib.common.generate_token()
     authorization_url = authorize_url_generator.generate(state)
     response = fastapi.responses.RedirectResponse(url=authorization_url)
     oauth_cookie.save_state_cookie(
@@ -132,10 +132,10 @@ async def slack_oauth_callback(
         bot_id = auth_test["bot_id"]
 
     # save our shiny new oauth token in db
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         # try fetch existing team account from db
         # TODO: check session token once exists
-        # https://github.com/eave-fyi/eave-monorepo/pull/3#discussion_r1160880115 
+        # https://github.com/eave-fyi/eave-monorepo/pull/3#discussion_r1160880115
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
             auth_provider=eave_orm.AuthProvider.slack,

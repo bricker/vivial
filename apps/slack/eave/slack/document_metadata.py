@@ -35,7 +35,7 @@ async def get_hierarchy(conversation: str) -> List[str]:
         - The parent folders for a conversation about Python might be: Engineering, Python.
         - The parent folders for a conversation about a new project for the Marketing team might be: Marketing, Projects, [project name].
 
-        Give the answer as a comma-separated list of category names from least specific to most specific.
+        Give the answer as a comma-separated list of category names, sorted from least specific to most specific.
 
         Conversation:
         ###
@@ -54,7 +54,7 @@ async def get_hierarchy(conversation: str) -> List[str]:
     answer: str | None = await eave_openai.chat_completion(openai_params)
     assert answer is not None
 
-    parents = list(map(lambda x: x.strip(), reversed(answer.split(","))))
+    parents = list(map(lambda x: x.strip(), answer.split(",")))
     return parents
 
 async def get_project_title(conversation: str) -> str:
@@ -129,6 +129,7 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
         return DocumentationType.UNKNOWN
 
 async def get_documentation(conversation: str, documentation_type: DocumentationType) -> str:
+    # TODO: Try getting headers first, then fill in the sections with separate prompts
     match documentation_type:
         case DocumentationType.TECHNICAL:
             setup = (
@@ -172,10 +173,10 @@ async def get_documentation(conversation: str, documentation_type: Documentation
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],
-        n=3,
+        n=1,
         frequency_penalty=0.2,
         presence_penalty=0.2,
-        temperature=0.5,
+        temperature=0.2,
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
