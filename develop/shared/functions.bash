@@ -120,6 +120,18 @@ then
 		echo -n "$(basename $SHELL)"
 	}
 
+	function shloginfile () {
+			case $usershell in
+				"bash")
+					echo -n "~/.bashrc";;
+				"zsh")
+					echo -n "~/.zshrc" ;;
+				*)
+					statusmsg -e "Shell $usershell not supported. Please add support!"
+					return 1
+			esac
+	}
+
 	function command_exists () {
 		if command -v "$1" > /dev/null
 		then
@@ -169,6 +181,44 @@ then
 
 			echo -e "\n"
 		done
+	}
+
+	function get_kernel () {
+		uname -s | tr '[:upper:]' '[:lower:]'
+	}
+
+	function get_arch () {
+		uname -p
+	}
+
+	function get_arch_normalized () {
+		local arch=$(get_arch)
+		case $arch in
+			"arm64")
+				echo -n "arm"
+				;;
+			"amd64")
+				echo -n "x86_64"
+				;;
+			*)
+				echo -n "$arch"
+				;;
+		esac
+	}
+
+	function get_arch_normalized_alt () {
+		local arch=$(get_arch)
+		case $arch in
+			"arm")
+				echo -n "arm64"
+				;;
+			"x86_64")
+				echo -n "amd64"
+				;;
+			*)
+				echo -n "$arch"
+				;;
+		esac
 	}
 
 	_SHARED_FUNCTIONS_LOADED=1
