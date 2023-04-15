@@ -32,6 +32,9 @@ def spa_early() -> str:
 def spa_terms() -> str:
     return _render_spa()
 
+@app.get("/privacy")
+def spa_privacy() -> str:
+    return _render_spa()
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
