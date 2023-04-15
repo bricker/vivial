@@ -17,24 +17,26 @@ app.secret_key = app_config.eave_web_session_encryption_key
 
 eave_api_util.add_standard_endpoints(app=app)
 
+def _render_spa(**kwargs: Any) -> str:
+    return render_template(
+        "index.html.jinja",
+        cookie_domain=app_config.eave_cookie_domain,
+        api_base=app_config.eave_api_base,
+        asset_base=app_config.asset_base,
+        analytics_enabled=app_config.analytics_enabled,
+        monitoring_enabled=app_config.monitoring_enabled,
+        app_env=app_config.app_env,
+        app_version=app_config.app_version,
+        **kwargs,
+    )
 
-@app.get("/")
-def spa_home() -> str:
-    return _render_spa()
+app.get("/")(_render_spa)
 
+app.get("/early")(_render_spa)
 
-@app.get("/early")
-def spa_early() -> str:
-    return _render_spa()
+app.get("/terms")(_render_spa)
 
-
-@app.get("/terms")
-def spa_terms() -> str:
-    return _render_spa()
-
-@app.get("/privacy")
-def spa_privacy() -> str:
-    return _render_spa()
+app.get("/privacy")(_render_spa)
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
@@ -54,17 +56,3 @@ async def api_access_request() -> str:
 @app.route("/<path:path>")
 def catch_all(**kwargs: Any) -> Response:
     return redirect(location="/", code=HTTPStatus.FOUND)
-
-
-def _render_spa(**kwargs: Any) -> str:
-    return render_template(
-        "index.html.jinja",
-        cookie_domain=app_config.eave_cookie_domain,
-        api_base=app_config.eave_api_base,
-        asset_base=app_config.asset_base,
-        analytics_enabled=app_config.analytics_enabled,
-        monitoring_enabled=app_config.monitoring_enabled,
-        app_env=app_config.app_env,
-        app_version=app_config.app_version,
-        **kwargs,
-    )
