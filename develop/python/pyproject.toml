@@ -3,9 +3,13 @@ extend-exclude = '''
 (
   eave_alembic/versions
   | generated
+  | \\.git
   | \\.venv
-  | node_modules
   | vendor
+  | node_modules
+  | __pycache__
+  | \\.mypy_cache
+  | build
 )
 '''
 line-length = 120
@@ -16,18 +20,26 @@ skip_gitignore = true
 extend_skip = [
   "eave_alembic/versions",
   "generated",
-  "node_modules",
+  ".git",
   ".venv",
   "vendor",
+  "node_modules",
+  "__pycache__",
+  ".mypy_cache",
+  "build",
 ]
 
 [tool.mypy]
 exclude = [
   "eave_alembic/versions",
   "generated",
-  "node_modules",
+  ".git",
   ".venv",
   "vendor",
+  "node_modules",
+  "__pycache__",
+  ".mypy_cache",
+  "build",
 ]
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -41,3 +53,18 @@ disallow_subclassing_any = false
 ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "../../apps/core",
+  "../../apps/slack"
+]
+norecursedirs = [
+  ".git",
+  ".venv",
+  "vendor",
+  "node_modules",
+  "__pycache__",
+  ".mypy_cache",
+  "build",
+]
