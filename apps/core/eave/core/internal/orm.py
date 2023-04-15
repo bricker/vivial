@@ -14,10 +14,10 @@ from sqlalchemy import (
     Index,
     PrimaryKeyConstraint,
     Select,
+    delete,
     func,
     select,
     text,
-    delete,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
