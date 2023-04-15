@@ -1,7 +1,10 @@
 from http import HTTPStatus
+
 import eave.core.internal.orm as orm
 import eave.stdlib.core_api.models as eave_models
+
 from .base import BaseTestCase
+
 
 class TestSubscriptionsEndpoints(BaseTestCase):
     async def asyncSetUp(self) -> None:
@@ -53,9 +56,7 @@ class TestSubscriptionsEndpoints(BaseTestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
         subscription = await orm.SubscriptionOrm.one_or_none(
-            session=self.dbsession,
-            source=self._subscription.source,
-            team_id=self._team.id
+            session=self.dbsession, source=self._subscription.source, team_id=self._team.id
         )
 
         self.assertEqual(subscription, None)

@@ -67,6 +67,7 @@ async def create_subscription(
     response_json = await response.json()
     return operations.CreateSubscription.ResponseBody(**response_json)
 
+
 async def delete_subscription(
     team_id: UUID,
     input: operations.DeleteSubscription.RequestBody,

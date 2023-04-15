@@ -21,6 +21,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
 from . import confluence
 
 UUID_DEFAULT_EXPR = text("(gen_random_uuid())")

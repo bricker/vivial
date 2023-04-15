@@ -1,19 +1,19 @@
+import json
 import unittest
 from typing import Optional, Protocol, TypeVar
 from uuid import UUID, uuid4
-import json
 
+import eave.core.app
+import eave.core.internal.orm as orm
+import eave.stdlib.core_api.signing as eave_signing
+import eave.stdlib.util as eave_util
 import mockito
+from eave.core.internal.database import get_session
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
-import eave.core.app
-import eave.core.internal.orm as orm
-from eave.core.internal.database import get_session
-import eave.stdlib.util as eave_util
-import eave.stdlib.core_api.signing as eave_signing
 
 class AnyStandardOrm(Protocol):
     id: Mapped[UUID]
@@ -82,7 +82,9 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         result = (await self.dbsession.scalars(stmt)).one()
         return result
 
-    async def make_request(self, url: str, payload: eave_util.JsonObject, method: str = "POST", headers: dict[str,str] = {}) -> Response:
+    async def make_request(
+        self, url: str, payload: eave_util.JsonObject, method: str = "POST", headers: dict[str, str] = {}
+    ) -> Response:
         data = json.dumps(payload)
         team_id = headers.get("eave-team-id")
         headers["eave-signature"] = eave_signing.sign(payload=data, team_id=team_id)
