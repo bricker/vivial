@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { withStyles } from '@material-ui/styles';
 import { IconButton, Drawer } from '@material-ui/core';
+
 import { HEADER } from '../../constants.js';
 import HamburgerIcon from '../Icons/HamburgerIcon.js';
 import CloseIcon from '../Icons/CloseIcon.js';
@@ -27,46 +28,51 @@ class Header extends React.Component {
   }
 
   render() {
-    const { classes } = this.props;
+    const { classes, simpleHeader } = this.props;
     const { drawerIsOpen } = this.state;
+
     return (
       <header className={classes.outterContainer}>
         <div className={classes.innerContainer}>
           <div className={classes.logoContainer}>
             <EaveLogo />
           </div>
-          <div className={classes.ctaContainer}>
-            <Button to="/early">
-              Get Early Access
-            </Button>
-          </div>
-          <IconButton
-            classes={{ root: classes.menuIconBtn }}
-            onClick={this.handleOpenDrawer}
-          >
-            <HamburgerIcon />
-          </IconButton>
-        </div>
-        <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
-          <div className={classes.mobileMenu}>
-            <div className={classes.innerContainer}>
-              <div className={classes.logoContainer}>
-                <EaveLogo />
+          {!simpleHeader && (
+            <>
+              <div className={classes.ctaContainer}>
+                <Button to="/early">
+                  Get Early Access
+                </Button>
               </div>
               <IconButton
                 classes={{ root: classes.menuIconBtn }}
-                onClick={this.handleCloseDrawer}
+                onClick={this.handleOpenDrawer}
               >
-                <CloseIcon />
+                <HamburgerIcon />
               </IconButton>
-            </div>
-            <nav className={classes.mobileNav}>
-              <Link className={classes.mobileNavItem} to="/early">
-                Get Early Access
-              </Link>
-            </nav>
-          </div>
-        </Drawer>
+              <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
+                <div className={classes.mobileMenu}>
+                  <div className={classes.innerContainer}>
+                    <div className={classes.logoContainer}>
+                      <EaveLogo />
+                    </div>
+                    <IconButton
+                      classes={{ root: classes.menuIconBtn }}
+                      onClick={this.handleCloseDrawer}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </div>
+                  <nav className={classes.mobileNav}>
+                    <Link className={classes.mobileNavItem} to="/early">
+                      Get Early Access
+                    </Link>
+                  </nav>
+                </div>
+              </Drawer>
+            </>
+          )}
+        </div>
       </header>
     );
   }

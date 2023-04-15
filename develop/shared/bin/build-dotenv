@@ -17,10 +17,7 @@ def parse_config(filepath: str) -> None:
             print(f"Unsupported file type: {extension}")
             return
 
-    dotenv_path = dotenv.find_dotenv(usecwd=True)
-    if dotenv_path == "":
-        dotenv_path = ".env"
-        print("Created .env")
+    dotenv_path = os.path.join(os.getenv("EAVE_HOME", ""), ".env")
 
     existing_values = dotenv.dotenv_values(dotenv_path)
 
@@ -28,7 +25,7 @@ def parse_config(filepath: str) -> None:
         for varname in varnames:
             if varname not in existing_values.keys():
                 # if env var is available, auto set it in .env, otherwise set placeholder
-                f.write(f"\n{varname}={envval if (envval := os.getenv(varname)) else 'TODO_value'}")
+                f.write(f"\n{varname}{'=' + envval if (envval := os.getenv(varname)) else ''}")
                 print(f"Added {varname} to .env")
 
 def parse_python_config(filepath: str) -> list[str]:
