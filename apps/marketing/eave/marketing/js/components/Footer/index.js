@@ -1,5 +1,7 @@
 import React from 'react';
 import { withStyles } from '@material-ui/styles';
+import { Link } from 'react-router-dom';
+
 import { FOOTER } from '../../constants.js';
 import Copy from '../Copy/index.js';
 
@@ -11,6 +13,7 @@ class Footer extends React.Component {
       <footer className={classes.outerContainer}>
         <Copy className={classes.innerContainer} variant="footnote">
           © {year} Eave Technologies, Inc. All rights reserved.
+          <Link className={classes.link} to="/terms">Terms</Link>
         </Copy>
       </footer>
     );
@@ -30,6 +33,11 @@ const styles = (theme) => ({
     [theme.breakpoints.up('md')]: {
       height: FOOTER.desktop.height,
     },
+  },
+  link: {
+    display: 'inline-block',
+    color: 'inherit',
+    marginLeft: 24,
   },
 });
 

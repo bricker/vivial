@@ -3,6 +3,7 @@ import * as EmailValidator from 'email-validator';
 import { withCookies } from 'react-cookie';
 import { withStyles } from '@material-ui/styles';
 import { Checkbox, TextField } from '@material-ui/core';
+
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
 import LockIcon from '../../Icons/LockIcon.js';
 import Button from '../../Button/index.js';

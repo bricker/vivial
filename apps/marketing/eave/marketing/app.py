@@ -27,6 +27,9 @@ def spa_home() -> str:
 def spa_early() -> str:
     return _render_spa()
 
+@app.get("/terms")
+def spa_terms() -> str:
+    return _render_spa()
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
