@@ -3,7 +3,6 @@ from typing import Optional, cast
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 import fastapi
 import google.oauth2.credentials
@@ -13,8 +12,8 @@ import pydantic
 from eave.core.internal.config import app_config
 from google.auth.transport import requests
 
-from . import oauth_cookie
-from . import oauth_state
+from . import oauth_cookie, oauth_state
+
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = get_oauth_flow_info()
@@ -36,8 +35,7 @@ class OAuthResponseBody(pydantic.BaseModel):
 
 
 async def google_oauth_callback(
-    state: str, code: str,
-    request: fastapi.Request, response: fastapi.Response
+    state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
     expected_oauth_state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.google)
     assert state == expected_oauth_state
@@ -84,7 +82,7 @@ async def google_oauth_callback(
         account_orm.oauth_token = credentials.id_token
         await session.commit()
 
-    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
+    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
     oauth_cookie.delete_state_cookie(response=response, provider=eave_orm.AuthProvider.google)
     return response
 

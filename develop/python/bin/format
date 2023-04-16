@@ -8,6 +8,9 @@ python-activate-venv
 
 configfile=${EAVE_HOME}/develop/python/pyproject.toml
 
+statusmsg -i "(format) autoflake..."
+python -m autoflake --in-place --config ${EAVE_HOME}/develop/python/autoflake.cfg .
+
 statusmsg -i "(format) isort..."
 python -m isort --settings-file=$configfile .
 

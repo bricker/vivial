@@ -1,15 +1,14 @@
 from typing import Optional
-import fastapi
-from slack_sdk.oauth import AuthorizeUrlGenerator
-from slack_sdk.web import WebClient, SlackResponse
-import oauthlib.common
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
+import fastapi
+import oauthlib.common
 from eave.core.internal.config import app_config
+from slack_sdk.oauth import AuthorizeUrlGenerator
+from slack_sdk.web import SlackResponse, WebClient
 
 from . import oauth_cookie
-
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
@@ -184,7 +183,7 @@ async def slack_oauth_callback(
 
         await session.commit()
 
-    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
+    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
     # clear state cookie now that it's been verified
     oauth_cookie.delete_state_cookie(response=response, provider=eave_orm.AuthProvider.slack)
     return response

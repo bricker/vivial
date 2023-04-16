@@ -41,3 +41,15 @@ disallow_subclassing_any = false
 ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true
+
+[tool.autoflake]
+exclude = [
+  "./eave_alembic/versions",
+  "vendor",
+  "build",
+  "generated",
+  "node_modules",
+]
+remove-all-unused-imports = true
+recursive = true
+quiet = true

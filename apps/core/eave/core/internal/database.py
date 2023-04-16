@@ -56,6 +56,7 @@ def get_async_session() -> AsyncSession:
     factory = get_async_session_factory()
     return factory()
 
+
 def get_sync_session_factory() -> sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session]:
     global _sync_session_factory
 

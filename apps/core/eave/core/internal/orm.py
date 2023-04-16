@@ -1,10 +1,9 @@
 import enum
+import json
 from datetime import datetime
 from functools import cache
-import json
 from typing import Optional, ParamSpec, Self, Tuple, cast
 from uuid import UUID
-import oauthlib.oauth2.rfc6749.tokens
 
 import atlassian
 import eave.stdlib.core_api.models as eave_models
@@ -12,12 +11,14 @@ import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client
 import eave.stdlib.util as eave_util
 import oauthlib
+import oauthlib.oauth2.rfc6749.tokens
 import requests_oauthlib
 from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     PrimaryKeyConstraint,
     Select,
+    false,
     func,
     select,
     text,
@@ -25,9 +26,9 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from .atlassian import confluence_models
-from .config import app_config
+from . import confluence
 from . import database as eave_db
+from .config import app_config
 
 UUID_DEFAULT_EXPR = text("gen_random_uuid()")
 

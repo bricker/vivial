@@ -2,13 +2,13 @@ import json
 import os
 from typing import Optional
 
+import eave.slack.brain
+import eave.slack.slack_models
 import eave.stdlib.util as eave_util
+from eave.slack.config import app_config
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp
 
-import eave.slack.brain
-import eave.slack.slack_models
-from eave.slack.config import app_config
 
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
@@ -58,11 +58,11 @@ async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
 async def noop_handler() -> None:
     pass
 
+
 fixture_collection_enabled = (
-    app_config.dev_mode \
-    and os.getenv("SLACK_SOCKETMODE") is not None \
-    and os.getenv("FIXTURE_COLLECTION") is not None
+    app_config.dev_mode and os.getenv("SLACK_SOCKETMODE") is not None and os.getenv("FIXTURE_COLLECTION") is not None
 )
+
 
 def save_fixture(event: eave_util.JsonObject) -> None:
     os.makedirs(".event_fixtures/message", exist_ok=True)

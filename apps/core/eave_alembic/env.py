@@ -42,7 +42,7 @@ async def run_migrations_offline() -> None:
     script output.
 
     """
-    engine = await eave_db.get_engine()
+    engine = eave_db.get_engine()
     context.configure(
         url=engine.url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
@@ -68,7 +68,7 @@ async def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = await eave_db.get_engine()
+    connectable = eave_db.get_engine()
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
