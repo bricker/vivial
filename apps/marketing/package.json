@@ -4,10 +4,7 @@
     "npm": "9"
   },
   "type": "module",
-  "scripts": {
-    "lint": "eslint eave/marketing/js --ext .js",
-    "lint:fix": "npm run lint -- --fix"
-  },
+  "scripts": {},
   "dependencies": {
     "@material-ui/core": "^4.12.4",
     "@material-ui/styles": "^4.11.5",
