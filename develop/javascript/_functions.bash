@@ -1,8 +1,6 @@
 if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 	EAVE_NODE_VERSION=$(cat "${EAVE_HOME}/.node-version")
 
-	source ${EAVE_HOME}/develop/shared/functions.bash
-
 	function node-validate-version() {
 		local current_version=$(node --version)
 		if ! $(echo -n "$current_version" | grep -q "v$EAVE_NODE_VERSION"); then
@@ -28,6 +26,30 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 			;;
 		esac
 	}
+
+	function node-lint() (
+		node-validate-version
+		node-activate-venv
+
+		local target=$1
+
+		statusmsg -i "(lint) eslint..."
+		npx eslint $target
+
+		statusmsg -s "Linting passed ✔"
+	)
+
+	function node-format() (
+		node-validate-version
+		node-activate-venv
+
+		local target=$1
+
+		statusmsg -i "(format) eslint..."
+		npx eslint $target --fix
+
+		statusmsg -s "Formatting completed ✔"
+	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1
 fi

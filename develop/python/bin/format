@@ -2,19 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/python/functions.bash
-python-validate-version
-python-activate-venv
-
-configfile=${EAVE_HOME}/develop/python/pyproject.toml
-
-statusmsg -i "(format) autoflake..."
-python -m autoflake --in-place --config ${EAVE_HOME}/develop/python/autoflake.cfg .
-
-statusmsg -i "(format) isort..."
-python -m isort --settings-file=$configfile .
-
-statusmsg -i  "(format) black..."
-python -m black --config=$configfile .
-
-statusmsg -s "Formatting completed ✔"
+source ${EAVE_HOME}/develop/functions.bash
+python-format .
+run-in-path "${EAVE_HOME}/libs/eave-stdlib-py" "bin/format"
+run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/format"

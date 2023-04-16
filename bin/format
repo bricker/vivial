@@ -2,6 +2,6 @@
 
 set -eu
 
-source $EAVE_HOME/develop/shared/functions.bash
+source $EAVE_HOME/develop/functions.bash
 
-run_in_all_projects bin/format
+run-in-all-projects bin/format
