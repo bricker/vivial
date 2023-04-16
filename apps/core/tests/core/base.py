@@ -8,7 +8,7 @@ import eave.core.internal.orm as orm
 import eave.stdlib.core_api.signing as eave_signing
 import eave.stdlib.util as eave_util
 import mockito
-from eave.core.internal.database import get_session
+from eave.core.internal.database import get_async_session
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,7 +44,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         # engine = await get_engine()
         # self._dbconnection = await engine.connect().start()
 
-        self.dbsession = await get_session()
+        self.dbsession = get_async_session()
         self.dbsession.begin()
         connection = await self.dbsession.connection()
         await connection.run_sync(orm.Base.metadata.drop_all)

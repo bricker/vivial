@@ -1,8 +1,8 @@
 from typing import Any
 
 import fastapi
-from eave.core.internal.config import app_config
-from eave.core.internal.orm import AuthProvider
+from ..config import app_config
+from .models import AuthProvider
 
 
 def _build_cookie_name(postfix: str) -> str:

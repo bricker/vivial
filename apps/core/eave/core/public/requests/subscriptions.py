@@ -16,16 +16,16 @@ async def get_subscription(
     logger.info("subscriptions.get_subscription")
     await eave_request_util.validate_signature_or_fail(request=request)
 
-    async with eave_db.get_async_session() as session:
-        team = await eave_request_util.get_team_or_fail(session=session, request=request)
+    async with eave_db.get_async_session() as db_session:
+        team = await eave_request_util.get_team_or_fail(session=db_session, request=request)
 
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_exception(
             team_id=team.id,
             source=input.subscription.source,
-            session=session,
+            session=db_session,
         )
 
-        document_reference_orm = await subscription_orm.get_document_reference(session=session)
+        document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
 
     document_reference_public = (
         eave_models.DocumentReference.from_orm(document_reference_orm) if document_reference_orm is not None else None
@@ -44,11 +44,11 @@ async def create_subscription(
     logger.debug("subscriptions.create_subscription")
     await eave_request_util.validate_signature_or_fail(request=request)
 
-    async with eave_db.get_async_session() as session:
-        team = await eave_request_util.get_team_or_fail(session=session, request=request)
+    async with eave_db.get_async_session() as db_session:
+        team = await eave_request_util.get_team_or_fail(session=db_session, request=request)
 
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(
-            team_id=team.id, source=input.subscription.source, session=session
+            team_id=team.id, source=input.subscription.source, session=db_session
         )
 
         if subscription_orm is None:
@@ -58,13 +58,13 @@ async def create_subscription(
                 document_reference_id=input.document_reference.id if input.document_reference is not None else None,
             )
 
-            session.add(subscription_orm)
-            await session.commit()
+            db_session.add(subscription_orm)
+            await db_session.commit()
             response.status_code = HTTPStatus.CREATED
         else:
             response.status_code = HTTPStatus.OK
 
-        document_reference_orm = await subscription_orm.get_document_reference(session=session)
+        document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
 
     document_reference_public = (
         eave_models.DocumentReference.from_orm(document_reference_orm) if document_reference_orm is not None else None
@@ -83,16 +83,16 @@ async def delete_subscription(
     logger.debug("subscriptions.delete_subscription")
     await eave_request_util.validate_signature_or_fail(request=request)
 
-    async with await eave_db.get_session() as session:
-        team = await eave_request_util.get_team_or_fail(session=session, request=request)
+    async with eave_db.get_async_session() as db_session:
+        team = await eave_request_util.get_team_or_fail(session=db_session, request=request)
 
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(
-            team_id=team.id, source=input.subscription.source, session=session
+            team_id=team.id, source=input.subscription.source, session=db_session
         )
 
         if subscription_orm is not None:
-            await session.delete(subscription_orm)
-            await session.commit()
+            await db_session.delete(subscription_orm)
+            await db_session.commit()
 
     response.status_code = HTTPStatus.OK
     return response

@@ -13,15 +13,6 @@ class TestSubscriptionsEndpoints(BaseTestCase):
         team = orm.TeamOrm(name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence)
         self._team = await self.save(team)
 
-        confluence_destination = orm.ConfluenceDestinationOrm(
-            team_id=self._team.id,
-            url="https://eave-fyi.atlassian.org",
-            api_username="eave",
-            api_key="xxx",
-            space="EAVE",
-        )
-        self._confluence_destination = await self.save(confluence_destination)
-
         document_reference = orm.DocumentReferenceOrm(
             team_id=self._team.id,
             document_id=self.anystring("confluence_document_response.id"),

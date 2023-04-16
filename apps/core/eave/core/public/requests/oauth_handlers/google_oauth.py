@@ -12,22 +12,25 @@ import pydantic
 from eave.core.internal.config import app_config
 from google.auth.transport import requests
 
-from . import oauth_cookie, oauth_state
+from eave.core.internal.oauth import (
+    cookies as oauth_cookies,
+    models as oauth_models,
+)
 
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = get_oauth_flow_info()
     response = fastapi.responses.RedirectResponse(url=oauth_flow_info.authorization_url)
-    oauth_cookie.save_state_cookie(
+    oauth_cookies.save_state_cookie(
         response=response,
         state=oauth_flow_info.state,
-        provider=eave_orm.AuthProvider.google,
+        provider=oauth_models.AuthProvider.google,
     )
     return response
 
 
 @dataclass
-class OAuthResponseBody(pydantic.BaseModel):
+class GoogleOAuthResponseBody(pydantic.BaseModel):
     sub: str
     """Google globally unique and immutable user ID"""
 
@@ -37,7 +40,7 @@ class OAuthResponseBody(pydantic.BaseModel):
 async def google_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    expected_oauth_state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.google)
+    expected_oauth_state = oauth_cookies.get_state_cookie(request=request, provider=oauth_models.AuthProvider.google)
     assert state == expected_oauth_state
 
     flow = build_flow(state=state)
@@ -55,7 +58,7 @@ async def google_oauth_callback(
     async with eave_db.get_async_session() as session:
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
-            auth_provider=eave_orm.AuthProvider.google,
+            auth_provider=oauth_models.AuthProvider.google,
             auth_id=userid,
         )
 
@@ -72,7 +75,7 @@ async def google_oauth_callback(
 
             account_orm = eave_orm.AccountOrm(
                 team_id=team.id,
-                auth_provider=eave_orm.AuthProvider.google,
+                auth_provider=oauth_models.AuthProvider.google,
                 auth_id=userid,
                 oauth_token=credentials.id_token,
             )
@@ -83,11 +86,11 @@ async def google_oauth_callback(
         await session.commit()
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
-    oauth_cookie.delete_state_cookie(response=response, provider=eave_orm.AuthProvider.google)
+    oauth_cookies.delete_state_cookie(response=response, provider=oauth_models.AuthProvider.google)
     return response
 
 
-def get_oauth_flow_info() -> oauth_state.OauthFlowInfo:
+def get_oauth_flow_info() -> oauth_models.OauthFlowInfo:
     """
     https://developers.google.com/identity/protocols/oauth2/web-server#python_1
     """
@@ -98,17 +101,17 @@ def get_oauth_flow_info() -> oauth_state.OauthFlowInfo:
         include_granted_scopes="true",
     )
 
-    return oauth_state.OauthFlowInfo(authorization_url=authorization_url, state=state)
+    return oauth_models.OauthFlowInfo(authorization_url=authorization_url, state=state)
 
 
-def decode_id_token(id_token: str) -> OAuthResponseBody:
+def decode_id_token(id_token: str) -> GoogleOAuthResponseBody:
     token_json: eave_util.JsonObject = google.oauth2.id_token.verify_oauth2_token(
         id_token=id_token,
         audience=app_config.eave_google_oauth_client_id,
         request=requests.Request(),
     )
 
-    token = OAuthResponseBody(**token_json)
+    token = GoogleOAuthResponseBody(**token_json)
     return token
 
 
