@@ -1,4 +1,5 @@
-import uuid
+from dotenv import load_dotenv
+load_dotenv()
 
 import eave.core.internal.config
 import mockito
