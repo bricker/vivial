@@ -2,11 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/javascript/functions.bash
-node-validate-version
-node-activate-venv
-
-statusmsg -i "(lint) eslint..."
-npx eslint .
-
-statusmsg -s "Linting passed ✔"
+source ${EAVE_HOME}/develop/functions.bash
+node-lint .
+run-in-path "${EAVE_HOME}/libs/eave-stdlib-ts" "bin/lint"
+run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/lint"

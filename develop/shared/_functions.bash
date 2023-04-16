@@ -145,28 +145,33 @@ then
 		esac
 	}
 
-	function run_in_all_projects () {
+	function run-in-path () (
+		local path=$1
+		local cmd=$2
+
+		local ex="$path/$cmd"
+		if test -x "$ex"
+		then
+			cd $path
+			($cmd)
+		else
+			statusmsg -w "File $ex is not executable."
+		fi
+	)
+
+	function run-in-all-projects () {
 		if test -z "$1"
 		then
-			statusmsg -e "Usage: run_in_all_projects bin/lint"
+			statusmsg -e "Usage: run-in-all-projects bin/lint"
 			exit 1
 		fi
 
 		local cmd=$1
 
-		for dir in $(ls -d ./apps/*/ ./libs/*/)
+		for dir in $(ls -d ./apps/* ./libs/*)
 		do
 			statusmsg -i "$dir"
-
-			if test -x $dir$cmd
-			then
-				cd $dir
-				$cmd
-				cd - > /dev/null
-			else
-				statusmsg -w "No $cmd executable found in $dir"
-			fi
-
+			run-in-path "$dir" "$cmd"
 			echo -e "\n"
 		done
 	}
