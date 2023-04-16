@@ -87,3 +87,8 @@ export const INTEGRATION_LOGOS = {
     alt: 'Microsoft Sharepoint logo',
   },
 };
+
+export const AUTH_MODAL_STATE = {
+  LOGIN: 'login',
+  SIGNUP: 'signup',
+};

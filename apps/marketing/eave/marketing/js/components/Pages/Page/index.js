@@ -3,6 +3,7 @@ import { withStyles } from '@material-ui/styles';
 
 import Header from '../../Header/index.js';
 import Footer from '../../Footer/index.js';
+import AuthModal from '../../AuthModal/index.js';
 
 class Page extends React.Component {
   render() {
@@ -13,6 +14,7 @@ class Page extends React.Component {
         <Header simpleHeader={simpleHeader} />
         {children}
         <Footer />
+        <AuthModal />
       </div>
     );
   }

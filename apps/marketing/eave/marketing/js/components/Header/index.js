@@ -40,6 +40,9 @@ class Header extends React.Component {
           {!simpleHeader && (
             <>
               <div className={classes.ctaContainer}>
+                <button>
+                  Log In
+                </button>
                 <Button to="/early">
                   Get Early Access
                 </Button>
