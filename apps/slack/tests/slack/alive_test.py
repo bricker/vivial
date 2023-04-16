@@ -1,7 +1,4 @@
-import mockito
-import mockito.matchers
-import tests
-from tests.base import BaseTestCase
+from .base import BaseTestCase
 
 
 class TestAlive(BaseTestCase):

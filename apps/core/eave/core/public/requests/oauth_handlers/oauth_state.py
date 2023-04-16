@@ -2,6 +2,7 @@ from secrets import SystemRandom
 
 UNICODE_ASCII_CHARACTER_SET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
+
 # copied from google
 # https://github.com/oauthlib/oauthlib/blob/7d7fe904af504c20f7d802650e54a78e3d0be8ba/oauthlib/common.py#L188
 def generate_token(length: int = 30, chars: str = UNICODE_ASCII_CHARACTER_SET) -> str:
