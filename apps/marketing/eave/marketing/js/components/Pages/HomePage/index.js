@@ -11,7 +11,7 @@ const copy = {
   hero: {
     title: 'The Smartest Tool for all of your Documentation Needs',
     subtitle: 'Eave uses state of the art AI technology to instantly create, update and organize your business’s documentation. Save time, reduce overhead, and preserve the integrity of your documentation. Eave, for your information.',
-    cta: 'Start for Free',
+    cta: 'Free Early Access',
   },
   integrations: {
     title: 'Connect Data Sources',

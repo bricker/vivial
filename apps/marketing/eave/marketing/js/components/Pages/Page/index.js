@@ -1,26 +1,11 @@
 import React from 'react';
-import { withStyles } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/styles';
 
 import Header from '../../Header/index.js';
 import Footer from '../../Footer/index.js';
 import AuthModal from '../../AuthModal/index.js';
 
-class Page extends React.Component {
-  render() {
-    const { classes, children, simpleHeader } = this.props;
-
-    return (
-      <div className={classes.container}>
-        <Header simpleHeader={simpleHeader} />
-        {children}
-        <Footer />
-        <AuthModal />
-      </div>
-    );
-  }
-}
-
-const styles = (theme) => ({
+const makeClasses = makeStyles((theme) => ({
   container: {
     position: 'relative',
     minHeight: '100vh',
@@ -28,6 +13,18 @@ const styles = (theme) => ({
     color: theme.typography.color.main,
     backgroundColor: theme.palette.background.main,
   },
-});
+}));
 
-export default withStyles(styles)(Page);
+const Page = ({ children, simpleHeader }) => {
+  const classes = makeClasses();
+  return (
+    <div className={classes.container}>
+      <Header simpleHeader={simpleHeader} />
+      {children}
+      <Footer />
+      <AuthModal />
+    </div>
+  );
+};
+
+export default Page;

@@ -12,6 +12,7 @@ class Copy extends React.Component {
     const h3Class = classNames(classes.h3, className);
     const footnoteClass = classNames(classes.footnote, className);
     const pSmallClass = classNames(classes.pSmall, className);
+    const pXSmallClass = classNames(classes.pXSmall, className);
     const pClass = classNames(classes.p, className);
 
     if (variant === 'h1') {
@@ -28,6 +29,9 @@ class Copy extends React.Component {
     }
     if (variant === 'pSmall') {
       return <p className={pSmallClass}>{children}</p>;
+    }
+    if (variant === 'pXSmall') {
+      return <p className={pXSmallClass}>{children}</p>;
     }
     return <p className={pClass}>{children}</p>;
   }
@@ -74,6 +78,12 @@ const styles = (theme) => ({
       fontSize: 18,
       lineHeight: '23px',
     },
+  },
+  pXSmall: {
+    fontSize: 16,
+    lineHeight: '19px',
+    fontWeight: 400,
+    margin: 0,
   },
   p: {
     fontSize: 16,
