@@ -20,22 +20,14 @@ def get_engine() -> AsyncEngine:
     if _engine is not None:
         return _engine
 
-    if app_config.db_connection_string is not None:
-        db_uri = sqlalchemy.make_url(app_config.db_connection_string)
-    else:
-        assert app_config.db_driver is not None
-
-        db_user = app_config.db_user
-        db_pass = app_config.db_pass
-
-        db_uri = sqlalchemy.engine.url.URL.create(
-            drivername=app_config.db_driver,
-            host=app_config.db_host,
-            port=app_config.db_port,
-            username=db_user,
-            password=db_pass,
-            database=app_config.db_name,
-        )
+    db_uri = sqlalchemy.engine.url.URL.create(
+        drivername=app_config.db_driver,
+        host=app_config.db_host,
+        port=app_config.db_port,
+        username=app_config.db_user,
+        password=app_config.db_pass,
+        database=app_config.db_name,
+    )
 
     _engine = create_async_engine(db_uri, echo=True)
     return _engine

@@ -6,4 +6,4 @@ source ${EAVE_HOME}/develop/python/functions.bash
 python-validate-version
 python-activate-venv
 
-python -m unittest discover -t . -s tests -p '*_test.py'
+python -m pytest -c ${EAVE_HOME}/develop/python/pyproject.toml

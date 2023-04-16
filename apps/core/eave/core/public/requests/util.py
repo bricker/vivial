@@ -25,7 +25,7 @@ async def get_team_or_fail(session: AsyncSession, request: fastapi.Request) -> e
         raise HTTPException(HTTPStatus.BAD_REQUEST) from error
 
     except sqlalchemy.exc.SQLAlchemyError as error:
-        raise HTTPException(HTTPStatus.UNAUTHORIZED) from error
+        raise HTTPException(HTTPStatus.BAD_REQUEST) from error
 
 
 async def validate_signature_or_fail(request: fastapi.Request) -> None:

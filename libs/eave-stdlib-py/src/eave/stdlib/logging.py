@@ -1,8 +1,11 @@
 import logging
 import sys
+
 import google.cloud.logging
-from .config import shared_config
+
 from . import logger
+from .config import shared_config
+
 
 # https://stackoverflow.com/a/56944256/885036
 class CustomFormatter(logging.Formatter):
@@ -21,13 +24,14 @@ class CustomFormatter(logging.Formatter):
         logging.INFO: green + formatstr + reset,
         logging.WARNING: yellow + formatstr + reset,
         logging.ERROR: red + formatstr + reset,
-        logging.CRITICAL: bold_red + formatstr + reset
+        logging.CRITICAL: bold_red + formatstr + reset,
     }
 
     def format(self, record: logging.LogRecord) -> str:
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
+
 
 def setup_logging(level: int = logging.INFO) -> None:
     logger.setLevel(level)
@@ -43,5 +47,6 @@ def setup_logging(level: int = logging.INFO) -> None:
     if shared_config.monitoring_enabled:
         client = google.cloud.logging.Client()
         client.setup_logging(log_level=level)
+
 
 eave_logger = logger

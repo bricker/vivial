@@ -1,18 +1,19 @@
 import enum
+import textwrap
 from dataclasses import asdict, dataclass
 import time
 from typing import Any, List, LiteralString, Optional, cast
-import textwrap
 
 import openai as openai_sdk
 import openai.openai_object
 import openai.error
 import tiktoken
 
-from . import util, logger
+from . import logger, util
 from .config import shared_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
+
 
 class DocumentationType(enum.Enum):
     TECHNICAL = "TECHNICAL"
@@ -21,6 +22,7 @@ class DocumentationType(enum.Enum):
     ENGINEER_ONBOARDING = "ENGINEER_ONBOARDING"
     OTHER = "OTHER"
 
+
 def prompt_prefix() -> LiteralString:
     return (
         "You are Eave, an AI documentation expert. "
@@ -28,7 +30,9 @@ def prompt_prefix() -> LiteralString:
         "You are responsible for the quality and integrity of this organization's documentation.\n\n"
     )
 
+
 STOP_SEQUENCE = "STOP_SEQUENCE"
+
 
 class OpenAIModel(str, enum.Enum):
     # ADA_EMBEDDING = "text-embedding-ada-002"

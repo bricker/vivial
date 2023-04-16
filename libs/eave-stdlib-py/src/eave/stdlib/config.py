@@ -5,6 +5,7 @@ from functools import cached_property
 import google_crc32c
 from google.cloud import secretmanager
 
+
 class EaveConfig:
     @property
     def dev_mode(self) -> bool:

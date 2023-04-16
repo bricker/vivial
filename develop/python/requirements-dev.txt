@@ -6,3 +6,4 @@ types-requests
 python-dotenv
 mockito
 autoflake
+pytest

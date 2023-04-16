@@ -76,6 +76,7 @@ async def test_document_builder(fixture: dict[str, Any]) -> None:
         fd.write(doc.content)
 
         fd.write("</body></html>")
+
     os.system(f"open {filename}")
 
 

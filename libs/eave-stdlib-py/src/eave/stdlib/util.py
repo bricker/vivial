@@ -1,7 +1,8 @@
 import asyncio
+import logging
 from functools import wraps
 from typing import Any, Awaitable, Callable, Coroutine, TypeVar
-import logging
+
 logger = logging.getLogger("eave-stdlib-py")
 
 JsonScalar = str | int | bool | None
@@ -49,7 +50,10 @@ def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
 
     return wrapper
 
+
 tasks = set[asyncio.Task[Any]]()
+
+
 def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
     task = asyncio.create_task(coro)
     tasks.add(task)

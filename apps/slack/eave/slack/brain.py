@@ -57,6 +57,8 @@ class Brain:
             )
             eave.stdlib.analytics.log_user_action(action=action)
 
+            message_action = await message_prompts.message_action(context=self.message_context)
+
         else:
             """
             Eave is not mentioned in this message.
@@ -69,9 +71,9 @@ class Brain:
                 logger.debug("Eave is not subscribed to this thread; ignoring.")
                 return
 
-        await self.load_data()
+            message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
 
-        message_action = await message_prompts.message_action(context=self.message_context)
+        await self.load_data()
         await self.handle_action(message_action=message_action)
 
     async def process_shortcut_event(self) -> None:
@@ -97,6 +99,10 @@ class Brain:
                 await self.create_documentation_and_subscribe()
                 return
 
+            case message_prompts.MessageAction.UNWATCH:
+                await self.unwatch_conversation()
+                return
+
             case message_prompts.MessageAction.SEARCH_DOCUMENTATION:
                 await self.message.send_response(text="One moment while I look...")
                 await self.search_documentation()
@@ -107,10 +113,17 @@ class Brain:
                 await self.update_documentation()
                 return
 
+            case message_prompts.MessageAction.REFINE_DOCUMENTATION:
+                await self.refine_documentation()
+                return
+
             case message_prompts.MessageAction.DELETE_DOCUMENTATION:
                 # TODO: Unsubscribe from conversation
                 await self.message.send_response(text="On it!")
                 await self.archive_documentation()
+                return
+
+            case message_prompts.MessageAction.NONE:
                 return
 
             case _:
@@ -200,14 +213,7 @@ class Brain:
         logger.debug("Brain.create_documentation")
 
         api_document = await self.build_documentation()
-
-        upsert_document_response = await eave_core_api_client.upsert_document(
-            team_id=self.team_id,
-            input=eave_ops.UpsertDocument.RequestBody(
-                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
-                document=api_document,
-            ),
-        )
+        upsert_document_response = await self.upsert_document(document=api_document)
 
         await self.message.send_response(
             text=(
@@ -322,8 +328,22 @@ class Brain:
     async def update_documentation(self) -> None:
         await self.message.send_response(text="I haven't yet been taught how to update existing documentation.")
 
+    async def refine_documentation(self) -> None:
+        api_document = await self.build_documentation()
+        await self.upsert_document(document=api_document)
+
     async def archive_documentation(self) -> None:
         await self.message.send_response(text="I haven't yet been taught how to archive existing documentation.")
+
+    async def unwatch_conversation(self) -> None:
+        await eave_core_api_client.delete_subscription(
+            team_id=self.team_id,
+            input=eave_ops.DeleteSubscription.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+            ),
+        )
+
+        await self.message.send_response(text="You got it! I'll stop watching this conversation.")
 
     """
     Context Building
@@ -432,6 +452,16 @@ class Brain:
             ),
         )
         return subscription
+
+    async def upsert_document(self, document: eave_ops.DocumentInput) -> eave_ops.UpsertDocument.ResponseBody:
+        response = await eave_core_api_client.upsert_document(
+            team_id=self.team_id,
+            input=eave_ops.UpsertDocument.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+                document=document,
+            ),
+        )
+        return response
 
     async def notify_existing_subscription(self, subscription: eave_ops.GetSubscription.ResponseBody) -> None:
         if subscription.document_reference is not None:

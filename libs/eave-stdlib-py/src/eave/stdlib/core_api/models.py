@@ -43,6 +43,7 @@ class DocumentReference(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class SubscriptionSource(pydantic.BaseModel):
     platform: SubscriptionSourcePlatform
     event: SubscriptionSourceEvent
@@ -67,6 +68,7 @@ class Subscription(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class Team(pydantic.BaseModel):
     id: pydantic.UUID4

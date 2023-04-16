@@ -33,8 +33,6 @@ async def create_access_request(
         team_id=None,
     )
 
-    return None
-
 
 async def upsert_document(
     team_id: UUID,
@@ -68,6 +66,20 @@ async def create_subscription(
 
     response_json = await response.json()
     return operations.CreateSubscription.ResponseBody(**response_json)
+
+
+async def delete_subscription(
+    team_id: UUID,
+    input: operations.DeleteSubscription.RequestBody,
+) -> None:
+    """
+    POST /subscriptions/delete
+    """
+    await _make_request(
+        path="/subscriptions/delete",
+        input=input,
+        team_id=str(team_id),
+    )
 
 
 async def get_subscription(

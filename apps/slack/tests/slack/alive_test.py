@@ -1,4 +1,4 @@
-from tests.base import BaseTestCase
+from .base import BaseTestCase
 
 
 class TestAlive(BaseTestCase):

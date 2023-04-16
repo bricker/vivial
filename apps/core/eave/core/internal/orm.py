@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from functools import cache
 from typing import Optional, ParamSpec, Self, Tuple, cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import atlassian
 import eave.stdlib.core_api.models as eave_models
@@ -30,7 +30,7 @@ from . import confluence
 from . import database as eave_db
 from .config import app_config
 
-UUID_DEFAULT_EXPR = text("gen_random_uuid()")
+UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
 
 P = ParamSpec("P")
 

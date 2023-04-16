@@ -75,3 +75,24 @@ async def create_subscription(
         subscription=eave_models.Subscription.from_orm(subscription_orm),
         document_reference=document_reference_public,
     )
+
+
+async def delete_subscription(
+    input: eave_ops.DeleteSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response
+) -> fastapi.Response:
+    logger.debug("subscriptions.delete_subscription")
+    await eave_request_util.validate_signature_or_fail(request=request)
+
+    async with await eave_db.get_session() as session:
+        team = await eave_request_util.get_team_or_fail(session=session, request=request)
+
+        subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(
+            team_id=team.id, source=input.subscription.source, session=session
+        )
+
+        if subscription_orm is not None:
+            await session.delete(subscription_orm)
+            await session.commit()
+
+    response.status_code = HTTPStatus.OK
+    return response

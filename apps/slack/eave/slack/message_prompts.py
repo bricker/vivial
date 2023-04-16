@@ -16,8 +16,11 @@ class MessageAction(enum.Enum):
     CREATE_DOCUMENTATION = "CREATE_DOCUMENTATION"
     SEARCH_DOCUMENTATION = "SEARCH_DOCUMENTATION"
     UPDATE_DOCUMENTATION = "UPDATE_DOCUMENTATION"
+    REFINE_DOCUMENTATION = "REFINE_DOCUMENTATION"
     DELETE_DOCUMENTATION = "DELETE_DOCUMENTATION"
     WATCH = "WATCH"
+    UNWATCH = "UNWATCH"
+    NONE = "NONE"
     OTHER = "OTHER"
     UNKNOWN = "UNKNOWN"
 
@@ -59,8 +62,10 @@ async def message_action(context: str) -> MessageAction:
         - Create new documentation
         - Update existing documentation
         - Follow this conversation
+        - Stop following this conversation
         - Search for documentation
         - Delete or archive existing documentation
+        - No action is needed
         - I don't know
         """,
     )
@@ -82,6 +87,10 @@ async def message_action(context: str) -> MessageAction:
         action = MessageAction.DELETE_DOCUMENTATION
     elif re.search("follow", response, re.IGNORECASE) is not None:
         action = MessageAction.WATCH
+    elif re.search("stop following", response, re.IGNORECASE) is not None:
+        action = MessageAction.UNWATCH
+    elif re.search("no action", response, re.IGNORECASE) is not None:
+        action = MessageAction.NONE
     else:
         logger.warn(f"Unexpected message action response: {response}")
         action = MessageAction.UNKNOWN
