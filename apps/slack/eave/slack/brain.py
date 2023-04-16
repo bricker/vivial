@@ -1,23 +1,22 @@
-import json
 import asyncio
+import json
 import random
 from typing import Optional
 from uuid import UUID
 
+import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
+import eave.stdlib.analytics
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai
-import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
-from eave.stdlib import logger
-import eave.stdlib.analytics
 import tiktoken
+from eave.stdlib import logger
 
-from . import slack_models
-from . import document_metadata
-from . import message_prompts
+from . import document_metadata, message_prompts, slack_models
 
 tokencoding = tiktoken.get_encoding("gpt2")
+
 
 class Brain:
     message: slack_models.SlackMessage
@@ -54,7 +53,7 @@ class Brain:
                     opaque_params=json.dumps({}),
                     user_ts=int(float(self.message.ts)),
                 ),
-                message_source=__name__
+                message_source=__name__,
             )
             eave.stdlib.analytics.log_user_action(action=action)
 
@@ -127,12 +126,14 @@ class Brain:
         existing_subscription = await self.get_subscription()
 
         if existing_subscription is None:
-            message_prefix = random.choice((
-                "Acknowledged!",
-                "On it!",
-                "Got it!",
-                "Got it.",
-            ))
+            message_prefix = random.choice(
+                (
+                    "Acknowledged!",
+                    "On it!",
+                    "Got it!",
+                    "Got it.",
+                )
+            )
             await self.message.send_response(
                 text=(
                     f"{message_prefix} I'll get started on the documentation right now and send an update when it's ready."
@@ -208,7 +209,6 @@ class Brain:
             ),
         )
 
-
         await self.message.send_response(
             text=(
                 "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
@@ -228,7 +228,9 @@ class Brain:
         logger.info(f"project_title: {project_title}")
         documentation_type = await document_metadata.get_documentation_type(conversation)
         logger.info(f"documentation_type: {documentation_type}")
-        documentation = await document_metadata.get_documentation(conversation=conversation, documentation_type=documentation_type)
+        documentation = await document_metadata.get_documentation(
+            conversation=conversation, documentation_type=documentation_type
+        )
         logger.info(f"documentation:\n{documentation}")
         document_resources = await self.build_resources()
         logger.info(f"document_resources: {document_resources}")
@@ -260,10 +262,7 @@ class Brain:
         resources_doc = ""
 
         if len(links) > 0:
-            resources_doc += (
-                "<h3>Resources</h3>"
-                "<ol>"
-            )
+            resources_doc += "<h3>Resources</h3>" "<ol>"
             for link in links:
                 parts = link.split("|")
                 if len(parts) > 1:
@@ -273,30 +272,18 @@ class Brain:
                     name = parts[0]
                     url = parts[0]
 
-                resources_doc += (
-                    "<li>"
-                    f"<a href=\"{url}\">{name}</a>"
-                    "</li>"
-                )
+                resources_doc += "<li>" f'<a href="{url}">{name}</a>' "</li>"
 
-            resources_doc += (
-                "</ol>"
-            )
+            resources_doc += "</ol>"
 
-        resources_doc += (
-            "<h3>Source</h3>"
-        )
+        resources_doc += "<h3>Source</h3>"
 
         permalink = await self.message.get_parent_permalink()
         if permalink is not None:
             doc_source = str(permalink.permalink)
-            resources_doc += (
-                f"<a href=\"{doc_source}\">Slack</a>"
-            )
+            resources_doc += f'<a href="{doc_source}">Slack</a>'
         else:
-            resources_doc += (
-                f"Slack message: {self.message.subscription_id}"
-            )
+            resources_doc += f"Slack message: {self.message.subscription_id}"
 
         return resources_doc
 
@@ -386,7 +373,8 @@ class Brain:
 
             if total_tokens > (eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
-                prompt = eave_openai.formatprompt(f"""
+                prompt = eave_openai.formatprompt(
+                    f"""
                     Condense the following conversation. Maintain the important information.
 
                     ###
@@ -396,7 +384,8 @@ class Brain:
                     {joined_messages}
 
                     ###
-                """)
+                """
+                )
                 openai_params = eave_openai.ChatCompletionParameters(
                     model=eave_openai.OpenAIModel.GPT4,
                     messages=[prompt],
@@ -481,18 +470,21 @@ class Brain:
         context.append(f"{caller_name} sent you a message.")
 
         if caller_job_title:
-            context.append(f"{caller_name}'s job title is \"{caller_job_title}\".")
+            context.append(f'{caller_name}\'s job title is "{caller_job_title}".')
 
         # f"The question was asked in a Slack channel called \"\". "
         # f"The description of that channel is: \"\" "
 
         compiled_context = "\n".join(context)
 
-        message_context = eave_openai.formatprompt(compiled_context, f"""
+        message_context = eave_openai.formatprompt(
+            compiled_context,
+            f"""
             Message:
             ###
             {self.expanded_text}
             ###
-        """)
+        """,
+        )
 
         self.message_context = message_context

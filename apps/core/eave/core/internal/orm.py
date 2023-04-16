@@ -216,8 +216,8 @@ class ConfluenceDestinationOrm(Base):
 
     @property
     @cache
-    def confluence_context(self) -> confluence_models.ConfluenceContext:
-        return confluence_models.ConfluenceContext(base_url=self.url)
+    def confluence_context(self) -> confluence.ConfluenceContext:
+        return confluence.ConfluenceContext(base_url=self.url)
 
     async def create_document(self, document: eave_ops.DocumentInput, session: AsyncSession) -> DocumentReferenceOrm:
         confluence_page = await self.get_or_create_confluence_page(document=document)
@@ -283,7 +283,7 @@ class ConfluenceDestinationOrm(Base):
         assert response is not None
         return document_reference
 
-    async def get_or_create_confluence_page(self, document: eave_ops.DocumentInput) -> confluence_models.ConfluencePage:
+    async def get_or_create_confluence_page(self, document: eave_ops.DocumentInput) -> confluence.ConfluencePage:
         existing_page = await self.get_confluence_page_by_title(document=document)
         if existing_page is not None:
             return existing_page
@@ -303,12 +303,12 @@ class ConfluenceDestinationOrm(Base):
         assert response is not None
 
         json = cast(eave_util.JsonObject, response)
-        page = confluence_models.ConfluencePage(json, cast(confluence_models.ConfluenceContext, self.confluence_context))
+        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
     async def get_confluence_page_by_id(
         self, document_reference: DocumentReferenceOrm
-    ) -> confluence_models.ConfluencePage | None:
+    ) -> confluence.ConfluencePage | None:
         response = self.confluence_client().get_page_by_id(
             page_id=document_reference.document_id,
             expand=["history"],
@@ -317,10 +317,10 @@ class ConfluenceDestinationOrm(Base):
             return None
 
         json = cast(eave_util.JsonObject, response)
-        page = confluence_models.ConfluencePage(json, cast(confluence_models.ConfluenceContext, self.confluence_context))
+        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
-    async def get_confluence_page_by_title(self, document: eave_ops.DocumentInput) -> confluence_models.ConfluencePage | None:
+    async def get_confluence_page_by_title(self, document: eave_ops.DocumentInput) -> confluence.ConfluencePage | None:
         response = self.confluence_client().get_page_by_title(
             space=self.space,
             title=document.title,
@@ -329,7 +329,7 @@ class ConfluenceDestinationOrm(Base):
             return None
 
         json = cast(eave_util.JsonObject, response)
-        page = confluence_models.ConfluencePage(json, cast(confluence_models.ConfluenceContext, self.confluence_context))
+        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
         return page
 
 
@@ -364,6 +364,7 @@ class SlackSource(Base):
         source: Self | None = (await session.scalars(lookup)).one_or_none()
         return source
 
+
 class AtlassianInstallationOrm(Base):
     __tablename__ = "atlassian_installations"
     __table_args__ = (
@@ -389,34 +390,35 @@ class AtlassianInstallationOrm(Base):
         jsonv = json.loads(self.oauth_token_encoded)
         return oauthlib.oauth2.rfc6749.tokens.OAuth2Token(params=jsonv)
 
+    oauth_scopes: list[str] = [
+        "write:confluence-content",
+        "read:confluence-space.summary",
+        "write:confluence-file",
+        "read:confluence-props",
+        "write:confluence-props",
+        "read:confluence-content.all",
+        "read:confluence-content.summary",
+        "search:confluence",
+        "read:confluence-content.permission",
+        "read:confluence-user",
+        "read:confluence-groups",
+        "readonly:content.attachment:confluence",
+        "read:jira-work",
+        "read:jira-user",
+        "write:jira-work",
+        "read:me",
+        "read:account",
+        "offline_access",
+    ]
+
     def oauth_session(self, state: Optional[str] = None) -> requests_oauthlib.OAuth2Session:
         session = requests_oauthlib.OAuth2Session(
             token=self.oauth_token_decoded,
             client_id=app_config.eave_atlassian_app_client_id,
-            redirect_uri=f"{app_config.eave_api_base}/oauth/atlassian/callback",
-            scope=" ".join([
-                "write:confluence-content",
-                "read:confluence-space.summary",
-                "write:confluence-file",
-                "read:confluence-props",
-                "write:confluence-props",
-                "read:confluence-content.all",
-                "read:confluence-content.summary",
-                "search:confluence",
-                "read:confluence-content.permission",
-                "read:confluence-user",
-                "read:confluence-groups",
-                "readonly:content.attachment:confluence",
-                "read:jira-work",
-                "read:jira-user",
-                "write:jira-work",
-                "read:me",
-                "read:account",
-                "offline_access",
-            ]),
+            scope=" ".join(self.oauth_scopes),
             state=state,
             auto_refresh_url="https://auth.atlassian.com/oauth/token",
-            token_updater=self.update_token
+            token_updater=self.update_token,
         )
 
         return session
@@ -432,6 +434,12 @@ class AtlassianInstallationOrm(Base):
         source: Self | None = (await session.scalars(lookup)).one_or_none()
         return source
 
+    @classmethod
+    async def one_or_none_by_atlassian_cloud_id(cls, session: AsyncSession, atlassian_cloud_id: str) -> Optional[Self]:
+        lookup = select(cls).where(cls.atlassian_cloud_id == atlassian_cloud_id).limit(1)
+        result: Self | None = (await session.scalars(lookup)).one_or_none()
+        return result
+
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -441,6 +449,7 @@ class TeamOrm(Base):
     document_platform: Mapped[Optional[eave_models.DocumentPlatform]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
 
     subscriptions: Mapped[list["SubscriptionOrm"]] = relationship()
 
