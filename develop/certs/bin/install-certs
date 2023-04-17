@@ -5,18 +5,6 @@ set -eu
 source $EAVE_HOME/develop/functions.bash
 
 function install-certs() (
-	# local name
-
-	# while getopts "n:" argname
-	# do
-	# 	case "$argname" in
-	# 		n) name=$OPTARG ;;
-	# 	esac
-	# done
-
-	# local certfile=$name.crt
-	# local certsource=$EAVE_HOME/develop/certs/$name/$certfile
-
 	local name=eave-localhost
 	local caBundleFileName=$name.crt
 	local caBundleFileTemp=/tmp/$caBundleFileName
