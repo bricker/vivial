@@ -2,7 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/shared/functions.bash
+source ${EAVE_HOME}/develop/functions.bash
 
 install_tinyproxy() (
     statusmsg -i "Installing tinyproxy (this is a one-time setup)..."

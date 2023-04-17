@@ -2,5 +2,7 @@
 
 set -eu
 
-gcloud meta list-files-for-upload
+gcloud meta list-files-for-upload | grep -v "^vendor/"
+echo "vendor/..."
+
 gcloud app deploy

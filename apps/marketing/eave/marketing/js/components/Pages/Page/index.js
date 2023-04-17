@@ -1,14 +1,16 @@
 import React from 'react';
 import { withStyles } from '@material-ui/styles';
+
 import Header from '../../Header/index.js';
 import Footer from '../../Footer/index.js';
 
 class Page extends React.Component {
   render() {
-    const { classes, children } = this.props;
+    const { classes, children, simpleHeader } = this.props;
+
     return (
       <div className={classes.container}>
-        <Header />
+        <Header simpleHeader={simpleHeader} />
         {children}
         <Footer />
       </div>

@@ -1,7 +1,9 @@
 import enum
 import re
 from typing import List
+
 import eave.stdlib.openai_client as eave_openai
+
 
 async def get_topic(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
@@ -12,7 +14,8 @@ async def get_topic(conversation: str) -> str:
         ###
         {conversation}
         ###
-        """)
+        """
+    )
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],
@@ -25,6 +28,7 @@ async def get_topic(conversation: str) -> str:
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
     assert openai_response is not None
     return openai_response
+
 
 async def get_hierarchy(conversation: str) -> List[str]:
     prompt = eave_openai.formatprompt(
@@ -41,7 +45,8 @@ async def get_hierarchy(conversation: str) -> List[str]:
         ###
         {conversation}
         ###
-        """)
+        """
+    )
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],
@@ -57,6 +62,7 @@ async def get_hierarchy(conversation: str) -> List[str]:
     parents = list(map(lambda x: x.strip(), reversed(answer.split(","))))
     return parents
 
+
 async def get_project_title(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
         f"""
@@ -66,7 +72,8 @@ async def get_project_title(conversation: str) -> str:
         ###
         {conversation}
         ###
-        """)
+        """
+    )
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],
@@ -80,12 +87,14 @@ async def get_project_title(conversation: str) -> str:
     assert openai_response is not None
     return openai_response
 
+
 class DocumentationType(enum.Enum):
     TECHNICAL = "Technical Documentation"
     PROJECT = "Project One-Pager"
     TEAM_ONBOARDING = "Team Onboarding"
     ENGINEER_ONBOARDING = "Engineer Onboarding"
     UNKNOWN = "Other"
+
 
 async def get_documentation_type(conversation: str) -> DocumentationType:
     prompt = eave_openai.formatprompt(
@@ -104,7 +113,8 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
         ###
         {conversation}
         ###
-        """)
+        """
+    )
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],
@@ -128,6 +138,7 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
     else:
         return DocumentationType.UNKNOWN
 
+
 async def get_documentation(conversation: str, documentation_type: DocumentationType) -> str:
     match documentation_type:
         case DocumentationType.TECHNICAL:
@@ -136,11 +147,13 @@ async def get_documentation(conversation: str, documentation_type: Documentation
                 "This documentation will be used primarily by software engineers."
             )
         case DocumentationType.PROJECT:
-            setup = eave_openai.formatprompt("""
+            setup = eave_openai.formatprompt(
+                """
                 Create a Project One-Pager document for the project being discussed in the following conversation.
                 The document should be formatted as a table with the following headers: Category, Goal, Features, Notes.
                 Each row in the table should describe details of a feature in the project.
-            """)
+            """
+            )
         # case DocumentationType.TEAM_ONBOARDING:
         #     setup = (
         #         f"Create Team Onboarding documentation "
@@ -154,12 +167,11 @@ async def get_documentation(conversation: str, documentation_type: Documentation
         #     )
         #     pass
         case _:
-            setup = (
-                "Create Documentation for the information in the following conversation."
-            )
+            setup = "Create Documentation for the information in the following conversation."
             pass
 
-    prompt = eave_openai.formatprompt(setup,
+    prompt = eave_openai.formatprompt(
+        setup,
         f"""
         You should not simply summarize the conversation; instead, you should extract information that is important, novel, and is likely to be valuable to other team members in the future.
         The documentation should be formatted using plain HTML tags without any inline styling. The documentation will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>.
@@ -168,7 +180,8 @@ async def get_documentation(conversation: str, documentation_type: Documentation
         ###
         {conversation}
         ###
-        """)
+        """,
+    )
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],

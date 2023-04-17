@@ -1,15 +1,13 @@
 from typing import Optional
-import fastapi
-from slack_sdk.oauth import AuthorizeUrlGenerator
-from slack_sdk.web import WebClient, SlackResponse
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
+import fastapi
 from eave.core.internal.config import app_config
+from slack_sdk.oauth import AuthorizeUrlGenerator
+from slack_sdk.web import SlackResponse, WebClient
 
-from . import oauth_cookie
-from . import oauth_state
-
+from . import oauth_cookie, oauth_state
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
@@ -137,7 +135,7 @@ async def slack_oauth_callback(
     async with await eave_db.get_session() as session:
         # try fetch existing team account from db
         # TODO: check session token once exists
-        # https://github.com/eave-fyi/eave-monorepo/pull/3#discussion_r1160880115 
+        # https://github.com/eave-fyi/eave-monorepo/pull/3#discussion_r1160880115
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
             auth_provider=eave_orm.AuthProvider.slack,

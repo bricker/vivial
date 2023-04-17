@@ -62,6 +62,11 @@ class CreateSubscription:
         document_reference: Optional[models.DocumentReference] = None
 
 
+class DeleteSubscription:
+    class RequestBody(pydantic.BaseModel):
+        subscription: SubscriptionInput
+
+
 class UpsertDocument:
     class RequestBody(pydantic.BaseModel):
         document: DocumentInput

@@ -83,14 +83,12 @@
   "python.analysis.extraPaths": [
     "vendor"
   ],
-  "python.testing.unittestEnabled": true,
-  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
   "python.testing.unittestArgs": [
     "-v",
-    "-t",
-    ".",
     "-s",
-    ".",
+    "${workspaceFolder}",
     "-p",
     "*_test.py"
   ],
@@ -99,4 +97,16 @@
     "--config=${workspaceFolder}/develop/python/pyproject.toml"
   ],
   "python.analysis.autoImportCompletions": true,
+  "python.testing.pytestArgs": [
+    "-c=${workspaceFolder}/develop/python/pyproject.toml"
+  ],
+  "python.analysis.exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".git",
+    ".venv",
+    "**/vendor",
+    "**/.mypy_cache",
+    "**/generated"
+  ],
 }

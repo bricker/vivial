@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from functools import cache
 from typing import Optional, ParamSpec, Self, Tuple, cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import atlassian
 import eave.stdlib.core_api.models as eave_models
@@ -14,17 +14,17 @@ from sqlalchemy import (
     Index,
     PrimaryKeyConstraint,
     Select,
+    delete,
     func,
     select,
     text,
-    delete,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from . import confluence
 
-UUID_DEFAULT_EXPR = text("gen_random_uuid()")
+UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
 
 P = ParamSpec("P")
 

@@ -84,3 +84,9 @@ export namespace GetSlackSource {
     slack_source?: models.SlackSource;
   }
 }
+
+export namespace DeleteSubscription {
+  export type RequestBody = {
+    subscription: SubscriptionInput;
+  }
+}
