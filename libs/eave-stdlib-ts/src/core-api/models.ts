@@ -17,10 +17,10 @@ export enum SubscriptionSourceEvent {
 }
 
 export type AccessRequest = {
-    id: string;
-    visitor_id?: string;
-    email: string;
-    created: Date;
+  id: string;
+  visitor_id?: string;
+  email: string;
+  created: Date;
 }
 
 export type DocumentReference = {
@@ -51,4 +51,14 @@ export type Team = {
   id: string;
   name: string;
   document_platform: DocumentPlatform;
+}
+
+export type SlackSource = {
+  id: string;
+  /** eave TeamOrm model id */
+  team_id: string;
+  slack_team_id: string;
+  bot_token: string;
+  bot_id: string;
+  bot_user_id: string;
 }

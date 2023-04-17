@@ -101,13 +101,34 @@ async def get_subscription(
     return operations.GetSubscription.ResponseBody(**response_json)
 
 
+async def get_slack_source(
+    input: operations.GetSlackSource.RequestBody,
+) -> Optional[operations.GetSlackSource.ResponseBody]:
+    """
+    POST /slack_sources/query
+    """
+    # fetch slack bot details
+    response = await _make_request(
+        path="/slack_sources/query",
+        input=input,
+        team_id=None,
+    )
+
+    if response.status >= 300:
+        return None
+
+    response_json = await response.json()
+    return operations.GetSlackSource.ResponseBody(**response_json)
+
+
 def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)
 
 
 async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[str]) -> aiohttp.ClientResponse:
+    payload = input.json()
     signature = signing.sign(
-        payload=input.json(),
+        payload=payload,
         team_id=team_id,
     )
 
