@@ -14,6 +14,7 @@ class Footer extends React.Component {
         <Copy className={classes.innerContainer} variant="footnote">
           © {year} Eave Technologies, Inc. All rights reserved.
           <Link className={classes.link} to="/terms">Terms</Link>
+          <Link className={classes.link} to="/privacy">Privacy Policy</Link>
         </Copy>
       </footer>
     );
