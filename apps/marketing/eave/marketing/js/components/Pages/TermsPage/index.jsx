@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
@@ -50,7 +49,7 @@ const TermsPage = () => {
         <ul>
           <li><Copy>In any way that violates any applicable federal, state, local, or international law or regulation.</Copy></li>
           <li><Copy>To engage in any activity that interferes with or disrupts our Services (or the servers and networks that are connected to our Services).</Copy></li>
-          <li><Copy>To impersonate or attempt to impersonate Eave Technologies, Inc., a Eave Technologies, Inc. employee, another user, or any other person or entity..</Copy></li>
+          <li><Copy>To impersonate or attempt to impersonate Eave Technologies, Inc., a Eave Technologies, Inc. employee, another user, or any other person or entity.</Copy></li>
           <li><Copy>To engage in any other conduct that restricts or inhibits anyone's use or enjoyment of our Services, or which, as determined by us, may harm Eave Technologies, Inc. or users of our Services or expose them to liability.</Copy></li>
         </ul>
         <Copy className={classes.para}>
