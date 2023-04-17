@@ -86,4 +86,4 @@ class SlackSource(pydantic.BaseModel):
     slack_team_id: str
     bot_token: str
     bot_id: str
-    bot_user_id: str
+    bot_user_id: Optional[str]

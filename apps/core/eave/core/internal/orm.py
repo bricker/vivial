@@ -352,7 +352,7 @@ class SlackSource(Base):
     # bot identification data for authorizing slack api calls
     bot_token: Mapped[str] = mapped_column()
     bot_id: Mapped[str] = mapped_column()
-    bot_user_id: Mapped[str] = mapped_column()
+    bot_user_id: Mapped[Optional[str]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
