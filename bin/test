@@ -2,4 +2,6 @@
 
 set -eu
 
-echo "WARNING: Nothing to test"
+source $EAVE_HOME/develop/functions.bash
+
+run-in-all-projects bin/test

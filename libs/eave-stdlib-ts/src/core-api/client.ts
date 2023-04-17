@@ -27,6 +27,12 @@ export async function createSubscription(teamId: string, input: ops.CreateSubscr
   return responseData;
 }
 
+export async function deleteSubscription(teamId: string, input: ops.DeleteSubscription.RequestBody): Promise<null> {
+  const request = await initRequest(input, teamId);
+  await fetch(`${sharedConfig.eaveApiBase}/subscriptions/delete`, request);
+  return null;
+}
+
 export async function getSubscription(teamId: string, input: ops.GetSubscription.RequestBody): Promise<ops.GetSubscription.ResponseBody | null> {
   const request = await initRequest(input, teamId);
   const resp = await fetch(`${sharedConfig.eaveApiBase}/subscriptions/query`, request);

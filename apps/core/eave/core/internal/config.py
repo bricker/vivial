@@ -21,9 +21,8 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         return os.getenv("EAVE_DB_NAME", "eave")
 
     @property
-    def db_host(self) -> str:
+    def db_host(self) -> Optional[str]:
         value = os.getenv("EAVE_DB_HOST")
-        assert value is not None
         return value
 
     @property
@@ -34,14 +33,20 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         return int(port)
 
     @cached_property
-    def db_user(self) -> str:
-        value: str = self.get_secret("DB_USER")
-        return value
+    def db_user(self) -> Optional[str]:
+        try:
+            value: str = self.get_secret("DB_USER")
+            return value
+        except AssertionError:
+            return None
 
     @cached_property
-    def db_pass(self) -> str:
-        value: str = self.get_secret("DB_PASS")
-        return value
+    def db_pass(self) -> Optional[str]:
+        try:
+            value: str = self.get_secret("DB_PASS")
+            return value
+        except AssertionError:
+            return None
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:

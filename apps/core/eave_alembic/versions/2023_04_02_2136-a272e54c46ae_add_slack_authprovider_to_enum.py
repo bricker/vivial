@@ -22,8 +22,8 @@ tcr = sa.sql.table("accounts", sa.Column("auth_provider", new_type, nullable=Fal
 
 def upgrade():
     # op.alter_column("accounts", "auth_provider", type_=new_type, existing_type=old_type)
-    op.execute("ALTER TYPE authprovider ADD VALUE 'slack'")
-
+    # op.execute("ALTER TYPE authprovider ADD VALUE 'slack'")
+    pass
 
 def downgrade():
     # this is destructive to the validity of the data... soooo never do it

@@ -1,18 +1,19 @@
 import logging
 import os
-import sys
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-import json
 import asyncio
+import json
+
 import eave.slack.brain
-import eave.slack.slack_models
 import eave.slack.message_prompts
+import eave.slack.slack_models
+import eave.stdlib.logging
 import eave.stdlib.openai_client
 
-import eave.stdlib.logging
 eave.stdlib.logging.setup_logging(level=logging.DEBUG)
 from eave.stdlib import logger
 
@@ -32,12 +33,14 @@ jsonstring = """
 }
 """
 
+
 async def test_slack_message_processing() -> None:
     logger.info("test_slack_message_processing")
     event = json.loads(jsonstring)
     message = eave.slack.slack_models.SlackMessage(event)
     brain = eave.slack.brain.Brain(message=message)
     await brain.process_message()
+
 
 async def test_action_prompt() -> None:
     logger.info("test_action_prompt")
@@ -48,6 +51,7 @@ async def test_action_prompt() -> None:
     message_action = await eave.slack.message_prompts.message_action(context=brain.message_context)
     logger.info(message_action)
 
+
 async def test_document_builder() -> None:
     logger.info("test_document_builder")
     event = json.loads(jsonstring)
@@ -57,21 +61,21 @@ async def test_document_builder() -> None:
     doc = await brain.build_documentation()
 
     with open("/tmp/doc.html", "w+") as f:
-      f.write("<p>CATEGORIES:</p>")
-      f.write("<ol>")
-      c = doc
-      while c.parent is not None:
-        f.write(f"<li>{c.parent.title}</li>")
-        c = c.parent
-      f.write("</ol>")
+        f.write("<p>CATEGORIES:</p>")
+        f.write("<ol>")
+        c = doc
+        while c.parent is not None:
+            f.write(f"<li>{c.parent.title}</li>")
+            c = c.parent
+        f.write("</ol>")
 
-      f.write("<hr>")
-      f.write(f"<p>TITLE: {doc.title}</p>")
-      f.write("<hr>")
+        f.write("<hr>")
+        f.write(f"<p>TITLE: {doc.title}</p>")
+        f.write("<hr>")
 
-      f.write(doc.content)
+        f.write(doc.content)
 
-    os.system('open /tmp/doc.html')
+    os.system("open /tmp/doc.html")
 
 
 if __name__ == "__main__":

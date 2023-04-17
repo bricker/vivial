@@ -1,13 +1,13 @@
+import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
 from google.api_core.exceptions import NotFound
 from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
 
-from .config import shared_config
 from . import logger
-
-import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
+from .config import shared_config
 
 publisher_client = PublisherClient()
+
 
 def log_user_action(action: eave_user_action.EaveUserAction) -> None:
     topic_id = "eave_user_action"

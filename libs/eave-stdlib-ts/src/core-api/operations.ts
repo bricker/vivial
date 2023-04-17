@@ -70,3 +70,9 @@ export namespace CreateSubscription {
     document_reference?: models.DocumentReference;
   }
 }
+
+export namespace DeleteSubscription {
+  export type RequestBody = {
+    subscription: SubscriptionInput;
+  }
+}

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-source ./develop/shared/functions.bash
-source ./develop/python/functions.bash
+if test -z "${EAVE_HOME}"; then
+	export EAVE_HOME=$(pwd)
+fi
+
+source ${EAVE_HOME}/develop/functions.bash
 
 statusmsg -ns "Hi! Welcome to Eave. I will help you setup this repository."
 statusmsg -i "Before getting started, it is recommended to install the "nvm" and "pyenv" version management tools into your environment."
@@ -10,46 +13,42 @@ echo ""
 
 usershell=$(shellname)
 
-if [[ -z "$EAVE_HOME" ]]; then
+case $usershell in
+"bash" | "zsh")
 	case $usershell in
-	"bash" | "zsh")
-		case $usershell in
-		"bash") loginfile=~/.bashrc ;;
-		"zsh") loginfile=~/.zshrc ;;
-		esac
-		varcmd="export EAVE_HOME=\"$(pwd)\""
-		statusmsg -ni "First, I'll add the following line to $loginfile:"
-		echo ""
-		statusmsg -o "\t$varcmd"
-		echo ""
-
-		read -p "Should I proceed? [y/n] " proceed
-		if test "$proceed" = "y"; then
-			echo -e "\n$varcmd" >>"$loginfile"
-		fi
-
-		statusmsg "Updating current shell to set EAVE_HOME"
-		source "$loginfile"
-		;;
-	"fish")
-		varcmd="set -Ux EAVE_HOME $(pwd)"
-		statusmsg -ni "First, I'll add a Universal variable to your Fish environment with the following command:"
-		echo ""
-		echo -e "\t$varcmd"
-		echo ""
-
-		read -p "Should I proceed? [y/n] " proceed
-		if test "$proceed" = "y"; then
-			fish -c "$varcmd"
-		fi
-		;;
-	*)
-		statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
-		;;
+	"bash") loginfile=~/.bashrc ;;
+	"zsh") loginfile=~/.zshrc ;;
 	esac
-else
-	statusmsg -ni "EAVE_HOME already set. Continuing..."
-fi
+	varcmd="export EAVE_HOME=\"$(pwd)\""
+	statusmsg -ni "First, I'll add the following line to $loginfile:"
+	echo ""
+	statusmsg -o "\t$varcmd"
+	echo ""
+
+	read -p "Should I proceed? [y/n] " proceed
+	if test "$proceed" = "y"; then
+		echo -e "\n$varcmd" >>"$loginfile"
+	fi
+
+	statusmsg "Updating current shell to set EAVE_HOME"
+	source "$loginfile"
+	;;
+"fish")
+	varcmd="set -Ux EAVE_HOME $(pwd)"
+	statusmsg -ni "First, I'll add a Universal variable to your Fish environment with the following command:"
+	echo ""
+	echo -e "\t$varcmd"
+	echo ""
+
+	read -p "Should I proceed? [y/n] " proceed
+	if test "$proceed" = "y"; then
+		fish -c "$varcmd"
+	fi
+	;;
+*)
+	statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
+	;;
+esac
 
 echo ""
 
@@ -86,7 +85,7 @@ if test "$proceed" = "y"; then
 	python-activate-venv
 	python -m pip install python-dotenv
 
-	run_in_all_projects bin/setup
+	run-in-all-projects bin/setup
 fi
 
 statusmsg -s "Done!"

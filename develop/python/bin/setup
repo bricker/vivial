@@ -2,7 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/python/functions.bash
+source ${EAVE_HOME}/develop/functions.bash
 python-validate-version
 python-activate-venv
 

@@ -6,10 +6,10 @@ from typing import Any, AsyncGenerator, List, Optional
 import eave.slack.slack_app as slack_app
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
+import slack_sdk.errors
+import slack_sdk.models.blocks
 from eave.stdlib import logger
 from pydantic import BaseModel, HttpUrl
-import slack_sdk.models.blocks
-import slack_sdk.errors
 
 from .config import app_config
 
@@ -344,7 +344,9 @@ class SlackMessage:
     def is_eave(self) -> bool:
         return self.app_id == app_config.eave_slack_app_id
 
-    async def send_response(self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None) -> None:
+    async def send_response(
+        self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None
+    ) -> None:
         assert self.channel is not None
 
         if text is not None:

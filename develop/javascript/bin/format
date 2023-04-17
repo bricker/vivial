@@ -2,11 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/javascript/functions.bash
-node-validate-version
-node-activate-venv
-
-statusmsg -i "(format) eslint..."
-npx eslint . --fix
-
-statusmsg -s "Formatting completed ✔"
+source ${EAVE_HOME}/develop/functions.bash
+node-format .
+run-in-path "${EAVE_HOME}/libs/eave-stdlib-ts" "bin/format"
+run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/format"

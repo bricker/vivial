@@ -2,19 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/python/functions.bash
-python-validate-version
-python-activate-venv
-
-configfile=${EAVE_HOME}/develop/python/pyproject.toml
-
-statusmsg -i "(lint) isort..."
-python -m isort --settings-file=$configfile --check .
-
-statusmsg -i "(lint) black..."
-python -m black --config=$configfile --check .
-
-statusmsg -i  "(lint) mypy..."
-python -m mypy --config-file=$configfile .
-
-statusmsg -s "Linting passed ✔"
+source ${EAVE_HOME}/develop/functions.bash
+python-lint .
+run-in-path "${EAVE_HOME}/libs/eave-stdlib-py" "bin/lint"
+run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/lint"

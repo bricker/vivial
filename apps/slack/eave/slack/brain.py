@@ -1,23 +1,22 @@
-import json
 import asyncio
+import json
 import random
 from typing import Optional
 from uuid import UUID
 
+import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
+import eave.stdlib.analytics
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai
-import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
-from eave.stdlib import logger
-import eave.stdlib.analytics
 import tiktoken
+from eave.stdlib import logger
 
-from . import slack_models
-from . import document_metadata
-from . import message_prompts
+from . import document_metadata, message_prompts, slack_models
 
 tokencoding = tiktoken.get_encoding("gpt2")
+
 
 class Brain:
     message: slack_models.SlackMessage
@@ -54,9 +53,11 @@ class Brain:
                     opaque_params=json.dumps({}),
                     user_ts=int(float(self.message.ts)),
                 ),
-                message_source=__name__
+                message_source=__name__,
             )
             eave.stdlib.analytics.log_user_action(action=action)
+
+            message_action = await message_prompts.message_action(context=self.message_context)
 
         else:
             """
@@ -70,9 +71,9 @@ class Brain:
                 logger.debug("Eave is not subscribed to this thread; ignoring.")
                 return
 
-        await self.load_data()
+            message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
 
-        message_action = await message_prompts.message_action(context=self.message_context)
+        await self.load_data()
         await self.handle_action(message_action=message_action)
 
     async def process_shortcut_event(self) -> None:
@@ -98,6 +99,10 @@ class Brain:
                 await self.create_documentation_and_subscribe()
                 return
 
+            case message_prompts.MessageAction.UNWATCH:
+                await self.unwatch_conversation()
+                return
+
             case message_prompts.MessageAction.SEARCH_DOCUMENTATION:
                 await self.message.send_response(text="One moment while I look...")
                 await self.search_documentation()
@@ -108,10 +113,17 @@ class Brain:
                 await self.update_documentation()
                 return
 
+            case message_prompts.MessageAction.REFINE_DOCUMENTATION:
+                await self.refine_documentation()
+                return
+
             case message_prompts.MessageAction.DELETE_DOCUMENTATION:
                 # TODO: Unsubscribe from conversation
                 await self.message.send_response(text="On it!")
                 await self.archive_documentation()
+                return
+
+            case message_prompts.MessageAction.NONE:
                 return
 
             case _:
@@ -127,12 +139,14 @@ class Brain:
         existing_subscription = await self.get_subscription()
 
         if existing_subscription is None:
-            message_prefix = random.choice((
-                "Acknowledged!",
-                "On it!",
-                "Got it!",
-                "Got it.",
-            ))
+            message_prefix = random.choice(
+                (
+                    "Acknowledged!",
+                    "On it!",
+                    "Got it!",
+                    "Got it.",
+                )
+            )
             await self.message.send_response(
                 text=(
                     f"{message_prefix} I'll get started on the documentation right now and send an update when it's ready."
@@ -199,15 +213,7 @@ class Brain:
         logger.debug("Brain.create_documentation")
 
         api_document = await self.build_documentation()
-
-        upsert_document_response = await eave_core_api_client.upsert_document(
-            team_id=self.team_id,
-            input=eave_ops.UpsertDocument.RequestBody(
-                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
-                document=api_document,
-            ),
-        )
-
+        upsert_document_response = await self.upsert_document(document=api_document)
 
         await self.message.send_response(
             text=(
@@ -228,7 +234,9 @@ class Brain:
         logger.info(f"project_title: {project_title}")
         documentation_type = await document_metadata.get_documentation_type(conversation)
         logger.info(f"documentation_type: {documentation_type}")
-        documentation = await document_metadata.get_documentation(conversation=conversation, documentation_type=documentation_type)
+        documentation = await document_metadata.get_documentation(
+            conversation=conversation, documentation_type=documentation_type
+        )
         logger.info(f"documentation:\n{documentation}")
         document_resources = await self.build_resources()
         logger.info(f"document_resources: {document_resources}")
@@ -260,10 +268,7 @@ class Brain:
         resources_doc = ""
 
         if len(links) > 0:
-            resources_doc += (
-                "<h3>Resources</h3>"
-                "<ol>"
-            )
+            resources_doc += "<h3>Resources</h3>" "<ol>"
             for link in links:
                 parts = link.split("|")
                 if len(parts) > 1:
@@ -273,30 +278,18 @@ class Brain:
                     name = parts[0]
                     url = parts[0]
 
-                resources_doc += (
-                    "<li>"
-                    f"<a href=\"{url}\">{name}</a>"
-                    "</li>"
-                )
+                resources_doc += "<li>" f'<a href="{url}">{name}</a>' "</li>"
 
-            resources_doc += (
-                "</ol>"
-            )
+            resources_doc += "</ol>"
 
-        resources_doc += (
-            "<h3>Source</h3>"
-        )
+        resources_doc += "<h3>Source</h3>"
 
         permalink = await self.message.get_parent_permalink()
         if permalink is not None:
             doc_source = str(permalink.permalink)
-            resources_doc += (
-                f"<a href=\"{doc_source}\">Slack</a>"
-            )
+            resources_doc += f'<a href="{doc_source}">Slack</a>'
         else:
-            resources_doc += (
-                f"Slack message: {self.message.subscription_id}"
-            )
+            resources_doc += f"Slack message: {self.message.subscription_id}"
 
         return resources_doc
 
@@ -335,8 +328,22 @@ class Brain:
     async def update_documentation(self) -> None:
         await self.message.send_response(text="I haven't yet been taught how to update existing documentation.")
 
+    async def refine_documentation(self) -> None:
+        api_document = await self.build_documentation()
+        await self.upsert_document(document=api_document)
+
     async def archive_documentation(self) -> None:
         await self.message.send_response(text="I haven't yet been taught how to archive existing documentation.")
+
+    async def unwatch_conversation(self) -> None:
+        await eave_core_api_client.delete_subscription(
+            team_id=self.team_id,
+            input=eave_ops.DeleteSubscription.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+            ),
+        )
+
+        await self.message.send_response(text="You got it! I'll stop watching this conversation.")
 
     """
     Context Building
@@ -386,7 +393,8 @@ class Brain:
 
             if total_tokens > (eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
-                prompt = eave_openai.formatprompt(f"""
+                prompt = eave_openai.formatprompt(
+                    f"""
                     Condense the following conversation. Maintain the important information.
 
                     ###
@@ -396,7 +404,8 @@ class Brain:
                     {joined_messages}
 
                     ###
-                """)
+                """
+                )
                 openai_params = eave_openai.ChatCompletionParameters(
                     model=eave_openai.OpenAIModel.GPT4,
                     messages=[prompt],
@@ -444,6 +453,16 @@ class Brain:
         )
         return subscription
 
+    async def upsert_document(self, document: eave_ops.DocumentInput) -> eave_ops.UpsertDocument.ResponseBody:
+        response = await eave_core_api_client.upsert_document(
+            team_id=self.team_id,
+            input=eave_ops.UpsertDocument.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+                document=document,
+            ),
+        )
+        return response
+
     async def notify_existing_subscription(self, subscription: eave_ops.GetSubscription.ResponseBody) -> None:
         if subscription.document_reference is not None:
             await self.message.send_response(
@@ -487,18 +506,21 @@ class Brain:
         context.append(f"{caller_name} sent you a message.")
 
         if caller_job_title:
-            context.append(f"{caller_name}'s job title is \"{caller_job_title}\".")
+            context.append(f'{caller_name}\'s job title is "{caller_job_title}".')
 
         # f"The question was asked in a Slack channel called \"\". "
         # f"The description of that channel is: \"\" "
 
         compiled_context = "\n".join(context)
 
-        message_context = eave_openai.formatprompt(compiled_context, f"""
+        message_context = eave_openai.formatprompt(
+            compiled_context,
+            f"""
             Message:
             ###
             {self.expanded_text}
             ###
-        """)
+        """,
+        )
 
         self.message_context = message_context
