@@ -47,6 +47,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.dbsession = await get_session()
         self.dbsession.begin()
         connection = await self.dbsession.connection()
+        assert connection.engine.url.database == "eave-test"
         await connection.run_sync(orm.Base.metadata.drop_all)
         await connection.run_sync(orm.Base.metadata.create_all)
 

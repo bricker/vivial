@@ -361,7 +361,7 @@ class SlackSource(Base):
         lookup = select(cls).where(cls.team_id == team_id).limit(1)
         source: Self | None = (await session.scalars(lookup)).one_or_none()
         return source
-    
+
     @classmethod
     async def one_or_none_by_slack_team_id(cls, session: AsyncSession, slack_team_id: str) -> Optional[Self]:
         lookup = select(cls).where(cls.slack_team_id == slack_team_id).limit(1)
