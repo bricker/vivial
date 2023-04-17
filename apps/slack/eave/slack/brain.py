@@ -34,6 +34,8 @@ class Brain:
     async def process_message(self) -> None:
         logger.debug("Brain.process_message")
 
+        await self.load_data()
+
         i_am_mentioned = await self.message.check_eave_is_mentioned()
         if i_am_mentioned is True:
             """
@@ -73,7 +75,6 @@ class Brain:
 
             message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
 
-        await self.load_data()
         await self.handle_action(message_action=message_action)
 
     async def process_shortcut_event(self) -> None:
