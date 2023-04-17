@@ -576,6 +576,14 @@ class SlackMessage:
         expanded_text = re.sub("<(.*?)\\|?(.*?)?>", replace_url, expanded_text)
         return expanded_text
 
+    # TODO also memoize?
+    async def get_source_links():
+        pass
+
+    # TODO also memos-ize/?
+    async def get_source_text():
+        pass
+
     @eave_util.memoized
     async def resolve_user_mentions(self) -> None:
         links = self.parse_links()

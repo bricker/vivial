@@ -471,6 +471,12 @@ class Brain:
         assert expanded_text is not None
         self.expanded_text = expanded_text
 
+        # TODO finish impl
+        source_links = await self.message.get_source_links()
+        source_text = await self.get_source_text(source_links)
+        assert source_text is not None
+        self.source_text = source_text
+
         await self.build_message_context()
 
     async def build_message_context(self) -> None:
