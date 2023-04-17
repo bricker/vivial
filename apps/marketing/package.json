@@ -4,8 +4,7 @@
     "npm": "9"
   },
   "type": "module",
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
     "@material-ui/core": "^4.12.4",
     "@material-ui/styles": "^4.11.5",

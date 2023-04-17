@@ -238,17 +238,17 @@ class SlackMessage:
 
     # These properties are left intentionally uninitialized.
     # Call the respective get_*_mentions or expand_* methods to set the values.
-    user_mentions: list[SlackProfile]
-    user_mentions_dict: dict[str, SlackProfile]
+    user_mentions: Optional[list[SlackProfile]] = None
+    user_mentions_dict: Optional[dict[str, SlackProfile]] = None
     """user id -> user profile"""
-    channel_mentions: list[SlackConversation]
-    channel_mentions_dict: dict[str, SlackConversation]
+    channel_mentions: Optional[list[SlackConversation]] = None
+    channel_mentions_dict: Optional[dict[str, SlackConversation]] = None
     """channel id -> channel name"""
-    subteam_mentions: list[str]
-    subteam_mentions_dict: dict[str, str]
+    subteam_mentions: Optional[list[str]] = None
+    subteam_mentions_dict: Optional[dict[str, str]] = None
     """subteam id -> subteam name"""
-    special_mentions: list[str]
-    special_mentions_dict: dict[str, str]
+    special_mentions: Optional[list[str]] = None
+    special_mentions_dict: Optional[dict[str, str]] = None
     """special mention name -> special mention name"""
     urls: list[str]
 
@@ -393,6 +393,8 @@ class SlackMessage:
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:
         await self.get_expanded_text()
+        if self.user_mentions is None:
+            return False
         value = any(profile.api_app_id == app_config.eave_slack_app_id for profile in self.user_mentions)
         return value
 
@@ -517,17 +519,23 @@ class SlackMessage:
         expanded_text = self.text
 
         def replace_user_mention(match: re.Match[str]) -> str:
+            if self.user_mentions_dict is None:
+                return match.group()
+
             user_id = match.groups()[0]
             profile = self.user_mentions_dict.get(user_id)
 
             if profile is not None:
                 return f"@{profile.real_name}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<@([UW]\\w+).*?>", replace_user_mention, expanded_text)
 
         def replace_channel_mention(match: re.Match[str]) -> str:
+            if self.channel_mentions_dict is None:
+                return match.group()
+
             groups = match.groups()
             channel_id = groups[0]
 
@@ -535,30 +543,36 @@ class SlackMessage:
 
             if channel is not None and channel.name is not None:
                 return f"@{channel.name}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<#(C\\w+).*?>", replace_channel_mention, expanded_text)
 
         def replace_subteam_mention(match: re.Match[str]) -> str:
+            if self.subteam_mentions_dict is None:
+                return match.group()
+
             id = match.groups()[0]
             obj = self.subteam_mentions_dict.get(id)
 
             if obj is not None:
                 return f"@{obj}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<!subteam\\^(\\w+).*?>", replace_subteam_mention, expanded_text)
 
         def replace_special_mention(match: re.Match[str]) -> str:
+            if self.special_mentions_dict is None:
+                return match.group()
+
             id = match.groups()[0]
             obj = self.special_mentions_dict.get(id)
 
             if obj is not None:
                 return f"@{obj}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<![(here)|(channel)|(everyone)]>", replace_special_mention, expanded_text)
 
