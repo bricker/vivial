@@ -5,13 +5,10 @@ import eave.core.internal.orm as eave_orm
 import fastapi
 import oauthlib.common
 from eave.core.internal.config import app_config
+from eave.core.internal.oauth import cookies as oauth_cookies
+from eave.core.internal.oauth import models as oauth_models
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web import SlackResponse, WebClient
-
-from eave.core.internal.oauth import (
-    cookies as oauth_cookies,
-    models as oauth_models,
-)
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"

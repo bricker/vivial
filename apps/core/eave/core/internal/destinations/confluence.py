@@ -1,15 +1,16 @@
 import enum
 from dataclasses import dataclass
 from functools import cached_property
-from typing import List, Optional, cast
+from typing import Optional, cast
 
-import eave.stdlib.util as eave_util
 import atlassian
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai
-from .. import orm as eave_orm
+import eave.stdlib.util as eave_util
+
 from ..oauth import atlassian as atlassian_oauth
 from . import abstract
+
 
 class ConfluenceUserType(enum.Enum):
     known = "known"
@@ -105,6 +106,7 @@ class ConfluenceBaseModel:
             return self.links.tinyui_url
         else:
             return None
+
 
 class ConfluencePageVersion(ConfluenceBaseModel):
     pass
@@ -379,14 +381,18 @@ class ConfluencePage(ConfluenceBaseModel):
         if (version := data.get("version")) is not None:
             self.version = ConfluencePageVersion(version, ctx)
 
+
 class ConfluenceDestination(abstract.DocumentDestination):
-    atlassian_installation: "eave_orm.AtlassianInstallationOrm"
     oauth_session: atlassian_oauth.AtlassianOAuthSession
+    atlassian_cloud_id: str
+    space: str
 
-    def __init__(self, atlassian_installation: "eave_orm.AtlassianInstallationOrm") -> None:
-        self.atlassian_installation = atlassian_installation
-        self.oauth_session = atlassian_installation.build_oauth_session()
-
+    def __init__(
+        self, oauth_session: atlassian_oauth.AtlassianOAuthSession, atlassian_cloud_id: str, space: str
+    ) -> None:
+        self.oauth_session = oauth_session
+        self.atlassian_cloud_id = atlassian_cloud_id
+        self.space = space
 
     async def create_document(self, input: eave_ops.DocumentInput) -> abstract.DocumentMetadata:
         confluence_page = await self._get_or_create_confluence_page(document=input)
@@ -396,7 +402,9 @@ class ConfluenceDestination(abstract.DocumentDestination):
         )
 
     async def update_document(
-        self, input: eave_ops.DocumentInput, document_id: str,
+        self,
+        input: eave_ops.DocumentInput,
+        document_id: str,
     ) -> abstract.DocumentMetadata:
         """
         Update an existing Confluence document with the new body.
@@ -442,7 +450,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
 
         assert response is not None
         json = cast(eave_util.JsonObject, response)
-        page = ConfluencePage(json, cast(ConfluenceContext, self._confluence_context))
+        page = ConfluencePage(json, self._confluence_context)
         return abstract.DocumentMetadata(
             id=page.id,
             url=page.canonical_url,
@@ -461,10 +469,11 @@ class ConfluenceDestination(abstract.DocumentDestination):
         Atlassian Python API Docs: https://atlassian-python-api.readthedocs.io/
         """
         return atlassian.Confluence(
-            url=f"https://api.atlassian.com/ex/confluence/{self.atlassian_installation.atlassian_cloud_id}",
+            url=f"https://api.atlassian.com/ex/confluence/{self.atlassian_cloud_id}",
             session=self.oauth_session,
         )
 
+    @property
     def _confluence_context(self) -> ConfluenceContext:
         return ConfluenceContext(base_url=self._atlassian_url)
 
@@ -480,7 +489,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         # TODO: Hack
         content = document.content.replace("&", "&amp;")
         response = self._confluence_client.create_page(
-            space=self.atlassian_installation.confluence_space,
+            space=self.space,
             title=document.title,
             body=content,
             parent_id=parent_page.id if parent_page is not None else None,
@@ -488,11 +497,12 @@ class ConfluenceDestination(abstract.DocumentDestination):
         assert response is not None
 
         json = cast(eave_util.JsonObject, response)
-        page = ConfluencePage(json, cast(ConfluenceContext, self._confluence_context))
+        page = ConfluencePage(json, self._confluence_context)
         return page
 
     async def _get_confluence_page_by_id(
-        self, document_id: str,
+        self,
+        document_id: str,
     ) -> ConfluencePage | None:
         response = self._confluence_client.get_page_by_id(
             page_id=document_id,
@@ -502,17 +512,17 @@ class ConfluenceDestination(abstract.DocumentDestination):
             return None
 
         json = cast(eave_util.JsonObject, response)
-        page = ConfluencePage(json, cast(ConfluenceContext, self._confluence_context))
+        page = ConfluencePage(json, self._confluence_context)
         return page
 
     async def _get_confluence_page_by_title(self, document: eave_ops.DocumentInput) -> ConfluencePage | None:
         response = self._confluence_client.get_page_by_title(
-            space=self.atlassian_installation.confluence_space,
+            space=self.space,
             title=document.title,
         )
         if response is None:
             return None
 
         json = cast(eave_util.JsonObject, response)
-        page = ConfluencePage(json, cast(ConfluenceContext, self._confluence_context))
+        page = ConfluencePage(json, self._confluence_context)
         return page

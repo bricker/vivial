@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import enum
+from dataclasses import dataclass
 from typing import Optional
 
 import pydantic
@@ -15,6 +15,7 @@ class OauthCallbackRequestBody(pydantic.BaseModel):
     state: Optional[str]
     code: Optional[str]
     error: Optional[str]
+
 
 class AuthProvider(enum.Enum):
     google = "google"

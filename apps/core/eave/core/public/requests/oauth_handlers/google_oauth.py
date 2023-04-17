@@ -10,12 +10,9 @@ import google.oauth2.id_token
 import google_auth_oauthlib.flow
 import pydantic
 from eave.core.internal.config import app_config
+from eave.core.internal.oauth import cookies as oauth_cookies
+from eave.core.internal.oauth import models as oauth_models
 from google.auth.transport import requests
-
-from eave.core.internal.oauth import (
-    cookies as oauth_cookies,
-    models as oauth_models,
-)
 
 
 async def google_oauth_authorize() -> fastapi.Response:

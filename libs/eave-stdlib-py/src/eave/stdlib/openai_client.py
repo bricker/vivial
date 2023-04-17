@@ -1,12 +1,12 @@
 import enum
 import textwrap
-from dataclasses import asdict, dataclass
 import time
+from dataclasses import asdict, dataclass
 from typing import Any, List, LiteralString, Optional, cast
 
 import openai as openai_sdk
-import openai.openai_object
 import openai.error
+import openai.openai_object
 import tiktoken
 
 from . import logger, util
@@ -109,6 +109,7 @@ def ensure_api_key() -> None:
     if openai_sdk.api_key is None:
         openai_sdk.api_key = shared_config.eave_openai_api_key
 
+
 async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
     """
     https://beta.openai.com/docs/api-reference/completions/create
@@ -126,8 +127,8 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
             break
         except openai.error.RateLimitError as e:
             logger.warn("OpenAI RateLimitError", exc_info=e)
-            if i+1 < max_attempts:
-                time.sleep(i+1)
+            if i + 1 < max_attempts:
+                time.sleep(i + 1)
     else:
         raise util.MaxRetryAttemptsReachedError("OpenAI")
 

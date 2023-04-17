@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import eave.core.internal.config
+import eave.stdlib.config
 import mockito
 
 config_mock = mockito.mock(
@@ -13,6 +14,9 @@ config_mock = mockito.mock(
         "db_user": None,
         "db_pass": None,
         "db_name": "eave-test",
+        "eave_api_base": "http://api.eave.localhost",
+        "eave_www_base": "http://www.eave.localhost",
+        "eave_cookie_domain": ".eave.localhost",
     }
 )
 

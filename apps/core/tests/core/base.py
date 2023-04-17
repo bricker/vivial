@@ -1,16 +1,19 @@
 import json
+import random
 import unittest
-from typing import Optional, Protocol, TypeVar
+import urllib.parse
+from typing import Any, Mapping, Optional, Protocol, TypeVar
 from uuid import UUID, uuid4
 
 import eave.core.app
-import eave.core.internal.orm as orm
+import eave.core.internal.orm as eave_orm
+from eave.core.internal.config import app_config
 import eave.stdlib.core_api.signing as eave_signing
 import eave.stdlib.util as eave_util
 import mockito
 from eave.core.internal.database import get_async_session
 from httpx import AsyncClient, Response
-from sqlalchemy import literal_column, select, text
+from sqlalchemy import literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
@@ -29,7 +32,7 @@ async def mock_coroutine(value: T) -> T:
 
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     # _dbconnection: AsyncConnection
-    _testdata = dict[str, str]()
+    _testdata = dict[str, Any]()
     httpclient: AsyncClient
     dbsession: AsyncSession
 
@@ -47,10 +50,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.dbsession = get_async_session()
         self.dbsession.begin()
         connection = await self.dbsession.connection()
-        await connection.run_sync(orm.Base.metadata.drop_all)
-        await connection.run_sync(orm.Base.metadata.create_all)
+        await connection.run_sync(eave_orm.Base.metadata.drop_all)
+        await connection.run_sync(eave_orm.Base.metadata.create_all)
 
-        self.httpclient = AsyncClient(app=eave.core.app.app, base_url="http://eave.test")
+        self.httpclient = AsyncClient(app=eave.core.app.app, base_url=app_config.eave_api_base)
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -70,7 +73,24 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             data = str(uuid4())
             self._testdata[name] = data
 
-        return self._testdata[name]
+        value: str = self._testdata[name]
+        return value
+
+    def anyuuid(self, name: str = str(uuid4())) -> UUID:
+        if name not in self._testdata:
+            data = uuid4()
+            self._testdata[name] = data
+
+        value: UUID = self._testdata[name]
+        return value
+
+    def anyint(self, name: str = str(uuid4())) -> int:
+        if name not in self._testdata:
+            data = random.randint(0, 9999)
+            self._testdata[name] = data
+
+        value: int = self._testdata[name]
+        return value
 
     async def save(self, obj: T) -> T:
         self.dbsession.add(obj)
@@ -83,17 +103,27 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return result
 
     async def make_request(
-        self, url: str, payload: eave_util.JsonObject, method: str = "POST", headers: dict[str, str] = {}
+        self, url: str, payload: Optional[eave_util.JsonObject] = None, method: str = "POST", headers: dict[str, str] = {}, **kwargs: Any
     ) -> Response:
-        data = json.dumps(payload)
-        team_id = headers.get("eave-team-id")
-        headers["eave-signature"] = eave_signing.sign(payload=data, team_id=team_id)
+        request_args: dict[str, Any] = {}
+
+        if payload is not None:
+            if method == "GET":
+                data = urllib.parse.urlencode(query=payload)
+                request_args["params"] = data
+            else:
+                data = json.dumps(payload)
+                request_args["content"] = data
+
+            team_id = headers.get("eave-team-id")
+            headers["eave-signature"] = eave_signing.sign(payload=data, team_id=team_id)
 
         response = await self.httpclient.request(
             method,
             url,
             headers=headers,
-            content=data,
+            **request_args,
+            **kwargs,
         )
 
         return response

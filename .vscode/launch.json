@@ -98,7 +98,13 @@
         "-w",
       ],
       "console": "integratedTerminal"
-    }
+    },
+    {
+      "name": "Debug Python Test",
+      "type": "python",
+      "request": "test",
+      "justMyCode": false,
+    },
   ],
   "compounds": [
     {

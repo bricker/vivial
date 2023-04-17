@@ -1,18 +1,11 @@
-import enum
 import json
 from datetime import datetime
-from functools import cache, cached_property
-from typing import Optional, ParamSpec, Self, Tuple, cast
-from uuid import UUID, uuid4
+from typing import Optional, ParamSpec, Self, Tuple
+from uuid import UUID
 
-import atlassian
 import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.openai_client
-import eave.stdlib.util as eave_util
 import oauthlib
 import oauthlib.oauth2.rfc6749.tokens
-import requests_oauthlib
 from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
@@ -26,18 +19,11 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from . import (
-    database as eave_db,
-)
-from .oauth import (
-    atlassian as atlassian_oauth,
-    models as oauth_models,
-)
-from .config import app_config
-from .destinations import (
-    confluence as confluence_destination,
-    abstract as abstract_destination,
-)
+from . import database as eave_db
+from .destinations import abstract as abstract_destination
+from .destinations import confluence as confluence_destination
+from .oauth import atlassian as atlassian_oauth
+from .oauth import models as oauth_models
 
 UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
 
@@ -199,6 +185,7 @@ class SubscriptionOrm(Base):
         )
         return lookup
 
+
 class SlackSource(Base):
     __tablename__ = "slack_sources"
     __table_args__ = (
@@ -257,6 +244,15 @@ class AtlassianInstallationOrm(Base):
         jsonv = json.loads(self.oauth_token_encoded)
         return oauthlib.oauth2.rfc6749.tokens.OAuth2Token(params=jsonv)
 
+    @property
+    def confluence_destination(self) -> confluence_destination.ConfluenceDestination:
+        assert self.confluence_space is not None
+        return confluence_destination.ConfluenceDestination(
+            oauth_session=self.build_oauth_session(),
+            atlassian_cloud_id=self.atlassian_cloud_id,
+            space=self.confluence_space,
+        )
+
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(
             token=self.oauth_token_decoded,
@@ -288,6 +284,7 @@ class AtlassianInstallationOrm(Base):
         result: Self | None = (await session.scalars(lookup)).one_or_none()
         return result
 
+
 class TeamOrm(Base):
     __tablename__ = "teams"
 
@@ -300,7 +297,9 @@ class TeamOrm(Base):
 
     subscriptions: Mapped[list["SubscriptionOrm"]] = relationship()
 
-    async def get_document_destination(self, session: AsyncSession) -> Optional[abstract_destination.DocumentDestination]:
+    async def get_document_destination(
+        self, session: AsyncSession
+    ) -> Optional[abstract_destination.DocumentDestination]:
         match self.document_platform:
             case None:
                 return None
@@ -310,8 +309,7 @@ class TeamOrm(Base):
                     session=session,
                     team_id=self.id,
                 )
-
-                return confluence_destination.ConfluenceDestination(atlassian_installation=atlassian_installation)
+                return atlassian_installation.confluence_destination
 
             case eave_models.DocumentPlatform.google_drive:
                 raise NotImplementedError("google drive document destination is not yet implemented.")
@@ -355,13 +353,17 @@ class AccountOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str) -> Self:
+    async def one_or_exception(
+        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
+    ) -> Self:
         lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
         account = (await session.scalars(lookup)).one()
         return account
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str) -> Self | None:
+    async def one_or_none(
+        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
+    ) -> Self | None:
         lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
         account = await session.scalar(lookup)
         return account

@@ -1,6 +1,7 @@
 from typing import Any
 
 import fastapi
+
 from ..config import app_config
 from .models import AuthProvider
 
@@ -13,7 +14,7 @@ def _build_cookie_params(cookie_postfix: str) -> dict[str, Any]:
     return {
         "key": _build_cookie_name(cookie_postfix),
         "domain": app_config.eave_cookie_domain,
-        "secure": True,
+        "secure": app_config.dev_mode is False,
         "httponly": True,
     }
 

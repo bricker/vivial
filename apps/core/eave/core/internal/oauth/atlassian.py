@@ -1,10 +1,12 @@
-
 from dataclasses import dataclass
-from typing import Any, Callable, List, Optional
+from typing import List
+
 import eave.stdlib.util as eave_util
-from ..config import app_config
 import requests_oauthlib
+
+from ..config import app_config
 from .models import OauthFlowInfo
+
 
 @dataclass
 class AtlassianOAuthTokenResponse:
@@ -24,6 +26,7 @@ class AtlassianAvailableResource:
     url: str
     scopes: List[str]
     avatarUrl: str
+
 
 ATLASSIAN_OAUTH_SCOPES = [
     "write:confluence-content",
@@ -46,8 +49,9 @@ ATLASSIAN_OAUTH_SCOPES = [
     "offline_access",
 ]
 
+
 class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
-    def __init__(self, client=None, auto_refresh_kwargs=None, token=None, state=None, token_updater=None, **kwargs): # type: ignore[no-untyped-def]
+    def __init__(self, client=None, auto_refresh_kwargs=None, token=None, state=None, token_updater=None, **kwargs):  # type: ignore[no-untyped-def]
         super().__init__(
             client_id=app_config.eave_atlassian_app_client_id,
             redirect_uri=f"{app_config.eave_api_base}/oauth/atlassian/callback",
@@ -58,10 +62,10 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             token=token,
             state=state,
             token_updater=token_updater,
-            **kwargs
+            **kwargs,
         )
 
-    def authorization_url(self, state=None, **kwargs): # type: ignore[no-untyped-def]
+    def authorization_url(self, state=None, **kwargs):  # type: ignore[no-untyped-def]
         return super().authorization_url(
             url="https://auth.atlassian.com/authorize",
             state=state,
@@ -70,7 +74,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             **kwargs,
         )
 
-    def fetch_token(self, code=None, authorization_response=None, body="", auth=None, username=None, password=None, method="POST", force_querystring=False, timeout=None, headers=None, verify=True, proxies=None, include_client_id=None, cert=None, **kwargs): # type: ignore[no-untyped-def]
+    def fetch_token(self, code=None, authorization_response=None, body="", auth=None, username=None, password=None, method="POST", force_querystring=False, timeout=None, headers=None, verify=True, proxies=None, include_client_id=None, cert=None, **kwargs):  # type: ignore[no-untyped-def]
         return super().fetch_token(
             token_url="https://auth.atlassian.com/oauth/token",
             client_secret=app_config.eave_atlassian_app_client_secret,
@@ -99,6 +103,11 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
         available_resources_data: List[eave_util.JsonObject] = available_resources_response.json()
         available_resources = [AtlassianAvailableResource(**j) for j in available_resources_data]
         return available_resources
+
+    def get_atlassian_cloud_id(self) -> str:
+        available_resources = self.get_available_resources()
+        assert len(available_resources) > 0
+        return available_resources[0].id
 
     def oauth_flow_info(self) -> OauthFlowInfo:
         authorization_url, state = self.authorization_url()

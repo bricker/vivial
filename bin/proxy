@@ -1,1 +1,5 @@
-../develop/proxy/bin/serve
+#!/usr/bin/env bash
+
+set -eu
+
+${EAVE_HOME}/develop/proxy/bin/serve

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source $EAVE_HOME/develop/functions.bash
+
+function install-certs() (
+	# local name
+
+	# while getopts "n:" argname
+	# do
+	# 	case "$argname" in
+	# 		n) name=$OPTARG ;;
+	# 	esac
+	# done
+
+	# local certfile=$name.crt
+	# local certsource=$EAVE_HOME/develop/certs/$name/$certfile
+
+	local name=eave-localhost
+	local caBundleFileName=$name.crt
+	local caBundleFileTemp=/tmp/$caBundleFileName
+	rm -f $caBundleFileTemp
+	for cert in ${EAVE_HOME}/develop/certs/**/*.crt
+	do
+		cat $cert >> $caBundleFileTemp
+	done
+
+	statusmsg -w "sudo privileges are needed to install the development certificate on your system"
+
+	# https://docs.mitmproxy.org/stable/concepts-certificates/
+	local kernel=$(uname -s)
+	case "$kernel" in
+		"Linux")
+			local certDestDir=/usr/local/share/ca-certificates/extra
+			local certDestFile=$certDestDir/$caBundleFileName
+			sudo mkdir -p $certDestDir
+			sudo mv $caBundleFileTemp $certDestDir
+			sudo update-ca-certificates --fresh
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$name" &>/dev/null || true
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$name" -i "$certDestFile"
+			;;
+		"Darwin")
+			sudo security add-trusted-cert \
+				-d \
+				-p ssl \
+				-p basic \
+				-k /Library/Keychains/System.keychain \
+				$caBundleFileTemp
+			;;
+		*)
+			statusmsg -e "This script does not support your operating system. Please add support!"
+			exit 1
+			;;
+	esac
+
+	# TODO: Does this work on macOS?
+	add-shell-variable REQUESTS_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
+)
+
+install-certs
+
+# Firefox: Load `/usr/lib/x86_64-linux-gnu/pkcs11/p11-kit-trust.so` to the list of security modules under firefox Certificate settings.

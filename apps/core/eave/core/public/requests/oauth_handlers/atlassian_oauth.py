@@ -1,14 +1,12 @@
 import json
-from dataclasses import dataclass
-from typing import List, Optional
 
 import eave.core.internal.database as eave_db
+import eave.core.internal.oauth.atlassian as oauth_atlassian
+import eave.core.internal.oauth.cookies as oauth_cookies
+import eave.core.internal.oauth.models as oauth_models
 import eave.core.internal.orm as eave_orm
 import fastapi
 from eave.core.internal.config import app_config
-import eave.core.internal.oauth.atlassian as oauth_atlassian
-import eave.core.internal.oauth.models as oauth_models
-import eave.core.internal.oauth.cookies as oauth_cookies
 
 
 async def atlassian_oauth_authorize() -> fastapi.Response:
@@ -31,10 +29,7 @@ async def atlassian_oauth_callback(
 
     oauth_session = oauth_atlassian.AtlassianOAuthSession(state=state)
     oauth_session.fetch_token(code=code)
-    available_resources = oauth_session.get_available_resources()
-    assert len(available_resources) > 0
-
-    atlassian_cloud_id = available_resources[0].id
+    atlassian_cloud_id = oauth_session.get_atlassian_cloud_id()
 
     async with eave_db.get_async_session() as db_session:
         installation = await eave_orm.AtlassianInstallationOrm.one_or_none_by_atlassian_cloud_id(
