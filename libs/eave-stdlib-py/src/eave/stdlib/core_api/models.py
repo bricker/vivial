@@ -77,3 +77,13 @@ class Team(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class SlackSource(pydantic.BaseModel):
+    id: pydantic.UUID4
+    team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
+    slack_team_id: str
+    bot_token: str
+    bot_id: str
+    bot_user_id: Optional[str]
