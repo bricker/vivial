@@ -17,6 +17,7 @@ app.secret_key = app_config.eave_web_session_encryption_key
 
 eave_api_util.add_standard_endpoints(app=app)
 
+
 def _render_spa(**kwargs: Any) -> str:
     return render_template(
         "index.html.jinja",
@@ -29,6 +30,7 @@ def _render_spa(**kwargs: Any) -> str:
         app_version=app_config.app_version,
         **kwargs,
     )
+
 
 app.get("/")(_render_spa)
 
