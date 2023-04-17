@@ -1,9 +1,11 @@
-from http import HTTPStatus
 import json
-import mockito
+from http import HTTPStatus
+
+import eave.core.internal.oauth.atlassian
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
-import eave.core.internal.oauth.atlassian
+import mockito
+
 from .base import BaseTestCase
 
 
@@ -11,7 +13,9 @@ class TestAtlassianOAuth(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        team = eave_orm.TeamOrm(name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence)
+        team = eave_orm.TeamOrm(
+            name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence
+        )
         self._team = await self.save(team)
 
     async def test_atlassian_authorize_endpoint(self) -> None:
@@ -29,15 +33,17 @@ class TestAtlassianOAuth(BaseTestCase):
         self.assertIsNotNone(response.cookies.get("eave-oauth-state-atlassian"))
 
     async def test_atlassian_callback_endpoint(self) -> None:
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources).thenReturn([
-            eave.core.internal.oauth.atlassian.AtlassianAvailableResource(
-                id=self.anystring("atlassian_cloud_id"),
-                url=self.anystring("confluence_document_response._links.base"),
-                avatarUrl=self.anystring("atlassianresourceavatar"),
-                name=self.anystring("atlassianresourcename"),
-                scopes=[],
-            )
-        ])
+        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources).thenReturn(
+            [
+                eave.core.internal.oauth.atlassian.AtlassianAvailableResource(
+                    id=self.anystring("atlassian_cloud_id"),
+                    url=self.anystring("confluence_document_response._links.base"),
+                    avatarUrl=self.anystring("atlassianresourceavatar"),
+                    name=self.anystring("atlassianresourcename"),
+                    scopes=[],
+                )
+            ]
+        )
 
         fake_token = {
             "access_token": self.anystring("oauth_access_token"),
@@ -45,7 +51,9 @@ class TestAtlassianOAuth(BaseTestCase):
             "scope": self.anystring("oauth_scope"),
         }
 
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token, code=self.anystring("oauthcode")).thenReturn(fake_token)
+        mockito.when2(
+            eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token, code=self.anystring("oauthcode")
+        ).thenReturn(fake_token)
 
         # Get the state cookie
         authorize_response = await self.make_request(

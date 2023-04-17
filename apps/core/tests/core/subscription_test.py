@@ -2,6 +2,7 @@ from uuid import uuid4
 
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
+
 from .base import BaseTestCase
 
 
@@ -25,7 +26,9 @@ class TestSubscritionOrm(BaseTestCase):
             session=self.dbsession,
             team_id=team.id,
             source=eave_models.SubscriptionSource(
-                platform=eave_models.SubscriptionSourcePlatform.slack, event=eave_models.SubscriptionSourceEvent.slack_message, id=str(test_id)
+                platform=eave_models.SubscriptionSourcePlatform.slack,
+                event=eave_models.SubscriptionSourceEvent.slack_message,
+                id=str(test_id),
             ),
         )
         result = self.unwrap(result)

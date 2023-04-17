@@ -2,15 +2,15 @@ import json
 import random
 import unittest
 import urllib.parse
-from typing import Any, Mapping, Optional, Protocol, TypeVar
+from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID, uuid4
 
 import eave.core.app
 import eave.core.internal.orm as eave_orm
-from eave.core.internal.config import app_config
 import eave.stdlib.core_api.signing as eave_signing
 import eave.stdlib.util as eave_util
 import mockito
+from eave.core.internal.config import app_config
 from eave.core.internal.database import get_async_session
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
@@ -103,7 +103,12 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return result
 
     async def make_request(
-        self, url: str, payload: Optional[eave_util.JsonObject] = None, method: str = "POST", headers: dict[str, str] = {}, **kwargs: Any
+        self,
+        url: str,
+        payload: Optional[eave_util.JsonObject] = None,
+        method: str = "POST",
+        headers: dict[str, str] = {},
+        **kwargs: Any
     ) -> Response:
         request_args: dict[str, Any] = {}
 

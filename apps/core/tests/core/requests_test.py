@@ -1,17 +1,18 @@
 import os
 from http import HTTPStatus
-from uuid import UUID, uuid4
+from uuid import uuid4
 
+import eave.core.internal.config
+import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.openai_client
 import mockito
 import mockito.matchers
 from atlassian import Confluence
 
-import eave.stdlib.openai_client
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
 from . import fixtures
 from .base import BaseTestCase, mock_coroutine
-import eave.core.internal.config
+
 
 class TestStatusEndpoint(BaseTestCase):
     async def test_status(self) -> None:
@@ -20,7 +21,10 @@ class TestStatusEndpoint(BaseTestCase):
 
         response = await self.httpclient.get("/status")
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(response.json(), {"status": "OK", "service": self.anystring("gaeservice"), "version": self.anystring("gaeversion")})
+        self.assertEqual(
+            response.json(),
+            {"status": "OK", "service": self.anystring("gaeservice"), "version": self.anystring("gaeversion")},
+        )
 
 
 class TestAccessRequestEndpoint(BaseTestCase):
@@ -108,7 +112,9 @@ class TestDocumentsEndpoints(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        team = eave_orm.TeamOrm(name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence)
+        team = eave_orm.TeamOrm(
+            name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence
+        )
         self._team = await self.save(team)
 
         document_reference = eave_orm.DocumentReferenceOrm(

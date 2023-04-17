@@ -10,7 +10,9 @@ class TestSubscriptionsEndpoints(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        team = eave_orm.TeamOrm(name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence)
+        team = eave_orm.TeamOrm(
+            name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence
+        )
         self._team = await self.save(team)
 
         document_reference = eave_orm.DocumentReferenceOrm(

@@ -17,6 +17,7 @@ app.secret_key = app_config.eave_web_session_encryption_key
 
 eave_api_util.add_standard_endpoints(app=app)
 
+
 def _render_spa(**kwargs: Any) -> str:
     return render_template(
         "index.html.jinja",
@@ -30,6 +31,7 @@ def _render_spa(**kwargs: Any) -> str:
         **kwargs,
     )
 
+
 app.get("/")(_render_spa)
 
 app.get("/early")(_render_spa)
@@ -37,6 +39,7 @@ app.get("/early")(_render_spa)
 app.get("/terms")(_render_spa)
 
 app.get("/privacy")(_render_spa)
+
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
