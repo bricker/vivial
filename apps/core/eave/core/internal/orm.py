@@ -1,21 +1,8 @@
-import enum
-from ctypes import ArgumentError
-from dataclasses import dataclass
-from datetime import datetime
-from functools import cache
-from typing import (
-    Any,
-    NotRequired,
-    Optional,
-    ParamSpec,
-    Self,
-    Tuple,
-    TypedDict,
-    Unpack,
-    cast,
-)
-from uuid import UUID, uuid4
 import json
+from ctypes import ArgumentError
+from datetime import datetime
+from typing import NotRequired, Optional, ParamSpec, Self, Tuple, TypedDict, Unpack
+from uuid import UUID
 
 import eave.stdlib.core_api.models as eave_models
 import oauthlib
@@ -193,6 +180,7 @@ class SubscriptionOrm(Base):
             .limit(1)
         )
         return lookup
+
 
 class SlackInstallationOrm(Base):
     __tablename__ = "slack_sources"

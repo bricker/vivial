@@ -1,17 +1,7 @@
 import os
 from http import HTTPStatus
-from uuid import uuid4
 
-import eave.core.internal.config
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.openai_client
-import mockito
-import mockito.matchers
-from atlassian import Confluence
-
-from . import fixtures
-from .base import BaseTestCase, mock_coroutine
+from .base import BaseTestCase
 
 
 class TestStatusEndpoint(BaseTestCase):
