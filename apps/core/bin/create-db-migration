@@ -6,7 +6,7 @@ function create-db-migration() (
 	python-validate-version
 	python-activate-venv
 
-	local usage="Usage: create-db-migration [-n migration-name]"
+	local usage="Usage: create-db-migration [-m migration-name]"
 	local message=""
 
 	while getopts "m:h" argname
