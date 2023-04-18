@@ -101,15 +101,15 @@ async def get_subscription(
     return operations.GetSubscription.ResponseBody(**response_json)
 
 
-async def get_slack_source(
-    input: operations.GetSlackSource.RequestBody,
-) -> Optional[operations.GetSlackSource.ResponseBody]:
+async def get_slack_installation(
+    input: operations.GetSlackInstallation.RequestBody,
+) -> Optional[operations.GetSlackInstallation.ResponseBody]:
     """
-    POST /slack_sources/query
+    POST /installations/slack/query
     """
     # fetch slack bot details
     response = await _make_request(
-        path="/slack_sources/query",
+        path="/installations/slack/query",
         input=input,
         team_id=None,
     )
@@ -118,7 +118,7 @@ async def get_slack_source(
         return None
 
     response_json = await response.json()
-    return operations.GetSlackSource.ResponseBody(**response_json)
+    return operations.GetSlackInstallation.ResponseBody(**response_json)
 
 
 def _makeurl(path: str) -> str:

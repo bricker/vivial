@@ -1,13 +1,14 @@
 import asyncio
 import logging
 from functools import wraps
-from typing import Any, Awaitable, Callable, Coroutine, TypeVar
+from typing import Any, Awaitable, Callable, Concatenate, Coroutine, ParamSpec, ParamSpecKwargs, Type, TypeVar, cast
 
 logger = logging.getLogger("eave-stdlib-py")
 
 JsonScalar = str | int | bool | None
 JsonObject = dict[str, Any]
 
+P = ParamSpec("P")
 T = TypeVar("T")
 
 
@@ -47,6 +48,14 @@ def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
         return value
 
     return wrapper
+
+
+def use_signature(source_func: Callable[P, Any]) -> Callable[[Callable[..., T]], Callable[P, T]]:
+    """Casts the decorated function to have the same signature as the source function, for type checkers"""
+    def casted_func(original_func: Callable[..., T]) -> Callable[P, T]:
+        return cast(Callable[P, T], original_func)
+
+    return casted_func
 
 
 tasks = set[asyncio.Task[Any]]()

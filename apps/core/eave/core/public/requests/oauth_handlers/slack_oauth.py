@@ -5,7 +5,8 @@ import eave.core.internal.orm as eave_orm
 import fastapi
 from eave.core.internal.config import app_config
 from slack_sdk.oauth import AuthorizeUrlGenerator
-from slack_sdk.web import SlackResponse, WebClient
+from slack_sdk.web.async_client import AsyncWebClient
+from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 from . import oauth_cookie, oauth_state
 
@@ -77,7 +78,7 @@ class SlackOAuthResponse:
     team: SlackTeam
     authed_user: SlackAuthorizedUser
 
-    def __init__(self, response: SlackResponse):
+    def __init__(self, response: AsyncSlackResponse):
         access_token: Optional[str] = response.get("access_token")
         assert access_token is not None
         installed_team: dict[str, str] = response.get("team", {})
@@ -108,9 +109,9 @@ async def slack_oauth_callback(
     cookie_state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.slack)
     assert state == cookie_state
 
-    client = WebClient()
+    client = AsyncWebClient()
     # Complete the installation by calling oauth.v2.access API method
-    raw_response: SlackResponse = client.oauth_v2_access(
+    raw_response = await client.oauth_v2_access(
         client_id=app_config.eave_slack_client_id,
         client_secret=app_config.eave_slack_client_secret,
         code=code,
@@ -119,27 +120,25 @@ async def slack_oauth_callback(
 
     oauth_data = SlackOAuthResponse(response=raw_response)
     bot_token = oauth_data.access_token
-    user_id = oauth_data.authed_user.id
-    oauth_token = oauth_data.access_token
+    slack_user_id = oauth_data.authed_user.id
+    oauth_token = oauth_data.authed_user.access_token
     slack_team_id = oauth_data.team.id
 
     # oauth.v2.access doesn't include bot_id in response, so we have to fetch it
-    bot_id = None
-    bot_user_id = None
-    if bot_token is not None:
-        auth_test = client.auth_test(token=bot_token)
-        bot_id = auth_test["bot_id"]
-        bot_user_id = auth_test["user_id"]
+    auth_test = await client.auth_test(token=bot_token)
+    bot_id: Optional[str] = auth_test.get("bot_id")
+    assert bot_id is not None
+    bot_user_id: Optional[str] = auth_test.get("user_id")
 
     # save our shiny new oauth token in db
-    async with await eave_db.get_session() as session:
+    async with await eave_db.get_session() as db_session:
         # try fetch existing team account from db
         # TODO: check session token once exists
         # https://github.com/eave-fyi/eave-monorepo/pull/3#discussion_r1160880115
         account_orm = await eave_orm.AccountOrm.one_or_none(
-            session=session,
+            session=db_session,
             auth_provider=eave_orm.AuthProvider.slack,
-            auth_id=user_id,
+            auth_id=slack_user_id,
         )
 
         if account_orm is None:
@@ -150,40 +149,43 @@ async def slack_oauth_callback(
                 document_platform=None,
             )
 
-            session.add(team)
-            await session.commit()
+            db_session.add(team)
+            await db_session.commit()
 
             account_orm = eave_orm.AccountOrm(
                 team_id=team.id,
                 auth_provider=eave_orm.AuthProvider.slack,
-                auth_id=user_id,
+                auth_id=slack_user_id,
                 oauth_token=oauth_token,
             )
 
-            session.add(account_orm)
+            db_session.add(account_orm)
         else:
             account_orm.oauth_token = oauth_token
 
-        # try fetch slack source for eave team
-        slack_source = await eave_orm.SlackSource.one_or_none_by_eave_team_id(
+        # try fetch slack installation for eave team
+        slack_installation = await eave_orm.SlackInstallationOrm.one_or_none(
             team_id=account_orm.team_id,
-            session=session,
+            session=db_session,
         )
 
-        if slack_source is None:
-            # create new slack source associated with the TeamOrm
-            slack_source = eave_orm.SlackSource(
+        if slack_installation is None:
+            # create new slack installation associated with the TeamOrm
+            slack_installation = eave_orm.SlackInstallationOrm(
                 team_id=account_orm.team_id,
                 slack_team_id=slack_team_id,
                 bot_token=bot_token,
                 bot_id=bot_id,
                 bot_user_id=bot_user_id,
             )
-            session.add(slack_source)
+            db_session.add(slack_installation)
         else:
-            slack_source.slack_team_id = slack_team_id
+            slack_installation.slack_team_id = slack_team_id
+            slack_installation.bot_token = bot_token
+            slack_installation.bot_id = bot_id
+            slack_installation.bot_user_id = bot_user_id
 
-        await session.commit()
+        await db_session.commit()
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
     # clear state cookie now that it's been verified

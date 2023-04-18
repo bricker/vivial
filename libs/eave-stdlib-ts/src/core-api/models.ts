@@ -53,7 +53,7 @@ export type Team = {
   document_platform: DocumentPlatform;
 }
 
-export type SlackSource = {
+export type SlackInstallation = {
   id: string;
   /** eave TeamOrm model id */
   team_id: string;

@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 from dotenv import load_dotenv
 
@@ -13,7 +14,7 @@ import eave.slack.message_prompts
 import eave.slack.slack_models
 import eave.stdlib.logging
 import eave.stdlib.openai_client
-
+import eave.stdlib.core_api.models as eave_models
 eave.stdlib.logging.setup_logging(level=logging.DEBUG)
 from eave.stdlib import logger
 
@@ -33,12 +34,13 @@ jsonstring = """
 }
 """
 
+eave_team = eave_models.Team(id=uuid.uuid4(), name="Test Team", document_platform=eave_models.DocumentPlatform.confluence)
 
 async def test_slack_message_processing() -> None:
     logger.info("test_slack_message_processing")
     event = json.loads(jsonstring)
     message = eave.slack.slack_models.SlackMessage(event)
-    brain = eave.slack.brain.Brain(message=message)
+    brain = eave.slack.brain.Brain(message=message, eave_team=eave_team)
     await brain.process_message()
 
 
@@ -46,7 +48,7 @@ async def test_action_prompt() -> None:
     logger.info("test_action_prompt")
     event = json.loads(jsonstring)
     message = eave.slack.slack_models.SlackMessage(event)
-    brain = eave.slack.brain.Brain(message=message)
+    brain = eave.slack.brain.Brain(message=message, eave_team=eave_team)
     await brain.load_data()
     message_action = await eave.slack.message_prompts.message_action(context=brain.message_context)
     logger.info(message_action)
@@ -56,7 +58,7 @@ async def test_document_builder() -> None:
     logger.info("test_document_builder")
     event = json.loads(jsonstring)
     message = eave.slack.slack_models.SlackMessage(event)
-    brain = eave.slack.brain.Brain(message=message)
+    brain = eave.slack.brain.Brain(message=message, eave_team=eave_team)
     await brain.load_data()
     doc = await brain.build_documentation()
 

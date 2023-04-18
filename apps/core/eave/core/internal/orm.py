@@ -1,7 +1,9 @@
+from ctypes import ArgumentError
+from dataclasses import dataclass
 import enum
 from datetime import datetime
 from functools import cache
-from typing import Optional, ParamSpec, Self, Tuple, cast
+from typing import Any, NotRequired, Optional, ParamSpec, Self, Tuple, TypedDict, Unpack, cast
 from uuid import UUID, uuid4
 
 import atlassian
@@ -96,9 +98,9 @@ class DocumentReferenceOrm(Base):
     @classmethod
     async def one_or_exception(cls, team_id: UUID, id: UUID, session: AsyncSession) -> "DocumentReferenceOrm":
         stmt = (
-            select(DocumentReferenceOrm)
-            .where(DocumentReferenceOrm.team_id == team_id)
-            .where(DocumentReferenceOrm.id == id)
+            select(cls)
+            .where(cls.team_id == team_id)
+            .where(cls.id == id)
             .limit(1)
         )
 
@@ -331,7 +333,7 @@ class ConfluenceDestinationOrm(Base):
         return page
 
 
-class SlackSource(Base):
+class SlackInstallationOrm(Base):
     __tablename__ = "slack_sources"
     __table_args__ = (
         make_team_composite_pk(),
@@ -356,20 +358,38 @@ class SlackSource(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    @classmethod
-    async def one_or_none_by_eave_team_id(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
-        lookup = select(cls).where(cls.team_id == team_id).limit(1)
-        source: Self | None = (await session.scalars(lookup)).one_or_none()
-        return source
+    class _selectparams(TypedDict):
+        slack_team_id: NotRequired[str]
+        team_id: NotRequired[UUID]
 
     @classmethod
-    async def one_or_none_by_slack_team_id(cls, session: AsyncSession, slack_team_id: str) -> Optional[Self]:
-        lookup = select(cls).where(cls.slack_team_id == slack_team_id).limit(1)
-        source: Self | None = (await session.scalars(lookup)).one_or_none()
-        return source
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        lookup = select(cls)
+        slack_team_id = kwargs.get("slack_team_id")
+        eave_team_id = kwargs.get("team_id")
+        if not slack_team_id and not eave_team_id:
+            raise ArgumentError("at least one parameter is required")
+        if slack_team_id:
+            lookup = lookup.where(cls.slack_team_id == slack_team_id)
+        if eave_team_id:
+            lookup = lookup.where(cls.team_id == eave_team_id)
 
+        assert lookup.whereclause is not None
+        return lookup
 
-# class GithubSource(Base):
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Optional[Self]:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one_or_none()
+        return result
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+# class GithubInstallationOrm(Base):
 #     __tablename__ = "github_sources"
 #     __table_args__ = (
 #         make_team_composite_pk(),

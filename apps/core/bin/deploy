@@ -5,5 +5,5 @@ set -eu
 bin/lint
 bin/test
 
-PYTHONPATH=. python -m alembic upgrade head
+bin/run-db-migration
 ${EAVE_HOME}/develop/python/bin/deploy-appengine
