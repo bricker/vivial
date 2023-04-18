@@ -9,6 +9,7 @@ import eave.stdlib.analytics
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.link_handler as link_handler
 import eave.stdlib.openai_client as eave_openai
 import tiktoken
 from eave.stdlib import logger
@@ -491,21 +492,15 @@ class Brain:
         self.expanded_text = expanded_text
 
         # TODO finish impl
+        # see if we can pull content from any links in message
         await self.message.resolve_urls()
-        # TODO: make flex enough to support non-code links. I can imagine looking inside jira tix as well
-        source_links: list[str] = list(filter(lambda x: is_a_supported_link(x), self.message.urls))
-        # only do deeper api requests if there are any code links to begin with
+        source_links: list[str] = list(filter(link_handler.is_supported_link, self.message.urls)) # TODO: adjust filter to deal w/ curr type sig
         if source_links:
-            # TODO: fetch from db what soureces are connected. coreapi request?
-            available_sources = await eave_core_api_client.get_code_sources()
-            # TODO: take note of enterprise paths; cant rely on public domain name pattern
-            accessible_source_links: list[str] = list(filter(lambda x: is_prefix_of(available_sources, x), source_links))
-
-            # TODO contact source code api of the linked source hubs. coreapi request??
-            # TODO: the gh link could hypothetically be one that our oauth token doesn't provide access to. should handle failures to fetch
-            source_text = await eave_core_api_client.get_source_code(accessible_source_links)
-            assert source_text is not None
-            self.source_text = source_text
+            # TODO: do the thing. transform link content here? or do later in build message? (i think later?)
+            source_text = await link_handler.get_link_content(source_links)
+            if source_text:
+                # TODO: use source_text as part of build_message_context call
+                self.source_text = source_text
 
         await self.build_message_context()
 

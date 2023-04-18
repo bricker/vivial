@@ -1,1 +1,2 @@
 -e ../eave-pubsub-schemas/python
+pytest
