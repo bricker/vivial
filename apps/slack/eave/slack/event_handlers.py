@@ -4,7 +4,6 @@ from typing import Optional
 
 import eave.slack.brain
 import eave.slack.slack_models
-import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.util as eave_util
 from eave.slack.config import app_config
 from eave.stdlib import logger

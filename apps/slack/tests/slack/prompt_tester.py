@@ -22,7 +22,6 @@ import eave.stdlib.openai_client
 eave.stdlib.logging.setup_logging(level=logging.DEBUG)
 from eave.stdlib import logger
 
-
 eave_team = eave_models.Team(
     id=uuid.uuid4(), name="Test Team", document_platform=eave_models.DocumentPlatform.confluence
 )

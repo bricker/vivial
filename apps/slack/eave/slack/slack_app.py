@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Optional
 
 import eave.slack.event_handlers
 import eave.stdlib.core_api.client as eave_client
@@ -6,7 +6,6 @@ import eave.stdlib.core_api.operations as eave_ops
 from slack_bolt.adapter.fastapi.async_handler import AsyncSlackRequestHandler
 from slack_bolt.async_app import AsyncApp, AsyncBoltContext
 from slack_bolt.authorization import AuthorizeResult
-from slack_sdk.web.async_client import AsyncWebClient
 
 from .config import app_config
 

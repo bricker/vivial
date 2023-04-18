@@ -2,7 +2,6 @@ import asyncio
 import json
 import random
 from typing import Optional
-from uuid import UUID
 
 import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
 import eave.stdlib.analytics
