@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+source ${EAVE_HOME}/develop/functions.bash
+
+function create-db-migration() (
+	python-validate-version
+	python-activate-venv
+
+	local usage="Usage: create-db-migration [-m migration-name]"
+	local message=""
+
+	while getopts "m:h" argname
+	do
+		case "$argname" in
+			m) message=$OPTARG ;;
+			h)
+				echo $usage
+				exit 0
+				;;
+		esac
+	done
+
+	python -m alembic revision --message "$message" --autogenerate
+)
+
+create-db-migration "$@"

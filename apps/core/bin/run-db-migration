@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+source ${EAVE_HOME}/develop/functions.bash
+python-validate-version
+python-activate-venv
+
+python -m alembic upgrade head

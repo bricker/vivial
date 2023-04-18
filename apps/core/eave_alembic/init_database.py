@@ -1,3 +1,4 @@
+import os
 import socket
 
 from dotenv import load_dotenv
@@ -11,8 +12,8 @@ import eave.core.internal.orm
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
 
-# FIXME: A better way to do this.
-# raise Exception("Do not run this against the production database. You can remove this line for development.")
+# Protect against running this in production, sort of
+assert os.getenv("GAE_ENV") is None
 
 
 async def init_database() -> None:

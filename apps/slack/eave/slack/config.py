@@ -22,15 +22,5 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         value: str = self.get_secret("EAVE_SLACK_APP_SOCKETMODE_TOKEN")
         return value
 
-    @cached_property
-    def eave_slack_bot_token(self) -> str:
-        """
-        This is an oauth token.
-        This is only needed while the app is being developed. Once it's published, this token will come from the
-        OAuth2 flow, and each customer will have their own token.
-        """
-        value: str = self.get_secret("SLACK_BOT_TOKEN")
-        return value
-
 
 app_config = AppConfig()

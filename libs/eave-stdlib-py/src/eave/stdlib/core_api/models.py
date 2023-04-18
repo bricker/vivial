@@ -1,5 +1,4 @@
 import enum
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
@@ -48,17 +47,6 @@ class SubscriptionSource(pydantic.BaseModel):
     event: SubscriptionSourceEvent
     id: str
 
-    @dataclass
-    class Details:
-        team: str
-        channel: str
-        ts: str
-
-    @property
-    def details(self) -> Details:
-        team, channel, ts = self.id.split("#")
-        return SubscriptionSource.Details(team=team, channel=channel, ts=ts)
-
 
 class Subscription(pydantic.BaseModel):
     id: pydantic.UUID4
@@ -78,7 +66,7 @@ class Team(pydantic.BaseModel):
         orm_mode = True
 
 
-class SlackSource(pydantic.BaseModel):
+class SlackInstallation(pydantic.BaseModel):
     id: pydantic.UUID4
     team_id: pydantic.UUID4
     """eave TeamOrm model id"""
@@ -86,3 +74,6 @@ class SlackSource(pydantic.BaseModel):
     bot_token: str
     bot_id: str
     bot_user_id: Optional[str]
+
+    class Config:
+        orm_mode = True

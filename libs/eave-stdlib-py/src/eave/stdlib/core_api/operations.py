@@ -23,7 +23,7 @@ class TeamInput(pydantic.BaseModel):
     id: pydantic.UUID4
 
 
-class SlackSourceInput(pydantic.BaseModel):
+class SlackInstallationInput(pydantic.BaseModel):
     slack_team_id: str
 
 
@@ -78,9 +78,10 @@ class UpsertDocument:
         document_reference: models.DocumentReference
 
 
-class GetSlackSource:
+class GetSlackInstallation:
     class RequestBody(pydantic.BaseModel):
-        slack_source: SlackSourceInput
+        slack_installation: SlackInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
-        slack_source: Optional[models.SlackSource] = None
+        team: models.Team
+        slack_installation: models.SlackInstallation
