@@ -100,9 +100,7 @@ async def get_subscription(
     response_json = await response.json()
     return operations.GetSubscription.ResponseBody(**response_json)
 
-# TODO: add team_id
 async def get_slack_installation(
-    team_id: UUID,
     input: operations.GetSlackInstallation.RequestBody,
 ) -> Optional[operations.GetSlackInstallation.ResponseBody]:
     """
@@ -112,7 +110,7 @@ async def get_slack_installation(
     response = await _make_request(
         path="/installations/slack/query",
         input=input,
-        team_id=str(team_id),
+        team_id=None,
     )
 
     if response.status >= 300:
@@ -121,6 +119,7 @@ async def get_slack_installation(
     response_json = await response.json()
     return operations.GetSlackInstallation.ResponseBody(**response_json)
 
+# TODO: copy to ts stdlib
 async def get_available_sources(
     team_id: UUID,
     input: operations.GetAvailableSources.RequestBody,

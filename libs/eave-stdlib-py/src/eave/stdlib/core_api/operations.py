@@ -1,4 +1,5 @@
 from typing import Optional
+from eave.stdlib.link_handler import SupportedLink
 
 import pydantic
 
@@ -85,3 +86,11 @@ class GetSlackInstallation:
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
         slack_installation: models.SlackInstallation
+
+# TODO: copy to ts stdlib
+class GetAvailableSources:
+    class RequestBody(pydantic.BaseModel):
+        team: TeamInput
+
+    class ResponseBody(pydantic.BaseModel):
+        type: SupportedLink # TODO: is this ok?
