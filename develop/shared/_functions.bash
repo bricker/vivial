@@ -122,8 +122,8 @@ then
 
 	function sh-login-script () {
 		case $usershell in
-		"bash") echo -n "~/.bashrc" ;;
-		"zsh") echo -n "~/.zshrc" ;;
+		"bash") echo -n ~/.bashrc ;;
+		"zsh") echo -n ~/.zshrc ;;
 		esac
 	}
 
