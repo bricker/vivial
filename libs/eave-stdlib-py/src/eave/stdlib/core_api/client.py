@@ -101,24 +101,25 @@ async def get_subscription(
     return operations.GetSubscription.ResponseBody(**response_json)
 
 # TODO: add team_id
-async def get_slack_source(
-    input: operations.GetSlackSource.RequestBody,
-) -> Optional[operations.GetSlackSource.ResponseBody]:
+async def get_slack_installation(
+    team_id: UUID,
+    input: operations.GetSlackInstallation.RequestBody,
+) -> Optional[operations.GetSlackInstallation.ResponseBody]:
     """
-    POST /slack_sources/query
+    POST /installations/slack/query
     """
     # fetch slack bot details
     response = await _make_request(
-        path="/slack_sources/query",
+        path="/installations/slack/query",
         input=input,
-        team_id=None,
+        team_id=str(team_id),
     )
 
     if response.status >= 300:
         return None
 
     response_json = await response.json()
-    return operations.GetSlackSource.ResponseBody(**response_json)
+    return operations.GetSlackInstallation.ResponseBody(**response_json)
 
 async def get_available_sources(
     team_id: UUID,
@@ -137,7 +138,7 @@ async def get_available_sources(
         return None
 
     response_json = await response.json()
-    return operations.GetSlackSource.ResponseBody(**response_json)
+    return operations.GetAvailableSources.ResponseBody(**response_json)
 
 def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)

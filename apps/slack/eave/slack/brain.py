@@ -2,7 +2,6 @@ import asyncio
 import json
 import random
 from typing import Optional
-from uuid import UUID
 
 import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
 import eave.stdlib.analytics
@@ -24,13 +23,11 @@ class Brain:
     user_profile: Optional[slack_models.SlackProfile]
     expanded_text: str
     message_context: str
-    team_id: UUID
+    eave_team: eave_models.Team
 
-    def __init__(self, message: slack_models.SlackMessage) -> None:
+    def __init__(self, message: slack_models.SlackMessage, eave_team: eave_models.Team) -> None:
         self.message = message
-        # FIXME: Hardcoded ID
-        self.team_id = UUID("3345217c-fb27-4422-a3fc-c404b49aff8c")
-        # self.team = await eave_core_api_client.get_team(slack_org_id: xxx)
+        self.eave_team = eave_team
 
     async def process_message(self) -> None:
         logger.debug("Brain.process_message")
@@ -339,7 +336,7 @@ class Brain:
 
     async def unwatch_conversation(self) -> None:
         await eave_core_api_client.delete_subscription(
-            team_id=self.team_id,
+            team_id=self.eave_team.id,
             input=eave_ops.DeleteSubscription.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
             ),
@@ -436,7 +433,7 @@ class Brain:
 
     async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
         subscription = await eave_core_api_client.get_subscription(
-            team_id=self.team_id,
+            team_id=self.eave_team.id,
             input=eave_ops.GetSubscription.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
             ),
@@ -448,7 +445,7 @@ class Brain:
         Gets and returns the subscription if it already exists, otherwise creates and returns a new subscription.
         """
         subscription = await eave_core_api_client.create_subscription(
-            team_id=self.team_id,
+            team_id=self.eave_team.id,
             input=eave_ops.CreateSubscription.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
             ),
@@ -457,7 +454,7 @@ class Brain:
 
     async def upsert_document(self, document: eave_ops.DocumentInput) -> eave_ops.UpsertDocument.ResponseBody:
         response = await eave_core_api_client.upsert_document(
-            team_id=self.team_id,
+            team_id=self.eave_team.id,
             input=eave_ops.UpsertDocument.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
                 document=document,
@@ -512,7 +509,7 @@ class Brain:
             caller_job_title = self.user_profile.title
 
             context.append(f"{caller_name} sent you a message.")
-            if caller_job_title: # might be empty string
+            if caller_job_title:  # might be empty string
                 context.append(f'{caller_name}\'s job title is "{caller_job_title}".')
 
         # f"The question was asked in a Slack channel called \"\". "

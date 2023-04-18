@@ -46,16 +46,16 @@ export async function getSubscription(teamId: string, input: ops.GetSubscription
 }
 
 
-async function getSlackSource(input: ops.GetSlackSource.RequestBody): Promise<ops.GetSlackSource.ResponseBody | null> {
+async function getSlackInstallation(input: ops.GetSlackInstallation.RequestBody): Promise<ops.GetSlackInstallation.ResponseBody | null> {
   const request = await initRequest(input);
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/slack_sources/query`, request);
+  const resp = await fetch(`${sharedConfig.eaveApiBase}/installations/slack/query`, request);
 
 
   if (resp.status >= 300) {
     return null;
   }
 
-  const responseData = <ops.GetSlackSource.ResponseBody>(await resp.json());
+  const responseData = <ops.GetSlackInstallation.ResponseBody>(await resp.json());
   return responseData;
 }
 

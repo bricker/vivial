@@ -18,7 +18,7 @@ export type TeamInput = {
   id: string;
 }
 
-export type SlackSourceInput = {
+export type SlackInstallationInput = {
   slack_team_id: string;
 }
 
@@ -75,13 +75,14 @@ export namespace CreateSubscription {
   }
 }
 
-export namespace GetSlackSource {
+export namespace GetSlackInstallation {
   export type RequestBody = {
-    slack_source: SlackSourceInput;
+    slack_installation: SlackInstallationInput;
   }
 
   export type ResponseBody = {
-    slack_source?: models.SlackSource;
+    team: models.Team;
+    slack_installation: models.SlackInstallation;
   }
 }
 
