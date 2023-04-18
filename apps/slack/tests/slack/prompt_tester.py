@@ -12,9 +12,10 @@ import json
 import eave.slack.brain
 import eave.slack.message_prompts
 import eave.slack.slack_models
+import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.logging
 import eave.stdlib.openai_client
-import eave.stdlib.core_api.models as eave_models
+
 eave.stdlib.logging.setup_logging(level=logging.DEBUG)
 from eave.stdlib import logger
 
@@ -34,7 +35,10 @@ jsonstring = """
 }
 """
 
-eave_team = eave_models.Team(id=uuid.uuid4(), name="Test Team", document_platform=eave_models.DocumentPlatform.confluence)
+eave_team = eave_models.Team(
+    id=uuid.uuid4(), name="Test Team", document_platform=eave_models.DocumentPlatform.confluence
+)
+
 
 async def test_slack_message_processing() -> None:
     logger.info("test_slack_message_processing")

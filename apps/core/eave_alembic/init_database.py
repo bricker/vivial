@@ -15,6 +15,7 @@ import eave.stdlib.core_api.models as eave_models
 # Protect against running this in production, sort of
 assert os.getenv("GAE_ENV") is None
 
+
 async def init_database() -> None:
     """
     https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch

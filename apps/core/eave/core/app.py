@@ -2,7 +2,12 @@ import eave.stdlib.api_util
 import eave.stdlib.logging
 from fastapi import FastAPI
 
-from .public.requests import access_requests, documents, slack_installations, subscriptions
+from .public.requests import (
+    access_requests,
+    documents,
+    slack_installations,
+    subscriptions,
+)
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import google_oauth, slack_oauth
 

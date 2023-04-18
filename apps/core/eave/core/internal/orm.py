@@ -1,9 +1,19 @@
+import enum
 from ctypes import ArgumentError
 from dataclasses import dataclass
-import enum
 from datetime import datetime
 from functools import cache
-from typing import Any, NotRequired, Optional, ParamSpec, Self, Tuple, TypedDict, Unpack, cast
+from typing import (
+    Any,
+    NotRequired,
+    Optional,
+    ParamSpec,
+    Self,
+    Tuple,
+    TypedDict,
+    Unpack,
+    cast,
+)
 from uuid import UUID, uuid4
 
 import atlassian
@@ -97,12 +107,7 @@ class DocumentReferenceOrm(Base):
 
     @classmethod
     async def one_or_exception(cls, team_id: UUID, id: UUID, session: AsyncSession) -> "DocumentReferenceOrm":
-        stmt = (
-            select(cls)
-            .where(cls.team_id == team_id)
-            .where(cls.id == id)
-            .limit(1)
-        )
+        stmt = select(cls).where(cls.team_id == team_id).where(cls.id == id).limit(1)
 
         result = (await session.scalars(stmt)).one()
         return result
@@ -364,7 +369,7 @@ class SlackInstallationOrm(Base):
 
     @classmethod
     def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
-        lookup = select(cls)
+        lookup = select(cls).limit(1)
         slack_team_id = kwargs.get("slack_team_id")
         eave_team_id = kwargs.get("team_id")
         if not slack_team_id and not eave_team_id:
@@ -388,6 +393,7 @@ class SlackInstallationOrm(Base):
         lookup = cls._build_select(**kwargs)
         result = (await session.scalars(lookup)).one()
         return result
+
 
 # class GithubInstallationOrm(Base):
 #     __tablename__ = "github_sources"

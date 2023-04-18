@@ -11,7 +11,9 @@ from slack_sdk.web.async_client import AsyncWebClient
 from .config import app_config
 
 
-async def authorize(enterprise_id: Optional[str], team_id: Optional[str], user_id: Optional[str], context: AsyncBoltContext) -> AuthorizeResult:
+async def authorize(
+    enterprise_id: Optional[str], team_id: Optional[str], user_id: Optional[str], context: AsyncBoltContext
+) -> AuthorizeResult:
     """
     https://slack.dev/bolt-python/concepts#authorization
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77

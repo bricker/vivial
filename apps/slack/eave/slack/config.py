@@ -22,4 +22,5 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         value: str = self.get_secret("EAVE_SLACK_APP_SOCKETMODE_TOKEN")
         return value
 
+
 app_config = AppConfig()

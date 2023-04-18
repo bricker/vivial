@@ -4,8 +4,8 @@ from typing import Optional
 
 import eave.slack.brain
 import eave.slack.slack_models
-import eave.stdlib.util as eave_util
 import eave.stdlib.core_api.client as eave_core
+import eave.stdlib.util as eave_util
 from eave.slack.config import app_config
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
@@ -22,7 +22,9 @@ def register_event_handlers(app: AsyncApp) -> None:
     app.event("member_joined_channel")(noop_handler)
 
 
-async def shortcut_eave_watch_request_handler(ack: AsyncAck, shortcut: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
+async def shortcut_eave_watch_request_handler(
+    ack: AsyncAck, shortcut: Optional[eave_util.JsonObject], context: AsyncBoltContext
+) -> None:
     logger.debug("WatchRequestEventHandler %s", shortcut)
     await ack()
     assert shortcut is not None
