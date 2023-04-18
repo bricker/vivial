@@ -11,7 +11,7 @@ from . import util as eave_request_util
 async def query(
     input: eave_ops.GetSlackSource.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> eave_ops.GetSlackSource.ResponseBody:
-    logger.debug("subscriptions.delete_subscription")
+    logger.debug("slack_source.query")
     await eave_request_util.validate_signature_or_fail(request=request)
 
     async with await eave_db.get_session() as session:
