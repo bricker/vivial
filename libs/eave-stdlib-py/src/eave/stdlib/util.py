@@ -8,6 +8,11 @@ logger = logging.getLogger("eave-stdlib-py")
 JsonScalar = str | int | bool | None
 JsonObject = dict[str, Any]
 
+
+class MaxRetryAttemptsReachedError(Exception):
+    pass
+
+
 T = TypeVar("T")
 
 

@@ -45,7 +45,7 @@ async def event_message_handler(event: Optional[eave_util.JsonObject]) -> None:
     if fixture_collection_enabled:
         save_fixture(event=event)
 
-    if message.subtype in ["bot_message", "bot_remove", "bot_add"]:
+    if message.subtype in ["bot_message", "bot_remove", "bot_add"] or message.bot_id is not None:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
         logger.debug("ignoring bot message")

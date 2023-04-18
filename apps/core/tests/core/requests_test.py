@@ -1,104 +1,107 @@
-# from http import HTTPStatus
-# from uuid import UUID, uuid4
+import os
+from http import HTTPStatus
+from uuid import uuid4
 
-# import mockito
-# import mockito.matchers
-# from atlassian import Confluence
+import eave.core.internal.config
+import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.openai_client
+import mockito
+import mockito.matchers
+from atlassian import Confluence
 
-# import eave.core.internal.openai
-# import eave.core.internal.orm as orm
-# import tests
-# from eave.core.public.shared import (
-#     DocumentPlatform,
-#     SubscriptionSourceEvent,
-#     SubscriptionSourcePlatform,
-# )
-# from tests import fixtures
-# from tests.base import BaseTestCase, mock_coroutine
+from . import fixtures
+from .base import BaseTestCase, mock_coroutine
 
 
-# class TestStatusEndpoint(BaseTestCase):
-#     async def test_status(self) -> None:
-#         response = await self.httpclient.get("/status")
-#         self.assertEqual(response.status_code, HTTPStatus.OK)
-#         self.assertEqual(response.json(), {"status": "1", "service": "api"})
+class TestStatusEndpoint(BaseTestCase):
+    async def test_status(self) -> None:
+        os.environ["GAE_SERVICE"] = self.anystring("gaeservice")
+        os.environ["GAE_VERSION"] = self.anystring("gaeversion")
+
+        response = await self.httpclient.get("/status")
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(
+            response.json(),
+            {"status": "OK", "service": self.anystring("gaeservice"), "version": self.anystring("gaeversion")},
+        )
 
 
 # class TestAccessRequestEndpoint(BaseTestCase):
 #     async def test_new_email(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/access_request",
-#             json={"email": "bryan@bryan.com"},
+#             payload={"email": "bryan@bryan.com"},
 #         )
 #         self.assertEqual(response.status_code, HTTPStatus.CREATED)
 
-#         access_request = await orm.AccessRequestOrm.one_or_none(email="bryan@bryan.com", session=self.dbsession)
+#         access_request = await eave_orm.AccessRequestOrm.one_or_none(email="bryan@bryan.com", session=self.dbsession)
 #         self.assertIsNotNone(access_request)
 
 #     async def test_existing_email(self) -> None:
-#         await self.httpclient.post(
+#         await self.make_request(
 #             "/access_request",
-#             json={"email": "bryan@bryan.com"},
+#             payload={"email": "bryan@bryan.com"},
 #         )
 
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/access_request",
-#             json={"email": "bryan@bryan.com"},
+#             payload={"email": "bryan@bryan.com"},
 #         )
 
 #         self.assertEqual(response.status_code, HTTPStatus.OK)
 
-#         access_request = await orm.AccessRequestOrm.one_or_none(email="bryan@bryan.com", session=self.dbsession)
+#         access_request = await eave_orm.AccessRequestOrm.one_or_none(email="bryan@bryan.com", session=self.dbsession)
 #         self.assertIsNotNone(access_request)
 
 #     async def test_visitor_id(self) -> None:
 #         visitor_id = uuid4()
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/access_request",
-#             json={"email": "bryan@bryan.com", "visitor_id": str(visitor_id)},
+#             payload={"email": "bryan@bryan.com", "visitor_id": str(visitor_id)},
 #         )
 
 #         self.assertEqual(response.status_code, HTTPStatus.CREATED)
 
-#         access_request = await orm.AccessRequestOrm.one_or_none(email="bryan@bryan.com", session=self.dbsession)
+#         access_request = await eave_orm.AccessRequestOrm.one_or_none(email="bryan@bryan.com", session=self.dbsession)
 #         access_request = self.unwrap(access_request)
 #         self.assertEqual(access_request.visitor_id, visitor_id)
 
 #     async def test_duplicate_visitor_id(self) -> None:
 #         visitor_id = uuid4()
-#         response1 = await self.httpclient.post(
+#         response1 = await self.make_request(
 #             "/access_request",
-#             json={"email": "bryan1@bryan.com", "visitor_id": str(visitor_id)},
+#             payload={"email": "bryan1@bryan.com", "visitor_id": str(visitor_id)},
 #         )
 
 #         self.assertEqual(response1.status_code, HTTPStatus.CREATED)
 
-#         response2 = await self.httpclient.post(
+#         response2 = await self.make_request(
 #             "/access_request",
-#             json={"email": "bryan2@bryan.com", "visitor_id": str(visitor_id)},
+#             payload={"email": "bryan2@bryan.com", "visitor_id": str(visitor_id)},
 #         )
 
 #         self.assertEqual(response2.status_code, HTTPStatus.CREATED)
 
-#         access_request1 = await orm.AccessRequestOrm.one_or_none(email="bryan1@bryan.com", session=self.dbsession)
+#         access_request1 = await eave_orm.AccessRequestOrm.one_or_none(email="bryan1@bryan.com", session=self.dbsession)
 #         access_request1 = self.unwrap(access_request1)
 #         self.assertEqual(access_request1.visitor_id, visitor_id)
 
-#         access_request2 = await orm.AccessRequestOrm.one_or_none(email="bryan2@bryan.com", session=self.dbsession)
+#         access_request2 = await eave_orm.AccessRequestOrm.one_or_none(email="bryan2@bryan.com", session=self.dbsession)
 #         access_request2 = self.unwrap(access_request1)
 #         self.assertEqual(access_request2.visitor_id, visitor_id)
 
 #     async def test_bad_payload(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/access_request",
-#             json={},
+#             payload={},
 #         )
 #         self.assertEqual(response.status_code, HTTPStatus.UNPROCESSABLE_ENTITY)
 
 #     async def test_invalid_email_format(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/access_request",
-#             json={"email": "bad_email"},
+#             payload={"email": "bad_email"},
 #         )
 #         self.assertEqual(response.status_code, HTTPStatus.UNPROCESSABLE_ENTITY)
 
@@ -109,29 +112,22 @@
 #     async def asyncSetUp(self) -> None:
 #         await super().asyncSetUp()
 
-#         team = orm.TeamOrm(name=self.anystring("teamname"), document_platform=DocumentPlatform.confluence)
+#         team = eave_orm.TeamOrm(
+#             name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence
+#         )
 #         self._team = await self.save(team)
 
-#         confluence_destination = orm.ConfluenceDestinationOrm(
-#             team_id=team.id,
-#             url="https://eave-fyi.atlassian.org",
-#             api_username="eave",
-#             api_key="xxx",
-#             space="EAVE",
-#         )
-#         self._confluence_destination = await self.save(confluence_destination)
-
-#         document_reference = orm.DocumentReferenceOrm(
+#         document_reference = eave_orm.DocumentReferenceOrm(
 #             team_id=self._team.id,
 #             document_id=self.anystring("confluence_document_response.id"),
 #             document_url=self.anystring("cdurl"),
 #         )
 #         self._document_reference = await self.save(document_reference)
 
-#         subscription = orm.SubscriptionOrm(
+#         subscription = eave_orm.SubscriptionOrm(
 #             team_id=team.id,
-#             source_platform=SubscriptionSourcePlatform.slack,
-#             source_event=SubscriptionSourceEvent.slack_message,
+#             source_platform=eave_models.SubscriptionSourcePlatform.slack,
+#             source_event=eave_models.SubscriptionSourceEvent.slack_message,
 #             source_id=self.anystring("source_id"),
 #         )
 #         self._subscription = await self.save(subscription)
@@ -141,7 +137,7 @@
 #         # mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(None)
 #         # mockito.when2(Confluence.create_page, **mockito.KWARGS).thenReturn(fixtures.confluence_document_response(self))
 
-#         # response = await self.httpclient.post(
+#         # response = await self.make_request(
 #         #     "/documents/upsert",
 #         #     headers={
 #         #         "eave-team-id": str(self._team.id),
@@ -208,19 +204,19 @@
 #             existing_page
 #         )
 #         mockito.when2(Confluence.update_page, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(existing_page)
-#         mockito.when2(eave.core.internal.openai.summarize, **mockito.KWARGS).thenReturn(
+#         mockito.when2(eave.stdlib.openai_client.chat_completion, **mockito.KWARGS).thenReturn(
 #             mock_coroutine(self.anystring("openairesponse"))
 #         )
 
 #         self._subscription.document_reference_id = self._document_reference.id
 #         await self.save(self._subscription)
 
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
 #             headers={
 #                 "eave-team-id": str(self._team.id),
 #             },
-#             json={
+#             payload={
 #                 "document": {"title": self.anystring("title"), "content": self.anystring("content")},
 #                 "subscription": {
 #                     "source": {
@@ -246,7 +242,7 @@
 #                 "team": {
 #                     "id": str(self._team.id),
 #                     "name": self._team.name,
-#                     "document_platform": self._team.document_platform.value,
+#                     "document_platform": self._team.document_platform,
 #                 },
 #                 "subscription": {
 #                     "id": str(self._subscription.id),
@@ -266,12 +262,12 @@
 #         )
 
 #     async def test_invalid_source_platform(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
 #             headers={
 #                 "eave-team-id": str(self._team.id),
 #             },
-#             json={
+#             payload={
 #                 "document": {"title": self.anystring("title"), "content": self.anystring("content")},
 #                 "subscription": {
 #                     "source": {
@@ -287,12 +283,12 @@
 #         self.assertIsNotNone(response.json().get("detail"))
 
 #     async def test_invalid_source_event(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
 #             headers={
 #                 "eave-team-id": str(self._team.id),
 #             },
-#             json={
+#             payload={
 #                 "document": {"title": self.anystring("title"), "content": self.anystring("content")},
 #                 "subscription": {
 #                     "source": {
@@ -308,12 +304,12 @@
 #         self.assertIsNotNone(response.json().get("detail"))
 
 #     async def test_invalid_source_id(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
 #             headers={
 #                 "eave-team-id": str(self._team.id),
 #             },
-#             json={
+#             payload={
 #                 "document": {"title": self.anystring("title"), "content": self.anystring("content")},
 #                 "subscription": {
 #                     "source": {
@@ -329,12 +325,12 @@
 #         self.assertEqual(response.json(), {"detail": "Not Found"})
 
 #     async def test_missing_document_content(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
 #             headers={
 #                 "eave-team-id": str(self._team.id),
 #             },
-#             json={
+#             payload={
 #                 "document": {},
 #                 "subscription": {
 #                     "source": {
@@ -350,12 +346,12 @@
 #         self.assertIsNotNone(response.json()["detail"])
 
 #     async def test_missing_document_attribute(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
 #             headers={
 #                 "eave-team-id": str(self._team.id),
 #             },
-#             json={
+#             payload={
 #                 "document": {
 #                     "title": self.anystring(),
 #                 },
@@ -373,10 +369,9 @@
 #         self.assertIsNotNone(response.json()["detail"])
 
 #     async def test_missing_team_header(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
-#             headers=None,
-#             json={
+#             payload={
 #                 "document": {"title": self.anystring("title"), "content": self.anystring("content")},
 #                 "subscription": {
 #                     "source": {
@@ -392,10 +387,10 @@
 #         self.assertEqual(response.json(), {"detail": "Forbidden"})
 
 #     async def test_invalid_team_id(self) -> None:
-#         response = await self.httpclient.post(
+#         response = await self.make_request(
 #             "/documents/upsert",
 #             headers={"eave-team-id": str(uuid4())},
-#             json={
+#             payload={
 #                 "document": {
 #                     "title": self.anystring("title"),
 #                     "content": self.anystring("content"),

@@ -1,20 +1,17 @@
-import enum
+import json
 from datetime import datetime
-from functools import cache
-from typing import Optional, ParamSpec, Self, Tuple, cast
-from uuid import UUID, uuid4
+from typing import Optional, ParamSpec, Self, Tuple
+from uuid import UUID
 
-import atlassian
 import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.openai_client
-import eave.stdlib.util as eave_util
+import oauthlib
+import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     PrimaryKeyConstraint,
     Select,
-    delete,
+    false,
     func,
     select,
     text,
@@ -22,7 +19,11 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from . import confluence
+from . import database as eave_db
+from .destinations import abstract as abstract_destination
+from .destinations import confluence as confluence_destination
+from .oauth import atlassian as atlassian_oauth
+from .oauth import models as oauth_models
 
 UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
 
@@ -185,152 +186,6 @@ class SubscriptionOrm(Base):
         return lookup
 
 
-class ConfluenceDestinationOrm(Base):
-    __tablename__ = "confluence_destinations"
-    __table_args__ = (
-        make_team_composite_pk(),
-        make_team_fk(),
-    )
-
-    team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    url: Mapped[str] = mapped_column()
-    api_username: Mapped[str] = mapped_column()
-    api_key: Mapped[str] = mapped_column()
-    space: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
-
-    @cache
-    def confluence_client(self) -> atlassian.Confluence:
-        """
-        Atlassian Python API Docs: https://atlassian-python-api.readthedocs.io/
-        """
-        return atlassian.Confluence(
-            url=self.url,
-            username=self.api_username,
-            password=self.api_key,
-        )
-
-    @property
-    @cache
-    def confluence_context(self) -> confluence.ConfluenceContext:
-        return confluence.ConfluenceContext(base_url=self.url)
-
-    async def create_document(self, document: eave_ops.DocumentInput, session: AsyncSession) -> DocumentReferenceOrm:
-        confluence_page = await self.get_or_create_confluence_page(document=document)
-
-        url = None
-        if confluence_page.links is not None and confluence_page.links.tinyui_url is not None:
-            url = confluence_page.links.tinyui_url
-
-        document_reference = DocumentReferenceOrm(
-            team_id=self.team_id,
-            document_id=confluence_page.id,
-            document_url=url,
-        )
-
-        session.add(document_reference)
-        return document_reference
-
-    async def update_document(
-        self, document: eave_ops.DocumentInput, document_reference: DocumentReferenceOrm
-    ) -> DocumentReferenceOrm:
-        """
-        Update an existing Confluence document with the new body.
-        Notably, the title and parent are not changed.
-        """
-        existing_page = await self.get_confluence_page_by_id(document_reference=document_reference)
-        if existing_page is None:
-            # TODO: This page was probably deleted. Remove it from our database?
-            raise NotImplementedError()
-
-        # TODO: Use a different body format? Currently it will probably return the "storage" format,
-        # which is XML (HTML), and probably not great for an OpenAI prompt.
-        if existing_page.body is not None and existing_page.body.content is not None:
-            # TODO: Token counting
-            prompt = (
-                "Merge the following two documents."
-                "\n\n"
-                "First Document:\n"
-                "=========================\n"
-                f"{existing_page.body.content}\n"
-                "=========================\n\n"
-                "Second Document:\n"
-                "=========================\n"
-                f"{document.content}\n"
-                "=========================\n"
-            )
-            openai_params = eave.stdlib.openai_client.ChatCompletionParameters(
-                temperature=0.2,
-                messages=[prompt],
-            )
-            resolved_document_body = await eave.stdlib.openai_client.chat_completion(params=openai_params)
-            assert resolved_document_body is not None
-        else:
-            resolved_document_body = document.content
-
-        # TODO: Hack
-        content = resolved_document_body.replace("&", "&amp;")
-        response = self.confluence_client().update_page(
-            page_id=document_reference.document_id,
-            title=existing_page.title,
-            body=content,
-        )
-
-        assert response is not None
-        return document_reference
-
-    async def get_or_create_confluence_page(self, document: eave_ops.DocumentInput) -> confluence.ConfluencePage:
-        existing_page = await self.get_confluence_page_by_title(document=document)
-        if existing_page is not None:
-            return existing_page
-
-        parent_page = None
-        if document.parent is not None:
-            parent_page = await self.get_or_create_confluence_page(document=document.parent)
-
-        # TODO: Hack
-        content = document.content.replace("&", "&amp;")
-        response = self.confluence_client().create_page(
-            space=self.space,
-            title=document.title,
-            body=content,
-            parent_id=parent_page.id if parent_page is not None else None,
-        )
-        assert response is not None
-
-        json = cast(eave_util.JsonObject, response)
-        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
-        return page
-
-    async def get_confluence_page_by_id(
-        self, document_reference: DocumentReferenceOrm
-    ) -> confluence.ConfluencePage | None:
-        response = self.confluence_client().get_page_by_id(
-            page_id=document_reference.document_id,
-            expand=["history"],
-        )
-        if response is None:
-            return None
-
-        json = cast(eave_util.JsonObject, response)
-        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
-        return page
-
-    async def get_confluence_page_by_title(self, document: eave_ops.DocumentInput) -> confluence.ConfluencePage | None:
-        response = self.confluence_client().get_page_by_title(
-            space=self.space,
-            title=document.title,
-        )
-        if response is None:
-            return None
-
-        json = cast(eave_util.JsonObject, response)
-        page = confluence.ConfluencePage(json, cast(confluence.ConfluenceContext, self.confluence_context))
-        return page
-
-
 class SlackSource(Base):
     __tablename__ = "slack_sources"
     __table_args__ = (
@@ -369,25 +224,71 @@ class SlackSource(Base):
         return source
 
 
-# class GithubSource(Base):
-#     __tablename__ = "github_sources"
-#     __table_args__ = (
-#         make_team_composite_pk(),
-#         make_team_fk(),
-#         Index(
-#             "github_install_id",
-#             "team_id",
-#             "source_event",
-#             "source_id",
-#             unique=True,
-#         ),
-#     )
+class AtlassianInstallationOrm(Base):
+    __tablename__ = "atlassian_installations"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        Index(
+            "eave_team_id_atlassian_team_id",
+            "team_id",
+            "atlassian_cloud_id",
+            unique=True,
+        ),
+    )
 
-#     team_id: Mapped[UUID] = mapped_column()
-#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-#     github_install_id: Mapped[str] = mapped_column()
-#     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-#     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
+    confluence_space: Mapped[Optional[str]] = mapped_column()
+    oauth_token_encoded: Mapped[str] = mapped_column()
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @property
+    def oauth_token_decoded(self) -> oauthlib.oauth2.rfc6749.tokens.OAuth2Token:
+        jsonv = json.loads(self.oauth_token_encoded)
+        return oauthlib.oauth2.rfc6749.tokens.OAuth2Token(params=jsonv)
+
+    @property
+    def confluence_destination(self) -> confluence_destination.ConfluenceDestination:
+        assert self.confluence_space is not None
+        return confluence_destination.ConfluenceDestination(
+            oauth_session=self.build_oauth_session(),
+            atlassian_cloud_id=self.atlassian_cloud_id,
+            space=self.confluence_space,
+        )
+
+    def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
+        session = atlassian_oauth.AtlassianOAuthSession(
+            token=self.oauth_token_decoded,
+            token_updater=self.update_token,
+        )
+
+        return session
+
+    def update_token(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+        with eave_db.get_sync_session() as db_session:
+            self.oauth_token_encoded = json.dumps(token)
+            db_session.commit()
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
+        lookup = select(cls).where(cls.team_id == team_id).limit(1)
+        source = (await session.scalars(lookup)).one()
+        return source
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
+        lookup = select(cls).where(cls.team_id == team_id).limit(1)
+        source = (await session.scalars(lookup)).one_or_none()
+        return source
+
+    @classmethod
+    async def one_or_none_by_atlassian_cloud_id(cls, session: AsyncSession, atlassian_cloud_id: str) -> Optional[Self]:
+        lookup = select(cls).where(cls.atlassian_cloud_id == atlassian_cloud_id).limit(1)
+        result: Self | None = (await session.scalars(lookup)).one_or_none()
+        return result
 
 
 class TeamOrm(Base):
@@ -398,32 +299,38 @@ class TeamOrm(Base):
     document_platform: Mapped[Optional[eave_models.DocumentPlatform]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
 
-    # api_keys: Mapped[list["ApiKeyOrm"]] = relationship(back_populates="team")
     subscriptions: Mapped[list["SubscriptionOrm"]] = relationship()
 
-    async def get_document_destination(self, session: AsyncSession) -> ConfluenceDestinationOrm:
+    async def get_document_destination(
+        self, session: AsyncSession
+    ) -> Optional[abstract_destination.DocumentDestination]:
         match self.document_platform:
+            case None:
+                return None
+
             case eave_models.DocumentPlatform.confluence:
-                stmt = select(ConfluenceDestinationOrm).where(ConfluenceDestinationOrm.team_id == self.id).limit(1)
-                destination = (await session.scalars(stmt)).one()
-                return destination
+                atlassian_installation = await AtlassianInstallationOrm.one_or_exception(
+                    session=session,
+                    team_id=self.id,
+                )
+                return atlassian_installation.confluence_destination
+
+            case eave_models.DocumentPlatform.google_drive:
+                raise NotImplementedError("google drive document destination is not yet implemented.")
 
             case eave_models.DocumentPlatform.eave:
-                raise Exception("eave documentation platform not yet implemented.")
+                raise NotImplementedError("eave document destination is not yet implemented.")
 
-        raise Exception("unsupported platform")
+            case _:
+                raise NotImplementedError(f"unsupported document platform: {self.document_platform}")
 
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
         lookup = select(cls).where(cls.id == team_id).limit(1)
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
-
-
-class AuthProvider(enum.Enum):
-    google = "google"
-    slack = "slack"
 
 
 class AccountOrm(Base):
@@ -441,29 +348,34 @@ class AccountOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    auth_provider: Mapped[AuthProvider] = mapped_column()
+    auth_provider: Mapped[oauth_models.AuthProvider] = mapped_column()
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
+    # TODO: Store refresh token also
     oauth_token: Mapped[str] = mapped_column()
     """oauth token from 3rd party"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Self:
+    async def one_or_exception(
+        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
+    ) -> Self:
         lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
         account = (await session.scalars(lookup)).one()
         return account
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, auth_provider: AuthProvider, auth_id: str) -> Self | None:
+    async def one_or_none(
+        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
+    ) -> Self | None:
         lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
         account = await session.scalar(lookup)
         return account
 
     @classmethod
-    def _select_one(cls, auth_provider: AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
+    def _select_one(cls, auth_provider: oauth_models.AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
         lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
         return lookup
 

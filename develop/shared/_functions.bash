@@ -120,6 +120,13 @@ then
 		echo -n "$(basename $SHELL)"
 	}
 
+	function sh-login-script () {
+		case $usershell in
+		"bash") echo -n ~/.bashrc ;;
+		"zsh") echo -n ~/.zshrc ;;
+		esac
+	}
+
 	function command_exists () {
 		if command -v "$1" > /dev/null
 		then
@@ -152,8 +159,7 @@ then
 		local ex="$path/$cmd"
 		if test -x "$ex"
 		then
-			cd $path
-			($cmd)
+			(cd $path && $cmd)
 		else
 			statusmsg -w "File $ex is not executable."
 		fi
@@ -175,6 +181,40 @@ then
 			echo -e "\n"
 		done
 	}
+
+	function add-shell-variable () (
+		local varname=$1
+		local value=$2
+		local usershell=$(shellname)
+
+		case $usershell in
+		"bash" | "zsh")
+			local loginfile=$(sh-login-script)
+
+			if cat $loginfile | grep "export $varname"
+			then
+				statusmsg -w "variable $varname already set in $loginfile."
+				return 0
+			fi
+
+			local varcmd="export $varname=\"$value\""
+			echo -e "\n$varcmd" >>"$loginfile"
+			source "$loginfile"
+			;;
+		"fish")
+			varcmd="set -Ux $varname $value"
+			if fish -c "set -q $varname"
+			then
+				statusmsg -w "variable $varname already set in fish environment."
+				return 0
+			fi
+			fish -c "$varcmd"
+			;;
+		*)
+			statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
+			;;
+		esac
+	)
 
 	_SHARED_FUNCTIONS_LOADED=1
 fi

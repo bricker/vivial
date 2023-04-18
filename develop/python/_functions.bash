@@ -29,6 +29,9 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -i "Linting ${target}..."
 
+		statusmsg -i "(lint) autoflake..."
+		python -m autoflake --check-diff --config ${EAVE_HOME}/develop/python/autoflake.cfg $target
+
 		statusmsg -i "(lint) isort..."
 		python -m isort --settings-file=$configfile --check $target
 
@@ -47,6 +50,9 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/pyproject.toml
+
+		statusmsg -i "(format) autoflake..."
+		python -m autoflake --in-place --config ${EAVE_HOME}/develop/python/autoflake.cfg $target
 
 		statusmsg -i "(format) isort..."
 		python -m isort --settings-file=$configfile $target

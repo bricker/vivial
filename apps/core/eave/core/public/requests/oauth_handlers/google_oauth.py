@@ -3,7 +3,6 @@ from typing import Optional, cast
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 import fastapi
 import google.oauth2.credentials
@@ -11,30 +10,24 @@ import google.oauth2.id_token
 import google_auth_oauthlib.flow
 import pydantic
 from eave.core.internal.config import app_config
+from eave.core.internal.oauth import cookies as oauth_cookies
+from eave.core.internal.oauth import models as oauth_models
 from google.auth.transport import requests
-
-from . import oauth_cookie
 
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = get_oauth_flow_info()
     response = fastapi.responses.RedirectResponse(url=oauth_flow_info.authorization_url)
-    oauth_cookie.save_state_cookie(
+    oauth_cookies.save_state_cookie(
         response=response,
         state=oauth_flow_info.state,
-        provider=eave_orm.AuthProvider.google,
+        provider=oauth_models.AuthProvider.google,
     )
     return response
 
 
-class RequestBody(pydantic.BaseModel):
-    state: Optional[str]
-    code: Optional[str]
-    error: Optional[str]
-
-
 @dataclass
-class OAuthResponseBody(pydantic.BaseModel):
+class GoogleOAuthResponseBody(pydantic.BaseModel):
     sub: str
     """Google globally unique and immutable user ID"""
 
@@ -42,20 +35,27 @@ class OAuthResponseBody(pydantic.BaseModel):
 
 
 async def google_oauth_callback(
-    input: RequestBody, request: fastapi.Request, response: fastapi.Response
+    state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    state = oauth_cookie.get_state_cookie(request=request, provider=eave_orm.AuthProvider.google)
+    expected_oauth_state = oauth_cookies.get_state_cookie(request=request, provider=oauth_models.AuthProvider.google)
+    assert state == expected_oauth_state
 
-    credentials = get_oauth_credentials(uri=str(request.url), state=state)
+    flow = build_flow(state=state)
+    flow.fetch_token(code=code)
+
+    # flow.credentials returns a `google.auth.credentials.Credentials`, which is the base class of
+    # google.oauth2.credentials.Credentials and doesn't contain common oauth properties like refresh_token.
+    # The `cast` here gives us type hints, autocomplete, etc. for `flow.credentials`
+    credentials = cast(google.oauth2.credentials.Credentials, flow.credentials)
     assert credentials.id_token is not None
     token = decode_id_token(id_token=credentials.id_token)
 
     userid = token.sub
     given_name = token.given_name
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
-            auth_provider=eave_orm.AuthProvider.google,
+            auth_provider=oauth_models.AuthProvider.google,
             auth_id=userid,
         )
 
@@ -72,7 +72,7 @@ async def google_oauth_callback(
 
             account_orm = eave_orm.AccountOrm(
                 team_id=team.id,
-                auth_provider=eave_orm.AuthProvider.google,
+                auth_provider=oauth_models.AuthProvider.google,
                 auth_id=userid,
                 oauth_token=credentials.id_token,
             )
@@ -82,18 +82,12 @@ async def google_oauth_callback(
         account_orm.oauth_token = credentials.id_token
         await session.commit()
 
-    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/setup")
-    oauth_cookie.delete_state_cookie(response=response, provider=eave_orm.AuthProvider.google)
+    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
+    oauth_cookies.delete_state_cookie(response=response, provider=oauth_models.AuthProvider.google)
     return response
 
 
-@dataclass
-class GoogleOauthFlowInfo:
-    authorization_url: str
-    state: str
-
-
-def get_oauth_flow_info() -> GoogleOauthFlowInfo:
+def get_oauth_flow_info() -> oauth_models.OauthFlowInfo:
     """
     https://developers.google.com/identity/protocols/oauth2/web-server#python_1
     """
@@ -104,28 +98,17 @@ def get_oauth_flow_info() -> GoogleOauthFlowInfo:
         include_granted_scopes="true",
     )
 
-    return GoogleOauthFlowInfo(authorization_url=authorization_url, state=state)
+    return oauth_models.OauthFlowInfo(authorization_url=authorization_url, state=state)
 
 
-def get_oauth_credentials(uri: str, state: str) -> google.oauth2.credentials.Credentials:
-    flow = build_flow(state=state)
-    flow.fetch_token(authorization_response=uri)
-
-    # flow.credentials returns a `google.auth.credentials.Credentials`, which is the base class of
-    # google.oauth2.credentials.Credentials and doesn't contain common oauth properties like refresh_token.
-    # The `cast` here gives us type hints, autocomplete, etc. for `flow.credentials`
-    credentials = cast(google.oauth2.credentials.Credentials, flow.credentials)
-    return credentials
-
-
-def decode_id_token(id_token: str) -> OAuthResponseBody:
+def decode_id_token(id_token: str) -> GoogleOAuthResponseBody:
     token_json: eave_util.JsonObject = google.oauth2.id_token.verify_oauth2_token(
         id_token=id_token,
         audience=app_config.eave_google_oauth_client_id,
         request=requests.Request(),
     )
 
-    token = OAuthResponseBody(**token_json)
+    token = GoogleOAuthResponseBody(**token_json)
     return token
 
 

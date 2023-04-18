@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from .public.requests import access_requests, documents, slack_sources, subscriptions
 from .public.requests import util as eave_request_util
-from .public.requests.oauth_handlers import google_oauth, slack_oauth
+from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
 
 eave.stdlib.logging.setup_logging()
 
@@ -22,4 +22,6 @@ app.get("/oauth/google/authorize")(google_oauth.google_oauth_authorize)
 app.get("/oauth/google/callback")(google_oauth.google_oauth_callback)
 app.get("/oauth/slack/authorize")(slack_oauth.slack_oauth_authorize)
 app.get("/oauth/slack/callback")(slack_oauth.slack_oauth_callback)
+app.get("/oauth/atlassian/authorize")(atlassian_oauth.atlassian_oauth_authorize)
+app.get("/oauth/atlassian/callback")(atlassian_oauth.atlassian_oauth_callback)
 app.post("/slack_sources/query")(slack_sources.query)
