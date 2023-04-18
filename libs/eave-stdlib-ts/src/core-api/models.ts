@@ -60,5 +60,5 @@ export type SlackInstallation = {
   slack_team_id: string;
   bot_token: string;
   bot_id: string;
-  bot_user_id: string;
+  bot_user_id?: string;
 }
