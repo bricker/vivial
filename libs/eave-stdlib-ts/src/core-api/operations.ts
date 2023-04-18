@@ -18,6 +18,10 @@ export type TeamInput = {
   id: string;
 }
 
+export type SlackSourceInput = {
+  slack_team_id: string;
+}
+
 export namespace UpsertDocument {
   export type RequestBody = {
     document: DocumentInput;
@@ -68,6 +72,16 @@ export namespace CreateSubscription {
     team: models.Team;
     subscription: models.Subscription;
     document_reference?: models.DocumentReference;
+  }
+}
+
+export namespace GetSlackSource {
+  export type RequestBody = {
+    slack_source: SlackSourceInput;
+  }
+
+  export type ResponseBody = {
+    slack_source?: models.SlackSource;
   }
 }
 

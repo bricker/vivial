@@ -20,7 +20,7 @@ tokencoding = tiktoken.get_encoding("gpt2")
 
 class Brain:
     message: slack_models.SlackMessage
-    user_profile: slack_models.SlackProfile
+    user_profile: Optional[slack_models.SlackProfile]
     expanded_text: str
     message_context: str
     team_id: UUID
@@ -484,7 +484,6 @@ class Brain:
 
     async def load_data(self) -> None:
         user_profile = await self.message.get_user_profile()
-        assert user_profile is not None
         self.user_profile = user_profile
 
         expanded_text = await self.message.get_expanded_text()
@@ -494,14 +493,15 @@ class Brain:
         await self.build_message_context()
 
     async def build_message_context(self) -> None:
-        caller_name = self.user_profile.real_name_normalized
-        caller_job_title = self.user_profile.title
-
         context: list[str] = []
-        context.append(f"{caller_name} sent you a message.")
 
-        if caller_job_title:
-            context.append(f'{caller_name}\'s job title is "{caller_job_title}".')
+        if self.user_profile is not None:
+            caller_name = self.user_profile.real_name_normalized
+            caller_job_title = self.user_profile.title
+
+            context.append(f"{caller_name} sent you a message.")
+            if caller_job_title: # might be empty string
+                context.append(f'{caller_name}\'s job title is "{caller_job_title}".')
 
         # f"The question was asked in a Slack channel called \"\". "
         # f"The description of that channel is: \"\" "

@@ -50,6 +50,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.dbsession = get_async_session()
         self.dbsession.begin()
         connection = await self.dbsession.connection()
+        assert connection.engine.url.database == "eave-test"
         await connection.run_sync(eave_orm.Base.metadata.drop_all)
         await connection.run_sync(eave_orm.Base.metadata.create_all)
 
@@ -132,26 +133,3 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
         return response
-
-    # async def _polyfill_db(self) -> None:
-    #     raw_connection = await self._dbconnection.get_raw_connection()
-    #     driver = raw_connection.driver_connection
-    #     assert isinstance(driver, aiosqlite.core.Connection)
-    #     # await driver.enable_load_extension(True)
-    #     # await driver.load_extension(path="../vendor/uuid.so")
-
-    #     # driver.create_function(
-    #     #     name="gen_random_uuid",
-    #     #     narg=0,
-    #     #     func=lambda: str(uuid4()),
-    #     # )
-
-    #     # (lower(hex(randomblob(16))))
-
-    #     # We're using the Postgres native "gen_random_uuid" function for the ID columns,
-    #     # which doesn't exist in SQLite.
-    #     await driver.create_function(
-    #         name="gen_random_uuid",
-    #         num_params=0,
-    #         func=lambda: uuid4().hex,
-    #     )

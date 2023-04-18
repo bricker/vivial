@@ -126,9 +126,11 @@ async def slack_oauth_callback(
 
     # oauth.v2.access doesn't include bot_id in response, so we have to fetch it
     bot_id = None
+    bot_user_id = None
     if bot_token is not None:
         auth_test = client.auth_test(token=bot_token)
         bot_id = auth_test["bot_id"]
+        bot_user_id = auth_test["user_id"]
 
     # save our shiny new oauth token in db
     async with eave_db.get_async_session() as session:
@@ -164,7 +166,7 @@ async def slack_oauth_callback(
             account_orm.oauth_token = oauth_token
 
         # try fetch slack source for eave team
-        slack_source = await eave_orm.SlackSource.one_or_none(
+        slack_source = await eave_orm.SlackSource.one_or_none_by_eave_team_id(
             team_id=account_orm.team_id,
             session=session,
         )
@@ -176,6 +178,7 @@ async def slack_oauth_callback(
                 slack_team_id=slack_team_id,
                 bot_token=bot_token,
                 bot_id=bot_id,
+                bot_user_id=bot_user_id,
             )
             session.add(slack_source)
         else:
