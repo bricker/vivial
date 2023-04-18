@@ -19,8 +19,13 @@ logger = logging.getLogger("eave-stdlib-py")
 JsonScalar = str | int | bool | None
 JsonObject = dict[str, Any]
 
-P = ParamSpec("P")
 T = TypeVar("T")
+P = ParamSpec("P")
+
+class MaxRetryAttemptsReachedError(Exception):
+    pass
+
+
 
 
 def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:

@@ -14,7 +14,7 @@ async def query(
     logger.debug("slack_source.query")
     await eave_request_util.validate_signature_or_fail(request=request)
 
-    async with await eave_db.get_session() as db_session:
+    async with eave_db.get_async_session() as db_session:
         slack_installation = await eave_orm.SlackInstallationOrm.one_or_exception(
             session=db_session,
             slack_team_id=input.slack_installation.slack_team_id,

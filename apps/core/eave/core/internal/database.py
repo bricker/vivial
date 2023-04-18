@@ -1,4 +1,5 @@
 import sqlalchemy
+import sqlalchemy.orm
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -9,10 +10,11 @@ from sqlalchemy.ext.asyncio import (
 from .config import app_config
 
 _engine: AsyncEngine | None = None
-_session_factory: async_sessionmaker[AsyncSession] | None = None
+_async_session_factory: async_sessionmaker[AsyncSession] | None = None
+_sync_session_factory: sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session] | None = None
 
 
-async def get_engine() -> AsyncEngine:
+def get_engine() -> AsyncEngine:
     global _engine
 
     if _engine is not None:
@@ -31,17 +33,33 @@ async def get_engine() -> AsyncEngine:
     return _engine
 
 
-async def get_session_factory() -> async_sessionmaker[AsyncSession]:
-    global _session_factory
+def get_async_session_factory() -> async_sessionmaker[AsyncSession]:
+    global _async_session_factory
 
-    if _session_factory is not None:
-        return _session_factory
+    if _async_session_factory is not None:
+        return _async_session_factory
 
-    engine = await get_engine()
-    _session_factory = async_sessionmaker(engine, expire_on_commit=False)
-    return _session_factory
+    engine = get_engine()
+    _async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    return _async_session_factory
 
 
-async def get_session() -> AsyncSession:
-    factory = await get_session_factory()
+def get_async_session() -> AsyncSession:
+    factory = get_async_session_factory()
+    return factory()
+
+
+def get_sync_session_factory() -> sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session]:
+    global _sync_session_factory
+
+    if _sync_session_factory is not None:
+        return _sync_session_factory
+
+    engine = get_engine()
+    _sync_session_factory = sqlalchemy.orm.sessionmaker(engine.sync_engine, expire_on_commit=False)
+    return _sync_session_factory
+
+
+def get_sync_session() -> sqlalchemy.orm.Session:
+    factory = get_sync_session_factory()
     return factory()

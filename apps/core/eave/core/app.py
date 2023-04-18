@@ -9,7 +9,7 @@ from .public.requests import (
     subscriptions,
 )
 from .public.requests import util as eave_request_util
-from .public.requests.oauth_handlers import google_oauth, slack_oauth
+from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
 
 eave.stdlib.logging.setup_logging()
 
@@ -23,8 +23,10 @@ app.post("/documents/upsert")(documents.upsert_document)
 app.post("/subscriptions/create")(subscriptions.create_subscription)
 app.post("/subscriptions/query")(subscriptions.get_subscription)
 app.post("/subscriptions/delete")(subscriptions.delete_subscription)
+app.post("/installations/slack/query")(slack_installations.query)
 app.get("/oauth/google/authorize")(google_oauth.google_oauth_authorize)
 app.get("/oauth/google/callback")(google_oauth.google_oauth_callback)
 app.get("/oauth/slack/authorize")(slack_oauth.slack_oauth_authorize)
 app.get("/oauth/slack/callback")(slack_oauth.slack_oauth_callback)
-app.post("/installations/slack/query")(slack_installations.query)
+app.get("/oauth/atlassian/authorize")(atlassian_oauth.atlassian_oauth_authorize)
+app.get("/oauth/atlassian/callback")(atlassian_oauth.atlassian_oauth_callback)

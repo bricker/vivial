@@ -2,7 +2,6 @@ import React from 'react';
 import { withStyles } from '@material-ui/styles';
 import { Link } from 'react-router-dom';
 
-import { FOOTER } from '../../constants.js';
 import Copy from '../Copy/index.js';
 
 class Footer extends React.Component {
@@ -12,7 +11,7 @@ class Footer extends React.Component {
     return (
       <footer className={classes.outerContainer}>
         <Copy className={classes.innerContainer} variant="footnote">
-          © {year} Eave Technologies, Inc. All rights reserved.
+          <span className={classes.copyRight} >© {year} Eave Technologies, Inc. All rights reserved.</span>
           <Link className={classes.link} to="/terms">Terms</Link>
           <Link className={classes.link} to="/privacy">Privacy Policy</Link>
         </Copy>
@@ -27,18 +26,26 @@ const styles = (theme) => ({
     zIndex: 10,
   },
   innerContainer: {
-    height: FOOTER.mobile.height,
     display: 'flex',
-    alignItems: 'center',
-    padding: '0px 30px',
+    flexWrap: 'wrap',
+    alignContent: 'flex-start',
+    padding: '0px 30px 24px 40px',
+    gap: '10px 23px',
     [theme.breakpoints.up('md')]: {
-      height: FOOTER.desktop.height,
+      padding: '0px 46px 46px',
+    },
+  },
+  copyRight: {
+    display: 'block',
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      display: 'inline',
+      width: 'auto',
     },
   },
   link: {
     display: 'inline-block',
     color: 'inherit',
-    marginLeft: 24,
   },
 });
 

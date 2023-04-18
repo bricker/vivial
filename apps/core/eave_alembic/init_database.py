@@ -21,12 +21,12 @@ async def init_database() -> None:
     https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
     """
     metadata = eave.core.internal.orm.Base.metadata
-    asyncengine = await eave_db.get_engine()
+    asyncengine = eave_db.get_engine()
 
     async with asyncengine.begin() as connection:
         await connection.run_sync(metadata.create_all)
 
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         team = eave_orm.TeamOrm(
             name=f"{socket.gethostname()}", document_platform=eave_models.DocumentPlatform.confluence
         )
