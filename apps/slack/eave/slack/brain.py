@@ -491,10 +491,21 @@ class Brain:
         self.expanded_text = expanded_text
 
         # TODO finish impl
-        source_links = await self.message.get_source_links()
-        source_text = await self.get_source_text(source_links)
-        assert source_text is not None
-        self.source_text = source_text
+        await self.message.resolve_urls()
+        # TODO: make flex enough to support non-code links. I can imagine looking inside jira tix as well
+        source_links: list[str] = list(filter(lambda x: is_a_supported_link(x), self.message.urls))
+        # only do deeper api requests if there are any code links to begin with
+        if source_links:
+            # TODO: fetch from db what soureces are connected. coreapi request?
+            available_sources = await eave_core_api_client.get_code_sources()
+            # TODO: take note of enterprise paths; cant rely on public domain name pattern
+            accessible_source_links: list[str] = list(filter(lambda x: is_prefix_of(available_sources, x), source_links))
+
+            # TODO contact source code api of the linked source hubs. coreapi request??
+            # TODO: the gh link could hypothetically be one that our oauth token doesn't provide access to. should handle failures to fetch
+            source_text = await eave_core_api_client.get_source_code(accessible_source_links)
+            assert source_text is not None
+            self.source_text = source_text
 
         await self.build_message_context()
 
