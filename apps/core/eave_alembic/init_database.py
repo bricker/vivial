@@ -34,10 +34,6 @@ async def init_database() -> None:
         session.add(team)
         await session.commit()
 
-    print(
-        f"Team created ({team.id}). You'll want to create a ConfluenceDestination for the team. You can do it from a python REPL"
-    )
-
 
 if __name__ == "__main__":
     asyncio.run(init_database())
