@@ -1,10 +1,7 @@
-import json
 from http import HTTPStatus
 
-import eave.core.internal.oauth.atlassian
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
-import mockito
 
 from .base import BaseTestCase
 
