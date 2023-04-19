@@ -6,12 +6,12 @@ export const AppContext = createContext(null);
 
 const AppContextProvider = ({ children }) => {
   const [modalState, setModalState] = useState({
-    isOpen: true,
+    isOpen: false,
     mode: AUTH_MODAL_STATE.SIGNUP,
   });
 
   const [userState, setUserState] = useState({
-    isLoggedIn: true,
+    isLoggedIn: false,
     isWhitelisted: false,
   });
 
