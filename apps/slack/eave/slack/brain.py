@@ -494,11 +494,11 @@ class Brain:
         source_links: list[str] = list(filter(link_handler.is_supported_link, self.message.urls)) # TODO: adjust filter to deal w/ curr type sig
         if source_links:
             # TODO: do the thing. transform link content here? or do later in build message? (i think later?)
-            source_text = await link_handler.get_link_content(source_links)
+            source_text = await link_handler.get_link_content(self.eave_team.id, source_links)
             if source_text:
-                # TODO: use source_text as part of build_message_context call
                 self.source_text = source_text
 
+        # TODO: use self.source_text as part of build_message_context call
         await self.build_message_context()
 
     async def build_message_context(self) -> None:

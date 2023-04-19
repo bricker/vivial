@@ -23,6 +23,15 @@ class SubscriptionSourceEvent(str, enum.Enum):
     jira_issue_comment = "jira_issue_comment"
 
 
+# TODO: copy to ts stdlib
+class SupportedLink(enum.Enum):
+    """
+    Link types that we support fetching content from for integration into AI documentation creation.
+    """
+
+    github = "github"
+
+
 class AccessRequest(pydantic.BaseModel):
     id: pydantic.UUID4
     visitor_id: Optional[pydantic.UUID4]
@@ -77,9 +86,3 @@ class SlackInstallation(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
-
-# TODO: copy to ts stdlib
-class SupportedLink(enum.Enum):
-    """link types that we support fetching content from"""
-
-    github = "github"

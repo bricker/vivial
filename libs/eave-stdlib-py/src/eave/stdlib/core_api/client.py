@@ -100,6 +100,7 @@ async def get_subscription(
     response_json = await response.json()
     return operations.GetSubscription.ResponseBody(**response_json)
 
+
 async def get_slack_installation(
     input: operations.GetSlackInstallation.RequestBody,
 ) -> Optional[operations.GetSlackInstallation.ResponseBody]:
@@ -119,14 +120,20 @@ async def get_slack_installation(
     response_json = await response.json()
     return operations.GetSlackInstallation.ResponseBody(**response_json)
 
+
 # TODO: copy to ts stdlib
+# TODO: change name to match new convention?
 async def get_available_sources(
     team_id: UUID,
-    input: operations.GetAvailableSources.RequestBody,
+    input: operations.GetAvailableSources.RequestBody,  # TODO: not sure if i even need this, since it also contains only team_id
 ) -> Optional[operations.GetAvailableSources.ResponseBody]:
     """
     POST TODO somewhere
+
+    Make requests querying all integration tables to see if the Team with id `team_id`
+    has authorized an integration with any of them. Return orm object or None for each.
     """
+    # TODO: make requests in parallel
     response = await _make_request(
         path="/TODO",
         input=input,
@@ -137,7 +144,9 @@ async def get_available_sources(
         return None
 
     response_json = await response.json()
+    # TODO: response body object doesnt make sense rn
     return operations.GetAvailableSources.ResponseBody(**response_json)
+
 
 def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)

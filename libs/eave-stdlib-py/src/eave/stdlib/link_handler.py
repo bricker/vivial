@@ -1,6 +1,5 @@
 import asyncio
 import aiohttp
-import enum
 from typing import Optional
 import re
 from urllib.parse import urlparse
@@ -8,8 +7,9 @@ import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.operations as operations
 from eave.stdlib.core_api.models import SupportedLink
 from pydantic import UUID4
+from github import Github
 
-
+# TODO: does this whole file need translation to typescript?
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[SupportedLink, list[str]] = {
@@ -48,11 +48,13 @@ async def get_link_content(team_id: UUID4, links: list[str]) -> list[str]:
             team=operations.TeamInput(id=team_id),
         ),
     )
+    assert available_sources is not None
+
     # TODO: should eave only watch repos/code the user account owns/links directly? only anything in org/enterprise, or any link?
     accessible_links: list[str] = list(filter(lambda x: is_link_of_type(available_sources, x), links))
 
-    # TODO: the gh link could hypothetically be one that our oauth token doesn't provide access to. should handle failures to fetch
-    # TODO: fetch all at once like here https://www.twilio.com/blog/asynchronous-http-requests-in-python-with-aiohttp
+    # gather content from all links in parallel
+    # TODO: worry about rate limit?
     async with aiohttp.ClientSession() as session:
         tasks = []
         for link, link_type in accessible_links:
@@ -67,7 +69,17 @@ async def get_link_content(team_id: UUID4, links: list[str]) -> list[str]:
     return content
 
 
-# TODO move api clients to other file???
+# TODO move api clients to other file
 # TODO: PyGitHub api client requires enterprise specific base_url (e.g. github.enterprise.com/api/v3 if is enterprise)
+# TODO: the gh link could hypothetically be one that our oauth token doesn't provide access to. should handle failures to fetch
 class GitHubClient:
-    pass
+    def __init__(self, oauth_token: str):
+        self.client = Github(login_or_token=oauth_token, base_url="TODO")
+
+    # TODO: i think i have to code my own client to talk to gh api if i want to use the session :(
+    async def request_file_content(self, link: str, session: aiohttp.ClientSession) -> str:
+        """
+        Fetch content of the file located at the URL `link`
+        """
+        # self.client.do something
+        return "todo"
