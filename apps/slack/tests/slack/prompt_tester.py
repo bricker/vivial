@@ -31,6 +31,7 @@ eave_team = eave_models.Team(
 # TODO: This client isn't usable, needs a token
 slack_context = AsyncBoltContext({"client": AsyncWebClient()})
 
+
 async def test_slack_message_processing(fixture: dict[str, Any]) -> None:
     logger.info("test_slack_message_processing")
     message = eave.slack.slack_models.SlackMessage(fixture, slack_context=slack_context)

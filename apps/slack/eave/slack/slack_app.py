@@ -6,10 +6,13 @@ import eave.stdlib.core_api.operations as eave_ops
 from slack_bolt.async_app import AsyncApp, AsyncBoltContext
 from slack_bolt.authorization import AuthorizeResult
 from slack_sdk.web.async_client import AsyncWebClient
+
 from .config import app_config
 
 
-async def authorize(team_id: Optional[str], client: Optional[AsyncWebClient], context: AsyncBoltContext) -> AuthorizeResult:
+async def authorize(
+    team_id: Optional[str], client: Optional[AsyncWebClient], context: AsyncBoltContext
+) -> AuthorizeResult:
     """
     https://slack.dev/bolt-python/concepts#authorization
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
@@ -51,6 +54,7 @@ async def authorize(team_id: Optional[str], client: Optional[AsyncWebClient], co
         bot_token=bot_token,
         user_token=None,
     )
+
 
 signing_secret = app_config.eave_slack_app_signing_secret
 

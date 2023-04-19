@@ -9,6 +9,7 @@ from eave.slack.config import app_config
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 
+
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
@@ -21,7 +22,9 @@ def register_event_handlers(app: AsyncApp) -> None:
 
 
 async def shortcut_eave_watch_request_handler(
-    ack: AsyncAck, shortcut: Optional[eave_util.JsonObject], context: AsyncBoltContext,
+    ack: AsyncAck,
+    shortcut: Optional[eave_util.JsonObject],
+    context: AsyncBoltContext,
 ) -> None:
     logger.debug("WatchRequestEventHandler %s", shortcut)
     assert shortcut is not None

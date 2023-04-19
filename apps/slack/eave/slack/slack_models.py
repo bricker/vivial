@@ -5,13 +5,15 @@ from typing import Any, AsyncGenerator, List, Optional
 
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
-from slack_bolt.async_app import AsyncBoltContext
 import slack_sdk.errors
 import slack_sdk.models.blocks
-from slack_sdk.web.async_client import AsyncWebClient
 from eave.stdlib import logger
 from pydantic import BaseModel, HttpUrl
+from slack_bolt.async_app import AsyncBoltContext
+from slack_sdk.web.async_client import AsyncWebClient
+
 from .config import app_config
+
 
 class _SlackContext:
     _context: AsyncBoltContext
@@ -21,6 +23,7 @@ class _SlackContext:
         self._context = context
         assert context.client is not None
         self.client = context.client
+
 
 class SlackProfile:
     _ctx: _SlackContext
@@ -217,11 +220,13 @@ class SlackPermalink(BaseModel):
     channel: str
     permalink: HttpUrl
 
+
 class SlackMessage:
     """
     https://api.slack.com/events/message
     https://api.slack.com/reference/messaging/payload
     """
+
     _ctx: _SlackContext
 
     event: eave_util.JsonObject
@@ -264,7 +269,9 @@ class SlackMessage:
     """special mention name -> special mention name"""
     urls: list[str]
 
-    def __init__(self, data: eave_util.JsonObject, slack_context: AsyncBoltContext, channel: Optional[str] = None) -> None:
+    def __init__(
+        self, data: eave_util.JsonObject, slack_context: AsyncBoltContext, channel: Optional[str] = None
+    ) -> None:
         self._ctx = _SlackContext(context=slack_context)
         self.event = data
         self.subtype = data.get("subtype")
