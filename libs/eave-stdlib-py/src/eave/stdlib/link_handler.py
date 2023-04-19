@@ -6,18 +6,17 @@ import re
 from urllib.parse import urlparse
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.operations as operations
+from eave.stdlib.core_api.models import SupportedLink
 from pydantic import UUID4
 
-
-class SupportedLink(enum.Enum):
-    """link types that we support fetching content from"""
-
-    github = "github"
 
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[SupportedLink, list[str]] = {
-    SupportedLink.github: [r"(www.)?github.*\.com"],
+    SupportedLink.github: [
+        r"(www.)?github\.com",
+        r"(www.)?github\..*\.com",
+    ],
 }
 
 

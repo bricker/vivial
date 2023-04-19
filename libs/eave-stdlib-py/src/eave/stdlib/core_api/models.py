@@ -77,3 +77,9 @@ class SlackInstallation(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+
+# TODO: copy to ts stdlib
+class SupportedLink(enum.Enum):
+    """link types that we support fetching content from"""
+
+    github = "github"

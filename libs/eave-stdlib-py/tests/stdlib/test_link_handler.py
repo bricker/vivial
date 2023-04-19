@@ -9,7 +9,7 @@ import eave.stdlib.link_handler as link_handler
     ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", True, link_handler.SupportedLink.github),
     ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", True, link_handler.SupportedLink.github),
     ("https://example.github.com", False, None),
-    ("https://notgithub.com", False, None),
+    ("https://githubby.com", False, None),
     ("https://google.com", False, None),
 ])
 def test_github_regex(input_link: str, expected_match: bool, expected_type: Optional[link_handler.SupportedLink]) -> None:

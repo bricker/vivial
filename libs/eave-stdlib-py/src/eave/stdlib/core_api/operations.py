@@ -1,6 +1,4 @@
 from typing import Optional
-from eave.stdlib.link_handler import SupportedLink
-
 import pydantic
 
 from . import models
@@ -93,4 +91,4 @@ class GetAvailableSources:
         team: TeamInput
 
     class ResponseBody(pydantic.BaseModel):
-        type: SupportedLink # TODO: is this ok?
+        type: models.SupportedLink # TODO: this probs needs work
