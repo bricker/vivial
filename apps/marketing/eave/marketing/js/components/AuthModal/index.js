@@ -8,24 +8,43 @@ import Copy from '../Copy/index.js';
 import CloseIcon from '../Icons/CloseIcon.js';
 import Button from '../Button/index.js';
 import useUser from '../../hooks/useUser.js';
+import GoogleIcon from '../Icons/GoogleIcon.jsx';
+import SlackIcon from '../Icons/SlackIcon.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   container: {
-    minWidth: 546,
+    maxWidth: 546,
     fontFamily: theme.typography.fontFamily.main,
     color: theme.typography.color.dark,
-    padding: '70px 60px 36px',
+    padding: '70px 25px 36px',
     boxSizing: 'border-box',
     position: 'relative',
     textAlign: 'center',
+    [theme.breakpoints.up('sm')]: {
+      padding: '70px 60px 36px',
+    },
   },
   closeButton: {
     position: 'absolute',
     top: 21,
     right: 21,
+    padding: 0,
   },
   subheader: {
-    marginBottom: 42,
+    marginBottom: 30,
+  },
+  loginButton: {
+    maxWidth: 323,
+    width: '100%',
+    color: theme.typography.color.dark,
+    marginTop: 12,
+    justifyContent: 'flex-start',
+    paddingLeft: 30,
+    border: `1px solid ${theme.typography.color.dark}`,
+  },
+  icon: {
+    width: 30,
+    height: 30,
   },
   disclaimer: {
     margin: '39px auto 0px',
@@ -36,7 +55,6 @@ const makeClasses = makeStyles((theme) => ({
 const AuthModal = () => {
   const classes = makeClasses();
   const { isOpen, isLoginMode, isSignupMode, closeModal } = useAuthModal();
-  const { logIn } = useUser();
 
   return (
     <Dialog open={isOpen}>
@@ -46,10 +64,42 @@ const AuthModal = () => {
         </IconButton>
         <Copy variant="h2">{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
         <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google and Slack sign up only. Additional account options coming soon.'}</Copy>
-        <Button onClick={logIn}>Continue with Google</Button>
-        <Button onClick={logIn}>Continue with Slack</Button>
+        <Button
+          to={`${window.eave.apiBase}/oauth/google/authorize`}
+          className={classes.loginButton}
+          variant="outlined"
+          startIcon={<GoogleIcon className={classes.icon} />}
+          lg
+        >
+          Continue with Google
+        </Button>
+        <Button
+          to={`${window.eave.apiBase}/oauth/slack/authorize`}
+          className={classes.loginButton}
+          variant="outlined"
+          startIcon={<SlackIcon className={classes.icon} />}
+          lg
+        >
+          Continue with Slack
+        </Button>
         {isSignupMode && (
-          <Copy className={classes.disclaimer} variant="pXSmall">By clicking “Continue with Google” or “Continue with Slack”, you agree to Eave’s <Link onClick={closeModal} to="/terms">TOS</Link>  and Privacy Policy.</Copy>
+          <Copy className={classes.disclaimer} variant="footnote">
+            By clicking “Continue with Google” or “Continue with Slack”, you agree to Eave’s{' '}
+            <a
+              href={`${window.location.hostname}/terms`}
+              rel="noreferrer"
+              target="_blank"
+            >
+                TOS
+              </a> and{' '}
+            <a
+              href={`${window.location.hostname}/priacy`}
+              rel="noreferrer"
+              target="_blank"
+            >
+                Privacy Policy.
+            </a>
+          </Copy>
         )}
       </section>
     </Dialog>

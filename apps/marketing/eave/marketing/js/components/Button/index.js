@@ -13,9 +13,8 @@ class ButtonWrapper extends React.Component {
       lg,
       color,
       variant,
-      onClick,
-      type,
       to,
+      ...rest
     } = this.props;
     const sizeClass = lg ? classes.large : '';
     const rootClass = classNames(classes.root, className, sizeClass);
@@ -24,8 +23,7 @@ class ButtonWrapper extends React.Component {
         classes={{ root: rootClass }}
         color={color || 'primary'}
         variant={variant || 'contained'}
-        onClick={onClick}
-        type={type}
+        {...rest}
       >
         {children}
       </Button>

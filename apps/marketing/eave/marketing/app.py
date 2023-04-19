@@ -34,13 +34,6 @@ def _render_spa(**kwargs: Any) -> str:
 
 app.get("/")(_render_spa)
 
-app.get("/early")(_render_spa)
-
-app.get("/terms")(_render_spa)
-
-app.get("/privacy")(_render_spa)
-
-
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
     body = request.get_json()
