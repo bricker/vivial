@@ -60,7 +60,7 @@ class Subscription(pydantic.BaseModel):
 class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
-    document_platform: DocumentPlatform
+    document_platform: Optional[DocumentPlatform]
 
     class Config:
         orm_mode = True

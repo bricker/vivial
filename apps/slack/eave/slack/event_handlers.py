@@ -9,7 +9,6 @@ from eave.slack.config import app_config
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 
-
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
@@ -22,27 +21,36 @@ def register_event_handlers(app: AsyncApp) -> None:
 
 
 async def shortcut_eave_watch_request_handler(
-    ack: AsyncAck, shortcut: Optional[eave_util.JsonObject], context: AsyncBoltContext
+    ack: AsyncAck, shortcut: Optional[eave_util.JsonObject], context: AsyncBoltContext,
 ) -> None:
     logger.debug("WatchRequestEventHandler %s", shortcut)
-    await ack()
     assert shortcut is not None
 
-    message_json = shortcut.get("message")
-    assert message_json is not None
+    eave_team = context.get("eave_team")
+    assert eave_team is not None
 
-    # TODO: Use Shortcut slack model, and get shortcut actor
-    channel = shortcut["channel"]["id"]
-    message = eave.slack.slack_models.SlackMessage(message_json, channel=channel)
-    b = eave.slack.brain.Brain(message=message, eave_team=context["eave_team"])
-    eave_util.do_in_background(b.process_shortcut_event())
+    await ack()
+
+    # Not supported currently
+    return
+    # message_json = shortcut.get("message")
+    # assert message_json is not None
+
+    # # TODO: Use Shortcut slack model, and get shortcut actor
+    # channel = shortcut["channel"]["id"]
+    # message = eave.slack.slack_models.SlackMessage(message_json, channel=channel)
+    # b = eave.slack.brain.Brain(message=message, eave_team=context["eave_team"])
+    # eave_util.do_in_background(b.process_shortcut_event())
 
 
 async def event_message_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
     logger.debug("MessageEventHandler %s", event)
     assert event is not None
 
-    message = eave.slack.slack_models.SlackMessage(event)
+    eave_team = context.get("eave_team")
+    assert eave_team is not None
+
+    message = eave.slack.slack_models.SlackMessage(data=event, slack_context=context)
 
     if fixture_collection_enabled:
         save_fixture(event=event)
@@ -53,7 +61,7 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
         logger.debug("ignoring bot message")
         return
 
-    b = eave.slack.brain.Brain(message=message, eave_team=context["eave_team"])
+    b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
     eave_util.do_in_background(b.process_message())
 
 

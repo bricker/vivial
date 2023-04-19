@@ -9,6 +9,7 @@ import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai
+from slack_bolt.async_app import AsyncBoltContext
 import tiktoken
 from eave.stdlib import logger
 
@@ -24,7 +25,7 @@ class Brain:
     message_context: str
     eave_team: eave_models.Team
 
-    def __init__(self, message: slack_models.SlackMessage, eave_team: eave_models.Team) -> None:
+    def __init__(self, message: slack_models.SlackMessage, slack_context: AsyncBoltContext, eave_team: eave_models.Team) -> None:
         self.message = message
         self.eave_team = eave_team
 
