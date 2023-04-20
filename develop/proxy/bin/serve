@@ -2,41 +2,10 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/shared/functions.bash
+source ${EAVE_HOME}/develop/functions.bash
+python-activate-venv
 
-install_tinyproxy() (
-    statusmsg -i "Installing tinyproxy (this is a one-time setup)..."
-
-    local VERSION="1.11.1"
-    local workdir="/tmp/tinyproxy"
-    local zipfilename="tinyproxy-${VERSION}.tar.gz"
-
-    rm -rf $workdir
-    mkdir $workdir
-    cd $workdir
-
-    wget "https://github.com/tinyproxy/tinyproxy/releases/download/${VERSION}/${zipfilename}"
-    tar -xzf $zipfilename
-    cd "tinyproxy-${VERSION}"
-
-    ./configure \
-        --enable-reverse \
-        --enable-upstream \
-        --enable-filter \
-        --enable-xtinyproxy \
-        --enable-transparent \
-
-    make
-
-    statusmsg -w "root privileges are required to install tinyproxy into /usr/local/bin"
-    sudo make install
-
-    rm -rf $workdir
-)
-
-if ! command -v tinyproxy > /dev/null || test -n "${FORCE_INSTALL_TINYPROXY:-}"
-then
-    install_tinyproxy
-fi
-
-tinyproxy -d -c "${EAVE_HOME}/develop/proxy/tinyproxy.conf"
+mitmproxy \
+	--listen-port 8080 \
+	--scripts ${EAVE_HOME}/develop/proxy/mitm_router.py \
+	--certs "*.eave.localhost"=${EAVE_HOME}/develop/certs/eave-localhost/eave-localhost.pem

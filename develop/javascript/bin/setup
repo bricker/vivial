@@ -2,7 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/javascript/functions.bash
+source ${EAVE_HOME}/develop/functions.bash
 node-validate-version
 node-activate-venv
 

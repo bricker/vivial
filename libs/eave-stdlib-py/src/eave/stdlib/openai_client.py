@@ -1,17 +1,19 @@
 import enum
-import logging
+import textwrap
+import time
 from dataclasses import asdict, dataclass
 from typing import Any, List, LiteralString, Optional, cast
-import textwrap
 
 import openai as openai_sdk
+import openai.error
 import openai.openai_object
 import tiktoken
 
-from . import util, logger
+from . import logger, util
 from .config import shared_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
+
 
 class DocumentationType(enum.Enum):
     TECHNICAL = "TECHNICAL"
@@ -20,6 +22,7 @@ class DocumentationType(enum.Enum):
     ENGINEER_ONBOARDING = "ENGINEER_ONBOARDING"
     OTHER = "OTHER"
 
+
 def prompt_prefix() -> LiteralString:
     return (
         "You are Eave, an AI documentation expert. "
@@ -27,7 +30,9 @@ def prompt_prefix() -> LiteralString:
         "You are responsible for the quality and integrity of this organization's documentation.\n\n"
     )
 
+
 STOP_SEQUENCE = "STOP_SEQUENCE"
+
 
 class OpenAIModel(str, enum.Enum):
     # ADA_EMBEDDING = "text-embedding-ada-002"
@@ -113,8 +118,19 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
     ensure_api_key()
 
     logger.debug(f"OpenAI Params: {params}")
-    response = await openai_sdk.ChatCompletion.acreate(**params.compile())
-    logger.debug(f"OpenAI Response: {response}")
+
+    max_attempts = 3
+    for i in range(max_attempts):
+        try:
+            response = await openai_sdk.ChatCompletion.acreate(**params.compile())
+            logger.debug(f"OpenAI Response: {response}")
+            break
+        except openai.error.RateLimitError as e:
+            logger.warn("OpenAI RateLimitError", exc_info=e)
+            if i + 1 < max_attempts:
+                time.sleep(i + 1)
+    else:
+        raise util.MaxRetryAttemptsReachedError("OpenAI")
 
     response = cast(openai.openai_object.OpenAIObject, response)
     candidates = [c for c in response.choices if c["finish_reason"] == "stop"]

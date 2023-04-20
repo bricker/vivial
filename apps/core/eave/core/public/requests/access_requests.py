@@ -20,7 +20,7 @@ async def create_access_request(
 
     await eave_request_util.validate_signature_or_fail(request=request)
 
-    async with await eave_db.get_session() as session:
+    async with eave_db.get_async_session() as session:
         access_request = await eave_orm.AccessRequestOrm.one_or_none(session=session, email=input.email)
         if access_request is not None:
             response.status_code = HTTPStatus.OK

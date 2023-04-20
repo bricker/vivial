@@ -5,6 +5,7 @@ from functools import cached_property
 import google_crc32c
 from google.cloud import secretmanager
 
+
 class EaveConfig:
     @property
     def dev_mode(self) -> bool:
@@ -63,6 +64,16 @@ class EaveConfig:
     @cached_property
     def eave_slack_client_secret(self) -> str:
         value: str = self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
+        return value
+
+    @cached_property
+    def eave_atlassian_app_client_id(self) -> str:
+        value: str = self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_ID")
+        return value
+
+    @cached_property
+    def eave_atlassian_app_client_secret(self) -> str:
+        value: str = self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
         return value
 
     def get_secret(self, name: str) -> str:

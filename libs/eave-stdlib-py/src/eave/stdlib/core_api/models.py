@@ -1,8 +1,6 @@
 import enum
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
 
 import pydantic
 
@@ -43,21 +41,11 @@ class DocumentReference(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class SubscriptionSource(pydantic.BaseModel):
     platform: SubscriptionSourcePlatform
     event: SubscriptionSourceEvent
     id: str
-
-    @dataclass
-    class Details:
-        team: str
-        channel: str
-        ts: str
-
-    @property
-    def details(self) -> Details:
-        team, channel, ts = self.id.split("#")
-        return SubscriptionSource.Details(team=team, channel=channel, ts=ts)
 
 
 class Subscription(pydantic.BaseModel):
@@ -68,10 +56,24 @@ class Subscription(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
-    document_platform: DocumentPlatform
+    document_platform: Optional[DocumentPlatform]
+
+    class Config:
+        orm_mode = True
+
+
+class SlackInstallation(pydantic.BaseModel):
+    id: pydantic.UUID4
+    team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
+    slack_team_id: str
+    bot_token: str
+    bot_id: str
+    bot_user_id: Optional[str]
 
     class Config:
         orm_mode = True

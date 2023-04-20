@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/functions.bash
+
+function setup-db() (
+	python-validate-version
+	python-activate-venv
+
+	local usage="Usage: setup-db -n db-name"
+	local db_name=""
+
+	while getopts "n:h" argname
+	do
+		case "$argname" in
+			n) db_name=$OPTARG ;;
+			h)
+				echo $usage
+				exit 0
+				;;
+		esac
+	done
+
+	if test -z "$db_name"; then
+		echo $usage
+		exit 1
+	fi
+
+	EAVE_DB_NAME="$db_name" PYTHONPATH=. python eave_alembic/init_database.py
+	python -m alembic stamp head
+)
+
+setup-db "$@"

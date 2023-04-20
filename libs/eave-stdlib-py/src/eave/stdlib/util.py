@@ -1,13 +1,19 @@
 import asyncio
-from functools import wraps
-from typing import Any, Awaitable, Callable, Coroutine, TypeVar
 import logging
+from functools import wraps
+from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar, cast
+
 logger = logging.getLogger("eave-stdlib-py")
 
 JsonScalar = str | int | bool | None
 JsonObject = dict[str, Any]
 
 T = TypeVar("T")
+P = ParamSpec("P")
+
+
+class MaxRetryAttemptsReachedError(Exception):
+    pass
 
 
 def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
@@ -47,7 +53,19 @@ def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
 
     return wrapper
 
+
+def use_signature(source_func: Callable[P, Any]) -> Callable[[Callable[..., T]], Callable[P, T]]:
+    """Casts the decorated function to have the same signature as the source function, for type checkers"""
+
+    def casted_func(original_func: Callable[..., T]) -> Callable[P, T]:
+        return cast(Callable[P, T], original_func)
+
+    return casted_func
+
+
 tasks = set[asyncio.Task[Any]]()
+
+
 def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
     task = asyncio.create_task(coro)
     tasks.add(task)

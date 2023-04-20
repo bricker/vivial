@@ -3,18 +3,30 @@ import enum
 import re
 from typing import Any, AsyncGenerator, List, Optional
 
-import eave.slack.slack_app as slack_app
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
+import slack_sdk.errors
+import slack_sdk.models.blocks
 from eave.stdlib import logger
 from pydantic import BaseModel, HttpUrl
-import slack_sdk.models.blocks
-import slack_sdk.errors
+from slack_bolt.async_app import AsyncBoltContext
+from slack_sdk.web.async_client import AsyncWebClient
 
 from .config import app_config
 
 
+class _SlackContext:
+    _context: AsyncBoltContext
+    client: AsyncWebClient
+
+    def __init__(self, context: AsyncBoltContext) -> None:
+        self._context = context
+        assert context.client is not None
+        self.client = context.client
+
+
 class SlackProfile:
+    _ctx: _SlackContext
     title: str
     first_name: str
     last_name: str
@@ -46,7 +58,8 @@ class SlackProfile:
     bot_id: Optional[str]
     """Bot only"""
 
-    def __init__(self, json: dict[str, Any], **kwargs: Any) -> None:
+    def __init__(self, json: dict[str, Any], ctx: _SlackContext, **kwargs: Any) -> None:
+        self._ctx = ctx
         self.title = json["title"]
         self.first_name = json["first_name"]
         self.last_name = json["last_name"]
@@ -76,13 +89,13 @@ class SlackProfile:
         self.bot_id = json.get("bot_id")
 
     @classmethod
-    async def get(cls, user_id: str) -> Optional["SlackProfile"]:
-        response = await slack_app.client.users_profile_get(user=user_id)
+    async def get(cls, user_id: str, ctx: _SlackContext) -> Optional["SlackProfile"]:
+        response = await ctx.client.users_profile_get(user=user_id)
         json = response.get("profile")
         if json is None:
             return None
 
-        profile = cls(json=json)
+        profile = cls(json=json, ctx=ctx)
         return profile
 
 
@@ -100,6 +113,7 @@ class SlackConversationTopic:
 
 
 class SlackConversation:
+    _ctx: _SlackContext
     data: dict[str, Any]
     id: str
     name: str
@@ -131,16 +145,17 @@ class SlackConversation:
     previous_names: list[str]
 
     @classmethod
-    async def get(cls, channel_id: str) -> Optional["SlackConversation"]:
-        response = await slack_app.client.conversations_info(channel=channel_id)
+    async def get(cls, channel_id: str, ctx: _SlackContext) -> Optional["SlackConversation"]:
+        response = await ctx.client.conversations_info(channel=channel_id)
         json = response.get("channel")
         if json is None:
             return None
 
-        channel = cls(json=json)
+        channel = cls(json=json, ctx=ctx)
         return channel
 
-    def __init__(self, json: dict[str, Any]) -> None:
+    def __init__(self, json: dict[str, Any], ctx: _SlackContext) -> None:
+        self._ctx = ctx
         self.data = json
         self.id = json["id"]
         self.name = json["name"]
@@ -212,6 +227,8 @@ class SlackMessage:
     https://api.slack.com/reference/messaging/payload
     """
 
+    _ctx: _SlackContext
+
     event: eave_util.JsonObject
     subtype: Optional[str]
     """https://api.slack.com/events/message#subtypes"""
@@ -238,21 +255,24 @@ class SlackMessage:
 
     # These properties are left intentionally uninitialized.
     # Call the respective get_*_mentions or expand_* methods to set the values.
-    user_mentions: list[SlackProfile]
-    user_mentions_dict: dict[str, SlackProfile]
+    user_mentions: Optional[list[SlackProfile]] = None
+    user_mentions_dict: Optional[dict[str, SlackProfile]] = None
     """user id -> user profile"""
-    channel_mentions: list[SlackConversation]
-    channel_mentions_dict: dict[str, SlackConversation]
+    channel_mentions: Optional[list[SlackConversation]] = None
+    channel_mentions_dict: Optional[dict[str, SlackConversation]] = None
     """channel id -> channel name"""
-    subteam_mentions: list[str]
-    subteam_mentions_dict: dict[str, str]
+    subteam_mentions: Optional[list[str]] = None
+    subteam_mentions_dict: Optional[dict[str, str]] = None
     """subteam id -> subteam name"""
-    special_mentions: list[str]
-    special_mentions_dict: dict[str, str]
+    special_mentions: Optional[list[str]] = None
+    special_mentions_dict: Optional[dict[str, str]] = None
     """special mention name -> special mention name"""
     urls: list[str]
 
-    def __init__(self, data: eave_util.JsonObject, channel: Optional[str] = None) -> None:
+    def __init__(
+        self, data: eave_util.JsonObject, slack_context: AsyncBoltContext, channel: Optional[str] = None
+    ) -> None:
+        self._ctx = _SlackContext(context=slack_context)
         self.event = data
         self.subtype = data.get("subtype")
         self.client_message_id = data.get("client_message_id")
@@ -344,13 +364,15 @@ class SlackMessage:
     def is_eave(self) -> bool:
         return self.app_id == app_config.eave_slack_app_id
 
-    async def send_response(self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None) -> None:
+    async def send_response(
+        self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None
+    ) -> None:
         assert self.channel is not None
 
         if text is not None:
             msg = f"<@{self.user}> {text}"
 
-            await slack_app.client.chat_postMessage(
+            await self._ctx.client.chat_postMessage(
                 channel=self.channel,
                 text=msg,
                 thread_ts=self.parent_ts,
@@ -381,7 +403,7 @@ class SlackMessage:
         assert self.ts is not None
 
         try:
-            await slack_app.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
+            await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
         except slack_sdk.errors.SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
@@ -391,6 +413,8 @@ class SlackMessage:
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:
         await self.get_expanded_text()
+        if self.user_mentions is None:
+            return False
         value = any(profile.api_app_id == app_config.eave_slack_app_id for profile in self.user_mentions)
         return value
 
@@ -399,7 +423,7 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        response = await slack_app.client.chat_getPermalink(
+        response = await self._ctx.client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.parent_ts,
         )
@@ -417,7 +441,7 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        response = await slack_app.client.chat_getPermalink(
+        response = await self._ctx.client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.ts,
         )
@@ -434,7 +458,7 @@ class SlackMessage:
     async def get_conversation_messages(self) -> list["SlackMessage"] | None:
         assert self.channel is not None
 
-        response = await slack_app.client.conversations_replies(
+        response = await self._ctx.client.conversations_replies(
             channel=self.channel,
             ts=self.parent_ts,
         )
@@ -442,8 +466,9 @@ class SlackMessage:
         messages = response.get("messages")
         assert messages is not None
 
-        messages_map = map(SlackMessage, messages)
-        return list(messages_map)
+        # FIXME: This seems janky
+        messages_list = [SlackMessage(m, slack_context=self._ctx._context) for m in messages]
+        return messages_list
 
     async def formatted_messages(self) -> AsyncGenerator[str, None]:
         messages = await self.get_conversation_messages()
@@ -492,7 +517,7 @@ class SlackMessage:
         if self.user is None:
             return None
 
-        profile = await SlackProfile.get(self.user)
+        profile = await SlackProfile.get(self.user, ctx=self._ctx)
         return profile
 
     @eave_util.memoized
@@ -515,17 +540,23 @@ class SlackMessage:
         expanded_text = self.text
 
         def replace_user_mention(match: re.Match[str]) -> str:
+            if self.user_mentions_dict is None:
+                return match.group()
+
             user_id = match.groups()[0]
             profile = self.user_mentions_dict.get(user_id)
 
             if profile is not None:
                 return f"@{profile.real_name}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<@([UW]\\w+).*?>", replace_user_mention, expanded_text)
 
         def replace_channel_mention(match: re.Match[str]) -> str:
+            if self.channel_mentions_dict is None:
+                return match.group()
+
             groups = match.groups()
             channel_id = groups[0]
 
@@ -533,30 +564,36 @@ class SlackMessage:
 
             if channel is not None and channel.name is not None:
                 return f"@{channel.name}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<#(C\\w+).*?>", replace_channel_mention, expanded_text)
 
         def replace_subteam_mention(match: re.Match[str]) -> str:
+            if self.subteam_mentions_dict is None:
+                return match.group()
+
             id = match.groups()[0]
             obj = self.subteam_mentions_dict.get(id)
 
             if obj is not None:
                 return f"@{obj}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<!subteam\\^(\\w+).*?>", replace_subteam_mention, expanded_text)
 
         def replace_special_mention(match: re.Match[str]) -> str:
+            if self.special_mentions_dict is None:
+                return match.group()
+
             id = match.groups()[0]
             obj = self.special_mentions_dict.get(id)
 
             if obj is not None:
                 return f"@{obj}"
-
-            return match.group()
+            else:
+                return match.group()
 
         expanded_text = re.sub("<![(here)|(channel)|(everyone)]>", replace_special_mention, expanded_text)
 
@@ -585,7 +622,7 @@ class SlackMessage:
         user_mentions_dict = dict[str, SlackProfile]()
 
         for user_id in users:
-            profile = await SlackProfile.get(user_id)
+            profile = await SlackProfile.get(user_id, ctx=self._ctx)
             if profile is not None:
                 user_mentions.append(profile)
                 user_mentions_dict[user_id] = profile
@@ -602,7 +639,7 @@ class SlackMessage:
         channel_mentions_dict = dict[str, SlackConversation]()
 
         for channel_id in channels:
-            channel = await SlackConversation.get(channel_id)
+            channel = await SlackConversation.get(channel_id, ctx=self._ctx)
             if channel is not None:
                 channel_mentions.append(channel)
                 channel_mentions_dict[channel_id] = channel

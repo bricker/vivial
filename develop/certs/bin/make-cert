@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source $EAVE_HOME/develop/functions.bash
+
+function make-cert() (
+	local organization="Eave Technologies, Inc"
+	local organizationalUnitName="Local Development"
+
+	local domain
+	local name
+	local subdomains=()
+
+	while getopts "n:d:s:" argname
+	do
+		case "$argname" in
+			n) name=$OPTARG ;;
+			d) domain=$OPTARG ;;
+			s) subdomains+=($OPTARG) ;;
+		esac
+	done
+
+	dest=./$name
+	mkdir $dest
+
+	local numSubdomains=${#subdomains[@]}
+	local subjectAltName=""
+	for i in ${!subdomains[@]}
+	do
+		local subdomain=${subdomains[$i]}
+		subjectAltName="${subjectAltName}DNS:$subdomain.$domain"
+		if test $(($i+1)) -lt $numSubdomains
+		then
+			subjectAltName="$subjectAltName,"
+		fi
+	done
+
+	# Note: Wildcard Common Name can't be used here as Chrome doesn't support it.
+	# "subjectAltName" has to be used and explicitly define each subdomain.
+	openssl req \
+		-x509 \
+		-newkey rsa:4096 \
+		-keyout "${dest}/$name.key" \
+		-out "${dest}/$name.crt" \
+		-sha256 \
+		-nodes \
+		-days 36500 \
+		-subj "/CN=$domain/O=$organization/organizationalUnitName=$organizationalUnitName" \
+		-addext "subjectAltName=$subjectAltName"
+		# -addext "basicConstraints=CA:FALSE" # Is this needed?
+
+	cat $dest/$name.key $dest/$name.crt > $dest/$name.pem
+)
+
+make-cert "$@"

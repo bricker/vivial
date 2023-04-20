@@ -18,6 +18,10 @@ export type TeamInput = {
   id: string;
 }
 
+export type SlackInstallationInput = {
+  slack_team_id: string;
+}
+
 export namespace UpsertDocument {
   export type RequestBody = {
     document: DocumentInput;
@@ -68,5 +72,22 @@ export namespace CreateSubscription {
     team: models.Team;
     subscription: models.Subscription;
     document_reference?: models.DocumentReference;
+  }
+}
+
+export namespace GetSlackInstallation {
+  export type RequestBody = {
+    slack_installation: SlackInstallationInput;
+  }
+
+  export type ResponseBody = {
+    team: models.Team;
+    slack_installation: models.SlackInstallation;
+  }
+}
+
+export namespace DeleteSubscription {
+  export type RequestBody = {
+    subscription: SubscriptionInput;
   }
 }

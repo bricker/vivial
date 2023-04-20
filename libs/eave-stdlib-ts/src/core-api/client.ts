@@ -27,6 +27,12 @@ export async function createSubscription(teamId: string, input: ops.CreateSubscr
   return responseData;
 }
 
+export async function deleteSubscription(teamId: string, input: ops.DeleteSubscription.RequestBody): Promise<null> {
+  const request = await initRequest(input, teamId);
+  await fetch(`${sharedConfig.eaveApiBase}/subscriptions/delete`, request);
+  return null;
+}
+
 export async function getSubscription(teamId: string, input: ops.GetSubscription.RequestBody): Promise<ops.GetSubscription.ResponseBody | null> {
   const request = await initRequest(input, teamId);
   const resp = await fetch(`${sharedConfig.eaveApiBase}/subscriptions/query`, request);
@@ -36,6 +42,20 @@ export async function getSubscription(teamId: string, input: ops.GetSubscription
   }
 
   const responseData = <ops.GetSubscription.ResponseBody>(await resp.json());
+  return responseData;
+}
+
+
+async function getSlackInstallation(input: ops.GetSlackInstallation.RequestBody): Promise<ops.GetSlackInstallation.ResponseBody | null> {
+  const request = await initRequest(input);
+  const resp = await fetch(`${sharedConfig.eaveApiBase}/installations/slack/query`, request);
+
+
+  if (resp.status >= 300) {
+    return null;
+  }
+
+  const responseData = <ops.GetSlackInstallation.ResponseBody>(await resp.json());
   return responseData;
 }
 

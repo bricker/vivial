@@ -33,8 +33,6 @@ async def create_access_request(
         team_id=None,
     )
 
-    return None
-
 
 async def upsert_document(
     team_id: UUID,
@@ -70,6 +68,20 @@ async def create_subscription(
     return operations.CreateSubscription.ResponseBody(**response_json)
 
 
+async def delete_subscription(
+    team_id: UUID,
+    input: operations.DeleteSubscription.RequestBody,
+) -> None:
+    """
+    POST /subscriptions/delete
+    """
+    await _make_request(
+        path="/subscriptions/delete",
+        input=input,
+        team_id=str(team_id),
+    )
+
+
 async def get_subscription(
     team_id: UUID, input: operations.GetSubscription.RequestBody
 ) -> Optional[operations.GetSubscription.ResponseBody]:
@@ -89,13 +101,34 @@ async def get_subscription(
     return operations.GetSubscription.ResponseBody(**response_json)
 
 
+async def get_slack_installation(
+    input: operations.GetSlackInstallation.RequestBody,
+) -> Optional[operations.GetSlackInstallation.ResponseBody]:
+    """
+    POST /installations/slack/query
+    """
+    # fetch slack bot details
+    response = await _make_request(
+        path="/installations/slack/query",
+        input=input,
+        team_id=None,
+    )
+
+    if response.status >= 300:
+        return None
+
+    response_json = await response.json()
+    return operations.GetSlackInstallation.ResponseBody(**response_json)
+
+
 def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)
 
 
 async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[str]) -> aiohttp.ClientResponse:
+    payload = input.json()
     signature = signing.sign(
-        payload=input.json(),
+        payload=payload,
         team_id=team_id,
     )
 
