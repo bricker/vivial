@@ -28,7 +28,6 @@ class App extends React.Component {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/early" element={<EarlyAccessPage pageTitle="Early access submission" />} />
                 <Route path="/terms" element={<TermsPage />} />
-                <Route path="/" element={<HomePage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path='/thanks' element={<ThanksPage />} />
               </Routes>

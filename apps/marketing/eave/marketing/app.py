@@ -31,7 +31,6 @@ def _render_spa(**kwargs: Any) -> str:
         **kwargs,
     )
 
-
 app.get("/")(_render_spa)
 
 @app.route("/access_request", methods=["POST"])
