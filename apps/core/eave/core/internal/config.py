@@ -9,10 +9,6 @@ import eave.stdlib.config
 
 class AppConfig(eave.stdlib.config.EaveConfig):
     @property
-    def db_driver(self) -> str:
-        return os.getenv("EAVE_DB_DRIVER", "postgresql+asyncpg")
-
-    @property
     def db_host(self) -> Optional[str]:
         value = os.getenv("EAVE_DB_HOST")
         return value
@@ -27,7 +23,8 @@ class AppConfig(eave.stdlib.config.EaveConfig):
 
     @property
     def db_name(self) -> str:
-        return os.getenv("EAVE_DB_NAME", "eave")
+        value: str = self.get_secret("EAVE_DB_NAME")
+        return value
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:

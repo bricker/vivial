@@ -83,7 +83,7 @@ function setupgcloud () (
 	local arch=$(get-cpu-arch-normalized)
 	local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
 	curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename
-	tar -xf $file
+	tar -xf $filename
 	mv google-cloud-sdk $HOME
 	cd $HOME
 	./google-cloud-sdk/install.sh
@@ -122,7 +122,7 @@ function setupgcloud () (
 	# esac
 )
 
-statusmsg -ni "OK! Now I'm going to setup the gcloud CLI."
+statusmsg -ni "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"; then
 	setupgcloud
@@ -132,17 +132,23 @@ echo ""
 function setupcloudsqlproxy () (
 	cd $tmpdir
 
+	if cmd-exists "gcloud"; then
+		cloudsqlproxypath=$(dirname $(which gcloud))
+	else
+		cloudsqlproxypath="/usr/local/bin"
+	fi
+
 	local proxyversion="2.2.0"
 	local arch=$(get-cpu-arch-normalized-alt)
 
 	curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch
 	chmod +x cloud-sql-proxy
 
-	statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into /usr/local/bin/"
-	sudo mv cloud-sql-proxy /usr/local/bin
+	statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
+	sudo mv cloud-sql-proxy $cloudsqlproxypath
 )
 
-statusmsg -ni "Now I'll install the Cloud SQL Proxy for your system."
+statusmsg -ni "Now I'll download and install the Cloud SQL Proxy for your system."
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"; then
 	setupcloudsqlproxy

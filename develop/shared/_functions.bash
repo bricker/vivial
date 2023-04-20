@@ -259,5 +259,42 @@ function shloginfile () {
 		esac
 	)
 
+	function run-with-dotenv () (
+		python-validate-version
+		python-activate-venv
+		PYTHONPATH=. python -m dotenv --file $EAVE_HOME/.env run -- "$@"
+	)
+
+	function run-appengine-dev-server () (
+		statusmsg -i "This script requires the gcloud SDK to be installed and in your path"
+		statusmsg -i "Additionally, a python2 program must be installed and in your PATH."
+		statusmsg -i "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"
+
+		local usage="Usage: run-appengine-dev-server -p PORT"
+		local port=""
+		while getopts "p:" argname
+		do
+			case "$argname" in
+				p) port=$OPTARG ;;
+				h)
+					statusmsg -i "$usage"
+					exit 0
+					;;
+			esac
+		done
+
+		if test -z "$port"; then
+			statusmsg -e "$usage"
+			exit 1
+		fi
+
+		run-with-dotenv \
+			dev_appserver.py \
+				--host localhost \
+				--port "$port" \
+				app.yaml
+
+	)
+
 	_SHARED_FUNCTIONS_LOADED=1
 fi
