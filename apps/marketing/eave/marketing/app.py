@@ -30,6 +30,7 @@ def _render_spa(**kwargs: Any) -> str:
         app_version=app_config.app_version,
         **kwargs,
     )
+app.get("/dashboard")(_render_spa)
 
 app.get("/")(_render_spa)
 
@@ -51,3 +52,4 @@ async def api_access_request() -> str:
 @app.route("/<path:path>")
 def catch_all(**kwargs: Any) -> Response:
     return redirect(location="/", code=HTTPStatus.FOUND)
+     

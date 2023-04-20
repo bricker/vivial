@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
 import { HEADER } from '../../../constants.js';
-import Page from '../Page/index.js';
+import Page from '../Page/index.jsx';
 import Copy from '../../Copy/index.js';
 
 const makeClasses = makeStyles((theme) => ({

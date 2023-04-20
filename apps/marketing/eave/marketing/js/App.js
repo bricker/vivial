@@ -9,12 +9,13 @@ import { ThemeProvider } from '@material-ui/core';
 import theme from './theme/index.js';
 import AppStoreProvider from './context/Provider.js';
 // views
-import EarlyAccessPage from './components/Pages/EarlyAccessPage/index.js';
-import HomePage from './components/Pages/HomePage/index.js';
+import EarlyAccessPage from './components/Pages/EarlyAccessPage/index.jsx';
+import HomePage from './components/Pages/HomePage/index.jsx';
 import TermsPage from './components/Pages/TermsPage/index.jsx';
 import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
 import ScrollToTop from './components/ScrollToTop/index.jsx';
-import ThanksPage from './components/Pages/ThanksPage/index.js';
+import ThanksPage from './components/Pages/ThanksPage/index.jsx';
+import Dashboard from './components/Pages/Dashboard/index.jsx';
 
 class App extends React.Component {
   render() {
@@ -29,7 +30,8 @@ class App extends React.Component {
                 <Route path="/early" element={<EarlyAccessPage pageTitle="Early access submission" />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path='/thanks' element={<ThanksPage />} />
+                <Route path="/thanks" element={<ThanksPage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
               </Routes>
             </Router>
           </ThemeProvider>

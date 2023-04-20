@@ -5,7 +5,7 @@ import DocumentationBanner from '../../Banners/DocumentationBanner/index.js';
 import IntegrationsBanner from '../../Banners/IntegrationsBanner/index.js';
 import SlackBanner from '../../Banners/SlackBanner/index.js';
 import PrivacyBanner from '../../Banners/PrivacyBanner/index.js';
-import Page from '../Page/index.js';
+import Page from '../Page/index.jsx';
 
 const copy = {
   hero: {
