@@ -491,8 +491,13 @@ class Brain:
         # TODO finish impl
         # see if we can pull content from any links in message
         await self.message.resolve_urls()
-        # TODO: adjust filter to deal w/ curr type sig
-        source_links: list[str] = list(filter(link_handler.is_supported_link, self.message.urls)) 
+        source_links: list[tuple[str, eave_models.SupportedLink]] = []
+        for link in self.message.urls:
+            is_supported, link_type = link_handler.is_supported_link(link)
+            if is_supported:
+                assert link_type
+                source_links.append((link, link_type))
+
         if source_links:
             # TODO: do the thing. transform link content here? or do later in build message? (i think later?)
             source_text = await link_handler.get_link_content(self.eave_team.id, source_links)
