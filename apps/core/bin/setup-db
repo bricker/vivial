@@ -27,7 +27,6 @@ function setup-db() (
 		exit 1
 	fi
 
-	createdb "$db_name"
 	EAVE_DB_NAME="$db_name" PYTHONPATH=. python eave_alembic/init_database.py
 	python -m alembic stamp head
 )

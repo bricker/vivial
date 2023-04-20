@@ -23,9 +23,7 @@ def get_engine() -> AsyncEngine:
     db_uri = sqlalchemy.engine.url.URL.create(
         drivername=app_config.db_driver,
         host=app_config.db_host,
-        port=app_config.db_port,
         username=app_config.db_user,
-        password=app_config.db_pass,
         database=app_config.db_name,
     )
 

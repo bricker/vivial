@@ -9,44 +9,25 @@ import eave.stdlib.config
 
 class AppConfig(eave.stdlib.config.EaveConfig):
     @property
-    def db_connection_string(self) -> Optional[str]:
-        return os.getenv("EAVE_DB_CONNECTION_STRING")
-
-    @property
     def db_driver(self) -> str:
         return os.getenv("EAVE_DB_DRIVER", "postgresql+asyncpg")
-
-    @property
-    def db_name(self) -> str:
-        return os.getenv("EAVE_DB_NAME", "eave")
 
     @property
     def db_host(self) -> Optional[str]:
         value = os.getenv("EAVE_DB_HOST")
         return value
 
-    @property
-    def db_port(self) -> Optional[int]:
-        port = os.getenv("EAVE_DB_PORT")
-        if port is None:
-            return None
-        return int(port)
-
     @cached_property
     def db_user(self) -> Optional[str]:
         try:
-            value: str = self.get_secret("DB_USER")
+            value: str = self.get_secret("EAVE_DB_USER")
             return value
         except AssertionError:
             return None
 
-    @cached_property
-    def db_pass(self) -> Optional[str]:
-        try:
-            value: str = self.get_secret("DB_PASS")
-            return value
-        except AssertionError:
-            return None
+    @property
+    def db_name(self) -> str:
+        return os.getenv("EAVE_DB_NAME", "eave")
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
