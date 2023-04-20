@@ -491,12 +491,14 @@ class Brain:
         # TODO finish impl
         # see if we can pull content from any links in message
         await self.message.resolve_urls()
-        source_links: list[str] = list(filter(link_handler.is_supported_link, self.message.urls)) # TODO: adjust filter to deal w/ curr type sig
+        # TODO: adjust filter to deal w/ curr type sig
+        source_links: list[str] = list(filter(link_handler.is_supported_link, self.message.urls)) 
         if source_links:
             # TODO: do the thing. transform link content here? or do later in build message? (i think later?)
             source_text = await link_handler.get_link_content(self.eave_team.id, source_links)
             if source_text:
                 self.source_text = source_text
+                # TODO: subscribe to file changes
 
         # TODO: use self.source_text as part of build_message_context call
         await self.build_message_context()

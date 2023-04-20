@@ -96,6 +96,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         content: openaiResponse,
       };
 
+      // FIXME: no hardcode id
       const upsertDocumentResponse = await eaveCoreApiClient.upsertDocument(
         '3345217c-fb27-4422-a3fc-c404b49aff8c',
         {

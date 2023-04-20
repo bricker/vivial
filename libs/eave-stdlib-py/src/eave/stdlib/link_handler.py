@@ -1,21 +1,24 @@
 import asyncio
 import aiohttp
-from typing import Optional
+from typing import Optional, Any
 import re
 from urllib.parse import urlparse
+
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.operations as operations
 from eave.stdlib.core_api.models import SupportedLink
-from pydantic import UUID4
-from github import Github
+from eave.stdlib import logger
 
-# TODO: does this whole file need translation to typescript?
+from pydantic import UUID4
+
+
+# TODO: does this whole file need translation to typescript for ts stdlib?
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[SupportedLink, list[str]] = {
-    SupportedLink.github: [
-        r"(www.)?github\.com",
-        r"(www.)?github\..*\.com",
+    SupportedLink.github: [ # TODO: should these support www prefix?
+        r"github\.com",
+        r"github\..*\.com",
     ],
 }
 
@@ -36,12 +39,12 @@ def is_supported_link(link: str) -> tuple[bool, Optional[SupportedLink]]:
 
 # TODO update type to accept SupportedLink for each link (list[tuple[str, SupportedLink]])? easier to determine accessible_links
 # TODO: can we just pass in whole team object, or maybe better to limit it this way? if have whole team object, do we need to make request to get sources?
+#    > TODO: we could possibly do that, but would require altering the TeamOrm and add nullable column(s) but thats ok?
 async def get_link_content(team_id: UUID4, links: list[str]) -> list[str]:
     """
     Given a list of links, returns mapping to content found at each link.
     """
-    # TODO: should i be trying to make this general enough to work for any link potentioaly?
-    # TODO: fetch from db what soureces are connected
+    # fetch from db what soureces are connected
     available_sources = await eave_core_api_client.get_available_sources(
         team_id=team_id,
         input=operations.GetAvailableSources.RequestBody(
@@ -53,15 +56,15 @@ async def get_link_content(team_id: UUID4, links: list[str]) -> list[str]:
     # TODO: should eave only watch repos/code the user account owns/links directly? only anything in org/enterprise, or any link?
     accessible_links: list[str] = list(filter(lambda x: is_link_of_type(available_sources, x), links))
 
+
+    clients = {client_type: _create_client(client_type) for _, client_type in links}
     # gather content from all links in parallel
     # TODO: worry about rate limit?
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        for link, link_type in accessible_links:
-            match link_type:
-                case SupportedLink.github:
-                    # TODO what if it's not a file? what if dir? or repo? just ignore those for now?
-                    tasks.append(asyncio.ensure_future(GitHubClient.request_file_content(link, session)))
+    tasks = []
+    for link, link_type in accessible_links:
+        match link_type:
+            case SupportedLink.github:
+                tasks.append(asyncio.ensure_future(clients[link_type].request_file_content(link)))
 
     content_responses = await asyncio.gather(*tasks)
     content: list[str] = [resp.content for resp in content_responses]
@@ -69,17 +72,120 @@ async def get_link_content(team_id: UUID4, links: list[str]) -> list[str]:
     return content
 
 
-# TODO move api clients to other file
-# TODO: PyGitHub api client requires enterprise specific base_url (e.g. github.enterprise.com/api/v3 if is enterprise)
-# TODO: the gh link could hypothetically be one that our oauth token doesn't provide access to. should handle failures to fetch
+# TODO: change SupportedLink type name???
+# TODO: how to provide required oauth token effectively...?
+def _create_client(client_type: SupportedLink, token: str) -> Any:
+    match client_type:
+        case SupportedLink.github:
+            return GitHubClient()
+
+
+# TODO move api clients to other file (this kinda isnt an api client anymore.. ?)
 class GitHubClient:
     def __init__(self, oauth_token: str):
-        self.client = Github(login_or_token=oauth_token, base_url="TODO")
+        self.oauth_token = oauth_token
 
-    # TODO: i think i have to code my own client to talk to gh api if i want to use the session :(
-    async def request_file_content(self, link: str, session: aiohttp.ClientSession) -> str:
+        # mapping from github domain to API client for that domain
+        self._clients: dict[str, Github] = {}
+
+
         """
-        Fetch content of the file located at the URL `link`
+        gh link parser should be able to handle fetching file content from:
+        https://github.com/eave-fyi/eave-monorepo/blob/main/apps/github/package.json
+        https://github.com/eave-fyi/eave-monorepo/blob/bcr/2304/framework/apps/github/package.json
+        https://github.com/eave-fyi/eave-monorepo/blob/c840ee8d5d0ceb59ce00aeae3d553e2b16dbcfb9/apps/jira/package-lock.json
+        https://raw.githubusercontent.com/eave-fyi/eave-monorepo/bcr/2304/framework/apps/jira/package-lock.json?token=GHSAT0AAAAAAB4YW5GEFTJSSE5RUMVNPNB4ZCAVHLA
         """
-        # self.client.do something
-        return "todo"
+    # TODO: worry about secret/oauth exfiltration if the link isnt actually a valid gh link?
+    # (e.g. bad actor server logs request if they can get us to make req to github.bad-actor.com or somethign)
+    async def request_file_content(self, url: str) -> Optional[str]:
+        """
+        Fetch content of the file located at the URL `url`.
+        Returns None on GitHub API request failure
+        """
+        # build clients; will need a separate client for each different github domain
+        client = self._get_client(url)
+
+        # TODO: the gh link could hypothetically be one that our oauth token doesn't provide access to. should handle failures to fetch
+        # TODO what if it's not a file? what if dir? or repo? or line number permalink? or link is to non-default branch, possibly w/ slashes in branch name (messes up file path scrape)?
+        # should those be ignored (how?)? make recursive requests (expensive)? eat errors (if any)?
+        try:
+            # TODO: the version of gh enterprise the company has could affect what endpoints are available
+            # TODO: Use the .raw media type to retrieve the contents of the file.?
+            # TODO: does pygithub suck ?
+            res = await client.get_repo()
+
+            return res
+        except Exception as error:
+            logger.error(error)
+            # gracefully recover from any errors that arise
+            return None
+
+    def _is_enterprise_url(self, url: str) -> bool:
+        domain = urlparse(url).netloc
+        return not re.match(r"github\.com", domain)
+    
+    async def _fetch_raw(self, url: str) -> Optional[str]:
+        # TODO: take session?
+        # construct gh raw content url
+        url_components = urlparse(url)
+        content_location = url_components.path
+        raw_url = ""
+        if self._is_enterprise_url(url):
+            raw_url = f"https://{url_components.netloc}/raw"
+        else:
+            raw_url = "https://raw.githubusercontent.com"
+
+        request_url = f"{raw_url}{content_location}"
+
+        # TODO: attach auth token
+        import os
+        headers = {
+            "Authorization": f"token {os.getenv('GIT_TOKEN')}",
+            "Accept": "application/vnd.github.v3.raw",
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as http_session:
+                resp = await http_session.request(
+                    method="GET",
+                    url=request_url,
+                    headers=headers,
+                )
+                return await resp.text()
+        except Exception as error:
+            logger.error(error)
+            # gracefully recover from any errors that arise
+            return None
+
+
+    def _get_client(self, link: str) -> Github:
+        """
+        Get or build a GitHub API client that is compatible with the GitHub domain
+        of the passed in URL.
+        """
+        domain = urlparse(link).netloc
+        if domain not in self._clients:
+            if domain == "github.com":
+                self._clients[domain] = Github(self.oauth_token) # TODO: use login_or_token?
+            else:
+                # gh enterprise api URL is different
+                base_url = f"https://{domain}/api/v3"
+                self._clients[domain] = Github(login_or_token=self.oauth_token, base_url=base_url)
+
+        return self._clients[domain]
+    
+    def _parse_file_location(self, url: str) -> tuple[str, str, str]:
+        """
+        Given a GitHub (file) URL, parse out all the information required to make an API request.
+        Returns (org, repo, file_path) TODO: domain?
+        """
+        # TODO: consider using raw.githubusercontent.com??
+        urlpath_chunks = urlparse(url).path.split("/")
+        # TODO: what to do if url doesnt have enough chunks?
+        # TODO: cut off ending anchor tags
+        org = urlpath_chunks[0]
+        repo = urlpath_chunks[1]
+
+
+

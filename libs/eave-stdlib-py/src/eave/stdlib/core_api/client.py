@@ -144,7 +144,7 @@ async def get_available_sources(
         return None
 
     response_json = await response.json()
-    # TODO: response body object doesnt make sense rn
+    # TODO: response body object doesnt make sense rn, unless I change TeamOrm somehow (in which case I dont need this func anymore)
     return operations.GetAvailableSources.ResponseBody(**response_json)
 
 
