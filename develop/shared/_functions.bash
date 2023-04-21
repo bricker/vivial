@@ -262,7 +262,7 @@ function shloginfile () {
 	function run-with-dotenv () (
 		python-validate-version
 		python-activate-venv
-		PYTHONPATH=. python -m dotenv --file $EAVE_HOME/.env run -- "$@"
+		PYTHONPATH=. python -m dotenv --file $EAVE_HOME/.env run --no-override -- "$@"
 	)
 
 	function run-appengine-dev-server () (
