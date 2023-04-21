@@ -1,14 +1,6 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-echo "This script requires the gcloud SDK to be installed and in your path"
-echo "Additionally, a python2 program must be installed and in your PATH."
-echo "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"
+set -eu
 
-set -o allexport
-source .env
-set +o allexport
-
-dev_appserver.py \
-    --host localhost \
-    --port 5100 \
-    app.yaml
+source ${EAVE_HOME}/develop/functions.bash
+run-appengine-dev-server -p 5100

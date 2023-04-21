@@ -1,6 +1,6 @@
-from dotenv import load_dotenv
+import dotenv
 
-load_dotenv()
+dotenv.load_dotenv()
 
 import asyncio
 from logging.config import fileConfig
@@ -42,9 +42,8 @@ async def run_migrations_offline() -> None:
     script output.
 
     """
-    engine = eave_db.get_engine()
     context.configure(
-        url=engine.url.render_as_string(hide_password=False),
+        url=eave_db.engine.url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -68,12 +67,10 @@ async def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = eave_db.get_engine()
-
-    async with connectable.connect() as connection:
+    async with eave_db.engine.connect() as connection:
         await connection.run_sync(do_run_migrations)
 
-    await connectable.dispose()
+    await eave_db.engine.dispose()
 
 
 if context.is_offline_mode():

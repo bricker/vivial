@@ -120,14 +120,19 @@ then
 		echo -n "$(basename $SHELL)"
 	}
 
-	function sh-login-script () {
+	function shloginfile () {
 		case $usershell in
-		"bash") echo -n ~/.bashrc ;;
-		"zsh") echo -n ~/.zshrc ;;
+			"bash")
+				echo -n "~/.bashrc";;
+			"zsh")
+				echo -n "~/.zshrc" ;;
+			*)
+				statusmsg -e "Shell $usershell not supported. Please add support!"
+				return 1
 		esac
 	}
 
-	function command_exists () {
+	function cmd-exists () {
 		if command -v "$1" > /dev/null
 		then
 			return 0
@@ -182,6 +187,44 @@ then
 		done
 	}
 
+	function get-kernel-name () {
+		uname -s | tr '[:upper:]' '[:lower:]'
+	}
+
+	function get-cpu-arch () {
+		uname -p
+	}
+
+	function get-cpu-arch-normalized () {
+		local arch=$(get-cpu-arch)
+		case $arch in
+			"arm64")
+				echo -n "arm"
+				;;
+			"amd64")
+				echo -n "x86_64"
+				;;
+			*)
+				echo -n "$arch"
+				;;
+		esac
+	}
+
+	function get-cpu-arch-normalized-alt () {
+		local arch=$(get-cpu-arch)
+		case $arch in
+			"arm")
+				echo -n "arm64"
+				;;
+			"x86_64")
+				echo -n "amd64"
+				;;
+			*)
+				echo -n "$arch"
+				;;
+		esac
+	}
+
 	function add-shell-variable () (
 		local varname=$1
 		local value=$2
@@ -189,7 +232,7 @@ then
 
 		case $usershell in
 		"bash" | "zsh")
-			local loginfile=$(sh-login-script)
+			local loginfile=$(shloginfile)
 
 			if cat $loginfile | grep "export $varname"
 			then
@@ -214,6 +257,43 @@ then
 			statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
 			;;
 		esac
+	)
+
+	function run-with-dotenv () (
+		python-validate-version
+		python-activate-venv
+		PYTHONPATH=. python -m dotenv --file $EAVE_HOME/.env run --no-override -- "$@"
+	)
+
+	function run-appengine-dev-server () (
+		statusmsg -i "This script requires the gcloud SDK to be installed and in your path"
+		statusmsg -i "Additionally, a python2 program must be installed and in your PATH."
+		statusmsg -i "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"
+
+		local usage="Usage: run-appengine-dev-server -p PORT"
+		local port=""
+		while getopts "p:" argname
+		do
+			case "$argname" in
+				p) port=$OPTARG ;;
+				h)
+					statusmsg -i "$usage"
+					exit 0
+					;;
+			esac
+		done
+
+		if test -z "$port"; then
+			statusmsg -e "$usage"
+			exit 1
+		fi
+
+		run-with-dotenv \
+			dev_appserver.py \
+				--host localhost \
+				--port "$port" \
+				app.yaml
+
 	)
 
 	_SHARED_FUNCTIONS_LOADED=1

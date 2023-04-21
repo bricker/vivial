@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
+set -eu
+
 source ${EAVE_HOME}/develop/functions.bash
 
 function create-db-migration() (
-	python-validate-version
-	python-activate-venv
-
 	local usage="Usage: create-db-migration [-m migration-name]"
 	local message=""
 
@@ -20,7 +19,7 @@ function create-db-migration() (
 		esac
 	done
 
-	python -m alembic revision --message "$message" --autogenerate
+	run-with-dotenv python -m alembic revision --message "$message" --autogenerate
 )
 
 create-db-migration "$@"

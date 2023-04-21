@@ -1,2 +1,3 @@
-python-dotenv
+python-dotenv[cli]
+pretty_errors
 mitmproxy

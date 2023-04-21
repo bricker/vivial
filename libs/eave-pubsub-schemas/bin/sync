@@ -3,12 +3,4 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-validate-version
-python-activate-venv
-
-set -o allexport
-source .env
-set +o allexport
-
-
-python sync_schemas.py
+run-with-dotenv python sync_schemas.py
