@@ -87,39 +87,6 @@ function setupgcloud () (
 	mv google-cloud-sdk $HOME
 	cd $HOME
 	./google-cloud-sdk/install.sh
-
-	# case $usershell in
-	# "bash" | "zsh")
-	# 	loginfile=$(shloginfile)
-	# 	varcmd="export PATH=\"~/google-cloud-sdk/bin:\$PATH\""
-	# 	statusmsg -ni "I'll add the following line to $loginfile to add the gcloud CLI into your PATH:"
-	# 	echo ""
-	# 	statusmsg -o "\t$varcmd"
-	# 	echo ""
-
-	# 	read -p "Should I proceed? [y/n] " proceed
-	# 	if test "$proceed" = "y"; then
-	# 		echo -e "\n$varcmd" >>"$loginfile"
-	# 	fi
-
-	# 	source "$loginfile"
-	# 	;;
-	# "fish")
-	# 	varcmd="fish_add_path ~/google-cloud-sdk/bin"
-	# 	statusmsg -ni "I'll add the gcloud CLI to your path with the following command:"
-	# 	echo ""
-	# 	echo -e "\t$varcmd"
-	# 	echo ""
-
-	# 	read -p "Should I proceed? [y/n] " proceed
-	# 	if test "$proceed" = "y"; then
-	# 		fish -c "$varcmd"
-	# 	fi
-	# 	;;
-	# *)
-	# 	statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
-	# 	;;
-	# esac
 )
 
 statusmsg -ni "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
@@ -154,31 +121,6 @@ if test "$proceed" = "y"; then
 	setupcloudsqlproxy
 fi
 echo ""
-
-# function setuppostgres() (
-# 	statusmsg -i "sudo privileges are required to install postgres"
-
-# 	case $kernel in
-# 		linux)
-# 			sudo apt install -y postgresql
-# 			;;
-# 		darwin)
-# 			statusmsg -w "You should manually install postgres."
-# 			;;
-# 	esac
-
-# 	statusmsg -i "sudo privileges are required to create a database user."
-# 	sudo -u postgres createuser -sidrwl --replication $(whoami)
-# 	createdb eave
-# 	createdb eave-test
-# )
-# statusmsg -ni "Next, I'm going to install and setup postgres."
-# read -p "Should I proceed? [y/n] " proceed
-# if test "$proceed" = "y"; then
-# 	setuppostgres
-# fi
-# echo ""
-
 
 function setupapps () (
 	cd ${EAVE_HOME}
