@@ -120,7 +120,7 @@ then
 		echo -n "$(basename $SHELL)"
 	}
 
-function shloginfile () {
+	function shloginfile () {
 		case $usershell in
 			"bash")
 				echo -n "~/.bashrc";;
