@@ -52,6 +52,9 @@ add_route(method="POST", path="/subscriptions/query",       auth_required=False,
 add_route(method="POST", path="/subscriptions/delete",      auth_required=False, signature_required=True, handler=subscriptions.delete_subscription)
 add_route(method="POST", path="/installations/slack/query", auth_required=False, signature_required=True, handler=slack_installations.query)
 
+add_route(method="POST", path="/auth/token/new")
+add_route(method="POST", path="/auth/token/refresh")
+
 # Authenticated API endpoints.
 # These endpoints require both signature verification and auth token verification.
 add_route(method="POST", path="/me/account",            auth_required=True, signature_required=True, handler=authed_account.get_current_account)
