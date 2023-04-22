@@ -24,6 +24,7 @@ class SubscriptionSourceEvent(str, enum.Enum):
 
 
 # TODO: copy to ts stdlib
+# TODO: change SupportedLink type name???
 class SupportedLink(enum.Enum):
     """
     Link types that we support fetching content from for integration into AI documentation creation.

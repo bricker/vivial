@@ -224,6 +224,7 @@ class Brain:
     async def build_documentation(self) -> eave_ops.DocumentInput:
         logger.debug("Brain.build_documentation")
         conversation = await self.build_context()
+        link_context = await self.build_link_context()
 
         document_topic = await document_metadata.get_topic(conversation)
         logger.info(f"document_topic: {document_topic}")
@@ -234,7 +235,9 @@ class Brain:
         documentation_type = await document_metadata.get_documentation_type(conversation)
         logger.info(f"documentation_type: {documentation_type}")
         documentation = await document_metadata.get_documentation(
-            conversation=conversation, documentation_type=documentation_type
+            conversation=conversation,
+            documentation_type=documentation_type,
+            link_context=link_context,
         )
         logger.info(f"documentation:\n{documentation}")
         document_resources = await self.build_resources()
@@ -403,7 +406,7 @@ class Brain:
                     {joined_messages}
 
                     ###
-                """
+                    """
                 )
                 openai_params = eave_openai.ChatCompletionParameters(
                     model=eave_openai.OpenAIModel.GPT4,
@@ -423,9 +426,124 @@ class Brain:
         recent_messages = "\n\n".join(messages_for_prompt)
         return f"{condensed_context}\n\n" f"{recent_messages}"
 
+    async def build_link_context(self) -> Optional[str]:
+        # TODO finish impl
+        # TODO: dont reference "source" or "code"; could be generic links eventually
+        # TODO: what if link is to a binary? how will ai try to summarize that????
+        # see if we can pull content from any links in message
+        await self.message.resolve_urls()
+        source_links: list[tuple[str, eave_models.SupportedLink]] = []
+        for link in self.message.urls:
+            is_supported, link_type = link_handler.is_supported_link(link)
+            if is_supported:
+                assert link_type
+                source_links.append((link, link_type))
+
+        if source_links:
+            source_text = await link_handler.get_link_content(self.eave_team.id, source_links)
+            if source_text:
+                combined = []
+                for text in source_text:
+                    # TODO: do in parallel (thread safety?)
+                    combined.append(await self._summarize_content(text))
+
+                # TODO: transform raw source text into less distracting (for AI) summaries
+                return combined
+                # TODO: subscribe to file changes
+
+        return None
+
     """
     Utility
     """
+
+    async def _summarize_content(self, content: str) -> str:
+        """
+        Given some content (from a URL) return a summary of it.
+        TODO: this is untested
+        """
+        if len(tokencoding.encode(summary)) > eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4]:
+            # build rolling summary of long file
+            threshold = eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2
+            summary = content
+
+            while len(tokencoding.encode(summary)) > threshold:
+                new_summary = ""
+                chunks = self._get_content_chunks(summary, chunk_size=threshold)
+                for chunk in chunks:
+                    if new_summary == "":       
+                        prompt = eave_openai.formatprompt(
+                            f"""
+                            Condense the following information. Maintain the important information.
+
+                            ###
+
+                            {chunk}
+
+                            ###
+                            """
+                        )
+                        openai_params = eave_openai.ChatCompletionParameters(
+                            model=eave_openai.OpenAIModel.GPT4,
+                            messages=[prompt],
+                            temperature=0.9,  # TODO: would lower temp be better?
+                            frequency_penalty=1.0,
+                            presence_penalty=1.0,
+                        )
+                        response = await eave_openai.chat_completion(params=openai_params)
+                        assert response is not None
+                        new_summary = response
+                    else:
+                        # TODO: reformat prompt?
+                        prompt = eave_openai.formatprompt(
+                            f"""
+                            Amend and expand on the following information. Maintain the important information.
+
+                            ###
+
+                            {new_summary}
+
+                            {chunk}
+
+                            ###
+                            """
+                        )
+                        openai_params = eave_openai.ChatCompletionParameters(
+                            model=eave_openai.OpenAIModel.GPT4,
+                            messages=[prompt],
+                            temperature=0.9,  # TODO: would lower temp be better?
+                            frequency_penalty=1.0,
+                            presence_penalty=1.0,
+                        )
+                        response = await eave_openai.chat_completion(params=openai_params)
+                        assert response is not None
+                        new_summary = response
+                summary = new_summary
+
+            return summary
+        else:
+            prompt = eave_openai.formatprompt(
+                f"""
+                Summarize the following information. Maintain the important information.
+
+                ###
+
+                {content}
+
+                ###
+                """
+            )
+            openai_params = eave_openai.ChatCompletionParameters(
+                model=eave_openai.OpenAIModel.GPT4,
+                messages=[prompt],
+                temperature=0.9,  # TODO: would lower temp be better?
+                frequency_penalty=1.0,
+                presence_penalty=1.0,
+            )
+            summary_resp: str | None = await eave_openai.chat_completion(params=openai_params)
+            assert summary_resp is not None
+            return summary_resp
+
 
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
@@ -488,24 +606,6 @@ class Brain:
         assert expanded_text is not None
         self.expanded_text = expanded_text
 
-        # TODO finish impl
-        # see if we can pull content from any links in message
-        await self.message.resolve_urls()
-        source_links: list[tuple[str, eave_models.SupportedLink]] = []
-        for link in self.message.urls:
-            is_supported, link_type = link_handler.is_supported_link(link)
-            if is_supported:
-                assert link_type
-                source_links.append((link, link_type))
-
-        if source_links:
-            # TODO: do the thing. transform link content here? or do later in build message? (i think later?)
-            source_text = await link_handler.get_link_content(self.eave_team.id, source_links)
-            if source_text:
-                self.source_text = source_text
-                # TODO: subscribe to file changes
-
-        # TODO: use self.source_text as part of build_message_context call
         await self.build_message_context()
 
     async def build_message_context(self) -> None:

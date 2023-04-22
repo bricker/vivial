@@ -78,7 +78,6 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
 
 
 # TODO: change SupportedLink type name???
-# TODO: how to provide required oauth token effectively...?
 def _create_client(client_type: SupportedLink, token: str) -> Any:
     match client_type:
         case SupportedLink.github:
@@ -86,6 +85,13 @@ def _create_client(client_type: SupportedLink, token: str) -> Any:
 
 
 # TODO move api clients to other file (this kinda isnt an api client anymore.. ?)
+"""
+gh link parser should be able to handle fetching file content from:
+https://github.com/eave-fyi/eave-monorepo/blob/main/apps/github/package.json
+https://github.com/eave-fyi/eave-monorepo/blob/bcr/2304/framework/apps/github/package.json
+https://github.com/eave-fyi/eave-monorepo/blob/c840ee8d5d0ceb59ce00aeae3d553e2b16dbcfb9/apps/jira/package-lock.json
+https://raw.githubusercontent.com/eave-fyi/eave-monorepo/bcr/2304/framework/apps/jira/package-lock.json?token=GHSAT0AAAAAAB4YW5GEFTJSSE5RUMVNPNB4ZCAVHLA
+"""
 class GitHubClient:
     def __init__(self, oauth_token: str):
         self.oauth_token = oauth_token
@@ -93,14 +99,6 @@ class GitHubClient:
         # mapping from github domain to API client for that domain
         # self._clients: dict[str, Github] = {}
 
-
-        """
-        gh link parser should be able to handle fetching file content from:
-        https://github.com/eave-fyi/eave-monorepo/blob/main/apps/github/package.json
-        https://github.com/eave-fyi/eave-monorepo/blob/bcr/2304/framework/apps/github/package.json
-        https://github.com/eave-fyi/eave-monorepo/blob/c840ee8d5d0ceb59ce00aeae3d553e2b16dbcfb9/apps/jira/package-lock.json
-        https://raw.githubusercontent.com/eave-fyi/eave-monorepo/bcr/2304/framework/apps/jira/package-lock.json?token=GHSAT0AAAAAAB4YW5GEFTJSSE5RUMVNPNB4ZCAVHLA
-        """
     # TODO: worry about secret/oauth exfiltration if the link isnt actually a valid gh link?
     # (e.g. bad actor server logs request if they can get us to make req to github.bad-actor.com or somethign)
     async def request_file_content(self, url: str) -> Optional[str]:
@@ -129,7 +127,12 @@ class GitHubClient:
  
     
     async def _fetch_raw(self, url: str) -> Optional[str]:
-        # TODO: take session?
+        """
+        Fetch github file content from `url` using the raw.githubusercontent.com feature
+        Returns None if `url` is not a path to a file (or if some other error was encountered).
+        TODO: doesnt get us any closer to distinguishing branch name from file path in url; necessary for subscription??
+        """
+        # TODO: take session for optimizing call parallelism?
         # construct gh raw content url
         url_components = urlparse(url)
         content_location = url_components.path
@@ -142,8 +145,7 @@ class GitHubClient:
 
         request_url = f"{raw_url}{content_location}"
 
-        # TODO: attach auth token
-        import os
+        # attach auth token
         headers = {
             "Authorization": f"token {self.oauth_token}",
             "Accept": "application/vnd.github.v3.raw",
