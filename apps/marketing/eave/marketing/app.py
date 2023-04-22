@@ -41,6 +41,11 @@ app.get("/terms")(_render_spa)
 app.get("/privacy")(_render_spa)
 
 
+@app.route("/account", methods=["GET"])
+async def get_current_account() -> str:
+    response = await eave_core_api_client.get_current_account()
+    return response
+
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
     body = request.get_json()

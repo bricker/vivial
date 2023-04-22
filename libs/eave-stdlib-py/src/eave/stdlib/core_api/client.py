@@ -5,9 +5,9 @@ from uuid import UUID
 import aiohttp
 import pydantic
 
-from .. import logger
+from .. import logger, signing
 from ..config import shared_config
-from . import operations, signing
+from . import operations
 
 
 async def status() -> operations.Status.ResponseBody:
@@ -138,6 +138,8 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
         "Content-Type": "application/json",
     }
 
+    TODO: Add eave-origin header
+    TODO: Add Authorization header
     if team_id is not None:
         headers[signing.TEAM_ID_HEADER_NAME] = team_id
 

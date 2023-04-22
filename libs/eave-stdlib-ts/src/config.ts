@@ -40,10 +40,6 @@ export class EaveConfig {
     return this.getSecret('OPENAI_API_KEY');
   }
 
-  get eaveSigningSecret(): Promise<string> {
-    return this.getSecret('EAVE_SIGNING_SECRET');
-  }
-
   private cache: {[key: string]: string} = {};
 
   async getSecret(name: string): Promise<string> {

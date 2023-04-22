@@ -1,9 +1,16 @@
+from dataclasses import dataclass
 import enum
 from datetime import datetime
-from typing import Optional
+import json
+from typing import List, Optional
 
 import pydantic
+from .. import util as eave_util
 
+class AuthProvider(enum.Enum):
+    google = "google"
+    slack = "slack"
+    atlassian = "atlassian"
 
 class DocumentPlatform(str, enum.Enum):
     eave = "eave"
@@ -65,6 +72,8 @@ class Team(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+class Account(pydantic.BaseModel):
+    auth_provider: AuthProvider
 
 class SlackInstallation(pydantic.BaseModel):
     id: pydantic.UUID4

@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 
 import eave.core.app
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.signing as eave_signing
+import eave.stdlib.signing as eave_signing
 import eave.stdlib.util as eave_util
 import mockito
 from eave.core.internal.config import app_config

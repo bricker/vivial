@@ -1,6 +1,8 @@
+import hashlib
 import json
 from ctypes import ArgumentError
 from datetime import datetime
+import time
 from typing import NotRequired, Optional, ParamSpec, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
@@ -291,23 +293,24 @@ class AtlassianInstallationOrm(Base):
             self.oauth_token_encoded = json.dumps(token)
             db_session.commit()
 
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
-        lookup = select(cls).where(cls.team_id == team_id).limit(1)
-        source = (await session.scalars(lookup)).one()
-        return source
+class GithubInstallationOrm(Base):
+    __tablename__ = "github_installations"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        Index(
+            "eave_team_id_github_install_id",
+            "team_id",
+            "github_install_id",
+            unique=True,
+        ),
+    )
 
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
-        lookup = select(cls).where(cls.team_id == team_id).limit(1)
-        source = (await session.scalars(lookup)).one_or_none()
-        return source
-
-    @classmethod
-    async def one_or_none_by_atlassian_cloud_id(cls, session: AsyncSession, atlassian_cloud_id: str) -> Optional[Self]:
-        lookup = select(cls).where(cls.atlassian_cloud_id == atlassian_cloud_id).limit(1)
-        result: Self | None = (await session.scalars(lookup)).one_or_none()
-        return result
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    github_install_id: Mapped[str] = mapped_column(unique=True)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
 
 class TeamOrm(Base):
@@ -367,7 +370,7 @@ class AccountOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    auth_provider: Mapped[oauth_models.AuthProvider] = mapped_column()
+    auth_provider: Mapped[eave_models.AuthProvider] = mapped_column()
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
@@ -379,7 +382,7 @@ class AccountOrm(Base):
 
     @classmethod
     async def one_or_exception(
-        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
+        cls, session: AsyncSession, auth_provider: eave_models.AuthProvider, auth_id: str
     ) -> Self:
         lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
         account = (await session.scalars(lookup)).one()
@@ -387,17 +390,56 @@ class AccountOrm(Base):
 
     @classmethod
     async def one_or_none(
-        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
+        cls, session: AsyncSession, auth_provider: eave_models.AuthProvider, auth_id: str
     ) -> Self | None:
         lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
         account = await session.scalar(lookup)
         return account
 
     @classmethod
-    def _select_one(cls, auth_provider: oauth_models.AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
+    def _select_one(cls, auth_provider: eave_models.AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
         lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
         return lookup
 
+class AuthTokenOrm(Base):
+    __tablename__ = "auth_tokens"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["account_id"],
+            ["accounts.id"],
+        ),
+        Index(
+            None,
+            "access_token",
+            unique=True,
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    account_id: Mapped[UUID] = mapped_column()
+    access_token: Mapped[str] = mapped_column(index=True, unique=True)
+    refresh_token: Mapped[str] = mapped_column(index=True, unique=True)
+    expires: Mapped[float] = mapped_column()
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @classmethod
+    async def one_or_exception(
+        cls, session: AsyncSession, token: str
+    ) -> Self:
+        hashed_token = hashlib.sha256(token.encode()).hexdigest()
+        lookup = (
+            select(cls)
+            .where(cls.access_token == hashed_token)
+            .where(cls.expires > time.time())
+            .limit(1)
+        )
+
+        auth_token = (await session.scalars(lookup)).one()
+        return auth_token
+
+    def expired(self) -> bool:
+        return self.expires < time.time()
 
 # class EmbeddingsOrm(Base):
 #     __tablename__ = "embeddings"
