@@ -212,6 +212,8 @@ class Brain:
         logger.debug("Brain.create_documentation")
 
         api_document = await self.build_documentation()
+        print(api_document.content)
+        return # DEBGU
         upsert_document_response = await self.upsert_document(document=api_document)
 
         await self.message.send_response(
@@ -225,6 +227,7 @@ class Brain:
         logger.debug("Brain.build_documentation")
         conversation = await self.build_context()
         link_context = await self.build_link_context()
+        print(link_context) # DEBGU
 
         document_topic = await document_metadata.get_topic(conversation)
         logger.info(f"document_topic: {document_topic}")
