@@ -1,7 +1,7 @@
 from typing import Optional
 
 import eave.slack.event_handlers
-import eave.stdlib.core_api.client as eave_client
+import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
 from slack_bolt.async_app import AsyncApp, AsyncBoltContext
 from slack_bolt.authorization import AuthorizeResult
@@ -29,7 +29,7 @@ async def authorize(
     input = eave_ops.GetSlackInstallation.RequestBody(
         slack_installation=eave_ops.SlackInstallationInput(slack_team_id=team_id),
     )
-    data = await eave_client.get_slack_installation(input=input)
+    data = await eave_core.client.get_slack_installation(input=input)
     assert data is not None
 
     bot_token = data.slack_installation.bot_token

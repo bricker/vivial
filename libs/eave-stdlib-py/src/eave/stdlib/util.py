@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import logging
 from functools import wraps
 from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar, cast
@@ -10,10 +11,6 @@ JsonObject = dict[str, Any]
 
 T = TypeVar("T")
 P = ParamSpec("P")
-
-
-class MaxRetryAttemptsReachedError(Exception):
-    pass
 
 
 def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
@@ -62,6 +59,9 @@ def use_signature(source_func: Callable[P, Any]) -> Callable[[Callable[..., T]],
 
     return casted_func
 
+
+def sha256digest(string: str) -> str:
+    return hashlib.sha256(string.encode()).hexdigest()
 
 tasks = set[asyncio.Task[Any]]()
 

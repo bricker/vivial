@@ -5,7 +5,7 @@ from typing import Optional
 
 import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
 import eave.stdlib.analytics
-import eave.stdlib.core_api.client as eave_core_api_client
+from eave.stdlib.core_api.client import client as eave_core_api_client
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai

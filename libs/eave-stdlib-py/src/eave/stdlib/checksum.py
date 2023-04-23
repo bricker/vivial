@@ -1,7 +1,5 @@
 import google_crc32c
-
-class InvalidChecksumError(Exception):
-    pass
+from . import exceptions
 
 def generate_checksum(data: bytes) -> int:
     """
@@ -18,4 +16,4 @@ def generate_checksum(data: bytes) -> int:
 def validate_checksum_or_exception(data: bytes, checksum: int) -> None:
     expected_checksum = generate_checksum(data=data)
     if checksum != expected_checksum:
-        raise InvalidChecksumError()
+        raise exceptions.InvalidChecksumError()

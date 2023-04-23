@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, utils, ec, rsa
 
 from eave.stdlib.config import shared_config
 from . import checksum
+from . import exceptions
 
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"
@@ -60,9 +61,6 @@ _SIGNING_KEYS = {
 def get_key(signer: str) -> SigningKeyDetails:
     return _SIGNING_KEYS[signer]
 
-class InvalidSignatureError(InvalidSignature):
-    pass
-
 def sign(signing_key: SigningKeyDetails, message: str) -> str:
     kms_client = kms.KeyManagementServiceClient()
 
@@ -87,9 +85,9 @@ def sign(signing_key: SigningKeyDetails, message: str) -> str:
     )
 
     if sign_response.verified_digest_crc32c is False:
-        raise checksum.InvalidChecksumError()
+        raise exceptions.InvalidChecksumError()
     if sign_response.name != key_version_name:
-        raise checksum.InvalidChecksumError()
+        raise exceptions.InvalidChecksumError()
 
     checksum.validate_checksum_or_exception(
         data=sign_response.signature,
@@ -137,4 +135,4 @@ def validate_signature_or_exception(signing_key: SigningKeyDetails, message: str
                 signature_algorithm=ec.ECDSA(utils.Prehashed(sha256)),
             )
         case _:
-            raise InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
+            raise exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")

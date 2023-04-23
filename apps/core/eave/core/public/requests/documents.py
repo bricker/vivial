@@ -7,19 +7,19 @@ import eave.stdlib.core_api.operations as eave_ops
 import fastapi
 from eave.stdlib import logger
 
-from . import util as eave_request_util
+from . import (
+    util as eave_request_util,
+    state as eave_state,
+)
 
 
 async def upsert_document(
     input: eave_ops.UpsertDocument.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> eave_ops.UpsertDocument.ResponseBody:
-    logger.debug("documents.upsert_document")
-
-    await eave_request_util.validate_signature_or_fail(request=request)
+    state = eave_state.EaveRequestState(request.state)
+    team = state.eave_team
 
     async with eave_db.get_async_session() as db_session:
-        team = await eave_request_util.get_team_or_fail(session=db_session, request=request)
-
         subscription = await eave_orm.SubscriptionOrm.one_or_exception(
             team_id=team.id, source=input.subscription.source, session=db_session
         )

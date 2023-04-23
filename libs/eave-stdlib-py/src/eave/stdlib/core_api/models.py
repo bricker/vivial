@@ -12,6 +12,10 @@ class AuthProvider(enum.Enum):
     slack = "slack"
     atlassian = "atlassian"
 
+class AuthInfo(pydantic.BaseModel):
+    provider: AuthProvider
+    id: str
+
 class DocumentPlatform(str, enum.Enum):
     eave = "eave"
     confluence = "confluence"
@@ -83,6 +87,26 @@ class SlackInstallation(pydantic.BaseModel):
     bot_token: str
     bot_id: str
     bot_user_id: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+class AtlassianInstallation(pydantic.BaseModel):
+    id: pydantic.UUID4
+    team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
+    atlassian_cloud_id: str
+    confluence_space: str
+    oauth_token_encoded: str
+
+    class Config:
+        orm_mode = True
+
+class GithubInstallation(pydantic.BaseModel):
+    id: pydantic.UUID4
+    team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
+    github_install_id: str
 
     class Config:
         orm_mode = True

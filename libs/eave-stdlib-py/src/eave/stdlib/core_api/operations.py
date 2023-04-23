@@ -37,21 +37,24 @@ class AtlassianInstallationInput(pydantic.BaseModel):
     atlassian_cloud_id: str
 
 
-class Status:
+class Endpoint:
+    pass
+
+class Status(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         service: str
         version: str
         status: str
 
 
-class CreateAccessRequest:
+class CreateAccessRequest(Endpoint):
     class RequestBody(pydantic.BaseModel):
         visitor_id: Optional[pydantic.UUID4]
         email: pydantic.EmailStr
         opaque_input: str
 
 
-class GetSubscription:
+class GetSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
 
@@ -61,7 +64,7 @@ class GetSubscription:
         document_reference: Optional[models.DocumentReference] = None
 
 
-class CreateSubscription:
+class CreateSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
         document_reference: Optional[DocumentReferenceInput] = None
@@ -72,12 +75,12 @@ class CreateSubscription:
         document_reference: Optional[models.DocumentReference] = None
 
 
-class DeleteSubscription:
+class DeleteSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
 
 
-class UpsertDocument:
+class UpsertDocument(Endpoint):
     class RequestBody(pydantic.BaseModel):
         document: DocumentInput
         subscription: SubscriptionInput
@@ -88,7 +91,7 @@ class UpsertDocument:
         document_reference: models.DocumentReference
 
 
-class GetSlackInstallation:
+class GetSlackInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
         slack_installation: SlackInstallationInput
 
@@ -96,7 +99,7 @@ class GetSlackInstallation:
         team: models.Team
         slack_installation: models.SlackInstallation
 
-class GetGithubInstallation:
+class GetGithubInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
         github_installation: GithubInstallationInput
 
@@ -104,7 +107,7 @@ class GetGithubInstallation:
         team: models.Team
         github_installation: models.GithubInstallation
 
-class GetAtlassianInstallation:
+class GetAtlassianInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
         atlassian_installation: AtlassianInstallationInput
 
@@ -112,15 +115,25 @@ class GetAtlassianInstallation:
         team: models.Team
         atlassian_installation: models.AtlassianInstallation
 
-class GetAccessToken:
+class RequestAccessToken(Endpoint):
+
     class RequestBody(pydantic.BaseModel):
         exchange_offer: AccessTokenExchangeOfferInput
 
     class ResponseBody(pydantic.BaseModel):
-        access_token: models.AuthToken
-        refresh_token: models.AuthToken
+        access_token: str
+        refresh_token: str
 
-class GetAccount:
+class RefreshAccessToken(Endpoint):
+    class RequestBody(pydantic.BaseModel):
+        access_token: str
+        refresh_token: str
+
+    class ResponseBody(pydantic.BaseModel):
+        access_token: str
+        refresh_token: str
+
+class GetAccount(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
         account: models.Account

@@ -1,12 +1,16 @@
+from dataclasses import dataclass
 import hashlib
 import json
 from ctypes import ArgumentError
 from datetime import datetime
 import time
-from typing import NotRequired, Optional, ParamSpec, Self, Tuple, TypedDict, Unpack
+from typing import NotRequired, Optional, ParamSpec, Required, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
+import uuid
 
 import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.jwt as eave_jwt
 import oauthlib
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import (
@@ -15,12 +19,14 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Select,
     false,
+    null,
     func,
     select,
     text,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+import eave.stdlib.eave_origins as eave_origins
 
 from . import database as eave_db
 from .destinations import abstract as abstract_destination
@@ -262,6 +268,35 @@ class AtlassianInstallationOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    class _selectparams(TypedDict):
+        team_id: NotRequired[uuid.UUID]
+        atlassian_cloud_id: NotRequired[str]
+
+    @classmethod
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        lookup = select(cls).limit(1)
+
+        if (team_id := kwargs.get("team_id")) is not None:
+            lookup = lookup.where(cls.team_id == team_id)
+
+        if (atlassian_cloud_id := kwargs.get("atlassian_cloud_id")) is not None:
+            lookup = lookup.where(cls.atlassian_cloud_id == atlassian_cloud_id)
+
+        assert lookup.whereclause is not None
+        return lookup
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
+        lookup = cls._build_select(**kwargs)
+        result = await session.scalar(lookup)
+        return result
+
     @property
     def oauth_token_decoded(self) -> oauthlib.oauth2.rfc6749.tokens.OAuth2Token:
         jsonv = json.loads(self.oauth_token_encoded)
@@ -309,6 +344,7 @@ class GithubInstallationOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     github_install_id: Mapped[str] = mapped_column(unique=True)
+    # TODO: Oauth token storage
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -354,7 +390,6 @@ class TeamOrm(Base):
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
 
-
 class AccountOrm(Base):
     __tablename__ = "accounts"
     __table_args__ = (
@@ -364,6 +399,13 @@ class AccountOrm(Base):
             "auth_provider_auth_id",
             "auth_provider",
             "auth_id",
+            unique=True,
+        ),
+        Index(
+            None,
+            "auth_provider",
+            "auth_id",
+            "oauth_token",
             unique=True,
         ),
     )
@@ -380,26 +422,51 @@ class AccountOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    @classmethod
-    async def one_or_exception(
-        cls, session: AsyncSession, auth_provider: eave_models.AuthProvider, auth_id: str
-    ) -> Self:
-        lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
-        account = (await session.scalars(lookup)).one()
-        return account
+    class _selectparams(TypedDict):
+        id: NotRequired[uuid.UUID]
+        exchange_offer: NotRequired[eave_ops.AccessTokenExchangeOfferInput]
+        auth_info: NotRequired[eave_models.AuthInfo]
 
     @classmethod
-    async def one_or_none(
-        cls, session: AsyncSession, auth_provider: eave_models.AuthProvider, auth_id: str
-    ) -> Self | None:
-        lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
-        account = await session.scalar(lookup)
-        return account
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        lookup = select(cls).limit(1)
 
-    @classmethod
-    def _select_one(cls, auth_provider: eave_models.AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
-        lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
+        id = kwargs.get("id")
+        exchange_offer = kwargs.get("exchange_offer")
+        auth_info = kwargs.get("auth_info")
+
+        if id is not None:
+            lookup = lookup.where(cls.id == id)
+
+        if exchange_offer is not None:
+            lookup = (
+                lookup
+                .where(cls.auth_provider == exchange_offer.auth_provider)
+                .where(cls.auth_id == exchange_offer.auth_id)
+                .where(cls.oauth_token == exchange_offer.oauth_token)
+            )
+
+        if auth_info is not None:
+            lookup = (
+                lookup
+                .where(cls.auth_provider == auth_info.provider)
+                .where(cls.auth_id == auth_info.id)
+            )
+
+        assert lookup.whereclause is not None
         return lookup
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
+        lookup = cls._build_select(**kwargs)
+        result = await session.scalar(lookup)
+        return result
 
 class AuthTokenOrm(Base):
     __tablename__ = "auth_tokens"
@@ -411,6 +478,7 @@ class AuthTokenOrm(Base):
         Index(
             None,
             "access_token",
+            "refresh_token",
             unique=True,
         ),
     )
@@ -419,27 +487,41 @@ class AuthTokenOrm(Base):
     account_id: Mapped[UUID] = mapped_column()
     access_token: Mapped[str] = mapped_column(index=True, unique=True)
     refresh_token: Mapped[str] = mapped_column(index=True, unique=True)
-    expires: Mapped[float] = mapped_column()
+    jti: Mapped[str] = mapped_column()
+    iss: Mapped[str] = mapped_column()
+    aud: Mapped[str] = mapped_column()
+    expires: Mapped[datetime] = mapped_column()
+    invalidated: Mapped[Optional[datetime]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    class _selectparams(TypedDict):
+        access_token_hashed: Required[str]
+        refresh_token_hashed: NotRequired[str]
+
     @classmethod
-    async def one_or_exception(
-        cls, session: AsyncSession, token: str
-    ) -> Self:
-        hashed_token = hashlib.sha256(token.encode()).hexdigest()
-        lookup = (
-            select(cls)
-            .where(cls.access_token == hashed_token)
-            .where(cls.expires > time.time())
-            .limit(1)
-        )
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        access_token_hashed: str = kwargs["access_token_hashed"]
+        refresh_token_hashed: str | None = kwargs.get("refresh_token_hashed")
 
-        auth_token = (await session.scalars(lookup)).one()
-        return auth_token
+        lookup = select(cls).where(cls.invalidated == null()).limit(1)
+        lookup = lookup.where(cls.access_token == access_token_hashed)
 
+        if refresh_token_hashed is not None:
+            lookup = lookup.where(cls.refresh_token == refresh_token_hashed)
+
+        assert lookup.whereclause is not None
+        return lookup
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @property
     def expired(self) -> bool:
-        return self.expires < time.time()
+        return datetime.utcnow() >= self.expires
 
 # class EmbeddingsOrm(Base):
 #     __tablename__ = "embeddings"

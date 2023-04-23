@@ -122,7 +122,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
                 request_args["content"] = data
 
             team_id = headers.get("eave-team-id")
-            headers["eave-signature"] = eave_signing.sign(payload=data, team_id=team_id)
+            # FIXME
+            # headers["eave-signature"] = eave_signing.sign(payload=data, team_id=team_id)
 
         response = await self.httpclient.request(
             method,

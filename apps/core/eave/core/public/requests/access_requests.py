@@ -16,12 +16,8 @@ SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
 async def create_access_request(
     input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    logger.debug("access_requests.create_access_request")
-
-    await eave_request_util.validate_signature_or_fail(request=request)
-
-    async with eave_db.get_async_session() as session:
-        access_request = await eave_orm.AccessRequestOrm.one_or_none(session=session, email=input.email)
+    async with eave_db.get_async_session() as db_session:
+        access_request = await eave_orm.AccessRequestOrm.one_or_none(session=db_session, email=input.email)
         if access_request is not None:
             response.status_code = HTTPStatus.OK
             return response
@@ -32,8 +28,8 @@ async def create_access_request(
             opaque_input=input.opaque_input,
         )
 
-        session.add(access_request)
-        await session.commit()
+        db_session.add(access_request)
+        await db_session.commit()
 
     response.status_code = HTTPStatus.CREATED
 
