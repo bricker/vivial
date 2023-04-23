@@ -440,15 +440,25 @@ class Brain:
                 source_links.append((link, link_type))
 
         if source_links:
-            source_text = await link_handler.get_link_content(self.eave_team.id, source_links)
-            if source_text:
-                combined = []
-                for text in source_text:
+            source_texts = await link_handler.get_link_content(self.eave_team.id, source_links)
+            if source_texts:
+                summaries: list[str] = []
+                for text in source_texts:
                     # TODO: do in parallel (thread safety?)
-                    combined.append(await self._summarize_content(text))
+                    summaries.append(await self._summarize_content(text))
 
-                # TODO: transform raw source text into less distracting (for AI) summaries
-                return combined
+                # transform raw source text into less distracting (for AI) summaries
+                return "\n\n".join(
+                    [
+                        f"""
+                        {link}
+                        ###
+                        {summary}
+                        ###
+                        """
+                        for link, summary in zip(source_links, summaries)
+                    ]
+                )
                 # TODO: subscribe to file changes
 
         return None
@@ -462,16 +472,29 @@ class Brain:
         Given some content (from a URL) return a summary of it.
         TODO: this is untested
         """
-        if len(tokencoding.encode(summary)) > eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4]:
-            # build rolling summary of long file
+        if len(tokencoding.encode(content)) > eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4]:
+            # build rolling summary of long content
             threshold = eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2
             summary = content
 
             while len(tokencoding.encode(summary)) > threshold:
                 new_summary = ""
-                chunks = self._get_content_chunks(summary, chunk_size=threshold)
-                for chunk in chunks:
-                    if new_summary == "":       
+                # TODO: this alg probably has subpar/awful output since we cut off in middle of arbitrary text body
+                # split summary into digestable chunks
+                chunk_size = int(threshold)
+                current_position = 0
+                current_chunk = summary[current_position : current_position + chunk_size]
+                chunks = [current_chunk]
+                # there are generally 0.75 words per token, so approximating 1 character per token may
+                # be overly generous in some contexts, but it's a safe minimum
+                while len(current_chunk) == chunk_size:
+                    current_position += chunk_size
+                    current_chunk = summary[current_position : current_position + chunk_size]
+                    chunks.append(current_chunk)
+
+                # summarize each chunk, combining it into existing summary
+                for chunk in filter(lambda chunk: len(chunk) > 0, chunks):
+                    if new_summary == "":
                         prompt = eave_openai.formatprompt(
                             f"""
                             Condense the following information. Maintain the important information.
@@ -543,7 +566,6 @@ class Brain:
             summary_resp: str | None = await eave_openai.chat_completion(params=openai_params)
             assert summary_resp is not None
             return summary_resp
-
 
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
