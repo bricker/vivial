@@ -1,48 +1,14 @@
 import React from 'react';
-import { withStyles } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/styles';
 import { IconButton } from '@material-ui/core';
-import { HEADER } from '../../constants.js';
+
+import { HEADER, AUTH_MODAL_STATE } from '../../constants.js';
 import DownIcon from '../Icons/DownIcon.js';
 import Affiliates from '../Affiliates/index.js';
 import Button from '../Button/index.js';
 import Copy from '../Copy/index.js';
 
-class Hero extends React.Component {
-  handleGoToNextSection() {
-    const integrations = document.getElementById('eave-integrations-banner');
-    integrations.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  render() {
-    const { classes, title, subtitle, cta } = this.props;
-    return (
-      <section className={classes.section}>
-        <Copy className={classes.title} variant="h1">
-          {title}
-        </Copy>
-        <Copy className={classes.subtitle} variant="p">
-          {subtitle}
-        </Copy>
-        <div className={classes.cta}>
-          <Button lg to="/early">
-            {cta}
-          </Button>
-        </div>
-        <Affiliates />
-        <div className={classes.downIcon}>
-          <IconButton
-            classes={{ root: classes.iconBtn }}
-            onClick={this.handleGoToNextSection}
-          >
-            <DownIcon />
-          </IconButton>
-        </div>
-      </section>
-    );
-  }
-}
-
-const styles = (theme) => ({
+const makeClasses = makeStyles((theme) => ({
   section: {
     position: 'relative',
     display: 'flex',
@@ -85,6 +51,40 @@ const styles = (theme) => ({
       backgroundColor: 'transparent',
     },
   },
-});
+}));
 
-export default withStyles(styles)(Hero);
+const Hero = ({ title, subtitle, cta }) => {
+  const classes = makeClasses();
+
+  const handleGoToNextSection = () => {
+    const integrations = document.getElementById('eave-integrations-banner');
+    integrations.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <section className={classes.section}>
+      <Copy className={classes.title} variant="h1">
+        {title}
+      </Copy>
+      <Copy className={classes.subtitle} variant="p">
+        {subtitle}
+      </Copy>
+      <div className={classes.cta}>
+        <Button lg to="/early">
+          {cta}
+        </Button>
+      </div>
+      <Affiliates />
+      <div className={classes.downIcon}>
+        <IconButton
+          classes={{ root: classes.iconBtn }}
+          onClick={handleGoToNextSection}
+        >
+          <DownIcon />
+        </IconButton>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
