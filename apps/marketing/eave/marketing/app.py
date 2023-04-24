@@ -1,4 +1,3 @@
-from http import HTTPStatus
 from typing import Any
 
 import eave.stdlib.api_util as eave_api_util
@@ -30,9 +29,6 @@ def _render_spa(**kwargs: Any) -> str:
         app_version=app_config.app_version,
         **kwargs,
     )
-app.get("/dashboard")(_render_spa)
-
-app.get("/")(_render_spa)
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
@@ -48,8 +44,9 @@ async def api_access_request() -> str:
 
     return "OK"
 
+@app.route('/', defaults={'path': ''})
 
-@app.route("/<path:path>")
-def catch_all(**kwargs: Any) -> Response:
-    return redirect(location="/", code=HTTPStatus.FOUND)
-     
+
+@app.route('/<path:path>')
+def catch_all() -> str:
+    return _render_spa()
