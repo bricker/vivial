@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import hashlib
 import logging
 from functools import wraps
@@ -60,8 +61,32 @@ def use_signature(source_func: Callable[P, Any]) -> Callable[[Callable[..., T]],
     return casted_func
 
 
-def sha256digest(string: str) -> str:
-    return hashlib.sha256(string.encode()).hexdigest()
+def sha256hexdigest(data: str | bytes) -> str:
+    """
+    sha256-hash the data (utf-8 string or bytes), and return a hex string
+    """
+    return hashlib.sha256(ensure_bytes(data)).hexdigest()
+
+def b64encode(data: str | bytes) -> str:
+    """
+    base64-encode the data (utf-8 string or bytes) and return an ASCII string
+    """
+    return base64.b64encode(ensure_bytes(data)).decode()
+
+def b64decode(data: str | bytes) -> str:
+    """
+    base64-decode the data (ASCII string or bytes) and return a utf8 string
+    """
+    return base64.b64decode(ensure_bytes(data)).decode()
+
+def ensure_bytes(data: str | bytes) -> bytes:
+    """
+    Use to reconcile a Union[str, bytes] parameter into bytes.
+    """
+    if isinstance(data, str):
+        return data.encode()
+    else:
+        return data
 
 tasks = set[asyncio.Task[Any]]()
 

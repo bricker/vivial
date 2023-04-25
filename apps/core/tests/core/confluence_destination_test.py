@@ -2,7 +2,7 @@ import atlassian
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.oauth.atlassian as atlassian_oauth
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.enums as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import mockito
 

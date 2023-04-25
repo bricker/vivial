@@ -107,6 +107,16 @@
     ".venv",
     "**/vendor",
     "**/.mypy_cache",
-    "**/generated"
+    "**/generated",
+    "**/build"
   ],
+  "python.analysis.importFormat": "relative",
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/apps/core",
+    "${workspaceFolder}/apps/slack",
+    "${workspaceFolder}/apps/marketing",
+    "${workspaceFolder}/libs/eave-stdlib-py/src",
+    "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
+  ],
+  "python.analysis.inlayHints.pytestParameters": true,
 }

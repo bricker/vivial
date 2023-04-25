@@ -1,6 +1,6 @@
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.enums as eave_models
 import sqlalchemy.exc
 
 from .base import BaseTestCase
@@ -13,12 +13,12 @@ class TestTeamOrm(BaseTestCase):
         )
         await self.save(team)
 
-        result = await eave_orm.TeamOrm.one_or_exception(session=self.dbsession, team_id=team.id)
+        result = await eave_orm.TeamOrm.one_or_exception(session=self.db_session, team_id=team.id)
         self.assertEqual(self.unwrap(result), team)
 
     async def test_find_one_with_exception(self) -> None:
         with self.assertRaises(sqlalchemy.exc.NoResultFound):
-            await eave_orm.TeamOrm.one_or_exception(session=self.dbsession, team_id=self.anyuuid("teamid"))
+            await eave_orm.TeamOrm.one_or_exception(session=self.db_session, team_id=self.anyuuid("teamid"))
 
     async def test_document_destination(self) -> None:
         team = eave_orm.TeamOrm(
@@ -26,5 +26,5 @@ class TestTeamOrm(BaseTestCase):
         )
         await self.save(team)
 
-        document_destination = await team.get_document_destination(session=self.dbsession)
+        document_destination = await team.get_document_destination(session=self.db_session)
         self.assertIsInstance(document_destination, confluence_destination.ConfluenceDestination)

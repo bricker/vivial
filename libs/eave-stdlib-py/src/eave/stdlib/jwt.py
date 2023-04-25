@@ -10,6 +10,7 @@ from typing import Optional, Self
 import uuid
 from . import signing
 from . import exceptions
+from . import util as eave_util
 
 @dataclass
 class JWTRegisteredClaims:
@@ -23,7 +24,7 @@ class JWTRegisteredClaims:
 
     @classmethod
     def from_b64(cls, payload_encoded: str) -> Self:
-        jsonstr = base64.b64decode(payload_encoded).decode()
+        jsonstr = eave_util.b64decode(payload_encoded)
         jsonv = json.loads(jsonstr)
         return cls(
             iss=jsonv["iss"],
@@ -36,7 +37,7 @@ class JWTRegisteredClaims:
         )
 
     def to_b64(self) -> str:
-        return base64.b64encode(json.dumps(self.__dict__).encode()).decode()
+        return eave_util.b64encode(json.dumps(self.__dict__))
 
 class JWTPurpose(enum.Enum):
     access = "access"
@@ -50,12 +51,12 @@ class JWTHeader:
 
     @classmethod
     def from_b64(cls, header_encoded: str) -> Self:
-        jsonstr = base64.b64decode(header_encoded).decode()
+        jsonstr = eave_util.b64decode(header_encoded)
         jsonv = json.loads(jsonstr)
         return cls(typ=jsonv["typ"], alg=jsonv["alg"], pur=jsonv["pur"])
 
     def to_b64(self) -> str:
-        return base64.b64encode(json.dumps(self.__dict__).encode()).decode()
+        return eave_util.b64encode(json.dumps(self.__dict__))
 
 @dataclass
 class JWT:
@@ -79,6 +80,9 @@ class JWT:
         return f"{self.header.to_b64()}.{self.payload.to_b64()}"
 
     def to_str(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
         return f"{self.message}.{self.signature}"
 
 def create_jwt(
@@ -113,15 +117,15 @@ def create_jwt(
         jti=jti,
     )
 
-    message = f"{jwt_header.to_b64()}.{jwt_payload.to_b64()}"
-    signature = signing.sign(signing_key=signing_key, message=message)
-    signature_b64 = base64.b64encode(signature.encode()).decode()
-
-    return JWT(
+    jwt = JWT(
         header=jwt_header,
         payload=jwt_payload,
-        signature=signature_b64
+        signature="",
     )
+
+    signature_b64 = signing.sign_b64(signing_key=signing_key, data=jwt.message)
+    jwt.signature = signature_b64
+    return jwt
 
 def validate_jwt_or_exception(
         jwt_encoded: str,
@@ -134,7 +138,7 @@ def validate_jwt_or_exception(
         expired_ok: bool = False,
     ) -> None:
     jwt = JWT.from_str(jwt_encoded=jwt_encoded)
-    signing.validate_signature_or_exception(
+    signing.verify_signature_or_exception(
         signing_key=signing_key,
         message=jwt.message,
         signature=jwt.signature,
@@ -145,7 +149,6 @@ def validate_jwt_or_exception(
     iat = float(jwt.payload.iat)
     nbf = float(jwt.payload.nbf)
 
-    # TODO: Validate this
     if not (
         jwt.payload.iss == expected_issuer
         and jwt.payload.aud == expected_audience
@@ -154,7 +157,7 @@ def validate_jwt_or_exception(
         and iat < now
         and (expired_ok or exp > now)
         and (expired_ok or exp < (now + (60*10)))
-        and exp == expected_expiry.timestamp()
+        and round(exp) == round(expected_expiry.timestamp()) # conversion between datetime and float is inexact wrt decimal precision. For our needs, second precision is adequate.
         and now > nbf
     ):
         raise exceptions.InvalidJWTError()
@@ -172,13 +175,13 @@ def validate_jwt_pair_or_exception(
 
     assert jwt_a.signature != jwt_b.signature
 
-    signing.validate_signature_or_exception(
+    signing.verify_signature_or_exception(
         signing_key=signing_key,
         message=jwt_a.message,
         signature=jwt_a.signature,
     )
 
-    signing.validate_signature_or_exception(
+    signing.verify_signature_or_exception(
         signing_key=signing_key,
         message=jwt_b.message,
         signature=jwt_b.signature,

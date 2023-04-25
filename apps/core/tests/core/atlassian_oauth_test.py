@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.enums as eave_models
 
 from .base import BaseTestCase
 

@@ -1,16 +1,18 @@
+import base64
 from dataclasses import dataclass
 import enum
 import hashlib
 from eave.stdlib.eave_origins import EaveOrigin
 from google.cloud import kms
-from cryptography.exceptions import InvalidSignature
+import cryptography.exceptions
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, utils, ec, rsa
 
 from eave.stdlib.config import shared_config
 from . import checksum
-from . import exceptions
+from . import exceptions as eave_exceptions
+from . import util as eave_util
 
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"
@@ -61,7 +63,10 @@ _SIGNING_KEYS = {
 def get_key(signer: str) -> SigningKeyDetails:
     return _SIGNING_KEYS[signer]
 
-def sign(signing_key: SigningKeyDetails, message: str) -> str:
+def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
+    """
+    Signs the data with GCP KMS, and returns the base64-encoded signature
+    """
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
@@ -72,7 +77,7 @@ def sign(signing_key: SigningKeyDetails, message: str) -> str:
         crypto_key_version=signing_key.version,
     )
 
-    message_bytes = message.encode()
+    message_bytes = eave_util.ensure_bytes(data)
     digest = hashlib.sha256(message_bytes).digest()
     digest_crc32c = checksum.generate_checksum(data=digest)
 
@@ -85,18 +90,21 @@ def sign(signing_key: SigningKeyDetails, message: str) -> str:
     )
 
     if sign_response.verified_digest_crc32c is False:
-        raise exceptions.InvalidChecksumError()
+        raise eave_exceptions.InvalidChecksumError()
     if sign_response.name != key_version_name:
-        raise exceptions.InvalidChecksumError()
+        raise eave_exceptions.InvalidChecksumError()
 
     checksum.validate_checksum_or_exception(
         data=sign_response.signature,
         checksum=sign_response.signature_crc32c.value
     )
 
-    return sign_response.signature.decode()
+    return eave_util.b64encode(sign_response.signature)
 
-def validate_signature_or_exception(signing_key: SigningKeyDetails, message: str, signature: str) -> None:
+def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes) -> None:
+    message_bytes = eave_util.ensure_bytes(message)
+    signature_bytes = eave_util.ensure_bytes(signature)
+
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
@@ -107,7 +115,6 @@ def validate_signature_or_exception(signing_key: SigningKeyDetails, message: str
         crypto_key_version=signing_key.version,
     )
 
-    message_bytes = message.encode()
     digest = hashlib.sha256(message_bytes).digest()
 
     public_key_from_kms = kms_client.get_public_key(request={"name": key_version_name})
@@ -117,22 +124,25 @@ def validate_signature_or_exception(signing_key: SigningKeyDetails, message: str
     )
     sha256 = hashes.SHA256()
 
-    match signing_key.algorithm:
-        case SigningAlgorithm.RS256:
-            assert isinstance(public_key_from_pem, rsa.RSAPublicKey)
-            pad = padding.PKCS1v15()
-            public_key_from_pem.verify(
-                signature=signature.encode(),
-                data=digest,
-                padding=pad,
-                algorithm=utils.Prehashed(sha256),
-            )
-        case SigningAlgorithm.ES256:
-            assert isinstance(public_key_from_pem, ec.EllipticCurvePublicKey)
-            public_key_from_pem.verify(
-                signature=signature.encode(),
-                data=digest,
-                signature_algorithm=ec.ECDSA(utils.Prehashed(sha256)),
-            )
-        case _:
-            raise exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
+    try:
+        match signing_key.algorithm:
+            case SigningAlgorithm.RS256:
+                assert isinstance(public_key_from_pem, rsa.RSAPublicKey)
+                pad = padding.PKCS1v15()
+                public_key_from_pem.verify(
+                    signature=signature_bytes,
+                    data=digest,
+                    padding=pad,
+                    algorithm=utils.Prehashed(sha256),
+                )
+            case SigningAlgorithm.ES256:
+                assert isinstance(public_key_from_pem, ec.EllipticCurvePublicKey)
+                public_key_from_pem.verify(
+                    signature=signature_bytes,
+                    data=digest,
+                    signature_algorithm=ec.ECDSA(utils.Prehashed(sha256)),
+                )
+            case _:
+                raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
+    except cryptography.exceptions.InvalidSignature as e:
+        raise eave_exceptions.InvalidSignatureError() from e

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, cast
 
+import eave.stdlib.core_api.enums
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.util as eave_util
@@ -22,7 +24,7 @@ async def google_oauth_authorize() -> fastapi.Response:
     oauth_cookies.save_state_cookie(
         response=response,
         state=oauth_flow_info.state,
-        provider=eave_models.AuthProvider.google,
+        provider=eave.stdlib.core_api.enums.AuthProvider.google,
     )
     return response
 
@@ -38,7 +40,7 @@ class GoogleOAuthResponseBody(pydantic.BaseModel):
 async def google_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    expected_oauth_state = oauth_cookies.get_state_cookie(request=request, provider=eave_models.AuthProvider.google)
+    expected_oauth_state = oauth_cookies.get_state_cookie(request=request, provider=eave.stdlib.core_api.enums.AuthProvider.google)
     assert state == expected_oauth_state
 
     flow = build_flow(state=state)
@@ -57,7 +59,7 @@ async def google_oauth_callback(
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=session,
             auth_info=eave_models.AuthInfo(
-                provider=eave_models.AuthProvider.google,
+                provider=eave.stdlib.core_api.enums.AuthProvider.google,
                 id=userid,
             ),
         )
@@ -75,7 +77,7 @@ async def google_oauth_callback(
 
             account_orm = eave_orm.AccountOrm(
                 team_id=team.id,
-                auth_provider=eave_models.AuthProvider.google,
+                auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
                 auth_id=userid,
                 oauth_token=credentials.id_token,
             )
@@ -86,7 +88,7 @@ async def google_oauth_callback(
         await session.commit()
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
-    oauth_cookies.delete_state_cookie(response=response, provider=eave_models.AuthProvider.google)
+    oauth_cookies.delete_state_cookie(response=response, provider=eave.stdlib.core_api.enums.AuthProvider.google)
     return response
 
 

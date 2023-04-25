@@ -1,38 +1,15 @@
 from dataclasses import dataclass
-import enum
 from datetime import datetime
 import json
 from typing import List, Optional
+from eave.stdlib.core_api.enums import AuthProvider, DocumentPlatform, SubscriptionSourceEvent, SubscriptionSourcePlatform
 
 import pydantic
 from .. import util as eave_util
 
-class AuthProvider(enum.Enum):
-    google = "google"
-    slack = "slack"
-    atlassian = "atlassian"
-
 class AuthInfo(pydantic.BaseModel):
     provider: AuthProvider
     id: str
-
-class DocumentPlatform(str, enum.Enum):
-    eave = "eave"
-    confluence = "confluence"
-    google_drive = "google_drive"
-
-
-class SubscriptionSourcePlatform(str, enum.Enum):
-    slack = "slack"
-    github = "github"
-    jira = "jira"
-
-
-class SubscriptionSourceEvent(str, enum.Enum):
-    slack_message = "slack_message"
-    github_file_change = "github_file_change"
-    jira_issue_comment = "jira_issue_comment"
-
 
 class AccessRequest(pydantic.BaseModel):
     id: pydantic.UUID4
@@ -110,3 +87,4 @@ class GithubInstallation(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+

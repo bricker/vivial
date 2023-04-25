@@ -5,10 +5,12 @@ from typing import Optional
 
 import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
 import eave.stdlib.analytics
-from eave.stdlib.core_api.client import client as eave_core_api_client
+import eave.stdlib.core_api.client as eave_core
+import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.openai_client as eave_openai
+import eave.stdlib.exceptions as eave_exceptions
 import tiktoken
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncBoltContext
@@ -48,7 +50,7 @@ class Brain:
 
             action = eave_user_action.EaveUserAction(
                 action=eave_user_action.EaveUserAction.Action(
-                    platform=eave_models.SubscriptionSourcePlatform.slack,
+                    platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
                     name="eave_mention",
                     description="Eave was mentioned in Slack",
                     eave_user_id="xxxx",
@@ -337,7 +339,7 @@ class Brain:
         await self.message.send_response(text="I haven't yet been taught how to archive existing documentation.")
 
     async def unwatch_conversation(self) -> None:
-        await eave_core_api_client.delete_subscription(
+        await eave_core.delete_subscription(
             team_id=self.eave_team.id,
             input=eave_ops.DeleteSubscription.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
@@ -434,19 +436,22 @@ class Brain:
         await self.message.add_reaction("eave")
 
     async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
-        subscription = await eave_core_api_client.get_subscription(
-            team_id=self.eave_team.id,
-            input=eave_ops.GetSubscription.RequestBody(
-                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
-            ),
-        )
-        return subscription
+        try:
+            subscription = await eave_core.get_subscription(
+                team_id=self.eave_team.id,
+                input=eave_ops.GetSubscription.RequestBody(
+                    subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+                ),
+            )
+            return subscription
+        except eave_exceptions.NotFoundError:
+            return None
 
     async def create_subscription(self) -> eave_ops.CreateSubscription.ResponseBody:
         """
         Gets and returns the subscription if it already exists, otherwise creates and returns a new subscription.
         """
-        subscription = await eave_core_api_client.create_subscription(
+        subscription = await eave_core.create_subscription(
             team_id=self.eave_team.id,
             input=eave_ops.CreateSubscription.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
@@ -455,7 +460,7 @@ class Brain:
         return subscription
 
     async def upsert_document(self, document: eave_ops.DocumentInput) -> eave_ops.UpsertDocument.ResponseBody:
-        response = await eave_core_api_client.upsert_document(
+        response = await eave_core.upsert_document(
             team_id=self.eave_team.id,
             input=eave_ops.UpsertDocument.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),

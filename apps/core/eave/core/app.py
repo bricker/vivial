@@ -1,41 +1,46 @@
+import os
 from typing import Any, Callable
 import eave.stdlib.api_util
-import eave.stdlib.logging
+
 import fastapi
+from starlette.middleware import Middleware
+
+from .public.middlewares import (
+    request_integrity_middleware,
+    origin_middleware,
+    auth_middleware,
+    request_integrity_middleware,
+    signature_verification_middleware,
+    team_lookup_middleware,
+)
 
 from .public.requests import (
     access_requests,
     authed_account,
+    authentication as auth_requests,
     documents,
     slack_installations,
     subscriptions,
-    auth,
 )
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
-from .public.middlewares import (
-    auth_middleware,
-    validate_signature_middleware,
-    origin_middleware,
-    team_lookup_middleware,
-    request_id_middleware,
-)
 
+import eave.stdlib.logging
+import eave.stdlib.time
+
+eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
 
-app = fastapi.FastAPI()
+middleware = [
+    Middleware(request_integrity_middleware.RequestIntegrityASGIMiddleware),
+    Middleware(origin_middleware.OriginASGIMiddleware),
+    Middleware(signature_verification_middleware.SignatureVerificationASGIMiddleware),
+    Middleware(auth_middleware.AuthASGIMiddleware),
+    Middleware(team_lookup_middleware.TeamLookupASGIMiddleware),
+]
 
-eave.stdlib.api_util.add_standard_endpoints(app=app)
+app = fastapi.FastAPI(middleware=middleware)
 eave_request_util.add_standard_exception_handlers(app=app)
-
-validate_signature_middleware.add_bypass("/status")
-auth_middleware.add_bypass("/status")
-
-app.add_middleware(request_id_middleware.RequestIdMiddleware)
-app.add_middleware(origin_middleware.OriginMiddleware)
-app.add_middleware(validate_signature_middleware.ValidateSignatureMiddleware)
-app.add_middleware(auth_middleware.AuthMiddleware)
-app.add_middleware(team_lookup_middleware.TeamLookupMiddleware)
 
 def add_route(
         method: str,
@@ -52,7 +57,7 @@ def add_route(
     By default, all headers are required. This is an attempt to prevent a developer error from bypassing security mechanisms.
     """
     if not signature_required:
-        validate_signature_middleware.add_bypass(path)
+        signature_verification_middleware.add_bypass(path)
 
     if not auth_required:
         auth_middleware.add_bypass(path)
@@ -69,6 +74,12 @@ def add_route(
         methods=[method],
     )
 
+eave.stdlib.api_util.add_standard_endpoints(app=app)
+signature_verification_middleware.add_bypass("/status")
+auth_middleware.add_bypass("/status")
+origin_middleware.add_bypass("/status")
+team_lookup_middleware.add_bypass("/status")
+
 # Internal API Endpoints.
 # These endpoints require signature verification.
 add_route(method="POST", path="/access_request",            auth_required=False, signature_required=True, origin_required=True, team_id_required=False, handler=access_requests.create_access_request)
@@ -79,8 +90,8 @@ add_route(method="POST", path="/subscriptions/delete",      auth_required=False,
 add_route(method="POST", path="/installations/slack/query", auth_required=False, signature_required=True, origin_required=True, team_id_required=True, handler=slack_installations.query)
 
 # Auth Token endpoints
-add_route(method="POST", path="/auth/token/request", auth_required=False, signature_required=True, origin_required=True, team_id_required=False, handler=auth.request_access_token)
-add_route(method="POST", path="/auth/token/refresh", auth_required=True, signature_required=True, origin_required=True, team_id_required=False, handler=auth.refresh_access_token)
+add_route(method="POST", path="/auth/token/request", auth_required=False, signature_required=True, origin_required=True, team_id_required=False, handler=auth_requests.request_access_token)
+add_route(method="POST", path="/auth/token/refresh", auth_required=True, signature_required=True, origin_required=True, team_id_required=False, handler=auth_requests.refresh_access_token)
 
 # Authenticated API endpoints.
 # These endpoints require both signature verification and auth token verification.

@@ -3,7 +3,7 @@ from typing import Any
 import fastapi
 
 from ..config import app_config
-import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.enums as eave_models
 
 
 def _build_cookie_name(postfix: str) -> str:

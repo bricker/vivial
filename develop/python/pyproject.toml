@@ -68,9 +68,12 @@ recursive = true
 quiet = true
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 pythonpath = [
   "../../apps/core",
-  "../../apps/slack"
+  "../../apps/slack",
+  "../../apps/marketing",
+  "../../libs/eave-stdlib-py"
 ]
 norecursedirs = [
   ".git",

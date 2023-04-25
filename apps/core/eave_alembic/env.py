@@ -1,6 +1,8 @@
 import dotenv
-
 dotenv.load_dotenv()
+
+import eave.stdlib.time
+eave.stdlib.time.set_utc()
 
 import asyncio
 from logging.config import fileConfig

@@ -22,7 +22,7 @@ from alembic import command
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.enums as eave_models
 
 async def init_database() -> None:
     """

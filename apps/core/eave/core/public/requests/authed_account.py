@@ -1,6 +1,5 @@
 from http import HTTPStatus
 from typing import cast
-from apps.core.eave.core.public.requests.state import EaveRequestState
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm

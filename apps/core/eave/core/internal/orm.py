@@ -2,11 +2,12 @@ from dataclasses import dataclass
 import hashlib
 import json
 from ctypes import ArgumentError
-from datetime import datetime
+from datetime import datetime, UTC
 import time
 from typing import NotRequired, Optional, ParamSpec, Required, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 import uuid
+import eave.stdlib.core_api.enums
 
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
@@ -129,8 +130,8 @@ class SubscriptionOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    source_platform: Mapped[eave_models.SubscriptionSourcePlatform] = mapped_column()
-    source_event: Mapped[eave_models.SubscriptionSourceEvent] = mapped_column()
+    source_platform: Mapped[eave.stdlib.core_api.enums.SubscriptionSourcePlatform] = mapped_column()
+    source_event: Mapped[eave.stdlib.core_api.enums.SubscriptionSourceEvent] = mapped_column()
     source_id: Mapped[str] = mapped_column()
     document_reference_id: Mapped[Optional[UUID]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -354,7 +355,7 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    document_platform: Mapped[Optional[eave_models.DocumentPlatform]] = mapped_column(server_default=None)
+    document_platform: Mapped[Optional[eave.stdlib.core_api.enums.DocumentPlatform]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
     beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
@@ -368,17 +369,17 @@ class TeamOrm(Base):
             case None:
                 return None
 
-            case eave_models.DocumentPlatform.confluence:
+            case eave.stdlib.core_api.enums.DocumentPlatform.confluence:
                 atlassian_installation = await AtlassianInstallationOrm.one_or_exception(
                     session=session,
                     team_id=self.id,
                 )
                 return atlassian_installation.confluence_destination
 
-            case eave_models.DocumentPlatform.google_drive:
+            case eave.stdlib.core_api.enums.DocumentPlatform.google_drive:
                 raise NotImplementedError("google drive document destination is not yet implemented.")
 
-            case eave_models.DocumentPlatform.eave:
+            case eave.stdlib.core_api.enums.DocumentPlatform.eave:
                 raise NotImplementedError("eave document destination is not yet implemented.")
 
             case _:
@@ -412,7 +413,7 @@ class AccountOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    auth_provider: Mapped[eave_models.AuthProvider] = mapped_column()
+    auth_provider: Mapped[eave.stdlib.core_api.enums.AuthProvider] = mapped_column()
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
@@ -471,18 +472,21 @@ class AccountOrm(Base):
 class AuthTokenOrm(Base):
     __tablename__ = "auth_tokens"
     __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
         ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
+            ["team_id", "account_id"],
+            ["accounts.team_id", "accounts.id"],
         ),
         Index(
-            None,
+            "token_pair",
             "access_token",
             "refresh_token",
             unique=True,
         ),
     )
 
+    team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     account_id: Mapped[UUID] = mapped_column()
     access_token: Mapped[str] = mapped_column(index=True, unique=True)

@@ -13,7 +13,7 @@ import eave.stdlib.signing as eave_signing
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.jwt as eave_jwt
 import eave.stdlib.core_api.headers as eave_headers
-from . import EaveMiddleware
+from . import EaveASGIMiddleware, asgi_types
 from eave.stdlib import logger
 
 _BYPASS: Set[str] = set()
@@ -22,28 +22,34 @@ def add_bypass(path: str) -> None:
     global _BYPASS
     _BYPASS.add(path)
 
-class TeamLookupMiddleware(EaveMiddleware):
-    async def dispatch(self, request: fastapi.Request, call_next: Callable[[fastapi.Request], Awaitable[fastapi.Response]]) -> fastapi.Response:
-        global _BYPASS
-        if request.url.path not in _BYPASS:
-            team_id_header = request.headers.get(eave_headers.EAVE_TEAM_ID_HEADER)
-            if not team_id_header:
-                logger.error("team ID header missing/empty", extra=request_util.log_context(request))
-                raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST)
+class TeamLookupASGIMiddleware(EaveASGIMiddleware):
+    def __init__(self, app: asgi_types.ASGIFramework) -> None:
+        self.app = app
 
-            try:
-                team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
-                async with eave_db.get_async_session() as db_session:
-                    team = await eave_orm.TeamOrm.one_or_exception(session=db_session, team_id=team_id)
-                    request.state.eave_team = team
+    async def __call__(self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable) -> None:
+        if scope["type"] == "http" and scope["path"] not in _BYPASS:
+            await self._lookup_team(scope=scope)
 
-            except ValueError as error:
-                logger.error("invalid team ID", extra=request_util.log_context(request))
-                raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST) from error
+        await self.app(scope, receive, send)
+        return
 
-            except sqlalchemy.exc.SQLAlchemyError as error:
-                logger.error("team lookup failed", extra=request_util.log_context(request))
-                raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST) from error
+    @staticmethod
+    async def _lookup_team(scope: asgi_types.HTTPScope) -> None:
+        team_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_TEAM_ID_HEADER)
+        if not team_id_header:
+            logger.error("team ID header missing/empty", extra=request_util.log_context(scope=scope))
+            raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST)
 
-        response = await call_next(request)
-        return response
+        try:
+            team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
+            async with eave_db.get_async_session() as db_session:
+                team = await eave_orm.TeamOrm.one_or_exception(session=db_session, team_id=team_id)
+                request_util.get_eave_state(scope=scope).eave_team = team
+
+        except ValueError as error:
+            logger.error("invalid team ID", extra=request_util.log_context(scope=scope))
+            raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST) from error
+
+        except sqlalchemy.exc.SQLAlchemyError as error:
+            logger.error("team lookup failed", extra=request_util.log_context(scope=scope))
+            raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST) from error

@@ -7,3 +7,5 @@ python-dotenv
 mockito
 autoflake
 pytest
+pytest-asyncio
+pretty_errors

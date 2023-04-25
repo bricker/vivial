@@ -1,20 +1,4 @@
-export enum DocumentPlatform {
-  eave = 'eave',
-  confluence = 'confluence',
-  google_drive = 'google_drive',
-}
-
-export enum SubscriptionSourcePlatform {
-  slack = 'slack',
-  github = 'github',
-  jira = 'jira',
-}
-
-export enum SubscriptionSourceEvent {
-  slack_message = 'slack_message',
-  github_file_change = 'github_file_change',
-  jira_issue_comment = 'jira_issue_comment',
-}
+import * as enums from './enums';
 
 export type AccessRequest = {
   id: string;
@@ -30,8 +14,8 @@ export type DocumentReference = {
 }
 
 export type SubscriptionSource = {
-  platform: SubscriptionSourcePlatform;
-  event: SubscriptionSourceEvent;
+  platform: enums.SubscriptionSourcePlatform;
+  event: enums.SubscriptionSourceEvent;
   id: string;
 }
 
@@ -50,7 +34,7 @@ export type Subscription = {
 export type Team = {
   id: string;
   name: string;
-  document_platform?: DocumentPlatform;
+  document_platform?: enums.DocumentPlatform;
 }
 
 export type SlackInstallation = {

@@ -5,17 +5,16 @@ import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
-from . import state as eave_state
 from eave.stdlib import logger
 
-from . import util as eave_request_util
+from . import util as request_util
 
 
 async def get_subscription(
     input: eave_ops.GetSubscription.RequestBody, request: fastapi.Request
 ) -> eave_ops.GetSubscription.ResponseBody:
-    state = eave_state.EaveRequestState(request.state)
-    team = state.eave_team
+    eave_state = request_util.get_eave_state(request=request)
+    team = eave_state.eave_team
 
     async with eave_db.get_async_session() as db_session:
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_exception(
@@ -40,8 +39,8 @@ async def get_subscription(
 async def create_subscription(
     input: eave_ops.CreateSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> eave_ops.CreateSubscription.ResponseBody:
-    state = eave_state.EaveRequestState(request.state)
-    team = state.eave_team
+    eave_state = request_util.get_eave_state(request=request)
+    team = eave_state.eave_team
 
     async with eave_db.get_async_session() as db_session:
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(
@@ -77,8 +76,8 @@ async def create_subscription(
 async def delete_subscription(
     input: eave_ops.DeleteSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    state = eave_state.EaveRequestState(request.state)
-    team = state.eave_team
+    eave_state = request_util.get_eave_state(request=request)
+    team = eave_state.eave_team
 
     async with eave_db.get_async_session() as db_session:
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(

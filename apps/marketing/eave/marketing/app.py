@@ -11,9 +11,11 @@ from flask import Flask, redirect, render_template, request
 from werkzeug import Response
 
 from .config import app_config
+import eave.stdlib.time
 
+eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
-eave.stdlib.core_api.set_origin(eave_origins.EaveOrigin.eave_www)
+eave_core.set_origin(eave_origins.EaveOrigin.eave_www)
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
@@ -44,16 +46,16 @@ app.get("/terms")(_render_spa)
 app.get("/privacy")(_render_spa)
 
 
-# @app.route("/account", methods=["GET"])
-# async def get_current_account() -> str:
-#     response = await eave_core.client.get_current_account()
-#     return response
+@app.route("/dashboard/account", methods=["GET"])
+async def get_current_account() -> str:
+    return "OK"
+
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
     body = request.get_json()
 
-    await eave_core.client.create_access_request(
+    await eave_core.create_access_request(
         input=eave_ops.CreateAccessRequest.RequestBody(
             visitor_id=body["visitor_id"],
             email=body["email"],

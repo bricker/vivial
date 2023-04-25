@@ -1,11 +1,12 @@
-from typing import Optional
+from typing import Optional, Self
+import eave.stdlib.core_api.enums
 
 import pydantic
 
 from . import models
 
 class AccessTokenExchangeOfferInput(pydantic.BaseModel):
-    auth_provider: models.AuthProvider
+    auth_provider: eave.stdlib.core_api.enums.AuthProvider
     auth_id: str
     oauth_token: str
 
