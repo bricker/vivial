@@ -213,7 +213,7 @@ class Brain:
 
         api_document = await self.build_documentation()
         print(api_document.content)
-        return # DEBGU
+        return None # DEBGU
         upsert_document_response = await self.upsert_document(document=api_document)
 
         await self.message.send_response(
@@ -481,6 +481,7 @@ class Brain:
             summary = content
 
             while len(tokencoding.encode(summary)) > threshold:
+                print("thresh check") #DEBGU
                 new_summary = ""
                 # TODO: this alg probably has subpar/awful output since we cut off in middle of arbitrary text body
                 # split summary into digestable chunks
@@ -491,6 +492,7 @@ class Brain:
                 # there are generally 0.75 words per token, so approximating 1 character per token may
                 # be overly generous in some contexts, but it's a safe minimum
                 while len(current_chunk) == chunk_size:
+                    print("chunk check") #DEBGU
                     current_position += chunk_size
                     current_chunk = summary[current_position : current_position + chunk_size]
                     chunks.append(current_chunk)
@@ -548,6 +550,7 @@ class Brain:
 
             return summary
         else:
+            print("no rolling necessary; whole file summ at once") # DEBUG
             prompt = eave_openai.formatprompt(
                 f"""
                 Summarize the following information. Maintain the important information.
