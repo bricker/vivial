@@ -50,7 +50,7 @@ export type Subscription = {
 export type Team = {
   id: string;
   name: string;
-  document_platform: DocumentPlatform;
+  document_platform?: DocumentPlatform;
 }
 
 export type SlackInstallation = {

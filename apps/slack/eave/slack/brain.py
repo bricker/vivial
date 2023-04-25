@@ -12,6 +12,7 @@ import eave.stdlib.link_handler as link_handler
 import eave.stdlib.openai_client as eave_openai
 import tiktoken
 from eave.stdlib import logger
+from slack_bolt.async_app import AsyncBoltContext
 
 from . import document_metadata, message_prompts, slack_models
 
@@ -25,7 +26,9 @@ class Brain:
     message_context: str
     eave_team: eave_models.Team
 
-    def __init__(self, message: slack_models.SlackMessage, eave_team: eave_models.Team) -> None:
+    def __init__(
+        self, message: slack_models.SlackMessage, slack_context: AsyncBoltContext, eave_team: eave_models.Team
+    ) -> None:
         self.message = message
         self.eave_team = eave_team
 

@@ -1,6 +1,6 @@
-from dotenv import load_dotenv
+import dotenv
 
-load_dotenv()
+dotenv.load_dotenv()
 
 import eave.core.internal.config
 import eave.stdlib.config

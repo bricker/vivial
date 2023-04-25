@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-source ${EAVE_HOME}/develop/functions.bash
-python-validate-version
-python-activate-venv
+set -eu
 
-python -m alembic upgrade head
+source ${EAVE_HOME}/develop/functions.bash
+run-with-dotenv python -m alembic upgrade head

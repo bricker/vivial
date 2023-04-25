@@ -283,6 +283,10 @@ class AtlassianInstallationOrm(Base):
         return session
 
     def update_token(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+        """
+        This function can't be async because it's called by OAuthSession.
+        Therefore, We need to use a sync engine.
+        """
         with eave_db.get_sync_session() as db_session:
             self.oauth_token_encoded = json.dumps(token)
             db_session.commit()

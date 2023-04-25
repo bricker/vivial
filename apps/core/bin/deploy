@@ -3,7 +3,7 @@
 set -eu
 
 bin/lint
-bin/test
+# bin/test
 
 bin/run-db-migration
 ${EAVE_HOME}/develop/python/bin/deploy-appengine

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source $EAVE_HOME/develop/functions.bash
+
+function run-cloud-sql-proxy() {
+	if ! cmd-exists "cloud-sql-proxy"
+	then
+		statusmsg -e "cloud-sql-proxy is not installed in your PATH."
+		statusmsg -e "Visit https://cloud.google.com/sql/docs/postgres/sql-proxy for installation instructions."
+		exit 1
+	fi
+
+	local socketdir=${EAVE_HOME}/.cloudsqlproxy
+	mkdir -p $socketdir
+	cloud-sql-proxy eavefyi-dev:us-central1:eave-pg-core-dev --auto-iam-authn --unix-socket $socketdir
+}
+
+run-cloud-sql-proxy
