@@ -1,28 +1,31 @@
-from http import HTTPStatus
 import re
-from typing import Any, Awaitable, Callable, List, Set
-import uuid
-import fastapi
-import sqlalchemy.exc
-from . import EaveASGIMiddleware, asgi_types
-import eave.core.public.requests.util as request_util
+from typing import Set
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.jwt as eave_jwt
+import eave.core.public.requests.util as request_util
 import eave.stdlib.core_api.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.jwt as eave_jwt
 import eave.stdlib.util as eave_util
+import sqlalchemy.exc
+from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from eave.stdlib import logger
-from eave.core import EAVE_API_SIGNING_KEY, EAVE_API_JWT_ISSUER
+
+from . import EaveASGIMiddleware, asgi_types
 
 _BYPASS: Set[str] = set()
+
 
 def add_bypass(path: str) -> None:
     global _BYPASS
     _BYPASS.add(path)
 
+
 class AuthASGIMiddleware(EaveASGIMiddleware):
-    async def process(self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable) -> None:
+    async def process(
+        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
+    ) -> None:
         if scope["type"] == "http" and scope["path"] not in _BYPASS:
             await self._verify_auth(scope=scope)
 

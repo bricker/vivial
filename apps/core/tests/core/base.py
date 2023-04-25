@@ -1,36 +1,33 @@
-from collections import namedtuple
-from datetime import datetime, UTC
 import json
 import random
 import unittest
 import urllib.parse
-from typing import Any, Optional, Protocol, Self, Tuple, Type, TypeVar
+from datetime import datetime
+from typing import Any, Optional, Protocol, Tuple, TypeVar
 from uuid import UUID, uuid4
-import uuid
-import httpx
-
-import sqlalchemy.sql.functions as safunc
 
 import eave.core.app
-from eave.core import EAVE_API_SIGNING_KEY, EAVE_API_JWT_ISSUER
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.signing as eave_signing
-import eave.stdlib.util as eave_util
-import mockito
-from eave.core.internal.config import app_config
-from eave.core.internal.database import get_async_session, engine
-from httpx import AsyncClient, Response
-from sqlalchemy import literal_column, select, delete
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped
-import eave.stdlib.signing
-from eave.stdlib.eave_origins import EaveOrigin
-import eave.stdlib.jwt as eave_jwt
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.jwt as eave_jwt
+import eave.stdlib.signing
+import eave.stdlib.util as eave_util
+import httpx
+import mockito
+import sqlalchemy.sql.functions as safunc
+from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
+from eave.core.internal.config import app_config
+from eave.core.internal.database import engine, get_async_session
+from eave.stdlib.eave_origins import EaveOrigin
+from httpx import AsyncClient, Response
+from sqlalchemy import literal_column, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped
+
 
 class AnyStandardOrm(Protocol):
     id: Mapped[UUID]
+
 
 T = TypeVar("T")
 J = TypeVar("J", bound=AnyStandardOrm)
@@ -40,6 +37,7 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
     version="1",
     algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
 )
+
 
 async def mock_coroutine(value: T) -> T:
     return value
@@ -57,7 +55,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._testdata.clear()
 
-        engine.echo = False # shhh
+        engine.echo = False  # shhh
         self.db_session = get_async_session()
         self.db_session.begin()
         connection = await self.db_session.connection()
@@ -66,7 +64,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         await connection.run_sync(eave_orm.Base.metadata.create_all)
 
         transport = httpx.ASGITransport(
-            app=eave.core.app.app, # type:ignore
+            app=eave.core.app.app,  # type:ignore
             raise_app_exceptions=False,
         )
         self.httpclient = AsyncClient(
@@ -136,7 +134,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         method: str = "POST",
         headers: dict[str, str] = {},
         access_token: Optional[eave_jwt.JWT] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Response:
         request_args: dict[str, Any] = {}
 
@@ -172,13 +170,17 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             value: str = eave_util.b64encode(eave_util.sha256hexdigest(data))
             return value
 
-        def verify_signature_or_exception(signing_key: eave.stdlib.signing.SigningKeyDetails, message: str | bytes, signature: str) -> None:
+        def verify_signature_or_exception(
+            signing_key: eave.stdlib.signing.SigningKeyDetails, message: str | bytes, signature: str
+        ) -> None:
             assert signature == sign_b64(signing_key=signing_key, data=message)
 
         mockito.patch(eave.stdlib.signing.sign_b64, sign_b64)
         mockito.patch(eave.stdlib.signing.verify_signature_or_exception, verify_signature_or_exception)
 
-    async def mock_auth_token(self, account: eave_orm.AccountOrm) -> Tuple[eave_jwt.JWT, eave_jwt.JWT, eave_orm.AuthTokenOrm]:
+    async def mock_auth_token(
+        self, account: eave_orm.AccountOrm
+    ) -> Tuple[eave_jwt.JWT, eave_jwt.JWT, eave_orm.AuthTokenOrm]:
         before_count = await self.count(eave_orm.AuthTokenOrm)
 
         access_token = eave_jwt.create_jwt(

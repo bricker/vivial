@@ -1,19 +1,17 @@
 import logging
-from http import HTTPStatus
-from http.client import HTTPException
-from typing import Any, Optional, cast
-from uuid import UUID
 import uuid
-
-import eave.stdlib.eave_origins as eave_origins
+from http import HTTPStatus
+from typing import Any, Optional, cast
 
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_errors
 import fastapi
 import sqlalchemy.exc
 from eave.stdlib import logger
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from ..middlewares import asgi_types
+
 
 def not_found(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     logging.error("not found", exc_info=exc)
@@ -28,6 +26,7 @@ def internal_server_error(request: fastapi.Request, exc: Exception) -> fastapi.R
 def bad_request(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     logging.error("bad request", exc_info=exc)
     return fastapi.responses.Response(status_code=HTTPStatus.BAD_REQUEST)
+
 
 def unauthorized(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     logging.error("unauthorized", exc_info=exc)
@@ -48,13 +47,14 @@ def add_standard_exception_handlers(app: fastapi.FastAPI) -> None:
     app.exception_handler(eave_errors.InternalServerError)(internal_server_error)
     app.exception_handler(fastapi.exceptions.RequestValidationError)(validation_error)
 
+
 def log_context(scope: Optional[asgi_types.Scope] = None, request: Optional[fastapi.Request] = None) -> dict[str, Any]:
     """
     This function is overly cautious because it's important that there aren't failures during logging.
     """
     # Validate that exactly one parameter is supplied.
     assert xor(scope, request)
-    context: dict[str,Any] = {}
+    context: dict[str, Any] = {}
 
     try:
         if scope is None and request is not None:
@@ -78,13 +78,17 @@ def log_context(scope: Optional[asgi_types.Scope] = None, request: Optional[fast
 
     return context
 
+
 class EaveRequestState:
     eave_account: eave_orm.AccountOrm
     eave_origin: eave_origins.EaveOrigin
     eave_team: eave_orm.TeamOrm
     request_id: uuid.UUID
 
-def get_eave_state(scope: Optional[asgi_types.Scope] = None, request: Optional[fastapi.Request] = None) -> EaveRequestState:
+
+def get_eave_state(
+    scope: Optional[asgi_types.Scope] = None, request: Optional[fastapi.Request] = None
+) -> EaveRequestState:
     # Validate that exactly one parameter is supplied.
     assert xor(scope, request)
 
@@ -103,6 +107,7 @@ def get_eave_state(scope: Optional[asgi_types.Scope] = None, request: Optional[f
         scope["state"]["eave"] = new_state
         return new_state
 
+
 def get_header_value(scope: asgi_types.HTTPScope, name: str) -> str | None:
     """
     This function doesn't support multiple headers with the same name.
@@ -110,11 +115,8 @@ def get_header_value(scope: asgi_types.HTTPScope, name: str) -> str | None:
     See here for details about the scope["headers"] object:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
-    return next((
-        v.decode()
-        for [n, v] in scope["headers"]
-        if n.decode().lower() == name.lower()
-    ), None)
+    return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+
 
 def xor(a: Any, b: Any) -> bool:
     # The "not"s here are just a quick way to turn the objects into booleans, the actual value doesn't matter for xor

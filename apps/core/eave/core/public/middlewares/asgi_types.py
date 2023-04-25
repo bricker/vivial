@@ -3,7 +3,18 @@ Copied from hypercorn (MIT):
 https://github.com/pgjones/hypercorn/blob/8ae17ca68204d9718389fb3649ca0ed6ba851906/src/hypercorn/typing.py
 """
 
-from typing import Any, Awaitable, Callable, Dict, Iterable, Optional, Tuple, Union, Literal, TypedDict
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    Literal,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+)
 
 
 class ASGIVersions(TypedDict, total=False):

@@ -1,17 +1,22 @@
-from dataclasses import dataclass
-import hashlib
 import json
-from ctypes import ArgumentError
-from datetime import datetime, UTC
-import time
-from typing import NotRequired, Optional, ParamSpec, Required, Self, Tuple, TypedDict, Unpack
-from uuid import UUID
 import uuid
-import eave.stdlib.core_api.enums
+from ctypes import ArgumentError
+from datetime import datetime
+from typing import (
+    NotRequired,
+    Optional,
+    ParamSpec,
+    Required,
+    Self,
+    Tuple,
+    TypedDict,
+    Unpack,
+)
+from uuid import UUID
 
+import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.jwt as eave_jwt
 import oauthlib
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import (
@@ -20,20 +25,18 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Select,
     false,
-    null,
     func,
+    null,
     select,
     text,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-import eave.stdlib.eave_origins as eave_origins
 
 from . import database as eave_db
 from .destinations import abstract as abstract_destination
 from .destinations import confluence as confluence_destination
 from .oauth import atlassian as atlassian_oauth
-from .oauth import models as oauth_models
 
 UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
 
@@ -329,6 +332,7 @@ class AtlassianInstallationOrm(Base):
             self.oauth_token_encoded = json.dumps(token)
             db_session.commit()
 
+
 class GithubInstallationOrm(Base):
     __tablename__ = "github_installations"
     __table_args__ = (
@@ -355,7 +359,9 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    document_platform: Mapped[Optional[eave.stdlib.core_api.enums.DocumentPlatform]] = mapped_column(server_default=None)
+    document_platform: Mapped[Optional[eave.stdlib.core_api.enums.DocumentPlatform]] = mapped_column(
+        server_default=None
+    )
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
     beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
@@ -390,6 +396,7 @@ class TeamOrm(Base):
         lookup = select(cls).where(cls.id == team_id).limit(1)
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
+
 
 class AccountOrm(Base):
     __tablename__ = "accounts"
@@ -441,18 +448,13 @@ class AccountOrm(Base):
 
         if exchange_offer is not None:
             lookup = (
-                lookup
-                .where(cls.auth_provider == exchange_offer.auth_provider)
+                lookup.where(cls.auth_provider == exchange_offer.auth_provider)
                 .where(cls.auth_id == exchange_offer.auth_id)
                 .where(cls.oauth_token == exchange_offer.oauth_token)
             )
 
         if auth_info is not None:
-            lookup = (
-                lookup
-                .where(cls.auth_provider == auth_info.provider)
-                .where(cls.auth_id == auth_info.id)
-            )
+            lookup = lookup.where(cls.auth_provider == auth_info.provider).where(cls.auth_id == auth_info.id)
 
         assert lookup.whereclause is not None
         return lookup
@@ -468,6 +470,7 @@ class AccountOrm(Base):
         lookup = cls._build_select(**kwargs)
         result = await session.scalar(lookup)
         return result
+
 
 class AuthTokenOrm(Base):
     __tablename__ = "auth_tokens"
@@ -526,6 +529,7 @@ class AuthTokenOrm(Base):
     @property
     def expired(self) -> bool:
         return datetime.utcnow() >= self.expires
+
 
 # class EmbeddingsOrm(Base):
 #     __tablename__ = "embeddings"

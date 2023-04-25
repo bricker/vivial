@@ -2,9 +2,10 @@ import os
 import sys
 from functools import cached_property
 
-import google_crc32c
 from google.cloud import secretmanager
+
 from . import checksum
+
 
 class EaveConfig:
     @property

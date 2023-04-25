@@ -2,8 +2,8 @@ import asyncio
 import enum
 import re
 from typing import Any, AsyncGenerator, List, Optional
-import eave.stdlib.core_api.enums
 
+import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 import slack_sdk.errors

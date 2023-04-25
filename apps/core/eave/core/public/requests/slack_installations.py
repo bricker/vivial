@@ -3,9 +3,6 @@ import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as models
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
-from eave.stdlib import logger
-
-from . import util as eave_request_util
 
 
 async def query(

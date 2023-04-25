@@ -1,15 +1,19 @@
-from dataclasses import dataclass
 from datetime import datetime
-import json
-from typing import List, Optional
-from eave.stdlib.core_api.enums import AuthProvider, DocumentPlatform, SubscriptionSourceEvent, SubscriptionSourcePlatform
+from typing import Optional
 
 import pydantic
-from .. import util as eave_util
+from eave.stdlib.core_api.enums import (
+    AuthProvider,
+    DocumentPlatform,
+    SubscriptionSourceEvent,
+    SubscriptionSourcePlatform,
+)
+
 
 class AuthInfo(pydantic.BaseModel):
     provider: AuthProvider
     id: str
+
 
 class AccessRequest(pydantic.BaseModel):
     id: pydantic.UUID4
@@ -53,8 +57,10 @@ class Team(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class Account(pydantic.BaseModel):
     auth_provider: AuthProvider
+
 
 class SlackInstallation(pydantic.BaseModel):
     id: pydantic.UUID4
@@ -68,6 +74,7 @@ class SlackInstallation(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class AtlassianInstallation(pydantic.BaseModel):
     id: pydantic.UUID4
     team_id: pydantic.UUID4
@@ -79,6 +86,7 @@ class AtlassianInstallation(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class GithubInstallation(pydantic.BaseModel):
     id: pydantic.UUID4
     team_id: pydantic.UUID4
@@ -87,4 +95,3 @@ class GithubInstallation(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
-

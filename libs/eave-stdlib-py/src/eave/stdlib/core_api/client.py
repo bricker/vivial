@@ -1,30 +1,33 @@
+import urllib.parse
+import uuid
 from dataclasses import dataclass
 from http import HTTPStatus
-import urllib.parse
 from typing import Optional
 from uuid import UUID
-import uuid
 
 import aiohttp
-from eave.stdlib import eave_origins
 import pydantic
+from eave.stdlib import eave_origins
 
+from .. import exceptions as eave_exceptions
 from .. import logger, signing
 from ..config import shared_config
-from . import operations
 from . import headers as eave_headers
-from .. import exceptions as eave_exceptions
+from . import operations
 
 _ORIGIN: eave_origins.EaveOrigin
+
 
 def set_origin(origin: eave_origins.EaveOrigin) -> None:
     global _ORIGIN
     _ORIGIN = origin
 
+
 @dataclass
 class AuthTokenPair:
     access_token: str
     refresh_token: str
+
 
 async def status() -> operations.Status.ResponseBody:
     async with aiohttp.ClientSession() as session:
@@ -128,6 +131,7 @@ async def get_slack_installation(
     response_json = await response.json()
     return operations.GetSlackInstallation.ResponseBody(**response_json)
 
+
 async def request_access_token(
     input: operations.RequestAccessToken.RequestBody,
 ) -> operations.RequestAccessToken.ResponseBody:
@@ -142,8 +146,9 @@ async def request_access_token(
     response_json = await response.json()
     return operations.RequestAccessToken.ResponseBody(**response_json)
 
+
 async def refresh_access_token(
-        input: operations.RefreshAccessToken.RequestBody,
+    input: operations.RefreshAccessToken.RequestBody,
 ) -> operations.RefreshAccessToken.ResponseBody:
     """
     POST /auth/token/refresh
@@ -157,14 +162,14 @@ async def refresh_access_token(
     response_json = await response.json()
     return operations.RefreshAccessToken.ResponseBody(**response_json)
 
+
 async def _make_request(
     path: str,
     input: pydantic.BaseModel,
     method: str = "POST",
     access_token: Optional[str] = None,
-    team_id: Optional[str] = None
+    team_id: Optional[str] = None,
 ) -> aiohttp.ClientResponse:
-
     url = _makeurl(path)
     payload = input.json()
     request_id = str(uuid.uuid4())
@@ -200,7 +205,10 @@ async def _make_request(
             data=payload,
         )
 
-    logger.debug(f"Eave Core API response", extra={"request_id": request_id, "method": method, "url": url, "status": response.status})
+    logger.debug(
+        f"Eave Core API response",
+        extra={"request_id": request_id, "method": method, "url": url, "status": response.status},
+    )
 
     try:
         response.raise_for_status()
@@ -218,6 +226,7 @@ async def _make_request(
                 raise eave_exceptions.HTTPException(status_code=e.status) from e
 
     return response
+
 
 def _makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)

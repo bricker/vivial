@@ -1,22 +1,25 @@
-from http import HTTPStatus
-from typing import Any, Awaitable, Callable, List, Set
-import fastapi
-from starlette.middleware.base import BaseHTTPMiddleware
+from typing import Set
+
 import eave.core.public.requests.util as request_util
-import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.core_api.headers as eave_headers
+import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_exceptions
-from . import EaveASGIMiddleware, asgi_types
 from eave.stdlib import logger
 
+from . import EaveASGIMiddleware, asgi_types
+
 _BYPASS: Set[str] = set()
+
 
 def add_bypass(path: str) -> None:
     global _BYPASS
     _BYPASS.add(path)
 
+
 class OriginASGIMiddleware(EaveASGIMiddleware):
-    async def process(self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable) -> None:
+    async def process(
+        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
+    ) -> None:
         if scope["type"] == "http" and scope["path"] not in _BYPASS:
             self._process_origin(scope=scope)
 

@@ -1,21 +1,25 @@
-from http import HTTPStatus
 from typing import Set, cast
-import fastapi
+
 import eave.core.public.requests.util as request_util
-import eave.stdlib.signing as eave_signing
 import eave.stdlib.core_api.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
-from . import EaveASGIMiddleware, asgi_types
+import eave.stdlib.signing as eave_signing
 from eave.stdlib import logger
 
+from . import EaveASGIMiddleware, asgi_types
+
 _BYPASS: Set[str] = set()
+
 
 def add_bypass(path: str) -> None:
     global _BYPASS
     _BYPASS.add(path)
 
+
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
-    async def process(self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable) -> None:
+    async def process(
+        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
+    ) -> None:
         if scope["type"] != "http" or scope["path"] in _BYPASS:
             await self.app(scope, receive, send)
             return

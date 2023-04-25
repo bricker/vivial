@@ -1,10 +1,10 @@
 import asyncio
 import logging
 
-import eave.stdlib.logging
-import eave.stdlib.time
 import eave.stdlib.core_api.client
 import eave.stdlib.eave_origins as eave_origins
+import eave.stdlib.logging
+import eave.stdlib.time
 from eave.slack.config import app_config
 from eave.slack.slack_app import app as slack_app
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler

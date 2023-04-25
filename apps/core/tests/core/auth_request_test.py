@@ -1,17 +1,13 @@
-import mockito
-import pytest
+import time
 from datetime import datetime
 from http import HTTPStatus
-import time
-from uuid import uuid4
-
-from sqlalchemy import select
 
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.enums as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.util as eave_util
-import eave.stdlib.signing as eave_signing
+import pytest
+from sqlalchemy import select
 
 from .base import BaseTestCase
 
@@ -32,7 +28,7 @@ class TestAuthRequests(BaseTestCase):
                     "auth_id": account.auth_id,
                     "oauth_token": account.oauth_token,
                 }
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -52,7 +48,7 @@ class TestAuthRequests(BaseTestCase):
         assert token.iss == "eave_api"
         assert token.aud == "eave_www"
         assert token.invalidated is None
-        assert token.expires.timestamp() == pytest.approx(time.time() + (60*10), abs=1)
+        assert token.expires.timestamp() == pytest.approx(time.time() + (60 * 10), abs=1)
         assert token.expired is False
 
     async def test_request_access_token_with_invalid_offer(self) -> None:
@@ -68,7 +64,7 @@ class TestAuthRequests(BaseTestCase):
                     "auth_id": self.anystring("auth_id_invalid"),
                     "oauth_token": self.anystring("oauth_token_invalid"),
                 }
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND
@@ -92,7 +88,7 @@ class TestAuthRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 1 # The old one gets immediately deleted, so only one
+        assert (await self.count(eave_orm.AuthTokenOrm)) == 1  # The old one gets immediately deleted, so only one
         assert (await self.reload(old_auth_token_orm)) is None
 
         response_obj = eave_ops.RequestAccessToken.ResponseBody(**response.json())
@@ -108,16 +104,15 @@ class TestAuthRequests(BaseTestCase):
         )
 
         assert token is not None
-        assert token # for type hints
+        assert token  # for type hints
         assert token.account_id == account.id
         assert token.team_id == account.team_id
         assert token.iss == "eave_api"
         assert token.aud == "eave_www"
         assert token.invalidated is None
         # assert that the token expiration is approximately 10 minutes in the future (accounting for test latency)
-        assert token.expires.timestamp() == pytest.approx(time.time() + (60*10), abs=1)
+        assert token.expires.timestamp() == pytest.approx(time.time() + (60 * 10), abs=1)
         assert token.expired is False
-
 
     async def test_refresh_access_token_with_not_found_tokens(self) -> None:
         account = await self.make_account()
@@ -221,4 +216,3 @@ class TestAuthRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
-

@@ -67,17 +67,20 @@ def sha256hexdigest(data: str | bytes) -> str:
     """
     return hashlib.sha256(ensure_bytes(data)).hexdigest()
 
+
 def b64encode(data: str | bytes) -> str:
     """
     base64-encode the data (utf-8 string or bytes) and return an ASCII string
     """
     return base64.b64encode(ensure_bytes(data)).decode()
 
+
 def b64decode(data: str | bytes) -> str:
     """
     base64-decode the data (ASCII string or bytes) and return a utf8 string
     """
     return base64.b64decode(ensure_bytes(data)).decode()
+
 
 def ensure_bytes(data: str | bytes) -> bytes:
     """
@@ -87,6 +90,7 @@ def ensure_bytes(data: str | bytes) -> bytes:
         return data.encode()
     else:
         return data
+
 
 tasks = set[asyncio.Task[Any]]()
 

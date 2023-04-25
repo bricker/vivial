@@ -1,16 +1,14 @@
-import base64
-from dataclasses import dataclass
-from datetime import datetime
-import hashlib
-import hmac
 import enum
 import json
 import time
-from typing import Optional, Self
 import uuid
-from . import signing
-from . import exceptions
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional, Self
+
+from . import exceptions, signing
 from . import util as eave_util
+
 
 @dataclass
 class JWTRegisteredClaims:
@@ -39,9 +37,11 @@ class JWTRegisteredClaims:
     def to_b64(self) -> str:
         return eave_util.b64encode(json.dumps(self.__dict__))
 
+
 class JWTPurpose(enum.Enum):
     access = "access"
     refresh = "refresh"
+
 
 @dataclass
 class JWTHeader:
@@ -57,6 +57,7 @@ class JWTHeader:
 
     def to_b64(self) -> str:
         return eave_util.b64encode(json.dumps(self.__dict__))
+
 
 @dataclass
 class JWT:
@@ -85,22 +86,23 @@ class JWT:
     def __str__(self) -> str:
         return f"{self.message}.{self.signature}"
 
+
 def create_jwt(
-        signing_key: signing.SigningKeyDetails,
-        purpose: JWTPurpose,
-        iss: str,
-        aud: str,
-        sub: str,
-        iat: Optional[str] = None,
-        nbf: Optional[str] = None,
-        jti: Optional[str] = None,
-        exp_minutes: int = 10
+    signing_key: signing.SigningKeyDetails,
+    purpose: JWTPurpose,
+    iss: str,
+    aud: str,
+    sub: str,
+    iat: Optional[str] = None,
+    nbf: Optional[str] = None,
+    jti: Optional[str] = None,
+    exp_minutes: int = 10,
 ) -> JWT:
     now = time.time()
     exp = str(now + (60 * exp_minutes))
 
     if iat is None:
-        iat = str(now - 60) # allow for 60s of clock drift
+        iat = str(now - 60)  # allow for 60s of clock drift
     if nbf is None:
         nbf = iat
     if jti is None:
@@ -127,16 +129,17 @@ def create_jwt(
     jwt.signature = signature_b64
     return jwt
 
+
 def validate_jwt_or_exception(
-        jwt_encoded: str,
-        expected_issuer: str,
-        expected_audience: str,
-        expected_subject: str,
-        expected_expiry: datetime,
-        expected_jti: str,
-        signing_key: signing.SigningKeyDetails,
-        expired_ok: bool = False,
-    ) -> None:
+    jwt_encoded: str,
+    expected_issuer: str,
+    expected_audience: str,
+    expected_subject: str,
+    expected_expiry: datetime,
+    expected_jti: str,
+    signing_key: signing.SigningKeyDetails,
+    expired_ok: bool = False,
+) -> None:
     jwt = JWT.from_str(jwt_encoded=jwt_encoded)
     signing.verify_signature_or_exception(
         signing_key=signing_key,
@@ -156,18 +159,21 @@ def validate_jwt_or_exception(
         and jwt.payload.jti == expected_jti
         and iat < now
         and (expired_ok or exp > now)
-        and (expired_ok or exp < (now + (60*10)))
-        and round(exp) == round(expected_expiry.timestamp()) # conversion between datetime and float is inexact wrt decimal precision. For our needs, second precision is adequate.
+        and (expired_ok or exp < (now + (60 * 10)))
+        and round(exp)
+        == round(
+            expected_expiry.timestamp()
+        )  # conversion between datetime and float is inexact wrt decimal precision. For our needs, second precision is adequate.
         and now > nbf
     ):
         raise exceptions.InvalidJWTError()
 
-def validate_jwt_pair_or_exception(
-        jwt_encoded_a: str,
-        jwt_encoded_b: str,
-        signing_key: signing.SigningKeyDetails,
-    ) -> None:
 
+def validate_jwt_pair_or_exception(
+    jwt_encoded_a: str,
+    jwt_encoded_b: str,
+    signing_key: signing.SigningKeyDetails,
+) -> None:
     assert jwt_encoded_a != jwt_encoded_b
 
     jwt_a = JWT.from_str(jwt_encoded=jwt_encoded_a)

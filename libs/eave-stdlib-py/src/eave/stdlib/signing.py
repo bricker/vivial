@@ -1,15 +1,15 @@
-import base64
-from dataclasses import dataclass
 import enum
 import hashlib
-from eave.stdlib.eave_origins import EaveOrigin
-from google.cloud import kms
+from dataclasses import dataclass
+
 import cryptography.exceptions
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, utils, ec, rsa
-
+from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from eave.stdlib.config import shared_config
+from eave.stdlib.eave_origins import EaveOrigin
+from google.cloud import kms
+
 from . import checksum
 from . import exceptions as eave_exceptions
 from . import util as eave_util
@@ -17,15 +17,18 @@ from . import util as eave_util
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"
 
+
 class SigningAlgorithm(enum.Enum):
     RS256 = "RS256"
     ES256 = "ES256"
+
 
 @dataclass
 class SigningKeyDetails:
     id: str
     version: str
     algorithm: SigningAlgorithm
+
 
 _SIGNING_KEYS = {
     EaveOrigin.eave_api.value: SigningKeyDetails(
@@ -60,8 +63,10 @@ _SIGNING_KEYS = {
     ),
 }
 
+
 def get_key(signer: str) -> SigningKeyDetails:
     return _SIGNING_KEYS[signer]
+
 
 def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
     """
@@ -82,11 +87,7 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
     digest_crc32c = checksum.generate_checksum(data=digest)
 
     sign_response = kms_client.asymmetric_sign(
-        request={
-            "name": key_version_name,
-            "digest": {"sha256": digest},
-            "digest_crc32c": digest_crc32c
-        }
+        request={"name": key_version_name, "digest": {"sha256": digest}, "digest_crc32c": digest_crc32c}
     )
 
     if sign_response.verified_digest_crc32c is False:
@@ -94,12 +95,10 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
     if sign_response.name != key_version_name:
         raise eave_exceptions.InvalidChecksumError()
 
-    checksum.validate_checksum_or_exception(
-        data=sign_response.signature,
-        checksum=sign_response.signature_crc32c.value
-    )
+    checksum.validate_checksum_or_exception(data=sign_response.signature, checksum=sign_response.signature_crc32c.value)
 
     return eave_util.b64encode(sign_response.signature)
+
 
 def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes) -> None:
     message_bytes = eave_util.ensure_bytes(message)
@@ -119,8 +118,7 @@ def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str |
 
     public_key_from_kms = kms_client.get_public_key(request={"name": key_version_name})
     public_key_from_pem = serialization.load_pem_public_key(
-        data=public_key_from_kms.pem.encode(),
-        backend=default_backend()
+        data=public_key_from_kms.pem.encode(), backend=default_backend()
     )
     sha256 = hashes.SHA256()
 

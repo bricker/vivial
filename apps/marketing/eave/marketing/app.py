@@ -5,13 +5,13 @@ import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.logging
 import eave.stdlib.eave_origins as eave_origins
+import eave.stdlib.logging
+import eave.stdlib.time
 from flask import Flask, redirect, render_template, request
 from werkzeug import Response
 
 from .config import app_config
-import eave.stdlib.time
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()

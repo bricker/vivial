@@ -1,8 +1,7 @@
 from uuid import uuid4
 
-import eave.stdlib.core_api.enums
-
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 
 from .base import BaseTestCase
@@ -10,7 +9,9 @@ from .base import BaseTestCase
 
 class TestSubscritionOrm(BaseTestCase):
     async def test_find_one(self) -> None:
-        team = eave_orm.TeamOrm(name="Test Org", document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence)
+        team = eave_orm.TeamOrm(
+            name="Test Org", document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
+        )
         self.db_session.add(team)
         await self.db_session.commit()
 

@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional, cast
 
-import eave.stdlib.core_api.enums
-
 import eave.core.internal.database as eave_db
+import eave.core.internal.oauth.models as oauth_models
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.enums
+import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 import fastapi
 import google.oauth2.credentials
@@ -13,8 +14,6 @@ import google_auth_oauthlib.flow
 import pydantic
 from eave.core.internal.config import app_config
 from eave.core.internal.oauth import cookies as oauth_cookies
-import eave.stdlib.core_api.models as eave_models
-import eave.core.internal.oauth.models as oauth_models
 from google.auth.transport import requests
 
 
@@ -40,7 +39,9 @@ class GoogleOAuthResponseBody(pydantic.BaseModel):
 async def google_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    expected_oauth_state = oauth_cookies.get_state_cookie(request=request, provider=eave.stdlib.core_api.enums.AuthProvider.google)
+    expected_oauth_state = oauth_cookies.get_state_cookie(
+        request=request, provider=eave.stdlib.core_api.enums.AuthProvider.google
+    )
     assert state == expected_oauth_state
 
     flow = build_flow(state=state)

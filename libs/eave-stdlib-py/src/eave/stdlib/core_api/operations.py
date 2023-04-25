@@ -1,14 +1,16 @@
-from typing import Optional, Self
-import eave.stdlib.core_api.enums
+from typing import Optional
 
+import eave.stdlib.core_api.enums
 import pydantic
 
 from . import models
+
 
 class AccessTokenExchangeOfferInput(pydantic.BaseModel):
     auth_provider: eave.stdlib.core_api.enums.AuthProvider
     auth_id: str
     oauth_token: str
+
 
 class DocumentInput(pydantic.BaseModel):
     title: str
@@ -31,8 +33,10 @@ class TeamInput(pydantic.BaseModel):
 class SlackInstallationInput(pydantic.BaseModel):
     slack_team_id: str
 
+
 class GithubInstallationInput(pydantic.BaseModel):
     github_install_id: str
+
 
 class AtlassianInstallationInput(pydantic.BaseModel):
     atlassian_cloud_id: str
@@ -40,6 +44,7 @@ class AtlassianInstallationInput(pydantic.BaseModel):
 
 class Endpoint:
     pass
+
 
 class Status(Endpoint):
     class ResponseBody(pydantic.BaseModel):
@@ -100,6 +105,7 @@ class GetSlackInstallation(Endpoint):
         team: models.Team
         slack_installation: models.SlackInstallation
 
+
 class GetGithubInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
         github_installation: GithubInstallationInput
@@ -107,6 +113,7 @@ class GetGithubInstallation(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
         github_installation: models.GithubInstallation
+
 
 class GetAtlassianInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
@@ -116,14 +123,15 @@ class GetAtlassianInstallation(Endpoint):
         team: models.Team
         atlassian_installation: models.AtlassianInstallation
 
-class RequestAccessToken(Endpoint):
 
+class RequestAccessToken(Endpoint):
     class RequestBody(pydantic.BaseModel):
         exchange_offer: AccessTokenExchangeOfferInput
 
     class ResponseBody(pydantic.BaseModel):
         access_token: str
         refresh_token: str
+
 
 class RefreshAccessToken(Endpoint):
     class RequestBody(pydantic.BaseModel):
@@ -133,6 +141,7 @@ class RefreshAccessToken(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         access_token: str
         refresh_token: str
+
 
 class GetAccount(Endpoint):
     class ResponseBody(pydantic.BaseModel):

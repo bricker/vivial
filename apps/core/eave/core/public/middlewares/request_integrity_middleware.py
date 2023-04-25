@@ -1,13 +1,13 @@
-from http import HTTPStatus
-from typing import Any
-import fastapi
 import uuid
-from . import asgi_types, EaveASGIMiddleware
-from ..requests import util as request_util
+
 import eave.stdlib.core_api.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
 
+from ..requests import util as request_util
+from . import EaveASGIMiddleware, asgi_types
+
 ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
+
 
 class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
     """
@@ -16,7 +16,10 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
     - the ASGI scope["state"] property is set.
     - a request_id is set on the request
     """
-    async def process(self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable) -> None:
+
+    async def process(
+        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
+    ) -> None:
         if scope["type"] not in ALLOWED_ASGI_PROTOCOLS:
             raise eave_exceptions.BadRequestError(f"Unsupported protocol: {scope['type']}")
 

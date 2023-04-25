@@ -1,14 +1,13 @@
 from typing import Optional
 
-import eave.stdlib.core_api.enums
-
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.enums
+import eave.stdlib.core_api.models as eave_models
 import fastapi
 import oauthlib.common
 from eave.core.internal.config import app_config
 from eave.core.internal.oauth import cookies as oauth_cookies
-import eave.stdlib.core_api.models as eave_models
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
@@ -109,7 +108,9 @@ async def slack_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
     # verify request not tampered
-    cookie_state = oauth_cookies.get_state_cookie(request=request, provider=eave.stdlib.core_api.enums.AuthProvider.slack)
+    cookie_state = oauth_cookies.get_state_cookie(
+        request=request, provider=eave.stdlib.core_api.enums.AuthProvider.slack
+    )
     assert state == cookie_state
 
     client = AsyncWebClient()
