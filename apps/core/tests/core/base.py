@@ -137,7 +137,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             await db_session.delete(obj)
             await db_session.commit()
 
-    async def count(self, cls: AnyStandardOrm) -> int:
+    async def count(self, cls: Any) -> int:
         query = select(safunc.count(cls.id))
         async with eave_db.get_async_session() as db_session:
             count: int | None = await db_session.scalar(query)
