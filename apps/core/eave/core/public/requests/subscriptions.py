@@ -5,20 +5,17 @@ import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
-from eave.stdlib import logger
 
-from . import util as eave_request_util
+from . import util as request_util
 
 
 async def get_subscription(
     input: eave_ops.GetSubscription.RequestBody, request: fastapi.Request
 ) -> eave_ops.GetSubscription.ResponseBody:
-    logger.info("subscriptions.get_subscription")
-    await eave_request_util.validate_signature_or_fail(request=request)
+    eave_state = request_util.get_eave_state(request=request)
+    team = eave_state.eave_team
 
     async with eave_db.get_async_session() as db_session:
-        team = await eave_request_util.get_team_or_fail(session=db_session, request=request)
-
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_exception(
             team_id=team.id,
             source=input.subscription.source,
@@ -41,12 +38,10 @@ async def get_subscription(
 async def create_subscription(
     input: eave_ops.CreateSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> eave_ops.CreateSubscription.ResponseBody:
-    logger.debug("subscriptions.create_subscription")
-    await eave_request_util.validate_signature_or_fail(request=request)
+    eave_state = request_util.get_eave_state(request=request)
+    team = eave_state.eave_team
 
     async with eave_db.get_async_session() as db_session:
-        team = await eave_request_util.get_team_or_fail(session=db_session, request=request)
-
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(
             team_id=team.id, source=input.subscription.source, session=db_session
         )
@@ -80,12 +75,10 @@ async def create_subscription(
 async def delete_subscription(
     input: eave_ops.DeleteSubscription.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    logger.debug("subscriptions.delete_subscription")
-    await eave_request_util.validate_signature_or_fail(request=request)
+    eave_state = request_util.get_eave_state(request=request)
+    team = eave_state.eave_team
 
     async with eave_db.get_async_session() as db_session:
-        team = await eave_request_util.get_team_or_fail(session=db_session, request=request)
-
         subscription_orm = await eave_orm.SubscriptionOrm.one_or_none(
             team_id=team.id, source=input.subscription.source, session=db_session
         )

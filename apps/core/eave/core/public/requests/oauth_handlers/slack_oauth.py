@@ -2,11 +2,12 @@ from typing import Optional
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.enums
+import eave.stdlib.core_api.models as eave_models
 import fastapi
 import oauthlib.common
 from eave.core.internal.config import app_config
 from eave.core.internal.oauth import cookies as oauth_cookies
-from eave.core.internal.oauth import models as oauth_models
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
@@ -98,7 +99,7 @@ async def slack_oauth_authorize() -> fastapi.Response:
     oauth_cookies.save_state_cookie(
         response=response,
         state=state,
-        provider=oauth_models.AuthProvider.slack,
+        provider=eave.stdlib.core_api.enums.AuthProvider.slack,
     )
     return response
 
@@ -107,7 +108,9 @@ async def slack_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
     # verify request not tampered
-    cookie_state = oauth_cookies.get_state_cookie(request=request, provider=oauth_models.AuthProvider.slack)
+    cookie_state = oauth_cookies.get_state_cookie(
+        request=request, provider=eave.stdlib.core_api.enums.AuthProvider.slack
+    )
     assert state == cookie_state
 
     client = AsyncWebClient()
@@ -138,8 +141,10 @@ async def slack_oauth_callback(
         # https://github.com/eave-fyi/eave-monorepo/pull/3#discussion_r1160880115
         account_orm = await eave_orm.AccountOrm.one_or_none(
             session=db_session,
-            auth_provider=oauth_models.AuthProvider.slack,
-            auth_id=slack_user_id,
+            auth_info=eave_models.AuthInfo(
+                provider=eave.stdlib.core_api.enums.AuthProvider.slack,
+                id=slack_user_id,
+            ),
         )
 
         if account_orm is None:
@@ -155,7 +160,7 @@ async def slack_oauth_callback(
 
             account_orm = eave_orm.AccountOrm(
                 team_id=team.id,
-                auth_provider=oauth_models.AuthProvider.slack,
+                auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
                 auth_id=slack_user_id,
                 oauth_token=oauth_token,
             )
@@ -190,5 +195,5 @@ async def slack_oauth_callback(
 
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
     # clear state cookie now that it's been verified
-    oauth_cookies.delete_state_cookie(response=response, provider=oauth_models.AuthProvider.slack)
+    oauth_cookies.delete_state_cookie(response=response, provider=eave.stdlib.core_api.enums.AuthProvider.slack)
     return response

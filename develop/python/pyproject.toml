@@ -71,7 +71,8 @@ quiet = true
 pythonpath = [
   "../../apps/core",
   "../../apps/slack",
-  "../../libs/eave-stdlib-py",
+  "../../apps/marketing",
+  "../../libs/eave-stdlib-py"
 ]
 norecursedirs = [
   ".git",

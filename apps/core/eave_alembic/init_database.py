@@ -12,14 +12,15 @@ EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 # assert EAVE_DB_NAME is not None
 # assert EAVE_DB_NAME != "eave"
 
-import socket
 import asyncio
-import sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+import socket
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.enums as eave_models
+import sqlalchemy
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
 
 
 async def init_database() -> None:

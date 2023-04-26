@@ -1,19 +1,11 @@
 from http import HTTPStatus
 
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
-
 from .base import BaseTestCase
 
 
 class TestAtlassianOAuth(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-
-        team = eave_orm.TeamOrm(
-            name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence
-        )
-        self._team = await self.save(team)
 
     async def test_atlassian_authorize_endpoint(self) -> None:
         response = await self.make_request(
@@ -23,11 +15,11 @@ class TestAtlassianOAuth(BaseTestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, HTTPStatus.TEMPORARY_REDIRECT)
-        self.assertTrue(response.is_redirect)
-        self.assertTrue(response.has_redirect_location)
-        self.assertTrue(response.headers["location"], "https://auth.atlassian.com/authorize")
-        self.assertIsNotNone(response.cookies.get("eave-oauth-state-atlassian"))
+        assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
+        assert response.is_redirect
+        assert response.has_redirect_location
+        self.assertRegex(response.headers["location"], r"https://auth\.atlassian\.com/authorize")
+        assert response.cookies.get("eave-oauth-state-atlassian") is not None
 
     # async def test_atlassian_callback_endpoint(self) -> None:
     #     mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources).thenReturn(

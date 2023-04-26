@@ -181,6 +181,9 @@ then
 
 		for dir in $(ls -d ./apps/* ./libs/*)
 		do
+			if test "$dir" = "__pycache__"; then
+				continue
+			fi
 			statusmsg -i "$dir"
 			run-in-path "$dir" "$cmd"
 			echo -e "\n"

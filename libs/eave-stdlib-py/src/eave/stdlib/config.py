@@ -2,8 +2,9 @@ import os
 import sys
 from functools import cached_property
 
-import google_crc32c
 from google.cloud import secretmanager
+
+from . import checksum
 
 
 class EaveConfig:
@@ -40,11 +41,6 @@ class EaveConfig:
     @property
     def app_version(self) -> str:
         return os.getenv("GAE_VERSION", "unknown")
-
-    @cached_property
-    def eave_signing_secret(self) -> str:
-        value = self.get_secret("EAVE_SIGNING_SECRET")
-        return value
 
     @cached_property
     def eave_openai_api_key(self) -> str:
@@ -86,12 +82,9 @@ class EaveConfig:
         fqname = f"projects/{self.google_cloud_project}/secrets/{name}/versions/latest"
         response = secrets_client.access_secret_version(request={"name": fqname})
         data = response.payload.data
+        data_crc32c = response.payload.data_crc32c
 
-        crc32c = google_crc32c.Checksum()
-        crc32c.update(data)
-        if response.payload.data_crc32c != int(crc32c.hexdigest(), 16):
-            raise Exception("Data corruption detected.")
-
+        checksum.validate_checksum_or_exception(data=data, checksum=data_crc32c)
         return data.decode("UTF-8")
 
 

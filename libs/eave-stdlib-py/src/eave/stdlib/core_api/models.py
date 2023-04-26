@@ -1,26 +1,18 @@
-import enum
 from datetime import datetime
 from typing import Optional
 
 import pydantic
+from eave.stdlib.core_api.enums import (
+    AuthProvider,
+    DocumentPlatform,
+    SubscriptionSourceEvent,
+    SubscriptionSourcePlatform,
+)
 
 
-class DocumentPlatform(str, enum.Enum):
-    eave = "eave"
-    confluence = "confluence"
-    google_drive = "google_drive"
-
-
-class SubscriptionSourcePlatform(str, enum.Enum):
-    slack = "slack"
-    github = "github"
-    jira = "jira"
-
-
-class SubscriptionSourceEvent(str, enum.Enum):
-    slack_message = "slack_message"
-    github_file_change = "github_file_change"
-    jira_issue_comment = "jira_issue_comment"
+class AuthInfo(pydantic.BaseModel):
+    provider: AuthProvider
+    id: str
 
 
 # TODO: copy to ts stdlib
@@ -76,6 +68,10 @@ class Team(pydantic.BaseModel):
         orm_mode = True
 
 
+class Account(pydantic.BaseModel):
+    auth_provider: AuthProvider
+
+
 class SlackInstallation(pydantic.BaseModel):
     id: pydantic.UUID4
     team_id: pydantic.UUID4
@@ -84,6 +80,28 @@ class SlackInstallation(pydantic.BaseModel):
     bot_token: str
     bot_id: str
     bot_user_id: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+class AtlassianInstallation(pydantic.BaseModel):
+    id: pydantic.UUID4
+    team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
+    atlassian_cloud_id: str
+    confluence_space: str
+    oauth_token_encoded: str
+
+    class Config:
+        orm_mode = True
+
+
+class GithubInstallation(pydantic.BaseModel):
+    id: pydantic.UUID4
+    team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
+    github_install_id: str
 
     class Config:
         orm_mode = True
