@@ -1,11 +1,8 @@
-import uuid
+import eave.stdlib.exceptions as eave_exceptions
 import fastapi
 
-import eave.stdlib.core_api.headers as eave_headers
-import eave.stdlib.exceptions as eave_exceptions
-
-from ..requests import util as request_util
 from . import EaveASGIMiddleware, asgi_types
+
 
 class ExceptionHandlerASGIMiddleware(EaveASGIMiddleware):
     """

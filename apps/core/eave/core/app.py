@@ -7,8 +7,8 @@ import fastapi
 from starlette.middleware import Middleware
 
 from .public.middlewares import (
-    exception_handler_middleware,
     auth_middleware,
+    exception_handler_middleware,
     origin_middleware,
     request_integrity_middleware,
     signature_verification_middleware,

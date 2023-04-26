@@ -5,6 +5,7 @@ import eave.stdlib.core_api.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.signing as eave_signing
 from eave.stdlib import logger
+from eave.stdlib.config import shared_config
 
 from . import EaveASGIMiddleware, asgi_types
 
@@ -72,6 +73,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
         origin = request_util.get_eave_state(scope=scope).eave_origin.value
         signing_key = eave_signing.get_key(signer=origin)
+
         eave_signing.verify_signature_or_exception(
             signing_key=signing_key,
             message=message,

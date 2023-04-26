@@ -1,5 +1,4 @@
 import uuid
-from http import HTTPStatus
 from typing import Set
 
 import eave.core.internal.database as eave_db
@@ -7,7 +6,6 @@ import eave.core.internal.orm as eave_orm
 import eave.core.public.requests.util as request_util
 import eave.stdlib.core_api.headers as eave_headers
 import eave.stdlib.exceptions as eave_errors
-import fastapi
 import sqlalchemy.exc
 from eave.stdlib import logger
 

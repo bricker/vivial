@@ -1,17 +1,7 @@
-import time
-from datetime import datetime
 from http import HTTPStatus
 
-import mockito
-
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.enums as eave_enums
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.util as eave_util
 import eave.stdlib.signing as eave_signing
-import pytest
-from sqlalchemy import select
+import mockito
 
 from .base import BaseTestCase
 
@@ -37,7 +27,7 @@ class TestSignatureVerification(BaseTestCase):
             },
             headers={
                 "eave-signature": None,
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -53,18 +43,14 @@ class TestSignatureVerification(BaseTestCase):
             },
             headers={
                 "eave-signature": "sdfdsfs",
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         mockito.verify(eave_signing, times=1).verify_signature_or_exception(...)
 
     async def test_empty_body(self) -> None:
-        response = await self.make_request(
-            url="/access_request",
-            payload=None,
-            headers={}
-        )
+        response = await self.make_request(url="/access_request", payload=None, headers={})
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         mockito.verify(eave_signing, times=0).verify_signature_or_exception(...)
@@ -84,7 +70,7 @@ class TestSignatureVerification(BaseTestCase):
             },
             headers={
                 "eave-team-id": str(team.id),
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.CREATED

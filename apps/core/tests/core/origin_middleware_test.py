@@ -1,17 +1,4 @@
-import time
-from datetime import datetime
 from http import HTTPStatus
-
-import mockito
-
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.enums as eave_enums
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.util as eave_util
-import eave.stdlib.signing as eave_signing
-import pytest
-from sqlalchemy import select
 
 from .base import BaseTestCase
 
@@ -36,7 +23,7 @@ class TestOriginMiddleware(BaseTestCase):
             },
             headers={
                 "eave-origin": None,
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -51,7 +38,7 @@ class TestOriginMiddleware(BaseTestCase):
             },
             headers={
                 "eave-origin": "invalid",
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST

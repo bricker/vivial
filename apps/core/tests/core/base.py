@@ -7,23 +7,22 @@ from typing import Any, Optional, Protocol, Tuple, TypeVar
 from uuid import UUID, uuid4
 
 import eave.core.app
+import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.jwt as eave_jwt
 import eave.stdlib.signing
 import eave.stdlib.util as eave_util
-import eave.stdlib.exceptions as eave_exceptions
-import httpx
 import mockito
+import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from eave.core.internal.config import app_config
-import eave.core.internal.database as eave_db
 from eave.stdlib.eave_origins import EaveOrigin
 from httpx import AsyncClient, Response
-from sqlalchemy import literal_column, select, text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_scoped_session
-import sqlalchemy.orm
+from sqlalchemy import literal_column, select
+
 
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]
@@ -40,8 +39,10 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 
 eave_db.engine.echo = False  # shhh
 
+
 async def mock_coroutine(value: T) -> T:
     return value
+
 
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     _testdata: dict[str, Any]
@@ -50,7 +51,6 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName)
         self.maxDiff = None
-
 
     async def asyncSetUp(self) -> None:
         self._testdata = {}
@@ -168,7 +168,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             if access_token and "authorization" not in headers:
                 headers["authorization"] = f"Bearer {access_token}"
 
-        clean_headers = {k: v for (k,v) in headers.items() if v is not None}
+        clean_headers = {k: v for (k, v) in headers.items() if v is not None}
 
         response = await self.httpclient.request(
             method,
