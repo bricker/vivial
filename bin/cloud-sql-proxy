@@ -14,7 +14,10 @@ function run-cloud-sql-proxy() {
 
 	local socketdir=${EAVE_HOME}/.cloudsqlproxy
 	mkdir -p $socketdir
-	cloud-sql-proxy eavefyi-dev:us-central1:eave-pg-core-dev --auto-iam-authn --unix-socket $socketdir
+
+	local project=${GOOGLE_CLOUD_PROJECT:-eavefyi-dev}
+	local instance=${CLOUDSQL_INSTANCE:-eave-pg-core-dev}
+	cloud-sql-proxy $project:us-central1:$instance --auto-iam-authn --unix-socket $socketdir
 }
 
 run-cloud-sql-proxy
