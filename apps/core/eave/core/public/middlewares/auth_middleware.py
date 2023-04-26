@@ -1,5 +1,6 @@
 import re
 from typing import Set
+import uuid
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
@@ -27,7 +28,11 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
     ) -> None:
         if scope["type"] == "http" and scope["path"] not in _BYPASS:
-            await self._verify_auth(scope=scope)
+            if EaveASGIMiddleware.development_bypass_allowed(scope=scope):
+                logger.warning("Bypassing auth verification in dev environment")
+                await self._development_bypass(scope=scope)
+            else:
+                await self._verify_auth(scope=scope)
 
         await self.app(scope, receive, send)
 
@@ -78,5 +83,19 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             expected_expiry=auth_token_orm.expires,
             expired_ok=expired_ok,
         )
+
+        eave_state.eave_account = account
+
+    async def _development_bypass(self, scope: asgi_types.HTTPScope) -> None:
+        eave_state = request_util.get_eave_state(scope=scope)
+        account_id = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
+        if not account_id:
+            raise Exception()
+
+        async with eave_db.get_async_session() as db_session:
+            account = await eave_orm.AccountOrm.one_or_exception(
+                session=db_session,
+                id=uuid.UUID(account_id),
+            )
 
         eave_state.eave_account = account

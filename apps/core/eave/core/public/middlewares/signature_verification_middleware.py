@@ -31,6 +31,11 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
+        if EaveASGIMiddleware.development_bypass_allowed(scope=scope):
+            logger.warning("Bypassing signature verification in dev environment")
+            await self.app(scope, receive, send)
+            return
+
         body: bytes = b""
 
         while True:

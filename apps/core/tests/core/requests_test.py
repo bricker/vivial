@@ -5,16 +5,17 @@ from .base import BaseTestCase
 
 
 class TestStatusEndpoint(BaseTestCase):
-    async def test_status(self) -> None:
+    async def test_status_endpoint(self) -> None:
         os.environ["GAE_SERVICE"] = self.anystring("gaeservice")
         os.environ["GAE_VERSION"] = self.anystring("gaeversion")
 
         response = await self.httpclient.get("/status")
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(
-            response.json(),
-            {"status": "OK", "service": self.anystring("gaeservice"), "version": self.anystring("gaeversion")},
-        )
+        assert response.status_code == HTTPStatus.OK
+        assert response.json() == {
+            "status": "OK",
+            "service": self.anystring("gaeservice"),
+            "version": self.anystring("gaeversion"),
+        }
 
 
 # class TestAccessRequestEndpoint(BaseTestCase):

@@ -24,9 +24,12 @@ class EaveASGIMiddleware:
         if shared_config.google_cloud_project == "eave-production":
             return False
 
+        dev_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_DEV_BYPASS_HEADER)
+        if not dev_header:
+            return False
+
         import os
         expected_uname = str(os.uname())
-        dev_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_DEV_BYPASS_HEADER)
         if dev_header == expected_uname:
             return True
 
