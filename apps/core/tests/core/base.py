@@ -12,6 +12,7 @@ import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.jwt as eave_jwt
 import eave.stdlib.signing
 import eave.stdlib.util as eave_util
+import eave.stdlib.exceptions as eave_exceptions
 import httpx
 import mockito
 import sqlalchemy.sql.functions as safunc
@@ -37,65 +38,48 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
     algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
 )
 
-# eave_db.engine.echo = False  # shhh
+eave_db.engine.echo = False  # shhh
 
 async def mock_coroutine(value: T) -> T:
     return value
 
-test_db_engine = create_async_engine(eave_db.db_uri, echo=True, pool_size=1)
-
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
-    _testdata = dict[str, Any]()
+    _testdata: dict[str, Any]
     httpclient: AsyncClient
 
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName)
         self.maxDiff = None
 
+
     async def asyncSetUp(self) -> None:
-        self._testdata.clear()
+        self._testdata = {}
 
-        async with eave_db.engine.connect() as connection:
-            await connection.run_sync(eave_orm.Base.metadata.drop_all)
-            await connection.commit()
-            await connection.run_sync(eave_orm.Base.metadata.create_all)
-            await connection.commit()
+        async with eave_db.engine.connect() as db_connection:
+            await db_connection.run_sync(eave_orm.Base.metadata.drop_all)
+            await db_connection.commit()
+            await db_connection.run_sync(eave_orm.Base.metadata.create_all)
+            await db_connection.commit()
             # tnames = ",".join([t.name for t in eave_orm.Base.metadata.sorted_tables])
             # await connection.execute(text(f"truncate {tnames}"))
 
-        # async with test_db_engine.begin() as connection:
-        #     await connection.run_sync(eave_orm.Base.metadata.create_all)
-            # await connection.execution_options(autocommit=True)
-            # tnames = ",".join([t.name for t in eave_orm.Base.metadata.sorted_tables])
-            # await connection.execute(text(f"truncate {tnames}"))
-
-        # await self.connection.execute(text("truncate *"))
-        # async with eave_db.engine.begin() as connection:
-        #     assert connection.engine.url.database != "eave"
-        #     await connection.commit()
-
-        # async with eave_db.engine.begin() as connection:
-        #     assert connection.engine.url.database != "eave"
-        #     await connection.run_sync(eave_orm.Base.metadata.create_all)
-        #     await connection.commit()
-
-        # self.db_session = eave_db.get_async_session()
-
-        transport = httpx.ASGITransport(
-            app=eave.core.app.app,  # type:ignore
-            raise_app_exceptions=True,
-        )
+        # transport = httpx.ASGITransport(
+        #     app=eave.core.app.app,  # type:ignore
+        #     raise_app_exceptions=True,
+        # )
         self.httpclient = AsyncClient(
-            transport=transport,
+            app=eave.core.app.app,
             base_url=app_config.eave_api_base,
         )
 
+        # Tests should never call out to KMS
+        self.mock_signing()
+
     async def asyncTearDown(self) -> None:
-        mockito.verifyStubbedInvocationsAreUsed()
+        # mockito.verifyStubbedInvocationsAreUsed()
         mockito.unstub()
         await self.httpclient.aclose()
-        # await self.db_session.close_all()
-        # await self.connection.close()
+        await eave_db.engine.dispose()
 
     def unwrap(self, value: Optional[T]) -> T:
         assert value is not None
@@ -157,11 +141,13 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         url: str,
         payload: Optional[eave_util.JsonObject] = None,
         method: str = "POST",
-        headers: dict[str, str] = {},
+        headers: Optional[dict[str, Optional[str]]] = None,
         access_token: Optional[eave_jwt.JWT] = None,
         **kwargs: Any,
     ) -> Response:
         request_args: dict[str, Any] = {}
+        if headers is None:
+            headers = {}
 
         if payload is not None:
             if method == "GET":
@@ -171,19 +157,23 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
                 data = json.dumps(payload)
                 request_args["content"] = data
 
-            if (team_id := headers.get("eave-team-id")) is not None:
-                headers["eave-team-id"] = team_id
+            if "eave-signature" not in headers:
+                if (team_id := headers.get("eave-team-id")) is not None:
+                    data += team_id
+                headers["eave-signature"] = eave.stdlib.signing.sign_b64(signing_key=TEST_SIGNING_KEY, data=data)
 
-            headers["eave-signature"] = eave.stdlib.signing.sign_b64(signing_key=TEST_SIGNING_KEY, data=data)
-            headers["eave-origin"] = EaveOrigin.eave_www.value
+            if "eave-origin" not in headers:
+                headers["eave-origin"] = EaveOrigin.eave_www.value
 
-            if access_token:
+            if access_token and "authorization" not in headers:
                 headers["authorization"] = f"Bearer {access_token}"
+
+        clean_headers = {k: v for (k,v) in headers.items() if v is not None}
 
         response = await self.httpclient.request(
             method,
             url,
-            headers=headers,
+            headers=clean_headers,
             **request_args,
             **kwargs,
         )
@@ -191,17 +181,18 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return response
 
     def mock_signing(self) -> None:
-        def sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
+        def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
             value: str = eave_util.b64encode(eave_util.sha256hexdigest(data))
             return value
 
-        def verify_signature_or_exception(
+        def _verify_signature_or_exception(
             signing_key: eave.stdlib.signing.SigningKeyDetails, message: str | bytes, signature: str
         ) -> None:
-            assert signature == sign_b64(signing_key=signing_key, data=message)
+            if signature != eave_util.b64encode(eave_util.sha256hexdigest(message)):
+                raise eave_exceptions.InvalidSignatureError()
 
-        mockito.patch(eave.stdlib.signing.sign_b64, sign_b64)
-        mockito.patch(eave.stdlib.signing.verify_signature_or_exception, verify_signature_or_exception)
+        mockito.when2(eave.stdlib.signing.sign_b64, ...).thenAnswer(_sign_b64)
+        mockito.when2(eave.stdlib.signing.verify_signature_or_exception, ...).thenAnswer(_verify_signature_or_exception)
 
     async def mock_auth_token(
         self, account: eave_orm.AccountOrm

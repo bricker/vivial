@@ -75,7 +75,7 @@
 #         url: str,
 #         payload: Optional[eave_util.JsonObject] = None,
 #         method: str = "POST",
-#         headers: dict[str, str] = {},
+#         headers: dict[str, str],
 #         access_token: Optional[eave_jwt.JWT] = None,
 #         **kwargs: Any
 #     ) -> Response:
