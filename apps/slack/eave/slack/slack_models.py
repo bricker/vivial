@@ -3,6 +3,7 @@ import enum
 import re
 from typing import Any, AsyncGenerator, List, Optional
 
+import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
@@ -355,8 +356,8 @@ class SlackMessage:
     @property
     def subscription_source(self) -> eave_models.SubscriptionSource:
         return eave_models.SubscriptionSource(
-            platform=eave_models.SubscriptionSourcePlatform.slack,
-            event=eave_models.SubscriptionSourceEvent.slack_message,
+            platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
+            event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
             id=self.subscription_id,
         )
 

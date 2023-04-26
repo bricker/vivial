@@ -1,13 +1,32 @@
 import urllib.parse
+import uuid
+from dataclasses import dataclass
+from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
 
 import aiohttp
 import pydantic
+from eave.stdlib import eave_origins
 
-from .. import logger
+from .. import exceptions as eave_exceptions
+from .. import logger, signing
 from ..config import shared_config
-from . import operations, signing
+from . import headers as eave_headers
+from . import operations
+
+_ORIGIN: eave_origins.EaveOrigin
+
+
+def set_origin(origin: eave_origins.EaveOrigin) -> None:
+    global _ORIGIN
+    _ORIGIN = origin
+
+
+@dataclass
+class AuthTokenPair:
+    access_token: str
+    refresh_token: str
 
 
 async def status() -> operations.Status.ResponseBody:
@@ -30,7 +49,6 @@ async def create_access_request(
     await _make_request(
         path="/access_request",
         input=input,
-        team_id=None,
     )
 
 
@@ -84,7 +102,7 @@ async def delete_subscription(
 
 async def get_subscription(
     team_id: UUID, input: operations.GetSubscription.RequestBody
-) -> Optional[operations.GetSubscription.ResponseBody]:
+) -> operations.GetSubscription.ResponseBody:
     """
     POST /subscriptions/query
     """
@@ -94,16 +112,13 @@ async def get_subscription(
         team_id=str(team_id),
     )
 
-    if response.status >= 300:
-        return None
-
     response_json = await response.json()
     return operations.GetSubscription.ResponseBody(**response_json)
 
 
 async def get_slack_installation(
     input: operations.GetSlackInstallation.RequestBody,
-) -> Optional[operations.GetSlackInstallation.ResponseBody]:
+) -> operations.GetSlackInstallation.ResponseBody:
     """
     POST /installations/slack/query
     """
@@ -111,40 +126,76 @@ async def get_slack_installation(
     response = await _make_request(
         path="/installations/slack/query",
         input=input,
-        team_id=None,
     )
-
-    if response.status >= 300:
-        return None
 
     response_json = await response.json()
     return operations.GetSlackInstallation.ResponseBody(**response_json)
 
 
-def _makeurl(path: str) -> str:
-    return urllib.parse.urljoin(shared_config.eave_api_base, path)
-
-
-async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[str]) -> aiohttp.ClientResponse:
-    payload = input.json()
-    signature = signing.sign(
-        payload=payload,
-        team_id=team_id,
+async def request_access_token(
+    input: operations.RequestAccessToken.RequestBody,
+) -> operations.RequestAccessToken.ResponseBody:
+    """
+    POST /auth/token/request
+    """
+    response = await _make_request(
+        path="/auth/token/request",
+        input=input,
     )
+
+    response_json = await response.json()
+    return operations.RequestAccessToken.ResponseBody(**response_json)
+
+
+async def refresh_access_token(
+    input: operations.RefreshAccessToken.RequestBody,
+) -> operations.RefreshAccessToken.ResponseBody:
+    """
+    POST /auth/token/refresh
+    """
+    response = await _make_request(
+        path="/auth/token/refresh",
+        input=input,
+        access_token=input.access_token,
+    )
+
+    response_json = await response.json()
+    return operations.RefreshAccessToken.ResponseBody(**response_json)
+
+
+async def _make_request(
+    path: str,
+    input: pydantic.BaseModel,
+    method: str = "POST",
+    access_token: Optional[str] = None,
+    team_id: Optional[str] = None,
+) -> aiohttp.ClientResponse:
+    url = _makeurl(path)
+    payload = input.json()
+    request_id = str(uuid.uuid4())
 
     headers = {
         "content-type": "application/json",
-        signing.SIGNATURE_HEADER_NAME: signature,
-        "Content-Type": "application/json",
+        eave_headers.EAVE_ORIGIN_HEADER: _ORIGIN.value,
+        eave_headers.EAVE_REQUEST_ID_HEADER: request_id,
     }
 
-    if team_id is not None:
-        headers[signing.TEAM_ID_HEADER_NAME] = team_id
+    if access_token:
+        headers[eave_headers.EAVE_AUTHORIZATION_HEADER] = f"Bearer {access_token}"
 
-    method = "POST"
-    url = _makeurl(path)
-    payload = input.json()
-    logger.debug(f"Eave Core API request: {method}\t{url}\t{headers}\t{payload}")
+    signature_message = payload
+    if team_id is not None:
+        headers[eave_headers.EAVE_TEAM_ID_HEADER] = team_id
+        signature_message += team_id
+
+    signature = signing.sign_b64(
+        signing_key=signing.get_key(signer=_ORIGIN.value),
+        data=signature_message,
+    )
+
+    headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
+
+    logger.debug(f"Eave Core API request", extra={"request_id": request_id, "method": method, "url": url})
 
     async with aiohttp.ClientSession() as session:
         response = await session.request(
@@ -154,5 +205,28 @@ async def _make_request(path: str, input: pydantic.BaseModel, team_id: Optional[
             data=payload,
         )
 
-    logger.debug(f"Eave Core API response: {response}")
+    logger.debug(
+        f"Eave Core API response",
+        extra={"request_id": request_id, "method": method, "url": url, "status": response.status},
+    )
+
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as e:
+        match e.status:
+            case HTTPStatus.NOT_FOUND:
+                raise eave_exceptions.NotFoundError() from e
+            case HTTPStatus.UNAUTHORIZED:
+                raise eave_exceptions.UnauthorizedError() from e
+            case HTTPStatus.BAD_REQUEST:
+                raise eave_exceptions.BadRequestError() from e
+            case HTTPStatus.INTERNAL_SERVER_ERROR:
+                raise eave_exceptions.InternalServerError() from e
+            case _:
+                raise eave_exceptions.HTTPException(status_code=e.status) from e
+
     return response
+
+
+def _makeurl(path: str) -> str:
+    return urllib.parse.urljoin(shared_config.eave_api_base, path)

@@ -70,7 +70,9 @@ quiet = true
 [tool.pytest.ini_options]
 pythonpath = [
   "../../apps/core",
-  "../../apps/slack"
+  "../../apps/slack",
+  "../../apps/marketing",
+  "../../libs/eave-stdlib-py"
 ]
 norecursedirs = [
   ".git",

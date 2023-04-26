@@ -7,3 +7,4 @@ python-dotenv
 mockito
 autoflake
 pytest
+pretty_errors

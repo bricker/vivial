@@ -9,7 +9,7 @@ import openai.error
 import openai.openai_object
 import tiktoken
 
-from . import logger, util
+from . import exceptions, logger, util
 from .config import shared_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
@@ -130,7 +130,7 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
             if i + 1 < max_attempts:
                 time.sleep(i + 1)
     else:
-        raise util.MaxRetryAttemptsReachedError("OpenAI")
+        raise exceptions.MaxRetryAttemptsReachedError("OpenAI")
 
     response = cast(openai.openai_object.OpenAIObject, response)
     candidates = [c for c in response.choices if c["finish_reason"] == "stop"]

@@ -1,10 +1,22 @@
 import json
+import uuid
 from ctypes import ArgumentError
 from datetime import datetime
-from typing import NotRequired, Optional, ParamSpec, Self, Tuple, TypedDict, Unpack
+from typing import (
+    NotRequired,
+    Optional,
+    ParamSpec,
+    Required,
+    Self,
+    Tuple,
+    TypedDict,
+    Unpack,
+)
 from uuid import UUID
 
+import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.operations as eave_ops
 import oauthlib
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import (
@@ -14,6 +26,7 @@ from sqlalchemy import (
     Select,
     false,
     func,
+    null,
     select,
     text,
 )
@@ -24,7 +37,6 @@ from . import database as eave_db
 from .destinations import abstract as abstract_destination
 from .destinations import confluence as confluence_destination
 from .oauth import atlassian as atlassian_oauth
-from .oauth import models as oauth_models
 
 UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
 
@@ -121,8 +133,8 @@ class SubscriptionOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    source_platform: Mapped[eave_models.SubscriptionSourcePlatform] = mapped_column()
-    source_event: Mapped[eave_models.SubscriptionSourceEvent] = mapped_column()
+    source_platform: Mapped[eave.stdlib.core_api.enums.SubscriptionSourcePlatform] = mapped_column()
+    source_event: Mapped[eave.stdlib.core_api.enums.SubscriptionSourceEvent] = mapped_column()
     source_id: Mapped[str] = mapped_column()
     document_reference_id: Mapped[Optional[UUID]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -260,6 +272,35 @@ class AtlassianInstallationOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    class _selectparams(TypedDict):
+        team_id: NotRequired[uuid.UUID]
+        atlassian_cloud_id: NotRequired[str]
+
+    @classmethod
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        lookup = select(cls).limit(1)
+
+        if (team_id := kwargs.get("team_id")) is not None:
+            lookup = lookup.where(cls.team_id == team_id)
+
+        if (atlassian_cloud_id := kwargs.get("atlassian_cloud_id")) is not None:
+            lookup = lookup.where(cls.atlassian_cloud_id == atlassian_cloud_id)
+
+        assert lookup.whereclause is not None
+        return lookup
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
+        lookup = cls._build_select(**kwargs)
+        result = await session.scalar(lookup)
+        return result
+
     @property
     def oauth_token_decoded(self) -> oauthlib.oauth2.rfc6749.tokens.OAuth2Token:
         jsonv = json.loads(self.oauth_token_encoded)
@@ -291,23 +332,26 @@ class AtlassianInstallationOrm(Base):
             self.oauth_token_encoded = json.dumps(token)
             db_session.commit()
 
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
-        lookup = select(cls).where(cls.team_id == team_id).limit(1)
-        source = (await session.scalars(lookup)).one()
-        return source
 
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, team_id: UUID) -> Optional[Self]:
-        lookup = select(cls).where(cls.team_id == team_id).limit(1)
-        source = (await session.scalars(lookup)).one_or_none()
-        return source
+class GithubInstallationOrm(Base):
+    __tablename__ = "github_installations"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        Index(
+            "eave_team_id_github_install_id",
+            "team_id",
+            "github_install_id",
+            unique=True,
+        ),
+    )
 
-    @classmethod
-    async def one_or_none_by_atlassian_cloud_id(cls, session: AsyncSession, atlassian_cloud_id: str) -> Optional[Self]:
-        lookup = select(cls).where(cls.atlassian_cloud_id == atlassian_cloud_id).limit(1)
-        result: Self | None = (await session.scalars(lookup)).one_or_none()
-        return result
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    github_install_id: Mapped[str] = mapped_column(unique=True)
+    # TODO: Oauth token storage
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
 
 class TeamOrm(Base):
@@ -315,7 +359,9 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    document_platform: Mapped[Optional[eave_models.DocumentPlatform]] = mapped_column(server_default=None)
+    document_platform: Mapped[Optional[eave.stdlib.core_api.enums.DocumentPlatform]] = mapped_column(
+        server_default=None
+    )
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
     beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
@@ -329,17 +375,17 @@ class TeamOrm(Base):
             case None:
                 return None
 
-            case eave_models.DocumentPlatform.confluence:
+            case eave.stdlib.core_api.enums.DocumentPlatform.confluence:
                 atlassian_installation = await AtlassianInstallationOrm.one_or_exception(
                     session=session,
                     team_id=self.id,
                 )
                 return atlassian_installation.confluence_destination
 
-            case eave_models.DocumentPlatform.google_drive:
+            case eave.stdlib.core_api.enums.DocumentPlatform.google_drive:
                 raise NotImplementedError("google drive document destination is not yet implemented.")
 
-            case eave_models.DocumentPlatform.eave:
+            case eave.stdlib.core_api.enums.DocumentPlatform.eave:
                 raise NotImplementedError("eave document destination is not yet implemented.")
 
             case _:
@@ -363,11 +409,18 @@ class AccountOrm(Base):
             "auth_id",
             unique=True,
         ),
+        Index(
+            None,
+            "auth_provider",
+            "auth_id",
+            "oauth_token",
+            unique=True,
+        ),
     )
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    auth_provider: Mapped[oauth_models.AuthProvider] = mapped_column()
+    auth_provider: Mapped[eave.stdlib.core_api.enums.AuthProvider] = mapped_column()
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
@@ -377,26 +430,105 @@ class AccountOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    @classmethod
-    async def one_or_exception(
-        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
-    ) -> Self:
-        lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
-        account = (await session.scalars(lookup)).one()
-        return account
+    class _selectparams(TypedDict):
+        id: NotRequired[uuid.UUID]
+        exchange_offer: NotRequired[eave_ops.AccessTokenExchangeOfferInput]
+        auth_info: NotRequired[eave_models.AuthInfo]
 
     @classmethod
-    async def one_or_none(
-        cls, session: AsyncSession, auth_provider: oauth_models.AuthProvider, auth_id: str
-    ) -> Self | None:
-        lookup = cls._select_one(auth_provider=auth_provider, auth_id=auth_id)
-        account = await session.scalar(lookup)
-        return account
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        lookup = select(cls).limit(1)
 
-    @classmethod
-    def _select_one(cls, auth_provider: oauth_models.AuthProvider, auth_id: str) -> Select[Tuple[Self]]:
-        lookup = select(cls).where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id).limit(1)
+        id = kwargs.get("id")
+        exchange_offer = kwargs.get("exchange_offer")
+        auth_info = kwargs.get("auth_info")
+
+        if id is not None:
+            lookup = lookup.where(cls.id == id)
+
+        if exchange_offer is not None:
+            lookup = (
+                lookup.where(cls.auth_provider == exchange_offer.auth_provider)
+                .where(cls.auth_id == exchange_offer.auth_id)
+                .where(cls.oauth_token == exchange_offer.oauth_token)
+            )
+
+        if auth_info is not None:
+            lookup = lookup.where(cls.auth_provider == auth_info.provider).where(cls.auth_id == auth_info.id)
+
+        assert lookup.whereclause is not None
         return lookup
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
+        lookup = cls._build_select(**kwargs)
+        result = await session.scalar(lookup)
+        return result
+
+
+class AuthTokenOrm(Base):
+    __tablename__ = "auth_tokens"
+    __table_args__ = (
+        make_team_composite_pk(),
+        make_team_fk(),
+        ForeignKeyConstraint(
+            ["team_id", "account_id"],
+            ["accounts.team_id", "accounts.id"],
+        ),
+        Index(
+            "token_pair",
+            "access_token",
+            "refresh_token",
+            unique=True,
+        ),
+    )
+
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    account_id: Mapped[UUID] = mapped_column()
+    access_token: Mapped[str] = mapped_column(index=True, unique=True)
+    refresh_token: Mapped[str] = mapped_column(index=True, unique=True)
+    jti: Mapped[str] = mapped_column()
+    iss: Mapped[str] = mapped_column()
+    aud: Mapped[str] = mapped_column()
+    expires: Mapped[datetime] = mapped_column()
+    invalidated: Mapped[Optional[datetime]] = mapped_column(server_default=None)
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    class _selectparams(TypedDict):
+        access_token_hashed: Required[str]
+        refresh_token_hashed: NotRequired[str]
+
+    @classmethod
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        access_token_hashed: str = kwargs["access_token_hashed"]
+        refresh_token_hashed: str | None = kwargs.get("refresh_token_hashed")
+
+        lookup = select(cls).where(cls.invalidated == null()).limit(1)
+        lookup = lookup.where(cls.access_token == access_token_hashed)
+
+        if refresh_token_hashed is not None:
+            lookup = lookup.where(cls.refresh_token == refresh_token_hashed)
+
+        assert lookup.whereclause is not None
+        return lookup
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @property
+    def expired(self) -> bool:
+        return datetime.utcnow() >= self.expires
 
 
 # class EmbeddingsOrm(Base):
