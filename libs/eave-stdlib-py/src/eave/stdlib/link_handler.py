@@ -77,7 +77,7 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     content_responses = await asyncio.gather(*tasks)
     print(content_responses)  # DEBGU
     # TODO: get actual content from resp
-    content: list[str] = [resp.content for resp in content_responses]
+    content: list[str] = [file_content for file_content in content_responses]
 
     for client in clients.values():
         await client.close()
@@ -231,7 +231,8 @@ class GitHubClient(BaseClient):
         # TODO: take session for optimizing call parallelism?
         # construct gh raw content url
         url_components = urlparse(url)
-        content_location = url_components.path
+        # remove blob from URL because raw content URLs dont have it
+        content_location = url_components.path.replace("blob/", "")
         raw_url = ""
         # check if enterprise host
         if not re.match(r"github\.com", url_components.netloc):
@@ -254,7 +255,12 @@ class GitHubClient(BaseClient):
                     url=request_url,
                     headers=headers,
                 )
-                return await resp.text()
+                file_content = await resp.text()
+
+                # gh returns 404 text if no raw content at URL path
+                if file_content == "404: Not Found":
+                    return None
+                return file_content
         except Exception as error:
             logger.error(error)
             # gracefully recover from any errors that arise

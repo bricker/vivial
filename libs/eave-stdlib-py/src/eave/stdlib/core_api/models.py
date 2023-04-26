@@ -17,6 +17,7 @@ class AuthInfo(pydantic.BaseModel):
 
 # TODO: copy to ts stdlib
 # TODO: change SupportedLink type name???
+import enum
 class SupportedLink(enum.Enum):
     """
     Link types that we support fetching content from for integration into AI documentation creation.
