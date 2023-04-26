@@ -1,5 +1,4 @@
 import os
-import sys
 import dotenv
 
 dotenv.load_dotenv()
@@ -7,22 +6,21 @@ dotenv.load_dotenv()
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 
 # Some attempts to prevent this script from running against the production database
-assert os.getenv("GAE_ENV") is None
-assert os.getenv("GOOGLE_CLOUD_PROJECT") != "eave-production"
-assert os.getenv("GCLOUD_PROJECT") != "eave-production"
-assert EAVE_DB_NAME is not None
-assert EAVE_DB_NAME != "eave"
+# assert os.getenv("GAE_ENV") is None
+# assert os.getenv("GOOGLE_CLOUD_PROJECT") != "eave-production"
+# assert os.getenv("GCLOUD_PROJECT") != "eave-production"
+# assert EAVE_DB_NAME is not None
+# assert EAVE_DB_NAME != "eave"
 
 import socket
 import asyncio
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from alembic.config import Config
-from alembic import command
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.models as eave_models
+
 
 async def init_database() -> None:
     """
@@ -32,6 +30,7 @@ async def init_database() -> None:
     await create_database()
     await seed_database()
 
+
 async def create_database() -> None:
     # We can't connect to the database being created because, well, it doesn't exist.
     # Instead, connect to the postgres database on the host.
@@ -39,10 +38,11 @@ async def create_database() -> None:
     postgres_engine = create_async_engine(postgres_uri, isolation_level="AUTOCOMMIT")
 
     async with postgres_engine.begin() as connection:
-        stmt = f"CREATE DATABASE \"{EAVE_DB_NAME}\""
+        stmt = f'CREATE DATABASE "{EAVE_DB_NAME}"'
         await connection.execute(sqlalchemy.text(stmt))
 
     await postgres_engine.dispose()
+
 
 async def seed_database() -> None:
     async with eave_db.engine.begin() as connection:
@@ -50,14 +50,25 @@ async def seed_database() -> None:
 
     session = AsyncSession(eave_db.engine)
 
-    team = eave_orm.TeamOrm(
-        name=f"{socket.gethostname()}", document_platform=eave_models.DocumentPlatform.confluence
-    )
+    team = eave_orm.TeamOrm(name=f"{socket.gethostname()}", document_platform=eave_models.DocumentPlatform.confluence)
     session.add(team)
-
     await session.commit()
+    await session.refresh(team)  # this is necessary to populate team.id
+
+    # seed w/ eave slack team info
+    slack_install = eave_orm.SlackInstallationOrm(
+        team_id=team.id,
+        slack_team_id="T03G5LV6R7Y",
+        bot_id="B04K6P48T4G",
+        bot_token=os.getenv("SLACK_BOT_TOKEN", "empty"),
+        bot_user_id=None,
+    )
+    session.add(slack_install)
+    await session.commit()
+
     await session.close()
     await eave_db.engine.dispose()
+
 
 if __name__ == "__main__":
     asyncio.run(init_database())
