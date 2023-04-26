@@ -128,7 +128,7 @@ add_route(
     auth_required=False,
     signature_required=True,
     origin_required=True,
-    team_id_required=True,
+    team_id_required=False,
     handler=slack_installations.query,
 )
 

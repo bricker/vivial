@@ -1,5 +1,6 @@
 import eave.stdlib.exceptions as eave_exceptions
 import fastapi
+from eave.stdlib import logger
 
 from . import EaveASGIMiddleware, asgi_types
 
@@ -19,6 +20,7 @@ class ExceptionHandlerASGIMiddleware(EaveASGIMiddleware):
         try:
             await self.app(scope, receive, send)
         except eave_exceptions.HTTPException as e:
+            logger.error("Exception while processing middleware.", exc_info=e)
             response = fastapi.Response(status_code=e.status_code)
             await response(scope, receive, send)  # type:ignore
             return

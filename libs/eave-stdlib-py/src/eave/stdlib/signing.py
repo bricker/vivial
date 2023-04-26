@@ -1,3 +1,4 @@
+import base64
 import enum
 import hashlib
 from dataclasses import dataclass
@@ -107,8 +108,7 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
 
 def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes) -> None:
     message_bytes = eave_util.ensure_bytes(message)
-    signature_bytes = eave_util.ensure_bytes(signature)
-
+    signature_bytes = base64.b64decode(signature)
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(

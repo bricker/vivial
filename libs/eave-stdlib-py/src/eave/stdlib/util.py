@@ -77,7 +77,9 @@ def b64encode(data: str | bytes) -> str:
 
 def b64decode(data: str | bytes) -> str:
     """
-    base64-decode the data (ASCII string or bytes) and return a utf8 string
+    base64-decode the data (ASCII string or bytes) and return a utf8 string.
+    Note that this function only works if you know that the encoded data will decode into a utf-8 string.
+    If you are dealing with non-utf8 data, use `base64.b64decode` directly.
     """
     return base64.b64decode(ensure_bytes(data)).decode()
 
