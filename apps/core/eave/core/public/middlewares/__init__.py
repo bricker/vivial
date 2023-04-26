@@ -1,7 +1,10 @@
-from . import asgi_types
-from eave.stdlib.config import shared_config
-import eave.stdlib.core_api.headers as eave_headers
 import eave.core.public.requests.util as request_util
+import eave.stdlib.core_api.headers as eave_headers
+from eave.stdlib.config import shared_config
+
+from . import asgi_types
+
+
 class EaveASGIMiddleware:
     """
     https://asgi.readthedocs.io/en/latest/specs/www.html#http
@@ -29,6 +32,7 @@ class EaveASGIMiddleware:
             return False
 
         import os
+
         expected_uname = str(os.uname())
         if dev_header == expected_uname:
             return True

@@ -5,7 +5,6 @@ import eave.stdlib.core_api.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.signing as eave_signing
 from eave.stdlib import logger
-from eave.stdlib.config import shared_config
 
 from . import EaveASGIMiddleware, asgi_types
 

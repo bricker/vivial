@@ -2,7 +2,6 @@ import atlassian
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.oauth.atlassian as atlassian_oauth
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.enums as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import mockito
 
@@ -14,11 +13,7 @@ class TestConfluenceDestination(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        team = eave_orm.TeamOrm(
-            name=self.anystring("teamname"), document_platform=eave_models.DocumentPlatform.confluence
-        )
-        self._team = await self.save(team)
-
+        self.team = await self.make_team()
         oauth_session = atlassian_oauth.AtlassianOAuthSession()
         mockito.when2(oauth_session.get_available_resources).thenReturn(
             [
@@ -31,18 +26,19 @@ class TestConfluenceDestination(BaseTestCase):
                 )
             ]
         )
-        self._confluence_destination = confluence_destination.ConfluenceDestination(
+
+        self.confluence_destination = confluence_destination.ConfluenceDestination(
             atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
             space=self.anystring("space"),
             oauth_session=oauth_session,
         )
 
         document_reference = eave_orm.DocumentReferenceOrm(
-            team_id=self._team.id,
+            team_id=self.team.id,
             document_id=self.anystring("confluence_document_response.id"),
             document_url=self.anystring("cdurl"),
         )
-        self._document_reference = await self.save(document_reference)
+        self.document_reference = await self.save(document_reference)
 
     async def test_create_document(self) -> None:
         mockito.when2(atlassian.Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(None)
@@ -54,7 +50,7 @@ class TestConfluenceDestination(BaseTestCase):
             title=self.anystring("doctitle"),
             content=self.anystring("doccontent"),
         )
-        document_metadata = await self._confluence_destination.create_document(input=input)
+        document_metadata = await self.confluence_destination.create_document(input=input)
         self.assertEqual(document_metadata.id, self.anystring("confluence_document_response.id"))
         self.assertEqual(
             document_metadata.url,

@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 import eave.core.app
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.enums as eave_enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.jwt as eave_jwt
@@ -85,7 +86,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert value is not None
         return value
 
-    def anystring(self, name: str) -> str:
+    def anystring(self, name: Optional[str] = None) -> str:
+        if name is None:
+            name = str(uuid4())
+
         if name not in self._testdata:
             data = str(uuid4())
             self._testdata[name] = data
@@ -93,7 +97,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: str = self._testdata[name]
         return value
 
-    def anyuuid(self, name: str) -> UUID:
+    def anyuuid(self, name: Optional[str] = None) -> UUID:
+        if name is None:
+            name = str(uuid4())
+
         if name not in self._testdata:
             data = uuid4()
             self._testdata[name] = data
@@ -101,7 +108,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: UUID = self._testdata[name]
         return value
 
-    def anyint(self, name: str) -> int:
+    def anyint(self, name: Optional[str] = None) -> int:
+        if name is None:
+            name = str(uuid4())
+
         if name not in self._testdata:
             data = random.randint(0, 9999)
             self._testdata[name] = data
@@ -235,7 +245,9 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return (access_token, refresh_token, auth_token)
 
     async def make_team(self) -> eave_orm.TeamOrm:
-        team = eave_orm.TeamOrm(name=self.anystring("team name"))
+        team = eave_orm.TeamOrm(
+            name=self.anystring("team name"), document_platform=eave_enums.DocumentPlatform.confluence
+        )
         await self.save(team)
         return team
 

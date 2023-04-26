@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.enums
 
@@ -10,46 +11,45 @@ class TestSubscriptionsEndpoints(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        team = eave_orm.TeamOrm(
-            name=self.anystring("teamname"), document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
-        )
-        self._team = await self.save(team)
+        self.team = await self.make_team()
 
         document_reference = eave_orm.DocumentReferenceOrm(
-            team_id=self._team.id,
+            team_id=self.team.id,
             document_id=self.anystring("confluence_document_response.id"),
             document_url=self.anystring("cdurl"),
         )
-        self._document_reference = await self.save(document_reference)
+        self.document_reference = await self.save(document_reference)
 
         subscription = eave_orm.SubscriptionOrm(
-            team_id=self._team.id,
+            team_id=self.team.id,
             source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
             source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
             source_id=self.anystring("source_id"),
         )
-        self._subscription = await self.save(subscription)
+        self.subscription = await self.save(subscription)
 
     async def test_delete_subscription(self) -> None:
         response = await self.make_request(
             "/subscriptions/delete",
             headers={
-                "eave-team-id": str(self._team.id),
+                "eave-team-id": str(self.team.id),
             },
             payload={
                 "subscription": {
                     "source": {
-                        "platform": self._subscription.source.platform,
-                        "event": self._subscription.source.event,
-                        "id": self._subscription.source.id,
+                        "platform": self.subscription.source.platform,
+                        "event": self.subscription.source.event,
+                        "id": self.subscription.source.id,
                     },
                 },
             },
         )
 
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        subscription = await eave_orm.SubscriptionOrm.one_or_none(
-            session=self.db_session, source=self._subscription.source, team_id=self._team.id
-        )
+        assert response.status_code == HTTPStatus.OK
 
-        self.assertEqual(subscription, None)
+        async with eave_db.get_async_session() as db_session:
+            subscription = await eave_orm.SubscriptionOrm.one_or_none(
+                session=db_session, source=self.subscription.source, team_id=self.team.id
+            )
+
+        assert subscription is None

@@ -1,6 +1,6 @@
 import re
-from typing import Set
 import uuid
+from typing import Set
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
