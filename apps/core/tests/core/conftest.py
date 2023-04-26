@@ -3,11 +3,12 @@
 # import urllib.parse
 # from uuid import UUID
 # import uuid
+# import httpx
 # import mockito
-# from typing import Any, AsyncGenerator, Awaitable, Callable, Generator, Optional, Protocol, TypeVar
+# from typing import Any, AsyncGenerator, Awaitable, Callable, Generator, Optional, Protocol, Type, TypeVar
 # from httpx import AsyncClient, Response
 # import pytest
-# from sqlalchemy import literal_column, func as safunc, select
+# from sqlalchemy import literal_column, func as safunc, select, text
 # from sqlalchemy.ext.asyncio import AsyncSession
 # from sqlalchemy.orm import Mapped
 # import eave.core.app
@@ -17,15 +18,15 @@
 # import eave.stdlib.core_api.models as eave_models
 # import eave.stdlib.util as eave_util
 # import eave.stdlib.jwt as eave_jwt
-# import eave.stdlib.signing as eave_signing
+# import eave.stdlib.signing
 # from eave.stdlib.eave_origins import EaveOrigin
 
 # eave_db.engine.echo = False
 
-# TEST_SIGNING_KEY = eave_signing.SigningKeyDetails(
+# TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 #     id="test-key",
 #     version="1",
-#     algorithm=eave_signing.SigningAlgorithm.RS256,
+#     algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
 # )
 
 # class AnyStandardOrm(Protocol):
@@ -39,21 +40,34 @@
 #     return dict[str, Any]()
 
 # @pytest.fixture
-# async def http_client() -> AsyncGenerator[AsyncClient, None]:
-#     client = AsyncClient(app=eave.core.app.app, base_url=app_config.eave_api_base)
-#     yield client
-#     await client.aclose()
+# async def db_session() -> AsyncGenerator[AsyncSession, None]:
+#     connection = await eave_db.engine.connect().start()
+#     await connection.execution_options(autocommit=True)
+#     tnames = ",".join([t.name for t in eave_orm.Base.metadata.sorted_tables])
+#     await connection.execute(text(f"truncate {tnames}"))
+
+#     # await connection.run_sync(eave_orm.Base.metadata.drop_all)
+#     # await connection.run_sync(eave_orm.Base.metadata.create_all)
+
+#     db_session = eave_db.get_async_session()
+#     yield db_session
+#     await db_session.close()
+#     await connection.close()
 
 # @pytest.fixture
-# async def db_session() -> AsyncGenerator[AsyncSession, None]:
-#     session = eave_db.get_async_session()
-#     session.begin()
-#     connection = await session.connection()
-#     assert connection.engine.url.database != "eave"
-#     await connection.run_sync(eave_orm.Base.metadata.drop_all)
-#     await connection.run_sync(eave_orm.Base.metadata.create_all)
-#     yield session
-#     await session.close()
+# async def http_client() -> AsyncGenerator[AsyncClient, None]:
+#     transport = httpx.ASGITransport(
+#         app=eave.core.app.app,  # type:ignore
+#         raise_app_exceptions=True,
+#     )
+
+#     httpclient = AsyncClient(
+#         transport=transport,
+#         base_url=app_config.eave_api_base,
+#     )
+
+#     yield httpclient
+#     await httpclient.aclose()
 
 # @pytest.fixture
 # def http_request(http_client: AsyncClient) -> Callable[..., Awaitable[Response]]:
@@ -78,7 +92,7 @@
 #             if (team_id := headers.get("eave-team-id")) is not None:
 #                 headers["eave-team-id"] = team_id
 
-#             headers["eave-signature"] = eave_signing.sign_b64(signing_key=TEST_SIGNING_KEY, data=data)
+#             headers["eave-signature"] = eave.stdlib.signing.sign_b64(signing_key=TEST_SIGNING_KEY, data=data)
 #             headers["eave-origin"] = EaveOrigin.eave_www.value
 
 #             if access_token:
@@ -127,57 +141,39 @@
 #     return DatabaseOperations(db_session=db_session)
 
 # @pytest.fixture
-# def unwrap(value: Optional[T]) -> Callable[..., T]:
-#     def _inner() -> T:
-#         assert value is not None
-#         return value
-#     return _inner
-
-# @pytest.fixture
-# def anystring(test_data: dict[str, Any]) -> Callable[..., str]:
-#     def _inner(name: str) -> str:
+# def anything(test_data: dict[str, Any]) -> Callable[..., Any]:
+#     def _inner(name: str, datatype: type[T]) -> T:
 #         if name not in test_data:
-#             data = str(uuid.uuid4())
+#             data: Any
+
+#             if datatype is str:
+#                 data = str(uuid.uuid4())
+#             elif datatype is int:
+#                 data = random.randint(0, 9999)
+#             elif datatype is uuid.UUID:
+#                 data = uuid.uuid4()
+#             else:
+#                 data = random.randbytes(n=4)
+
 #             test_data[name] = data
 
-#         value: str = test_data[name]
+#         value: T = test_data[name]
 #         return value
+
 #     return _inner
 
 # @pytest.fixture
-# def anyuuid(test_data: dict[str, Any]) -> Callable[..., UUID]:
-#     def _inner(name: str) -> UUID:
-#         if name not in test_data:
-#             data = uuid.uuid4()
-#             test_data[name] = data
-
-#         value: uuid.UUID = test_data[name]
-#         return value
-#     return _inner
-
-# @pytest.fixture
-# def anyint(test_data: dict[str, Any]) -> Callable[..., int]:
-#     def _inner(name: str) -> int:
-#         if name not in test_data:
-#             data = random.randint(0, 9999)
-#             test_data[name] = data
-
-#         value: int = test_data[name]
-#         return value
-#     return _inner
-
-# @pytest.fixture
-# async def team(db_ops: DatabaseOperations, anystring: Callable[..., str]) -> eave_orm.TeamOrm:
-#     team = eave_orm.TeamOrm(name=anystring("team name"))
+# async def team(db_ops: DatabaseOperations, anything: Callable[..., str]) -> eave_orm.TeamOrm:
+#     team = eave_orm.TeamOrm(name=anything("team name", str))
 #     await db_ops.save(team)
 #     return team
 
 # @pytest.fixture
-# async def account(team: eave_orm.TeamOrm, db_ops: DatabaseOperations, anystring: Callable[..., str], **kwargs: Any) -> eave_orm.AccountOrm:
+# async def account(team: eave_orm.TeamOrm, db_ops: DatabaseOperations, anything: Callable[..., str], **kwargs: Any) -> eave_orm.AccountOrm:
 #     account = eave_orm.AccountOrm(
 #         auth_provider=kwargs.get("auth_provider", eave_models.AuthProvider.slack),
-#         auth_id=kwargs.get("auth_id", anystring("auth_id")),
-#         oauth_token=kwargs.get("oauth_token", anystring("oauth_token")),
+#         auth_id=kwargs.get("auth_id", anything("auth_id", str)),
+#         oauth_token=kwargs.get("oauth_token", anything("oauth_token", str)),
 #         team_id=team.id,
 #     )
 #     await db_ops.save(account)
@@ -191,3 +187,17 @@
 # def test_teardown() -> None:
 #     mockito.verifyStubbedInvocationsAreUsed()
 #     mockito.unstub()
+
+# @pytest.fixture
+# def mock_signature() -> None:
+#     def sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
+#         value: str = eave_util.b64encode(eave_util.sha256hexdigest(data))
+#         return value
+
+#     def verify_signature_or_exception(
+#         signing_key: eave.stdlib.signing.SigningKeyDetails, message: str | bytes, signature: str | bytes
+#     ) -> None:
+#         assert signature == sign_b64(signing_key=signing_key, data=message)
+
+#     mockito.when2(eave.stdlib.signing, 'sign_b64', *mockito.ARGS).thenAnswer(sign_b64)
+#     mockito.when2(eave.stdlib.signing, 'verify_signature_or_exception', *mockito.ARGS).thenAnswer(verify_signature_or_exception)

@@ -7,6 +7,7 @@ import fastapi
 from starlette.middleware import Middleware
 
 from .public.middlewares import (
+    exception_handler_middleware,
     auth_middleware,
     origin_middleware,
     request_integrity_middleware,
@@ -23,6 +24,7 @@ eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
 
 middleware = [
+    Middleware(exception_handler_middleware.ExceptionHandlerASGIMiddleware),
     Middleware(request_integrity_middleware.RequestIntegrityASGIMiddleware),
     Middleware(origin_middleware.OriginASGIMiddleware),
     Middleware(signature_verification_middleware.SignatureVerificationASGIMiddleware),

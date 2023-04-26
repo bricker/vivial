@@ -17,7 +17,7 @@ def add_bypass(path: str) -> None:
 
 
 class OriginASGIMiddleware(EaveASGIMiddleware):
-    async def process(
+    async def __call__(
         self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
     ) -> None:
         if scope["type"] == "http" and scope["path"] not in _BYPASS:

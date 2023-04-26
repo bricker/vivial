@@ -17,16 +17,15 @@ import mockito
 import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from eave.core.internal.config import app_config
-from eave.core.internal.database import engine, get_async_session
+import eave.core.internal.database as eave_db
 from eave.stdlib.eave_origins import EaveOrigin
 from httpx import AsyncClient, Response
-from sqlalchemy import literal_column, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped
-
+from sqlalchemy import literal_column, select, text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_scoped_session
+import sqlalchemy.orm
 
 class AnyStandardOrm(Protocol):
-    id: Mapped[UUID]
+    id: sqlalchemy.orm.Mapped[UUID]
 
 
 T = TypeVar("T")
@@ -38,15 +37,16 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
     algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
 )
 
+# eave_db.engine.echo = False  # shhh
 
 async def mock_coroutine(value: T) -> T:
     return value
 
+test_db_engine = create_async_engine(eave_db.db_uri, echo=True, pool_size=1)
 
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     _testdata = dict[str, Any]()
     httpclient: AsyncClient
-    db_session: AsyncSession
 
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName)
@@ -55,17 +55,35 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._testdata.clear()
 
-        engine.echo = False  # shhh
-        self.db_session = get_async_session()
-        self.db_session.begin()
-        connection = await self.db_session.connection()
-        assert connection.engine.url.database != "eave"
-        await connection.run_sync(eave_orm.Base.metadata.drop_all)
-        await connection.run_sync(eave_orm.Base.metadata.create_all)
+        async with eave_db.engine.connect() as connection:
+            await connection.run_sync(eave_orm.Base.metadata.drop_all)
+            await connection.commit()
+            await connection.run_sync(eave_orm.Base.metadata.create_all)
+            await connection.commit()
+            # tnames = ",".join([t.name for t in eave_orm.Base.metadata.sorted_tables])
+            # await connection.execute(text(f"truncate {tnames}"))
+
+        # async with test_db_engine.begin() as connection:
+        #     await connection.run_sync(eave_orm.Base.metadata.create_all)
+            # await connection.execution_options(autocommit=True)
+            # tnames = ",".join([t.name for t in eave_orm.Base.metadata.sorted_tables])
+            # await connection.execute(text(f"truncate {tnames}"))
+
+        # await self.connection.execute(text("truncate *"))
+        # async with eave_db.engine.begin() as connection:
+        #     assert connection.engine.url.database != "eave"
+        #     await connection.commit()
+
+        # async with eave_db.engine.begin() as connection:
+        #     assert connection.engine.url.database != "eave"
+        #     await connection.run_sync(eave_orm.Base.metadata.create_all)
+        #     await connection.commit()
+
+        # self.db_session = eave_db.get_async_session()
 
         transport = httpx.ASGITransport(
             app=eave.core.app.app,  # type:ignore
-            raise_app_exceptions=False,
+            raise_app_exceptions=True,
         )
         self.httpclient = AsyncClient(
             transport=transport,
@@ -76,7 +94,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         mockito.verifyStubbedInvocationsAreUsed()
         mockito.unstub()
         await self.httpclient.aclose()
-        await self.db_session.close()
+        # await self.db_session.close_all()
+        # await self.connection.close()
 
     def unwrap(self, value: Optional[T]) -> T:
         assert value is not None
@@ -107,22 +126,28 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     async def save(self, obj: J) -> J:
-        self.db_session.add(obj)
-        await self.db_session.commit()
+        async with eave_db.get_async_session() as db_session:
+            db_session.add(obj)
+            await db_session.commit()
         return obj
 
     async def reload(self, obj: J) -> J | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)
-        result = await self.db_session.scalar(stmt)
+        async with eave_db.get_async_session() as db_session:
+            result: J | None = await db_session.scalar(stmt)
+
         return result
 
     async def delete(self, obj: AnyStandardOrm) -> None:
-        await self.db_session.delete(obj)
-        await self.db_session.commit()
+        async with eave_db.get_async_session() as db_session:
+            await db_session.delete(obj)
+            await db_session.commit()
 
     async def count(self, cls: AnyStandardOrm) -> int:
         query = select(safunc.count(cls.id))
-        count = await self.db_session.scalar(query)
+        async with eave_db.get_async_session() as db_session:
+            count: int | None = await db_session.scalar(query)
+
         if count is None:
             count = 0
         return count
@@ -214,9 +239,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             expires=datetime.utcfromtimestamp(float(access_token.payload.exp)),
         )
 
-        self.db_session.add(auth_token)
-        await self.db_session.commit()
-
+        auth_token = await self.save(auth_token)
         assert (await self.count(eave_orm.AuthTokenOrm)) == before_count + 1
         return (access_token, refresh_token, auth_token)
 

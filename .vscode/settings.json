@@ -88,9 +88,9 @@
   "python.testing.unittestArgs": [
     "-v",
     "-s",
-    "${workspaceFolder}",
+    "./apps/core/tests/core",
     "-p",
-    "*_test.py"
+    "*test.py"
   ],
   "git.openRepositoryInParentFolders": "always",
   "python.formatting.blackArgs": [

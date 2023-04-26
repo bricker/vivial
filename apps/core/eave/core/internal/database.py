@@ -12,5 +12,6 @@ db_uri = sqlalchemy.engine.url.URL.create(
 )
 
 engine = create_async_engine(db_uri, echo=True)
+sync_engine = sqlalchemy.create_engine(db_uri, echo=True)
 get_async_session = async_sessionmaker(engine, expire_on_commit=False)
-get_sync_session = sqlalchemy.orm.sessionmaker(engine.sync_engine, expire_on_commit=False)
+get_sync_session = sqlalchemy.orm.sessionmaker(sync_engine, expire_on_commit=False)

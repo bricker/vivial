@@ -23,14 +23,13 @@ def add_bypass(path: str) -> None:
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
-    async def process(
+    async def __call__(
         self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
     ) -> None:
         if scope["type"] == "http" and scope["path"] not in _BYPASS:
             await self._verify_auth(scope=scope)
 
         await self.app(scope, receive, send)
-        return
 
     @staticmethod
     async def _verify_auth(scope: asgi_types.HTTPScope) -> None:

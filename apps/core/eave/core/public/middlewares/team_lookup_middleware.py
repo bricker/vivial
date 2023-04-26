@@ -6,6 +6,7 @@ import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.core.public.requests.util as request_util
 import eave.stdlib.core_api.headers as eave_headers
+import eave.stdlib.exceptions as eave_errors
 import fastapi
 import sqlalchemy.exc
 from eave.stdlib import logger
@@ -21,9 +22,6 @@ def add_bypass(path: str) -> None:
 
 
 class TeamLookupASGIMiddleware(EaveASGIMiddleware):
-    def __init__(self, app: asgi_types.ASGIFramework) -> None:
-        self.app = app
-
     async def __call__(
         self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
     ) -> None:
@@ -31,14 +29,13 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
             await self._lookup_team(scope=scope)
 
         await self.app(scope, receive, send)
-        return
 
     @staticmethod
     async def _lookup_team(scope: asgi_types.HTTPScope) -> None:
         team_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_TEAM_ID_HEADER)
         if not team_id_header:
             logger.error("team ID header missing/empty", extra=request_util.log_context(scope=scope))
-            raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST)
+            raise eave_errors.MissingRequiredHeaderError("eave-team-id")
 
         try:
             team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
@@ -48,8 +45,8 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
 
         except ValueError as error:
             logger.error("invalid team ID", extra=request_util.log_context(scope=scope))
-            raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST) from error
+            raise eave_errors.BadRequestError() from error
 
         except sqlalchemy.exc.SQLAlchemyError as error:
             logger.error("team lookup failed", extra=request_util.log_context(scope=scope))
-            raise fastapi.HTTPException(HTTPStatus.BAD_REQUEST) from error
+            raise eave_errors.BadRequestError() from error

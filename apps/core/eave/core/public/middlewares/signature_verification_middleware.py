@@ -17,7 +17,13 @@ def add_bypass(path: str) -> None:
 
 
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
-    async def process(
+    """
+    Reads the body and headers and verifies the signature.
+    Note that this middleware necessarily blocks the request until the full body is received,
+    so that it can calculate the expected signature and compare it to the provided signature.
+    """
+
+    async def __call__(
         self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
     ) -> None:
         if scope["type"] != "http" or scope["path"] in _BYPASS:
@@ -26,8 +32,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
         body: bytes = b""
 
-        async def wrapped_receive() -> asgi_types.ASGIReceiveEvent:
-            nonlocal body
+        while True:
             # https://asgi.readthedocs.io/en/latest/specs/www.html#request-receive-event
             message = await receive()
             assert message["type"] == "http.request"
@@ -35,13 +40,20 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             body += chunk
 
             if message.get("more_body", False) is False:
-                # This cast was necessary, the type checker wasn't picking up that `scope` had been implicitly cast
-                # to HTTPScope at the beginning of the function.
-                self._do_signature_verification(scope=cast(asgi_types.HTTPScope, scope), body=body)
+                break
 
-            return message
+        # This cast was necessary, the type checker wasn't picking up that `scope` had been implicitly cast
+        # to HTTPScope at the beginning of the function.
+        self._do_signature_verification(scope=cast(asgi_types.HTTPScope, scope), body=body)
 
-        await self.app(scope, wrapped_receive, send)
+        async def dummy_receive() -> asgi_types.ASGIReceiveEvent:
+            return {
+                "type": "http.request",
+                "body": body,
+                "more_body": False,
+            }
+
+        await self.app(scope, dummy_receive, send)
 
     @staticmethod
     def _do_signature_verification(scope: asgi_types.HTTPScope, body: bytes) -> None:

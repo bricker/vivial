@@ -67,9 +67,13 @@ class JWT:
 
     @classmethod
     def from_str(cls, jwt_encoded: str) -> Self:
-        header_encoded, payload_encoded, signature_provided = jwt_encoded.split(".")
-        header = JWTHeader.from_b64(header_encoded=header_encoded)
-        payload = JWTRegisteredClaims.from_b64(payload_encoded=payload_encoded)
+        try:
+            header_encoded, payload_encoded, signature_provided = jwt_encoded.split(".")
+            header = JWTHeader.from_b64(header_encoded=header_encoded)
+            payload = JWTRegisteredClaims.from_b64(payload_encoded=payload_encoded)
+        except ValueError as e:
+            raise exceptions.InvalidJWTError() from e
+
         return cls(
             header=header,
             payload=payload,
@@ -174,12 +178,11 @@ def validate_jwt_pair_or_exception(
     jwt_encoded_b: str,
     signing_key: signing.SigningKeyDetails,
 ) -> None:
-    assert jwt_encoded_a != jwt_encoded_b
-
     jwt_a = JWT.from_str(jwt_encoded=jwt_encoded_a)
     jwt_b = JWT.from_str(jwt_encoded=jwt_encoded_b)
 
-    assert jwt_a.signature != jwt_b.signature
+    if (jwt_encoded_a == jwt_encoded_b) or (jwt_a.signature == jwt_b.signature):
+        raise exceptions.InvalidJWTError("matching tokens or signatures")
 
     signing.verify_signature_or_exception(
         signing_key=signing_key,
