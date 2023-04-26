@@ -1,3 +1,4 @@
+from google.protobuf.wrappers_pb2 import Int64Value
 import google_crc32c
 
 from . import exceptions
@@ -16,7 +17,11 @@ def generate_checksum(data: bytes) -> int:
     return int(crc32c.hexdigest(), 16)
 
 
-def validate_checksum_or_exception(data: bytes, checksum: int) -> None:
+def validate_checksum_or_exception(data: bytes, checksum: int | Int64Value) -> None:
+    """
+    Google KMS protobufs deliver the checksum value as an Int64Value type, but the runtime treats it as an int.
+    The Int64Value parameter type here is mostly for the static type checker.
+    """
     expected_checksum = generate_checksum(data=data)
     if checksum != expected_checksum:
         raise exceptions.InvalidChecksumError()
