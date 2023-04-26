@@ -18,7 +18,7 @@ from pydantic import UUID4
 SUPPORTED_LINKS: dict[SupportedLink, list[str]] = {
     SupportedLink.github: [  # TODO: should these support www prefix?
         r"github\.com",
-        r"github\..*\.com",
+        r"github\..+\.com",
     ],
 }
 
