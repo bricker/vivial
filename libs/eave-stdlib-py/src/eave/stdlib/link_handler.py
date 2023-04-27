@@ -16,7 +16,7 @@ from pydantic import UUID4
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[SupportedLink, list[str]] = {
-    SupportedLink.github: [  # TODO: should these support www prefix?
+    SupportedLink.github: [
         r"github\.com",
         r"github\..+\.com",
     ],
@@ -28,8 +28,6 @@ def is_supported_link(link: str) -> tuple[bool, Optional[SupportedLink]]:
     Given a link, determine if we support parsing the content from that link.
     Returns tuple of (whether link is supported, link type if supported or None)
     """
-    # check if link domain matches any supported link types
-    # TODO: is domain matching too broad? should we compare against parts of path (like org/repo)?
     domain = urlparse(link).netloc
     for link_type, regex_patterns in SUPPORTED_LINKS.items():
         if any(re.match(pattern, domain) for pattern in regex_patterns):
@@ -37,14 +35,15 @@ def is_supported_link(link: str) -> tuple[bool, Optional[SupportedLink]]:
     return (False, None)
 
 
-# TODO: can we just pass in whole team object, or maybe better to limit it this way? if have whole team object, do we need to make request to get sources?
-#    > TODO: we could possibly do that, but would require altering the TeamOrm and add nullable column(s) but thats ok? also need token access, not just linked platforms
-async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]]) -> list[str]:
+async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]]) -> list[Optional[str]]:
     """
-    Given a list of links, returns mapping to content found at each link.
+    Given a list of links, returns mapping to content found at each link. Order is preserved.
+
+    If an error is encountered while attempting to access the info at a link, the value at
+    the position of the link in the returned list is None.
     """
     # fetch from db what sources are connected, and the access token required to query their API
-    # TODO: is oauth token compatible w/ gh api auth?.. if gh repo is public, will providing unnecessary token mess w/ request?
+    # TODO: waiting for Byran's endpoint to be implemented
     import os
 
     raw_sources = [{"type": SupportedLink.github, "token": os.getenv("GIT_TOKEN")}]
@@ -58,13 +57,11 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     source_tokens: dict[SupportedLink, str] = {source["type"]: source["token"] for source in raw_sources}
 
     # filter URLs to sites we support for ones the user has linked their eave account to
-    # TODO: should eave only watch repos/code the user account owns/links directly? only anything in org/enterprise, or any link?
     accessible_links = [
         (link, link_type, source_tokens[link_type]) for link, link_type in links if link_type in source_tokens
     ]
 
     # gather content from all links in parallel
-    # TODO: worry about rate limit when making many calls in parallel?
     tasks = []
     clients: dict[SupportedLink, BaseClient] = {}
     for link, link_type, access_token in accessible_links:
@@ -75,9 +72,7 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
                 tasks.append(asyncio.ensure_future(clients[link_type].get_file_content(link)))
 
     content_responses = await asyncio.gather(*tasks)
-    print(content_responses)  # DEBGU
-    # TODO: get actual content from resp
-    content: list[str] = [file_content for file_content in content_responses]
+    content: list[Optional[str]] = content_responses
 
     for client in clients.values():
         await client.close()
@@ -85,7 +80,6 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     return content
 
 
-# TODO: change SupportedLink type name???
 def _create_client(client_type: SupportedLink, token: str) -> Any:
     match client_type:
         case SupportedLink.github:
@@ -97,11 +91,19 @@ def _create_client(client_type: SupportedLink, token: str) -> Any:
 
 @dataclass
 class GithubRepository:
+    """
+    Source response object defined in Github API
+    https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
+    """
+    
     default_branch: str
-    # contents_url: str
 
     @classmethod
     def from_response(cls, response: dict[str, Any]) -> "GithubRepository":
+        """
+        Given a JSON object decoded to a python dict, extract only the
+        fields defined by `GithubRepository` dataclass, and construct a new instance.
+        """
         # strip unexpected keys from response input
         class_fields = set(cls.__annotations__.keys())
         clean_response = {k: v for k, v in response.items() if k in class_fields}
@@ -128,7 +130,7 @@ https://raw.githubusercontent.com/eave-fyi/eave-monorepo/bcr/2304/framework/apps
 
 class GitHubClient(BaseClient):
     def __init__(self, oauth_token: str):
-        self.oauth_token = oauth_token
+        self.oauth_token = oauth_token # TODO: change field/param name; no oauth token here
 
         # mapping from github domain to session with auth headers for that domain
         self._sessions: dict[str, aiohttp.ClientSession] = {}
@@ -147,7 +149,7 @@ class GitHubClient(BaseClient):
         for client in self._sessions.values():
             await client.close()
 
-    async def get_file_path(self, url: str) -> Optional[str]:
+    async def get_file_path(self, url: str) -> Optional[str]: #TODO: i can delete this; dont need anymore rn
         """
         Get the file path from a GitHub URL, if the URL points to the repo's default branch.
         If the URL points to any branch that isn't the default branch, returns None.
@@ -171,24 +173,19 @@ class GitHubClient(BaseClient):
         return None
 
     async def get_file_content(self, url: str) -> Optional[str]:
+        """
+        Fetch content of the file located at the URL `url`.
+        Returns None on GitHub API request failure
+        """
         return await self._fetch_raw(url)
-        # """
-        # Fetch content of the file located at the URL `url`.
-        # Returns None on GitHub API request failure
-        # """
         # # build clients; will need a separate client for each different github domain
         # client = self._get_client(url)
-
-        # # TODO: the gh link could hypothetically be one that our oauth token doesn't provide access to. should handle failures to fetch
-        # # TODO what if it's not a file? what if dir? or repo? or line number permalink? or link is to non-default branch, possibly w/ slashes in branch name (messes up file path scrape)?
-        # # should those be ignored (how?)? make recursive requests (expensive)? eat errors (if any)?
         # try:
         #     # TODO: the version of gh enterprise the company has could affect what endpoints are available
-        #     # TODO: Use the .raw media type to retrieve the contents of the file.?
-        #     # TODO: does pygithub suck ?
-        #     res = await client.get_repo()
-
-        #     return res
+        #     repo = await client.get_repo()
+        #     # TODO: split branch name from file path somehow???
+        #     content = await client.get_content(repo.content_url, file_path)
+        #     return content
         # except Exception as error:
         #     logger.error(error)
         #     # gracefully recover from any errors that arise
@@ -227,8 +224,10 @@ class GitHubClient(BaseClient):
         """
         Fetch github file content from `url` using the raw.githubusercontent.com feature
         Returns None if `url` is not a path to a file (or if some other error was encountered).
+
+        NOTE: raw.githubusercontent.com is ratelimitted by IP, not requesting user, so this wont scale far
+        https://github.com/github/docs/issues/8031#issuecomment-881427112
         """
-        # TODO: take session for optimizing call parallelism?
         # construct gh raw content url
         url_components = urlparse(url)
         # remove blob from URL because raw content URLs dont have it

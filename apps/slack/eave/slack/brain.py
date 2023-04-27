@@ -217,8 +217,6 @@ class Brain:
         logger.debug("Brain.create_documentation")
 
         api_document = await self.build_documentation()
-        print(api_document.content)
-        return None  # DEBGU
         upsert_document_response = await self.upsert_document(document=api_document)
 
         await self.message.send_response(
@@ -232,7 +230,6 @@ class Brain:
         logger.debug("Brain.build_documentation")
         conversation = await self.build_context()
         link_context = await self.build_link_context()
-        print(link_context)  # DEBGU
 
         document_topic = await document_metadata.get_topic(conversation)
         logger.info(f"document_topic: {document_topic}")
@@ -435,25 +432,26 @@ class Brain:
         return f"{condensed_context}\n\n" f"{recent_messages}"
 
     async def build_link_context(self) -> Optional[str]:
-        # TODO finish impl
-        # TODO: dont reference "source" or "code"; could be generic links eventually
-        # TODO: what if link is to a binary? how will ai try to summarize that????
         # see if we can pull content from any links in message
         await self.message.resolve_urls()
-        source_links: list[tuple[str, eave_models.SupportedLink]] = []
+        supported_links: list[tuple[str, eave_models.SupportedLink]] = []
         for link in self.message.urls:
             is_supported, link_type = link_handler.is_supported_link(link)
             if is_supported:
-                assert link_type
-                source_links.append((link, link_type))
+                assert link_type is not None
+                supported_links.append((link, link_type))
 
-        if source_links:
-            source_texts = await link_handler.get_link_content(self.eave_team.id, source_links)
-            if source_texts:
-                summaries: list[str] = []
-                for text in source_texts:
-                    # TODO: do in parallel (thread safety?)
-                    summaries.append(await self._summarize_content(text))
+        if supported_links:
+            links_contents = await link_handler.get_link_content(self.eave_team.id, supported_links)
+            if links_contents:
+                # summarize the content at each link, or None where link content wasnt obtained
+                summaries: list[Optional[str]] = await asyncio.gather(
+                    *[
+                        # sleep(0) as a no-op returning None to preserve output len/ordering
+                        asyncio.ensure_future(self._summarize_content(content)) if content else asyncio.sleep(0)
+                        for content in links_contents
+                    ]
+                )
 
                 # transform raw source text into less distracting (for AI) summaries
                 return "\n\n".join(
@@ -464,7 +462,8 @@ class Brain:
                         {summary}
                         ###
                         """
-                        for (link, _), summary in zip(source_links, summaries)
+                        for (link, _), summary in zip(supported_links, summaries)
+                        if summary is not None
                     ]
                 )
                 # TODO: subscribe to file changes
@@ -478,85 +477,13 @@ class Brain:
     async def _summarize_content(self, content: str) -> str:
         """
         Given some content (from a URL) return a summary of it.
-        TODO: this is untested
         """
-        print("summariezign")
+        # TODO: break into smaller funcs?
         if len(tokencoding.encode(content)) > eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4]:
             # build rolling summary of long content
-            threshold = eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2
-            summary = content
-
-            while len(tokencoding.encode(summary)) > threshold:
-                print("thresh check")  # DEBGU
-                new_summary = ""
-                # TODO: this alg probably has subpar/awful output since we cut off in middle of arbitrary text body
-                # split summary into digestable chunks
-                chunk_size = int(threshold)
-                current_position = 0
-                current_chunk = summary[current_position : current_position + chunk_size]
-                chunks = [current_chunk]
-                # there are generally 0.75 words per token, so approximating 1 character per token may
-                # be overly generous in some contexts, but it's a safe minimum
-                while len(current_chunk) == chunk_size:
-                    print("chunk check")  # DEBGU
-                    current_position += chunk_size
-                    current_chunk = summary[current_position : current_position + chunk_size]
-                    chunks.append(current_chunk)
-
-                # summarize each chunk, combining it into existing summary
-                for chunk in filter(lambda chunk: len(chunk) > 0, chunks):
-                    if new_summary == "":
-                        prompt = eave_openai.formatprompt(
-                            f"""
-                            Condense the following information. Maintain the important information.
-
-                            ###
-
-                            {chunk}
-
-                            ###
-                            """
-                        )
-                        openai_params = eave_openai.ChatCompletionParameters(
-                            model=eave_openai.OpenAIModel.GPT4,
-                            messages=[prompt],
-                            temperature=0.9,  # TODO: would lower temp be better?
-                            frequency_penalty=1.0,
-                            presence_penalty=1.0,
-                        )
-                        response = await eave_openai.chat_completion(params=openai_params)
-                        assert response is not None
-                        new_summary = response
-                    else:
-                        # TODO: reformat prompt?
-                        prompt = eave_openai.formatprompt(
-                            f"""
-                            Amend and expand on the following information. Maintain the important information.
-
-                            ###
-
-                            {new_summary}
-
-                            {chunk}
-
-                            ###
-                            """
-                        )
-                        openai_params = eave_openai.ChatCompletionParameters(
-                            model=eave_openai.OpenAIModel.GPT4,
-                            messages=[prompt],
-                            temperature=0.9,  # TODO: would lower temp be better?
-                            frequency_penalty=1.0,
-                            presence_penalty=1.0,
-                        )
-                        response = await eave_openai.chat_completion(params=openai_params)
-                        assert response is not None
-                        new_summary = response
-                summary = new_summary
-
-            return summary
+            threshold = int(eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2)
+            return await self._rolling_summarize_content(content, threshold)
         else:
-            print("no rolling necessary; whole file summ at once")  # DEBUG
             prompt = eave_openai.formatprompt(
                 f"""
                 Summarize the following information. Maintain the important information.
@@ -571,13 +498,88 @@ class Brain:
             openai_params = eave_openai.ChatCompletionParameters(
                 model=eave_openai.OpenAIModel.GPT4,
                 messages=[prompt],
-                temperature=0.9,  # TODO: would lower temp be better?
+                temperature=0.9,
                 frequency_penalty=1.0,
                 presence_penalty=1.0,
             )
             summary_resp: str | None = await eave_openai.chat_completion(params=openai_params)
             assert summary_resp is not None
             return summary_resp
+        
+    async def _rolling_summarize_content(self, content: str, threshold: int) -> str:
+        """
+        Given a `content` string to summarize that is (assumed) longer then `threshold`
+        tokens (as defined by the AI model), break `content` into digestable chunks,
+        summarizing and integrating each chunk into a single "rolling" summary.
+
+        content -- raw text to summarize. Presumed to long to summarize in 1 AI API request.
+        threshold -- max number of tokens to feed to AI per request. (Recommended to be less than MAX_TOKENS allowed by API)
+        """
+        summary = content
+
+        while len(tokencoding.encode(summary)) > threshold:
+            new_summary = ""
+            # TODO: this alg probably has subpar/awful output since we cut off in middle of arbitrary text body
+            # split summary into digestable chunks
+            chunk_size = threshold
+            current_position = 0
+            current_chunk = summary[current_position : current_position + chunk_size]
+            chunks = [current_chunk]
+            # there are generally 0.75 words per token, so approximating 1 character per token may
+            # be overly generous in some contexts, but it's a safe minimum
+            while len(current_chunk) == chunk_size:
+                current_position += chunk_size
+                current_chunk = summary[current_position : current_position + chunk_size]
+                chunks.append(current_chunk)
+
+            # summarize each chunk, combining it into existing summary
+            for chunk in filter(lambda chunk: len(chunk) > 0, chunks):
+                if new_summary == "":
+                    prompt = eave_openai.formatprompt(
+                        f"""
+                        Condense the following information. Maintain the important information.
+
+                        ###
+                        {chunk}
+                        ###
+                        """
+                    )
+                    openai_params = eave_openai.ChatCompletionParameters(
+                        model=eave_openai.OpenAIModel.GPT4,
+                        messages=[prompt],
+                        temperature=0.9,
+                        frequency_penalty=1.0,
+                        presence_penalty=1.0,
+                    )
+                    response = await eave_openai.chat_completion(params=openai_params)
+                    assert response is not None
+                    new_summary = response
+                else:
+                    # TODO: reformat prompt? does this have passable output?
+                    prompt = eave_openai.formatprompt(
+                        f"""
+                        Amend and expand on the following information. Maintain the important information.
+
+                        ###
+                        {new_summary}
+
+                        {chunk}
+                        ###
+                        """
+                    )
+                    openai_params = eave_openai.ChatCompletionParameters(
+                        model=eave_openai.OpenAIModel.GPT4,
+                        messages=[prompt],
+                        temperature=0.9,
+                        frequency_penalty=1.0,
+                        presence_penalty=1.0,
+                    )
+                    response = await eave_openai.chat_completion(params=openai_params)
+                    assert response is not None
+                    new_summary = response
+            summary = new_summary
+
+        return summary
 
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"

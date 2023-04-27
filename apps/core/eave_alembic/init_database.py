@@ -6,11 +6,11 @@ dotenv.load_dotenv()
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 
 # Some attempts to prevent this script from running against the production database
-# assert os.getenv("GAE_ENV") is None
-# assert os.getenv("GOOGLE_CLOUD_PROJECT") != "eave-production"
-# assert os.getenv("GCLOUD_PROJECT") != "eave-production"
-# assert EAVE_DB_NAME is not None
-# assert EAVE_DB_NAME != "eave"
+assert os.getenv("GAE_ENV") is None
+assert os.getenv("GOOGLE_CLOUD_PROJECT") != "eave-production"
+assert os.getenv("GCLOUD_PROJECT") != "eave-production"
+assert EAVE_DB_NAME is not None
+assert EAVE_DB_NAME != "eave"
 
 import asyncio
 import socket
