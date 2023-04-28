@@ -12,6 +12,7 @@ import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.signing as eave_signing
 
 
+# TODO: deelte this data class
 @dataclass
 class GithubRepository:
     """
@@ -55,11 +56,13 @@ class GithubInstallationAccessToken:
         clean_response = {k: v for k, v in response.items() if k in class_fields}
         # pour cleaned kv pairs into dataclass init
         return GithubInstallationAccessToken(**clean_response)
-    
+
 
 class GitHubClient(BaseClient):
-    def __init__(self, oauth_token: str):
-        self.access_token = oauth_token  # TODO: change field/param name; no oauth token here. make jwt
+    def __init__(self, app_id: str, installation_id: str):
+        self.access_token: Optional[str] = None
+        self.app_id = app_id
+        self.installation_id = installation_id
 
         # mapping from github domain to session with auth headers for that domain
         self._sessions: dict[str, aiohttp.ClientSession] = {}
@@ -78,6 +81,7 @@ class GitHubClient(BaseClient):
         for client in self._sessions.values():
             await client.close()
 
+    # TODO: can probs delete this and other private helpers since dont need path anymore
     async def get_file_path(self, url: str) -> Optional[str]:  # TODO: i can delete this; dont need anymore rn
         """
         Get the file path from a GitHub URL, if the URL points to the repo's default branch.
@@ -138,7 +142,7 @@ class GitHubClient(BaseClient):
         """
         Request data about the github repo pointed to by `url` from the GitHub API
         """
-        client = self._get_session(url)
+        client = await self._get_session(url)
 
         # gather data for API request URL
         org, repo = self._get_repo_location(url)
@@ -169,13 +173,21 @@ class GitHubClient(BaseClient):
 
         request_url = f"{raw_url}{content_location}"
 
-        # attach auth token
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "Accept": "application/vnd.github.v3.raw",
-        }
-
         try:
+            # request/set auth token
+            await self._set_installation_token(
+                app_id=self.app_id,
+                installation_id=self.installation_id,
+                url=url,
+            )
+            assert self.access_token
+
+            # attach auth token
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Accept": "application/vnd.github.v3.raw",
+            }
+
             async with aiohttp.ClientSession() as http_session:
                 resp = await http_session.request(
                     method="GET",
@@ -193,7 +205,7 @@ class GitHubClient(BaseClient):
             # gracefully recover from any errors that arise
             return None
 
-    def _get_session(self, link: str) -> aiohttp.ClientSession:
+    async def _get_session(self, link: str) -> aiohttp.ClientSession:
         """
         Get or build a aiohttp.ClientSession prepared with the necessary headers
         for with the GitHub API of the passed in URL.
@@ -201,6 +213,12 @@ class GitHubClient(BaseClient):
         """
         domain = urlparse(link).netloc
         if domain not in self._sessions:
+            await self._set_installation_token(
+                app_id=self.app_id,
+                installation_id=self.installation_id,
+                url=link,
+            )
+            assert self.access_token
             self._sessions[domain] = self._create_session(domain=domain, token=self.access_token)
 
         return self._sessions[domain]
@@ -227,6 +245,7 @@ class GitHubClient(BaseClient):
         https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app
 
         app_id -- ID of the GitHub App to authenticate as
+        returns the created JWT string
         """
         signing_key = eave_signing.get_key(eave_origins.ExternalOrigin.github_api_client.value)
         jwt = eave_jwt.create_jwt(
@@ -239,7 +258,7 @@ class GitHubClient(BaseClient):
         jwt_str: str = jwt.to_str()
         return jwt_str
 
-    async def _set_installation_token(self, app_id: str, installation_id: str, url: str) -> None:
+    async def _set_installation_token(self, app_id: str, installation_id: str, url: str) -> str:
         """
         Create an installation token for the app identified by `app_id`
         that can authenticate with the GitHub API required to access the
@@ -249,10 +268,11 @@ class GitHubClient(BaseClient):
         app_id -- ID of the GitHub App to authenticate through
         installation_id -- ID of the installation to authenticate as
         url -- resource the installation token should be able to access
+        returns the created access token after saving it in `self.access_token`
         """
         if self.access_token:
             # token has already been set
-            return
+            return self.access_token
 
         # temporarily set auth token as JWT so we can auth as app
         jwt_token = self._create_jwt(app_id)
@@ -266,3 +286,4 @@ class GitHubClient(BaseClient):
             self.access_token = token_data.token
 
         await client.close()
+        return self.access_token

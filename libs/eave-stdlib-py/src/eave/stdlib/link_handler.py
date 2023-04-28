@@ -42,9 +42,7 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     """
     # fetch from db what sources are connected, and the access token required to query their API
     # TODO: waiting for Byran's endpoint to be implemented
-    import os
-
-    raw_sources = [{"type": SupportedLink.github, "token": os.getenv("GIT_TOKEN")}]
+    raw_sources = [{"type": SupportedLink.github, "app_id": "todo", "installation_id": "todo"}]
     # available_sources = await eave_core_api_client.get_available_sources(
     #     team_id=team_id,
     #     input=operations.GetAvailableSources.RequestBody(
@@ -52,7 +50,7 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     #     ),
     # )
     # assert available_sources is not None
-    source_tokens: dict[SupportedLink, str] = {source["type"]: source["token"] for source in raw_sources}
+    source_tokens: dict[SupportedLink, tuple[str, str]] = {source["type"]: (source["app_id"], source["installation_id"]) for source in raw_sources}
 
     # filter URLs to sites we support for ones the user has linked their eave account to
     accessible_links = [
@@ -62,9 +60,9 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     # gather content from all links in parallel
     tasks = []
     clients: dict[SupportedLink, BaseClient] = {}
-    for link, link_type, access_token in accessible_links:
+    for link, link_type, (app_id, installation_id) in accessible_links:
         if link_type not in clients:
-            clients[link_type] = create_client(link_type, access_token)
+            clients[link_type] = create_client(client_type=link_type, app_id=app_id, installation_id=installation_id)
         match link_type:
             case SupportedLink.github:
                 tasks.append(asyncio.ensure_future(clients[link_type].get_file_content(link)))
