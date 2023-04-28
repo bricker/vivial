@@ -8,7 +8,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from eave.stdlib.config import shared_config
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveOrigin, ExternalOrigin
 from google.cloud import kms
 from google.protobuf.wrappers_pb2 import Int64Value
 
@@ -62,7 +62,7 @@ _SIGNING_KEYS = {
     ),
 
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
-    "github_api_client": SigningKeyDetails(
+    ExternalOrigin.github_api_client.value: SigningKeyDetails(
         id="eave-github-app-signing-key-01",
         version="2",
         algorithm=SigningAlgorithm.RS256,
