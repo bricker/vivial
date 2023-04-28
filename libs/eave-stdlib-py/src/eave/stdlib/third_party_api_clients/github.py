@@ -1,15 +1,14 @@
-from typing import Any, Optional, Self
-from attr import dataclass
 import re
-
+from typing import Any, Optional, Self
 from urllib.parse import urlparse
-import aiohttp
 
+import aiohttp
+import eave.stdlib.eave_origins as eave_origins
+import eave.stdlib.jwt as eave_jwt
+import eave.stdlib.signing as eave_signing
+from attr import dataclass
 from eave.stdlib import logger
 from eave.stdlib.third_party_api_clients.base import BaseClient
-import eave.stdlib.jwt as eave_jwt
-import eave.stdlib.eave_origins as eave_origins
-import eave.stdlib.signing as eave_signing
 
 
 # TODO: deelte this data class

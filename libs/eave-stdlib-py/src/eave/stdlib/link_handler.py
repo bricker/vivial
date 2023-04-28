@@ -1,13 +1,11 @@
 import asyncio
-from typing import Optional, Any
 import re
+from typing import Optional
 from urllib.parse import urlparse
 
 from eave.stdlib.core_api.models import SupportedLink
 from eave.stdlib.third_party_api_clients.base import BaseClient
 from eave.stdlib.third_party_api_clients.util import create_client
-
-
 from pydantic import UUID4
 
 # TODO: does this whole file need translation to typescript for ts stdlib?
@@ -50,7 +48,9 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     #     ),
     # )
     # assert available_sources is not None
-    source_tokens: dict[SupportedLink, tuple[str, str]] = {source["type"]: (source["app_id"], source["installation_id"]) for source in raw_sources}
+    source_tokens: dict[SupportedLink, tuple[str, str]] = {
+        source["type"]: (source["app_id"], source["installation_id"]) for source in raw_sources
+    }
 
     # filter URLs to sites we support for ones the user has linked their eave account to
     accessible_links = [

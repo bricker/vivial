@@ -9,8 +9,8 @@ import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.link_handler as link_handler
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.link_handler as link_handler
 import eave.stdlib.openai_client as eave_openai
 import tiktoken
 from eave.stdlib import logger
@@ -505,7 +505,7 @@ class Brain:
             summary_resp: str | None = await eave_openai.chat_completion(params=openai_params)
             assert summary_resp is not None
             return summary_resp
-        
+
     async def _rolling_summarize_content(self, content: str, threshold: int) -> str:
         """
         Given a `content` string to summarize that is (assumed) longer then `threshold`

@@ -1,6 +1,7 @@
 from typing import Optional
-import pytest
+
 import eave.stdlib.link_handler as link_handler
+import pytest
 from eave.stdlib.core_api.models import SupportedLink
 
 

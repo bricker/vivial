@@ -1,4 +1,5 @@
 import os
+
 import dotenv
 
 dotenv.load_dotenv()
@@ -20,7 +21,6 @@ import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.enums as eave_models
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-
 
 
 async def init_database() -> None:
