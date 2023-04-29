@@ -10,6 +10,7 @@ const theme = createTheme({
     background: {
       main: '#FDFDFD',
       dark: '#F1F1F1',
+      secondary: '#BFDDFF',
     },
   },
   typography: {
@@ -17,6 +18,8 @@ const theme = createTheme({
       light: '#FFFFFF',
       main: '#3E3E3E',
       dark: '#000000',
+      innactive: '#808182',
+      link: '#1A2697',
     },
     fontFamily: {
       main: "'DM Sans', sans-serif",

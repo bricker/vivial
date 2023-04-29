@@ -4,11 +4,10 @@ function ChatboxIcon({ className }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="60"
-      height="60"
       fill="none"
-      viewBox="0 0 60 60"
+      viewBox="10 12.5 40 38.59"
       className={className}
+      width="40"
     >
       <path
         fill="#fff"

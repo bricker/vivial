@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { StepContent, StepLabel, Step, Stepper, Select, FormControl, InputLabel, MenuItem } from '@material-ui/core';
+import { StepContent, StepLabel, Step, Stepper, Select, FormControl, InputLabel, MenuItem, useMediaQuery } from '@material-ui/core';
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
 import Copy from '../../Copy/index.js';
-import Page from '../Page/index.jsx';
+import Page from '../Page/index.js';
 import Button from '../../Button/index.js';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ChatboxIcon from '../../Icons/ChatboxIcon.jsx';
+import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   main: {
@@ -22,34 +23,51 @@ const makeClasses = makeStyles((theme) => ({
   },
   button: {
     marginTop: 12,
+    width: 150,
+    [theme.breakpoints.up('md')]: {
+      width: 166,
+    },
   },
   step: {
-    width: 39,
-    height: 39,
+    width: 25,
+    height: 25,
     border: '1px solid black',
     borderRadius: '50%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    [theme.breakpoints.up('md')]: {
+      width: 39,
+      height: 39,
+    },
   },
   purpleCheck: {
-    width: 27,
-    height: 27,
+    width: 23,
+    height: 23,
+    [theme.breakpoints.up('md')]: {
+      width: 27,
+      height: 27,
+    },
   },
   header: {
     marginBottom: 0,
   },
-  confluenceLogo: {
-    maxWidth: 137,
-  },
   content: {
-    marginLeft: 22,
-    paddingLeft: 27,
+    marginLeft: 16,
+    paddingLeft: 18,
     marginTop: 0,
+    [theme.breakpoints.up('md')]: {
+      marginLeft: 22,
+      paddingLeft: 27,
+    },
   },
   stepper: {
+    padding: 0,
     '& .MuiStepConnector-vertical': {
-      marginLeft: 22,
+      marginLeft: 16,
+      [theme.breakpoints.up('md')]: {
+        marginLeft: 22,
+      },
     },
     '& .MuiStepLabel-vertical': {
       marginBottom: 22,
@@ -60,15 +78,30 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   select: {
-    width: 418,
+    width: 275,
     marginTop: 12,
+    [theme.breakpoints.up('md')]: {
+      width: 418,
+    },
   },
   footer: {
     maxWidth: 883,
-    padding: 24,
-    marginTop: 92,
+    padding: '26px 34px',
+    marginTop: 28,
     marginBottom: 24,
     backgroundColor: theme.palette.background.secondary,
+    display: 'flex',
+    [theme.breakpoints.up('md')]: {
+      padding: 24,
+      marginTop: 92,
+    },
+  },
+  chatIcon: {
+    paddingRight: 28,
+    display: 'none',
+    [theme.breakpoints.up('md')]: {
+      display: 'block',
+    },
   },
   connectButton: {
     width: 166,
@@ -76,6 +109,14 @@ const makeClasses = makeStyles((theme) => ({
     marginTop: 22,
     marginRight: 20,
     border: `1px solid ${theme.typography.color.dark}`,
+    height: 60,
+    position: 'relative',
+  },
+  connected: {
+    position: 'absolute',
+    top: 5,
+    left: 5,
+    width: 14,
   },
   githubButtonLogo: {
     maxWidth: 116,
@@ -102,6 +143,7 @@ const Dashboard = () => {
   const classes = makeClasses();
   const [confluenceSpace, setConfluenceSpace] = useState('');
   const [step, setStep] = useState(0);
+  const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
 
   const handleChange = (event) => {
     setConfluenceSpace(event.target.value);
@@ -119,13 +161,16 @@ const Dashboard = () => {
           <Step>
             <StepLabel StepIconComponent={stepIcon}>
               <Copy variant="h3" className={classes.header}>
-                Step 1: Connect to your{' '}
-                <img
-                  className={classes.confluenceLogo}
-                  src={INTEGRATION_LOGOS.confluence.src}
-                  alt={INTEGRATION_LOGOS.confluence.alt}
-                />
-                {' '}Account
+                {isDesktop ? (
+                  <span>
+                    Step 1: Connect to your <ConfluenceIcon /> Confluence Account
+                  </span>
+                ) : (
+                  <span>
+                    Step 1: Connect to <ConfluenceIcon /> Confluence
+                  </span>
+                )}
+
               </Copy>
             </StepLabel>
             <StepContent className={classes.content}>
@@ -170,6 +215,7 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
+                startIcon={<PurpleCheckIcon className={classes.connected} />}
                 lg
               >
                 <img
@@ -181,6 +227,7 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
+                startIcon={<PurpleCheckIcon className={classes.connected} />}
                 lg
               >
                 <img
@@ -192,6 +239,7 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
+                startIcon={<PurpleCheckIcon className={classes.connected} />}
                 lg
               >
                 <img
@@ -204,11 +252,15 @@ const Dashboard = () => {
           </Step>
         </Stepper>
         <section className={classes.footer}>
-          <ChatboxIcon />
-          <Copy variant="footnote" bold>A Message from the Eave Team</Copy>
-          <Copy variant="footnote">
-            Please note we’re currently in development and have many more integrations on the way. We’d love to hear your feedback on the current experience as well as any requests you may have. You can fill out this feedback form <a href="" target='_blank   '>here</a>, or reach out to us directly at <a href="mailto:info@eave.fyi">info@eave.fyi</a>
-          </Copy>
+          <div className={classes.chatIcon}>
+            <ChatboxIcon />
+          </div>
+          <div className={classes.footerCopy}>
+            <Copy variant="footnote" bold>A Message from the Eave Team</Copy>
+            <Copy variant="footnote">
+              Please note we’re currently in development and have many more integrations on the way. We’d love to hear your feedback on the current experience as well as any requests you may have. You can fill out this feedback form <a href="" target='_blank   '>here</a>, or reach out to us directly at <a href="mailto:info@eave.fyi">info@eave.fyi</a>
+            </Copy>
+            </div>
         </section>
       </main>
     </Page>
