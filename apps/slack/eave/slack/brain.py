@@ -441,11 +441,10 @@ class Brain:
         """
         # see if we can pull content from any links in message
         await self.message.resolve_urls()
-        # TODO: abstract into other functions???
-        supported_links = await link_handler.get_supported_links(self.message.urls)
+        supported_links = link_handler.filter_supported_links(self.message.urls)
 
         if supported_links:
-            links_contents = await link_handler.get_link_content(self.eave_team.id, supported_links)
+            links_contents = await link_handler.map_link_content(self.eave_team.id, supported_links)
             if links_contents:
                 # summarize the content at each link, or None where link content wasnt obtained
                 summaries: list[Optional[str]] = await asyncio.gather(
@@ -456,13 +455,13 @@ class Brain:
                     ]
                 )
 
-                # TODO: subscribe Eave GitHub App to file changes for any files we could read
+                # subscribe Eave GitHub App to file changes for any files we could read
                 await link_handler.subscribe(
                     self.eave_team.id,
                     [
-                        link
-                        for (link, _), content_was_accessible in zip(supported_links, summaries)
-                        if content_was_accessible
+                        link_info
+                        for link_info, content in zip(supported_links, summaries)
+                        if content is not None
                     ],
                 )
 

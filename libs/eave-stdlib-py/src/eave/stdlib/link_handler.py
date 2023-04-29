@@ -22,7 +22,7 @@ SUPPORTED_LINKS: dict[eave_models.SupportedLink, list[str]] = {
     ],
 }
 
-async def get_supported_links(urls: list[str]) -> list[tuple[str, eave_models.SupportedLink]]:
+def filter_supported_links(urls: list[str]) -> list[tuple[str, eave_models.SupportedLink]]:
     supported_links: list[tuple[str, eave_models.SupportedLink]] = []
     for link in urls:
         link_type = _get_link_type(link)
@@ -42,15 +42,15 @@ def _get_link_type(link: str) -> Optional[eave_models.SupportedLink]:
             return link_type
     return None
 
-
-async def get_link_content(team_id: UUID4, links: list[tuple[str, eave_models.SupportedLink]]) -> list[Optional[str]]:
+# TODO: refactor links type to be list[LinkContext?]
+async def map_link_content(eave_team_id: UUID4, links: list[tuple[str, eave_models.SupportedLink]]) -> list[Optional[str]]:
     """
     Given a list of links, returns mapping to content found at each link. Order is preserved.
 
     If an error is encountered while attempting to access the info at a link, the value at
     the position of the link in the returned list is None.
     """
-    contexts = await _get_link_auth_data(links)
+    contexts = await _get_link_auth_data(eave_team_id, links)
 
     # gather content from all links in parallel
     tasks = []
@@ -70,9 +70,9 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, eave_models.Su
 
     return content
 
-async def subscribe(eave_team_id: UUID4, urls: list[str]) -> None:
+async def subscribe(eave_team_id: UUID4, urls: list[tuple[str, eave_models.SupportedLink]]) -> None:
     # TODO: cleanup
-    contexts = await _get_link_auth_data(urls)
+    contexts = await _get_link_auth_data(eave_team_id, urls)
 
     tasks = []
     clients: dict[eave_models.SupportedLink, BaseClient] = {}
@@ -85,7 +85,7 @@ async def subscribe(eave_team_id: UUID4, urls: list[str]) -> None:
 
 # TODO: only take 1 link?
 # TODO: rename
-async def _get_link_auth_data(links: list[str]) -> list[LinkContext]:
+async def _get_link_auth_data(eave_team_id: UUID4, links: list[tuple[str, eave_models.SupportedLink]]) -> list[LinkContext]:
     # fetch from core_api what sources are connected, and the access token required to query their API
     # TODO: waiting for Byran's endpoint to be implemented
     raw_sources = [{"type": eave_models.SupportedLink.github, "app_id": "todo", "installation_id": "todo"}]

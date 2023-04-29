@@ -6,18 +6,17 @@ from eave.stdlib.core_api.models import SupportedLink
 
 
 @pytest.mark.parametrize(
-    "input_link, expected_match, expected_type",
+    "input_link, expected_result",
     [
-        ("https://github.com", True, SupportedLink.github),
-        ("https://github.enterprise.com", True, SupportedLink.github),
-        ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", True, SupportedLink.github),
-        ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", True, SupportedLink.github),
-        ("https://api.github.com", False, None),
-        ("https://githubby.com", False, None),
-        ("https://google.com", False, None),
+        ("https://github.com", [SupportedLink.github]),
+        ("https://github.enterprise.com", [SupportedLink.github]),
+        ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", [SupportedLink.github]),
+        ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", [SupportedLink.github]),
+        ("https://api.github.com", []),
+        ("https://githubby.com", []),
+        ("https://google.com", []),
     ],
 )
-def test_github_regex(input_link: str, expected_match: bool, expected_type: Optional[SupportedLink]) -> None:
-    match, link_type = link_handler.is_supported_link(input_link)
-    assert match == expected_match
-    assert link_type == expected_type
+def test_supported_links(input_link: str, expected_result: list[SupportedLink]) -> None:
+    result = link_handler.filter_supported_links([input_link])
+    assert result == [(input_link, supported) for supported in expected_result]
