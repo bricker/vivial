@@ -8,7 +8,6 @@ import CloseIcon from '../Icons/CloseIcon.js';
 import Button from '../Button/index.js';
 import GoogleIcon from '../Icons/GoogleIcon.jsx';
 import SlackIcon from '../Icons/SlackIcon.jsx';
-import useUser from '../../hooks/useUser.js';
 
 const makeClasses = makeStyles((theme) => ({
   container: {
@@ -54,7 +53,6 @@ const makeClasses = makeStyles((theme) => ({
 const AuthModal = () => {
   const classes = makeClasses();
   const { isOpen, isLoginMode, isSignupMode, closeModal } = useAuthModal();
-  const { logIn } = useUser();
 
   return (
     <Dialog open={isOpen}>
@@ -65,8 +63,7 @@ const AuthModal = () => {
         <Copy variant="h2">{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
         <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google and Slack sign up only. Additional account options coming soon.'}</Copy>
         <Button
-          // to={`${window.eave.apiBase}/oauth/google/authorize`}
-          onClick={logIn}
+          to={`${window.eave.apiBase}/oauth/google/authorize`}
           className={classes.loginButton}
           variant="outlined"
           startIcon={<GoogleIcon className={classes.icon} />}
