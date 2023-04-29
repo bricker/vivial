@@ -1,7 +1,3 @@
-import eave.core.public.requests.util as request_util
-import eave.stdlib.headers as eave_headers
-from eave.stdlib.config import shared_config
-
 from . import asgi_types
 
 

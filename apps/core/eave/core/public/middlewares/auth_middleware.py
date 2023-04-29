@@ -1,19 +1,15 @@
 import re
-import uuid
 from typing import Set
 
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.auth_token import AuthTokenOrm
 import eave.core.public.requests.util as request_util
-import eave.stdlib.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
+from eave.core.internal.orm.auth_token import AuthTokenOrm
 from eave.stdlib import logger
 
-
-from . import EaveASGIMiddleware, asgi_types
-
-from . import _development_bypass
+from . import EaveASGIMiddleware, _development_bypass, asgi_types
 
 _ROUTE_BYPASS: Set[str] = set()
 

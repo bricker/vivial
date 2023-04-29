@@ -103,17 +103,21 @@ def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
     task.add_done_callback(tasks.discard)
     return task
 
+
 def nand(a: Any, b: Any) -> bool:
     """Neither or one"""
     return not (bool(a) and bool(b))
+
 
 def nor(a: Any, b: Any) -> bool:
     """Exactly neither"""
     return not (bool(a) or bool(b))
 
+
 def xor(a: Any, b: Any) -> bool:
     """Neither or both"""
     return bool(a) ^ bool(b)
+
 
 def xnor(a: Any, b: Any) -> bool:
     """Exactly one"""

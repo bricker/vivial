@@ -1,18 +1,15 @@
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-
+import uuid
+from datetime import datetime
+from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from uuid import UUID
 
 import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.util as eave_util
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-
-import uuid
-from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
-from uuid import UUID
+from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
 
 
 class AccountOrm(Base):
@@ -49,7 +46,15 @@ class AccountOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(cls, session: AsyncSession, team_id: UUID, auth_provider: eave_models.AuthProvider, auth_id: str, oauth_token: str, refresh_token: Optional[str]) -> Self:
+    async def create(
+        cls,
+        session: AsyncSession,
+        team_id: UUID,
+        auth_provider: eave_models.AuthProvider,
+        auth_id: str,
+        oauth_token: str,
+        refresh_token: Optional[str],
+    ) -> Self:
         obj = cls(
             team_id=team_id,
             auth_provider=auth_provider,
@@ -84,11 +89,7 @@ class AccountOrm(Base):
             lookup = lookup.where(cls.id == id).where(cls.team_id == team_id)
 
         if auth_provider and auth_id:
-            lookup = (
-                lookup
-                .where(cls.auth_provider == auth_provider)
-                .where(cls.auth_id == auth_id)
-            )
+            lookup = lookup.where(cls.auth_provider == auth_provider).where(cls.auth_id == auth_id)
 
         assert lookup.whereclause is not None
         return lookup

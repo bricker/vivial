@@ -1,7 +1,6 @@
 import os
 
 import dotenv
-
 import eave.core.internal.orm
 from eave.core.internal.orm.team import TeamOrm
 

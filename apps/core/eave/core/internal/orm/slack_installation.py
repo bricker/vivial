@@ -1,15 +1,13 @@
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-
+from ctypes import ArgumentError
+from datetime import datetime
+from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from uuid import UUID
 
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-
-from ctypes import ArgumentError
-from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
-from uuid import UUID
+from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
 
 
 class SlackInstallationOrm(Base):
@@ -44,7 +42,7 @@ class SlackInstallationOrm(Base):
         team_id: UUID,
         slack_team_id: str,
         bot_token: str,
-        bot_id:str,
+        bot_id: str,
         bot_user_id: Optional[str] = None,
     ) -> Self:
         obj = cls(

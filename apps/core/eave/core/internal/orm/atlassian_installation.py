@@ -1,20 +1,18 @@
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-from .. import database as eave_db
-from ..destinations import confluence as confluence_destination
-from ..oauth import atlassian as atlassian_oauth
-
+import json
+import uuid
+from datetime import datetime
+from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from uuid import UUID
 
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-
-import json
-import uuid
-from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
-from uuid import UUID
+from .. import database as eave_db
+from ..destinations import confluence as confluence_destination
+from ..oauth import atlassian as atlassian_oauth
+from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
 
 
 class AtlassianInstallationOrm(Base):

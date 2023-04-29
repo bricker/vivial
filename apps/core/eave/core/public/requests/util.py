@@ -3,20 +3,20 @@ import logging
 import uuid
 from http import HTTPStatus
 from typing import Any, Dict, Optional, cast
-import eave.core.internal.orm.account
 
-from eave.core.internal.orm.team import TeamOrm
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.auth_token import AuthTokenOrm
+import eave.core.internal.database as eave_db
+import eave.core.internal.orm.account
+import eave.stdlib.auth_cookies as eave_auth_cookies
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_errors
 import eave.stdlib.headers as eave_headers
-import eave.core.internal.database as eave_db
 import eave.stdlib.util as eave_util
-import eave.stdlib.auth_cookies as eave_auth_cookies
-import slack_sdk.errors
 import fastapi
+import slack_sdk.errors
 import sqlalchemy.exc
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.auth_token import AuthTokenOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import logger
 
 from ..middlewares import asgi_types
@@ -27,7 +27,8 @@ def not_found(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     logging.error("not found", exc_info=exc, extra=eave_state.log_context)
     return fastapi.responses.Response(
         status_code=HTTPStatus.NOT_FOUND,
-        content=eave_state.log_context,)
+        content=eave_state.log_context,
+    )
 
 
 def internal_server_error(request: fastapi.Request, exc: Exception) -> fastapi.Response:
@@ -128,6 +129,7 @@ class EaveRequestState:
 
         return json.dumps(context)
 
+
 def get_eave_state(
     scope: Optional[asgi_types.Scope] = None, request: Optional[fastapi.Request] = None
 ) -> EaveRequestState:
@@ -138,9 +140,9 @@ def get_eave_state(
         scope = cast(asgi_types.Scope, request.scope)
 
     assert scope is not None
-    scope.setdefault("state", dict[str,Any]())
+    scope.setdefault("state", dict[str, Any]())
     state = scope.get("state")
-    assert state is not None # Helps the typechecker
+    assert state is not None  # Helps the typechecker
 
     eave_state = state.get("eave")
     if eave_state is None:
@@ -154,6 +156,7 @@ def get_eave_state(
 
     return cast(EaveRequestState, eave_state)
 
+
 def get_header_value(scope: asgi_types.HTTPScope, name: str) -> str | None:
     """
     This function doesn't support multiple headers with the same name.
@@ -162,6 +165,7 @@ def get_header_value(scope: asgi_types.HTTPScope, name: str) -> str | None:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+
 
 async def get_logged_in_account_if_present(request: fastapi.Request, response: fastapi.Response) -> AccountOrm | None:
     eave_access_token = request.cookies.get(eave_headers.EAVE_ACCESS_TOKEN_COOKIE)
@@ -180,7 +184,7 @@ async def get_logged_in_account_if_present(request: fastapi.Request, response: f
                 log_context=eave_state.log_context,
                 aud=eave_origins.EaveOrigin.eave_www.value,
                 access_token=eave_access_token,
-                allow_expired=True, # FIXME: This is only here in case the token expires during the Slack OAuth flow.
+                allow_expired=True,  # FIXME: This is only here in case the token expires during the Slack OAuth flow.
             )
 
         # Now, we've verified that the user previously logged in, but in this case, we don't care how.

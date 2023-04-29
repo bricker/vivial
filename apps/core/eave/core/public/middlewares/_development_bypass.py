@@ -1,12 +1,14 @@
 import uuid
+
+import eave.core.internal.database as eave_db
 import eave.core.public.requests.util as request_util
 import eave.stdlib.headers as eave_headers
-import eave.core.internal.database as eave_db
-from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.config import app_config
+from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib import logger
 
 from . import asgi_types
+
 
 def development_bypass_allowed(scope: asgi_types.HTTPScope) -> bool:
     if not app_config.dev_mode:
@@ -26,6 +28,7 @@ def development_bypass_allowed(scope: asgi_types.HTTPScope) -> bool:
         return True
 
     raise Exception()
+
 
 async def development_bypass_auth(scope: asgi_types.HTTPScope) -> None:
     logger.warning("Bypassing auth verification in dev environment")

@@ -1,8 +1,9 @@
 import uuid
 
-import eave.stdlib.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.headers as eave_headers
 from eave.stdlib import logger
+
 from ..requests import util as request_util
 from . import EaveASGIMiddleware, asgi_types
 

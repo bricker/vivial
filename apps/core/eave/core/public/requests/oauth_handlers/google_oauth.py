@@ -1,17 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional, cast
 
-from eave.stdlib.eave_origins import EaveOrigin
-from eave.core.internal.orm.auth_token import AuthTokenOrm
-from eave.core.internal.orm.account import AccountOrm
-
 import eave.core.internal.database as eave_db
-import eave.core.public.requests.util as request_util
 import eave.core.internal.oauth.models as oauth_models
-from eave.core.internal.orm.team import TeamOrm
+import eave.core.public.requests.util as request_util
+import eave.stdlib.auth_cookies as eave_auth_cookies
 import eave.stdlib.core_api.enums
 import eave.stdlib.util as eave_util
-import eave.stdlib.auth_cookies as eave_auth_cookies
 import fastapi
 import google.oauth2.credentials
 import google.oauth2.id_token
@@ -19,7 +14,12 @@ import google_auth_oauthlib.flow
 import pydantic
 from eave.core.internal.config import app_config
 from eave.core.internal.oauth import cookies as oauth_cookies
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.auth_token import AuthTokenOrm
+from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.eave_origins import EaveOrigin
 from google.auth.transport import requests
+
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = get_oauth_flow_info()
@@ -39,6 +39,7 @@ class GoogleOAuthResponseBody(pydantic.BaseModel):
 
     given_name: Optional[str]
     email: Optional[str]
+
 
 async def google_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
@@ -107,7 +108,13 @@ def build_flow(state: Optional[str] = None) -> google_auth_oauthlib.flow.Flow:
 
     return flow
 
-async def _login_eave_account(google_token:GoogleOAuthResponseBody, credentials:google.oauth2.credentials.Credentials, request: fastapi.Request, response: fastapi.Response) -> None:
+
+async def _login_eave_account(
+    google_token: GoogleOAuthResponseBody,
+    credentials: google.oauth2.credentials.Credentials,
+    request: fastapi.Request,
+    response: fastapi.Response,
+) -> None:
     eave_state = request_util.get_eave_state(request=request)
 
     async with eave_db.async_session.begin() as db_session:
@@ -123,7 +130,7 @@ async def _login_eave_account(google_token:GoogleOAuthResponseBody, credentials:
             eave_account.refresh_token = credentials.refresh_token
 
         else:
-            beta_whitelisted = False # Default value
+            beta_whitelisted = False  # Default value
 
             # No Eave account exists. Create one, along with a Team.
             if google_token.email:
@@ -160,7 +167,5 @@ async def _login_eave_account(google_token:GoogleOAuthResponseBody, credentials:
     # Set the cookie in the response headers.
     # This logs the user into their Eave account.
     eave_auth_cookies.set_auth_cookies(
-        response=response,
-        access_token=str(auth_tokens.access_token),
-        refresh_token=str(auth_tokens.refresh_token)
+        response=response, access_token=str(auth_tokens.access_token), refresh_token=str(auth_tokens.refresh_token)
     )

@@ -1,19 +1,12 @@
 from datetime import datetime
-from http import HTTPStatus
-from typing import Tuple
-import eave.core.internal.orm.account
 
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.auth_token import AuthTokenOrm
 import eave.core.public.requests.util as request_util
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_exceptions
-import eave.stdlib.jwt as eave_jwt
-import eave.stdlib.util as eave_util
 import fastapi
 import sqlalchemy.exc
-from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
+from eave.core.internal.orm.auth_token import AuthTokenOrm
 from eave.stdlib import logger
 
 

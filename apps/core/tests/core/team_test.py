@@ -1,10 +1,10 @@
 import json
-import eave.core.internal.orm.atlassian_installation
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.destinations.confluence as confluence_destination
-from eave.core.internal.orm.team import TeamOrm
+import eave.core.internal.orm.atlassian_installation
 import sqlalchemy.exc
+from eave.core.internal.orm.team import TeamOrm
 
 from .base import BaseTestCase
 

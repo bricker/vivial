@@ -1,5 +1,5 @@
-from google.protobuf.wrappers_pb2 import Int64Value
 import google_crc32c
+from google.protobuf.wrappers_pb2 import Int64Value
 
 from . import exceptions
 

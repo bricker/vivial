@@ -1,12 +1,9 @@
-import json
 from datetime import datetime
 
-from eave.stdlib.eave_origins import EaveOrigin
-
 import eave.core.internal.database as eave_db
-import eave.core.internal.destinations.confluence as confluence_destination
-from eave.core.internal.orm.auth_token import AuthTokenOrm
 import sqlalchemy.exc
+from eave.core.internal.orm.auth_token import AuthTokenOrm
+from eave.stdlib.eave_origins import EaveOrigin
 
 from .base import BaseTestCase
 

@@ -1,7 +1,6 @@
-import eave.stdlib.exceptions as eave_exceptions
 import eave.core.public.requests.util as request_util
+import eave.stdlib.exceptions as eave_exceptions
 import fastapi
-import slack_sdk.errors
 from eave.stdlib import logger
 
 from . import EaveASGIMiddleware, asgi_types

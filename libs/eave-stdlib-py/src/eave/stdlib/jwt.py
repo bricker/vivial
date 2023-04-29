@@ -182,6 +182,7 @@ def validate_jwt_or_exception(
     else:
         return True
 
+
 def validate_jwt_pair_or_exception(
     jwt_encoded_a: str,
     jwt_encoded_b: str,

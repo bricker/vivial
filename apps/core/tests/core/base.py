@@ -5,14 +5,12 @@ import urllib.parse
 from datetime import datetime
 from typing import Any, Optional, Protocol, Tuple, TypeVar
 from uuid import UUID, uuid4
-import eave.core.internal.orm
-import eave.core.internal.orm.account
-import eave.core.internal.orm.auth_token
 
 import eave.core.app
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.team import TeamOrm
-import eave.stdlib.core_api.enums as eave_enums
+import eave.core.internal.orm
+import eave.core.internal.orm.account
+import eave.core.internal.orm.auth_token
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.jwt as eave_jwt
@@ -23,6 +21,7 @@ import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from eave.core.internal.config import app_config
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.eave_origins import EaveOrigin
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
@@ -246,9 +245,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return (access_token, refresh_token, auth_token)
 
     async def make_team(self) -> TeamOrm:
-        team = TeamOrm(
-            name=self.anystring("team name"), document_platform=eave_models.DocumentPlatform.confluence
-        )
+        team = TeamOrm(name=self.anystring("team name"), document_platform=eave_models.DocumentPlatform.confluence)
         await self.save(team)
         return team
 

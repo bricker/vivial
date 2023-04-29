@@ -1,9 +1,9 @@
 from typing import Set
 
 import eave.core.public.requests.util as request_util
-import eave.stdlib.headers as eave_headers
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.headers as eave_headers
 from eave.stdlib import logger
 
 from . import EaveASGIMiddleware, asgi_types

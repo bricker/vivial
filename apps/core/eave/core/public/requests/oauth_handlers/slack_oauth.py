@@ -1,31 +1,21 @@
-from typing import Optional
 import typing
 
-from sqlalchemy.ext.asyncio import AsyncSession
-import eave.core.internal.oauth.cookies as eave_cookies
-
 import eave.core.internal.database as eave_db
+import eave.core.internal.oauth.slack as eave_slack_oauth
 import eave.core.public.requests.util as request_util
-from eave.core.internal.orm.team import TeamOrm
-from eave.core.internal.orm.auth_token import AuthTokenOrm
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.slack_installation import SlackInstallationOrm
-import eave.stdlib.core_api.enums as eave_enums
-import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.auth_cookies as eave_auth_cookies
-import eave.stdlib.core_api.operations as eave_ops
-from eave.stdlib.eave_origins import EaveOrigin
-import eave.stdlib.headers as eave_headers
-import eave.stdlib.exceptions as eave_exceptions
-from eave.stdlib import logger
+import eave.stdlib.core_api.models as eave_models
 import fastapi
 import oauthlib.common
 from eave.core.internal.config import app_config
 from eave.core.internal.oauth import cookies as oauth_cookies
-import eave.core.internal.oauth.slack as eave_slack_oauth
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.auth_token import AuthTokenOrm
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.eave_origins import EaveOrigin
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web.async_client import AsyncWebClient
-import sqlalchemy.exc
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
@@ -85,17 +75,11 @@ async def slack_oauth_callback(
     state: str, code: str, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
     # verify request not tampered
-    cookie_state = oauth_cookies.get_state_cookie(
-        request=request, provider=eave_models.AuthProvider.slack
-    )
+    cookie_state = oauth_cookies.get_state_cookie(request=request, provider=eave_models.AuthProvider.slack)
     assert state == cookie_state
 
     slack_oauth_data, slack_auth_test_data = await _finalize_slack_oauth(code=code)
-    eave_account = await _login_eave_account(
-        slack_oauth_data=slack_oauth_data,
-        request=request,
-        response=response
-    )
+    eave_account = await _login_eave_account(slack_oauth_data=slack_oauth_data, request=request, response=response)
 
     # OK, now the user is logged into their Eave account.
     # Next, we'll write down the information about the Slack Installation.
@@ -123,13 +107,15 @@ async def slack_oauth_callback(
             slack_installation.bot_id = slack_auth_test_data.bot_id or "UNKNOWN"
             slack_installation.bot_user_id = slack_auth_test_data.bot_user_id
 
-
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
     # clear state cookie now that it's been verified
     oauth_cookies.delete_state_cookie(response=response, provider=eave_models.AuthProvider.slack)
     return response
 
-async def _login_eave_account(slack_oauth_data: eave_slack_oauth.SlackOAuthResponse, request: fastapi.Request, response: fastapi.Response) -> AccountOrm:
+
+async def _login_eave_account(
+    slack_oauth_data: eave_slack_oauth.SlackOAuthResponse, request: fastapi.Request, response: fastapi.Response
+) -> AccountOrm:
     eave_state = request_util.get_eave_state(request=request)
     logged_in_account = await request_util.get_logged_in_account_if_present(request=request, response=response)
     if logged_in_account:
@@ -166,17 +152,17 @@ async def _login_eave_account(slack_oauth_data: eave_slack_oauth.SlackOAuthRespo
     # Set the cookie in the response headers.
     # This logs the user into their Eave account.
     eave_auth_cookies.set_auth_cookies(
-        response=response,
-        access_token=str(auth_tokens.access_token),
-        refresh_token=str(auth_tokens.refresh_token)
+        response=response, access_token=str(auth_tokens.access_token), refresh_token=str(auth_tokens.refresh_token)
     )
 
     return auth_tokens.account
 
-async def _create_new_eave_account(slack_oauth_data: eave_slack_oauth.SlackOAuthResponse, eave_state: request_util.EaveRequestState) -> AccountOrm:
+
+async def _create_new_eave_account(
+    slack_oauth_data: eave_slack_oauth.SlackOAuthResponse, eave_state: request_util.EaveRequestState
+) -> AccountOrm:
     user_identity = await eave_slack_oauth.SlackIdentity.get(
-        token=slack_oauth_data.authed_user.access_token,
-        log_context=eave_state.log_context
+        token=slack_oauth_data.authed_user.access_token, log_context=eave_state.log_context
     )
 
     # Default value
@@ -209,7 +195,10 @@ async def _create_new_eave_account(slack_oauth_data: eave_slack_oauth.SlackOAuth
 
     return account_orm
 
-async def _finalize_slack_oauth(code: str) -> typing.Tuple[eave_slack_oauth.SlackOAuthResponse, eave_slack_oauth.SlackAuthTestResponse]:
+
+async def _finalize_slack_oauth(
+    code: str,
+) -> typing.Tuple[eave_slack_oauth.SlackOAuthResponse, eave_slack_oauth.SlackAuthTestResponse]:
     client = AsyncWebClient()
 
     # Complete the installation by calling oauth.v2.access API method

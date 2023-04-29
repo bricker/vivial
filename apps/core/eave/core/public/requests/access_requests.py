@@ -2,9 +2,9 @@ import json
 from http import HTTPStatus
 
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.access_request import AccessRequestOrm
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
+from eave.core.internal.orm.access_request import AccessRequestOrm
 from eave.stdlib.slack import eave_slack_client
 
 SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"

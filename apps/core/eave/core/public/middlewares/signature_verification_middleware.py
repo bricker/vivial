@@ -1,16 +1,15 @@
 from typing import Set, cast
 
 import eave.core.public.requests.util as request_util
-import eave.stdlib.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.headers as eave_headers
 import eave.stdlib.signing as eave_signing
 from eave.stdlib import logger
 
-from . import EaveASGIMiddleware, asgi_types
-
-from . import _development_bypass
+from . import EaveASGIMiddleware, _development_bypass, asgi_types
 
 _ROUTE_BYPASS: Set[str] = set()
+
 
 def add_bypass(path: str) -> None:
     global _ROUTE_BYPASS

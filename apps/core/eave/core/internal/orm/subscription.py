@@ -1,6 +1,6 @@
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_fk, make_team_composite_pk, make_team_fk
-from .document_reference import DocumentReferenceOrm
-
+from datetime import datetime
+from typing import Optional, Self, Tuple
+from uuid import UUID
 
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
@@ -8,10 +8,14 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-
-from datetime import datetime
-from typing import Optional, Self, Tuple
-from uuid import UUID
+from . import (
+    UUID_DEFAULT_EXPR,
+    Base,
+    make_team_composite_fk,
+    make_team_composite_pk,
+    make_team_fk,
+)
+from .document_reference import DocumentReferenceOrm
 
 
 class SubscriptionOrm(Base):

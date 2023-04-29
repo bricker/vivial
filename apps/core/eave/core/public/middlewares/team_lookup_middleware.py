@@ -2,11 +2,11 @@ import uuid
 from typing import Set
 
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.team import TeamOrm
 import eave.core.public.requests.util as request_util
-import eave.stdlib.headers as eave_headers
 import eave.stdlib.exceptions as eave_errors
+import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import logger
 
 from . import EaveASGIMiddleware, asgi_types

@@ -3,13 +3,13 @@ from datetime import datetime
 from http import HTTPStatus
 
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.auth_token import AuthTokenOrm
 import eave.stdlib.core_api.enums as eave_enums
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.signing as eave_signing
 import eave.stdlib.util as eave_util
 import mockito
 import pytest
+from eave.core.internal.orm.auth_token import AuthTokenOrm
 from sqlalchemy import select
 
 from .base import BaseTestCase

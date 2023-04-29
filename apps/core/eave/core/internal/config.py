@@ -49,4 +49,5 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         except:
             return []
 
+
 app_config = AppConfig()

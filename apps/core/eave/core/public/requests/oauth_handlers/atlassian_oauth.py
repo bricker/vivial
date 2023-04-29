@@ -3,10 +3,10 @@ import json
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.atlassian as oauth_atlassian
 import eave.core.internal.oauth.cookies as oauth_cookies
-from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 import eave.stdlib.core_api.enums as eave_enums
 import fastapi
 from eave.core.internal.config import app_config
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 
 
 async def atlassian_oauth_authorize() -> fastapi.Response:

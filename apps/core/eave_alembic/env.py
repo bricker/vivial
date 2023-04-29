@@ -1,4 +1,3 @@
-import importlib
 import dotenv
 
 dotenv.load_dotenv()

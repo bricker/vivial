@@ -1,14 +1,12 @@
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-
+from datetime import datetime
+from typing import Optional, Self
+from uuid import UUID
 
 from sqlalchemy import Index, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-
-from datetime import datetime
-from typing import Optional, Self
-from uuid import UUID
+from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
 
 
 class DocumentReferenceOrm(Base):

@@ -1,16 +1,16 @@
-from slack_sdk.oauth import AuthorizeUrlGenerator
+from typing import Dict, Optional, Self
+
+import slack_sdk.errors
+from eave.stdlib import logger
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
-import eave.stdlib.util as eave_util
-from eave.core.internal.config import app_config
-from typing import Dict, Optional, Self
-from eave.stdlib import logger
-import slack_sdk.errors
+
 
 class SlackIdentity:
     """
     https://api.slack.com/methods/openid.connect.userInfo
     """
+
     ok: Optional[bool]
     sub: Optional[str]
     slack_user_id: Optional[str]
@@ -71,7 +71,7 @@ class SlackIdentity:
         self.slack_team_image_default = response.get("https://slack.com/team_image_default")
 
     @classmethod
-    async def get(cls, token: str, log_context: Optional[Dict[str,str]]) -> Self | None:
+    async def get(cls, token: str, log_context: Optional[Dict[str, str]]) -> Self | None:
         client = AsyncWebClient()
         response = await client.openid_connect_userInfo(
             token=token,
@@ -109,6 +109,7 @@ class SlackAuthorizedUser:
         self.access_token = kwargs["access_token"]
         self.refresh_token = kwargs.get("refresh_token")
 
+
 class SlackOAuthResponse:
     bot_token: str
     team: SlackTeam
@@ -123,6 +124,7 @@ class SlackOAuthResponse:
         self.bot_token = access_token
         self.team = SlackTeam(**installed_team)
         self.authed_user = SlackAuthorizedUser(**installer)
+
 
 class SlackAuthTestResponse:
     bot_id: str | None

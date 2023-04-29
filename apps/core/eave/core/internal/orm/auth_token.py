@@ -1,23 +1,28 @@
-from . import UUID_DEFAULT_EXPR, Base, make_team_fk
-from ... import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
-from .account import AccountOrm
-
-
-import eave.stdlib.eave_origins as eave_origins
-import eave.stdlib.exceptions as eave_exceptions
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.jwt as eave_jwt
-import eave.stdlib.util as eave_util
-from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, Select, func, null, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib import logger
-
-
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, NotRequired, Optional, Required, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
+
+import eave.stdlib.eave_origins as eave_origins
+import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.jwt as eave_jwt
+import eave.stdlib.util as eave_util
+from eave.stdlib import logger
+from sqlalchemy import (
+    ForeignKeyConstraint,
+    Index,
+    PrimaryKeyConstraint,
+    Select,
+    func,
+    null,
+    select,
+)
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column
+
+from ... import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
+from . import UUID_DEFAULT_EXPR, Base, make_team_fk
+from .account import AccountOrm
 
 
 class AuthTokenOrm(Base):
@@ -28,9 +33,7 @@ class AuthTokenOrm(Base):
             "account_id",
             "id",
         ),
-
         make_team_fk(),
-
         ForeignKeyConstraint(
             ["team_id", "account_id"],
             ["accounts.team_id", "accounts.id"],
@@ -64,7 +67,19 @@ class AuthTokenOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(cls, session: AsyncSession, team_id: UUID, account_id: UUID, access_token: str, refresh_token: str, jti: str, iss: str, aud: str, expires: datetime, invalidated: Optional[datetime] = None) -> Self:
+    async def create(
+        cls,
+        session: AsyncSession,
+        team_id: UUID,
+        account_id: UUID,
+        access_token: str,
+        refresh_token: str,
+        jti: str,
+        iss: str,
+        aud: str,
+        expires: datetime,
+        invalidated: Optional[datetime] = None,
+    ) -> Self:
         obj = cls(
             team_id=team_id,
             account_id=account_id,
@@ -110,11 +125,16 @@ class AuthTokenOrm(Base):
         return lookup
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, log_context: Optional[Dict[str,str]] = None, **kwargs: Unpack[_selectparams]) -> Self:
+    async def one_or_exception(
+        cls, session: AsyncSession, log_context: Optional[Dict[str, str]] = None, **kwargs: Unpack[_selectparams]
+    ) -> Self:
         lookup = cls._build_select(**kwargs)
         result = (await session.scalars(lookup)).one()
         if result.expired and kwargs.get("allow_expired") is not True:
-            logger.error("Access token found, but it is expired, and expired tokens are omitted from the query.", extra=log_context)
+            logger.error(
+                "Access token found, but it is expired, and expired tokens are omitted from the query.",
+                extra=log_context,
+            )
             raise eave_exceptions.AccessTokenExpiredError()
 
         return result
@@ -128,7 +148,7 @@ class AuthTokenOrm(Base):
     async def find_and_verify_or_exception(
         cls,
         session: AsyncSession,
-        log_context: Optional[Dict[str,str]] = None,
+        log_context: Optional[Dict[str, str]] = None,
         **kwargs: Unpack[_selectparams],
     ) -> AuthTokenBundle:
         """
@@ -186,7 +206,7 @@ class AuthTokenOrm(Base):
         session: AsyncSession,
         account: AccountOrm,
         audience: eave_origins.EaveOrigin,
-        log_context: Optional[Dict[str,str]] = None,
+        log_context: Optional[Dict[str, str]] = None,
     ) -> JWTBundle:
         """
         Creates an Access Token/Refresh Token pair for the given account and audience,
