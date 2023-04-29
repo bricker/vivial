@@ -54,6 +54,18 @@ async def api_access_request() -> str:
 
     return "OK"
 
+@app.route("/log-in", methods=["POST"])
+async def api_log_in() -> str:
+    body = request.get_json()
+
+    return "OK"
+
+@app.route("/log-out", methods=["POST"])
+async def api_log_out() -> str:
+    body = request.get_json()
+
+    return "OK"
+
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")

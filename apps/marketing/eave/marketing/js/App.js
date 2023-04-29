@@ -6,28 +6,37 @@ import {
 } from 'react-router-dom';
 import { CookiesProvider, withCookies } from 'react-cookie';
 import { ThemeProvider } from '@material-ui/core';
+
+import AppStoreProvider from './context/Provider.js';
 import theme from './theme/index.js';
-import EarlyAccessPage from './components/Pages/EarlyAccessPage/index.js';
-import HomePage from './components/Pages/HomePage/index.js';
+import EarlyAccessPage from './components/Pages/EarlyAccessPage/index.jsx';
+import HomePage from './components/Pages/HomePage/index.jsx';
 import TermsPage from './components/Pages/TermsPage/index.jsx';
 import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
 import ScrollToTop from './components/ScrollToTop/index.jsx';
+import ThanksPage from './components/Pages/ThanksPage/index.jsx';
+import PrivateRoutes from './components/PrivateRoutes/index.jsx';
 
 class App extends React.Component {
   render() {
     return (
       <CookiesProvider>
-        <ThemeProvider theme={theme}>
-          <Router>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/early" element={<EarlyAccessPage pageTitle="Early access submission" />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-            </Routes>
-          </Router>
-        </ThemeProvider>
+        <AppStoreProvider>
+          <ThemeProvider theme={theme}>
+            <Router>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/early" element={<EarlyAccessPage pageTitle="Early access submission" />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route element={<PrivateRoutes />}>
+                  <Route path="/thanks" element={<ThanksPage />} />
+                </Route>
+                <Route path="/" element={<HomePage />} />
+              </Routes>
+            </Router>
+          </ThemeProvider>
+        </AppStoreProvider>
       </CookiesProvider>
     );
   }
