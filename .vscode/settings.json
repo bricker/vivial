@@ -110,7 +110,7 @@
     "**/generated",
     "**/build"
   ],
-  "python.analysis.importFormat": "relative",
+  "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/slack",

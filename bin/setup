@@ -13,6 +13,7 @@ echo ""
 
 usershell=$(shellname)
 kernel=$(get-kernel-name)
+opsys=$(get-os)
 tmpdir=/tmp/eave-setup
 mkdir -p $tmpdir
 
@@ -121,6 +122,38 @@ if test "$proceed" = "y"; then
 	setupcloudsqlproxy
 fi
 echo ""
+
+function install-jq () (
+	case "$kernel" in
+		"linux")
+			case "$opsys" in
+				"ubuntu")
+					statusmsg -w "sudo privileges are needed to install jq via apt"
+					sudo apt install jq
+					;;
+				*)
+					statusmsg -e "Your operating system isn't supported. Please add support to this script!"
+					;;
+			esac
+
+		"darwin")
+			if cmd-exists "brew"; then
+				brew install jq
+			else
+				statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
+			fi
+			;;
+		esac
+)
+
+if ! cmd-exists "jq"; then
+	statusmsg -ni "The jq program is used (and assumed to be installed) in many utility scripts in this repository."
+	read -p "Do you want me to install it? [y/n] " proceed
+	if test "$proceed" = "y"; then
+		install-jq
+	fi
+	echo ""
+fi
 
 function setupapps () (
 	cd ${EAVE_HOME}

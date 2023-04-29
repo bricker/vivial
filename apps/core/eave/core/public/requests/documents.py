@@ -1,7 +1,8 @@
 from http import HTTPStatus
+from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
+from eave.core.internal.orm.subscription import SubscriptionOrm
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
@@ -15,8 +16,8 @@ async def upsert_document(
     eave_state = request_util.get_eave_state(request=request)
     team = eave_state.eave_team
 
-    async with eave_db.get_async_session() as db_session:
-        subscription = await eave_orm.SubscriptionOrm.one_or_exception(
+    async with eave_db.async_session.begin() as db_session:
+        subscription = await SubscriptionOrm.one_or_exception(
             team_id=team.id, source=input.subscription.source, session=db_session
         )
 
@@ -29,17 +30,14 @@ async def upsert_document(
         if existing_document_reference is None:
             document_metadata = await destination.create_document(input=input.document)
 
-            document_reference = eave_orm.DocumentReferenceOrm(
+            document_reference = await DocumentReferenceOrm.create(
+                session=db_session,
                 team_id=team.id,
                 document_id=document_metadata.id,
                 document_url=document_metadata.url,
             )
 
-            db_session.add(document_reference)
-
-            await db_session.commit()
             subscription.document_reference_id = document_reference.id
-            await db_session.commit()
 
         else:
             await destination.update_document(

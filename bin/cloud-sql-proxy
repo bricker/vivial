@@ -8,16 +8,23 @@ function run-cloud-sql-proxy() {
 	if ! cmd-exists "cloud-sql-proxy"
 	then
 		statusmsg -e "cloud-sql-proxy is not installed in your PATH."
-		statusmsg -e "Visit https://cloud.google.com/sql/docs/postgres/sql-proxy for installation instructions."
+		statusmsg -e "Re-run the repository's setup script, otherwise visit https://cloud.google.com/sql/docs/postgres/sql-proxy for installation instructions."
 		exit 1
 	fi
 
 	local socketdir=${EAVE_HOME}/.cloudsqlproxy
 	mkdir -p $socketdir
 
-	local project=${GOOGLE_CLOUD_PROJECT:-eavefyi-dev}
-	local instance=${CLOUDSQL_INSTANCE:-eave-pg-core-dev}
-	cloud-sql-proxy $project:us-central1:$instance --auto-iam-authn --unix-socket $socketdir
+	local connectionName=$(gcloud --format json sql instances list | jq -r .[0].connectionName)
+	local account=$(gcloud --format json info | jq -r .config.account)
+
+	if test -z "$connectionName" || test -z "$account"; then
+		statusmsg -e "gcloud command failed. Cannot connect to Cloud SQL."
+		exit 1
+	fi
+
+	statusmsg -s "Connecting to CloudSQL as $account via $connectionName"
+	cloud-sql-proxy "$connectionName" --auto-iam-authn --unix-socket $socketdir
 }
 
 run-cloud-sql-proxy

@@ -4,7 +4,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Self
+from typing import Literal, Optional, Self
 
 from . import exceptions, signing
 from . import util as eave_util
@@ -142,8 +142,16 @@ def validate_jwt_or_exception(
     expected_expiry: datetime,
     expected_jti: str,
     signing_key: signing.SigningKeyDetails,
-    expired_ok: bool = False,
-) -> None:
+    allow_expired: bool = False,
+) -> Literal[True]:
+    """
+    Validates the claims in the given JWT against what we expect.
+    Also verifies the signature.
+    Either raises or returns True.
+    The return value is to help you, the developer, understand that if this function doesn't throw,
+    then the JWT is valid and verified.
+    """
+
     jwt = JWT.from_str(jwt_encoded=jwt_encoded)
     signing.verify_signature_or_exception(
         signing_key=signing_key,
@@ -162,8 +170,8 @@ def validate_jwt_or_exception(
         and jwt.payload.sub == expected_subject
         and jwt.payload.jti == expected_jti
         and iat < now
-        and (expired_ok or exp > now)
-        and (expired_ok or exp < (now + (60 * 10)))
+        and (allow_expired or exp > now)
+        and (allow_expired or exp < (now + (60 * 10)))
         and round(exp)
         == round(
             expected_expiry.timestamp()
@@ -171,13 +179,22 @@ def validate_jwt_or_exception(
         and now > nbf
     ):
         raise exceptions.InvalidJWTError()
-
+    else:
+        return True
 
 def validate_jwt_pair_or_exception(
     jwt_encoded_a: str,
     jwt_encoded_b: str,
     signing_key: signing.SigningKeyDetails,
-) -> None:
+) -> Literal[True]:
+    """
+    Verifies the the two JWTs (most commonly an Access Token and Refresh Token pair) belong together.
+    Notably, this function DOES NOT validate any claims. For that, use `validate_jwt_or_exception`.
+    Either raises or returns True.
+    The return value is to help you, the developer, understand that if this function doesn't throw,
+    then the JWTs belong together and are both verified.
+    """
+
     jwt_a = JWT.from_str(jwt_encoded=jwt_encoded_a)
     jwt_b = JWT.from_str(jwt_encoded=jwt_encoded_b)
 
@@ -205,3 +222,5 @@ def validate_jwt_pair_or_exception(
         and jwt_a.payload.nbf == jwt_b.payload.nbf
     ):
         raise exceptions.InvalidJWTError()
+    else:
+        return True

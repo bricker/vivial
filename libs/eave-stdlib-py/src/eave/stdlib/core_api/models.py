@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
@@ -10,10 +11,10 @@ from eave.stdlib.core_api.enums import (
 )
 
 
-class AuthInfo(pydantic.BaseModel):
-    provider: AuthProvider
-    id: str
-
+@dataclass
+class AuthTokenPair:
+    access_token: str
+    refresh_token: str
 
 class AccessRequest(pydantic.BaseModel):
     id: pydantic.UUID4

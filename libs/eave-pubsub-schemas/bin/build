@@ -31,3 +31,6 @@ python -m grpc_tools.protoc \
 	protos/*
 
 statusmsg -s "Done!"
+
+# TODO: Can we use this for anything?
+# https://proto-plus-python.readthedocs.io/en/stable/index.html

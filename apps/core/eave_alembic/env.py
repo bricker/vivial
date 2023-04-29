@@ -1,3 +1,4 @@
+import importlib
 import dotenv
 
 dotenv.load_dotenv()
@@ -26,7 +27,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-target_metadata = eave.core.internal.orm.Base.metadata
+target_metadata = eave.core.internal.orm.get_base_metadata()
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -47,7 +48,7 @@ async def run_migrations_offline() -> None:
 
     """
     context.configure(
-        url=eave_db.engine.url.render_as_string(hide_password=False),
+        url=eave_db.async_engine.url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -71,10 +72,10 @@ async def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    async with eave_db.engine.connect() as connection:
+    async with eave_db.async_engine.connect() as connection:
         await connection.run_sync(do_run_migrations)
 
-    await eave_db.engine.dispose()
+    await eave_db.async_engine.dispose()
 
 
 if context.is_offline_mode():

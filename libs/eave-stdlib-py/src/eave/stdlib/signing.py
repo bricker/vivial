@@ -2,6 +2,7 @@ import base64
 import enum
 import hashlib
 from dataclasses import dataclass
+from typing import Literal
 
 import cryptography.exceptions
 from cryptography.hazmat.backends import default_backend
@@ -106,7 +107,13 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
     return eave_util.b64encode(sign_response.signature)
 
 
-def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes) -> None:
+def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes) -> Literal[True]:
+    """
+    Verifies the signature matches the message.
+    Either raises or returns True.
+    The return value is to help you, the developer, understand that if this function doesn't throw,
+    then the signature is verified.
+    """
     message_bytes = eave_util.ensure_bytes(message)
     signature_bytes = base64.b64decode(signature)
     kms_client = kms.KeyManagementServiceClient()
@@ -138,6 +145,7 @@ def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str |
                     padding=pad,
                     algorithm=utils.Prehashed(sha256),
                 )
+                return True
             case SigningAlgorithm.ES256:
                 assert isinstance(public_key_from_pem, ec.EllipticCurvePublicKey)
                 public_key_from_pem.verify(
@@ -145,6 +153,7 @@ def verify_signature_or_exception(signing_key: SigningKeyDetails, message: str |
                     data=digest,
                     signature_algorithm=ec.ECDSA(utils.Prehashed(sha256)),
                 )
+                return True
             case _:
                 raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
     except cryptography.exceptions.InvalidSignature as e:
