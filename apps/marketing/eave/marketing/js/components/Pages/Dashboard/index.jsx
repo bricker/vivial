@@ -4,7 +4,7 @@ import { StepContent, StepLabel, Step, Stepper, Select, FormControl, InputLabel,
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
 import Copy from '../../Copy/index.js';
-import Page from '../Page/index.js';
+import Page from '../Page/index.jsx';
 import Button from '../../Button/index.js';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ChatboxIcon from '../../Icons/ChatboxIcon.jsx';
