@@ -54,9 +54,7 @@ const makeClasses = makeStyles((theme) => ({
 const AuthModal = () => {
   const classes = makeClasses();
   const { isOpen, isLoginMode, isSignupMode, closeModal } = useAuthModal();
-  const { logIn, isLoggedIn } = useUser();
-
-  console.log('isLoggedIn', isLoggedIn)
+  const { logIn } = useUser();
 
   return (
     <Dialog open={isOpen}>
@@ -96,7 +94,7 @@ const AuthModal = () => {
                 TOS
             </a> and{' '}
             <a
-              href={`${window.location.hostname}/priacy`}
+              href={`${window.location.hostname}/privacy`}
               rel="noreferrer"
               target="_blank"
             >
