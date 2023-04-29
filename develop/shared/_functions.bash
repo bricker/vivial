@@ -190,6 +190,22 @@ then
 		done
 	}
 
+	function get-os () {
+		local kernel=$(get-kernel-name)
+		case "$kernel" in
+			"linux")
+				lsb_release -is | tr '[:upper:]' '[:lower:]'
+				;;
+			"darwin")
+				echo -n "macos"
+				;;
+			*)
+				statusmsg -e "Your OS isn't supported by this script. Please add support!"
+				exit 1
+				;;
+		esac
+	}
+
 	function get-kernel-name () {
 		uname -s | tr '[:upper:]' '[:lower:]'
 	}

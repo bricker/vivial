@@ -1,7 +1,7 @@
 import atlassian
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.oauth.atlassian as atlassian_oauth
-import eave.core.internal.orm as eave_orm
+from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 import eave.stdlib.core_api.operations as eave_ops
 import mockito
 
@@ -33,7 +33,7 @@ class TestConfluenceDestination(BaseTestCase):
             oauth_session=oauth_session,
         )
 
-        document_reference = eave_orm.DocumentReferenceOrm(
+        document_reference = DocumentReferenceOrm(
             team_id=self.team.id,
             document_id=self.anystring("confluence_document_response.id"),
             document_url=self.anystring("cdurl"),

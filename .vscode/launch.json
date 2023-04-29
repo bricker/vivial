@@ -27,6 +27,7 @@
       "request": "launch",
       "module": "uvicorn",
       "args": [
+        "--use-colors",
         "--port",
         "5200",
         "--reload",

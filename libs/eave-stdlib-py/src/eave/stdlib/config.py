@@ -6,7 +6,10 @@ from google.cloud import secretmanager
 
 from . import checksum
 
-
+# TODO: Use runtime-configs
+# https://cloud.google.com/deployment-manager/runtime-configurator/create-and-delete-runtimeconfig-resources#gcloud
+# https://cloud.google.com/python/docs/reference/runtimeconfig/latest
+# config created called "shared-config"
 class EaveConfig:
     @property
     def dev_mode(self) -> bool:

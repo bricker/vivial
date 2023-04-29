@@ -1,7 +1,8 @@
 from http import HTTPStatus
+import eave.core.internal.orm.document_reference
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
+from eave.core.internal.orm.subscription import SubscriptionOrm
 import eave.stdlib.core_api.enums
 
 from .base import BaseTestCase
@@ -13,14 +14,14 @@ class TestSubscriptionsEndpoints(BaseTestCase):
 
         self.team = await self.make_team()
 
-        document_reference = eave_orm.DocumentReferenceOrm(
+        document_reference = eave.core.internal.orm.document_reference.DocumentReferenceOrm(
             team_id=self.team.id,
             document_id=self.anystring("confluence_document_response.id"),
             document_url=self.anystring("cdurl"),
         )
         self.document_reference = await self.save(document_reference)
 
-        subscription = eave_orm.SubscriptionOrm(
+        subscription = SubscriptionOrm(
             team_id=self.team.id,
             source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
             source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
@@ -47,8 +48,8 @@ class TestSubscriptionsEndpoints(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
 
-        async with eave_db.get_async_session() as db_session:
-            subscription = await eave_orm.SubscriptionOrm.one_or_none(
+        async with eave_db.async_session.begin() as db_session:
+            subscription = await SubscriptionOrm.one_or_none(
                 session=db_session, source=self.subscription.source, team_id=self.team.id
             )
 

@@ -3,8 +3,8 @@ from datetime import datetime
 from http import HTTPStatus
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.enums as eave_models
+from eave.core.internal.orm.auth_token import AuthTokenOrm
+import eave.stdlib.core_api.enums as eave_enums
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.signing as eave_signing
 import eave.stdlib.util as eave_util
@@ -19,7 +19,7 @@ class TestAuthRequests(BaseTestCase):
     async def test_request_access_token(self) -> None:
         account = await self.make_account()
 
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        assert (await self.count(AuthTokenOrm)) == 0
 
         response = await self.make_request(
             url="/auth/token/request",
@@ -33,15 +33,15 @@ class TestAuthRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 1
+        assert (await self.count(AuthTokenOrm)) == 1
 
         response_obj = eave_ops.RequestAccessToken.ResponseBody(**response.json())
 
-        async with eave_db.get_async_session() as db_session:
+        async with eave_db.async_session.begin() as db_session:
             token = await db_session.scalar(
-                select(eave_orm.AuthTokenOrm)
-                .where(eave_orm.AuthTokenOrm.access_token == eave_util.sha256hexdigest(response_obj.access_token))
-                .where(eave_orm.AuthTokenOrm.refresh_token == eave_util.sha256hexdigest(response_obj.refresh_token))
+                select(AuthTokenOrm)
+                .where(AuthTokenOrm.access_token_hashed == eave_util.sha256hexdigest(response_obj.access_token))
+                .where(AuthTokenOrm.refresh_token_hashed == eave_util.sha256hexdigest(response_obj.refresh_token))
             )
 
         assert token is not None
@@ -55,13 +55,13 @@ class TestAuthRequests(BaseTestCase):
 
     async def test_request_access_token_with_invalid_offer(self) -> None:
         await self.make_account()
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        assert (await self.count(AuthTokenOrm)) == 0
 
         response = await self.make_request(
             url="/auth/token/request",
             payload={
                 "exchange_offer": {
-                    "auth_provider": eave_models.AuthProvider.slack,
+                    "auth_provider": eave_enums.AuthProvider.slack,
                     "auth_id": self.anystring("auth_id_invalid"),
                     "oauth_token": self.anystring("oauth_token_invalid"),
                 }
@@ -70,12 +70,12 @@ class TestAuthRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.NOT_FOUND
         assert response.text == ""
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        assert (await self.count(AuthTokenOrm)) == 0
 
     async def test_refresh_access_token(self) -> None:
         account = await self.make_account()
 
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        assert (await self.count(AuthTokenOrm)) == 0
         old_access_token, old_refresh_token, old_auth_token_orm = await self.mock_auth_token(account=account)
 
         response = await self.make_request(
@@ -88,7 +88,7 @@ class TestAuthRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 1  # The old one gets immediately deleted, so only one
+        assert (await self.count(AuthTokenOrm)) == 1  # The old one gets immediately deleted, so only one
         assert (await self.reload(old_auth_token_orm)) is None
 
         response_obj = eave_ops.RequestAccessToken.ResponseBody(**response.json())
@@ -97,11 +97,11 @@ class TestAuthRequests(BaseTestCase):
         assert response_obj.refresh_token
         assert response_obj.refresh_token != old_refresh_token
 
-        async with eave_db.get_async_session() as db_session:
+        async with eave_db.async_session.begin() as db_session:
             token = await db_session.scalar(
-                select(eave_orm.AuthTokenOrm)
-                .where(eave_orm.AuthTokenOrm.access_token == eave_util.sha256hexdigest(response_obj.access_token))
-                .where(eave_orm.AuthTokenOrm.refresh_token == eave_util.sha256hexdigest(response_obj.refresh_token))
+                select(AuthTokenOrm)
+                .where(AuthTokenOrm.access_token_hashed == eave_util.sha256hexdigest(response_obj.access_token))
+                .where(AuthTokenOrm.refresh_token_hashed == eave_util.sha256hexdigest(response_obj.refresh_token))
             )
 
         assert token is not None
@@ -137,7 +137,7 @@ class TestAuthRequests(BaseTestCase):
     async def test_refresh_access_token_with_mismatched_tokens(self) -> None:
         account = await self.make_account()
 
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        assert (await self.count(AuthTokenOrm)) == 0
         at1, rt1, orm1 = await self.mock_auth_token(account=account)
         at2, rt2, orm2 = await self.mock_auth_token(account=account)
 
@@ -151,12 +151,12 @@ class TestAuthRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 2
+        assert (await self.count(AuthTokenOrm)) == 2
 
     async def test_refresh_access_token_with_invalid_token(self) -> None:
         account = await self.make_account()
 
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        assert (await self.count(AuthTokenOrm)) == 0
         at1, rt1, orm1 = await self.mock_auth_token(account=account)
 
         response = await self.make_request(
@@ -169,12 +169,12 @@ class TestAuthRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 1
+        assert (await self.count(AuthTokenOrm)) == 1
 
     async def test_refresh_access_token_with_invalidated_tokens(self) -> None:
         account = await self.make_account()
 
-        assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        assert (await self.count(AuthTokenOrm)) == 0
         at1, rt1, orm1 = await self.mock_auth_token(account=account)
 
         orm1.invalidated = datetime.utcnow()
@@ -202,7 +202,7 @@ class TestAuthRequests(BaseTestCase):
         # Here's what the test would look like if this scenario was possible:
         # account = await self.make_account()
 
-        # assert (await self.count(eave_orm.AuthTokenOrm)) == 0
+        # assert (await self.count(AuthTokenOrm)) == 0
         # at1, rt1, orm1 = await self.mock_auth_token(account=account)
 
         # # The account was deleted, therefore the tokens should be implicitly invalid.
