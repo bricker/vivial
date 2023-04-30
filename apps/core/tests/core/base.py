@@ -8,8 +8,9 @@ from uuid import UUID, uuid4
 
 import eave.core.app
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.enums as eave_enums
+import eave.core.internal.orm
+import eave.core.internal.orm.account
+import eave.core.internal.orm.auth_token
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.jwt as eave_jwt
@@ -20,6 +21,7 @@ import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from eave.core.internal.config import app_config
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.eave_origins import EaveOrigin
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
@@ -38,7 +40,7 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
     algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
 )
 
-eave_db.engine.echo = False  # shhh
+eave_db.async_engine.echo = False  # shhh
 
 
 async def mock_coroutine(value: T) -> T:
@@ -56,12 +58,12 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._testdata = {}
 
-        async with eave_db.engine.connect() as db_connection:
-            await db_connection.run_sync(eave_orm.Base.metadata.drop_all)
+        async with eave_db.async_engine.connect() as db_connection:
+            await db_connection.run_sync(eave.core.internal.orm.get_base_metadata().drop_all)
             await db_connection.commit()
-            await db_connection.run_sync(eave_orm.Base.metadata.create_all)
+            await db_connection.run_sync(eave.core.internal.orm.get_base_metadata().create_all)
             await db_connection.commit()
-            # tnames = ",".join([t.name for t in eave_orm.Base.metadata.sorted_tables])
+            # tnames = ",".join([t.name for t in eave.core.internal.orm._get_base_metadata().sorted_tables])
             # await connection.execute(text(f"truncate {tnames}"))
 
         # transport = httpx.ASGITransport(
@@ -80,7 +82,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         # mockito.verifyStubbedInvocationsAreUsed()
         mockito.unstub()
         await self.httpclient.aclose()
-        await eave_db.engine.dispose()
+        await eave_db.async_engine.dispose()
 
     def unwrap(self, value: Optional[T]) -> T:
         assert value is not None
@@ -120,26 +122,24 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     async def save(self, obj: J) -> J:
-        async with eave_db.get_async_session() as db_session:
+        async with eave_db.async_session.begin() as db_session:
             db_session.add(obj)
-            await db_session.commit()
         return obj
 
     async def reload(self, obj: J) -> J | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)
-        async with eave_db.get_async_session() as db_session:
+        async with eave_db.async_session.begin() as db_session:
             result: J | None = await db_session.scalar(stmt)
 
         return result
 
     async def delete(self, obj: AnyStandardOrm) -> None:
-        async with eave_db.get_async_session() as db_session:
+        async with eave_db.async_session.begin() as db_session:
             await db_session.delete(obj)
-            await db_session.commit()
 
     async def count(self, cls: Any) -> int:
         query = select(safunc.count(cls.id))
-        async with eave_db.get_async_session() as db_session:
+        async with eave_db.async_session.begin() as db_session:
             count: int | None = await db_session.scalar(query)
 
         if count is None:
@@ -205,9 +205,9 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         mockito.when2(eave.stdlib.signing.verify_signature_or_exception, ...).thenAnswer(_verify_signature_or_exception)
 
     async def mock_auth_token(
-        self, account: eave_orm.AccountOrm
-    ) -> Tuple[eave_jwt.JWT, eave_jwt.JWT, eave_orm.AuthTokenOrm]:
-        before_count = await self.count(eave_orm.AuthTokenOrm)
+        self, account: eave.core.internal.orm.account.AccountOrm
+    ) -> Tuple[eave_jwt.JWT, eave_jwt.JWT, eave.core.internal.orm.auth_token.AuthTokenOrm]:
+        before_count = await self.count(eave.core.internal.orm.auth_token.AuthTokenOrm)
 
         access_token = eave_jwt.create_jwt(
             signing_key=EAVE_API_SIGNING_KEY,
@@ -229,7 +229,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             exp_minutes=60,
         )
 
-        auth_token = eave_orm.AuthTokenOrm(
+        auth_token = eave.core.internal.orm.auth_token.AuthTokenOrm(
             account_id=account.id,
             team_id=account.team_id,
             access_token=eave_util.sha256hexdigest(access_token.to_str()),
@@ -241,19 +241,17 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
         auth_token = await self.save(auth_token)
-        assert (await self.count(eave_orm.AuthTokenOrm)) == before_count + 1
+        assert (await self.count(eave.core.internal.orm.auth_token.AuthTokenOrm)) == before_count + 1
         return (access_token, refresh_token, auth_token)
 
-    async def make_team(self) -> eave_orm.TeamOrm:
-        team = eave_orm.TeamOrm(
-            name=self.anystring("team name"), document_platform=eave_enums.DocumentPlatform.confluence
-        )
+    async def make_team(self) -> TeamOrm:
+        team = TeamOrm(name=self.anystring("team name"), document_platform=eave_models.DocumentPlatform.confluence)
         await self.save(team)
         return team
 
-    async def make_account(self, **kwargs: Any) -> eave_orm.AccountOrm:
+    async def make_account(self, **kwargs: Any) -> eave.core.internal.orm.account.AccountOrm:
         team = await self.make_team()
-        account = eave_orm.AccountOrm(
+        account = eave.core.internal.orm.account.AccountOrm(
             auth_provider=kwargs.get("auth_provider", eave_models.AuthProvider.slack),
             auth_id=kwargs.get("auth_id", self.anystring("auth_id")),
             oauth_token=kwargs.get("oauth_token", self.anystring("oauth_token")),

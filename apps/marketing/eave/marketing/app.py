@@ -1,4 +1,3 @@
-from http import HTTPStatus
 from typing import Any
 
 import eave.stdlib.api_util as eave_api_util
@@ -8,8 +7,7 @@ import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
-from flask import Flask, redirect, render_template, request
-from werkzeug import Response
+from flask import Flask, render_template, request
 
 from .config import app_config
 
@@ -37,15 +35,6 @@ def _render_spa(**kwargs: Any) -> str:
     )
 
 
-app.get("/")(_render_spa)
-
-app.get("/early")(_render_spa)
-
-app.get("/terms")(_render_spa)
-
-app.get("/privacy")(_render_spa)
-
-
 @app.route("/dashboard/account", methods=["GET"])
 async def get_current_account() -> str:
     return "OK"
@@ -65,7 +54,20 @@ async def api_access_request() -> str:
 
     return "OK"
 
+@app.route("/log-in", methods=["POST"])
+async def api_log_in() -> str:
+    body = request.get_json()
 
+    return "OK"
+
+@app.route("/log-out", methods=["POST"])
+async def api_log_out() -> str:
+    body = request.get_json()
+
+    return "OK"
+
+
+@app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
-def catch_all(**kwargs: Any) -> Response:
-    return redirect(location="/", code=HTTPStatus.FOUND)
+def catch_all(path: str) -> str:
+    return _render_spa()

@@ -2,8 +2,9 @@ import json
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.destinations.confluence as confluence_destination
-import eave.core.internal.orm as eave_orm
+import eave.core.internal.orm.atlassian_installation
 import sqlalchemy.exc
+from eave.core.internal.orm.team import TeamOrm
 
 from .base import BaseTestCase
 
@@ -12,19 +13,19 @@ class TestTeamOrm(BaseTestCase):
     async def test_find_one(self) -> None:
         team = await self.make_team()
 
-        async with eave_db.get_async_session() as db_session:
-            result = await eave_orm.TeamOrm.one_or_exception(session=db_session, team_id=team.id)
+        async with eave_db.async_session.begin() as db_session:
+            result = await TeamOrm.one_or_exception(session=db_session, team_id=team.id)
 
         assert result.id == team.id
 
     async def test_find_one_with_exception(self) -> None:
         with self.assertRaises(sqlalchemy.exc.NoResultFound):
-            async with eave_db.get_async_session() as db_session:
-                await eave_orm.TeamOrm.one_or_exception(session=db_session, team_id=self.anyuuid("teamid"))
+            async with eave_db.async_session.begin() as db_session:
+                await TeamOrm.one_or_exception(session=db_session, team_id=self.anyuuid("teamid"))
 
     async def test_document_destination(self) -> None:
         team = await self.make_team()
-        atlassian_installation = eave_orm.AtlassianInstallationOrm(
+        atlassian_installation = eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm(
             team_id=team.id,
             atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
             confluence_space=self.anystring("confluence_space"),
@@ -32,7 +33,7 @@ class TestTeamOrm(BaseTestCase):
         )
         await self.save(atlassian_installation)
 
-        async with eave_db.get_async_session() as db_session:
+        async with eave_db.async_session.begin() as db_session:
             document_destination = await team.get_document_destination(session=db_session)
 
         assert document_destination is not None

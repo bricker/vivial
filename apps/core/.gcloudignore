@@ -10,3 +10,4 @@ pyproject.toml
 eave_alembic
 bin
 tests
+repl.py

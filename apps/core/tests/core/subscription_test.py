@@ -1,7 +1,7 @@
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
+from eave.core.internal.orm.subscription import SubscriptionOrm
 
 from .base import BaseTestCase
 
@@ -10,7 +10,7 @@ class TestSubscriptionOrm(BaseTestCase):
     async def test_find_one(self) -> None:
         team = await self.make_team()
 
-        subscription = eave_orm.SubscriptionOrm(
+        subscription = SubscriptionOrm(
             team_id=team.id,
             source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
             source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
@@ -18,8 +18,8 @@ class TestSubscriptionOrm(BaseTestCase):
         )
         await self.save(subscription)
 
-        async with eave_db.get_async_session() as db_session:
-            result = await eave_orm.SubscriptionOrm.one_or_none(
+        async with eave_db.async_session.begin() as db_session:
+            result = await SubscriptionOrm.one_or_none(
                 session=db_session,
                 team_id=team.id,
                 source=eave_models.SubscriptionSource(

@@ -1,6 +1,8 @@
 import os
 
 import dotenv
+import eave.core.internal.orm
+from eave.core.internal.orm.team import TeamOrm
 
 dotenv.load_dotenv()
 
@@ -17,8 +19,7 @@ import asyncio
 import socket
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.enums as eave_models
+import eave.stdlib.core_api.enums as eave_enums
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
@@ -46,12 +47,12 @@ async def create_database() -> None:
 
 
 async def seed_database() -> None:
-    async with eave_db.engine.begin() as connection:
-        await connection.run_sync(eave_orm.Base.metadata.create_all)
+    async with eave_db.async_engine.begin() as connection:
+        await connection.run_sync(eave.core.internal.orm.get_base_metadata().create_all)
 
-    session = AsyncSession(eave_db.engine)
+    session = AsyncSession(eave_db.async_engine)
 
-    team = eave_orm.TeamOrm(name=f"{socket.gethostname()}", document_platform=eave_models.DocumentPlatform.confluence)
+    team = TeamOrm(name=f"{socket.gethostname()}", document_platform=eave_enums.DocumentPlatform.confluence)
     session.add(team)
     await session.commit()
     await session.refresh(team)  # this is necessary to populate team.id
@@ -68,7 +69,7 @@ async def seed_database() -> None:
     await session.commit()
 
     await session.close()
-    await eave_db.engine.dispose()
+    await eave_db.async_engine.dispose()
 
 
 if __name__ == "__main__":

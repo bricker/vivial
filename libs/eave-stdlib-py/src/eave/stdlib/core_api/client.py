@@ -1,6 +1,5 @@
 import urllib.parse
 import uuid
-from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Optional
 from uuid import UUID
@@ -10,9 +9,9 @@ import pydantic
 from eave.stdlib import eave_origins
 
 from .. import exceptions as eave_exceptions
+from .. import headers as eave_headers
 from .. import logger, signing
 from ..config import shared_config
-from . import headers as eave_headers
 from . import operations
 
 _ORIGIN: eave_origins.EaveOrigin
@@ -21,12 +20,6 @@ _ORIGIN: eave_origins.EaveOrigin
 def set_origin(origin: eave_origins.EaveOrigin) -> None:
     global _ORIGIN
     _ORIGIN = origin
-
-
-@dataclass
-class AuthTokenPair:
-    access_token: str
-    refresh_token: str
 
 
 async def status() -> operations.Status.ResponseBody:

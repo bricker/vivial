@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source $EAVE_HOME/develop/functions.bash
+
+function run-pg-shell() {
+	local usage="Usage: run-pg-shell -d some-database-name"
+	local dbname=""
+	while getopts "d:" argname
+	do
+		case "$argname" in
+			d) dbname=$OPTARG ;;
+			h)
+				echo $usage
+				exit 0
+				;;
+		esac
+	done
+
+	if test -z "$dbname"; then
+		echo $usage
+		exit 1
+	fi
+
+	local socketdir=${EAVE_HOME}/.cloudsqlproxy
+	local connectionName=$(gcloud --format json sql instances list | jq -r .[0].connectionName)
+	local account=$(gcloud --format json info | jq -r .config.account)
+
+	if test -z "$connectionName" || test -z "$account"; then
+		statusmsg -e "gcloud command failed. Cannot connect to pg shell"
+		exit 1
+	fi
+
+	# FIXME: hardcoded socket name
+	if ! test -S "$socketdir/$connectionName/.s.PGSQL.5432"; then
+		statusmsg -e "It seems that the Cloud SQL proxy isn't running. Run 'bin/cloud-sql-proxy', then retry this command."
+		exit 1
+	fi
+
+	statusmsg -s "Connecting to CloudSQL shell as $account with database $dbname selected, via $connectionName"
+	psql -h "$socketdir/$connectionName" -U "$account" "$dbname"
+}
+
+run-pg-shell "$@"

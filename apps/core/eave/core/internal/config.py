@@ -2,7 +2,7 @@ import base64
 import json
 import os
 from functools import cached_property
-from typing import Any, Mapping, Optional
+from typing import Any, List, Mapping, Optional
 
 import eave.stdlib.config
 
@@ -39,6 +39,15 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         credentials = self.eave_google_oauth_client_credentials
         client_id: str = credentials["web"]["client_id"]
         return client_id
+
+    @property
+    def eave_beta_prewhitelisted_emails(self) -> List[str]:
+        try:
+            value: str = self.get_secret("EAVE_BETA_PREWHITELISTED_EMAILS_CSV")
+            emails = list(map(str.strip, value.split(",")))
+            return emails
+        except:
+            return []
 
 
 app_config = AppConfig()

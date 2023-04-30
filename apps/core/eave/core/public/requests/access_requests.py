@@ -2,9 +2,9 @@ import json
 from http import HTTPStatus
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
 import eave.stdlib.core_api.operations as eave_ops
 import fastapi
+from eave.core.internal.orm.access_request import AccessRequestOrm
 from eave.stdlib.slack import eave_slack_client
 
 SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
@@ -13,20 +13,19 @@ SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
 async def create_access_request(
     input: eave_ops.CreateAccessRequest.RequestBody, request: fastapi.Request, response: fastapi.Response
 ) -> fastapi.Response:
-    async with eave_db.get_async_session() as db_session:
-        access_request = await eave_orm.AccessRequestOrm.one_or_none(session=db_session, email=input.email)
+    async with eave_db.async_session.begin() as db_session:
+        access_request = await AccessRequestOrm.one_or_none(session=db_session, email=input.email)
         if access_request is not None:
             response.status_code = HTTPStatus.OK
             return response
 
-        access_request = eave_orm.AccessRequestOrm(
+        access_request = AccessRequestOrm(
             visitor_id=input.visitor_id,
             email=input.email,
             opaque_input=input.opaque_input,
         )
 
         db_session.add(access_request)
-        await db_session.commit()
 
     response.status_code = HTTPStatus.CREATED
 

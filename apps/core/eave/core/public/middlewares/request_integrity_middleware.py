@@ -1,7 +1,8 @@
 import uuid
 
-import eave.stdlib.core_api.headers as eave_headers
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.headers as eave_headers
+from eave.stdlib import logger
 
 from ..requests import util as request_util
 from . import EaveASGIMiddleware, asgi_types
@@ -35,6 +36,8 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
             else:
                 request_id = uuid.UUID(request_id_header)
 
-            request_util.get_eave_state(scope).request_id = request_id
+            eave_state = request_util.get_eave_state(scope)
+            eave_state.request_id = request_id
+            logger.info(f"Request: {eave_state.request_path}", extra=eave_state.log_context)
 
         await self.app(scope, receive, send)

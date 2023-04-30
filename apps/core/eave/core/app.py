@@ -135,17 +135,8 @@ add_route(
 # Auth Token endpoints
 add_route(
     method="POST",
-    path="/auth/token/request",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=auth_requests.request_access_token,
-)
-add_route(
-    method="POST",
     path="/auth/token/refresh",
-    auth_required=True,
+    auth_required=False,
     signature_required=True,
     origin_required=True,
     team_id_required=False,
