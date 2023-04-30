@@ -444,7 +444,7 @@ class Brain:
         supported_links = link_handler.filter_supported_links(self.message.urls)
 
         if supported_links:
-            links_contents = await link_handler.map_link_content(self.eave_team.id, supported_links)
+            links_contents = await link_handler.map_url_content(self.eave_team.id, supported_links)
             if links_contents:
                 # summarize the content at each link, or None where link content wasnt obtained
                 summaries: list[Optional[str]] = await asyncio.gather(

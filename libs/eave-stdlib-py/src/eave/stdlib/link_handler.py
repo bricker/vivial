@@ -11,6 +11,7 @@ import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 from eave.stdlib.third_party_api_clients.base import BaseClient
 from eave.stdlib.third_party_api_clients.util import create_client, LinkContext
+from .logging import logger
 
 # TODO: does this whole file need translation to typescript for ts stdlib? > yep
 
@@ -32,16 +33,16 @@ def filter_supported_links(urls: list[str]) -> list[tuple[str, eave_models.Suppo
     return supported_links
 
 
-async def map_link_content(
-    eave_team_id: UUID4, links: list[tuple[str, eave_models.SupportedLink]]
+async def map_url_content(
+    eave_team_id: UUID4, urls: list[tuple[str, eave_models.SupportedLink]]
 ) -> list[Optional[str]]:
     """
-    Given a list of links, returns mapping to content found at each link. Order is preserved.
+    Given a list of urls, returns mapping to content found at each link. Order is preserved.
 
     If an error is encountered while attempting to access the info at a link, the value at
     the position of the link in the returned list is None.
     """
-    contexts = await _build_link_contexts(eave_team_id, links)
+    contexts = await _build_link_contexts(eave_team_id, urls)
 
     # gather content from all links in parallel
     tasks = []
@@ -82,7 +83,14 @@ async def subscribe(eave_team_id: UUID4, urls: list[tuple[str, eave_models.Suppo
             )
         )
 
-    await asyncio.gather(*tasks)
+    # TODO: delegate exception handling to slack client?
+    try:
+        # TODO: asyncio.create_task to launch as bg process?
+        # return exceptions to prevent killing the parent process of the other async tasks
+        await asyncio.gather(*tasks, return_exceptions=True)
+    except Exception as error:
+        # Gracefully handle any network errors
+        logger.error(error)
 
 
 def _get_link_type(link: str) -> Optional[eave_models.SupportedLink]:
@@ -138,7 +146,7 @@ async def _create_subscription(
     untyped_client: Any, url: str, link_type: eave_models.SupportedLink, eave_team_id: UUID4
 ) -> None:
     """
-    Insert a subcription into the Eave database.
+    Insert a subcription to watch the resource at `url` into the Eave database.
 
     untyped_client -- API client corresponding to `link_type` for fetching data to build subscription with
     url -- URL resource to create a subscription for watching
