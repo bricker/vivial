@@ -6,7 +6,6 @@ import eave.stdlib.core_api.operations as eave_ops
 import fastapi
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 from eave.core.internal.orm.subscription import SubscriptionOrm
-import eave.core.internal.orm.team
 
 from . import util as request_util
 

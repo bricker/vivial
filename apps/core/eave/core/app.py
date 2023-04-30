@@ -14,9 +14,12 @@ from .public.middlewares import (
     signature_verification_middleware,
     team_lookup_middleware,
 )
-from .public.requests import access_requests
-from .public.requests import authentication as auth_requests
-from .public.requests import documents, slack_installations, subscriptions
+from .public.requests import (
+    access_requests,
+    documents,
+    slack_installations,
+    subscriptions,
+)
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
 
@@ -202,5 +205,5 @@ add_route(
     signature_required=False,
     origin_required=False,
     team_id_required=False,
-    handler=lambda: ""
+    handler=lambda: "",
 )

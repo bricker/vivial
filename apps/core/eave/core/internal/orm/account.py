@@ -4,21 +4,21 @@ from datetime import datetime
 from typing import Dict, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-import eave.stdlib.core_api.models as eave_models
+import eave.core.internal.oauth.atlassian
+import eave.core.internal.oauth.google
+import eave.core.internal.oauth.slack
 import eave.stdlib.core_api.enums
-import eave.stdlib.util as eave_util
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.exceptions
 import slack_sdk.errors
+from eave.stdlib import logger
 from sqlalchemy import Index, Select, func, select
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib import logger
 
 from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-import eave.core.internal.oauth.slack
-import eave.core.internal.oauth.google
-import eave.core.internal.oauth.atlassian
-import eave.stdlib.exceptions
+
+
 class AccountOrm(Base):
     __tablename__ = "accounts"
     __table_args__ = (
@@ -119,7 +119,9 @@ class AccountOrm(Base):
         result = await session.scalar(lookup)
         return result
 
-    async def verify_oauth_or_exception(self, session: AsyncSession, log_context: Optional[Dict[str,str]] = None) -> typing.Literal[True]:
+    async def verify_oauth_or_exception(
+        self, session: AsyncSession, log_context: Optional[Dict[str, str]] = None
+    ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
 
@@ -145,8 +147,7 @@ class AccountOrm(Base):
                     raise eave.stdlib.exceptions.InvalidAuthError()
 
                 credentials = eave.core.internal.oauth.google.get_oauth_credentials(
-                    access_token=self.oauth_token,
-                    refresh_token=self.refresh_token
+                    access_token=self.oauth_token, refresh_token=self.refresh_token
                 )
                 eave.core.internal.oauth.google.get_userinfo(credentials=credentials)
                 self.oauth_token = credentials.token
@@ -157,7 +158,9 @@ class AccountOrm(Base):
             case _:
                 raise
 
-    async def refresh_oauth_token(self, session: AsyncSession, log_context:Optional[Dict[str,str]] = None) -> typing.Literal[True]:
+    async def refresh_oauth_token(
+        self, session: AsyncSession, log_context: Optional[Dict[str, str]] = None
+    ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
         """

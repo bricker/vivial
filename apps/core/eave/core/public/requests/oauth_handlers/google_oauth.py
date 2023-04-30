@@ -1,26 +1,16 @@
-from dataclasses import dataclass
-from typing import Optional, cast
+from typing import cast
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.oauth.models as oauth_models
-import eave.core.public.requests.util as request_util
+import eave.core.internal.oauth.google
 import eave.stdlib.auth_cookies as eave_auth_cookies
 import eave.stdlib.core_api.enums
-import eave.stdlib.util as eave_util
-from eave.stdlib import logger
 import fastapi
 import google.oauth2.credentials
 import google.oauth2.id_token
-import google_auth_oauthlib.flow
-import pydantic
 from eave.core.internal.config import app_config
 from eave.core.internal.oauth import state_cookies as oauth_cookies
-import eave.core.internal.oauth.google
 from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.auth_token import AuthTokenOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.eave_origins import EaveOrigin
-from google.auth.transport import requests
 
 
 async def google_oauth_authorize() -> fastapi.Response:
@@ -34,9 +24,7 @@ async def google_oauth_authorize() -> fastapi.Response:
     return response
 
 
-async def google_oauth_callback(
-    state: str, code: str, request: fastapi.Request
-) -> fastapi.Response:
+async def google_oauth_callback(state: str, code: str, request: fastapi.Request) -> fastapi.Response:
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
 
     expected_oauth_state = oauth_cookies.get_state_cookie(
@@ -66,9 +54,10 @@ async def google_oauth_callback(
 
     return response
 
+
 async def _get_or_create_eave_account(
-        google_token: eave.core.internal.oauth.google.GoogleIdToken,
-        credentials: google.oauth2.credentials.Credentials,
+    google_token: eave.core.internal.oauth.google.GoogleIdToken,
+    credentials: google.oauth2.credentials.Credentials,
 ) -> AccountOrm:
     async with eave_db.async_session.begin() as db_session:
         # Check if an Eave Account already exists for this user ID.
@@ -109,12 +98,5 @@ async def _get_or_create_eave_account(
                 oauth_token=credentials.token,
                 refresh_token=credentials.refresh_token,
             )
-
-        # auth_tokens = await AuthTokenOrm.create_token_pair_for_account(
-        #     session=db_session,
-        #     account=eave_account,
-        #     audience=EaveOrigin.eave_www,
-        #     log_context=eave_state.log_context,
-        # )
 
     return eave_account

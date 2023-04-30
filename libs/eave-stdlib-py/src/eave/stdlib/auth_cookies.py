@@ -1,13 +1,10 @@
-from dataclasses import dataclass
 import typing
-from datetime import datetime
-from typing import Any, Literal, Mapping, Protocol, TypeVar
 import uuid
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Literal, Mapping, Protocol
 
-from . import headers as eave_headers
 from .config import shared_config
-from .core_api import models as eave_models
-from .core_api import enums as eave_enums
 
 EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
 EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token"
@@ -36,10 +33,12 @@ _shared_cookie_config = {
     "secure": shared_config.dev_mode is False,
 }
 
+
 @dataclass
 class AuthCookies:
     account_id: uuid.UUID
     access_token: str
+
 
 def get_auth_cookies(cookies: Mapping[str, Any]) -> AuthCookies:
     account_id = cookies.get(EAVE_ACCOUNT_ID_COOKIE, "NOTSET")
@@ -51,12 +50,10 @@ def get_auth_cookies(cookies: Mapping[str, Any]) -> AuthCookies:
     )
 
 
-def set_auth_cookies(response: ResponseCookieMutator,
-                     account_id: uuid.UUID,
-                     access_token: str
-) -> None:
+def set_auth_cookies(response: ResponseCookieMutator, account_id: uuid.UUID, access_token: str) -> None:
     _set_auth_cookie(key=EAVE_ACCOUNT_ID_COOKIE, value=str(account_id), response=response)
     _set_auth_cookie(key=EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
+
 
 def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> None:
     response.set_cookie(
@@ -72,6 +69,7 @@ def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> N
 def delete_auth_cookies(response: ResponseCookieMutator) -> None:
     _delete_auth_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE)
     _delete_auth_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE)
+
 
 def _delete_auth_cookie(response: ResponseCookieMutator, key: str) -> None:
     response.set_cookie(

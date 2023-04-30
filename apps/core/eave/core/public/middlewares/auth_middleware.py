@@ -1,13 +1,12 @@
 import re
-from typing import Set
 import uuid
+from typing import Set
 
 import eave.core.internal.database as eave_db
 import eave.core.public.requests.util as request_util
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
-from eave.core.internal.orm.auth_token import AuthTokenOrm
 from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib import logger
 
@@ -76,13 +75,5 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             except eave_exceptions.AccessTokenExpiredError as e:
                 await eave_account.refresh_oauth_token(session=db_session, log_context=eave_state.log_context)
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
-
-                # token = await AuthTokenOrm.find_and_verify_or_exception(
-                #     session=db_session,
-                #     log_context=eave_state.log_context,
-                #     access_token=access_token,
-                #     aud=eave_state.eave_origin,
-                #     allow_expired=False,
-                # )
 
         eave_state.eave_account = eave_account

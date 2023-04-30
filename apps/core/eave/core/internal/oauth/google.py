@@ -1,14 +1,15 @@
-from dataclasses import dataclass
 import typing
+from dataclasses import dataclass
+
+import eave.stdlib.util as eave_util
 import google.auth.transport.requests
-import googleapiclient.discovery
 import google.oauth2.credentials
 import google.oauth2.id_token
 import google_auth_oauthlib.flow
-import pydantic
+import googleapiclient.discovery
 from eave.core.internal.config import app_config
+
 from .models import OAuthFlowInfo
-import eave.stdlib.util as eave_util
 
 _OAUTH_SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
@@ -23,6 +24,7 @@ class GoogleIdToken:
     """
     https://developers.google.com/identity/openid-connect/openid-connect#authenticatingtheuser
     """
+
     sub: str
     """Google globally unique and immutable user ID"""
     given_name: typing.Optional[str]
@@ -34,9 +36,11 @@ class GoogleIdToken:
         self.email = token.get("email")
         self._token = token
 
+
 @dataclass
 class GoogleOAuthClientConfig:
     """Documentation for the Google Client Config doc format"""
+
     client_id: str
     project_id: str
     auth_uri: str
@@ -45,32 +49,37 @@ class GoogleOAuthClientConfig:
     client_secret: str
     redirect_uris: typing.List[str]
 
+
 @dataclass
 class GoogleOAuthV2GetResponse:
     """
     https://googleapis.github.io/google-api-python-client/docs/dyn/oauth2_v2.userinfo.html#get
     """
-    email: typing.Optional[str] = None # The user's email address.
-    family_name: typing.Optional[str] = None # The user's last name.
-    gender: typing.Optional[str] = None # The user's gender.
-    given_name: typing.Optional[str] = None # The user's first name.
-    hd: typing.Optional[str] = None # The hosted domain e.g. example.com if the user is Google apps user.
-    id: typing.Optional[str] = None # The obfuscated ID of the user.
-    link: typing.Optional[str] = None # URL of the profile page.
-    locale: typing.Optional[str] = None # The user's preferred locale.
-    name: typing.Optional[str] = None # The user's full name.
-    picture: typing.Optional[str] = None # URL of the user's picture image.
-    verified_email: typing.Optional[bool] = None # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
+
+    email: typing.Optional[str] = None  # The user's email address.
+    family_name: typing.Optional[str] = None  # The user's last name.
+    gender: typing.Optional[str] = None  # The user's gender.
+    given_name: typing.Optional[str] = None  # The user's first name.
+    hd: typing.Optional[str] = None  # The hosted domain e.g. example.com if the user is Google apps user.
+    id: typing.Optional[str] = None  # The obfuscated ID of the user.
+    link: typing.Optional[str] = None  # URL of the profile page.
+    locale: typing.Optional[str] = None  # The user's preferred locale.
+    name: typing.Optional[str] = None  # The user's full name.
+    picture: typing.Optional[str] = None  # URL of the user's picture image.
+    verified_email: typing.Optional[
+        bool
+    ] = None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
 
 
 def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOAuthV2GetResponse:
     """
     https://googleapis.github.io/google-api-python-client/docs/dyn/oauth2_v2.html
     """
-    with googleapiclient.discovery.build('oauth2', 'v2', credentials=credentials) as service:
+    with googleapiclient.discovery.build("oauth2", "v2", credentials=credentials) as service:
         user_info = service.userinfo().get().execute()
 
     return GoogleOAuthV2GetResponse(**user_info)
+
 
 def get_oauth_credentials(access_token: str, refresh_token: str) -> google.oauth2.credentials.Credentials:
     google_oauth_client_config = app_config.eave_google_oauth_client_credentials
@@ -84,6 +93,7 @@ def get_oauth_credentials(access_token: str, refresh_token: str) -> google.oauth
     )
     return credentials
 
+
 def build_flow(state: typing.Optional[str] = None) -> google_auth_oauthlib.flow.Flow:
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
         app_config.eave_google_oauth_client_credentials,
@@ -93,6 +103,7 @@ def build_flow(state: typing.Optional[str] = None) -> google_auth_oauthlib.flow.
     )
 
     return flow
+
 
 def get_oauth_flow_info() -> OAuthFlowInfo:
     """
@@ -106,6 +117,7 @@ def get_oauth_flow_info() -> OAuthFlowInfo:
     )
 
     return OAuthFlowInfo(authorization_url=authorization_url, state=state)
+
 
 def decode_id_token(id_token: str) -> GoogleIdToken:
     token_json: eave_util.JsonObject = google.oauth2.id_token.verify_oauth2_token(

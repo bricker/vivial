@@ -1,14 +1,10 @@
-from contextlib import contextmanager
-from typing import Dict, Optional, Self
 import typing
+from typing import Optional
 
-import slack_sdk.errors
-from eave.stdlib import logger
+from eave.core.internal.config import app_config
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
-import eave.core.internal.orm.account
-from eave.core.internal.config import app_config
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
@@ -49,6 +45,7 @@ authorize_url_generator = AuthorizeUrlGenerator(
     ],
     redirect_uri=redirect_uri,
 )
+
 
 class SlackIdentity:
     """
@@ -161,6 +158,7 @@ class SlackOAuthResponse:
         self.team = SlackTeam(**installed_team)
         self.authed_user = SlackAuthorizedUser(**installer)
 
+
 class SlackAuthTestResponse:
     bot_id: str | None
     bot_user_id: str | None
@@ -168,6 +166,7 @@ class SlackAuthTestResponse:
     def __init__(self, response: AsyncSlackResponse):
         self.bot_id = response.get("bot_id")
         self.bot_user_id = response.get("user_id")
+
 
 async def get_userinfo_or_exception(token: str) -> SlackIdentity:
     client = AsyncWebClient()
@@ -178,6 +177,7 @@ async def get_userinfo_or_exception(token: str) -> SlackIdentity:
     response.validate()
     return SlackIdentity(response=response)
 
+
 async def auth_test_or_exception(token: str) -> SlackAuthTestResponse:
     """
     https://api.slack.com/methods/auth.test#errors
@@ -186,6 +186,7 @@ async def auth_test_or_exception(token: str) -> SlackAuthTestResponse:
     response = await client.auth_test(token=token)
     response.validate()
     return SlackAuthTestResponse(response=response)
+
 
 async def get_access_token(
     code: str,
@@ -206,8 +207,9 @@ async def get_access_token(
     auth_test_data = await auth_test_or_exception(bot_token)
     return oauth_data, auth_test_data
 
+
 async def refresh_access_token(
-        refresh_token: str,
+    refresh_token: str,
 ) -> SlackOAuthResponse:
     client = AsyncWebClient()
 

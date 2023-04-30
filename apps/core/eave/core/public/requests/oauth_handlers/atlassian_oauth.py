@@ -22,7 +22,9 @@ async def atlassian_oauth_authorize() -> fastapi.Response:
 
 
 async def atlassian_oauth_callback(
-    state: str, code: str, request: fastapi.Request,
+    state: str,
+    code: str,
+    request: fastapi.Request,
 ) -> fastapi.Response:
     response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
 
