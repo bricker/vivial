@@ -132,17 +132,6 @@ add_route(
     handler=slack_installations.query,
 )
 
-# Auth Token endpoints
-add_route(
-    method="POST",
-    path="/auth/token/refresh",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=auth_requests.refresh_access_token,
-)
-
 # Authenticated API endpoints.
 # These endpoints require both signature verification and auth token verification.
 # add_route(method="POST", path="/me/account",            auth_required=True, signature_required=True, origin_required=True, team_id_required=True, handler=authed_account.get_current_account)
@@ -204,4 +193,14 @@ add_route(
     origin_required=False,
     team_id_required=False,
     handler=atlassian_oauth.atlassian_oauth_callback,
+)
+
+add_route(
+    method="GET",
+    path="/favicon.ico",
+    auth_required=False,
+    signature_required=False,
+    origin_required=False,
+    team_id_required=False,
+    handler=lambda: ""
 )

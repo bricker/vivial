@@ -30,8 +30,7 @@ class SlackInstallationOrm(Base):
     """team[id] from here: https://api.slack.com/methods/oauth.v2.access#examples"""
     # bot identification data for authorizing slack api calls
     bot_token: Mapped[str] = mapped_column()
-    bot_id: Mapped[str] = mapped_column()
-    bot_user_id: Mapped[Optional[str]] = mapped_column(server_default=None)
+    bot_refresh_token: Mapped[Optional[str]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -42,15 +41,13 @@ class SlackInstallationOrm(Base):
         team_id: UUID,
         slack_team_id: str,
         bot_token: str,
-        bot_id: str,
-        bot_user_id: Optional[str] = None,
+        bot_refresh_token: Optional[str],
     ) -> Self:
         obj = cls(
             team_id=team_id,
             slack_team_id=slack_team_id,
             bot_token=bot_token,
-            bot_id=bot_id,
-            bot_user_id=bot_user_id,
+            bot_refresh_token=bot_refresh_token,
         )
         session.add(obj)
         return obj
