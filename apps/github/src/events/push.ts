@@ -5,6 +5,7 @@ import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai';
 import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client';
 import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations';
 import * as eaveModels from '@eave-fyi/eave-stdlib-ts/src/core-api/models';
+import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums';
 import { GitHubOperationsContext } from '../types';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
@@ -18,19 +19,20 @@ export default async function handler(event: PushEvent, context: GitHubOperation
     const modifiedFiles = Array.from(new Set([...eventCommit.added, ...eventCommit.removed, ...eventCommit.modified]));
 
     await Bluebird.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
-      const fileId = Buffer.from(eventCommitTouchedFilename).toString('base64');
+      // const fileId = Buffer.from(eventCommitTouchedFilename).toString('base64');
+      const branchName = event.base_ref; // TODO: nullable + strip leading refs/*/ trash
       // TODO: Move this eventId algorithm into a shared location
       const eventId = [
         `${event.repository.node_id}`,
-        `${fileId}`,
+        `${branchName}/${eventCommitTouchedFilename}`,
       ].join('#');
 
       // FIXME: Hardcoded team ID
       const subscriptionResponse = await eaveCoreApiClient.getSubscription('3345217c-fb27-4422-a3fc-c404b49aff8c', {
         subscription: {
           source: {
-            platform: eaveModels.SubscriptionSourcePlatform.github,
-            event: eaveModels.SubscriptionSourceEvent.github_file_change,
+            platform: eaveEnums.SubscriptionSourcePlatform.github,
+            event: eaveEnums.SubscriptionSourceEvent.github_file_change,
             id: eventId,
           },
         },
@@ -85,10 +87,10 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         + `${codeDescriptionString}. `
         + 'Explain what the above code does: ';
 
-      const openaiResponse = await openai.createCompletion({
-        prompt,
-        model: openai.OpenAIModel.davinciCode,
-        max_tokens: 500,
+      const openaiResponse = await openai.createChatCompletion({
+        messages: [{ role: 'user', content: prompt }],
+        model: openai.OpenAIModel.GPT_35_TURBO,
+        max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT_35_TURBO],
       });
 
       const document: eaveOps.DocumentInput = {
