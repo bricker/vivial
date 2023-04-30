@@ -2,7 +2,7 @@ import json
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.atlassian as oauth_atlassian
-import eave.core.internal.oauth.cookies as oauth_cookies
+import eave.core.internal.oauth.state_cookies as oauth_cookies
 import eave.stdlib.core_api.enums as eave_enums
 import fastapi
 from eave.core.internal.config import app_config
@@ -22,9 +22,12 @@ async def atlassian_oauth_authorize() -> fastapi.Response:
 
 
 async def atlassian_oauth_callback(
-    state: str, code: str, request: fastapi.Request, response: fastapi.Response
+    state: str, code: str, request: fastapi.Request,
 ) -> fastapi.Response:
+    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
+
     expected_oauth_state = oauth_cookies.get_state_cookie(request=request, provider=eave_enums.AuthProvider.atlassian)
+    oauth_cookies.delete_state_cookie(response=response, provider=eave_enums.AuthProvider.atlassian)
     assert state == expected_oauth_state
 
     oauth_session = oauth_atlassian.AtlassianOAuthSession(state=state)
@@ -47,6 +50,4 @@ async def atlassian_oauth_callback(
         )
         db_session.add(installation)
 
-    response = fastapi.responses.RedirectResponse(url=f"{app_config.eave_www_base}/dashboard")
-    oauth_cookies.delete_state_cookie(response=response, provider=eave_enums.AuthProvider.atlassian)
     return response

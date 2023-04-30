@@ -5,14 +5,12 @@ set -eu
 source $EAVE_HOME/develop/functions.bash
 
 function install-certs() (
-	local name=eave-localhost
-	local caBundleFileName=$name.crt
-	local caBundleFileTemp=/tmp/$caBundleFileName
-	rm -f $caBundleFileTemp
-	for cert in ${EAVE_HOME}/develop/certs/**/*.crt
-	do
-		cat $cert >> $caBundleFileTemp
-	done
+	local certPath=$1
+	local certFileName=$(basename $certPath)
+	local certFileTemp=/tmp/$certFileName
+	local certName=$(basename $certPath .crt)
+	rm -f $certFileTemp
+	cat $certPath > $certFileTemp
 
 	statusmsg -w "sudo privileges are needed to install the development certificate on your system"
 
@@ -21,12 +19,12 @@ function install-certs() (
 	case "$kernel" in
 		"Linux")
 			local certDestDir=/usr/local/share/ca-certificates/extra
-			local certDestFile=$certDestDir/$caBundleFileName
+			local certDestFile=$certDestDir/$certFileName
 			sudo mkdir -p $certDestDir
-			sudo mv $caBundleFileTemp $certDestDir
+			sudo mv $certFileTemp $certDestDir
 			sudo update-ca-certificates --fresh
-			sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$name" &>/dev/null || true
-			sudo certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$name" -i "$certDestFile"
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$certName" &>/dev/null || true
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$certName" -i "$certDestFile"
 			;;
 		"Darwin")
 			sudo security add-trusted-cert \
@@ -34,7 +32,7 @@ function install-certs() (
 				-p ssl \
 				-p basic \
 				-k /Library/Keychains/System.keychain \
-				$caBundleFileTemp
+				$certFileTemp
 			;;
 		*)
 			statusmsg -e "This script does not support your operating system. Please add support!"
@@ -46,6 +44,11 @@ function install-certs() (
 	add-shell-variable REQUESTS_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 )
 
-install-certs
+for cert in ${EAVE_HOME}/develop/certs/**/*.crt
+do
+	install-certs $cert
+done
+
+statusmsg -i "You may have to manually add certificates to Chrome. You can also enable the Chrome flag chrome://flags/#allow-insecure-localhost"
 
 # Firefox: Load `/usr/lib/x86_64-linux-gnu/pkcs11/p11-kit-trust.so` to the list of security modules under firefox Certificate settings.

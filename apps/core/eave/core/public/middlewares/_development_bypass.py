@@ -38,9 +38,9 @@ async def development_bypass_auth(scope: asgi_types.HTTPScope) -> None:
         raise Exception()
 
     async with eave_db.async_session.begin() as db_session:
-        account = await AccountOrm.one_or_exception(
+        eave_account = await AccountOrm.one_or_exception(
             session=db_session,
             id=uuid.UUID(account_id),
         )
 
-    eave_state.eave_account = account
+    eave_state.eave_account = eave_account

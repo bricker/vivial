@@ -40,7 +40,7 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
             team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
             async with eave_db.async_session.begin() as db_session:
                 team = await TeamOrm.one_or_exception(session=db_session, team_id=team_id)
-                request_util.get_eave_state(scope=scope).eave_team = team
+                eave_state.eave_team = team
 
         except ValueError as e:
             logger.error("invalid team ID", exc_info=e, extra=eave_state.log_context)

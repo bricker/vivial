@@ -5,12 +5,12 @@ import pydantic
 
 
 @dataclass
-class OauthFlowInfo:
+class OAuthFlowInfo:
     authorization_url: str
     state: str
 
 
-class OauthCallbackRequestBody(pydantic.BaseModel):
+class OAuthCallbackRequestBody(pydantic.BaseModel):
     state: Optional[str]
     code: Optional[str]
     error: Optional[str]

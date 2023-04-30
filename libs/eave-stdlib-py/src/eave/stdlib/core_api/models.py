@@ -70,8 +70,6 @@ class SlackInstallation(pydantic.BaseModel):
     """eave TeamOrm model id"""
     slack_team_id: str
     bot_token: str
-    bot_id: str
-    bot_user_id: Optional[str]
 
     class Config:
         orm_mode = True

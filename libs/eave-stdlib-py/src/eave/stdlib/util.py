@@ -3,7 +3,7 @@ import base64
 import hashlib
 import logging
 from functools import wraps
-from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar, cast
+from typing import Any, Awaitable, Callable, Coroutine, Generic, Optional, ParamSpec, TypeVar, cast
 
 logger = logging.getLogger("eave-stdlib-py")
 
@@ -12,7 +12,6 @@ JsonObject = dict[str, Any]
 
 T = TypeVar("T")
 P = ParamSpec("P")
-
 
 def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
     @wraps(f)
