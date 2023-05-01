@@ -5,7 +5,7 @@ import eave.stdlib.util as eave_util
 import requests_oauthlib
 
 from ..config import app_config
-from .models import OauthFlowInfo
+from .models import OAuthFlowInfo
 
 
 @dataclass
@@ -109,9 +109,9 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
         assert len(available_resources) > 0
         return available_resources[0].id
 
-    def oauth_flow_info(self) -> OauthFlowInfo:
+    def oauth_flow_info(self) -> OAuthFlowInfo:
         authorization_url, state = self.authorization_url()
 
         assert isinstance(authorization_url, str)
         assert isinstance(state, str)
-        return OauthFlowInfo(authorization_url=authorization_url, state=state)
+        return OAuthFlowInfo(authorization_url=authorization_url, state=state)

@@ -1,12 +1,13 @@
 import typing
+import uuid
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Literal, Mapping, Protocol, TypeVar
+from typing import Any, Literal, Mapping, Protocol
 
-from . import headers as eave_headers
 from .config import shared_config
-from .core_api import models as eave_models
 
-T = TypeVar("T")
+EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
+EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token"
 
 
 class ResponseCookieMutator(Protocol):
@@ -33,25 +34,31 @@ _shared_cookie_config = {
 }
 
 
-def get_auth_cookies(cookies: Mapping[str, Any]) -> eave_models.AuthTokenPair:
-    access_token = cookies.get(eave_headers.EAVE_ACCESS_TOKEN_COOKIE)
-    refresh_token = cookies.get(eave_headers.EAVE_REFRESH_TOKEN_COOKIE)
-    return eave_models.AuthTokenPair(access_token=str(access_token), refresh_token=str(refresh_token))
+@dataclass
+class AuthCookies:
+    account_id: uuid.UUID
+    access_token: str
 
 
-def set_auth_cookies(response: ResponseCookieMutator, access_token: str, refresh_token: str) -> None:
-    response.set_cookie(
-        key=eave_headers.EAVE_ACCESS_TOKEN_COOKIE,
-        value=access_token,
-        max_age=(60 * 60 * 24 * 365),
-        domain=shared_config.eave_cookie_domain,
-        httponly=True,
-        secure=(shared_config.dev_mode is False),
+def get_auth_cookies(cookies: Mapping[str, Any]) -> AuthCookies:
+    account_id = cookies.get(EAVE_ACCOUNT_ID_COOKIE, "NOTSET")
+    access_token = cookies.get(EAVE_ACCESS_TOKEN_COOKIE, "NOTSET")
+
+    return AuthCookies(
+        account_id=uuid.UUID(account_id),
+        access_token=access_token,
     )
 
+
+def set_auth_cookies(response: ResponseCookieMutator, account_id: uuid.UUID, access_token: str) -> None:
+    _set_auth_cookie(key=EAVE_ACCOUNT_ID_COOKIE, value=str(account_id), response=response)
+    _set_auth_cookie(key=EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
+
+
+def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> None:
     response.set_cookie(
-        key=eave_headers.EAVE_REFRESH_TOKEN_COOKIE,
-        value=refresh_token,
+        key=key,
+        value=value,
         max_age=(60 * 60 * 24 * 365),
         domain=shared_config.eave_cookie_domain,
         httponly=True,
@@ -60,18 +67,13 @@ def set_auth_cookies(response: ResponseCookieMutator, access_token: str, refresh
 
 
 def delete_auth_cookies(response: ResponseCookieMutator) -> None:
-    response.set_cookie(
-        key=eave_headers.EAVE_ACCESS_TOKEN_COOKIE,
-        value="",
-        max_age=0,
-        expires=0,
-        domain=shared_config.eave_cookie_domain,
-        httponly=True,
-        secure=(shared_config.dev_mode is False),
-    )
+    _delete_auth_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE)
+    _delete_auth_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE)
 
+
+def _delete_auth_cookie(response: ResponseCookieMutator, key: str) -> None:
     response.set_cookie(
-        key=eave_headers.EAVE_REFRESH_TOKEN_COOKIE,
+        key=key,
         value="",
         max_age=0,
         expires=0,
