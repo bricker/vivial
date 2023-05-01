@@ -135,3 +135,9 @@ class GetAuthenticatedAccountTeam(Endpoint):
         account: models.AuthenticatedAccount
         team: models.Team
         integrations: models.Integrations
+
+
+class GetTeam(Endpoint):
+    class ResponseBody(pydantic.BaseModel):
+        team: models.Team
+        integrations: models.Integrations

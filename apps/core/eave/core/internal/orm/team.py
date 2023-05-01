@@ -1,3 +1,4 @@
+import typing
 from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..destinations import abstract as abstract_destination
 from . import UUID_DEFAULT_EXPR, Base
 from .atlassian_installation import AtlassianInstallationOrm
+from .slack_installation import SlackInstallationOrm
 from .subscription import SubscriptionOrm
 
 
@@ -71,3 +73,35 @@ class TeamOrm(Base):
         lookup = select(cls).where(cls.id == team_id).limit(1)
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
+
+    async def get_integrations(
+        self, session: AsyncSession
+    ) -> typing.Tuple[eave_models.Integrations, typing.List[eave.stdlib.core_api.enums.Integration]]:
+        integrations_list: typing.List[eave.stdlib.core_api.enums.Integration] = []
+
+        slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
+        if slack_installation:
+            integrations_list.append(eave.stdlib.core_api.enums.Integration.slack)
+
+        # github_installation = await GithubInstallationOrm.one_or_none(
+        #     session=session, team_id=self.id
+        # )
+        # if github_installation:
+        #     integrations_list.append(eave.stdlib.core_api.enums.Integration.github)
+
+        atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
+        if atlassian_installation:
+            integrations_list.append(eave.stdlib.core_api.enums.Integration.atlassian)
+
+        integrations_list.sort()
+
+        return (
+            eave_models.Integrations(
+                slack=eave_models.SlackInstallation.from_orm(slack_installation) if slack_installation else None,
+                github=None,  # eave_models.GithubInstallation.from_orm(github_installation) if github_installation else None,
+                atlassian=eave_models.AtlassianInstallation.from_orm(atlassian_installation)
+                if atlassian_installation
+                else None,
+            ),
+            integrations_list,
+        )
