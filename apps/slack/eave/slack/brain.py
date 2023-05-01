@@ -458,11 +458,7 @@ class Brain:
                 # subscribe Eave GitHub App to file changes for any files we could read
                 await link_handler.subscribe(
                     self.eave_team.id,
-                    [
-                        link_info
-                        for link_info, content in zip(supported_links, summaries)
-                        if content is not None
-                    ],
+                    [link_info for link_info, content in zip(supported_links, summaries) if content is not None],
                 )
 
                 # transform raw source text into less distracting (for AI) summaries

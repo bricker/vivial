@@ -1,4 +1,5 @@
 from typing import Any
+
 from attr import dataclass
 from eave.stdlib.core_api.models import SupportedLink
 from eave.stdlib.third_party_api_clients.base import BaseClient

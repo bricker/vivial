@@ -1,17 +1,18 @@
 import asyncio
 import re
-from typing import Optional, Any, cast
+from typing import Any, Optional, cast
 from urllib.parse import urlparse
-from .third_party_api_clients.github import GitHubClient
-from pydantic import UUID4
 
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 from eave.stdlib.third_party_api_clients.base import BaseClient
-from eave.stdlib.third_party_api_clients.util import create_client, LinkContext
+from eave.stdlib.third_party_api_clients.util import LinkContext, create_client
+from pydantic import UUID4
+
 from .logging import logger
+from .third_party_api_clients.github import GitHubClient
 
 # TODO: does this whole file need translation to typescript for ts stdlib? > yep
 

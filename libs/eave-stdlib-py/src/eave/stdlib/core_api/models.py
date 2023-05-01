@@ -18,7 +18,7 @@ class AuthTokenPair:
 
 
 # TODO: copy to ts stdlib
-# TODO: change SupportedLink type name??? 
+# TODO: change SupportedLink type name???
 import enum
 
 

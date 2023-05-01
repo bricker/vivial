@@ -1,9 +1,9 @@
-import fastapi
-from eave.core.internal.orm.team import TeamOrm
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm.github_installation
 import eave.stdlib.core_api.models as models
 import eave.stdlib.core_api.operations as eave_ops
+import fastapi
+from eave.core.internal.orm.team import TeamOrm
 
 
 async def query(

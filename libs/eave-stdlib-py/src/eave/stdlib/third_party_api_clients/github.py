@@ -10,6 +10,7 @@ from attr import dataclass
 from eave.stdlib import logger
 from eave.stdlib.third_party_api_clients.base import BaseClient
 
+
 # TODO: moved to shared loc?
 @dataclass
 class GithubRepository:

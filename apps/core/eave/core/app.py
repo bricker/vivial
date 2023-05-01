@@ -17,9 +17,9 @@ from .public.middlewares import (
 from .public.requests import (
     access_requests,
     documents,
+    github_installations,
     slack_installations,
     subscriptions,
-    github_installations,
 )
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
