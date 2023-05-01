@@ -7,7 +7,7 @@ class TestOriginMiddleware(BaseTestCase):
     async def test_origin_bypass(self) -> None:
         response = await self.make_request(
             method="GET",
-            url="/status",
+            path="/status",
             headers={"eave-origin": None},
         )
 
@@ -15,7 +15,7 @@ class TestOriginMiddleware(BaseTestCase):
 
     async def test_missing_origin_header(self) -> None:
         response = await self.make_request(
-            url="/access_request",
+            path="/access_request",
             payload={
                 "visitor_id": self.anystring("visitor_id"),
                 "email": f"{self.anystring('email')}@example.com",
@@ -30,7 +30,7 @@ class TestOriginMiddleware(BaseTestCase):
 
     async def test_invalid_origin(self) -> None:
         response = await self.make_request(
-            url="/access_request",
+            path="/access_request",
             payload={
                 "visitor_id": self.anystring("visitor_id"),
                 "email": f"{self.anystring('email')}@example.com",

@@ -1,11 +1,12 @@
 from typing import Set, cast
+import uuid
 
 import eave.core.public.requests.util as request_util
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import eave.stdlib.signing as eave_signing
 from eave.stdlib import logger
-
+import eave.stdlib.core_api.client
 from . import EaveASGIMiddleware, _development_bypass, asgi_types
 
 _ROUTE_BYPASS: Set[str] = set()
@@ -63,21 +64,31 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     @staticmethod
     def _do_signature_verification(scope: asgi_types.HTTPScope, body: bytes) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
-        payload = body.decode()
-        signature = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_SIGNATURE_HEADER)
 
-        if not signature or not payload:
+        signature = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_SIGNATURE_HEADER)
+        if not signature:
             # reject None or empty strings
-            logger.error("signature or payload missing/empty", extra=eave_state.log_context)
+            logger.error("missing signature", extra=eave_state.log_context)
             raise eave_exceptions.MissingRequiredHeaderError("eave-signature")
 
-        message = payload
-        team_id = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_TEAM_ID_HEADER)
-        if team_id is not None:
-            message += team_id
+        payload = body.decode()
+        team_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_TEAM_ID_HEADER)
+        account_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)
 
-        origin = eave_state.eave_origin.value
-        signing_key = eave_signing.get_key(signer=origin)
+        team_id = uuid.UUID(team_id_header) if team_id_header else None
+        account_id = uuid.UUID(account_id_header) if account_id_header else None
+
+        message = eave.stdlib.core_api.client.build_message_to_sign(
+            method=scope["method"],
+            url=eave.stdlib.core_api.client.makeurl(scope["path"]),
+            request_id=eave_state.request_id,
+            origin=eave_state.eave_origin,
+            team_id=team_id,
+            account_id=account_id,
+            payload=payload,
+        )
+
+        signing_key = eave_signing.get_key(signer=eave_state.eave_origin)
 
         eave_signing.verify_signature_or_exception(
             signing_key=signing_key,

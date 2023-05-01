@@ -171,8 +171,8 @@ class AccountOrm(Base):
         match self.auth_provider:
             case eave.stdlib.core_api.enums.AuthProvider.slack:
                 new_tokens = await eave.core.internal.oauth.slack.refresh_access_token(refresh_token=self.refresh_token)
-                self.oauth_token = new_tokens.authed_user.access_token
-                self.refresh_token = new_tokens.authed_user.refresh_token
+                self.oauth_token = new_tokens["authed_user"]["access_token"]
+                self.refresh_token = new_tokens["authed_user"]["refresh_token"]
                 return True
 
             case eave.stdlib.core_api.enums.AuthProvider.google:

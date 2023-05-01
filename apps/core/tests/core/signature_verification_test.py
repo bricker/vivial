@@ -10,7 +10,7 @@ class TestSignatureVerification(BaseTestCase):
     async def test_signature_bypass(self) -> None:
         response = await self.make_request(
             method="GET",
-            url="/status",
+            path="/status",
             headers={"eave-signature": None},
         )
 
@@ -19,7 +19,7 @@ class TestSignatureVerification(BaseTestCase):
 
     async def test_missing_signature_header(self) -> None:
         response = await self.make_request(
-            url="/access_request",
+            path="/access_request",
             payload={
                 "visitor_id": self.anystring("visitor_id"),
                 "email": f"{self.anystring('email')}@example.com",
@@ -35,7 +35,7 @@ class TestSignatureVerification(BaseTestCase):
 
     async def test_mismatched_signature(self) -> None:
         response = await self.make_request(
-            url="/access_request",
+            path="/access_request",
             payload={
                 "visitor_id": self.anystring("visitor_id"),
                 "email": f"{self.anystring('email')}@example.com",
@@ -50,7 +50,7 @@ class TestSignatureVerification(BaseTestCase):
         mockito.verify(eave_signing, times=1).verify_signature_or_exception(...)
 
     async def test_empty_body(self) -> None:
-        response = await self.make_request(url="/access_request", payload=None, headers={})
+        response = await self.make_request(path="/access_request", payload=None, headers={})
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         mockito.verify(eave_signing, times=0).verify_signature_or_exception(...)
@@ -58,7 +58,7 @@ class TestSignatureVerification(BaseTestCase):
     async def test_signature_with_team_id(self) -> None:
         team = await self.make_team()
         response = await self.make_request(
-            url="/subscriptions/create",
+            path="/subscriptions/create",
             payload={
                 "subscription": {
                     "source": {

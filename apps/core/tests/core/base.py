@@ -5,6 +5,7 @@ import urllib.parse
 from datetime import datetime
 from typing import Any, Optional, Protocol, Tuple, TypeVar
 from uuid import UUID, uuid4
+import uuid
 
 import eave.core.app
 import eave.core.internal.database as eave_db
@@ -22,10 +23,11 @@ import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from eave.core.internal.config import app_config
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.eave_origins import EaveOrigin
+import eave.stdlib.eave_origins
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
-
+import eave.stdlib.core_api.client
+import eave.stdlib.signing
 
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]
@@ -41,10 +43,6 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 )
 
 eave_db.async_engine.echo = False  # shhh
-
-
-async def mock_coroutine(value: T) -> T:
-    return value
 
 
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
@@ -83,6 +81,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         mockito.unstub()
         await self.httpclient.aclose()
         await eave_db.async_engine.dispose()
+
+    @staticmethod
+    async def mock_coroutine(value: T) -> T:
+        return value
 
     def unwrap(self, value: Optional[T]) -> T:
         assert value is not None
@@ -148,41 +150,67 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def make_request(
         self,
-        url: str,
+        path: str,
         payload: Optional[eave_util.JsonObject] = None,
         method: str = "POST",
         headers: Optional[dict[str, Optional[str]]] = None,
-        access_token: Optional[eave_jwt.JWT] = None,
+        origin: eave.stdlib.eave_origins.EaveOrigin = eave.stdlib.eave_origins.EaveOrigin.eave_www,
+        team_id: Optional[uuid.UUID] = None,
+        account_id: Optional[uuid.UUID] = None,
+        access_token: Optional[str] = None,
+        request_id: Optional[uuid.UUID] = None,
         **kwargs: Any,
     ) -> Response:
-        request_args: dict[str, Any] = {}
         if headers is None:
             headers = {}
 
-        if payload is not None:
-            if method == "GET":
-                data = urllib.parse.urlencode(query=payload)
-                request_args["params"] = data
-            else:
-                data = json.dumps(payload)
-                request_args["content"] = data
+        if team_id:
+            headers["eave-team-id"] = str(team_id)
 
-            if "eave-signature" not in headers:
-                if (team_id := headers.get("eave-team-id")) is not None:
-                    data += team_id
-                headers["eave-signature"] = eave.stdlib.signing.sign_b64(signing_key=TEST_SIGNING_KEY, data=data)
+        if account_id:
+            headers["eave-account-id"] = str(account_id)
 
-            if "eave-origin" not in headers:
-                headers["eave-origin"] = EaveOrigin.eave_www.value
+        if origin:
+            headers["eave-origin"] = origin.value
 
-            if access_token and "authorization" not in headers:
-                headers["authorization"] = f"Bearer {access_token}"
+        request_id = request_id or uuid.uuid4()
+        headers["eave-request-id"] = str(request_id)
+
+        request_args: dict[str, Any] = {}
+        encoded_payload = json.dumps(payload) if payload else ""
+
+        if method == "GET":
+            data = urllib.parse.urlencode(query=payload or {})
+            request_args["params"] = data
+        else:
+            request_args["content"] = encoded_payload
+
+        if "eave-signature" not in headers:
+            signature_message = eave.stdlib.core_api.client.build_message_to_sign(
+                method=method,
+                url=eave.stdlib.core_api.client.makeurl(path),
+                origin=origin,
+                payload=encoded_payload,
+                request_id=request_id,
+                team_id=team_id,
+                account_id=account_id,
+            )
+
+            signature = eave.stdlib.signing.sign_b64(
+                signing_key=eave.stdlib.signing.get_key(signer=origin.value),
+                data=signature_message,
+            )
+
+            headers["eave-signature"] = signature
+
+        if access_token and "authorization" not in headers:
+            headers["authorization"] = f"Bearer {access_token}"
 
         clean_headers = {k: v for (k, v) in headers.items() if v is not None}
 
         response = await self.httpclient.request(
             method,
-            url,
+            path,
             headers=clean_headers,
             **request_args,
             **kwargs,
@@ -213,7 +241,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             signing_key=EAVE_API_SIGNING_KEY,
             purpose=eave_jwt.JWTPurpose.access,
             iss=EAVE_API_JWT_ISSUER,
-            aud=EaveOrigin.eave_www.value,
+            aud=eave.stdlib.eave_origins.EaveOrigin.eave_www.value,
             sub=str(account.id),
         )
 
@@ -250,12 +278,16 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return team
 
     async def make_account(self, **kwargs: Any) -> eave.core.internal.orm.account.AccountOrm:
-        team = await self.make_team()
+        if not (team_id := kwargs.get("team_id")):
+            team = await self.make_team()
+            team_id = team.id
+
         account = eave.core.internal.orm.account.AccountOrm(
             auth_provider=kwargs.get("auth_provider", eave_models.AuthProvider.slack),
             auth_id=kwargs.get("auth_id", self.anystring("auth_id")),
             oauth_token=kwargs.get("oauth_token", self.anystring("oauth_token")),
-            team_id=team.id,
+            refresh_token=kwargs.get("refresh_token", self.anystring("refresh_token")),
+            team_id=team_id,
         )
         await self.save(account)
         return account

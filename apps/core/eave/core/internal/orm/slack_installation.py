@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+import eave.stdlib.util
 
 from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
 
@@ -50,6 +51,7 @@ class SlackInstallationOrm(Base):
             bot_refresh_token=bot_refresh_token,
         )
         session.add(obj)
+        await session.flush()
         return obj
 
     class _selectparams(TypedDict):
@@ -61,8 +63,9 @@ class SlackInstallationOrm(Base):
         lookup = select(cls).limit(1)
         slack_team_id = kwargs.get("slack_team_id")
         eave_team_id = kwargs.get("team_id")
-        if not slack_team_id and not eave_team_id:
-            raise ArgumentError("at least one parameter is required")
+
+        assert slack_team_id or eave_team_id
+
         if slack_team_id:
             lookup = lookup.where(cls.slack_team_id == slack_team_id)
         if eave_team_id:

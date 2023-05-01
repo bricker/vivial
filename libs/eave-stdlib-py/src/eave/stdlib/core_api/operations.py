@@ -123,27 +123,13 @@ class GetAtlassianInstallation(Endpoint):
         team: models.Team
         atlassian_installation: models.AtlassianInstallation
 
-
-class RequestAccessToken(Endpoint):
-    class RequestBody(pydantic.BaseModel):
-        exchange_offer: AccessTokenExchangeOfferInput
-
+class GetAuthenticatedAccount(Endpoint):
     class ResponseBody(pydantic.BaseModel):
-        access_token: str
-        refresh_token: str
-
-
-class RefreshAccessToken(Endpoint):
-    class RequestBody(pydantic.BaseModel):
-        access_token: str
-        refresh_token: str
-
-    class ResponseBody(pydantic.BaseModel):
-        access_token: str
-        refresh_token: str
-
-
-class GetAccount(Endpoint):
-    class ResponseBody(pydantic.BaseModel):
+        account: models.AuthenticatedAccount
         team: models.Team
-        account: models.Account
+
+class GetAuthenticatedAccountTeam(Endpoint):
+    class ResponseBody(pydantic.BaseModel):
+        account: models.AuthenticatedAccount
+        team: models.Team
+        integrations: models.Integrations

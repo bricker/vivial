@@ -7,7 +7,7 @@ class TestTeamLookupMiddleware(BaseTestCase):
     async def test_team_id_bypass(self) -> None:
         response = await self.make_request(
             method="GET",
-            url="/status",
+            path="/status",
             headers={"eave-team-id": None},
         )
 
@@ -15,7 +15,7 @@ class TestTeamLookupMiddleware(BaseTestCase):
 
     async def test_missing_team_id_header(self) -> None:
         response = await self.make_request(
-            url="/subscriptions/create",
+            path="/subscriptions/create",
             payload={
                 "subscription": {
                     "source": {
@@ -34,7 +34,7 @@ class TestTeamLookupMiddleware(BaseTestCase):
 
     async def test_invalid_team_id(self) -> None:
         response = await self.make_request(
-            url="/subscriptions/create",
+            path="/subscriptions/create",
             payload={
                 "subscription": {
                     "source": {
