@@ -112,7 +112,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         content: openaiResponse,
       };
 
-      // TODO: this should be updating existing document, not completely replacing
       const upsertDocumentResponse = await eaveCoreApiClient.upsertDocument(
         eaveTeamId,
         {
@@ -121,6 +120,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         },
       );
 
+      // TODO: real logging
       console.log(upsertDocumentResponse);
     }));
   }));

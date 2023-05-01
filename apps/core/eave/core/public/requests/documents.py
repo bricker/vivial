@@ -23,7 +23,7 @@ async def upsert_document(
 
         destination = await team.get_document_destination(session=db_session)
         # TODO: Error message: "You have not setup a document destination"
-        assert destination is not None
+        assert destination is not None, "You have not setup a document destination"
 
         existing_document_reference = await subscription.get_document_reference(session=db_session)
 
