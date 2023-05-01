@@ -109,22 +109,56 @@ async def get_subscription(
     response_json = await response.json()
     return operations.GetSubscription.ResponseBody(**response_json)
 
-
-async def get_slack_installation(
-    input: operations.GetSlackInstallation.RequestBody,
-) -> operations.GetSlackInstallation.ResponseBody:
+async def get_slack_installation(input: operations.GetSlackInstallation.RequestBody) -> operations.GetSlackInstallation.ResponseBody:
     """
-    POST /installations/slack/query
+    POST /integration/slack/query
     """
-    # fetch slack bot details
     response = await _make_request(
-        path="/installations/slack/query",
+        path="/integration/slack/query",
         input=input,
     )
 
     response_json = await response.json()
     return operations.GetSlackInstallation.ResponseBody(**response_json)
 
+async def get_github_installation(input: operations.GetGithubInstallation.RequestBody) -> operations.GetGithubInstallation.ResponseBody:
+    """
+    POST /integration/github/query
+    """
+    response = await _make_request(
+        path="/integration/github/query",
+        input=input,
+    )
+
+    response_json = await response.json()
+    return operations.GetGithubInstallation.ResponseBody(**response_json)
+
+async def get_atlassian_installation(input: operations.GetAtlassianInstallation.RequestBody) -> operations.GetAtlassianInstallation.ResponseBody:
+    """
+    POST /integration/atlassian/query
+    """
+    response = await _make_request(
+        path="/integration/atlassian/query",
+        input=input,
+    )
+
+    response_json = await response.json()
+    return operations.GetAtlassianInstallation.ResponseBody(**response_json)
+
+async def get_team(
+    team_id: UUID,
+) -> operations.GetAuthenticatedAccountTeam.ResponseBody:
+    """
+    POST /team/query
+    """
+    response = await _make_request(
+        path="/team/query",
+        input=None,
+        team_id=team_id,
+    )
+
+    response_json = await response.json()
+    return operations.GetAuthenticatedAccountTeam.ResponseBody(**response_json)
 
 async def get_authenticated_account_team(
     team_id: UUID, account_id: UUID, access_token: str

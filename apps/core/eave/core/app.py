@@ -18,6 +18,7 @@ from .public.requests import (
     access_requests,
     authed_account,
     documents,
+    integrations,
     subscriptions,
     team,
 )
@@ -130,6 +131,36 @@ add_route(
     origin_required=True,
     team_id_required=True,
     handler=subscriptions.delete_subscription,
+)
+
+add_route(
+    method="POST",
+    path="/integration/slack/query",
+    auth_required=False,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=False,
+    handler=integrations.slack,
+)
+
+add_route(
+    method="POST",
+    path="/integration/github/query",
+    auth_required=False,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=False,
+    handler=integrations.github,
+)
+
+add_route(
+    method="POST",
+    path="/integration/atlassian/query",
+    auth_required=False,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=False,
+    handler=integrations.atlassian,
 )
 
 add_route(
