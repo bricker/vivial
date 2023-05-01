@@ -9,7 +9,7 @@ import LockIcon from '../../Icons/LockIcon.js';
 import Button from '../../Button/index.js';
 import Affiliates from '../../Affiliates/index.js';
 import Copy from '../../Copy/index.js';
-import Page from '../Page/index.js';
+import Page from '../Page/index.jsx';
 import withTitle from '../../hoc/withTitle.js';
 import { getTrackingInfo, saveCookie, cookiePrefix } from '../../../cookies.js';
 
