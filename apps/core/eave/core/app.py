@@ -16,6 +16,7 @@ from .public.middlewares import (
 )
 from .public.requests import (
     access_requests,
+    authed_account,
     documents,
     slack_installations,
     subscriptions,
@@ -53,14 +54,19 @@ def add_route(
     More importantly, defines which headers are required and validated for this route.
     By default, all headers are required. This is an attempt to prevent a developer error from bypassing security mechanisms.
     """
+
+    # If signature is required, origin is also required.
+    if signature_required:
+        assert origin_required
+
     if not signature_required:
         signature_verification_middleware.add_bypass(path)
 
-    if not auth_required:
-        auth_middleware.add_bypass(path)
-
     if not origin_required:
         origin_middleware.add_bypass(path)
+
+    if not auth_required:
+        auth_middleware.add_bypass(path)
 
     if not team_id_required:
         team_lookup_middleware.add_bypass(path)
@@ -136,10 +142,24 @@ add_route(
 )
 
 # Authenticated API endpoints.
-# These endpoints require both signature verification and auth token verification.
-# add_route(method="POST", path="/me/account",            auth_required=True, signature_required=True, origin_required=True, team_id_required=True, handler=authed_account.get_current_account)
-# add_route(method="POST", path="/me/team",               auth_required=True, signature_required=True, origin_required=True, team_id_required=True, handler=authed_account.get_current_team)
-# add_route(method="POST", path="/me/team/installations", auth_required=True, signature_required=True, origin_required=True, team_id_required=True, handler=authed_account.get_installations)
+add_route(
+    method="POST",
+    path="/me/query",
+    auth_required=True,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=True,
+    handler=authed_account.get_authed_account,
+)
+add_route(
+    method="POST",
+    path="/me/team/query",
+    auth_required=True,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=True,
+    handler=authed_account.get_authed_account_team,
+)
 
 # OAuth endpoints.
 # These endpoints don't require any verification (except the OAuth flow itself)

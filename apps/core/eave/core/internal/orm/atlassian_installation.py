@@ -65,6 +65,25 @@ class AtlassianInstallationOrm(Base):
         result = await session.scalar(lookup)
         return result
 
+    @classmethod
+    async def create(
+        cls,
+        session: AsyncSession,
+        team_id: uuid.UUID,
+        atlassian_cloud_id: str,
+        oauth_token_encoded: str,
+        confluence_space: Optional[str],
+    ) -> Self:
+        obj = cls(
+            team_id=team_id,
+            atlassian_cloud_id=atlassian_cloud_id,
+            confluence_space=confluence_space,
+            oauth_token_encoded=oauth_token_encoded,
+        )
+        session.add(obj)
+        await session.flush()
+        return obj
+
     @property
     def oauth_token_decoded(self) -> oauthlib.oauth2.rfc6749.tokens.OAuth2Token:
         jsonv = json.loads(self.oauth_token_encoded)

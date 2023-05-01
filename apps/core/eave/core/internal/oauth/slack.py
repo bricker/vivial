@@ -1,10 +1,9 @@
 import typing
-from typing import Optional
+from typing import Any, Optional, TypedDict
 
 from eave.core.internal.config import app_config
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web.async_client import AsyncWebClient
-from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
@@ -81,7 +80,7 @@ class SlackIdentity:
     slack_team_image_230: Optional[str]
     slack_team_image_default: Optional[bool]
 
-    def __init__(self, response: AsyncSlackResponse) -> None:
+    def __init__(self, response: dict[str, Any]) -> None:
         self.ok = response.get("ok")
         self.sub = response.get("sub")
         self.slack_user_id = response.get("https://slack.com/user_id")
@@ -112,60 +111,29 @@ class SlackIdentity:
         self.slack_team_image_default = response.get("https://slack.com/team_image_default")
 
 
-class SlackTeam:
+class SlackTeam(TypedDict):
     id: str
     name: str
 
-    def __init__(self, **kwargs: str):
-        assert "id" in kwargs
-        self.id = kwargs["id"]
-        assert "name" in kwargs
-        self.name = kwargs["name"]
 
-
-class SlackAuthorizedUser:
+class SlackAuthorizedUser(TypedDict):
     id: str
     access_token: str
     refresh_token: Optional[str]
-    token_expires_in: Optional[int]
-
-    def __init__(self, **kwargs: typing.Any):
-        assert "id" in kwargs
-        self.id = kwargs["id"]
-        assert "access_token" in kwargs
-        self.access_token = kwargs["access_token"]
-        self.refresh_token = kwargs.get("refresh_token")
-        self.token_expires_in = kwargs.get("expires_in")
+    expires_in: Optional[int]
 
 
-class SlackOAuthResponse:
-    bot_access_token: str
-    bot_refresh_token: Optional[str]
-    bot_token_expires_in: Optional[int]
+class SlackOAuthResponse(TypedDict):
+    access_token: str
+    refresh_token: Optional[str]
+    expires_in: Optional[int]
     team: SlackTeam
     authed_user: SlackAuthorizedUser
 
-    def __init__(self, response: AsyncSlackResponse):
-        access_token: Optional[str] = response.get("access_token")
-        assert access_token is not None
-        installed_team: dict[str, str] = response.get("team", {})
-        installer: dict[str, str] = response.get("authed_user", {})
 
-        self.bot_access_token = access_token
-        self.bot_refresh_token = response.get("refresh_token")
-        self.bot_token_expires_in = response.get("expires_in")
-
-        self.team = SlackTeam(**installed_team)
-        self.authed_user = SlackAuthorizedUser(**installer)
-
-
-class SlackAuthTestResponse:
+class SlackAuthTestResponse(TypedDict):
     bot_id: str | None
     bot_user_id: str | None
-
-    def __init__(self, response: AsyncSlackResponse):
-        self.bot_id = response.get("bot_id")
-        self.bot_user_id = response.get("user_id")
 
 
 async def get_userinfo_or_exception(token: str) -> SlackIdentity:
@@ -175,7 +143,8 @@ async def get_userinfo_or_exception(token: str) -> SlackIdentity:
     )
 
     response.validate()
-    return SlackIdentity(response=response)
+    assert isinstance(response.data, dict)
+    return SlackIdentity(response=response.data)
 
 
 async def auth_test_or_exception(token: str) -> SlackAuthTestResponse:
@@ -185,7 +154,9 @@ async def auth_test_or_exception(token: str) -> SlackAuthTestResponse:
     client = AsyncWebClient()
     response = await client.auth_test(token=token)
     response.validate()
-    return SlackAuthTestResponse(response=response)
+
+    assert isinstance(response.data, dict)
+    return typing.cast(SlackAuthTestResponse, response.data)
 
 
 async def get_access_token(
@@ -194,15 +165,16 @@ async def get_access_token(
     client = AsyncWebClient()
 
     # Complete the installation by calling oauth.v2.access API method
-    access_token_response = await client.oauth_v2_access(
+    response = await client.oauth_v2_access(
         client_id=app_config.eave_slack_client_id,
         client_secret=app_config.eave_slack_client_secret,
         code=code,
         redirect_uri=redirect_uri,
     )
 
-    oauth_data = SlackOAuthResponse(response=access_token_response)
-    bot_token = oauth_data.bot_access_token
+    response.validate()
+    oauth_data = typing.cast(SlackOAuthResponse, response.data)
+    bot_token = oauth_data["access_token"]
 
     auth_test_data = await auth_test_or_exception(bot_token)
     return oauth_data, auth_test_data
@@ -220,4 +192,5 @@ async def refresh_access_token(
         refresh_token=refresh_token,
     )
 
-    return SlackOAuthResponse(response=response)
+    response.validate()
+    return typing.cast(SlackOAuthResponse, response.data)

@@ -1,11 +1,13 @@
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 import pydantic
 from eave.stdlib.core_api.enums import (
     AuthProvider,
     DocumentPlatform,
+    Integration,
     SubscriptionSourceEvent,
     SubscriptionSourcePlatform,
 )
@@ -55,13 +57,19 @@ class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
     document_platform: Optional[DocumentPlatform]
+    integrations: List[Integration] = pydantic.Field(default_factory=lambda: list())
+    """This attribute is not stored in the database, and so has a default value"""
 
     class Config:
         orm_mode = True
 
 
-class Account(pydantic.BaseModel):
+class AuthenticatedAccount(pydantic.BaseModel):
+    id: uuid.UUID
     auth_provider: AuthProvider
+
+    class Config:
+        orm_mode = True
 
 
 class SlackInstallation(pydantic.BaseModel):
@@ -95,3 +103,14 @@ class GithubInstallation(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class Integrations(pydantic.BaseModel):
+    """
+    Key-value mapping of Integration to Installation info.
+    The keys here will match the enum cases in enums.Integration
+    """
+
+    github: Optional[GithubInstallation]
+    slack: Optional[SlackInstallation]
+    atlassian: Optional[AtlassianInstallation]
