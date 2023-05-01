@@ -14,9 +14,13 @@ from .public.middlewares import (
     signature_verification_middleware,
     team_lookup_middleware,
 )
-from .public.requests import access_requests
-from .public.requests import authentication as auth_requests
-from .public.requests import documents, slack_installations, subscriptions, github_installations
+from .public.requests import (
+    access_requests,
+    documents,
+    slack_installations,
+    subscriptions,
+    github_installations,
+)
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
 
@@ -141,17 +145,6 @@ add_route(
     handler=github_installations.query,
 )
 
-# Auth Token endpoints
-add_route(
-    method="POST",
-    path="/auth/token/refresh",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=auth_requests.refresh_access_token,
-)
-
 # Authenticated API endpoints.
 # These endpoints require both signature verification and auth token verification.
 # add_route(method="POST", path="/me/account",            auth_required=True, signature_required=True, origin_required=True, team_id_required=True, handler=authed_account.get_current_account)
@@ -213,4 +206,14 @@ add_route(
     origin_required=False,
     team_id_required=False,
     handler=atlassian_oauth.atlassian_oauth_callback,
+)
+
+add_route(
+    method="GET",
+    path="/favicon.ico",
+    auth_required=False,
+    signature_required=False,
+    origin_required=False,
+    team_id_required=False,
+    handler=lambda: "",
 )

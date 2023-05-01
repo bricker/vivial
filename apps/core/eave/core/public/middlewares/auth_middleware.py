@@ -1,4 +1,5 @@
 import re
+import uuid
 from typing import Set
 
 import eave.core.internal.database as eave_db
@@ -6,7 +7,7 @@ import eave.core.public.requests.util as request_util
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
-from eave.core.internal.orm.auth_token import AuthTokenOrm
+from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib import logger
 
 from . import EaveASGIMiddleware, _development_bypass, asgi_types
@@ -35,6 +36,17 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
     async def _verify_auth(scope: asgi_types.HTTPScope) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
 
+        account_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)
+        if not account_id_header:
+            logger.error("account ID header missing/empty", extra=eave_state.log_context)
+            raise eave_exceptions.MissingRequiredHeaderError("eave-account-id")
+
+        try:
+            account_id = uuid.UUID(account_id_header)
+        except ValueError as e:
+            logger.error("malformed account ID", extra=eave_state.log_context)
+            raise eave_exceptions.BadRequestError() from e
+
         auth_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
         if not auth_header:
             logger.error("auth header missing/empty", extra=eave_state.log_context)
@@ -49,15 +61,19 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         async with eave_db.async_session.begin() as db_session:
             try:
-                token = await AuthTokenOrm.find_and_verify_or_exception(
+                eave_account = await AccountOrm.one_or_exception(
                     session=db_session,
-                    log_context=eave_state.log_context,
-                    access_token=access_token,
-                    aud=eave_state.eave_origin,
-                    allow_expired=False,
+                    id=account_id,
+                    oauth_token=access_token,
                 )
             except sqlalchemy.exc.SQLAlchemyError as e:
                 logger.error("auth token or account not found", exc_info=e, extra=eave_state.log_context)
                 raise eave_exceptions.UnauthorizedError()
 
-        eave_state.eave_account = token.account
+            try:
+                await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
+            except eave_exceptions.AccessTokenExpiredError as e:
+                await eave_account.refresh_oauth_token(session=db_session, log_context=eave_state.log_context)
+                await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
+
+        eave_state.eave_account = eave_account
