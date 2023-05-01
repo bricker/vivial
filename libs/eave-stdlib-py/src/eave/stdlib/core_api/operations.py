@@ -123,10 +123,12 @@ class GetAtlassianInstallation(Endpoint):
         team: models.Team
         atlassian_installation: models.AtlassianInstallation
 
+
 class GetAuthenticatedAccount(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         account: models.AuthenticatedAccount
         team: models.Team
+
 
 class GetAuthenticatedAccountTeam(Endpoint):
     class ResponseBody(pydantic.BaseModel):

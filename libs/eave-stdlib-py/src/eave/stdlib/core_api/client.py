@@ -125,7 +125,10 @@ async def get_slack_installation(
     response_json = await response.json()
     return operations.GetSlackInstallation.ResponseBody(**response_json)
 
-async def get_authenticated_account_team(team_id: UUID, account_id: UUID, access_token: str) -> operations.GetAuthenticatedAccountTeam.ResponseBody:
+
+async def get_authenticated_account_team(
+    team_id: UUID, account_id: UUID, access_token: str
+) -> operations.GetAuthenticatedAccountTeam.ResponseBody:
     """
     POST /me/team/query
     """
@@ -140,7 +143,10 @@ async def get_authenticated_account_team(team_id: UUID, account_id: UUID, access
     response_json = await response.json()
     return operations.GetAuthenticatedAccountTeam.ResponseBody(**response_json)
 
-async def get_authenticated_account(team_id: UUID, account_id: UUID, access_token: str) -> operations.GetAuthenticatedAccount.ResponseBody:
+
+async def get_authenticated_account(
+    team_id: UUID, account_id: UUID, access_token: str
+) -> operations.GetAuthenticatedAccount.ResponseBody:
     """
     POST /me/query
     """
@@ -154,6 +160,7 @@ async def get_authenticated_account(team_id: UUID, account_id: UUID, access_toke
 
     response_json = await response.json()
     return operations.GetAuthenticatedAccount.ResponseBody(**response_json)
+
 
 async def _make_request(
     path: str,
@@ -235,16 +242,16 @@ async def _make_request(
 def makeurl(path: str) -> str:
     return urllib.parse.urljoin(shared_config.eave_api_base, path)
 
-def build_message_to_sign(
-        method: str,
-        url: str,
-        request_id: uuid.UUID,
-        origin: eave.stdlib.eave_origins.EaveOrigin,
-        payload: str,
-        team_id: typing.Optional[uuid.UUID],
-        account_id: typing.Optional[uuid.UUID],
-        ) -> str:
 
+def build_message_to_sign(
+    method: str,
+    url: str,
+    request_id: uuid.UUID,
+    origin: eave.stdlib.eave_origins.EaveOrigin,
+    payload: str,
+    team_id: typing.Optional[uuid.UUID],
+    account_id: typing.Optional[uuid.UUID],
+) -> str:
     signature_elements: typing.List[str] = [
         origin.value,
         method,

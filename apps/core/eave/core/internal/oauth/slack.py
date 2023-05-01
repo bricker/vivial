@@ -1,13 +1,9 @@
-from ast import Dict
-from dataclasses import dataclass
-import json
 import typing
 from typing import Any, Optional, TypedDict
 
 from eave.core.internal.config import app_config
 from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.web.async_client import AsyncWebClient
-from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
@@ -119,6 +115,7 @@ class SlackTeam(TypedDict):
     id: str
     name: str
 
+
 class SlackAuthorizedUser(TypedDict):
     id: str
     access_token: str
@@ -132,6 +129,7 @@ class SlackOAuthResponse(TypedDict):
     expires_in: Optional[int]
     team: SlackTeam
     authed_user: SlackAuthorizedUser
+
 
 class SlackAuthTestResponse(TypedDict):
     bot_id: str | None

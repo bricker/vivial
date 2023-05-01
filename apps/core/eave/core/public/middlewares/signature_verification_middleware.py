@@ -1,12 +1,13 @@
-from typing import Set, cast
 import uuid
+from typing import Set, cast
 
 import eave.core.public.requests.util as request_util
+import eave.stdlib.core_api.client
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import eave.stdlib.signing as eave_signing
 from eave.stdlib import logger
-import eave.stdlib.core_api.client
+
 from . import EaveASGIMiddleware, _development_bypass, asgi_types
 
 _ROUTE_BYPASS: Set[str] = set()

@@ -24,10 +24,12 @@ class SubscriptionSourceEvent(enum.StrEnum):
     github_file_change = "github_file_change"
     jira_issue_comment = "jira_issue_comment"
 
+
 class Integration(enum.StrEnum):
     """
     Apps that a Team can integrate with.
     """
+
     slack = "slack"
     github = "github"
     atlassian = "atlassian"

@@ -1,22 +1,12 @@
-import eave.core.internal.orm.slack_installation
-import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.team
-import time
-from datetime import datetime
 from http import HTTPStatus
 
-from slack_sdk.web.async_slack_response import AsyncSlackResponse
-
 import eave.core.internal.database as eave_db
-import eave.stdlib.core_api.enums as eave_enums
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.signing as eave_signing
-import eave.stdlib.util as eave_util
-import mockito
-import pytest
-from eave.core.internal.orm.auth_token import AuthTokenOrm
-from sqlalchemy import select
 import eave.core.internal.oauth.slack
+import eave.core.internal.orm.atlassian_installation
+import eave.core.internal.orm.slack_installation
+import eave.core.internal.orm.team
+import eave.stdlib.core_api.operations as eave_ops
+import mockito
 
 from .base import BaseTestCase
 
@@ -28,8 +18,9 @@ class TestAuthedAccountRequests(BaseTestCase):
             "bot_user_id": self.anystring(),
         }
 
-        mockito.when2(eave.core.internal.oauth.slack.auth_test_or_exception, **mockito.kwargs).thenReturn(self.mock_coroutine(rval))
-
+        mockito.when2(eave.core.internal.oauth.slack.auth_test_or_exception, **mockito.kwargs).thenReturn(
+            self.mock_coroutine(rval)
+        )
 
     async def test_get_authed_account(self) -> None:
         account = await self.make_account()
@@ -40,7 +31,7 @@ class TestAuthedAccountRequests(BaseTestCase):
             payload=None,
             account_id=account.id,
             team_id=account.team_id,
-            access_token=account.oauth_token
+            access_token=account.oauth_token,
         )
 
         assert response.status_code == HTTPStatus.OK

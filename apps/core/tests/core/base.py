@@ -2,17 +2,19 @@ import json
 import random
 import unittest
 import urllib.parse
+import uuid
 from datetime import datetime
 from typing import Any, Optional, Protocol, Tuple, TypeVar
 from uuid import UUID, uuid4
-import uuid
 
 import eave.core.app
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm
 import eave.core.internal.orm.account
 import eave.core.internal.orm.auth_token
+import eave.stdlib.core_api.client
 import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.eave_origins
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.jwt as eave_jwt
 import eave.stdlib.signing
@@ -23,11 +25,9 @@ import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from eave.core.internal.config import app_config
 from eave.core.internal.orm.team import TeamOrm
-import eave.stdlib.eave_origins
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
-import eave.stdlib.core_api.client
-import eave.stdlib.signing
+
 
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]

@@ -1,5 +1,4 @@
 import os
-import sys
 
 import dotenv
 import eave.core.internal.orm

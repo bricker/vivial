@@ -16,10 +16,10 @@ from .public.middlewares import (
 )
 from .public.requests import (
     access_requests,
+    authed_account,
     documents,
     slack_installations,
     subscriptions,
-    authed_account,
 )
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
@@ -142,8 +142,24 @@ add_route(
 )
 
 # Authenticated API endpoints.
-add_route(method="POST", path="/me/query",      auth_required=True, signature_required=True, origin_required=True, team_id_required=True, handler=authed_account.get_authed_account)
-add_route(method="POST", path="/me/team/query", auth_required=True, signature_required=True, origin_required=True, team_id_required=True, handler=authed_account.get_authed_account_team)
+add_route(
+    method="POST",
+    path="/me/query",
+    auth_required=True,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=True,
+    handler=authed_account.get_authed_account,
+)
+add_route(
+    method="POST",
+    path="/me/team/query",
+    auth_required=True,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=True,
+    handler=authed_account.get_authed_account_team,
+)
 
 # OAuth endpoints.
 # These endpoints don't require any verification (except the OAuth flow itself)

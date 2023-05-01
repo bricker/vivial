@@ -1,4 +1,3 @@
-from ctypes import ArgumentError
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
@@ -6,7 +5,6 @@ from uuid import UUID
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-import eave.stdlib.util
 
 from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
 

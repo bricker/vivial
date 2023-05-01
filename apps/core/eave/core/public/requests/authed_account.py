@@ -1,19 +1,20 @@
-import typing
-import fastapi
-import eave.stdlib.core_api.operations
-import eave.stdlib.core_api.models
-import eave.stdlib.core_api.enums
-from sqlalchemy.ext.asyncio import AsyncSession
-import eave.core.public.requests.util
-import eave.core.internal.orm.account
-import eave.core.internal.orm.team
-import eave.core.internal.orm.slack_installation
-import eave.core.internal.orm.github_installation
-import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.database
+import eave.core.internal.orm.account
+import eave.core.internal.orm.atlassian_installation
+import eave.core.internal.orm.github_installation
+import eave.core.internal.orm.slack_installation
+import eave.core.internal.orm.team
+import eave.core.public.requests.util
+import eave.stdlib.core_api.enums
+import eave.stdlib.core_api.models
+import eave.stdlib.core_api.operations
+import fastapi
 from eave.stdlib import logger
 
-async def get_authed_account(request: fastapi.Request) -> eave.stdlib.core_api.operations.GetAuthenticatedAccount.ResponseBody:
+
+async def get_authed_account(
+    request: fastapi.Request,
+) -> eave.stdlib.core_api.operations.GetAuthenticatedAccount.ResponseBody:
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
     logger.info("authed_account.get_authed_account", extra=eave_state.log_context)
 
@@ -33,8 +34,10 @@ async def get_authed_account(request: fastapi.Request) -> eave.stdlib.core_api.o
         # if github_installation:
         #     eave_team.integrations.append(eave.stdlib.core_api.enums.Integration.github)
 
-        atlassian_installation = await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.one_or_none(
-            session=db_session, team_id=eave_team.id
+        atlassian_installation = (
+            await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.one_or_none(
+                session=db_session, team_id=eave_team.id
+            )
         )
         if atlassian_installation:
             eave_team.integrations.append(eave.stdlib.core_api.enums.Integration.atlassian)
@@ -46,7 +49,10 @@ async def get_authed_account(request: fastapi.Request) -> eave.stdlib.core_api.o
         team=eave_team,
     )
 
-async def get_authed_account_team(request: fastapi.Request) -> eave.stdlib.core_api.operations.GetAuthenticatedAccountTeam.ResponseBody:
+
+async def get_authed_account_team(
+    request: fastapi.Request,
+) -> eave.stdlib.core_api.operations.GetAuthenticatedAccountTeam.ResponseBody:
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
     logger.info("authed_account.get_authed_account_team", extra=eave_state.log_context)
 
@@ -68,8 +74,10 @@ async def get_authed_account_team(request: fastapi.Request) -> eave.stdlib.core_
         # if github_installation:
         #     eave_team.integrations.append(eave.stdlib.core_api.enums.Integration.github)
 
-        atlassian_installation = await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.one_or_none(
-            session=db_session, team_id=eave_team.id
+        atlassian_installation = (
+            await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.one_or_none(
+                session=db_session, team_id=eave_team.id
+            )
         )
         if atlassian_installation:
             eave_team.integrations.append(eave.stdlib.core_api.enums.Integration.atlassian)
@@ -79,7 +87,7 @@ async def get_authed_account_team(request: fastapi.Request) -> eave.stdlib.core_
         team=eave_team,
         integrations=eave.stdlib.core_api.models.Integrations(
             slack=eave.stdlib.core_api.models.SlackInstallation.from_orm(slack_installation),
-            github=None, #eave.stdlib.core_api.models.GithubInstallation.from_orm(github_installation),
+            github=None,  # eave.stdlib.core_api.models.GithubInstallation.from_orm(github_installation),
             atlassian=eave.stdlib.core_api.models.AtlassianInstallation.from_orm(atlassian_installation),
-        )
+        ),
     )

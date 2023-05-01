@@ -1,15 +1,15 @@
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
-import uuid
 
 import pydantic
 from eave.stdlib.core_api.enums import (
     AuthProvider,
     DocumentPlatform,
+    Integration,
     SubscriptionSourceEvent,
     SubscriptionSourcePlatform,
-    Integration,
 )
 
 
@@ -63,12 +63,14 @@ class Team(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class AuthenticatedAccount(pydantic.BaseModel):
     id: uuid.UUID
     auth_provider: AuthProvider
 
     class Config:
         orm_mode = True
+
 
 class SlackInstallation(pydantic.BaseModel):
     id: pydantic.UUID4
@@ -102,11 +104,13 @@ class GithubInstallation(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class Integrations(pydantic.BaseModel):
     """
     Key-value mapping of Integration to Installation info.
     The keys here will match the enum cases in enums.Integration
     """
+
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
     atlassian: Optional[AtlassianInstallation]
