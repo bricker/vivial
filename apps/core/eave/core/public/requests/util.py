@@ -22,7 +22,7 @@ def not_found(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     logging.error("not found", exc_info=exc, extra=eave_state.log_context)
     return fastapi.responses.Response(
         status_code=HTTPStatus.NOT_FOUND,
-        content=eave_state.log_context,
+        content=json.dumps(eave_state.log_context),
     )
 
 
@@ -31,7 +31,7 @@ def internal_server_error(request: fastapi.Request, exc: Exception) -> fastapi.R
     logging.error("internal server error", exc_info=exc, extra=eave_state.log_context)
     return fastapi.responses.Response(
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-        content=eave_state.log_context,
+        content=json.dumps(eave_state.log_context),
     )
 
 
@@ -40,7 +40,7 @@ def bad_request(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     logging.error("bad request", exc_info=exc, extra=eave_state.log_context)
     return fastapi.responses.Response(
         status_code=HTTPStatus.BAD_REQUEST,
-        content=eave_state.log_context,
+        content=json.dumps(eave_state.log_context),
     )
 
 
@@ -49,7 +49,7 @@ def unauthorized(request: fastapi.Request, exc: Exception) -> fastapi.Response:
     logging.error("unauthorized", exc_info=exc, extra=eave_state.log_context)
     return fastapi.responses.Response(
         status_code=HTTPStatus.UNAUTHORIZED,
-        content=eave_state.log_context,
+        content=json.dumps(eave_state.log_context),
     )
 
 

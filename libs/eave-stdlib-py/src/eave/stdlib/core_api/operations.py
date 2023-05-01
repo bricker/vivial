@@ -99,29 +99,29 @@ class UpsertDocument(Endpoint):
 
 class GetSlackInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        slack_installation: SlackInstallationInput
+        slack_integration: SlackInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        slack_installation: models.SlackInstallation
+        slack_integration: models.SlackInstallation
 
 
 class GetGithubInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        github_installation: GithubInstallationInput
+        github_integration: GithubInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        github_installation: models.GithubInstallation
+        github_integration: models.GithubInstallation
 
 
 class GetAtlassianInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        atlassian_installation: AtlassianInstallationInput
+        atlassian_integration: AtlassianInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        atlassian_installation: models.AtlassianInstallation
+        atlassian_integration: models.AtlassianInstallation
 
 
 class GetAuthenticatedAccount(Endpoint):

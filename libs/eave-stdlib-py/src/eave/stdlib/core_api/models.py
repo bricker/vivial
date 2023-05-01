@@ -114,3 +114,12 @@ class Integrations(pydantic.BaseModel):
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
     atlassian: Optional[AtlassianInstallation]
+
+class ErrorResponse(pydantic.BaseModel):
+    eave_account_id: Optional[str]
+    eave_origin: Optional[str]
+    eave_team_id: Optional[str]
+    request_id: Optional[str]
+    request_method: Optional[str]
+    request_scheme: Optional[str]
+    request_path: Optional[str]
