@@ -25,9 +25,15 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         `${branchName}/${eventCommitTouchedFilename}`,
       ].join('#');
 
-      // TODO: fetch team id
-      // TOOD: lookup team id from gh app installation id?
-      const eaveTeamId = '3345217c-fb27-4422-a3fc-c404b49aff8c';
+      // fetch eave team id required for core_api requests
+      const installationId = event.installation!.id;
+      const teamResponse = await eaveCoreApiClient.getGithubInstallation({
+        github_installation: {
+          github_install_id: `${installationId}`,
+        },
+      });
+      if (teamResponse === null) { return; }
+      const eaveTeamId = teamResponse.team.id;
 
       // check if we are subscribed to this file
       const subscriptionResponse = await eaveCoreApiClient.getSubscription(eaveTeamId, {

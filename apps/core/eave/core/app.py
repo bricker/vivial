@@ -16,7 +16,7 @@ from .public.middlewares import (
 )
 from .public.requests import access_requests
 from .public.requests import authentication as auth_requests
-from .public.requests import documents, slack_installations, subscriptions
+from .public.requests import documents, slack_installations, subscriptions, github_installations
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
 
@@ -130,6 +130,15 @@ add_route(
     origin_required=True,
     team_id_required=False,
     handler=slack_installations.query,
+)
+add_route(
+    method="POST",
+    path="/installations/github/query",
+    auth_required=False,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=False,
+    handler=github_installations.query,
 )
 
 # Auth Token endpoints

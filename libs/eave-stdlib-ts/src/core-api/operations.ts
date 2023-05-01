@@ -22,6 +22,10 @@ export type SlackInstallationInput = {
   slack_team_id: string;
 }
 
+export type GithubInstallationInput = {
+  github_install_id: string;
+}
+
 export namespace UpsertDocument {
   export type RequestBody = {
     document: DocumentInput;
@@ -83,6 +87,17 @@ export namespace GetSlackInstallation {
   export type ResponseBody = {
     team: models.Team;
     slack_installation: models.SlackInstallation;
+  }
+}
+
+export namespace GetGithubInstallation {
+  export type RequestBody = {
+    github_installation: GithubInstallationInput;
+  }
+
+  export type ResponseBody = {
+    team: models.Team;
+    github_installation: models.GithubInstallation;
   }
 }
 
