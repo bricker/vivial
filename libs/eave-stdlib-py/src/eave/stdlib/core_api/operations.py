@@ -130,7 +130,7 @@ class GetAuthenticatedAccount(Endpoint):
         team: models.Team
 
 
-class GetAuthenticatedAccountTeam(Endpoint):
+class GetAuthenticatedAccountTeamIntegrations(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         account: models.AuthenticatedAccount
         team: models.Team

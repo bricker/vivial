@@ -41,10 +41,10 @@ async def slack_oauth_callback(
     oauth_cookies.delete_state_cookie(response=response, provider=eave.stdlib.core_api.enums.AuthProvider.slack)
     assert state == cookie_state
 
-    slack_oauth_data, slack_auth_test_data = await eave.core.internal.oauth.slack.get_access_token(code=code)
+    slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token(code=code)
     eave_account = await _get_or_create_eave_account(slack_oauth_data=slack_oauth_data)
     await _update_or_create_slack_installation(
-        eave_account=eave_account, slack_oauth_data=slack_oauth_data, slack_auth_test_data=slack_auth_test_data
+        eave_account=eave_account, slack_oauth_data=slack_oauth_data
     )
 
     # Set the cookie in the response headers.
@@ -52,7 +52,7 @@ async def slack_oauth_callback(
     eave_auth_cookies.set_auth_cookies(
         response=response,
         account_id=eave_account.id,
-        access_token=eave_account.oauth_token,
+        access_token=eave_account.access_token,
     )
 
     return response
@@ -61,7 +61,6 @@ async def slack_oauth_callback(
 async def _update_or_create_slack_installation(
     eave_account: AccountOrm,
     slack_oauth_data: eave_slack_oauth.SlackOAuthResponse,
-    slack_auth_test_data: eave_slack_oauth.SlackAuthTestResponse,
 ) -> None:
     async with eave_db.async_session.begin() as db_session:
         # try fetch existing slack installation
@@ -95,7 +94,7 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
 
         if eave_account is not None:
             # An account exists. Update the saved auth tokens.
-            eave_account.oauth_token = slack_oauth_data["authed_user"]["access_token"]
+            eave_account.access_token = slack_oauth_data["authed_user"]["access_token"]
             eave_account.refresh_token = slack_oauth_data["authed_user"]["refresh_token"]
 
         else:
@@ -104,7 +103,7 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
             # The Team is what is used for integrations, not an individual account.
             # TODO: If there is already a Team connected to the given Slack workspace, we could use that instead.
             user_identity = await eave.core.internal.oauth.slack.get_userinfo_or_exception(
-                token=slack_oauth_data["authed_user"]["access_token"],
+                access_token=slack_oauth_data["authed_user"]["access_token"],
             )
 
             # Default value
@@ -128,7 +127,7 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
                 auth_id=slack_oauth_data["authed_user"]["id"],
-                oauth_token=slack_oauth_data["authed_user"]["access_token"],
+                access_token=slack_oauth_data["authed_user"]["access_token"],
                 refresh_token=slack_oauth_data["authed_user"]["refresh_token"],
             )
 

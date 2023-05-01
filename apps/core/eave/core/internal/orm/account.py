@@ -45,7 +45,7 @@ class AccountOrm(Base):
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
-    oauth_token: Mapped[str] = mapped_column()
+    access_token: Mapped[str] = mapped_column("oauth_token") # This field was renamed from "oauth_token" to "access_token"
     """access token from 3rd party"""
     refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""
@@ -59,14 +59,14 @@ class AccountOrm(Base):
         team_id: UUID,
         auth_provider: eave_models.AuthProvider,
         auth_id: str,
-        oauth_token: str,
+        access_token: str,
         refresh_token: Optional[str],
     ) -> Self:
         obj = cls(
             team_id=team_id,
             auth_provider=auth_provider,
             auth_id=auth_id,
-            oauth_token=oauth_token,
+            access_token=access_token,
             refresh_token=refresh_token,
         )
 
@@ -79,7 +79,7 @@ class AccountOrm(Base):
         team_id: NotRequired[uuid.UUID]
         auth_provider: NotRequired[eave_models.AuthProvider]
         auth_id: NotRequired[str]
-        oauth_token: NotRequired[str]
+        access_token: NotRequired[str]
         refresh_token: NotRequired[str]
 
     @classmethod
@@ -98,8 +98,8 @@ class AccountOrm(Base):
         if auth_id := kwargs.get("auth_id"):
             lookup = lookup.where(cls.auth_id == auth_id)
 
-        if oauth_token := kwargs.get("oauth_token"):
-            lookup = lookup.where(cls.oauth_token == oauth_token)
+        if access_token := kwargs.get("access_token"):
+            lookup = lookup.where(cls.access_token == access_token)
 
         if refresh_token := kwargs.get("refresh_token"):
             lookup = lookup.where(cls.refresh_token == refresh_token)
@@ -133,7 +133,7 @@ class AccountOrm(Base):
         match self.auth_provider:
             case eave.stdlib.core_api.enums.AuthProvider.slack:
                 try:
-                    await eave.core.internal.oauth.slack.auth_test_or_exception(token=self.oauth_token)
+                    await eave.core.internal.oauth.slack.get_userinfo_or_exception(access_token=self.access_token)
                     return True
                 except slack_sdk.errors.SlackApiError as e:
                     if e.response.get("error") == "token_expired":
@@ -147,10 +147,10 @@ class AccountOrm(Base):
                     raise eave.stdlib.exceptions.InvalidAuthError()
 
                 credentials = eave.core.internal.oauth.google.get_oauth_credentials(
-                    access_token=self.oauth_token, refresh_token=self.refresh_token
+                    access_token=self.access_token, refresh_token=self.refresh_token
                 )
                 eave.core.internal.oauth.google.get_userinfo(credentials=credentials)
-                self.oauth_token = credentials.token
+                self.access_token = credentials.token
                 self.refresh_token = credentials.refresh_token
                 return True
             case eave.stdlib.core_api.enums.AuthProvider.atlassian:
@@ -171,7 +171,7 @@ class AccountOrm(Base):
         match self.auth_provider:
             case eave.stdlib.core_api.enums.AuthProvider.slack:
                 new_tokens = await eave.core.internal.oauth.slack.refresh_access_token(refresh_token=self.refresh_token)
-                self.oauth_token = new_tokens["authed_user"]["access_token"]
+                self.access_token = new_tokens["authed_user"]["access_token"]
                 self.refresh_token = new_tokens["authed_user"]["refresh_token"]
                 return True
 

@@ -180,17 +180,17 @@ add_route(
     auth_required=True,
     signature_required=True,
     origin_required=True,
-    team_id_required=True,
+    team_id_required=False,
     handler=authed_account.get_authed_account,
 )
 add_route(
     method="POST",
-    path="/me/team/query",
+    path="/me/team/integrations/query",
     auth_required=True,
     signature_required=True,
     origin_required=True,
-    team_id_required=True,
-    handler=authed_account.get_authed_account_team,
+    team_id_required=False,
+    handler=authed_account.get_authed_account_team_integrations,
 )
 
 # OAuth endpoints.

@@ -64,7 +64,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                 eave_account = await AccountOrm.one_or_exception(
                     session=db_session,
                     id=account_id,
-                    oauth_token=access_token,
+                    access_token=access_token,
                 )
             except sqlalchemy.exc.SQLAlchemyError as e:
                 logger.error("auth token or account not found", exc_info=e, extra=eave_state.log_context)

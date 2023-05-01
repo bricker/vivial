@@ -67,6 +67,7 @@ class Team(pydantic.BaseModel):
 class AuthenticatedAccount(pydantic.BaseModel):
     id: uuid.UUID
     auth_provider: AuthProvider
+    access_token: str
 
     class Config:
         orm_mode = True
