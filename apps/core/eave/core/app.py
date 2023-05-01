@@ -18,8 +18,8 @@ from .public.requests import (
     access_requests,
     authed_account,
     documents,
-    slack_installations,
     subscriptions,
+    team,
 )
 from .public.requests import util as eave_request_util
 from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
@@ -131,14 +131,15 @@ add_route(
     team_id_required=True,
     handler=subscriptions.delete_subscription,
 )
+
 add_route(
     method="POST",
-    path="/installations/slack/query",
+    path="/team/query",
     auth_required=False,
     signature_required=True,
     origin_required=True,
-    team_id_required=False,
-    handler=slack_installations.query,
+    team_id_required=True,
+    handler=team.get_team,
 )
 
 # Authenticated API endpoints.
