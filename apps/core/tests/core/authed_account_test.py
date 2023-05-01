@@ -13,12 +13,23 @@ from .base import BaseTestCase
 
 class TestAuthedAccountRequests(BaseTestCase):
     def _mock_slack_auth_response(self) -> None:
-        rval: eave.core.internal.oauth.slack.SlackAuthTestResponse = {
-            "bot_id": self.anystring(),
-            "bot_user_id": self.anystring(),
+        rval: eave.core.internal.oauth.slack.SlackOAuthResponse = {
+            "access_token": self.anystring("access_token"),
+            "refresh_token": self.anystring("refresh_token"),
+            "expires_in": self.anyint("expires_in"),
+            "team": {
+                "id": self.anystring("team.id"),
+                "name": self.anystring("team.name"),
+            },
+            "authed_user": {
+                "id": self.anystring("authed_user.id"),
+                "access_token": self.anystring("authed_user.access_token"),
+                "refresh_token": self.anystring("authed_user.refresh_token"),
+                "expires_in": self.anyint("authed_user.expires_in"),
+            },
         }
 
-        mockito.when2(eave.core.internal.oauth.slack.auth_test_or_exception, **mockito.kwargs).thenReturn(
+        mockito.when2(eave.core.internal.oauth.slack.get_userinfo_or_exception, **mockito.kwargs).thenReturn(
             self.mock_coroutine(rval)
         )
 
@@ -31,7 +42,7 @@ class TestAuthedAccountRequests(BaseTestCase):
             payload=None,
             account_id=account.id,
             team_id=account.team_id,
-            access_token=account.oauth_token,
+            access_token=account.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -68,14 +79,14 @@ class TestAuthedAccountRequests(BaseTestCase):
             payload=None,
             account_id=account.id,
             team_id=account.team_id,
-            access_token=account.oauth_token,
+            access_token=account.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
         response_obj = eave_ops.GetAuthenticatedAccount.ResponseBody(**response.json())
         assert response_obj.team.integrations == ["atlassian", "slack"]
 
-    async def test_get_authed_account_team(self) -> None:
+    async def test_get_authed_account_team_integrations(self) -> None:
         team = await self.make_team()
         account = await self.make_account(team_id=team.id)
         self._mock_slack_auth_response()
@@ -97,15 +108,15 @@ class TestAuthedAccountRequests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/me/team/query",
+            path="/me/team/integrations/query",
             payload=None,
             account_id=account.id,
             team_id=account.team_id,
-            access_token=account.oauth_token,
+            access_token=account.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave_ops.GetAuthenticatedAccountTeam.ResponseBody(**response.json())
+        response_obj = eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response.json())
         assert response_obj.team.integrations == ["atlassian", "slack"]
 
         assert response_obj.integrations.slack is not None

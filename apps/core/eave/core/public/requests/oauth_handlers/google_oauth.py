@@ -49,7 +49,7 @@ async def google_oauth_callback(state: str, code: str, request: fastapi.Request)
     eave_auth_cookies.set_auth_cookies(
         response=response,
         account_id=eave_account.id,
-        access_token=eave_account.oauth_token,
+        access_token=eave_account.access_token,
     )
 
     return response
@@ -68,7 +68,7 @@ async def _get_or_create_eave_account(
         )
 
         if eave_account is not None:
-            eave_account.oauth_token = credentials.token
+            eave_account.access_token = credentials.token
             eave_account.refresh_token = credentials.refresh_token
 
         else:
@@ -95,7 +95,7 @@ async def _get_or_create_eave_account(
                 team_id=team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
                 auth_id=google_token.sub,
-                oauth_token=credentials.token,
+                access_token=credentials.token,
                 refresh_token=credentials.refresh_token,
             )
 

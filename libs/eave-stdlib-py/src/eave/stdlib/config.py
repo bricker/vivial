@@ -2,15 +2,14 @@ import os
 import sys
 from functools import cached_property
 
-from google.cloud import secretmanager
-
+from google.cloud import secretmanager, runtimeconfig
 from . import checksum
 
 
 # TODO: Use runtime-configs
 # https://cloud.google.com/deployment-manager/runtime-configurator/create-and-delete-runtimeconfig-resources#gcloud
-# https://cloud.google.com/python/docs/reference/runtimeconfig/latest
 # config created called "shared-config"
+
 class EaveConfig:
     @property
     def dev_mode(self) -> bool:
@@ -19,18 +18,6 @@ class EaveConfig:
     @property
     def monitoring_enabled(self) -> bool:
         return os.getenv("EAVE_MONITORING_ENABLED") is not None
-
-    @property
-    def eave_api_base(self) -> str:
-        return os.getenv("EAVE_API_BASE", "https://api.eave.fyi")
-
-    @property
-    def eave_www_base(self) -> str:
-        return os.getenv("EAVE_WWW_BASE", "https://www.eave.fyi")
-
-    @property
-    def eave_cookie_domain(self) -> str:
-        return os.getenv("EAVE_COOKIE_DOMAIN", ".eave.fyi")
 
     @property
     def google_cloud_project(self) -> str:
@@ -47,6 +34,21 @@ class EaveConfig:
         return os.getenv("GAE_VERSION", "unknown")
 
     @cached_property
+    def eave_api_base(self) -> str:
+        value = self.get_runtimeconfig("EAVE_API_BASE") or "https://api.eave.fyi"
+        return value
+
+    @cached_property
+    def eave_www_base(self) -> str:
+        value = self.get_runtimeconfig("EAVE_WWW_BASE") or "https://www.eave.fyi"
+        return value
+
+    @cached_property
+    def eave_cookie_domain(self) -> str:
+        value = self.get_runtimeconfig("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
+        return value
+
+    @cached_property
     def eave_openai_api_key(self) -> str:
         value = self.get_secret("OPENAI_API_KEY")
         return value
@@ -54,6 +56,12 @@ class EaveConfig:
     @cached_property
     def eave_slack_system_bot_token(self) -> str:
         value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
+        return value
+
+    @cached_property
+    def eave_slack_app_id(self) -> str:
+        value = self.get_runtimeconfig("EAVE_SLACK_APP_ID")
+        assert value is not None
         return value
 
     @cached_property
@@ -74,6 +82,25 @@ class EaveConfig:
     @cached_property
     def eave_atlassian_app_client_secret(self) -> str:
         value: str = self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
+        return value
+
+    def get_runtimeconfig(self, name: str) -> str | None:
+        """
+        https://cloud.google.com/python/docs/reference/runtimeconfig/latest
+        https://github.com/googleapis/python-runtimeconfig
+        """
+        env_value = os.getenv(name)
+        if env_value is not None:
+            return env_value
+
+        client = runtimeconfig.Client()
+        config = client.config("eave-global-config")
+
+        variable = config.get_variable(name)
+        if not variable:
+            return None
+
+        value: str | None = variable.text
         return value
 
     def get_secret(self, name: str) -> str:

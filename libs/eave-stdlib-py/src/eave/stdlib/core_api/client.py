@@ -147,7 +147,7 @@ async def get_atlassian_installation(input: operations.GetAtlassianInstallation.
 
 async def get_team(
     team_id: UUID,
-) -> operations.GetAuthenticatedAccountTeam.ResponseBody:
+) -> operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody:
     """
     POST /team/query
     """
@@ -158,29 +158,26 @@ async def get_team(
     )
 
     response_json = await response.json()
-    return operations.GetAuthenticatedAccountTeam.ResponseBody(**response_json)
+    return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
 
-async def get_authenticated_account_team(
-    team_id: UUID, account_id: UUID, access_token: str
-) -> operations.GetAuthenticatedAccountTeam.ResponseBody:
+async def get_authenticated_account_team_integrations(
+    account_id: UUID, access_token: str
+) -> operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody:
     """
-    POST /me/team/query
+    POST /me/team/integrations/query
     """
     response = await _make_request(
-        path="/me/team/query",
+        path="/me/team/integrations/query",
         input=None,
         access_token=access_token,
-        team_id=team_id,
         account_id=account_id,
     )
 
     response_json = await response.json()
-    return operations.GetAuthenticatedAccountTeam.ResponseBody(**response_json)
+    return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
 
 
-async def get_authenticated_account(
-    team_id: UUID, account_id: UUID, access_token: str
-) -> operations.GetAuthenticatedAccount.ResponseBody:
+async def get_authenticated_account(account_id: UUID, access_token: str) -> operations.GetAuthenticatedAccount.ResponseBody:
     """
     POST /me/query
     """
@@ -188,7 +185,6 @@ async def get_authenticated_account(
         path="/me/query",
         input=None,
         access_token=access_token,
-        team_id=team_id,
         account_id=account_id,
     )
 

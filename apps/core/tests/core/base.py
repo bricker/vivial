@@ -285,7 +285,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         account = eave.core.internal.orm.account.AccountOrm(
             auth_provider=kwargs.get("auth_provider", eave_models.AuthProvider.slack),
             auth_id=kwargs.get("auth_id", self.anystring("auth_id")),
-            oauth_token=kwargs.get("oauth_token", self.anystring("oauth_token")),
+            access_token=kwargs.get("oauth_token", self.anystring("oauth_token")),
             refresh_token=kwargs.get("refresh_token", self.anystring("refresh_token")),
             team_id=team_id,
         )

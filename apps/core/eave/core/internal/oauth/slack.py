@@ -130,38 +130,19 @@ class SlackOAuthResponse(TypedDict):
     team: SlackTeam
     authed_user: SlackAuthorizedUser
 
-
-class SlackAuthTestResponse(TypedDict):
-    bot_id: str | None
-    bot_user_id: str | None
-
-
-async def get_userinfo_or_exception(token: str) -> SlackIdentity:
+async def get_userinfo_or_exception(access_token: str) -> SlackIdentity:
     client = AsyncWebClient()
     response = await client.openid_connect_userInfo(
-        token=token,
+        token=access_token,
     )
 
     response.validate()
     assert isinstance(response.data, dict)
     return SlackIdentity(response=response.data)
 
-
-async def auth_test_or_exception(token: str) -> SlackAuthTestResponse:
-    """
-    https://api.slack.com/methods/auth.test#errors
-    """
-    client = AsyncWebClient()
-    response = await client.auth_test(token=token)
-    response.validate()
-
-    assert isinstance(response.data, dict)
-    return typing.cast(SlackAuthTestResponse, response.data)
-
-
 async def get_access_token(
     code: str,
-) -> typing.Tuple[SlackOAuthResponse, SlackAuthTestResponse]:
+) -> SlackOAuthResponse:
     client = AsyncWebClient()
 
     # Complete the installation by calling oauth.v2.access API method
@@ -175,9 +156,7 @@ async def get_access_token(
     response.validate()
     oauth_data = typing.cast(SlackOAuthResponse, response.data)
     bot_token = oauth_data["access_token"]
-
-    auth_test_data = await auth_test_or_exception(bot_token)
-    return oauth_data, auth_test_data
+    return oauth_data
 
 
 async def refresh_access_token(
