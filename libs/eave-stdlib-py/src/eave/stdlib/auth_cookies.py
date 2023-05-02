@@ -45,7 +45,7 @@ def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
     access_token = cookies.get(EAVE_ACCESS_TOKEN_COOKIE)
 
     return AuthCookies(
-        account_id=uuid.UUID(account_id),
+        account_id=uuid.UUID(account_id) if account_id else None,
         access_token=access_token,
     )
 

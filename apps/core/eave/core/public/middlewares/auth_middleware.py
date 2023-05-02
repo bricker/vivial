@@ -8,6 +8,7 @@ import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import logger
 
 from . import EaveASGIMiddleware, _development_bypass, asgi_types
@@ -76,4 +77,10 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                 await eave_account.refresh_oauth_token(session=db_session, log_context=eave_state.log_context)
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
 
+            eave_team = await TeamOrm.one_or_exception(
+                session=db_session,
+                team_id=eave_account.team_id,
+            )
+
         eave_state.eave_account = eave_account
+        eave_state.eave_team = eave_team
