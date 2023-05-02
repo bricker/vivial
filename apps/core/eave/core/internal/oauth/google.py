@@ -113,6 +113,7 @@ def get_oauth_flow_info() -> OAuthFlowInfo:
 
     authorization_url, state = flow.authorization_url(
         access_type="offline",
+        prompt="consent", # forces the consent screen to make sure we get a refresh token
         include_granted_scopes="true",
     )
 

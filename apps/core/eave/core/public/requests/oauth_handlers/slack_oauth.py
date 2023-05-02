@@ -53,16 +53,24 @@ async def slack_oauth_callback(
                 access_token=auth_cookies.access_token
             )
 
+            if eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.slack:
+                # If the user is logged in through Slack, then take this opportunity to update the access and refresh tokens.
+                if user_access_token := slack_oauth_data["authed_user"]["access_token"]:
+                    eave_account.access_token = user_access_token
+
+                if user_refresh_token := slack_oauth_data["authed_user"]["refresh_token"]:
+                    eave_account.refresh_token = user_refresh_token
+
     else:
         eave_account = await _get_or_create_eave_account(slack_oauth_data=slack_oauth_data)
 
-        # Set the cookie in the response headers.
-        # This logs the user into their Eave account.
-        eave_auth_cookies.set_auth_cookies(
-            response=response,
-            account_id=eave_account.id,
-            access_token=eave_account.access_token,
-        )
+    # Set the cookie in the response headers.
+    # This logs the user into their Eave account.
+    eave_auth_cookies.set_auth_cookies(
+        response=response,
+        account_id=eave_account.id,
+        access_token=eave_account.access_token,
+    )
 
     await _update_or_create_slack_installation(
         eave_account=eave_account, slack_oauth_data=slack_oauth_data
@@ -92,9 +100,10 @@ async def _update_or_create_slack_installation(
                 bot_refresh_token=slack_oauth_data["refresh_token"],
             )
         else:
-            slack_installation.slack_team_id = slack_oauth_data["team"]["id"]
-            slack_installation.bot_token = slack_oauth_data["access_token"]
-            slack_installation.bot_refresh_token = slack_oauth_data["refresh_token"]
+            if bot_access_token := slack_oauth_data["access_token"]:
+                slack_installation.bot_token = bot_access_token
+            if bot_refresh_token := slack_oauth_data["refresh_token"]:
+                slack_installation.bot_refresh_token = bot_refresh_token
 
 
 async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOAuthResponse) -> AccountOrm:
@@ -107,8 +116,10 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
 
         if eave_account is not None:
             # An account exists. Update the saved auth tokens.
-            eave_account.access_token = slack_oauth_data["authed_user"]["access_token"]
-            eave_account.refresh_token = slack_oauth_data["authed_user"]["refresh_token"]
+            if user_access_token := slack_oauth_data["authed_user"]["access_token"]:
+                eave_account.access_token = user_access_token
+            if user_refresh_token := slack_oauth_data["authed_user"]["refresh_token"]:
+                eave_account.refresh_token = user_refresh_token
 
         else:
             # No account with that slack ID was found.

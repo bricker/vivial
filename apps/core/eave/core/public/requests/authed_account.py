@@ -16,9 +16,7 @@ async def get_authed_account(
 ) -> eave.stdlib.core_api.operations.GetAuthenticatedAccount.ResponseBody:
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
     eave_account_orm = eave_state.eave_account
-
-    async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_team_orm = await eave.core.internal.orm.team.TeamOrm.one_or_exception(session=db_session, team_id=eave_account_orm.team_id)
+    eave_team_orm = eave_state.eave_team
 
     eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
     eave_account = eave.stdlib.core_api.models.AuthenticatedAccount.from_orm(eave_account_orm)
@@ -34,9 +32,9 @@ async def get_authed_account_team_integrations(
 ) -> eave.stdlib.core_api.operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody:
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
     eave_account_orm = eave_state.eave_account
+    eave_team_orm = eave_state.eave_team
 
     async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_team_orm = await eave.core.internal.orm.team.TeamOrm.one_or_exception(session=db_session, team_id=eave_account_orm.team_id)
         integrations = await eave_team_orm.get_integrations(session=db_session)
 
     eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
@@ -46,4 +44,31 @@ async def get_authed_account_team_integrations(
         account=eave_account,
         team=eave_team,
         integrations=integrations,
+    )
+
+async def update_atlassian_integration(
+    input: eave.stdlib.core_api.operations.UpdateAtlassianInstallation.RequestBody,
+    request: fastapi.Request,
+) -> eave.stdlib.core_api.operations.UpdateAtlassianInstallation.ResponseBody:
+    eave_state = eave.core.public.requests.util.get_eave_state(request=request)
+    eave_account_orm = eave_state.eave_account
+    eave_team_orm = eave_state.eave_team
+
+    async with eave.core.internal.database.async_session.begin() as db_session:
+        installation = await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.one_or_exception(
+            session=db_session,
+            team_id=eave_team_orm.id,
+        )
+
+        if input.atlassian_integration.confluence_space is not None:
+            installation.confluence_space = input.atlassian_integration.confluence_space
+
+    eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
+    eave_account = eave.stdlib.core_api.models.AuthenticatedAccount.from_orm(eave_account_orm)
+    atlassian_integration = eave.stdlib.core_api.models.AtlassianInstallation.from_orm(installation)
+
+    return eave.stdlib.core_api.operations.UpdateAtlassianInstallation.ResponseBody(
+        account=eave_account,
+        team=eave_team,
+        atlassian_integration=atlassian_integration,
     )

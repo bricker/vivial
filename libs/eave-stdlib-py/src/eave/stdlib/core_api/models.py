@@ -13,6 +13,10 @@ from eave.stdlib.core_api.enums import (
 )
 
 
+class ConfluenceSpace(pydantic.BaseModel):
+    key: str
+    name: str
+
 @dataclass
 class AuthTokenPair:
     access_token: str
@@ -87,7 +91,8 @@ class AtlassianInstallation(pydantic.BaseModel):
     team_id: pydantic.UUID4
     """eave TeamOrm model id"""
     atlassian_cloud_id: str
-    confluence_space: str
+    confluence_space: Optional[str]
+    available_confluence_spaces: Optional[List[ConfluenceSpace]]
     oauth_token_encoded: str
 
     class Config:
