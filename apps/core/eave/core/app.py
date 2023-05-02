@@ -193,6 +193,7 @@ add_route(
     handler=authed_account.get_authed_account_team_integrations,
 )
 
+
 # OAuth endpoints.
 # These endpoints don't require any verification (except the OAuth flow itself)
 add_route(

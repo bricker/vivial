@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Any
 import typing
 
@@ -9,8 +10,9 @@ import eave.stdlib.auth_cookies
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
-from flask import Flask, Response, render_template, request, make_response
+from flask import Flask, Response, redirect, render_template, request, make_response
 import werkzeug.exceptions
+from werkzeug.wrappers import Response as BaseResponse
 from .config import app_config
 
 eave.stdlib.time.set_utc()
@@ -61,6 +63,12 @@ async def authed_account_team() -> Response:
 
     return response
 
+@app.route("/dashboard/logout", methods=["GET"])
+async def logout() -> BaseResponse:
+    response = redirect(location=app_config.eave_www_base, code=302)
+    eave.stdlib.auth_cookies.delete_auth_cookies(response=response)
+    return response
+
 
 @app.route("/access_request", methods=["POST"])
 async def api_access_request() -> str:
@@ -73,20 +81,6 @@ async def api_access_request() -> str:
             opaque_input=body["opaque_input"],
         ),
     )
-
-    return "OK"
-
-
-@app.route("/log-in", methods=["POST"])
-async def api_log_in() -> str:
-    body = request.get_json()
-
-    return "OK"
-
-
-@app.route("/log-out", methods=["POST"])
-async def api_log_out() -> str:
-    body = request.get_json()
 
     return "OK"
 
