@@ -6,6 +6,8 @@ source ${EAVE_HOME}/develop/functions.bash
 python-validate-version
 python-activate-venv
 
+statusmsg -i "Setting up python..."
+
 if test -f requirements.txt
 then
 	python -m pip install -q -r requirements.txt
@@ -18,4 +20,4 @@ fi
 
 python -m pip install -q -r ${EAVE_HOME}/develop/python/requirements-dev.txt
 
-statusmsg -s "Setup completed ✔"
+statusmsg -s "Python setup completed ✔"

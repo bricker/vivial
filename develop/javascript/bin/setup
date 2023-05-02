@@ -6,6 +6,8 @@ source ${EAVE_HOME}/develop/functions.bash
 node-validate-version
 node-activate-venv
 
+statusmsg -i "Setting up javascript..."
+
 rm -rf node_modules
 
 # We have to do this because fish-nvm stores its current version info in a universal variable,
@@ -13,11 +15,11 @@ rm -rf node_modules
 usershell=$(shellname)
 case $usershell in
 	"fish")
-		fish -c "npm install --force"
+		fish --no-config -c "npm install --force"
 		;;
 	*)
 		npm install --force
 		;;
 esac
 
-statusmsg -s "Setup completed ✔"
+statusmsg -s "Javascript setup completed ✔"

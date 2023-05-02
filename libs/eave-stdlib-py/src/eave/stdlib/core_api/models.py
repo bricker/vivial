@@ -1,15 +1,21 @@
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 import pydantic
 from eave.stdlib.core_api.enums import (
     AuthProvider,
     DocumentPlatform,
+    Integration,
     SubscriptionSourceEvent,
     SubscriptionSourcePlatform,
 )
 
+
+class ConfluenceSpace(pydantic.BaseModel):
+    key: str
+    name: str
 
 @dataclass
 class AuthTokenPair:
@@ -73,8 +79,13 @@ class Team(pydantic.BaseModel):
         orm_mode = True
 
 
-class Account(pydantic.BaseModel):
+class AuthenticatedAccount(pydantic.BaseModel):
+    id: uuid.UUID
     auth_provider: AuthProvider
+    access_token: str
+
+    class Config:
+        orm_mode = True
 
 
 class SlackInstallation(pydantic.BaseModel):
@@ -93,7 +104,8 @@ class AtlassianInstallation(pydantic.BaseModel):
     team_id: pydantic.UUID4
     """eave TeamOrm model id"""
     atlassian_cloud_id: str
-    confluence_space: str
+    confluence_space: Optional[str]
+    available_confluence_spaces: Optional[List[ConfluenceSpace]]
     oauth_token_encoded: str
 
     class Config:
@@ -108,3 +120,23 @@ class GithubInstallation(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class Integrations(pydantic.BaseModel):
+    """
+    Key-value mapping of Integration to Installation info.
+    The keys here will match the enum cases in enums.Integration
+    """
+
+    github: Optional[GithubInstallation]
+    slack: Optional[SlackInstallation]
+    atlassian: Optional[AtlassianInstallation]
+
+class ErrorResponse(pydantic.BaseModel):
+    eave_account_id: Optional[str]
+    eave_origin: Optional[str]
+    eave_team_id: Optional[str]
+    request_id: Optional[str]
+    request_method: Optional[str]
+    request_scheme: Optional[str]
+    request_path: Optional[str]

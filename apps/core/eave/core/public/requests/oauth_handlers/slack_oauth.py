@@ -1,3 +1,4 @@
+import uuid
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.oauth.slack as eave_slack_oauth
@@ -41,18 +42,38 @@ async def slack_oauth_callback(
     oauth_cookies.delete_state_cookie(response=response, provider=eave.stdlib.core_api.enums.AuthProvider.slack)
     assert state == cookie_state
 
-    slack_oauth_data, slack_auth_test_data = await eave.core.internal.oauth.slack.get_access_token(code=code)
-    eave_account = await _get_or_create_eave_account(slack_oauth_data=slack_oauth_data)
-    await _update_or_create_slack_installation(
-        eave_account=eave_account, slack_oauth_data=slack_oauth_data, slack_auth_test_data=slack_auth_test_data
-    )
+    slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token(code=code)
+    auth_cookies = eave_auth_cookies.get_auth_cookies(cookies=request.cookies)
+
+    if auth_cookies.access_token and auth_cookies.account_id:
+        async with eave_db.async_session.begin() as db_session:
+            eave_account = await AccountOrm.one_or_exception(
+                session=db_session,
+                id=auth_cookies.account_id,
+                access_token=auth_cookies.access_token
+            )
+
+            if eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.slack:
+                # If the user is logged in through Slack, then take this opportunity to update the access and refresh tokens.
+                if user_access_token := slack_oauth_data["authed_user"]["access_token"]:
+                    eave_account.access_token = user_access_token
+
+                if user_refresh_token := slack_oauth_data["authed_user"]["refresh_token"]:
+                    eave_account.refresh_token = user_refresh_token
+
+    else:
+        eave_account = await _get_or_create_eave_account(slack_oauth_data=slack_oauth_data)
 
     # Set the cookie in the response headers.
     # This logs the user into their Eave account.
     eave_auth_cookies.set_auth_cookies(
         response=response,
         account_id=eave_account.id,
-        access_token=eave_account.oauth_token,
+        access_token=eave_account.access_token,
+    )
+
+    await _update_or_create_slack_installation(
+        eave_account=eave_account, slack_oauth_data=slack_oauth_data
     )
 
     return response
@@ -61,13 +82,12 @@ async def slack_oauth_callback(
 async def _update_or_create_slack_installation(
     eave_account: AccountOrm,
     slack_oauth_data: eave_slack_oauth.SlackOAuthResponse,
-    slack_auth_test_data: eave_slack_oauth.SlackAuthTestResponse,
 ) -> None:
     async with eave_db.async_session.begin() as db_session:
         # try fetch existing slack installation
         slack_installation = await SlackInstallationOrm.one_or_none(
             session=db_session,
-            slack_team_id=slack_oauth_data.team.id,
+            slack_team_id=slack_oauth_data["team"]["id"],
         )
 
         if slack_installation is None:
@@ -75,14 +95,15 @@ async def _update_or_create_slack_installation(
             slack_installation = await SlackInstallationOrm.create(
                 session=db_session,
                 team_id=eave_account.team_id,
-                slack_team_id=slack_oauth_data.team.id,
-                bot_token=slack_oauth_data.bot_access_token,
-                bot_refresh_token=slack_oauth_data.bot_refresh_token,
+                slack_team_id=slack_oauth_data["team"]["id"],
+                bot_token=slack_oauth_data["access_token"],
+                bot_refresh_token=slack_oauth_data["refresh_token"],
             )
         else:
-            slack_installation.slack_team_id = slack_oauth_data.team.id
-            slack_installation.bot_token = slack_oauth_data.bot_access_token
-            slack_installation.bot_refresh_token = slack_oauth_data.bot_refresh_token
+            if bot_access_token := slack_oauth_data["access_token"]:
+                slack_installation.bot_token = bot_access_token
+            if bot_refresh_token := slack_oauth_data["refresh_token"]:
+                slack_installation.bot_refresh_token = bot_refresh_token
 
 
 async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOAuthResponse) -> AccountOrm:
@@ -90,13 +111,15 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
         eave_account = await AccountOrm.one_or_none(
             session=db_session,
             auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
-            auth_id=slack_oauth_data.authed_user.id,
+            auth_id=slack_oauth_data["authed_user"]["id"],
         )
 
         if eave_account is not None:
             # An account exists. Update the saved auth tokens.
-            eave_account.oauth_token = slack_oauth_data.authed_user.access_token
-            eave_account.refresh_token = slack_oauth_data.authed_user.refresh_token
+            if user_access_token := slack_oauth_data["authed_user"]["access_token"]:
+                eave_account.access_token = user_access_token
+            if user_refresh_token := slack_oauth_data["authed_user"]["refresh_token"]:
+                eave_account.refresh_token = user_refresh_token
 
         else:
             # No account with that slack ID was found.
@@ -104,7 +127,7 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
             # The Team is what is used for integrations, not an individual account.
             # TODO: If there is already a Team connected to the given Slack workspace, we could use that instead.
             user_identity = await eave.core.internal.oauth.slack.get_userinfo_or_exception(
-                token=slack_oauth_data.authed_user.access_token,
+                access_token=slack_oauth_data["authed_user"]["access_token"],
             )
 
             # Default value
@@ -114,7 +137,7 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
                 beta_prewhitelist = app_config.eave_beta_prewhitelisted_emails
                 beta_whitelisted = user_identity.email in beta_prewhitelist
 
-            team_name = slack_oauth_data.team.name or f"{user_identity.given_name}'s Team"
+            team_name = slack_oauth_data["team"]["name"] or f"{user_identity.given_name}'s Team"
 
             eave_team = await TeamOrm.create(
                 session=db_session,
@@ -127,9 +150,9 @@ async def _get_or_create_eave_account(slack_oauth_data: eave_slack_oauth.SlackOA
                 session=db_session,
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
-                auth_id=slack_oauth_data.authed_user.id,
-                oauth_token=slack_oauth_data.authed_user.access_token,
-                refresh_token=slack_oauth_data.authed_user.refresh_token,
+                auth_id=slack_oauth_data["authed_user"]["id"],
+                access_token=slack_oauth_data["authed_user"]["access_token"],
+                refresh_token=slack_oauth_data["authed_user"]["refresh_token"],
             )
 
         return eave_account

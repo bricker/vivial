@@ -36,23 +36,26 @@ _shared_cookie_config = {
 
 @dataclass
 class AuthCookies:
-    account_id: uuid.UUID
-    access_token: str
+    account_id: typing.Optional[uuid.UUID]
+    access_token: typing.Optional[str]
 
 
-def get_auth_cookies(cookies: Mapping[str, Any]) -> AuthCookies:
-    account_id = cookies.get(EAVE_ACCOUNT_ID_COOKIE, "NOTSET")
-    access_token = cookies.get(EAVE_ACCESS_TOKEN_COOKIE, "NOTSET")
+def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
+    account_id = cookies.get(EAVE_ACCOUNT_ID_COOKIE)
+    access_token = cookies.get(EAVE_ACCESS_TOKEN_COOKIE)
 
     return AuthCookies(
-        account_id=uuid.UUID(account_id),
+        account_id=uuid.UUID(account_id) if account_id else None,
         access_token=access_token,
     )
 
 
-def set_auth_cookies(response: ResponseCookieMutator, account_id: uuid.UUID, access_token: str) -> None:
-    _set_auth_cookie(key=EAVE_ACCOUNT_ID_COOKIE, value=str(account_id), response=response)
-    _set_auth_cookie(key=EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
+def set_auth_cookies(response: ResponseCookieMutator, account_id: typing.Optional[uuid.UUID] = None, access_token: typing.Optional[str] = None) -> None:
+    if account_id:
+        _set_auth_cookie(key=EAVE_ACCOUNT_ID_COOKIE, value=str(account_id), response=response)
+
+    if access_token:
+        _set_auth_cookie(key=EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
 
 
 def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> None:

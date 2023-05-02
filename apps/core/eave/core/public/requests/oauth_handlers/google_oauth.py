@@ -42,14 +42,34 @@ async def google_oauth_callback(state: str, code: str, request: fastapi.Request)
     credentials = cast(google.oauth2.credentials.Credentials, flow.credentials)
     assert credentials.id_token is not None
     google_token = eave.core.internal.oauth.google.decode_id_token(id_token=credentials.id_token)
-    eave_account = await _get_or_create_eave_account(google_token=google_token, credentials=credentials)
+
+    auth_cookies = eave_auth_cookies.get_auth_cookies(cookies=request.cookies)
+
+    if auth_cookies.access_token and auth_cookies.account_id:
+        async with eave_db.async_session.begin() as db_session:
+            eave_account = await AccountOrm.one_or_exception(
+                session=db_session,
+                id=auth_cookies.account_id,
+                access_token=auth_cookies.access_token
+            )
+
+            if eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.google:
+                # If the user is logged in through Slack, then take this opportunity to update the access and refresh tokens.
+                if credentials.token:
+                    eave_account.access_token = credentials.token
+
+                if credentials.refresh_token:
+                    eave_account.refresh_token = credentials.refresh_token
+
+    else:
+        eave_account = await _get_or_create_eave_account(google_token=google_token, credentials=credentials)
 
     # Set the cookie in the response headers.
     # This logs the user into their Eave account.
     eave_auth_cookies.set_auth_cookies(
         response=response,
         account_id=eave_account.id,
-        access_token=eave_account.oauth_token,
+        access_token=eave_account.access_token,
     )
 
     return response
@@ -68,8 +88,10 @@ async def _get_or_create_eave_account(
         )
 
         if eave_account is not None:
-            eave_account.oauth_token = credentials.token
-            eave_account.refresh_token = credentials.refresh_token
+            if credentials.token:
+                eave_account.access_token = credentials.token
+            if credentials.refresh_token:
+                eave_account.refresh_token = credentials.refresh_token
 
         else:
             beta_whitelisted = False  # Default value
@@ -95,7 +117,7 @@ async def _get_or_create_eave_account(
                 team_id=team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
                 auth_id=google_token.sub,
-                oauth_token=credentials.token,
+                access_token=credentials.token,
                 refresh_token=credentials.refresh_token,
             )
 

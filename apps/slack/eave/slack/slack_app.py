@@ -8,7 +8,11 @@ from slack_bolt.authorization import AuthorizeResult
 from slack_sdk.web.async_client import AsyncWebClient
 
 from .config import app_config
+from eave.stdlib import logger
+import eave.stdlib.exceptions
 
+class MissingSlackTeamIdError(Exception):
+    pass
 
 async def authorize(
     team_id: Optional[str], client: Optional[AsyncWebClient], context: AsyncBoltContext
@@ -19,22 +23,27 @@ async def authorize(
     """
     # TODO: team_id can be None for org-wide installed apps
     # https://slack.dev/bolt-python/api-docs/slack_bolt/authorization/async_authorize.html
-    assert team_id is not None
+    if team_id is None:
+        logger.error("slack team_id not passed into authorize function, can't authorize.")
+        raise MissingSlackTeamIdError()
+
     assert client is not None
 
     # Notes:
     # - context.bot_id, context.bot_token, and context.bot_user_id are all None in this function.
     # - context.team_id and context.user_id are available (barring org-wide installs mentioned above)
 
-    input = eave_ops.GetSlackInstallation.RequestBody(
-        slack_installation=eave_ops.SlackInstallationInput(slack_team_id=team_id),
-    )
-
     # Raises for non-OK response.
-    data = await eave_core.get_slack_installation(input=input)
-    bot_token = data.slack_installation.bot_token
+    installation_data = await eave_core.get_slack_installation(input=eave_ops.GetSlackInstallation.RequestBody(
+        slack_integration=eave_ops.SlackInstallationInput(
+            slack_team_id=team_id,
+        ),
+    ))
+
+    # TODO: We probably need the refresh token too.
+    bot_token = installation_data.slack_integration.bot_token
     auth_test_response = await client.auth_test(token=bot_token)
-    context["eave_team"] = data.team
+    context["eave_team"] = installation_data.team
 
     # The following block of code is copied from
     # https://github.com/slackapi/bolt-python/blob/076efb5b0b6db849b074752cec0d406d3c747627/slack_bolt/authorization/authorize_result.py#L62-L93

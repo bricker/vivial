@@ -1,4 +1,5 @@
 import json
+import typing
 import uuid
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
@@ -13,7 +14,7 @@ from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
 from ..oauth import atlassian as atlassian_oauth
 from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-
+import eave.stdlib.core_api.models
 
 class AtlassianInstallationOrm(Base):
     __tablename__ = "atlassian_installations"
@@ -65,6 +66,25 @@ class AtlassianInstallationOrm(Base):
         result = await session.scalar(lookup)
         return result
 
+    @classmethod
+    async def create(
+        cls,
+        session: AsyncSession,
+        team_id: uuid.UUID,
+        atlassian_cloud_id: str,
+        oauth_token_encoded: str,
+        confluence_space: Optional[str],
+    ) -> Self:
+        obj = cls(
+            team_id=team_id,
+            atlassian_cloud_id=atlassian_cloud_id,
+            confluence_space=confluence_space,
+            oauth_token_encoded=oauth_token_encoded,
+        )
+        session.add(obj)
+        await session.flush()
+        return obj
+
     @property
     def oauth_token_decoded(self) -> oauthlib.oauth2.rfc6749.tokens.OAuth2Token:
         jsonv = json.loads(self.oauth_token_encoded)
@@ -72,12 +92,20 @@ class AtlassianInstallationOrm(Base):
 
     @property
     def confluence_destination(self) -> confluence_destination.ConfluenceDestination:
-        assert self.confluence_space is not None
         return confluence_destination.ConfluenceDestination(
             oauth_session=self.build_oauth_session(),
             atlassian_cloud_id=self.atlassian_cloud_id,
             space=self.confluence_space,
         )
+
+    @property
+    def available_confluence_spaces(self) -> typing.List[eave.stdlib.core_api.models.ConfluenceSpace]:
+        spaces = self.confluence_destination.get_available_spaces()
+        return [
+            eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name)
+            for s in spaces
+            if s.key and s.name
+        ]
 
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(

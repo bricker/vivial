@@ -1,14 +1,18 @@
+from http import HTTPStatus
 from typing import Any
+import typing
 
 import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.auth_cookies
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
-from flask import Flask, render_template, request
-
+from flask import Flask, Response, redirect, render_template, request, make_response
+import werkzeug.exceptions
+from werkzeug.wrappers import Response as BaseResponse
 from .config import app_config
 
 eave.stdlib.time.set_utc()
@@ -35,9 +39,63 @@ def _render_spa(**kwargs: Any) -> str:
     )
 
 
-@app.route("/dashboard/account", methods=["GET"])
-async def get_current_account() -> str:
+@app.route("/dashboard", methods=["GET"])
+async def dashboard() -> str:
     return "OK"
+
+@app.route("/dashboard/me/team", methods=["GET"])
+async def authed_account_team() -> Response:
+    auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
+
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        raise werkzeug.exceptions.Unauthorized()
+
+    eave_response = await eave_core.get_authenticated_account_team_integrations(
+        account_id=auth_cookies.account_id,
+        access_token=auth_cookies.access_token,
+    )
+
+    response = make_response(eave_response.json())
+    eave.stdlib.auth_cookies.set_auth_cookies(
+        response=response,
+        access_token=eave_response.account.access_token, # In case the access token was refreshed
+    )
+
+    return response
+
+@app.route("/dashboard/me/team/integrations/atlassian/update", methods=["POST"])
+async def update_atlassian_integration() -> Response:
+    auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
+
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        raise werkzeug.exceptions.Unauthorized()
+
+    body = request.get_json()
+    confluence_space_key = body["atlassian_integration"]["confluence_space_key"]
+
+    eave_response = await eave_core.update_atlassian_integration(
+        account_id=auth_cookies.account_id,
+        access_token=auth_cookies.access_token,
+        input=eave_ops.UpdateAtlassianInstallation.RequestBody(
+            atlassian_integration=eave_ops.UpdateAtlassianInstallationInput(
+                confluence_space=confluence_space_key,
+            ),
+        ),
+    )
+
+    response = make_response(eave_response.json())
+    eave.stdlib.auth_cookies.set_auth_cookies(
+        response=response,
+        access_token=eave_response.account.access_token, # In case the access token was refreshed
+    )
+
+    return response
+
+@app.route("/dashboard/logout", methods=["GET"])
+async def logout() -> BaseResponse:
+    response = redirect(location=app_config.eave_www_base, code=302)
+    eave.stdlib.auth_cookies.delete_auth_cookies(response=response)
+    return response
 
 
 @app.route("/access_request", methods=["POST"])
@@ -51,20 +109,6 @@ async def api_access_request() -> str:
             opaque_input=body["opaque_input"],
         ),
     )
-
-    return "OK"
-
-
-@app.route("/log-in", methods=["POST"])
-async def api_log_in() -> str:
-    body = request.get_json()
-
-    return "OK"
-
-
-@app.route("/log-out", methods=["POST"])
-async def api_log_out() -> str:
-    body = request.get_json()
 
     return "OK"
 

@@ -41,6 +41,9 @@ class GithubInstallationInput(pydantic.BaseModel):
 class AtlassianInstallationInput(pydantic.BaseModel):
     atlassian_cloud_id: str
 
+class UpdateAtlassianInstallationInput(pydantic.BaseModel):
+    confluence_space: Optional[str]
+
 
 class Endpoint:
     pass
@@ -99,51 +102,54 @@ class UpsertDocument(Endpoint):
 
 class GetSlackInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        slack_installation: SlackInstallationInput
+        slack_integration: SlackInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        slack_installation: models.SlackInstallation
+        slack_integration: models.SlackInstallation
 
 
 class GetGithubInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        github_installation: GithubInstallationInput
+        github_integration: GithubInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        github_installation: models.GithubInstallation
+        github_integration: models.GithubInstallation
 
 
 class GetAtlassianInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        atlassian_installation: AtlassianInstallationInput
+        atlassian_integration: AtlassianInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        atlassian_installation: models.AtlassianInstallation
+        atlassian_integration: models.AtlassianInstallation
 
-
-class RequestAccessToken(Endpoint):
+class UpdateAtlassianInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        exchange_offer: AccessTokenExchangeOfferInput
+        atlassian_integration: UpdateAtlassianInstallationInput
 
     class ResponseBody(pydantic.BaseModel):
-        access_token: str
-        refresh_token: str
+        account: models.AuthenticatedAccount
+        team: models.Team
+        atlassian_integration: models.AtlassianInstallation
 
 
-class RefreshAccessToken(Endpoint):
-    class RequestBody(pydantic.BaseModel):
-        access_token: str
-        refresh_token: str
-
+class GetAuthenticatedAccount(Endpoint):
     class ResponseBody(pydantic.BaseModel):
-        access_token: str
-        refresh_token: str
+        account: models.AuthenticatedAccount
+        team: models.Team
 
 
-class GetAccount(Endpoint):
+class GetAuthenticatedAccountTeamIntegrations(Endpoint):
+    class ResponseBody(pydantic.BaseModel):
+        account: models.AuthenticatedAccount
+        team: models.Team
+        integrations: models.Integrations
+
+
+class GetTeam(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        account: models.Account
+        integrations: models.Integrations

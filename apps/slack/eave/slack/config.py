@@ -5,10 +5,6 @@ import eave.stdlib.config
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
-    @property
-    def eave_slack_app_id(self) -> str:
-        return os.environ["EAVE_SLACK_APP_ID"]
-
     @cached_property
     def eave_slack_app_signing_secret(self) -> str:
         value: str = self.get_secret("EAVE_SLACK_APP_SIGNING_SECRET")
