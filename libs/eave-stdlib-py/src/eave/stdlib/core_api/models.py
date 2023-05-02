@@ -57,8 +57,6 @@ class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
     document_platform: Optional[DocumentPlatform]
-    integrations: List[Integration] = pydantic.Field(default_factory=lambda: list())
-    """This attribute is not stored in the database, and so has a default value"""
 
     class Config:
         orm_mode = True

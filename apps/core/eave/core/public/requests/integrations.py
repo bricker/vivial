@@ -21,14 +21,17 @@ async def slack(
             slack_team_id=input.slack_integration.slack_team_id,
         )
 
-        eave_team = await eave.core.internal.orm.team.TeamOrm.one_or_exception(
+        eave_team_orm = await eave.core.internal.orm.team.TeamOrm.one_or_exception(
             session=db_session,
             team_id=installation.team_id,
         )
 
+    eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
+    integration = eave.stdlib.core_api.models.SlackInstallation.from_orm(installation)
+
     return eave.stdlib.core_api.operations.GetSlackInstallation.ResponseBody(
-        slack_integration=eave.stdlib.core_api.models.SlackInstallation.from_orm(installation),
-        team=eave.stdlib.core_api.models.Team.from_orm(eave_team),
+        slack_integration=integration,
+        team=eave_team,
     )
 
 async def github(

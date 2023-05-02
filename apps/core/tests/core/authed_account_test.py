@@ -51,7 +51,6 @@ class TestAuthedAccountRequests(BaseTestCase):
 
         assert response_obj.account.id == account.id
         assert response_obj.team.id == account.team_id
-        assert response_obj.team.integrations == []
 
     async def test_get_authed_account_with_team_integrations(self) -> None:
         team = await self.make_team()
@@ -84,7 +83,6 @@ class TestAuthedAccountRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = eave_ops.GetAuthenticatedAccount.ResponseBody(**response.json())
-        assert response_obj.team.integrations == ["atlassian", "slack"]
 
     async def test_get_authed_account_team_integrations(self) -> None:
         team = await self.make_team()
@@ -117,7 +115,6 @@ class TestAuthedAccountRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response.json())
-        assert response_obj.team.integrations == ["atlassian", "slack"]
 
         assert response_obj.integrations.slack is not None
         assert response_obj.integrations.slack.slack_team_id == self.anystring("slack_team_id")
