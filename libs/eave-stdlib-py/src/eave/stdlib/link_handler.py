@@ -4,6 +4,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from eave.stdlib.core_api.models import SupportedLink
+import eave.stdlib.core_api.client as eave_core_api_client
 from eave.stdlib.third_party_api_clients.base import BaseClient
 from eave.stdlib.third_party_api_clients.util import create_client
 from pydantic import UUID4
@@ -39,15 +40,11 @@ async def get_link_content(team_id: UUID4, links: list[tuple[str, SupportedLink]
     the position of the link in the returned list is None.
     """
     # fetch from db what sources are connected, and the access token required to query their API
-    # TODO: waiting for Byran's endpoint to be implemented
-    raw_sources = [{"type": SupportedLink.github, "app_id": "todo", "installation_id": "todo"}]
-    # available_sources = await eave_core_api_client.get_available_sources(
-    #     team_id=team_id,
-    #     input=operations.GetAvailableSources.RequestBody(
-    #         team=operations.TeamInput(id=team_id),
-    #     ),
-    # )
-    # assert available_sources is not None
+    team_response = await eave_core_api_client.get_team(
+        team_id=team_id,
+    )
+    available_sources = [integration for integration in vars(team_response.integrations).values() if integration]
+    assert available_sources is not None
     source_tokens: dict[SupportedLink, tuple[str, str]] = {
         source["type"]: (source["app_id"], source["installation_id"]) for source in raw_sources
     }

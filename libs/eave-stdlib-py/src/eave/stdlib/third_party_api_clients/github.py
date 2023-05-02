@@ -11,7 +11,9 @@ from eave.stdlib import logger
 from eave.stdlib.third_party_api_clients.base import BaseClient
 
 
-# TODO: deelte this data class
+# TODO: move to better location?
+GITHUB_APP_ID: str = "300560"
+
 @dataclass
 class GithubRepository:
     """
@@ -58,9 +60,9 @@ class GithubInstallationAccessToken:
 
 
 class GitHubClient(BaseClient):
-    def __init__(self, app_id: str, installation_id: str):
+    def __init__(self, installation_id: str):
         self.access_token: Optional[str] = None
-        self.app_id = app_id
+        self.app_id = GITHUB_APP_ID
         self.installation_id = installation_id
 
         # mapping from github domain to session with auth headers for that domain

@@ -9,6 +9,8 @@ from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from apps.core.eave.core.internal.orm.github_installation import GithubInstallationOrm
+
 from ..destinations import abstract as abstract_destination
 from . import UUID_DEFAULT_EXPR, Base
 from .atlassian_installation import AtlassianInstallationOrm
@@ -74,21 +76,17 @@ class TeamOrm(Base):
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
 
-    async def get_integrations(
-        self, session: AsyncSession
-    ) -> eave_models.Integrations:
+    async def get_integrations(self, session: AsyncSession) -> eave_models.Integrations:
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
 
-        # github_installation = await GithubInstallationOrm.one_or_none(
-        #     session=session, team_id=self.id
-        # )
-        # if github_installation:
-        #     integrations_list.append(eave.stdlib.core_api.enums.Integration.github)
+        github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         return eave_models.Integrations(
-                slack=eave_models.SlackInstallation.from_orm(slack_installation) if slack_installation else None,
-                github=None,  # eave_models.GithubInstallation.from_orm(github_installation) if github_installation else None,
-                atlassian=eave_models.AtlassianInstallation.from_orm(atlassian_installation) if atlassian_installation else None,
-            )
+            slack=eave_models.SlackInstallation.from_orm(slack_installation) if slack_installation else None,
+            github=eave_models.GithubInstallation.from_orm(github_installation) if github_installation else None,
+            atlassian=eave_models.AtlassianInstallation.from_orm(atlassian_installation)
+            if atlassian_installation
+            else None,
+        )
