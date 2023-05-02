@@ -40,6 +40,7 @@ async def authorize(
         ),
     ))
 
+    # TODO: We probably need the refresh token too.
     bot_token = installation_data.slack_integration.bot_token
     auth_test_response = await client.auth_test(token=bot_token)
     context["eave_team"] = installation_data.team

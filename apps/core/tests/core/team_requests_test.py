@@ -37,7 +37,6 @@ class TestTeamRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = eave_ops.GetTeam.ResponseBody(**response.json())
-        assert response_obj.team.integrations == ["atlassian", "slack"]
 
         assert response_obj.integrations.slack is not None
         assert response_obj.integrations.slack.slack_team_id == self.anystring("slack_team_id")
@@ -59,7 +58,6 @@ class TestTeamRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = eave_ops.GetTeam.ResponseBody(**response.json())
-        assert response_obj.team.integrations == []
 
         assert response_obj.integrations.slack is None
         assert response_obj.integrations.atlassian is None

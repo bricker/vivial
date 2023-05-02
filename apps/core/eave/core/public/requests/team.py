@@ -18,10 +18,9 @@ async def get_team(
     eave_team_orm = eave_state.eave_team
 
     async with eave.core.internal.database.async_session.begin() as db_session:
-        integrations, integrations_list = await eave_team_orm.get_integrations(session=db_session)
+        integrations = await eave_team_orm.get_integrations(session=db_session)
 
     eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
-    eave_team.integrations = integrations_list
 
     return eave.stdlib.core_api.operations.GetTeam.ResponseBody(
         team=eave_team,
