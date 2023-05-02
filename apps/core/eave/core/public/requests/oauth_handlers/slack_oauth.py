@@ -1,3 +1,4 @@
+import uuid
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.oauth.slack as eave_slack_oauth
@@ -42,17 +43,29 @@ async def slack_oauth_callback(
     assert state == cookie_state
 
     slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token(code=code)
-    eave_account = await _get_or_create_eave_account(slack_oauth_data=slack_oauth_data)
+    auth_cookies = eave_auth_cookies.get_auth_cookies(cookies=request.cookies)
+
+    if auth_cookies.access_token and auth_cookies.account_id:
+        async with eave_db.async_session.begin() as db_session:
+            eave_account = await AccountOrm.one_or_exception(
+                session=db_session,
+                id=auth_cookies.account_id,
+                access_token=auth_cookies.access_token
+            )
+
+    else:
+        eave_account = await _get_or_create_eave_account(slack_oauth_data=slack_oauth_data)
+
+        # Set the cookie in the response headers.
+        # This logs the user into their Eave account.
+        eave_auth_cookies.set_auth_cookies(
+            response=response,
+            account_id=eave_account.id,
+            access_token=eave_account.access_token,
+        )
+
     await _update_or_create_slack_installation(
         eave_account=eave_account, slack_oauth_data=slack_oauth_data
-    )
-
-    # Set the cookie in the response headers.
-    # This logs the user into their Eave account.
-    eave_auth_cookies.set_auth_cookies(
-        response=response,
-        account_id=eave_account.id,
-        access_token=eave_account.access_token,
     )
 
     return response
