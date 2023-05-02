@@ -111,10 +111,10 @@ async def get_subscription(
 
 async def get_slack_installation(input: operations.GetSlackInstallation.RequestBody) -> operations.GetSlackInstallation.ResponseBody:
     """
-    POST /integration/slack/query
+    POST /integrations/slack/query
     """
     response = await _make_request(
-        path="/integration/slack/query",
+        path="/integrations/slack/query",
         input=input,
     )
 
@@ -123,10 +123,10 @@ async def get_slack_installation(input: operations.GetSlackInstallation.RequestB
 
 async def get_github_installation(input: operations.GetGithubInstallation.RequestBody) -> operations.GetGithubInstallation.ResponseBody:
     """
-    POST /integration/github/query
+    POST /integrations/github/query
     """
     response = await _make_request(
-        path="/integration/github/query",
+        path="/integrations/github/query",
         input=input,
     )
 
@@ -135,10 +135,10 @@ async def get_github_installation(input: operations.GetGithubInstallation.Reques
 
 async def get_atlassian_installation(input: operations.GetAtlassianInstallation.RequestBody) -> operations.GetAtlassianInstallation.ResponseBody:
     """
-    POST /integration/atlassian/query
+    POST /integrations/atlassian/query
     """
     response = await _make_request(
-        path="/integration/atlassian/query",
+        path="/integrations/atlassian/query",
         input=input,
     )
 
@@ -159,6 +159,23 @@ async def get_team(
 
     response_json = await response.json()
     return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
+
+async def update_atlassian_integration(
+        account_id: uuid.UUID, access_token: str,
+        input: operations.UpdateAtlassianInstallation.RequestBody,
+) -> operations.UpdateAtlassianInstallation.ResponseBody:
+    """
+    POST /me/team/integrations/atlassian/update
+    """
+    response = await _make_request(
+        path="/me/team/integrations/atlassian/update",
+        input=input,
+        access_token=access_token,
+        account_id=account_id,
+    )
+
+    response_json = await response.json()
+    return operations.UpdateAtlassianInstallation.ResponseBody(**response_json)
 
 async def get_authenticated_account_team_integrations(
     account_id: UUID, access_token: str

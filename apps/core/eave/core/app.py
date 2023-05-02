@@ -135,7 +135,7 @@ add_route(
 
 add_route(
     method="POST",
-    path="/integration/slack/query",
+    path="/integrations/slack/query",
     auth_required=False,
     signature_required=True,
     origin_required=True,
@@ -145,7 +145,7 @@ add_route(
 
 add_route(
     method="POST",
-    path="/integration/github/query",
+    path="/integrations/github/query",
     auth_required=False,
     signature_required=True,
     origin_required=True,
@@ -155,7 +155,7 @@ add_route(
 
 add_route(
     method="POST",
-    path="/integration/atlassian/query",
+    path="/integrations/atlassian/query",
     auth_required=False,
     signature_required=True,
     origin_required=True,
@@ -183,6 +183,7 @@ add_route(
     team_id_required=False,
     handler=authed_account.get_authed_account,
 )
+
 add_route(
     method="POST",
     path="/me/team/integrations/query",
@@ -191,6 +192,16 @@ add_route(
     origin_required=True,
     team_id_required=False,
     handler=authed_account.get_authed_account_team_integrations,
+)
+
+add_route(
+    method="POST",
+    path="/me/team/integrations/atlassian/update",
+    auth_required=True,
+    signature_required=True,
+    origin_required=True,
+    team_id_required=False,
+    handler=authed_account.update_atlassian_integration,
 )
 
 

@@ -53,16 +53,24 @@ async def google_oauth_callback(state: str, code: str, request: fastapi.Request)
                 access_token=auth_cookies.access_token
             )
 
+            if eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.google:
+                # If the user is logged in through Slack, then take this opportunity to update the access and refresh tokens.
+                if credentials.token:
+                    eave_account.access_token = credentials.token
+
+                if credentials.refresh_token:
+                    eave_account.refresh_token = credentials.refresh_token
+
     else:
         eave_account = await _get_or_create_eave_account(google_token=google_token, credentials=credentials)
 
-        # Set the cookie in the response headers.
-        # This logs the user into their Eave account.
-        eave_auth_cookies.set_auth_cookies(
-            response=response,
-            account_id=eave_account.id,
-            access_token=eave_account.access_token,
-        )
+    # Set the cookie in the response headers.
+    # This logs the user into their Eave account.
+    eave_auth_cookies.set_auth_cookies(
+        response=response,
+        account_id=eave_account.id,
+        access_token=eave_account.access_token,
+    )
 
     return response
 
@@ -80,8 +88,10 @@ async def _get_or_create_eave_account(
         )
 
         if eave_account is not None:
-            eave_account.access_token = credentials.token
-            eave_account.refresh_token = credentials.refresh_token
+            if credentials.token:
+                eave_account.access_token = credentials.token
+            if credentials.refresh_token:
+                eave_account.refresh_token = credentials.refresh_token
 
         else:
             beta_whitelisted = False  # Default value

@@ -2,6 +2,7 @@ import enum
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Optional, cast
+import typing
 
 import atlassian
 import eave.stdlib.core_api.operations as eave_ops
@@ -121,8 +122,15 @@ class ConfluenceUserIcon(ConfluenceBaseModel):
 
 
 class ConfluenceSpace(ConfluenceBaseModel):
-    pass
+    id: Optional[int]
+    key: Optional[str]
+    name: Optional[str]
 
+    def __init__(self, data: eave_util.JsonObject, ctx: ConfluenceContext) -> None:
+        super().__init__(data, ctx)
+        self.id = data.get("id")
+        self.key = data.get("key")
+        self.name = data.get("name")
 
 class ConfluenceUserDetails(ConfluenceBaseModel):
     pass
@@ -385,14 +393,22 @@ class ConfluencePage(ConfluenceBaseModel):
 class ConfluenceDestination(abstract.DocumentDestination):
     oauth_session: atlassian_oauth.AtlassianOAuthSession
     atlassian_cloud_id: str
-    space: str
+    space: Optional[str]
 
     def __init__(
-        self, oauth_session: atlassian_oauth.AtlassianOAuthSession, atlassian_cloud_id: str, space: str
+        self, oauth_session: atlassian_oauth.AtlassianOAuthSession, atlassian_cloud_id: str, space: Optional[str]
     ) -> None:
         self.oauth_session = oauth_session
         self.atlassian_cloud_id = atlassian_cloud_id
         self.space = space
+
+    def get_available_spaces(self) -> typing.List[ConfluenceSpace]:
+        """
+        https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-get
+        """
+        response = self._confluence_client.get_all_spaces(space_status="current")
+        response_json = cast(eave_util.JsonObject, response)
+        return [ConfluenceSpace(s, ctx=self._confluence_context) for s in response_json["results"]]
 
     async def create_document(self, input: eave_ops.DocumentInput) -> abstract.DocumentMetadata:
         confluence_page = await self._get_or_create_confluence_page(document=input)
