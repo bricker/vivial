@@ -7,6 +7,7 @@ import DownIcon from '../Icons/DownIcon.js';
 import Affiliates from '../Affiliates/index.js';
 import Button from '../Button/index.js';
 import Copy from '../Copy/index.js';
+import useAuthModal from '../../hooks/useAuthModal.js';
 
 const makeClasses = makeStyles((theme) => ({
   section: {
@@ -56,6 +57,8 @@ const makeClasses = makeStyles((theme) => ({
 const Hero = ({ title, subtitle, cta }) => {
   const classes = makeClasses();
 
+  const { openModal } = useAuthModal();
+
   const handleGoToNextSection = () => {
     const integrations = document.getElementById('eave-integrations-banner');
     integrations.scrollIntoView({ behavior: 'smooth' });
@@ -70,7 +73,7 @@ const Hero = ({ title, subtitle, cta }) => {
         {subtitle}
       </Copy>
       <div className={classes.cta}>
-        <Button lg to="/early">
+        <Button lg onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
           {cta}
         </Button>
       </div>

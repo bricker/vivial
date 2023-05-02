@@ -34,6 +34,7 @@ class App extends React.Component {
                   <Route path="/thanks" element={<ThanksPage />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/" element={<HomePage />} />
               </Routes>
             </Router>

@@ -1,3 +1,4 @@
+from math import log
 import typing
 import uuid
 from dataclasses import dataclass
@@ -67,7 +68,7 @@ def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> N
         key=key,
         value=value,
         max_age=(60 * 60 * 24 * 365),
-        domain=shared_config.eave_cookie_domain,
+        # domain=shared_config.eave_cookie_domain,
         httponly=True,
         secure=(shared_config.dev_mode is False),
     )
@@ -84,7 +85,7 @@ def _delete_auth_cookie(response: ResponseCookieMutator, key: str) -> None:
         value="",
         max_age=0,
         expires=0,
-        domain=shared_config.eave_cookie_domain,
+        # domain=shared_config.eave_cookie_domain,
         httponly=True,
         secure=(shared_config.dev_mode is False),
     )
