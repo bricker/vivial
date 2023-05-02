@@ -46,3 +46,10 @@ export type SlackInstallation = {
   bot_id: string;
   bot_user_id?: string;
 }
+
+export type GithubInstallation = {
+  id: string;
+  /** eave TeamOrm model id */
+  team_id: string;
+  github_install_id: string;
+}

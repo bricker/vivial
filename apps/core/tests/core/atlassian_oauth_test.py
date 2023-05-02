@@ -19,7 +19,7 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.is_redirect
         assert response.has_redirect_location
         self.assertRegex(response.headers["location"], r"https://auth\.atlassian\.com/authorize")
-        assert response.cookies.get("eave-oauth-state-atlassian") is not None
+        assert response.cookies.get("ev_oauth_state_atlassian") is not None
 
     # async def test_atlassian_callback_endpoint(self) -> None:
     #     mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources).thenReturn(

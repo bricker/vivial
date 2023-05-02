@@ -14,6 +14,7 @@ from eave.stdlib.third_party_api_clients.base import BaseClient
 # TODO: move to better location?
 GITHUB_APP_ID: str = "300560"
 
+# TODO: moved to shared loc?
 @dataclass
 class GithubRepository:
     """
@@ -21,7 +22,8 @@ class GithubRepository:
     https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
     """
 
-    default_branch: str
+    node_id: str
+    full_name: str
 
     @classmethod
     def from_response(cls, response: dict[str, Any]) -> "GithubRepository":
@@ -82,48 +84,32 @@ class GitHubClient(BaseClient):
         for client in self._sessions.values():
             await client.close()
 
-    # TODO: can probs delete this and other private helpers since dont need path anymore
-    async def get_file_path(self, url: str) -> Optional[str]:  # TODO: i can delete this; dont need anymore rn
-        """
-        Get the file path from a GitHub URL, if the URL points to the repo's default branch.
-        If the URL points to any branch that isn't the default branch, returns None.
-
-        TODO: this still suffers from inability to know which part of URL is branch name. e.g. this would return incorrect file path for a branch named <default branch name>/extension
-        """
-        # TODO: support non-default branches; perform a search through all remote branches to find longest match after blob
-        _, url_path = url.split("/blob/")
-
-        # get default branch name from API
-        try:
-            default_branch = (await self._get_repo(url)).default_branch
-
-            if re.match(rf"{default_branch}.*", url_path):
-                # chop the branch name + '/' off the front of URL path to get file path w/o leading '/'
-                return url_path[len(default_branch) + 1 :]
-        except Exception as error:
-            # either url was not pointing to a repo, or error during api call
-            logger.error(error)
-
-        return None
-
     async def get_file_content(self, url: str) -> Optional[str]:
         """
         Fetch content of the file located at the URL `url`.
         Returns None on GitHub API request failure
         """
-        return await self._fetch_raw(url)
-        # # build clients; will need a separate client for each different github domain
-        # client = self._get_client(url)
-        # try:
-        #     # TODO: the version of gh enterprise the company has could affect what endpoints are available
-        #     repo = await client.get_repo()
-        #     # TODO: split branch name from file path somehow???
-        #     content = await client.get_content(repo.content_url, file_path)
-        #     return content
-        # except Exception as error:
-        #     logger.error(error)
-        #     # gracefully recover from any errors that arise
-        #     return None
+        try:
+            return await self._fetch_raw(url)
+        except Exception as error:
+            logger.error(error)
+            # gracefully recover from any errors that arise
+            return None
+
+    async def get_repo(self, url: str) -> GithubRepository:
+        """
+        Request data about the github repo pointed to by `url` from the GitHub API
+        (`url` doesnt have to point directly to the repo, it can point to any file w/in the repo too)
+        """
+        client = await self._get_session(url)
+
+        # gather data for API request URL
+        org, repo = self._get_repo_location(url)
+
+        # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
+        async with client.get(f"/repos/{org}/{repo}") as resp:
+            json_resp = await resp.json()
+            return GithubRepository.from_response(json_resp)
 
     def _get_repo_location(self, url: str) -> tuple[str, str]:
         """
@@ -138,20 +124,6 @@ class GitHubClient(BaseClient):
 
         # url_path_components == ['', 'org', 'repo', ...]
         return (url_path_components[1], url_path_components[2])
-
-    async def _get_repo(self, url: str) -> GithubRepository:
-        """
-        Request data about the github repo pointed to by `url` from the GitHub API
-        """
-        client = await self._get_session(url)
-
-        # gather data for API request URL
-        org, repo = self._get_repo_location(url)
-
-        # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
-        async with client.get(f"/repos/{org}/{repo}") as resp:
-            json_resp = await resp.json()
-            return GithubRepository.from_response(json_resp)
 
     async def _fetch_raw(self, url: str) -> Optional[str]:
         """
@@ -174,37 +146,32 @@ class GitHubClient(BaseClient):
 
         request_url = f"{raw_url}{content_location}"
 
-        try:
-            # request/set auth token
-            await self._set_installation_token(
-                app_id=self.app_id,
-                installation_id=self.installation_id,
-                url=url,
+        # request/set auth token
+        await self._set_installation_token(
+            app_id=self.app_id,
+            installation_id=self.installation_id,
+            url=url,
+        )
+        assert self.access_token
+
+        # attach auth token
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Accept": "application/vnd.github.v3.raw",
+        }
+
+        async with aiohttp.ClientSession() as http_session:
+            resp = await http_session.request(
+                method="GET",
+                url=request_url,
+                headers=headers,
             )
-            assert self.access_token
+            file_content = await resp.text()
 
-            # attach auth token
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Accept": "application/vnd.github.v3.raw",
-            }
-
-            async with aiohttp.ClientSession() as http_session:
-                resp = await http_session.request(
-                    method="GET",
-                    url=request_url,
-                    headers=headers,
-                )
-                file_content = await resp.text()
-
-                # gh returns 404 text if no raw content at URL path
-                if file_content == "404: Not Found":
-                    return None
-                return file_content
-        except Exception as error:
-            logger.error(error)
-            # gracefully recover from any errors that arise
-            return None
+            # gh returns 404 text if no raw content at URL path
+            if file_content == "404: Not Found":
+                return None
+            return file_content
 
     async def _get_session(self, link: str) -> aiohttp.ClientSession:
         """

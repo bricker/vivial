@@ -260,8 +260,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         auth_token = eave.core.internal.orm.auth_token.AuthTokenOrm(
             account_id=account.id,
             team_id=account.team_id,
-            access_token=eave_util.sha256hexdigest(access_token.to_str()),
-            refresh_token=eave_util.sha256hexdigest(refresh_token.to_str()),
+            access_token_hashed=eave_util.sha256hexdigest(access_token.to_str()),
+            refresh_token_hashed=eave_util.sha256hexdigest(refresh_token.to_str()),
             jti=access_token.payload.jti,
             iss=access_token.payload.iss,
             aud=access_token.payload.aud,

@@ -2,6 +2,7 @@ import os
 
 import dotenv
 import eave.core.internal.orm
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 
 dotenv.load_dotenv()
@@ -58,7 +59,7 @@ async def seed_database() -> None:
     await session.refresh(team)  # this is necessary to populate team.id
 
     # seed w/ eave slack team info
-    slack_install = eave_orm.SlackInstallationOrm(
+    slack_install = SlackInstallationOrm(
         team_id=team.id,
         slack_team_id="T03G5LV6R7Y",
         bot_id="B04K6P48T4G",

@@ -229,7 +229,7 @@ class Brain:
     async def build_documentation(self) -> eave_ops.DocumentInput:
         logger.debug("Brain.build_documentation")
         conversation = await self.build_context()
-        link_context = await self.build_link_context()
+        link_context = await self.build_link_context_and_subscribe()
 
         document_topic = await document_metadata.get_topic(conversation)
         logger.info(f"document_topic: {document_topic}")
@@ -431,18 +431,20 @@ class Brain:
         recent_messages = "\n\n".join(messages_for_prompt)
         return f"{condensed_context}\n\n" f"{recent_messages}"
 
-    async def build_link_context(self) -> Optional[str]:
+    async def build_link_context_and_subscribe(self) -> Optional[str]:
+        """
+        If there are any URL links in the message thread being analyzed,
+        it pulls the context from the links (if Eave has access) and summarizes it.
+        It then subscribes to watch for changes any files Eave could read.
+
+        Returns summarized context for each link in message thread, if any
+        """
         # see if we can pull content from any links in message
         await self.message.resolve_urls()
-        supported_links: list[tuple[str, eave_models.SupportedLink]] = []
-        for link in self.message.urls:
-            is_supported, link_type = link_handler.is_supported_link(link)
-            if is_supported:
-                assert link_type is not None
-                supported_links.append((link, link_type))
+        supported_links = link_handler.filter_supported_links(self.message.urls)
 
         if supported_links:
-            links_contents = await link_handler.get_link_content(self.eave_team.id, supported_links)
+            links_contents = await link_handler.map_url_content(self.eave_team.id, supported_links)
             if links_contents:
                 # summarize the content at each link, or None where link content wasnt obtained
                 summaries: list[Optional[str]] = await asyncio.gather(
@@ -451,6 +453,12 @@ class Brain:
                         asyncio.ensure_future(self._summarize_content(content)) if content else asyncio.sleep(0)
                         for content in links_contents
                     ]
+                )
+
+                # subscribe Eave GitHub App to file changes for any files we could read
+                await link_handler.subscribe(
+                    self.eave_team.id,
+                    [link_info for link_info, content in zip(supported_links, summaries) if content is not None],
                 )
 
                 # transform raw source text into less distracting (for AI) summaries
@@ -466,7 +474,6 @@ class Brain:
                         if summary is not None
                     ]
                 )
-                # TODO: subscribe to file changes
 
         return None
 
@@ -478,7 +485,6 @@ class Brain:
         """
         Given some content (from a URL) return a summary of it.
         """
-        # TODO: break into smaller funcs?
         if len(tokencoding.encode(content)) > eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4]:
             # build rolling summary of long content
             threshold = int(eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2)

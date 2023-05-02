@@ -4,7 +4,7 @@ import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/gr
 import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai';
 import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client';
 import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations';
-import * as eaveModels from '@eave-fyi/eave-stdlib-ts/src/core-api/models';
+import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums';
 import { GitHubOperationsContext } from '../types';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
@@ -18,25 +18,36 @@ export default async function handler(event: PushEvent, context: GitHubOperation
     const modifiedFiles = Array.from(new Set([...eventCommit.added, ...eventCommit.removed, ...eventCommit.modified]));
 
     await Bluebird.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
-      const fileId = Buffer.from(eventCommitTouchedFilename).toString('base64');
+      const branchName = event.ref.replace('refs/heads/', '');
       // TODO: Move this eventId algorithm into a shared location
       const eventId = [
         `${event.repository.node_id}`,
-        `${fileId}`,
+        `${branchName}/${eventCommitTouchedFilename}`,
       ].join('#');
 
-      // FIXME: Hardcoded team ID
-      const subscriptionResponse = await eaveCoreApiClient.getSubscription('3345217c-fb27-4422-a3fc-c404b49aff8c', {
+      // fetch eave team id required for core_api requests
+      const installationId = event.installation!.id;
+      const teamResponse = await eaveCoreApiClient.getGithubInstallation({
+        github_installation: {
+          github_install_id: `${installationId}`,
+        },
+      });
+      if (teamResponse === null) { return; }
+      const eaveTeamId = teamResponse.team.id;
+
+      // check if we are subscribed to this file
+      const subscriptionResponse = await eaveCoreApiClient.getSubscription(eaveTeamId, {
         subscription: {
           source: {
-            platform: eaveModels.SubscriptionSourcePlatform.github,
-            event: eaveModels.SubscriptionSourceEvent.github_file_change,
+            platform: eaveEnums.SubscriptionSourcePlatform.github,
+            event: eaveEnums.SubscriptionSourceEvent.github_file_change,
             id: eventId,
           },
         },
       });
-
       if (subscriptionResponse === null) { return; }
+
+      // get file content so we can document the changes
       const query = await GraphQLUtil.loadQuery('getFileContents');
 
       const variables: {
@@ -58,6 +69,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const fileContentsBlob = <Blob>fileContentsTreeEntry.object!;
       const fileContents = fileContentsBlob.text!;
 
+      // build a description of the file
       const codeDescription = [];
 
       const languageName = fileContentsTreeEntry.language?.name;
@@ -77,6 +89,8 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         ? `# The above code is ${codeDescription.join(', ')}`
         : '';
 
+      // have AI explain the code
+      // TODO: implement rolling content summary
       // FIXME: Add this eslint exception to eslint config
       // eslint-disable-next-line operator-linebreak
       const prompt =
@@ -85,10 +99,12 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         + `${codeDescriptionString}. `
         + 'Explain what the above code does: ';
 
-      const openaiResponse = await openai.createCompletion({
-        prompt,
-        model: openai.OpenAIModel.davinciCode,
-        max_tokens: 500,
+      // FIXME: using gpt3.5 for now since openai node module docs for CreateChatCompletionRequest
+      // currently says it only supports gtp3.5 turbo models. not sure if thats actually true tho
+      const openaiResponse = await openai.createChatCompletion({
+        messages: [{ role: 'user', content: prompt }],
+        model: openai.OpenAIModel.GPT_35_TURBO,
+        max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT_35_TURBO],
       });
 
       const document: eaveOps.DocumentInput = {
@@ -96,15 +112,15 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         content: openaiResponse,
       };
 
-      // FIXME: no hardcode id
       const upsertDocumentResponse = await eaveCoreApiClient.upsertDocument(
-        '3345217c-fb27-4422-a3fc-c404b49aff8c',
+        eaveTeamId,
         {
           document,
           subscription: subscriptionResponse.subscription,
         },
       );
 
+      // TODO: real logging
       console.log(upsertDocumentResponse);
     }));
   }));
