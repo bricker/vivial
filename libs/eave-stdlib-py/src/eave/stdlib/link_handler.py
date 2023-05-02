@@ -122,26 +122,25 @@ async def _build_link_contexts(
     eave_team_id -- ID of the Eave TeamOrm to fetch platform integrations from
     links -- list of links to build API client auth data for
     """
-    # fetch from core_api what sources are connected, and the access token required to query their API
+    # fetch from core_api what sources are connected, and the auth data required to query their API
     team_response = await eave_core_api_client.get_team(
         team_id=eave_team_id,
     )
-    available_sources = [integration for integration in vars(team_response.integrations).values() if integration]
-    assert available_sources is not None
-    source_tokens: dict[SupportedLink, tuple[str, str]] = {
-        source["type"]: (source["app_id"], source["installation_id"]) for source in raw_sources
-    }
 
-    # filter URLs to sites we support for ones the user has linked their eave account to
-    accessible_links = [
-        (link, link_type, source_tokens[link_type]) for link, link_type in links if link_type in source_tokens
-    ]
+    api_client_auth_data: dict[SupportedLink, str] = {}
+    for supported_type in SupportedLink:
+        match supported_type:
+            case SupportedLink.github:
+                if gh_integration := team_response.integrations.github:
+                    api_client_auth_data[SupportedLink.github] = gh_integration.github_install_id
+            case _:
+                logger.error("Unexpected SupportedLink type encountered while building link auth context")
 
     # filter URLs to platforms the user has linked their eave account to
     accessible_links = [
-        LinkContext(url=link, type=link_type, auth_data=source_tokens[link_type])
+        LinkContext(url=link, type=link_type, auth_data=api_client_auth_data[link_type])
         for link, link_type in links
-        if link_type in source_tokens
+        if link_type in api_client_auth_data
     ]
     return accessible_links
 

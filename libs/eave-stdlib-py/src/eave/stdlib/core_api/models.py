@@ -2,6 +2,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
+import enum
 
 import pydantic
 from eave.stdlib.core_api.enums import (
@@ -25,9 +26,6 @@ class AuthTokenPair:
 
 # TODO: copy to ts stdlib
 # TODO: change SupportedLink type name???
-import enum
-
-
 class SupportedLink(enum.Enum):
     """
     Link types that we support fetching content from for integration into AI documentation creation.

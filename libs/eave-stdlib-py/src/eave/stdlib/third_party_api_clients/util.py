@@ -17,5 +17,5 @@ class LinkContext:
 def create_client(ctx: LinkContext) -> BaseClient:
     match ctx.type:
         case SupportedLink.github:
-            app_id, installation_id = ctx.auth_data
-            return GitHubClient(app_id=app_id, installation_id=installation_id)
+            installation_id = ctx.auth_data
+            return GitHubClient(installation_id=installation_id)
