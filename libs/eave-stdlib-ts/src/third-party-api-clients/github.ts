@@ -1,5 +1,5 @@
 import { App, Octokit } from "octokit";
-import { SuperAgent } from "superagent";
+import * as superagent from "superagent";
 import { Pair } from "../types";
 import { ApiClientBase } from "./base";
 
@@ -13,15 +13,7 @@ export type GithubRepository = {
   full_name: string;
 }
 
-// Source response object defined in Github API
-// https://docs.github.com/en/rest/apps/apps?apiVersion=2022-11-28#create-an-installation-access-token-for-an-app
-export type GithubInstallationAccessToken = {
-  token: string;
-  expires_at: string;
-}
-
 export class GithubClient implements ApiClientBase {
-  accessToken: string | null = null;
   appId = GITHUB_APP_ID;
   installationId: string;
   private client: Octokit | null = null;
@@ -30,7 +22,7 @@ export class GithubClient implements ApiClientBase {
   constructor(installationId: string) {
     this.installationId = installationId;
     // privateKey = eave_signing.get_key(eave_origins.ExternalOrigin.github_api_client.value) // ???
-    this.app = new App({appId: this.appId, privateKey: 'TODO'}); // TODO
+    this.app = new App({ appId: this.appId, privateKey: 'TODO' }); // TODO
   }
 
   /**
@@ -55,10 +47,10 @@ export class GithubClient implements ApiClientBase {
     const client = await this.getClient();
 
     // gather data for API request URL
-    const { first: owner, second: repo} = this.getRepoLocation(url);
+    const { first: owner, second: repo } = this.getRepoLocation(url);
 
     // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
-    const { data: repository } = await client.rest.repos.get({owner, repo});
+    const { data: repository } = await client.rest.repos.get({ owner, repo });
     return <GithubRepository>repository;
   }
 
@@ -99,26 +91,20 @@ export class GithubClient implements ApiClientBase {
 
     const requestUrl = `${rawUrl}${contentLocation}`;
 
-    // get auth token if haven't already
-    await this.setInstallationToken(this.appId, this.installationId, url);
+    // get auth token from client
+    // auth() documented here https://www.npmjs.com/package/@octokit/auth-token
+    const client = await this.getClient();
+    const { token: accessToken } = (await client.auth()) as { token: string };
 
-    const headers = {
-                  "Authorization": `Bearer ${this.accessToken}`,
-            "Accept": "application/vnd.github.v3.raw",
+    const result = await superagent.get(requestUrl)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Accept', 'application/vnd.github.v3.raw');
+
+    const fileContent = result.body as string;
+    if (fileContent === '404: Not Found') {
+      return null;
     }
-
-    //         async with aiohttp.ClientSession() as http_session:
-//             resp = await http_session.request(
-//                 method="GET",
-//                 url=request_url,
-//                 headers=headers,
-//             )
-//             file_content = await resp.text()
-
-//             # gh returns 404 text if no raw content at URL path
-//             if file_content == "404: Not Found":
-//                 return None
-//             return file_content
+    return fileContent;
   }
 
   /**
@@ -138,41 +124,4 @@ export class GithubClient implements ApiClientBase {
     const octokit = await this.app.getInstallationOctokit(parseInt(this.installationId, 10));
     return octokit;
   }
-
-  /**
-   * Create an installation token for the app identified by `appId`
-   * that can authenticate with the GitHub API required to access the
-   * resource at `url`.
-   * The created installation token is then set in `this.accessToken`.
-   * 
-   * @param appId -- ID of the GitHub App to authenticate through
-   * @param installationId -- ID of the installation to authenticate as
-   * @param url -- resource the installation token should be able to access
-   * @returns the created access token after saving it in `this.accessToken`
-   */
-  private async setInstallationToken(appId: string, installationId: string, url: string): Promise<string> {
-    // TODO: only need this for raw content?? even worth?
-  }
 }
-
-//     async def _set_installation_token(self, app_id: str, installation_id: str, url: str) -> str:
-//         """
-
-//         """
-//         if self.access_token:
-//             # token has already been set
-//             return self.access_token
-
-//         # temporarily set auth token as JWT so we can auth as app
-//         jwt_token = self._create_jwt(app_id)
-//         # request installation access token.
-//         # create 1-time-use client with JWT auth
-//         client = self._create_session(domain=urlparse(url).netloc, token=jwt_token)
-
-//         async with client.post(f"/app/installations/{installation_id}/access_tokens") as token_resp:
-//             token_json: dict[str, Any] = await token_resp.json()
-//             token_data = GithubInstallationAccessToken.from_response(token_json)
-//             self.access_token = token_data.token
-
-//         await client.close()
-//         return self.access_token
