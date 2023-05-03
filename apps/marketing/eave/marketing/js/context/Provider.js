@@ -11,8 +11,7 @@ const AppContextProvider = ({ children }) => {
   });
 
   const [userState, setUserState] = useState({
-    isLoggedIn: false,
-    isWhitelisted: false,
+    teamInfo: null,
   });
 
   const store = {
