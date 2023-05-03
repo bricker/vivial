@@ -83,3 +83,4 @@ norecursedirs = [
   ".mypy_cache",
   "build",
 ]
+showlocals = true

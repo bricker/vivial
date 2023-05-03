@@ -60,8 +60,8 @@ async def update_atlassian_integration(
             team_id=eave_team_orm.id,
         )
 
-        if input.atlassian_integration.confluence_space is not None:
-            installation.confluence_space = input.atlassian_integration.confluence_space
+        if input.atlassian_integration.confluence_space_key is not None:
+            installation.confluence_space_key = input.atlassian_integration.confluence_space_key
 
     eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
     eave_account = eave.stdlib.core_api.models.AuthenticatedAccount.from_orm(eave_account_orm)

@@ -6,19 +6,19 @@ from typing import Optional
 from uuid import UUID
 
 import aiohttp
-import eave.stdlib.eave_origins
 import pydantic
 
 from .. import exceptions as eave_exceptions
 from .. import headers as eave_headers
+from .. import eave_origins as eave_origins
 from .. import logger, signing
 from ..config import shared_config
 from . import operations
 
-_ORIGIN: eave.stdlib.eave_origins.EaveOrigin
+_ORIGIN: eave_origins.EaveOrigin
 
 
-def set_origin(origin: eave.stdlib.eave_origins.EaveOrigin) -> None:
+def set_origin(origin: eave_origins.EaveOrigin) -> None:
     global _ORIGIN
     _ORIGIN = origin
 
@@ -294,7 +294,7 @@ def build_message_to_sign(
     method: str,
     url: str,
     request_id: uuid.UUID,
-    origin: eave.stdlib.eave_origins.EaveOrigin,
+    origin: eave_origins.EaveOrigin,
     payload: str,
     team_id: typing.Optional[uuid.UUID],
     account_id: typing.Optional[uuid.UUID],

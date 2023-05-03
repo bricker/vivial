@@ -1,30 +1,27 @@
 import json
+import os
 import random
+import typing
 import unittest
+import unittest.mock
 import urllib.parse
 import uuid
 from datetime import datetime
 from typing import Any, Optional, Protocol, Tuple, TypeVar
 from uuid import UUID, uuid4
 
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncSessionTransaction, async_sessionmaker
+
 import eave.core.app
-import eave.core.internal.database as eave_db
+import eave.core.internal
 import eave.core.internal.orm
-import eave.core.internal.orm.account
-import eave.core.internal.orm.auth_token
-import eave.stdlib.core_api.client
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.eave_origins
-import eave.stdlib.exceptions as eave_exceptions
-import eave.stdlib.jwt as eave_jwt
-import eave.stdlib.signing
-import eave.stdlib.util as eave_util
+import eave.core.internal.orm.base
+import eave.stdlib.core_api
+import eave.stdlib
 import mockito
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
-from eave.core.internal.config import app_config
-from eave.core.internal.orm.team import TeamOrm
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
 
@@ -42,24 +39,37 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
     algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
 )
 
-eave_db.async_engine.echo = False  # shhh
-
+eave.core.internal.database.async_engine.echo = False  # shhh
 
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
-    _testdata: dict[str, Any]
-    httpclient: AsyncClient
-
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName)
         self.maxDiff = None
 
     async def asyncSetUp(self) -> None:
-        self._testdata = {}
+        self._testdata: typing.Dict[str, Any] = {}
 
-        async with eave_db.async_engine.connect() as db_connection:
-            await db_connection.run_sync(eave.core.internal.orm.get_base_metadata().drop_all)
+        self.mock_env = {
+            "EAVE_API_BASE": "https://api.eave.dev:8080",
+            "EAVE_WWW_BASE": "https://www.eave.dev:8080",
+            "EAVE_COOKIE_DOMAIN": ".eave.dev",
+            "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64": eave.stdlib.util.b64encode(json.dumps({
+                "web":{
+                    "client_id":self.anystring("google_oauth_client_id"),
+                    "project_id":"eavefyi-dev",
+                    "auth_uri":"https://accounts.google.com/o/oauth2/auth",
+                    "token_uri":"https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
+                    "client_secret":self.anystring("google_oauth_client_secret"),
+                    "redirect_uris":["https://api.eave.dev:8080/oauth/google/callback"]
+                }
+            }))
+        }
+
+        async with eave.core.internal.database.async_engine.connect() as db_connection:
+            await db_connection.run_sync(eave.core.internal.orm.base.get_base_metadata().drop_all)
             await db_connection.commit()
-            await db_connection.run_sync(eave.core.internal.orm.get_base_metadata().create_all)
+            await db_connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
             await db_connection.commit()
             # tnames = ",".join([t.name for t in eave.core.internal.orm._get_base_metadata().sorted_tables])
             # await connection.execute(text(f"truncate {tnames}"))
@@ -70,17 +80,19 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         # )
         self.httpclient = AsyncClient(
             app=eave.core.app.app,
-            base_url=app_config.eave_api_base,
+            base_url=eave.core.internal.app_config.eave_api_base,
         )
 
         # Tests should never call out to KMS
         self.mock_signing()
+        self.mock_google_services()
+        self.mock_environment()
 
     async def asyncTearDown(self) -> None:
         # mockito.verifyStubbedInvocationsAreUsed()
         mockito.unstub()
         await self.httpclient.aclose()
-        await eave_db.async_engine.dispose()
+        await eave.core.internal.database.async_engine.dispose()
 
     @staticmethod
     async def mock_coroutine(value: T) -> T:
@@ -123,25 +135,30 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: int = self._testdata[name]
         return value
 
+    @property
+    def db_session(self) -> async_sessionmaker[AsyncSession]:
+        session: async_sessionmaker[AsyncSession] = eave.core.internal.database.async_session
+        return session
+
     async def save(self, obj: J) -> J:
-        async with eave_db.async_session.begin() as db_session:
+        async with self.db_session.begin() as db_session:
             db_session.add(obj)
         return obj
 
     async def reload(self, obj: J) -> J | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)
-        async with eave_db.async_session.begin() as db_session:
+        async with self.db_session.begin() as db_session:
             result: J | None = await db_session.scalar(stmt)
 
         return result
 
     async def delete(self, obj: AnyStandardOrm) -> None:
-        async with eave_db.async_session.begin() as db_session:
+        async with self.db_session.begin() as db_session:
             await db_session.delete(obj)
 
     async def count(self, cls: Any) -> int:
         query = select(safunc.count(cls.id))
-        async with eave_db.async_session.begin() as db_session:
+        async with self.db_session.begin() as db_session:
             count: int | None = await db_session.scalar(query)
 
         if count is None:
@@ -151,7 +168,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     async def make_request(
         self,
         path: str,
-        payload: Optional[eave_util.JsonObject] = None,
+        payload: Optional[eave.stdlib.util.JsonObject] = None,
         method: str = "POST",
         headers: Optional[dict[str, Optional[str]]] = None,
         origin: eave.stdlib.eave_origins.EaveOrigin = eave.stdlib.eave_origins.EaveOrigin.eave_www,
@@ -218,36 +235,55 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         return response
 
+    def mock_environment(self) -> None:
+        def _getenv(key: str) -> str | None:
+            if key in self.mock_env:
+                return self.mock_env[key]
+            else:
+                return os.environ[key]
+
+        mockito.when2(os.getenv, ...).thenAnswer(_getenv)
+
+    def mock_google_services(self) -> None:
+        def _get_secret(key: str) -> str:
+            return self.mock_env.get(key, f"not mocked: {key}")
+
+        def _get_runtimeconfig(key: str) -> str:
+            return self.mock_env.get(key, f"not mocked: {key}")
+
+        mockito.when2(f"eave.stdlib.config.EaveConfig.get_secret", ...).thenAnswer(_get_secret)
+        mockito.when2(f"eave.stdlib.config.EaveConfig.get_runtimeconfig", ...).thenAnswer(_get_runtimeconfig)
+
     def mock_signing(self) -> None:
         def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
-            value: str = eave_util.b64encode(eave_util.sha256hexdigest(data))
+            value: str = eave.stdlib.util.b64encode(eave.stdlib.util.sha256hexdigest(data))
             return value
 
         def _verify_signature_or_exception(
             signing_key: eave.stdlib.signing.SigningKeyDetails, message: str | bytes, signature: str
         ) -> None:
-            if signature != eave_util.b64encode(eave_util.sha256hexdigest(message)):
-                raise eave_exceptions.InvalidSignatureError()
+            if signature != eave.stdlib.util.b64encode(eave.stdlib.util.sha256hexdigest(message)):
+                raise eave.stdlib.exceptions.InvalidSignatureError()
 
         mockito.when2(eave.stdlib.signing.sign_b64, ...).thenAnswer(_sign_b64)
         mockito.when2(eave.stdlib.signing.verify_signature_or_exception, ...).thenAnswer(_verify_signature_or_exception)
 
     async def mock_auth_token(
         self, account: eave.core.internal.orm.account.AccountOrm
-    ) -> Tuple[eave_jwt.JWT, eave_jwt.JWT, eave.core.internal.orm.auth_token.AuthTokenOrm]:
+    ) -> Tuple[eave.stdlib.jwt.JWT, eave.stdlib.jwt.JWT, eave.core.internal.orm.auth_token.AuthTokenOrm]:
         before_count = await self.count(eave.core.internal.orm.auth_token.AuthTokenOrm)
 
-        access_token = eave_jwt.create_jwt(
+        access_token = eave.stdlib.jwt.create_jwt(
             signing_key=EAVE_API_SIGNING_KEY,
-            purpose=eave_jwt.JWTPurpose.access,
+            purpose=eave.stdlib.jwt.JWTPurpose.access,
             iss=EAVE_API_JWT_ISSUER,
             aud=eave.stdlib.eave_origins.EaveOrigin.eave_www.value,
             sub=str(account.id),
         )
 
-        refresh_token = eave_jwt.create_jwt(
+        refresh_token = eave.stdlib.jwt.create_jwt(
             signing_key=EAVE_API_SIGNING_KEY,
-            purpose=eave_jwt.JWTPurpose.refresh,
+            purpose=eave.stdlib.jwt.JWTPurpose.refresh,
             iss=EAVE_API_JWT_ISSUER,
             aud=access_token.payload.aud,
             sub=access_token.payload.sub,
@@ -260,8 +296,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         auth_token = eave.core.internal.orm.auth_token.AuthTokenOrm(
             account_id=account.id,
             team_id=account.team_id,
-            access_token=eave_util.sha256hexdigest(access_token.to_str()),
-            refresh_token=eave_util.sha256hexdigest(refresh_token.to_str()),
+            access_token=eave.stdlib.util.sha256hexdigest(access_token.to_str()),
+            refresh_token=eave.stdlib.util.sha256hexdigest(refresh_token.to_str()),
             jti=access_token.payload.jti,
             iss=access_token.payload.iss,
             aud=access_token.payload.aud,
@@ -272,8 +308,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert (await self.count(eave.core.internal.orm.auth_token.AuthTokenOrm)) == before_count + 1
         return (access_token, refresh_token, auth_token)
 
-    async def make_team(self) -> TeamOrm:
-        team = TeamOrm(name=self.anystring("team name"), document_platform=eave_models.DocumentPlatform.confluence)
+    async def make_team(self) -> eave.core.internal.orm.TeamOrm:
+        team = eave.core.internal.orm.TeamOrm(name=self.anystring("team name"), document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence)
         await self.save(team)
         return team
 
@@ -283,7 +319,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             team_id = team.id
 
         account = eave.core.internal.orm.account.AccountOrm(
-            auth_provider=kwargs.get("auth_provider", eave_models.AuthProvider.slack),
+            auth_provider=kwargs.get("auth_provider", eave.stdlib.core_api.enums.AuthProvider.slack),
             auth_id=kwargs.get("auth_id", self.anystring("auth_id")),
             access_token=kwargs.get("oauth_token", self.anystring("oauth_token")),
             refresh_token=kwargs.get("refresh_token", self.anystring("refresh_token")),

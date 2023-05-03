@@ -155,7 +155,6 @@ async def get_access_token(
 
     response.validate()
     oauth_data = typing.cast(SlackOAuthResponse, response.data)
-    bot_token = oauth_data["access_token"]
     return oauth_data
 
 

@@ -4,7 +4,7 @@ import eave.core.internal.oauth.atlassian as atlassian_oauth
 import eave.stdlib.core_api.operations as eave_ops
 import mockito
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
-
+import eave.stdlib
 from . import fixtures
 from .base import BaseTestCase
 
@@ -17,7 +17,7 @@ class TestConfluenceDestination(BaseTestCase):
         oauth_session = atlassian_oauth.AtlassianOAuthSession()
         mockito.when2(oauth_session.get_available_resources).thenReturn(
             [
-                atlassian_oauth.AtlassianAvailableResource(
+                eave.stdlib.atlassian.AtlassianAvailableResource(
                     id=self.anystring("atlassian_cloud_id"),
                     url=self.anystring("confluence_document_response._links.base"),
                     avatarUrl=self.anystring("atlassianresourceavatar"),

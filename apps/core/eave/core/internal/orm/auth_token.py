@@ -20,8 +20,12 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from .util import make_team_fk
+
+from .base import Base
+
 from ... import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
-from . import UUID_DEFAULT_EXPR, Base, make_team_fk
+from .util import UUID_DEFAULT_EXPR
 from .account import AccountOrm
 
 

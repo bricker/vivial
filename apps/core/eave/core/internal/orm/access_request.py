@@ -6,7 +6,9 @@ from sqlalchemy import Index, PrimaryKeyConstraint, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from . import UUID_DEFAULT_EXPR, Base
+from .base import Base
+
+from .util import UUID_DEFAULT_EXPR
 
 
 class AccessRequestOrm(Base):

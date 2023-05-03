@@ -68,7 +68,7 @@ class TestAuthedAccountRequests(BaseTestCase):
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
                 session=db_session,
                 team_id=team.id,
-                confluence_space=self.anystring("confluence_space"),
+                confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
                 oauth_token_encoded=self.anystring("oauth_token_encoded"),
             )
@@ -100,7 +100,7 @@ class TestAuthedAccountRequests(BaseTestCase):
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
                 session=db_session,
                 team_id=team.id,
-                confluence_space=self.anystring("confluence_space"),
+                confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
                 oauth_token_encoded=self.anystring("oauth_token_encoded"),
             )
@@ -121,6 +121,6 @@ class TestAuthedAccountRequests(BaseTestCase):
         assert response_obj.integrations.slack.bot_token == self.anystring("bot_token")
 
         assert response_obj.integrations.atlassian is not None
-        assert response_obj.integrations.atlassian.confluence_space == self.anystring("confluence_space")
+        assert response_obj.integrations.atlassian.confluence_space_key == self.anystring("confluence_space")
         assert response_obj.integrations.atlassian.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
         assert response_obj.integrations.atlassian.oauth_token_encoded == self.anystring("oauth_token_encoded")
