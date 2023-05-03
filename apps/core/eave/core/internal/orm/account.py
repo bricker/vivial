@@ -45,7 +45,9 @@ class AccountOrm(Base):
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
-    access_token: Mapped[str] = mapped_column("oauth_token") # This field was renamed from "oauth_token" to "access_token"
+    access_token: Mapped[str] = mapped_column(
+        "oauth_token"
+    )  # This field was renamed from "oauth_token" to "access_token"
     """access token from 3rd party"""
     refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""

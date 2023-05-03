@@ -1,8 +1,8 @@
 import enum
+import typing
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Optional, cast
-import typing
 
 import atlassian
 import eave.stdlib.core_api.operations as eave_ops
@@ -131,6 +131,7 @@ class ConfluenceSpace(ConfluenceBaseModel):
         self.id = data.get("id")
         self.key = data.get("key")
         self.name = data.get("name")
+
 
 class ConfluenceUserDetails(ConfluenceBaseModel):
     pass

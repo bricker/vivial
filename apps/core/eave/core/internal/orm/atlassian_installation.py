@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
+import eave.stdlib.core_api.models
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +15,7 @@ from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
 from ..oauth import atlassian as atlassian_oauth
 from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-import eave.stdlib.core_api.models
+
 
 class AtlassianInstallationOrm(Base):
     __tablename__ = "atlassian_installations"
@@ -101,11 +102,7 @@ class AtlassianInstallationOrm(Base):
     @property
     def available_confluence_spaces(self) -> typing.List[eave.stdlib.core_api.models.ConfluenceSpace]:
         spaces = self.confluence_destination.get_available_spaces()
-        return [
-            eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name)
-            for s in spaces
-            if s.key and s.name
-        ]
+        return [eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name) for s in spaces if s.key and s.name]
 
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(

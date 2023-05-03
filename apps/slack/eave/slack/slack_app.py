@@ -3,16 +3,18 @@ from typing import Optional
 import eave.slack.event_handlers
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.exceptions
+from eave.stdlib import logger
 from slack_bolt.async_app import AsyncApp, AsyncBoltContext
 from slack_bolt.authorization import AuthorizeResult
 from slack_sdk.web.async_client import AsyncWebClient
 
 from .config import app_config
-from eave.stdlib import logger
-import eave.stdlib.exceptions
+
 
 class MissingSlackTeamIdError(Exception):
     pass
+
 
 async def authorize(
     team_id: Optional[str], client: Optional[AsyncWebClient], context: AsyncBoltContext
@@ -34,11 +36,13 @@ async def authorize(
     # - context.team_id and context.user_id are available (barring org-wide installs mentioned above)
 
     # Raises for non-OK response.
-    installation_data = await eave_core.get_slack_installation(input=eave_ops.GetSlackInstallation.RequestBody(
-        slack_integration=eave_ops.SlackInstallationInput(
-            slack_team_id=team_id,
-        ),
-    ))
+    installation_data = await eave_core.get_slack_installation(
+        input=eave_ops.GetSlackInstallation.RequestBody(
+            slack_integration=eave_ops.SlackInstallationInput(
+                slack_team_id=team_id,
+            ),
+        )
+    )
 
     # TODO: We probably need the refresh token too.
     bot_token = installation_data.slack_integration.bot_token

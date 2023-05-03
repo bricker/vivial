@@ -50,7 +50,11 @@ def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
     )
 
 
-def set_auth_cookies(response: ResponseCookieMutator, account_id: typing.Optional[uuid.UUID] = None, access_token: typing.Optional[str] = None) -> None:
+def set_auth_cookies(
+    response: ResponseCookieMutator,
+    account_id: typing.Optional[uuid.UUID] = None,
+    access_token: typing.Optional[str] = None,
+) -> None:
     if account_id:
         _set_auth_cookie(key=EAVE_ACCOUNT_ID_COOKIE, value=str(account_id), response=response)
 

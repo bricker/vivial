@@ -3,15 +3,16 @@ import json
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.atlassian as oauth_atlassian
 import eave.core.internal.oauth.state_cookies as oauth_cookies
-import eave.stdlib.core_api.enums as eave_enums
+import eave.core.public.requests.util
 import eave.stdlib.auth_cookies
+import eave.stdlib.core_api.enums as eave_enums
 import fastapi
 from eave.core.internal.config import app_config
+from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib import logger
-import eave.core.public.requests.util
+
 
 async def atlassian_oauth_authorize(request: fastapi.Request) -> fastapi.Response:
     auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
@@ -71,7 +72,10 @@ async def atlassian_oauth_callback(
         )
 
         if installation and installation.atlassian_cloud_id == atlassian_cloud_id:
-            logger.warning(f"an atlassian installation already exists for atlassian_cloud_id {atlassian_cloud_id}", extra=eave_state.log_context)
+            logger.warning(
+                f"an atlassian installation already exists for atlassian_cloud_id {atlassian_cloud_id}",
+                extra=eave_state.log_context,
+            )
 
         if installation is None:
             installation = await AtlassianInstallationOrm.create(

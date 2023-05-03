@@ -10,9 +10,9 @@ from attr import dataclass
 from eave.stdlib import logger
 from eave.stdlib.third_party_api_clients.base import BaseClient
 
-
 # TODO: move to better location?
 GITHUB_APP_ID: str = "300560"
+
 
 # TODO: moved to shared loc?
 @dataclass

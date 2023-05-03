@@ -1,14 +1,13 @@
+import enum
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
-import enum
 
 import pydantic
 from eave.stdlib.core_api.enums import (
     AuthProvider,
     DocumentPlatform,
-    Integration,
     SubscriptionSourceEvent,
     SubscriptionSourcePlatform,
 )

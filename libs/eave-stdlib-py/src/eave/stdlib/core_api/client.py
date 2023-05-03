@@ -109,7 +109,10 @@ async def get_subscription(
     response_json = await response.json()
     return operations.GetSubscription.ResponseBody(**response_json)
 
-async def get_slack_installation(input: operations.GetSlackInstallation.RequestBody) -> operations.GetSlackInstallation.ResponseBody:
+
+async def get_slack_installation(
+    input: operations.GetSlackInstallation.RequestBody,
+) -> operations.GetSlackInstallation.ResponseBody:
     """
     POST /integrations/slack/query
     """
@@ -121,7 +124,10 @@ async def get_slack_installation(input: operations.GetSlackInstallation.RequestB
     response_json = await response.json()
     return operations.GetSlackInstallation.ResponseBody(**response_json)
 
-async def get_github_installation(input: operations.GetGithubInstallation.RequestBody) -> operations.GetGithubInstallation.ResponseBody:
+
+async def get_github_installation(
+    input: operations.GetGithubInstallation.RequestBody,
+) -> operations.GetGithubInstallation.ResponseBody:
     """
     POST /integrations/github/query
     """
@@ -133,7 +139,10 @@ async def get_github_installation(input: operations.GetGithubInstallation.Reques
     response_json = await response.json()
     return operations.GetGithubInstallation.ResponseBody(**response_json)
 
-async def get_atlassian_installation(input: operations.GetAtlassianInstallation.RequestBody) -> operations.GetAtlassianInstallation.ResponseBody:
+
+async def get_atlassian_installation(
+    input: operations.GetAtlassianInstallation.RequestBody,
+) -> operations.GetAtlassianInstallation.ResponseBody:
     """
     POST /integrations/atlassian/query
     """
@@ -144,6 +153,7 @@ async def get_atlassian_installation(input: operations.GetAtlassianInstallation.
 
     response_json = await response.json()
     return operations.GetAtlassianInstallation.ResponseBody(**response_json)
+
 
 async def get_team(
     team_id: UUID,
@@ -160,9 +170,11 @@ async def get_team(
     response_json = await response.json()
     return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
 
+
 async def update_atlassian_integration(
-        account_id: uuid.UUID, access_token: str,
-        input: operations.UpdateAtlassianInstallation.RequestBody,
+    account_id: uuid.UUID,
+    access_token: str,
+    input: operations.UpdateAtlassianInstallation.RequestBody,
 ) -> operations.UpdateAtlassianInstallation.ResponseBody:
     """
     POST /me/team/integrations/atlassian/update
@@ -176,6 +188,7 @@ async def update_atlassian_integration(
 
     response_json = await response.json()
     return operations.UpdateAtlassianInstallation.ResponseBody(**response_json)
+
 
 async def get_authenticated_account_team_integrations(
     account_id: UUID, access_token: str
@@ -194,7 +207,9 @@ async def get_authenticated_account_team_integrations(
     return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
 
 
-async def get_authenticated_account(account_id: UUID, access_token: str) -> operations.GetAuthenticatedAccount.ResponseBody:
+async def get_authenticated_account(
+    account_id: UUID, access_token: str
+) -> operations.GetAuthenticatedAccount.ResponseBody:
     """
     POST /me/query
     """

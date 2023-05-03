@@ -3,11 +3,11 @@ import re
 from typing import Any, Optional, cast
 from urllib.parse import urlparse
 
-from eave.stdlib.core_api.models import LinkType
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
+from eave.stdlib.core_api.models import LinkType
 from eave.stdlib.third_party_api_clients.base import BaseClient
 from eave.stdlib.third_party_api_clients.util import LinkContext, create_client
 from pydantic import UUID4
