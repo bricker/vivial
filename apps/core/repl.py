@@ -7,6 +7,7 @@ from typing import Any, Coroutine
 
 # Import some common modules
 import eave.core.internal.orm.base
+import eave.core.internal.orm
 
 
 def run_coro(func: Coroutine[Any, Any, Any]) -> None:

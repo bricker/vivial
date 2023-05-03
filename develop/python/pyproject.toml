@@ -64,6 +64,7 @@ exclude = [
   "node_modules",
 ]
 remove-all-unused-imports = true
+ignore-init-module-imports = true
 recursive = true
 quiet = true
 

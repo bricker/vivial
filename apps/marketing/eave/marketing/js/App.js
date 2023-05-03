@@ -16,6 +16,7 @@ import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
 import ScrollToTop from './components/ScrollToTop/index.jsx';
 import ThanksPage from './components/Pages/ThanksPage/index.jsx';
 import PrivateRoutes from './components/PrivateRoutes/index.jsx';
+import Dashboard from './components/Pages/Dashboard/index.jsx';
 
 class App extends React.Component {
   render() {
@@ -31,6 +32,7 @@ class App extends React.Component {
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route element={<PrivateRoutes />}>
                   <Route path="/thanks" element={<ThanksPage />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
                 <Route path="/" element={<HomePage />} />
               </Routes>
