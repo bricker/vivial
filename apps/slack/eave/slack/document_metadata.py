@@ -186,7 +186,6 @@ async def get_documentation(
     )
 
     if link_context:
-        # TODO: workshop prompt? shuffle things around?
         prompt_segments.append(
             f"""
             Use the information provided about the following links to help you write the documentation.
