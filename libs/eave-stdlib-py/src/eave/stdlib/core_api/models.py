@@ -18,15 +18,14 @@ class ConfluenceSpace(pydantic.BaseModel):
     key: str
     name: str
 
+
 @dataclass
 class AuthTokenPair:
     access_token: str
     refresh_token: str
 
 
-# TODO: copy to ts stdlib
-# TODO: change SupportedLink type name???
-class SupportedLink(enum.Enum):
+class LinkType(enum.Enum):
     """
     Link types that we support fetching content from for integration into AI documentation creation.
     """
@@ -129,6 +128,7 @@ class Integrations(pydantic.BaseModel):
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
     atlassian: Optional[AtlassianInstallation]
+
 
 class ErrorResponse(pydantic.BaseModel):
     eave_account_id: Optional[str]

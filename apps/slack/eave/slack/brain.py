@@ -525,8 +525,6 @@ class Brain:
 
         while len(tokencoding.encode(summary)) > threshold:
             new_summary = ""
-            # TODO: this alg probably has subpar/awful output since we cut off in middle of arbitrary text body
-            # split summary into digestable chunks
             chunk_size = threshold
             current_position = 0
             current_chunk = summary[current_position : current_position + chunk_size]
@@ -561,7 +559,6 @@ class Brain:
                     assert response is not None
                     new_summary = response
                 else:
-                    # TODO: reformat prompt? does this have passable output?
                     prompt = eave_openai.formatprompt(
                         f"""
                         Amend and expand on the following information. Maintain the important information.

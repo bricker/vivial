@@ -106,3 +106,10 @@ export namespace DeleteSubscription {
     subscription: SubscriptionInput;
   }
 }
+
+export namespace GetTeam {
+  export type ResponseBody = {
+    team: models.Team;
+    integrations: models.Integrations;
+  }
+}

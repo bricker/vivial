@@ -69,7 +69,6 @@ class GitHubClient(BaseClient):
 
         # mapping from github domain to session with auth headers for that domain
         self._sessions: dict[str, aiohttp.ClientSession] = {}
-        self._repo_info: Optional[GithubRepository] = None
 
     async def __aenter__(self) -> Self:
         return self

@@ -33,41 +33,35 @@ export async function deleteSubscription(teamId: string, input: ops.DeleteSubscr
   return null;
 }
 
-export async function getSubscription(teamId: string, input: ops.GetSubscription.RequestBody): Promise<ops.GetSubscription.ResponseBody | null> {
+export async function getSubscription(teamId: string, input: ops.GetSubscription.RequestBody): Promise<ops.GetSubscription.ResponseBody> {
   const request = await initRequest(input, teamId);
   const resp = await fetch(`${sharedConfig.eaveApiBase}/subscriptions/query`, request);
-
-  if (resp.status >= 300) {
-    return null;
-  }
 
   const responseData = <ops.GetSubscription.ResponseBody>(await resp.json());
   return responseData;
 }
 
-export async function getSlackInstallation(input: ops.GetSlackInstallation.RequestBody): Promise<ops.GetSlackInstallation.ResponseBody | null> {
+export async function getSlackInstallation(input: ops.GetSlackInstallation.RequestBody): Promise<ops.GetSlackInstallation.ResponseBody> {
   const request = await initRequest(input);
   const resp = await fetch(`${sharedConfig.eaveApiBase}/installations/slack/query`, request);
-
-
-  if (resp.status >= 300) {
-    return null;
-  }
 
   const responseData = <ops.GetSlackInstallation.ResponseBody>(await resp.json());
   return responseData;
 }
 
-export async function getGithubInstallation(input: ops.GetGithubInstallation.RequestBody): Promise<ops.GetGithubInstallation.ResponseBody | null> {
+export async function getGithubInstallation(input: ops.GetGithubInstallation.RequestBody): Promise<ops.GetGithubInstallation.ResponseBody> {
   const request = await initRequest(input);
   const resp = await fetch(`${sharedConfig.eaveApiBase}/installations/github/query`, request);
 
-
-  if (resp.status >= 300) {
-    return null;
-  }
-
   const responseData = <ops.GetGithubInstallation.ResponseBody>(await resp.json());
+  return responseData;
+}
+
+export async function getTeam(eaveTeamId: string): Promise<ops.GetTeam.ResponseBody> {
+  const request = await initRequest(undefined, eaveTeamId);
+  const resp = await fetch(`${sharedConfig.eaveApiBase}/team/query`, request);
+
+  const responseData = <ops.GetTeam.ResponseBody>(await resp.json());
   return responseData;
 }
 

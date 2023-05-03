@@ -3,9 +3,8 @@ import re
 from typing import Any, Optional, cast
 from urllib.parse import urlparse
 
-from eave.stdlib.core_api.models import SupportedLink
+from eave.stdlib.core_api.models import LinkType
 import eave.stdlib.core_api.client as eave_core_api_client
-import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
@@ -16,19 +15,17 @@ from pydantic import UUID4
 from .logging import logger
 from .third_party_api_clients.github import GitHubClient
 
-# TODO: does this whole file need translation to typescript for ts stdlib? > yep
-
 # mapping from link type to regex for matching raw links against
-SUPPORTED_LINKS: dict[eave_models.SupportedLink, list[str]] = {
-    eave_models.SupportedLink.github: [
+SUPPORTED_LINKS: dict[eave_models.LinkType, list[str]] = {
+    eave_models.LinkType.github: [
         r"github\.com",
         r"github\..+\.com",
     ],
 }
 
 
-def filter_supported_links(urls: list[str]) -> list[tuple[str, eave_models.SupportedLink]]:
-    supported_links: list[tuple[str, eave_models.SupportedLink]] = []
+def filter_supported_links(urls: list[str]) -> list[tuple[str, eave_models.LinkType]]:
+    supported_links: list[tuple[str, eave_models.LinkType]] = []
     for link in urls:
         link_type = _get_link_type(link)
         if link_type:
@@ -36,9 +33,7 @@ def filter_supported_links(urls: list[str]) -> list[tuple[str, eave_models.Suppo
     return supported_links
 
 
-async def map_url_content(
-    eave_team_id: UUID4, urls: list[tuple[str, eave_models.SupportedLink]]
-) -> list[Optional[str]]:
+async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, eave_models.LinkType]]) -> list[Optional[str]]:
     """
     Given a list of urls, returns mapping to content found at each link. Order is preserved.
 
@@ -49,12 +44,12 @@ async def map_url_content(
 
     # gather content from all links in parallel
     tasks = []
-    clients: dict[eave_models.SupportedLink, BaseClient] = {}
+    clients: dict[eave_models.LinkType, BaseClient] = {}
     for link_ctx in contexts:
         if link_ctx.type not in clients:
             clients[link_ctx.type] = create_client(link_ctx)
         match link_ctx.type:
-            case eave_models.SupportedLink.github:
+            case eave_models.LinkType.github:
                 tasks.append(asyncio.ensure_future(clients[link_ctx.type].get_file_content(link_ctx.url)))
 
     content_responses = await asyncio.gather(*tasks)
@@ -66,7 +61,7 @@ async def map_url_content(
     return content
 
 
-async def subscribe(eave_team_id: UUID4, urls: list[tuple[str, eave_models.SupportedLink]]) -> None:
+async def subscribe(eave_team_id: UUID4, urls: list[tuple[str, eave_models.LinkType]]) -> None:
     """
     Create Eave Subscriptions to watch for changes in all of the URL resources in `urls`
 
@@ -75,28 +70,22 @@ async def subscribe(eave_team_id: UUID4, urls: list[tuple[str, eave_models.Suppo
     """
     contexts = await _build_link_contexts(eave_team_id, urls)
 
-    tasks = []
-    clients: dict[eave_models.SupportedLink, BaseClient] = {}
+    tasks = set()
+    clients: dict[eave_models.LinkType, BaseClient] = {}
     for link_ctx in contexts:
         if link_ctx.type not in clients:
             clients[link_ctx.type] = create_client(link_ctx)
-        tasks.append(
-            asyncio.ensure_future(
-                _create_subscription(clients[link_ctx.type], link_ctx.url, link_ctx.type, eave_team_id)
-            )
+        # create fire and forget bg task
+        task = asyncio.create_task(
+            _create_subscription(clients[link_ctx.type], link_ctx.url, link_ctx.type, eave_team_id)
         )
-
-    # TODO: delegate exception handling to slack client?
-    try:
-        # TODO: asyncio.create_task to launch as bg process?
-        # return exceptions to prevent killing the parent process of the other async tasks
-        await asyncio.gather(*tasks, return_exceptions=True)
-    except Exception as error:
-        # Gracefully handle any network errors
-        logger.error(error)
+        # add to set to hold strong ref to prevent task being garbo collected
+        tasks.add(task)
+        # cleanup reference on task completion
+        task.add_done_callback(tasks.discard)
 
 
-def _get_link_type(link: str) -> Optional[eave_models.SupportedLink]:
+def _get_link_type(link: str) -> Optional[eave_models.LinkType]:
     """
     Given a link, determine if we support parsing the content from that link.
     Returns link type if supported, otherwise None
@@ -108,9 +97,7 @@ def _get_link_type(link: str) -> Optional[eave_models.SupportedLink]:
     return None
 
 
-async def _build_link_contexts(
-    eave_team_id: UUID4, links: list[tuple[str, eave_models.SupportedLink]]
-) -> list[LinkContext]:
+async def _build_link_contexts(eave_team_id: UUID4, links: list[tuple[str, eave_models.LinkType]]) -> list[LinkContext]:
     """
     Given a collection of links and an Eave TeamOrm ID, return the data
     required to authenticate with the 3rd party API for each link.
@@ -127,12 +114,12 @@ async def _build_link_contexts(
         team_id=eave_team_id,
     )
 
-    api_client_auth_data: dict[SupportedLink, str] = {}
-    for supported_type in SupportedLink:
+    api_client_auth_data: dict[LinkType, str] = {}
+    for supported_type in LinkType:
         match supported_type:
-            case SupportedLink.github:
+            case LinkType.github:
                 if gh_integration := team_response.integrations.github:
-                    api_client_auth_data[SupportedLink.github] = gh_integration.github_install_id
+                    api_client_auth_data[LinkType.github] = gh_integration.github_install_id
             case _:
                 logger.error("Unexpected SupportedLink type encountered while building link auth context")
 
@@ -146,7 +133,7 @@ async def _build_link_contexts(
 
 
 async def _create_subscription(
-    untyped_client: Any, url: str, link_type: eave_models.SupportedLink, eave_team_id: UUID4
+    untyped_client: Any, url: str, link_type: eave_models.LinkType, eave_team_id: UUID4
 ) -> None:
     """
     Insert a subcription to watch the resource at `url` into the Eave database.
@@ -162,7 +149,7 @@ async def _create_subscription(
 
     # populate required subscription data based on link type
     match link_type:
-        case eave_models.SupportedLink.github:
+        case eave_models.LinkType.github:
             client: GitHubClient = cast(GitHubClient, untyped_client)
             # fetch unique info about repo to build subscription source ID
             repo_info = await client.get_repo(url)
@@ -178,7 +165,7 @@ async def _create_subscription(
     assert source_id is not None
     assert platform is not None
     assert event is not None
-    await eave_core.create_subscription(
+    await eave_core_api_client.create_subscription(
         team_id=eave_team_id,
         input=eave_ops.CreateSubscription.RequestBody(
             subscription=eave_ops.SubscriptionInput(
