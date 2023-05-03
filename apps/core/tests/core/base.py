@@ -47,7 +47,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.maxDiff = None
 
     async def asyncSetUp(self) -> None:
-        self._testdata: typing.Dict[str, Any] = {}
+        self.testdata: typing.Dict[str, Any] = {}
 
         self.mock_env = {
             "EAVE_API_BASE": "https://api.eave.dev:8080",
@@ -106,33 +106,33 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = str(uuid4())
 
-        if name not in self._testdata:
+        if name not in self.testdata:
             data = str(uuid4())
-            self._testdata[name] = data
+            self.testdata[name] = data
 
-        value: str = self._testdata[name]
+        value: str = self.testdata[name]
         return value
 
     def anyuuid(self, name: Optional[str] = None) -> UUID:
         if name is None:
             name = str(uuid4())
 
-        if name not in self._testdata:
+        if name not in self.testdata:
             data = uuid4()
-            self._testdata[name] = data
+            self.testdata[name] = data
 
-        value: UUID = self._testdata[name]
+        value: UUID = self.testdata[name]
         return value
 
     def anyint(self, name: Optional[str] = None) -> int:
         if name is None:
             name = str(uuid4())
 
-        if name not in self._testdata:
+        if name not in self.testdata:
             data = random.randint(0, 9999)
-            self._testdata[name] = data
+            self.testdata[name] = data
 
-        value: int = self._testdata[name]
+        value: int = self.testdata[name]
         return value
 
     @property
@@ -314,16 +314,29 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return team
 
     async def make_account(self, **kwargs: Any) -> eave.core.internal.orm.account.AccountOrm:
-        if not (team_id := kwargs.get("team_id")):
+        if not (team_id := kwargs.pop("team_id", None)):
             team = await self.make_team()
             team_id = team.id
 
         account = eave.core.internal.orm.account.AccountOrm(
-            auth_provider=kwargs.get("auth_provider", eave.stdlib.core_api.enums.AuthProvider.slack),
-            auth_id=kwargs.get("auth_id", self.anystring("auth_id")),
-            access_token=kwargs.get("oauth_token", self.anystring("oauth_token")),
-            refresh_token=kwargs.get("refresh_token", self.anystring("refresh_token")),
+            auth_provider=kwargs.pop("auth_provider", eave.stdlib.core_api.enums.AuthProvider.slack),
+            auth_id=kwargs.pop("auth_id", self.anystring("auth_id")),
+            access_token=kwargs.pop("access_token", self.anystring("oauth_token")),
+            refresh_token=kwargs.pop("refresh_token", self.anystring("refresh_token")),
             team_id=team_id,
+            **kwargs
         )
         await self.save(account)
         return account
+
+    async def get_eave_account(self, id: UUID) -> eave.core.internal.orm.AccountOrm | None:
+        async with self.db_session.begin() as db_session:
+            acct = await eave.core.internal.orm.AccountOrm.one_or_none(session=db_session, id=id)
+
+        return acct
+
+    async def get_eave_team(self, id: UUID) -> eave.core.internal.orm.TeamOrm | None:
+        async with self.db_session.begin() as db_session:
+            acct = await eave.core.internal.orm.TeamOrm.one_or_none(session=db_session, team_id=id)
+
+        return acct
