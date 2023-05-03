@@ -50,6 +50,10 @@ export const INTEGRATION_LOGOS = {
     src: imageUrl('github-logo-3x.png'),
     alt: 'Github logo',
   },
+  githubInline: {
+    src: imageUrl('github-logo-inline.png'),
+    alt: 'Github logo',
+  },
   gmail: {
     src: imageUrl('gmail-logo-3x.png'),
     alt: 'Gmail logo',
