@@ -1,4 +1,3 @@
-from math import log
 import typing
 import uuid
 from dataclasses import dataclass
