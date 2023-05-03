@@ -12,6 +12,8 @@ from .config import shared_config
 
 publisher_client = PublisherClient()
 
+# This happens to be the same between prod and dev, but could come from an environment variable if necessary.
+_EVENT_TOPIC_ID = "eave_event_topic"
 
 def log_event(
   event_name: str,
@@ -34,8 +36,7 @@ def log_event(
         event_ts=event_ts if event_ts else time.time()
     )
 
-    topic_id = "eave_event_topic"
-    topic_path = publisher_client.topic_path(shared_config.google_cloud_project, topic_id)
+    topic_path = publisher_client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
 
     try:
         topic = publisher_client.get_topic(request={"topic": topic_path})
@@ -46,4 +47,4 @@ def log_event(
         publisher_client.publish(topic_path, data)
 
     except NotFound:
-        logger.warning(f"{topic_id} not found.")
+        logger.warning(f"{_EVENT_TOPIC_ID} not found.")
