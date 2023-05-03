@@ -16,9 +16,9 @@
         "5100",
         "--reload",
         "--ssl-keyfile",
-        "${workspaceFolder}/develop/certs/eave-localhost/eave-localhost.key",
+        "${userHome}/.local/share/mkcert/rootCA-key.pem",
         "--ssl-certfile",
-        "${workspaceFolder}/develop/certs/eave-localhost/eave-localhost.crt",
+        "${userHome}/.local/share/mkcert/rootCA.pem",
         "eave.core.app:app"
       ],
       "justMyCode": false,
@@ -89,9 +89,9 @@
         "--port",
         "5000",
         "--key",
-        "${workspaceFolder}/develop/certs/eave-localhost/eave-localhost.key",
+        "${userHome}/.local/share/mkcert/rootCA-key.pem",
         "--cert",
-        "${workspaceFolder}/develop/certs/eave-localhost/eave-localhost.crt",
+        "${userHome}/.local/share/mkcert/rootCA.pem",
       ],
       "jinja": true,
       "justMyCode": true

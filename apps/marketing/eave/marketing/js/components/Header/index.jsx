@@ -132,7 +132,7 @@ const Header = ({ simpleHeader }) => {
         Get Early Access
       </button>
     </>
-  )
+  );
 
   return (
     <header className={classes.outterContainer}>

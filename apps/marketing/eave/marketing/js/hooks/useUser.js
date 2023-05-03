@@ -11,14 +11,13 @@ const useUser = () => {
     setUserState,
     isLoggedIn: userState.isLoggedIn,
     logIn: () => {
-      fetch('/log-in', {
-        body: JSON.stringify({ }),
-        method: 'POST',
+      fetch('/dashboard/me/team', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      }).then(() => {
-        // TODO: SET INFO COMING FROM API TO THE USER OBJECT
+      }).then((resp) => {
+-        console.log('resp', resp);
         setUserState((prevState) => ({ ...prevState, isLoggedIn: true }));
       });
     },

@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { IconButton } from '@material-ui/core';
 
-import { HEADER } from '../../constants.js';
+import { HEADER, AUTH_MODAL_STATE } from '../../constants.js';
 import DownIcon from '../Icons/DownIcon.js';
 import Affiliates from '../Affiliates/index.js';
 import Button from '../Button/index.js';
