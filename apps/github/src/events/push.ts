@@ -11,6 +11,11 @@ import * as GraphQLUtil from '../lib/graphql-util.js';
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   console.info('Processing push', event, context);
 
+  // only handling branch push events for now; ignore tag pushes
+  if (!event.ref.startsWith('refs/heads/')) {
+    return;
+  }
+
   // TODO: This event only contains a maximum of 20 commits. Additional commits need to be fetched from the API.
   // Also, this event is not triggered when more than 3 tags are pushed.
   // https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#push
@@ -19,10 +24,12 @@ export default async function handler(event: PushEvent, context: GitHubOperation
 
     await Bluebird.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
       const branchName = event.ref.replace('refs/heads/', '');
+      // b64 encode since our chosen ID delimiter '#' is a valid character in file paths and branch names
+      const resourceId = Buffer.from(`${branchName}/${eventCommitTouchedFilename}`).toString('base64');
       // TODO: Move this eventId algorithm into a shared location
       const eventId = [
-        `${event.repository.node_id}`,
-        `${branchName}/${eventCommitTouchedFilename}`,
+        event.repository.node_id,
+        resourceId,
       ].join('#');
 
       // fetch eave team id required for core_api requests
@@ -32,7 +39,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           github_install_id: `${installationId}`,
         },
       });
-      if (teamResponse === null) { return; }
       const eaveTeamId = teamResponse.team.id;
 
       // check if we are subscribed to this file
@@ -89,20 +95,24 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         ? `# The above code is ${codeDescription.join(', ')}`
         : '';
 
-      // have AI explain the code
+      // have AI explain the code change
       // TODO: implement rolling content summary
       // FIXME: Add this eslint exception to eslint config
       // eslint-disable-next-line operator-linebreak
       const prompt =
-        `${openai.PROMPT_PREFIX}\n\n`
-        + `${fileContents}\n\n`
+        `${fileContents}\n\n`
         + `${codeDescriptionString}. `
         + 'Explain what the above code does: ';
 
       // FIXME: using gpt3.5 for now since openai node module docs for CreateChatCompletionRequest
       // currently says it only supports gtp3.5 turbo models. not sure if thats actually true tho
+      // NOTE: According to the OpenAI docs, model gpt-3.5-turbo-0301 doesn't pay attention to the system messages,
+      // but it seems it's specific to that model, and neither gpt-3.5-turbo or gpt-4 are affected, so watch out
       const openaiResponse = await openai.createChatCompletion({
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          { role: 'system', content: openai.PROMPT_PREFIX },
+          { role: 'user', content: prompt },
+        ],
         model: openai.OpenAIModel.GPT_35_TURBO,
         max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT_35_TURBO],
       });
