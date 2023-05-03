@@ -2,6 +2,7 @@ import asyncio
 import re
 from typing import Any, Optional, cast
 from urllib.parse import urlparse
+import base64
 
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.enums
@@ -158,13 +159,16 @@ async def _create_subscription(
             if len(path_chunks) < 2:
                 return
             blob_path = path_chunks[1]
-            source_id = f"{repo_info.node_id}#{blob_path}"
+            # b64 encode since our chosen ID delimiter '#' is a valid character in file paths and branch names
+            encoded_blob_path = base64.b64encode(blob_path.encode()).decode()
+            source_id = f"{repo_info.node_id}#{encoded_blob_path}"
             platform = eave.stdlib.core_api.enums.SubscriptionSourcePlatform.github
             event = eave.stdlib.core_api.enums.SubscriptionSourceEvent.github_file_change
 
-    assert source_id is not None
-    assert platform is not None
-    assert event is not None
+    assert (
+        source_id is not None and platform is not None and event is not None
+    ), "Subscription creation data not fully populated"
+    
     await eave_core_api_client.create_subscription(
         team_id=eave_team_id,
         input=eave_ops.CreateSubscription.RequestBody(
