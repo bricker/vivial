@@ -1,4 +1,3 @@
-import uuid
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.oauth.slack as eave_slack_oauth
@@ -48,9 +47,7 @@ async def slack_oauth_callback(
     if auth_cookies.access_token and auth_cookies.account_id:
         async with eave_db.async_session.begin() as db_session:
             eave_account = await AccountOrm.one_or_exception(
-                session=db_session,
-                id=auth_cookies.account_id,
-                access_token=auth_cookies.access_token
+                session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
             )
 
             if eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.slack:
@@ -72,9 +69,7 @@ async def slack_oauth_callback(
         access_token=eave_account.access_token,
     )
 
-    await _update_or_create_slack_installation(
-        eave_account=eave_account, slack_oauth_data=slack_oauth_data
-    )
+    await _update_or_create_slack_installation(eave_account=eave_account, slack_oauth_data=slack_oauth_data)
 
     return response
 

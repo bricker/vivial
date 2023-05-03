@@ -7,7 +7,6 @@ import pydantic
 from eave.stdlib.core_api.enums import (
     AuthProvider,
     DocumentPlatform,
-    Integration,
     SubscriptionSourceEvent,
     SubscriptionSourcePlatform,
 )
@@ -16,6 +15,7 @@ from eave.stdlib.core_api.enums import (
 class ConfluenceSpace(pydantic.BaseModel):
     key: str
     name: str
+
 
 @dataclass
 class AuthTokenPair:
@@ -118,6 +118,7 @@ class Integrations(pydantic.BaseModel):
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
     atlassian: Optional[AtlassianInstallation]
+
 
 class ErrorResponse(pydantic.BaseModel):
     eave_account_id: Optional[str]

@@ -2,13 +2,14 @@ import os
 import sys
 from functools import cached_property
 
-from google.cloud import secretmanager, runtimeconfig
-from . import checksum
+from google.cloud import runtimeconfig, secretmanager
 
+from . import checksum
 
 # TODO: Use runtime-configs
 # https://cloud.google.com/deployment-manager/runtime-configurator/create-and-delete-runtimeconfig-resources#gcloud
 # config created called "shared-config"
+
 
 class EaveConfig:
     @property

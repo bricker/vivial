@@ -1,4 +1,3 @@
-import typing
 from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
@@ -74,9 +73,7 @@ class TeamOrm(Base):
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
 
-    async def get_integrations(
-        self, session: AsyncSession
-    ) -> eave_models.Integrations:
+    async def get_integrations(self, session: AsyncSession) -> eave_models.Integrations:
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         # github_installation = await GithubInstallationOrm.one_or_none(
@@ -88,7 +85,9 @@ class TeamOrm(Base):
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         return eave_models.Integrations(
-                slack=eave_models.SlackInstallation.from_orm(slack_installation) if slack_installation else None,
-                github=None,  # eave_models.GithubInstallation.from_orm(github_installation) if github_installation else None,
-                atlassian=eave_models.AtlassianInstallation.from_orm(atlassian_installation) if atlassian_installation else None,
-            )
+            slack=eave_models.SlackInstallation.from_orm(slack_installation) if slack_installation else None,
+            github=None,  # eave_models.GithubInstallation.from_orm(github_installation) if github_installation else None,
+            atlassian=eave_models.AtlassianInstallation.from_orm(atlassian_installation)
+            if atlassian_installation
+            else None,
+        )

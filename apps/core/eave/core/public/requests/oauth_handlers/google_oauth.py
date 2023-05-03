@@ -48,9 +48,7 @@ async def google_oauth_callback(state: str, code: str, request: fastapi.Request)
     if auth_cookies.access_token and auth_cookies.account_id:
         async with eave_db.async_session.begin() as db_session:
             eave_account = await AccountOrm.one_or_exception(
-                session=db_session,
-                id=auth_cookies.account_id,
-                access_token=auth_cookies.access_token
+                session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
             )
 
             if eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.google:

@@ -41,6 +41,7 @@ class GithubInstallationInput(pydantic.BaseModel):
 class AtlassianInstallationInput(pydantic.BaseModel):
     atlassian_cloud_id: str
 
+
 class UpdateAtlassianInstallationInput(pydantic.BaseModel):
     confluence_space: Optional[str]
 
@@ -125,6 +126,7 @@ class GetAtlassianInstallation(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
         atlassian_integration: models.AtlassianInstallation
+
 
 class UpdateAtlassianInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):
