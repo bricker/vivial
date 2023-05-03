@@ -56,6 +56,7 @@ async def github(
     )
 
 
+
 async def atlassian(
     input: eave.stdlib.core_api.operations.GetAtlassianInstallation.RequestBody,
     request: fastapi.Request,

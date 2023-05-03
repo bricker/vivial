@@ -26,7 +26,6 @@ class GithubInstallationOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     github_install_id: Mapped[str] = mapped_column(unique=True, index=True)
-    # TODO: Oauth token storage
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
