@@ -4,7 +4,7 @@ from uuid import UUID
 
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
-from apps.core.eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
