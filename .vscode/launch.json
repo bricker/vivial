@@ -83,7 +83,7 @@
         "run",
         "--no-debugger",
         "--port",
-        "5000",
+        "5000"
       ],
       "jinja": true,
       "justMyCode": true

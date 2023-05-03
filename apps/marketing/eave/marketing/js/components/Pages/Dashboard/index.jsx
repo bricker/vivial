@@ -1,8 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { StepContent, StepLabel, Step, Stepper, Select, FormControl, InputLabel, MenuItem, useMediaQuery } from '@material-ui/core';
+import {
+  StepContent,
+  StepLabel,
+  Step,
+  Stepper,
+  Select,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  useMediaQuery,
+  Alert,
+} from '@material-ui/core';
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
+import useUser from '../../../hooks/useUser.js';
+import useError from '../../../hooks/useError.js';
 import Copy from '../../Copy/index.js';
 import Page from '../Page/index.jsx';
 import Button from '../../Button/index.js';
@@ -141,18 +154,44 @@ function stepIcon(props) {
 
 const Dashboard = () => {
   const classes = makeClasses();
-  const [confluenceSpace, setConfluenceSpace] = useState('');
-  const [step, setStep] = useState(0);
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
+  const { userState, getUserInfo, updateConfluenceSpace } = useUser();
+  const { errorState } = useError();
+  const { teamInfo } = userState;
+  const [step, setStep] = useState(2);
 
-  const handleChange = (event) => {
-    setConfluenceSpace(event.target.value);
-    setStep(2);
+  useEffect(() => {
+    console.log('team info', teamInfo)
+    // fetch info
+    if (!teamInfo) {
+      getUserInfo();
+    // if user has linked account with atlassian
+    } else if (teamInfo?.integrations.atlassian) {
+      // if user has not selected a conflunece space
+      if (!teamInfo?.integrations.atlassian.confluence_space) {
+        setStep(1);
+      // confluence integration happens by default, if user has not linked their github or slack
+      } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
+        setStep(2);
+      // user has linked all so we can just show a completed stepper
+      } else {
+        setStep(3);
+      }
+    }
+  }, [teamInfo]);
+
+  const handleSpaceUpdate = (event) => {
+    updateConfluenceSpace(event.target.value);
   };
 
+  const handleStepClick = () => {
+
+  }
+
   return (
-    <Page simpleHeader>
+    <Page>
       <main className={classes.main}>
+        {/* { errorState && <Alert severity="error">{errorState}</Alert>} */}
         <Copy variant="h1">Welcome to Eave Early Access</Copy>
         <Copy className={classes.copy}>You’re on your way to better documentation. To get started using Eave, complete the below steps.</Copy>
         <Stepper orientation="vertical" activeStep={step} classes={{
@@ -175,13 +214,13 @@ const Dashboard = () => {
             </StepLabel>
             <StepContent className={classes.content}>
               <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
-              <Button lg className={classes.button} onClick={() => setStep(1)}>
+              <Button lg className={classes.button} to={`${window.eave.apiBase}/oauth/atlassian/authorize`}>
                 Connect
               </Button>
             </StepContent>
           </Step>
           <Step>
-            <StepLabel StepIconComponent={stepIcon}>
+            <StepLabel StepIconComponent={stepIcon} onClick={handleStepClick}>
               <Copy variant="h3" className={classes.header}>Step 2: Select your Confluence Space</Copy>
             </StepLabel>
             <StepContent className={classes.content}>
@@ -192,15 +231,17 @@ const Dashboard = () => {
                   <Select
                     labelId="space-selector-label"
                     id="space-selector"
-                    value={confluenceSpace}
-                    onChange={handleChange}
+                    value={teamInfo?.integrations?.atlassian?.confluence_space || ''}
+                    onChange={handleSpaceUpdate}
                   >
                     <MenuItem value="">
                       None
                     </MenuItem>
-                    <MenuItem value={10}>Twenty</MenuItem>
-                    <MenuItem value={21}>Twenty one</MenuItem>
-                    <MenuItem value={22}>Twenty one and a half</MenuItem>
+                    {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((space) => {
+                      return (
+                        <MenuItem value={space.key} key={space.key}>{space.name}</MenuItem>
+                      );
+                    })}
                   </Select>
                 </FormControl>
               </div>
@@ -215,7 +256,9 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
-                startIcon={<PurpleCheckIcon className={classes.connected} />}
+                startIcon={teamInfo?.integrations.github && <PurpleCheckIcon className={classes.connected} />}
+                disabled={!!teamInfo?.integrations.github}
+                to={`${window.eave.apiBase}/oauth/github/authorize`}
                 lg
               >
                 <img
@@ -227,7 +270,9 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
-                startIcon={<PurpleCheckIcon className={classes.connected} />}
+                startIcon={teamInfo?.integrations.slack && <PurpleCheckIcon className={classes.connected} />}
+                disabled={!!teamInfo?.integrations.slack}
+                to={`${window.eave.apiBase}/oauth/slack/authorize`}
                 lg
               >
                 <img
@@ -239,7 +284,9 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
-                startIcon={<PurpleCheckIcon className={classes.connected} />}
+                startIcon={teamInfo?.integrations.atlassian && <PurpleCheckIcon className={classes.connected} />}
+                disabled={!!teamInfo?.integrations.atlassian}
+                to={`${window.eave.apiBase}/oauth/atlassian/authorize`}
                 lg
               >
                 <img

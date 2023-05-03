@@ -17,6 +17,7 @@ const makeClasses = makeStyles((theme) => ({
 
 const Page = ({ children, simpleHeader }) => {
   const classes = makeClasses();
+  console.log('in the page')
   return (
     <div className={classes.container}>
       <Header simpleHeader={simpleHeader} />

@@ -90,9 +90,9 @@ const Header = ({ simpleHeader }) => {
   const classes = makeClasses();
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const { openModal } = useAuthModal();
-  const { isLoggedIn, logOut } = useUser();
+  const { isUserAuth, logOut } = useUser();
 
-  const TopButtons = isLoggedIn ? (
+  const TopButtons = isUserAuth ? (
     <>
       <a className={classes.inlineButton} href="mailto:info@eave.fyi">
         Send Feedback
@@ -113,7 +113,7 @@ const Header = ({ simpleHeader }) => {
     </>
   );
 
-  const navButtons = isLoggedIn ? (
+  const navButtons = isUserAuth ? (
     <>
       <a className={classes.mobileNavItem} href="mailto:info@eave.fyi">
         Send Feedback
