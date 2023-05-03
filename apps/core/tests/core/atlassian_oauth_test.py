@@ -1,5 +1,6 @@
 from http import HTTPStatus
 import json
+import typing
 
 from .base import BaseTestCase
 from http import HTTPStatus
@@ -38,8 +39,8 @@ class TestAtlassianOAuth(BaseTestCase):
             )
         ]
 
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources).thenAnswer(
-            lambda: self.fake_resources
+        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources, ...).thenAnswer(
+            lambda *args, **kwargs: self.fake_resources
         )
 
         self.fake_token = {
@@ -49,9 +50,9 @@ class TestAtlassianOAuth(BaseTestCase):
             "scope": self.anystring("atlassian.scope"),
         }
 
-        mockito.when2(
-            eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token, code=self.anystring("code")
-        ).thenAnswer(lambda: self.fake_token)
+        # Do nothing
+        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token, ...)
+        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token, ...).thenAnswer(lambda *args, **kwargs: self.fake_token)
 
         self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
             data={
@@ -65,7 +66,7 @@ class TestAtlassianOAuth(BaseTestCase):
         )
 
         mockito.when2(
-            eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo, ...).thenAnswer(lambda: self.fake_confluence_user)
+            eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo, ...).thenAnswer(lambda *args, **kwargs: self.fake_confluence_user)
 
     async def test_atlassian_authorize_endpoint(self) -> None:
         response = await self.make_request(
@@ -216,7 +217,7 @@ class TestAtlassianOAuth(BaseTestCase):
         eave_account = await self.make_account(
             team_id=eave_team.id,
             auth_provider=eave.stdlib.core_api.enums.AuthProvider.atlassian,
-            auth_id=self.anystring("authed_user.id"),
+            auth_id=self.anystring("confluence.account_id"),
             access_token=self.anystring("old_access_token"),
             refresh_token=self.anystring("old_refresh_token"),
         )
@@ -335,3 +336,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
         assert (await self.count(eave.core.internal.orm.TeamOrm)) == 0
+
+    async def test_atlassian_default_confluence_space(self) -> None:
+        self.skipTest("TODO")

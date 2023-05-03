@@ -1,3 +1,4 @@
+import time
 import http
 import json
 import typing
@@ -6,6 +7,7 @@ import eave.core.internal.oauth.state_cookies
 import eave.core.internal
 import eave.core.internal.orm
 import eave.stdlib.core_api
+import eave.pubsub_schemas
 
 def verify_oauth_state_or_exception(state: str, auth_provider: eave.stdlib.core_api.enums.AuthProvider, request: fastapi.Request, response: fastapi.Response) -> typing.Literal[True]:
     # verify request not tampered
@@ -95,6 +97,18 @@ async def create_new_account_and_team(request: fastapi.Request, eave_team_name: 
             auth_id=auth_id,
             access_token=access_token,
             refresh_token=refresh_token,
+        )
+
+        eave.stdlib.analytics.log_event(
+            event_name="eave_account_registration",
+            event_description="A new account was created",
+            eave_account_id=eave_account.id,
+            eave_team_id=eave_account.team_id,
+            eave_visitor_id=eave_account.visitor_id,
+            event_source="core api oauth",
+            opaque_params={
+                "auth_provider": auth_provider.value,
+            },
         )
 
     return eave_account

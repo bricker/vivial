@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from functools import cache
 from typing import List
+import typing
 
 import eave.stdlib
+from oauthlib.oauth2 import OAuth2Token
 import requests_oauthlib
 
 from ..config import app_config
@@ -125,3 +127,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     @property
     def confluence_context(self) -> eave.stdlib.atlassian.ConfluenceContext:
         return eave.stdlib.atlassian.ConfluenceContext(base_url=self.api_base_url)
+
+    def get_token(self) -> OAuth2Token:
+        """This is mostly for tests"""
+        return typing.cast(OAuth2Token, self.token)

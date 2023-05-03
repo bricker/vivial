@@ -1,3 +1,4 @@
+import eave.pubsub_schemas
 import asyncio
 import enum
 import re
@@ -363,7 +364,8 @@ class SlackMessage:
 
     @property
     def is_eave(self) -> bool:
-        return self.app_id == app_config.eave_slack_app_id
+        v: bool = self.app_id == app_config.eave_slack_app_id
+        return v
 
     async def send_response(
         self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None
@@ -378,6 +380,7 @@ class SlackMessage:
                 text=msg,
                 thread_ts=self.parent_ts,
             )
+
             return
 
     #         if blocks is not None:

@@ -1,5 +1,7 @@
 import typing
 import uuid
+
+from slack_sdk.web.async_client import AsyncWebClient
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.oauth.slack
@@ -11,6 +13,7 @@ import fastapi
 import oauthlib.common
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from . import shared
+import eave.pubsub_schemas
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.slack
 
@@ -110,3 +113,50 @@ async def _update_or_create_slack_installation(
                 bot_token=slack_bot_access_token,
                 bot_refresh_token=slack_bot_refresh_token,
             )
+
+    slack_client = AsyncWebClient()
+    slack_client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=slack_bot_access_token)
+
+    approximate_num_members = 0
+
+    try:
+        # Try to get the number of members in the Slack workspace.
+        # This counts the number of people in the #general channel, but you can only find the #general channel by
+        # looping through the entire list of channels.
+        # Anyways, if there is any error for any reason, just abort and move on.
+        cursor = None
+        while True:
+            channels_response = await slack_client.conversations_list(
+                cursor=cursor,
+                exclude_archived=True, types="public_channel",
+            )
+            assert isinstance(data := channels_response.data, dict), "Unexpected response data"
+            assert isinstance(channels := data["channels"], list), "Unexpected response data"
+            candidates = list(filter(lambda c: c.get("name") == "general", channels))
+            if len(candidates) > 0:
+                approximate_num_members = candidates[0].get("num_members")
+                break
+            else:
+                response_metadata = data.get("response_metadata")
+                if not response_metadata:
+                    break
+                assert isinstance(response_metadata, dict)
+                cursor = response_metadata.get("next_cursor")
+                if not cursor:
+                    break
+
+    except Exception as e:
+        eave.stdlib.logger.error("Error fetching Slack workspace user count", exc_info=e, extra=eave_state.log_context)
+
+    eave.stdlib.analytics.log_event(
+        event_name="eave_application_integration",
+        event_description="An integration was added for a team",
+        eave_account_id=eave_account.id,
+        eave_team_id=eave_account.team_id,
+        eave_visitor_id=eave_account.visitor_id,
+        event_source="core api oauth",
+        opaque_params={
+            "integration_name": eave.stdlib.core_api.enums.Integration.slack.value,
+            "approximate_num_members": approximate_num_members,
+        },
+    )

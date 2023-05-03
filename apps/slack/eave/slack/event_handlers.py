@@ -1,3 +1,4 @@
+import eave.stdlib.core_api
 import json
 import os
 from typing import Optional
@@ -6,9 +7,10 @@ import eave.slack.brain
 import eave.slack.slack_models
 import eave.stdlib.util as eave_util
 from eave.slack.config import app_config
+import eave.stdlib
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
-
+import eave.pubsub_schemas
 
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
@@ -18,7 +20,7 @@ def register_event_handlers(app: AsyncApp) -> None:
     app.event("file_shared")(noop_handler)
     app.event("file_public")(noop_handler)
     app.event("file_deleted")(noop_handler)
-    app.event("member_joined_channel")(noop_handler)
+    app.event("member_joined_channel")(event_member_joined_channel_handler)
 
 
 async def shortcut_eave_watch_request_handler(
@@ -51,7 +53,9 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
     assert event is not None
 
     eave_team = context.get("eave_team")
-    assert eave_team is not None
+    if not eave_team:
+        logger.error(msg := "No eave team available in message handler.")
+        raise AssertionError(msg)
 
     message = eave.slack.slack_models.SlackMessage(data=event, slack_context=context)
 
@@ -67,6 +71,44 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
     b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
     eave_util.do_in_background(b.process_message())
 
+async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
+    eave_team = context.get("eave_team")
+
+    if not event or not event.get("channel"):
+        logger.error(msg := "member_joined_channel event received, but channel wasn't available.")
+        raise AssertionError(msg)
+
+    if context.client:
+        await context.client.chat_postMessage(
+            channel=event["channel"],
+            text=(msg := (
+                "Hey all! I'm Eave! "
+                "My job here is to write and maintain your documentation, so you can focus on everything else. "
+                "If you need me, just tag @Eave!"
+            ))
+        )
+
+        eave.stdlib.analytics.log_event(
+            event_name="eave_sent_message",
+            event_description="Eave sent a message",
+            event_source="slack app",
+            eave_team_id=eave_team.id if eave_team else None,
+            opaque_params={
+                "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                "message_content": msg,
+                "message_purpose": "introduction after joining a channel",
+            },
+        )
+    else:
+        logger.warning("No Slack client available in the Slack context.")
+
+    eave.stdlib.analytics.log_event(
+        event_name="eave_joined_slack_channel",
+        event_description="Eave joined a slack channel",
+        event_source="slack app",
+        eave_team_id=eave_team.id if eave_team else None,
+        opaque_params=None,
+    )
 
 async def noop_handler() -> None:
     pass

@@ -14,6 +14,7 @@ from eave.stdlib import logger
 import eave.core.public.requests.util
 from . import shared
 import atlassian
+import eave.pubsub_schemas
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.atlassian
 
@@ -42,25 +43,25 @@ async def atlassian_oauth_callback(
 
     oauth_session = oauth_atlassian.AtlassianOAuthSession(state=state)
     oauth_session.fetch_token(code=code)
+    token = oauth_session.get_token()
     atlassian_cloud_id = oauth_session.atlassian_cloud_id
 
-    token = typing.cast(OAuth2Token, oauth_session.token)
     access_token = token.get("access_token")
     refresh_token = token.get("refresh_token")
 
     if not access_token or not refresh_token:
-        eave.stdlib.logger.warning("missing tokens.", extra=eave_state.log_context)
-        raise eave.stdlib.exceptions.InvalidAuthError()
+        eave.stdlib.logger.warning(msg := "missing tokens.", extra=eave_state.log_context)
+        raise eave.stdlib.exceptions.InvalidAuthError(msg)
 
     userinfo = oauth_session.get_userinfo()
     if not userinfo.account_id:
-        eave.stdlib.logger.warning("atlassian account_id missing; can't create account.", extra=eave_state.log_context)
-        raise eave.stdlib.exceptions.InvalidAuthError()
+        eave.stdlib.logger.warning(msg := "atlassian account_id missing; can't create account.", extra=eave_state.log_context)
+        raise eave.stdlib.exceptions.InvalidAuthError(msg)
 
     resources = oauth_session.get_available_resources()
     resource = next(iter(resources), None)
 
-    if resource:
+    if resource and resource.name:
         eave_team_name = resource.name
     else:
         name = userinfo.display_name
@@ -87,7 +88,7 @@ async def atlassian_oauth_callback(
     return response
 
 async def _update_or_create_installation(eave_state: eave.core.public.requests.util.EaveRequestState, eave_account: eave.core.internal.orm.AccountOrm, atlassian_cloud_id: str, oauth_session: oauth_atlassian.AtlassianOAuthSession) -> None:
-    oauth_token_encoded = json.dumps(oauth_session.token)
+    oauth_token_encoded = json.dumps(oauth_session.get_token())
 
     async with eave.core.internal.database.async_session.begin() as db_session:
         installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
@@ -96,8 +97,7 @@ async def _update_or_create_installation(eave_state: eave.core.public.requests.u
         )
 
         if installation and installation.team_id != eave_account.team_id:
-            msg = f"An Atlassian integration already exists for atlassian_cloud_id {atlassian_cloud_id}"
-            await eave_state.add_note(msg)
+            await eave_state.add_note(msg := f"An Atlassian integration already exists for atlassian_cloud_id {atlassian_cloud_id}")
             logger.warning(msg, extra=eave_state.log_context)
             return
 
@@ -130,4 +130,17 @@ async def _update_or_create_installation(eave_state: eave.core.public.requests.u
                 atlassian_cloud_id=atlassian_cloud_id,
                 oauth_token_encoded=oauth_token_encoded,
                 confluence_space_key=default_space_key,
+            )
+
+            eave.stdlib.analytics.log_event(
+                event_name="eave_application_integration",
+                event_description="An integration was added for a team",
+                eave_account_id=eave_account.id,
+                eave_team_id=eave_account.team_id,
+                eave_visitor_id=eave_account.visitor_id,
+                event_source="core api oauth",
+                opaque_params={
+                    "integration_name": eave.stdlib.core_api.enums.Integration.atlassian.value,
+                    "default_confluence_space_was_used": default_space_key is not None,
+                },
             )
