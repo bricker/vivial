@@ -49,6 +49,7 @@ class InvalidSignatureError(BadRequestError):
 class InvalidStateError(BadRequestError):
     pass
 
+
 class MissingRequiredHeaderError(BadRequestError):
     pass
 

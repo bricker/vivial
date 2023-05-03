@@ -1,19 +1,16 @@
 from typing import cast
 
-import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.google
-import eave.stdlib.cookies as eave_auth_cookies
 import eave.stdlib.core_api.enums
 import fastapi
 import google.oauth2.credentials
 import google.oauth2.id_token
-from eave.core.internal.config import app_config
 from eave.core.internal.oauth import state_cookies as oauth_cookies
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.team import TeamOrm
+
 from . import shared
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.google
+
 
 async def google_oauth_authorize() -> fastapi.Response:
     oauth_flow_info = eave.core.internal.oauth.google.get_oauth_flow_info()
@@ -26,8 +23,12 @@ async def google_oauth_authorize() -> fastapi.Response:
     return response
 
 
-async def google_oauth_callback(state: str, code: str, request: fastapi.Request, response: fastapi.Response) -> fastapi.Response:
-    shared.verify_oauth_state_or_exception(state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response)
+async def google_oauth_callback(
+    state: str, code: str, request: fastapi.Request, response: fastapi.Response
+) -> fastapi.Response:
+    shared.verify_oauth_state_or_exception(
+        state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response
+    )
 
     flow = eave.core.internal.oauth.google.build_flow(state=state)
     flow.fetch_token(code=code)

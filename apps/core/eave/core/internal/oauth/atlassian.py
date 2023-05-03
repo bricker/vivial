@@ -1,11 +1,11 @@
+import typing
 from dataclasses import dataclass
 from functools import cache
 from typing import List
-import typing
 
 import eave.stdlib
-from oauthlib.oauth2 import OAuth2Token
 import requests_oauthlib
+from oauthlib.oauth2 import OAuth2Token
 
 from ..config import app_config
 from .models import OAuthFlowInfo

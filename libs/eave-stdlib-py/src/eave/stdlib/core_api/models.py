@@ -4,12 +4,14 @@ from datetime import datetime
 from typing import List, Optional
 
 import pydantic
+
 from . import enums
 
 
 class ConfluenceSpace(pydantic.BaseModel):
     key: str
     name: str
+
 
 @dataclass
 class AuthTokenPair:
@@ -114,6 +116,7 @@ class Integrations(pydantic.BaseModel):
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
     atlassian: Optional[AtlassianInstallation]
+
 
 class ErrorResponse(pydantic.BaseModel):
     eave_account_id: Optional[str]

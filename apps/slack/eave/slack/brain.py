@@ -1,5 +1,4 @@
 import asyncio
-import json
 import random
 from typing import Optional
 
@@ -225,31 +224,37 @@ class Brain:
 
         if subscription is None:
             await self.message.send_response(
-                text=(msg := (
-                    "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                    f"Do you want me to watch and document this conversation? (This feature is not yet implemented) "
-                    "If you needed something else, try phrasing it differently."
-                ))
+                text=(
+                    msg := (
+                        "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                        f"Do you want me to watch and document this conversation? (This feature is not yet implemented) "
+                        "If you needed something else, try phrasing it differently."
+                    )
+                )
             )
 
             # TODO: handle the response to this, eg if the user says "Yes please" or "No thanks"
 
         elif subscription.document_reference is not None:
             await self.message.send_response(
-                text=(msg := (
-                    "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                    f"As a reminder, I'm watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
-                    "If you needed something else, try phrasing it differently."
-                ))
+                text=(
+                    msg := (
+                        "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                        f"As a reminder, I'm watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                        "If you needed something else, try phrasing it differently."
+                    )
+                )
             )
 
         else:
             await self.message.send_response(
-                text=(msg := (
-                    "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                    f"I'm currently working on the documentation for this conversation, and I'll send an update when it's ready. "
-                    "If you needed something else, try phrasing it differently."
-                ))
+                text=(
+                    msg := (
+                        "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
+                        f"I'm currently working on the documentation for this conversation, and I'll send an update when it's ready. "
+                        "If you needed something else, try phrasing it differently."
+                    )
+                )
             )
 
         eave.stdlib.analytics.log_event(
@@ -283,10 +288,12 @@ class Brain:
         upsert_document_response = await self.upsert_document(document=api_document)
 
         await self.message.send_response(
-            text=(msg := (
-                "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
-                f"<{upsert_document_response.document_reference.document_url}|{api_document.title}>"
-            ))
+            text=(
+                msg := (
+                    "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
+                    f"<{upsert_document_response.document_reference.document_url}|{api_document.title}>"
+                )
+            )
         )
 
         eave.stdlib.analytics.log_event(
@@ -301,7 +308,6 @@ class Brain:
                 "message_purpose": "link to initial documentation",
             },
         )
-
 
     async def build_documentation(self) -> eave_ops.DocumentInput:
         logger.debug("Brain.build_documentation")
@@ -404,7 +410,9 @@ class Brain:
         # ]
         # await self.message.send_response(blocks=blocks)
 
-        await self.message.send_response(text=(msg := "I haven't yet been taught how to search existing documentation."))
+        await self.message.send_response(
+            text=(msg := "I haven't yet been taught how to search existing documentation.")
+        )
 
         eave.stdlib.analytics.log_event(
             event_name="eave_sent_message",
@@ -420,7 +428,9 @@ class Brain:
         )
 
     async def update_documentation(self) -> None:
-        await self.message.send_response(text=(msg := "I haven't yet been taught how to update existing documentation."))
+        await self.message.send_response(
+            text=(msg := "I haven't yet been taught how to update existing documentation.")
+        )
 
         eave.stdlib.analytics.log_event(
             event_name="eave_sent_message",
@@ -440,7 +450,9 @@ class Brain:
         await self.upsert_document(document=api_document)
 
     async def archive_documentation(self) -> None:
-        await self.message.send_response(text=(msg := "I haven't yet been taught how to archive existing documentation."))
+        await self.message.send_response(
+            text=(msg := "I haven't yet been taught how to archive existing documentation.")
+        )
         eave.stdlib.analytics.log_event(
             event_name="eave_sent_message",
             event_description="Eave sent a message",
@@ -601,10 +613,12 @@ class Brain:
     async def notify_existing_subscription(self, subscription: eave_ops.GetSubscription.ResponseBody) -> None:
         if subscription.document_reference is not None:
             await self.message.send_response(
-                text=(msg := (
-                    f"Hey! I'm already watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
-                    "Let me know if you need anything else!"
-                ))
+                text=(
+                    msg := (
+                        f"Hey! I'm already watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                        "Let me know if you need anything else!"
+                    )
+                )
             )
 
             eave.stdlib.analytics.log_event(
@@ -623,9 +637,11 @@ class Brain:
 
         else:
             await self.message.send_response(
-                text=(msg := (
-                    f"Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready."
-                ))
+                text=(
+                    msg := (
+                        f"Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready."
+                    )
+                )
             )
             eave.stdlib.analytics.log_event(
                 event_name="eave_sent_message",

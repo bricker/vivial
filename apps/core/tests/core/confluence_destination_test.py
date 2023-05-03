@@ -1,10 +1,11 @@
 import atlassian
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.oauth.atlassian as atlassian_oauth
+import eave.stdlib
 import eave.stdlib.core_api.operations as eave_ops
 import mockito
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
-import eave.stdlib
+
 from . import fixtures
 from .base import BaseTestCase
 

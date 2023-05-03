@@ -7,8 +7,7 @@ from typing import Any, Coroutine
 
 # Import some common modules
 import eave.core.internal.orm.base
-from eave.core.internal.config import app_config as app_config
-import eave.core.internal.orm as eave_orm
+
 
 def run_coro(func: Coroutine[Any, Any, Any]) -> None:
     asyncio.run(func)

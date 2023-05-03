@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-
 from .util import UUID_DEFAULT_EXPR
 
 

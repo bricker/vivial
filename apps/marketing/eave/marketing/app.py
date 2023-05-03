@@ -1,18 +1,17 @@
-from http import HTTPStatus
 from typing import Any
-import typing
 
 import eave.stdlib.api_util as eave_api_util
+import eave.stdlib.cookies
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.cookies
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
-from flask import Flask, Response, redirect, render_template, request, make_response
 import werkzeug.exceptions
+from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
+
 from .config import app_config
 
 eave.stdlib.time.set_utc()
@@ -43,6 +42,7 @@ def _render_spa(**kwargs: Any) -> str:
 async def dashboard() -> str:
     return "OK"
 
+
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
@@ -58,10 +58,11 @@ async def authed_account_team() -> Response:
     response = make_response(eave_response.json())
     eave.stdlib.cookies.set_auth_cookies(
         response=response,
-        access_token=eave_response.account.access_token, # In case the access token was refreshed
+        access_token=eave_response.account.access_token,  # In case the access token was refreshed
     )
 
     return response
+
 
 @app.route("/dashboard/me/team/integrations/atlassian/update", methods=["POST"])
 async def update_atlassian_integration() -> Response:
@@ -86,10 +87,11 @@ async def update_atlassian_integration() -> Response:
     response = make_response(eave_response.json())
     eave.stdlib.cookies.set_auth_cookies(
         response=response,
-        access_token=eave_response.account.access_token, # In case the access token was refreshed
+        access_token=eave_response.account.access_token,  # In case the access token was refreshed
     )
 
     return response
+
 
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:

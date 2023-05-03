@@ -1,21 +1,21 @@
 import typing
-import uuid
 
-from slack_sdk.web.async_client import AsyncWebClient
 import eave.core.internal
-import eave.core.internal.orm
 import eave.core.internal.oauth.slack
-import eave.core.internal.oauth.slack as eave_slack_oauth
+import eave.core.internal.orm
+import eave.core.public.requests.util
+import eave.pubsub_schemas
 import eave.stdlib
 import eave.stdlib.core_api
-import eave.core.public.requests.util
 import fastapi
 import oauthlib.common
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from slack_sdk.web.async_client import AsyncWebClient
+
 from . import shared
-import eave.pubsub_schemas
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.slack
+
 
 async def slack_oauth_authorize() -> fastapi.Response:
     # random value for verifying request wasnt tampered with via CSRF
@@ -36,7 +36,9 @@ async def slack_oauth_callback(
     request: fastapi.Request,
     response: fastapi.Response,
 ) -> fastapi.Response:
-    shared.verify_oauth_state_or_exception(state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response)
+    shared.verify_oauth_state_or_exception(
+        state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response
+    )
 
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
 
@@ -128,7 +130,8 @@ async def _update_or_create_slack_installation(
         while True:
             channels_response = await slack_client.conversations_list(
                 cursor=cursor,
-                exclude_archived=True, types="public_channel",
+                exclude_archived=True,
+                types="public_channel",
             )
             assert isinstance(data := channels_response.data, dict), "Unexpected response data"
             assert isinstance(channels := data["channels"], list), "Unexpected response data"

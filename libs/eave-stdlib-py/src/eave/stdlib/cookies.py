@@ -12,6 +12,7 @@ EAVE_VISITOR_ID_COOKIE = f"ev_visitor_id"
 EAVE_ACCOUNT_ID_COOKIE = f"ev_account_id"
 EAVE_ACCESS_TOKEN_COOKIE = f"ev_access_token"
 
+
 class ResponseCookieMutator(Protocol):
     # Copied from FastAPI's set_cookie signature
     def set_cookie(
@@ -28,14 +29,16 @@ class ResponseCookieMutator(Protocol):
     ) -> Any:
         ...
 
+
 @dataclass
 class TrackingCookies:
     utm_params: typing.Optional[typing.Dict[str, str]]
     visitor_id: typing.Optional[uuid.UUID]
 
-def get_tracking_cookies(cookies: Mapping[str,str]) -> TrackingCookies:
+
+def get_tracking_cookies(cookies: Mapping[str, str]) -> TrackingCookies:
     visitor_id = cookies.get(EAVE_VISITOR_ID_COOKIE)
-    utm_params: typing.Dict[str,str] = {}
+    utm_params: typing.Dict[str, str] = {}
 
     for key, value in cookies.items():
         if re.match(EAVE_COOKIE_PREFIX_UTM, key):
@@ -47,10 +50,12 @@ def get_tracking_cookies(cookies: Mapping[str,str]) -> TrackingCookies:
         visitor_id=uuid.UUID(visitor_id) if visitor_id else None,
     )
 
+
 @dataclass
 class AuthCookies:
     account_id: typing.Optional[uuid.UUID]
     access_token: typing.Optional[str]
+
 
 def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
     account_id = cookies.get(EAVE_ACCOUNT_ID_COOKIE)
@@ -62,7 +67,11 @@ def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
     )
 
 
-def set_auth_cookies(response: ResponseCookieMutator, account_id: typing.Optional[uuid.UUID] = None, access_token: typing.Optional[str] = None) -> None:
+def set_auth_cookies(
+    response: ResponseCookieMutator,
+    account_id: typing.Optional[uuid.UUID] = None,
+    access_token: typing.Optional[str] = None,
+) -> None:
     if account_id:
         _set_auth_cookie(key=EAVE_ACCOUNT_ID_COOKIE, value=str(account_id), response=response)
 

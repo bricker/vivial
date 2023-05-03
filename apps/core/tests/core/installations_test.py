@@ -3,11 +3,11 @@ from http import HTTPStatus
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.github_installation
+import eave.core.internal.orm.slack_installation
+import eave.core.internal.orm.team
 import eave.stdlib.core_api.models
 import eave.stdlib.core_api.operations
-import eave.core.internal.orm.team
 import eave.stdlib.core_api.operations as eave_ops
 
 from .base import BaseTestCase
@@ -93,7 +93,6 @@ class TestInstallationsRequests(BaseTestCase):
     #     assert response.status_code == HTTPStatus.NOT_FOUND
     #     assert response.text == ""
 
-
     async def test_get_atlassian_installation(self) -> None:
         team = await self.make_team()
 
@@ -135,4 +134,3 @@ class TestInstallationsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.NOT_FOUND
         response_obj = eave.stdlib.core_api.models.ErrorResponse(**response.json())
         assert response_obj
-

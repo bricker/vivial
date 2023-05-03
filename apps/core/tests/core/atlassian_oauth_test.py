@@ -1,31 +1,20 @@
-from http import HTTPStatus
-import json
-import typing
-
-from .base import BaseTestCase
-from http import HTTPStatus
 import http
+import json
 import re
-import uuid
 import urllib.parse
-import google.oauth2.credentials
-import google.oauth2.id_token
+import uuid
+from http import HTTPStatus
 
-import google_auth_oauthlib.flow
-import google_auth_oauthlib.helpers
-import eave.core.internal.database as eave_db
+import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
 import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.team
-import eave.core.internal
-import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.core_api
 import mockito
 
 from .base import BaseTestCase
-import eave.core.internal.oauth.atlassian
+
 
 class TestAtlassianOAuth(BaseTestCase):
     def _mock_atlassian_oauth_response(self) -> None:
@@ -52,7 +41,9 @@ class TestAtlassianOAuth(BaseTestCase):
 
         # Do nothing
         mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token, ...)
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token, ...).thenAnswer(lambda *args, **kwargs: self.fake_token)
+        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token, ...).thenAnswer(
+            lambda *args, **kwargs: self.fake_token
+        )
 
         self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
             data={
@@ -62,24 +53,23 @@ class TestAtlassianOAuth(BaseTestCase):
                 "displayName": self.anystring("confluence.display_name"),
                 "email": self.anystring("confluence.email"),
             },
-            ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url"))
+            ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url")),
         )
 
-        mockito.when2(
-            eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo, ...).thenAnswer(lambda *args, **kwargs: self.fake_confluence_user)
+        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo, ...).thenAnswer(
+            lambda *args, **kwargs: self.fake_confluence_user
+        )
 
     async def test_atlassian_authorize_endpoint(self) -> None:
-        response = await self.make_request(
-            "/oauth/atlassian/authorize",
-            method="GET",
-            payload=None
-        )
+        response = await self.make_request("/oauth/atlassian/authorize", method="GET", payload=None)
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert response.cookies.get("ev_oauth_state_atlassian")
         assert response.headers["Location"]
         assert re.search(r"https://auth\.atlassian\.com/authorize", response.headers["Location"])
-        redirect_uri = urllib.parse.quote(f"{eave.core.internal.app_config.eave_api_base}/oauth/atlassian/callback", safe="")
+        redirect_uri = urllib.parse.quote(
+            f"{eave.core.internal.app_config.eave_api_base}/oauth/atlassian/callback", safe=""
+        )
         assert re.search(f"redirect_uri={redirect_uri}", response.headers["Location"])
 
     async def test_atlassian_callback_new_account(self) -> None:
@@ -97,13 +87,15 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-        assert not response.cookies.get("ev_oauth_state_atlassian") # Test the cookie was deleted
+        assert not response.cookies.get("ev_oauth_state_atlassian")  # Test the cookie was deleted
         assert response.headers["Location"]
-        assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks" # Default for non-whitelisted teams
+        assert (
+            response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
+        )  # Default for non-whitelisted teams
 
         account_id = response.cookies.get("ev_account_id")
         assert account_id
@@ -119,8 +111,7 @@ class TestAtlassianOAuth(BaseTestCase):
 
         async with self.db_session.begin() as db_session:
             atlassian_installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
-                session=db_session,
-                atlassian_cloud_id=self.anystring("atlassian_cloud_id")
+                session=db_session, atlassian_cloud_id=self.anystring("atlassian_cloud_id")
             )
             assert atlassian_installation
 
@@ -146,7 +137,7 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
-            }
+            },
         )
 
         account_id = response.cookies.get("ev_account_id")
@@ -170,7 +161,7 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
-            }
+            },
         )
 
         account_id = response.cookies.get("ev_account_id")
@@ -194,7 +185,7 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
-            }
+            },
         )
 
         account_id = response.cookies.get("ev_account_id")
@@ -208,7 +199,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert response.headers["Location"]
         assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
-
 
     async def test_atlassian_callback_existing_account(self) -> None:
         self._mock_atlassian_oauth_response()
@@ -231,7 +221,7 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
-            }
+            },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
@@ -244,7 +234,6 @@ class TestAtlassianOAuth(BaseTestCase):
         # Test that the cookies were updated
         assert response.cookies.get("ev_account_id") == str(eave_account.id)
         assert response.cookies.get("ev_access_token") == eave_account.access_token
-
 
     async def test_atlassian_callback_logged_in_account(self) -> None:
         self._mock_atlassian_oauth_response()
@@ -269,7 +258,7 @@ class TestAtlassianOAuth(BaseTestCase):
                 "ev_oauth_state_atlassian": self.anystring("state"),
                 "ev_account_id": str(eave_account.id),
                 "ev_access_token": eave_account.access_token,
-            }
+            },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
@@ -306,7 +295,7 @@ class TestAtlassianOAuth(BaseTestCase):
                 "ev_oauth_state_atlassian": self.anystring("state"),
                 "ev_account_id": str(eave_account_before.id),
                 "ev_access_token": eave_account_before.access_token,
-            }
+            },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
@@ -330,7 +319,7 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("invalid_state"),
-            }
+            },
         )
 
         assert response.status_code == http.HTTPStatus.BAD_REQUEST

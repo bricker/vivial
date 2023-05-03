@@ -1,7 +1,6 @@
-import importlib
-import os
 import typing
-from sqlalchemy import ForeignKeyConstraint, MetaData
+
+from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -23,7 +22,9 @@ def _load_all() -> None:
             module_name, _ = os.path.splitext(f)
             importlib.import_module(f"eave.core.internal.orm.{module_name}")
 
+
 _base_metadata: typing.Optional[MetaData] = None
+
 
 def get_base_metadata() -> MetaData:
     global _base_metadata
@@ -32,7 +33,3 @@ def get_base_metadata() -> MetaData:
         _base_metadata = Base.metadata
 
     return _base_metadata
-
-
-
-

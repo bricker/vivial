@@ -2,8 +2,8 @@ from typing import Optional
 
 import pydantic
 
-from . import models
-from . import enums
+from . import enums, models
+
 
 class AccessTokenExchangeOfferInput(pydantic.BaseModel):
     auth_provider: enums.AuthProvider
@@ -39,6 +39,7 @@ class GithubInstallationInput(pydantic.BaseModel):
 
 class AtlassianInstallationInput(pydantic.BaseModel):
     atlassian_cloud_id: str
+
 
 class UpdateAtlassianInstallationInput(pydantic.BaseModel):
     confluence_space_key: Optional[str]
@@ -124,6 +125,7 @@ class GetAtlassianInstallation(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
         atlassian_integration: models.AtlassianInstallation
+
 
 class UpdateAtlassianInstallation(Endpoint):
     class RequestBody(pydantic.BaseModel):

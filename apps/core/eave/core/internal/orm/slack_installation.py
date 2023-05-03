@@ -6,11 +6,8 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .util import make_team_composite_pk, make_team_fk
-
 from .base import Base
-
-from .util import UUID_DEFAULT_EXPR
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class SlackInstallationOrm(Base):

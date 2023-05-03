@@ -1,22 +1,22 @@
 import json
 import typing
 
-from oauthlib.oauth2 import OAuth2Token
-
+import atlassian
+import eave.core.internal
 import eave.core.internal.oauth.atlassian as oauth_atlassian
 import eave.core.internal.oauth.state_cookies as oauth_cookies
+import eave.core.internal.orm
+import eave.core.public.requests.util
+import eave.pubsub_schemas
 import eave.stdlib
 import eave.stdlib.core_api
-import eave.core.internal
-import eave.core.internal.orm
 import fastapi
 from eave.stdlib import logger
-import eave.core.public.requests.util
+
 from . import shared
-import atlassian
-import eave.pubsub_schemas
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.atlassian
+
 
 async def atlassian_oauth_authorize(request: fastapi.Request) -> fastapi.Response:
     oauth_session = oauth_atlassian.AtlassianOAuthSession()
@@ -37,7 +37,9 @@ async def atlassian_oauth_callback(
     request: fastapi.Request,
     response: fastapi.Response,
 ) -> fastapi.Response:
-    shared.verify_oauth_state_or_exception(state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response)
+    shared.verify_oauth_state_or_exception(
+        state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response
+    )
 
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
 
@@ -55,7 +57,9 @@ async def atlassian_oauth_callback(
 
     userinfo = oauth_session.get_userinfo()
     if not userinfo.account_id:
-        eave.stdlib.logger.warning(msg := "atlassian account_id missing; can't create account.", extra=eave_state.log_context)
+        eave.stdlib.logger.warning(
+            msg := "atlassian account_id missing; can't create account.", extra=eave_state.log_context
+        )
         raise eave.stdlib.exceptions.InvalidAuthError(msg)
 
     resources = oauth_session.get_available_resources()
@@ -87,7 +91,13 @@ async def atlassian_oauth_callback(
 
     return response
 
-async def _update_or_create_installation(eave_state: eave.core.public.requests.util.EaveRequestState, eave_account: eave.core.internal.orm.AccountOrm, atlassian_cloud_id: str, oauth_session: oauth_atlassian.AtlassianOAuthSession) -> None:
+
+async def _update_or_create_installation(
+    eave_state: eave.core.public.requests.util.EaveRequestState,
+    eave_account: eave.core.internal.orm.AccountOrm,
+    atlassian_cloud_id: str,
+    oauth_session: oauth_atlassian.AtlassianOAuthSession,
+) -> None:
     oauth_token_encoded = json.dumps(oauth_session.get_token())
 
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -97,7 +107,9 @@ async def _update_or_create_installation(eave_state: eave.core.public.requests.u
         )
 
         if installation and installation.team_id != eave_account.team_id:
-            await eave_state.add_note(msg := f"An Atlassian integration already exists for atlassian_cloud_id {atlassian_cloud_id}")
+            await eave_state.add_note(
+                msg := f"An Atlassian integration already exists for atlassian_cloud_id {atlassian_cloud_id}"
+            )
             logger.warning(msg, extra=eave_state.log_context)
             return
 
@@ -116,13 +128,18 @@ async def _update_or_create_installation(eave_state: eave.core.public.requests.u
 
                 spaces_response = confluence_client.get_all_spaces(space_status="current", space_type="global")
                 spaces_response_json = typing.cast(eave.stdlib.util.JsonObject, spaces_response)
-                spaces = [eave.stdlib.atlassian.ConfluenceSpace(s, oauth_session.confluence_context) for s in spaces_response_json["results"]]
+                spaces = [
+                    eave.stdlib.atlassian.ConfluenceSpace(s, oauth_session.confluence_context)
+                    for s in spaces_response_json["results"]
+                ]
                 if len(spaces) == 1 and (first_space := next(iter(spaces), None)):
                     default_space_key = first_space.key
 
             except Exception as e:
                 # We aggressively catch any error because this space fetching procedure is a convenience, but failure shouldn't prevent sign-up.
-                eave.stdlib.logger.error("error while fetching confluence spaces", exc_info=e, extra=eave_state.log_context)
+                eave.stdlib.logger.error(
+                    "error while fetching confluence spaces", exc_info=e, extra=eave_state.log_context
+                )
 
             installation = await eave.core.internal.orm.AtlassianInstallationOrm.create(
                 session=db_session,

@@ -2,10 +2,12 @@
 Atlassian data models
 """
 import enum
+import typing
 from dataclasses import dataclass
 from typing import Optional
-import typing
+
 from . import util
+
 
 @dataclass
 class AtlassianAvailableResource:
@@ -18,6 +20,7 @@ class AtlassianAvailableResource:
     url: str
     scopes: typing.List[str]
     avatarUrl: str
+
 
 class ConfluenceUserType(enum.Enum):
     known = "known"
@@ -137,6 +140,7 @@ class ConfluenceSpace(ConfluenceBaseModel):
         self.id = data.get("id")
         self.key = data.get("key")
         self.name = data.get("name")
+
 
 class ConfluenceUserDetails(ConfluenceBaseModel):
     pass

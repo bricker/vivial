@@ -34,6 +34,7 @@ async def slack(
         team=eave_team,
     )
 
+
 async def github(
     input: eave.stdlib.core_api.operations.GetGithubInstallation.RequestBody,
     request: fastapi.Request,
@@ -54,6 +55,7 @@ async def github(
     #     github_integration=eave.stdlib.core_api.models.GithubInstallation.from_orm(installation),
     #     team=eave.stdlib.core_api.models.Team.from_orm(eave_team),
     # )
+
 
 async def atlassian(
     input: eave.stdlib.core_api.operations.GetAtlassianInstallation.RequestBody,

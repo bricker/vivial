@@ -46,6 +46,7 @@ async def get_authed_account_team_integrations(
         integrations=integrations,
     )
 
+
 async def update_atlassian_integration(
     input: eave.stdlib.core_api.operations.UpdateAtlassianInstallation.RequestBody,
     request: fastapi.Request,

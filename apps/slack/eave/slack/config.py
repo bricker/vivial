@@ -1,4 +1,3 @@
-import os
 from functools import cached_property
 
 import eave.stdlib.config

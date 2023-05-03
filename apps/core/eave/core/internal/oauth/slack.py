@@ -130,9 +130,11 @@ class SlackOAuthResponse(TypedDict):
     team: SlackTeam
     authed_user: SlackAuthorizedUser
 
+
 def get_authenticated_client(access_token: str) -> AsyncWebClient:
     client = AsyncWebClient(token=access_token)
     return client
+
 
 async def get_userinfo_or_exception(access_token: str) -> SlackIdentity:
     client = AsyncWebClient()
@@ -143,6 +145,7 @@ async def get_userinfo_or_exception(access_token: str) -> SlackIdentity:
     response.validate()
     assert isinstance(response.data, dict)
     return SlackIdentity(response=response.data)
+
 
 async def get_access_token(
     code: str,

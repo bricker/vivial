@@ -5,20 +5,18 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
+import eave.stdlib.core_api.models
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .util import make_team_composite_pk, make_team_fk
-
-from .base import Base
-
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
 from ..oauth import atlassian as atlassian_oauth
-from .util import UUID_DEFAULT_EXPR
-import eave.stdlib.core_api.models
+from .base import Base
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+
 
 class AtlassianInstallationOrm(Base):
     __tablename__ = "atlassian_installations"
@@ -36,7 +34,9 @@ class AtlassianInstallationOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
-    confluence_space_key: Mapped[Optional[str]] = mapped_column("confluence_space") # This field was renamed from "confluence_space" to "confluence_space_key"
+    confluence_space_key: Mapped[Optional[str]] = mapped_column(
+        "confluence_space"
+    )  # This field was renamed from "confluence_space" to "confluence_space_key"
     oauth_token_encoded: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -105,11 +105,7 @@ class AtlassianInstallationOrm(Base):
     @property
     def available_confluence_spaces(self) -> typing.List[eave.stdlib.core_api.models.ConfluenceSpace]:
         spaces = self.confluence_destination.get_available_spaces()
-        return [
-            eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name)
-            for s in spaces
-            if s.key and s.name
-        ]
+        return [eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name) for s in spaces if s.key and s.name]
 
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(

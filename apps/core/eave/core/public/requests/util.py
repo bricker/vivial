@@ -139,6 +139,7 @@ class EaveRequestState:
 
             self._notes.append(note)
 
+
 def get_eave_state(
     scope: Optional[asgi_types.Scope] = None, request: Optional[fastapi.Request] = None
 ) -> EaveRequestState:

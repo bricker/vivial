@@ -10,20 +10,19 @@ from datetime import datetime
 from typing import Any, Optional, Protocol, Tuple, TypeVar
 from uuid import UUID, uuid4
 
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncSessionTransaction, async_sessionmaker
-
 import eave.core.app
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
-import eave.stdlib.core_api
 import eave.stdlib
+import eave.stdlib.core_api
 import mockito
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class AnyStandardOrm(Protocol):
@@ -41,6 +40,7 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 
 eave.core.internal.database.async_engine.echo = False  # shhh
 
+
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName)
@@ -53,17 +53,21 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             "EAVE_API_BASE": "https://api.eave.dev:8080",
             "EAVE_WWW_BASE": "https://www.eave.dev:8080",
             "EAVE_COOKIE_DOMAIN": ".eave.dev",
-            "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64": eave.stdlib.util.b64encode(json.dumps({
-                "web":{
-                    "client_id":self.anystring("google_oauth_client_id"),
-                    "project_id":"eavefyi-dev",
-                    "auth_uri":"https://accounts.google.com/o/oauth2/auth",
-                    "token_uri":"https://oauth2.googleapis.com/token",
-                    "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
-                    "client_secret":self.anystring("google_oauth_client_secret"),
-                    "redirect_uris":["https://api.eave.dev:8080/oauth/google/callback"]
-                }
-            }))
+            "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64": eave.stdlib.util.b64encode(
+                json.dumps(
+                    {
+                        "web": {
+                            "client_id": self.anystring("google_oauth_client_id"),
+                            "project_id": "eavefyi-dev",
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "client_secret": self.anystring("google_oauth_client_secret"),
+                            "redirect_uris": ["https://api.eave.dev:8080/oauth/google/callback"],
+                        }
+                    }
+                )
+            ),
         }
 
         async with eave.core.internal.database.async_engine.connect() as db_connection:
@@ -309,7 +313,9 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return (access_token, refresh_token, auth_token)
 
     async def make_team(self) -> eave.core.internal.orm.TeamOrm:
-        team = eave.core.internal.orm.TeamOrm(name=self.anystring("team name"), document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence)
+        team = eave.core.internal.orm.TeamOrm(
+            name=self.anystring("team name"), document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
+        )
         await self.save(team)
         return team
 
@@ -324,7 +330,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             access_token=kwargs.pop("access_token", self.anystring("oauth_token")),
             refresh_token=kwargs.pop("refresh_token", self.anystring("refresh_token")),
             team_id=team_id,
-            **kwargs
+            **kwargs,
         )
         await self.save(account)
         return account

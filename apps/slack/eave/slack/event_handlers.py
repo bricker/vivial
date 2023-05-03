@@ -1,16 +1,17 @@
-import eave.stdlib.core_api
 import json
 import os
 from typing import Optional
 
+import eave.pubsub_schemas
 import eave.slack.brain
 import eave.slack.slack_models
+import eave.stdlib
+import eave.stdlib.core_api
 import eave.stdlib.util as eave_util
 from eave.slack.config import app_config
-import eave.stdlib
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
-import eave.pubsub_schemas
+
 
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
@@ -71,6 +72,7 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
     b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
     eave_util.do_in_background(b.process_message())
 
+
 async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
     eave_team = context.get("eave_team")
 
@@ -81,11 +83,13 @@ async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObje
     if context.client:
         await context.client.chat_postMessage(
             channel=event["channel"],
-            text=(msg := (
-                "Hey all! I'm Eave! "
-                "My job here is to write and maintain your documentation, so you can focus on everything else. "
-                "If you need me, just tag @Eave!"
-            ))
+            text=(
+                msg := (
+                    "Hey all! I'm Eave! "
+                    "My job here is to write and maintain your documentation, so you can focus on everything else. "
+                    "If you need me, just tag @Eave!"
+                )
+            ),
         )
 
         eave.stdlib.analytics.log_event(
@@ -109,6 +113,7 @@ async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObje
         eave_team_id=eave_team.id if eave_team else None,
         opaque_params=None,
     )
+
 
 async def noop_handler() -> None:
     pass

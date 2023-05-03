@@ -1,25 +1,24 @@
-from http import HTTPStatus
 import http
 import re
-import uuid
 import urllib.parse
-import google.oauth2.credentials
-import google.oauth2.id_token
+import uuid
+from http import HTTPStatus
 
-import google_auth_oauthlib.flow
-import google_auth_oauthlib.helpers
-import eave.core.internal.database as eave_db
-import eave.core.internal.oauth.slack
+import eave.core.internal
 import eave.core.internal.oauth.google
+import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
-import eave.core.internal
-import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.core_api
+import google.oauth2.credentials
+import google.oauth2.id_token
+import google_auth_oauthlib.flow
+import google_auth_oauthlib.helpers
 import mockito
 
 from .base import BaseTestCase
+
 
 class TestGoogleOAuthHandler(BaseTestCase):
     def _mock_google_auth_response(self) -> None:
@@ -29,7 +28,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             "email": self.anystring("google.email"),
         }
 
-        mockito.when2(google_auth_oauthlib.flow.Flow.fetch_token, **mockito.kwargs) # do nothing
+        mockito.when2(google_auth_oauthlib.flow.Flow.fetch_token, **mockito.kwargs)  # do nothing
 
         mockito.when2(google_auth_oauthlib.helpers.credentials_from_session, ...).thenReturn(
             google.oauth2.credentials.Credentials(
@@ -52,7 +51,9 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.cookies.get("ev_oauth_state_google")
         assert response.headers["Location"]
         assert re.search(r"^https://accounts\.google\.com/o/oauth2/auth", response.headers["Location"])
-        redirect_uri = urllib.parse.quote(f"{eave.core.internal.app_config.eave_api_base}/oauth/google/callback", safe="")
+        redirect_uri = urllib.parse.quote(
+            f"{eave.core.internal.app_config.eave_api_base}/oauth/google/callback", safe=""
+        )
         assert re.search(redirect_uri, response.headers["Location"])
 
     async def test_google_callback_new_account(self) -> None:
@@ -69,13 +70,15 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_google": self.anystring("state"),
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-        assert not response.cookies.get("ev_oauth_state_google") # Test the cookie was deleted
+        assert not response.cookies.get("ev_oauth_state_google")  # Test the cookie was deleted
         assert response.headers["Location"]
-        assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks" # Default for non-whitelisted teams
+        assert (
+            response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
+        )  # Default for non-whitelisted teams
 
         account_id = response.cookies.get("ev_account_id")
         assert account_id
@@ -93,7 +96,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.google
         assert eave_team.name == f"{self.anystring('google.given_name')}'s Team"
 
-
     async def test_google_callback_new_account_without_name_from_google(self) -> None:
         self.testdata["google.given_name"] = None
         self._mock_google_auth_response()
@@ -107,7 +109,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_google": self.anystring("state"),
-            }
+            },
         )
 
         account_id = response.cookies.get("ev_account_id")
@@ -131,7 +133,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_google": self.anystring("state"),
-            }
+            },
         )
 
         account_id = response.cookies.get("ev_account_id")
@@ -146,7 +148,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert response.headers["Location"]
         assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
-
 
     async def test_google_callback_existing_account(self) -> None:
         self._mock_google_auth_response()
@@ -169,7 +170,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_google": self.anystring("state"),
-            }
+            },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
@@ -182,7 +183,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         # Test that the cookies were updated
         assert response.cookies.get("ev_account_id") == str(eave_account.id)
         assert response.cookies.get("ev_access_token") == eave_account.access_token
-
 
     async def test_google_callback_logged_in_account(self) -> None:
         self._mock_google_auth_response()
@@ -207,7 +207,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 "ev_oauth_state_google": self.anystring("state"),
                 "ev_account_id": str(eave_account.id),
                 "ev_access_token": eave_account.access_token,
-            }
+            },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
@@ -218,7 +218,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert eave_account.refresh_token == self.anystring("google.refresh_token")
 
         # Test that the cookies were updated
-        assert response.cookies.get("ev_account_id") ==   str(eave_account.id)
+        assert response.cookies.get("ev_account_id") == str(eave_account.id)
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
     async def test_google_callback_logged_in_account_another_provider(self) -> None:
@@ -244,7 +244,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 "ev_oauth_state_google": self.anystring("state"),
                 "ev_account_id": str(eave_account_before.id),
                 "ev_access_token": eave_account_before.access_token,
-            }
+            },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
@@ -268,7 +268,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_google": self.anystring("invalid_state"),
-            }
+            },
         )
 
         assert response.status_code == http.HTTPStatus.BAD_REQUEST

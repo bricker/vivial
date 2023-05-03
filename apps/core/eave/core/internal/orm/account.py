@@ -4,22 +4,20 @@ from datetime import datetime
 from typing import Dict, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from .util import make_team_composite_pk, make_team_fk
-from .base import Base
-from .team import TeamOrm
-
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
 import eave.core.internal.oauth.slack
-import eave.stdlib.core_api
 import eave.stdlib
+import eave.stdlib.core_api
 import slack_sdk.errors
 from sqlalchemy import Index, Select, func, select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import JSONB
 
-from .util import UUID_DEFAULT_EXPR
+from .base import Base
+from .team import TeamOrm
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class AccountOrm(Base):
@@ -51,7 +49,9 @@ class AccountOrm(Base):
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
-    access_token: Mapped[str] = mapped_column("oauth_token") # This field was renamed from "oauth_token" to "access_token"
+    access_token: Mapped[str] = mapped_column(
+        "oauth_token"
+    )  # This field was renamed from "oauth_token" to "access_token"
     """access token from 3rd party"""
     refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""

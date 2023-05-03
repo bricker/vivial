@@ -1,25 +1,29 @@
-import time
 import http
-import json
 import typing
-import fastapi
-import eave.core.internal.oauth.state_cookies
-import eave.core.internal
-import eave.core.internal.orm
-import eave.stdlib.core_api
-import eave.pubsub_schemas
 
-def verify_oauth_state_or_exception(state: str, auth_provider: eave.stdlib.core_api.enums.AuthProvider, request: fastapi.Request, response: fastapi.Response) -> typing.Literal[True]:
+import eave.core.internal
+import eave.core.internal.oauth.state_cookies
+import eave.core.internal.orm
+import eave.pubsub_schemas
+import eave.stdlib.core_api
+import fastapi
+
+
+def verify_oauth_state_or_exception(
+    state: str,
+    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    request: fastapi.Request,
+    response: fastapi.Response,
+) -> typing.Literal[True]:
     # verify request not tampered
-    cookie_state = eave.core.internal.oauth.state_cookies.get_state_cookie(
-        request=request, provider=auth_provider
-    )
+    cookie_state = eave.core.internal.oauth.state_cookies.get_state_cookie(request=request, provider=auth_provider)
     eave.core.internal.oauth.state_cookies.delete_state_cookie(response=response, provider=auth_provider)
 
     if state != cookie_state:
         raise eave.stdlib.exceptions.InvalidStateError()
 
     return True
+
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
     if email:
@@ -28,7 +32,13 @@ def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
     else:
         return False
 
-async def get_logged_in_eave_account(request: fastapi.Request, auth_provider: eave.stdlib.core_api.enums.AuthProvider, access_token: str, refresh_token: typing.Optional[str]) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
+
+async def get_logged_in_eave_account(
+    request: fastapi.Request,
+    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    access_token: str,
+    refresh_token: typing.Optional[str],
+) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
     """
     Check if the user is logged in, and if so, get the account associated with the provided access token and account ID.
     """
@@ -37,9 +47,7 @@ async def get_logged_in_eave_account(request: fastapi.Request, auth_provider: ea
     if auth_cookies.access_token and auth_cookies.account_id:
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
-                session=db_session,
-                id=auth_cookies.account_id,
-                access_token=auth_cookies.access_token
+                session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
             )
 
             if eave_account.auth_provider == auth_provider:
@@ -55,7 +63,13 @@ async def get_logged_in_eave_account(request: fastapi.Request, auth_provider: ea
     else:
         return None
 
-async def get_existing_eave_account(auth_provider: eave.stdlib.core_api.enums.AuthProvider, auth_id: str, access_token: str, refresh_token: typing.Optional[str]) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
+
+async def get_existing_eave_account(
+    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_id: str,
+    access_token: str,
+    refresh_token: typing.Optional[str],
+) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
     """
     Check for existing account with the given provider and ID.
     Also updates access_token and refresh_token in the database.
@@ -77,7 +91,15 @@ async def get_existing_eave_account(auth_provider: eave.stdlib.core_api.enums.Au
     return eave_account
 
 
-async def create_new_account_and_team(request: fastapi.Request, eave_team_name: str, beta_whitelisted: bool, auth_provider: eave.stdlib.core_api.enums.AuthProvider, auth_id: str, access_token: str, refresh_token: typing.Optional[str]) -> eave.core.internal.orm.AccountOrm:
+async def create_new_account_and_team(
+    request: fastapi.Request,
+    eave_team_name: str,
+    beta_whitelisted: bool,
+    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_id: str,
+    access_token: str,
+    refresh_token: typing.Optional[str],
+) -> eave.core.internal.orm.AccountOrm:
     tracking_cookies = eave.stdlib.cookies.get_tracking_cookies(request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -113,16 +135,17 @@ async def create_new_account_and_team(request: fastapi.Request, eave_team_name: 
 
     return eave_account
 
-async def get_or_create_eave_account(
-        request: fastapi.Request,
-        response: fastapi.Response,
-        eave_team_name: str,
-        user_email: typing.Optional[str],
-        auth_provider: eave.stdlib.core_api.enums.AuthProvider,
-        auth_id: str,
-        access_token: str,
-        refresh_token: typing.Optional[str]) -> eave.core.internal.orm.AccountOrm:
 
+async def get_or_create_eave_account(
+    request: fastapi.Request,
+    response: fastapi.Response,
+    eave_team_name: str,
+    user_email: typing.Optional[str],
+    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_id: str,
+    access_token: str,
+    refresh_token: typing.Optional[str],
+) -> eave.core.internal.orm.AccountOrm:
     eave_account = await get_logged_in_eave_account(
         request=request,
         auth_provider=auth_provider,
@@ -139,7 +162,6 @@ async def get_or_create_eave_account(
             refresh_token=refresh_token,
         )
 
-
     if not eave_account:
         # Create an account
         beta_whitelisted = check_beta_whitelisted(email=user_email)
@@ -152,7 +174,6 @@ async def get_or_create_eave_account(
             access_token=access_token,
             refresh_token=refresh_token,
         )
-
 
     # Set the cookie in the response headers.
     # This logs the user into their Eave account,
