@@ -54,8 +54,7 @@ esac
 echo ""
 
 function setuppython() {
-	if ! cmd-exists pyenv
-	then
+	if ! cmd-exists pyenv; then
 		pythonversion="$(python --version)"
 		pythonpath="$(which python)"
 		statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
@@ -77,7 +76,7 @@ if test "$proceed" = "y"; then
 fi
 echo ""
 
-function setupgcloud () (
+function setupgcloud() {
 	cd $tmpdir
 
 	local gcloudversion="426.0.0"
@@ -88,7 +87,7 @@ function setupgcloud () (
 	mv google-cloud-sdk $HOME
 	cd $HOME
 	./google-cloud-sdk/install.sh
-)
+}
 
 statusmsg -ni "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
 read -p "Should I proceed? [y/n] " proceed
@@ -97,7 +96,7 @@ if test "$proceed" = "y"; then
 fi
 echo ""
 
-function setupcloudsqlproxy () (
+function setupcloudsqlproxy() {
 	cd $tmpdir
 
 	if cmd-exists "gcloud"; then
@@ -114,7 +113,7 @@ function setupcloudsqlproxy () (
 
 	statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
 	sudo mv cloud-sql-proxy $cloudsqlproxypath
-)
+}
 
 statusmsg -ni "Now I'll download and install the Cloud SQL Proxy for your system."
 read -p "Should I proceed? [y/n] " proceed
@@ -123,28 +122,33 @@ if test "$proceed" = "y"; then
 fi
 echo ""
 
-function install-jq () (
+function install-jq() {
 	case "$kernel" in
-		"linux")
-			case "$opsys" in
-				"ubuntu")
-					statusmsg -w "sudo privileges are needed to install jq via apt"
-					sudo apt install jq
-					;;
-				*)
-					statusmsg -e "Your operating system isn't supported. Please add support to this script!"
-					;;
-			esac
-
-		"darwin")
-			if cmd-exists "brew"; then
-				brew install jq
-			else
-				statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
-			fi
+	"linux")
+		case "$opsys" in
+		"ubuntu")
+			statusmsg -w "sudo privileges are needed to install jq via apt"
+			sudo apt install jq
+			;;
+		"manjarolinux")
+			statusmsg -w "sudo privileges are needed to install jq via pacman"
+			sudo pacman -S jq
+			;;
+		*)
+			statusmsg -e "Your operating system isn't supported. Please add support to this script!"
 			;;
 		esac
-)
+		;;
+
+	"darwin")
+		if cmd-exists "brew"; then
+			brew install jq
+		else
+			statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
+		fi
+		;;
+	esac
+}
 
 if ! cmd-exists "jq"; then
 	statusmsg -ni "The jq program is used (and assumed to be installed) in many utility scripts in this repository."
@@ -155,7 +159,7 @@ if ! cmd-exists "jq"; then
 	echo ""
 fi
 
-function setupapps () (
+function setupapps() {
 	cd ${EAVE_HOME}
 	statusmsg -ni "Setting up shared dev dependencies"
 	(cd ${EAVE_HOME}/develop/javascript/eslint/ && bin/setup)
@@ -163,7 +167,7 @@ function setupapps () (
 	python-activate-venv
 	python -m pip install -r develop/requirements-dev.txt
 	run-in-all-projects bin/setup
-)
+}
 
 statusmsg -ni "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
 read -p "Should I proceed? [y/n] " proceed
