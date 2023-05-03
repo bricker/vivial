@@ -54,7 +54,7 @@ export async function mapUrlContent(eaveTeamId: string, urls: Array<Pair<string,
 /** 
  * Create Eave Subscriptions to watch for changes in all of the URL resources in `urls`
  * 
- * @param eave_team_id -- TeamOrm ID to create the subscription for
+ * @param eaveTeamId -- TeamOrm ID to create the subscription for
  * @param urls -- links paired with their platform type [(url, url platform)]
  */
 export async function subscribe(eaveTeamId: string, urls: Array<Pair<string, LinkType>>): Promise<void> {
@@ -106,7 +106,7 @@ function getLinkType(link: string): LinkType | null {
  * has not explicitly given us permission to attempt to read data from
  * those links.
  * 
- * @param eave_team_id -- ID of the Eave TeamOrm to fetch platform integrations from
+ * @param eaveTeamId -- ID of the Eave TeamOrm to fetch platform integrations from
  * @param links -- list of links to build API client auth data for
  */
 async function buildLinkContexts(eaveTeamId: string, links: Array<Pair<string, LinkType>>): Promise<Array<LinkContext>> {
@@ -144,10 +144,10 @@ async function buildLinkContexts(eaveTeamId: string, links: Array<Pair<string, L
 /**
  * Insert a subcription to watch the resource at `url` into the Eave database.
  * 
- * @param untyped_client -- API client corresponding to `link_type` for fetching data to build subscription with
+ * @param untyped_client -- API client corresponding to `linkType` for fetching data to build subscription with
  * @param url -- URL resource to create a subscription for watching
- * @param link_type -- resource platform to subscribe on
- * @param eave_team_id -- ID of team to associate subscription with
+ * @param linkType -- resource platform to subscribe on
+ * @param eaveTeamId -- ID of team to associate subscription with
  */
 async function createSubscription(baseClient: ApiClientBase, url: string, linkType: LinkType, eaveTeamId: string): Promise<void> {
   let sourceId: string | null = null;
