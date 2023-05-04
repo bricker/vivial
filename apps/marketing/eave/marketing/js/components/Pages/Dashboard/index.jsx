@@ -164,7 +164,7 @@ const Dashboard = () => {
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const { userState, getUserInfo, updateConfluenceSpace } = useUser();
   const { teamInfo } = userState;
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
     console.log('team info', teamInfo);
