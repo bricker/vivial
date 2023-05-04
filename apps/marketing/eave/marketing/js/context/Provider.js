@@ -11,13 +11,17 @@ const AppContextProvider = ({ children }) => {
   });
 
   const [userState, setUserState] = useState({
-    isLoggedIn: false,
-    isWhitelisted: false,
+    teamInfo: null,
+  });
+
+  const [errorState, setErrorState] = useState({
+    error: null,
   });
 
   const store = {
     authModal: [modalState, setModalState],
     user: [userState, setUserState],
+    error: [errorState, setErrorState],
   };
 
   return (

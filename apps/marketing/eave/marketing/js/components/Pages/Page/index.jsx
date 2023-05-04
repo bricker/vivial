@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
-import Header from '../../Header/index.js';
+import Header from '../../Header/index.jsx';
 import Footer from '../../Footer/index.js';
 import AuthModal from '../../AuthModal/index.jsx';
 

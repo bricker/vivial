@@ -37,12 +37,6 @@ def _render_spa(**kwargs: Any) -> str:
         **kwargs,
     )
 
-
-@app.route("/dashboard", methods=["GET"])
-async def dashboard() -> str:
-    return "OK"
-
-
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
     auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
