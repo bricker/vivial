@@ -10,12 +10,10 @@ import {
   InputLabel,
   MenuItem,
   useMediaQuery,
-  Alert,
 } from '@material-ui/core';
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
 import useUser from '../../../hooks/useUser.js';
-import useError from '../../../hooks/useError.js';
 import Copy from '../../Copy/index.js';
 import Page from '../Page/index.jsx';
 import Button from '../../Button/index.js';
@@ -156,42 +154,45 @@ const Dashboard = () => {
   const classes = makeClasses();
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const { userState, getUserInfo, updateConfluenceSpace } = useUser();
-  const { errorState } = useError();
   const { teamInfo } = userState;
   const [step, setStep] = useState(2);
 
   useEffect(() => {
-    console.log('team info', teamInfo)
+    console.log('team info', teamInfo);
     // fetch info
     if (!teamInfo) {
+      console.log('fetching user info....');
       getUserInfo();
     // if user has linked account with atlassian
     } else if (teamInfo?.integrations.atlassian) {
       // if user has not selected a conflunece space
       if (!teamInfo?.integrations.atlassian.confluence_space) {
+        console.log('setting user to select a space');
         setStep(1);
       // confluence integration happens by default, if user has not linked their github or slack
       } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
+        console.log('setting user to select integration');
         setStep(2);
       // user has linked all so we can just show a completed stepper
       } else {
+        console.log('user has set up all integrations');
         setStep(3);
       }
     }
   }, [teamInfo]);
 
   const handleSpaceUpdate = (event) => {
+    console.log('user about to set up space');
     updateConfluenceSpace(event.target.value);
   };
 
   const handleStepClick = () => {
-
-  }
+    console.log('step 2 clicked');
+  };
 
   return (
     <Page>
       <main className={classes.main}>
-        {/* { errorState && <Alert severity="error">{errorState}</Alert>} */}
         <Copy variant="h1">Welcome to Eave Early Access</Copy>
         <Copy className={classes.copy}>You’re on your way to better documentation. To get started using Eave, complete the below steps.</Copy>
         <Stepper orientation="vertical" activeStep={step} classes={{

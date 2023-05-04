@@ -17,13 +17,14 @@ const useUser = () => {
     isUserAuth: cookies.ev_access_token,
     // gets user info
     getUserInfo: () => {
+      console.log('getting user info...');
       fetch('/dashboard/me/team', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       }).then((resp) => {
-        console.log('response', resp);
+        console.log('user info response', resp);
         if (resp.ok === false) {
           setErrorState('failed to fetch team info');
         } else {
@@ -31,22 +32,30 @@ const useUser = () => {
         }
         // eslint-disable-next-line no-console
       }).catch((err) => {
-        console.log(err);
+        console.log('error fetching user info', err);
         return setErrorState('failed to fetch team info');
       });
     },
     // updates current selected confluene space
-    updateConfluenceSpace: () => {
+    updateConfluenceSpace: (key) => {
+      console.log('about to update user space');
       fetch('/dashboard/me/team/integrations/atlassian/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: {
+          atlassian_integration: {
+            confluence_space_key: key,
+          },
+        },
       }).then((resp) => {
         // just logging this for now, will update on follow up
-        console.log(resp);
+        console.log('user space resp', resp);
       // eslint-disable-next-line no-console
-      }).catch((err) => console.log(err));
+      }).catch((err) => {
+        console.log('error setting up space', err);
+      });
     },
     // logs user out
     logOut: () => navigate('/dashboard/logout'),
