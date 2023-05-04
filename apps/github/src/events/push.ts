@@ -13,6 +13,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
 
   // only handling branch push events for now; ignore tag pushes
   if (!event.ref.startsWith('refs/heads/')) {
+    console.log(`Ignoring event with ref ${event.ref}`);
     return;
   }
 
@@ -42,6 +43,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const eaveTeamId = teamResponse.team.id;
 
       // check if we are subscribed to this file
+      // TODO: this currently crashes if there is not a subscription..
       const subscriptionResponse = await eaveCoreApiClient.getSubscription(eaveTeamId, {
         subscription: {
           source: {
@@ -51,7 +53,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           },
         },
       });
-      if (subscriptionResponse === null) { return; }
 
       // get file content so we can document the changes
       const query = await GraphQLUtil.loadQuery('getFileContents');
