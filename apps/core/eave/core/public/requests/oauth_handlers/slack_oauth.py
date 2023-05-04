@@ -1,7 +1,6 @@
 import typing
 
 import eave.core.internal
-import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm
 import eave.core.public.requests.util

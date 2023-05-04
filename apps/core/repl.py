@@ -5,9 +5,10 @@ dotenv.load_dotenv()
 import asyncio
 from typing import Any, Coroutine
 
+import eave.core.internal.orm
+
 # Import some common modules
 import eave.core.internal.orm.base
-import eave.core.internal.orm
 
 
 def run_coro(func: Coroutine[Any, Any, Any]) -> None:

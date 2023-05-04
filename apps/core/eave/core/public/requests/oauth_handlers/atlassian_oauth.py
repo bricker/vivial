@@ -9,14 +9,15 @@ import eave.core.internal.orm
 import eave.core.public.requests.util
 import eave.pubsub_schemas
 import eave.stdlib
-import eave.stdlib.core_api
 import eave.stdlib.atlassian
+import eave.stdlib.core_api
 import fastapi
 from eave.stdlib import logger
 
 from . import shared
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.atlassian
+
 
 async def atlassian_oauth_authorize(request: fastapi.Request) -> fastapi.Response:
     oauth_session = oauth_atlassian.AtlassianOAuthSession()

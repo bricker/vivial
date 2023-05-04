@@ -5,11 +5,12 @@ from typing import Optional, cast
 import atlassian
 import eave.stdlib
 import eave.stdlib.atlassian
-import eave.stdlib.openai_client
 import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.openai_client
 
 from ..oauth import atlassian as atlassian_oauth
 from . import abstract
+
 
 class ConfluenceDestination(abstract.DocumentDestination):
     oauth_session: atlassian_oauth.AtlassianOAuthSession
