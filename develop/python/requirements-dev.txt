@@ -5,6 +5,6 @@ httpx
 types-requests
 python-dotenv
 mockito
-autoflake
+autoflake>=2.1.1
 pytest
 pretty_errors

@@ -55,18 +55,6 @@ namespace_packages = true
 explicit_package_bases = true
 enable_incomplete_feature = "Unpack"
 
-[tool.autoflake]
-exclude = [
-  "./eave_alembic/versions",
-  "vendor",
-  "build",
-  "generated",
-  "node_modules",
-]
-remove-all-unused-imports = true
-ignore-init-module-imports = true
-recursive = true
-quiet = true
 
 [tool.pytest.ini_options]
 pythonpath = [
