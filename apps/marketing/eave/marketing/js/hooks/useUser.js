@@ -52,6 +52,11 @@ const useUser = () => {
       }).then((resp) => {
         // just logging this for now, will update on follow up
         console.log('user space resp', resp);
+        if (resp.ok === false) {
+          setErrorState('failed to fetch team info');
+        } else {
+          setUserState((prevState) => ({ ...prevState, teamInfo: resp.body }));
+        }
       // eslint-disable-next-line no-console
       }).catch((err) => {
         console.log('error setting up space', err);

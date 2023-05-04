@@ -11,6 +11,7 @@ import {
   MenuItem,
   useMediaQuery,
 } from '@material-ui/core';
+import classNames from 'classnames';
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
 import useUser from '../../../hooks/useUser.js';
@@ -20,6 +21,7 @@ import Button from '../../Button/index.js';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ChatboxIcon from '../../Icons/ChatboxIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
+import DownIcon from '../../Icons/DownIcon.js';
 
 const makeClasses = makeStyles((theme) => ({
   main: {
@@ -62,6 +64,13 @@ const makeClasses = makeStyles((theme) => ({
   },
   header: {
     marginBottom: 0,
+  },
+  clickable: {
+    cursor: 'pointer',
+  },
+  downIcon: {
+    marginLeft: 16,
+    width: 16 ,
   },
   content: {
     marginLeft: 16,
@@ -155,7 +164,7 @@ const Dashboard = () => {
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const { userState, getUserInfo, updateConfluenceSpace } = useUser();
   const { teamInfo } = userState;
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(2);
 
   useEffect(() => {
     console.log('team info', teamInfo);
@@ -181,13 +190,17 @@ const Dashboard = () => {
     }
   }, [teamInfo]);
 
+  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space.length > 0;
+
   const handleSpaceUpdate = (event) => {
     console.log('user about to set up space');
     updateConfluenceSpace(event.target.value);
   };
 
   const handleStepClick = () => {
-    console.log('step 2 clicked');
+    if (isStep2Clickable) {
+      setStep(1);
+    }
   };
 
   return (
@@ -222,7 +235,10 @@ const Dashboard = () => {
           </Step>
           <Step>
             <StepLabel StepIconComponent={stepIcon} onClick={handleStepClick}>
-              <Copy variant="h3" className={classes.header}>Step 2: Select your Confluence Space</Copy>
+              <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep2Clickable })} >
+                Step 2: Select your Confluence Space
+                {isStep2Clickable && <DownIcon className={classes.downIcon} />}
+              </Copy>
             </StepLabel>
             <StepContent className={classes.content}>
               <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
