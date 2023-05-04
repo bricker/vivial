@@ -70,7 +70,7 @@ const makeClasses = makeStyles((theme) => ({
   },
   downIcon: {
     marginLeft: 16,
-    width: 16 ,
+    width: 16,
   },
   content: {
     marginLeft: 16,
