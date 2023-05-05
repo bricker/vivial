@@ -1,9 +1,9 @@
 import typing
 from typing import Any, Optional, TypedDict
 
+import slack_sdk.web.async_client
 from eave.core.internal.config import app_config
 from slack_sdk.oauth import AuthorizeUrlGenerator
-from slack_sdk.web.async_client import AsyncWebClient
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
@@ -131,21 +131,23 @@ class SlackOAuthResponse(TypedDict):
     authed_user: SlackAuthorizedUser
 
 
-async def get_userinfo_or_exception(access_token: str) -> SlackIdentity:
-    client = AsyncWebClient()
-    response = await client.openid_connect_userInfo(
-        token=access_token,
-    )
+def get_authenticated_client(access_token: str) -> slack_sdk.web.async_client.AsyncWebClient:
+    client = slack_sdk.web.async_client.AsyncWebClient(token=access_token)
+    return client
+
+
+async def get_userinfo_or_exception(client: slack_sdk.web.async_client.AsyncWebClient) -> SlackIdentity:
+    response = await client.openid_connect_userInfo()
 
     response.validate()
     assert isinstance(response.data, dict)
     return SlackIdentity(response=response.data)
 
 
-async def get_access_token(
+async def get_access_token_or_exception(
     code: str,
 ) -> SlackOAuthResponse:
-    client = AsyncWebClient()
+    client = slack_sdk.web.async_client.AsyncWebClient()
 
     # Complete the installation by calling oauth.v2.access API method
     response = await client.oauth_v2_access(
@@ -157,14 +159,13 @@ async def get_access_token(
 
     response.validate()
     oauth_data = typing.cast(SlackOAuthResponse, response.data)
-    bot_token = oauth_data["access_token"]
     return oauth_data
 
 
-async def refresh_access_token(
+async def refresh_access_token_or_exception(
     refresh_token: str,
 ) -> SlackOAuthResponse:
-    client = AsyncWebClient()
+    client = slack_sdk.web.async_client.AsyncWebClient()
 
     response = await client.oauth_v2_access(
         client_id=app_config.eave_slack_client_id,

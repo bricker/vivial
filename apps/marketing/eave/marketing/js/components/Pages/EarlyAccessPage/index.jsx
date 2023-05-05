@@ -11,7 +11,7 @@ import Affiliates from '../../Affiliates/index.js';
 import Copy from '../../Copy/index.js';
 import Page from '../Page/index.jsx';
 import withTitle from '../../hoc/withTitle.js';
-import { getTrackingInfo, saveCookie, cookiePrefix } from '../../../cookies.js';
+import { getTrackingInfo, saveCookie, EAVE_VISITOR_ID_COOKIE, EAVE_EARLY_ACCESS_REQUEST_COOKIE, GOOGLE_OPTIMIZE_EXP_COOKIE } from '../../../cookies.js';
 
 const copy = {
   title: 'Get Free Early Access',
@@ -71,9 +71,9 @@ class EarlyAccessPage extends React.Component {
       .map((c) => c.value)
       .sort(); // normalize
 
-    const visitorId = cookies.get('visitor_id');
+    const visitorId = cookies.get(EAVE_VISITOR_ID_COOKIE);
     const trackingInfo = getTrackingInfo();
-    const variant = cookies.get('_gaexp');
+    const variant = cookies.get(GOOGLE_OPTIMIZE_EXP_COOKIE);
     const freeFormText = e.target.elements.freeFormInput.value;
     const integrationsPresentationOrder = this.shuffledLogos.map(([name]) => name);
 
@@ -103,8 +103,7 @@ class EarlyAccessPage extends React.Component {
         emailHelperText: 'Error: contact info@eave.fyi.',
       });
     }).finally(() => {
-      const cookieName = `${cookiePrefix}ear`;
-      if (cookies.get(cookieName)) return;
+      if (cookies.get(EAVE_EARLY_ACCESS_REQUEST_COOKIE)) return;
 
       window.dataLayer?.push({
         event: 'early_access_form_submission',
@@ -115,7 +114,7 @@ class EarlyAccessPage extends React.Component {
         transaction_id: visitorId,
       });
 
-      saveCookie(cookieName, true);
+      saveCookie(EAVE_EARLY_ACCESS_REQUEST_COOKIE, true);
     });
   }
 

@@ -15,7 +15,10 @@ const availableTrackingParams = [
   'utm_medium',
 ];
 
-export const cookiePrefix = 'ev_';
+export const cookiePrefixUtm = 'ev_utm_';
+export const EAVE_VISITOR_ID_COOKIE = 'ev_visitor_id';
+export const EAVE_EARLY_ACCESS_REQUEST_COOKIE = 'ev_ear';
+export const GOOGLE_OPTIMIZE_EXP_COOKIE = '_gaexp';
 
 export function saveCookie(key, value) {
   cookies.set(key, value, {
@@ -26,22 +29,25 @@ export function saveCookie(key, value) {
 }
 
 export function saveTrackingInfo() {
-  const visitorId = cookies.get('visitor_id') || uuidv4();
-  saveCookie('visitor_id', visitorId);
+  let visitorId = cookies.get(EAVE_VISITOR_ID_COOKIE);
+  if (!visitorId) {
+    visitorId = uuidv4();
+    saveCookie(EAVE_VISITOR_ID_COOKIE, visitorId);
+  }
 
   const queryParams = new URLSearchParams(window.location.search);
 
   availableTrackingParams.forEach((paramName) => {
     const paramValue = queryParams.get(paramName);
     if (paramValue) {
-      saveCookie(`${cookiePrefix}${paramName}`, paramValue);
+      saveCookie(`${cookiePrefixUtm}${paramName}`, paramValue);
     }
   });
 }
 
 export function getTrackingInfo() {
   return availableTrackingParams.reduce((acc, paramName) => {
-    const cookieName = `${cookiePrefix}${paramName}`;
+    const cookieName = `${cookiePrefixUtm}${paramName}`;
     const value = cookies.get(cookieName);
     if (value) {
       acc[cookieName] = value;

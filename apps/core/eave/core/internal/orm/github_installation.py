@@ -7,7 +7,8 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
+from .base import Base
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class GithubInstallationOrm(Base):
@@ -28,6 +29,21 @@ class GithubInstallationOrm(Base):
     github_install_id: Mapped[str] = mapped_column(unique=True, index=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @classmethod
+    async def create(
+        cls,
+        session: AsyncSession,
+        team_id: uuid.UUID,
+        github_install_id: str,
+    ) -> Self:
+        obj = cls(
+            team_id=team_id,
+            github_install_id=github_install_id,
+        )
+        session.add(obj)
+        await session.flush()
+        return obj
 
     class _selectparams(TypedDict):
         team_id: NotRequired[uuid.UUID]

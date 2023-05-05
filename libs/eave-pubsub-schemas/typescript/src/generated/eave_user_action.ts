@@ -1,15 +1,16 @@
 /* eslint-disable */
 
 export interface EaveUserAction {
-  action: EaveUserAction_Action | undefined;
-  message_source: string;
+  action_name: string;
+  description: string;
+  opaque_params: { [key: string]: string };
+  eave_account_id: string;
+  event_ts: number;
+  event_source: string;
+  visitor_id: string;
 }
 
-export interface EaveUserAction_Action {
-  platform: string;
-  name: string;
-  description: string;
-  opaque_params: string;
-  eave_user_id: string;
-  user_ts: number;
+export interface EaveUserAction_OpaqueParamsEntry {
+  key: string;
+  value: string;
 }

@@ -1,39 +1,78 @@
 import { useContext } from 'react';
-
 import { AppContext } from '../context/Provider.js';
 
 const useUser = () => {
-  const { user } = useContext(AppContext);
+  const { user, error } = useContext(AppContext);
   const [userState, setUserState] = user;
+  const [, setErrorState] = error;
 
   return {
     userState,
     setUserState,
-    isLoggedIn: userState.isLoggedIn,
-    logIn: () => {
-      fetch('/log-in', {
-        body: JSON.stringify({ }),
+    checkUserAuthState: () => {
+      fetch('/authcheck', {
+        method: 'GET',
+      }).then((resp) => {
+        resp.json().then((data) => {
+          setUserState((prevState) => ({ ...prevState, authenticated: data.authenticated === true }));
+        });
+      }).catch((err) => {
+        console.warn('Error during authcheck', err);
+      });
+    },
+    // gets user info
+    getUserInfo: () => {
+      console.log('getting user info...');
+      fetch('/dashboard/me/team', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then((resp) => {
+        console.log('user info response', resp);
+        if (resp.ok === false) {
+          setErrorState('failed to fetch team info');
+        } else {
+          resp.json().then((data) => {
+            setUserState((prevState) => ({ ...prevState, teamInfo: data }));
+          });
+        }
+        // eslint-disable-next-line no-console
+      }).catch((err) => {
+        console.log('error fetching user info', err);
+        return setErrorState('failed to fetch team info');
+      });
+    },
+    // updates current selected confluene space
+    updateConfluenceSpace: (key) => {
+      console.log('about to update user space');
+      fetch('/dashboard/me/team/integrations/atlassian/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-      }).then(() => {
-        // TODO: SET INFO COMING FROM API TO THE USER OBJECT
-        setUserState((prevState) => ({ ...prevState, isLoggedIn: true }));
+        body: JSON.stringify({
+          atlassian_integration: {
+            confluence_space_key: key,
+          },
+        }),
+      }).then((resp) => {
+        // just logging this for now, will update on follow up
+        console.log('user space resp', resp);
+        if (resp.ok === false) {
+          setErrorState('failed to fetch team info');
+        } else {
+          resp.json().then((data) => {
+            setUserState((prevState) => ({ ...prevState, teamInfo: data }));
+          });
+        }
+      // eslint-disable-next-line no-console
+      }).catch((err) => {
+        console.log('error setting up space', err);
       });
     },
-    logOut: () => {
-      fetch('/log-out', {
-        body: JSON.stringify({ }),
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }).then(() => {
-        // TODO: CLEAR USER INFO AND COOKIES
-        setUserState((prevState) => ({ ...prevState, isLoggedIn: false }));
-      });
-    },
+    // logs user out
+    logOut: () => window.location.assign('/dashboard/logout'),
   };
 };
 

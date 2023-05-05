@@ -49,12 +49,6 @@ class TestSignatureVerification(BaseTestCase):
         assert response.status_code == HTTPStatus.BAD_REQUEST
         mockito.verify(eave_signing, times=1).verify_signature_or_exception(...)
 
-    async def test_empty_body(self) -> None:
-        response = await self.make_request(path="/access_request", payload=None, headers={})
-
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        mockito.verify(eave_signing, times=0).verify_signature_or_exception(...)
-
     async def test_signature_with_team_id(self) -> None:
         team = await self.make_team()
         response = await self.make_request(

@@ -126,7 +126,7 @@ class TestStatusEndpoint(BaseTestCase):
 #     async def test_create_document_with_unique_title(self) -> None:
 #         self.skipTest("wip")
 #         # mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(None)
-#         # mockito.when2(Confluence.create_page, **mockito.KWARGS).thenReturn(fixtures.confluence_document_response(self))
+#         # mockito.when2(Confluence.create_page, **mockito.KWARGS).thenReturn(self.confluence_document_response_fixture())
 
 #         # response = await self.make_request(
 #         #     "/documents/upsert",
@@ -178,7 +178,7 @@ class TestStatusEndpoint(BaseTestCase):
 #     async def test_create_document_with_duplicate_title(self) -> None:
 #         self.skipTest("Not implemented")
 
-#         # existing_document = fixtures.confluence_document_response(self)
+#         # existing_document = self.confluence_document_response_fixture()
 #         # mockito.when2(Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(existing_document)
 
 #     async def test_update_document_with_missing_page(self) -> None:
@@ -189,7 +189,7 @@ class TestStatusEndpoint(BaseTestCase):
 #         # mockito.when2(Confluence.get_page_by_id, **mockito.KWARGS).thenReturn(None)
 
 #     async def test_update_document_with_existing_content(self) -> None:
-#         existing_page = fixtures.confluence_document_response(self)
+#         existing_page = self.confluence_document_response_fixture()
 
 #         mockito.when2(Confluence.get_page_by_id, page_id=existing_page["id"], **mockito.KWARGS).thenReturn(
 #             existing_page

@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { StepContent, StepLabel, Step, Stepper, Select, FormControl, InputLabel, MenuItem, useMediaQuery } from '@material-ui/core';
+import {
+  StepContent,
+  StepLabel,
+  Step,
+  Stepper,
+  Select,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  useMediaQuery,
+} from '@material-ui/core';
+import classNames from 'classnames';
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
+import useUser from '../../../hooks/useUser.js';
 import Copy from '../../Copy/index.js';
 import Page from '../Page/index.jsx';
 import Button from '../../Button/index.js';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ChatboxIcon from '../../Icons/ChatboxIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
+import DownIcon from '../../Icons/DownIcon.js';
 
 const makeClasses = makeStyles((theme) => ({
   main: {
@@ -51,6 +64,13 @@ const makeClasses = makeStyles((theme) => ({
   },
   header: {
     marginBottom: 0,
+  },
+  clickable: {
+    cursor: 'pointer',
+  },
+  downIcon: {
+    marginLeft: 16,
+    width: 16,
   },
   content: {
     marginLeft: 16,
@@ -141,17 +161,50 @@ function stepIcon(props) {
 
 const Dashboard = () => {
   const classes = makeClasses();
-  const [confluenceSpace, setConfluenceSpace] = useState('');
-  const [step, setStep] = useState(0);
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
+  const { userState, getUserInfo, updateConfluenceSpace } = useUser();
+  const { teamInfo } = userState;
+  const [step, setStep] = useState(0);
 
-  const handleChange = (event) => {
-    setConfluenceSpace(event.target.value);
-    setStep(2);
+  useEffect(() => {
+    console.log('team info', teamInfo);
+    // fetch info
+    if (!teamInfo) {
+      console.log('fetching user info....');
+      getUserInfo();
+    // if user has linked account with atlassian
+    } else if (teamInfo?.integrations.atlassian) {
+      // if user has not selected a conflunece space
+      if (!teamInfo?.integrations.atlassian.confluence_space_key) {
+        console.log('setting user to select a space');
+        setStep(1);
+      // confluence integration happens by default, if user has not linked their github or slack
+      } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
+        console.log('setting user to select integration');
+        setStep(2);
+      // user has linked all so we can just show a completed stepper
+      } else {
+        console.log('user has set up all integrations');
+        setStep(3);
+      }
+    }
+  }, [teamInfo]);
+
+  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
+
+  const handleSpaceUpdate = (event) => {
+    console.log('user about to set up space');
+    updateConfluenceSpace(event.target.value);
+  };
+
+  const handleStepClick = () => {
+    if (isStep2Clickable) {
+      setStep(1);
+    }
   };
 
   return (
-    <Page simpleHeader>
+    <Page>
       <main className={classes.main}>
         <Copy variant="h1">Welcome to Eave Early Access</Copy>
         <Copy className={classes.copy}>You’re on your way to better documentation. To get started using Eave, complete the below steps.</Copy>
@@ -175,14 +228,17 @@ const Dashboard = () => {
             </StepLabel>
             <StepContent className={classes.content}>
               <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
-              <Button lg className={classes.button} onClick={() => setStep(1)}>
+              <Button lg className={classes.button} to={`${window.eave.apiBase}/oauth/atlassian/authorize`}>
                 Connect
               </Button>
             </StepContent>
           </Step>
           <Step>
-            <StepLabel StepIconComponent={stepIcon}>
-              <Copy variant="h3" className={classes.header}>Step 2: Select your Confluence Space</Copy>
+            <StepLabel StepIconComponent={stepIcon} onClick={handleStepClick}>
+              <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep2Clickable })} >
+                Step 2: Select your Confluence Space
+                {isStep2Clickable && <DownIcon className={classes.downIcon} />}
+              </Copy>
             </StepLabel>
             <StepContent className={classes.content}>
               <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
@@ -192,15 +248,17 @@ const Dashboard = () => {
                   <Select
                     labelId="space-selector-label"
                     id="space-selector"
-                    value={confluenceSpace}
-                    onChange={handleChange}
+                    value={teamInfo?.integrations?.atlassian?.confluence_space_key || ''}
+                    onChange={handleSpaceUpdate}
                   >
                     <MenuItem value="">
                       None
                     </MenuItem>
-                    <MenuItem value={10}>Twenty</MenuItem>
-                    <MenuItem value={21}>Twenty one</MenuItem>
-                    <MenuItem value={22}>Twenty one and a half</MenuItem>
+                    {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((space) => {
+                      return (
+                        <MenuItem value={space.key} key={space.key}>{space.name}</MenuItem>
+                      );
+                    })}
                   </Select>
                 </FormControl>
               </div>
@@ -215,7 +273,9 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
-                startIcon={<PurpleCheckIcon className={classes.connected} />}
+                startIcon={teamInfo?.integrations.github && <PurpleCheckIcon className={classes.connected} />}
+                disabled={!!teamInfo?.integrations.github}
+                to={`${window.eave.apiBase}/oauth/github/authorize`}
                 lg
               >
                 <img
@@ -227,7 +287,9 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
-                startIcon={<PurpleCheckIcon className={classes.connected} />}
+                startIcon={teamInfo?.integrations.slack && <PurpleCheckIcon className={classes.connected} />}
+                disabled={!!teamInfo?.integrations.slack}
+                to={`${window.eave.apiBase}/oauth/slack/authorize`}
                 lg
               >
                 <img
@@ -239,7 +301,9 @@ const Dashboard = () => {
               <Button
                 className={classes.connectButton}
                 variant="outlined"
-                startIcon={<PurpleCheckIcon className={classes.connected} />}
+                startIcon={teamInfo?.integrations.atlassian && <PurpleCheckIcon className={classes.connected} />}
+                disabled={!!teamInfo?.integrations.atlassian}
+                to={`${window.eave.apiBase}/oauth/atlassian/authorize`}
                 lg
               >
                 <img

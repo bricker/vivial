@@ -8,14 +8,14 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from . import (
+from .base import Base
+from .document_reference import DocumentReferenceOrm
+from .util import (
     UUID_DEFAULT_EXPR,
-    Base,
     make_team_composite_fk,
     make_team_composite_pk,
     make_team_fk,
 )
-from .document_reference import DocumentReferenceOrm
 
 
 class SubscriptionOrm(Base):

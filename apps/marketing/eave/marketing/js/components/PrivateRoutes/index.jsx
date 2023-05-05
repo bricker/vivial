@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 
 import useUser from '../../hooks/useUser';
 
 function PrivateRoutes() {
-  const { isLoggedIn } = useUser();
+  const { userState, checkUserAuthState } = useUser();
+  const { authenticated } = userState;
+
+  useEffect(() => {
+    checkUserAuthState();
+  }, [authenticated]);
+
+  if (authenticated === null) {
+    return null;
+  }
+
   return (
-    isLoggedIn ? <Outlet /> : <Navigate to="/" />
+    authenticated ? <Outlet /> : <Navigate to="/" />
   );
 }
 

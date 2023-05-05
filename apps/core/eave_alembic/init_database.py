@@ -3,7 +3,7 @@ import os
 import dotenv
 import eave.core.internal.orm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
-from eave.core.internal.orm.team import TeamOrm
+import eave.core.internal.orm.base
 
 dotenv.load_dotenv()
 
@@ -19,8 +19,8 @@ assert EAVE_DB_NAME != "eave"
 import asyncio
 import socket
 
-import eave.core.internal.database as eave_db
-import eave.stdlib.core_api.enums as eave_enums
+import eave.core.internal
+import eave.stdlib.core_api
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
@@ -37,10 +37,12 @@ async def init_database() -> None:
 async def create_database() -> None:
     # We can't connect to the database being created because, well, it doesn't exist.
     # Instead, connect to the postgres database on the host.
-    postgres_uri = eave_db.db_uri._replace(database="postgres")
+    postgres_uri = eave.core.internal.database.db_uri._replace(database="postgres")
     postgres_engine = create_async_engine(postgres_uri, isolation_level="AUTOCOMMIT")
 
     async with postgres_engine.begin() as connection:
+        stmt = f'DROP DATABASE IF EXISTS "{EAVE_DB_NAME}"'
+        await connection.execute(sqlalchemy.text(stmt))
         stmt = f'CREATE DATABASE "{EAVE_DB_NAME}"'
         await connection.execute(sqlalchemy.text(stmt))
 
@@ -48,12 +50,14 @@ async def create_database() -> None:
 
 
 async def seed_database() -> None:
-    async with eave_db.async_engine.begin() as connection:
-        await connection.run_sync(eave.core.internal.orm.get_base_metadata().create_all)
+    async with eave.core.internal.database.async_engine.begin() as connection:
+        await connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
 
-    session = AsyncSession(eave_db.async_engine)
+    session = AsyncSession(eave.core.internal.database.async_engine)
 
-    team = TeamOrm(name=f"{socket.gethostname()}", document_platform=eave_enums.DocumentPlatform.confluence)
+    team = eave.core.internal.orm.TeamOrm(
+        name=f"{socket.gethostname()}", document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
+    )
     session.add(team)
     await session.commit()
     await session.refresh(team)  # this is necessary to populate team.id
@@ -68,7 +72,7 @@ async def seed_database() -> None:
     await session.commit()
 
     await session.close()
-    await eave_db.async_engine.dispose()
+    await eave.core.internal.database.async_engine.dispose()
 
 
 if __name__ == "__main__":

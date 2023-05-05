@@ -5,6 +5,7 @@ class AuthProvider(enum.StrEnum):
     google = "google"
     slack = "slack"
     atlassian = "atlassian"
+    github = "github"
 
 
 class DocumentPlatform(enum.StrEnum):
