@@ -76,18 +76,19 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
 async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
     eave_team = context.get("eave_team")
 
-    if not event or not event.get("channel"):
-        logger.error(msg := "member_joined_channel event received, but channel wasn't available.")
+    if not event or not (channel := event.get("channel")) or not (user_id := event.get("user_id")):
+        logger.error(msg := "member_joined_channel event received, but channel or user_id wasn't available.")
         raise AssertionError(msg)
+
+    if user_id != context.bot_user_id:
+        return
 
     if context.client:
         await context.client.chat_postMessage(
             channel=event["channel"],
             text=(
                 msg := (
-                    "Hey all! I'm Eave! "
-                    "My job here is to write and maintain your documentation, so you can focus on everything else. "
-                    "If you need me, just tag @Eave!"
+                    "Hello, I’m Eave! I can assist with any of your documentation needs. Simply tag me in threads you want documented, and I’ll take care of it."
                 )
             ),
         )
