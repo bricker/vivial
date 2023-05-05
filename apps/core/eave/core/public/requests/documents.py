@@ -17,15 +17,28 @@ async def upsert_document(
     team = eave_state.eave_team
 
     async with eave_db.async_session.begin() as db_session:
-        subscription = await SubscriptionOrm.one_or_exception(
-            team_id=team.id, source=input.subscription.source, session=db_session
-        )
+        # get all subscriptions we wish to associate the new document with
+        subscriptions = [ # TODO: need to include id for uniqueness when doc ref id is none
+                    await SubscriptionOrm.one_or_none(
+                        team_id=team.id,
+                        document_reference_id=subscription.document_reference_id,
+                        source=subscription.source, 
+                        session=db_session,
+                        id=subscription.id,
+                    )
+                    for subscription in input.subscriptions
+                ]
+        
 
         destination = await team.get_document_destination(session=db_session)
-        # TODO: Error message: "You have not setup a document destination"
         assert destination is not None, "You have not setup a document destination"
 
-        existing_document_reference = await subscription.get_document_reference(session=db_session)
+        # get all referenced documents
+        existing_document_references = [
+            await subscription.get_document_reference(session=db_session)
+            for subscription in subscriptions
+            if subscription is not None
+        ]
 
         if existing_document_reference is None:
             document_metadata = await destination.create_document(input=input.document)
@@ -36,9 +49,6 @@ async def upsert_document(
                 document_id=document_metadata.id,
                 document_url=document_metadata.url,
             )
-
-            subscription.document_reference_id = document_reference.id
-
         else:
             await destination.update_document(
                 input=input.document,
@@ -46,10 +56,18 @@ async def upsert_document(
             )
             document_reference = existing_document_reference
 
+        # update all subscriptions without a document reference
+        # TODO: is commit necessary?
+        # TODO: when there were multiple existing documents, we can't know which document to assign to new
+        # subscriptions. We probably need to split the functionality of this operation to clarify
+        for subscription in subscriptions:
+            if subscription.document_reference_id is None:
+                subscription.document_reference_id = document_reference.id
+
     response.status_code = HTTPStatus.ACCEPTED
 
     return eave_ops.UpsertDocument.ResponseBody(
         team=eave_models.Team.from_orm(team),
-        subscription=eave_models.Subscription.from_orm(subscription),
+        subscriptions=eave_models.Subscription.from_orm(subscription),
         document_reference=eave_models.DocumentReference.from_orm(document_reference),
     )

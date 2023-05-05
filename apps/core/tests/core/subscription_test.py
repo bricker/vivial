@@ -1,3 +1,4 @@
+from pydantic import UUID4
 import eave.core.internal.database as eave_db
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
@@ -9,12 +10,14 @@ from .base import BaseTestCase
 class TestSubscriptionOrm(BaseTestCase):
     async def test_find_one(self) -> None:
         team = await self.make_team()
+        doc_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
 
         subscription = SubscriptionOrm(
             team_id=team.id,
             source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
             source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
             source_id=self.anystring("source_id"),
+            document_reference_id=doc_id,
         )
         await self.save(subscription)
 
@@ -27,6 +30,7 @@ class TestSubscriptionOrm(BaseTestCase):
                     event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
                     id=self.anystring("source_id"),
                 ),
+                document_reference_id=doc_id,
             )
 
         assert result is not None

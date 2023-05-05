@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 
 import eave.stdlib.core_api.enums
 import pydantic
@@ -64,14 +64,23 @@ class CreateAccessRequest(Endpoint):
         opaque_input: str
 
 
-class GetSubscription(Endpoint):
+class GetSubscriptions(Endpoint):
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
+        document_reference: Optional[DocumentReferenceInput] = None
 
     class ResponseBody(pydantic.BaseModel):
+        """
+        `subscriptions` and `document_references` have the same length
+        and each index corresponds directly.
+        e.g. `subscriptions[1].document_reference_id == document_references[1].id`
+        `document_references` has None entries where the corresponding Subscription
+        has a None document_reference_id.
+        """
+
         team: models.Team
-        subscription: models.Subscription
-        document_reference: Optional[models.DocumentReference] = None
+        subscriptions: Sequence[models.Subscription]
+        document_references: Sequence[Optional[models.DocumentReference]]
 
 
 class CreateSubscription(Endpoint):
@@ -85,19 +94,20 @@ class CreateSubscription(Endpoint):
         document_reference: Optional[models.DocumentReference] = None
 
 
-class DeleteSubscription(Endpoint):
+class DeleteSubscriptions(Endpoint):
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
+        document_reference: Optional[DocumentReferenceInput] = None
 
 
 class UpsertDocument(Endpoint):
     class RequestBody(pydantic.BaseModel):
         document: DocumentInput
-        subscription: SubscriptionInput
+        subscriptions: Sequence[models.Subscription]
 
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
-        subscription: models.Subscription
+        subscriptions: Sequence[models.Subscription]
         document_reference: models.DocumentReference
 
 

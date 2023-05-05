@@ -27,6 +27,7 @@ class Brain:
     expanded_text: str
     message_context: str
     eave_team: eave_models.Team
+    subscriptions: list[eave_models.Subscription] = []
 
     def __init__(
         self, message: slack_models.SlackMessage, slack_context: AsyncBoltContext, eave_team: eave_models.Team
@@ -71,7 +72,7 @@ class Brain:
             1. If she is not subscribed, then ignore the message and stop processing.
             1. Otherwise, continue processing.
             """
-            subscription_response = await self.get_subscription()
+            subscription_response = await self.get_subscriptions()
             if subscription_response is None:
                 logger.debug("Eave is not subscribed to this thread; ignoring.")
                 return
@@ -140,7 +141,7 @@ class Brain:
         otherwise notifies the user that I'm already watching this conversation.
         """
         logger.debug("Brain.process_watch_request")
-        existing_subscription = await self.get_subscription()
+        existing_subscription = await self.get_subscriptions()
 
         if existing_subscription is None:
             message_prefix = random.choice(
@@ -156,11 +157,11 @@ class Brain:
                     f"{message_prefix} I'll get started on the documentation right now and send an update when it's ready."
                 )
             )
-            await self.create_subscription()
+            self.subscriptions.append((await self.create_subscription()).subscription)
             await self.create_documentation()
             return
         else:
-            await self.notify_existing_subscription(subscription=existing_subscription)
+            await self.notify_existing_subscription(subscriptions=existing_subscription)
             return
 
     async def handle_unknown_request(self) -> None:
@@ -169,11 +170,11 @@ class Brain:
         Basically lets the user know that I wasn't able to process the message, and reminds them if I'm already documenting this conversation.
         """
         logger.debug("Brain.process_unknown_request")
-        subscription = await self.get_subscription()
+        message_subscriptions = await self.get_subscriptions()
 
         # TODO: Create a Jira ticket (or similar) when Eave doesn't know how to handle a message.
 
-        if subscription is None:
+        if len(message_subscriptions.subscriptions) == 0:
             await self.message.send_response(
                 text=(
                     "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
@@ -184,11 +185,15 @@ class Brain:
 
             # TODO: handle the response to this, eg if the user says "Yes please" or "No thanks"
 
-        elif subscription.document_reference is not None:
+        elif documents := [doc for doc in message_subscriptions.document_references if doc is not None]:
+            doc_link_bullets = "".join([
+                f" * <{doc.document_url}|{doc.document_url}>\n"
+                for doc in documents
+            ])
             await self.message.send_response(
                 text=(
                     "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                    f"As a reminder, I'm watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                    f"As a reminder, I'm watching this conversation and documenting the information at the following locations:\n{doc_link_bullets}"
                     "If you needed something else, try phrasing it differently."
                 )
             )
@@ -269,8 +274,7 @@ class Brain:
         assert all_messages is not None
 
         [await m.get_expanded_text() for m in all_messages]
-        # TODO: Remove duplicate URLs
-        links = [link for message in all_messages for link in message.urls]
+        links = set([link for message in all_messages for link in message.urls])
 
         resources_doc = ""
 
@@ -345,7 +349,7 @@ class Brain:
     async def unwatch_conversation(self) -> None:
         await eave_core.delete_subscription(
             team_id=self.eave_team.id,
-            input=eave_ops.DeleteSubscription.RequestBody(
+            input=eave_ops.DeleteSubscriptions.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
             ),
         )
@@ -455,11 +459,13 @@ class Brain:
                     ]
                 )
 
-                # subscribe Eave GitHub App to file changes for any files we could read
-                await link_handler.subscribe(
+                # subscribe Eave to any changes at the links we wer able to read content from
+                # TODO need to return row IDs here instead of source data, bcus thats not unuque anymores
+                link_subscriptions = await link_handler.subscribe_to_file_changes(
                     self.eave_team.id,
                     [link_info for link_info, content in zip(supported_links, summaries) if content is not None],
                 )
+                self.subscriptions += link_subscriptions
 
                 # transform raw source text into less distracting (for AI) summaries
                 return "\n\n".join(
@@ -588,17 +594,17 @@ class Brain:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
         await self.message.add_reaction("eave")
 
-    async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
-        try:
-            subscription = await eave_core.get_subscription(
-                team_id=self.eave_team.id,
-                input=eave_ops.GetSubscription.RequestBody(
-                    subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
-                ),
-            )
-            return subscription
-        except eave_exceptions.NotFoundError:
-            return None
+    async def get_subscriptions(self) -> eave_ops.GetSubscriptions.ResponseBody:
+        """
+        Get all Eave subscriptions to the current slack message/thread
+        """
+        subscription = await eave_core.get_subscriptions(
+            team_id=self.eave_team.id,
+            input=eave_ops.GetSubscriptions.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+            ),
+        )
+        return subscription
 
     async def create_subscription(self) -> eave_ops.CreateSubscription.ResponseBody:
         """
@@ -613,20 +619,25 @@ class Brain:
         return subscription
 
     async def upsert_document(self, document: eave_ops.DocumentInput) -> eave_ops.UpsertDocument.ResponseBody:
+        # give document reference subscriptions for both slack thread and all link subscriptions created
         response = await eave_core.upsert_document(
             team_id=self.eave_team.id,
             input=eave_ops.UpsertDocument.RequestBody(
-                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+                subscriptions=self.subscriptions,
                 document=document,
             ),
         )
         return response
 
-    async def notify_existing_subscription(self, subscription: eave_ops.GetSubscription.ResponseBody) -> None:
-        if subscription.document_reference is not None:
+    async def notify_existing_subscription(self, subscriptions: eave_ops.GetSubscriptions.ResponseBody) -> None:
+        if documents := [doc for doc in subscriptions.document_references if doc is not None]:
+            doc_link_bullets = "".join([
+                f" * <{doc.document_url}|{doc.document_url}>\n"
+                for doc in documents
+            ])
             await self.message.send_response(
                 text=(
-                    f"Hey! I'm already watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                    f"Hey! I'm already watching this conversation and documenting the information at the following locations:\n{doc_link_bullets}"
                     "Let me know if you need anything else!"
                 )
             )
@@ -673,7 +684,7 @@ class Brain:
             ###
             {self.expanded_text}
             ###
-        """,
+            """,
         )
 
         self.message_context = message_context

@@ -91,7 +91,7 @@ async def test_subscribe_successful_subscription(setup_teardown) -> None:
         ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", LinkType.github),
         ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
     ]
-    await link_handler.subscribe(
+    await link_handler.subscribe_to_file_changes(
         eave_team_id=dummy_id,
         urls=input_links,
     )
@@ -116,7 +116,7 @@ async def test_subscribe_skip_subscription(setup_teardown) -> None:
         ("https://github.com/eave-fyi/", LinkType.github),
         ("http://github.enterprise.com/the-org/repo-name/", LinkType.github),
     ]
-    await link_handler.subscribe(
+    await link_handler.subscribe_to_file_changes(
         eave_team_id=dummy_id,
         urls=input_links,
     )

@@ -62,9 +62,7 @@ async def seed_database() -> None:
     slack_install = SlackInstallationOrm(
         team_id=team.id,
         slack_team_id="T03G5LV6R7Y",
-        bot_id="B04K6P48T4G",
         bot_token=os.getenv("SLACK_BOT_TOKEN", "empty"),
-        bot_user_id=None,
     )
     session.add(slack_install)
     await session.commit()

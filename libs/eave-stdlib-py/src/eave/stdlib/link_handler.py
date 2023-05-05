@@ -62,28 +62,36 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, eave_models
     return content
 
 
-async def subscribe(eave_team_id: UUID4, urls: list[tuple[str, eave_models.LinkType]]) -> None:
+async def subscribe_to_file_changes(
+    eave_team_id: UUID4, urls: list[tuple[str, eave_models.LinkType]]
+) -> list[eave_models.Subscription]:
     """
     Create Eave Subscriptions to watch for changes in all of the URL resources in `urls`
 
     eave_team_id -- TeamOrm ID to create the subscription for
     urls -- links paired with their platform type [(url, url platform)]
+    returns -- list of subscriptions that got created
     """
     contexts = await _build_link_contexts(eave_team_id, urls)
 
-    tasks = set()
+    tasks = []
     clients: dict[eave_models.LinkType, BaseClient] = {}
     for link_ctx in contexts:
         if link_ctx.type not in clients:
             clients[link_ctx.type] = create_client(link_ctx)
-        # create fire and forget bg task
-        task = asyncio.create_task(
-            _create_subscription(clients[link_ctx.type], link_ctx.url, link_ctx.type, eave_team_id)
+        tasks.append(
+            asyncio.ensure_future(
+                _create_subscription_source(clients[link_ctx.type], link_ctx.url, link_ctx.type, eave_team_id)
+            )
         )
-        # add to set to hold strong ref to prevent task being garbo collected
-        tasks.add(task)
-        # cleanup reference on task completion
-        task.add_done_callback(tasks.discard)
+
+    # have asyncio.gather eat any network exceptions an return them as part of result
+    completed_tasks: list[Optional[eave_models.SubscriptionSource]] = await asyncio.gather(
+        *tasks, return_exceptions=True
+    )
+    # only return the successful results
+    subscription_sources = [src for src in completed_tasks if isinstance(src, eave_models.Subscription)]
+    return subscription_sources
 
 
 def _get_link_type(link: str) -> Optional[eave_models.LinkType]:
@@ -133,11 +141,11 @@ async def _build_link_contexts(eave_team_id: UUID4, links: list[tuple[str, eave_
     return accessible_links
 
 
-async def _create_subscription(
+async def _create_subscription_source(
     untyped_client: Any, url: str, link_type: eave_models.LinkType, eave_team_id: UUID4
-) -> None:
+) -> Optional[eave_models.Subscription]:
     """
-    Insert a subcription to watch the resource at `url` into the Eave database.
+    Insert a subcription into the Eave database to watch the resource at `url`.
 
     untyped_client -- API client corresponding to `link_type` for fetching data to build subscription with
     url -- URL resource to create a subscription for watching
@@ -157,7 +165,7 @@ async def _create_subscription(
             path_chunks = url.split(f"{repo_info.full_name}/blob/")
             # we need the 2nd element, which is branch name + resource path
             if len(path_chunks) < 2:
-                return
+                return None
             blob_path = path_chunks[1]
             # b64 encode since our chosen ID delimiter '#' is a valid character in file paths and branch names
             encoded_blob_path = base64.b64encode(blob_path.encode()).decode()
@@ -168,8 +176,8 @@ async def _create_subscription(
     assert (
         source_id is not None and platform is not None and event is not None
     ), "Subscription creation data not fully populated"
-    
-    await eave_core_api_client.create_subscription(
+
+    response = await eave_core_api_client.create_subscription(
         team_id=eave_team_id,
         input=eave_ops.CreateSubscription.RequestBody(
             subscription=eave_ops.SubscriptionInput(
@@ -177,7 +185,9 @@ async def _create_subscription(
                     platform=platform,
                     event=event,
                     id=source_id,
-                )
+                ),
             ),
         ),
     )
+
+    return response.subscription

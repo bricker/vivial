@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Self, Tuple
+from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
 import eave.stdlib.core_api.enums
@@ -30,6 +30,7 @@ class SubscriptionOrm(Base):
             "source_platform",
             "source_event",
             "source_id",
+            "document_reference_id",
             unique=True,
         ),
     )
@@ -70,28 +71,78 @@ class SubscriptionOrm(Base):
 
     @classmethod
     async def one_or_none(
-        cls, session: AsyncSession, team_id: UUID, source: eave_models.SubscriptionSource
+        cls,
+        session: AsyncSession,
+        team_id: UUID,
+        document_reference_id: UUID,
+        source: eave_models.SubscriptionSource,
+        id: Optional[UUID] = None,
     ) -> Optional[Self]:
-        lookup = cls._select_one(team_id=team_id, source=source)
+        lookup = cls._select_one(team_id=team_id, source=source, document_reference_id=document_reference_id, id=id)
         subscription = await session.scalar(lookup)
         return subscription
 
     @classmethod
     async def one_or_exception(
-        cls, session: AsyncSession, team_id: UUID, source: eave_models.SubscriptionSource
+        cls,
+        session: AsyncSession,
+        team_id: UUID,
+        document_reference_id: UUID,
+        source: eave_models.SubscriptionSource,
+        id: Optional[UUID] = None,
     ) -> Self:
-        lookup = cls._select_one(team_id=team_id, source=source)
+        lookup = cls._select_one(team_id=team_id, source=source, document_reference_id=document_reference_id, id=id)
         subscription = (await session.scalars(lookup)).one()
         return subscription
 
     @classmethod
-    def _select_one(cls, team_id: UUID, source: eave_models.SubscriptionSource) -> Select[Tuple[Self]]:
+    async def all(
+        cls,
+        session: AsyncSession,
+        team_id: UUID,
+        document_reference_id: Optional[UUID],
+        source: eave_models.SubscriptionSource,
+    ) -> Sequence[Self]:
+        lookup = cls._select_all(team_id=team_id, source=source, document_reference_id=document_reference_id)
+        subscription = (await session.scalars(lookup)).all()
+        return subscription
+
+    @classmethod
+    def _select_one(
+        cls,
+        team_id: UUID,
+        document_reference_id: UUID,
+        source: eave_models.SubscriptionSource,
+        id: Optional[UUID] = None,
+    ) -> Select[Tuple[Self]]:
+        lookup = select(cls)
+
+        if id:
+            lookup = lookup.where(cls.id == id)
+
+        lookup = (
+            lookup.where(cls.team_id == team_id)
+            .where(cls.source_platform == source.platform)
+            .where(cls.source_event == source.event)
+            .where(cls.source_id == source.id)
+            .where(cls.document_reference_id == document_reference_id)
+            .limit(1)
+        )
+        return lookup
+
+    @classmethod
+    def _select_all(
+        cls, team_id: UUID, document_reference_id: Optional[UUID], source: eave_models.SubscriptionSource
+    ) -> Select[Tuple[Self]]:
         lookup = (
             select(cls)
             .where(cls.team_id == team_id)
             .where(cls.source_platform == source.platform)
             .where(cls.source_event == source.event)
             .where(cls.source_id == source.id)
-            .limit(1)
         )
+
+        if document_reference_id is not None:
+            lookup = lookup.where(cls.document_reference_id == document_reference_id)
+
         return lookup
