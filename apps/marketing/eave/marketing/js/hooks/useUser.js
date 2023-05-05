@@ -1,13 +1,10 @@
 import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-
 import { AppContext } from '../context/Provider.js';
 
 const useUser = () => {
   const { user, error } = useContext(AppContext);
   const [userState, setUserState] = user;
   const [, setErrorState] = error;
-  const navigate = useNavigate();
 
   return {
     userState,
