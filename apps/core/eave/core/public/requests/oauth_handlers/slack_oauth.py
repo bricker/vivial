@@ -178,7 +178,7 @@ async def _run_post_install_procedures(
         slack_user_id = slack_oauth_data["authed_user"]["id"]
         await slack_client.chat_postMessage(
             channel=slack_user_id,
-            text="Success! Thanks for adding me to your Slack workspace. Call on me any time to write and maintain your documentation.",
+            text="Hey there! I’m Eave, and here to help with any of your documentation needs. Add me to channels or DMs, and simply tag me in a thread you want documented.",
 
         )
     except Exception as e:
