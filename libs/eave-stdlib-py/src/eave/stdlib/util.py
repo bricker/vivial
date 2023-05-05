@@ -68,20 +68,28 @@ def sha256hexdigest(data: str | bytes) -> str:
     return hashlib.sha256(ensure_bytes(data)).hexdigest()
 
 
-def b64encode(data: str | bytes) -> str:
+def b64encode(data: str | bytes, urlsafe: bool = False) -> str:
     """
     base64-encode the data (utf-8 string or bytes) and return an ASCII string
     """
-    return base64.b64encode(ensure_bytes(data)).decode()
+    b = ensure_bytes(data)
+    if urlsafe:
+        return base64.urlsafe_b64encode(b).decode()
+    else:
+        return base64.b64encode(b).decode()
 
 
-def b64decode(data: str | bytes) -> str:
+def b64decode(data: str | bytes, urlsafe: bool = False) -> str:
     """
     base64-decode the data (ASCII string or bytes) and return a utf8 string.
     Note that this function only works if you know that the encoded data will decode into a utf-8 string.
     If you are dealing with non-utf8 data, use `base64.b64decode` directly.
     """
-    return base64.b64decode(ensure_bytes(data)).decode()
+    b = ensure_bytes(data)
+    if urlsafe:
+        return base64.urlsafe_b64decode(b).decode()
+    else:
+        return base64.b64decode(b).decode()
 
 
 def ensure_bytes(data: str | bytes) -> bytes:

@@ -31,16 +31,26 @@ async def slack_oauth_authorize() -> fastapi.Response:
 
 
 async def slack_oauth_callback(
-    state: str,
-    code: str,
     request: fastapi.Request,
     response: fastapi.Response,
+    state: str,
+    code: typing.Optional[str] = None,
+    error: typing.Optional[str] = None,
+    error_description: typing.Optional[str] = None,
 ) -> fastapi.Response:
     shared.verify_oauth_state_or_exception(
         state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response
     )
 
-    slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token(code=code)
+    eave_state = eave.core.public.requests.util.get_eave_state(request=request)
+
+    if error or not code:
+        eave.stdlib.logger.warning(f"Error response from Slack OAuth flow or code missing. {error}: {error_description}", extra=eave_state.log_context)
+        shared.set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
+        return response
+
+
+    slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token_or_exception(code=code)
     slack_team_name = slack_oauth_data["team"]["name"]
     slack_user_id = slack_oauth_data["authed_user"]["id"]
     slack_user_access_token = slack_oauth_data["authed_user"]["access_token"]

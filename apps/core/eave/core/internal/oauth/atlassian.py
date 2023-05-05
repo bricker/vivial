@@ -42,14 +42,20 @@ ATLASSIAN_OAUTH_SCOPES = [
 
 
 class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
-    def __init__(self, client=None, auto_refresh_kwargs=None, token=None, state=None, token_updater=None, **kwargs):  # type: ignore[no-untyped-def]
+    def __init__(self, client=None, token=None, state=None, token_updater=None, **kwargs):  # type: ignore[no-untyped-def]
+        client_id=app_config.eave_atlassian_app_client_id
+        client_secret=app_config.eave_atlassian_app_client_secret
+
         super().__init__(
-            client_id=app_config.eave_atlassian_app_client_id,
+            client_id=client_id,
             redirect_uri=f"{app_config.eave_api_base}/oauth/atlassian/callback",
             scope=" ".join(ATLASSIAN_OAUTH_SCOPES),
-            auto_refresh_url="https://auth.atlassian.com/oauth/token",
             client=client,
-            auto_refresh_kwargs=auto_refresh_kwargs,
+            auto_refresh_url="https://auth.atlassian.com/oauth/token",
+            auto_refresh_kwargs={
+                "client_id": client_id,
+                "client_secret": client_secret,
+            },
             token=token,
             state=state,
             token_updater=token_updater,
