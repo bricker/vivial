@@ -30,7 +30,6 @@ class TestSubscriptionOrm(BaseTestCase):
                     event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
                     id=self.anystring("source_id"),
                 ),
-                document_reference_id=doc_id,
             )
 
         assert result is not None

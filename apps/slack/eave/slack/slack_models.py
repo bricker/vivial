@@ -363,7 +363,8 @@ class SlackMessage:
 
     @property
     def is_eave(self) -> bool:
-        return self.app_id == app_config.eave_slack_app_id
+        message_is_from_eave: bool = self.app_id == app_config.eave_slack_app_id
+        return message_is_from_eave
 
     async def send_response(
         self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None

@@ -64,23 +64,14 @@ class CreateAccessRequest(Endpoint):
         opaque_input: str
 
 
-class GetSubscriptions(Endpoint):
+class GetSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
-        document_reference: Optional[DocumentReferenceInput] = None
 
     class ResponseBody(pydantic.BaseModel):
-        """
-        `subscriptions` and `document_references` have the same length
-        and each index corresponds directly.
-        e.g. `subscriptions[1].document_reference_id == document_references[1].id`
-        `document_references` has None entries where the corresponding Subscription
-        has a None document_reference_id.
-        """
-
         team: models.Team
-        subscriptions: Sequence[models.Subscription]
-        document_references: Sequence[Optional[models.DocumentReference]]
+        subscription: models.Subscription
+        document_reference: Optional[models.DocumentReference] = None
 
 
 class CreateSubscription(Endpoint):
@@ -94,10 +85,9 @@ class CreateSubscription(Endpoint):
         document_reference: Optional[models.DocumentReference] = None
 
 
-class DeleteSubscriptions(Endpoint):
+class DeleteSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
-        document_reference: Optional[DocumentReferenceInput] = None
 
 
 class UpsertDocument(Endpoint):

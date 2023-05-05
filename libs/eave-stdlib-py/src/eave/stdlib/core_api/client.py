@@ -82,7 +82,7 @@ async def create_subscription(
 
 async def delete_subscription(
     team_id: UUID,
-    input: operations.DeleteSubscriptions.RequestBody,
+    input: operations.DeleteSubscription.RequestBody,
 ) -> None:
     """
     POST /subscriptions/delete
@@ -94,9 +94,9 @@ async def delete_subscription(
     )
 
 
-async def get_subscriptions(
-    team_id: UUID, input: operations.GetSubscriptions.RequestBody
-) -> operations.GetSubscriptions.ResponseBody:
+async def get_subscription(
+    team_id: UUID, input: operations.GetSubscription.RequestBody
+) -> operations.GetSubscription.ResponseBody:
     """
     POST /subscriptions/query
     """
@@ -107,7 +107,7 @@ async def get_subscriptions(
     )
 
     response_json = await response.json()
-    return operations.GetSubscriptions.ResponseBody(**response_json)
+    return operations.GetSubscription.ResponseBody(**response_json)
 
 
 async def get_slack_installation(

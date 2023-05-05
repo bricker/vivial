@@ -121,7 +121,7 @@ add_route(
     signature_required=True,
     origin_required=True,
     team_id_required=True,
-    handler=subscriptions.get_subscriptions,
+    handler=subscriptions.get_subscription,
 )
 add_route(
     method="POST",
@@ -130,7 +130,7 @@ add_route(
     signature_required=True,
     origin_required=True,
     team_id_required=True,
-    handler=subscriptions.delete_subscriptions,
+    handler=subscriptions.delete_subscription,
 )
 
 add_route(
