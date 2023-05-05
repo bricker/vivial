@@ -13,12 +13,6 @@ class ConfluenceSpace(pydantic.BaseModel):
     name: str
 
 
-@dataclass
-class AuthTokenPair:
-    access_token: str
-    refresh_token: str
-
-
 class AccessRequest(pydantic.BaseModel):
     id: pydantic.UUID4
     visitor_id: Optional[pydantic.UUID4]
@@ -65,7 +59,7 @@ class Team(pydantic.BaseModel):
 class AuthenticatedAccount(pydantic.BaseModel):
     id: uuid.UUID
     auth_provider: enums.AuthProvider
-    visitor_id: uuid.UUID
+    visitor_id: Optional[uuid.UUID]
     team_id: uuid.UUID
     access_token: str
 

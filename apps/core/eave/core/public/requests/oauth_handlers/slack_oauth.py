@@ -57,7 +57,13 @@ async def slack_oauth_callback(
 
     slack_user_name = user_identity.given_name
     slack_user_email = user_identity.email
-    eave_team_name = slack_team_name or f"{slack_user_name}'s Team"
+
+    if slack_team_name:
+        eave_team_name = slack_team_name
+    elif slack_user_name:
+        eave_team_name = f"{slack_user_name}'s Team"
+    else:
+        eave_team_name = "Your Team"
 
     eave_account = await shared.get_or_create_eave_account(
         request=request,
@@ -116,7 +122,6 @@ async def _update_or_create_slack_installation(
                 bot_refresh_token=slack_bot_refresh_token,
             )
 
-    slack_client = AsyncWebClient()
     slack_client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=slack_bot_access_token)
 
     approximate_num_members = 0
@@ -133,14 +138,13 @@ async def _update_or_create_slack_installation(
                 exclude_archived=True,
                 types="public_channel",
             )
-            assert isinstance(data := channels_response.data, dict), "Unexpected response data"
-            assert isinstance(channels := data["channels"], list), "Unexpected response data"
+            assert isinstance(channels := channels_response.get("channels"), list), "Unexpected response data"
             candidates = list(filter(lambda c: c.get("name") == "general", channels))
             if len(candidates) > 0:
                 approximate_num_members = candidates[0].get("num_members")
                 break
             else:
-                response_metadata = data.get("response_metadata")
+                response_metadata = channels_response.get("response_metadata")
                 if not response_metadata:
                     break
                 assert isinstance(response_metadata, dict)

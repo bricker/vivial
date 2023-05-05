@@ -1,22 +1,21 @@
 import json
 import time
 
-import eave.pubsub_schemas.generated.eave_user_action_pb2 as eave_user_action
+import eave.pubsub_schemas
 
-message = eave_user_action.EaveUserAction(
-    action=eave_user_action.EaveUserAction.Action(
-        platform="test",
-        name="run_tests",
-        description="A developer ran the tests",
-        eave_user_id="dev",
-        opaque_params=json.dumps(
-            {
-                "foo": "bar",
-            }
-        ),
-        user_ts=int(time.time()),
+message = eave.pubsub_schemas.EaveEvent(
+    event_name="run_tests",
+    event_description="A developer ran the tests",
+    event_source="tests",
+    event_ts=time.time(),
+    eave_account_id="dev",
+    eave_visitor_id="dev",
+    eave_team_id="dev",
+    opaque_params=json.dumps(
+        {
+            "foo": "bar",
+        }
     ),
-    message_source="eave-pubsub-schemas",
 )
 
 print(message)

@@ -56,8 +56,8 @@ class ConfluenceContext:
 
 
 class ConfluenceGenericLinks:
-    self_: str
-    base_url: str
+    base: Optional[str]
+    self_: Optional[str] = None
     tinyui: Optional[str] = None
     editui: Optional[str] = None
     webui: Optional[str] = None
@@ -66,8 +66,8 @@ class ConfluenceGenericLinks:
 
     # FIXME: According to the Confluence documentation, "_links" might be a string (instead of an object)
     def __init__(self, data: dict[str, str], ctx: ConfluenceContext) -> None:
-        self.base_url = ctx.base_url
-        self.self_ = data["self"]
+        self.base = data.get("base")
+        self.self_ = data.get("self")
         self.tinyui = data.get("tinyui")
         self.editui = data.get("editui")
         self.webui = data.get("webui")
@@ -79,21 +79,21 @@ class ConfluenceGenericLinks:
         if self.editui is None:
             return None
 
-        return self.base_url + "/wiki" + self.editui
+        return f"{self.base}{self.editui}"
 
     @property
     def webui_url(self) -> Optional[str]:
         if self.webui is None:
             return None
 
-        return self.base_url + "/wiki" + self.webui
+        return f"{self.base}{self.webui}"
 
     @property
     def tinyui_url(self) -> Optional[str]:
         if self.tinyui is None:
             return None
 
-        return self.base_url + "/wiki" + self.tinyui
+        return f"{self.base}{self.tinyui}"
 
 
 class ConfluenceBaseModel:

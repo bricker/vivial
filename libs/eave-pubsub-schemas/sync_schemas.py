@@ -87,6 +87,13 @@ def publish_schema(schema_id: str, schema_definition: str) -> None:
         logging.info(f"Schema {schema_id} already exists on remote. This is normal. Skipping.")
 
 
+def create_topic() -> None:
+    pass
+
+def create_subscription() -> None:
+    pass
+
+
 def run() -> None:
     print("run")
     remote_schemas = load_remote_schemas()

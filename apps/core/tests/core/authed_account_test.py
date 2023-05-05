@@ -70,7 +70,7 @@ class TestAuthedAccountRequests(BaseTestCase):
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                oauth_token_encoded=self.anystring("oauth_token_encoded"),
+                oauth_token_encoded=self.anyjson("oauth_token_encoded"),
             )
 
         response = await self.make_request(
@@ -102,7 +102,7 @@ class TestAuthedAccountRequests(BaseTestCase):
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                oauth_token_encoded=self.anystring("oauth_token_encoded"),
+                oauth_token_encoded=self.anyjson("oauth_token_encoded"),
             )
 
         response = await self.make_request(

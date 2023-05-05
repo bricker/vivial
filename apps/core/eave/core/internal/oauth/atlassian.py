@@ -4,12 +4,12 @@ from functools import cache
 from typing import List
 
 import eave.stdlib
+import eave.stdlib.atlassian
 import requests_oauthlib
 from oauthlib.oauth2 import OAuth2Token
 
 from ..config import app_config
 from .models import OAuthFlowInfo
-
 
 @dataclass
 class AtlassianOAuthTokenResponse:
@@ -126,7 +126,13 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
 
     @property
     def confluence_context(self) -> eave.stdlib.atlassian.ConfluenceContext:
-        return eave.stdlib.atlassian.ConfluenceContext(base_url=self.api_base_url)
+        resources = self.get_available_resources()
+        if len(resources) > 0:
+            url = resources[0].url
+        else:
+            url = self.api_base_url
+
+        return eave.stdlib.atlassian.ConfluenceContext(base_url=url)
 
     def get_token(self) -> OAuth2Token:
         """This is mostly for tests"""

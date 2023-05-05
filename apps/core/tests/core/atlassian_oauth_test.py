@@ -5,6 +5,7 @@ import urllib.parse
 import uuid
 from http import HTTPStatus
 
+import eave.stdlib.atlassian
 import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
@@ -17,49 +18,6 @@ from .base import BaseTestCase
 
 
 class TestAtlassianOAuth(BaseTestCase):
-    def _mock_atlassian_oauth_response(self) -> None:
-        self.fake_resources = [
-            eave.stdlib.atlassian.AtlassianAvailableResource(
-                id=self.anystring("atlassian_cloud_id"),
-                url=self.anystring("confluence_document_response._links.base"),
-                avatarUrl=self.anystring("atlassian.resource.avatar"),
-                name=self.anystring("atlassian.resource.name"),
-                scopes=[],
-            )
-        ]
-
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources, ...).thenAnswer(
-            lambda *args, **kwargs: self.fake_resources
-        )
-
-        self.fake_token = {
-            "access_token": self.anystring("atlassian.access_token"),
-            "refresh_token": self.anystring("atlassian.refresh_token"),
-            "expires_in": self.anyint("atlassian.expires_in"),
-            "scope": self.anystring("atlassian.scope"),
-        }
-
-        # Do nothing
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token, ...)
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token, ...).thenAnswer(
-            lambda *args, **kwargs: self.fake_token
-        )
-
-        self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
-            data={
-                "type": "known",
-                "accountType": "atlassian",
-                "accountId": self.anystring("confluence.account_id"),
-                "displayName": self.anystring("confluence.display_name"),
-                "email": self.anystring("confluence.email"),
-            },
-            ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url")),
-        )
-
-        mockito.when2(eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo, ...).thenAnswer(
-            lambda *args, **kwargs: self.fake_confluence_user
-        )
-
     async def test_atlassian_authorize_endpoint(self) -> None:
         response = await self.make_request("/oauth/atlassian/authorize", method="GET", payload=None)
 
@@ -73,8 +31,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert re.search(f"redirect_uri={redirect_uri}", response.headers["Location"])
 
     async def test_atlassian_callback_new_account(self) -> None:
-        self._mock_atlassian_oauth_response()
-
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
         assert (await self.count(eave.core.internal.orm.AtlassianInstallationOrm)) == 0
 
@@ -120,13 +76,12 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_account.auth_id == self.anystring("confluence.account_id")
         assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.atlassian
         assert eave_team.name == self.anystring("atlassian.resource.name")
-        assert atlassian_installation.oauth_token_encoded == json.dumps(self.fake_token)
+        assert atlassian_installation.oauth_token_encoded == json.dumps(self.fake_atlassian_token)
         assert atlassian_installation.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
         assert atlassian_installation.team_id == eave_team.id
 
     async def test_atlassian_callback_new_account_without_team_name_from_atlassian(self) -> None:
-        self._mock_atlassian_oauth_response()
-        self.fake_resources[0].name = ""
+        self.fake_atlassian_resources[0].name = ""
 
         response = await self.make_request(
             path="/oauth/atlassian/callback",
@@ -148,8 +103,7 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_team.name == f"{self.anystring('confluence.display_name')}'s Team"
 
     async def test_atlassian_callback_new_account_without_user_name_from_atlassian(self) -> None:
-        self._mock_atlassian_oauth_response()
-        self.fake_resources[0].name = ""
+        self.fake_atlassian_resources[0].name = ""
         self.fake_confluence_user.display_name = None
 
         response = await self.make_request(
@@ -172,7 +126,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_team.name == "Your Team"
 
     async def test_atlassian_callback_whitelisted_team(self) -> None:
-        self._mock_atlassian_oauth_response()
 
         self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("confluence.email")
 
@@ -201,8 +154,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
     async def test_atlassian_callback_existing_account(self) -> None:
-        self._mock_atlassian_oauth_response()
-
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
@@ -236,8 +187,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
     async def test_atlassian_callback_logged_in_account(self) -> None:
-        self._mock_atlassian_oauth_response()
-
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
@@ -273,8 +222,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
     async def test_atlassian_callback_logged_in_account_another_provider(self) -> None:
-        self._mock_atlassian_oauth_response()
-
         eave_team = await self.make_team()
         eave_account_before = await self.make_account(
             team_id=eave_team.id,

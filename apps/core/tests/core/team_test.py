@@ -28,8 +28,8 @@ class TestTeamOrm(BaseTestCase):
         atlassian_installation = eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm(
             team_id=team.id,
             atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-            confluence_space=self.anystring("confluence_space"),
-            oauth_token_encoded=json.dumps({"access_token": self.anystring()}),
+            confluence_space_key=self.anystring("confluence_space"),
+            oauth_token_encoded=self.anyjson("oauth_token_encoded"),
         )
         await self.save(atlassian_installation)
 

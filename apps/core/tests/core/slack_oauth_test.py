@@ -1,3 +1,7 @@
+import slack_sdk.web.async_slack_response
+import json
+import typing
+import unittest.mock
 import http
 import re
 import uuid
@@ -16,7 +20,9 @@ from .base import BaseTestCase
 
 
 class TestSlackOAuthHandler(BaseTestCase):
-    def _mock_slack_oauth_response(self) -> None:
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+
         self.oauth_val: eave.core.internal.oauth.slack.SlackOAuthResponse = {
             "access_token": self.anystring("access_token"),
             "refresh_token": self.anystring("refresh_token"),
@@ -42,17 +48,21 @@ class TestSlackOAuthHandler(BaseTestCase):
             }
         )
 
-        mockito.when2(eave.core.internal.oauth.slack.get_userinfo_or_exception, **mockito.kwargs).thenAnswer(
-            lambda: self.mock_coroutine(self.userinfo_val)
-        )
+        async def _get_userinfo_or_exception(*args: typing.Any, **kwargs: typing.Any) -> eave.core.internal.oauth.slack.SlackIdentity:
+            return self.userinfo_val
 
-        mockito.when2(eave.core.internal.oauth.slack.get_access_token, **mockito.kwargs).thenAnswer(
-            lambda: self.mock_coroutine(self.oauth_val)
-        )
+        unittest.mock.patch(
+            "eave.core.internal.oauth.slack.get_userinfo_or_exception",
+            new=_get_userinfo_or_exception).start()
 
-        mockito.when2(eave.core.internal.oauth.slack.get_access_token, **mockito.kwargs).thenAnswer(
-            lambda: self.mock_coroutine(self.oauth_val)
-        )
+        async def _get_access_token(*args: typing.Any, **kwargs: typing.Any) -> eave.core.internal.oauth.slack.SlackOAuthResponse:
+            return self.oauth_val
+
+        unittest.mock.patch(
+            "eave.core.internal.oauth.slack.get_access_token",
+            new=_get_access_token).start()
+
+        unittest.mock.patch("slack_sdk.web.async_slack_response.AsyncSlackResponse", new=unittest.mock.Mock()).start()
 
     async def test_slack_authorize(self) -> None:
         response = await self.make_request(
@@ -71,8 +81,6 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
 
     async def test_slack_callback_new_account(self) -> None:
-        self._mock_slack_oauth_response()
-
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
         assert (await self.count(eave.core.internal.orm.SlackInstallationOrm)) == 0
 
@@ -131,7 +139,6 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert slack_installation.team_id == eave_team.id
 
     async def test_slack_callback_new_account_without_team_name_from_slack(self) -> None:
-        self._mock_slack_oauth_response()
         self.oauth_val["team"]["name"] = ""
 
         response = await self.make_request(
@@ -154,7 +161,6 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert eave_team.name == f"{self.anystring('slack_given_name')}'s Team"
 
     async def test_slack_callback_new_account_without_user_name_from_slack(self) -> None:
-        self._mock_slack_oauth_response()
         self.oauth_val["team"]["name"] = ""
         self.userinfo_val.given_name = None
 
@@ -178,8 +184,6 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert eave_team.name == f"Your Team"
 
     async def test_slack_callback_whitelisted_team(self) -> None:
-        self._mock_slack_oauth_response()
-
         self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("slack_user_email")
 
         response = await self.make_request(
@@ -208,8 +212,6 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
     async def test_slack_callback_existing_account(self) -> None:
-        self._mock_slack_oauth_response()
-
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
@@ -243,8 +245,6 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
     async def test_slack_callback_logged_in_account(self) -> None:
-        self._mock_slack_oauth_response()
-
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
@@ -280,8 +280,6 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
     async def test_slack_callback_logged_in_account_another_provider(self) -> None:
-        self._mock_slack_oauth_response()
-
         eave_team = await self.make_team()
         eave_account_before = await self.make_account(
             team_id=eave_team.id,

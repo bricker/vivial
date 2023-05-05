@@ -7,7 +7,8 @@ import eave.core.internal.orm
 import eave.pubsub_schemas
 import eave.stdlib.core_api
 import fastapi
-
+import eave.stdlib.slack
+import eave.core.public.requests
 
 def verify_oauth_state_or_exception(
     state: str,
@@ -94,12 +95,14 @@ async def get_existing_eave_account(
 async def create_new_account_and_team(
     request: fastapi.Request,
     eave_team_name: str,
+    user_email: str | None,
     beta_whitelisted: bool,
     auth_provider: eave.stdlib.core_api.enums.AuthProvider,
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
 ) -> eave.core.internal.orm.AccountOrm:
+    eave_state = eave.core.public.requests.eave_request_util.get_eave_state(request=request)
     tracking_cookies = eave.stdlib.cookies.get_tracking_cookies(request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -121,17 +124,43 @@ async def create_new_account_and_team(
             refresh_token=refresh_token,
         )
 
-        eave.stdlib.analytics.log_event(
-            event_name="eave_account_registration",
-            event_description="A new account was created",
-            eave_account_id=eave_account.id,
-            eave_team_id=eave_account.team_id,
-            eave_visitor_id=eave_account.visitor_id,
-            event_source="core api oauth",
-            opaque_params={
-                "auth_provider": auth_provider.value,
-            },
+    eave.stdlib.analytics.log_event(
+        event_name="eave_account_registration",
+        event_description="A new account was created",
+        eave_account_id=eave_account.id,
+        eave_team_id=eave_account.team_id,
+        eave_visitor_id=eave_account.visitor_id,
+        event_source="core api oauth",
+        opaque_params={
+            "auth_provider": auth_provider.value,
+        },
+    )
+
+    try:
+        # TODO: This should happen in a pubsub subscriber on the "eave_account_registration" event.
+        # Notify #sign-ups Slack channel.
+        channel_id = "C04HH2N08LD" # #sign-ups in eave slack
+        slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
+        slack_response = await slack_client.chat_postMessage(
+            channel=channel_id,
+            text="Someone registered for Eave!",
         )
+
+        await slack_client.chat_postMessage(
+            channel=channel_id,
+            thread_ts=slack_response.get("ts"),
+            text=(
+                f"Auth Provider: `{auth_provider.value}`\n"
+                f"Email: `{user_email}`\n"
+                f"Account ID: `{eave_account.id}`\n"
+                f"Visitor ID: `{eave_account.visitor_id}`\n"
+                f"Eave Team Name: `{eave_team.name}`\n"
+                f"UTM Params:\n"
+                f"```{eave_account.opaque_utm_params}```"
+            ),
+        )
+    except Exception as e:
+        eave.stdlib.logger.error("Error while sending message to #sign-ups slack channel", exc_info=e, extra=eave_state.log_context)
 
     return eave_account
 
@@ -168,6 +197,7 @@ async def get_or_create_eave_account(
         eave_account = await create_new_account_and_team(
             request=request,
             eave_team_name=eave_team_name,
+            user_email=user_email,
             beta_whitelisted=beta_whitelisted,
             auth_provider=auth_provider,
             auth_id=auth_id,

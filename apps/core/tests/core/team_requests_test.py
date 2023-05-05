@@ -26,7 +26,7 @@ class TestTeamRequests(BaseTestCase):
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                oauth_token_encoded=self.anystring("oauth_token_encoded"),
+                oauth_token_encoded=self.anyjson("oauth_token_encoded"),
             )
 
         response = await self.make_request(
@@ -45,7 +45,7 @@ class TestTeamRequests(BaseTestCase):
         assert response_obj.integrations.atlassian is not None
         assert response_obj.integrations.atlassian.confluence_space_key == self.anystring("confluence_space")
         assert response_obj.integrations.atlassian.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert response_obj.integrations.atlassian.oauth_token_encoded == self.anystring("oauth_token_encoded")
+        assert response_obj.integrations.atlassian.oauth_token_encoded == self.anyjson("oauth_token_encoded")
 
     async def test_get_team_without_integrations(self) -> None:
         team = await self.make_team()

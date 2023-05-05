@@ -1,57 +1,44 @@
+import unittest.mock
 import atlassian
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.oauth.atlassian as atlassian_oauth
 import eave.stdlib
+import eave.stdlib.atlassian
 import eave.stdlib.core_api.operations as eave_ops
 import mockito
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 
-from . import fixtures
 from .base import BaseTestCase
 
 
 class TestConfluenceDestination(BaseTestCase):
-    async def asyncSetUp(self) -> None:
-        await super().asyncSetUp()
-
-        self.team = await self.make_team()
+    async def test_create_document(self) -> None:
+        team = await self.make_team()
         oauth_session = atlassian_oauth.AtlassianOAuthSession()
-        mockito.when2(oauth_session.get_available_resources).thenReturn(
-            [
-                eave.stdlib.atlassian.AtlassianAvailableResource(
-                    id=self.anystring("atlassian_cloud_id"),
-                    url=self.anystring("confluence_document_response._links.base"),
-                    avatarUrl=self.anystring("atlassianresourceavatar"),
-                    name=self.anystring("atlassianresourcename"),
-                    scopes=[],
-                )
-            ]
-        )
 
-        self.confluence_destination = confluence_destination.ConfluenceDestination(
+        destination = confluence_destination.ConfluenceDestination(
             atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
             space=self.anystring("space"),
             oauth_session=oauth_session,
         )
 
         document_reference = DocumentReferenceOrm(
-            team_id=self.team.id,
+            team_id=team.id,
             document_id=self.anystring("confluence_document_response.id"),
             document_url=self.anystring("cdurl"),
         )
-        self.document_reference = await self.save(document_reference)
+        await self.save(document_reference)
 
-    async def test_create_document(self) -> None:
-        mockito.when2(atlassian.Confluence.get_page_by_title, **mockito.KWARGS).thenReturn(None)
-        mockito.when2(atlassian.Confluence.create_page, **mockito.KWARGS).thenReturn(
-            fixtures.confluence_document_response(self)
-        )
+        m1 = unittest.mock.patch("atlassian.Confluence.get_page_by_title").start()
+        m1.return_value = None
+        m2 = unittest.mock.patch("atlassian.Confluence.create_page").start()
+        m2.return_value = self.confluence_document_response_fixture()
 
         input = eave_ops.DocumentInput(
             title=self.anystring("doctitle"),
             content=self.anystring("doccontent"),
         )
-        document_metadata = await self.confluence_destination.create_document(input=input)
+        document_metadata = await destination.create_document(input=input)
         self.assertEqual(document_metadata.id, self.anystring("confluence_document_response.id"))
         self.assertEqual(
             document_metadata.url,

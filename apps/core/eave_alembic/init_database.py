@@ -40,6 +40,8 @@ async def create_database() -> None:
     postgres_engine = create_async_engine(postgres_uri, isolation_level="AUTOCOMMIT")
 
     async with postgres_engine.begin() as connection:
+        stmt = f'DROP DATABASE IF EXISTS "{EAVE_DB_NAME}"'
+        await connection.execute(sqlalchemy.text(stmt))
         stmt = f'CREATE DATABASE "{EAVE_DB_NAME}"'
         await connection.execute(sqlalchemy.text(stmt))
 
