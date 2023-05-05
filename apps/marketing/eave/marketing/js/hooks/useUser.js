@@ -1,5 +1,4 @@
 import { useContext } from 'react';
-import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 
 import { AppContext } from '../context/Provider.js';
@@ -8,13 +7,22 @@ const useUser = () => {
   const { user, error } = useContext(AppContext);
   const [userState, setUserState] = user;
   const [, setErrorState] = error;
-  const [cookies] = useCookies(['ev_access_token']);
   const navigate = useNavigate();
 
   return {
     userState,
     setUserState,
-    isUserAuth: cookies.ev_access_token,
+    checkUserAuthState: () => {
+      fetch('/authcheck', {
+        method: 'GET',
+      }).then((resp) => {
+        resp.json().then((data) => {
+          setUserState((prevState) => ({ ...prevState, authenticated: data.authenticated === true }));
+        });
+      }).catch(() => {
+        // what do?
+      });
+    },
     // gets user info
     getUserInfo: () => {
       console.log('getting user info...');
@@ -63,7 +71,7 @@ const useUser = () => {
       });
     },
     // logs user out
-    logOut: () => navigate('/dashboard/logout'),
+    logOut: () => window.location.assign('/dashboard/logout'),
   };
 };
 

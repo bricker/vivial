@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 
 import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.cookies
@@ -36,6 +36,15 @@ def _render_spa(**kwargs: Any) -> str:
         app_version=app_config.app_version,
         **kwargs,
     )
+
+@app.route("/authcheck", methods=["GET"])
+async def get_auth_state() -> Dict[str, bool]:
+    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        return { "authenticated": False }
+    else:
+        return { "authenticated": True }
 
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
