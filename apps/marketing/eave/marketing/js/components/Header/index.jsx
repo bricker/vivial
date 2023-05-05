@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { IconButton, Drawer } from '@material-ui/core';
 
@@ -90,9 +90,14 @@ const Header = ({ simpleHeader }) => {
   const classes = makeClasses();
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const { openModal } = useAuthModal();
-  const { isUserAuth, logOut } = useUser();
+  const { userState, checkUserAuthState, logOut } = useUser();
+  const { authenticated } = userState;
 
-  const TopButtons = isUserAuth ? (
+  useEffect(() => {
+    checkUserAuthState();
+  }, [authenticated]);
+
+  const TopButtons = authenticated ? (
     <>
       <a className={classes.inlineButton} href="mailto:info@eave.fyi">
         Send Feedback
@@ -113,7 +118,7 @@ const Header = ({ simpleHeader }) => {
     </>
   );
 
-  const navButtons = isUserAuth ? (
+  const navButtons = authenticated ? (
     <>
       <a className={classes.mobileNavItem} href="mailto:info@eave.fyi">
         Send Feedback

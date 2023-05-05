@@ -11,6 +11,7 @@ const AppContextProvider = ({ children }) => {
   });
 
   const [userState, setUserState] = useState({
+    authenticated: null,
     teamInfo: null,
   });
 

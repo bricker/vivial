@@ -33,16 +33,23 @@ async def atlassian_oauth_authorize(request: fastapi.Request) -> fastapi.Respons
 
 
 async def atlassian_oauth_callback(
-    state: str,
-    code: str,
     request: fastapi.Request,
     response: fastapi.Response,
+    state: str,
+    code: typing.Optional[str] = None,
+    error: typing.Optional[str] = None,
+    error_description: typing.Optional[str] = None,
 ) -> fastapi.Response:
     shared.verify_oauth_state_or_exception(
         state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response
     )
 
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
+
+    if error or not code:
+        eave.stdlib.logger.warning(f"Error response from Atlassian OAuth flow or code missing. {error}: {error_description}", extra=eave_state.log_context)
+        shared.set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
+        return response
 
     oauth_session = oauth_atlassian.AtlassianOAuthSession(state=state)
     oauth_session.fetch_token(code=code)

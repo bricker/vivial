@@ -180,10 +180,15 @@ class AccountOrm(Base):
 
         match self.auth_provider:
             case eave.stdlib.core_api.enums.AuthProvider.slack:
-                new_tokens = await eave.core.internal.oauth.slack.refresh_access_token(refresh_token=self.refresh_token)
-                self.access_token = new_tokens["authed_user"]["access_token"]
-                self.refresh_token = new_tokens["authed_user"]["refresh_token"]
-                return True
+                new_tokens = await eave.core.internal.oauth.slack.refresh_access_token_or_exception(refresh_token=self.refresh_token)
+                if (access_token := new_tokens.get("access_token")) and (refresh_token := new_tokens.get("refresh_token")):
+                    eave.stdlib.logger.debug("Refreshing Slack auth tokens.", extra=log_context)
+                    self.access_token = access_token
+                    self.refresh_token = refresh_token
+                    return True
+                else:
+                    eave.stdlib.logger.error((msg := "Failed to refresh Slack auth tokens; missing access token or refresh token."), extra=log_context)
+                    raise eave.stdlib.exceptions.InvalidAuthError(msg)
 
             case eave.stdlib.core_api.enums.AuthProvider.google:
                 # The google client automatically refreshes the access token and updates the Credentials object,

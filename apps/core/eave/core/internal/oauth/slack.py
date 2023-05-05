@@ -147,7 +147,7 @@ async def get_userinfo_or_exception(access_token: str) -> SlackIdentity:
     return SlackIdentity(response=response.data)
 
 
-async def get_access_token(
+async def get_access_token_or_exception(
     code: str,
 ) -> SlackOAuthResponse:
     client = slack_sdk.web.async_client.AsyncWebClient()
@@ -165,7 +165,7 @@ async def get_access_token(
     return oauth_data
 
 
-async def refresh_access_token(
+async def refresh_access_token_or_exception(
     refresh_token: str,
 ) -> SlackOAuthResponse:
     client = slack_sdk.web.async_client.AsyncWebClient()
