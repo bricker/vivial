@@ -1,4 +1,5 @@
 from typing import TypeVar
+from eave.stdlib.core_api import enums
 
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as operations
@@ -25,9 +26,8 @@ class TestLinkHandler(BaseTestCase):
         await super().asyncTearDown()
         mockito.unstub()
 
-    @pytest.mark.parametrize(
-        "input_link, expected_result",
-        [
+    def test_filter_supported_links(self) -> None:
+        test_cases = [
             ("https://github.com", [LinkType.github]),
             ("https://github.enterprise.com", [LinkType.github]),
             ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", [LinkType.github]),
@@ -35,11 +35,11 @@ class TestLinkHandler(BaseTestCase):
             ("https://api.github.com", []),
             ("https://githubby.com", []),
             ("https://google.com", []),
-        ],
-    )
-    def test_filter_supported_links(self, input_link: str, expected_result: list[LinkType]) -> None:
-        result = link_handler.filter_supported_links([input_link])
-        assert result == [(input_link, supported) for supported in expected_result]
+        ]
+
+        for input_link, expected_result in test_cases:
+            result = link_handler.filter_supported_links([input_link])
+            assert result == [(input_link, supported) for supported in expected_result]
 
     async def test_map_link_content(self) -> None:
         self.setup_shared_mocks()
@@ -70,7 +70,6 @@ class TestLinkHandler(BaseTestCase):
             mock_coroutine(GithubRepository(node_id="1", full_name="eave-fyi/eave-monorepo"))
         ).thenReturn(mock_coroutine(GithubRepository(node_id="1", full_name="eave-fyi/eave-monorepo")))
         mockito.when2(eave_core.create_subscription, **mockito.kwargs).thenReturn(mock_coroutine(None))
-        mockito.when2(GitHubClient._create_jwt, *mockito.args).thenReturn("dummy jwt")
 
         dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
         input_links = [
@@ -111,13 +110,15 @@ class TestLinkHandler(BaseTestCase):
                 operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(
                     account=models.AuthenticatedAccount(
                         id=dummy_id,
-                        auth_provider=models.AuthProvider.google,
+                        auth_provider=enums.AuthProvider.google,
                         access_token="dummy token",
+                        visitor_id=None,
+                        team_id=dummy_id,
                     ),
                     team=models.Team(
                         id=dummy_id,
                         name="Team name",
-                        document_platform=models.DocumentPlatform.confluence,
+                        document_platform=enums.DocumentPlatform.confluence,
                     ),
                     integrations=models.Integrations(
                         github=models.GithubInstallation(
