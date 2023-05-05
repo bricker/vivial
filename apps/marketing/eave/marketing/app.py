@@ -1,7 +1,7 @@
 from typing import Any
 
 import eave.stdlib.api_util as eave_api_util
-import eave.stdlib.auth_cookies
+import eave.stdlib.cookies
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
@@ -39,7 +39,7 @@ def _render_spa(**kwargs: Any) -> str:
 
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
-    auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
@@ -50,7 +50,7 @@ async def authed_account_team() -> Response:
     )
 
     response = make_response(eave_response.json())
-    eave.stdlib.auth_cookies.set_auth_cookies(
+    eave.stdlib.cookies.set_auth_cookies(
         response=response,
         access_token=eave_response.account.access_token,  # In case the access token was refreshed
     )
@@ -60,7 +60,7 @@ async def authed_account_team() -> Response:
 
 @app.route("/dashboard/me/team/integrations/atlassian/update", methods=["POST"])
 async def update_atlassian_integration() -> Response:
-    auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
@@ -73,13 +73,13 @@ async def update_atlassian_integration() -> Response:
         access_token=auth_cookies.access_token,
         input=eave_ops.UpdateAtlassianInstallation.RequestBody(
             atlassian_integration=eave_ops.UpdateAtlassianInstallationInput(
-                confluence_space=confluence_space_key,
+                confluence_space_key=confluence_space_key,
             ),
         ),
     )
 
     response = make_response(eave_response.json())
-    eave.stdlib.auth_cookies.set_auth_cookies(
+    eave.stdlib.cookies.set_auth_cookies(
         response=response,
         access_token=eave_response.account.access_token,  # In case the access token was refreshed
     )
@@ -90,7 +90,7 @@ async def update_atlassian_integration() -> Response:
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
     response = redirect(location=app_config.eave_www_base, code=302)
-    eave.stdlib.auth_cookies.delete_auth_cookies(response=response)
+    eave.stdlib.cookies.delete_auth_cookies(response=response)
     return response
 
 

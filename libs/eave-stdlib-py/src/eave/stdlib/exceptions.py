@@ -46,6 +46,10 @@ class InvalidSignatureError(BadRequestError):
     pass
 
 
+class InvalidStateError(BadRequestError):
+    pass
+
+
 class MissingRequiredHeaderError(BadRequestError):
     pass
 
@@ -55,4 +59,8 @@ class MaxRetryAttemptsReachedError(InternalServerError):
 
 
 class InvalidChecksumError(InternalServerError):
+    pass
+
+
+class DataConflictError(BadRequestError):
     pass

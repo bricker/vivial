@@ -14,7 +14,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
 from ..oauth import atlassian as atlassian_oauth
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
+from .base import Base
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class AtlassianInstallationOrm(Base):
@@ -33,7 +34,9 @@ class AtlassianInstallationOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
-    confluence_space: Mapped[Optional[str]] = mapped_column()
+    confluence_space_key: Mapped[Optional[str]] = mapped_column(
+        "confluence_space"
+    )  # This field was renamed from "confluence_space" to "confluence_space_key"
     oauth_token_encoded: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -74,12 +77,12 @@ class AtlassianInstallationOrm(Base):
         team_id: uuid.UUID,
         atlassian_cloud_id: str,
         oauth_token_encoded: str,
-        confluence_space: Optional[str],
+        confluence_space_key: Optional[str],
     ) -> Self:
         obj = cls(
             team_id=team_id,
             atlassian_cloud_id=atlassian_cloud_id,
-            confluence_space=confluence_space,
+            confluence_space_key=confluence_space_key,
             oauth_token_encoded=oauth_token_encoded,
         )
         session.add(obj)
@@ -96,7 +99,7 @@ class AtlassianInstallationOrm(Base):
         return confluence_destination.ConfluenceDestination(
             oauth_session=self.build_oauth_session(),
             atlassian_cloud_id=self.atlassian_cloud_id,
-            space=self.confluence_space,
+            space=self.confluence_space_key,
         )
 
     @property

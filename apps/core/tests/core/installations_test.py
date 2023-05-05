@@ -27,12 +27,12 @@ class TestInstallationsRequests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integration/slack/query",
-            payload=eave.stdlib.core_api.operations.GetSlackInstallation.RequestBody(
-                slack_integration=eave.stdlib.core_api.operations.SlackInstallationInput(
-                    slack_team_id=self.anystring("slack_team_id"),
-                ),
-            ).dict(),
+            path="/integrations/slack/query",
+            payload={
+                "slack_integration": {
+                    "slack_team_id": self.anystring("slack_team_id"),
+                },
+            },
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -43,12 +43,12 @@ class TestInstallationsRequests(BaseTestCase):
 
     async def test_get_slack_installation_not_found(self) -> None:
         response = await self.make_request(
-            path="/integration/slack/query",
-            payload=eave.stdlib.core_api.operations.GetSlackInstallation.RequestBody(
-                slack_integration=eave.stdlib.core_api.operations.SlackInstallationInput(
-                    slack_team_id=self.anystring("slack_team_id"),
-                ),
-            ).dict(),
+            path="/integrations/slack/query",
+            payload={
+                "slack_integration": {
+                    "slack_team_id": self.anystring("slack_team_id"),
+                },
+            },
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND
@@ -67,7 +67,7 @@ class TestInstallationsRequests(BaseTestCase):
     #         )
 
     #     response = await self.make_request(
-    #         path="/integration/github/query",
+    #         path="/integrations/github/query",
     #         payload=eave.stdlib.core_api.operations.GetGithubInstallation.RequestBody(
     #             github_integration=eave.stdlib.core_api.operations.GithubInstallationInput(
     #                 github_install_id=self.anystring("github_install_id"),
@@ -82,7 +82,7 @@ class TestInstallationsRequests(BaseTestCase):
 
     # async def test_get_github_installation_not_found(self) -> None:
     #     response = await self.make_request(
-    #         path="/integration/github/query",
+    #         path="/integrations/github/query",
     #         payload=eave.stdlib.core_api.operations.GetGithubInstallation.RequestBody(
     #             github_integration=eave.stdlib.core_api.operations.GithubInstallationInput(
     #                 github_install_id=self.anystring("github_install_id"),
@@ -101,34 +101,34 @@ class TestInstallationsRequests(BaseTestCase):
                 session=db_session,
                 team_id=team.id,
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                oauth_token_encoded=self.anystring("oauth_token_encoded"),
-                confluence_space=self.anystring("confluence_space"),
+                oauth_token_encoded=self.anyjson("oauth_token_encoded"),
+                confluence_space_key=self.anystring("confluence_space"),
             )
 
         response = await self.make_request(
-            path="/integration/atlassian/query",
-            payload=eave.stdlib.core_api.operations.GetAtlassianInstallation.RequestBody(
-                atlassian_integration=eave.stdlib.core_api.operations.AtlassianInstallationInput(
-                    atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                ),
-            ).dict(),
+            path="/integrations/atlassian/query",
+            payload={
+                "atlassian_integration": {
+                    "atlassian_cloud_id": self.anystring("atlassian_cloud_id"),
+                },
+            },
         )
 
         assert response.status_code == HTTPStatus.OK
         response_obj = eave_ops.GetAtlassianInstallation.ResponseBody(**response.json())
 
         assert response_obj.atlassian_integration.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert response_obj.atlassian_integration.confluence_space == self.anystring("confluence_space")
-        assert response_obj.atlassian_integration.oauth_token_encoded == self.anystring("oauth_token_encoded")
+        assert response_obj.atlassian_integration.confluence_space_key == self.anystring("confluence_space")
+        assert response_obj.atlassian_integration.oauth_token_encoded == self.anyjson("oauth_token_encoded")
 
     async def test_get_atlassian_installation_not_found(self) -> None:
         response = await self.make_request(
-            path="/integration/atlassian/query",
-            payload=eave.stdlib.core_api.operations.GetAtlassianInstallation.RequestBody(
-                atlassian_integration=eave.stdlib.core_api.operations.AtlassianInstallationInput(
-                    atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                ),
-            ).dict(),
+            path="/integrations/atlassian/query",
+            payload={
+                "atlassian_integration": {
+                    "atlassian_cloud_id": self.anystring("atlassian_cloud_id"),
+                },
+            },
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND

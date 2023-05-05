@@ -1,3 +1,4 @@
+import re
 import typing
 import uuid
 from dataclasses import dataclass
@@ -6,8 +7,10 @@ from typing import Any, Literal, Mapping, Protocol
 
 from .config import shared_config
 
-EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
-EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token"
+EAVE_COOKIE_PREFIX_UTM = f"ev_utm_"
+EAVE_VISITOR_ID_COOKIE = f"ev_visitor_id"
+EAVE_ACCOUNT_ID_COOKIE = f"ev_account_id"
+EAVE_ACCESS_TOKEN_COOKIE = f"ev_access_token"
 
 
 class ResponseCookieMutator(Protocol):
@@ -27,11 +30,25 @@ class ResponseCookieMutator(Protocol):
         ...
 
 
-_shared_cookie_config = {
-    "domain": shared_config.eave_cookie_domain,
-    "httponly": True,
-    "secure": shared_config.dev_mode is False,
-}
+@dataclass
+class TrackingCookies:
+    utm_params: typing.Optional[typing.Dict[str, str]]
+    visitor_id: typing.Optional[uuid.UUID]
+
+
+def get_tracking_cookies(cookies: Mapping[str, str]) -> TrackingCookies:
+    visitor_id = cookies.get(EAVE_VISITOR_ID_COOKIE)
+    utm_params: typing.Dict[str, str] = {}
+
+    for key, value in cookies.items():
+        if re.match(EAVE_COOKIE_PREFIX_UTM, key):
+            utm_param_name = re.sub(f"^{EAVE_COOKIE_PREFIX_UTM}", "", key)
+            utm_params[utm_param_name] = value
+
+    return TrackingCookies(
+        utm_params=utm_params,
+        visitor_id=uuid.UUID(visitor_id) if visitor_id else None,
+    )
 
 
 @dataclass

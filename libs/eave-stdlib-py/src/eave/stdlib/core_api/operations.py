@@ -1,13 +1,12 @@
 from typing import Optional
 
-import eave.stdlib.core_api.enums
 import pydantic
 
-from . import models
+from . import enums, models
 
 
 class AccessTokenExchangeOfferInput(pydantic.BaseModel):
-    auth_provider: eave.stdlib.core_api.enums.AuthProvider
+    auth_provider: enums.AuthProvider
     auth_id: str
     oauth_token: str
 
@@ -43,7 +42,7 @@ class AtlassianInstallationInput(pydantic.BaseModel):
 
 
 class UpdateAtlassianInstallationInput(pydantic.BaseModel):
-    confluence_space: Optional[str]
+    confluence_space_key: Optional[str]
 
 
 class Endpoint:

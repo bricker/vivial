@@ -1,52 +1,102 @@
 import http
-import json
 import re
-import urllib.parse
+import typing
+import unittest.mock
 import uuid
 from http import HTTPStatus
 
 import eave.core.internal
-import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
+import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
+import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
-import eave.stdlib.atlassian
 import eave.stdlib.core_api
 
 from .base import BaseTestCase
 
 
-class TestAtlassianOAuth(BaseTestCase):
-    async def test_atlassian_authorize_endpoint(self) -> None:
-        response = await self.make_request("/oauth/atlassian/authorize", method="GET", payload=None)
+class TestSlackOAuthHandler(BaseTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+
+        self.oauth_val: eave.core.internal.oauth.slack.SlackOAuthResponse = {
+            "access_token": self.anystring("access_token"),
+            "refresh_token": self.anystring("refresh_token"),
+            "expires_in": self.anyint("expires_in"),
+            "team": {
+                "id": self.anystring("team.id"),
+                "name": self.anystring("team.name"),
+            },
+            "authed_user": {
+                "id": self.anystring("authed_user.id"),
+                "access_token": self.anystring("authed_user.access_token"),
+                "refresh_token": self.anystring("authed_user.refresh_token"),
+                "expires_in": self.anyint("authed_user.expires_in"),
+            },
+        }
+
+        self.userinfo_val = eave.core.internal.oauth.slack.SlackIdentity(
+            response={
+                "slack_user_id": self.anystring("authed_user.id"),
+                "slack_team_id": self.anystring("team.id"),
+                "email": self.anystring("slack_user_email"),
+                "given_name": self.anystring("slack_given_name"),
+            }
+        )
+
+        async def _get_userinfo_or_exception(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> eave.core.internal.oauth.slack.SlackIdentity:
+            return self.userinfo_val
+
+        unittest.mock.patch(
+            "eave.core.internal.oauth.slack.get_userinfo_or_exception", new=_get_userinfo_or_exception
+        ).start()
+
+        async def _get_access_token(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> eave.core.internal.oauth.slack.SlackOAuthResponse:
+            return self.oauth_val
+
+        unittest.mock.patch("eave.core.internal.oauth.slack.get_access_token", new=_get_access_token).start()
+
+        unittest.mock.patch("slack_sdk.web.async_slack_response.AsyncSlackResponse", new=unittest.mock.Mock()).start()
+
+    async def test_slack_authorize(self) -> None:
+        response = await self.make_request(
+            path="/oauth/slack/authorize",
+            method="GET",
+            payload=None,
+        )
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-        assert response.cookies.get("ev_oauth_state_atlassian")
+        assert response.cookies.get("ev_oauth_state_slack")
         assert response.headers["Location"]
-        assert re.search(r"https://auth\.atlassian\.com/authorize", response.headers["Location"])
-        redirect_uri = urllib.parse.quote(
-            f"{eave.core.internal.app_config.eave_api_base}/oauth/atlassian/callback", safe=""
+        assert re.search(r"^https://slack\.com/oauth/v2/authorize", response.headers["Location"])
+        assert re.search(
+            f"redirect_uri={eave.core.internal.app_config.eave_api_base}/oauth/slack/callback",
+            response.headers["Location"],
         )
-        assert re.search(f"redirect_uri={redirect_uri}", response.headers["Location"])
 
-    async def test_atlassian_callback_new_account(self) -> None:
+    async def test_slack_callback_new_account(self) -> None:
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
-        assert (await self.count(eave.core.internal.orm.AtlassianInstallationOrm)) == 0
+        assert (await self.count(eave.core.internal.orm.SlackInstallationOrm)) == 0
 
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_oauth_state_slack": self.anystring("state"),
             },
         )
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-        assert not response.cookies.get("ev_oauth_state_atlassian")  # Test the cookie was deleted
+        assert not response.cookies.get("ev_oauth_state_slack")  # Test the cookie was deleted
         assert response.headers["Location"]
         assert (
             response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
@@ -54,43 +104,51 @@ class TestAtlassianOAuth(BaseTestCase):
 
         account_id = response.cookies.get("ev_account_id")
         assert account_id
-        assert response.cookies.get("ev_access_token") == self.anystring("atlassian.access_token")
+        assert response.cookies.get("ev_access_token")
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        assert (await self.count(eave.core.internal.orm.AtlassianInstallationOrm)) == 1
-
-        eave_account = await self.get_eave_account(id=uuid.UUID(account_id))
-        assert eave_account
-        eave_team = await self.get_eave_team(id=eave_account.team_id)
-        assert eave_team
+        assert (await self.count(eave.core.internal.orm.SlackInstallationOrm)) == 1
 
         async with self.db_session.begin() as db_session:
-            atlassian_installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
-                session=db_session, atlassian_cloud_id=self.anystring("atlassian_cloud_id")
+            eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
+                session=db_session,
+                id=uuid.UUID(account_id),
             )
-            assert atlassian_installation
+            assert eave_account
 
-        assert eave_account.access_token == self.anystring("atlassian.access_token")
-        assert eave_account.refresh_token == self.anystring("atlassian.refresh_token")
-        assert eave_account.auth_id == self.anystring("confluence.account_id")
-        assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.atlassian
-        assert eave_team.name == self.anystring("atlassian.resource.name")
-        assert atlassian_installation.oauth_token_encoded == json.dumps(self.fake_atlassian_token)
-        assert atlassian_installation.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert atlassian_installation.team_id == eave_team.id
+            eave_team = await eave.core.internal.orm.TeamOrm.one_or_none(
+                session=db_session,
+                team_id=eave_account.team_id,
+            )
+            assert eave_team
 
-    async def test_atlassian_callback_new_account_without_team_name_from_atlassian(self) -> None:
-        self.fake_atlassian_resources[0].name = ""
+            slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
+                session=db_session, slack_team_id=self.anystring("team.id")
+            )
+            assert slack_installation
+
+        assert eave_account.access_token == self.anystring("authed_user.access_token")
+        assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")
+        assert eave_account.auth_id == self.anystring("authed_user.id")
+        assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.slack
+        assert eave_team.name == self.anystring("team.name")
+        assert slack_installation.bot_token == self.anystring("access_token")
+        assert slack_installation.bot_refresh_token == self.anystring("refresh_token")
+        assert slack_installation.slack_team_id == self.anystring("team.id")
+        assert slack_installation.team_id == eave_team.id
+
+    async def test_slack_callback_new_account_without_team_name_from_slack(self) -> None:
+        self.oauth_val["team"]["name"] = ""
 
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_oauth_state_slack": self.anystring("state"),
             },
         )
 
@@ -99,21 +157,21 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_account
         eave_team = await self.get_eave_team(id=eave_account.team_id)
         assert eave_team
-        assert eave_team.name == f"{self.anystring('confluence.display_name')}'s Team"
+        assert eave_team.name == f"{self.anystring('slack_given_name')}'s Team"
 
-    async def test_atlassian_callback_new_account_without_user_name_from_atlassian(self) -> None:
-        self.fake_atlassian_resources[0].name = ""
-        self.fake_confluence_user.display_name = None
+    async def test_slack_callback_new_account_without_user_name_from_slack(self) -> None:
+        self.oauth_val["team"]["name"] = ""
+        self.userinfo_val.given_name = None
 
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_oauth_state_slack": self.anystring("state"),
             },
         )
 
@@ -122,20 +180,20 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_account
         eave_team = await self.get_eave_team(id=eave_account.team_id)
         assert eave_team
-        assert eave_team.name == "Your Team"
+        assert eave_team.name == f"Your Team"
 
-    async def test_atlassian_callback_whitelisted_team(self) -> None:
-        self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("confluence.email")
+    async def test_slack_callback_whitelisted_team(self) -> None:
+        self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("slack_user_email")
 
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_oauth_state_slack": self.anystring("state"),
             },
         )
 
@@ -147,29 +205,30 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_team
 
         assert eave_team.beta_whitelisted is True
+
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert response.headers["Location"]
         assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
-    async def test_atlassian_callback_existing_account(self) -> None:
+    async def test_slack_callback_existing_account(self) -> None:
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
-            auth_provider=eave.stdlib.core_api.enums.AuthProvider.atlassian,
-            auth_id=self.anystring("confluence.account_id"),
+            auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
+            auth_id=self.anystring("authed_user.id"),
             access_token=self.anystring("old_access_token"),
             refresh_token=self.anystring("old_refresh_token"),
         )
 
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_oauth_state_slack": self.anystring("state"),
             },
         )
 
@@ -177,32 +236,32 @@ class TestAtlassianOAuth(BaseTestCase):
         eave_account = await self.reload(eave_account)
         assert eave_account
         # Test that the tokens were updated
-        assert eave_account.access_token == self.anystring("atlassian.access_token")
-        assert eave_account.refresh_token == self.anystring("atlassian.refresh_token")
+        assert eave_account.access_token == self.anystring("authed_user.access_token")
+        assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")
 
         # Test that the cookies were updated
         assert response.cookies.get("ev_account_id") == str(eave_account.id)
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
-    async def test_atlassian_callback_logged_in_account(self) -> None:
+    async def test_slack_callback_logged_in_account(self) -> None:
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
-            auth_provider=eave.stdlib.core_api.enums.AuthProvider.atlassian,
+            auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
             auth_id=self.anystring("authed_user.id"),
             access_token=self.anystring("old_access_token"),
             refresh_token=self.anystring("old_refresh_token"),
         )
 
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_oauth_state_slack": self.anystring("state"),
                 "ev_account_id": str(eave_account.id),
                 "ev_access_token": eave_account.access_token,
             },
@@ -212,32 +271,32 @@ class TestAtlassianOAuth(BaseTestCase):
         eave_account = await self.reload(eave_account)
         assert eave_account
         # Test that the tokens were updated
-        assert eave_account.access_token == self.anystring("atlassian.access_token")
-        assert eave_account.refresh_token == self.anystring("atlassian.refresh_token")
+        assert eave_account.access_token == self.anystring("authed_user.access_token")
+        assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")
 
         # Test that the cookies were updated
         assert response.cookies.get("ev_account_id") == str(eave_account.id)
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
-    async def test_atlassian_callback_logged_in_account_another_provider(self) -> None:
+    async def test_slack_callback_logged_in_account_another_provider(self) -> None:
         eave_team = await self.make_team()
         eave_account_before = await self.make_account(
             team_id=eave_team.id,
-            auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
-            auth_id=self.anystring("slack.user_id"),
+            auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
+            auth_id=self.anystring("google.user_id"),
             access_token=self.anystring("old_access_token"),
             refresh_token=self.anystring("old_refresh_token"),
         )
 
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_oauth_state_slack": self.anystring("state"),
                 "ev_account_id": str(eave_account_before.id),
                 "ev_access_token": eave_account_before.access_token,
             },
@@ -254,22 +313,19 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.cookies.get("ev_account_id") == str(eave_account_before.id)
         assert response.cookies.get("ev_access_token") == eave_account_before.access_token
 
-    async def test_atlassian_callback_invalid_state(self) -> None:
+    async def test_slack_callback_invalid_state(self) -> None:
         response = await self.make_request(
-            path="/oauth/atlassian/callback",
+            path="/oauth/slack/callback",
             method="GET",
             payload={
                 "code": self.anystring("code"),
                 "state": self.anystring("state"),
             },
             cookies={
-                "ev_oauth_state_atlassian": self.anystring("invalid_state"),
+                "ev_oauth_state_slack": self.anystring("invalid_state"),
             },
         )
 
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
         assert (await self.count(eave.core.internal.orm.TeamOrm)) == 0
-
-    async def test_atlassian_default_confluence_space(self) -> None:
-        self.skipTest("TODO")

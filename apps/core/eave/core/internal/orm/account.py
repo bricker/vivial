@@ -7,16 +7,17 @@ from uuid import UUID
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
 import eave.core.internal.oauth.slack
-import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.exceptions
+import eave.stdlib
+import eave.stdlib.core_api
 import slack_sdk.errors
-from eave.stdlib import logger
 from sqlalchemy import Index, Select, func, select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
+from .base import Base
+from .team import TeamOrm
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class AccountOrm(Base):
@@ -41,7 +42,10 @@ class AccountOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    auth_provider: Mapped[eave_models.AuthProvider] = mapped_column()
+    visitor_id: Mapped[Optional[UUID]] = mapped_column()
+    opaque_utm_params: Mapped[Optional[eave.stdlib.util.JsonObject]] = mapped_column(JSONB)
+    """Opaque, JSON-encoded utm params."""
+    auth_provider: Mapped[eave.stdlib.core_api.enums.AuthProvider] = mapped_column()
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
@@ -59,13 +63,17 @@ class AccountOrm(Base):
         cls,
         session: AsyncSession,
         team_id: UUID,
-        auth_provider: eave_models.AuthProvider,
+        visitor_id: Optional[UUID],
+        opaque_utm_params: Optional[eave.stdlib.util.JsonObject],
+        auth_provider: eave.stdlib.core_api.enums.AuthProvider,
         auth_id: str,
         access_token: str,
         refresh_token: Optional[str],
     ) -> Self:
         obj = cls(
             team_id=team_id,
+            visitor_id=visitor_id,
+            opaque_utm_params=opaque_utm_params,
             auth_provider=auth_provider,
             auth_id=auth_id,
             access_token=access_token,
@@ -79,7 +87,7 @@ class AccountOrm(Base):
     class _selectparams(TypedDict):
         id: NotRequired[uuid.UUID]
         team_id: NotRequired[uuid.UUID]
-        auth_provider: NotRequired[eave_models.AuthProvider]
+        auth_provider: NotRequired[eave.stdlib.core_api.enums.AuthProvider]
         auth_id: NotRequired[str]
         access_token: NotRequired[str]
         refresh_token: NotRequired[str]
@@ -122,7 +130,7 @@ class AccountOrm(Base):
         return result
 
     async def verify_oauth_or_exception(
-        self, session: AsyncSession, log_context: Optional[Dict[str, str]] = None
+        self, session: AsyncSession, log_context: Optional[Dict[str, object]] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
@@ -145,7 +153,7 @@ class AccountOrm(Base):
 
             case eave.stdlib.core_api.enums.AuthProvider.google:
                 if not self.refresh_token:
-                    logger.error("missing refresh token.", extra=log_context)
+                    eave.stdlib.logger.error("missing refresh token.", extra=log_context)
                     raise eave.stdlib.exceptions.InvalidAuthError()
 
                 credentials = eave.core.internal.oauth.google.get_oauth_credentials(
@@ -161,13 +169,13 @@ class AccountOrm(Base):
                 raise
 
     async def refresh_oauth_token(
-        self, session: AsyncSession, log_context: Optional[Dict[str, str]] = None
+        self, session: AsyncSession, log_context: Optional[Dict[str, object]] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
         """
         if not self.refresh_token:
-            logger.error("missing refresh token.", extra=log_context)
+            eave.stdlib.logger.error("missing refresh token.", extra=log_context)
             raise eave.stdlib.exceptions.InvalidAuthError()
 
         match self.auth_provider:
@@ -186,3 +194,7 @@ class AccountOrm(Base):
                 return True
             case _:
                 raise
+
+    async def get_team(self, session: AsyncSession) -> TeamOrm:
+        team = await TeamOrm.one_or_exception(session=session, team_id=self.team_id)
+        return team

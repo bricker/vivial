@@ -5,15 +5,17 @@ dotenv.load_dotenv()
 import asyncio
 from typing import Any, Coroutine
 
+import eave.core.internal.orm
+
 # Import some common modules
-import eave.core.internal.orm as eave_orm
+import eave.core.internal.orm.base
 
 
 def run_coro(func: Coroutine[Any, Any, Any]) -> None:
     asyncio.run(func)
 
 
-eave_orm._load_all()
+eave.core.internal.orm.base._load_all()
 
 print("Ready to go.")
 
