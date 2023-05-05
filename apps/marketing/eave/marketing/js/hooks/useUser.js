@@ -19,8 +19,8 @@ const useUser = () => {
         resp.json().then((data) => {
           setUserState((prevState) => ({ ...prevState, authenticated: data.authenticated === true }));
         });
-      }).catch(() => {
-        // what do?
+      }).catch((err) => {
+        console.warn('Error during authcheck', err);
       });
     },
     // gets user info
