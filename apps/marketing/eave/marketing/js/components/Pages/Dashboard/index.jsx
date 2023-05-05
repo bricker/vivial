@@ -175,7 +175,7 @@ const Dashboard = () => {
     // if user has linked account with atlassian
     } else if (teamInfo?.integrations.atlassian) {
       // if user has not selected a conflunece space
-      if (!teamInfo?.integrations.atlassian.confluence_space) {
+      if (!teamInfo?.integrations.atlassian.confluence_space_key) {
         console.log('setting user to select a space');
         setStep(1);
       // confluence integration happens by default, if user has not linked their github or slack
@@ -190,7 +190,7 @@ const Dashboard = () => {
     }
   }, [teamInfo]);
 
-  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space.length > 0;
+  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
 
   const handleSpaceUpdate = (event) => {
     console.log('user about to set up space');
@@ -248,7 +248,7 @@ const Dashboard = () => {
                   <Select
                     labelId="space-selector-label"
                     id="space-selector"
-                    value={teamInfo?.integrations?.atlassian?.confluence_space || ''}
+                    value={teamInfo?.integrations?.atlassian?.confluence_space_key || ''}
                     onChange={handleSpaceUpdate}
                   >
                     <MenuItem value="">

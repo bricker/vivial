@@ -58,13 +58,7 @@ async def authed_account_team() -> Response:
         access_token=auth_cookies.access_token,
     )
 
-    response = make_response(eave_response.json())
-    eave.stdlib.cookies.set_auth_cookies(
-        response=response,
-        access_token=eave_response.account.access_token,  # In case the access token was refreshed
-    )
-
-    return response
+    return _clean_response(eave_response)
 
 
 @app.route("/dashboard/me/team/integrations/atlassian/update", methods=["POST"])
@@ -77,7 +71,7 @@ async def update_atlassian_integration() -> Response:
     body = request.get_json()
     confluence_space_key = body["atlassian_integration"]["confluence_space_key"]
 
-    eave_response = await eave_core.update_atlassian_integration(
+    await eave_core.update_atlassian_integration(
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
         input=eave_ops.UpdateAtlassianInstallation.RequestBody(
@@ -87,13 +81,12 @@ async def update_atlassian_integration() -> Response:
         ),
     )
 
-    response = make_response(eave_response.json())
-    eave.stdlib.cookies.set_auth_cookies(
-        response=response,
-        access_token=eave_response.account.access_token,  # In case the access token was refreshed
+    eave_response = await eave_core.get_authenticated_account_team_integrations(
+        account_id=auth_cookies.account_id,
+        access_token=auth_cookies.access_token,
     )
 
-    return response
+    return _clean_response(eave_response)
 
 
 @app.route("/dashboard/logout", methods=["GET"])
@@ -122,3 +115,24 @@ async def api_access_request() -> str:
 @app.route("/<path:path>")
 def catch_all(path: str) -> str:
     return _render_spa()
+
+def _clean_response(
+        eave_response: eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody
+    ) -> Response:
+    # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
+    access_token = eave_response.account.access_token
+    del eave_response.account.access_token
+
+    # TODO: The server doesn't need to send these to the web app.
+    if eave_response.integrations.atlassian:
+        del eave_response.integrations.atlassian.oauth_token_encoded
+    if eave_response.integrations.slack:
+        del eave_response.integrations.slack.bot_token
+
+    response = make_response(eave_response.json())
+    eave.stdlib.cookies.set_auth_cookies(
+        response=response,
+        access_token=access_token,  # In case the access token was refreshed
+    )
+
+    return response

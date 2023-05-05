@@ -33,7 +33,9 @@ const useUser = () => {
         if (resp.ok === false) {
           setErrorState('failed to fetch team info');
         } else {
-          setUserState((prevState) => ({ ...prevState, teamInfo: resp.body }));
+          resp.json().then((data) => {
+            setUserState((prevState) => ({ ...prevState, teamInfo: data }));
+          });
         }
         // eslint-disable-next-line no-console
       }).catch((err) => {
@@ -49,18 +51,20 @@ const useUser = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: {
+        body: JSON.stringify({
           atlassian_integration: {
             confluence_space_key: key,
           },
-        },
+        }),
       }).then((resp) => {
         // just logging this for now, will update on follow up
         console.log('user space resp', resp);
         if (resp.ok === false) {
           setErrorState('failed to fetch team info');
         } else {
-          setUserState((prevState) => ({ ...prevState, teamInfo: resp.body }));
+          resp.json().then((data) => {
+            setUserState((prevState) => ({ ...prevState, teamInfo: data }));
+          });
         }
       // eslint-disable-next-line no-console
       }).catch((err) => {

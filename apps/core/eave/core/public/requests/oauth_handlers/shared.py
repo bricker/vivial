@@ -12,7 +12,7 @@ import fastapi
 
 
 def verify_oauth_state_or_exception(
-    state: str,
+    state: typing.Optional[str],
     auth_provider: eave.stdlib.core_api.enums.AuthProvider,
     request: fastapi.Request,
     response: fastapi.Response,
@@ -21,11 +21,18 @@ def verify_oauth_state_or_exception(
     cookie_state = eave.core.internal.oauth.state_cookies.get_state_cookie(request=request, provider=auth_provider)
     eave.core.internal.oauth.state_cookies.delete_state_cookie(response=response, provider=auth_provider)
 
-    if state != cookie_state:
+    if not state or not cookie_state or state != cookie_state:
         raise eave.stdlib.exceptions.InvalidStateError()
 
     return True
 
+def set_redirect(response: fastapi.Response, location: str) -> fastapi.Response:
+    response.headers["Location"] = location
+    response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
+    return response
+
+def cancel_flow(response: fastapi.Response) -> fastapi.Response:
+    return set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
     if email:
@@ -221,9 +228,9 @@ async def get_or_create_eave_account(
         eave_team = await eave_account.get_team(session=db_session)
 
     if eave_team.beta_whitelisted:
-        response.headers["Location"] = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+        location = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
     else:
-        response.headers["Location"] = f"{eave.core.internal.app_config.eave_www_base}/thanks"
+        location = f"{eave.core.internal.app_config.eave_www_base}/thanks"
 
-    response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
+    set_redirect(response=response, location=location)
     return eave_account

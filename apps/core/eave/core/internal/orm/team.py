@@ -11,6 +11,7 @@ from ..destinations import abstract as abstract_destination
 from .atlassian_installation import AtlassianInstallationOrm
 from .base import Base
 from .slack_installation import SlackInstallationOrm
+from .github_installation import GithubInstallationOrm
 from .subscription import SubscriptionOrm
 from .util import UUID_DEFAULT_EXPR
 
@@ -84,11 +85,9 @@ class TeamOrm(Base):
     async def get_integrations(self, session: AsyncSession) -> eave.stdlib.core_api.models.Integrations:
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
 
-        # github_installation = await GithubInstallationOrm.one_or_none(
-        #     session=session, team_id=self.id
-        # )
-        # if github_installation:
-        #     integrations_list.append(eave.stdlib.core_api.enums.Integration.github)
+        github_installation = await GithubInstallationOrm.one_or_none(
+            session=session, team_id=self.id
+        )
 
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
 
@@ -96,7 +95,7 @@ class TeamOrm(Base):
             slack=eave.stdlib.core_api.models.SlackInstallation.from_orm(slack_installation)
             if slack_installation
             else None,
-            github=None,  # eave_models.GithubInstallation.from_orm(github_installation) if github_installation else None,
+            github=eave.stdlib.core_api.models.GithubInstallation.from_orm(github_installation) if github_installation else None,
             atlassian=eave.stdlib.core_api.models.AtlassianInstallation.from_orm(atlassian_installation)
             if atlassian_installation
             else None,

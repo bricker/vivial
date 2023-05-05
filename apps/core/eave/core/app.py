@@ -23,7 +23,7 @@ from .public.requests import (
     team,
 )
 from .public.requests import util as eave_request_util
-from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
+from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth, github_oauth
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
@@ -260,6 +260,24 @@ add_route(
     origin_required=False,
     team_id_required=False,
     handler=atlassian_oauth.atlassian_oauth_callback,
+)
+add_route(
+    method="GET",
+    path="/oauth/github/authorize",
+    auth_required=False,
+    signature_required=False,
+    origin_required=False,
+    team_id_required=False,
+    handler=github_oauth.github_oauth_authorize,
+)
+add_route(
+    method="GET",
+    path="/oauth/github/callback",
+    auth_required=False,
+    signature_required=False,
+    origin_required=False,
+    team_id_required=False,
+    handler=github_oauth.github_oauth_callback,
 )
 
 add_route(
