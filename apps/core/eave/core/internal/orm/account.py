@@ -143,7 +143,8 @@ class AccountOrm(Base):
         match self.auth_provider:
             case eave.stdlib.core_api.enums.AuthProvider.slack:
                 try:
-                    await eave.core.internal.oauth.slack.get_userinfo_or_exception(access_token=self.access_token)
+                    client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=self.access_token)
+                    await eave.core.internal.oauth.slack.get_userinfo_or_exception(client=client)
                     return True
                 except slack_sdk.errors.SlackApiError as e:
                     if e.response.get("error") == "token_expired":

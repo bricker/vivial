@@ -1,3 +1,4 @@
+import slack_sdk.web.async_client
 import typing
 
 import eave.core.internal
@@ -39,20 +40,14 @@ async def slack_oauth_callback(
         state=state, auth_provider=_AUTH_PROVIDER, request=request, response=response
     )
 
-    eave_state = eave.core.public.requests.util.get_eave_state(request=request)
-
     slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token(code=code)
     slack_team_name = slack_oauth_data["team"]["name"]
-    slack_team_id = slack_oauth_data["team"]["id"]
     slack_user_id = slack_oauth_data["authed_user"]["id"]
     slack_user_access_token = slack_oauth_data["authed_user"]["access_token"]
     slack_user_refresh_token = slack_oauth_data["authed_user"]["refresh_token"]
-    slack_bot_access_token = slack_oauth_data["access_token"]
-    slack_bot_refresh_token = slack_oauth_data["refresh_token"]
 
-    user_identity = await eave.core.internal.oauth.slack.get_userinfo_or_exception(
-        access_token=slack_user_access_token,
-    )
+    slack_client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=slack_user_access_token)
+    user_identity = await eave.core.internal.oauth.slack.get_userinfo_or_exception(client=slack_client)
 
     slack_user_name = user_identity.given_name
     slack_user_email = user_identity.email
@@ -76,23 +71,25 @@ async def slack_oauth_callback(
     )
 
     await _update_or_create_slack_installation(
-        eave_state=eave_state,
-        eave_account=eave_account,
-        slack_team_id=slack_team_id,
-        slack_bot_access_token=slack_bot_access_token,
-        slack_bot_refresh_token=slack_bot_refresh_token,
+        request=request,
+        slack_oauth_data=slack_oauth_data,
+        eave_account=eave_account
     )
 
     return response
 
 
 async def _update_or_create_slack_installation(
-    eave_state: eave.core.public.requests.util.EaveRequestState,
-    eave_account: eave.core.internal.orm.AccountOrm,
-    slack_team_id: str,
-    slack_bot_access_token: str,
-    slack_bot_refresh_token: typing.Optional[str],
+        request: fastapi.Request,
+        slack_oauth_data: eave.core.internal.oauth.slack.SlackOAuthResponse,
+        eave_account: eave.core.internal.orm.AccountOrm,
 ) -> None:
+    eave_state = eave.core.public.requests.util.get_eave_state(request=request)
+
+    slack_team_id = slack_oauth_data["team"]["id"]
+    slack_bot_access_token = slack_oauth_data["access_token"]
+    slack_bot_refresh_token = slack_oauth_data["refresh_token"]
+
     async with eave.core.internal.database.async_session.begin() as db_session:
         # try fetch existing slack installation
         slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
@@ -121,6 +118,16 @@ async def _update_or_create_slack_installation(
                 bot_refresh_token=slack_bot_refresh_token,
             )
 
+            await _run_post_install_procedures(request=request, slack_oauth_data=slack_oauth_data, eave_account=eave_account)
+
+async def _run_post_install_procedures(
+        request: fastapi.Request,
+        slack_oauth_data: eave.core.internal.oauth.slack.SlackOAuthResponse,
+        eave_account: eave.core.internal.orm.AccountOrm,
+    ) -> None:
+    eave_state = eave.core.public.requests.util.get_eave_state(request=request)
+
+    slack_bot_access_token = slack_oauth_data["access_token"]
     slack_client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=slack_bot_access_token)
 
     approximate_num_members = 0
@@ -166,3 +173,13 @@ async def _update_or_create_slack_installation(
             "approximate_num_members": approximate_num_members,
         },
     )
+
+    try:
+        slack_user_id = slack_oauth_data["authed_user"]["id"]
+        await slack_client.chat_postMessage(
+            channel=slack_user_id,
+            text="Success! Thanks for adding me to your Slack workspace. Call on me any time to write and maintain your documentation.",
+
+        )
+    except Exception as e:
+        eave.stdlib.logger.error("Error sending welcome message on Slack", exc_info=e, extra=eave_state.log_context)

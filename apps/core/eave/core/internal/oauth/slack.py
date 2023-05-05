@@ -136,11 +136,8 @@ def get_authenticated_client(access_token: str) -> slack_sdk.web.async_client.As
     return client
 
 
-async def get_userinfo_or_exception(access_token: str) -> SlackIdentity:
-    client = slack_sdk.web.async_client.AsyncWebClient()
-    response = await client.openid_connect_userInfo(
-        token=access_token,
-    )
+async def get_userinfo_or_exception(client: slack_sdk.web.async_client.AsyncWebClient) -> SlackIdentity:
+    response = await client.openid_connect_userInfo()
 
     response.validate()
     assert isinstance(response.data, dict)
