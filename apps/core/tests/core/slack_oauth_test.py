@@ -1,9 +1,7 @@
-import slack_sdk.web.async_slack_response
-import json
-import typing
-import unittest.mock
 import http
 import re
+import typing
+import unittest.mock
 import uuid
 from http import HTTPStatus
 
@@ -14,7 +12,6 @@ import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
 import eave.stdlib.core_api
-import mockito
 
 from .base import BaseTestCase
 
@@ -48,19 +45,21 @@ class TestSlackOAuthHandler(BaseTestCase):
             }
         )
 
-        async def _get_userinfo_or_exception(*args: typing.Any, **kwargs: typing.Any) -> eave.core.internal.oauth.slack.SlackIdentity:
+        async def _get_userinfo_or_exception(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> eave.core.internal.oauth.slack.SlackIdentity:
             return self.userinfo_val
 
         unittest.mock.patch(
-            "eave.core.internal.oauth.slack.get_userinfo_or_exception",
-            new=_get_userinfo_or_exception).start()
+            "eave.core.internal.oauth.slack.get_userinfo_or_exception", new=_get_userinfo_or_exception
+        ).start()
 
-        async def _get_access_token(*args: typing.Any, **kwargs: typing.Any) -> eave.core.internal.oauth.slack.SlackOAuthResponse:
+        async def _get_access_token(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> eave.core.internal.oauth.slack.SlackOAuthResponse:
             return self.oauth_val
 
-        unittest.mock.patch(
-            "eave.core.internal.oauth.slack.get_access_token",
-            new=_get_access_token).start()
+        unittest.mock.patch("eave.core.internal.oauth.slack.get_access_token", new=_get_access_token).start()
 
         unittest.mock.patch("slack_sdk.web.async_slack_response.AsyncSlackResponse", new=unittest.mock.Mock()).start()
 

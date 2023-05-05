@@ -5,14 +5,13 @@ import urllib.parse
 import uuid
 from http import HTTPStatus
 
-import eave.stdlib.atlassian
 import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.team
+import eave.stdlib.atlassian
 import eave.stdlib.core_api
-import mockito
 
 from .base import BaseTestCase
 
@@ -126,7 +125,6 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_team.name == "Your Team"
 
     async def test_atlassian_callback_whitelisted_team(self) -> None:
-
         self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("confluence.email")
 
         response = await self.make_request(

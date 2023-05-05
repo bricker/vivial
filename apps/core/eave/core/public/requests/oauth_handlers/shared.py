@@ -4,11 +4,12 @@ import typing
 import eave.core.internal
 import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
+import eave.core.public.requests
 import eave.pubsub_schemas
 import eave.stdlib.core_api
-import fastapi
 import eave.stdlib.slack
-import eave.core.public.requests
+import fastapi
+
 
 def verify_oauth_state_or_exception(
     state: str,
@@ -139,7 +140,7 @@ async def create_new_account_and_team(
     try:
         # TODO: This should happen in a pubsub subscriber on the "eave_account_registration" event.
         # Notify #sign-ups Slack channel.
-        channel_id = "C04HH2N08LD" # #sign-ups in eave slack
+        channel_id = "C04HH2N08LD"  # #sign-ups in eave slack
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
         slack_response = await slack_client.chat_postMessage(
             channel=channel_id,
@@ -160,7 +161,9 @@ async def create_new_account_and_team(
             ),
         )
     except Exception as e:
-        eave.stdlib.logger.error("Error while sending message to #sign-ups slack channel", exc_info=e, extra=eave_state.log_context)
+        eave.stdlib.logger.error(
+            "Error while sending message to #sign-ups slack channel", exc_info=e, extra=eave_state.log_context
+        )
 
     return eave_account
 

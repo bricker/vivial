@@ -10,7 +10,6 @@ import eave.stdlib.core_api
 import fastapi
 import oauthlib.common
 from eave.core.internal.oauth import state_cookies as oauth_cookies
-from slack_sdk.web.async_client import AsyncWebClient
 
 from . import shared
 

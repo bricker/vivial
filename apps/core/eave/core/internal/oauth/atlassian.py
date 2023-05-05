@@ -11,6 +11,7 @@ from oauthlib.oauth2 import OAuth2Token
 from ..config import app_config
 from .models import OAuthFlowInfo
 
+
 @dataclass
 class AtlassianOAuthTokenResponse:
     access_token: str

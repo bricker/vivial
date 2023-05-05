@@ -1,9 +1,9 @@
 import typing
 from typing import Any, Optional, TypedDict
 
+import slack_sdk.web.async_client
 from eave.core.internal.config import app_config
 from slack_sdk.oauth import AuthorizeUrlGenerator
-import slack_sdk.web.async_client
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
 redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"

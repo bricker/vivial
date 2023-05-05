@@ -1,5 +1,3 @@
-from atlassian.rest_client import AtlassianRestAPI
-import slack_sdk.web.async_client
 import json
 import os
 import random
@@ -8,27 +6,25 @@ import unittest
 import unittest.mock
 import urllib.parse
 import uuid
-from datetime import datetime
-from typing import Any, Optional, Protocol, Tuple, TypeVar
+from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID, uuid4
-import eave.core.internal.oauth.atlassian
-from slack_sdk.web.async_slack_response import AsyncSlackResponse
-import eave.stdlib.atlassian
+
 import eave.core.app
 import eave.core.internal
+import eave.core.internal.oauth.atlassian
 import eave.core.internal.orm
 import eave.core.internal.orm.base
 import eave.stdlib
-import eave.stdlib.jwt
+import eave.stdlib.atlassian
 import eave.stdlib.core_api
+import eave.stdlib.jwt
 import mockito
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
-from eave.core import EAVE_API_JWT_ISSUER, EAVE_API_SIGNING_KEY
 from httpx import AsyncClient, Response
-from sqlalchemy import literal_column, select, text
+from sqlalchemy import literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import create_engine
+
 
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]
@@ -44,6 +40,8 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 )
 
 eave.core.internal.database.async_engine.echo = False  # shhh
+
+
 class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName)
@@ -128,11 +126,13 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             name = str(uuid4())
 
         if name not in self.testdata:
-            data = json.dumps({
-                str(uuid.uuid4()): str(uuid.uuid4()),
-                str(uuid.uuid4()): str(uuid.uuid4()),
-                str(uuid.uuid4()): str(uuid.uuid4()),
-            })
+            data = json.dumps(
+                {
+                    str(uuid.uuid4()): str(uuid.uuid4()),
+                    str(uuid.uuid4()): str(uuid.uuid4()),
+                    str(uuid.uuid4()): str(uuid.uuid4()),
+                }
+            )
             self.testdata[name] = data
 
         value: str = self.testdata[name]
@@ -301,7 +301,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             if key in self.mock_env:
                 v = self.mock_env[key]
             elif key in os.environ:
-                    v = os.environ[key]
+                v = os.environ[key]
             else:
                 v = default
 
@@ -337,8 +337,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         ]
 
-        unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
-                            new=lambda *args, **kwargs: self.fake_atlassian_resources).start()
+        unittest.mock.patch(
+            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
+            new=lambda *args, **kwargs: self.fake_atlassian_resources,
+        ).start()
 
         self.fake_atlassian_token = {
             "access_token": self.anystring("atlassian.access_token"),
@@ -348,8 +350,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         }
 
         unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token").start()
-        unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
-                            new=lambda *args, **kwargs: self.fake_atlassian_token).start()
+        unittest.mock.patch(
+            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
+            new=lambda *args, **kwargs: self.fake_atlassian_token,
+        ).start()
 
         self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
             data={
@@ -362,9 +366,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url")),
         )
 
-        unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
-                            new=lambda *args, **kwargs: self.fake_confluence_user).start()
-
+        unittest.mock.patch(
+            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
+            new=lambda *args, **kwargs: self.fake_confluence_user,
+        ).start()
 
     def mock_signing(self) -> None:
         def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
@@ -414,7 +419,6 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             acct = await eave.core.internal.orm.TeamOrm.one_or_none(session=db_session, team_id=id)
 
         return acct
-
 
     def confluence_document_response_fixture(self) -> eave.stdlib.util.JsonObject:
         return {
@@ -632,11 +636,11 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
                     {
                         "text": self.anystring("slack.message.attachments[0].text"),
                         "id": self.anyint("slack.message.attachments[0].id"),
-                        "fallback": self.anystring("slack.message.attachments[0].fallback")
+                        "fallback": self.anystring("slack.message.attachments[0].fallback"),
                     }
                 ],
                 "type": "message",
                 "subtype": "bot_message",
-                "ts": self.anystring("slack.ts")
-            }
+                "ts": self.anystring("slack.ts"),
+            },
         }

@@ -90,6 +90,7 @@ def publish_schema(schema_id: str, schema_definition: str) -> None:
 def create_topic() -> None:
     pass
 
+
 def create_subscription() -> None:
     pass
 

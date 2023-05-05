@@ -2,11 +2,11 @@ import json
 from http import HTTPStatus
 
 import eave.core.internal.database as eave_db
+import eave.core.public.requests
 import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.slack
 import fastapi
 from eave.core.internal.orm.access_request import AccessRequestOrm
-import eave.stdlib.slack
-import eave.core.public.requests
 
 SIGNUPS_SLACK_CHANNEL_ID = "C04HH2N08LD"
 
@@ -51,6 +51,8 @@ async def create_access_request(
             text=(f"Email: `{input.email}`\n" f"Visitor ID: `{input.visitor_id}`\n" f"```{jsonoutput}```"),
         )
     except Exception as e:
-        eave.stdlib.logger.error("Error while sending message to Slack channel.", exc_info=e, extra=eave_state.log_context)
+        eave.stdlib.logger.error(
+            "Error while sending message to Slack channel.", exc_info=e, extra=eave_state.log_context
+        )
 
     return response
