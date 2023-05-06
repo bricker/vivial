@@ -127,7 +127,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         eaveTeamId,
         {
           document,
-          subscription: subscriptionResponse.subscription,
+          subscriptions: [subscriptionResponse.subscription],
         },
       );
 

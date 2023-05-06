@@ -29,11 +29,11 @@ export type GithubInstallationInput = {
 export namespace UpsertDocument {
   export type RequestBody = {
     document: DocumentInput;
-    subscription: SubscriptionInput;
+    subscriptions: Array<models.Subscription>;
   }
   export type ResponseBody = {
     team: models.Team;
-    subscription: models.Subscription;
+    subscriptions: Array<models.Subscription>;
     document_reference: models.DocumentReference;
   }
 }

@@ -4,6 +4,7 @@ import { LinkType, SubscriptionSourceEvent, SubscriptionSourcePlatform } from '.
 import { Pair } from './types';
 import { ApiClientBase } from './third-party-api-clients/base';
 import { GithubClient } from './third-party-api-clients/github';
+import { Subscription } from './core-api/models';
 import { createClient, LinkContext } from './third-party-api-clients/util';
 
 
@@ -57,19 +58,24 @@ export async function mapUrlContent(eaveTeamId: string, urls: Array<Pair<string,
  * @param eaveTeamId -- TeamOrm ID to create the subscription for
  * @param urls -- links paired with their platform type [(url, url platform)]
  */
-export async function subscribe(eaveTeamId: string, urls: Array<Pair<string, LinkType>>): Promise<void> {
+export async function subscribeToFileChanges(eaveTeamId: string, urls: Array<Pair<string, LinkType>>): Promise<Array<Subscription>> {
   const contexts = await buildLinkContexts(eaveTeamId, urls);
 
   // string key is a LinkType case, but ts won't let me define it that way
+  const subscriptions: Array<Subscription> = [];
   const clients: { [key: string]: ApiClientBase; } = {};
-  contexts.forEach(linkContext => {
+  contexts.forEach(async (linkContext) => {
     if (!(linkContext.type in clients)) {
       clients[linkContext.type] = createClient(linkContext);
     }
 
-    // launch async task
-    createSubscription(clients[linkContext.type]!, linkContext.url, linkContext.type, eaveTeamId);
+    const maybeSubscription = await createSubscription(clients[linkContext.type]!, linkContext.url, linkContext.type, eaveTeamId);
+
+    if (maybeSubscription !== null) {
+      subscriptions.push(maybeSubscription);
+    }
   });
+  return subscriptions;
 }
 
 // smelly conversion from string to enum case to make ts happy
@@ -149,7 +155,7 @@ async function buildLinkContexts(eaveTeamId: string, links: Array<Pair<string, L
  * @param linkType -- resource platform to subscribe on
  * @param eaveTeamId -- ID of team to associate subscription with
  */
-async function createSubscription(baseClient: ApiClientBase, url: string, linkType: LinkType, eaveTeamId: string): Promise<void> {
+async function createSubscription(baseClient: ApiClientBase, url: string, linkType: LinkType, eaveTeamId: string): Promise<Subscription | null> {
   let sourceId: string | null = null;
   let platform: SubscriptionSourcePlatform | null = null;
   let event: SubscriptionSourceEvent | null = null;
@@ -162,7 +168,7 @@ async function createSubscription(baseClient: ApiClientBase, url: string, linkTy
       const repoInfo = await client.getRepo(url);
       const pathChunks = url.split(`${repoInfo.full_name}/blob/`);
       // we need the 2nd element, which is branch name + resource path
-      if (pathChunks.length < 2) { return; }
+      if (pathChunks.length < 2) { return null; }
       const blobPath = pathChunks[1];
       sourceId = `${repoInfo.node_id}#${blobPath}`;
       platform = SubscriptionSourcePlatform.github;
@@ -170,7 +176,7 @@ async function createSubscription(baseClient: ApiClientBase, url: string, linkTy
   }
 
   if (sourceId !== null && platform !== null && event !== null) {
-    await eaveClient.createSubscription(eaveTeamId, {
+    const subResponse = await eaveClient.createSubscription(eaveTeamId, {
       subscription: {
         source: {
           platform,
@@ -178,6 +184,8 @@ async function createSubscription(baseClient: ApiClientBase, url: string, linkTy
           id: sourceId,
         }
       }
-    })
+    });
+    return subResponse.subscription;
   }
+  return null;
 }
