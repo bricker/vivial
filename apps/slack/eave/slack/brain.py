@@ -844,7 +844,7 @@ class Brain:
             ###
             {self.expanded_text}
             ###
-        """,
+            """,
         )
 
         self.message_context = message_context

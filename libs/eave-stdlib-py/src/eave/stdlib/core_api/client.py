@@ -157,7 +157,7 @@ async def get_atlassian_installation(
 
 async def get_team(
     team_id: UUID,
-) -> operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody:
+) -> operations.GetTeam.ResponseBody:
     """
     POST /team/query
     """
@@ -168,7 +168,7 @@ async def get_team(
     )
 
     response_json = await response.json()
-    return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
+    return operations.GetTeam.ResponseBody(**response_json)
 
 
 async def update_atlassian_integration(
