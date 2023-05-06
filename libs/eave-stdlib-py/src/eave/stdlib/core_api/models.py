@@ -1,4 +1,3 @@
-import enum
 import uuid
 from datetime import datetime
 from typing import List, Optional
@@ -11,14 +10,6 @@ from . import enums
 class ConfluenceSpace(pydantic.BaseModel):
     key: str
     name: str
-
-
-class LinkType(enum.Enum):
-    """
-    Link types that we support fetching content from for integration into AI documentation creation.
-    """
-
-    github = "github"
 
 
 class AccessRequest(pydantic.BaseModel):

@@ -7,8 +7,7 @@ import eave.stdlib.core_api.models as models
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.eave_origins as eave_origins
 import mockito
-import pytest
-from eave.stdlib.core_api.models import LinkType
+from eave.stdlib.core_api.enums import LinkType
 from eave.stdlib.third_party_api_clients.github import GitHubClient, GithubRepository
 from pydantic import UUID4
 

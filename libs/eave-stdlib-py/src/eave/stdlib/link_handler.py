@@ -5,10 +5,9 @@ from urllib.parse import urlparse
 import base64
 
 import eave.stdlib.core_api.client as eave_core_api_client
-import eave.stdlib.core_api.enums
+import eave.stdlib.core_api.enums as enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-from eave.stdlib.core_api.models import LinkType
 from eave.stdlib.third_party_api_clients.base import BaseClient
 from eave.stdlib.third_party_api_clients.util import LinkContext, create_client
 from pydantic import UUID4
@@ -17,16 +16,16 @@ from .logging import logger
 from .third_party_api_clients.github import GitHubClient
 
 # mapping from link type to regex for matching raw links against
-SUPPORTED_LINKS: dict[eave_models.LinkType, list[str]] = {
-    eave_models.LinkType.github: [
+SUPPORTED_LINKS: dict[enums.LinkType, list[str]] = {
+    enums.LinkType.github: [
         r"github\.com",
         r"github\..+\.com",
     ],
 }
 
 
-def filter_supported_links(urls: list[str]) -> list[tuple[str, eave_models.LinkType]]:
-    supported_links: list[tuple[str, eave_models.LinkType]] = []
+def filter_supported_links(urls: list[str]) -> list[tuple[str, enums.LinkType]]:
+    supported_links: list[tuple[str, enums.LinkType]] = []
     for link in urls:
         link_type = _get_link_type(link)
         if link_type:
@@ -34,7 +33,7 @@ def filter_supported_links(urls: list[str]) -> list[tuple[str, eave_models.LinkT
     return supported_links
 
 
-async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, eave_models.LinkType]]) -> list[Optional[str]]:
+async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkType]]) -> list[Optional[str]]:
     """
     Given a list of urls, returns mapping to content found at each link. Order is preserved.
 
@@ -45,12 +44,12 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, eave_models
 
     # gather content from all links in parallel
     tasks = []
-    clients: dict[eave_models.LinkType, BaseClient] = {}
+    clients: dict[enums.LinkType, BaseClient] = {}
     for link_ctx in contexts:
         if link_ctx.type not in clients:
             clients[link_ctx.type] = create_client(link_ctx)
         match link_ctx.type:
-            case eave_models.LinkType.github:
+            case enums.LinkType.github:
                 tasks.append(asyncio.ensure_future(clients[link_ctx.type].get_file_content(link_ctx.url)))
 
     content_responses = await asyncio.gather(*tasks)
@@ -63,7 +62,7 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, eave_models
 
 
 async def subscribe_to_file_changes(
-    eave_team_id: UUID4, urls: list[tuple[str, eave_models.LinkType]]
+    eave_team_id: UUID4, urls: list[tuple[str, enums.LinkType]]
 ) -> list[eave_models.Subscription]:
     """
     Create Eave Subscriptions to watch for changes in all of the URL resources in `urls`
@@ -75,7 +74,7 @@ async def subscribe_to_file_changes(
     contexts = await _build_link_contexts(eave_team_id, urls)
 
     tasks = []
-    clients: dict[eave_models.LinkType, BaseClient] = {}
+    clients: dict[enums.LinkType, BaseClient] = {}
     for link_ctx in contexts:
         if link_ctx.type not in clients:
             clients[link_ctx.type] = create_client(link_ctx)
@@ -94,7 +93,7 @@ async def subscribe_to_file_changes(
     return subscription_sources
 
 
-def _get_link_type(link: str) -> Optional[eave_models.LinkType]:
+def _get_link_type(link: str) -> Optional[enums.LinkType]:
     """
     Given a link, determine if we support parsing the content from that link.
     Returns link type if supported, otherwise None
@@ -106,7 +105,7 @@ def _get_link_type(link: str) -> Optional[eave_models.LinkType]:
     return None
 
 
-async def _build_link_contexts(eave_team_id: UUID4, links: list[tuple[str, eave_models.LinkType]]) -> list[LinkContext]:
+async def _build_link_contexts(eave_team_id: UUID4, links: list[tuple[str, enums.LinkType]]) -> list[LinkContext]:
     """
     Given a collection of links and an Eave TeamOrm ID, return the data
     required to authenticate with the 3rd party API for each link.
@@ -123,12 +122,12 @@ async def _build_link_contexts(eave_team_id: UUID4, links: list[tuple[str, eave_
         team_id=eave_team_id,
     )
 
-    api_client_auth_data: dict[LinkType, str] = {}
-    for supported_type in LinkType:
+    api_client_auth_data: dict[enums.LinkType, str] = {}
+    for supported_type in enums.LinkType:
         match supported_type:
-            case LinkType.github:
+            case enums.LinkType.github:
                 if gh_integration := team_response.integrations.github:
-                    api_client_auth_data[LinkType.github] = gh_integration.github_install_id
+                    api_client_auth_data[enums.LinkType.github] = gh_integration.github_install_id
             case _:
                 logger.error("Unexpected SupportedLink type encountered while building link auth context")
 
@@ -142,7 +141,7 @@ async def _build_link_contexts(eave_team_id: UUID4, links: list[tuple[str, eave_
 
 
 async def _create_subscription_source(
-    untyped_client: Any, url: str, link_type: eave_models.LinkType, eave_team_id: UUID4
+    untyped_client: Any, url: str, link_type: enums.LinkType, eave_team_id: UUID4
 ) -> Optional[eave_models.Subscription]:
     """
     Insert a subcription into the Eave database to watch the resource at `url`.
@@ -153,12 +152,12 @@ async def _create_subscription_source(
     eave_team_id -- ID of team to associate subscription with
     """
     source_id: Optional[str] = None
-    platform: Optional[eave.stdlib.core_api.enums.SubscriptionSourcePlatform] = None
-    event: Optional[eave.stdlib.core_api.enums.SubscriptionSourceEvent] = None
+    platform: Optional[enums.SubscriptionSourcePlatform] = None
+    event: Optional[enums.SubscriptionSourceEvent] = None
 
     # populate required subscription data based on link type
     match link_type:
-        case eave_models.LinkType.github:
+        case enums.LinkType.github:
             client: GitHubClient = cast(GitHubClient, untyped_client)
             # fetch unique info about repo to build subscription source ID
             repo_info = await client.get_repo(url)
@@ -170,8 +169,8 @@ async def _create_subscription_source(
             # b64 encode since our chosen ID delimiter '#' is a valid character in file paths and branch names
             encoded_blob_path = base64.b64encode(blob_path.encode()).decode()
             source_id = f"{repo_info.node_id}#{encoded_blob_path}"
-            platform = eave.stdlib.core_api.enums.SubscriptionSourcePlatform.github
-            event = eave.stdlib.core_api.enums.SubscriptionSourceEvent.github_file_change
+            platform = enums.SubscriptionSourcePlatform.github
+            event = enums.SubscriptionSourceEvent.github_file_change
 
     assert (
         source_id is not None and platform is not None and event is not None

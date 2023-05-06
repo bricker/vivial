@@ -1,7 +1,7 @@
 from typing import Any
 
 from attr import dataclass
-from eave.stdlib.core_api.models import LinkType
+from eave.stdlib.core_api.enums import LinkType
 from eave.stdlib.third_party_api_clients.base import BaseClient
 from eave.stdlib.third_party_api_clients.github import GitHubClient
 
