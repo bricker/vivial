@@ -36,6 +36,4 @@ def get_state_cookie(request: fastapi.Request, provider: eave_enums.AuthProvider
 
 
 def delete_state_cookie(response: fastapi.responses.Response, provider: eave_enums.AuthProvider) -> None:
-    response.delete_cookie(
-        key=_build_cookie_name(provider=provider),
-        **_build_cookie_params(provider))
+    response.delete_cookie(key=_build_cookie_name(provider=provider), **_build_cookie_params(provider))

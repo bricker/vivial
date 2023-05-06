@@ -1,8 +1,8 @@
-from pydantic import UUID4
 import eave.core.internal.database as eave_db
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 from eave.core.internal.orm.subscription import SubscriptionOrm
+from pydantic import UUID4
 
 from .base import BaseTestCase
 

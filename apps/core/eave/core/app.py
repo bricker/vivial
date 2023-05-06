@@ -23,7 +23,12 @@ from .public.requests import (
     team,
 )
 from .public.requests import util as eave_request_util
-from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth, github_oauth
+from .public.requests.oauth_handlers import (
+    atlassian_oauth,
+    github_oauth,
+    google_oauth,
+    slack_oauth,
+)
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()

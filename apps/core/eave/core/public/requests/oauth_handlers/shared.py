@@ -26,13 +26,16 @@ def verify_oauth_state_or_exception(
 
     return True
 
+
 def set_redirect(response: fastapi.Response, location: str) -> fastapi.Response:
     response.headers["Location"] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
 
+
 def cancel_flow(response: fastapi.Response) -> fastapi.Response:
     return set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
+
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
     if email:

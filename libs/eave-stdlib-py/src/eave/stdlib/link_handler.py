@@ -1,8 +1,8 @@
 import asyncio
+import base64
 import re
 from typing import Any, Optional, cast
 from urllib.parse import urlparse
-import base64
 
 import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.enums as enums

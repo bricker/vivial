@@ -1,6 +1,6 @@
 import json
-import urllib.parse
 import typing
+import urllib.parse
 
 import eave.core.internal
 import eave.core.internal.orm
@@ -17,6 +17,7 @@ from . import shared
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.github
 _special_redirect_uri_cookie = "ev_github_oauth_redirect_uri"
 
+
 async def github_oauth_authorize() -> fastapi.Response:
     # random value for verifying request wasnt tampered with via CSRF
     token: str = oauthlib.common.generate_token()
@@ -27,7 +28,7 @@ async def github_oauth_authorize() -> fastapi.Response:
     # So instead, we're going to set a special cookie and read it on the other side (callback), and redirect if necessary.
     # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
     redirect_uri = f"{eave.core.internal.app_config.eave_api_base}/oauth/github/callback"
-    state_json = json.dumps({ "token": token, "redirect_uri": redirect_uri })
+    state_json = json.dumps({"token": token, "redirect_uri": redirect_uri})
     state = eave.stdlib.util.b64encode(state_json, urlsafe=True)
 
     authorization_url = f"https://github.com/apps/eave-fyi/installations/new?state={state}"
@@ -72,7 +73,9 @@ async def github_oauth_callback(
     # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
     # arrive here then they're expect to be already logged in.
     if not auth_cookies.access_token or not auth_cookies.account_id:
-        eave.stdlib.logger.error("Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context)
+        eave.stdlib.logger.error(
+            "Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context
+        )
         return shared.cancel_flow(response=response)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -84,7 +87,10 @@ async def github_oauth_callback(
         eave.stdlib.logger.warn(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
 
     if not installation_id:
-        eave.stdlib.logger.warn(f"github installation_id not provided for action {setup_action}. Cannot proceed.", extra=eave_state.log_context)
+        eave.stdlib.logger.warn(
+            f"github installation_id not provided for action {setup_action}. Cannot proceed.",
+            extra=eave_state.log_context,
+        )
         return shared.cancel_flow(response=response)
 
     await _update_or_create_github_installation(

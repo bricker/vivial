@@ -10,8 +10,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..destinations import abstract as abstract_destination
 from .atlassian_installation import AtlassianInstallationOrm
 from .base import Base
-from .slack_installation import SlackInstallationOrm
 from .github_installation import GithubInstallationOrm
+from .slack_installation import SlackInstallationOrm
 from .subscription import SubscriptionOrm
 from .util import UUID_DEFAULT_EXPR
 

@@ -1,13 +1,13 @@
-from typing import cast
 import typing
+from typing import cast
 
 import eave.core.internal.oauth.google
+import eave.core.public.requests.util
 import eave.stdlib.core_api.enums
 import fastapi
 import google.oauth2.credentials
 import google.oauth2.id_token
 from eave.core.internal.oauth import state_cookies as oauth_cookies
-import eave.core.public.requests.util
 
 from . import shared
 
@@ -26,7 +26,8 @@ async def google_oauth_authorize() -> fastapi.Response:
 
 
 async def google_oauth_callback(
-    request: fastapi.Request, response: fastapi.Response,
+    request: fastapi.Request,
+    response: fastapi.Response,
     state: str,
     code: typing.Optional[str] = None,
     error: typing.Optional[str] = None,
@@ -39,7 +40,10 @@ async def google_oauth_callback(
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
 
     if error or not code:
-        eave.stdlib.logger.warning(f"Error response from Google OAuth flow or code missing. {error}: {error_description}", extra=eave_state.log_context)
+        eave.stdlib.logger.warning(
+            f"Error response from Google OAuth flow or code missing. {error}: {error_description}",
+            extra=eave_state.log_context,
+        )
         shared.set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
         return response
 

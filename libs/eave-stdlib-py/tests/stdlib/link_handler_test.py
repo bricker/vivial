@@ -1,18 +1,15 @@
-from typing import TypeVar
-from eave.stdlib.core_api import enums
-
 import eave.stdlib.core_api.client as eave_core
-import eave.stdlib.core_api.operations as operations
 import eave.stdlib.core_api.models as models
-import eave.stdlib.link_handler as link_handler
+import eave.stdlib.core_api.operations as operations
 import eave.stdlib.eave_origins as eave_origins
+import eave.stdlib.link_handler as link_handler
 import mockito
+from eave.stdlib.core_api import enums
 from eave.stdlib.core_api.enums import LinkType
 from eave.stdlib.third_party_api_clients.github import GitHubClient, GithubRepository
 from pydantic import UUID4
 
 from .base import BaseTestCase, mock_coroutine
-
 
 # apply plugin allowing async funcational tests
 # pytest_plugins = ("pytest_asyncio",)

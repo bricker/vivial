@@ -212,7 +212,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_existing_account(self) -> None:
         eave_team = await self.make_team()
-        eave_account = await self.make_account(
+        initial_eave_account = await self.make_account(
             team_id=eave_team.id,
             auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
             auth_id=self.anystring("authed_user.id"),
@@ -233,7 +233,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        eave_account = await self.reload(eave_account)
+        eave_account = await self.reload(initial_eave_account)
         assert eave_account
         # Test that the tokens were updated
         assert eave_account.access_token == self.anystring("authed_user.access_token")
@@ -245,7 +245,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_logged_in_account(self) -> None:
         eave_team = await self.make_team()
-        eave_account = await self.make_account(
+        initial_eave_account = await self.make_account(
             team_id=eave_team.id,
             auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
             auth_id=self.anystring("authed_user.id"),
@@ -262,13 +262,13 @@ class TestSlackOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_slack": self.anystring("state"),
-                "ev_account_id": str(eave_account.id),
-                "ev_access_token": eave_account.access_token,
+                "ev_account_id": str(initial_eave_account.id),
+                "ev_access_token": initial_eave_account.access_token,
             },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        eave_account = await self.reload(eave_account)
+        eave_account = await self.reload(initial_eave_account)
         assert eave_account
         # Test that the tokens were updated
         assert eave_account.access_token == self.anystring("authed_user.access_token")

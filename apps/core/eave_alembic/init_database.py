@@ -2,8 +2,8 @@ import os
 
 import dotenv
 import eave.core.internal.orm
-from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 import eave.core.internal.orm.base
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 
 dotenv.load_dotenv()
 

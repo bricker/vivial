@@ -56,7 +56,7 @@ async def upsert_document(
                             "id": subscription.source.id,
                         }
                         for subscription in input.subscriptions
-                    ]
+                    ],
                 },
             )
 
@@ -86,7 +86,7 @@ async def upsert_document(
                             "id": subscription.source.id,
                         }
                         for subscription in input.subscriptions
-                    ]
+                    ],
                 },
             )
 

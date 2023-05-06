@@ -47,7 +47,10 @@ async def atlassian_oauth_callback(
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
 
     if error or not code:
-        eave.stdlib.logger.warning(f"Error response from Atlassian OAuth flow or code missing. {error}: {error_description}", extra=eave_state.log_context)
+        eave.stdlib.logger.warning(
+            f"Error response from Atlassian OAuth flow or code missing. {error}: {error_description}",
+            extra=eave_state.log_context,
+        )
         shared.set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
         return response
 

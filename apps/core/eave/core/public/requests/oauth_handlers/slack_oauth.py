@@ -1,4 +1,3 @@
-import slack_sdk.web.async_client
 import typing
 
 import eave.core.internal
@@ -45,10 +44,12 @@ async def slack_oauth_callback(
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
 
     if error or not code:
-        eave.stdlib.logger.warning(f"Error response from Slack OAuth flow or code missing. {error}: {error_description}", extra=eave_state.log_context)
+        eave.stdlib.logger.warning(
+            f"Error response from Slack OAuth flow or code missing. {error}: {error_description}",
+            extra=eave_state.log_context,
+        )
         shared.set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
         return response
-
 
     slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token_or_exception(code=code)
     slack_team_name = slack_oauth_data["team"]["name"]
@@ -81,18 +82,16 @@ async def slack_oauth_callback(
     )
 
     await _update_or_create_slack_installation(
-        request=request,
-        slack_oauth_data=slack_oauth_data,
-        eave_account=eave_account
+        request=request, slack_oauth_data=slack_oauth_data, eave_account=eave_account
     )
 
     return response
 
 
 async def _update_or_create_slack_installation(
-        request: fastapi.Request,
-        slack_oauth_data: eave.core.internal.oauth.slack.SlackOAuthResponse,
-        eave_account: eave.core.internal.orm.AccountOrm,
+    request: fastapi.Request,
+    slack_oauth_data: eave.core.internal.oauth.slack.SlackOAuthResponse,
+    eave_account: eave.core.internal.orm.AccountOrm,
 ) -> None:
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
 
@@ -128,13 +127,16 @@ async def _update_or_create_slack_installation(
                 bot_refresh_token=slack_bot_refresh_token,
             )
 
-            await _run_post_install_procedures(request=request, slack_oauth_data=slack_oauth_data, eave_account=eave_account)
+            await _run_post_install_procedures(
+                request=request, slack_oauth_data=slack_oauth_data, eave_account=eave_account
+            )
+
 
 async def _run_post_install_procedures(
-        request: fastapi.Request,
-        slack_oauth_data: eave.core.internal.oauth.slack.SlackOAuthResponse,
-        eave_account: eave.core.internal.orm.AccountOrm,
-    ) -> None:
+    request: fastapi.Request,
+    slack_oauth_data: eave.core.internal.oauth.slack.SlackOAuthResponse,
+    eave_account: eave.core.internal.orm.AccountOrm,
+) -> None:
     eave_state = eave.core.public.requests.util.get_eave_state(request=request)
 
     slack_bot_access_token = slack_oauth_data["access_token"]
@@ -189,7 +191,6 @@ async def _run_post_install_procedures(
         await slack_client.chat_postMessage(
             channel=slack_user_id,
             text="Hey there! I’m Eave, and here to help with any of your documentation needs. Add me to channels or DMs, and simply tag me in a thread you want documented.",
-
         )
     except Exception as e:
         eave.stdlib.logger.error("Error sending welcome message on Slack", exc_info=e, extra=eave_state.log_context)
