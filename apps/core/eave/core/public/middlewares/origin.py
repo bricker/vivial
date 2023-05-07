@@ -5,28 +5,20 @@ import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 from eave.stdlib import logger
-
-from . import EaveASGIMiddleware, asgi_types
-
-_ROUTE_BYPASS: Set[str] = set()
-
-
-def add_bypass(path: str) -> None:
-    global _ROUTE_BYPASS
-    _ROUTE_BYPASS.add(path)
-
+from asgiref.typing import HTTPScope, Scope, ASGIReceiveCallable, ASGISendCallable
+from . import EaveASGIMiddleware
 
 class OriginASGIMiddleware(EaveASGIMiddleware):
     async def __call__(
-        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
+        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
-        if scope["type"] == "http" and scope["path"] not in _ROUTE_BYPASS:
+        if scope["type"] == "http":
             self._process_origin(scope=scope)
 
         await self.app(scope, receive, send)
 
     @staticmethod
-    def _process_origin(scope: asgi_types.HTTPScope) -> None:
+    def _process_origin(scope: HTTPScope) -> None:
         eave_state = request_util.get_eave_state(scope)
 
         origin_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_ORIGIN_HEADER)

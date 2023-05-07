@@ -10,31 +10,25 @@ import sqlalchemy.exc
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import logger
-
-from . import EaveASGIMiddleware, _development_bypass, asgi_types
-
-_ROUTE_BYPASS: Set[str] = set()
-
-
-def add_bypass(path: str) -> None:
-    global _ROUTE_BYPASS
-    _ROUTE_BYPASS.add(path)
-
+from asgiref.typing import HTTPScope, Scope, ASGIReceiveCallable, ASGISendCallable
+from .base import EaveASGIMiddleware
+from . import development_bypass
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
     async def __call__(
-        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
+        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
-        if scope["type"] == "http" and scope["path"] not in _ROUTE_BYPASS:
-            if _development_bypass.development_bypass_allowed(scope=scope):
-                await _development_bypass.development_bypass_auth(scope=scope)
+
+        if scope["type"] == "http":
+            if development_bypass.development_bypass_allowed(scope=scope):
+                await development_bypass.development_bypass_auth(scope=scope)
             else:
                 await self._verify_auth(scope=scope)
 
         await self.app(scope, receive, send)
 
     @staticmethod
-    async def _verify_auth(scope: asgi_types.HTTPScope) -> None:
+    async def _verify_auth(scope: HTTPScope) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
 
         account_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)

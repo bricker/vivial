@@ -7,16 +7,8 @@ import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import eave.stdlib.signing as eave_signing
 from eave.stdlib import logger
-
-from . import EaveASGIMiddleware, _development_bypass, asgi_types
-
-_ROUTE_BYPASS: Set[str] = set()
-
-
-def add_bypass(path: str) -> None:
-    global _ROUTE_BYPASS
-    _ROUTE_BYPASS.add(path)
-
+from asgiref.typing import HTTPScope, Scope, ASGIReceiveCallable, ASGISendCallable, ASGIReceiveEvent
+from . import EaveASGIMiddleware, development_bypass
 
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """
@@ -26,13 +18,13 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """
 
     async def __call__(
-        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
+        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
-        if scope["type"] != "http" or scope["path"] in _ROUTE_BYPASS:
+        if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
-        if _development_bypass.development_bypass_allowed(scope=scope):
+        if development_bypass.development_bypass_allowed(scope=scope):
             logger.warning("Bypassing signature verification in dev environment")
             await self.app(scope, receive, send)
             return
@@ -51,9 +43,9 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
         # This cast was necessary, the type checker wasn't picking up that `scope` had been implicitly cast
         # to HTTPScope at the beginning of the function.
-        self._do_signature_verification(scope=cast(asgi_types.HTTPScope, scope), body=body)
+        self._do_signature_verification(scope=scope, body=body)
 
-        async def dummy_receive() -> asgi_types.ASGIReceiveEvent:
+        async def dummy_receive() -> ASGIReceiveEvent:
             return {
                 "type": "http.request",
                 "body": body,
@@ -63,7 +55,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
         await self.app(scope, dummy_receive, send)
 
     @staticmethod
-    def _do_signature_verification(scope: asgi_types.HTTPScope, body: bytes) -> None:
+    def _do_signature_verification(scope: HTTPScope, body: bytes) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
 
         signature = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_SIGNATURE_HEADER)

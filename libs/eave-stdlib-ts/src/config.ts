@@ -32,6 +32,10 @@ export class EaveConfig {
     return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
   }
 
+  get eaveAppsBase(): string {
+    return process.env['EAVE_APPS_BASE'] || 'https://apps.eave.fyi';
+  }
+
   get eaveCookieDomain(): string {
     return process.env['EAVE_COOKIE_DOMAIN'] || '.eave.fyi';
   }

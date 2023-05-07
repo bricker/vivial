@@ -1,4 +1,5 @@
 import asyncio
+import http
 import json
 import logging
 import typing
@@ -11,64 +12,13 @@ import eave.core.internal.orm.team
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_errors
 import eave.stdlib.util as eave_util
-import fastapi
-import slack_sdk.errors
-import sqlalchemy.exc
+import starlette.requests
+from starlette.responses import JSONResponse
+import starlette.applications
+from asgiref.typing import HTTPScope, Scope
+import pydantic
 from eave.stdlib import logger
 
-from ..middlewares import asgi_types
-
-
-def not_found(request: fastapi.Request, exc: Exception) -> fastapi.Response:
-    eave_state = get_eave_state(request=request)
-    logging.error("not found", exc_info=exc, extra=eave_state.log_context)
-    return fastapi.responses.Response(
-        status_code=HTTPStatus.NOT_FOUND,
-        content=json.dumps(eave_state.log_context),
-    )
-
-
-def internal_server_error(request: fastapi.Request, exc: Exception) -> fastapi.Response:
-    eave_state = get_eave_state(request=request)
-    logging.error("internal server error", exc_info=exc, extra=eave_state.log_context)
-    return fastapi.responses.Response(
-        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-        content=json.dumps(eave_state.log_context),
-    )
-
-
-def bad_request(request: fastapi.Request, exc: Exception) -> fastapi.Response:
-    eave_state = get_eave_state(request=request)
-    logging.error("bad request", exc_info=exc, extra=eave_state.log_context)
-    return fastapi.responses.Response(
-        status_code=HTTPStatus.BAD_REQUEST,
-        content=json.dumps(eave_state.log_context),
-    )
-
-
-def unauthorized(request: fastapi.Request, exc: Exception) -> fastapi.Response:
-    eave_state = get_eave_state(request=request)
-    logging.error("unauthorized", exc_info=exc, extra=eave_state.log_context)
-    return fastapi.responses.Response(
-        status_code=HTTPStatus.UNAUTHORIZED,
-        content=json.dumps(eave_state.log_context),
-    )
-
-
-def validation_error(request: fastapi.Request, exc: fastapi.exceptions.RequestValidationError) -> fastapi.Response:
-    eave_state = get_eave_state(request=request)
-    logger.error("validation error", exc_info=exc, extra=eave_state.log_context)
-    return fastapi.Response(status_code=HTTPStatus.UNPROCESSABLE_ENTITY)
-
-
-def add_standard_exception_handlers(app: fastapi.FastAPI) -> None:
-    app.exception_handler(sqlalchemy.exc.NoResultFound)(not_found)
-    app.exception_handler(sqlalchemy.exc.MultipleResultsFound)(internal_server_error)
-    app.exception_handler(eave_errors.BadRequestError)(bad_request)
-    app.exception_handler(eave_errors.UnauthorizedError)(unauthorized)
-    app.exception_handler(eave_errors.InternalServerError)(internal_server_error)
-    app.exception_handler(fastapi.exceptions.RequestValidationError)(validation_error)
-    app.exception_handler(slack_sdk.errors.SlackApiError)(internal_server_error)
 
 
 class EaveRequestState:
@@ -141,13 +91,13 @@ class EaveRequestState:
 
 
 def get_eave_state(
-    scope: Optional[asgi_types.Scope] = None, request: Optional[fastapi.Request] = None
+    scope: Optional[Scope] = None, request: Optional[starlette.requests.Request] = None
 ) -> EaveRequestState:
     # Validate that exactly one parameter is supplied.
     assert eave_util.xor(scope, request)
 
     if scope is None and request is not None:
-        scope = cast(asgi_types.Scope, request.scope)
+        scope = cast(Scope, request.scope)
 
     assert scope is not None
     scope.setdefault("state", dict[str, Any]())
@@ -165,13 +115,3 @@ def get_eave_state(
         eave_state.request_path = scope["path"]
 
     return cast(EaveRequestState, eave_state)
-
-
-def get_header_value(scope: asgi_types.HTTPScope, name: str) -> str | None:
-    """
-    This function doesn't support multiple headers with the same name.
-    It will always choose the "first" one (from whatever order the ASGI server sent).
-    See here for details about the scope["headers"] object:
-    https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
-    """
-    return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)

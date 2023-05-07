@@ -1,10 +1,9 @@
 mypy
 black
-isort
 httpx
 types-requests
 python-dotenv
 mockito
-autoflake>=2.1.1
 pytest
 pretty_errors
+ruff
