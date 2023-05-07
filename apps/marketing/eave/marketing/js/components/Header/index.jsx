@@ -7,8 +7,8 @@ import useAuthModal from '../../hooks/useAuthModal.js';
 import useUser from '../../hooks/useUser.js';
 import HamburgerIcon from '../Icons/HamburgerIcon.js';
 import CloseIcon from '../Icons/CloseIcon.js';
-import Button from '../Button/index.js';
-import EaveLogo from '../EaveLogo/index.js';
+import Button from '../Button/index.jsx';
+import EaveLogo from '../EaveLogo/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   outterContainer: {
