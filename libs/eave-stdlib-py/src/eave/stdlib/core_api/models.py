@@ -5,6 +5,7 @@ from typing import List, Optional
 import pydantic
 
 from . import enums
+from ..typing import LogContext
 
 
 class ConfluenceSpace(pydantic.BaseModel):
@@ -112,10 +113,6 @@ class Integrations(pydantic.BaseModel):
 
 
 class ErrorResponse(pydantic.BaseModel):
-    eave_account_id: Optional[str]
-    eave_origin: Optional[str]
-    eave_team_id: Optional[str]
-    request_id: Optional[str]
-    request_method: Optional[str]
-    request_scheme: Optional[str]
-    request_path: Optional[str]
+    status_code: int
+    error_message: str
+    context: Optional[LogContext]

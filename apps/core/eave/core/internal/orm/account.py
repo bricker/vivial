@@ -1,19 +1,21 @@
 import typing
 import uuid
 from datetime import datetime
-from typing import Dict, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-import eave.core.internal.oauth.atlassian
-import eave.core.internal.oauth.google
-import eave.core.internal.oauth.slack
 import eave.stdlib
 import eave.stdlib.core_api
 import slack_sdk.errors
+from eave.stdlib.typing import LogContext
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+import eave.core.internal.oauth.atlassian
+import eave.core.internal.oauth.google
+import eave.core.internal.oauth.slack
 
 from .base import Base
 from .team import TeamOrm
@@ -130,7 +132,7 @@ class AccountOrm(Base):
         return result
 
     async def verify_oauth_or_exception(
-        self, session: AsyncSession, log_context: Optional[Dict[str, object]] = None
+        self, session: AsyncSession, log_context: Optional[LogContext] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
@@ -170,7 +172,7 @@ class AccountOrm(Base):
                 raise
 
     async def refresh_oauth_token(
-        self, session: AsyncSession, log_context: Optional[Dict[str, object]] = None
+        self, session: AsyncSession, log_context: Optional[LogContext] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.

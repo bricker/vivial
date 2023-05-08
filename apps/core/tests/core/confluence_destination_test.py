@@ -1,8 +1,9 @@
 import unittest.mock
 
+import eave.stdlib.core_api.operations as eave_ops
+
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.oauth.atlassian as atlassian_oauth
-import eave.stdlib.core_api.operations as eave_ops
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 
 from .base import BaseTestCase

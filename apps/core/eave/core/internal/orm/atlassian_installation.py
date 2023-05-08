@@ -42,12 +42,16 @@ class AtlassianInstallationOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     class _selectparams(TypedDict):
+        id: NotRequired[uuid.UUID]
         team_id: NotRequired[uuid.UUID]
         atlassian_cloud_id: NotRequired[str]
 
     @classmethod
     def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
         lookup = select(cls).limit(1)
+
+        if (id := kwargs.get("id")) is not None:
+            lookup = lookup.where(cls.id == id)
 
         if (team_id := kwargs.get("team_id")) is not None:
             lookup = lookup.where(cls.team_id == team_id)

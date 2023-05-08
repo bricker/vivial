@@ -1,7 +1,8 @@
 from typing import Any
 
 import eave.stdlib.core_api.enums as eave_enums
-import fastapi
+from starlette.requests import Request
+from starlette.responses import Response
 
 from ..config import app_config
 
@@ -21,7 +22,7 @@ def _build_cookie_params(provider: eave_enums.AuthProvider) -> dict[str, Any]:
 
 
 # FIXME: This only works if provider.value matches the path for /oauth/{provider}/callback, which is a bold assumption!
-def save_state_cookie(response: fastapi.responses.Response, state: str, provider: eave_enums.AuthProvider) -> None:
+def save_state_cookie(response: Response, state: str, provider: eave_enums.AuthProvider) -> None:
     response.set_cookie(
         key=_build_cookie_name(provider=provider),
         value=state,
@@ -29,11 +30,11 @@ def save_state_cookie(response: fastapi.responses.Response, state: str, provider
     )
 
 
-def get_state_cookie(request: fastapi.Request, provider: eave_enums.AuthProvider) -> str:
+def get_state_cookie(request: Request, provider: eave_enums.AuthProvider) -> str:
     state: str | None = request.cookies.get(_build_cookie_name(provider))
     assert state is not None
     return state
 
 
-def delete_state_cookie(response: fastapi.responses.Response, provider: eave_enums.AuthProvider) -> None:
+def delete_state_cookie(response: Response, provider: eave_enums.AuthProvider) -> None:
     response.delete_cookie(key=_build_cookie_name(provider=provider), **_build_cookie_params(provider))

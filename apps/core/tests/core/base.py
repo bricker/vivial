@@ -1,19 +1,11 @@
 import json
-import os
-import random
-import typing
 import unittest
 import unittest.mock
 import urllib.parse
 import uuid
 from typing import Any, Optional, Protocol, TypeVar
-from uuid import UUID, uuid4
+from uuid import UUID
 
-import eave.core.app
-import eave.core.internal
-import eave.core.internal.oauth.atlassian
-import eave.core.internal.orm
-import eave.core.internal.orm.base
 import eave.stdlib
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
@@ -21,9 +13,16 @@ import eave.stdlib.jwt
 import mockito
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
+from eave.stdlib.test_util import TestUtilityMixin
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+import eave.core.app
+import eave.core.internal
+import eave.core.internal.oauth.atlassian
+import eave.core.internal.orm
+import eave.core.internal.orm.base
 
 
 class AnyStandardOrm(Protocol):
@@ -42,34 +41,9 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 eave.core.internal.database.async_engine.echo = False  # shhh
 
 
-class BaseTestCase(unittest.IsolatedAsyncioTestCase):
-    def __init__(self, methodName: str) -> None:
-        super().__init__(methodName)
-        self.maxDiff = None
-
+class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        self.testdata: typing.Dict[str, Any] = {}
-
-        self.mock_env = {
-            "EAVE_API_BASE": "https://api.eave.dev:8080",
-            "EAVE_WWW_BASE": "https://www.eave.dev:8080",
-            "EAVE_COOKIE_DOMAIN": ".eave.dev",
-            "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64": eave.stdlib.util.b64encode(
-                json.dumps(
-                    {
-                        "web": {
-                            "client_id": self.anystring("google_oauth_client_id"),
-                            "project_id": "eavefyi-dev",
-                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                            "token_uri": "https://oauth2.googleapis.com/token",
-                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                            "client_secret": self.anystring("google_oauth_client_secret"),
-                            "redirect_uris": ["https://api.eave.dev:8080/oauth/google/callback"],
-                        }
-                    }
-                )
-            ),
-        }
+        await super().asyncSetUp()
 
         async with eave.core.internal.database.async_engine.connect() as db_connection:
             await db_connection.run_sync(eave.core.internal.orm.base.get_base_metadata().drop_all)
@@ -88,92 +62,14 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             base_url=eave.core.internal.app_config.eave_api_base,
         )
 
-        # Tests should never call out to KMS
-        self.mock_signing()
-        self.mock_google_services()
-        self.mock_environment()
-        self.mock_slack_client()
         self.mock_atlassian_client()
 
     async def asyncTearDown(self) -> None:
-        unittest.mock.patch.stopall()
+        await super().asyncTearDown()
         # mockito.verifyStubbedInvocationsAreUsed()
         mockito.unstub()
         await self.httpclient.aclose()
         await eave.core.internal.database.async_engine.dispose()
-
-    @staticmethod
-    async def mock_coroutine(value: T) -> T:
-        return value
-
-    def unwrap(self, value: Optional[T]) -> T:
-        assert value is not None
-        return value
-
-    def anystring(self, name: Optional[str] = None) -> str:
-        if name is None:
-            name = str(uuid4())
-
-        if name not in self.testdata:
-            data = str(uuid4())
-            self.testdata[name] = data
-
-        value: str = self.testdata[name]
-        return value
-
-    def anyjson(self, name: Optional[str] = None) -> str:
-        if name is None:
-            name = str(uuid4())
-
-        if name not in self.testdata:
-            data = json.dumps(
-                {
-                    str(uuid.uuid4()): str(uuid.uuid4()),
-                    str(uuid.uuid4()): str(uuid.uuid4()),
-                    str(uuid.uuid4()): str(uuid.uuid4()),
-                }
-            )
-            self.testdata[name] = data
-
-        value: str = self.testdata[name]
-        return value
-
-    def anydict(self, name: Optional[str] = None) -> typing.Dict[str, str]:
-        if name is None:
-            name = str(uuid4())
-
-        if name not in self.testdata:
-            data = {
-                str(uuid.uuid4()): str(uuid.uuid4()),
-                str(uuid.uuid4()): str(uuid.uuid4()),
-                str(uuid.uuid4()): str(uuid.uuid4()),
-            }
-            self.testdata[name] = data
-
-        value: dict[str, str] = self.testdata[name]
-        return value
-
-    def anyuuid(self, name: Optional[str] = None) -> UUID:
-        if name is None:
-            name = str(uuid4())
-
-        if name not in self.testdata:
-            data = uuid4()
-            self.testdata[name] = data
-
-        value: UUID = self.testdata[name]
-        return value
-
-    def anyint(self, name: Optional[str] = None) -> int:
-        if name is None:
-            name = str(uuid4())
-
-        if name not in self.testdata:
-            data = random.randint(0, 9999)
-            self.testdata[name] = data
-
-        value: int = self.testdata[name]
-        return value
 
     @property
     def db_session(self) -> async_sessionmaker[AsyncSession]:
@@ -295,100 +191,11 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         return response
 
-    def mock_environment(self) -> None:
-        def _getenv(key: str, default: str | None = None) -> str | None:
-            v: str | None
-            if key in self.mock_env:
-                v = self.mock_env[key]
-            elif key in os.environ:
-                v = os.environ[key]
-            else:
-                v = default
-
-            return v
-
-        unittest.mock.patch("os.getenv", new=_getenv)
-
-    def mock_google_services(self) -> None:
-        def _get_secret(_self: Any, name: str) -> str:
-            v: str = self.mock_env.get(name, f"not mocked: {name}")
-            return v
-
-        def _get_runtimeconfig(_self: Any, name: str) -> str:
-            v: str = self.mock_env.get(name, f"not mocked: {name}")
-            return v
-
-        unittest.mock.patch("eave.stdlib.config.EaveConfig.get_secret", new=_get_secret).start()
-        unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", new=_get_runtimeconfig).start()
-
-    def mock_slack_client(self) -> None:
-        unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True).start()
-
-    def mock_atlassian_client(self) -> None:
-        unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get", new=unittest.mock.MagicMock()).start()
-
-        self.fake_atlassian_resources = [
-            eave.stdlib.atlassian.AtlassianAvailableResource(
-                id=self.anystring("atlassian_cloud_id"),
-                url=self.anystring("confluence_document_response._links.base"),
-                avatarUrl=self.anystring("atlassian.resource.avatar"),
-                name=self.anystring("atlassian.resource.name"),
-                scopes=[],
-            )
-        ]
-
-        unittest.mock.patch(
-            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
-            new=lambda *args, **kwargs: self.fake_atlassian_resources,
-        ).start()
-
-        self.fake_atlassian_token = {
-            "access_token": self.anystring("atlassian.access_token"),
-            "refresh_token": self.anystring("atlassian.refresh_token"),
-            "expires_in": self.anyint("atlassian.expires_in"),
-            "scope": self.anystring("atlassian.scope"),
-        }
-
-        unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token").start()
-        unittest.mock.patch(
-            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
-            new=lambda *args, **kwargs: self.fake_atlassian_token,
-        ).start()
-
-        self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
-            data={
-                "type": "known",
-                "accountType": "atlassian",
-                "accountId": self.anystring("confluence.account_id"),
-                "displayName": self.anystring("confluence.display_name"),
-                "email": self.anystring("confluence.email"),
-            },
-            ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url")),
-        )
-
-        unittest.mock.patch(
-            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
-            new=lambda *args, **kwargs: self.fake_confluence_user,
-        ).start()
-
-    def mock_signing(self) -> None:
-        def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
-            value: str = eave.stdlib.util.b64encode(eave.stdlib.util.sha256hexdigest(data))
-            return value
-
-        def _verify_signature_or_exception(
-            signing_key: eave.stdlib.signing.SigningKeyDetails, message: str | bytes, signature: str
-        ) -> None:
-            if signature != eave.stdlib.util.b64encode(eave.stdlib.util.sha256hexdigest(message)):
-                raise eave.stdlib.exceptions.InvalidSignatureError()
-
-        mockito.when2(eave.stdlib.signing.sign_b64, ...).thenAnswer(_sign_b64)
-        mockito.when2(eave.stdlib.signing.verify_signature_or_exception, ...).thenAnswer(_verify_signature_or_exception)
-
     async def make_team(self) -> eave.core.internal.orm.TeamOrm:
         team = eave.core.internal.orm.TeamOrm(
             name=self.anystring("team name"), document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
         )
+
         await self.save(team)
         return team
 
@@ -419,6 +226,59 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             acct = await eave.core.internal.orm.TeamOrm.one_or_none(session=db_session, team_id=id)
 
         return acct
+
+    def mock_atlassian_client(self) -> None:
+        self.patch(unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get"))
+
+        self.fake_atlassian_resources = [
+            eave.stdlib.atlassian.AtlassianAvailableResource(
+                id=self.anystring("atlassian_cloud_id"),
+                url=self.anystring("confluence_document_response._links.base"),
+                avatarUrl=self.anystring("atlassian.resource.avatar"),
+                name=self.anystring("atlassian.resource.name"),
+                scopes=[],
+            )
+        ]
+
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
+                side_effect=lambda *args, **kwargs: self.fake_atlassian_resources,
+            )
+        )
+
+        self.fake_atlassian_token = {
+            "access_token": self.anystring("atlassian.access_token"),
+            "refresh_token": self.anystring("atlassian.refresh_token"),
+            "expires_in": self.anyint("atlassian.expires_in"),
+            "scope": self.anystring("atlassian.scope"),
+        }
+
+        self.patch(unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token"))
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
+                side_effect=lambda *args, **kwargs: self.fake_atlassian_token,
+            )
+        )
+
+        self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
+            data={
+                "type": "known",
+                "accountType": "atlassian",
+                "accountId": self.anystring("confluence.account_id"),
+                "displayName": self.anystring("confluence.display_name"),
+                "email": self.anystring("confluence.email"),
+            },
+            ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url")),
+        )
+
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
+                side_effect=lambda *args, **kwargs: self.fake_confluence_user,
+            )
+        )
 
     def confluence_document_response_fixture(self) -> eave.stdlib.util.JsonObject:
         return {

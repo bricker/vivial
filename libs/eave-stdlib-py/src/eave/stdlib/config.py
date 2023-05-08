@@ -2,7 +2,8 @@ import os
 import sys
 from functools import cached_property
 
-from google.cloud import runtimeconfig, secretmanager
+import google.cloud.secretmanager
+import google.cloud.runtimeconfig
 
 from . import checksum
 
@@ -94,7 +95,7 @@ class EaveConfig:
         if env_value is not None:
             return env_value
 
-        client = runtimeconfig.Client()
+        client = google.cloud.runtimeconfig.Client()
         config = client.config("eave-global-config")
 
         variable = config.get_variable(name)
@@ -109,7 +110,7 @@ class EaveConfig:
         if env_value is not None:
             return env_value
 
-        secrets_client = secretmanager.SecretManagerServiceClient()
+        secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
 
         fqname = f"projects/{self.google_cloud_project}/secrets/{name}/versions/latest"
         response = secrets_client.access_secret_version(request={"name": fqname})

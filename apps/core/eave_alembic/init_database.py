@@ -1,11 +1,15 @@
+import asyncio
 import os
+import socket
 
-import dotenv
+import eave.stdlib.core_api
+import sqlalchemy
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
-
-dotenv.load_dotenv()
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 
@@ -15,14 +19,6 @@ assert os.getenv("GOOGLE_CLOUD_PROJECT") != "eave-production"
 assert os.getenv("GCLOUD_PROJECT") != "eave-production"
 assert EAVE_DB_NAME is not None
 assert EAVE_DB_NAME != "eave"
-
-import asyncio
-import socket
-
-import eave.core.internal
-import eave.stdlib.core_api
-import sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 
 async def init_database() -> None:

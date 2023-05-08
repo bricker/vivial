@@ -1,14 +1,15 @@
 from http import HTTPStatus
 
+import eave.stdlib.core_api.models
+import eave.stdlib.core_api.operations
+import eave.stdlib.core_api.operations as eave_ops
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.github_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
-import eave.stdlib.core_api.models
-import eave.stdlib.core_api.operations
-import eave.stdlib.core_api.operations as eave_ops
 
 from .base import BaseTestCase
 
@@ -40,6 +41,29 @@ class TestInstallationsRequests(BaseTestCase):
 
         assert response_obj.slack_integration.slack_team_id == self.anystring("slack_team_id")
         assert response_obj.slack_integration.bot_token == self.anystring("bot_token")
+
+    async def test_get_slack_installation_validation_error(self) -> None:
+        team = await self.make_team()
+
+        async with eave_db.async_session.begin() as db_session:
+            await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
+                session=db_session,
+                team_id=team.id,
+                bot_refresh_token=self.anystring("bot_refresh_token"),
+                bot_token=self.anystring("bot_token"),
+                slack_team_id=self.anystring("slack_team_id"),
+            )
+
+        response = await self.make_request(
+            path="/integrations/slack/query",
+            payload={
+                "whoops": {
+                    "whoops": self.anystring("whoops"),
+                },
+            },
+        )
+
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     async def test_get_slack_installation_not_found(self) -> None:
         response = await self.make_request(

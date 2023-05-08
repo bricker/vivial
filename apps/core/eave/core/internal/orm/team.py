@@ -84,7 +84,9 @@ class TeamOrm(Base):
 
     async def get_integrations(self, session: AsyncSession) -> eave.stdlib.core_api.models.Integrations:
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
+
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
+
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         return eave.stdlib.core_api.models.Integrations(

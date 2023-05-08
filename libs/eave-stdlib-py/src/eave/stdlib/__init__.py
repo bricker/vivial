@@ -1,7 +1,4 @@
-import logging
-
-logger = logging.getLogger("eave")
-
+from .logging import logger as logger
 from . import analytics as analytics
 from . import cookies as cookies
 from . import exceptions as exceptions
