@@ -2,7 +2,7 @@ import base64
 import json
 import os
 from functools import cached_property
-from typing import Any, List, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 import eave.stdlib.config
 
@@ -46,7 +46,7 @@ class AppConfig(eave.stdlib.config.EaveConfig):
             value: str = self.get_secret("EAVE_BETA_PREWHITELISTED_EMAILS_CSV")
             emails = list(map(str.strip, value.split(",")))
             return emails
-        except:
+        except Exception:
             return []
 
 

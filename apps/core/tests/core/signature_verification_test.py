@@ -1,8 +1,5 @@
 from http import HTTPStatus
 
-import eave.stdlib.signing
-import mockito
-
 from .base import BaseTestCase
 
 

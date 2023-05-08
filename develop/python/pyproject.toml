@@ -1,7 +1,7 @@
 [tool.black]
 extend-exclude = '''
 (
-  | generated
+  generated
   | \\.git
   | \\.venv
   | vendor
@@ -40,6 +40,7 @@ explicit_package_bases = true
 enable_incomplete_feature = "Unpack"
 
 [tool.pytest.ini_options]
+log_cli = false
 pythonpath = [
   "../../apps/core",
   "../../apps/slack",
@@ -47,6 +48,7 @@ pythonpath = [
   "../../libs/eave-stdlib-py"
 ]
 norecursedirs = [
+  ".ruff_cache",
   ".git",
   ".venv",
   "vendor",
@@ -59,10 +61,8 @@ norecursedirs = [
 [tool.ruff]
 line-length = 1000
 extend-exclude = [
-  "generated/",
+  "generated",
   "__pycache__",
-  "vendor/"
+  "vendor"
 ]
-
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["E402"]
+ignore-init-module-imports = true

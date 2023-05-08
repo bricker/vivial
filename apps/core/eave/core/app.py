@@ -1,25 +1,16 @@
-from typing import Any, Type, cast
-
 import eave.stdlib.api_util
 import eave.stdlib.logging
 import eave.stdlib.time
 import starlette.applications
 import starlette.endpoints
+from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.routing import Route
-from asgiref.typing import ASGI3Application
-from .public import middlewares
 
-from .public.requests import (
-    authed_account,
-    documents,
-    integrations,
-    subscriptions,
-    team,
-    noop,
-)
-from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth, github_oauth
+from .public import middlewares
 from .public.exception_handlers import exception_handlers
+from .public.requests import authed_account, documents, integrations, noop, subscriptions, team
+from .public.requests.oauth_handlers import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
@@ -57,9 +48,9 @@ def make_route(
 
     return Route(path=path, endpoint=route)
 
+
 routes = [
     *eave.stdlib.api_util.standard_endpoints,
-
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
@@ -82,14 +73,12 @@ routes = [
         auth_required=False,
         endpoint=subscriptions.DeleteSubscription,
     ),
-
     make_route(
         path="/integrations/slack/query",
         auth_required=False,
         team_id_required=False,
         endpoint=integrations.SlackIntegration,
     ),
-
     make_route(
         path="/integrations/github/query",
         auth_required=False,
@@ -107,7 +96,6 @@ routes = [
         auth_required=False,
         endpoint=team.GetTeam,
     ),
-
     # Authenticated API endpoints.
     make_route(
         path="/me/query",
@@ -124,8 +112,6 @@ routes = [
         team_id_required=False,
         endpoint=authed_account.UpdateAtlassianIntegration,
     ),
-
-
     # OAuth endpoints.
     # These endpoints don't require any verification (except the OAuth flow itself)
     make_route(
@@ -199,7 +185,7 @@ routes = [
         origin_required=False,
         team_id_required=False,
         endpoint=noop.NoopRequest,
-    )
+    ),
 ]
 
 middleware = [

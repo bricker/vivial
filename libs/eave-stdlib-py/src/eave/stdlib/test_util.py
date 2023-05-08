@@ -10,6 +10,7 @@ import eave.stdlib.signing
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
 
+
 class TestUtilityMixin:
     testdata: dict[str, Any] = {}
     active_patches: dict[str, unittest.mock.Mock] = {}
@@ -107,7 +108,9 @@ class TestUtilityMixin:
             return v
 
         self.patch(unittest.mock.patch("eave.stdlib.config.EaveConfig.get_secret", side_effect=_get_secret))
-        self.patch(unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig))
+        self.patch(
+            unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
+        )
 
     def mock_slack_client(self) -> None:
         self.patch(unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True))
@@ -124,10 +127,13 @@ class TestUtilityMixin:
                 raise eave.stdlib.exceptions.InvalidSignatureError()
 
         self.patch(unittest.mock.patch("eave.stdlib.signing.sign_b64", side_effect=_sign_b64))
-        self.patch(unittest.mock.patch("eave.stdlib.signing.verify_signature_or_exception", side_effect=_verify_signature_or_exception))
+        self.patch(
+            unittest.mock.patch(
+                "eave.stdlib.signing.verify_signature_or_exception", side_effect=_verify_signature_or_exception
+            )
+        )
 
-
-    def patch(self, patch: unittest.mock._patch) -> unittest.mock.Mock: # type:ignore
+    def patch(self, patch: unittest.mock._patch) -> unittest.mock.Mock:  # type:ignore
         m = patch.start()
         self.active_patches[f"{patch.target.__name__}.{patch.attribute}"] = m
         return m

@@ -4,12 +4,7 @@ import sys
 import textwrap
 import uuid
 from typing import Any
-
 import eave.stdlib.core_api.enums
-from dotenv import load_dotenv
-
-load_dotenv()
-
 import asyncio
 import json
 
@@ -21,9 +16,9 @@ import eave.stdlib.logging
 import eave.stdlib.openai_client
 from slack_bolt.async_app import AsyncBoltContext
 from slack_sdk.web.async_client import AsyncWebClient
+from eave.stdlib import logger
 
 eave.stdlib.logging.setup_logging(level=logging.DEBUG)
-from eave.stdlib import logger
 
 eave_team = eave_models.Team(
     id=uuid.uuid4(), name="Test Team", document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence

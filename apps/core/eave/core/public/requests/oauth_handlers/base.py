@@ -1,12 +1,14 @@
-from starlette.responses import Response
-from starlette.requests import Request
-import eave.stdlib.api_util as eave_api_util
-import eave.stdlib.core_api as eave_core
-import eave.core.public.request_state as eave_request_util
-from . import shared
 import eave.stdlib
+import eave.stdlib.core_api as eave_core
+from starlette.requests import Request
+from starlette.responses import Response
+
+import eave.core.public.request_state as eave_request_util
 from eave.core.internal import app_config
+
 from ...http_endpoint import HTTPEndpoint
+from . import shared
+
 
 class BaseOAuthCallback(HTTPEndpoint):
     request: Request
@@ -31,7 +33,10 @@ class BaseOAuthCallback(HTTPEndpoint):
         error_description = request.query_params.get("error_description")
 
         if error or not code:
-            eave.stdlib.logger.warning(f"Error response from {self.auth_provider} oauth flow, or code missing. {error}: {error_description}", extra=eave_state.log_context)
+            eave.stdlib.logger.warning(
+                f"Error response from {self.auth_provider} oauth flow, or code missing. {error}: {error_description}",
+                extra=eave_state.log_context,
+            )
             shared.set_redirect(response=response, location=app_config.eave_www_base)
             return response
 

@@ -37,14 +37,16 @@ def _render_spa(**kwargs: Any) -> str:
         **kwargs,
     )
 
+
 @app.route("/authcheck", methods=["GET"])
 async def get_auth_state() -> dict[str, bool]:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
-        return { "authenticated": False }
+        return {"authenticated": False}
     else:
-        return { "authenticated": True }
+        return {"authenticated": True}
+
 
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
@@ -116,9 +118,8 @@ async def api_access_request() -> str:
 def catch_all(path: str) -> str:
     return _render_spa()
 
-def _clean_response(
-        eave_response: eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody
-    ) -> Response:
+
+def _clean_response(eave_response: eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody) -> Response:
     # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
     access_token = eave_response.account.access_token
     del eave_response.account.access_token

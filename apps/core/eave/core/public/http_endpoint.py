@@ -1,19 +1,19 @@
-import json
 import typing
 
-from starlette import status
+import starlette.types
+from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 from starlette._utils import is_async_callable
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response
-import starlette.types
-from asgiref.typing import Scope, ASGIReceiveCallable, ASGISendCallable
+
 
 class HTTPEndpoint:
     """
     Copy of starlette's HTTPEndpoint, but with better typing.
     """
+
     def __init__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         assert scope["type"] == "http"
         self.scope = scope
@@ -25,7 +25,7 @@ class HTTPEndpoint:
             if getattr(self, method.lower(), None) is not None
         ]
 
-    def __await__(self) -> typing.Generator:
+    def __await__(self) -> typing.Generator[typing.Any, None, None]:
         return self.dispatch().__await__()
 
     async def dispatch(self) -> None:
@@ -38,15 +38,9 @@ class HTTPEndpoint:
             receive=_receive,
         )
 
-        handler_name = (
-            "get"
-            if request.method == "HEAD" and not hasattr(self, "head")
-            else request.method.lower()
-        )
+        handler_name = "get" if request.method == "HEAD" and not hasattr(self, "head") else request.method.lower()
 
-        handler: typing.Callable[[Request], typing.Any] = getattr(
-            self, handler_name, self.method_not_allowed
-        )
+        handler: typing.Callable[[Request], typing.Any] = getattr(self, handler_name, self.method_not_allowed)
         is_async = is_async_callable(handler)
         if is_async:
             response = await handler(request)
@@ -64,4 +58,3 @@ class HTTPEndpoint:
         if "app" in self.scope:
             raise HTTPException(status_code=405, headers=headers)
         return PlainTextResponse("Method Not Allowed", status_code=405, headers=headers)
-

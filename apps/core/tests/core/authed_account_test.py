@@ -2,12 +2,13 @@ import typing
 import unittest.mock
 from http import HTTPStatus
 
+import eave.stdlib.core_api.operations as eave_ops
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
-import eave.stdlib.core_api.operations as eave_ops
 
 from .base import BaseTestCase
 
@@ -16,7 +17,9 @@ class TestAuthedAccountRequests(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        def _get_userinfo_or_exception(*args: typing.Any, **kwargs: typing.Any) -> eave.core.internal.oauth.slack.SlackOAuthResponse:
+        def _get_userinfo_or_exception(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> eave.core.internal.oauth.slack.SlackOAuthResponse:
             return {
                 "access_token": self.anystring("access_token"),
                 "refresh_token": self.anystring("refresh_token"),
@@ -33,7 +36,11 @@ class TestAuthedAccountRequests(BaseTestCase):
                 },
             }
 
-        self.patch(unittest.mock.patch("eave.core.internal.oauth.slack.get_userinfo_or_exception", side_effect=_get_userinfo_or_exception))
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.slack.get_userinfo_or_exception", side_effect=_get_userinfo_or_exception
+            )
+        )
 
     async def test_get_authed_account(self) -> None:
         account = await self.make_account()
@@ -82,7 +89,7 @@ class TestAuthedAccountRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave_ops.GetAuthenticatedAccount.ResponseBody(**response.json())
+        eave_ops.GetAuthenticatedAccount.ResponseBody(**response.json())
 
     async def test_get_authed_account_team_integrations(self) -> None:
         team = await self.make_team()

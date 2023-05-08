@@ -10,12 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 from .document_reference import DocumentReferenceOrm
-from .util import (
-    UUID_DEFAULT_EXPR,
-    make_team_composite_fk,
-    make_team_composite_pk,
-    make_team_fk,
-)
+from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_composite_pk, make_team_fk
 
 
 class SubscriptionOrm(Base):

@@ -227,7 +227,7 @@ class Brain:
                 text=(
                     msg := (
                         "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                        f"Do you want me to watch and document this conversation? (This feature is not yet implemented) "
+                        "Do you want me to watch and document this conversation? (This feature is not yet implemented) "
                         "If you needed something else, try phrasing it differently."
                     )
                 )
@@ -251,7 +251,7 @@ class Brain:
                 text=(
                     msg := (
                         "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                        f"I'm currently working on the documentation for this conversation, and I'll send an update when it's ready. "
+                        "I'm currently working on the documentation for this conversation, and I'll send an update when it's ready. "
                         "If you needed something else, try phrasing it differently."
                     )
                 )
@@ -639,7 +639,7 @@ class Brain:
             await self.message.send_response(
                 text=(
                     msg := (
-                        f"Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready."
+                        "Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready."
                     )
                 )
             )

@@ -5,9 +5,8 @@ Revises: 4689f2704a97
 Create Date: 2023-04-15 19:30:29.717474
 
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "a3cf567b981a"
@@ -69,22 +68,16 @@ def downgrade() -> None:
     op.drop_column("teams", "beta_whitelisted")
     op.add_column(
         "confluence_destinations",
-        sa.Column(
-            "api_key", sa.VARCHAR(), autoincrement=False, nullable=False
-        ),
+        sa.Column("api_key", sa.VARCHAR(), autoincrement=False, nullable=False),
     )
     op.add_column(
         "confluence_destinations",
-        sa.Column(
-            "api_username", sa.VARCHAR(), autoincrement=False, nullable=False
-        ),
+        sa.Column("api_username", sa.VARCHAR(), autoincrement=False, nullable=False),
     )
     op.add_column(
         "confluence_destinations",
         sa.Column("url", sa.VARCHAR(), autoincrement=False, nullable=False),
     )
-    op.drop_index(
-        "eave_team_id_atlassian_team_id", table_name="atlassian_installations"
-    )
+    op.drop_index("eave_team_id_atlassian_team_id", table_name="atlassian_installations")
     op.drop_table("atlassian_installations")
     # ### end Alembic commands ###

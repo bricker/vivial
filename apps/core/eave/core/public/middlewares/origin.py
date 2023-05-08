@@ -1,17 +1,16 @@
-from typing import Set
-
-import eave.core.public.request_state as request_util
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
-from eave.stdlib import logger, api_util
-from asgiref.typing import HTTPScope, Scope, ASGIReceiveCallable, ASGISendCallable
+from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+from eave.stdlib import api_util, logger
+
+import eave.core.public.request_state as request_util
+
 from . import EaveASGIMiddleware
 
+
 class OriginASGIMiddleware(EaveASGIMiddleware):
-    async def __call__(
-        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
-    ) -> None:
+    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
             self._process_origin(scope=scope)
 

@@ -10,6 +10,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from asgiref.typing import HTTPScope
 
+
 def status_endpoint(request: Request) -> Response:
     model = Status.ResponseBody(
         service=shared_config.app_service,
@@ -19,12 +20,15 @@ def status_endpoint(request: Request) -> Response:
 
     return json_response(model=model)
 
+
 def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
     app.get(f"{path_prefix}/status")(status_endpoint)
+
 
 standard_endpoints = [
     Route("/status", status_endpoint, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
 ]
+
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
@@ -34,6 +38,7 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+
 
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
     response = Response(status_code=status_code, content=model.json(), media_type="application/json")

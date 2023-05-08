@@ -120,6 +120,6 @@
   ],
   "python.analysis.inlayHints.pytestParameters": true,
   "ruff.args": [
-    "--config=${workspaceFolder}/develop/python/pyproject.toml"
+    "--config=${EAVE_HOME}/develop/python/pyproject.toml"
   ],
 }

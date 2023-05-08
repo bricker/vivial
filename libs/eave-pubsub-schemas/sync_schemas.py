@@ -1,12 +1,11 @@
 import logging
 import os
 import sys
-
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-
 from google.api_core.exceptions import AlreadyExists
 from google.cloud.pubsub import SchemaServiceClient
 from google.pubsub_v1.types import Schema
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 class Environment:

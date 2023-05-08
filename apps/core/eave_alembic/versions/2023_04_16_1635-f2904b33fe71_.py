@@ -5,8 +5,8 @@ Revises: a3cf567b981a
 Create Date: 2023-04-16 16:35:11.089296
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -58,8 +58,6 @@ def downgrade() -> None:
             ["teams.id"],
             name="confluence_destinations_team_id_fkey",
         ),
-        sa.PrimaryKeyConstraint(
-            "team_id", "id", name="confluence_destinations_pkey"
-        ),
+        sa.PrimaryKeyConstraint("team_id", "id", name="confluence_destinations_pkey"),
     )
     # ### end Alembic commands ###

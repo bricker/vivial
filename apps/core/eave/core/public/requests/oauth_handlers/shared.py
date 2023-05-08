@@ -1,15 +1,16 @@
 import http
 import typing
 
-import eave.core.internal
-import eave.core.internal.oauth.state_cookies
-import eave.core.internal.orm
-import eave.core.public.requests
 import eave.pubsub_schemas
 import eave.stdlib.core_api
 import eave.stdlib.slack
-from starlette.responses import Response, RedirectResponse
 from starlette.requests import Request
+from starlette.responses import Response
+
+import eave.core.internal
+import eave.core.internal.oauth.state_cookies
+import eave.core.internal.orm
+import eave.core.public.request_state
 
 
 def verify_oauth_state_or_exception(
@@ -27,13 +28,16 @@ def verify_oauth_state_or_exception(
 
     return True
 
+
 def set_redirect(response: Response, location: str) -> Response:
     response.headers["Location"] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
 
+
 def cancel_flow(response: Response) -> Response:
     return set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
+
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
     if email:
@@ -111,7 +115,7 @@ async def create_new_account_and_team(
     access_token: str,
     refresh_token: typing.Optional[str],
 ) -> eave.core.internal.orm.AccountOrm:
-    eave_state = eave.core.public.requests.eave_request_util.get_eave_state(request=request)
+    eave_state = eave.core.public.request_state.get_eave_state(request=request)
     tracking_cookies = eave.stdlib.cookies.get_tracking_cookies(request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:

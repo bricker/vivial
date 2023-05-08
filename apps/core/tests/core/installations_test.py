@@ -1,14 +1,15 @@
 from http import HTTPStatus
 
+import eave.stdlib.core_api.models
+import eave.stdlib.core_api.operations
+import eave.stdlib.core_api.operations as eave_ops
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.github_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
-import eave.stdlib.core_api.models
-import eave.stdlib.core_api.operations
-import eave.stdlib.core_api.operations as eave_ops
 
 from .base import BaseTestCase
 

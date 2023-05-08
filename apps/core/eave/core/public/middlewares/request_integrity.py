@@ -1,10 +1,9 @@
-from typing import cast
 import uuid
 
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
-from eave.stdlib import logger, api_util
-from asgiref.typing import Scope, ASGIReceiveCallable, ASGISendCallable
+from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
+from eave.stdlib import api_util, logger
 
 from .. import request_state as request_util
 from . import EaveASGIMiddleware
@@ -20,9 +19,7 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
     - a request_id is set on the request
     """
 
-    async def __call__(
-        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
-    ) -> None:
+    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] not in ALLOWED_ASGI_PROTOCOLS:
             raise eave_exceptions.BadRequestError(f"Unsupported protocol: {scope['type']}")
 

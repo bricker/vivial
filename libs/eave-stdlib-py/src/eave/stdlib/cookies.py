@@ -7,10 +7,10 @@ from typing import Any, Literal, Mapping, Protocol
 
 from .config import shared_config
 
-EAVE_COOKIE_PREFIX_UTM = f"ev_utm_"
-EAVE_VISITOR_ID_COOKIE = f"ev_visitor_id"
-EAVE_ACCOUNT_ID_COOKIE = f"ev_account_id"
-EAVE_ACCESS_TOKEN_COOKIE = f"ev_access_token"
+EAVE_COOKIE_PREFIX_UTM = "ev_utm_"
+EAVE_VISITOR_ID_COOKIE = "ev_visitor_id"
+EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
+EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token"
 
 
 class ResponseCookieMutator(Protocol):
@@ -18,6 +18,7 @@ class ResponseCookieMutator(Protocol):
     This protocol is necessary because we pass in both Flask and Starlette response objects, which both
     have the same set_cookie signature but are different types.
     """
+
     # Copied from Starlette's set_cookie signature
     def set_cookie(
         self,

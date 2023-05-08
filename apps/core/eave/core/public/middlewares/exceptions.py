@@ -1,9 +1,10 @@
-import eave.core.public.request_state as request_util
-import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.exceptions as eave_exceptions
+from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 from eave.stdlib import logger
-from asgiref.typing import Scope, ASGIReceiveCallable, ASGISendCallable
-from  starlette.responses import JSONResponse
+from starlette.responses import JSONResponse
+
+import eave.core.public.request_state as request_util
 
 from . import EaveASGIMiddleware
 
@@ -17,9 +18,7 @@ class ExceptionHandlerASGIMiddleware(EaveASGIMiddleware):
         so that we can catch and handle errors that occur in middlewares and respond appropriately.
     """
 
-    async def __call__(
-        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
-    ) -> None:
+    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
 
         try:
@@ -32,10 +31,7 @@ class ExceptionHandlerASGIMiddleware(EaveASGIMiddleware):
                 error_message="unknown error",
                 context=eave_state.public_request_context,
             )
-            response = JSONResponse(
-                status_code=e.status_code,
-                content=body.json()
-            )
+            response = JSONResponse(status_code=e.status_code, content=body.json())
             await response(scope, receive, send)  # type:ignore
             return
 

@@ -1,16 +1,17 @@
 from http import HTTPStatus
 
-import eave.core.internal.database as eave_db
+import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-from eave.core.internal.orm.subscription import SubscriptionOrm
-
-from starlette.responses import JSONResponse, Response
 from starlette.requests import Request
-import eave.stdlib.api_util as eave_api_util
+from starlette.responses import Response
+
+import eave.core.internal.database as eave_db
+from eave.core.internal.orm.subscription import SubscriptionOrm
 
 from .. import request_state as request_util
 from ..http_endpoint import HTTPEndpoint
+
 
 class GetSubscription(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
@@ -29,14 +30,18 @@ class GetSubscription(HTTPEndpoint):
             document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
 
         document_reference_public = (
-            eave_models.DocumentReference.from_orm(document_reference_orm) if document_reference_orm is not None else None
+            eave_models.DocumentReference.from_orm(document_reference_orm)
+            if document_reference_orm is not None
+            else None
         )
 
-        return eave_api_util.json_response(eave_ops.GetSubscription.ResponseBody(
-            team=eave_models.Team.from_orm(team),
-            subscription=eave_models.Subscription.from_orm(subscription_orm),
-            document_reference=document_reference_public,
-        ))
+        return eave_api_util.json_response(
+            eave_ops.GetSubscription.ResponseBody(
+                team=eave_models.Team.from_orm(team),
+                subscription=eave_models.Subscription.from_orm(subscription_orm),
+                document_reference=document_reference_public,
+            )
+        )
 
 
 class CreateSubscription(HTTPEndpoint):
@@ -66,14 +71,19 @@ class CreateSubscription(HTTPEndpoint):
             document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
 
         document_reference_public = (
-            eave_models.DocumentReference.from_orm(document_reference_orm) if document_reference_orm is not None else None
+            eave_models.DocumentReference.from_orm(document_reference_orm)
+            if document_reference_orm is not None
+            else None
         )
 
-        return eave_api_util.json_response(model=eave_ops.CreateSubscription.ResponseBody(
-            team=eave_models.Team.from_orm(team),
-            subscription=eave_models.Subscription.from_orm(subscription_orm),
-            document_reference=document_reference_public,
-        ), status_code=status_code)
+        return eave_api_util.json_response(
+            model=eave_ops.CreateSubscription.ResponseBody(
+                team=eave_models.Team.from_orm(team),
+                subscription=eave_models.Subscription.from_orm(subscription_orm),
+                document_reference=document_reference_public,
+            ),
+            status_code=status_code,
+        )
 
 
 class DeleteSubscription(HTTPEndpoint):

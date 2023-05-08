@@ -57,7 +57,7 @@ class MessageAction(enum.Enum):
 async def message_action(context: str) -> MessageAction:
     prompt = eave_openai.formatprompt(
         context,
-        f"""
+        """
         What action should you take based on this message? Select one of the following choices:
         - Create new documentation
         - Update existing documentation

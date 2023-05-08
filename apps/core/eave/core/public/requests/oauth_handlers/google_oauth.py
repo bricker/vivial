@@ -1,22 +1,20 @@
 from typing import cast
-import typing
 
-import eave.core.internal.oauth.google
 import eave.stdlib.core_api.enums
 import google.oauth2.credentials
 import google.oauth2.id_token
-from eave.core.internal.oauth import state_cookies as oauth_cookies
-import eave.core.public.request_state
-from starlette.responses import Response, RedirectResponse
 from starlette.requests import Request
-import eave.stdlib.api_util as eave_api_util
-import eave.stdlib.core_api as eave_core
-import eave.core.public.request_state as eave_request_util
+from starlette.responses import RedirectResponse, Response
 
-from . import shared, base
+import eave.core.internal.oauth.google
+import eave.core.public.request_state
+from eave.core.internal.oauth import state_cookies as oauth_cookies
+
 from ...http_endpoint import HTTPEndpoint
+from . import base, shared
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.google
+
 
 class GoogleOAuthAuthorize(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
@@ -28,6 +26,7 @@ class GoogleOAuthAuthorize(HTTPEndpoint):
             provider=_AUTH_PROVIDER,
         )
         return response
+
 
 class GoogleOAuthCallback(base.BaseOAuthCallback):
     auth_provider = _AUTH_PROVIDER

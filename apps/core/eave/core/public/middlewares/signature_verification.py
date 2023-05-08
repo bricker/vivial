@@ -1,14 +1,16 @@
 import uuid
-from typing import Set, cast
 
-import eave.core.public.request_state as request_util
 import eave.stdlib.core_api.client
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import eave.stdlib.signing as eave_signing
-from eave.stdlib import logger, api_util
-from asgiref.typing import HTTPScope, Scope, ASGIReceiveCallable, ASGISendCallable, ASGIReceiveEvent
+from asgiref.typing import ASGIReceiveCallable, ASGIReceiveEvent, ASGISendCallable, HTTPScope, Scope
+from eave.stdlib import api_util, logger
+
+import eave.core.public.request_state as request_util
+
 from . import EaveASGIMiddleware, development_bypass
+
 
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """
@@ -17,9 +19,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     so that it can calculate the expected signature and compare it to the provided signature.
     """
 
-    async def __call__(
-        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
-    ) -> None:
+    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return

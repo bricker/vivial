@@ -1,7 +1,7 @@
-from .base import EaveASGIMiddleware
-from .authentication import AuthASGIMiddleware
-from .exceptions import ExceptionHandlerASGIMiddleware
-from .origin import OriginASGIMiddleware
-from .request_integrity import RequestIntegrityASGIMiddleware
-from .signature_verification import SignatureVerificationASGIMiddleware
-from .team_lookup import TeamLookupASGIMiddleware
+from .authentication import AuthASGIMiddleware as AuthASGIMiddleware
+from .base import EaveASGIMiddleware as EaveASGIMiddleware
+from .exceptions import ExceptionHandlerASGIMiddleware as ExceptionHandlerASGIMiddleware
+from .origin import OriginASGIMiddleware as OriginASGIMiddleware
+from .request_integrity import RequestIntegrityASGIMiddleware as RequestIntegrityASGIMiddleware
+from .signature_verification import SignatureVerificationASGIMiddleware as SignatureVerificationASGIMiddleware
+from .team_lookup import TeamLookupASGIMiddleware as TeamLookupASGIMiddleware

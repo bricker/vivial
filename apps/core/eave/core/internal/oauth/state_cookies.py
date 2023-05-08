@@ -1,8 +1,8 @@
 from typing import Any
 
 import eave.stdlib.core_api.enums as eave_enums
-from starlette.responses import Response
 from starlette.requests import Request
+from starlette.responses import Response
 
 from ..config import app_config
 
@@ -37,6 +37,4 @@ def get_state_cookie(request: Request, provider: eave_enums.AuthProvider) -> str
 
 
 def delete_state_cookie(response: Response, provider: eave_enums.AuthProvider) -> None:
-    response.delete_cookie(
-        key=_build_cookie_name(provider=provider),
-        **_build_cookie_params(provider))
+    response.delete_cookie(key=_build_cookie_name(provider=provider), **_build_cookie_params(provider))

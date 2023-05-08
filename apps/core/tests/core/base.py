@@ -1,19 +1,11 @@
 import json
-import os
-import random
-import typing
 import unittest
 import unittest.mock
 import urllib.parse
 import uuid
 from typing import Any, Optional, Protocol, TypeVar
-from uuid import UUID, uuid4
+from uuid import UUID
 
-import eave.core.app
-import eave.core.internal
-import eave.core.internal.oauth.atlassian
-import eave.core.internal.orm
-import eave.core.internal.orm.base
 import eave.stdlib
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
@@ -21,10 +13,17 @@ import eave.stdlib.jwt
 import mockito
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
+from eave.stdlib.test_util import TestUtilityMixin
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from eave.stdlib.test_util import TestUtilityMixin
+
+import eave.core.app
+import eave.core.internal
+import eave.core.internal.oauth.atlassian
+import eave.core.internal.orm
+import eave.core.internal.orm.base
+
 
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]
@@ -196,6 +195,7 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
         team = eave.core.internal.orm.TeamOrm(
             name=self.anystring("team name"), document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
         )
+
         await self.save(team)
         return team
 
@@ -240,10 +240,12 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
             )
         ]
 
-        self.patch(unittest.mock.patch(
-            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
-            side_effect=lambda *args, **kwargs: self.fake_atlassian_resources,
-        ))
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
+                side_effect=lambda *args, **kwargs: self.fake_atlassian_resources,
+            )
+        )
 
         self.fake_atlassian_token = {
             "access_token": self.anystring("atlassian.access_token"),
@@ -253,10 +255,12 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
         }
 
         self.patch(unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token"))
-        self.patch(unittest.mock.patch(
-            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
-            side_effect=lambda *args, **kwargs: self.fake_atlassian_token,
-        ))
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
+                side_effect=lambda *args, **kwargs: self.fake_atlassian_token,
+            )
+        )
 
         self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
             data={
@@ -269,10 +273,12 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
             ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url")),
         )
 
-        self.patch(unittest.mock.patch(
-            "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
-            side_effect=lambda *args, **kwargs: self.fake_confluence_user,
-        ))
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
+                side_effect=lambda *args, **kwargs: self.fake_confluence_user,
+            )
+        )
 
     def confluence_document_response_fixture(self) -> eave.stdlib.util.JsonObject:
         return {

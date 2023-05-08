@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime
-from typing import List, Mapping, Optional
+from typing import List, Optional
 
 import pydantic
 
 from . import enums
 from ..typing import LogContext
+
 
 class ConfluenceSpace(pydantic.BaseModel):
     key: str
@@ -109,6 +110,7 @@ class Integrations(pydantic.BaseModel):
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
     atlassian: Optional[AtlassianInstallation]
+
 
 class ErrorResponse(pydantic.BaseModel):
     status_code: int

@@ -1,25 +1,17 @@
 import asyncio
-import http
-import json
-import logging
 import typing
 import uuid
-from http import HTTPStatus
-from typing import Any, Dict, Mapping, Optional, cast
+from typing import Any, Optional, cast
+
+import eave.stdlib.eave_origins as eave_origins
+import eave.stdlib.util as eave_util
+import starlette.applications
+import starlette.requests
+from asgiref.typing import Scope
+from eave.stdlib.typing import LogContext
 
 import eave.core.internal.orm.account
 import eave.core.internal.orm.team
-import eave.stdlib.eave_origins as eave_origins
-import eave.stdlib.exceptions as eave_errors
-import eave.stdlib.util as eave_util
-import starlette.requests
-from starlette.responses import JSONResponse
-import starlette.applications
-from asgiref.typing import HTTPScope, Scope
-import pydantic
-from eave.stdlib import logger
-
-from eave.stdlib.typing import LogContext
 
 
 class EaveRequestState:

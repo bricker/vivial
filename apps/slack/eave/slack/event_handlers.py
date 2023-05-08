@@ -14,6 +14,7 @@ from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 
 # TODO: Handlers create tasks for Cloud Tasks, or pubsub perhaps
 
+
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
@@ -77,7 +78,7 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
 async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
     eave_team = context.get("eave_team")
 
-    if not event or not (channel := event.get("channel")) or not (user_id := event.get("user_id")):
+    if not event or not (event.get("channel")) or not (user_id := event.get("user_id")):
         logger.error(msg := "member_joined_channel event received, but channel or user_id wasn't available.")
         raise AssertionError(msg)
 

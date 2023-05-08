@@ -2,25 +2,25 @@ import json
 import typing
 
 import atlassian
-import eave.core.internal
-import eave.core.internal.oauth.atlassian as oauth_atlassian
-import eave.core.internal.oauth.state_cookies as oauth_cookies
-import eave.core.internal.orm
-import eave.core.public.request_state
 import eave.pubsub_schemas
 import eave.stdlib
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
 from eave.stdlib import logger
-
-from starlette.responses import Response, RedirectResponse
 from starlette.requests import Request
-import eave.stdlib.api_util as eave_api_util
+from starlette.responses import RedirectResponse, Response
 
-from . import shared, base
+import eave.core.internal
+import eave.core.internal.oauth.atlassian as oauth_atlassian
+import eave.core.internal.oauth.state_cookies as oauth_cookies
+import eave.core.internal.orm
+import eave.core.public.request_state
+
 from ...http_endpoint import HTTPEndpoint
+from . import base, shared
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.atlassian
+
 
 class AtlassianOAuthAuthorize(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
@@ -34,6 +34,7 @@ class AtlassianOAuthAuthorize(HTTPEndpoint):
             provider=_AUTH_PROVIDER,
         )
         return response
+
 
 class AtlassianOAuthCallback(base.BaseOAuthCallback):
     auth_provider = _AUTH_PROVIDER
@@ -83,7 +84,6 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         await self._update_or_create_installation()
         return self.response
 
-
     async def _update_or_create_installation(
         self,
     ) -> None:
@@ -96,7 +96,10 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             )
 
             if installation and installation.team_id != self.eave_account.team_id:
-                logger.warning(f"An Atlassian integration already exists for atlassian_cloud_id {self.atlassian_cloud_id}", extra=self.eave_state.log_context)
+                logger.warning(
+                    f"An Atlassian integration already exists for atlassian_cloud_id {self.atlassian_cloud_id}",
+                    extra=self.eave_state.log_context,
+                )
                 return
 
             if installation and oauth_token_encoded:
