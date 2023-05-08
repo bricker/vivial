@@ -5,9 +5,8 @@ Revises: 7077e9067e19
 Create Date: 2023-05-05 19:59:41.043731
 
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "271e6339d054"
@@ -62,8 +61,6 @@ def downgrade() -> None:
         op.f("ix_github_installations_github_install_id"),
         table_name="github_installations",
     )
-    op.drop_index(
-        "eave_team_id_github_install_id", table_name="github_installations"
-    )
+    op.drop_index("eave_team_id_github_install_id", table_name="github_installations")
     op.drop_table("github_installations")
     # ### end Alembic commands ###

@@ -29,12 +29,8 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -i "Linting ${target}..."
 
-		statusmsg -i "(lint) autoflake..."
-		# https://github.com/PyCQA/autoflake/pull/249
-		python -m autoflake --check-diff --config ${EAVE_HOME}/develop/python/autoflake.cfg $target
-
-		statusmsg -i "(lint) isort..."
-		python -m isort --settings-file=$configfile --check $target
+		statusmsg -i "(lint) ruff..."
+		python -m ruff --config=$configfile $target
 
 		statusmsg -i "(lint) black..."
 		python -m black --config=$configfile --check $target
@@ -52,12 +48,8 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/pyproject.toml
 
-		statusmsg -i "(format) autoflake..."
-		# https://github.com/PyCQA/autoflake/pull/249
-		python -m autoflake --in-place --config ${EAVE_HOME}/develop/python/autoflake.cfg $target
-
-		statusmsg -i "(format) isort..."
-		python -m isort --settings-file=$configfile $target
+		statusmsg -i "(format) ruff..."
+		python -m ruff --fix --config=$configfile $target
 
 		statusmsg -i  "(format) black..."
 		python -m black --config=$configfile $target

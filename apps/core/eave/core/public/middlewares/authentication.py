@@ -1,43 +1,36 @@
 import re
 import uuid
-from typing import Set
 
-import eave.core.internal.database as eave_db
-import eave.core.public.requests.util as request_util
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
+from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+from eave.stdlib import api_util, logger
+
+import eave.core.internal.database as eave_db
+import eave.core.public.request_state as request_util
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib import logger
 
-from . import EaveASGIMiddleware, _development_bypass, asgi_types
-
-_ROUTE_BYPASS: Set[str] = set()
-
-
-def add_bypass(path: str) -> None:
-    global _ROUTE_BYPASS
-    _ROUTE_BYPASS.add(path)
+from . import development_bypass
+from .base import EaveASGIMiddleware
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
-    async def __call__(
-        self, scope: asgi_types.Scope, receive: asgi_types.ASGIReceiveCallable, send: asgi_types.ASGISendCallable
-    ) -> None:
-        if scope["type"] == "http" and scope["path"] not in _ROUTE_BYPASS:
-            if _development_bypass.development_bypass_allowed(scope=scope):
-                await _development_bypass.development_bypass_auth(scope=scope)
+    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+        if scope["type"] == "http":
+            if development_bypass.development_bypass_allowed(scope=scope):
+                await development_bypass.development_bypass_auth(scope=scope)
             else:
                 await self._verify_auth(scope=scope)
 
         await self.app(scope, receive, send)
 
     @staticmethod
-    async def _verify_auth(scope: asgi_types.HTTPScope) -> None:
+    async def _verify_auth(scope: HTTPScope) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
 
-        account_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)
+        account_id_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)
         if not account_id_header:
             logger.error("account ID header missing/empty", extra=eave_state.log_context)
             raise eave_exceptions.MissingRequiredHeaderError("eave-account-id")
@@ -48,7 +41,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             logger.error("malformed account ID", extra=eave_state.log_context)
             raise eave_exceptions.BadRequestError() from e
 
-        auth_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
+        auth_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
         if not auth_header:
             logger.error("auth header missing/empty", extra=eave_state.log_context)
             raise eave_exceptions.InvalidAuthError()
@@ -73,7 +66,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
             try:
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
-            except eave_exceptions.AccessTokenExpiredError as e:
+            except eave_exceptions.AccessTokenExpiredError:
                 await eave_account.refresh_oauth_token(session=db_session, log_context=eave_state.log_context)
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
 

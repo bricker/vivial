@@ -5,9 +5,7 @@ Revises: c88077c78b60
 Create Date: 2023-04-02 21:36:28.279210
 
 """
-from alembic import op
 import sqlalchemy as sa
-
 
 # revision identifiers, used by Alembic.
 revision = "a272e54c46ae"
@@ -24,6 +22,7 @@ def upgrade():
     # op.alter_column("accounts", "auth_provider", type_=new_type, existing_type=old_type)
     # op.execute("ALTER TYPE authprovider ADD VALUE 'slack'")
     pass
+
 
 def downgrade():
     # this is destructive to the validity of the data... soooo never do it

@@ -1,0 +1,1 @@
+LogContext = dict[str, str]

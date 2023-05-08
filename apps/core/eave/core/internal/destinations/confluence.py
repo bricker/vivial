@@ -111,7 +111,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         self, document: eave_ops.DocumentInput
     ) -> eave.stdlib.atlassian.ConfluencePage:
         existing_page = await self._get_confluence_page_by_title(document=document)
-        if existing_page is not None:
+        if existing_page:
             return existing_page
 
         parent_page = None

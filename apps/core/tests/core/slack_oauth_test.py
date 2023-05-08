@@ -5,13 +5,14 @@ import unittest.mock
 import uuid
 from http import HTTPStatus
 
+import eave.stdlib.core_api
+
 import eave.core.internal
 import eave.core.internal.oauth.google
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
-import eave.stdlib.core_api
 
 from .base import BaseTestCase
 
@@ -59,7 +60,9 @@ class TestSlackOAuthHandler(BaseTestCase):
         ) -> eave.core.internal.oauth.slack.SlackOAuthResponse:
             return self.oauth_val
 
-        unittest.mock.patch("eave.core.internal.oauth.slack.get_access_token", new=_get_access_token).start()
+        unittest.mock.patch(
+            "eave.core.internal.oauth.slack.get_access_token_or_exception", new=_get_access_token
+        ).start()
 
         unittest.mock.patch("slack_sdk.web.async_slack_response.AsyncSlackResponse", new=unittest.mock.Mock()).start()
 
@@ -180,10 +183,17 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert eave_account
         eave_team = await self.get_eave_team(id=eave_account.team_id)
         assert eave_team
-        assert eave_team.name == f"Your Team"
+        assert eave_team.name == "Your Team"
 
     async def test_slack_callback_whitelisted_team(self) -> None:
-        self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("slack_user_email")
+        self.patch_dict(
+            unittest.mock.patch.dict(
+                "os.environ",
+                {
+                    "EAVE_BETA_PREWHITELISTED_EMAILS_CSV": self.anystring("slack_user_email"),
+                },
+            ),
+        )
 
         response = await self.make_request(
             path="/oauth/slack/callback",
@@ -212,7 +222,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_existing_account(self) -> None:
         eave_team = await self.make_team()
-        eave_account = await self.make_account(
+        eave_account_before = await self.make_account(
             team_id=eave_team.id,
             auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
             auth_id=self.anystring("authed_user.id"),
@@ -233,19 +243,19 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        eave_account = await self.reload(eave_account)
-        assert eave_account
+        eave_account_after = await self.reload(eave_account_before)
+        assert eave_account_after
         # Test that the tokens were updated
-        assert eave_account.access_token == self.anystring("authed_user.access_token")
-        assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")
+        assert eave_account_after.access_token == self.anystring("authed_user.access_token")
+        assert eave_account_after.refresh_token == self.anystring("authed_user.refresh_token")
 
         # Test that the cookies were updated
-        assert response.cookies.get("ev_account_id") == str(eave_account.id)
-        assert response.cookies.get("ev_access_token") == eave_account.access_token
+        assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
+        assert response.cookies.get("ev_access_token") == eave_account_after.access_token
 
     async def test_slack_callback_logged_in_account(self) -> None:
         eave_team = await self.make_team()
-        eave_account = await self.make_account(
+        eave_account_before = await self.make_account(
             team_id=eave_team.id,
             auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
             auth_id=self.anystring("authed_user.id"),
@@ -262,21 +272,21 @@ class TestSlackOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_slack": self.anystring("state"),
-                "ev_account_id": str(eave_account.id),
-                "ev_access_token": eave_account.access_token,
+                "ev_account_id": str(eave_account_before.id),
+                "ev_access_token": eave_account_before.access_token,
             },
         )
 
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        eave_account = await self.reload(eave_account)
-        assert eave_account
+        eave_account_after = await self.reload(eave_account_before)
+        assert eave_account_after
         # Test that the tokens were updated
-        assert eave_account.access_token == self.anystring("authed_user.access_token")
-        assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")
+        assert eave_account_after.access_token == self.anystring("authed_user.access_token")
+        assert eave_account_after.refresh_token == self.anystring("authed_user.refresh_token")
 
         # Test that the cookies were updated
-        assert response.cookies.get("ev_account_id") == str(eave_account.id)
-        assert response.cookies.get("ev_access_token") == eave_account.access_token
+        assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
+        assert response.cookies.get("ev_access_token") == eave_account_after.access_token
 
     async def test_slack_callback_logged_in_account_another_provider(self) -> None:
         eave_team = await self.make_team()

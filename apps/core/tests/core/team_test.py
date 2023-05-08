@@ -1,7 +1,8 @@
+import sqlalchemy.exc
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.orm.atlassian_installation
-import sqlalchemy.exc
 from eave.core.internal.orm.team import TeamOrm
 
 from .base import BaseTestCase

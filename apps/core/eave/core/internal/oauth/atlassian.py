@@ -43,8 +43,8 @@ ATLASSIAN_OAUTH_SCOPES = [
 
 class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     def __init__(self, client=None, token=None, state=None, token_updater=None, **kwargs):  # type: ignore[no-untyped-def]
-        client_id=app_config.eave_atlassian_app_client_id
-        client_secret=app_config.eave_atlassian_app_client_secret
+        client_id = app_config.eave_atlassian_app_client_id
+        client_secret = app_config.eave_atlassian_app_client_secret
 
         super().__init__(
             client_id=client_id,

@@ -5,9 +5,8 @@ Revises: 6a14ca341474
 Create Date: 2023-04-29 20:09:31.481754
 
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "46ff1f8026ca"
@@ -90,11 +89,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_accounts_auth_provider"), table_name="accounts")
     op.drop_index("token_pair", table_name="auth_tokens")
     op.drop_index("jwt_claims", table_name="auth_tokens")
-    op.drop_index(
-        op.f("ix_auth_tokens_refresh_token_hashed"), table_name="auth_tokens"
-    )
-    op.drop_index(
-        op.f("ix_auth_tokens_access_token_hashed"), table_name="auth_tokens"
-    )
+    op.drop_index(op.f("ix_auth_tokens_refresh_token_hashed"), table_name="auth_tokens")
+    op.drop_index(op.f("ix_auth_tokens_access_token_hashed"), table_name="auth_tokens")
     op.drop_table("auth_tokens")
     # ### end Alembic commands ###

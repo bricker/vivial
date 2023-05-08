@@ -10,7 +10,8 @@
     "node-fetch": "3.x",
     "@google-cloud/secret-manager": "4.x",
     "openai": "3.x",
-    "uuid": "9.x"
+    "uuid": "9.x",
+    "express": "4.x"
   },
   "devDependencies": {
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",

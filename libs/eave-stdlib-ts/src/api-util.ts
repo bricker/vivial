@@ -1,3 +1,4 @@
+import express from 'express';
 import { Status } from './core-api/operations';
 import { sharedConfig } from './config';
 
@@ -9,19 +10,9 @@ export function statusPayload(): Status.ResponseBody {
   }
 }
 
-export interface ResponseInterface {
-  json(payload: any): ResponseInterface;
-  status(code: number): ResponseInterface;
-  end(): ResponseInterface;
-}
+export const standardEndpointsRouter = express.Router();
 
-export interface RouterInterface {
-  get(path: string, ...handlers: ((_: any, res: ResponseInterface) => any)[]): any;
-}
-
-export function addStandardEndpoints(app: RouterInterface, pathPrefix: string = '') {
-  app.get(`${pathPrefix}/status`, (_: unknown, res: ResponseInterface) => {
-    const payload = statusPayload();
-    res.json(payload).status(200).end();
-  });
-}
+standardEndpointsRouter.get('/status', (_: express.Request, res: express.Response) => {
+  const payload = statusPayload();
+  res.json(payload).status(200).end();
+});

@@ -1,6 +1,7 @@
-import eave.core.internal.database as eave_db
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
+
+import eave.core.internal.database as eave_db
 from eave.core.internal.orm.subscription import SubscriptionOrm
 
 from .base import BaseTestCase

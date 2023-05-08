@@ -1,8 +1,9 @@
 from http import HTTPStatus
 
+import eave.stdlib.core_api.enums
+
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm.document_reference
-import eave.stdlib.core_api.enums
 from eave.core.internal.orm.subscription import SubscriptionOrm
 
 from .base import BaseTestCase

@@ -3,8 +3,9 @@ import sys
 
 import google.cloud.logging
 
-from . import logger
 from .config import shared_config
+
+logger = logging.getLogger("eave")
 
 
 # https://stackoverflow.com/a/56944256/885036
@@ -47,6 +48,3 @@ def setup_logging(level: int = logging.INFO) -> None:
     if shared_config.monitoring_enabled:
         client = google.cloud.logging.Client()
         client.setup_logging(log_level=level)
-
-
-eave_logger = logger
