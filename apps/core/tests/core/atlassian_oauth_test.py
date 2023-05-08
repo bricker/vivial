@@ -1,3 +1,4 @@
+import unittest.mock
 import http
 import json
 import re
@@ -125,7 +126,11 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_team.name == "Your Team"
 
     async def test_atlassian_callback_whitelisted_team(self) -> None:
-        self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("confluence.email")
+        self.patch_dict(
+            unittest.mock.patch.dict("os.environ", {
+                "EAVE_BETA_PREWHITELISTED_EMAILS_CSV": self.anystring("confluence.email"),
+            }),
+        )
 
         response = await self.make_request(
             path="/oauth/atlassian/callback",

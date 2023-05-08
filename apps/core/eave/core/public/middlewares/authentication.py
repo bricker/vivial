@@ -3,13 +3,13 @@ import uuid
 from typing import Set
 
 import eave.core.internal.database as eave_db
-import eave.core.public.requests.util as request_util
+import eave.core.public.request_state as request_util
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib import logger
+from eave.stdlib import logger, api_util
 from asgiref.typing import HTTPScope, Scope, ASGIReceiveCallable, ASGISendCallable
 from .base import EaveASGIMiddleware
 from . import development_bypass
@@ -31,7 +31,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
     async def _verify_auth(scope: HTTPScope) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
 
-        account_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)
+        account_id_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)
         if not account_id_header:
             logger.error("account ID header missing/empty", extra=eave_state.log_context)
             raise eave_exceptions.MissingRequiredHeaderError("eave-account-id")
@@ -42,7 +42,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             logger.error("malformed account ID", extra=eave_state.log_context)
             raise eave_exceptions.BadRequestError() from e
 
-        auth_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
+        auth_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
         if not auth_header:
             logger.error("auth header missing/empty", extra=eave_state.log_context)
             raise eave_exceptions.InvalidAuthError()

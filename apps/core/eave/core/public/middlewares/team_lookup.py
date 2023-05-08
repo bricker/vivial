@@ -2,12 +2,12 @@ import uuid
 from typing import Set
 
 import eave.core.internal.database as eave_db
-import eave.core.public.requests.util as request_util
+import eave.core.public.request_state as request_util
 import eave.stdlib.exceptions as eave_errors
 import eave.stdlib.headers as eave_headers
 import sqlalchemy.exc
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib import logger
+from eave.stdlib import logger, api_util
 from asgiref.typing import HTTPScope, Scope, ASGIReceiveCallable, ASGISendCallable
 from . import EaveASGIMiddleware
 
@@ -23,7 +23,7 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
     @staticmethod
     async def _lookup_team(scope: HTTPScope) -> None:
         eave_state = request_util.get_eave_state(scope=scope)
-        team_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_TEAM_ID_HEADER)
+        team_id_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_TEAM_ID_HEADER)
 
         try:
             if hasattr(eave_state, "eave_team"):

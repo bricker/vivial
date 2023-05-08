@@ -3,10 +3,10 @@ import uuid
 
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
-from eave.stdlib import logger
+from eave.stdlib import logger, api_util
 from asgiref.typing import Scope, ASGIReceiveCallable, ASGISendCallable
 
-from ..requests import util as request_util
+from .. import request_state as request_util
 from . import EaveASGIMiddleware
 
 ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
@@ -31,7 +31,7 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
         scope.setdefault("state", {})
 
         if scope["type"] == "http":
-            request_id_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_REQUEST_ID_HEADER)
+            request_id_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_REQUEST_ID_HEADER)
 
             if not request_id_header:
                 request_id = uuid.uuid4()

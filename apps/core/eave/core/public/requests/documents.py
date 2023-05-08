@@ -7,16 +7,16 @@ import eave.stdlib
 import eave.stdlib.core_api
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-import eave.core.public.requests.util as eave_rutil
+import eave.core.public.request_state as eave_rutil
 import eave.stdlib.api_util as eave_api_util
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 from eave.core.internal.orm.subscription import SubscriptionOrm
-from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import Response
+from ..http_endpoint import HTTPEndpoint
 
 class UpsertDocument(HTTPEndpoint):
-    async def post(self, request: Request) -> JSONResponse:
+    async def post(self, request: Request) -> Response:
         eave_state = eave_rutil.get_eave_state(request=request)
         body = await request.json()
         input = eave_ops.UpsertDocument.RequestBody.parse_obj(body)

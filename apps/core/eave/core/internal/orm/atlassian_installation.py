@@ -18,6 +18,7 @@ from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
+
 class AtlassianInstallationOrm(Base):
     __tablename__ = "atlassian_installations"
     __table_args__ = (

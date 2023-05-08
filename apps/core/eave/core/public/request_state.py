@@ -5,7 +5,7 @@ import logging
 import typing
 import uuid
 from http import HTTPStatus
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Mapping, Optional, cast
 
 import eave.core.internal.orm.account
 import eave.core.internal.orm.team
@@ -19,6 +19,7 @@ from asgiref.typing import HTTPScope, Scope
 import pydantic
 from eave.stdlib import logger
 
+from eave.stdlib.typing import LogContext
 
 
 class EaveRequestState:
@@ -32,8 +33,8 @@ class EaveRequestState:
     _notes: typing.Optional[typing.List[str]] = None
 
     @property
-    def log_context(self) -> Dict[str, object]:
-        context: Dict[str, object] = {}
+    def log_context(self) -> LogContext:
+        context: dict[str, str] = dict()
 
         if hasattr(self, "eave_account"):
             context["eave_account_id"] = str(self.eave_account.id)
@@ -49,19 +50,21 @@ class EaveRequestState:
             context["request_scheme"] = str(self.request_scheme)
         if hasattr(self, "request_path"):
             context["request_path"] = str(self.request_path)
-        if hasattr(self, "_notes"):
-            # Probably not thread-safe
-            context["notes"] = self._notes
+        # if hasattr(self, "_notes"):
+        #     # Probably not thread-safe
+        #     context["notes"] = self._notes
 
         return context
 
     @property
-    def public_error_response_body(self) -> str:
+    def public_request_context(self) -> LogContext:
         """
         Return this from an endpoint to give the caller some context.
+        This is similar to log_context, except it is intended for public, and therefore shouldn't contain any
+        internal information.
         """
 
-        context: Dict[str, str] = {}
+        context: dict[str, str] = {}
 
         if hasattr(self, "eave_account"):
             context["eave_account_id"] = str(self.eave_account.id)
@@ -78,7 +81,7 @@ class EaveRequestState:
         if hasattr(self, "request_path"):
             context["request_path"] = str(self.request_path)
 
-        return json.dumps(context)
+        return context
 
     _semaphore = asyncio.Semaphore()
 

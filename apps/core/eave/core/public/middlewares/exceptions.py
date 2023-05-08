@@ -1,8 +1,9 @@
-import eave.core.public.requests.util as request_util
+import eave.core.public.request_state as request_util
 import eave.stdlib.exceptions as eave_exceptions
+import eave.stdlib.core_api.models as eave_models
 from eave.stdlib import logger
 from asgiref.typing import Scope, ASGIReceiveCallable, ASGISendCallable
-from  starlette.responses import Response
+from  starlette.responses import JSONResponse
 
 from . import EaveASGIMiddleware
 
@@ -25,7 +26,16 @@ class ExceptionHandlerASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
         except eave_exceptions.HTTPException as e:
             logger.error("Exception while processing middleware.", exc_info=e, extra=eave_state.log_context)
-            response = Response(status_code=e.status_code, content=eave_state.public_error_response_body)
+
+            body = eave_models.ErrorResponse(
+                status_code=e.status_code,
+                error_message="unknown error",
+                context=eave_state.public_request_context,
+            )
+            response = JSONResponse(
+                status_code=e.status_code,
+                content=body.json()
+            )
             await response(scope, receive, send)  # type:ignore
             return
 

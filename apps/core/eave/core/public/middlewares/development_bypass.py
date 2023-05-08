@@ -1,22 +1,21 @@
 import uuid
 
 import eave.core.internal.database as eave_db
-import eave.core.public.requests.util as request_util
+import eave.core.public.request_state as request_util
 import eave.stdlib.headers as eave_headers
 from eave.core.internal.config import app_config
 from eave.core.internal.orm.account import AccountOrm
-from eave.stdlib import logger
+from eave.stdlib import logger, api_util
 
-from . import asgi_types
+from asgiref.typing import HTTPScope
 
-
-def development_bypass_allowed(scope: asgi_types.HTTPScope) -> bool:
+def development_bypass_allowed(scope: HTTPScope) -> bool:
     if not app_config.dev_mode:
         return False
     if app_config.google_cloud_project == "eave-production":
         return False
 
-    dev_header = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_DEV_BYPASS_HEADER)
+    dev_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_DEV_BYPASS_HEADER)
     if not dev_header:
         return False
 
@@ -30,10 +29,10 @@ def development_bypass_allowed(scope: asgi_types.HTTPScope) -> bool:
     raise Exception()
 
 
-async def development_bypass_auth(scope: asgi_types.HTTPScope) -> None:
+async def development_bypass_auth(scope: HTTPScope) -> None:
     logger.warning("Bypassing auth verification in dev environment")
     eave_state = request_util.get_eave_state(scope=scope)
-    account_id = request_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
+    account_id = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
     if not account_id:
         raise Exception()
 

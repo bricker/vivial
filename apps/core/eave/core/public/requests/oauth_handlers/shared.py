@@ -8,14 +8,15 @@ import eave.core.public.requests
 import eave.pubsub_schemas
 import eave.stdlib.core_api
 import eave.stdlib.slack
-import fastapi
+from starlette.responses import Response, RedirectResponse
+from starlette.requests import Request
 
 
 def verify_oauth_state_or_exception(
     state: typing.Optional[str],
     auth_provider: eave.stdlib.core_api.enums.AuthProvider,
-    request: fastapi.Request,
-    response: fastapi.Response,
+    request: Request,
+    response: Response,
 ) -> typing.Literal[True]:
     # verify request not tampered
     cookie_state = eave.core.internal.oauth.state_cookies.get_state_cookie(request=request, provider=auth_provider)
@@ -26,12 +27,12 @@ def verify_oauth_state_or_exception(
 
     return True
 
-def set_redirect(response: fastapi.Response, location: str) -> fastapi.Response:
+def set_redirect(response: Response, location: str) -> Response:
     response.headers["Location"] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
 
-def cancel_flow(response: fastapi.Response) -> fastapi.Response:
+def cancel_flow(response: Response) -> Response:
     return set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
@@ -43,7 +44,7 @@ def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
 
 
 async def get_logged_in_eave_account(
-    request: fastapi.Request,
+    request: Request,
     auth_provider: eave.stdlib.core_api.enums.AuthProvider,
     access_token: str,
     refresh_token: typing.Optional[str],
@@ -101,7 +102,7 @@ async def get_existing_eave_account(
 
 
 async def create_new_account_and_team(
-    request: fastapi.Request,
+    request: Request,
     eave_team_name: str,
     user_email: str | None,
     beta_whitelisted: bool,
@@ -176,8 +177,8 @@ async def create_new_account_and_team(
 
 
 async def get_or_create_eave_account(
-    request: fastapi.Request,
-    response: fastapi.Response,
+    request: Request,
+    response: Response,
     eave_team_name: str,
     user_email: typing.Optional[str],
     auth_provider: eave.stdlib.core_api.enums.AuthProvider,

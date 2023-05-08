@@ -30,3 +30,4 @@ class AccessRequestOrm(Base):
 
         access_request = await session.scalar(statement)
         return access_request
+

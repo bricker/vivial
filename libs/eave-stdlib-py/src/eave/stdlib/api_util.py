@@ -7,10 +7,10 @@ from .config import shared_config
 from .core_api.operations import Status
 from starlette.routing import Route
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import Response
 from asgiref.typing import HTTPScope
 
-def status_endpoint(request: Request) -> JSONResponse:
+def status_endpoint(request: Request) -> Response:
     model = Status.ResponseBody(
         service=shared_config.app_service,
         version=shared_config.app_version,
@@ -23,7 +23,7 @@ def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
     app.get(f"{path_prefix}/status")(status_endpoint)
 
 standard_endpoints = [
-    Route("/status", status_endpoint)
+    Route("/status", status_endpoint, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
 ]
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
@@ -35,5 +35,6 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
 
-def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> JSONResponse:
-    return JSONResponse(status_code=status_code, content=model.dict())
+def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
+    response = Response(status_code=status_code, content=model.json(), media_type="application/json")
+    return response

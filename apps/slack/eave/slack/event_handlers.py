@@ -12,6 +12,7 @@ from eave.slack.config import app_config
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 
+# TODO: Handlers create tasks for Cloud Tasks, or pubsub perhaps
 
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)

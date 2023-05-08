@@ -1,3 +1,5 @@
+from typing import Any
+import unittest.mock
 import http
 import re
 import urllib.parse
@@ -15,30 +17,35 @@ import google.oauth2.credentials
 import google.oauth2.id_token
 import google_auth_oauthlib.flow
 import google_auth_oauthlib.helpers
-import mockito
 
 from .base import BaseTestCase
 
 
 class TestGoogleOAuthHandler(BaseTestCase):
-    def _mock_google_auth_response(self) -> None:
-        id_token = {
-            "sub": self.anystring("google.sub"),
-            "given_name": self.anystring("google.given_name"),
-            "email": self.anystring("google.email"),
-        }
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
 
-        mockito.when2(google_auth_oauthlib.flow.Flow.fetch_token, **mockito.kwargs)  # do nothing
+        def id_token() -> dict[str,str]:
+            return {
+                "sub": self.anystring("google.sub"),
+                "given_name": self.anystring("google.given_name"),
+                "email": self.anystring("google.email"),
+            }
 
-        mockito.when2(google_auth_oauthlib.helpers.credentials_from_session, ...).thenReturn(
-            google.oauth2.credentials.Credentials(
+        def _verify_oauth2_token(*args: Any, **kwargs: Any) -> dict[str,str]:
+            return id_token()
+
+        self.patch(unittest.mock.patch("google.oauth2.id_token.verify_oauth2_token", side_effect=_verify_oauth2_token))
+
+        def _credentials_from_session(*args: Any, **kwargs: Any) -> google.oauth2.credentials.Credentials:
+            return google.oauth2.credentials.Credentials(
                 token=self.anystring("google.token"),
                 refresh_token=self.anystring("google.refresh_token"),
-                id_token=id_token,
+                id_token=id_token(),
             )
-        )
 
-        mockito.when2(google.oauth2.id_token.verify_oauth2_token, ...).thenReturn(id_token)
+        self.patch(unittest.mock.patch("google_auth_oauthlib.helpers.credentials_from_session", side_effect=_credentials_from_session))
+        self.patch(unittest.mock.patch("google_auth_oauthlib.flow.Flow.fetch_token"))
 
     async def test_google_authorize(self) -> None:
         response = await self.make_request(
@@ -57,8 +64,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert re.search(redirect_uri, response.headers["Location"])
 
     async def test_google_callback_new_account(self) -> None:
-        self._mock_google_auth_response()
-
         assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
 
         response = await self.make_request(
@@ -98,7 +103,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
     async def test_google_callback_new_account_without_name_from_google(self) -> None:
         self.testdata["google.given_name"] = None
-        self._mock_google_auth_response()
 
         response = await self.make_request(
             path="/oauth/google/callback",
@@ -120,9 +124,9 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert eave_team.name == "Your Team"
 
     async def test_google_callback_whitelisted_team(self) -> None:
-        self._mock_google_auth_response()
-
-        self.mock_env["EAVE_BETA_PREWHITELISTED_EMAILS_CSV"] = self.anystring("google.email")
+        self.patch_dict(unittest.mock.patch.dict('os.environ', {
+            "EAVE_BETA_PREWHITELISTED_EMAILS_CSV": self.anystring("google.email"),
+        }))
 
         response = await self.make_request(
             path="/oauth/google/callback",
@@ -150,8 +154,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
     async def test_google_callback_existing_account(self) -> None:
-        self._mock_google_auth_response()
-
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
@@ -185,8 +187,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
     async def test_google_callback_logged_in_account(self) -> None:
-        self._mock_google_auth_response()
-
         eave_team = await self.make_team()
         eave_account = await self.make_account(
             team_id=eave_team.id,
@@ -222,8 +222,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.cookies.get("ev_access_token") == eave_account.access_token
 
     async def test_google_callback_logged_in_account_another_provider(self) -> None:
-        self._mock_google_auth_response()
-
         eave_team = await self.make_team()
         eave_account_before = await self.make_account(
             team_id=eave_team.id,

@@ -14,7 +14,11 @@ EAVE_ACCESS_TOKEN_COOKIE = f"ev_access_token"
 
 
 class ResponseCookieMutator(Protocol):
-    # Copied from FastAPI's set_cookie signature
+    """
+    This protocol is necessary because we pass in both Flask and Starlette response objects, which both
+    have the same set_cookie signature but are different types.
+    """
+    # Copied from Starlette's set_cookie signature
     def set_cookie(
         self,
         key: str,

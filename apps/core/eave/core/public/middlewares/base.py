@@ -1,5 +1,4 @@
 from typing import cast
-# from starlette.types import ASGIApp, Scope, Receive, Send
 from starlette.responses import Response
 from asgiref.typing import ASGI3Application, Scope, ASGIReceiveCallable, ASGISendCallable
 
@@ -17,19 +16,3 @@ class EaveASGIMiddleware:
         self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
         ...
-        # tscope = cast(Scope, scope)
-        # treceive = cast(ASGIReceiveCallable, receive)
-        # tsend = cast(ASGISendCallable, send)
-        # await self.run(tscope, treceive, tsend)
-
-    # async def run(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
-    #     ...
-
-    # async def proceed(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> Response:
-    #     response = await self.app(
-    #         cast(Scope, scope),
-    #         cast(Receive, receive),
-    #         cast(Send, send),
-    #     )
-
-    #     return response

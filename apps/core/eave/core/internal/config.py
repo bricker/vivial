@@ -2,7 +2,7 @@ import base64
 import json
 import os
 from functools import cached_property
-from typing import Any, List, Mapping, Optional
+from typing import Any, List, Mapping, Optional, Sequence
 
 import eave.stdlib.config
 
@@ -41,7 +41,7 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         return client_id
 
     @property
-    def eave_beta_prewhitelisted_emails(self) -> List[str]:
+    def eave_beta_prewhitelisted_emails(self) -> Sequence[str]:
         try:
             value: str = self.get_secret("EAVE_BETA_PREWHITELISTED_EMAILS_CSV")
             emails = list(map(str.strip, value.split(",")))

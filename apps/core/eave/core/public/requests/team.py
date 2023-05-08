@@ -1,28 +1,24 @@
-import eave.core.internal.database
-import eave.core.internal.orm.account
-import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.github_installation
-import eave.core.internal.orm.slack_installation
-import eave.core.internal.orm.team
-import eave.core.public.requests.util
-import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.models
-import eave.stdlib.core_api.operations
-import fastapi
+import eave.core.internal.database as eave_db
+import eave.core.internal.orm as eave_orm
+import eave.core.public.request_state as eave_request_util
+import eave.stdlib.core_api as eave_core
 
+from starlette.responses import JSONResponse, Response
+from starlette.requests import Request
+import eave.stdlib.api_util as eave_api_util
+from ..http_endpoint import HTTPEndpoint
 
-async def get_team(
-    request: fastapi.Request,
-) -> eave.stdlib.core_api.operations.GetTeam.ResponseBody:
-    eave_state = eave.core.public.requests.util.get_eave_state(request=request)
-    eave_team_orm = eave_state.eave_team
+class GetTeam(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = eave_request_util.get_eave_state(request=request)
+        eave_team_orm = eave_state.eave_team
 
-    async with eave.core.internal.database.async_session.begin() as db_session:
-        integrations = await eave_team_orm.get_integrations(session=db_session)
+        async with eave_db.async_session.begin() as db_session:
+            integrations = await eave_team_orm.get_integrations(session=db_session)
 
-    eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
+        eave_team = eave_core.models.Team.from_orm(eave_team_orm)
 
-    return eave.stdlib.core_api.operations.GetTeam.ResponseBody(
-        team=eave_team,
-        integrations=integrations,
-    )
+        return eave_api_util.json_response(eave_core.operations.GetTeam.ResponseBody(
+            team=eave_team,
+            integrations=integrations,
+        ))
