@@ -78,23 +78,30 @@ const Copy = ({ children, className, variant, bold }) => {
   const footnoteClass = classNames(classes.footnote, bold && classes.bold, className);
   const pSmallClass = classNames(classes.pSmall, bold && classes.bold, className);
   const pClass = classNames(classes.p, bold && classes.bold, className);
+  let element;
 
-  if (variant === 'h1') {
-    return <h1 className={h1Class}>{children}</h1>;
+  switch (variant) {
+    case 'h1':
+      element = <h1 className={h1Class}>{children}</h1>;
+      break;
+    case 'h2':
+      element = <h2 className={h2Class}>{children}</h2>;
+      break;
+    case 'h3':
+      element = <h3 className={h3Class}>{children}</h3>;
+      break;
+    case 'footnote':
+      element = <p className={footnoteClass}>{children}</p>;
+      break;
+    case 'pSmall':
+      element = <p className={pSmallClass}>{children}</p>;
+      break;
+    default:
+      element = <p className={pClass}>{children}</p>;
+      break;
   }
-  if (variant === 'h2') {
-    return <h2 className={h2Class}>{children}</h2>;
-  }
-  if (variant === 'h3') {
-    return <h3 className={h3Class}>{children}</h3>;
-  }
-  if (variant === 'footnote') {
-    return <p className={footnoteClass}>{children}</p>;
-  }
-  if (variant === 'pSmall') {
-    return <p className={pSmallClass}>{children}</p>;
-  }
-  return <p className={pClass}>{children}</p>;
+
+  return element;
 };
 
 export default Copy;

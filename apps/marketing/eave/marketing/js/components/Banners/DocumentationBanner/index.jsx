@@ -30,14 +30,10 @@ const makeClasses = makeStyles((theme) => ({
       marginRight: 68,
     },
   },
-  // imgWrapper: {
-  //   maxWidth: '100%',
-  // },
   img: {
     maxWidth: '100%',
     marginBottom: '-5px',
     [theme.breakpoints.up('md')]: {
-      // maxWidth: 633,
       marginBottom: 0,
     },
   },
@@ -57,7 +53,7 @@ const DocumentationBanner = ({ title, subtitle }) => {
           {subtitle}
         </Copy>
       </div>
-      <picture className={classes.imgWrapper}>
+      <picture>
         <source
           media="(min-width: 600px)"
           sizes="1266px"
