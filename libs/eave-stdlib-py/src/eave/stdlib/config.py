@@ -4,6 +4,7 @@ from functools import cached_property
 
 import google.cloud.secretmanager
 import google.cloud.runtimeconfig
+import google.cloud.client
 
 from . import checksum
 
@@ -21,11 +22,12 @@ class EaveConfig:
     def monitoring_enabled(self) -> bool:
         return os.getenv("EAVE_MONITORING_ENABLED") is not None
 
-    @property
+    @cached_property
     def google_cloud_project(self) -> str:
-        value = os.getenv("GOOGLE_CLOUD_PROJECT")
-        assert value is not None
-        return value
+        # This would usually not be necessary, but some of the Google clients (Secret Manager, KMS) don't inherit _ClientProjectMixin
+        # so they have no `project` attribute. There's probably a better way to do this.
+        project_id = google.cloud.client._ClientProjectMixin().project
+        return project_id
 
     @property
     def app_service(self) -> str:
@@ -117,8 +119,11 @@ class EaveConfig:
             return env_value
 
         secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
-
-        fqname = f"projects/{self.google_cloud_project}/secrets/{name}/versions/latest"
+        fqname = secrets_client.secret_version_path(
+            project=self.google_cloud_project,
+            secret=name,
+            secret_version="latest",
+        )
         response = secrets_client.access_secret_version(request={"name": fqname})
         data = response.payload.data
         data_crc32c = response.payload.data_crc32c
