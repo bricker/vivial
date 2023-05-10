@@ -29,7 +29,7 @@ const copy = {
   },
   documentation: {
     title: 'Confluence Documentation',
-    subtitle: 'Eave utilizes information from your integrated apps to create and maintain documentation in Confluence. Eave will also ensure to update these pages based on evolving conversations and code - so you can rest easy knowing that your documentation is up to date.',
+    subtitle: 'Eave utilizes information from your integrated apps to create and maintain documentation in Confluence. Eave will also update these pages based on evolving conversations and code - so you can rest easy knowing that your documentation is up to date.',
   },
   privacy: {
     title: 'Your information is protected.',
