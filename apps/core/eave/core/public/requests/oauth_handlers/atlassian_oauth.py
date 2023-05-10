@@ -139,8 +139,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                 )
 
                 eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
-                    session=db_session,
-                    team_id=self.eave_account.team_id
+                    session=db_session, team_id=self.eave_account.team_id
                 )
 
                 eave_team.document_platform = eave.stdlib.core_api.enums.DocumentPlatform.confluence
