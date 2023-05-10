@@ -16,7 +16,7 @@ from ..http_endpoint import HTTPEndpoint
 class GetSubscription(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_util.get_eave_state(request=request)
-        body = await request.body()
+        body = await request.json()
         input = eave_ops.GetSubscription.RequestBody.parse_obj(body)
         team = eave_state.eave_team
 
