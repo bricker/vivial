@@ -21,7 +21,7 @@ export class GithubClient implements ApiClientBase {
 
   constructor(installationId: string) {
     this.installationId = installationId;
-    // privateKey = eave_signing.get_key(eave_origins.ExternalOrigin.github_api_client.value) // ???
+    // privateKey = eave_signing.get_key(eave_origins.ExternalOrigin.github_api_client.value) // need to update signing.ts impl
     this.app = new App({ appId: this.appId, privateKey: 'TODO' }); // TODO
   }
 

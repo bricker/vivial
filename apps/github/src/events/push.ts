@@ -1,10 +1,10 @@
 import Bluebird from 'bluebird';
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai';
-import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client';
-import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations';
-import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums';
+import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
+import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations.js';
+import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
 import { GitHubOperationsContext } from '../types';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
@@ -43,16 +43,26 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const eaveTeamId = teamResponse.team.id;
 
       // check if we are subscribed to this file
-      // TODO: this currently crashes if there is not a subscription..
-      const subscriptionResponse = await eaveCoreApiClient.getSubscription(eaveTeamId, {
-        subscription: {
-          source: {
-            platform: eaveEnums.SubscriptionSourcePlatform.github,
-            event: eaveEnums.SubscriptionSourceEvent.github_file_change,
-            id: eventId,
+      let subscriptionResponse: eaveOps.GetSubscription.ResponseBody | null = null;
+      try {
+        subscriptionResponse = await eaveCoreApiClient.getSubscription(eaveTeamId, {
+          subscription: {
+            source: {
+              platform: eaveEnums.SubscriptionSourcePlatform.github,
+              event: eaveEnums.SubscriptionSourceEvent.github_file_change,
+              id: eventId,
+            },
           },
-        },
-      });
+        });
+      } catch (error) {
+        // TODO: only catch 404?
+        console.log(error);
+        // return;
+      }
+
+      if (subscriptionResponse === null) {
+        return;
+      }
 
       // get file content so we can document the changes
       const query = await GraphQLUtil.loadQuery('getFileContents');

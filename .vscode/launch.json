@@ -65,10 +65,11 @@
       ],
       "program": "./src/app.ts",
       "restart": true,
-      "runtimeExecutable": "./node_modules/.bin/nodemon",
+      "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
       "env": {
         "PORT": "5300"
       },
+      "console": "integratedTerminal"
     },
     {
       "name": "Marketing Website (Server)",
