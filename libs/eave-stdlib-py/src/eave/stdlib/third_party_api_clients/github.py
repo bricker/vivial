@@ -219,8 +219,8 @@ class GitHubClient(BaseClient):
             signing_key=signing_key,
             purpose=eave_jwt.JWTPurpose.access,
             iss=app_id,
-            aud="do these",  # TODO: might have to alter function to make these optional
-            sub="matter",
+            aud="", # these claim fields are not needed for gh JWT, it's ok to leave them empty 
+            sub="",
         )
         jwt_str: str = jwt.to_str()
         return jwt_str
