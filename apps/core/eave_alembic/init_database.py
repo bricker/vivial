@@ -56,16 +56,6 @@ async def seed_database() -> None:
     )
     session.add(team)
     await session.commit()
-    await session.refresh(team)  # this is necessary to populate team.id
-
-    # seed w/ eave slack team info
-    slack_install = SlackInstallationOrm(
-        team_id=team.id,
-        slack_team_id="T03G5LV6R7Y",
-        bot_token=os.getenv("SLACK_BOT_TOKEN", "empty"),
-    )
-    session.add(slack_install)
-    await session.commit()
 
     await session.close()
     await eave.core.internal.database.async_engine.dispose()
