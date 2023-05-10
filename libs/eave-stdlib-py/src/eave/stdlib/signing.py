@@ -15,6 +15,7 @@ from google.cloud import kms
 from . import checksum
 from . import exceptions as eave_exceptions
 from . import util as eave_util
+from eave.stdlib.config import shared_config
 
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"
@@ -62,7 +63,8 @@ _SIGNING_KEYS = {
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
     ExternalOrigin.github_api_client.value: SigningKeyDetails(
         id="eave-github-app-signing-key-01",
-        version="2",
+        # TODO: clean up this hack to change versions in prod/dev
+        version="2" if shared_config.google_cloud_project == "eave-production" else "1",
         algorithm=SigningAlgorithm.RS256,
     ),
 }
