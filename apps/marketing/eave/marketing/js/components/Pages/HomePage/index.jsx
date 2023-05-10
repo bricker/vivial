@@ -10,7 +10,7 @@ import Page from '../Page/index.jsx';
 const copy = {
   hero: {
     title: 'The Smartest Tool for your Engineering Documentation',
-    subtitle: 'Eave uses artificial intelligence to instantly create, maintain and locate documentation for your team\'s product development workflows. Instantly create documentation in Confluence based on information from your team\'s GitHub, Slack and JIRA instances.',
+    subtitle: 'Eave uses artificial intelligence to instantly create, maintain and locate documentation for your team\'s product development workflows. Instantly create documentation in Confluence based on information from your team\'s GitHub, Slack and Jira instances.',
     cta: 'Start for Free',
   },
   integrations: {
