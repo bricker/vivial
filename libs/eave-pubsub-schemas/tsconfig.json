@@ -1,5 +1,5 @@
 {
-  "extends": "../../develop/javascript/configs/tsconfig.json",
+  "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
   "compilerOptions": {
     "outDir": "typescript/dist",
   },

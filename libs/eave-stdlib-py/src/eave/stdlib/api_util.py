@@ -26,7 +26,7 @@ def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
 
 
 standard_endpoints = [
-    Route("/status", status_endpoint, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
+    Route("/status", status_endpoint, methods=["GET"])
 ]
 
 

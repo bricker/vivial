@@ -1,6 +1,11 @@
 {
-  "name": "@eave-fyi/eslint-config",
+  "name": "@eave-fyi/es-config",
+  "version": "1.0.0",
   "type": "commonjs",
+  "files": [
+      "eslint/",
+      "typescript/"
+  ],
   "engines": {
     "node": "18",
     "npm": "9"

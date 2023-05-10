@@ -123,10 +123,10 @@ def nor(a: Any, b: Any) -> bool:
 
 
 def xor(a: Any, b: Any) -> bool:
-    """Neither or both"""
+    """Exactly one"""
     return bool(a) ^ bool(b)
 
 
 def xnor(a: Any, b: Any) -> bool:
-    """Exactly one"""
+    """Neither or both"""
     return not xor(a, b)

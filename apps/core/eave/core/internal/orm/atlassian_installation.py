@@ -34,9 +34,6 @@ class AtlassianInstallationOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
-    confluence_space_key: Mapped[Optional[str]] = mapped_column(
-        "confluence_space"
-    )  # This field was renamed from "confluence_space" to "confluence_space_key"
     oauth_token_encoded: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())

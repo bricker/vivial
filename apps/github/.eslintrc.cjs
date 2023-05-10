@@ -1,9 +1,9 @@
 const config = {
   extends: [
-    '@eave-fyi/eslint-config',
-    '@eave-fyi/eslint-config/typescript',
-    '@eave-fyi/eslint-config/graphql',
-    '@eave-fyi/eslint-config/yaml',
+    '@eave-fyi/es-config/eslint',
+    '@eave-fyi/es-config/eslint/typescript',
+    '@eave-fyi/es-config/eslint/graphql',
+    '@eave-fyi/es-config/eslint/yaml',
   ],
   rules: {
     'no-console': 'off',

@@ -1,8 +1,8 @@
 const config = {
   extends: [
-    '@eave-fyi/eslint-config',
-    '@eave-fyi/eslint-config/react',
-    '@eave-fyi/eslint-config/yaml',
+    '@eave-fyi/es-config/eslint',
+    '@eave-fyi/es-config/eslint/react',
+    '@eave-fyi/es-config/eslint/yaml',
   ],
   rules: { 'react/no-unescaped-entities': 0 },
 };

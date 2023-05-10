@@ -9,3 +9,8 @@ vendor/
 build/
 .cloudsqlproxy
 .ruff_cache
+.pytest_cache
+*.tgz
+.*_cache
+.yalc
+yalc.lock

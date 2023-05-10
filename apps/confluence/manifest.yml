@@ -1,0 +1,59 @@
+permissions:
+  # https://developer.atlassian.com/cloud/confluence/scopes-for-oauth-2-3LO-and-forge-apps/
+  scopes:
+    # Classic Scopes
+    - write:confluence-content
+    - read:confluence-space.summary
+    - write:confluence-file
+    - read:confluence-props
+    - write:confluence-props
+    - read:confluence-content.all
+    - read:confluence-content.summary
+    - search:confluence
+    - read:confluence-content.permission
+    - read:confluence-user
+    - read:confluence-groups
+    # Granular Scopes
+    - read:page:confluence
+    - write:page:confluence
+    - read:space:confluence
+    - read:configuration:confluence
+
+  external:
+    fetch:
+      backend:
+        - api.eave.fyi
+
+modules:
+  trigger:
+    - key: trigger-installedApp
+      function: func-installedAppEventHandler
+      events:
+        - avi:forge:installed:app
+    - key: trigger-upgradedApp
+      function: func-upgradedAppEventHandler
+      events:
+        - avi:forge:upgraded:app
+
+  webtrigger:
+    - key: webtrigger-createDocument
+      function: func-createDocument
+    - key: webtrigger-updateDocument
+      function: func-updateDocument
+    - key: webtrigger-archiveDocument
+      function: func-archiveDocument
+
+  function:
+    - key: func-createDocument
+      handler: web-triggers.createDocument
+    - key: func-updateDocument
+      handler: web-triggers.updateDocument
+    - key: func-archiveDocument
+      handler: web-triggers.archiveDocument
+    - key: func-installedAppEventHandler
+      handler: events.installedAppEventHandler
+    - key: func-upgradedAppEventHandler
+      handler: events.upgradedAppEventHandler
+
+app:
+  id: ari:cloud:ecosystem::app/e3c57ac8-296e-4392-b128-4330b1ab2883

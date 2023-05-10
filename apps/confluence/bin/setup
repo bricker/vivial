@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/functions.bash
+
+${EAVE_HOME}/develop/javascript/bin/setup
+${EAVE_HOME}/develop/shared/bin/build-dotenv src/config.ts
+npm i -g @forge/cli
+npm i -g yalc
+
+bin/lint
+
+statusmsg -s "To authenticate with the Forge CLI, run 'npx forge login' and follow the prompts."

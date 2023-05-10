@@ -1,8 +1,12 @@
-from typing import Optional
+from dataclasses import dataclass
+from typing import Mapping, Optional
 
+from .. import models
+from .base import Endpoint, EndpointConfiguration
+from . import forge as forge
 import pydantic
 
-from . import enums, models
+from .. import enums
 
 
 class AccessTokenExchangeOfferInput(pydantic.BaseModel):
@@ -36,34 +40,18 @@ class SlackInstallationInput(pydantic.BaseModel):
 class GithubInstallationInput(pydantic.BaseModel):
     github_install_id: str
 
-
-class AtlassianInstallationInput(pydantic.BaseModel):
-    atlassian_cloud_id: str
-
-
-class UpdateAtlassianInstallationInput(pydantic.BaseModel):
-    confluence_space_key: Optional[str]
-
-
-class Endpoint:
-    pass
-
-
 class Status(Endpoint):
     class ResponseBody(pydantic.BaseModel):
         service: str
         version: str
         status: str
 
-
-class CreateAccessRequest(Endpoint):
-    class RequestBody(pydantic.BaseModel):
-        visitor_id: Optional[pydantic.UUID4]
-        email: pydantic.EmailStr
-        opaque_input: str
-
-
 class GetSubscription(Endpoint):
+    config = EndpointConfiguration(
+        path="/subscriptions/query",
+        auth_required=False,
+    )
+
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
 
@@ -74,6 +62,11 @@ class GetSubscription(Endpoint):
 
 
 class CreateSubscription(Endpoint):
+    config = EndpointConfiguration(
+        path="/subscriptions/create",
+        auth_required=False,
+    )
+
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
         document_reference: Optional[DocumentReferenceInput] = None
@@ -85,11 +78,21 @@ class CreateSubscription(Endpoint):
 
 
 class DeleteSubscription(Endpoint):
+    config = EndpointConfiguration(
+        path="/subscriptions/delete",
+        auth_required=False,
+    )
+
     class RequestBody(pydantic.BaseModel):
         subscription: SubscriptionInput
 
 
 class UpsertDocument(Endpoint):
+    config = EndpointConfiguration(
+        path="/documents/upsert",
+        auth_required=False,
+    )
+
     class RequestBody(pydantic.BaseModel):
         document: DocumentInput
         subscription: SubscriptionInput
@@ -101,6 +104,12 @@ class UpsertDocument(Endpoint):
 
 
 class GetSlackInstallation(Endpoint):
+    config = EndpointConfiguration(
+        path="/integrations/slack/query",
+        auth_required=False,
+        team_id_required=False,
+    )
+
     class RequestBody(pydantic.BaseModel):
         slack_integration: SlackInstallationInput
 
@@ -110,6 +119,12 @@ class GetSlackInstallation(Endpoint):
 
 
 class GetGithubInstallation(Endpoint):
+    config = EndpointConfiguration(
+        path="/integrations/github/query",
+        auth_required=False,
+        team_id_required=False,
+    )
+
     class RequestBody(pydantic.BaseModel):
         github_integration: GithubInstallationInput
 
@@ -118,32 +133,25 @@ class GetGithubInstallation(Endpoint):
         github_integration: models.GithubInstallation
 
 
-class GetAtlassianInstallation(Endpoint):
-    class RequestBody(pydantic.BaseModel):
-        atlassian_integration: AtlassianInstallationInput
-
-    class ResponseBody(pydantic.BaseModel):
-        team: models.Team
-        atlassian_integration: models.AtlassianInstallation
-
-
-class UpdateAtlassianInstallation(Endpoint):
-    class RequestBody(pydantic.BaseModel):
-        atlassian_integration: UpdateAtlassianInstallationInput
-
-    class ResponseBody(pydantic.BaseModel):
-        account: models.AuthenticatedAccount
-        team: models.Team
-        atlassian_integration: models.AtlassianInstallation
 
 
 class GetAuthenticatedAccount(Endpoint):
+    config = EndpointConfiguration(
+        path="/me/query",
+        team_id_required=False,
+    )
+
     class ResponseBody(pydantic.BaseModel):
         account: models.AuthenticatedAccount
         team: models.Team
 
 
 class GetAuthenticatedAccountTeamIntegrations(Endpoint):
+    config = EndpointConfiguration(
+        path="/me/team/integrations/query",
+        team_id_required=False,
+    )
+
     class ResponseBody(pydantic.BaseModel):
         account: models.AuthenticatedAccount
         team: models.Team
@@ -151,6 +159,11 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
 
 
 class GetTeam(Endpoint):
+    config = EndpointConfiguration(
+        path="/team/query",
+        auth_required=False,
+    )
+
     class ResponseBody(pydantic.BaseModel):
         team: models.Team
         integrations: models.Integrations

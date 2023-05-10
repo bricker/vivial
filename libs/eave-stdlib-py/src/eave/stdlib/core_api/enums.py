@@ -33,4 +33,4 @@ class Integration(enum.StrEnum):
 
     slack = "slack"
     github = "github"
-    atlassian = "atlassian"
+    forge = "forge"

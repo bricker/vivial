@@ -47,34 +47,3 @@ class GetAuthedAccountTeamIntegrations(HTTPEndpoint):
                 integrations=integrations,
             )
         )
-
-
-class UpdateAtlassianIntegration(HTTPEndpoint):
-    async def post(self, request: Request) -> Response:
-        eave_state = rutil.get_eave_state(request=request)
-        body = await request.json()
-        input = ops.UpdateAtlassianInstallation.RequestBody.parse_obj(body)
-
-        eave_account_orm = eave_state.eave_account
-        eave_team_orm = eave_state.eave_team
-
-        async with db.async_session.begin() as db_session:
-            installation = await orm.AtlassianInstallationOrm.one_or_exception(
-                session=db_session,
-                team_id=eave_team_orm.id,
-            )
-
-            if input.atlassian_integration.confluence_space_key is not None:
-                installation.confluence_space_key = input.atlassian_integration.confluence_space_key
-
-        eave_team = models.Team.from_orm(eave_team_orm)
-        eave_account = models.AuthenticatedAccount.from_orm(eave_account_orm)
-        atlassian_integration = models.AtlassianInstallation.from_orm(installation)
-
-        return autil.json_response(
-            ops.UpdateAtlassianInstallation.ResponseBody(
-                account=eave_account,
-                team=eave_team,
-                atlassian_integration=atlassian_integration,
-            )
-        )

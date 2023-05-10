@@ -1,6 +1,7 @@
 import express from 'express';
-import { addStandardEndpoints } from '@eave-fyi/eave-stdlib-ts/src/api-util';
+import { standardEndpointsRouter } from '@eave-fyi/eave-stdlib-ts/src/api-util.js';
 import dispatch from './dispatch.js';
+import { appConfig } from './config.js';
 
 const PORT = parseInt(process.env['PORT'] || '8080', 10);
 const app = express();
@@ -12,11 +13,14 @@ app.use((req, _, next) => {
   next();
 });
 
-addStandardEndpoints(app, '/github');
+const rootRouter = express.Router();
+rootRouter.use(standardEndpointsRouter);
 
-app.post('/github/events', async (req, res) => {
+rootRouter.post('/events', async (req, res) => {
   await dispatch(req, res);
 });
+
+app.use(appConfig.routePrefix, rootRouter);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`App listening on port ${PORT}`);

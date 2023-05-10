@@ -33,28 +33,12 @@ async def status() -> operations.Status.ResponseBody:
     response_json = await response.json()
     return operations.Status.ResponseBody(**response_json)
 
-
-async def create_access_request(
-    input: operations.CreateAccessRequest.RequestBody,
-) -> None:
-    """
-    POST /access_request
-    """
-    await _make_request(
-        path="/access_request",
-        input=input,
-    )
-
-
 async def upsert_document(
     team_id: UUID,
     input: operations.UpsertDocument.RequestBody,
 ) -> operations.UpsertDocument.ResponseBody:
-    """
-    POST /documents/upsert
-    """
     response = await _make_request(
-        path="/documents/upsert",
+        path=operations.UpsertDocument.config.path,
         input=input,
         team_id=team_id,
     )
@@ -67,11 +51,8 @@ async def create_subscription(
     team_id: UUID,
     input: operations.CreateSubscription.RequestBody,
 ) -> operations.CreateSubscription.ResponseBody:
-    """
-    POST /subscriptions/create
-    """
     response = await _make_request(
-        path="/subscriptions/create",
+        path=operations.CreateSubscription.config.path,
         input=input,
         team_id=team_id,
     )
@@ -84,11 +65,8 @@ async def delete_subscription(
     team_id: UUID,
     input: operations.DeleteSubscription.RequestBody,
 ) -> None:
-    """
-    POST /subscriptions/delete
-    """
     await _make_request(
-        path="/subscriptions/delete",
+        path=operations.DeleteSubscription.config.path,
         input=input,
         team_id=team_id,
     )
@@ -97,11 +75,8 @@ async def delete_subscription(
 async def get_subscription(
     team_id: UUID, input: operations.GetSubscription.RequestBody
 ) -> operations.GetSubscription.ResponseBody:
-    """
-    POST /subscriptions/query
-    """
     response = await _make_request(
-        path="/subscriptions/query",
+        path=operations.GetSubscription.config.path,
         input=input,
         team_id=team_id,
     )
@@ -113,11 +88,8 @@ async def get_subscription(
 async def get_slack_installation(
     input: operations.GetSlackInstallation.RequestBody,
 ) -> operations.GetSlackInstallation.ResponseBody:
-    """
-    POST /integrations/slack/query
-    """
     response = await _make_request(
-        path="/integrations/slack/query",
+        path=operations.GetSlackInstallation.config.path,
         input=input,
     )
 
@@ -128,11 +100,8 @@ async def get_slack_installation(
 async def get_github_installation(
     input: operations.GetGithubInstallation.RequestBody,
 ) -> operations.GetGithubInstallation.ResponseBody:
-    """
-    POST /integrations/github/query
-    """
     response = await _make_request(
-        path="/integrations/github/query",
+        path=operations.GetGithubInstallation.config.path,
         input=input,
     )
 
@@ -140,29 +109,50 @@ async def get_github_installation(
     return operations.GetGithubInstallation.ResponseBody(**response_json)
 
 
-async def get_atlassian_installation(
-    input: operations.GetAtlassianInstallation.RequestBody,
-) -> operations.GetAtlassianInstallation.ResponseBody:
-    """
-    POST /integrations/atlassian/query
-    """
+async def query_forge_installation(
+    input: operations.forge.QueryForgeInstallation.RequestBody,
+) -> operations.forge.QueryForgeInstallation.ResponseBody:
     response = await _make_request(
-        path="/integrations/atlassian/query",
+        path=operations.forge.QueryForgeInstallation.config.path,
         input=input,
     )
 
     response_json = await response.json()
-    return operations.GetAtlassianInstallation.ResponseBody(**response_json)
+    return operations.forge.QueryForgeInstallation.ResponseBody(**response_json)
+
+
+async def register_forge_installation(
+    input: operations.forge.RegisterForgeInstallation.RequestBody,
+) -> operations.forge.RegisterForgeInstallation.ResponseBody:
+    response = await _make_request(
+        path=operations.forge.RegisterForgeInstallation.config.path,
+        input=input,
+    )
+
+    response_json = await response.json()
+    return operations.forge.RegisterForgeInstallation.ResponseBody(**response_json)
+
+async def update_forge_installation_authed(
+    account_id: uuid.UUID,
+    access_token: str,
+    input: operations.forge.UpdateForgeInstallation.RequestBody,
+) -> operations.forge.UpdateForgeInstallation.ResponseBody:
+    response = await _make_request(
+        path=operations.forge.UpdateForgeInstallation.config.path,
+        input=input,
+        access_token=access_token,
+        account_id=account_id,
+    )
+
+    response_json = await response.json()
+    return operations.forge.UpdateForgeInstallation.ResponseBody(**response_json)
 
 
 async def get_team(
     team_id: UUID,
 ) -> operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody:
-    """
-    POST /team/query
-    """
     response = await _make_request(
-        path="/team/query",
+        path=operations.GetAuthenticatedAccountTeamIntegrations.config.path,
         input=None,
         team_id=team_id,
     )
@@ -171,33 +161,12 @@ async def get_team(
     return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
 
 
-async def update_atlassian_integration(
-    account_id: uuid.UUID,
-    access_token: str,
-    input: operations.UpdateAtlassianInstallation.RequestBody,
-) -> operations.UpdateAtlassianInstallation.ResponseBody:
-    """
-    POST /me/team/integrations/atlassian/update
-    """
-    response = await _make_request(
-        path="/me/team/integrations/atlassian/update",
-        input=input,
-        access_token=access_token,
-        account_id=account_id,
-    )
-
-    response_json = await response.json()
-    return operations.UpdateAtlassianInstallation.ResponseBody(**response_json)
-
 
 async def get_authenticated_account_team_integrations(
     account_id: UUID, access_token: str
 ) -> operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody:
-    """
-    POST /me/team/integrations/query
-    """
     response = await _make_request(
-        path="/me/team/integrations/query",
+        path=operations.GetAuthenticatedAccountTeamIntegrations.config.path,
         input=None,
         access_token=access_token,
         account_id=account_id,
@@ -210,11 +179,8 @@ async def get_authenticated_account_team_integrations(
 async def get_authenticated_account(
     account_id: UUID, access_token: str
 ) -> operations.GetAuthenticatedAccount.ResponseBody:
-    """
-    POST /me/query
-    """
     response = await _make_request(
-        path="/me/query",
+        path=operations.GetAuthenticatedAccount.config.path,
         input=None,
         access_token=access_token,
         account_id=account_id,

@@ -1,0 +1,63 @@
+// import { App } from 'octokit';
+// import { Request, Response } from 'express';
+// import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
+// import { InstallationLite } from '@octokit/webhooks-types';
+// import * as Registry from './registry.js';
+// import appConfig from './config.js';
+// import pushHandler from './events/push.js';
+
+// Registry.registerHandler('push', pushHandler);
+
+// export default async function dispatch(req: Request, res: Response): Promise<void> {
+//   const id = req.header('x-github-delivery');
+//   const eventName = req.header('x-github-event') as EmitterWebhookEventName | undefined;
+//   const signature = req.header('x-hub-signature-256');
+//   const installationId = req.header('x-github-hook-installation-target-id');
+
+//   const requestBody = (<Buffer>req.body).toString();
+
+//   const payload: EmitterWebhookEvent<EmitterWebhookEventName> & {
+//     installation: InstallationLite,
+//     action?: string,
+//   } = JSON.parse(requestBody);
+
+//   if (!eventName || !id || !signature || !payload) {
+//     res.status(400).end();
+//     return;
+//   }
+
+//   const { action } = payload;
+//   console.log({ id, eventName, action, installationId });
+//   const event = [eventName, action].filter((n) => n).join('.');
+
+//   const handler = Registry.getHandler(event);
+//   if (handler === undefined) {
+//     console.warn('Event not supported:', event);
+//     res.status(200).end();
+//     return;
+//   }
+
+//   const secret = await appConfig.eaveGithubAppWebhookSecret;
+//   const privateKey = await appConfig.eaveGithubAppPrivateKey;
+
+//   const app = new App({
+//     appId: appConfig.eaveGithubAppId,
+//     privateKey,
+//     webhooks: { secret },
+//   });
+
+//   const verified = await app.webhooks.verify(requestBody, signature);
+
+//   if (!verified) {
+//     console.warn('signature verification failed');
+
+//     if (!['test', 'development'].includes(appConfig.nodeEnv)) {
+//       res.status(400).end();
+//       return;
+//     }
+//   }
+
+//   const octokit = await app.getInstallationOctokit(payload.installation.id);
+//   await handler(payload, { octokit });
+//   res.status(200).end();
+// }

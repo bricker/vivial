@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eu
+
+${EAVE_HOME}/develop/javascript/bin/setup
+${EAVE_HOME}/develop/shared/bin/build-dotenv src/config.ts
+
+bin/lint

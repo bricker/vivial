@@ -10,17 +10,23 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         # do nothing
         return
 
-    tld = flow.request.host.split(".")[-1]
+    # tld = flow.request.host.split(".")[-1]
+
+    port = None
 
     if re.match(r"^www\.eave\.", flow.request.host):
         port = 5000
     elif re.match(r"^api\.eave\.", flow.request.host):
         port = 5100
-    elif re.match(r"^apps\.eave\.", flow.request.host) and re.match("/slack", flow.request.path):
-        port = 5200
-    elif re.match(r"^apps\.eave\.", flow.request.host) and re.match("/github", flow.request.path):
-        port = 5300
-    else:
+    elif re.match(r"^apps\.eave\.", flow.request.host):
+        if re.match("/slack", flow.request.path):
+            port = 5200
+        elif re.match("/github", flow.request.path):
+            port = 5300
+        elif re.match("/atlassian", flow.request.path):
+            port = 5400
+
+    if not port:
         flow.kill()
         raise NoUpstreamDefinedError(f"No upstream defined for {flow.request.url}")
 

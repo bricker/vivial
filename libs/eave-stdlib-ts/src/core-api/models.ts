@@ -1,4 +1,4 @@
-import * as enums from './enums';
+import * as enums from './enums.js';
 
 export type AccessRequest = {
   id: string;

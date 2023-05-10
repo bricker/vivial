@@ -58,7 +58,7 @@
   "typescript.inlayHints.parameterTypes.enabled": false,
   "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
   "typescript.inlayHints.variableTypes.enabled": false,
-  "typescript.referencesCodeLens.enabled": true,
+  "typescript.referencesCodeLens.enabled": false,
   "typescript.updateImportsOnFileMove.enabled": "prompt",
   "javascript.inlayHints.enumMemberValues.enabled": false,
   "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
@@ -122,4 +122,10 @@
   "ruff.args": [
     "--config=${EAVE_HOME}/develop/python/pyproject.toml"
   ],
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "markdownlint.run": "onSave",
+  "markdownlint.config": {
+    "first-line-heading": false,
+  },
+  "python.analysis.gotoDefinitionInStringLiteral": true,
 }

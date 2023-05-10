@@ -41,7 +41,7 @@
       "cwd": "${workspaceFolder}/apps/slack",
       "type": "python",
       "request": "launch",
-      "program": "./socketmode.py",
+      "program": "${workspaceFolder}/apps/slack/socketmode.py",
       "autoReload": {
         "enable": true,
         "include": [
@@ -63,9 +63,9 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "./src/app.ts",
+      "program": "${workspaceFolder}/apps/github/src/app.ts",
       "restart": true,
-      "runtimeExecutable": "./node_modules/.bin/nodemon",
+      "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
       "env": {
         "PORT": "5300"
       },
@@ -94,7 +94,7 @@
       "cwd": "${workspaceFolder}/apps/marketing",
       "type": "node",
       "request": "launch",
-      "program": "./node_modules/.bin/webpack",
+      "program": "${workspaceFolder}/apps/marketing/node_modules/.bin/webpack",
       "args": [
         "-w",
       ],

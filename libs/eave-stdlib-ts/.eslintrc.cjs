@@ -1,6 +1,7 @@
 const config = {
   extends: [
-    '@eave-fyi/eslint-config',
+    '@eave-fyi/es-config/eslint',
+    '@eave-fyi/es-config/typescript',
   ],
 };
 

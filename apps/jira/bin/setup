@@ -4,6 +4,7 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
+run-in-path $EAVE_HOME/libs/eave-stdlib-ts bin/setup
 ${EAVE_HOME}/develop/javascript/bin/setup
 ${EAVE_HOME}/develop/shared/bin/build-dotenv src/config.ts
 

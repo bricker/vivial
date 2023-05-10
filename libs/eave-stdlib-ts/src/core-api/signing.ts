@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { sharedConfig } from '../config';
+import { sharedConfig } from '../config.js';
 export async function computeSignature(payload: string, teamId?: string): Promise<string> {
   const key = await sharedConfig.eaveSigningSecret;
   const hmac = crypto.createHmac('sha256', key);

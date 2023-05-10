@@ -1,5 +1,5 @@
 {
-  "extends": "../../develop/javascript/configs/tsconfig.json",
+  "extends": "../../develop/javascript/es-config/typescript/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
   },

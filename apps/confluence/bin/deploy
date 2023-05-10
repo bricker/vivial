@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eu
+
+bin/lint
+bin/test
+
+forge deploy

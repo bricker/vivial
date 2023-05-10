@@ -1,24 +1,17 @@
-import { CommentedIssueEventPayload, ContentType } from './types';
-import { addComment } from './lib/jira-api';
-// import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, SubscriptionSourcePlatform } from './lib/core-api';
+import { CommentedIssueEventPayload, ContentType } from './types.js';
+import { addComment } from './lib/jira-api.js';
+import * as coreApiClient from '@eave-fyi/eave-stdlib-ts/core-api/client.js';
+import { SubscriptionSource } from '@eave-fyi/eave-stdlib-ts/core-api/models.js'
+import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/core-api/enums.js'
 
 export const run = async (payload: CommentedIssueEventPayload) => {
-  console.debug(payload.eventType);
-  // console.debug(JSON.stringify(payload, undefined, 2));
+  const subscriptionSource: SubscriptionSource = {
+    platform: SubscriptionSourcePlatform.jira,
+    event: SubscriptionSourceEvent.jira_issue_comment,
+    id: `P${payload.issue.fields.project!.id}#I${payload.issue.id}`,
+  };
 
-  return;
-  // FIXME: Hardcoded ID.
-  if (payload.comment.author.accountId === '6406455093cf2599462fbd53') {
-    return;
-  }
-
-  // const subscriptionSource: SubscriptionSource = {
-  //   platform: SubscriptionSourcePlatform.jira,
-  //   event: SubscriptionSourceEvent.jira_issue_comment,
-  //   id: `P${payload.issue.fields.project!.id}#I${payload.issue.id}`,
-  // };
-
-  // await coreApiClient.getOrCreateSubscription(subscriptionSource);
+  await coreApiClient.getOrCreateSubscription(subscriptionSource);
 
   await addComment(payload.issue, [
     {
@@ -32,33 +25,34 @@ export const run = async (payload: CommentedIssueEventPayload) => {
     },
   ]);
 
-  // const upsertDocumentResponse = await coreApiClient.upsertDocument(document, subscriptionSource);
+  // TODO: Make document.
+  const upsertDocumentResponse = await coreApiClient.upsertDocument(document, subscriptionSource);
 
-  // await coreApiClient.getOrCreateSubscription({
-  //   platform: SubscriptionSourcePlatform.github,
-  //   event: SubscriptionSourceEvent.github_file_change,
-  //   // FIXME: Remove this hardcoded id and get the real github information
-  //   id: 'R_kgDOJDutMQ#YXBwLnB5', // finny-credit-application-processor/app.py
-  // }, upsertDocumentResponse.document_reference.id);
+  await coreApiClient.getOrCreateSubscription({
+    platform: SubscriptionSourcePlatform.github,
+    event: SubscriptionSourceEvent.github_file_change,
+    // FIXME: Remove this hardcoded id and get the real github information
+    id: 'R_kgDOJDutMQ#YXBwLnB5', // finny-credit-application-processor/app.py
+  }, upsertDocumentResponse.document_reference.id);
 
-  // await addComment(payload.issue, [
-  //   {
-  //     type: 'paragraph',
-  //     content: [
-  //       {
-  //         type: ContentType.text,
-  //         text: "Here's the documentation you requested! ",
-  //         marks: [
-  //           {
-  //             type: ContentType.link,
-  //             attrs: {
-  //               href: upsertDocumentResponse.document_reference.document_url,
-  //               title: 'Finny Credit Application System Architecture',
-  //             },
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  // ]);
+  await addComment(payload.issue, [
+    {
+      type: 'paragraph',
+      content: [
+        {
+          type: ContentType.text,
+          text: "Here's the documentation you requested! ",
+          marks: [
+            {
+              type: ContentType.link,
+              attrs: {
+                href: upsertDocumentResponse.document_reference.document_url,
+                title: 'Finny Credit Application System Architecture',
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ]);
 };

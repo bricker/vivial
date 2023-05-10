@@ -1,3 +1,5 @@
+# INSTALL URL: https://developer.atlassian.com/console/install/e3c57ac8-296e-4392-b128-4330b1ab2883?signature=9e7204e3d1f2898b576427da60ab2182353879b1173469f1b59e0e9cab271d5439c0ff55d59dab60621d9c871125afe79fac266aa532eb29778a2d751bbe0508&product=confluence&product=jira
+
 import json
 import typing
 

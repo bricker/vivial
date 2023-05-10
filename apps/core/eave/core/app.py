@@ -1,28 +1,30 @@
+from typing import Type
 import eave.stdlib.api_util
+import eave.stdlib.core_api.operations.base
 import eave.stdlib.logging
 import eave.stdlib.time
+import eave.stdlib.core_api.operations as eave_ops
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.routing import Route
 
+import eave.core.public.requests.forge_integration
+import eave.core.public.requests.github_integration
+
 from .public import middlewares
 from .public.exception_handlers import exception_handlers
-from .public.requests import authed_account, documents, integrations, noop, subscriptions, team
-from .public.requests.oauth_handlers import atlassian_oauth, github_oauth, google_oauth, slack_oauth
+from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team
+from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
 
 
 def make_route(
-    path: str,
+    config: eave.stdlib.core_api.operations.base.EndpointConfiguration,
     endpoint: ASGI3Application,
-    signature_required: bool = True,
-    auth_required: bool = True,
-    origin_required: bool = True,
-    team_id_required: bool = True,
 ) -> Route:
     """
     Defines basic information about the route, passed-through to the Starlette router.
@@ -32,21 +34,21 @@ def make_route(
 
     route: ASGI3Application = endpoint
 
-    if signature_required:
+    if config.signature_required:
         # If signature is required, origin is also required.
-        assert origin_required
+        assert config.origin_required
         route = middlewares.SignatureVerificationASGIMiddleware(app=route)
 
-    if origin_required:
+    if config.origin_required:
         route = middlewares.OriginASGIMiddleware(app=route)
 
-    if auth_required:
+    if config.auth_required:
         route = middlewares.AuthASGIMiddleware(app=route)
 
-    if team_id_required:
+    if config.team_id_required:
         route = middlewares.TeamLookupASGIMiddleware(app=route)
 
-    return Route(path=path, endpoint=route)
+    return Route(path=config.path, endpoint=route)
 
 
 routes = [
@@ -54,136 +56,154 @@ routes = [
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
-        path="/documents/upsert",
-        auth_required=False,
+        config=eave_ops.UpsertDocument.config,
         endpoint=documents.UpsertDocument,
     ),
     make_route(
-        path="/subscriptions/create",
-        auth_required=False,
+        config=eave_ops.CreateSubscription.config,
         endpoint=subscriptions.CreateSubscription,
     ),
     make_route(
-        path="/subscriptions/query",
-        auth_required=False,
+        config=eave_ops.GetSubscription.config,
         endpoint=subscriptions.GetSubscription,
     ),
     make_route(
-        path="/subscriptions/delete",
-        auth_required=False,
+        config=eave_ops.DeleteSubscription.config,
         endpoint=subscriptions.DeleteSubscription,
     ),
     make_route(
-        path="/integrations/slack/query",
-        auth_required=False,
-        team_id_required=False,
-        endpoint=integrations.SlackIntegration,
+        config=eave_ops.GetSlackInstallation.config,
+        endpoint=slack_integration.SlackIntegration,
     ),
     make_route(
-        path="/integrations/github/query",
-        auth_required=False,
-        team_id_required=False,
-        endpoint=integrations.GithubIntegration,
+        config=eave_ops.GetGithubInstallation.config,
+        endpoint=eave.core.public.requests.github_integration.GithubIntegration,
     ),
     make_route(
-        path="/integrations/atlassian/query",
-        auth_required=False,
-        team_id_required=False,
-        endpoint=integrations.AtlassianIntegration,
+        # FIXME: Add signing etc. to this endpoint
+        config=eave_ops.forge.QueryForgeInstallation.config,
+        endpoint=eave.core.public.requests.forge_integration.QueryForgeIntegration,
     ),
     make_route(
-        path="/team/query",
-        auth_required=False,
+        # FIXME: Add signing etc. to this endpoint
+        config=eave_ops.forge.RegisterForgeInstallation.config,
+        endpoint=eave.core.public.requests.forge_integration.RegisterForgeIntegration,
+    ),
+    make_route(
+        # FIXME: Add signing etc. to this endpoint
+        config=eave_ops.forge.UpdateForgeInstallation.config,
+        endpoint=eave.core.public.requests.forge_integration.UpdateForgeIntegration,
+    ),
+    make_route(
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path=f"/me/team/{eave_ops.forge.UpdateForgeInstallation.config.path}",
+            team_id_required=False,
+        ),
+        endpoint=eave.core.public.requests.forge_integration.UpdateForgeIntegration, # TODO: This can be shared with the one in 'integrations'
+    ),
+    make_route(
+        config=eave_ops.GetTeam.config,
         endpoint=team.GetTeam,
     ),
     # Authenticated API endpoints.
     make_route(
-        path="/me/query",
-        team_id_required=False,
+        config=eave_ops.GetAuthenticatedAccount.config,
         endpoint=authed_account.GetAuthedAccount,
     ),
     make_route(
-        path="/me/team/integrations/query",
-        team_id_required=False,
+        config=eave_ops.GetAuthenticatedAccountTeamIntegrations.config,
         endpoint=authed_account.GetAuthedAccountTeamIntegrations,
-    ),
-    make_route(
-        path="/me/team/integrations/atlassian/update",
-        team_id_required=False,
-        endpoint=authed_account.UpdateAtlassianIntegration,
     ),
     # OAuth endpoints.
     # These endpoints don't require any verification (except the OAuth flow itself)
     make_route(
-        path="/oauth/google/authorize",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/google/authorize",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=google_oauth.GoogleOAuthAuthorize,
     ),
     make_route(
-        path="/oauth/google/callback",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/google/callback",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
     make_route(
-        path="/oauth/slack/authorize",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/slack/authorize",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=slack_oauth.SlackOAuthAuthorize,
     ),
     make_route(
-        path="/oauth/slack/callback",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/slack/callback",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=slack_oauth.SlackOAuthCallback,
     ),
     make_route(
-        path="/oauth/atlassian/authorize",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/atlassian/authorize",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=atlassian_oauth.AtlassianOAuthAuthorize,
     ),
     make_route(
-        path="/oauth/atlassian/callback",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/atlassian/callback",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=atlassian_oauth.AtlassianOAuthCallback,
     ),
     make_route(
-        path="/oauth/github/authorize",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/github/authorize",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=github_oauth.GithubOAuthAuthorize,
     ),
     make_route(
-        path="/oauth/github/callback",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/oauth/github/callback",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=github_oauth.GithubOAuthCallback,
     ),
     make_route(
-        path="/favicon.ico",
-        auth_required=False,
-        signature_required=False,
-        origin_required=False,
-        team_id_required=False,
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path="/favicon.ico",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
         endpoint=noop.NoopRequest,
     ),
 ]

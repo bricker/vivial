@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..destinations import abstract as abstract_destination
-from .atlassian_installation import AtlassianInstallationOrm
+from .forge_installation import ForgeInstallationOrm
 from .base import Base
 from .github_installation import GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm
@@ -87,7 +87,7 @@ class TeamOrm(Base):
 
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
 
-        atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
+        forge_installation = await ForgeInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         return eave.stdlib.core_api.models.Integrations(
             slack=eave.stdlib.core_api.models.SlackInstallation.from_orm(slack_installation)
@@ -96,7 +96,7 @@ class TeamOrm(Base):
             github=eave.stdlib.core_api.models.GithubInstallation.from_orm(github_installation)
             if github_installation
             else None,
-            atlassian=eave.stdlib.core_api.models.AtlassianInstallation.from_orm(atlassian_installation)
-            if atlassian_installation
+            forge=eave.stdlib.core_api.models.forge.ForgeInstallation.from_orm(forge_installation)
+            if forge_installation
             else None,
         )

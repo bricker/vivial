@@ -86,6 +86,12 @@ class EaveConfig:
         value: str = self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
         return value
 
+    @cached_property
+    def eave_forge_shared_secret(self) -> str:
+        value: str = self.get_secret("EAVE_FORGE_SHARED_SECRET")
+        return value
+
+
     def get_runtimeconfig(self, name: str) -> str | None:
         """
         https://cloud.google.com/python/docs/reference/runtimeconfig/latest

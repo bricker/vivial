@@ -2,12 +2,15 @@
 extend-exclude = '''
 (
   generated
+  | \\..+?_cache
   | \\.git
   | \\.venv
   | vendor
   | node_modules
   | __pycache__
   | \\.mypy_cache
+  | \\.pytest_cache
+  | \\.ruff_cache
   | build
 )
 '''
@@ -23,6 +26,9 @@ exclude = [
   "node_modules",
   "__pycache__",
   ".mypy_cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".*_cache",
   "build",
 ]
 warn_unused_ignores = true
@@ -48,13 +54,15 @@ pythonpath = [
   "../../libs/eave-stdlib-py"
 ]
 norecursedirs = [
-  ".ruff_cache",
   ".git",
   ".venv",
   "vendor",
   "node_modules",
   "__pycache__",
   ".mypy_cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".*_cache",
   "build",
 ]
 
@@ -63,6 +71,9 @@ line-length = 1000
 extend-exclude = [
   "generated",
   "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
+  ".*_cache",
   "vendor"
 ]
 ignore-init-module-imports = true
