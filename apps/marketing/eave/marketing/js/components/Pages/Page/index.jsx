@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
 import Header from '../../Header/index.jsx';
-import Footer from '../../Footer/index.js';
+import Footer from '../../Footer/index.jsx';
 import AuthModal from '../../AuthModal/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({

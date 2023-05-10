@@ -6,9 +6,9 @@ import { Checkbox, TextField } from '@material-ui/core';
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
 import LockIcon from '../../Icons/LockIcon.js';
-import Button from '../../Button/index.js';
+import Button from '../../Button/index.jsx';
 import Affiliates from '../../Affiliates/index.js';
-import Copy from '../../Copy/index.js';
+import Copy from '../../Copy/index.jsx';
 import Page from '../Page/index.jsx';
 import withTitle from '../../hoc/withTitle.js';
 import { getTrackingInfo, saveCookie, EAVE_VISITOR_ID_COOKIE, EAVE_EARLY_ACCESS_REQUEST_COOKIE, GOOGLE_OPTIMIZE_EXP_COOKIE } from '../../../cookies.js';

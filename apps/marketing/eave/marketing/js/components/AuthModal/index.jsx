@@ -3,9 +3,9 @@ import { Dialog, IconButton } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 
 import useAuthModal from '../../hooks/useAuthModal.js';
-import Copy from '../Copy/index.js';
+import Copy from '../Copy/index.jsx';
 import CloseIcon from '../Icons/CloseIcon.js';
-import Button from '../Button/index.js';
+import Button from '../Button/index.jsx';
 import GoogleIcon from '../Icons/GoogleIcon.jsx';
 import SlackIcon from '../Icons/SlackIcon.jsx';
 

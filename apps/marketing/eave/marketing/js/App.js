@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom';
 import { CookiesProvider, withCookies } from 'react-cookie';
 import { ThemeProvider } from '@material-ui/core';
+import { Helmet } from 'react-helmet';
 
 import AppStoreProvider from './context/Provider.js';
 import theme from './theme/index.js';
@@ -24,6 +25,9 @@ class App extends React.Component {
       <CookiesProvider>
         <AppStoreProvider>
           <ThemeProvider theme={theme}>
+            <Helmet>
+                <title>Eave, for your information.</title>
+            </Helmet>
             <Router>
               <ScrollToTop />
               <Routes>
