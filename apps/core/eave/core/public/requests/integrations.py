@@ -57,7 +57,6 @@ class SlackIntegration(HTTPEndpoint):
                         raise eave.stdlib.exceptions.InvalidAuthError(msg)
                 else:
                     # error was some other error unrelated to token expiration
-                    eave.stdlib.logger.error(installation) # TODO: dbeug
                     eave.stdlib.logger.error(e)
                     raise e
 
