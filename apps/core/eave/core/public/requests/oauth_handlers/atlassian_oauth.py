@@ -138,6 +138,12 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     confluence_space_key=default_space_key,
                 )
 
+                eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
+                    session=db_session, team_id=self.eave_account.team_id
+                )
+
+                eave_team.document_platform = eave.stdlib.core_api.enums.DocumentPlatform.confluence
+
                 eave.stdlib.analytics.log_event(
                     event_name="eave_application_integration",
                     event_description="An integration was added for a team",

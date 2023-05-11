@@ -1,22 +1,21 @@
 import React from 'react';
 
-import withTitle from '../../hoc/withTitle.js';
 import Hero from '../../Hero/index.jsx';
-import DocumentationBanner from '../../Banners/DocumentationBanner/index.js';
-import IntegrationsBanner from '../../Banners/IntegrationsBanner/index.js';
-import SlackBanner from '../../Banners/SlackBanner/index.js';
-import PrivacyBanner from '../../Banners/PrivacyBanner/index.js';
+import DocumentationBanner from '../../Banners/DocumentationBanner/index.jsx';
+import IntegrationsBanner from '../../Banners/IntegrationsBanner/index.jsx';
+import SlackBanner from '../../Banners/SlackBanner/index.jsx';
+import PrivacyBanner from '../../Banners/PrivacyBanner/index.jsx';
 import Page from '../Page/index.jsx';
 
 const copy = {
   hero: {
-    title: 'The Smartest Tool for all of your Documentation Needs',
-    subtitle: 'Eave uses state of the art AI technology to instantly create, update and organize your business’s documentation. Save time, reduce overhead, and preserve the integrity of your documentation. Eave, for your information.',
+    title: 'The Smartest Tool for your Engineering Documentation',
+    subtitle: 'Eave uses artificial intelligence to instantly create, maintain and locate documentation for your team\'s product development workflows. Instantly create documentation in Confluence based on information from your team\'s GitHub, Slack and Jira instances.',
     cta: 'Start for Free',
   },
   integrations: {
     title: 'Connect Data Sources',
-    subtitle: 'Seamlessly integrate Eave with your existing business tools such as messenger apps, email clients, or existing documentation platforms.',
+    subtitle: 'integrate Eave with your existing business tools such as messenger apps, email clients, or existing documentation platforms.',
   },
   slack: {
     titles: [
@@ -24,51 +23,50 @@ const copy = {
       'Sit back, and Let Eave Write',
     ],
     subtitles: [
-      'Once Eave is integrated with your tools, call on Eave as you would with any coworker. Eave uses natural language processing to respond to requests and questions.',
-      'Eave uses AI to intelligently parse important information from text and images in order to write cohesive documentation - whether creating new documents or updating existing ones.',
+      'Once Eave is integrated with your tools, call on Eave as you would with any team member. Eave uses natural language processing to respond to requests and questions.',
+      'Eave uses AI to intelligently parse important information from text and code in order to write cohesive documentation - whether creating new documents or updating existing ones.',
     ],
   },
   documentation: {
-    title: 'Documentation Organization',
-    subtitle: 'Eave will output and organize your documentation in the service of your choice (such as Google Drive or Sharepoint). Or try Eave’s custom state-of-the-art document management cloud based service.',
+    title: 'Confluence Documentation',
+    subtitle: 'Eave utilizes information from your integrated apps to create and maintain documentation in Confluence. Eave will also update these pages based on evolving conversations and code - so you can rest easy knowing that your documentation is up to date.',
   },
   privacy: {
-    title: 'Your information is protected. Period.',
+    title: 'Your information is protected.',
     subtitle: 'We care about your privacy and uphold the highest level of data integrity. All information collected is solely for the purpose of streamlining documentation processes for your business (and only yours). Your data will never be shared or sold. That’s a promise.',
   },
 };
 
-class HomePage extends React.Component {
-  render() {
-    const { hero, integrations, slack, documentation, privacy } = copy;
-    return (
-      <Page>
-        <main>
-          <Hero
-            title={hero.title}
-            subtitle={hero.subtitle}
-            cta={hero.cta}
-          />
-          <IntegrationsBanner
-            title={integrations.title}
-            subtitle={integrations.subtitle}
-          />
-          <SlackBanner
-            titles={slack.titles}
-            subtitles={slack.subtitles}
-          />
-          <DocumentationBanner
-            title={documentation.title}
-            subtitle={documentation.subtitle}
-          />
-          <PrivacyBanner
-            title={privacy.title}
-            subtitle={privacy.subtitle}
-          />
-        </main>
-      </Page>
-    );
-  }
-}
+const HomePage = () => {
+  const { hero, integrations, slack, documentation, privacy } = copy;
 
-export default withTitle(HomePage);
+  return (
+    <Page>
+      <main>
+        <Hero
+          title={hero.title}
+          subtitle={hero.subtitle}
+          cta={hero.cta}
+        />
+        <IntegrationsBanner
+          title={integrations.title}
+          subtitle={integrations.subtitle}
+        />
+        <SlackBanner
+          titles={slack.titles}
+          subtitles={slack.subtitles}
+        />
+        <DocumentationBanner
+          title={documentation.title}
+          subtitle={documentation.subtitle}
+        />
+        <PrivacyBanner
+          title={privacy.title}
+          subtitle={privacy.subtitle}
+        />
+      </main>
+    </Page>
+  );
+};
+
+export default HomePage;

@@ -15,7 +15,7 @@ function run-cloud-sql-proxy() {
 	local socketdir=${EAVE_HOME}/.cloudsqlproxy
 	mkdir -p $socketdir
 
-	local connectionName=$(gcloud --format json sql instances list | jq -r .[0].connectionName)
+	local connectionName=$(gcloud --format json sql instances list --filter="state=RUNNABLE" | jq -r .[0].connectionName)
 	local account=$(gcloud --format json info | jq -r .config.account)
 
 	if test -z "$connectionName" || test -z "$account"; then

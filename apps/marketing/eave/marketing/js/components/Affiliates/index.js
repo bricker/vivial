@@ -1,7 +1,7 @@
 import React from 'react';
 import { withStyles } from '@material-ui/styles';
 import { AFFILIATE_LOGOS } from '../../constants.js';
-import Copy from '../Copy/index.js';
+import Copy from '../Copy/index.jsx';
 
 class Affiliates extends React.Component {
   render() {

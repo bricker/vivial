@@ -15,9 +15,9 @@ import classNames from 'classnames';
 
 import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
 import useUser from '../../../hooks/useUser.js';
-import Copy from '../../Copy/index.js';
+import Copy from '../../Copy/index.jsx';
 import Page from '../Page/index.jsx';
-import Button from '../../Button/index.js';
+import Button from '../../Button/index.jsx';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ChatboxIcon from '../../Icons/ChatboxIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';

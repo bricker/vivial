@@ -1,39 +1,8 @@
 import React from 'react';
-import { withStyles } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 
-class Copy extends React.Component {
-  render() {
-    const {
-      children, classes, className, variant, bold,
-    } = this.props;
-    const h1Class = classNames(classes.h1, bold && classes.bold, className);
-    const h2Class = classNames(classes.h2, bold && classes.bold, className);
-    const h3Class = classNames(classes.h3, bold && classes.bold, className);
-    const footnoteClass = classNames(classes.footnote, bold && classes.bold, className);
-    const pSmallClass = classNames(classes.pSmall, bold && classes.bold, className);
-    const pClass = classNames(classes.p, bold && classes.bold, className);
-
-    if (variant === 'h1') {
-      return <h1 className={h1Class}>{children}</h1>;
-    }
-    if (variant === 'h2') {
-      return <h2 className={h2Class}>{children}</h2>;
-    }
-    if (variant === 'h3') {
-      return <h3 className={h3Class}>{children}</h3>;
-    }
-    if (variant === 'footnote') {
-      return <p className={footnoteClass}>{children}</p>;
-    }
-    if (variant === 'pSmall') {
-      return <p className={pSmallClass}>{children}</p>;
-    }
-    return <p className={pClass}>{children}</p>;
-  }
-}
-
-const styles = (theme) => ({
+const makeClasses = makeStyles((theme) => ({
   h1: {
     fontSize: 32,
     lineHeight: '38px',
@@ -99,6 +68,40 @@ const styles = (theme) => ({
   bold: {
     fontWeight: 'bold',
   },
-});
+}));
 
-export default withStyles(styles)(Copy);
+const Copy = ({ children, className, variant, bold }) => {
+  const classes = makeClasses();
+  const h1Class = classNames(classes.h1, bold && classes.bold, className);
+  const h2Class = classNames(classes.h2, bold && classes.bold, className);
+  const h3Class = classNames(classes.h3, bold && classes.bold, className);
+  const footnoteClass = classNames(classes.footnote, bold && classes.bold, className);
+  const pSmallClass = classNames(classes.pSmall, bold && classes.bold, className);
+  const pClass = classNames(classes.p, bold && classes.bold, className);
+  let element;
+
+  switch (variant) {
+    case 'h1':
+      element = <h1 className={h1Class}>{children}</h1>;
+      break;
+    case 'h2':
+      element = <h2 className={h2Class}>{children}</h2>;
+      break;
+    case 'h3':
+      element = <h3 className={h3Class}>{children}</h3>;
+      break;
+    case 'footnote':
+      element = <p className={footnoteClass}>{children}</p>;
+      break;
+    case 'pSmall':
+      element = <p className={pSmallClass}>{children}</p>;
+      break;
+    default:
+      element = <p className={pClass}>{children}</p>;
+      break;
+  }
+
+  return element;
+};
+
+export default Copy;

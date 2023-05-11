@@ -77,6 +77,7 @@ class TestAtlassianOAuth(BaseTestCase):
         assert eave_account.auth_id == self.anystring("confluence.account_id")
         assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.atlassian
         assert eave_team.name == self.anystring("atlassian.resource.name")
+        assert eave_team.document_platform == eave.stdlib.core_api.enums.DocumentPlatform.confluence
         assert atlassian_installation.oauth_token_encoded == json.dumps(self.fake_atlassian_token)
         assert atlassian_installation.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
         assert atlassian_installation.team_id == eave_team.id
