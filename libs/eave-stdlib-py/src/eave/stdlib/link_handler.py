@@ -8,12 +8,11 @@ import eave.stdlib.core_api.client as eave_core_api_client
 import eave.stdlib.core_api.enums as enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-from eave.stdlib.third_party_api_clients.base import BaseClient
-from eave.stdlib.third_party_api_clients.util import LinkContext, create_client
+from attr import dataclass
+from eave.stdlib.core_api.enums import LinkType
 from pydantic import UUID4
 
 from .logging import logger
-from .third_party_api_clients.github import GitHubClient
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[enums.LinkType, list[str]] = {
@@ -22,6 +21,20 @@ SUPPORTED_LINKS: dict[enums.LinkType, list[str]] = {
         r"github\..+\.com",
     ],
 }
+
+
+@dataclass
+class LinkContext:
+    url: str
+    type: LinkType
+    auth_data: Any  # TODO: perhaps not the best way to hold arbitrary auth data structures
+
+
+def _create_client(ctx: LinkContext) -> BaseClient:
+    match ctx.type:
+        case LinkType.github:
+            installation_id = ctx.auth_data
+            return GitHubClient(installation_id=installation_id)
 
 
 def filter_supported_links(urls: list[str]) -> list[tuple[str, enums.LinkType]]:
@@ -44,10 +57,10 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkT
 
     # gather content from all links in parallel
     tasks = []
-    clients: dict[enums.LinkType, BaseClient] = {}
+    clients: dict[enums.LinkType, BaseClient] = {}  # TODO: how tf we do this nwo???
     for link_ctx in contexts:
         if link_ctx.type not in clients:
-            clients[link_ctx.type] = create_client(link_ctx)
+            clients[link_ctx.type] = _create_client(link_ctx)
         match link_ctx.type:
             case enums.LinkType.github:
                 tasks.append(asyncio.ensure_future(clients[link_ctx.type].get_file_content(link_ctx.url)))
@@ -77,7 +90,7 @@ async def subscribe_to_file_changes(
     clients: dict[enums.LinkType, BaseClient] = {}
     for link_ctx in contexts:
         if link_ctx.type not in clients:
-            clients[link_ctx.type] = create_client(link_ctx)
+            clients[link_ctx.type] = _create_client(link_ctx)
         tasks.append(
             asyncio.ensure_future(
                 _create_subscription_source(clients[link_ctx.type], link_ctx.url, link_ctx.type, eave_team_id)

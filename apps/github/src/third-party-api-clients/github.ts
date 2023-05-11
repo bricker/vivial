@@ -1,10 +1,9 @@
-import { App, Octokit } from "octokit";
-import * as superagent from "superagent";
-import { Pair } from "../types";
-import { ApiClientBase } from "./base";
+import { App, Octokit } from 'octokit';
+import * as superagent from 'superagent';
+import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types';
+import { ApiClientBase } from './base';
 
-
-const GITHUB_APP_ID: string = "300560"
+const GITHUB_APP_ID = '300560';
 
 // Source response object defined in Github API
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
@@ -15,8 +14,11 @@ export type GithubRepository = {
 
 export class GithubClient implements ApiClientBase {
   appId = GITHUB_APP_ID;
+
   installationId: string;
+
   private client: Octokit | null = null;
+
   private app: App;
 
   constructor(installationId: string) {
@@ -67,13 +69,13 @@ export class GithubClient implements ApiClientBase {
     }
 
     // urlPathComponents === ['', 'org', 'repo', ...]
-    return { first: urlPathComponents[1]!, second: urlPathComponents[2]! }
+    return { first: urlPathComponents[1]!, second: urlPathComponents[2]! };
   }
 
   /**
    * Fetch github file content from `url` using the raw.githubusercontent.com feature
    * Returns null if `url` is not a path to a file (or if some other error was encountered).
-   * 
+   *
    * NOTE: raw.githubusercontent.com is ratelimitted by IP, not requesting user, so this wont scale far
    * https://github.com/github/docs/issues/8031#issuecomment-881427112
    */

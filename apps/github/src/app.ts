@@ -19,6 +19,10 @@ app.post('/github/events', async (req, res) => {
   await dispatch(req, res);
 });
 
+app.post('/github/content', async (req, res) => {
+  await fetchSummarizedContent(req, res);
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`App listening on port ${PORT}`);
 });
