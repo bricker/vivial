@@ -17,19 +17,17 @@ const useUser = () => {
           setUserState((prevState) => ({ ...prevState, authenticated: data.authenticated === true }));
         });
       }).catch((err) => {
-        console.warn('Error during authcheck', err);
+        console.error('Error during authcheck', err);
       });
     },
     // gets user info
     getUserInfo: () => {
-      console.log('getting user info...');
       fetch('/dashboard/me/team', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       }).then((resp) => {
-        console.log('user info response', resp);
         if (resp.ok === false) {
           setErrorState('failed to fetch team info');
         } else {
@@ -39,13 +37,12 @@ const useUser = () => {
         }
         // eslint-disable-next-line no-console
       }).catch((err) => {
-        console.log('error fetching user info', err);
+        console.error('error fetching user info', err);
         return setErrorState('failed to fetch team info');
       });
     },
     // updates current selected confluene space
     updateConfluenceSpace: (key) => {
-      console.log('about to update user space');
       fetch('/dashboard/me/team/integrations/atlassian/update', {
         method: 'POST',
         headers: {
@@ -58,7 +55,6 @@ const useUser = () => {
         }),
       }).then((resp) => {
         // just logging this for now, will update on follow up
-        console.log('user space resp', resp);
         if (resp.ok === false) {
           setErrorState('failed to fetch team info');
         } else {
@@ -68,7 +64,7 @@ const useUser = () => {
         }
       // eslint-disable-next-line no-console
       }).catch((err) => {
-        console.log('error setting up space', err);
+        console.error('error setting up space', err);
       });
     },
     // logs user out

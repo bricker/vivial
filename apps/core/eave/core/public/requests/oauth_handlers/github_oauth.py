@@ -124,6 +124,8 @@ class GithubOAuthCallback(HTTPEndpoint):
                     f"A Github integration already exists with github install id {self.installation_id}",
                     extra=self.eave_state.log_context,
                 )
+                db_session.add(self.eave_account)
+                self.eave_account.team_id = github_installation.team_id
                 return
 
             else:

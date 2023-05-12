@@ -1,3 +1,4 @@
+import enum
 import os
 import sys
 from functools import cached_property
@@ -12,10 +13,33 @@ from . import checksum
 # config created called "shared-config"
 
 
+class EaveEnvironment(enum.Enum):
+    test = "test"
+    development = "development"
+    production = "production"
+
+
 class EaveConfig:
     @property
     def dev_mode(self) -> bool:
         return sys.flags.dev_mode
+
+    @property
+    def eave_env(self) -> EaveEnvironment:
+        strenv = os.getenv("EAVE_ENV", "production")
+        match strenv:
+            case "test":
+                return EaveEnvironment.test
+            case "development":
+                return EaveEnvironment.development
+            case "production":
+                return EaveEnvironment.production
+            case _:
+                return EaveEnvironment.production
+
+    @property
+    def is_development(self) -> bool:
+        return self.eave_env is EaveEnvironment.development
 
     @property
     def monitoring_enabled(self) -> bool:
@@ -23,9 +47,7 @@ class EaveConfig:
 
     @property
     def google_cloud_project(self) -> str:
-        value = os.getenv("GOOGLE_CLOUD_PROJECT")
-        assert value is not None
-        return value
+        return self.get_required_env("GOOGLE_CLOUD_PROJECT")
 
     @property
     def app_service(self) -> str:
@@ -37,18 +59,15 @@ class EaveConfig:
 
     @cached_property
     def eave_api_base(self) -> str:
-        value = self.get_runtimeconfig("EAVE_API_BASE") or "https://api.eave.fyi"
-        return value
+        return self.get_runtimeconfig("EAVE_API_BASE") or "https://api.eave.fyi"
 
     @cached_property
     def eave_www_base(self) -> str:
-        value = self.get_runtimeconfig("EAVE_WWW_BASE") or "https://www.eave.fyi"
-        return value
+        return self.get_runtimeconfig("EAVE_WWW_BASE") or "https://www.eave.fyi"
 
     @cached_property
     def eave_cookie_domain(self) -> str:
-        value = self.get_runtimeconfig("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
-        return value
+        return self.get_runtimeconfig("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
 
     @cached_property
     def eave_openai_api_key(self) -> str:
@@ -68,45 +87,45 @@ class EaveConfig:
 
     @cached_property
     def eave_slack_client_id(self) -> str:
-        value: str = self.get_secret("EAVE_SLACK_APP_CLIENT_ID")
-        return value
+        return self.get_secret("EAVE_SLACK_APP_CLIENT_ID")
 
     @cached_property
     def eave_slack_client_secret(self) -> str:
-        value: str = self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
-        return value
+        return self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
 
     @cached_property
     def eave_atlassian_app_client_id(self) -> str:
-        value: str = self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_ID")
-        return value
+        return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_ID")
 
     @cached_property
     def eave_atlassian_app_client_secret(self) -> str:
-        value: str = self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
-        return value
+        return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
+
+    def get_required_env(self, name: str) -> str:
+        if name not in os.environ:
+            raise KeyError(f"{name} is a required environment variable, but is not set.")
+
+        return os.environ[name]
 
     def get_runtimeconfig(self, name: str) -> str | None:
         """
         https://cloud.google.com/python/docs/reference/runtimeconfig/latest
         https://github.com/googleapis/python-runtimeconfig
         """
-        env_value = os.getenv(name)
-        if env_value is not None:
-            return env_value
+        if self.is_development and name in os.environ:
+            return os.environ[name]
 
         client = google.cloud.runtimeconfig.Client()
         config = client.config("eave-global-config")
 
         variable = config.get_variable(name)
-        if not variable:
+        if variable is None:
             return None
 
-        value: str | None = variable.text
-        return value
+        return variable.text
 
     def get_secret(self, name: str) -> str:
-        if name in os.environ:
+        if self.is_development and name in os.environ:
             return os.environ[name]
 
         secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()

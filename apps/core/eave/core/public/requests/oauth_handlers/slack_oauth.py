@@ -92,6 +92,13 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     f"A Slack integration already exists with slack team id {slack_team_id}",
                     extra=self.eave_state.log_context,
                 )
+
+                # TODO: Probably don't want to change the account's team like this, it feels like it could cause problems.
+                # The reason we're doing this is because otherwise, connecting a Slack team silently fails if the Slack
+                # team was already connected. Eventually we could perhaps display an error to the customer, but we don't
+                # current have that.
+                db_session.add(self.eave_account)
+                self.eave_account.team_id = slack_installation.team_id
                 return
 
             if slack_installation:

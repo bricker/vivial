@@ -78,8 +78,8 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
 async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
     eave_team = context.get("eave_team")
 
-    if not event or not (event.get("channel")) or not (user_id := event.get("user_id")):
-        logger.error(msg := "member_joined_channel event received, but channel or user_id wasn't available.")
+    if not event or not (event.get("channel")) or not (user_id := event.get("user")):
+        logger.error(msg := "member_joined_channel event received, but channel or user wasn't available.")
         raise AssertionError(msg)
 
     if user_id != context.bot_user_id:

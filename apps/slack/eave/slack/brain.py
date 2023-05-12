@@ -731,16 +731,13 @@ class Brain:
         await self.message.add_reaction("eave")
 
     async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
-        try:
-            subscription = await eave_core.get_subscription(
-                team_id=self.eave_team.id,
-                input=eave_ops.GetSubscription.RequestBody(
-                    subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
-                ),
-            )
-            return subscription
-        except eave_exceptions.NotFoundError:
-            return None
+        subscription = await eave_core.get_subscription(
+            team_id=self.eave_team.id,
+            input=eave_ops.GetSubscription.RequestBody(
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+            ),
+        )
+        return subscription
 
     async def create_subscription(self) -> eave_ops.CreateSubscription.ResponseBody:
         """

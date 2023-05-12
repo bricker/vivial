@@ -40,6 +40,9 @@ def cancel_flow(response: Response) -> Response:
 
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
+    if eave.core.internal.app_config.is_development:
+        return True
+
     if email:
         beta_prewhitelist = eave.core.internal.app_config.eave_beta_prewhitelisted_emails
         return email in beta_prewhitelist
