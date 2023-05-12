@@ -2,8 +2,33 @@
 
 set -eu
 
+source ${EAVE_HOME}/develop/functions.bash
+
 bin/lint
 # bin/test
 
-bin/run-db-migration
-${EAVE_HOME}/develop/python/bin/deploy-appengine
+function deploy() {
+	local usage="Usage: deploy [-n]"
+	local skipdb
+
+	while getopts "n" argname
+	do
+		case "$argname" in
+			n) skipdb="1" ;;
+			h)
+				echo $usage
+				exit 0
+				;;
+		esac
+	done
+
+	if test -z "$skipdb"; then
+		bin/run-db-migration
+	else
+		statusmsg -w "Skipping database operations (-n flag passed)"
+	fi
+
+	${EAVE_HOME}/develop/python/bin/deploy-appengine
+}
+
+deploy "$@"

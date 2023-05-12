@@ -9,7 +9,7 @@ from starlette.routing import Route
 
 from .public import middlewares
 from .public.exception_handlers import exception_handlers
-from .public.requests import authed_account, documents, integrations, noop, subscriptions, team
+from .public.requests import authed_account, documents, integrations, noop, subscriptions, team, status
 from .public.requests.oauth_handlers import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 
 eave.stdlib.time.set_utc()
@@ -50,7 +50,7 @@ def make_route(
 
 
 routes = [
-    *eave.stdlib.api_util.standard_endpoints,
+    Route(path="/status", endpoint=status.StatusRequest),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(

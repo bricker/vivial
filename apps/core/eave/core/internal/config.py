@@ -1,6 +1,5 @@
 import base64
 import json
-import os
 from functools import cached_property
 from typing import Any, Mapping, Optional, Sequence
 
@@ -8,20 +7,29 @@ import eave.stdlib.config
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
-    @property
+    @cached_property
+    def cloudsql_connection_string(self) -> str:
+        value = self.get_secret("EAVE_CLOUDSQL_CONNECTION_STRING")
+        return value
+
+    @cached_property
     def db_host(self) -> Optional[str]:
-        value = os.getenv("EAVE_DB_HOST")
+        value = self.get_secret("EAVE_DB_HOST")
         return value
 
     @cached_property
     def db_user(self) -> Optional[str]:
-        try:
-            value: str = self.get_secret("EAVE_DB_USER")
-            return value
-        except AssertionError:
-            return None
+        value: str = self.get_secret("EAVE_DB_USER")
+        return value
 
-    @property
+    @cached_property
+    def db_pass(self) -> Optional[str]:
+        value: str = self.get_secret("EAVE_DB_PASS")
+        if not value:  # Treat empty string as no password
+            return None
+        return value
+
+    @cached_property
     def db_name(self) -> str:
         value: str = self.get_secret("EAVE_DB_NAME")
         return value

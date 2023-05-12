@@ -32,7 +32,7 @@ async def init_database() -> None:
 async def create_database() -> None:
     # We can't connect to the database being created because, well, it doesn't exist.
     # Instead, connect to the postgres database on the host.
-    postgres_uri = eave.core.internal.database.db_uri._replace(database="postgres")
+    postgres_uri = eave.core.internal.database.async_engine.url._replace(database="postgres")
     postgres_engine = create_async_engine(postgres_uri, isolation_level="AUTOCOMMIT")
 
     async with postgres_engine.begin() as connection:

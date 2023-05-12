@@ -2,7 +2,7 @@ import json
 import typing
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib.core_api.models
@@ -114,16 +114,22 @@ class AtlassianInstallationOrm(Base):
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(
             token=self.oauth_token_decoded,
-            token_updater=self.update_token,
+            token_updater=AtlassianInstallationOrm.update_token_factory(id=self.id),
         )
 
         return session
 
-    def update_token(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
-        """
-        This function can't be async because it's called by OAuthSession.
-        Therefore, We need to use a sync engine.
-        Also why it is managing its own session.
-        """
-        with eave_db.sync_session.begin():
-            self.oauth_token_encoded = json.dumps(token)
+    @classmethod
+    def update_token_factory(cls, id: uuid.UUID) -> Callable[[oauthlib.oauth2.rfc6749.tokens.OAuth2Token], None]:
+        def update_token(token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+            """
+            This function can't be async because it's called by OAuthSession.
+            Therefore, We need to use a sync engine.
+            Also why it is managing its own session.
+            """
+            with eave_db.sync_session.begin() as db_session:
+                lookup = select(cls).where(cls.id == id).limit(1)
+                obj = db_session.scalars(lookup).one()
+                obj.oauth_token_encoded = json.dumps(token)
+
+        return update_token
