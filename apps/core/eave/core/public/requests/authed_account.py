@@ -1,5 +1,5 @@
 import eave.stdlib.api_util as autil
-import eave.stdlib.core_api.models as models
+import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as ops
 from starlette.requests import Request
 from starlette.responses import Response
@@ -17,8 +17,8 @@ class GetAuthedAccount(HTTPEndpoint):
         eave_account_orm = eave_state.eave_account
         eave_team_orm = eave_state.eave_team
 
-        eave_team = models.Team.from_orm(eave_team_orm)
-        eave_account = models.AuthenticatedAccount.from_orm(eave_account_orm)
+        eave_team = eave_models.Team.from_orm(eave_team_orm)
+        eave_account = eave_models.AuthenticatedAccount.from_orm(eave_account_orm)
 
         return autil.json_response(
             ops.GetAuthenticatedAccount.ResponseBody(
@@ -37,8 +37,8 @@ class GetAuthedAccountTeamIntegrations(HTTPEndpoint):
         async with db.async_session.begin() as db_session:
             integrations = await eave_team_orm.get_integrations(session=db_session)
 
-        eave_team = models.Team.from_orm(eave_team_orm)
-        eave_account = models.AuthenticatedAccount.from_orm(eave_account_orm)
+        eave_team = eave_models.Team.from_orm(eave_team_orm)
+        eave_account = eave_models.AuthenticatedAccount.from_orm(eave_account_orm)
 
         return autil.json_response(
             ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody(
@@ -67,9 +67,9 @@ class UpdateAtlassianIntegration(HTTPEndpoint):
             if input.atlassian_integration.confluence_space_key is not None:
                 installation.confluence_space_key = input.atlassian_integration.confluence_space_key
 
-        eave_team = models.Team.from_orm(eave_team_orm)
-        eave_account = models.AuthenticatedAccount.from_orm(eave_account_orm)
-        atlassian_integration = models.AtlassianInstallation.from_orm(installation)
+        eave_team = eave_models.Team.from_orm(eave_team_orm)
+        eave_account = eave_models.AuthenticatedAccount.from_orm(eave_account_orm)
+        atlassian_integration = eave_models.AtlassianInstallation.from_orm(installation)
 
         return autil.json_response(
             ops.UpdateAtlassianInstallation.ResponseBody(

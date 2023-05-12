@@ -1,6 +1,7 @@
 import uuid
 
 import eave.stdlib.core_api.client
+import eave.stdlib.lib.requests
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
 import eave.stdlib.signing as eave_signing
@@ -71,7 +72,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
         team_id = uuid.UUID(team_id_header) if team_id_header else None
         account_id = uuid.UUID(account_id_header) if account_id_header else None
 
-        message = eave.stdlib.core_api.client.build_message_to_sign(
+        message = eave.stdlib.lib.requests.build_message_to_sign(
             method=scope["method"],
             url=eave.stdlib.core_api.client.makeurl(scope["path"]),
             request_id=eave_state.request_id,

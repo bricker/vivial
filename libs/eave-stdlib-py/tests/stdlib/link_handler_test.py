@@ -1,20 +1,21 @@
 import eave.stdlib.core_api.client as eave_core
-import eave.stdlib.core_api.models as models
-import eave.stdlib.core_api.operations as operations
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.core_api.enums as eave_enums
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.link_handler as link_handler
+import eave.stdlib.github_api.client as gh_client
+import eave.stdlib.github_api.operations as gh_ops
+import eave.stdlib.lib.requests
 import mockito
 from eave.stdlib.core_api import enums
 from eave.stdlib.core_api.enums import LinkType
-from eave.stdlib.third_party_api_clients.github import GitHubClient, GithubRepository
 from pydantic import UUID4
 
 from .base import BaseTestCase, mock_coroutine
 
-# apply plugin allowing async funcational tests
-# pytest_plugins = ("pytest_asyncio",)
 # set a core_api client origin to make tests not crash from it being unset
-eave_core.set_origin(eave_origins.EaveOrigin.eave_slack_app)
+eave.stdlib.lib.requests.set_origin(eave_origins.EaveOrigin.eave_slack_app)
 
 
 class TestLinkHandler(BaseTestCase):
@@ -38,10 +39,11 @@ class TestLinkHandler(BaseTestCase):
             assert result == [(input_link, supported) for supported in expected_result]
 
     async def test_map_link_content(self) -> None:
-        self.setup_shared_mocks()
-        mockito.when2(GitHubClient.get_file_content, *mockito.args).thenReturn(
-            mock_coroutine("dummy gh content")
-        ).thenReturn(mock_coroutine("dummy gh content"))
+        # self.setup_shared_mocks()
+        dummy_content = gh_ops.GetGithubUrlContent.ResponseBody(content="dummy gh content")
+        mockito.when2(gh_client.get_file_content, *mockito.args).thenReturn(mock_coroutine(dummy_content)).thenReturn(
+            mock_coroutine(dummy_content)
+        )
 
         dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
         input_links = [
@@ -61,13 +63,24 @@ class TestLinkHandler(BaseTestCase):
         mockito.verifyStubbedInvocationsAreUsed()
 
     async def test_subscribe_successful_subscription(self) -> None:
-        self.setup_shared_mocks()
-        mockito.when2(GitHubClient.get_repo, *mockito.args).thenReturn(
-            mock_coroutine(GithubRepository(node_id="1", full_name="eave-fyi/eave-monorepo"))
-        ).thenReturn(mock_coroutine(GithubRepository(node_id="1", full_name="eave-fyi/eave-monorepo")))
-        mockito.when2(eave_core.create_subscription, **mockito.kwargs).thenReturn(mock_coroutine(None))
-
+        # self.setup_shared_mocks()
         dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
+        mockito.when2(gh_client.create_subscription, **mockito.kwargs).thenReturn(
+            mock_coroutine(
+                gh_ops.CreateGithubResourceSubscription.ResponseBody(
+                    subscription=eave_models.Subscription(
+                        id=dummy_id,
+                        document_reference_id=dummy_id,
+                        source=eave_models.SubscriptionSource(
+                            platform=eave_enums.SubscriptionSourcePlatform.github,
+                            event=eave_enums.SubscriptionSourceEvent.github_file_change,
+                            id="id",
+                        ),
+                    )
+                )
+            )
+        )
+
         input_links = [
             ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", LinkType.github),
             ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
@@ -80,12 +93,24 @@ class TestLinkHandler(BaseTestCase):
         mockito.verifyStubbedInvocationsAreUsed()
 
     async def test_subscribe_skip_subscription(self) -> None:
-        self.setup_shared_mocks()
-        mockito.when2(GitHubClient.get_repo, *mockito.args).thenReturn(
-            mock_coroutine(GithubRepository(node_id="1", full_name="the-org/repo-name"))
-        ).thenReturn(mock_coroutine(GithubRepository(node_id="1", full_name="the-org/repo-name")))
-
+        # self.setup_shared_mocks()
         dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
+        mockito.when2(gh_client.create_subscription, **mockito.kwargs).thenReturn(
+            mock_coroutine(
+                gh_ops.CreateGithubResourceSubscription.ResponseBody(
+                    subscription=eave_models.Subscription(
+                        id=dummy_id,
+                        document_reference_id=dummy_id,
+                        source=eave_models.SubscriptionSource(
+                            platform=eave_enums.SubscriptionSourcePlatform.github,
+                            event=eave_enums.SubscriptionSourceEvent.github_file_change,
+                            id="id",
+                        ),
+                    )
+                )
+            )
+        )
+
         # when links don't point to actual files in repo,
         # subscription parsing fails, causing subscription to exit early
         input_links = [
@@ -99,32 +124,32 @@ class TestLinkHandler(BaseTestCase):
 
         mockito.verifyStubbedInvocationsAreUsed()
 
-    def setup_shared_mocks(self) -> None:
-        dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
-        mockito.when2(eave_core.get_team, **mockito.KWARGS).thenReturn(
-            mock_coroutine(
-                operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(
-                    account=models.AuthenticatedAccount(
-                        id=dummy_id,
-                        auth_provider=enums.AuthProvider.google,
-                        access_token="dummy token",
-                        visitor_id=None,
-                        team_id=dummy_id,
-                    ),
-                    team=models.Team(
-                        id=dummy_id,
-                        name="Team name",
-                        document_platform=enums.DocumentPlatform.confluence,
-                    ),
-                    integrations=models.Integrations(
-                        github=models.GithubInstallation(
-                            id=dummy_id,
-                            team_id=dummy_id,
-                            github_install_id="install id",
-                        ),
-                        slack=None,
-                        atlassian=None,
-                    ),
-                )
-            )
-        )
+    # def setup_shared_mocks(self) -> None:
+    #     dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
+    #     mockito.when2(eave_core.get_team, **mockito.KWARGS).thenReturn(
+    #         mock_coroutine(
+    #             eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody(
+    #                 account=eave_models.AuthenticatedAccount(
+    #                     id=dummy_id,
+    #                     auth_provider=enums.AuthProvider.google,
+    #                     access_token="dummy token",
+    #                     visitor_id=None,
+    #                     team_id=dummy_id,
+    #                 ),
+    #                 team=eave_models.Team(
+    #                     id=dummy_id,
+    #                     name="Team name",
+    #                     document_platform=enums.DocumentPlatform.confluence,
+    #                 ),
+    #                 integrations=eave_models.Integrations(
+    #                     github=eave_models.GithubInstallation(
+    #                         id=dummy_id,
+    #                         team_id=dummy_id,
+    #                         github_install_id="install id",
+    #                     ),
+    #                     slack=None,
+    #                     atlassian=None,
+    #                 ),
+    #             )
+    #         )
+    #     )

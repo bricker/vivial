@@ -10,6 +10,7 @@ import eave.stdlib
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
 import eave.stdlib.jwt
+import eave.stdlib.lib.requests
 import mockito
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
@@ -159,7 +160,7 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
 
         if "eave-signature" not in headers:
             origin = origin or eave.stdlib.EaveOrigin.eave_www
-            signature_message = eave.stdlib.core_api.client.build_message_to_sign(
+            signature_message = eave.stdlib.lib.requests.build_message_to_sign(
                 method=method,
                 url=eave.stdlib.core_api.client.makeurl(path),
                 origin=origin,

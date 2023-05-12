@@ -4,6 +4,7 @@ import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.cookies
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
+import eave.stdlib.lib.requests
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
@@ -16,7 +17,7 @@ from .config import app_config
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
-eave_core.set_origin(eave_origins.EaveOrigin.eave_www)
+eave.stdlib.lib.requests.set_origin(eave_origins.EaveOrigin.eave_www)
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key

@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import eave.stdlib.core_api.client
+import eave.stdlib.lib.requests
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -11,7 +12,7 @@ from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging(level=logging.DEBUG)
-eave.stdlib.core_api.client.set_origin(eave_origins.EaveOrigin.eave_slack_app)
+eave.stdlib.lib.requests.set_origin(eave_origins.EaveOrigin.eave_slack_app)
 
 
 async def start_socket_mode() -> None:
