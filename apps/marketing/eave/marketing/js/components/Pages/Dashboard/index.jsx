@@ -13,7 +13,7 @@ import {
 } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { HEADER, INTEGRATION_LOGOS } from '../../../constants.js';
+import { HEADER, INTEGRATION_LOGOS, FEEDBACK_URL } from '../../../constants.js';
 import useUser from '../../../hooks/useUser.js';
 import Copy from '../../Copy/index.jsx';
 import Page from '../Page/index.jsx';
@@ -316,7 +316,7 @@ const Dashboard = () => {
           <div className={classes.footerCopy}>
             <Copy variant="footnote" bold>A Message from the Eave Team</Copy>
             <Copy variant="footnote">
-              Please note we’re currently in development and have many more integrations on the way. We’d love to hear your feedback on the current experience as well as any requests you may have. You can fill out this feedback form <a href="" target='_blank   '>here</a>, or reach out to us directly at <a href="mailto:info@eave.fyi">info@eave.fyi</a>
+              Please note we’re currently in development and have many more integrations on the way. We’d love to hear your feedback on the current experience as well as any requests you may have. You can fill out this feedback form <a href={FEEDBACK_URL} rel='noreferrer' target='_blank'>here</a>, or reach out to us directly at <a href="mailto:info@eave.fyi">info@eave.fyi</a>
             </Copy>
             </div>
         </section>
