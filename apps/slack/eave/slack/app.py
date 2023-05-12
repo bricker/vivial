@@ -31,7 +31,7 @@ routes = [
     Mount(
         "/slack",
         routes=[
-            *eave_api_util.standard_endpoints,
+            *eave_api_util.standard_endpoints_starlette,
             Route("/events", SlackEvent, methods=["POST"]),
             # Mount("/_tasks", routes=[
             #     Route("/process_slack_event", SlackEventProcessorTask, methods=["POST"]),

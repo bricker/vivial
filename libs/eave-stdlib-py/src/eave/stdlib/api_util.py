@@ -11,22 +11,30 @@ from starlette.responses import Response
 from asgiref.typing import HTTPScope
 
 
-def status_endpoint(request: Request) -> Response:
-    model = Status.ResponseBody(
+def status_payload() -> Status.ResponseBody:
+    return Status.ResponseBody(
         service=shared_config.app_service,
         version=shared_config.app_version,
         status="OK",
     )
 
+
+def status_endpoint_starlette(request: Request) -> Response:
+    model = status_payload()
     return json_response(model=model)
 
 
+def status_endpoint_flask() -> str:
+    model = status_payload()
+    return model.json()
+
+
 def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
-    app.get(f"{path_prefix}/status")(status_endpoint)
+    app.get(f"{path_prefix}/status")(status_endpoint_flask)
 
 
-standard_endpoints = [
-    Route("/status", status_endpoint, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
+standard_endpoints_starlette = [
+    Route("/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
 ]
 
 

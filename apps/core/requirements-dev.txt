@@ -2,3 +2,4 @@
 alembic
 
 -e ../../libs/eave-stdlib-py
+-e ../../libs/eave-pubsub-schemas/python

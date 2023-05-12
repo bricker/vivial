@@ -18,8 +18,6 @@ entrypoint: |-
 env_variables:
   EAVE_ANALYTICS_ENABLED: "1"
   EAVE_MONITORING_ENABLED: "1"
-  EAVE_COOKIE_DOMAIN: ".eave.fyi"
-  EAVE_API_BASE: "https://api.eave.fyi"
 
 handlers:
 - url: /static

@@ -1,10 +1,13 @@
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
-
+import slack_sdk.errors
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+import eave.core.internal.oauth.slack
+import eave.stdlib.logging
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -52,6 +55,43 @@ class SlackInstallationOrm(Base):
         session.add(obj)
         await session.flush()
         return obj
+
+    async def refresh_token_or_exception(self) -> None:
+        """
+        Checks if `bot_token` is still valid. If it is, no more action is taken.
+        If it isn't valid, then we try to refresh the token and set the new values
+        in the object instance.
+
+        raises -- SlackApiError on auth errors unrelated to token expiration
+                  InvalidAuthError when there is no `bot_refresh_token` set or if the refresh request fails
+        """
+        try:
+            client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=self.bot_token)
+            await client.auth_test(token=self.bot_token)
+        except slack_sdk.errors.SlackApiError as e:
+            if e.response.get("error") == "token_expired":
+                # refresh expired slack token and set it in the orm to
+                if not self.bot_refresh_token:
+                    eave.stdlib.logger.error(f"SlackInstallationOrm {self.id} missing refresh token.")
+                    raise eave.stdlib.exceptions.InvalidAuthError()
+
+                new_tokens = await eave.core.internal.oauth.slack.refresh_access_token_or_exception(
+                    refresh_token=self.bot_refresh_token,
+                )
+                if (access_token := new_tokens.get("access_token")) and (
+                    refresh_token := new_tokens.get("refresh_token")
+                ):
+                    eave.stdlib.logger.debug("Refreshing Slack auth tokens.")
+                    self.bot_token = access_token
+                    self.bot_refresh_token = refresh_token
+                else:
+                    msg = "Failed to refresh Slack auth tokens; missing access token or refresh token in slack oauth response."
+                    eave.stdlib.logger.error(msg)
+                    raise eave.stdlib.exceptions.InvalidAuthError(msg)
+            else:
+                # error was some other error unrelated to token expiration
+                eave.stdlib.logger.error(e)
+                raise e
 
     class _selectparams(TypedDict):
         slack_team_id: NotRequired[str]

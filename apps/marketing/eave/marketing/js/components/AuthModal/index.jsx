@@ -84,14 +84,14 @@ const AuthModal = () => {
           <Copy className={classes.disclaimer} variant="footnote">
             By clicking “Continue with Google” or “Continue with Slack”, you agree to Eave’s{' '}
             <a
-              href={`${window.location.hostname}/terms`}
+              href="/terms"
               rel="noreferrer"
               target="_blank"
             >
                 TOS
             </a> and{' '}
             <a
-              href={`${window.location.hostname}/privacy`}
+              href="/privacy"
               rel="noreferrer"
               target="_blank"
             >

@@ -106,9 +106,8 @@ class EaveConfig:
         return value
 
     def get_secret(self, name: str) -> str:
-        env_value = os.getenv(name)
-        if env_value is not None:
-            return env_value
+        if name in os.environ:
+            return os.environ[name]
 
         secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
 
