@@ -2,6 +2,7 @@ import uuid
 from . import operations
 from ..lib.requests import make_request
 
+
 async def get_file_content(
     eave_team_id: uuid.UUID,
     input: operations.GetGithubUrlContent.RequestBody,
@@ -17,6 +18,7 @@ async def get_file_content(
 
     response_json = await response.json()
     return operations.GetGithubUrlContent.ResponseBody(**response_json)
+
 
 async def create_subscription(
     eave_team_id: uuid.UUID,

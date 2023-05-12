@@ -3,7 +3,6 @@ from typing import Optional
 import uuid
 import aiohttp
 import urllib.parse
-import pydantic
 from http import HTTPStatus
 from .. import exceptions as eave_exceptions
 from .. import headers as eave_headers
@@ -12,13 +11,13 @@ from ..config import shared_config
 from .. import eave_origins as eave_origins
 
 
-
 _ORIGIN: eave_origins.EaveOrigin
 
 
 def set_origin(origin: eave_origins.EaveOrigin) -> None:
     global _ORIGIN
     _ORIGIN = origin
+
 
 async def make_request(
     path: str,

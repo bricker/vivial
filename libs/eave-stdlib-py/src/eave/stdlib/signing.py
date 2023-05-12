@@ -15,7 +15,6 @@ from google.cloud import kms
 from . import checksum
 from . import exceptions as eave_exceptions
 from . import util as eave_util
-from eave.stdlib.config import shared_config
 
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"

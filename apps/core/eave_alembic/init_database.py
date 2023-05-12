@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
-from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 

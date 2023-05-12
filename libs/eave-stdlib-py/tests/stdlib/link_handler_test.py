@@ -1,6 +1,4 @@
-import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.core_api.enums as eave_enums
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.link_handler as link_handler
@@ -8,7 +6,6 @@ import eave.stdlib.github_api.client as gh_client
 import eave.stdlib.github_api.operations as gh_ops
 import eave.stdlib.lib.requests
 import mockito
-from eave.stdlib.core_api import enums
 from eave.stdlib.core_api.enums import LinkType
 from pydantic import UUID4
 

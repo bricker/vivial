@@ -62,8 +62,6 @@ def downgrade() -> None:
         op.f("ix_github_installations_github_install_id"),
         table_name="github_installations",
     )
-    op.drop_index(
-        "eave_team_id_github_install_id", table_name="github_installations"
-    )
+    op.drop_index("eave_team_id_github_install_id", table_name="github_installations")
     op.drop_table("github_installations")
     # ### end Alembic commands ###
