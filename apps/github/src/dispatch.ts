@@ -5,6 +5,7 @@ import { InstallationLite } from '@octokit/webhooks-types';
 import * as Registry from './registry.js';
 import { appConfig } from './config.js';
 import pushHandler from './events/push.js';
+import { createAppClient } from './lib/octokit-util.js';
 
 Registry.registerHandler('push', pushHandler);
 
@@ -14,12 +15,10 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   const signature = req.header('x-hub-signature-256');
   const installationId = req.header('x-github-hook-installation-target-id');
 
-  const requestBody = (<Buffer>req.body).toString();
-
   const payload: EmitterWebhookEvent<EmitterWebhookEventName> & {
     installation: InstallationLite,
     action?: string,
-  } = JSON.parse(requestBody);
+  } = req.body;
 
   if (!eventName || !id || !signature || !payload) {
     res.status(400).end();
@@ -37,16 +36,9 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
     return;
   }
 
-  const secret = await appConfig.eaveGithubAppWebhookSecret;
-  const privateKey = await appConfig.eaveGithubAppPrivateKey;
+  const app = await createAppClient();
 
-  const app = new App({
-    appId: appConfig.eaveGithubAppId,
-    privateKey,
-    webhooks: { secret },
-  });
-
-  const verified = await app.webhooks.verify(requestBody, signature);
+  const verified = await app.webhooks.verify(JSON.stringify(req.body), signature);
 
   if (!verified) {
     console.warn('signature verification failed');

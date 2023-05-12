@@ -1,73 +1,40 @@
 import { Request, Response } from 'express';
-import { GetGithubLinkContent } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations';
-import { Subscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/models';
-
-import { App, Octokit } from 'octokit';
+import { GetGithubUrlContent } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations';
+import { Octokit } from 'octokit';
 import * as superagent from 'superagent';
-import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types';
-import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models';
-import { appConfig } from '../config.js';
+import { getInstallationId, createOctokitClient } from '../lib/octokit-util';
 
-export async function getSummariesAndSubscribe(req: Request, res: Response): Promise<GetGithubLinkContent.ResponseBody> {
-  const input = <GetGithubLinkContent.RequestBody>req.body();
+export async function getSummary(req: Request, res: Response): Promise<void> {
+  const input = <GetGithubUrlContent.RequestBody>req.body;
+  if (!(input.url)) {
+    res.status(400).end();
+    return;
+  }
 
+  const installationId = await getInstallationId(input.eaveTeamId);
+  if (installationId === null) {
+    res.status(500).end();
+    return;
+  }
+  const client = await createOctokitClient(installationId);
+
+  const content = await getFileContent(client, input.url);
+  const output: GetGithubUrlContent.ResponseBody = { content };
+  res.json(output);
 }
-
-async function getSummary(): Promise<string> {
-
-}
-
-async function subscribe(): Promise<Subscription> {
-
-}
-
-
-
-
-
-
 
 /**
  * Fetch content of the file located at the URL `url`.
  * @returns null on GitHub API request failure
  */
-async function getFileContent(url: string): Promise<string | null> {
+async function getFileContent(client: Octokit, url: string): Promise<string | null> {
   try {
-    return getRawContent(url);
+    return getRawContent(client, url);
   } catch (error) {
     // TODO: logger?
     console.log(error);
     return null;
   }
-}
-
-/**
- * Request data about the github repo pointed to by `url` from the GitHub API
- * (`url` doesnt have to point directly to the repo, it can point to any file w/in the repo too)
- */
-async function getRepo(client: Octokit, url: string): Promise<GithubRepository> {
-  // gather data for API request URL
-  const { first: owner, second: repo } = getRepoLocation(url);
-
-  // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
-  const { data: repository } = await client.rest.repos.get({ owner, repo });
-  return <GithubRepository>repository;
-}
-
-/**
- * Parse the GitHub org name and repo name from the input `url`
- * @returns Pair(org name, repo name)
- */
-function getRepoLocation(url: string): Pair<string, string> {
-  // split path from URL
-  const urlPathComponents = (new URL(url)).pathname.split('/');
-
-  if (urlPathComponents.length < 3) {
-    throw Error(`GitHub URL ${url} did not contain expected org and repo name in its path`);
-  }
-
-  // urlPathComponents === ['', 'org', 'repo', ...]
-  return { first: urlPathComponents[1]!, second: urlPathComponents[2]! };
 }
 
 /**
@@ -104,12 +71,4 @@ async function getRawContent(client: Octokit, url: string): Promise<string | nul
     return null;
   }
   return fileContent;
-}
-
-async function createClient(installationId: string): Promise<Octokit> {
-  const privateKey = await appConfig.eaveGithubAppPrivateKey;
-  const appId = await appConfig.eaveGithubAppId;
-  const app = new App({ appId, privateKey });
-  const octokit = await app.getInstallationOctokit(parseInt(installationId, 10));
-  return octokit;
 }

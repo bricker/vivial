@@ -1,12 +1,23 @@
 import { Subscription } from '../core-api/models.js';
 
-export namespace GetGithubLinkContent {
+export namespace GetGithubUrlContent {
   export type RequestBody = {
-    links: Array<string>;
+    eaveTeamId: string;
+    url: string;
   }
 
   export type ResponseBody = {
-    subscriptions: Array<Subscription>;
-    contents: Array<string>;
+    content: string | null;
+  }
+}
+
+export namespace CreateGithubResourceSubscription {
+  export type RequestBody = {
+    eaveTeamId: string;
+    url: string;
+  }
+
+  export type ResponseBody = {
+    subscription: Subscription | null;
   }
 }

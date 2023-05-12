@@ -1,7 +1,7 @@
-import fetch, { RequestInit } from 'node-fetch';
+import fetch from 'node-fetch';
 import { sharedConfig } from '../config.js';
 import * as ops from './operations.js';
-import { computeSignature } from './signing.js';
+import { initRequest } from '../lib/requests.js';
 
 export async function status(): Promise<ops.Status.ResponseBody> {
   const resp = await fetch(`${sharedConfig.eaveApiBase}/status`, {
@@ -65,21 +65,3 @@ export async function getTeam(eaveTeamId: string): Promise<ops.GetTeam.ResponseB
   return responseData;
 }
 
-async function initRequest(data: unknown, teamId?: string): Promise<RequestInit> {
-  const payload = JSON.stringify(data);
-  const signature = await computeSignature(payload, teamId);
-  const headers: { [key: string]: string } = {
-    'content-type': 'application/json',
-    'eave-signature': signature,
-  };
-
-  if (teamId !== undefined) {
-    headers['eave-team-id'] = teamId;
-  }
-
-  return {
-    method: 'post',
-    body: payload,
-    headers,
-  };
-}

@@ -1,6 +1,6 @@
 import Bluebird from 'bluebird';
-import * as eaveClient from './core-api/client';
-import { LinkType, SubscriptionSourceEvent, SubscriptionSourcePlatform } from './core-api/enums';
+import * as githubClient from './github-api/client';
+import { LinkType } from './core-api/enums';
 import { Pair } from './types';
 import { Subscription } from './core-api/models';
 
@@ -11,20 +11,6 @@ const SUPPORTED_LINKS: { [linkType: string]: Array<RegExp> } = {
     /github\.com/,
     /github\..+\.com/,
   ],
-}
-
-export type LinkContext = {
-  url: string,
-  type: LinkType,
-  authData: any,
-}
-
-export function createClient(context: LinkContext): ApiClientBase {
-  switch (context.type) {
-    case LinkType.github:
-      const installationId = context.authData;
-      return new GithubClient(installationId);
-  }
 }
 
 export function filterSupportedLinks(urls: Array<string>): Array<Pair<string, LinkType>> {
@@ -45,17 +31,16 @@ export function filterSupportedLinks(urls: Array<string>): Array<Pair<string, Li
  * the position of the link in the returned list is None.
  */
 export async function mapUrlContent(eaveTeamId: string, urls: Array<Pair<string, LinkType>>): Promise<Array<string | null>> {
-  const contexts = await buildLinkContexts(eaveTeamId, urls);
+  const contentResponses = await Bluebird.map(urls, async (linkContext: Pair<string, LinkType>) => {
+    const { first: url, second: type } = linkContext;
 
-  // string key is a LinkType case, but ts won't let me define it that way
-  const clients: { [key: string]: ApiClientBase; } = {};
-  const contentResponses = await Bluebird.map(contexts, async (linkContext) => {
-    if (!(linkContext.type in clients)) {
-      clients[linkContext.type] = createClient(linkContext);
-    }
-    switch (linkContext.type) {
+    switch (type) {
       case LinkType.github:
-        return clients[linkContext.type]!.getFileContent(linkContext.url);
+        const contentResponse = await githubClient.getFileContent(eaveTeamId, {
+          url,
+          eaveTeamId,
+        });
+        return contentResponse.content;
     }
   });
 
@@ -70,17 +55,11 @@ export async function mapUrlContent(eaveTeamId: string, urls: Array<Pair<string,
  * @param urls -- links paired with their platform type [(url, url platform)]
  */
 export async function subscribeToFileChanges(eaveTeamId: string, urls: Array<Pair<string, LinkType>>): Promise<Array<Subscription>> {
-  const contexts = await buildLinkContexts(eaveTeamId, urls);
-
   // string key is a LinkType case, but ts won't let me define it that way
   const subscriptions: Array<Subscription> = [];
-  const clients: { [key: string]: ApiClientBase; } = {};
-  contexts.forEach(async (linkContext) => {
-    if (!(linkContext.type in clients)) {
-      clients[linkContext.type] = createClient(linkContext);
-    }
-
-    const maybeSubscription = await createSubscription(clients[linkContext.type]!, linkContext.url, linkContext.type, eaveTeamId);
+  urls.forEach(async (linkContext) => {
+    const { first: url, second: type } = linkContext;
+    const maybeSubscription = await createSubscription(url, type, eaveTeamId);
 
     if (maybeSubscription !== null) {
       subscriptions.push(maybeSubscription);
@@ -115,88 +94,22 @@ function getLinkType(link: string): LinkType | null {
   return returnValue;
 }
 
-/** 
- * Given a collection of links and an Eave TeamOrm ID, return the data
- * required to authenticate with the 3rd party API for each link.
- * If the Eave Team is not integrated with platform the link is from,
- * that link is filtered out of the returned list, as the Team account
- * has not explicitly given us permission to attempt to read data from
- * those links.
- * 
- * @param eaveTeamId -- ID of the Eave TeamOrm to fetch platform integrations from
- * @param links -- list of links to build API client auth data for
- */
-async function buildLinkContexts(eaveTeamId: string, links: Array<Pair<string, LinkType>>): Promise<Array<LinkContext>> {
-  // fetch from core_api what sources are connected, and the auth data required to query their API
-  const teamResponse = await eaveClient.getTeam(eaveTeamId)
-
-  const apiClientAuthData: { [linkType: string]: string; } = {};
-  for (const supportedTypeString in LinkType) {
-    const supporetdType = stringToLinkType(supportedTypeString);
-    switch (supporetdType) {
-      case LinkType.github:
-        const ghIntegration = teamResponse.integrations.github;
-        if (ghIntegration !== undefined) {
-          apiClientAuthData[LinkType.github] = ghIntegration.github_install_id;
-        }
-    }
-  }
-
-  // filter URLs to platforms the user has linked their eave account to
-  const accessibleLinks: Array<LinkContext> = [];
-  links.forEach(pair => {
-    const { first: link, second: linkType } = pair;
-    if (linkType in apiClientAuthData) {
-      accessibleLinks.push({
-        url: link,
-        type: linkType,
-        authData: apiClientAuthData[linkType],
-      });
-    }
-  });
-  return accessibleLinks;
-}
-
-
 /**
  * Insert a subcription to watch the resource at `url` into the Eave database.
  * 
- * @param untyped_client -- API client corresponding to `linkType` for fetching data to build subscription with
  * @param url -- URL resource to create a subscription for watching
  * @param linkType -- resource platform to subscribe on
  * @param eaveTeamId -- ID of team to associate subscription with
  */
-async function createSubscription(baseClient: ApiClientBase, url: string, linkType: LinkType, eaveTeamId: string): Promise<Subscription | null> {
-  let sourceId: string | null = null;
-  let platform: SubscriptionSourcePlatform | null = null;
-  let event: SubscriptionSourceEvent | null = null;
-
-  // populate required subscription data based on link type
+async function createSubscription(url: string, linkType: LinkType, eaveTeamId: string): Promise<Subscription | null> {
   switch (linkType) {
     case LinkType.github:
-      const client = <GithubClient>baseClient;
-      // fetch unique info about repo to build subscription source ID
-      const repoInfo = await client.getRepo(url);
-      const pathChunks = url.split(`${repoInfo.full_name}/blob/`);
-      // we need the 2nd element, which is branch name + resource path
-      if (pathChunks.length < 2) { return null; }
-      const blobPath = pathChunks[1];
-      sourceId = `${repoInfo.node_id}#${blobPath}`;
-      platform = SubscriptionSourcePlatform.github;
-      event = SubscriptionSourceEvent.github_file_change;
+      const subscriptionResponse = await githubClient.createSubscription(eaveTeamId, {
+        url,
+        eaveTeamId,
+      });
+      return subscriptionResponse.subscription;
   }
 
-  if (sourceId !== null && platform !== null && event !== null) {
-    const subResponse = await eaveClient.createSubscription(eaveTeamId, {
-      subscription: {
-        source: {
-          platform,
-          event,
-          id: sourceId,
-        }
-      }
-    });
-    return subResponse.subscription;
-  }
   return null;
 }
