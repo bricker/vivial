@@ -1,4 +1,4 @@
-from typing import Optional, Self
+from typing import Optional
 import aiohttp
 
 import pydantic
@@ -49,14 +49,17 @@ class UpdateAtlassianInstallationInput(pydantic.BaseModel):
 class Endpoint:
     pass
 
+
 class BaseResponseBody(pydantic.BaseModel):
     _raw_response: aiohttp.ClientResponse
 
     class Config:
         underscore_attrs_are_private = True
 
+
 class BaseRequestBody(pydantic.BaseModel):
     pass
+
 
 class Status(Endpoint):
     class ResponseBody(BaseResponseBody):
@@ -158,6 +161,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
         team: models.Team
         integrations: models.Integrations
         _raw_response: aiohttp.ClientResponse
+
 
 class GetTeam(Endpoint):
     class ResponseBody(BaseResponseBody):

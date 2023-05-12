@@ -7,6 +7,7 @@ from typing import Any, Mapping, Optional, Sequence
 import eave.stdlib.config
 from eave.stdlib import logger
 
+
 class AppConfig(eave.stdlib.config.EaveConfig):
     @cached_property
     def db_host(self) -> str:

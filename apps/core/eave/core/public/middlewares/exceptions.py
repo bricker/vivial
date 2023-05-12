@@ -6,7 +6,6 @@ from eave.stdlib import logger
 from starlette.responses import JSONResponse
 
 import eave.core.public.request_state as request_util
-import oauthlib.oauth2.rfc6749
 from . import EaveASGIMiddleware
 
 
@@ -25,7 +24,11 @@ class ExceptionHandlerASGIMiddleware(EaveASGIMiddleware):
         try:
             await self.app(scope, receive, send)
         except eave_exceptions.UnauthorizedError as e:
-            logger.error("Authentication error occurred. The client will be logged out.", exc_info=e, extra=eave_state.log_context)
+            logger.error(
+                "Authentication error occurred. The client will be logged out.",
+                exc_info=e,
+                extra=eave_state.log_context,
+            )
 
             body = eave_models.ErrorResponse(
                 status_code=e.status_code,

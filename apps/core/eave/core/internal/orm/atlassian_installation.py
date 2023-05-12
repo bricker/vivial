@@ -2,7 +2,7 @@ import json
 import typing
 import uuid
 from datetime import datetime
-from typing import Any, Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib.core_api.models
@@ -10,7 +10,7 @@ import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.util import await_fallback, await_only
+from sqlalchemy.util import await_only
 
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination

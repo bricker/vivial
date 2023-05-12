@@ -97,6 +97,7 @@ async def delete_subscription(
 
     return operations.BaseResponseBody(_raw_response=response)
 
+
 async def get_subscription(
     team_id: UUID, input: operations.GetSubscription.RequestBody
 ) -> operations.GetSubscription.ResponseBody:

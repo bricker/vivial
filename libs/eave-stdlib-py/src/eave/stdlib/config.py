@@ -12,10 +12,12 @@ from . import checksum
 # https://cloud.google.com/deployment-manager/runtime-configurator/create-and-delete-runtimeconfig-resources#gcloud
 # config created called "shared-config"
 
+
 class EaveEnvironment(enum.Enum):
     test = "test"
     development = "development"
     production = "production"
+
 
 class EaveConfig:
     @property
