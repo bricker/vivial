@@ -99,7 +99,7 @@ const Header = ({ simpleHeader }) => {
 
   const TopButtons = authenticated ? (
     <>
-      <a className={classes.inlineButton} href={FEEDBACK_URL}>
+      <a className={classes.inlineButton} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
         Send Feedback
       </a>
       <button className={classes.inlineButton} onClick={logOut}>
@@ -120,7 +120,7 @@ const Header = ({ simpleHeader }) => {
 
   const navButtons = authenticated ? (
     <>
-      <a className={classes.mobileNavItem} href={FEEDBACK_URL}>
+      <a className={classes.mobileNavItem} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
         Send Feedback
       </a>
       <button className={classes.mobileNavItem} onClick={logOut}>
