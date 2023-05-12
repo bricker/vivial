@@ -100,6 +100,8 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     f"An Atlassian integration already exists for atlassian_cloud_id {self.atlassian_cloud_id}",
                     extra=self.eave_state.log_context,
                 )
+                db_session.add(self.eave_account)
+                self.eave_account.team_id = installation.team_id
                 return
 
             if installation and oauth_token_encoded:

@@ -31,19 +31,21 @@ async def status() -> operations.Status.ResponseBody:
         )
 
     response_json = await response.json()
-    return operations.Status.ResponseBody(**response_json)
+    return operations.Status.ResponseBody(**response_json, _raw_response=response)
 
 
 async def create_access_request(
     input: operations.CreateAccessRequest.RequestBody,
-) -> None:
+) -> operations.BaseResponseBody:
     """
     POST /access_request
     """
-    await _make_request(
+    response = await _make_request(
         path="/access_request",
         input=input,
     )
+
+    return operations.BaseResponseBody(_raw_response=response)
 
 
 async def upsert_document(
@@ -60,7 +62,7 @@ async def upsert_document(
     )
 
     response_json = await response.json()
-    return operations.UpsertDocument.ResponseBody(**response_json)
+    return operations.UpsertDocument.ResponseBody(**response_json, _raw_response=response)
 
 
 async def create_subscription(
@@ -77,22 +79,23 @@ async def create_subscription(
     )
 
     response_json = await response.json()
-    return operations.CreateSubscription.ResponseBody(**response_json)
+    return operations.CreateSubscription.ResponseBody(**response_json, _raw_response=response)
 
 
 async def delete_subscription(
     team_id: UUID,
     input: operations.DeleteSubscription.RequestBody,
-) -> None:
+) -> operations.BaseResponseBody:
     """
     POST /subscriptions/delete
     """
-    await _make_request(
+    response = await _make_request(
         path="/subscriptions/delete",
         input=input,
         team_id=team_id,
     )
 
+    return operations.BaseResponseBody(_raw_response=response)
 
 async def get_subscription(
     team_id: UUID, input: operations.GetSubscription.RequestBody
@@ -107,7 +110,7 @@ async def get_subscription(
     )
 
     response_json = await response.json()
-    return operations.GetSubscription.ResponseBody(**response_json)
+    return operations.GetSubscription.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_slack_installation(
@@ -122,7 +125,7 @@ async def get_slack_installation(
     )
 
     response_json = await response.json()
-    return operations.GetSlackInstallation.ResponseBody(**response_json)
+    return operations.GetSlackInstallation.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_github_installation(
@@ -137,7 +140,7 @@ async def get_github_installation(
     )
 
     response_json = await response.json()
-    return operations.GetGithubInstallation.ResponseBody(**response_json)
+    return operations.GetGithubInstallation.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_atlassian_installation(
@@ -152,7 +155,7 @@ async def get_atlassian_installation(
     )
 
     response_json = await response.json()
-    return operations.GetAtlassianInstallation.ResponseBody(**response_json)
+    return operations.GetAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_team(
@@ -168,7 +171,7 @@ async def get_team(
     )
 
     response_json = await response.json()
-    return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
+    return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json, _raw_response=response)
 
 
 async def update_atlassian_integration(
@@ -187,7 +190,7 @@ async def update_atlassian_integration(
     )
 
     response_json = await response.json()
-    return operations.UpdateAtlassianInstallation.ResponseBody(**response_json)
+    return operations.UpdateAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_authenticated_account_team_integrations(
@@ -204,7 +207,7 @@ async def get_authenticated_account_team_integrations(
     )
 
     response_json = await response.json()
-    return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json)
+    return operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_authenticated_account(
@@ -221,7 +224,7 @@ async def get_authenticated_account(
     )
 
     response_json = await response.json()
-    return operations.GetAuthenticatedAccount.ResponseBody(**response_json)
+    return operations.GetAuthenticatedAccount.ResponseBody(**response_json, _raw_response=response)
 
 
 async def _make_request(

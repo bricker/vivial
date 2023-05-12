@@ -116,9 +116,11 @@ def _clean_response(eave_response: eave_ops.GetAuthenticatedAccountTeamIntegrati
         del eave_response.integrations.slack.bot_token
 
     response = make_response(eave_response.json())
+
     eave.stdlib.cookies.set_auth_cookies(
         response=response,
         access_token=access_token,  # In case the access token was refreshed
     )
 
+    # TODO: Forward cookies from server to client
     return response

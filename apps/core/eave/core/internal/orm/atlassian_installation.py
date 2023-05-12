@@ -2,7 +2,7 @@ import json
 import typing
 import uuid
 from datetime import datetime
-from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Any, Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib.core_api.models
@@ -10,6 +10,7 @@ import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.util import await_fallback, await_only
 
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
@@ -121,15 +122,14 @@ class AtlassianInstallationOrm(Base):
 
     @classmethod
     def update_token_factory(cls, id: uuid.UUID) -> Callable[[oauthlib.oauth2.rfc6749.tokens.OAuth2Token], None]:
-        def update_token(token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
-            """
-            This function can't be async because it's called by OAuthSession.
-            Therefore, We need to use a sync engine.
-            Also why it is managing its own session.
-            """
-            with eave_db.sync_session.begin() as db_session:
-                lookup = select(cls).where(cls.id == id).limit(1)
-                obj = db_session.scalars(lookup).one()
-                obj.oauth_token_encoded = json.dumps(token)
+        def run(token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+            return await_only(cls.update_token(id=id, token=token))
 
-        return update_token
+        return run
+
+    @classmethod
+    async def update_token(cls, id: uuid.UUID, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+        async with eave_db.async_session.begin() as db_session:
+            lookup = select(cls).where(cls.id == id).limit(1)
+            obj = (await db_session.scalars(lookup)).one()
+            obj.oauth_token_encoded = json.dumps(token)

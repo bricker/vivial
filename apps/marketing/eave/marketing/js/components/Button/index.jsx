@@ -37,6 +37,7 @@ const Button = ({
   color,
   variant,
   to,
+  target,
   ...rest
 }) => {
   const classes = makeClasses();
@@ -56,7 +57,7 @@ const Button = ({
 
   if (to) {
     return (
-      <Link className={classes.link} to={to}>
+      <Link className={classes.link} to={to} target={target}>
         {btn}
       </Link>
     );

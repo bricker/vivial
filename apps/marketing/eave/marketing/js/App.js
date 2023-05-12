@@ -3,6 +3,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
 } from 'react-router-dom';
 import { CookiesProvider, withCookies } from 'react-cookie';
 import { ThemeProvider } from '@material-ui/core';
@@ -37,6 +38,7 @@ class App extends React.Component {
                   <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
                 <Route path="/" element={<HomePage />} />
+                <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Router>
           </ThemeProvider>

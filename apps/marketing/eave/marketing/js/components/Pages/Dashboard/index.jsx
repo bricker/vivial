@@ -167,24 +167,19 @@ const Dashboard = () => {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    console.log('team info', teamInfo);
     // fetch info
     if (!teamInfo) {
-      console.log('fetching user info....');
       getUserInfo();
     // if user has linked account with atlassian
     } else if (teamInfo?.integrations.atlassian) {
       // if user has not selected a conflunece space
       if (!teamInfo?.integrations.atlassian.confluence_space_key) {
-        console.log('setting user to select a space');
         setStep(1);
       // confluence integration happens by default, if user has not linked their github or slack
       } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
-        console.log('setting user to select integration');
         setStep(2);
       // user has linked all so we can just show a completed stepper
       } else {
-        console.log('user has set up all integrations');
         setStep(3);
       }
     }
@@ -193,7 +188,6 @@ const Dashboard = () => {
   const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
 
   const handleSpaceUpdate = (event) => {
-    console.log('user about to set up space');
     updateConfluenceSpace(event.target.value);
   };
 
@@ -276,6 +270,7 @@ const Dashboard = () => {
                 startIcon={teamInfo?.integrations.github && <PurpleCheckIcon className={classes.connected} />}
                 disabled={!!teamInfo?.integrations.github}
                 to={`${window.eave.apiBase}/oauth/github/authorize`}
+                target="_blank"
                 lg
               >
                 <img
