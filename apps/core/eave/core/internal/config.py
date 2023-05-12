@@ -1,38 +1,50 @@
 import base64
 import json
 from functools import cached_property
+import os
 from typing import Any, Mapping, Optional, Sequence
 
 import eave.stdlib.config
-
+from eave.stdlib import logger
 
 class AppConfig(eave.stdlib.config.EaveConfig):
     @cached_property
-    def cloudsql_connection_string(self) -> str:
-        value = self.get_secret("EAVE_CLOUDSQL_CONNECTION_STRING")
-        return value
+    def db_host(self) -> str:
+        key = "EAVE_DB_HOST"
+        if self.is_development:
+            return self.get_required_env(key)
+        else:
+            return self.get_secret(key)
 
     @cached_property
-    def db_host(self) -> Optional[str]:
-        value = self.get_secret("EAVE_DB_HOST")
-        return value
-
-    @cached_property
-    def db_user(self) -> Optional[str]:
-        value: str = self.get_secret("EAVE_DB_USER")
-        return value
+    def db_user(self) -> str:
+        key = "EAVE_DB_USER"
+        if self.is_development:
+            return self.get_required_env(key)
+        else:
+            return self.get_secret(key)
 
     @cached_property
     def db_pass(self) -> Optional[str]:
-        value: str = self.get_secret("EAVE_DB_PASS")
-        if not value:  # Treat empty string as no password
-            return None
-        return value
+        key = "EAVE_DB_PASS"
+        if self.is_development:
+            value = os.getenv(key)
+            # Treat empty strings as None
+            return None if not value else value
+        else:
+            try:
+                return self.get_secret(key)
+            except Exception:
+                logger.exception(f"Fetching {key} from secrets failed.")
+                return None
 
     @cached_property
     def db_name(self) -> str:
-        value: str = self.get_secret("EAVE_DB_NAME")
-        return value
+        key = "EAVE_DB_NAME"
+        if self.is_development:
+            return self.get_required_env(key)
+        else:
+            return self.get_secret(key)
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
