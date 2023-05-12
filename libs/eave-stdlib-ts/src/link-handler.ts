@@ -2,10 +2,7 @@ import Bluebird from 'bluebird';
 import * as eaveClient from './core-api/client';
 import { LinkType, SubscriptionSourceEvent, SubscriptionSourcePlatform } from './core-api/enums';
 import { Pair } from './types';
-import { ApiClientBase } from './third-party-api-clients/base';
-import { GithubClient } from './third-party-api-clients/github';
 import { Subscription } from './core-api/models';
-import { createClient, LinkContext } from './third-party-api-clients/util';
 
 
 // mapping from link type to regex for matching raw links against
@@ -14,6 +11,20 @@ const SUPPORTED_LINKS: { [linkType: string]: Array<RegExp> } = {
     /github\.com/,
     /github\..+\.com/,
   ],
+}
+
+export type LinkContext = {
+  url: string,
+  type: LinkType,
+  authData: any,
+}
+
+export function createClient(context: LinkContext): ApiClientBase {
+  switch (context.type) {
+    case LinkType.github:
+      const installationId = context.authData;
+      return new GithubClient(installationId);
+  }
 }
 
 export function filterSupportedLinks(urls: Array<string>): Array<Pair<string, LinkType>> {
