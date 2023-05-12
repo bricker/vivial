@@ -1,3 +1,4 @@
+import asyncio
 import json
 import typing
 import uuid
@@ -9,8 +10,8 @@ import eave.stdlib.core_api.models
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.util import await_only
+from sqlalchemy.orm import Mapped, Session, mapped_column
+from sqlalchemy.util import await_only, greenlet_spawn
 
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
@@ -115,21 +116,22 @@ class AtlassianInstallationOrm(Base):
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(
             token=self.oauth_token_decoded,
-            token_updater=AtlassianInstallationOrm.update_token_factory(id=self.id),
+            token_updater=self.token_updater,
         )
 
         return session
 
-    @classmethod
-    def update_token_factory(cls, id: uuid.UUID) -> Callable[[oauthlib.oauth2.rfc6749.tokens.OAuth2Token], None]:
-        def run(token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
-            return await_only(cls.update_token(id=id, token=token))
+    _tasks = set[asyncio.Task[None]]()
 
-        return run
+    def token_updater(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+        # FIXME: This just updates the token in the background, which could cause a race condition.
+        coro = self.update_token(token=token)
+        task = asyncio.create_task(coro)
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
 
-    @classmethod
-    async def update_token(cls, id: uuid.UUID, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+    async def update_token(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
         async with eave_db.async_session.begin() as db_session:
-            lookup = select(cls).where(cls.id == id).limit(1)
-            obj = (await db_session.scalars(lookup)).one()
-            obj.oauth_token_encoded = json.dumps(token)
+            db_session.add(self)
+            self.oauth_token_encoded = json.dumps(token)
+            await db_session.commit()

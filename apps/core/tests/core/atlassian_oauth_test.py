@@ -1,3 +1,5 @@
+import asyncio
+import oauthlib.oauth2.rfc6749.tokens
 import http
 import json
 import re
@@ -12,13 +14,34 @@ import eave.stdlib.core_api
 import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
-import eave.core.internal.orm.atlassian_installation
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 import eave.core.internal.orm.team
 
 from .base import BaseTestCase
 
 
 class TestAtlassianOAuth(BaseTestCase):
+    async def test_token_update(self) -> None:
+        team = await self.make_team()
+
+        async with self.db_session.begin() as db_session:
+            sut = await AtlassianInstallationOrm.create(
+                atlassian_cloud_id=self.anystring(),
+                confluence_space_key=None,
+                oauth_token_encoded=self.anyjson(),
+                session=db_session,
+                team_id=team.id,
+            )
+
+        token = oauthlib.oauth2.rfc6749.tokens.OAuth2Token(self.anydict("token"))
+
+        sut.token_updater(token=token)
+        await asyncio.gather(*sut._tasks)
+
+        sut_after = await self.reload(sut)
+        assert sut_after
+        assert sut_after.oauth_token_decoded == token
+
     async def test_atlassian_authorize_endpoint(self) -> None:
         response = await self.make_request("/oauth/atlassian/authorize", method="GET", payload=None)
 

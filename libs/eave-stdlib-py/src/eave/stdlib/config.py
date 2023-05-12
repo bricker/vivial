@@ -14,7 +14,6 @@ from . import checksum
 
 
 class EaveEnvironment(enum.Enum):
-    test = "test"
     development = "development"
     production = "production"
 
@@ -28,8 +27,6 @@ class EaveConfig:
     def eave_env(self) -> EaveEnvironment:
         strenv = os.getenv("EAVE_ENV", "production")
         match strenv:
-            case "test":
-                return EaveEnvironment.test
             case "development":
                 return EaveEnvironment.development
             case "production":
