@@ -270,7 +270,6 @@ const Dashboard = () => {
                 startIcon={teamInfo?.integrations.github && <PurpleCheckIcon className={classes.connected} />}
                 disabled={!!teamInfo?.integrations.github}
                 to={`${window.eave.apiBase}/oauth/github/authorize`}
-                target="_blank"
                 lg
               >
                 <img
