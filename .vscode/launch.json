@@ -116,5 +116,14 @@
       ],
       "stopAll": true
     },
+    {
+      "name": "API + Website",
+      "configurations": [
+        "Core API",
+        "Marketing Website (Client)",
+        "Marketing Website (Server)",
+      ],
+      "stopAll": true
+    },
   ]
 }
