@@ -100,15 +100,19 @@ async def delete_subscription(
 
 async def get_subscription(
     team_id: UUID, input: operations.GetSubscription.RequestBody
-) -> operations.GetSubscription.ResponseBody:
+) -> operations.GetSubscription.ResponseBody | None:
     """
     POST /subscriptions/query
     """
-    response = await _make_request(
-        path="/subscriptions/query",
-        input=input,
-        team_id=team_id,
-    )
+    try:
+        response = await _make_request(
+            path="/subscriptions/query",
+            input=input,
+            team_id=team_id,
+        )
+    except eave_exceptions.NotFoundError:
+        # This operation is used to check for existing subscriptions, so a 404 is expected sometimes.
+        return None
 
     response_json = await response.json()
     return operations.GetSubscription.ResponseBody(**response_json, _raw_response=response)

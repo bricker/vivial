@@ -1,4 +1,5 @@
 from http import HTTPStatus
+import http
 
 import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.core_api.models as eave_models
@@ -21,11 +22,16 @@ class GetSubscription(HTTPEndpoint):
         team = eave_state.eave_team
 
         async with eave_db.async_session.begin() as db_session:
-            subscription_orm = await SubscriptionOrm.one_or_exception(
+            subscription_orm = await SubscriptionOrm.one_or_none(
                 team_id=team.id,
                 source=input.subscription.source,
                 session=db_session,
             )
+
+            if not subscription_orm:
+                # This endpoint expects to return None frequently, as it's used to check for an existing subscription.
+                # So we shouldn't log anything.
+                return Response(status_code=http.HTTPStatus.NOT_FOUND)
 
             document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
 
