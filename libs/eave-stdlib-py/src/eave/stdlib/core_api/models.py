@@ -51,6 +51,7 @@ class Team(pydantic.BaseModel):
     id: pydantic.UUID4
     name: str
     document_platform: Optional[enums.DocumentPlatform]
+    beta_whitelisted: bool = False
 
     class Config:
         orm_mode = True

@@ -98,21 +98,6 @@ async def logout() -> BaseResponse:
     return response
 
 
-@app.route("/access_request", methods=["POST"])
-async def api_access_request() -> str:
-    body = request.get_json()
-
-    await eave_core.create_access_request(
-        input=eave_ops.CreateAccessRequest.RequestBody(
-            visitor_id=body["visitor_id"],
-            email=body["email"],
-            opaque_input=body["opaque_input"],
-        ),
-    )
-
-    return "OK"
-
-
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def catch_all(path: str) -> str:

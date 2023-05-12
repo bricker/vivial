@@ -10,7 +10,6 @@ import { Helmet } from 'react-helmet';
 
 import AppStoreProvider from './context/Provider.js';
 import theme from './theme/index.js';
-import EarlyAccessPage from './components/Pages/EarlyAccessPage/index.jsx';
 import HomePage from './components/Pages/HomePage/index.jsx';
 import TermsPage from './components/Pages/TermsPage/index.jsx';
 import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
@@ -31,7 +30,6 @@ class App extends React.Component {
             <Router>
               <ScrollToTop />
               <Routes>
-                <Route path="/early" element={<EarlyAccessPage pageTitle="Early access submission" />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route element={<PrivateRoutes />}>
