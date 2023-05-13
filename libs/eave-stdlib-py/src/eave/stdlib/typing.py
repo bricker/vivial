@@ -1,1 +1,4 @@
-LogContext = dict[str, str]
+from typing import Any
+
+
+LogContext = dict[str, Any]

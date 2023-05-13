@@ -46,10 +46,11 @@ class EaveRequestState:
         #     # Probably not thread-safe
         #     context["notes"] = self._notes
 
-        return context
+        # This response structure is for Google Cloud Logging
+        return {"json_fields": context}
 
     @property
-    def public_request_context(self) -> LogContext:
+    def public_request_context(self) -> dict[str, str]:
         """
         Return this from an endpoint to give the caller some context.
         This is similar to log_context, except it is intended for public, and therefore shouldn't contain any

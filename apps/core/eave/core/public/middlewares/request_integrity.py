@@ -37,6 +37,11 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
 
             eave_state = request_util.get_eave_state(scope)
             eave_state.request_id = request_id
-            logger.info(f"Request: {eave_state.request_path}", extra=eave_state.log_context)
+            logger.info(
+                f"Request: {eave_state.request_path}",
+                extra={
+                    "json_fields": scope,
+                },
+            )
 
         await self.app(scope, receive, send)

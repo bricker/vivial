@@ -276,7 +276,9 @@ async def _make_request(
     )
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
-    logger.info("Eave Core API request", extra={"request_id": request_id, "method": method, "url": url})
+    logger.info(
+        "Eave Core API request", extra={"json_fields": {"request_id": request_id, "method": method, "url": url}}
+    )
 
     async with aiohttp.ClientSession() as session:
         response = await session.request(
@@ -288,7 +290,14 @@ async def _make_request(
 
     logger.info(
         "Eave Core API response",
-        extra={"request_id": request_id, "method": method, "url": url, "status": response.status},
+        extra={
+            "json_fields": {
+                "request_id": request_id,
+                "method": method,
+                "url": url,
+                "status": response.status,
+            }
+        },
     )
 
     try:
