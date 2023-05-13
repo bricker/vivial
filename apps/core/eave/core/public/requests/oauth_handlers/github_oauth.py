@@ -62,7 +62,9 @@ class GithubOAuthCallback(HTTPEndpoint):
         if redirect_uri := state_decoded.get("redirect_uri"):
             url = urllib.parse.urlparse(redirect_uri)
             if url.hostname != request.url.hostname:
-                return shared.set_redirect(response=response, location=redirect_uri)
+                qp = urllib.parse.urlencode(request.query_params)
+                location = f"{redirect_uri}?{qp}"
+                return shared.set_redirect(response=response, location=location)
 
         shared.verify_oauth_state_or_exception(
             state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=response

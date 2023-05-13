@@ -215,5 +215,3 @@ async def get_authenticated_account(
 
     response_json = await response.json()
     return operations.GetAuthenticatedAccount.ResponseBody(**response_json, _raw_response=response)
-
-
