@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { IconButton, Drawer } from '@material-ui/core';
 
-import { HEADER, AUTH_MODAL_STATE } from '../../constants.js';
+import { HEADER, AUTH_MODAL_STATE, FEEDBACK_URL } from '../../constants.js';
 import useAuthModal from '../../hooks/useAuthModal.js';
 import useUser from '../../hooks/useUser.js';
 import HamburgerIcon from '../Icons/HamburgerIcon.js';
@@ -99,7 +99,7 @@ const Header = ({ simpleHeader }) => {
 
   const TopButtons = authenticated ? (
     <>
-      <a className={classes.inlineButton} href="mailto:info@eave.fyi">
+      <a className={classes.inlineButton} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
         Send Feedback
       </a>
       <button className={classes.inlineButton} onClick={logOut}>
@@ -120,7 +120,7 @@ const Header = ({ simpleHeader }) => {
 
   const navButtons = authenticated ? (
     <>
-      <a className={classes.mobileNavItem} href="mailto:info@eave.fyi">
+      <a className={classes.mobileNavItem} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
         Send Feedback
       </a>
       <button className={classes.mobileNavItem} onClick={logOut}>
