@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { CreateGithubResourceSubscription } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations';
+import { CreateGithubResourceSubscription } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
 import { Octokit } from 'octokit';
 import * as eaveClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
-import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types';
-import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models';
-import { createOctokitClient, getInstallationId } from '../lib/octokit-util';
+import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types.js';
+import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
+import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 
 export async function subscribe(req: Request, res: Response): Promise<void> {
   const input = <CreateGithubResourceSubscription.RequestBody>req.body;

@@ -1,5 +1,5 @@
 import { RequestInit } from 'node-fetch';
-import { computeSignature } from './signing';
+import { computeSignature } from './signing.js';
 
 export async function initRequest(data: unknown, teamId?: string): Promise<RequestInit> {
   const payload = JSON.stringify(data);

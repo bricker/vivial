@@ -1,4 +1,3 @@
-import { App } from 'octokit';
 import { Request, Response } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';

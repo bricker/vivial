@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { GetGithubUrlContent } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations';
+import { GetGithubUrlContent } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
 import { Octokit } from 'octokit';
 import * as superagent from 'superagent';
-import { getInstallationId, createOctokitClient } from '../lib/octokit-util';
+import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 
 export async function getSummary(req: Request, res: Response): Promise<void> {
   const input = <GetGithubUrlContent.RequestBody>req.body;
