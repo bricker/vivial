@@ -1,6 +1,7 @@
 import React from 'react';
 import { Dialog, IconButton } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
+import classNames from 'classnames';
 
 import useAuthModal from '../../hooks/useAuthModal.js';
 import Copy from '../Copy/index.jsx';
@@ -12,7 +13,6 @@ import SlackIcon from '../Icons/SlackIcon.jsx';
 const makeClasses = makeStyles((theme) => ({
   container: {
     maxWidth: 546,
-    fontFamily: theme.typography.fontFamily.main,
     color: theme.typography.color.dark,
     padding: '70px 25px 36px',
     boxSizing: 'border-box',
@@ -20,6 +20,12 @@ const makeClasses = makeStyles((theme) => ({
     textAlign: 'center',
     [theme.breakpoints.up('sm')]: {
       padding: '70px 60px 36px',
+    },
+  },
+  paddingBottom: {
+    padding: '70px 25px',
+    [theme.breakpoints.up('sm')]: {
+      padding: '70px 60px',
     },
   },
   closeButton: {
@@ -53,12 +59,13 @@ const makeClasses = makeStyles((theme) => ({
 const AuthModal = () => {
   const classes = makeClasses();
   const { isOpen, isLoginMode, isSignupMode, closeModal } = useAuthModal();
+  const sectionClassList = classNames(classes.container, isLoginMode && classes.paddingBottom);
 
   return (
     <Dialog open={isOpen}>
-      <section className={classes.container}>
+      <section className={sectionClassList}>
         <IconButton onClick={closeModal} className={classes.closeButton}>
-         <CloseIcon />
+          <CloseIcon />
         </IconButton>
         <Copy variant="h2">{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
         <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google and Slack sign up only. Additional account options coming soon.'}</Copy>
