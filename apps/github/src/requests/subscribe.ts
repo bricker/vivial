@@ -8,7 +8,8 @@ import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models
 import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 
 export async function subscribe(req: Request, res: Response): Promise<void> {
-  const input = <CreateGithubResourceSubscription.RequestBody>req.body;
+  const requestBody = (<Buffer>req.body).toString();
+  const input = <CreateGithubResourceSubscription.RequestBody>JSON.parse(requestBody);
   if (!(input.eaveTeamId && input.url)) {
     res.status(400).end();
     return;

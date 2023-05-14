@@ -22,12 +22,13 @@ def set_origin(origin: eave_origins.EaveOrigin) -> None:
 async def make_request(
     path: str,
     input: Optional[pydantic.BaseModel],
+    base: Optional[str] = None,
     method: str = "POST",
     access_token: Optional[str] = None,
     team_id: Optional[uuid.UUID] = None,
     account_id: Optional[uuid.UUID] = None,
 ) -> aiohttp.ClientResponse:
-    url = makeurl(path)
+    url = makeurl(path, base)
     request_id = uuid.uuid4()
 
     headers = {
@@ -105,8 +106,10 @@ async def make_request(
     return response
 
 
-def makeurl(path: str) -> str:
-    return urllib.parse.urljoin(shared_config.eave_api_base, path)
+def makeurl(path: str, base: Optional[str] = None) -> str:
+    if not base:
+        base = shared_config.eave_api_base
+    return urllib.parse.urljoin(base, path)
 
 
 def build_message_to_sign(

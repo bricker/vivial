@@ -7,8 +7,11 @@ import { subscribe } from './requests/subscribe.js';
 const PORT = parseInt(process.env['PORT'] || '8080', 10);
 const app = express();
 
+/*
+Using raw parsing rather than express.json() parser because of GitHub signature verification.
+If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
+*/
 app.use(express.raw({ type: 'application/json' }));
-app.use(express.json());
 
 app.use((req, _, next) => {
   console.info('Request: ', req.url);

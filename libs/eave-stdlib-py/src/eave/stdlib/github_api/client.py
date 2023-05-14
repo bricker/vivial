@@ -1,7 +1,7 @@
 import uuid
 from . import operations
 from ..lib.requests import make_request
-
+from ..config import shared_config
 
 async def get_file_content(
     eave_team_id: uuid.UUID,
@@ -11,6 +11,7 @@ async def get_file_content(
     POST /github/content
     """
     response = await make_request(
+        base=shared_config.eave_apps_base,
         path="/github/content",
         input=input,
         team_id=eave_team_id,
@@ -28,6 +29,7 @@ async def create_subscription(
     POST /github/subscribe
     """
     response = await make_request(
+        base=shared_config.eave_apps_base,
         path="/github/subscribe",
         input=input,
         team_id=eave_team_id,

@@ -5,7 +5,8 @@ import * as superagent from 'superagent';
 import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 
 export async function getSummary(req: Request, res: Response): Promise<void> {
-  const input = <GetGithubUrlContent.RequestBody>req.body;
+  const requestBody = (<Buffer>req.body).toString();
+  const input = <GetGithubUrlContent.RequestBody>JSON.parse(requestBody);
   if (!(input.url)) {
     res.status(400).end();
     return;
