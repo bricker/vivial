@@ -5,6 +5,7 @@ from typing import Optional
 import eave.pubsub_schemas
 import eave.slack.brain
 import eave.slack.slack_models
+from eave.slack.util import log_context
 import eave.stdlib
 import eave.stdlib.core_api
 import eave.stdlib.util as eave_util
@@ -31,7 +32,7 @@ async def shortcut_eave_watch_request_handler(
     shortcut: Optional[eave.stdlib.typing.JsonObject],
     context: AsyncBoltContext,
 ) -> None:
-    logger.debug("WatchRequestEventHandler %s", shortcut)
+    eave.stdlib.logger.debug("Received event: eave_watch_request (shortcut)", extra=log_context(context))
     assert shortcut is not None
 
     eave_team = context.get("eave_team")
@@ -52,12 +53,13 @@ async def shortcut_eave_watch_request_handler(
 
 
 async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext) -> None:
-    logger.debug("MessageEventHandler %s", event)
+    extra = log_context(context)
+    eave.stdlib.logger.debug("Received event: message", extra=extra)
     assert event is not None
 
     eave_team = context.get("eave_team")
     if not eave_team:
-        logger.error(msg := "No eave team available in message handler.")
+        eave.stdlib.logger.error(msg := "No eave team available in message handler.", extra=extra)
         raise AssertionError(msg)
 
     message = eave.slack.slack_models.SlackMessage(data=event, slack_context=context)
@@ -68,7 +70,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
     if message.subtype in ["bot_message", "bot_remove", "bot_add"] or message.bot_id is not None:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
-        logger.debug("ignoring bot message")
+        eave.stdlib.logger.debug("ignoring bot message", extra=extra)
         return
 
     b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
@@ -78,13 +80,17 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
 async def event_member_joined_channel_handler(
     event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext
 ) -> None:
+    extra = log_context(context)
+    eave.stdlib.logger.debug("Received event: member_joined_channel", extra=extra)
+
     eave_team = context.get("eave_team")
 
     if not event or not (event.get("channel")) or not (user_id := event.get("user")):
-        logger.error(msg := "member_joined_channel event received, but channel or user wasn't available.")
+        eave.stdlib.logger.error(msg := "member_joined_channel event received, but channel or user wasn't available.", extra=extra)
         raise AssertionError(msg)
 
     if user_id != context.bot_user_id:
+        eave.stdlib.logger.debug("user_id != context.bot_user_id", extra=extra)
         return
 
     if context.client:
@@ -109,7 +115,7 @@ async def event_member_joined_channel_handler(
             },
         )
     else:
-        logger.warning("No Slack client available in the Slack context.")
+        logger.warning("No Slack client available in the Slack context.", extra=extra)
 
     eave.stdlib.analytics.log_event(
         event_name="eave_joined_slack_channel",

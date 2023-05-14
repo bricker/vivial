@@ -1,6 +1,7 @@
 from typing import Optional
 
 import eave.slack.event_handlers
+from eave.slack.util import log_context
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.exceptions
@@ -23,10 +24,12 @@ async def authorize(
     https://slack.dev/bolt-python/concepts#authorization
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
     """
+    extra = log_context(context)
+
     # TODO: team_id can be None for org-wide installed apps
     # https://slack.dev/bolt-python/api-docs/slack_bolt/authorization/async_authorize.html
     if team_id is None:
-        logger.error("slack team_id not passed into authorize function, can't authorize.")
+        logger.error("slack team_id not passed into authorize function, can't authorize.", extra=extra)
         raise MissingSlackTeamIdError()
 
     assert client is not None
