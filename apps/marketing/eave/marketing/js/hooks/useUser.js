@@ -1,14 +1,18 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { AppContext } from '../context/Provider.js';
 
 const useUser = () => {
   const { user, error } = useContext(AppContext);
   const [userState, setUserState] = user;
   const [, setErrorState] = error;
+  const [loadingGetUserInfo, setLoadingGetUserInfo] = useState(false);
+  const [loadingUpdateConfluenceSpace, setLoadingUpdateConfluenceSpace] = useState(false);
 
   return {
     userState,
     setUserState,
+    loadingGetUserInfo,
+    loadingUpdateConfluenceSpace,
     checkUserAuthState: () => {
       fetch('/authcheck', {
         method: 'GET',
@@ -22,6 +26,7 @@ const useUser = () => {
     },
     // gets user info
     getUserInfo: () => {
+      setLoadingGetUserInfo(true);
       fetch('/dashboard/me/team', {
         method: 'GET',
         headers: {
@@ -39,10 +44,13 @@ const useUser = () => {
       }).catch((err) => {
         console.error('error fetching user info', err);
         return setErrorState('failed to fetch team info');
+      }).finally(() => {
+        setLoadingGetUserInfo(false);
       });
     },
     // updates current selected confluene space
     updateConfluenceSpace: (key) => {
+      setLoadingUpdateConfluenceSpace(true);
       fetch('/dashboard/me/team/integrations/atlassian/update', {
         method: 'POST',
         headers: {
@@ -65,6 +73,8 @@ const useUser = () => {
       // eslint-disable-next-line no-console
       }).catch((err) => {
         console.error('error setting up space', err);
+      }).finally(() => {
+        setLoadingUpdateConfluenceSpace(false);
       });
     },
     // logs user out
