@@ -3,8 +3,8 @@ import { sharedConfig } from '../config.js';
 
 // TODO: actual signing
 export async function signatureVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const eaveHeaderSecret = req.header('eave-secret');
-  const expectedEaveSecret = await sharedConfig.eaveGithubAppWebhookSecret;
+  const eaveHeaderSecret = req.header('eave-signature');
+
   if (expectedEaveSecret === eaveHeaderSecret) {
     next();
   } else {

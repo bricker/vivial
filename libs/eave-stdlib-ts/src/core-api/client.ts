@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { sharedConfig } from '../config.js';
 import * as ops from './operations.js';
-import { initRequest } from '../lib/requests.js';
+import { makeRequest } from '../lib/requests.js';
 
 export async function status(): Promise<ops.Status.ResponseBody> {
   const resp = await fetch(`${sharedConfig.eaveApiBase}/status`, {
@@ -12,55 +12,78 @@ export async function status(): Promise<ops.Status.ResponseBody> {
   return responseData;
 }
 export async function upsertDocument(teamId: string, input: ops.UpsertDocument.RequestBody): Promise<ops.UpsertDocument.ResponseBody> {
-  const request = await initRequest(input, teamId);
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/documents/upsert`, request);
-
+  const resp = await makeRequest(
+    '/documents/upsert',
+    input,
+    undefined,
+    undefined,
+    teamId,
+  );
   const responseData = <ops.UpsertDocument.ResponseBody>(await resp.json());
   return responseData;
 }
 
 export async function createSubscription(teamId: string, input: ops.CreateSubscription.RequestBody): Promise<ops.CreateSubscription.ResponseBody> {
-  const request = await initRequest(input, teamId);
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/subscriptions/create`, request);
-
+  const resp = await makeRequest(
+    '/subscriptions/create',
+    input,
+    undefined,
+    undefined,
+    teamId,
+  );
   const responseData = <ops.CreateSubscription.ResponseBody>(await resp.json());
   return responseData;
 }
 
 export async function deleteSubscription(teamId: string, input: ops.DeleteSubscription.RequestBody): Promise<null> {
-  const request = await initRequest(input, teamId);
-  await fetch(`${sharedConfig.eaveApiBase}/subscriptions/delete`, request);
+  await makeRequest(
+    '/subscriptions/delete',
+    input,
+    undefined,
+    undefined,
+    teamId,
+  );
   return null;
 }
 
 export async function getSubscription(teamId: string, input: ops.GetSubscription.RequestBody): Promise<ops.GetSubscription.ResponseBody> {
-  const request = await initRequest(input, teamId);
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/subscriptions/query`, request);
-
+  const resp = await makeRequest(
+    '/subscriptions/query',
+    input,
+    undefined,
+    undefined,
+    teamId,
+  );
   const responseData = <ops.GetSubscription.ResponseBody>(await resp.json());
   return responseData;
 }
 
 export async function getSlackInstallation(input: ops.GetSlackInstallation.RequestBody): Promise<ops.GetSlackInstallation.ResponseBody> {
-  const request = await initRequest(input);
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/installations/slack/query`, request);
-
+  const resp = await makeRequest(
+    '/installations/slack/query',
+    input,
+  );
   const responseData = <ops.GetSlackInstallation.ResponseBody>(await resp.json());
   return responseData;
 }
 
 export async function getGithubInstallation(input: ops.GetGithubInstallation.RequestBody): Promise<ops.GetGithubInstallation.ResponseBody> {
-  const request = await initRequest(input);
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/installations/github/query`, request);
-
+  const resp = await makeRequest(
+    '/installations/github/query',
+    input,
+  );
   const responseData = <ops.GetGithubInstallation.ResponseBody>(await resp.json());
   return responseData;
 }
 
 export async function getTeam(eaveTeamId: string): Promise<ops.GetTeam.ResponseBody> {
-  const request = await initRequest(undefined, eaveTeamId);
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/team/query`, request);
-
+  const resp = await makeRequest(
+    '/team/query',
+    undefined,
+    undefined,
+    undefined,
+    eaveTeamId,
+  );
   const responseData = <ops.GetTeam.ResponseBody>(await resp.json());
   return responseData;
 }
