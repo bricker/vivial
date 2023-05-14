@@ -10,14 +10,11 @@ import starlette.requests
 from asgiref.typing import Scope
 from eave.stdlib.typing import LogContext
 
-import eave.core.internal.orm.account
-import eave.core.internal.orm.team
-
 
 class EaveRequestState:
-    eave_account: eave.core.internal.orm.account.AccountOrm
+    eave_account_id: uuid.UUID
     eave_origin: eave_origins.EaveOrigin
-    eave_team: eave.core.internal.orm.team.TeamOrm
+    eave_team_id: uuid.UUID
     request_id: uuid.UUID
     request_method: str
     request_scheme: str
@@ -29,11 +26,11 @@ class EaveRequestState:
         context: dict[str, str] = dict()
 
         if hasattr(self, "eave_account"):
-            context["eave_account_id"] = str(self.eave_account.id)
+            context["eave_account_id"] = str(self.eave_account_id)
         if hasattr(self, "eave_origin"):
             context["eave_origin"] = self.eave_origin.value
         if hasattr(self, "eave_team"):
-            context["eave_team_id"] = str(self.eave_team.id)
+            context["eave_team_id"] = str(self.eave_team_id)
         if hasattr(self, "request_id"):
             context["request_id"] = str(self.request_id)
         if hasattr(self, "request_method"):
@@ -60,11 +57,11 @@ class EaveRequestState:
         context: dict[str, str] = {}
 
         if hasattr(self, "eave_account"):
-            context["eave_account_id"] = str(self.eave_account.id)
+            context["eave_account_id"] = str(self.eave_account_id)
         if hasattr(self, "eave_origin"):
             context["eave_origin"] = self.eave_origin.value
         if hasattr(self, "eave_team"):
-            context["eave_team_id"] = str(self.eave_team.id)
+            context["eave_team_id"] = str(self.eave_team_id)
         if hasattr(self, "request_id"):
             context["request_id"] = str(self.request_id)
         if hasattr(self, "request_method"):

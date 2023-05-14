@@ -20,7 +20,7 @@ export function setOrigin(origin: EaveOrigin): void {
 }
 
 // TODO: implement real signing!!
-/*
+/*TODO move to singing files?
     signature_message = build_message_to_sign(
         method=method,
         url=url,

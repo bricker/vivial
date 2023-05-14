@@ -4,13 +4,14 @@ import eave.stdlib.core_api.client
 import eave.stdlib.lib.requests
 import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.headers as eave_headers
+from . import development_bypass
 import eave.stdlib.signing as eave_signing
 from asgiref.typing import ASGIReceiveCallable, ASGIReceiveEvent, ASGISendCallable, HTTPScope, Scope
 from eave.stdlib import api_util, logger
 
-import eave.core.public.request_state as request_util
+from ..lib import request_state as request_util
 
-from . import EaveASGIMiddleware, development_bypass
+from .base import EaveASGIMiddleware
 
 
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):

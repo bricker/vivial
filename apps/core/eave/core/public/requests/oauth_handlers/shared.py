@@ -10,7 +10,7 @@ from starlette.responses import Response
 import eave.core.internal
 import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
-import eave.core.public.request_state
+import eave.stdlib.lib.request_state
 
 
 def verify_oauth_state_or_exception(
@@ -118,7 +118,7 @@ async def create_new_account_and_team(
     access_token: str,
     refresh_token: typing.Optional[str],
 ) -> eave.core.internal.orm.AccountOrm:
-    eave_state = eave.core.public.request_state.get_eave_state(request=request)
+    eave_state = eave.stdlib.lib.request_state.get_eave_state(request=request)
     tracking_cookies = eave.stdlib.cookies.get_tracking_cookies(request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:

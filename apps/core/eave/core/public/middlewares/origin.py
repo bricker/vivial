@@ -4,9 +4,9 @@ import eave.stdlib.headers as eave_headers
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 from eave.stdlib import api_util, logger
 
-import eave.core.public.request_state as request_util
+import eave.stdlib.lib.request_state as request_util
 
-from . import EaveASGIMiddleware
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 
 
 class OriginASGIMiddleware(EaveASGIMiddleware):

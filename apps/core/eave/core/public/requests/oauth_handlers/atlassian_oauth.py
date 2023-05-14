@@ -14,7 +14,6 @@ import eave.core.internal
 import eave.core.internal.oauth.atlassian as oauth_atlassian
 import eave.core.internal.oauth.state_cookies as oauth_cookies
 import eave.core.internal.orm
-import eave.core.public.request_state
 
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared

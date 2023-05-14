@@ -8,9 +8,10 @@ import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 from starlette.requests import Request
 from starlette.responses import Response
+from apps.core.eave.core.internal.orm.team import TeamOrm
 
 import eave.core.internal.database as eave_db
-import eave.core.public.request_state as eave_rutil
+import eave.stdlib.lib.request_state as eave_rutil
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 from eave.core.internal.orm.subscription import SubscriptionOrm
 
@@ -20,11 +21,14 @@ from ..http_endpoint import HTTPEndpoint
 class UpsertDocument(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave_rutil.get_eave_state(request=request)
-        team = eave_state.eave_team
         body = await request.json()
         input = eave_ops.UpsertDocument.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
+            team = await TeamOrm.one_or_exception(
+                session=db_session,
+                team_id=eave_state.eave_team_id,
+            )
             # get all subscriptions we wish to associate the new document with
             subscriptions = [
                 await SubscriptionOrm.one_or_exception(

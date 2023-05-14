@@ -10,7 +10,7 @@ from eave.stdlib import api_util
 from starlette.requests import Request
 from starlette.responses import Response
 
-from . import request_state
+from eave.stdlib.lib import request_state
 
 
 def not_found(request: Request, exc: Exception) -> Response:

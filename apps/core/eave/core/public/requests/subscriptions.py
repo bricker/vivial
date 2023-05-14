@@ -6,11 +6,12 @@ import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
 from starlette.requests import Request
 from starlette.responses import Response
+from apps.core.eave.core.internal.orm.team import TeamOrm
 
 import eave.core.internal.database as eave_db
 from eave.core.internal.orm.subscription import SubscriptionOrm
 
-from .. import request_state as request_util
+from eave.stdlib.lib import request_state as request_util
 from ..http_endpoint import HTTPEndpoint
 
 
@@ -19,11 +20,15 @@ class GetSubscription(HTTPEndpoint):
         eave_state = request_util.get_eave_state(request=request)
         body = await request.json()
         input = eave_ops.GetSubscription.RequestBody.parse_obj(body)
-        team = eave_state.eave_team
 
         async with eave_db.async_session.begin() as db_session:
+            team = await TeamOrm.one_or_exception(
+                session=db_session,
+                team_id=eave_state.eave_team_id,
+            )
+
             subscription_orm = await SubscriptionOrm.one_or_none(
-                team_id=team.id,
+                team_id=eave_state.eave_team_id,
                 source=input.subscription.source,
                 session=db_session,
             )
@@ -55,9 +60,12 @@ class CreateSubscription(HTTPEndpoint):
         eave_state = request_util.get_eave_state(request=request)
         body = await request.json()
         input = eave_ops.CreateSubscription.RequestBody.parse_obj(body)
-        team = eave_state.eave_team
 
         async with eave_db.async_session.begin() as db_session:
+            team = await TeamOrm.one_or_exception(
+                session=db_session,
+                team_id=eave_state.eave_team_id,
+            )
             subscription_orm = await SubscriptionOrm.one_or_none(
                 team_id=team.id, source=input.subscription.source, session=db_session
             )
@@ -97,11 +105,10 @@ class DeleteSubscription(HTTPEndpoint):
         eave_state = request_util.get_eave_state(request=request)
         body = await request.json()
         input = eave_ops.DeleteSubscription.RequestBody.parse_obj(body)
-        team = eave_state.eave_team
 
         async with eave_db.async_session.begin() as db_session:
             subscription_orm = await SubscriptionOrm.one_or_none(
-                team_id=team.id, source=input.subscription.source, session=db_session
+                team_id=eave_state.eave_team_id, source=input.subscription.source, session=db_session
             )
 
             if subscription_orm is not None:

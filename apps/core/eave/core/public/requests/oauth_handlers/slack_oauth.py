@@ -8,7 +8,6 @@ from starlette.responses import RedirectResponse, Response
 import eave.core.internal
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm
-import eave.core.public.request_state
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 
 from ...http_endpoint import HTTPEndpoint

@@ -5,8 +5,8 @@ import eave.stdlib.headers as eave_headers
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 from eave.stdlib import api_util, logger
 
-from .. import request_state as request_util
-from . import EaveASGIMiddleware
+from eave.stdlib.lib import request_state as request_util
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 
 ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
 

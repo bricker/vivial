@@ -5,8 +5,8 @@ from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 from eave.stdlib import logger
 from starlette.responses import JSONResponse
 
-import eave.core.public.request_state as request_util
-from . import EaveASGIMiddleware
+import eave.stdlib.lib.request_state as request_util
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 
 
 class ExceptionHandlerASGIMiddleware(EaveASGIMiddleware):
