@@ -6,7 +6,7 @@ import typing
 from dataclasses import dataclass
 from typing import Optional
 
-from . import util
+from .typing import JsonObject
 
 
 @dataclass
@@ -97,11 +97,11 @@ class ConfluenceGenericLinks:
 
 
 class ConfluenceBaseModel:
-    _data: util.JsonObject
-    expandable: Optional[util.JsonObject] = None
+    _data: JsonObject
+    expandable: Optional[JsonObject] = None
     links: Optional[ConfluenceGenericLinks] = None
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         self._data = data
 
         if (links := data.get("_links")) is not None:
@@ -135,7 +135,7 @@ class ConfluenceSpace(ConfluenceBaseModel):
     key: Optional[str]
     name: Optional[str]
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
         self.id = data.get("id")
         self.key = data.get("key")
@@ -163,7 +163,7 @@ class ConfluenceUser(ConfluenceBaseModel):
     operations: Optional[list[ConfluenceOperationCheckResult]] = None
     personal_space: Optional[ConfluenceSpace] = None
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         self.type_ = ConfluenceUserType(value=data["type"])
@@ -195,7 +195,7 @@ class ConfluenceUsersUserKeys(ConfluenceBaseModel):
     users: list[ConfluenceUser]
     user_keys: list[str]
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         self.users = data["users"]
@@ -205,7 +205,7 @@ class ConfluenceUsersUserKeys(ConfluenceBaseModel):
 class ConfluencePageContributors(ConfluenceBaseModel):
     publishers: Optional[ConfluenceUsersUserKeys] = None
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         if (publishers := data.get("publishers")) is not None:
@@ -222,7 +222,7 @@ class ConfluencePageHistory(ConfluenceBaseModel):
     previous_version: Optional[ConfluencePageVersion] = None
     next_version: Optional[ConfluencePageVersion] = None
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         self.latest = data["latest"]
@@ -254,7 +254,7 @@ class ConfluenceMediaToken(ConfluenceBaseModel):
     file_ids: list[str]
     token: str
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         self.collection_ids = data["collectionIds"]
@@ -277,7 +277,7 @@ class ConfluenceEmbeddedContent(ConfluenceBaseModel):
     entity_type: str
     entity: ConfluenceEmbeddable
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         self.entity_id = data["entityId"]
@@ -292,7 +292,7 @@ class ConfluenceContentBody(ConfluenceBaseModel):
     media_token: Optional[ConfluenceMediaToken] = None
     webresource: Optional[ConfluenceWebResourceDependencies] = None
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         self.value = data["value"]
@@ -312,7 +312,7 @@ class ConfluencePageBody(ConfluenceBaseModel):
     content: Optional[ConfluenceContentBody] = None
     representation: ConfluenceContentBodyRepresentation = ConfluenceContentBodyRepresentation._unknown
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         if (content := data.get(ConfluenceContentBodyRepresentation.view.value)) is not None:
@@ -366,16 +366,16 @@ class ConfluencePage(ConfluenceBaseModel):
     type: str
     status: str
     title: str
-    macro_rendered_output: util.JsonObject
-    extensions: util.JsonObject
-    ancestors: Optional[list[util.JsonObject]] = None
-    container: Optional[util.JsonObject] = None
+    macro_rendered_output: JsonObject
+    extensions: JsonObject
+    ancestors: Optional[list[JsonObject]] = None
+    container: Optional[JsonObject] = None
     body: Optional[ConfluencePageBody] = None
     space: Optional[ConfluenceSpace] = None
     history: Optional[ConfluencePageHistory] = None
     version: Optional[ConfluencePageVersion] = None
 
-    def __init__(self, data: util.JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
         super().__init__(data, ctx)
 
         self.id = data["id"]

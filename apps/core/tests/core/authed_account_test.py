@@ -3,8 +3,8 @@ import unittest.mock
 from http import HTTPStatus
 
 import eave.stdlib.core_api.operations as eave_ops
+from eave.core.internal import database
 
-import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
@@ -49,7 +49,6 @@ class TestAuthedAccountRequests(BaseTestCase):
             path="/me/query",
             payload=None,
             account_id=account.id,
-            team_id=account.team_id,
             access_token=account.access_token,
         )
 
@@ -64,7 +63,7 @@ class TestAuthedAccountRequests(BaseTestCase):
         team = await self.make_team()
         account = await self.make_account(team_id=team.id)
 
-        async with eave_db.async_session.begin() as db_session:
+        async with database.async_session.begin() as db_session:
             await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
                 session=db_session,
                 team_id=team.id,
@@ -84,7 +83,6 @@ class TestAuthedAccountRequests(BaseTestCase):
             path="/me/query",
             payload=None,
             account_id=account.id,
-            team_id=account.team_id,
             access_token=account.access_token,
         )
 
@@ -95,7 +93,7 @@ class TestAuthedAccountRequests(BaseTestCase):
         team = await self.make_team()
         account = await self.make_account(team_id=team.id)
 
-        async with eave_db.async_session.begin() as db_session:
+        async with database.async_session.begin() as db_session:
             await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
                 session=db_session,
                 team_id=team.id,
@@ -115,7 +113,6 @@ class TestAuthedAccountRequests(BaseTestCase):
             path="/me/team/integrations/query",
             payload=None,
             account_id=account.id,
-            team_id=account.team_id,
             access_token=account.access_token,
         )
 

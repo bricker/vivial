@@ -1,4 +1,5 @@
 import http
+import re
 import typing
 
 import eave.pubsub_schemas
@@ -40,9 +41,6 @@ def cancel_flow(response: Response) -> Response:
 
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
-    if eave.core.internal.app_config.is_development:
-        return True
-
     if email:
         beta_prewhitelist = eave.core.internal.app_config.eave_beta_prewhitelisted_emails
         return email in beta_prewhitelist
@@ -155,7 +153,12 @@ async def create_new_account_and_team(
     try:
         # TODO: This should happen in a pubsub subscriber on the "eave_account_registration" event.
         # Notify #sign-ups Slack channel.
-        channel_id = "C04HH2N08LD"  # #sign-ups in eave slack
+
+        if user_email and re.search("@eave.fyi$", user_email):
+            channel_id = "C04GDPU3B5Z"  # #bot-testing in eave slack
+        else:
+            channel_id = "C04HH2N08LD"  # #sign-ups in eave slack
+
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
         slack_response = await slack_client.chat_postMessage(
             channel=channel_id,

@@ -2,6 +2,7 @@ EAVE_TEAM_ID_HEADER = "eave-team-id"
 EAVE_ACCOUNT_ID_HEADER = "eave-account-id"
 EAVE_SIGNATURE_HEADER = "eave-signature"
 EAVE_AUTHORIZATION_HEADER = "authorization"
+EAVE_COOKIE_HEADER = "cookie"
 EAVE_ORIGIN_HEADER = "eave-origin"
 EAVE_REQUEST_ID_HEADER = "eave-request-id"
 

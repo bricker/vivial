@@ -64,7 +64,12 @@ class AppConfig(eave.stdlib.config.EaveConfig):
     @property
     def eave_beta_prewhitelisted_emails(self) -> Sequence[str]:
         try:
-            value: str = self.get_secret("EAVE_BETA_PREWHITELISTED_EMAILS_CSV")
+            key = "EAVE_BETA_PREWHITELISTED_EMAILS_CSV"
+            if self.is_development:
+                value = os.getenv(key, "")
+            else:
+                value = self.get_secret(key)
+
             emails = list(map(str.strip, value.split(",")))
             return emails
         except Exception:

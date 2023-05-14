@@ -29,7 +29,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-get
         """
         response = self._confluence_client.get_all_spaces(space_status="current", space_type="global")
-        response_json = cast(eave.stdlib.util.JsonObject, response)
+        response_json = cast(eave.stdlib.typing.JsonObject, response)
         return [
             eave.stdlib.atlassian.ConfluenceSpace(s, ctx=self.oauth_session.confluence_context)
             for s in response_json["results"]
@@ -90,7 +90,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         )
 
         assert response is not None
-        json = cast(eave.stdlib.util.JsonObject, response)
+        json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
         return abstract.DocumentMetadata(
             id=page.id,
@@ -128,7 +128,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         )
         assert response is not None
 
-        json = cast(eave.stdlib.util.JsonObject, response)
+        json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
         return page
 
@@ -143,7 +143,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         if response is None:
             return None
 
-        json = cast(eave.stdlib.util.JsonObject, response)
+        json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
         return page
 
@@ -157,6 +157,6 @@ class ConfluenceDestination(abstract.DocumentDestination):
         if response is None:
             return None
 
-        json = cast(eave.stdlib.util.JsonObject, response)
+        json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
         return page

@@ -28,7 +28,7 @@ def register_event_handlers(app: AsyncApp) -> None:
 
 async def shortcut_eave_watch_request_handler(
     ack: AsyncAck,
-    shortcut: Optional[eave_util.JsonObject],
+    shortcut: Optional[eave.stdlib.typing.JsonObject],
     context: AsyncBoltContext,
 ) -> None:
     logger.debug("WatchRequestEventHandler %s", shortcut)
@@ -51,7 +51,7 @@ async def shortcut_eave_watch_request_handler(
     # eave_util.do_in_background(b.process_shortcut_event())
 
 
-async def event_message_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
+async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext) -> None:
     logger.debug("MessageEventHandler %s", event)
     assert event is not None
 
@@ -75,7 +75,9 @@ async def event_message_handler(event: Optional[eave_util.JsonObject], context: 
     eave_util.do_in_background(b.process_message())
 
 
-async def event_member_joined_channel_handler(event: Optional[eave_util.JsonObject], context: AsyncBoltContext) -> None:
+async def event_member_joined_channel_handler(
+    event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext
+) -> None:
     eave_team = context.get("eave_team")
 
     if not event or not (event.get("channel")) or not (user_id := event.get("user")):
@@ -127,7 +129,7 @@ fixture_collection_enabled = (
 )
 
 
-def save_fixture(event: eave_util.JsonObject) -> None:
+def save_fixture(event: eave.stdlib.typing.JsonObject) -> None:
     os.makedirs(".event_fixtures/message", exist_ok=True)
 
     fn = event["ts"]

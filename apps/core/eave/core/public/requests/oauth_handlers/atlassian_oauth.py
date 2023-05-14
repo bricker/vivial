@@ -2,6 +2,7 @@ import json
 import typing
 
 import atlassian
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 import eave.pubsub_schemas
 import eave.stdlib
 import eave.stdlib.atlassian
@@ -13,7 +14,6 @@ from starlette.responses import RedirectResponse, Response
 import eave.core.internal
 import eave.core.internal.oauth.atlassian as oauth_atlassian
 import eave.core.internal.oauth.state_cookies as oauth_cookies
-import eave.core.internal.orm
 import eave.core.public.request_state
 
 from ...http_endpoint import HTTPEndpoint
@@ -90,7 +90,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         oauth_token_encoded = json.dumps(self.oauth_session.get_token())
 
         async with eave.core.internal.database.async_session.begin() as db_session:
-            installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
+            installation = await AtlassianInstallationOrm.one_or_none(
                 session=db_session,
                 atlassian_cloud_id=self.atlassian_cloud_id,
             )
@@ -118,7 +118,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     )
 
                     spaces_response = confluence_client.get_all_spaces(space_status="current", space_type="global")
-                    spaces_response_json = typing.cast(eave.stdlib.util.JsonObject, spaces_response)
+                    spaces_response_json = typing.cast(eave.stdlib.typing.JsonObject, spaces_response)
                     spaces = [
                         eave.stdlib.atlassian.ConfluenceSpace(s, self.oauth_session.confluence_context)
                         for s in spaces_response_json["results"]

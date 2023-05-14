@@ -9,7 +9,8 @@ import openai.error
 import openai.openai_object
 import tiktoken
 
-from . import exceptions, logger, util
+from . import exceptions, logger
+from .typing import JsonObject
 from .config import shared_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
@@ -72,7 +73,7 @@ class ChatCompletionParameters:
     stop: Optional[List[str]] = None
     max_tokens: Optional[int] = None
 
-    def compile(self) -> util.JsonObject:
+    def compile(self) -> JsonObject:
         params = dict[str, Any]()
         params["model"] = self.model
 

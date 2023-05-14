@@ -325,14 +325,14 @@ def makeurl(path: str) -> str:
 def build_message_to_sign(
     method: str,
     url: str,
-    request_id: uuid.UUID,
-    origin: eave_origins.EaveOrigin,
+    request_id: uuid.UUID | str,
+    origin: eave_origins.EaveOrigin | str,
     payload: str,
-    team_id: typing.Optional[uuid.UUID],
-    account_id: typing.Optional[uuid.UUID],
+    team_id: typing.Optional[uuid.UUID | str],
+    account_id: typing.Optional[uuid.UUID | str],
 ) -> str:
     signature_elements: typing.List[str] = [
-        origin.value,
+        origin,
         method,
         url,
         str(request_id),
