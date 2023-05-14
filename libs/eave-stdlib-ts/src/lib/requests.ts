@@ -19,17 +19,12 @@ export function setOrigin(origin: EaveOrigin): void {
   ORIGIN = origin;
 }
 
+export function getOrigin(): EaveOrigin {
+  return ORIGIN;
+}
+
 // TODO: implement real signing!!
 /*TODO move to singing files?
-    signature_message = build_message_to_sign(
-        method=method,
-        url=url,
-        request_id=request_id,
-        origin=_ORIGIN,
-        team_id=team_id,
-        account_id=account_id,
-        payload=payload,
-    )
 
     signature = signing.sign_b64(
         signing_key=signing.get_key(signer=_ORIGIN.value),
@@ -37,6 +32,33 @@ export function setOrigin(origin: EaveOrigin): void {
     )
 
 */
+function buildMessageToSign(
+  method: string,
+  url: string,
+  requestId: string,
+  origin: EaveOrigin | string,
+  payload: string,
+  teamId?: string,
+  accountId?: string,
+): string {
+  const signatureElements = [
+    origin,
+    method,
+    url,
+    requestId,
+    payload,
+  ]
+
+  if (teamId !== undefined) {
+    signatureElements.push(teamId);
+  }
+  if (accountId !== undefined) {
+    signatureElements.push(accountId);
+  }
+
+  return signatureElements.join(':');
+}
+
 async function computeSignature(payload: string, teamId?: string): Promise<string> {
   const key = await sharedConfig.;
   const hmac = crypto.createHmac('sha256', key);
