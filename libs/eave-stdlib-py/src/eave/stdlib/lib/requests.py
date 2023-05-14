@@ -64,6 +64,8 @@ async def make_request(
     )
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
+    # TODO: dummy signature to remove once signing is implemented on gh app api
+    headers["eave-secret"] = shared_config.eave_github_app_webhook_secret
     logger.info(
         "Eave Core API request", extra={"json_fields": {"request_id": request_id, "method": method, "url": url}}
     )

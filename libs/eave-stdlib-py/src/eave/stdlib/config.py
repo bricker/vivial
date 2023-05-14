@@ -61,6 +61,10 @@ class EaveConfig:
     @cached_property
     def eave_www_base(self) -> str:
         return self.get_runtimeconfig("EAVE_WWW_BASE") or "https://www.eave.fyi"
+    
+    @cached_property
+    def eave_apps_base(self) -> str:
+        return self.get_runtimeconfig("EAVE_APPS_BASE") or "https://apps.eave.fyi"
 
     @cached_property
     def eave_cookie_domain(self) -> str:
@@ -97,6 +101,10 @@ class EaveConfig:
     @cached_property
     def eave_atlassian_app_client_secret(self) -> str:
         return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
+    
+    @cached_property
+    def eave_github_app_webhook_secret(self) -> str:
+        return self.get_secret('EAVE_GITHUB_APP_WEBHOOK_SECRET')
 
     def get_required_env(self, name: str) -> str:
         if name not in os.environ:

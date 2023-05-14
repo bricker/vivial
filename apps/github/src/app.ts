@@ -1,5 +1,6 @@
 import express from 'express';
 import { standardEndpointsRouter } from '@eave-fyi/eave-stdlib-ts/src/api-util.js';
+import { signatureVerification } from '@eave-fyi/eave-stdlib-ts/src/middleware/signature-verification.js';
 import dispatch from './dispatch.js';
 import { getSummary } from './requests/content.js';
 import { subscribe } from './requests/subscribe.js';
@@ -13,6 +14,8 @@ If even 1 byte were different after passing through JSON.parse and then the sign
 */
 app.use(express.raw({ type: 'application/json' }));
 
+// middleware
+app.use('/github/api', signatureVerification);
 app.use((req, _, next) => {
   console.info('Request: ', req.url);
   next();
@@ -26,12 +29,11 @@ app.post('/github/events', async (req, res) => {
 
 // internal routes
 
-// TODO: signing or something??
-app.post('/github/content', async (req, res) => {
+app.post('/github/api/content', async (req, res) => {
   await getSummary(req, res);
 });
 
-app.post('/github/subscribe', async (req, res) => {
+app.post('/github/api/subscribe', async (req, res) => {
   await subscribe(req, res);
 });
 

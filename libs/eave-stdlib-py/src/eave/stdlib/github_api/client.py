@@ -8,11 +8,11 @@ async def get_file_content(
     input: operations.GetGithubUrlContent.RequestBody,
 ) -> operations.GetGithubUrlContent.ResponseBody:
     """
-    POST /github/content
+    POST /github/api/content
     """
     response = await make_request(
         base=shared_config.eave_apps_base,
-        path="/github/content",
+        path="/github/api/content",
         input=input,
         team_id=eave_team_id,
     )
@@ -26,11 +26,11 @@ async def create_subscription(
     input: operations.CreateGithubResourceSubscription.RequestBody,
 ) -> operations.CreateGithubResourceSubscription.ResponseBody:
     """
-    POST /github/subscribe
+    POST /github/api/subscribe
     """
     response = await make_request(
         base=shared_config.eave_apps_base,
-        path="/github/subscribe",
+        path="/github/api/subscribe",
         input=input,
         team_id=eave_team_id,
     )
