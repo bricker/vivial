@@ -402,17 +402,18 @@ class SlackMessage:
     #             )
     #             return
 
-    async def add_reaction(self, name: str) -> None:
+    async def add_reaction(self, name: str) -> bool:
         assert self.channel is not None
         assert self.ts is not None
 
         try:
             await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
+            return True
         except slack_sdk.errors.SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
             logger.warn(f"Error reacting to message: {error_code}", exc_info=e)
-            return
+            return False
 
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:

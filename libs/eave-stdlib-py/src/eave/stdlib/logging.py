@@ -1,5 +1,6 @@
 import logging
 import sys
+from typing import Optional
 
 import google.cloud.logging
 
@@ -34,7 +35,10 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def setup_logging(level: int = logging.INFO) -> None:
+def setup_logging(level: Optional[int] = None) -> None:
+    if level is None:
+        level = shared_config.log_level
+
     logger.setLevel(level)
 
     if shared_config.dev_mode:

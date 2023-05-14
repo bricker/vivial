@@ -3,6 +3,7 @@ import random
 from typing import Optional
 
 import eave.pubsub_schemas
+from eave.slack.util import log_context
 import eave.stdlib.analytics
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.enums
@@ -12,6 +13,8 @@ import eave.stdlib.openai_client as eave_openai
 import tiktoken
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncBoltContext
+
+from eave.stdlib.typing import JsonObject
 
 from . import document_metadata, message_prompts, slack_models
 
@@ -24,15 +27,19 @@ class Brain:
     expanded_text: str
     message_context: str
     eave_team: eave_models.Team
+    slack_context: AsyncBoltContext
+    log_extra: JsonObject
 
     def __init__(
         self, message: slack_models.SlackMessage, slack_context: AsyncBoltContext, eave_team: eave_models.Team
     ) -> None:
         self.message = message
         self.eave_team = eave_team
+        self.slack_context = slack_context
+        self.log_extra = log_context(slack_context)
 
     async def process_message(self) -> None:
-        logger.debug("Brain.process_message")
+        logger.debug("Brain.process_message", extra=self.log_extra)
 
         await self.load_data()
 
@@ -69,7 +76,7 @@ class Brain:
             """
             subscription_response = await self.get_subscription()
             if subscription_response is None:
-                logger.debug("Eave is not subscribed to this thread; ignoring.")
+                logger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.log_extra)
                 return
 
             message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
@@ -77,7 +84,6 @@ class Brain:
         await self.handle_action(message_action=message_action)
 
     async def process_shortcut_event(self) -> None:
-        logger.debug("Brain.shortcut_event")
         await self.acknowledge_receipt()
 
         # source = eave_models.SubscriptionSource(
@@ -174,7 +180,6 @@ class Brain:
         Subscribes to the thread and creates initial documentation if not already subscribed,
         otherwise notifies the user that I'm already watching this conversation.
         """
-        logger.debug("Brain.process_watch_request")
         existing_subscription = await self.get_subscription()
 
         if existing_subscription is None:
@@ -216,7 +221,6 @@ class Brain:
         Processes a request that wasn't recognized.
         Basically lets the user know that I wasn't able to process the message, and reminds them if I'm already documenting this conversation.
         """
-        logger.debug("Brain.process_unknown_request")
         subscription = await self.get_subscription()
 
         # TODO: Create a Jira ticket (or similar) when Eave doesn't know how to handle a message.
@@ -281,7 +285,6 @@ class Brain:
         3. Send the final document to Core API (i.e. save the document to the organization's documentation destination)
         4. Send a follow-up response to the original Slack thread with a link to the documentation
         """
-        logger.debug("Brain.create_documentation")
 
         api_document = await self.build_documentation()
         upsert_document_response = await self.upsert_document(document=api_document)
@@ -309,7 +312,6 @@ class Brain:
         )
 
     async def build_documentation(self) -> eave_ops.DocumentInput:
-        logger.debug("Brain.build_documentation")
         conversation = await self.build_context()
 
         document_topic = await document_metadata.get_topic(conversation)
@@ -573,7 +575,9 @@ class Brain:
 
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
-        await self.message.add_reaction("eave")
+        success = await self.message.add_reaction("eave")
+        if not success:
+            await self.message.add_reaction("thumbsup")
 
     async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
         subscription = await eave_core.get_subscription(
