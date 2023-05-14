@@ -1,11 +1,11 @@
 import uuid
 from datetime import datetime
 from typing import List, Optional
+from eave.stdlib.typing import JsonObject
 
 import pydantic
 
 from . import enums
-from ..typing import LogContext
 
 
 class ConfluenceSpace(pydantic.BaseModel):
@@ -116,4 +116,4 @@ class Integrations(pydantic.BaseModel):
 class ErrorResponse(pydantic.BaseModel):
     status_code: int
     error_message: str
-    context: Optional[LogContext]
+    context: Optional[JsonObject]

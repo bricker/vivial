@@ -1,11 +1,9 @@
 import uuid
 
-import eave.stdlib.exceptions as eave_exceptions
-import eave.stdlib.headers as eave_headers
+import eave.stdlib
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
-from eave.stdlib import api_util, logger
 
-from .. import request_state as request_util
+import eave.core.public
 from . import EaveASGIMiddleware
 
 ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
@@ -21,27 +19,31 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
 
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] not in ALLOWED_ASGI_PROTOCOLS:
-            raise eave_exceptions.BadRequestError(f"Unsupported protocol: {scope['type']}")
-
-        # Ensure that scope["state"] is available as early as possible.
-        # Starlette does this too, but too late in the cycle.
-        scope.setdefault("state", {})
+            raise eave.stdlib.exceptions.BadRequestError(f"Unsupported protocol: {scope['type']}")
 
         if scope["type"] == "http":
-            request_id_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_REQUEST_ID_HEADER)
+            with self.auto_eave_state(scope=scope) as eave_state:
+                request_id_header = eave.stdlib.api_util.get_header_value(
+                    scope=scope, name=eave.stdlib.headers.EAVE_REQUEST_ID_HEADER
+                )
 
-            if not request_id_header:
-                request_id = uuid.uuid4()
-            else:
-                request_id = uuid.UUID(request_id_header)
+                if not request_id_header:
+                    request_id = str(uuid.uuid4())
+                else:
+                    request_id = request_id_header
 
-            eave_state = request_util.get_eave_state(scope)
-            eave_state.request_id = request_id
-            logger.info(
-                f"Request: {eave_state.request_path}",
-                extra={
-                    "json_fields": scope,
-                },
-            )
+                eave_state.request_id = request_id
+                eave_state.request_method = scope["method"]
+                eave_state.request_scheme = scope["scheme"]
+                eave_state.request_path = scope["path"]
+                eave_state.request_headers = eave.stdlib.api_util.get_headers(
+                    scope,
+                    redact=[eave.stdlib.headers.EAVE_COOKIE_HEADER, eave.stdlib.headers.EAVE_AUTHORIZATION_HEADER],
+                )
+
+                eave.stdlib.logger.info(
+                    f"Request: {eave_state.request_path}",
+                    extra=eave_state.log_context,
+                )
 
         await self.app(scope, receive, send)

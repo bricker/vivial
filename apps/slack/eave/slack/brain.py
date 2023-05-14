@@ -8,7 +8,6 @@ import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.exceptions as eave_exceptions
 import eave.stdlib.openai_client as eave_openai
 import tiktoken
 from eave.stdlib import logger

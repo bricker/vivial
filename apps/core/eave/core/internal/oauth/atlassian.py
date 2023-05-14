@@ -113,7 +113,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             method="GET",
             url="https://api.atlassian.com/oauth/token/accessible-resources",
         )
-        available_resources_data: List[eave.stdlib.util.JsonObject] = available_resources_response.json()
+        available_resources_data: List[eave.stdlib.typing.JsonObject] = available_resources_response.json()
         available_resources = [eave.stdlib.atlassian.AtlassianAvailableResource(**j) for j in available_resources_data]
         return available_resources
 
@@ -123,7 +123,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             url=f"{self.api_base_url}/rest/api/user/current",
         )
 
-        response_json: eave.stdlib.util.JsonObject = response.json()
+        response_json: eave.stdlib.typing.JsonObject = response.json()
         userinfo = eave.stdlib.atlassian.ConfluenceUser(data=response_json, ctx=self.confluence_context)
         return userinfo
 

@@ -3,12 +3,14 @@ import time
 import typing
 import uuid
 
+import eave.stdlib
 import eave.pubsub_schemas
 from google.api_core.exceptions import NotFound
 from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
 
-from . import logger, util
+from . import logger
+from .typing import JsonObject
 from .config import shared_config
 
 publisher_client = PublisherClient()
@@ -21,7 +23,7 @@ def log_event(
     event_name: str,
     event_description: str,
     event_source: str,
-    opaque_params: typing.Optional[util.JsonObject] = None,
+    opaque_params: typing.Optional[JsonObject] = None,
     eave_account_id: typing.Optional[uuid.UUID] = None,
     eave_visitor_id: typing.Optional[uuid.UUID] = None,
     eave_team_id: typing.Optional[uuid.UUID] = None,

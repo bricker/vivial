@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
-
-import eave.stdlib.core_api
+import eave.stdlib
 from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -71,14 +70,14 @@ class TeamOrm(Base):
                 raise NotImplementedError(f"unsupported document platform: {self.document_platform}")
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
-        lookup = select(cls).where(cls.id == team_id).limit(1)
+    async def one_or_exception(cls, session: AsyncSession, team_id: UUID | str) -> Self:
+        lookup = select(cls).where(cls.id == eave.stdlib.util.ensure_uuid(team_id)).limit(1)
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, team_id: UUID) -> Self | None:
-        lookup = select(cls).where(cls.id == team_id).limit(1)
+    async def one_or_none(cls, session: AsyncSession, team_id: UUID | str) -> Self | None:
+        lookup = select(cls).where(cls.id == eave.stdlib.util.ensure_uuid(team_id)).limit(1)
         team = await session.scalar(lookup)
         return team
 
