@@ -2,32 +2,28 @@ import http
 
 import eave.pubsub_schemas
 import eave.stdlib
-import eave.stdlib.api_util as eave_api_util
-import eave.stdlib.core_api
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as eave_ops
+import eave.core.internal
+import eave.core.public
 from starlette.requests import Request
 from starlette.responses import Response
 from apps.core.eave.core.internal.orm.team import TeamOrm
 
 import eave.core.internal.database as eave_db
-import eave.stdlib.lib.request_state as eave_rutil
-from eave.core.internal.orm.document_reference import DocumentReferenceOrm
+import eave.stdlib.lib.request_state as request_state
 from eave.core.internal.orm.subscription import SubscriptionOrm
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.api_util
 
-from ..http_endpoint import HTTPEndpoint
-
-
-class UpsertDocument(HTTPEndpoint):
+class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = eave_rutil.get_eave_state(request=request)
+        eave_state = request_state.get_eave_state(request=request)
         body = await request.json()
-        input = eave_ops.UpsertDocument.RequestBody.parse_obj(body)
+        input = eave.stdlib.core_api.operations.UpsertDocument.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
             team = await TeamOrm.one_or_exception(
                 session=db_session,
-                team_id=eave_state.eave_team_id,
+                team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id),
             )
             # get all subscriptions we wish to associate the new document with
             subscriptions = [
@@ -69,7 +65,7 @@ class UpsertDocument(HTTPEndpoint):
                     },
                 )
 
-                document_reference = await DocumentReferenceOrm.create(
+                document_reference = await eave.core.internal.orm.DocumentReferenceOrm.create(
                     session=db_session,
                     team_id=team.id,
                     document_id=document_metadata.id,
@@ -106,10 +102,10 @@ class UpsertDocument(HTTPEndpoint):
                 if subscription.document_reference_id is None:
                     subscription.document_reference_id = document_reference.id
 
-            model = eave_ops.UpsertDocument.ResponseBody(
+            model = eave.stdlib.core_api.operations.UpsertDocument.ResponseBody(
                 team=eave_models.Team.from_orm(team),
                 subscriptions=[eave_models.Subscription.from_orm(subscription) for subscription in subscriptions],
                 document_reference=eave_models.DocumentReference.from_orm(document_reference),
             )
 
-            return eave_api_util.json_response(status_code=http.HTTPStatus.ACCEPTED, model=model)
+            return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.ACCEPTED, model=model)

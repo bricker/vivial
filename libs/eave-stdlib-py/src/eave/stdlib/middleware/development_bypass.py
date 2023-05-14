@@ -1,20 +1,20 @@
 import uuid
 
-import eave.stdlib.headers as eave_headers
+import eave.stdlib
+import eave.core.internal
+import eave.core.public
 from asgiref.typing import HTTPScope
-from eave.stdlib import api_util, logger
 
-from ..lib import request_state as request_util
-from ..config import shared_config
+from ..lib.request_state import EaveRequestState
 
 
 def development_bypass_allowed(scope: HTTPScope) -> bool:
-    if not shared_config.dev_mode:
+    if not eave.core.internal.app_config.dev_mode:
         return False
-    if shared_config.google_cloud_project == "eave-production":
+    if eave.core.internal.app_config.google_cloud_project == "eave-production":
         return False
 
-    dev_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_DEV_BYPASS_HEADER)
+    dev_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_DEV_BYPASS_HEADER)
     if not dev_header:
         return False
 
@@ -22,17 +22,24 @@ def development_bypass_allowed(scope: HTTPScope) -> bool:
 
     expected_uname = str(os.uname())
     if dev_header == expected_uname:
-        logger.warning("Development bypass request accepted; some checks will be bypassed.")
+        eave.stdlib.logger.warning("Development bypass request accepted; some checks will be bypassed.")
         return True
 
     raise Exception()
 
 
-async def development_bypass_auth(scope: HTTPScope) -> None:
-    logger.warning("Bypassing auth verification in dev environment")
-    eave_state = request_util.get_eave_state(scope=scope)
-    account_id = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
+async def development_bypass_auth(
+    scope: HTTPScope, eave_state: EaveRequestState
+) -> None:
+    eave.stdlib.logger.warning("Bypassing auth verification in dev environment")
+    account_id = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_AUTHORIZATION_HEADER)
     if not account_id:
         raise Exception()
 
-    eave_state.eave_account_id = uuid.UUID(account_id)
+    async with eave.core.internal.database.async_session.begin() as db_session:
+        eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
+            session=db_session,
+            id=uuid.UUID(account_id),
+        )
+
+    eave_state.eave_account_id = str(eave_account.id)

@@ -102,12 +102,12 @@ class SlackProfile:
 
 
 class SlackConversationTopic:
-    data: eave_util.JsonObject
+    data: eave.stdlib.typing.JsonObject
     value: str
     creator: str
     last_set: int
 
-    def __init__(self, json: eave_util.JsonObject) -> None:
+    def __init__(self, json: eave.stdlib.typing.JsonObject) -> None:
         self.data = json
         self.value = json["value"]
         self.creator = json["creator"]
@@ -212,7 +212,7 @@ class SlackReaction:
     users: Optional[list[str]]
     count: Optional[int]
 
-    def __init__(self, data: eave_util.JsonObject) -> None:
+    def __init__(self, data: eave.stdlib.typing.JsonObject) -> None:
         self.name = data.get("name")
         self.users = data.get("users")
         self.count = data.get("count")
@@ -231,18 +231,18 @@ class SlackMessage:
 
     _ctx: _SlackContext
 
-    event: eave_util.JsonObject
+    event: eave.stdlib.typing.JsonObject
     subtype: Optional[str]
     """https://api.slack.com/events/message#subtypes"""
 
     client_message_id: Optional[str]
     bot_id: Optional[str]
     app_id: Optional[str]
-    bot_profile: Optional[eave_util.JsonObject]
+    bot_profile: Optional[eave.stdlib.typing.JsonObject]
     text: Optional[str]
     user: Optional[str]
     ts: str
-    edited: Optional[eave_util.JsonObject]
+    edited: Optional[eave.stdlib.typing.JsonObject]
     channel: Optional[str]
     blocks: Optional[list[Any]]
     team: Optional[str]
@@ -272,7 +272,7 @@ class SlackMessage:
     urls: list[str]
 
     def __init__(
-        self, data: eave_util.JsonObject, slack_context: AsyncBoltContext, channel: Optional[str] = None
+        self, data: eave.stdlib.typing.JsonObject, slack_context: AsyncBoltContext, channel: Optional[str] = None
     ) -> None:
         self._ctx = _SlackContext(context=slack_context)
         self.event = data
@@ -402,17 +402,18 @@ class SlackMessage:
     #             )
     #             return
 
-    async def add_reaction(self, name: str) -> None:
+    async def add_reaction(self, name: str) -> bool:
         assert self.channel is not None
         assert self.ts is not None
 
         try:
             await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
+            return True
         except slack_sdk.errors.SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
             logger.warn(f"Error reacting to message: {error_code}", exc_info=e)
-            return
+            return False
 
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:

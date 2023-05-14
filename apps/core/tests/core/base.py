@@ -7,14 +7,13 @@ from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
 
 import eave.stdlib
+import eave.stdlib.test_util
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
 import eave.stdlib.jwt
 import eave.stdlib.lib.requests
-import mockito
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
-from eave.stdlib.test_util import TestUtilityMixin
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -42,7 +41,7 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 eave.core.internal.database.async_engine.echo = False  # shhh
 
 
-class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
+class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -67,8 +66,6 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
-        # mockito.verifyStubbedInvocationsAreUsed()
-        mockito.unstub()
         await self.httpclient.aclose()
         await eave.core.internal.database.async_engine.dispose()
 
@@ -105,7 +102,7 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
     async def make_request(
         self,
         path: str,
-        payload: Optional[eave.stdlib.util.JsonObject] = None,
+        payload: Optional[eave.stdlib.typing.JsonObject] = None,
         method: str = "POST",
         headers: Optional[dict[str, Optional[str]]] = None,
         origin: Optional[eave.stdlib.eave_origins.EaveOrigin] = None,
@@ -281,7 +278,7 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    def confluence_document_response_fixture(self) -> eave.stdlib.util.JsonObject:
+    def confluence_document_response_fixture(self) -> eave.stdlib.typing.JsonObject:
         return {
             "id": self.anystring("confluence_document_response.id"),
             "type": "page",
@@ -484,7 +481,7 @@ class BaseTestCase(TestUtilityMixin, unittest.IsolatedAsyncioTestCase):
             },
         }
 
-    def slack_chat_postMessage_response_fixture(self) -> eave.stdlib.util.JsonObject:
+    def slack_chat_postMessage_response_fixture(self) -> eave.stdlib.typing.JsonObject:
         return {
             "ok": True,
             "channel": self.anystring("slack.channel"),

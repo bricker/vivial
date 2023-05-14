@@ -1,4 +1,5 @@
 import enum
+import logging
 import os
 import sys
 from functools import cached_property
@@ -22,6 +23,15 @@ class EaveConfig:
     @property
     def dev_mode(self) -> bool:
         return sys.flags.dev_mode
+
+    @cached_property
+    def log_level(self) -> int:
+        mapping = logging.getLevelNamesMapping()
+        if self.is_development:
+            level = os.getenv("EAVE_LOG_LEVEL", "INFO")
+        else:
+            level = self.get_runtimeconfig("EAVE_LOG_LEVEL") or "INFO"
+        return mapping.get(level, logging.INFO)
 
     @property
     def eave_env(self) -> EaveEnvironment:

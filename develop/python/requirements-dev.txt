@@ -3,7 +3,6 @@ black
 httpx
 types-requests
 python-dotenv
-mockito
 pytest
 pretty_errors
 ruff

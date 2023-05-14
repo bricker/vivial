@@ -11,17 +11,19 @@ T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
 
 
-class TestUtilityMixin:
+class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any] = {}
     active_patches: dict[str, unittest.mock.Mock] = {}
     active_dict_patches: dict[str, Any] = {}
 
     async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
         self.mock_google_services()
         self.mock_slack_client()
         self.mock_signing()
 
     async def asyncTearDown(self) -> None:
+        await super().asyncTearDown()
         self.stop_all_patches()
 
     @staticmethod
@@ -30,8 +32,7 @@ class TestUtilityMixin:
 
     @staticmethod
     def unwrap(value: Optional[T]) -> T:
-        assert value is not None
-        return value
+        return eave.stdlib.util.unwrap(value)
 
     def anystring(self, name: Optional[str] = None) -> str:
         if name is None:
@@ -135,6 +136,7 @@ class TestUtilityMixin:
 
     def patch(self, patch: unittest.mock._patch) -> unittest.mock.Mock:  # type:ignore
         m = patch.start()
+        m._testMethodName = self._testMethodName
         self.active_patches[f"{patch.target.__name__}.{patch.attribute}"] = m
         return m
 

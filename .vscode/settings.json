@@ -81,7 +81,12 @@
   "python.analysis.inlayHints.functionReturnTypes": true,
   "python.analysis.inlayHints.variableTypes": true,
   "python.analysis.extraPaths": [
-    "vendor"
+    "vendor",
+    "${workspaceFolder}/libs/eave-stdlib-py/src",
+    "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
+    "${workspaceFolder}/apps/core",
+    "${workspaceFolder}/apps/slack",
+    "${workspaceFolder}/apps/marketing",
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
@@ -112,11 +117,6 @@
   ],
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
-    "${workspaceFolder}/apps/core",
-    "${workspaceFolder}/apps/slack",
-    "${workspaceFolder}/apps/marketing",
-    "${workspaceFolder}/libs/eave-stdlib-py/src",
-    "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
   ],
   "python.analysis.inlayHints.pytestParameters": true,
   "ruff.args": [

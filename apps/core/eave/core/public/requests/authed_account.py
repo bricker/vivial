@@ -1,47 +1,51 @@
-import eave.stdlib.api_util as autil
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as ops
+import eave.stdlib
+import eave.core.internal
+import eave.core.public
 from starlette.requests import Request
 from starlette.responses import Response
+import eave.stdlib.lib.request_state as request_state
 
-import eave.core.internal.database as db
-import eave.core.internal.orm as orm
-import eave.stdlib.lib.request_state as rutil
-
-from ..http_endpoint import HTTPEndpoint
-
-
-class GetAuthedAccount(HTTPEndpoint):
+class GetAuthedAccount(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = rutil.get_eave_state(request=request)
-        eave_account_orm = eave_state.eave_account
-        eave_team_orm = eave_state.eave_team
+        eave_state = request_state.get_eave_state(request=request)
 
-        eave_team = eave_models.Team.from_orm(eave_team_orm)
-        eave_account = eave_models.AuthenticatedAccount.from_orm(eave_account_orm)
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            eave_team_orm = await eave.core.internal.orm.TeamOrm.one_or_exception(
+                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
+            )
+            eave_account_orm = await eave.core.internal.orm.AccountOrm.one_or_exception(
+                session=db_session, id=eave.stdlib.util.unwrap(eave_state.eave_account_id)
+            )
 
-        return autil.json_response(
-            ops.GetAuthenticatedAccount.ResponseBody(
+        eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
+        eave_account = eave.stdlib.core_api.models.AuthenticatedAccount.from_orm(eave_account_orm)
+
+        return eave.stdlib.api_util.json_response(
+            eave.stdlib.core_api.operations.GetAuthenticatedAccount.ResponseBody(
                 account=eave_account,
                 team=eave_team,
             )
         )
 
 
-class GetAuthedAccountTeamIntegrations(HTTPEndpoint):
+class GetAuthedAccountTeamIntegrations(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = rutil.get_eave_state(request=request)
-        eave_account_orm = eave_state.eave_account
-        eave_team_orm = eave_state.eave_team
+        eave_state = request_state.get_eave_state(request=request)
 
-        async with db.async_session.begin() as db_session:
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            eave_team_orm = await eave.core.internal.orm.TeamOrm.one_or_exception(
+                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
+            )
+            eave_account_orm = await eave.core.internal.orm.AccountOrm.one_or_exception(
+                session=db_session, id=eave.stdlib.util.unwrap(eave_state.eave_account_id)
+            )
             integrations = await eave_team_orm.get_integrations(session=db_session)
 
-        eave_team = eave_models.Team.from_orm(eave_team_orm)
-        eave_account = eave_models.AuthenticatedAccount.from_orm(eave_account_orm)
+        eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
+        eave_account = eave.stdlib.core_api.models.AuthenticatedAccount.from_orm(eave_account_orm)
 
-        return autil.json_response(
-            ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody(
+        return eave.stdlib.api_util.json_response(
+            eave.stdlib.core_api.operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody(
                 account=eave_account,
                 team=eave_team,
                 integrations=integrations,
@@ -49,17 +53,21 @@ class GetAuthedAccountTeamIntegrations(HTTPEndpoint):
         )
 
 
-class UpdateAtlassianIntegration(HTTPEndpoint):
+class UpdateAtlassianIntegration(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = rutil.get_eave_state(request=request)
+        eave_state = request_state.get_eave_state(request=request)
         body = await request.json()
-        input = ops.UpdateAtlassianInstallation.RequestBody.parse_obj(body)
+        input = eave.stdlib.core_api.operations.UpdateAtlassianInstallation.RequestBody.parse_obj(body)
 
-        eave_account_orm = eave_state.eave_account
-        eave_team_orm = eave_state.eave_team
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            eave_team_orm = await eave.core.internal.orm.TeamOrm.one_or_exception(
+                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
+            )
+            eave_account_orm = await eave.core.internal.orm.AccountOrm.one_or_exception(
+                session=db_session, id=eave.stdlib.util.unwrap(eave_state.eave_account_id)
+            )
 
-        async with db.async_session.begin() as db_session:
-            installation = await orm.AtlassianInstallationOrm.one_or_exception(
+            installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_exception(
                 session=db_session,
                 team_id=eave_team_orm.id,
             )
@@ -67,12 +75,12 @@ class UpdateAtlassianIntegration(HTTPEndpoint):
             if input.atlassian_integration.confluence_space_key is not None:
                 installation.confluence_space_key = input.atlassian_integration.confluence_space_key
 
-        eave_team = eave_models.Team.from_orm(eave_team_orm)
-        eave_account = eave_models.AuthenticatedAccount.from_orm(eave_account_orm)
-        atlassian_integration = eave_models.AtlassianInstallation.from_orm(installation)
+        eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
+        eave_account = eave.stdlib.core_api.models.AuthenticatedAccount.from_orm(eave_account_orm)
+        atlassian_integration = eave.stdlib.core_api.models.AtlassianInstallation.from_orm(installation)
 
-        return autil.json_response(
-            ops.UpdateAtlassianInstallation.ResponseBody(
+        return eave.stdlib.api_util.json_response(
+            eave.stdlib.core_api.operations.UpdateAtlassianInstallation.ResponseBody(
                 account=eave_account,
                 team=eave_team,
                 atlassian_integration=atlassian_integration,

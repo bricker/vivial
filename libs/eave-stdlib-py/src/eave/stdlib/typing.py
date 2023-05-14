@@ -1,4 +1,5 @@
 from typing import Any
 
 
-LogContext = dict[str, Any]
+JsonScalar = str | int | bool | None
+JsonObject = dict[str, Any]

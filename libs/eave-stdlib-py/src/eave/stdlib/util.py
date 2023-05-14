@@ -3,12 +3,10 @@ import base64
 import hashlib
 import logging
 from functools import wraps
-from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar, cast
+from typing import Any, Awaitable, Callable, Coroutine, Optional, ParamSpec, TypeVar, cast
+import uuid
 
 logger = logging.getLogger("eave-stdlib-py")
-
-JsonScalar = str | int | bool | None
-JsonObject = dict[str, Any]
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -102,6 +100,17 @@ def ensure_bytes(data: str | bytes) -> bytes:
         return data
 
 
+def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
+    if isinstance(data, uuid.UUID):
+        return data
+    elif isinstance(data, bytes):
+        return uuid.UUID(bytes=data)
+    elif isinstance(data, int):
+        return uuid.UUID(int=data)
+    elif isinstance(data, str):
+        return uuid.UUID(hex=data)
+
+
 tasks = set[asyncio.Task[Any]]()
 
 
@@ -130,3 +139,28 @@ def xor(a: Any, b: Any) -> bool:
 def xnor(a: Any, b: Any) -> bool:
     """Exactly one"""
     return not xor(a, b)
+
+
+def dict_from_obj_dict(obj: object, attrs: list[str]) -> dict[str, Any]:
+    return {attr: obj.__dict__[attr] for attr in attrs if attr in obj.__dict__}
+
+
+def set_obj_dict_from_dict(obj: object, allowed_attrs: list[str], provided_attrs: dict[object, object]) -> None:
+    for attr in allowed_attrs:
+        if attr in provided_attrs:
+            obj.__dict__[attr] = provided_attrs[attr]
+
+
+def dict_from_attrs(obj: object, attrs: list[str]) -> dict[str, Any]:
+    return {attr: getattr(obj, attr) for attr in attrs if hasattr(obj, attr)}
+
+
+def set_attrs_from_dict(obj: object, allowed_attrs: list[str], provided_attrs: dict[object, object]) -> None:
+    for attr in allowed_attrs:
+        if attr in provided_attrs:
+            obj.__setattr__(attr, provided_attrs[attr])
+
+
+def unwrap(value: Optional[T]) -> T:
+    assert value is not None, "value was expected, but None was found."
+    return value

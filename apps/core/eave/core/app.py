@@ -1,3 +1,5 @@
+from functools import reduce
+from typing import Type
 import eave.stdlib.api_util
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -7,6 +9,7 @@ from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.routing import Route
 
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 from .public import middlewares
 from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, integrations, noop, subscriptions, team, status
@@ -30,23 +33,40 @@ def make_route(
     By default, all headers are required. This is an attempt to prevent a developer error from bypassing security mechanisms.
     """
 
-    route: ASGI3Application = endpoint
+    # The middlewares in this list should be ordered starting with the outermost middleware first.
+    # The outermost middleware is the middleware that will be run first on the request, and last on the response.
+    #
+    # Example:
+    #   wrappers = [ OuterMost, Second, InnerMost ]
+    #
+    # The built route ends up being called like this:
+    #   route = OuterMost(Second(InnerMost(endpoint)))
+
+    out_to_in_wrappers: list[Type[EaveASGIMiddleware]] = []
+
+    if origin_required:
+        out_to_in_wrappers.append(middlewares.OriginASGIMiddleware)
 
     if signature_required:
         # If signature is required, origin is also required.
         assert origin_required
-        route = middlewares.SignatureVerificationASGIMiddleware(app=route)
-
-    if origin_required:
-        route = middlewares.OriginASGIMiddleware(app=route)
+        out_to_in_wrappers.append(middlewares.SignatureVerificationASGIMiddleware)
 
     if auth_required:
-        route = middlewares.AuthASGIMiddleware(app=route)
+        out_to_in_wrappers.append(middlewares.AuthASGIMiddleware)
 
     if team_id_required:
-        route = middlewares.TeamLookupASGIMiddleware(app=route)
+        out_to_in_wrappers.append(middlewares.TeamLookupASGIMiddleware)
 
-    return Route(path=path, endpoint=route)
+    # The middlewares list needs to be reversed before initializing because of the call stack.
+    # Reversing the middlewares is the same as doing this:
+    #   route = InnerMost(endpoint)
+    #   route = Second(route)
+    #   route = OuterMost(route)
+    # Which is the same as:
+    #   route = OuterMost(Second(InnerMost(endpoint)))
+    wrapped_endpoint = reduce(lambda acc, v: v(app=acc), reversed(out_to_in_wrappers), endpoint)
+    return Route(path=path, endpoint=wrapped_endpoint)
 
 
 routes = [

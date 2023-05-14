@@ -1,5 +1,5 @@
 import http
-from typing import Any
+from typing import Any, Optional
 
 import pydantic
 
@@ -46,6 +46,25 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+
+
+def get_headers(
+    scope: HTTPScope, exclude: Optional[list[str]] = None, redact: Optional[list[str]] = None
+) -> dict[str, str]:
+    """
+    This function doesn't support multiple headers with the same name.
+    It will always choose the "first" one (from whatever order the ASGI server sent).
+    See here for details about the scope["headers"] object:
+    https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
+    """
+    if exclude is None:
+        exclude = []
+    if redact is None:
+        redact = []
+
+    return {
+        n.decode(): (v.decode() if n not in redact else "[redacted]") for [n, v] in scope["headers"] if n not in exclude
+    }
 
 
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:

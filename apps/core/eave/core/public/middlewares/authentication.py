@@ -1,17 +1,13 @@
 import re
 import uuid
 
-import eave.stdlib.exceptions as eave_exceptions
-import eave.stdlib.headers as eave_headers
+import eave.stdlib
+import eave.core.internal
+import eave.core.public
 import sqlalchemy.exc
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
-from eave.stdlib import api_util, logger
 
-import eave.core.internal.database as eave_db
-import eave.stdlib.lib.request_state as request_util
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.team import TeamOrm
-
+from eave.stdlib.lib.request_state import EaveRequestState
 from eave.stdlib.middleware import development_bypass
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 
@@ -19,61 +15,59 @@ from eave.stdlib.middleware.base import EaveASGIMiddleware
 class AuthASGIMiddleware(EaveASGIMiddleware):
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
-            if development_bypass.development_bypass_allowed(scope=scope):
-                await development_bypass.development_bypass_auth(scope=scope)
-            else:
-                await self._verify_auth(scope=scope)
+            with self.auto_eave_state(scope=scope) as eave_state:
+                if development_bypass.development_bypass_allowed(scope=scope):
+                    await development_bypass.development_bypass_auth(scope=scope, eave_state=eave_state)
+                else:
+                    await self._verify_auth(scope=scope, eave_state=eave_state)
 
         await self.app(scope, receive, send)
 
     @staticmethod
-    async def _verify_auth(scope: HTTPScope) -> None:
-        eave_state = request_util.get_eave_state(scope=scope)
-
-        account_id_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_ACCOUNT_ID_HEADER)
+    async def _verify_auth(scope: HTTPScope, eave_state: EaveRequestState) -> None:
+        account_id_header = eave.stdlib.api_util.get_header_value(
+            scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
+        )
         if not account_id_header:
-            logger.error("account ID header missing/empty", extra=eave_state.log_context)
-            raise eave_exceptions.MissingRequiredHeaderError("eave-account-id")
+            eave.stdlib.logger.error("account ID header missing/empty", extra=eave_state.log_context)
+            raise eave.stdlib.exceptions.MissingRequiredHeaderError("eave-account-id")
 
         try:
             account_id = uuid.UUID(account_id_header)
         except ValueError as e:
-            logger.error("malformed account ID", extra=eave_state.log_context)
-            raise eave_exceptions.BadRequestError() from e
+            eave.stdlib.logger.error("malformed account ID", extra=eave_state.log_context)
+            raise eave.stdlib.exceptions.BadRequestError() from e
 
-        auth_header = api_util.get_header_value(scope=scope, name=eave_headers.EAVE_AUTHORIZATION_HEADER)
+        auth_header = eave.stdlib.api_util.get_header_value(
+            scope=scope, name=eave.stdlib.headers.EAVE_AUTHORIZATION_HEADER
+        )
         if not auth_header:
-            logger.error("auth header missing/empty", extra=eave_state.log_context)
-            raise eave_exceptions.InvalidAuthError()
+            eave.stdlib.logger.error("auth header missing/empty", extra=eave_state.log_context)
+            raise eave.stdlib.exceptions.InvalidAuthError()
 
         auth_header_match = re.match("^Bearer (.+)$", auth_header)
         if auth_header_match is None:
-            logger.error("auth header malformed", extra=eave_state.log_context)
-            raise eave_exceptions.InvalidAuthError()
+            eave.stdlib.logger.error("auth header malformed", extra=eave_state.log_context)
+            raise eave.stdlib.exceptions.InvalidAuthError()
 
         access_token: str = auth_header_match.group(1)
 
-        async with eave_db.async_session.begin() as db_session:
+        async with eave.core.internal.database.async_session.begin() as db_session:
             try:
-                eave_account = await AccountOrm.one_or_exception(
+                eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
                     session=db_session,
                     id=account_id,
                     access_token=access_token,
                 )
             except sqlalchemy.exc.SQLAlchemyError as e:
-                logger.error("auth token or account not found", exc_info=e, extra=eave_state.log_context)
-                raise eave_exceptions.UnauthorizedError()
+                eave.stdlib.logger.error("auth token or account not found", exc_info=e, extra=eave_state.log_context)
+                raise eave.stdlib.exceptions.UnauthorizedError()
 
             try:
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
-            except eave_exceptions.AccessTokenExpiredError:
+            except eave.stdlib.exceptions.AccessTokenExpiredError:
                 await eave_account.refresh_oauth_token(session=db_session, log_context=eave_state.log_context)
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
 
-            eave_team = await TeamOrm.one_or_exception(
-                session=db_session,
-                team_id=eave_account.team_id,
-            )
-
-        eave_state.eave_account = eave_account
-        eave_state.eave_team = eave_team
+        eave_state.eave_account_id = str(eave_account.id)
+        eave_state.eave_team_id = str(eave_account.team_id)

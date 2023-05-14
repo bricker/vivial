@@ -4,6 +4,8 @@ import uuid
 import aiohttp
 import urllib.parse
 from http import HTTPStatus
+
+from pyparsing import Opt
 from .. import exceptions as eave_exceptions
 from .. import headers as eave_headers
 from .. import logger, signing
@@ -115,14 +117,14 @@ def makeurl(path: str, base: Optional[str] = None) -> str:
 def build_message_to_sign(
     method: str,
     url: str,
-    request_id: uuid.UUID,
-    origin: eave_origins.EaveOrigin,
+    request_id: uuid.UUID | str,
+    origin: eave_origins.EaveOrigin | str,
     payload: str,
-    team_id: Optional[uuid.UUID],
-    account_id: Optional[uuid.UUID],
+    team_id: Optional[uuid.UUID | str],
+    account_id: Optional[uuid.UUID | str],
 ) -> str:
     signature_elements: list[str] = [
-        origin.value,
+        origin,
         method,
         url,
         str(request_id),
