@@ -4,17 +4,16 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-bin/lint
-# bin/test
-
 function deploy() {
-	local usage="Usage: deploy [-n]"
-	local skipdb
+	local usage="Usage: deploy [-d (skips datababase operations)] [-t (skips tests)]"
+	local skipdb=""
+	local skiptests=""
 
-	while getopts "n" argname
+	while getopts "dt" argname
 	do
 		case "$argname" in
-			n) skipdb="1" ;;
+			d) skipdb="1" ;;
+			t) skiptests="1" ;;
 			h)
 				echo $usage
 				exit 0
@@ -22,10 +21,18 @@ function deploy() {
 		esac
 	done
 
+	bin/lint
+
+	if test -z "$skiptests"; then
+		bin/test
+	else
+		statusmsg -w "Skipping tests (-t flag passed)"
+	fi
+
 	if test -z "$skipdb"; then
 		bin/run-db-migration
 	else
-		statusmsg -w "Skipping database operations (-n flag passed)"
+		statusmsg -w "Skipping database operations (-d flag passed)"
 	fi
 
 	${EAVE_HOME}/develop/python/bin/deploy-appengine

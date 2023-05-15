@@ -2,5 +2,10 @@
 
 set -eu
 
+# TODO: Some way to automatically set these
+# CLOUDSDK_ACTIVE_CONFIG_NAME
+# EAVE_DB_HOST
+# EAVE_DB_NAME
+
 source ${EAVE_HOME}/develop/functions.bash
 run-with-dotenv python -m alembic upgrade head
