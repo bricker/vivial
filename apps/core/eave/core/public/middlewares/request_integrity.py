@@ -41,9 +41,4 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
                     redact=[eave.stdlib.headers.EAVE_COOKIE_HEADER, eave.stdlib.headers.EAVE_AUTHORIZATION_HEADER],
                 )
 
-                eave.stdlib.logger.info(
-                    f"Request: {eave_state.request_path}",
-                    extra=eave_state.log_context,
-                )
-
         await self.app(scope, receive, send)

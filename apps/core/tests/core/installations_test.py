@@ -25,6 +25,7 @@ class TestInstallationsRequests(BaseTestCase):
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
                 slack_team_id=self.anystring("slack_team_id"),
+                bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
 
         response = await self.make_request(
@@ -52,13 +53,14 @@ class TestInstallationsRequests(BaseTestCase):
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
                 slack_team_id=self.anystring("slack_team_id"),
+                bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
 
         response = await self.make_request(
             path="/integrations/slack/query",
             payload={
-                "whoops": {
-                    "whoops": self.anystring("whoops"),
+                self.anystring(): {
+                    self.anystring(): self.anystring(),
                 },
             },
         )
@@ -80,42 +82,42 @@ class TestInstallationsRequests(BaseTestCase):
         response_obj = eave.stdlib.core_api.models.ErrorResponse(**response.json())
         assert response_obj
 
-    # async def test_get_github_installation(self) -> None:
-    #     team = await self.make_team()
+    async def test_get_github_installation(self) -> None:
+        team = await self.make_team()
 
-    #     async with eave_db.async_session.begin() as db_session:
-    #         await eave.core.internal.orm.github_installation.GithubInstallationOrm.create(
-    #             session=db_session,
-    #             team_id=team.id,
-    #             github_install_id=self.anystring("github_install_id"),
-    #         )
+        async with eave_db.async_session.begin() as db_session:
+            await eave.core.internal.orm.github_installation.GithubInstallationOrm.create(
+                session=db_session,
+                team_id=team.id,
+                github_install_id=self.anystring("github_install_id"),
+            )
 
-    #     response = await self.make_request(
-    #         path="/integrations/github/query",
-    #         payload=eave.stdlib.core_api.operations.GetGithubInstallation.RequestBody(
-    #             github_integration=eave.stdlib.core_api.operations.GithubInstallationInput(
-    #                 github_install_id=self.anystring("github_install_id"),
-    #             ),
-    #         ).dict(),
-    #     )
+        response = await self.make_request(
+            path="/integrations/github/query",
+            payload={
+                "github_integration": {
+                    "github_install_id": self.anystring("github_install_id"),
+                },
+            },
+        )
 
-    #     assert response.status_code == HTTPStatus.OK
-    #     response_obj = eave_ops.GetGithubInstallation.ResponseBody(**response.json())
+        assert response.status_code == HTTPStatus.OK
+        response_obj = eave_ops.GetGithubInstallation.ResponseBody(**response.json())
 
-    #     assert response_obj.github_integration.github_install_id == self.anystring("github_install_id")
+        assert response_obj.github_integration.github_install_id == self.anystring("github_install_id")
 
-    # async def test_get_github_installation_not_found(self) -> None:
-    #     response = await self.make_request(
-    #         path="/integrations/github/query",
-    #         payload=eave.stdlib.core_api.operations.GetGithubInstallation.RequestBody(
-    #             github_integration=eave.stdlib.core_api.operations.GithubInstallationInput(
-    #                 github_install_id=self.anystring("github_install_id"),
-    #             ),
-    #         ).dict(),
-    #     )
+    async def test_get_github_installation_not_found(self) -> None:
+        response = await self.make_request(
+            path="/integrations/github/query",
+            payload={
+                "github_integration": {
+                    "github_install_id": self.anystring("github_install_id"),
+                },
+            },
+        )
 
-    #     assert response.status_code == HTTPStatus.NOT_FOUND
-    #     assert response.text == ""
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert response.json().get("status_code") == HTTPStatus.NOT_FOUND
 
     async def test_get_atlassian_installation(self) -> None:
         team = await self.make_team()

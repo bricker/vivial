@@ -6,6 +6,7 @@ from starlette.responses import Response
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 import eave.core.public.request_state as eave_rutil
+from eave.stdlib.exceptions import NotFoundError
 
 
 from ..http_endpoint import HTTPEndpoint
@@ -22,13 +23,16 @@ class SlackIntegration(HTTPEndpoint):
         input = eave_core.operations.GetSlackInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            installation = await eave_orm.SlackInstallationOrm.one_or_exception(
+            installation = await eave_orm.SlackInstallationOrm.one_or_none(
                 session=db_session,
                 slack_team_id=input.slack_integration.slack_team_id,
             )
 
+            if not installation:
+                raise NotFoundError()
+
             # ensure access tokens are up to date
-            await installation.refresh_token_or_exception()
+            await installation.refresh_token_or_exception(session=db_session)
 
             eave_team_orm = await eave_orm.TeamOrm.one_or_exception(
                 session=db_session,
@@ -53,10 +57,13 @@ class GithubIntegration(HTTPEndpoint):
         input = eave_core.operations.GetGithubInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            installation = await eave_orm.GithubInstallationOrm.one_or_exception(
+            installation = await eave_orm.GithubInstallationOrm.one_or_none(
                 session=db_session,
                 github_install_id=input.github_integration.github_install_id,
             )
+
+            if not installation:
+                raise NotFoundError()
 
             eave_team = await eave_orm.TeamOrm.one_or_exception(
                 session=db_session,
@@ -81,10 +88,13 @@ class AtlassianIntegration(HTTPEndpoint):
         input = eave_core.operations.GetAtlassianInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            installation = await eave_orm.AtlassianInstallationOrm.one_or_exception(
+            installation = await eave_orm.AtlassianInstallationOrm.one_or_none(
                 session=db_session,
                 atlassian_cloud_id=input.atlassian_integration.atlassian_cloud_id,
             )
+
+            if not installation:
+                raise NotFoundError()
 
             eave_team = await eave_orm.TeamOrm.one_or_exception(
                 session=db_session,

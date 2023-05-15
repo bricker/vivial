@@ -1,6 +1,7 @@
 import enum
 import re
 from typing import List
+from eave.stdlib.exceptions import OpenAIDataError, UnexpectedMissingValue
 
 import eave.stdlib.openai_client as eave_openai
 
@@ -26,7 +27,8 @@ async def get_topic(conversation: str) -> str:
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
     return openai_response
 
 
@@ -57,7 +59,8 @@ async def get_hierarchy(conversation: str) -> List[str]:
     )
 
     answer: str | None = await eave_openai.chat_completion(openai_params)
-    assert answer is not None
+    if answer is None:
+        raise OpenAIDataError()
 
     parents = list(map(lambda x: x.strip(), answer.split(",")))
     return parents
@@ -84,7 +87,8 @@ async def get_project_title(conversation: str) -> str:
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
     return openai_response
 
 
@@ -125,7 +129,8 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
 
     if re.search(DocumentationType.TECHNICAL.value, openai_response, flags=re.IGNORECASE):
         return DocumentationType.TECHNICAL
@@ -192,5 +197,6 @@ async def get_documentation(conversation: str, documentation_type: Documentation
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
     return openai_response

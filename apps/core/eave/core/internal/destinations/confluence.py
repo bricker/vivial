@@ -6,6 +6,7 @@ import atlassian
 import eave.stdlib
 import eave.stdlib.atlassian
 import eave.stdlib.core_api.operations as eave_ops
+from eave.stdlib.exceptions import ConfluenceDataError, OpenAIDataError, UnexpectedMissingValue
 import eave.stdlib.openai_client
 
 from ..oauth import atlassian as atlassian_oauth
@@ -77,7 +78,10 @@ class ConfluenceDestination(abstract.DocumentDestination):
                 messages=[prompt],
             )
             resolved_document_body = await eave.stdlib.openai_client.chat_completion(params=openai_params)
-            assert resolved_document_body is not None
+
+            if resolved_document_body is None:
+                raise OpenAIDataError()
+
         else:
             resolved_document_body = input.content
 
@@ -89,7 +93,9 @@ class ConfluenceDestination(abstract.DocumentDestination):
             body=content,
         )
 
-        assert response is not None
+        if response is None:
+            raise ConfluenceDataError("confluence update_page response")
+
         json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
         return abstract.DocumentMetadata(
@@ -126,7 +132,9 @@ class ConfluenceDestination(abstract.DocumentDestination):
             body=content,
             parent_id=parent_page.id if parent_page is not None else None,
         )
-        assert response is not None
+
+        if response is None:
+            raise ConfluenceDataError("confluence create_page response")
 
         json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)

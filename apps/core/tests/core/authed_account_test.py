@@ -70,6 +70,7 @@ class TestAuthedAccountRequests(BaseTestCase):
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
                 slack_team_id=self.anystring("slack_team_id"),
+                bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
                 session=db_session,
@@ -100,6 +101,7 @@ class TestAuthedAccountRequests(BaseTestCase):
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
                 slack_team_id=self.anystring("slack_team_id"),
+                bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
                 session=db_session,

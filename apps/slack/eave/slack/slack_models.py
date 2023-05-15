@@ -6,6 +6,7 @@ from typing import Any, AsyncGenerator, List, Optional
 import eave.pubsub_schemas
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
+from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
 import slack_sdk.models.blocks
@@ -23,7 +24,9 @@ class _SlackContext:
 
     def __init__(self, context: AsyncBoltContext) -> None:
         self._context = context
-        assert context.client is not None
+        if context.client is None:
+            raise SlackDataError("_SlackContext context.client")
+
         self.client = context.client
 
 
@@ -351,7 +354,9 @@ class SlackMessage:
             before: @Eave what time is it?
             after: what time is it?
         """
-        assert self.text is not None
+        if self.text is None:
+            raise SlackDataError("message text")
+
         return re.sub("^(<@.+?>\\s?)+", "", self.text)
 
     @property
@@ -370,7 +375,8 @@ class SlackMessage:
     async def send_response(
         self, text: Optional[str] = None, blocks: Optional[List[slack_sdk.models.blocks.Block]] = None
     ) -> None:
-        assert self.channel is not None
+        if self.channel is None:
+            raise SlackDataError("channel")
 
         if text is not None:
             msg = f"<@{self.user}> {text}"
@@ -403,8 +409,10 @@ class SlackMessage:
     #             return
 
     async def add_reaction(self, name: str) -> bool:
-        assert self.channel is not None
-        assert self.ts is not None
+        if self.channel is None:
+            raise SlackDataError("channel")
+        if self.ts is None:
+            raise SlackDataError("message ts")
 
         try:
             await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
@@ -412,7 +420,7 @@ class SlackMessage:
         except slack_sdk.errors.SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
-            logger.warn(f"Error reacting to message: {error_code}", exc_info=e)
+            logger.warning(f"Error reacting to message: {error_code}", exc_info=e)
             return False
 
     @eave_util.memoized
@@ -461,7 +469,8 @@ class SlackMessage:
 
     @eave_util.memoized
     async def get_conversation_messages(self) -> list["SlackMessage"] | None:
-        assert self.channel is not None
+        if self.channel is None:
+            raise SlackDataError("channel")
 
         response = await self._ctx.client.conversations_replies(
             channel=self.channel,
@@ -469,7 +478,8 @@ class SlackMessage:
         )
 
         messages = response.get("messages")
-        assert messages is not None
+        if messages is None:
+            raise SlackDataError("conversation messages")
 
         # FIXME: This seems janky
         messages_list = [SlackMessage(m, slack_context=self._ctx._context) for m in messages]
@@ -502,7 +512,7 @@ class SlackMessage:
     @eave_util.memoized
     async def get_formatted_message(self) -> str | None:
         if self.is_bot_message:
-            logger.info("skipping bot message")
+            logger.debug("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -532,6 +542,7 @@ class SlackMessage:
         """
 
         if self.text is None:
+            eave.stdlib.logger.warning("slack message text unexpectedly None")
             return None
 
         await asyncio.gather(
@@ -727,7 +738,7 @@ class SlackMessage:
     @eave_util.memoized
     async def simple_format(self) -> str | None:
         if self.is_bot_message:
-            logger.info("skipping bot message")
+            logger.debug("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -735,8 +746,11 @@ class SlackMessage:
             self.get_user_profile(),
         )
 
-        assert expanded_text is not None
-        assert user_profile is not None  # FIXME: Maybe this will break for deactivated users?
+        if expanded_text is None:
+            raise SlackDataError("message expanded text")
+        if user_profile is None:
+            # FIXME: Maybe this will break for deactivated users?
+            raise SlackDataError("message user profile")
 
         # TODO: Add job titles
         formatted_message = f"{user_profile.real_name}: {expanded_text}\n\n"

@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import Any, Literal, Optional, cast
 
 import eave.stdlib
 import starlette.applications
@@ -7,6 +7,7 @@ from asgiref.typing import HTTPScope
 
 SCOPE_KEY = "eave_state"
 
+LogContext = dict[Literal["json_fields"], eave.stdlib.typing.JsonObject]
 
 class EaveRequestState:
     eave_account_id: Optional[str] = None
@@ -19,16 +20,12 @@ class EaveRequestState:
     request_headers: Optional[dict[str, str]] = None
 
     def __init__(self, attrs: dict[object, object]) -> None:
-        for key in self.__annotations__.keys():
+        for key, _ in self.__annotations__.items():
             if v := attrs.get(key):
-                self.__setattr__(key, str(v))
+                self.__setattr__(key, v)
 
     @property
-    def object_dict(self) -> dict[object, object]:
-        return cast(dict[object, object], self.__dict__)
-
-    @property
-    def log_context(self) -> eave.stdlib.typing.JsonObject:
+    def log_context(self) -> LogContext:
         payload = {
             "eave_account_id": self.eave_account_id,
             "eave_team_id": self.eave_team_id,
@@ -42,6 +39,12 @@ class EaveRequestState:
 
         # This response structure is for Google Cloud Logging
         return {"json_fields": payload}
+
+    def log_context_extras(self, extras: Optional[eave.stdlib.typing.JsonObject] = None) -> LogContext:
+        v = self.log_context
+        if extras:
+            v["json_fields"].update(extras)
+        return v
 
     @property
     def public_request_context(self) -> eave.stdlib.typing.JsonObject:
@@ -72,13 +75,13 @@ def set_eave_state(
     request: Optional[starlette.requests.Request] = None,
 ) -> None:
     normalized_scope = _normalized_scope(scope=scope, request=request)
-    assert normalized_scope["extensions"] is not None
+    assert normalized_scope["extensions"] is not None, "typecheck only"
     odict = cast(dict[object, object], eave_state.__dict__)
     normalized_scope["extensions"][SCOPE_KEY] = odict
 
 
 def _eave_state_serialized(scope: HTTPScope) -> dict[object, object]:
-    assert scope["extensions"] is not None
+    assert scope["extensions"] is not None, "typecheck only"
     return scope["extensions"].setdefault(SCOPE_KEY, {})
 
 
@@ -86,12 +89,12 @@ def _normalized_scope(
     scope: Optional[HTTPScope] = None, request: Optional[starlette.requests.Request] = None
 ) -> HTTPScope:
     # Validate that exactly one parameter is supplied.
-    assert eave.stdlib.util.xor(scope, request)
+    assert eave.stdlib.util.xor(scope, request), "invalid parameters"
 
     if scope is None and request is not None:
         scope = cast(HTTPScope, request.scope)
 
-    assert scope is not None
+    assert scope is not None, "typecheck only"
 
     if "extensions" not in scope or scope["extensions"] is None:
         scope["extensions"] = {}

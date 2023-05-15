@@ -139,9 +139,10 @@ def get_authenticated_client(access_token: str) -> slack_sdk.web.async_client.As
 
 async def get_userinfo_or_exception(client: slack_sdk.web.async_client.AsyncWebClient) -> SlackIdentity:
     response = await client.openid_connect_userInfo()
-
     response.validate()
-    assert isinstance(response.data, dict)
+    if not isinstance(response.data, dict):
+        raise TypeError("slack oauth userinfo response, dict expected")
+
     return SlackIdentity(response=response.data)
 
 

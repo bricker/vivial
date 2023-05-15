@@ -8,6 +8,7 @@ import eave.slack.slack_models
 from eave.slack.util import log_context
 import eave.stdlib
 import eave.stdlib.core_api
+from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 import eave.stdlib.util as eave_util
 from eave.slack.config import app_config
 from eave.stdlib import logger
@@ -33,10 +34,12 @@ async def shortcut_eave_watch_request_handler(
     context: AsyncBoltContext,
 ) -> None:
     eave.stdlib.logger.debug("Received event: eave_watch_request (shortcut)", extra=log_context(context))
-    assert shortcut is not None
+    if shortcut is None:
+        raise SlackDataError("shortcut parameter")
 
     eave_team = context.get("eave_team")
-    assert eave_team is not None
+    if eave_team is None:
+        raise UnexpectedMissingValue("slack shortcut eave team")
 
     await ack()
 
@@ -55,12 +58,12 @@ async def shortcut_eave_watch_request_handler(
 async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext) -> None:
     extra = log_context(context)
     eave.stdlib.logger.debug("Received event: message", extra=extra)
-    assert event is not None
+    if event is None:
+        raise SlackDataError("event parameter")
 
     eave_team = context.get("eave_team")
     if not eave_team:
-        eave.stdlib.logger.error(msg := "No eave team available in message handler.", extra=extra)
-        raise AssertionError(msg)
+        raise UnexpectedMissingValue("slack event eave team")
 
     message = eave.slack.slack_models.SlackMessage(data=event, slack_context=context)
 
@@ -86,8 +89,7 @@ async def event_member_joined_channel_handler(
     eave_team = context.get("eave_team")
 
     if not event or not (event.get("channel")) or not (user_id := event.get("user")):
-        eave.stdlib.logger.error(msg := "member_joined_channel event received, but channel or user wasn't available.", extra=extra)
-        raise AssertionError(msg)
+        raise SlackDataError("event channel or user")
 
     if user_id != context.bot_user_id:
         eave.stdlib.logger.debug("user_id != context.bot_user_id", extra=extra)

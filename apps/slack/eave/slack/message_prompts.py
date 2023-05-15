@@ -1,6 +1,9 @@
 import enum
 import re
 
+from openai import OpenAIError
+from eave.stdlib.exceptions import OpenAIDataError, UnexpectedMissingValue
+
 import eave.stdlib.openai_client as eave_openai
 from eave.stdlib import logger
 
@@ -47,7 +50,7 @@ class MessageAction(enum.Enum):
 #     elif re.search("letting me know", response, re.IGNORECASE):
 #         purpose = MessageType.WATCH
 #     else:
-#         logger.warn(f"Unexpected purpose response: {response}")
+#         logger.warning(f"Unexpected purpose response: {response}")
 #         purpose = MessageType.OTHER
 
 #     logger.info(f"message purpose: {purpose}")
@@ -92,7 +95,7 @@ async def message_action(context: str) -> MessageAction:
     elif re.search("no action", response, re.IGNORECASE) is not None:
         action = MessageAction.NONE
     else:
-        logger.warn(f"Unexpected message action response: {response}")
+        logger.warning(f"Unexpected message action response: {response}")
         action = MessageAction.UNKNOWN
 
     logger.info(f"message action: {action}")
@@ -106,5 +109,6 @@ async def _get_openai_response(messages: list[str], temperature: int) -> str:
     )
 
     openai_completion: str | None = await eave_openai.chat_completion(params)
-    assert openai_completion is not None
+    if openai_completion is None:
+        raise OpenAIDataError()
     return openai_completion

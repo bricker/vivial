@@ -48,7 +48,7 @@ def make_route(
 
     if signature_required:
         # If signature is required, origin is also required.
-        assert origin_required
+        assert origin_required, "origin header is required for signature"
         out_to_in_wrappers.append(middlewares.SignatureVerificationASGIMiddleware)
 
     if auth_required:
@@ -208,8 +208,8 @@ routes = [
 ]
 
 middleware = [
-    Middleware(middlewares.ExceptionHandlerASGIMiddleware),
     Middleware(middlewares.RequestIntegrityASGIMiddleware),
+    Middleware(middlewares.LoggingASGIMiddleware),
 ]
 
 app = starlette.applications.Starlette(

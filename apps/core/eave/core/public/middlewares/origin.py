@@ -17,12 +17,10 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
     def _process_origin(scope: HTTPScope, eave_state: eave.core.public.request_state.EaveRequestState) -> None:
         origin_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ORIGIN_HEADER)
         if not origin_header:
-            eave.stdlib.logger.error("missing/empty eave origin header", extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError("eave-origin")
+            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ORIGIN_HEADER)
 
         try:
             origin = eave.stdlib.EaveOrigin(value=origin_header)
             eave_state.eave_origin = str(origin)
-        except ValueError as e:
-            eave.stdlib.logger.error("invalid eave origin", exc_info=e, extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.BadRequestError() from e
+        except ValueError:
+            raise eave.stdlib.exceptions.BadRequestError("invalid eave-origin")

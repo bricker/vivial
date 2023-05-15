@@ -53,8 +53,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
         signature = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_SIGNATURE_HEADER)
         if not signature:
             # reject None or empty strings
-            eave.stdlib.logger.error("missing signature", extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError("eave-signature")
+            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_SIGNATURE_HEADER)
 
         payload = body.decode()
         team_id_header = eave.stdlib.api_util.get_header_value(
