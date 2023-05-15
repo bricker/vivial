@@ -52,7 +52,7 @@ pretty_errors.configure(
     #show_suppressed           = False,
     #stack_depth               = 0,
     #timestamp_function        = time.perf_counter,
-    top_first                 = True,
+    top_first                 = False,
     trace_lines_after         = 2,
     trace_lines_before        = 2,
     #truncate_code             = False,

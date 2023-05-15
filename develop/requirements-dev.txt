@@ -1,2 +1,4 @@
 python-dotenv[cli]
 mitmproxy
+click
+-e ${EAVE_HOME}/develop/python

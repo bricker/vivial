@@ -6,4 +6,4 @@ source ${EAVE_HOME}/develop/functions.bash
 python-validate-version
 python-activate-venv
 
-run-with-dotenv python -m pytest -c ${EAVE_HOME}/develop/python/pyproject.toml
+run-with-dotenv python -m pytest -c ${EAVE_HOME}/develop/python/tooling_configs.toml

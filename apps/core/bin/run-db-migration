@@ -1,11 +1,24 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python
 
-set -eu
+import os
+import click
+from eave.dev_tooling.dotenv_loader import load_merged_dotenv_files
+import alembic
+import alembic.config
+import alembic.command
 
-# TODO: Some way to automatically set these
-# CLOUDSDK_ACTIVE_CONFIG_NAME
-# EAVE_DB_HOST
-# EAVE_DB_NAME
+EAVE_HOME = os.environ["EAVE_HOME"]
+alembic_config = alembic.config.Config("alembic.ini")
 
-source ${EAVE_HOME}/develop/functions.bash
-run-with-dotenv python -m alembic upgrade head
+@click.command()
+@click.option("-e", "--env-file", "env_files", multiple=True, default=[f"{EAVE_HOME}/.env"])
+def upgrade(env_files: list[str]) -> None:
+    load_merged_dotenv_files(files=env_files)
+
+    alembic.command.upgrade(
+        revision="head",
+        config=alembic_config,
+    )
+
+if __name__ == "__main__":
+    upgrade()
