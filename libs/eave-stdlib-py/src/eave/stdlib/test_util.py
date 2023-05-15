@@ -39,7 +39,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def unwrap(value: Optional[T]) -> T:
         return eave.stdlib.util.unwrap(value)
 
-    def anydatetime(self, name: Optional[str] = None, offset: Optional[int] = None, future: Optional[Literal[True]] = None, past: Optional[Literal[True]] = None) -> datetime:
+    def anydatetime(
+        self,
+        name: Optional[str] = None,
+        offset: Optional[int] = None,
+        future: Optional[Literal[True]] = None,
+        past: Optional[Literal[True]] = None,
+    ) -> datetime:
         """
         - offset, future, and past arguments are mutually exclusive. Passing more than one is undefined behavior.
         - offset specified in positive or negative seconds.
@@ -50,7 +56,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            oneyear = 60*60*24*365
+            oneyear = 60 * 60 * 24 * 365
             if not offset:
                 if not future and not past:
                     offset = random.randint(-oneyear, oneyear)
@@ -133,7 +139,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     @staticmethod
-    def all_same(obj1: object, obj2: object, attrs: Optional[list[str]]=None) -> bool:
+    def all_same(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
         """
         Checks if all attributes `attrs` on objects `obj1` and `obj2` are the same value.
         """
@@ -156,7 +162,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return passing
 
     @staticmethod
-    def all_different(obj1: object, obj2: object, attrs: Optional[list[str]]=None) -> bool:
+    def all_different(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
         """
         Reciprical of `all_same`: Checks if all attributes `attrs` on objects `obj1` and `obj2` are a different value.
         This is not the same as `not all_same(...)`; that would pass if _any_ of the attributes were different,

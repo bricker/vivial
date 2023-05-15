@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta
-import time
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
-import slack_sdk.errors
-from sqlalchemy import Index, Select, func, select, false
+from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -79,7 +77,6 @@ class SlackInstallationOrm(Base):
             # no need to refresh yet.
             return
 
-
         # FIXME: This doesn't really help if a request comes in while the token is being refreshed.
         # The client will just get an error response. We could ask them to retry the request, or make them
         # wait until the refresh is completed.
@@ -92,9 +89,7 @@ class SlackInstallationOrm(Base):
                 refresh_token=self.bot_refresh_token,
             )
 
-            if (access_token := new_tokens.get("access_token")) and (
-                refresh_token := new_tokens.get("refresh_token")
-            ):
+            if (access_token := new_tokens.get("access_token")) and (refresh_token := new_tokens.get("refresh_token")):
                 eave.stdlib.logger.debug("Refreshing Slack auth tokens.")
                 self.bot_token = access_token
                 self.bot_refresh_token = refresh_token
@@ -102,7 +97,7 @@ class SlackInstallationOrm(Base):
                 if expires_in := new_tokens.get("expires_in"):
                     self.bot_token_exp = datetime.utcnow() + timedelta(seconds=expires_in)
                 else:
-                    self.bot_token_exp = None # Be sure we don't retain an old expire value
+                    self.bot_token_exp = None  # Be sure we don't retain an old expire value
 
             else:
                 raise MissingOAuthCredentialsError("slack access or refresh token")

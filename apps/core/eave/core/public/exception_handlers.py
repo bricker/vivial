@@ -1,15 +1,13 @@
 import http
-from typing import Any, Callable, Mapping, cast
+from typing import Any, Callable, Mapping
 
 import eave.stdlib
 import pydantic
-import slack_sdk.errors
-import sqlalchemy.exc
 from starlette.requests import Request
 from starlette.responses import Response
-import starlette.exceptions
 
 from . import request_state
+
 
 def internal_server_error(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
@@ -35,6 +33,7 @@ def not_found(request: Request, exc: Exception) -> Response:
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
+
 def bad_request(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
     eave.stdlib.logger.warning(http.HTTPStatus.BAD_REQUEST, exc_info=exc, extra=eave_state.log_context)
@@ -50,7 +49,9 @@ def bad_request(request: Request, exc: Exception) -> Response:
 
 def unauthorized(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.warning("Authentication error occurred. The client will be logged out.", exc_info=exc, extra=eave_state.log_context)
+    eave.stdlib.logger.warning(
+        "Authentication error occurred. The client will be logged out.", exc_info=exc, extra=eave_state.log_context
+    )
 
     model = eave.stdlib.core_api.models.ErrorResponse(
         status_code=http.HTTPStatus.UNAUTHORIZED,

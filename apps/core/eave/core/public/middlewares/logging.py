@@ -1,7 +1,6 @@
 import eave.stdlib
 import eave.core.public
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
-from starlette.responses import JSONResponse
 
 from . import EaveASGIMiddleware
 
@@ -13,6 +12,12 @@ class LoggingASGIMiddleware(EaveASGIMiddleware):
             return
 
         eave_state = self.eave_state(scope=scope)
-        eave.stdlib.logger.info(f"Request Start: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}", extra=eave_state.log_context)
+        eave.stdlib.logger.info(
+            f"Request Start: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}",
+            extra=eave_state.log_context,
+        )
         await self.app(scope, receive, send)
-        eave.stdlib.logger.info(f"Request End: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}", extra=eave_state.log_context)
+        eave.stdlib.logger.info(
+            f"Request End: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}",
+            extra=eave_state.log_context,
+        )

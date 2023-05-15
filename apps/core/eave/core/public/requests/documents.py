@@ -9,6 +9,7 @@ from starlette.responses import Response
 
 from eave.stdlib.exceptions import UnexpectedMissingValue
 
+
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave.core.public.request_state.get_eave_state(request=request)

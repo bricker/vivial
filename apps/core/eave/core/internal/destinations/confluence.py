@@ -6,7 +6,7 @@ import atlassian
 import eave.stdlib
 import eave.stdlib.atlassian
 import eave.stdlib.core_api.operations as eave_ops
-from eave.stdlib.exceptions import ConfluenceDataError, OpenAIDataError, UnexpectedMissingValue
+from eave.stdlib.exceptions import ConfluenceDataError, OpenAIDataError
 import eave.stdlib.openai_client
 
 from ..oauth import atlassian as atlassian_oauth

@@ -7,7 +7,6 @@ class TestResoureMutex(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-
     async def test_acquire(self) -> None:
         async with self.db_session.begin() as db_session:
             acquired = await ResourceMutexOrm.acquire(session=db_session, resource_id=self.anyuuid("resource_id"))

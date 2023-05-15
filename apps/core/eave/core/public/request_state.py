@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional, cast
+from typing import Literal, Optional, cast
 
 import eave.stdlib
 import starlette.applications
@@ -8,6 +8,7 @@ from asgiref.typing import HTTPScope
 SCOPE_KEY = "eave_state"
 
 LogContext = dict[Literal["json_fields"], eave.stdlib.typing.JsonObject]
+
 
 class EaveRequestState:
     eave_account_id: Optional[str] = None

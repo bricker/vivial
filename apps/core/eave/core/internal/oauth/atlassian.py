@@ -9,7 +9,7 @@ import requests_oauthlib
 from oauthlib.oauth2 import OAuth2Token
 import oauthlib.oauth2.rfc6749
 
-from eave.stdlib.exceptions import ConfluenceDataError, UnexpectedMissingValue
+from eave.stdlib.exceptions import ConfluenceDataError
 
 from ..config import app_config
 from .models import OAuthFlowInfo

@@ -45,5 +45,5 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
         except ValueError:
             raise eave.stdlib.exceptions.BadRequestError("malformed eave-team-id header")
 
-        except sqlalchemy.exc.SQLAlchemyError as e:
+        except sqlalchemy.exc.SQLAlchemyError:
             raise eave.stdlib.exceptions.BadRequestError("team not found")

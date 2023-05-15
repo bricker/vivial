@@ -7,7 +7,7 @@ from functools import cached_property
 import google.cloud.secretmanager
 import google.cloud.runtimeconfig
 
-from eave.stdlib.exceptions import RuntimeConfigRetrievalError, UnexpectedMissingValue
+from eave.stdlib.exceptions import RuntimeConfigRetrievalError
 
 from . import checksum
 

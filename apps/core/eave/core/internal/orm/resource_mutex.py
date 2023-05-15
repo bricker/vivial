@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
-from typing import Literal, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Literal, Optional
 from uuid import UUID
-import slack_sdk.errors
-from sqlalchemy import Index, Select, delete, exists, func, select, false
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -10,7 +9,7 @@ import eave.core.internal.oauth.slack
 import eave.stdlib.logging
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR
 
 
 class ResourceMutexOrm(Base):
