@@ -8,6 +8,10 @@ export class EaveConfig {
     return value;
   }
 
+  get devMode(): boolean {
+    return this.nodeEnv === 'development';
+  }
+
   get nodeEnv(): string {
     return process.env['NODE_ENV'] || 'unknown';
   }

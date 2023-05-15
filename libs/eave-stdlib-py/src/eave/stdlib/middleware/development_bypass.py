@@ -1,17 +1,17 @@
 import uuid
 
-import eave.stdlib
 import eave.core.internal
-import eave.core.public
+import eave.stdlib
+from ..config import shared_config
 from asgiref.typing import HTTPScope
 
 from ..lib.request_state import EaveRequestState
 
 
 def development_bypass_allowed(scope: HTTPScope) -> bool:
-    if not eave.core.internal.app_config.dev_mode:
+    if not shared_config.dev_mode:
         return False
-    if eave.core.internal.app_config.google_cloud_project == "eave-production":
+    if shared_config.google_cloud_project == "eave-production":
         return False
 
     dev_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_DEV_BYPASS_HEADER)

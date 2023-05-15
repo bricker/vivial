@@ -1,7 +1,7 @@
 import fetch, { Response } from 'node-fetch';
 import { v4 as uuid4 } from 'uuid';
-import crypto from 'crypto';
 import { EaveOrigin } from '../eave-origins.js';
+import { getKey, signBase64 } from '../signing.js';
 import eaveHeaders from '../headers.js';
 import {
   NotFoundError,
@@ -23,16 +23,7 @@ export function getOrigin(): EaveOrigin {
   return ORIGIN;
 }
 
-// TODO: implement real signing!!
-/*TODO move to singing files?
-
-    signature = signing.sign_b64(
-        signing_key=signing.get_key(signer=_ORIGIN.value),
-        data=signature_message,
-    )
-
-*/
-function buildMessageToSign(
+export function buildMessageToSign(
   method: string,
   url: string,
   requestId: string,
@@ -59,23 +50,9 @@ function buildMessageToSign(
   return signatureElements.join(':');
 }
 
-async function computeSignature(payload: string, teamId?: string): Promise<string> {
-  const key = await sharedConfig.;
-  const hmac = crypto.createHmac('sha256', key);
-
-  if (teamId !== undefined) {
-    hmac.update(teamId);
-  }
-
-  hmac.update(payload);
-  return hmac.digest('hex');
-  return key;
-}
-
-
 export async function makeRequest(
   path: string,
-  input: unknown,
+  input?: unknown,
   base?: string,
   accessToken?: string,
   teamId?: string,
@@ -89,7 +66,20 @@ export async function makeRequest(
   const requestId = uuid4();
 
   const payload = JSON.stringify(input);
-  const signature = await computeSignature(payload, teamId);
+  const message = buildMessageToSign(
+    method, 
+    url, 
+    requestId, 
+    ORIGIN, 
+    input === undefined ? '' : JSON.stringify(input), 
+    teamId, 
+    accountId
+  );
+
+  const signature = await signBase64(
+    getKey(ORIGIN),
+    message,
+  );
   const headers: { [key: string]: string } = {
     'content-type': 'application/json',
     [eaveHeaders.EAVE_ORIGIN_HEADER]: ORIGIN,

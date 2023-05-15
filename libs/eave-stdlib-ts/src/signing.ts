@@ -103,6 +103,11 @@ export async function signBase64(
     throw new InvalidChecksumError('KMS signing failed');
   }
 
+  validateChecksumOrExcption(
+    Buffer.from(signedResponse.signature),
+    parseInt(<any>signedResponse.signatureCrc32c?.value!, 10)
+  );
+
   return Buffer.from(signedResponse.signature.valueOf()).toString('base64');
 }
 
