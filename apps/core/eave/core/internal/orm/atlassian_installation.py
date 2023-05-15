@@ -3,7 +3,7 @@ import json
 import typing
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib.core_api.models
@@ -60,7 +60,7 @@ class AtlassianInstallationOrm(Base):
         if (atlassian_cloud_id := kwargs.get("atlassian_cloud_id")) is not None:
             lookup = lookup.where(cls.atlassian_cloud_id == atlassian_cloud_id)
 
-        assert lookup.whereclause is not None
+        assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
@@ -115,22 +115,28 @@ class AtlassianInstallationOrm(Base):
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(
             token=self.oauth_token_decoded,
-            token_updater=self.token_updater,
+            token_updater=self.token_updater_factory(),
         )
 
         return session
 
     _tasks = set[asyncio.Task[None]]()
 
-    def token_updater(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
-        # FIXME: This just updates the token in the background, which could cause a race condition.
-        coro = self.update_token(token=token)
-        task = asyncio.create_task(coro)
-        self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
+    def token_updater_factory(self) -> Callable[[oauthlib.oauth2.rfc6749.tokens.OAuth2Token], None]:
+        def token_updater(token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+            # FIXME: This just updates the token in the background, which could cause a race condition.
+            coro = AtlassianInstallationOrm.update_token(id=self.id, token=token)
+            task = asyncio.create_task(coro)
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
 
-    async def update_token(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+        return token_updater
+
+    @classmethod
+    async def update_token(cls, id: uuid.UUID, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
         async with eave_db.async_session.begin() as db_session:
-            db_session.add(self)
-            self.oauth_token_encoded = json.dumps(token)
-            await db_session.commit()
+            query = select(cls).where(cls.id == id)
+            record = await db_session.scalar(query)
+            if record:
+                record.oauth_token_encoded = json.dumps(token)
+                await db_session.commit()

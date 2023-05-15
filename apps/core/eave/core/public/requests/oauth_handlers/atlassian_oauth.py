@@ -51,8 +51,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         refresh_token = token.get("refresh_token")
 
         if not access_token or not refresh_token:
-            eave.stdlib.logger.warning(msg := "missing tokens.", extra=self.eave_state.log_context)
-            raise eave.stdlib.exceptions.InvalidAuthError(msg)
+            raise eave.stdlib.exceptions.MissingOAuthCredentialsError("atlassian access or refresh token")
 
         userinfo = oauth_session.get_userinfo()
         if not userinfo.account_id:
@@ -126,10 +125,10 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     if len(spaces) == 1 and (first_space := next(iter(spaces), None)):
                         default_space_key = first_space.key
 
-                except Exception as e:
+                except Exception:
                     # We aggressively catch any error because this space fetching procedure is a convenience, but failure shouldn't prevent sign-up.
-                    eave.stdlib.logger.error(
-                        "error while fetching confluence spaces", exc_info=e, extra=self.eave_state.log_context
+                    eave.stdlib.logger.exception(
+                        "error while fetching confluence spaces", extra=self.eave_state.log_context
                     )
 
                 installation = await eave.core.internal.orm.AtlassianInstallationOrm.create(

@@ -6,6 +6,8 @@ from functools import wraps
 from typing import Any, Awaitable, Callable, Coroutine, Optional, ParamSpec, TypeVar, cast
 import uuid
 
+from eave.stdlib.exceptions import UnexpectedMissingValue
+
 logger = logging.getLogger("eave-stdlib-py")
 
 T = TypeVar("T")
@@ -132,12 +134,12 @@ def nor(a: Any, b: Any) -> bool:
 
 
 def xor(a: Any, b: Any) -> bool:
-    """Neither or both"""
+    """Exactly one"""
     return bool(a) ^ bool(b)
 
 
 def xnor(a: Any, b: Any) -> bool:
-    """Exactly one"""
+    """Neither or both"""
     return not xor(a, b)
 
 
@@ -162,5 +164,6 @@ def set_attrs_from_dict(obj: object, allowed_attrs: list[str], provided_attrs: d
 
 
 def unwrap(value: Optional[T]) -> T:
-    assert value is not None, "value was expected, but None was found."
+    if value is None:
+        raise UnexpectedMissingValue("force-unwrapped a None value")
     return value

@@ -7,6 +7,8 @@ from functools import cached_property
 import google.cloud.secretmanager
 import google.cloud.runtimeconfig
 
+from eave.stdlib.exceptions import RuntimeConfigRetrievalError, UnexpectedMissingValue
+
 from . import checksum
 
 # TODO: Use runtime-configs
@@ -89,7 +91,8 @@ class EaveConfig:
     @cached_property
     def eave_slack_app_id(self) -> str:
         value = self.get_runtimeconfig("EAVE_SLACK_APP_ID")
-        assert value is not None
+        if value is None:
+            raise RuntimeConfigRetrievalError("runtimeconfig: EAVE_SLACK_APP_ID")
         return value
 
     @cached_property

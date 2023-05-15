@@ -6,6 +6,7 @@ from typing import Any, Mapping, Optional, Sequence
 
 import eave.stdlib.config
 from eave.stdlib import logger
+from eave.stdlib.exceptions import UnexpectedMissingValue
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
@@ -50,7 +51,8 @@ class AppConfig(eave.stdlib.config.EaveConfig):
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
         encoded = self.get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
-        assert encoded is not None
+        if not encoded:
+            raise UnexpectedMissingValue("secret: EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
         bytes = base64.b64decode(encoded)
         credentials: dict[str, Any] = json.loads(bytes)
         return credentials

@@ -32,22 +32,18 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
                 if eave_state.eave_team_id == team_id:
                     return
                 else:
-                    eave.stdlib.logger.error("team ID header does not match account", extra=eave_state.log_context)
-                    raise eave.stdlib.exceptions.BadRequestError()
+                    raise eave.stdlib.exceptions.BadRequestError("mismatched team and account")
 
             if not team_id_header:
-                eave.stdlib.logger.error("team ID header missing/empty", extra=eave_state.log_context)
-                raise eave.stdlib.exceptions.MissingRequiredHeaderError("eave-team-id")
+                raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
 
             team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
             async with eave.core.internal.database.async_session.begin() as db_session:
                 team = await eave.core.internal.orm.TeamOrm.one_or_exception(session=db_session, team_id=team_id)
                 eave_state.eave_team_id = str(team.id)
 
-        except ValueError as e:
-            eave.stdlib.logger.error("invalid team ID", exc_info=e, extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.BadRequestError() from e
+        except ValueError:
+            raise eave.stdlib.exceptions.BadRequestError("malformed eave-team-id header")
 
         except sqlalchemy.exc.SQLAlchemyError as e:
-            eave.stdlib.logger.error("team lookup failed", exc_info=e, extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.BadRequestError() from e
+            raise eave.stdlib.exceptions.BadRequestError("team not found")

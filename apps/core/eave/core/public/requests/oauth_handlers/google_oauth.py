@@ -9,6 +9,7 @@ from starlette.responses import RedirectResponse, Response
 import eave.core.internal.oauth.google
 import eave.core.public.request_state
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from eave.stdlib.exceptions import MissingOAuthCredentialsError
 
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared
@@ -41,7 +42,8 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
         # google.oauth2.credentials.Credentials and doesn't contain common oauth properties like refresh_token.
         # The `cast` here gives us type hints, autocomplete, etc. for `flow.credentials`
         credentials = cast(google.oauth2.credentials.Credentials, flow.credentials)
-        assert credentials.id_token is not None
+        if credentials.id_token is None:
+            raise MissingOAuthCredentialsError("google oauth2 credentials")
 
         google_token = eave.core.internal.oauth.google.decode_id_token(id_token=credentials.id_token)
         eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else "Your Team"

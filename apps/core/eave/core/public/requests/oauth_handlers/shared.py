@@ -178,9 +178,9 @@ async def create_new_account_and_team(
                 f"```{eave_account.opaque_utm_params}```"
             ),
         )
-    except Exception as e:
-        eave.stdlib.logger.error(
-            "Error while sending message to #sign-ups slack channel", exc_info=e, extra=eave_state.log_context
+    except Exception:
+        eave.stdlib.logger.exception(
+            "Error while sending message to #sign-ups slack channel", extra=eave_state.log_context
         )
 
     return eave_account

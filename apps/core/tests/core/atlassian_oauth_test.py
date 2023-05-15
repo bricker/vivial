@@ -35,7 +35,7 @@ class TestAtlassianOAuth(BaseTestCase):
 
         token = oauthlib.oauth2.rfc6749.tokens.OAuth2Token(self.anydict("token"))
 
-        sut.token_updater(token=token)
+        sut.token_updater_factory()(token)
         await asyncio.gather(*sut._tasks)
 
         sut_after = await self.reload(sut)

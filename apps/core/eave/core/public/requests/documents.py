@@ -7,6 +7,7 @@ import eave.core.public
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.stdlib.exceptions import UnexpectedMissingValue
 
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
@@ -23,8 +24,9 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             )
 
             destination = await team.get_document_destination(session=db_session)
-            # TODO: Error message: "You have not setup a document destination"
-            assert destination is not None
+            if destination is None:
+                # TODO: Error message: "You have not setup a document destination"
+                raise UnexpectedMissingValue("document destination")
 
             existing_document_reference = await subscription.get_document_reference(session=db_session)
 

@@ -1,13 +1,15 @@
 import typing
 from dataclasses import dataclass
 from functools import cache
-from typing import List
+from typing import List, cast
 
 import eave.stdlib
 import eave.stdlib.atlassian
 import requests_oauthlib
 from oauthlib.oauth2 import OAuth2Token
 import oauthlib.oauth2.rfc6749
+
+from eave.stdlib.exceptions import ConfluenceDataError, UnexpectedMissingValue
 
 from ..config import app_config
 from .models import OAuthFlowInfo
@@ -102,9 +104,8 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     def oauth_flow_info(self) -> OAuthFlowInfo:
         authorization_url, state = self.authorization_url()
 
-        # for the typechecker:
-        assert isinstance(authorization_url, str)
-        assert isinstance(state, str)
+        authorization_url = cast(str, authorization_url)
+        state = cast(str, state)
         return OAuthFlowInfo(authorization_url=authorization_url, state=state)
 
     @cache
@@ -130,7 +131,9 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     @property
     def atlassian_cloud_id(self) -> str:
         available_resources = self.get_available_resources()
-        assert len(available_resources) > 0
+        if len(available_resources) == 0:
+            raise ConfluenceDataError("atlassian available resources")
+
         id: str = available_resources[0].id
         return id
 

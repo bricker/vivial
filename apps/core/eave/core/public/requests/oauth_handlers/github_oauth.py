@@ -78,11 +78,11 @@ class GithubOAuthCallback(HTTPEndpoint):
 
         setup_action = request.query_params.get("setup_action")
         if setup_action != "install":
-            eave.stdlib.logger.warn(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
+            eave.stdlib.logger.warning(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
 
         installation_id = request.query_params.get("installation_id")
         if not installation_id:
-            eave.stdlib.logger.warn(
+            eave.stdlib.logger.warning(
                 f"github installation_id not provided for action {setup_action}. Cannot proceed.",
                 extra=eave_state.log_context,
             )
@@ -96,7 +96,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
         # arrive here then they're expect to be already logged in.
         if not auth_cookies.access_token or not auth_cookies.account_id:
-            eave.stdlib.logger.error(
+            eave.stdlib.logger.warning(
                 "Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context
             )
             return shared.cancel_flow(response=response)

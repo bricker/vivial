@@ -59,7 +59,7 @@ class GithubInstallationOrm(Base):
         if (github_install_id := kwargs.get("github_install_id")) is not None:
             lookup = lookup.where(cls.github_install_id == github_install_id)
 
-        assert lookup.whereclause is not None
+        assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
