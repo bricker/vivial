@@ -1,8 +1,7 @@
 import enum
 import re
 
-from openai import OpenAIError
-from eave.stdlib.exceptions import OpenAIDataError, UnexpectedMissingValue
+from eave.stdlib.exceptions import OpenAIDataError
 
 import eave.stdlib.openai_client as eave_openai
 from eave.stdlib import logger

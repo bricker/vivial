@@ -16,8 +16,10 @@ from .config import app_config
 class MissingSlackTeamIdError(Exception):
     pass
 
+
 class MissingSlackClientError(Exception):
     pass
+
 
 async def authorize(
     team_id: Optional[str], client: Optional[AsyncWebClient], context: AsyncBoltContext

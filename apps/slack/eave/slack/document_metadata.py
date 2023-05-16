@@ -1,7 +1,7 @@
 import enum
 import re
 from typing import List
-from eave.stdlib.exceptions import OpenAIDataError, UnexpectedMissingValue
+from eave.stdlib.exceptions import OpenAIDataError
 
 import eave.stdlib.openai_client as eave_openai
 

@@ -6,7 +6,7 @@ from typing import Any, AsyncGenerator, List, Optional
 import eave.pubsub_schemas
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
-from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
+from eave.stdlib.exceptions import SlackDataError
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
 import slack_sdk.models.blocks
