@@ -96,6 +96,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         conn = await self.db_session().connection()
         await conn.execute(text(f"truncate {tnames} cascade").execution_options(autocommit=True))
         await conn.commit()
+        await conn.close()
         await eave.core.internal.database.async_engine.dispose()
 
         await self.httpclient.aclose()
