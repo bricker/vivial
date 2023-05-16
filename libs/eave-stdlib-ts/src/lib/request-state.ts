@@ -11,7 +11,7 @@ export type EaveRequestState = {
   request_method?: string;
   request_scheme?: string;
   request_path?: string;
-  request_headers?: object;
+  request_headers?: { [key: string]: string };
 }
 
 export function getEaveState(req: Request): EaveRequestState {
@@ -31,6 +31,6 @@ export function setEaveScope(req: Request, eaveState: EaveRequestState): void {
  */
 function normalizeScope(req: Request): void {
   if ((<any>req)['extensions'] === undefined) {
-    (<any>req)['extensions'] = {[SCOPE_KEY]: {}};
+    (<any>req)['extensions'] = { [SCOPE_KEY]: {} };
   }
 }
