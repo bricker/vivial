@@ -111,7 +111,7 @@ export async function makeRequest(
       method,
       url,
     }
-  })
+  });
 
   const response = await fetch(url, requestInit);
 

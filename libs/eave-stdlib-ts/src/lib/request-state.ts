@@ -16,12 +16,12 @@ export type EaveRequestState = {
 
 export function getEaveState(req: Request): EaveRequestState {
   normalizeScope(req);
-  return <EaveRequestState>req['extensions'][SCOPE_KEY];
+  return <EaveRequestState>(<any>req['extensions'])[SCOPE_KEY];
 }
 
 export function setEaveScope(req: Request, eaveState: EaveRequestState): void {
   normalizeScope(req);
-  req['extensions'][SCOPE_KEY] = eaveState;
+  (<any>req['extensions'][SCOPE_KEY]) = eaveState;
 }
 
 /**
@@ -30,7 +30,7 @@ export function setEaveScope(req: Request, eaveState: EaveRequestState): void {
  * @param req request to add/edit extensions scope to
  */
 function normalizeScope(req: Request): void {
-  if (req['extensions'] === undefined) {
-    req['extensions'] = {[SCOPE_KEY]: {}};
+  if (<any>req['extensions'] === undefined) {
+    (<any>req['extensions']) = {[SCOPE_KEY]: {}};
   }
 }

@@ -50,7 +50,7 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, eave
 
   try {
     verifySignatureOrException(signingKey, message, signature);
-  } catch(error) {
+  } catch(error: any) {
     res.statusMessage = error.message;
     res.status(401).end();
     return false;

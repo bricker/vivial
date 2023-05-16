@@ -11,7 +11,7 @@ class TestSignatureVerification(BaseTestCase):
             headers={"eave-signature": None},
         )
 
-        assert response.status_code == HTTPStatus.OK
+        assert response.status == HTTPStatus.OK
         assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 0
 
     async def test_missing_signature_header(self) -> None:
@@ -22,7 +22,7 @@ class TestSignatureVerification(BaseTestCase):
             },
         )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.status == HTTPStatus.BAD_REQUEST
         assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 0
 
     async def test_mismatched_signature(self) -> None:
@@ -33,7 +33,7 @@ class TestSignatureVerification(BaseTestCase):
             },
         )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.status == HTTPStatus.BAD_REQUEST
         assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 1
 
     async def test_signature_with_team_id(self) -> None:
@@ -54,5 +54,5 @@ class TestSignatureVerification(BaseTestCase):
             },
         )
 
-        assert response.status_code == HTTPStatus.CREATED
+        assert response.status == HTTPStatus.CREATED
         assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 1

@@ -1,9 +1,9 @@
 import { EaveOrigin, ExternalOrigin } from "./eave-origins.js";
 import { sharedConfig } from "./config.js";
 import { KeyManagementServiceClient, protos } from '@google-cloud/kms';
-import { CRC32C } from '@google-cloud/storage';
+import crc32c from 'fast-crc32c';
 import crypto from 'crypto';
-import { InvalidChecksumError, InvalidSignatureError } from "./exceptions.js";
+import { InvalidChecksumError, InvalidSignatureError } from "./exceptions.js"; 
 
 const KMS_KEYRING_LOCATION = 'global';
 const KMS_KEYRING_NAME = 'primary';
@@ -91,12 +91,12 @@ export async function signBase64(
     messageBytes = data;
   }
   const digest = crypto.createHash('sha256').update(messageBytes).digest();
-  const digestCrc32c = generateChecksum(digest);
+  // const digestCrc32c = generateChecksum(digest);
 
   const [signedResponse] = await kmsClient.asymmetricSign({
     name: keyVersionName,
     digest: { 'sha256': digest },
-    digestCrc32c: <any>digestCrc32c, // have to cast to any since I couldnt find the IInt64Value
+    // digestCrc32c: digestCrc32c,
   });
 
   if (signedResponse.signature === null || signedResponse.signature === undefined || !signedResponse.verifiedDataCrc32c || signedResponse.name !== keyVersionName) {
@@ -111,10 +111,9 @@ export async function signBase64(
   return Buffer.from(signedResponse.signature.valueOf()).toString('base64');
 }
 
-function generateChecksum(data: Buffer): number {
-  const checksum = new CRC32C();
-  checksum.update(data);
-  return checksum.valueOf();
+function generateChecksum(data: Buffer): protos.google.protobuf.IInt64Value {
+  const checksum = crc32c.calculate(data);
+  return <any>checksum;
 }
 
 function validateChecksumOrExcption(data: Buffer, checksum: number): void {
