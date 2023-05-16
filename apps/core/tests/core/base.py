@@ -1,5 +1,4 @@
 import json
-import logging
 import unittest
 import unittest.mock
 import urllib.parse
@@ -16,7 +15,7 @@ import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select, text
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.app
 import eave.core.internal
@@ -42,6 +41,7 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 
 _DB_SETUP: bool = False
 
+
 async def _onetime_setup_db() -> None:
     global _DB_SETUP
     if _DB_SETUP:
@@ -60,12 +60,12 @@ async def _onetime_setup_db() -> None:
 
     _DB_SETUP = True
 
+
 class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         print("")
         super().__init__(methodName)
         self.addAsyncCleanup(self.cleanup)
-
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
@@ -99,7 +99,6 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         await eave.core.internal.database.async_engine.dispose()
 
         await self.httpclient.aclose()
-
 
     async def save(self, session: AsyncSession, /, obj: J) -> J:
         session.add(obj)
@@ -221,7 +220,16 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         return team
 
-    async def make_account(self, session: AsyncSession, /, team_id: Optional[uuid.UUID] = None, auth_provider: Optional[eave.stdlib.core_api.enums.AuthProvider] = None, auth_id: Optional[str]=None, access_token:Optional[str]=None, refresh_token:Optional[str]=None) -> eave.core.internal.orm.account.AccountOrm:
+    async def make_account(
+        self,
+        session: AsyncSession,
+        /,
+        team_id: Optional[uuid.UUID] = None,
+        auth_provider: Optional[eave.stdlib.core_api.enums.AuthProvider] = None,
+        auth_id: Optional[str] = None,
+        access_token: Optional[str] = None,
+        refresh_token: Optional[str] = None,
+    ) -> eave.core.internal.orm.account.AccountOrm:
         if not team_id:
             team = await self.make_team(session=session)
             team_id = team.id
@@ -250,7 +258,6 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     def mock_atlassian_client(self) -> None:
         self.patch(unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get"))
 
-
         self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(
                 id=self.anystring("atlassian_cloud_id"),
@@ -266,7 +273,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
                 side_effect=lambda *args, **kwargs: self.testdata["fake_atlassian_resources"],
-            )
+            ),
         )
 
         self.testdata["fake_atlassian_token"] = {
@@ -281,8 +288,8 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             name="atlassian.get_token",
             patch=unittest.mock.patch(
                 "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
-                side_effect=lambda *args, **kwargs: self.testdata["fake_atlassian_token"]
-            )
+                side_effect=lambda *args, **kwargs: self.testdata["fake_atlassian_token"],
+            ),
         )
 
         self.testdata["fake_confluence_user"] = eave.stdlib.atlassian.ConfluenceUser(
@@ -301,7 +308,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
                 side_effect=lambda *args, **kwargs: self.testdata["fake_confluence_user"],
-            )
+            ),
         )
 
     def confluence_document_response_fixture(self) -> eave.stdlib.typing.JsonObject:

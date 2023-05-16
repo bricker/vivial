@@ -26,12 +26,11 @@ class TestSlackInstallation(BaseTestCase):
                         "expires_in": (60 * 60 * 12),
                     },
                 },
-            )
+            ),
         )
 
         self.patch(
-            name="ResourceMutexOrm",
-            patch=unittest.mock.patch(f"{mut}.ResourceMutexOrm", wraps=ResourceMutexOrm)
+            name="ResourceMutexOrm", patch=unittest.mock.patch(f"{mut}.ResourceMutexOrm", wraps=ResourceMutexOrm)
         )
         async with self.db_session.begin() as s:
             self.testdata["team"] = await self.make_team(s)
@@ -60,7 +59,6 @@ class TestSlackInstallation(BaseTestCase):
             assert installation_after.bot_token_exp
             assert installation_after.bot_token_exp == expiry
 
-
     async def test_refresh_token_with_close_expiry_refreshes_token(self) -> None:
         async with self.db_session.begin() as s:
             expiry = self.anydatetime("bot_token_exp", offset=10)
@@ -87,7 +85,6 @@ class TestSlackInstallation(BaseTestCase):
             assert installation_after.bot_token_exp > expiry
 
     async def test_refresh_token_without_acquire_doesnt_refresh_token(self) -> None:
-
         async with self.db_session.begin() as s:
             expiry = self.anydatetime("bot_token_exp", offset=10)
             installation_before = await SlackInstallationOrm.create(
@@ -116,7 +113,6 @@ class TestSlackInstallation(BaseTestCase):
             assert installation_after.bot_token_exp
             assert installation_after.bot_token_exp == expiry
 
-
     async def test_lock_is_released_on_error(self) -> None:
         async with self.db_session.begin() as s:
             expiry = self.anydatetime("bot_token_exp", offset=10)
@@ -132,9 +128,7 @@ class TestSlackInstallation(BaseTestCase):
             installation_after = await self.reload(s, installation_before)
             assert installation_after
 
-            self.get_mock("slack.refresh_access_token_or_exception").side_effect = Exception(
-                "fake error for testing"
-            )
+            self.get_mock("slack.refresh_access_token_or_exception").side_effect = Exception("fake error for testing")
             await installation_after.refresh_token_or_exception(session=s)
 
             assert (await self.count(s, ResourceMutexOrm)) == 0

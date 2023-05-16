@@ -25,7 +25,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-activate-venv
 
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/tooling_configs.toml
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		statusmsg -i "Linting ${target}..."
 
@@ -46,7 +46,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-activate-venv
 
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/tooling_configs.toml
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		statusmsg -i "(format) ruff..."
 		python -m ruff --fix --config=$configfile $target

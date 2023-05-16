@@ -195,7 +195,8 @@ class TestAtlassianOAuth(BaseTestCase):
     async def test_atlassian_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)
-            eave_account_before = await self.make_account(s,
+            eave_account_before = await self.make_account(
+                s,
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.atlassian,
                 auth_id=self.anystring("confluence.account_id"),
@@ -230,7 +231,8 @@ class TestAtlassianOAuth(BaseTestCase):
     async def test_atlassian_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)
-            eave_account_before = await self.make_account(s,
+            eave_account_before = await self.make_account(
+                s,
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.atlassian,
                 auth_id=self.anystring("authed_user.id"),
@@ -267,7 +269,8 @@ class TestAtlassianOAuth(BaseTestCase):
     async def test_atlassian_callback_logged_in_account_another_provider(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)
-            eave_account_before = await self.make_account(s,
+            eave_account_before = await self.make_account(
+                s,
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
                 auth_id=self.anystring("slack.user_id"),

@@ -17,7 +17,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     active_patches: dict[str, unittest.mock.Mock] = {}
     active_dict_patches: dict[str, Any] = {}
 
-    def __init__(self, methodName='runTest') -> None: # type: ignore[no-untyped-def]
+    def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
         super().__init__(methodName)
 
     async def asyncSetUp(self) -> None:

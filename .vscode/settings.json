@@ -72,7 +72,7 @@
     "--show-column-numbers",
     "--no-pretty",
     "--follow-imports=silent",
-    "--config-file=${workspaceFolder}/develop/python/tooling_configs.toml"
+    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "python.linting.mypyEnabled": true,
   "python.linting.enabled": true,
@@ -99,11 +99,11 @@
   ],
   "git.openRepositoryInParentFolders": "always",
   "python.formatting.blackArgs": [
-    "--config=${workspaceFolder}/develop/python/tooling_configs.toml"
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "-c=${workspaceFolder}/develop/python/tooling_configs.toml"
+    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "python.analysis.exclude": [
     "**/node_modules",
@@ -120,6 +120,6 @@
   ],
   "python.analysis.inlayHints.pytestParameters": true,
   "ruff.args": [
-    "--config=${EAVE_HOME}/develop/python/tooling_configs.toml"
+    "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
   ],
 }

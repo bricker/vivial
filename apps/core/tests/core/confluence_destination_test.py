@@ -30,7 +30,11 @@ class TestConfluenceDestination(BaseTestCase):
             await self.save(s, document_reference)
 
             self.patch(unittest.mock.patch("atlassian.Confluence.get_page_by_title", return_value=None))
-            self.patch(unittest.mock.patch("atlassian.Confluence.create_page", return_value=self.confluence_document_response_fixture()))
+            self.patch(
+                unittest.mock.patch(
+                    "atlassian.Confluence.create_page", return_value=self.confluence_document_response_fixture()
+                )
+            )
 
             input = eave_ops.DocumentInput(
                 title=self.anystring("doctitle"),
@@ -41,4 +45,5 @@ class TestConfluenceDestination(BaseTestCase):
             assert document_metadata.url == (
                 self.anystring("confluence_document_response._links.base")
                 + "/wiki/"
-                + self.anystring("confluence_document_response._links.tinyui"))
+                + self.anystring("confluence_document_response._links.tinyui")
+            )

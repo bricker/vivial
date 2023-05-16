@@ -3,7 +3,6 @@ import unittest.mock
 from http import HTTPStatus
 
 import eave.stdlib.core_api.operations as eave_ops
-from eave.core.internal import database
 
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation

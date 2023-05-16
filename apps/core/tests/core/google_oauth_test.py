@@ -168,7 +168,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
     async def test_google_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)
-            eave_account_before = await self.make_account(s,
+            eave_account_before = await self.make_account(
+                s,
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
                 auth_id=self.anystring("google.sub"),
@@ -203,7 +204,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
     async def test_google_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)
-            eave_account_before = await self.make_account(s,
+            eave_account_before = await self.make_account(
+                s,
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
                 auth_id=self.anystring("google.sub"),
@@ -240,7 +242,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
     async def test_google_callback_logged_in_account_another_provider(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)
-            eave_account_before = await self.make_account(s,
+            eave_account_before = await self.make_account(
+                s,
                 team_id=eave_team.id,
                 auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
                 auth_id=self.anystring("slack.user_id"),
@@ -263,7 +266,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         )
         async with self.db_session.begin() as s:
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
-            eave_account_after = await self.reload(s,eave_account_before)
+            eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were NOT updated
             assert eave_account_after.access_token == self.anystring("old_access_token")
