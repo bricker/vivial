@@ -8,43 +8,38 @@ class TestResoureMutex(BaseTestCase):
         await super().asyncSetUp()
 
     async def test_acquire(self) -> None:
-        async with self.db_session.begin() as db_session:
-            acquired = await ResourceMutexOrm.acquire(session=db_session, resource_id=self.anyuuid("resource_id"))
+        async with self.db_session.begin() as s:
+            acquired = await ResourceMutexOrm.acquire(session=s, resource_id=self.anyuuid("resource_id"))
             assert acquired
 
     async def test_not_acquire(self) -> None:
-        async with self.db_session.begin() as db_session:
-            await ResourceMutexOrm.acquire(session=db_session, resource_id=self.anyuuid("resource_id"))
+        async with self.db_session.begin() as s:
+            await ResourceMutexOrm.acquire(session=s, resource_id=self.anyuuid("resource_id"))
 
-            acquired = await ResourceMutexOrm.acquire(session=db_session, resource_id=self.anyuuid("resource_id"))
+            acquired = await ResourceMutexOrm.acquire(session=s, resource_id=self.anyuuid("resource_id"))
             assert not acquired
 
     async def test_release(self) -> None:
-        async with self.db_session.begin() as db_session:
-            await ResourceMutexOrm.acquire(session=db_session, resource_id=self.anyuuid("resource_id"))
-
-        assert (await self.count(ResourceMutexOrm)) == 1
-
-        async with self.db_session.begin() as db_session:
-            await ResourceMutexOrm.release(session=db_session, resource_id=self.anyuuid("resource_id"))
-
-        assert (await self.count(ResourceMutexOrm)) == 0
+        async with self.db_session.begin() as s:
+            await ResourceMutexOrm.acquire(session=s, resource_id=self.anyuuid("resource_id"))
+            assert (await self.count(s, ResourceMutexOrm)) == 1
+            await ResourceMutexOrm.release(session=s, resource_id=self.anyuuid("resource_id"))
+            assert (await self.count(s, ResourceMutexOrm)) == 0
 
     async def test_acquire_expiration(self) -> None:
         resource_id = self.anyuuid("resource_id")
 
-        async with self.db_session.begin() as db_session:
-            acquired = await ResourceMutexOrm.acquire(session=db_session, resource_id=resource_id)
+        async with self.db_session.begin() as s:
+            acquired = await ResourceMutexOrm.acquire(session=s, resource_id=resource_id)
             assert acquired
 
-        assert (await self.count(ResourceMutexOrm)) == 1
+            assert (await self.count(s, ResourceMutexOrm)) == 1
 
-        async with self.db_session.begin() as db_session:
             sql = select(ResourceMutexOrm).where(ResourceMutexOrm.resource_id == resource_id)
-            mutex = await db_session.scalar(sql)
+            mutex = await s.scalar(sql)
             assert mutex
             mutex.created = self.anydatetime("mutex.created", offset=-61)
-            await db_session.flush()
+            await s.flush()
 
-            acquired = await ResourceMutexOrm.acquire(session=db_session, resource_id=resource_id)
+            acquired = await ResourceMutexOrm.acquire(session=s, resource_id=resource_id)
             assert acquired

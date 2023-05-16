@@ -11,36 +11,34 @@ from .base import BaseTestCase
 
 class TestConfluenceDestination(BaseTestCase):
     async def test_create_document(self) -> None:
-        team = await self.make_team()
-        oauth_session = atlassian_oauth.AtlassianOAuthSession()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
-        destination = confluence_destination.ConfluenceDestination(
-            atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-            space=self.anystring("space"),
-            oauth_session=oauth_session,
-        )
+            oauth_session = atlassian_oauth.AtlassianOAuthSession()
 
-        document_reference = DocumentReferenceOrm(
-            team_id=team.id,
-            document_id=self.anystring("confluence_document_response.id"),
-            document_url=self.anystring("cdurl"),
-        )
-        await self.save(document_reference)
+            destination = confluence_destination.ConfluenceDestination(
+                atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
+                space=self.anystring("space"),
+                oauth_session=oauth_session,
+            )
 
-        m1 = unittest.mock.patch("atlassian.Confluence.get_page_by_title").start()
-        m1.return_value = None
-        m2 = unittest.mock.patch("atlassian.Confluence.create_page").start()
-        m2.return_value = self.confluence_document_response_fixture()
+            document_reference = DocumentReferenceOrm(
+                team_id=team.id,
+                document_id=self.anystring("confluence_document_response.id"),
+                document_url=self.anystring("cdurl"),
+            )
+            await self.save(s, document_reference)
 
-        input = eave_ops.DocumentInput(
-            title=self.anystring("doctitle"),
-            content=self.anystring("doccontent"),
-        )
-        document_metadata = await destination.create_document(input=input)
-        self.assertEqual(document_metadata.id, self.anystring("confluence_document_response.id"))
-        self.assertEqual(
-            document_metadata.url,
-            self.anystring("confluence_document_response._links.base")
-            + "/wiki/"
-            + self.anystring("confluence_document_response._links.tinyui"),
-        )
+            self.patch(unittest.mock.patch("atlassian.Confluence.get_page_by_title", return_value=None))
+            self.patch(unittest.mock.patch("atlassian.Confluence.create_page", return_value=self.confluence_document_response_fixture()))
+
+            input = eave_ops.DocumentInput(
+                title=self.anystring("doctitle"),
+                content=self.anystring("doccontent"),
+            )
+            document_metadata = await destination.create_document(input=input)
+            assert document_metadata.id == self.anystring("confluence_document_response.id")
+            assert document_metadata.url == (
+                self.anystring("confluence_document_response._links.base")
+                + "/wiki/"
+                + self.anystring("confluence_document_response._links.tinyui"))

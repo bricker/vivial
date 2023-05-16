@@ -16,11 +16,11 @@ from .base import BaseTestCase
 
 class TestInstallationsRequests(BaseTestCase):
     async def test_get_slack_installation(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
-        async with eave_db.async_session.begin() as db_session:
             await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
@@ -44,11 +44,11 @@ class TestInstallationsRequests(BaseTestCase):
         assert response_obj.slack_integration.bot_token == self.anystring("bot_token")
 
     async def test_get_slack_installation_validation_error(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
-        async with eave_db.async_session.begin() as db_session:
             await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
@@ -83,11 +83,11 @@ class TestInstallationsRequests(BaseTestCase):
         assert response_obj
 
     async def test_get_github_installation(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
-        async with eave_db.async_session.begin() as db_session:
             await eave.core.internal.orm.github_installation.GithubInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 github_install_id=self.anystring("github_install_id"),
             )
@@ -120,11 +120,11 @@ class TestInstallationsRequests(BaseTestCase):
         assert response.json().get("status_code") == HTTPStatus.NOT_FOUND
 
     async def test_get_atlassian_installation(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
-        async with eave_db.async_session.begin() as db_session:
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
                 oauth_token_encoded=self.anyjson("oauth_token_encoded"),

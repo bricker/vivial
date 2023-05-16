@@ -10,7 +10,8 @@ from .base import BaseTestCase
 
 class TestTeamOrm(BaseTestCase):
     async def test_find_one(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
         async with eave_db.async_session.begin() as db_session:
             result = await TeamOrm.one_or_exception(session=db_session, team_id=team.id)
@@ -23,19 +24,20 @@ class TestTeamOrm(BaseTestCase):
                 await TeamOrm.one_or_exception(session=db_session, team_id=self.anyuuid("teamid"))
 
     async def test_document_destination(self) -> None:
-        team = await self.make_team()
-        atlassian_installation = eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm(
-            team_id=team.id,
-            atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-            confluence_space_key=self.anystring("confluence_space"),
-            oauth_token_encoded=self.anyjson("oauth_token_encoded"),
-        )
-        await self.save(atlassian_installation)
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
-        async with eave_db.async_session.begin() as db_session:
-            document_destination = await team.get_document_destination(session=db_session)
+            atlassian_installation = eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm(
+                team_id=team.id,
+                atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
+                confluence_space_key=self.anystring("confluence_space"),
+                oauth_token_encoded=self.anyjson("oauth_token_encoded"),
+            )
+            await self.save(s, atlassian_installation)
 
-        assert document_destination is not None
-        assert isinstance(document_destination, confluence_destination.ConfluenceDestination)
-        assert document_destination.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert document_destination.space == self.anystring("confluence_space")
+            document_destination = await team.get_document_destination(session=s)
+
+            assert document_destination is not None
+            assert isinstance(document_destination, confluence_destination.ConfluenceDestination)
+            assert document_destination.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
+            assert document_destination.space == self.anystring("confluence_space")

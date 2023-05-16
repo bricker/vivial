@@ -17,6 +17,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     active_patches: dict[str, unittest.mock.Mock] = {}
     active_dict_patches: dict[str, Any] = {}
 
+    def __init__(self, methodName='runTest') -> None: # type: ignore[no-untyped-def]
+        super().__init__(methodName)
+
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         self.mock_google_services()
@@ -25,11 +28,12 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
+
+    async def cleanup(self) -> None:
         self.stop_all_patches()
-        # I don't think these next lines are necessary
+        self.testdata.clear()
         self.active_patches.clear()
         self.active_dict_patches.clear()
-        self.testdata.clear()
 
     @staticmethod
     async def mock_coroutine(value: T) -> T:
@@ -215,10 +219,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    def patch(self, patch: unittest.mock._patch) -> unittest.mock.Mock:  # type:ignore
+    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:  # type:ignore
         m = patch.start()
         m._testMethodName = self._testMethodName
-        self.active_patches[f"{patch.target.__name__}.{patch.attribute}"] = m
+
+        if name is None:
+            name = f"{patch.target.__name__}.{patch.attribute}"
+        self.active_patches[name] = m
         return m
 
     def patch_dict(self, patch: unittest.mock._patch_dict) -> Any:
@@ -231,4 +238,3 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def stop_all_patches(self) -> None:
         unittest.mock.patch.stopall()
-        self.active_patches.clear()

@@ -13,10 +13,11 @@ from .base import BaseTestCase
 
 class TestTeamRequests(BaseTestCase):
     async def test_get_team_with_integrations(self) -> None:
-        team = await self.make_team()
-        async with eave_db.async_session.begin() as db_session:
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
+
             await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
@@ -24,7 +25,7 @@ class TestTeamRequests(BaseTestCase):
                 bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
@@ -50,7 +51,8 @@ class TestTeamRequests(BaseTestCase):
         assert response_obj.integrations.atlassian.oauth_token_encoded == self.anyjson("oauth_token_encoded")
 
     async def test_get_team_without_integrations(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
         response = await self.make_request(
             path="/team/query",

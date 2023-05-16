@@ -1,4 +1,5 @@
 import json
+import logging
 import unittest
 import unittest.mock
 import urllib.parse
@@ -14,8 +15,8 @@ import eave.stdlib.jwt
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from httpx import AsyncClient, Response
-from sqlalchemy import literal_column, select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy import literal_column, select, text
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 import eave.core.app
 import eave.core.internal
@@ -37,20 +38,42 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
     algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
 )
 
-eave.core.internal.database.async_engine.echo = False  # shhh
+# eave.core.internal.database.async_engine.echo = False  # shhh
 
+_DB_SETUP: bool = False
+
+async def _onetime_setup_db() -> None:
+    global _DB_SETUP
+    if _DB_SETUP:
+        return
+
+    print("Running one-time DB setup...")
+    async with eave.core.internal.database.async_session() as db_session:
+        conn = await db_session.connection()
+        await conn.run_sync(eave.core.internal.orm.base.get_base_metadata().drop_all)
+        await db_session.commit()
+
+    async with eave.core.internal.database.async_session() as db_session:
+        conn = await db_session.connection()
+        await conn.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
+        await db_session.commit()
+
+    _DB_SETUP = True
 
 class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
+    def __init__(self, methodName: str = "runTest") -> None:
+        print("")
+        super().__init__(methodName)
+        self.addAsyncCleanup(self.cleanup)
+
+
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        async with eave.core.internal.database.async_engine.connect() as db_connection:
-            await db_connection.run_sync(eave.core.internal.orm.base.get_base_metadata().drop_all)
-            await db_connection.commit()
-            await db_connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
-            await db_connection.commit()
-            # tnames = ",".join([t.name for t in eave.core.internal.orm.base.get_base_metadata().sorted_tables])
-            # await db_connection.execute(text(f"truncate {tnames} cascade").execution_options(autocommit=True))
+        await _onetime_setup_db()
+        engine = eave.core.internal.database.async_engine.execution_options(isolation_level="READ COMMITTED")
+        self.db_session = eave.core.internal.database.async_sessionmaker(engine, expire_on_commit=False)
+        # self.db_session = eave.core.internal.database.async_session
 
         # transport = httpx.ASGITransport(
         #     app=eave.core.app.app,  # type:ignore
@@ -65,34 +88,34 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
-        await self.httpclient.aclose()
+
+    async def cleanup(self) -> None:
+        await super().cleanup()
+
+        tnames = ",".join([t.name for t in eave.core.internal.orm.base.get_base_metadata().sorted_tables])
+        conn = await self.db_session().connection()
+        await conn.execute(text(f"truncate {tnames} cascade").execution_options(autocommit=True))
+        await conn.commit()
         await eave.core.internal.database.async_engine.dispose()
 
-    @property
-    def db_session(self) -> async_sessionmaker[AsyncSession]:
-        session: async_sessionmaker[AsyncSession] = eave.core.internal.database.async_session
-        return session
+        await self.httpclient.aclose()
 
-    async def save(self, obj: J) -> J:
-        async with self.db_session.begin() as db_session:
-            db_session.add(obj)
+
+    async def save(self, session: AsyncSession, /, obj: J) -> J:
+        session.add(obj)
         return obj
 
-    async def reload(self, obj: J) -> J | None:
+    async def reload(self, session: AsyncSession, /, obj: J) -> J | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)
-        async with self.db_session.begin() as db_session:
-            result: J | None = await db_session.scalar(stmt)
-
+        result: J | None = await session.scalar(stmt)
         return result
 
-    async def delete(self, obj: AnyStandardOrm) -> None:
-        async with self.db_session.begin() as db_session:
-            await db_session.delete(obj)
+    async def delete(self, session: AsyncSession, /, obj: AnyStandardOrm) -> None:
+        await session.delete(obj)
 
-    async def count(self, cls: Any) -> int:
+    async def count(self, session: AsyncSession, /, cls: Any) -> int:
         query = select(safunc.count(cls.id))
-        async with self.db_session.begin() as db_session:
-            count: int | None = await db_session.scalar(query)
+        count: int | None = await session.scalar(query)
 
         if count is None:
             count = 0
@@ -188,46 +211,47 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         return response
 
-    async def make_team(self) -> eave.core.internal.orm.TeamOrm:
-        team = eave.core.internal.orm.TeamOrm(
-            name=self.anystring("team name"), document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
+    async def make_team(self, session: AsyncSession) -> eave.core.internal.orm.TeamOrm:
+        team = await eave.core.internal.orm.TeamOrm.create(
+            session=session,
+            name=self.anystring("team name"),
+            document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence,
+            beta_whitelisted=False,
         )
 
-        await self.save(team)
         return team
 
-    async def make_account(self, **kwargs: Any) -> eave.core.internal.orm.account.AccountOrm:
-        if not (team_id := kwargs.pop("team_id", None)):
-            team = await self.make_team()
+    async def make_account(self, session: AsyncSession, /, team_id: Optional[uuid.UUID] = None, auth_provider: Optional[eave.stdlib.core_api.enums.AuthProvider] = None, auth_id: Optional[str]=None, access_token:Optional[str]=None, refresh_token:Optional[str]=None) -> eave.core.internal.orm.account.AccountOrm:
+        if not team_id:
+            team = await self.make_team(session=session)
             team_id = team.id
 
-        account = eave.core.internal.orm.account.AccountOrm(
-            auth_provider=kwargs.pop("auth_provider", eave.stdlib.core_api.enums.AuthProvider.slack),
-            auth_id=kwargs.pop("auth_id", self.anystring("auth_id")),
-            access_token=kwargs.pop("access_token", self.anystring("oauth_token")),
-            refresh_token=kwargs.pop("refresh_token", self.anystring("refresh_token")),
+        account = await eave.core.internal.orm.account.AccountOrm.create(
+            session=session,
             team_id=team_id,
-            **kwargs,
+            visitor_id=self.anyuuid("account.visitor_id"),
+            opaque_utm_params=self.anydict("account.opaque_utm_params"),
+            auth_provider=auth_provider or eave.stdlib.core_api.enums.AuthProvider.slack,
+            auth_id=auth_id or self.anystring("account.auth_id"),
+            access_token=access_token or self.anystring("account.oauth_token"),
+            refresh_token=refresh_token or self.anystring("account.refresh_token"),
         )
-        await self.save(account)
+
         return account
 
-    async def get_eave_account(self, id: UUID) -> eave.core.internal.orm.AccountOrm | None:
-        async with self.db_session.begin() as db_session:
-            acct = await eave.core.internal.orm.AccountOrm.one_or_none(session=db_session, id=id)
-
+    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.AccountOrm | None:
+        acct = await eave.core.internal.orm.AccountOrm.one_or_none(session=session, id=id)
         return acct
 
-    async def get_eave_team(self, id: UUID) -> eave.core.internal.orm.TeamOrm | None:
-        async with self.db_session.begin() as db_session:
-            acct = await eave.core.internal.orm.TeamOrm.one_or_none(session=db_session, team_id=id)
-
+    async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.TeamOrm | None:
+        acct = await eave.core.internal.orm.TeamOrm.one_or_none(session=session, team_id=id)
         return acct
 
     def mock_atlassian_client(self) -> None:
         self.patch(unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get"))
 
-        self.fake_atlassian_resources = [
+
+        self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(
                 id=self.anystring("atlassian_cloud_id"),
                 url=self.anystring("confluence_document_response._links.base"),
@@ -238,13 +262,14 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         ]
 
         self.patch(
-            unittest.mock.patch(
+            name="atlassian.get_available_resources",
+            patch=unittest.mock.patch(
                 "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_available_resources",
-                side_effect=lambda *args, **kwargs: self.fake_atlassian_resources,
+                side_effect=lambda *args, **kwargs: self.testdata["fake_atlassian_resources"],
             )
         )
 
-        self.fake_atlassian_token = {
+        self.testdata["fake_atlassian_token"] = {
             "access_token": self.anystring("atlassian.access_token"),
             "refresh_token": self.anystring("atlassian.refresh_token"),
             "expires_in": self.anyint("atlassian.expires_in"),
@@ -253,13 +278,14 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         self.patch(unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token"))
         self.patch(
-            unittest.mock.patch(
+            name="atlassian.get_token",
+            patch=unittest.mock.patch(
                 "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_token",
-                side_effect=lambda *args, **kwargs: self.fake_atlassian_token,
+                side_effect=lambda *args, **kwargs: self.testdata["fake_atlassian_token"]
             )
         )
 
-        self.fake_confluence_user = eave.stdlib.atlassian.ConfluenceUser(
+        self.testdata["fake_confluence_user"] = eave.stdlib.atlassian.ConfluenceUser(
             data={
                 "type": "known",
                 "accountType": "atlassian",
@@ -271,9 +297,10 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         )
 
         self.patch(
-            unittest.mock.patch(
+            name="atlassian.get_userinfo",
+            patch=unittest.mock.patch(
                 "eave.core.internal.oauth.atlassian.AtlassianOAuthSession.get_userinfo",
-                side_effect=lambda *args, **kwargs: self.fake_confluence_user,
+                side_effect=lambda *args, **kwargs: self.testdata["fake_confluence_user"],
             )
         )
 
