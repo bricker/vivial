@@ -161,9 +161,6 @@ export async function verifySignatureOrException(
 
   switch (signingKey.algorithm) {
     case SigningAlgorithm.RS256:
-      if (kmsPublicKey.algorithm !== protos.google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionAlgorithm[protos.google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionAlgorithm.RSA_SIGN_PKCS1_4096_SHA256]) {
-        throw new InvalidChecksumError('Public key algorithm did not match');
-      }
       signatureVerification = crypto.createVerify('sha256');
       signatureVerification.update(digest);
       signatureVerification.end();
@@ -174,9 +171,6 @@ export async function verifySignatureOrException(
       );
       break;
     case SigningAlgorithm.ES256:
-      if (kmsPublicKey.algorithm !== protos.google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionAlgorithm[protos.google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionAlgorithm.EC_SIGN_P256_SHA256]) {
-        throw new InvalidChecksumError('Public key algorithm did not match');
-      }
       signatureVerification = crypto.createVerify('sha256');
       signatureVerification.update(digest);
       signatureVerification.end();
