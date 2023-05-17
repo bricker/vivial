@@ -66,15 +66,12 @@ class SlackEventProcessorTask(HTTPEndpoint):
 
 routes = [
     Route("/_ah/warmup", WarmupRequest, methods=["GET"]),
-    Route(SLACK_EVENT_QUEUE_TARGET_PATH, WarmupRequest, methods=["POST"]),
+    Route(SLACK_EVENT_QUEUE_TARGET_PATH, SlackEventProcessorTask, methods=["POST"]),
     Mount(
         "/slack",
         routes=[
             *eave_api_util.standard_endpoints_starlette,
             Route("/events", SlackEvent, methods=["POST"]),
-            # Mount("/_tasks", routes=[
-            #     Route("/process_slack_event", SlackEventProcessorTask, methods=["POST"]),
-            # ]),
         ],
     ),
 ]

@@ -18,11 +18,9 @@ def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
     task.add_done_callback(asyncio_tasks.discard)
     return task
 
-
-client = tasks.CloudTasksAsyncClient()
-
-
 async def get_queue(queue_name: str) -> tasks.Queue:
+    client = tasks.CloudTasksAsyncClient()
+
     queue = client.queue_path(
         project=shared_config.google_cloud_project,
         location=shared_config.app_location,
@@ -53,6 +51,8 @@ async def create_task(
     unique_task_id: Optional[str] = None,
     headers: Optional[Mapping[str, str]] = None,
 ) -> tasks.Task:
+    client = tasks.CloudTasksAsyncClient()
+
     if isinstance(payload, dict):
         body = json.dumps(payload).encode()
     else:
