@@ -82,6 +82,9 @@ const makeClasses = makeStyles((theme) => ({
     [theme.breakpoints.up('md')]: {
       width: 418,
     },
+    '& .MuiFormLabel-filled': {
+      background: theme.palette.background.main,
+    },
   },
   connectButton: {
     width: 166,
