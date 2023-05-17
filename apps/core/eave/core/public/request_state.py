@@ -28,13 +28,13 @@ class EaveRequestState:
     @property
     def log_context(self) -> LogContext:
         payload = {
-            "eave_account_id": self.eave_account_id,
-            "eave_team_id": self.eave_team_id,
-            "eave_origin": self.eave_origin,
-            "request_id": self.request_id,
-            "request_method": self.request_method,
-            "request_scheme": self.request_scheme,
-            "request_path": self.request_path,
+            "eave_account_id": str(self.eave_account_id),
+            "eave_team_id": str(self.eave_team_id),
+            "eave_origin": str(self.eave_origin),
+            "request_id": str(self.request_id),
+            "request_method": str(self.request_method),
+            "request_scheme": str(self.request_scheme),
+            "request_path": str(self.request_path),
             "request_headers": self.request_headers,
         }
 
@@ -56,7 +56,7 @@ class EaveRequestState:
         """
 
         payload = {
-            "request_id": self.request_id,
+            "request_id": str(self.request_id),
         }
         return payload
 
