@@ -39,10 +39,11 @@ const Dashboard = () => {
       <PageSection wrapperClassName={classes.main} topSection>
         {!teamInfo || loadingGetUserInfo ? (
           <div className={classes.loading}>
-            {getUserError && (
+            {getUserError ? (
               <Copy>something went wrong please try again</Copy>
+            ) : (
+              <CircularProgress />
             )}
-            <CircularProgress />
           </div>
         ) : teamInfo.team.beta_whitelisted === false ? (
           <Thanks />
