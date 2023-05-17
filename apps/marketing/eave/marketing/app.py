@@ -8,9 +8,8 @@ import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
-from jinja2 import Undefined
 import werkzeug.exceptions
-from flask import Flask, Response, jsonify, make_response, redirect, render_template, request
+from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
 
 from .config import app_config
@@ -53,50 +52,15 @@ async def get_auth_state() -> dict[str, bool]:
 async def authed_account_team() -> Response:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
-    # if not auth_cookies.access_token or not auth_cookies.account_id:
-    #     raise werkzeug.exceptions.Unauthorized()
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        raise werkzeug.exceptions.Unauthorized()
 
-    # eave_response = await eave_core.get_authenticated_account_team_integrations(
-    #     account_id=auth_cookies.account_id,
-    #     access_token=auth_cookies.access_token,
-    # )
+    eave_response = await eave_core.get_authenticated_account_team_integrations(
+        account_id=auth_cookies.account_id,
+        access_token=auth_cookies.access_token,
+    )
 
-    eave_response = {
-        "account": {
-            "id": "bee0a7fe-7765-4ca6-b8f7-58b170c89f95",
-            "auth_provider": "google",
-            "access_token": "[...]"
-        },
-          "team": {
-            "id": "10875b71-d57f-4707-8688-2c3e2e7b30f2",
-            "name": "Bryan's Team",
-            "document_platform": "",
-            "beta_whitelisted": True,
-        },
-          "integrations": {
-            "github": "",
-            "slack": "",
-            "atlassian": {
-            "id": "25f452c6-ca91-4e63-b367-f982c3ff51ab",
-            "team_id": "10875b71-d57f-4707-8688-2c3e2e7b30f2",
-            "atlassian_cloud_id": "00ce9a4a-899a-4529-866c-eb6feb0e9e06",
-            "confluence_space_key": "~63a5faccb790087ed70fc684",
-            "available_confluence_spaces": [
-                {
-                "key": "~63a5faccb790087ed70fc684",
-                "name": "Bryan Ricker"
-                },
-                {
-                "key": "ED",
-                "name": "Eave Dev"
-                }
-            ],
-            "oauth_token_encoded": "[...]"
-            }
-        }
-    }
-
-    return jsonify(eave_response)
+    return _clean_response(eave_response)
 
 
 @app.route("/dashboard/me/team/integrations/atlassian/update", methods=["POST"])
