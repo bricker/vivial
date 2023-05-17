@@ -23,6 +23,15 @@ eave.stdlib.core_api.client.set_origin(eave_origins.EaveOrigin.eave_slack_app)
 
 class SlackEvent(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
+        eave.stdlib.logger.info(
+            "Request: POST /slack/events",
+            extra={
+                "json_fields": {
+                    "headers": request.headers,
+                }
+            },
+        )
+
         success_response = Response(status_code=http.HTTPStatus.OK)
 
         # Verify the Slack signature, to avoid creating Tasks on the queue for invalid requests.
@@ -33,6 +42,7 @@ class SlackEvent(HTTPEndpoint):
         )  # request.headers is a Mapping which is_valid_request won't accept
 
         if not verifier.is_valid_request(body=body, headers=headers):
+            eave.stdlib.logger.warning("Invalid Slack signature")
             return success_response
 
         await create_task_from_request(
