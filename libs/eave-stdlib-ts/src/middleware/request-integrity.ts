@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { EaveRequestState } from '../lib/request-state.js';
+import { EaveRequestState, setEaveScope } from '../lib/request-state.js';
 import eaveHeaders from '../headers.js';
-import uuid from 'uuid';
+import { v4 as uuid4 } from 'uuid';
+import { EaveOrigin } from '../eave-origins.js';
+import { BadRequestError } from '../exceptions.js';
 
 /**
  * Makes sure the eaveState is set on `req.extensions.SCOPE` for signature verification. 
@@ -10,10 +12,21 @@ export function requestIntegrity(req: Request, _: Response, next: NextFunction):
   const eaveState: EaveRequestState = {};
 
   const reqIdHeaderValue = req.header(eaveHeaders.EAVE_REQUEST_ID_HEADER);
-  eaveState.request_id = reqIdHeaderValue === undefined ? uuid.v4() : reqIdHeaderValue;
+  eaveState.request_id = reqIdHeaderValue === undefined ? uuid4() : reqIdHeaderValue;
   eaveState.request_method = req.method;
   eaveState.request_scheme = req.protocol;
   eaveState.request_path = req.path;
+
+  const originHeader = req.header(eaveHeaders.EAVE_ORIGIN_HEADER);
+  if (originHeader === undefined) {
+    // TODO: use res and return??
+    throw new BadRequestError('Eave Origin header must be set');
+  }
+  const originValue = EaveOrigin[originHeader as keyof typeof EaveOrigin];
+  if (originValue === undefined) {
+    throw new BadRequestError(`Unexpected Eave Origin ${originHeader} could not be found`);
+  }
+  eaveState.eave_origin = originValue;
 
   eaveState.request_headers = {};
   const redactedHeaders = [eaveHeaders.EAVE_AUTHORIZATION_HEADER, eaveHeaders.EAVE_COOKIE_HEADER];
@@ -25,6 +38,9 @@ export function requestIntegrity(req: Request, _: Response, next: NextFunction):
     }
   });
 
-  console.log(`Request: ${req.path}`);
+  // save constructed eaveState for future middlewares
+  setEaveScope(req, eaveState);
+
+  console.log(`Request: ${req.path}`, eaveState);
   next();
 }
