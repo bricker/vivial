@@ -14,7 +14,7 @@ from starlette.responses import Response
 from starlette.routing import Route, Mount
 from starlette.endpoints import HTTPEndpoint
 from . import slack_app
-from .config import app_config
+from .config import SLACK_EVENT_QUEUE_NAME, SLACK_EVENT_QUEUE_TARGET_PATH, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
 
 eave.stdlib.time.set_utc()
 eave.stdlib.logging.setup_logging()
@@ -36,8 +36,8 @@ class SlackEvent(HTTPEndpoint):
             return success_response
 
         await create_task_from_request(
-            queue_name="slack-events-processor",
-            target_path="/_ah/tasks/slack-events",
+            queue_name=SLACK_EVENT_QUEUE_NAME,
+            target_path=SLACK_EVENT_QUEUE_TARGET_PATH,
             request=request,
         )
         return success_response
@@ -53,14 +53,20 @@ class WarmupRequest(HTTPEndpoint):
 # https://cloud.google.com/tasks/docs/creating-appengine-handlers
 class SlackEventProcessorTask(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
+        task_execution_count = request.headers.get("X-AppEngine-TaskExecutionCount")
         handler = AsyncSlackRequestHandler(slack_app.app)
-        response = await handler.handle(request)
+        response = await handler.handle(
+            request,
+            addition_context_properties={
+                TASK_EXECUTION_COUNT_CONTEXT_KEY: task_execution_count,
+            },
+        )
         return response
 
 
 routes = [
     Route("/_ah/warmup", WarmupRequest, methods=["GET"]),
-    Route("/_ah/tasks/slack-events", WarmupRequest, methods=["POST"]),
+    Route(SLACK_EVENT_QUEUE_TARGET_PATH, WarmupRequest, methods=["POST"]),
     Mount(
         "/slack",
         routes=[

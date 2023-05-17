@@ -22,6 +22,17 @@ def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
 client = tasks.CloudTasksAsyncClient()
 
 
+async def get_queue(queue_name: str) -> tasks.Queue:
+    queue = client.queue_path(
+        project=shared_config.google_cloud_project,
+        location=shared_config.app_location,
+        queue=queue_name,
+    )
+
+    queue = await client.get_queue(name=queue)
+    return queue
+
+
 async def create_task_from_request(
     queue_name: str, target_path: str, request: Request, unique_task_id: Optional[str] = None
 ) -> None:

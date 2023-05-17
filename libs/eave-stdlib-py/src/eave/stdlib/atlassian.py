@@ -99,7 +99,8 @@ class ConfluenceBaseModel:
             logger.warning("confluence content._links missing tinyui and webui")
             return base_url
 
-        return f"{base_url}/wiki/{path}"
+        # Path is prefixed with a slash already
+        return f"{base_url}/wiki{path}"
 
 
 class ConfluencePageVersion(ConfluenceBaseModel):

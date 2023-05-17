@@ -5,10 +5,12 @@ import eave.slack.brain
 import eave.slack.slack_models
 from eave.slack.util import log_context
 import eave.stdlib
+from eave.stdlib import task_queue
 import eave.stdlib.core_api
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
+from .config import SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
 
 # TODO: Handlers create tasks for Cloud Tasks, or pubsub perhaps
 
@@ -67,7 +69,37 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         return
 
     b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
-    await b.process_message()
+
+    try:
+        await b.process_message()
+    except Exception as e:
+        if app_config.is_socketmode:
+            # In socketmode, there is no task queue.
+            await b.notify_failure(e)
+            raise
+
+        # Assume that the exception was already logged.
+        # The purpose of this catch block is so that Eave has the opportunity to warn the user that the request failed.
+        # But we only want to do that after Cloud Tasks has retried the task a few times.
+        # `app_config.slack_event_task_max_retries` _should_ match the configured max retry count for the queue,
+        # but currently it's hardcoded as an environment variable.
+        # TODO: Pull the retry count from GCP.
+        queue = await task_queue.get_queue(SLACK_EVENT_QUEUE_NAME)
+
+        max_attempts = queue.retry_config.max_attempts  # The total number of attempts allowed (this will be > 0)
+        total_attempts = context.get(
+            TASK_EXECUTION_COUNT_CONTEXT_KEY, 0
+        )  # The number of times Cloud Tasks executed this tasks so far, excluding this one
+
+        # This is on purpose == instead of >=, because we only want to send this message once.
+        # There is risk of this task being run more than the max attempts, and the execution count header
+        # can be imprecise, depending on timing, so this is an attempt to mitigate that.
+        if total_attempts == max_attempts:
+            logger.warning("Max retries met. Eave will send a message that the request failed.")
+            await b.notify_failure(e)
+
+        # Always re-raise, very important
+        raise
 
 
 async def event_member_joined_channel_handler(

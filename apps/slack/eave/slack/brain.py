@@ -11,7 +11,7 @@ import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.operations as eave_ops
-from eave.stdlib.exceptions import OpenAIDataError, SlackDataError
+from eave.stdlib.exceptions import HTTPException, OpenAIDataError, SlackDataError
 import eave.stdlib.openai_client as eave_openai
 import tiktoken
 from eave.stdlib import logger
@@ -33,6 +33,7 @@ class Brain:
     eave_team: eave_models.Team
     slack_context: AsyncBoltContext
     log_extra: JsonObject
+    message_action: Optional[message_prompts.MessageAction] = None
 
     def __init__(
         self, message: slack_models.SlackMessage, slack_context: AsyncBoltContext, eave_team: eave_models.Team
@@ -57,7 +58,7 @@ class Brain:
             """
             await self.acknowledge_receipt()
 
-            message_action = await message_prompts.message_action(context=self.message_context)
+            self.message_action = await message_prompts.message_action(context=self.message_context)
 
             eave.stdlib.analytics.log_event(
                 event_name="eave_mentioned",
@@ -67,7 +68,7 @@ class Brain:
                 opaque_params={
                     "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                     "message_content": self.message.text,
-                    "message_action": message_action.value,
+                    "message_action": self.message_action.value,
                 },
             )
 
@@ -83,9 +84,9 @@ class Brain:
                 logger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.log_extra)
                 return
 
-            message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
+            self.message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
 
-        await self.handle_action(message_action=message_action)
+        await self.handle_action(message_action=self.message_action)
 
     async def process_shortcut_event(self) -> None:
         await self.acknowledge_receipt()
@@ -303,54 +304,29 @@ class Brain:
         4. Send a follow-up response to the original Slack thread with a link to the documentation
         """
 
-        try:
-            api_document = await self.build_documentation()
-            upsert_document_response = await self.upsert_document(document=api_document)
-        except eave.stdlib.exceptions.HTTPException as e:
-            eave.stdlib.logger.exception("Error while upserting documentation")
-            await self.message.send_response(
-                text=(
-                    msg := (
-                        "I wasn't able to create the requested documentation because of a technical issue. I've let my developers know about it."
-                    )
+        api_document = await self.build_documentation()
+        upsert_document_response = await self.upsert_document(document=api_document)
+        await self.message.send_response(
+            text=(
+                msg := (
+                    "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
+                    f"<{upsert_document_response.document_reference.document_url}|{api_document.title}>"
                 )
             )
+        )
 
-            eave.stdlib.analytics.log_event(
-                event_name="eave_sent_message",
-                event_description="Eave sent a message",
-                event_source="slack app",
-                eave_team_id=self.eave_team.id,
-                opaque_params={
-                    "integration": eave.stdlib.core_api.enums.Integration.slack.value,
-                    "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
-                    "message_content": msg,
-                    "request_id": e.request_id,
-                    "message_purpose": "inform the user of a failure while creating documentation",
-                },
-            )
-        else:
-            await self.message.send_response(
-                text=(
-                    msg := (
-                        "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
-                        f"<{upsert_document_response.document_reference.document_url}|{api_document.title}>"
-                    )
-                )
-            )
-
-            eave.stdlib.analytics.log_event(
-                event_name="eave_sent_message",
-                event_description="Eave sent a message",
-                event_source="slack app",
-                eave_team_id=self.eave_team.id,
-                opaque_params={
-                    "integration": eave.stdlib.core_api.enums.Integration.slack.value,
-                    "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
-                    "message_content": msg,
-                    "message_purpose": "link to initial documentation",
-                },
-            )
+        eave.stdlib.analytics.log_event(
+            event_name="eave_sent_message",
+            event_description="Eave sent a message",
+            event_source="slack app",
+            eave_team_id=self.eave_team.id,
+            opaque_params={
+                "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
+                "message_content": msg,
+                "message_purpose": "link to initial documentation",
+            },
+        )
 
     async def build_documentation(self) -> eave_ops.DocumentInput:
         conversation = await self.build_context()
@@ -760,3 +736,26 @@ class Brain:
         )
 
         self.message_context = message_context
+
+    async def notify_failure(self, e: Exception) -> None:
+        await self.message.send_response(
+            text=(
+                msg := (
+                    "I wasn't able to complete the request because of a technical issue. I've let my developers know about it. I can try again if you want, just repeat the request!"
+                )
+            )
+        )
+
+        eave.stdlib.analytics.log_event(
+            event_name="eave_sent_message",
+            event_description="Eave sent a message",
+            event_source="slack app",
+            eave_team_id=self.eave_team.id,
+            opaque_params={
+                "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                "request_type": self.message_action,
+                "message_content": msg,
+                "request_id": e.request_id if isinstance(e, HTTPException) else None,
+                "message_purpose": "inform the user of a failure while processing a request",
+            },
+        )
