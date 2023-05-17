@@ -15,6 +15,8 @@ const makeClasses = makeStyles((theme) => ({
     alignContent: 'flex-start',
     padding: '0px 30px 24px 40px',
     gap: '10px 23px',
+    maxWidth: 1440,
+    margin: '0 auto',
     [theme.breakpoints.up('md')]: {
       padding: '0px 46px 46px',
     },
