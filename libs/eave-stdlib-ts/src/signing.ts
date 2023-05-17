@@ -103,7 +103,7 @@ export async function signBase64(
     throw new InvalidChecksumError('KMS signing failed');
   }
 
-  validateChecksumOrExcption(
+  validateChecksumOrException(
     Buffer.from(signedResponse.signature),
     parseInt(<any>signedResponse.signatureCrc32c?.value!, 10)
   );
@@ -116,7 +116,7 @@ function generateChecksum(data: Buffer): protos.google.protobuf.IInt64Value {
   return <any>checksum;
 }
 
-function validateChecksumOrExcption(data: Buffer, checksum: number): void {
+function validateChecksumOrException(data: Buffer, checksum: number): void {
   if (generateChecksum(data) !== checksum) {
     throw new InvalidChecksumError('CRC32C checksums did not match');
   }
