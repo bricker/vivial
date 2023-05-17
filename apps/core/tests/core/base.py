@@ -257,10 +257,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         return acct
 
     def mock_atlassian_client(self) -> None:
-        self.patch(
-            name="AtlassianRestAPI.get",
-            patch=unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get")
-        )
+        self.patch(name="AtlassianRestAPI.get", patch=unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get"))
 
         self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(

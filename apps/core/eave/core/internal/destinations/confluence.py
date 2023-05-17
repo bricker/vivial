@@ -1,6 +1,6 @@
 import typing
 from functools import cached_property
-from typing import Optional, Sequence, cast
+from typing import Optional, cast
 
 import atlassian
 import eave.stdlib
@@ -33,18 +33,11 @@ class ConfluenceDestination(abstract.DocumentDestination):
         """
         response = self._confluence_client.get_all_spaces(space_status="current", space_type="global")
         response_json = cast(eave.stdlib.typing.JsonObject, response)
-        return [
-            eave.stdlib.atlassian.ConfluenceSpace(s)
-            for s in response_json["results"]
-        ]
+        return [eave.stdlib.atlassian.ConfluenceSpace(s) for s in response_json["results"]]
 
     async def search_documents(self, query: str) -> list[DocumentSearchResult]:
         try:
-            response = self._confluence_client.cql(cql=" ".join([
-                f"space={self.space}"
-                "AND"
-                f"text ~ {query}"
-            ]))
+            response = self._confluence_client.cql(cql=" ".join([f"space={self.space}" "AND" f"text ~ {query}"]))
 
             if response is None:
                 raise ConfluenceDataError("cql results")
@@ -57,9 +50,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
             return []
 
         pages = [
-            eave.stdlib.atlassian.ConfluencePage(content)
-            for result in results
-            if (content := result.get("content"))
+            eave.stdlib.atlassian.ConfluencePage(content) for result in results if (content := result.get("content"))
         ]
         base_url = self.oauth_session.confluence_context.base_url
         return [DocumentSearchResult(title=(page.title or ""), url=page.canonical_url(base_url)) for page in pages]

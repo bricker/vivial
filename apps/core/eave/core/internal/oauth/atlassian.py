@@ -1,7 +1,7 @@
 import typing
 from dataclasses import dataclass
 from functools import cache
-from typing import List, cast
+from typing import cast
 
 import eave.stdlib
 import eave.stdlib.atlassian

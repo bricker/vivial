@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
@@ -86,9 +85,9 @@ async def authorize(
         auth_response = (await client.auth_test(token=installation_data.slack_integration.bot_token)).validate()
 
     # After we've validated that the auth is good, cache the new data.
-    if cached_data is None: # if the data is already cached, we don't need to add it back
+    if cached_data is None:  # if the data is already cached, we don't need to add it back
         try:
-            await cache.set(name=cachekey, value=installation_data.json(), ex=(60*60)) # expires in one hour
+            await cache.set(name=cachekey, value=installation_data.json(), ex=(60 * 60))  # expires in one hour
         except Exception:
             logger.exception("Exception saving cached slack installation details")
 
@@ -96,9 +95,7 @@ async def authorize(
 
     # The following block of code is copied from
     # https://github.com/slackapi/bolt-python/blob/076efb5b0b6db849b074752cec0d406d3c747627/slack_bolt/authorization/authorize_result.py#L62-L93
-    bot_user_id: Optional[str] = (
-        auth_response.get("user_id") if auth_response.get("bot_id") is not None else None
-    )
+    bot_user_id: Optional[str] = auth_response.get("user_id") if auth_response.get("bot_id") is not None else None
     user_id: Optional[str] = auth_response.get("user_id") if auth_response.get("bot_id") is None else None
 
     return AuthorizeResult(
@@ -110,6 +107,7 @@ async def authorize(
         bot_token=installation_data.slack_integration.bot_token,
         user_token=None,
     )
+
 
 signing_secret = app_config.eave_slack_app_signing_secret
 

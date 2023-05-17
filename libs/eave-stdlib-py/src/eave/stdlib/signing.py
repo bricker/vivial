@@ -155,5 +155,5 @@ def verify_signature_or_exception(
                 return True
             case _:
                 raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
-    except cryptography.exceptions.InvalidSignature as e:
+    except cryptography.exceptions.InvalidSignature:
         raise eave_exceptions.InvalidSignatureError()

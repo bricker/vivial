@@ -1,5 +1,3 @@
-
-
 import asyncio
 import json
 from typing import Any, Coroutine, Mapping, Optional, TypeVar
@@ -23,21 +21,27 @@ def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
 
 client = tasks.CloudTasksAsyncClient()
 
-async def create_task_from_request(queue_name: str, target_path: str, request: Request, unique_task_id: Optional[str] = None) -> None:
+
+async def create_task_from_request(
+    queue_name: str, target_path: str, request: Request, unique_task_id: Optional[str] = None
+) -> None:
     if not unique_task_id:
         unique_task_id = request.headers.get("X-Cloud-Trace-Context")
 
     payload = await request.body()
     headers = request.headers
     await create_task(
-        queue_name=queue_name,
-        target_path=target_path,
-        payload=payload,
-        unique_task_id=unique_task_id,
-        headers=headers
+        queue_name=queue_name, target_path=target_path, payload=payload, unique_task_id=unique_task_id, headers=headers
     )
 
-async def create_task(queue_name: str, target_path: str, payload: JsonObject | bytes, unique_task_id: Optional[str] = None, headers: Optional[Mapping[str, str]] = None) -> tasks.Task:
+
+async def create_task(
+    queue_name: str,
+    target_path: str,
+    payload: JsonObject | bytes,
+    unique_task_id: Optional[str] = None,
+    headers: Optional[Mapping[str, str]] = None,
+) -> tasks.Task:
     if isinstance(payload, dict):
         body = json.dumps(payload).encode()
     else:

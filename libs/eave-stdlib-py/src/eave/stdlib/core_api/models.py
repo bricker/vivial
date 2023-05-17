@@ -31,6 +31,7 @@ class DocumentReference(pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+
 class DocumentSearchResult(pydantic.BaseModel):
     title: str
     url: str

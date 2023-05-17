@@ -12,6 +12,7 @@ import eave.core.public.request_state
 from eave.stdlib import logger
 import eave.stdlib
 
+
 class StatusRequest(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         eave_state = eave.core.public.request_state.get_eave_state(request=request)
@@ -29,6 +30,7 @@ class StatusRequest(HTTPEndpoint):
 
         content = json.dumps(status)
         return Response(status_code=status_code, content=content, media_type="application/json")
+
 
 class WarmupRequest(HTTPEndpoint):
     async def get(self, request: Request) -> Response:

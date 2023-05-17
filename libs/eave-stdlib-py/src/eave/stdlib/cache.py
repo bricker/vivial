@@ -1,10 +1,9 @@
 import abc
-from dataclasses import dataclass
-from datetime import datetime
 import time
-from typing import Any, Optional, Protocol
+from typing import Optional, Protocol
 import redis.asyncio as redis
 from .config import shared_config
+
 
 class _Cache(Protocol):
     @abc.abstractmethod
@@ -18,6 +17,7 @@ class _Cache(Protocol):
     @abc.abstractmethod
     async def delete(self, *names: str) -> int:
         ...
+
 
 class _CacheEntry:
     value: str
@@ -33,8 +33,9 @@ class _CacheEntry:
     def expired(self) -> bool:
         return self.ex is not None and (self.ts + self.ex < time.time())
 
+
 class EphemeralCache(_Cache):
-    _store: dict[str,_CacheEntry] = {}
+    _store: dict[str, _CacheEntry] = {}
 
     async def get(self, name: str) -> str | None:
         e = self._store.get(name)
@@ -66,6 +67,7 @@ class EphemeralCache(_Cache):
 
         return num
 
+
 impl: _Cache
 
 if redis_cfg := shared_config.redis_connection:
@@ -75,9 +77,11 @@ if redis_cfg := shared_config.redis_connection:
 else:
     impl = EphemeralCache()
 
+
 async def set(name: str, value: str, ex: Optional[int] = None) -> bool | None:
     success = await impl.set(name, value, ex=ex)
     return success
+
 
 async def get(name: str) -> str | None:
     value = await impl.get(name)
@@ -85,6 +89,7 @@ async def get(name: str) -> str | None:
         return str(value)
     else:
         return None
+
 
 async def delete(*names: str) -> int:
     num = await impl.delete(*names)

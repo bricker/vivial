@@ -118,10 +118,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
 
                     spaces_response = confluence_client.get_all_spaces(space_status="current", space_type="global")
                     spaces_response_json = typing.cast(eave.stdlib.typing.JsonObject, spaces_response)
-                    spaces = [
-                        eave.stdlib.atlassian.ConfluenceSpace(s)
-                        for s in spaces_response_json["results"]
-                    ]
+                    spaces = [eave.stdlib.atlassian.ConfluenceSpace(s) for s in spaces_response_json["results"]]
                     if len(spaces) == 1 and (first_space := next(iter(spaces), None)):
                         default_space_key = first_space.key
 

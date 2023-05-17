@@ -64,6 +64,7 @@ async def upsert_document(
     response_json = await response.json()
     return operations.UpsertDocument.ResponseBody(**response_json, _raw_response=response)
 
+
 async def search_documents(
     team_id: UUID,
     input: operations.SearchDocuments.RequestBody,

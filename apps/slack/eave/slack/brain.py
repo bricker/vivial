@@ -227,7 +227,7 @@ class Brain:
         """
         subscription = await self.get_subscription()
 
-        logger.warning("Unknown request to Eave in Slack", extra={ "json_fields": { "message": self.message.text } })
+        logger.warning("Unknown request to Eave in Slack", extra={"json_fields": {"message": self.message.text}})
         eave.stdlib.analytics.log_event(
             event_name="eave_received_unknown_request",
             event_description="Eave received a request that she didn't know how to handle.",
@@ -446,9 +446,6 @@ class Brain:
                 "message_purpose": "provide search results",
             },
         )
-
-
-
 
     async def update_documentation(self) -> None:
         await self.message.send_response(
@@ -676,9 +673,7 @@ class Brain:
 
         response = await eave_core.search_documents(
             team_id=self.eave_team.id,
-            input=eave_ops.SearchDocuments.RequestBody(
-                query=answer
-            ),
+            input=eave_ops.SearchDocuments.RequestBody(query=answer),
         )
         return response
 

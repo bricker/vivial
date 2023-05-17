@@ -1,14 +1,10 @@
 import asyncio
 import http
 import logging
-import os
 import time
-from typing import Optional
-from typing_extensions import override
 from slack_bolt import BoltResponse
 from slack_bolt.adapter.socket_mode.async_internals import send_async_response
 from slack_bolt.adapter.socket_mode.aiohttp import AsyncSocketModeHandler
-from slack_bolt.app.async_app import AsyncApp
 from slack_sdk.socket_mode.request import SocketModeRequest
 
 import eave.stdlib.core_api.client
@@ -29,12 +25,14 @@ class AsyncSocketModeWithImmediateAckHandler(AsyncSocketModeHandler):
     This handler overrides the `handle` function to immediately `ack` the message from Slack, which allows
     the app to take its time processing the message.
     """
-    async def handle(self, client: SocketModeClient, req: SocketModeRequest) -> None: # type: ignore[override]
+
+    async def handle(self, client: SocketModeClient, req: SocketModeRequest) -> None:  # type: ignore[override]
         start = time.time()
         eave.stdlib.logger.debug(req.payload)
         immediate_ack = BoltResponse(status=http.HTTPStatus.OK)
         await send_async_response(client, req, immediate_ack, start)
         await super().handle(client, req)
+
 
 async def start_socket_mode() -> None:
     app_token = app_config.eave_slack_app_socketmode_token

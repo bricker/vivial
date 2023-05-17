@@ -2,12 +2,12 @@
 Atlassian data models
 """
 import enum
-import typing
 from dataclasses import dataclass
 from typing import Optional
 
 from .typing import JsonObject
 from . import logger
+
 
 @dataclass
 class AtlassianAvailableResource:
@@ -73,6 +73,7 @@ class ConfluenceGenericLinks:
         self.webui = data.get("webui")
         self.context = data.get("context")
         self.collection = data.get("collection")
+
 
 class ConfluenceBaseModel:
     _data: JsonObject
@@ -290,9 +291,7 @@ class ConfluenceContentBody(ConfluenceBaseModel):
             self.representation = ConfluenceContentBodyRepresentation(value=repr)
 
         if (embc := data.get("embeddedContent")) is not None:
-            self.embedded_content = [
-                ConfluenceEmbeddedContent(embedded_content) for embedded_content in embc
-            ]
+            self.embedded_content = [ConfluenceEmbeddedContent(embedded_content) for embedded_content in embc]
 
         if (media_token := data.get("mediaToken")) is not None:
             self.media_token = ConfluenceMediaToken(media_token)

@@ -1,10 +1,9 @@
-import asyncio
 import base64
 import hashlib
 import logging
 from functools import wraps
 import traceback
-from typing import Any, Awaitable, Callable, Coroutine, Optional, ParamSpec, TypeVar, cast
+from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar, cast
 import uuid
 
 from eave.stdlib.exceptions import UnexpectedMissingValue
@@ -113,6 +112,7 @@ def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
     elif isinstance(data, str):
         return uuid.UUID(hex=data)
 
+
 def nand(a: Any, b: Any) -> bool:
     """Neither or one"""
     return not (bool(a) and bool(b))
@@ -195,8 +195,10 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
         if default is None:
             raise UnexpectedMissingValue("force-unwrapped a None value")
         else:
-            caller = ''.join(traceback.format_stack()[-1:])
-            logger.warning("unwrapped an unexpected None value; default will be used.", extra={"json_fields": { "caller": caller } })
+            caller = "".join(traceback.format_stack()[-1:])
+            logger.warning(
+                "unwrapped an unexpected None value; default will be used.", extra={"json_fields": {"caller": caller}}
+            )
             return default
     else:
         return value

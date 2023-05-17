@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Optional, Protocol, Sequence
+from typing import Optional, Protocol
 from eave.stdlib.core_api.models import DocumentSearchResult
 
 import eave.stdlib.core_api.operations as eave_ops

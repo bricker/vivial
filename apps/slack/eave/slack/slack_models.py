@@ -1,7 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
 import enum
-import os
 import re
 from typing import Any, AsyncGenerator, List, Optional
 
@@ -19,11 +18,13 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from .config import app_config
 
+
 class SlackAddReactionError(Exception):
     error_code: str
 
     def __init__(self, error_code: str, *args: object) -> None:
         super().__init__(*args)
+
 
 class _SlackContext:
     _context: AsyncBoltContext

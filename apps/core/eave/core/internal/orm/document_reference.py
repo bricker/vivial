@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
 
-from sqlalchemy import Index, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 

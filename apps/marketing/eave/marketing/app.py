@@ -23,11 +23,13 @@ app.secret_key = app_config.eave_web_session_encryption_key
 
 eave_api_util.add_standard_endpoints(app=app)
 
+
 @app.route("/_ah/warmup", methods=["GET"])
 async def warmup() -> str:
     eave.stdlib.shared_config.preload()
     app_config.preload()
     return "OK"
+
 
 def _render_spa(**kwargs: Any) -> str:
     return render_template(
@@ -101,6 +103,7 @@ async def logout() -> BaseResponse:
     response = redirect(location=app_config.eave_www_base, code=302)
     eave.stdlib.cookies.delete_auth_cookies(response=response)
     return response
+
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")

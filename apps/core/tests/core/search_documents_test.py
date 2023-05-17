@@ -1,9 +1,10 @@
 import http
 
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
-from eave.stdlib.atlassian import ConfluenceContext, ConfluencePage
+from eave.stdlib.atlassian import ConfluencePage
 from eave.stdlib.core_api.operations import SearchDocuments
 from .base import BaseTestCase
+
 
 class TestSearchDocuments(BaseTestCase):
     async def asyncSetUp(self) -> None:
@@ -22,9 +23,7 @@ class TestSearchDocuments(BaseTestCase):
         docjson = self.confluence_document_response_fixture()
 
         self.get_mock("AtlassianRestAPI.get").return_value = {
-            "results": [
-                { "content": docjson }
-            ],
+            "results": [{"content": docjson}],
         }
 
         response = await self.make_request(
@@ -40,7 +39,9 @@ class TestSearchDocuments(BaseTestCase):
 
         assert len(response_obj.documents) == 1
         expected_page = ConfluencePage(data=docjson)
-        assert response_obj.documents[0].url == expected_page.canonical_url(self.anystring("confluence_document_response._links.base"))
+        assert response_obj.documents[0].url == expected_page.canonical_url(
+            self.anystring("confluence_document_response._links.base")
+        )
         assert response_obj.documents[0].title == expected_page.title
 
     async def test_search_documents_with_confluence_error(self) -> None:
@@ -74,7 +75,7 @@ class TestSearchDocuments(BaseTestCase):
         assert len(response_obj.documents) == 0
 
     async def test_search_documents_with_no_results(self) -> None:
-        self.get_mock("AtlassianRestAPI.get").return_value = { }
+        self.get_mock("AtlassianRestAPI.get").return_value = {}
 
         response = await self.make_request(
             path="/documents/search",

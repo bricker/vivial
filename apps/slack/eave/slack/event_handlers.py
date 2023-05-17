@@ -1,5 +1,3 @@
-import json
-import os
 from typing import Optional
 
 import eave.pubsub_schemas
@@ -9,8 +7,6 @@ from eave.slack.util import log_context
 import eave.stdlib
 import eave.stdlib.core_api
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
-import eave.stdlib.util as eave_util
-from eave.slack.config import app_config
 from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 

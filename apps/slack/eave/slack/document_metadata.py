@@ -5,6 +5,7 @@ from eave.stdlib.exceptions import OpenAIDataError
 from .message_prompts import CONVO_STRUCTURE
 import eave.stdlib.openai_client as eave_openai
 
+
 async def get_topic(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
         f"""

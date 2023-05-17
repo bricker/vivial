@@ -89,6 +89,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
         )
         return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.ACCEPTED, model=model)
 
+
 class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave.core.public.request_state.get_eave_state(request=request)
