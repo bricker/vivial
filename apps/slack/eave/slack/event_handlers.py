@@ -20,16 +20,15 @@ from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
-    app.event("app_mention")(noop_handler)
-    app.event("reaction_added")(noop_handler)
-    app.event("file_shared")(noop_handler)
-    app.event("file_public")(noop_handler)
-    app.event("file_deleted")(noop_handler)
+    # app.event("app_mention")(noop_handler)
+    # app.event("reaction_added")(noop_handler)
+    # app.event("file_shared")(noop_handler)
+    # app.event("file_public")(noop_handler)
+    # app.event("file_deleted")(noop_handler)
     app.event("member_joined_channel")(event_member_joined_channel_handler)
 
 
 async def shortcut_eave_watch_request_handler(
-    ack: AsyncAck,
     shortcut: Optional[eave.stdlib.typing.JsonObject],
     context: AsyncBoltContext,
 ) -> None:
@@ -40,8 +39,6 @@ async def shortcut_eave_watch_request_handler(
     eave_team = context.get("eave_team")
     if eave_team is None:
         raise UnexpectedMissingValue("slack shortcut eave team")
-
-    await ack()
 
     # Not supported currently
     return
@@ -67,9 +64,6 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
 
     message = eave.slack.slack_models.SlackMessage(data=event, slack_context=context)
 
-    if fixture_collection_enabled:
-        save_fixture(event=event)
-
     if message.subtype in ["bot_message", "bot_remove", "bot_add"] or message.bot_id is not None:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
@@ -77,7 +71,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         return
 
     b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
-    eave_util.do_in_background(b.process_message())
+    await b.process_message()
 
 
 async def event_member_joined_channel_handler(
@@ -128,18 +122,5 @@ async def event_member_joined_channel_handler(
     )
 
 
-async def noop_handler() -> None:
-    pass
-
-
-fixture_collection_enabled = (
-    app_config.dev_mode and os.getenv("SLACK_SOCKETMODE") is not None and os.getenv("FIXTURE_COLLECTION") is not None
-)
-
-
-def save_fixture(event: eave.stdlib.typing.JsonObject) -> None:
-    os.makedirs(".event_fixtures/message", exist_ok=True)
-
-    fn = event["ts"]
-    with open(f".event_fixtures/message/{fn}.json", mode="w") as f:
-        f.write(json.dumps(event, indent=2, sort_keys=True))
+async def noop_handler(ack: AsyncAck) -> None:
+    await ack()

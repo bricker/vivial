@@ -1,8 +1,0 @@
-# https://cloud.google.com/appengine/docs/standard/reference/queueref?tab=python
-# https://cloud.google.com/tasks/docs/queue-yaml
-
-queue:
-  - name: slack-events
-    rate: 100/s
-    bucket_size: 20
-    task_retry_limit: 1

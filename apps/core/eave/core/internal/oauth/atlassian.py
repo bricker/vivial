@@ -98,8 +98,8 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     def request(self, method, url, data=None, headers=None, withhold_token=False, client_id=None, client_secret=None, **kwargs):  # type: ignore[no-untyped-def]
         try:
             return super().request(method, url, data, headers, withhold_token, client_id, client_secret, **kwargs)
-        except oauthlib.oauth2.rfc6749.errors.UnauthorizedClientError as e:
-            raise eave.stdlib.exceptions.InvalidAuthError() from e
+        except oauthlib.oauth2.rfc6749.errors.UnauthorizedClientError:
+            raise eave.stdlib.exceptions.InvalidAuthError()
 
     def oauth_flow_info(self) -> OAuthFlowInfo:
         authorization_url, state = self.authorization_url()
@@ -109,12 +109,12 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
         return OAuthFlowInfo(authorization_url=authorization_url, state=state)
 
     @cache
-    def get_available_resources(self) -> List[eave.stdlib.atlassian.AtlassianAvailableResource]:
+    def get_available_resources(self) -> list[eave.stdlib.atlassian.AtlassianAvailableResource]:
         available_resources_response = self.request(
             method="GET",
             url="https://api.atlassian.com/oauth/token/accessible-resources",
         )
-        available_resources_data: List[eave.stdlib.typing.JsonObject] = available_resources_response.json()
+        available_resources_data: list[eave.stdlib.typing.JsonObject] = available_resources_response.json()
         available_resources = [eave.stdlib.atlassian.AtlassianAvailableResource(**j) for j in available_resources_data]
         return available_resources
 
@@ -125,7 +125,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
         )
 
         response_json: eave.stdlib.typing.JsonObject = response.json()
-        userinfo = eave.stdlib.atlassian.ConfluenceUser(data=response_json, ctx=self.confluence_context)
+        userinfo = eave.stdlib.atlassian.ConfluenceUser(data=response_json)
         return userinfo
 
     @property
@@ -134,7 +134,10 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
         if len(available_resources) == 0:
             raise ConfluenceDataError("atlassian available resources")
 
-        id: str = available_resources[0].id
+        id = available_resources[0].id
+        if id is None:
+            raise ConfluenceDataError("missing atlassian_cloud_id")
+
         return id
 
     @property
@@ -144,9 +147,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     @property
     def confluence_context(self) -> eave.stdlib.atlassian.ConfluenceContext:
         resources = self.get_available_resources()
-        if len(resources) > 0:
-            url = resources[0].url
-        else:
+        if len(resources) == 0 or (url := resources[0].url) is None:
             url = self.api_base_url
 
         return eave.stdlib.atlassian.ConfluenceContext(base_url=url)

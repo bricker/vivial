@@ -64,6 +64,19 @@ async def upsert_document(
     response_json = await response.json()
     return operations.UpsertDocument.ResponseBody(**response_json, _raw_response=response)
 
+async def search_documents(
+    team_id: UUID,
+    input: operations.SearchDocuments.RequestBody,
+) -> operations.SearchDocuments.ResponseBody:
+    response = await _make_request(
+        path="/documents/search",
+        input=input,
+        team_id=team_id,
+    )
+
+    response_json = await response.json()
+    return operations.SearchDocuments.ResponseBody(**response_json, _raw_response=response)
+
 
 async def create_subscription(
     team_id: UUID,
@@ -241,7 +254,7 @@ async def _make_request(
     account_id: Optional[uuid.UUID] = None,
 ) -> aiohttp.ClientResponse:
     url = makeurl(path)
-    request_id = uuid.uuid4()
+    request_id = str(uuid.uuid4())
 
     headers = {
         "content-type": "application/json",
@@ -305,15 +318,15 @@ async def _make_request(
     except aiohttp.ClientResponseError as e:
         match e.status:
             case HTTPStatus.NOT_FOUND:
-                raise eave_exceptions.NotFoundError() from e
+                raise eave_exceptions.NotFoundError(request_id=request_id)
             case HTTPStatus.UNAUTHORIZED:
-                raise eave_exceptions.UnauthorizedError() from e
+                raise eave_exceptions.UnauthorizedError(request_id=request_id)
             case HTTPStatus.BAD_REQUEST:
-                raise eave_exceptions.BadRequestError() from e
+                raise eave_exceptions.BadRequestError(request_id=request_id)
             case HTTPStatus.INTERNAL_SERVER_ERROR:
-                raise eave_exceptions.InternalServerError() from e
+                raise eave_exceptions.InternalServerError(request_id=request_id)
             case _:
-                raise eave_exceptions.HTTPException(status_code=e.status) from e
+                raise eave_exceptions.HTTPException(status_code=e.status, request_id=request_id)
 
     return response
 

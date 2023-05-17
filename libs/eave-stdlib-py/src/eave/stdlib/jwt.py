@@ -72,7 +72,7 @@ class JWT:
             header = JWTHeader.from_b64(header_encoded=header_encoded)
             payload = JWTRegisteredClaims.from_b64(payload_encoded=payload_encoded)
         except ValueError as e:
-            raise exceptions.InvalidJWTError() from e
+            raise exceptions.InvalidJWTError()
 
         return cls(
             header=header,

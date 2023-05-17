@@ -111,6 +111,12 @@ class UpsertDocument(Endpoint):
         subscription: models.Subscription
         document_reference: models.DocumentReference
 
+class SearchDocuments(Endpoint):
+    class RequestBody(BaseRequestBody):
+        query: str
+    class ResponseBody(BaseResponseBody):
+        team: models.Team
+        documents: list[models.DocumentSearchResult]
 
 class GetSlackInstallation(Endpoint):
     class RequestBody(BaseRequestBody):

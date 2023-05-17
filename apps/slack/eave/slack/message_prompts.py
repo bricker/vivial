@@ -6,6 +6,13 @@ from eave.stdlib.exceptions import OpenAIDataError
 import eave.stdlib.openai_client as eave_openai
 from eave.stdlib import logger
 
+# I originally had instructions that "Newer messages are more relevant than older messages.", but I don't actually know if that's
+# true. Context matters I guess. Something to consider.
+CONVO_STRUCTURE = eave_openai.formatprompt(
+    """
+    The conversation is in ascending chronological order, going from older messages at the top to newer messages at the bottom.
+    """
+)
 # class MessageType(enum.Enum):
 #     REQUEST = "REQUEST"
 #     QUESTION = "QUESTION"
@@ -58,9 +65,8 @@ class MessageAction(enum.Enum):
 
 async def message_action(context: str) -> MessageAction:
     prompt = eave_openai.formatprompt(
-        context,
         """
-        What action should you take based on this message? Select one of the following choices:
+        What action should you take based on the following message? Select one of these choices:
         - Create new documentation
         - Update existing documentation
         - Follow this conversation
@@ -69,12 +75,15 @@ async def message_action(context: str) -> MessageAction:
         - Delete or archive existing documentation
         - No action is needed
         - I don't know
+
+        If you're unsure, or if the message is just tagging you to get your attention, then you should choose "Follow this conversation".
         """,
+        context,
     )
 
-    logger.info(f"prompt:\n{prompt}")
+    logger.debug(f"prompt:\n{prompt}")
     response = await _get_openai_response(messages=[prompt], temperature=0)
-    logger.info(f"response: {response}")
+    logger.debug(f"response: {response}")
 
     if re.search("create", response, re.IGNORECASE) is not None:
         action = MessageAction.CREATE_DOCUMENTATION
@@ -97,7 +106,7 @@ async def message_action(context: str) -> MessageAction:
         logger.warning(f"Unexpected message action response: {response}")
         action = MessageAction.UNKNOWN
 
-    logger.info(f"message action: {action}")
+    logger.debug(f"message action: {action}")
     return action
 
 

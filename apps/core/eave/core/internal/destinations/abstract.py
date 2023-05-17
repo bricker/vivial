@@ -1,6 +1,7 @@
 import abc
 from dataclasses import dataclass
-from typing import Optional, Protocol
+from typing import Optional, Protocol, Sequence
+from eave.stdlib.core_api.models import DocumentSearchResult
 
 import eave.stdlib.core_api.operations as eave_ops
 
@@ -23,4 +24,8 @@ class DocumentDestination(Protocol):
 
     @abc.abstractmethod
     async def update_document(self, input: eave_ops.DocumentInput, document_id: str) -> DocumentMetadata:
+        ...
+
+    @abc.abstractmethod
+    async def search_documents(self, query: str) -> list[DocumentSearchResult]:
         ...

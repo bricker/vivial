@@ -1,6 +1,9 @@
 import asyncio
 from typing import Optional
 
+import slack_sdk
+import slack_sdk.errors
+import slack_sdk.models.blocks
 import eave.pubsub_schemas
 from eave.slack.util import log_context
 import eave.stdlib.analytics
@@ -15,6 +18,7 @@ from eave.stdlib import logger
 from slack_bolt.async_app import AsyncBoltContext
 
 from eave.stdlib.typing import JsonObject
+from eave.stdlib.util import memoized
 
 from . import document_metadata, message_prompts, slack_models
 
@@ -223,6 +227,19 @@ class Brain:
         """
         subscription = await self.get_subscription()
 
+        logger.warning("Unknown request to Eave in Slack", extra={ "json_fields": { "message": self.message.text } })
+        eave.stdlib.analytics.log_event(
+            event_name="eave_received_unknown_request",
+            event_description="Eave received a request that she didn't know how to handle.",
+            event_source="slack app",
+            eave_team_id=self.eave_team.id,
+            opaque_params={
+                "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                "request_type": message_prompts.MessageAction.UNKNOWN.value,
+                "message_content": self.message.text,
+            },
+        )
+
         # TODO: Create a Jira ticket (or similar) when Eave doesn't know how to handle a message.
 
         if subscription is None:
@@ -230,7 +247,7 @@ class Brain:
                 text=(
                     msg := (
                         "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                        "Do you want me to watch and document this conversation? (This feature is not yet implemented) "
+                        # "Do you want me to watch and document this conversation? (This feature is not yet implemented) "
                         "If you needed something else, try phrasing it differently."
                     )
                 )
@@ -286,30 +303,54 @@ class Brain:
         4. Send a follow-up response to the original Slack thread with a link to the documentation
         """
 
-        api_document = await self.build_documentation()
-        upsert_document_response = await self.upsert_document(document=api_document)
-
-        await self.message.send_response(
-            text=(
-                msg := (
-                    "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
-                    f"<{upsert_document_response.document_reference.document_url}|{api_document.title}>"
+        try:
+            api_document = await self.build_documentation()
+            upsert_document_response = await self.upsert_document(document=api_document)
+        except eave.stdlib.exceptions.HTTPException as e:
+            eave.stdlib.logger.exception("Error while upserting documentation")
+            await self.message.send_response(
+                text=(
+                    msg := (
+                        "I wasn't able to create the requested documentation because of a technical issue. I've let my developers know about it."
+                    )
                 )
             )
-        )
 
-        eave.stdlib.analytics.log_event(
-            event_name="eave_sent_message",
-            event_description="Eave sent a message",
-            event_source="slack app",
-            eave_team_id=self.eave_team.id,
-            opaque_params={
-                "integration": eave.stdlib.core_api.enums.Integration.slack.value,
-                "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
-                "message_content": msg,
-                "message_purpose": "link to initial documentation",
-            },
-        )
+            eave.stdlib.analytics.log_event(
+                event_name="eave_sent_message",
+                event_description="Eave sent a message",
+                event_source="slack app",
+                eave_team_id=self.eave_team.id,
+                opaque_params={
+                    "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                    "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
+                    "message_content": msg,
+                    "request_id": e.request_id,
+                    "message_purpose": "inform the user of a failure while creating documentation",
+                },
+            )
+        else:
+            await self.message.send_response(
+                text=(
+                    msg := (
+                        "Here's the documentation that you asked for! I'll keep it up-to-date and accurate.\n"
+                        f"<{upsert_document_response.document_reference.document_url}|{api_document.title}>"
+                    )
+                )
+            )
+
+            eave.stdlib.analytics.log_event(
+                event_name="eave_sent_message",
+                event_description="Eave sent a message",
+                event_source="slack app",
+                eave_team_id=self.eave_team.id,
+                opaque_params={
+                    "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                    "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
+                    "message_content": msg,
+                    "message_purpose": "link to initial documentation",
+                },
+            )
 
     async def build_documentation(self) -> eave_ops.DocumentInput:
         conversation = await self.build_context()
@@ -377,38 +418,21 @@ class Brain:
         return resources_doc
 
     async def search_documentation(self) -> None:
-        # blocks = [
-        #     slack_sdk.models.blocks.SectionBlock(
-        #         text=slack_sdk.models.blocks.basic_components.MarkdownTextObject(
-        #             text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
-        #         ),
-        #     ),
-        #     slack_sdk.models.blocks.DividerBlock(),
-        #     slack_sdk.models.blocks.SectionBlock(
-        #         text=slack_sdk.models.blocks.basic_components.MarkdownTextObject(
-        #             text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
-        #         ),
-        #     ),
-        #     slack_sdk.models.blocks.DividerBlock(),
-        #     slack_sdk.models.blocks.SectionBlock(
-        #         text=slack_sdk.models.blocks.basic_components.MarkdownTextObject(
-        #             text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
-        #         ),
-        #     ),
-        #     slack_sdk.models.blocks.DividerBlock(),
-        #     slack_sdk.models.blocks.ActionsBlock(
-        #         elements=[
-        #             slack_sdk.models.blocks.block_elements.ButtonElement(
-        #                 text="Load more results (noop)",
-        #             ),
-        #         ],
-        #     ),
-        # ]
-        # await self.message.send_response(blocks=blocks)
+        search_results = await self.search_documents()
 
-        await self.message.send_response(
-            text=(msg := "I haven't yet been taught how to search existing documentation.")
-        )
+        blocks: list[slack_sdk.models.blocks.Block] = []
+        for result in search_results.documents:
+            section = slack_sdk.models.blocks.SectionBlock(
+                text=slack_sdk.models.blocks.basic_components.MarkdownTextObject(
+                    text=f"*<{result.url}|{result.title}>*",
+                ),
+            )
+
+            divider = slack_sdk.models.blocks.DividerBlock()
+            blocks.append(section)
+            blocks.append(divider)
+
+        await self.message.send_response(blocks=blocks)
 
         eave.stdlib.analytics.log_event(
             event_name="eave_sent_message",
@@ -418,10 +442,13 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.SEARCH_DOCUMENTATION.value,
-                "message_content": msg,
-                "message_purpose": "unable to perform action",
+                "message_content": [b.text for b in blocks if isinstance(b, slack_sdk.models.blocks.SectionBlock)],
+                "message_purpose": "provide search results",
             },
         )
+
+
+
 
     async def update_documentation(self) -> None:
         await self.message.send_response(
@@ -489,6 +516,7 @@ class Brain:
     Context Building
     """
 
+    @memoized
     async def build_context(self) -> str:
         context = await self.build_concatenated_context()
         if len(tokencoding.encode(context)) > (eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2):
@@ -537,14 +565,15 @@ class Brain:
                 joined_messages = "\n\n".join(messages_for_prompt)
                 prompt = eave_openai.formatprompt(
                     f"""
-                    Condense the following conversation. Maintain the important information.
+                    Condense the following conversation in a way that maintains the important information, but removes anything off-topic or insubstantial.
 
+                    {message_prompts.CONVO_STRUCTURE}
+
+                    Conversation:
                     ###
-
                     {condensed_context}
 
                     {joined_messages}
-
                     ###
                 """
                 )
@@ -574,9 +603,15 @@ class Brain:
 
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
-        success = await self.message.add_reaction("eave")
-        if not success:
-            await self.message.add_reaction("thumbsup")
+        try:
+            await self.message.add_reaction("eave")
+        except slack_sdk.errors.SlackApiError as e:
+            # https://api.slack.com/methods/reactions.add#errors
+            error_code = e.response.get("error")
+            logger.warning(f"Error reacting to message: {error_code}", exc_info=e)
+
+            if error_code == "invalid_name":
+                await self.message.add_reaction("thumbsup")
 
     async def get_subscription(self) -> eave_ops.GetSubscription.ResponseBody | None:
         subscription = await eave_core.get_subscription(
@@ -605,6 +640,44 @@ class Brain:
             input=eave_ops.UpsertDocument.RequestBody(
                 subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
                 document=document,
+            ),
+        )
+        return response
+
+    async def search_documents(self) -> eave_ops.SearchDocuments.ResponseBody:
+        conversation = await self.build_context()
+
+        prompt = eave_openai.formatprompt(
+            f"""
+            Extract a key term or phrase from this conversation that can be used as a full-text search query to find relevant documentation.
+
+            {message_prompts.CONVO_STRUCTURE}
+            Newer messages are more relevant and should be weighted higher.
+            If the newest message is asking about a specific topic, that is very important and should be your main focus.
+
+            Conversation:
+            ###
+            {conversation}
+            ###
+            """
+        )
+
+        openai_params = eave_openai.ChatCompletionParameters(
+            messages=[prompt],
+            n=1,
+            frequency_penalty=0.9,
+            presence_penalty=0.9,
+            temperature=0.2,
+        )
+
+        answer: str | None = await eave_openai.chat_completion(openai_params)
+        if answer is None:
+            raise OpenAIDataError()
+
+        response = await eave_core.search_documents(
+            team_id=self.eave_team.id,
+            input=eave_ops.SearchDocuments.RequestBody(
+                query=answer
             ),
         )
         return response
@@ -669,29 +742,26 @@ class Brain:
         await self.build_message_context()
 
     async def build_message_context(self) -> None:
-        context: list[str] = []
+        context: str = ""
 
         if self.user_profile is not None:
             caller_name = self.user_profile.real_name_normalized
             caller_job_title = self.user_profile.title
 
-            context.append(f"{caller_name} sent you a message.")
+            context += f"from {caller_name}"
             if caller_job_title:  # might be empty string
-                context.append(f'{caller_name}\'s job title is "{caller_job_title}".')
+                context += f" ({caller_job_title})"
 
         # f"The question was asked in a Slack channel called \"\". "
         # f"The description of that channel is: \"\" "
 
-        compiled_context = "\n".join(context)
-
         message_context = eave_openai.formatprompt(
-            compiled_context,
             f"""
-            Message:
+            Message {context}:
             ###
             {self.expanded_text}
             ###
-        """,
+            """,
         )
 
         self.message_context = message_context

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .typing import JsonObject
-
+from . import logger
 
 @dataclass
 class AtlassianAvailableResource:
@@ -15,11 +15,11 @@ class AtlassianAvailableResource:
     https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/#implementing-oauth-2-0--3lo-
     """
 
-    id: str
-    name: str
-    url: str
-    scopes: typing.List[str]
-    avatarUrl: str
+    id: Optional[str] = None
+    name: Optional[str] = None
+    url: Optional[str] = None
+    scopes: Optional[list[str]] = None
+    avatarUrl: Optional[str] = None
 
 
 class ConfluenceUserType(enum.Enum):
@@ -56,7 +56,7 @@ class ConfluenceContext:
 
 
 class ConfluenceGenericLinks:
-    base: Optional[str]
+    base: Optional[str] = None
     self_: Optional[str] = None
     tinyui: Optional[str] = None
     editui: Optional[str] = None
@@ -65,7 +65,7 @@ class ConfluenceGenericLinks:
     collection: Optional[str] = None
 
     # FIXME: According to the Confluence documentation, "_links" might be a string (instead of an object)
-    def __init__(self, data: dict[str, str], ctx: ConfluenceContext) -> None:
+    def __init__(self, data: dict[str, str]) -> None:
         self.base = data.get("base")
         self.self_ = data.get("self")
         self.tinyui = data.get("tinyui")
@@ -74,48 +74,31 @@ class ConfluenceGenericLinks:
         self.context = data.get("context")
         self.collection = data.get("collection")
 
-    @property
-    def editui_url(self) -> Optional[str]:
-        if self.editui is None:
-            return None
-
-        return f"{self.base}{self.editui}"
-
-    @property
-    def webui_url(self) -> Optional[str]:
-        if self.webui is None:
-            return None
-
-        return f"{self.base}{self.webui}"
-
-    @property
-    def tinyui_url(self) -> Optional[str]:
-        if self.tinyui is None:
-            return None
-
-        return f"{self.base}{self.tinyui}"
-
-
 class ConfluenceBaseModel:
     _data: JsonObject
     expandable: Optional[JsonObject] = None
     links: Optional[ConfluenceGenericLinks] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
+    def __init__(self, data: JsonObject) -> None:
         self._data = data
 
         if (links := data.get("_links")) is not None:
-            self.links = ConfluenceGenericLinks(links, ctx)
+            self.links = ConfluenceGenericLinks(links)
 
         if (expandable := data.get("_expandable")) is not None:
             self.expandable = expandable
 
-    @property
-    def canonical_url(self) -> Optional[str]:
-        if self.links is not None and self.links.tinyui_url is not None:
-            return self.links.tinyui_url
-        else:
-            return None
+    def canonical_url(self, base_url: str) -> str:
+        if self.links is None:
+            logger.warning("confluence content._links missing")
+            return base_url
+
+        path = self.links.tinyui or self.links.webui
+        if path is None:
+            logger.warning("confluence content._links missing tinyui and webui")
+            return base_url
+
+        return f"{base_url}/wiki/{path}"
 
 
 class ConfluencePageVersion(ConfluenceBaseModel):
@@ -131,12 +114,12 @@ class ConfluenceUserIcon(ConfluenceBaseModel):
 
 
 class ConfluenceSpace(ConfluenceBaseModel):
-    id: Optional[int]
-    key: Optional[str]
-    name: Optional[str]
+    id: Optional[int] = None
+    key: Optional[str] = None
+    name: Optional[str] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
         self.id = data.get("id")
         self.key = data.get("key")
         self.name = data.get("name")
@@ -147,8 +130,8 @@ class ConfluenceUserDetails(ConfluenceBaseModel):
 
 
 class ConfluenceUser(ConfluenceBaseModel):
-    type_: ConfluenceUserType
-    account_type: ConfluenceUserAccountType
+    type_: Optional[ConfluenceUserType] = None
+    account_type: Optional[ConfluenceUserAccountType] = None
     details: Optional[ConfluenceUserDetails] = None
     is_external_collaborator: Optional[bool] = None
     external_collaborator: Optional[bool] = None
@@ -163,11 +146,15 @@ class ConfluenceUser(ConfluenceBaseModel):
     operations: Optional[list[ConfluenceOperationCheckResult]] = None
     personal_space: Optional[ConfluenceSpace] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
-        self.type_ = ConfluenceUserType(value=data["type"])
-        self.account_type = ConfluenceUserAccountType(value=data["accountType"])
+        if (type_ := data.get("type")) is not None:
+            self.type_ = ConfluenceUserType(value=type_)
+
+        if (account_type := data.get("accountType")) is not None:
+            self.account_type = ConfluenceUserAccountType(value=account_type)
+
         self.is_external_collaborator = data.get("isExternalCollaborator")
         self.external_collaborator = data.get("externalCollaborator")
         self.username = data.get("username")
@@ -179,42 +166,42 @@ class ConfluenceUser(ConfluenceBaseModel):
         self.time_zone = data.get("timeZone")
 
         if (details := data.get("details")) is not None:
-            self.details = ConfluenceUserDetails(details, ctx)
+            self.details = ConfluenceUserDetails(details)
 
         if (profile_picture := data.get("profilePicture")) is not None:
-            self.profile_picture = ConfluenceUserIcon(profile_picture, ctx)
+            self.profile_picture = ConfluenceUserIcon(profile_picture)
 
         if (operations := data.get("operations")) is not None:
-            self.operations = [ConfluenceOperationCheckResult(operation, ctx) for operation in operations]
+            self.operations = [ConfluenceOperationCheckResult(operation) for operation in operations]
 
         if (personal_space := data.get("personalSpace")) is not None:
-            self.personal_space = ConfluenceSpace(personal_space, ctx)
+            self.personal_space = ConfluenceSpace(personal_space)
 
 
 class ConfluenceUsersUserKeys(ConfluenceBaseModel):
-    users: list[ConfluenceUser]
-    user_keys: list[str]
+    users: Optional[list[ConfluenceUser]] = None
+    user_keys: Optional[list[str]] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
-        self.users = data["users"]
-        self.user_keys = data["userKeys"]
+        self.users = data.get("users")
+        self.user_keys = data.get("userKeys")
 
 
 class ConfluencePageContributors(ConfluenceBaseModel):
     publishers: Optional[ConfluenceUsersUserKeys] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
         if (publishers := data.get("publishers")) is not None:
-            self.publishers = ConfluenceUsersUserKeys(publishers, ctx)
+            self.publishers = ConfluenceUsersUserKeys(publishers)
 
 
 class ConfluencePageHistory(ConfluenceBaseModel):
-    latest: bool
-    created_date: str
+    latest: Optional[bool] = None
+    created_date: Optional[str] = None
     contributors: Optional[ConfluencePageContributors] = None
     created_by: Optional[ConfluenceUser] = None
     owned_by: Optional[ConfluenceUser] = None
@@ -222,46 +209,46 @@ class ConfluencePageHistory(ConfluenceBaseModel):
     previous_version: Optional[ConfluencePageVersion] = None
     next_version: Optional[ConfluencePageVersion] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
-        self.latest = data["latest"]
-        self.created_date = data["createdDate"]
+        self.latest = data.get("latest")
+        self.created_date = data.get("createdDate")
 
         if (contributors := data.get("contributors")) is not None:
-            self.contributors = ConfluencePageContributors(contributors, ctx)
+            self.contributors = ConfluencePageContributors(contributors)
 
         if (created_by := data.get("createdBy")) is not None:
-            self.created_by = ConfluenceUser(created_by, ctx)
+            self.created_by = ConfluenceUser(created_by)
 
         if (owned_by := data.get("ownedBy")) is not None:
-            self.owned_by = ConfluenceUser(owned_by, ctx)
+            self.owned_by = ConfluenceUser(owned_by)
 
         if (last_updated := data.get("lastUpdated")) is not None:
-            self.last_updated = ConfluencePageVersion(last_updated, ctx)
+            self.last_updated = ConfluencePageVersion(last_updated)
 
         if (previous_version := data.get("previousVersion")) is not None:
-            self.previous_version = ConfluencePageVersion(previous_version, ctx)
+            self.previous_version = ConfluencePageVersion(previous_version)
 
         if (next_version := data.get("nextVersion")) is not None:
-            self.next_version = ConfluencePageVersion(next_version, ctx)
+            self.next_version = ConfluencePageVersion(next_version)
 
 
 class ConfluenceMediaToken(ConfluenceBaseModel):
-    collection_ids: list[str]
-    content_id: str
-    expiry_date_time: str
-    file_ids: list[str]
-    token: str
+    collection_ids: Optional[list[str]] = None
+    content_id: Optional[str] = None
+    expiry_date_time: Optional[str] = None
+    file_ids: Optional[list[str]] = None
+    token: Optional[str] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
-        self.collection_ids = data["collectionIds"]
-        self.content_id = data["contentId"]
-        self.expiry_date_time = data["expiryDateTime"]
-        self.file_ids = data["fileIds"]
-        self.token = data["token"]
+        self.collection_ids = data.get("collectionIds")
+        self.content_id = data.get("contentId")
+        self.expiry_date_time = data.get("expiryDateTime")
+        self.file_ids = data.get("fileIds")
+        self.token = data.get("token")
 
 
 class ConfluenceWebResourceDependencies(ConfluenceBaseModel):
@@ -273,101 +260,106 @@ class ConfluenceEmbeddable(ConfluenceBaseModel):
 
 
 class ConfluenceEmbeddedContent(ConfluenceBaseModel):
-    entity_id: int
-    entity_type: str
-    entity: ConfluenceEmbeddable
+    entity_id: Optional[int] = None
+    entity_type: Optional[str] = None
+    entity: Optional[ConfluenceEmbeddable] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
-        self.entity_id = data["entityId"]
-        self.entity_type = data["entityType"]
-        self.entity = ConfluenceEmbeddable(data["entity"], ctx)
+        self.entity_id = data.get("entityId")
+        self.entity_type = data.get("entityType")
+
+        if (entity := data.get("entity")) is not None:
+            self.entity = ConfluenceEmbeddable(entity)
 
 
 class ConfluenceContentBody(ConfluenceBaseModel):
-    value: str
-    representation: ConfluenceContentBodyRepresentation
-    embedded_content: list[ConfluenceEmbeddedContent]
+    value: Optional[str] = None
+    representation: Optional[ConfluenceContentBodyRepresentation] = None
+    embedded_content: Optional[list[ConfluenceEmbeddedContent]] = None
     media_token: Optional[ConfluenceMediaToken] = None
     webresource: Optional[ConfluenceWebResourceDependencies] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
-        self.value = data["value"]
-        self.representation = ConfluenceContentBodyRepresentation(value=data["representation"])
-        self.embedded_content = [
-            ConfluenceEmbeddedContent(embedded_content, ctx) for embedded_content in data["embeddedContent"]
-        ]
+        self.value = data.get("value")
+
+        if (repr := data.get("representation")) is not None:
+            self.representation = ConfluenceContentBodyRepresentation(value=repr)
+
+        if (embc := data.get("embeddedContent")) is not None:
+            self.embedded_content = [
+                ConfluenceEmbeddedContent(embedded_content) for embedded_content in embc
+            ]
 
         if (media_token := data.get("mediaToken")) is not None:
-            self.media_token = ConfluenceMediaToken(media_token, ctx)
+            self.media_token = ConfluenceMediaToken(media_token)
 
         if (webresource := data.get("webresource")) is not None:
-            self.webresource = ConfluenceWebResourceDependencies(webresource, ctx)
+            self.webresource = ConfluenceWebResourceDependencies(webresource)
 
 
 class ConfluencePageBody(ConfluenceBaseModel):
     content: Optional[ConfluenceContentBody] = None
     representation: ConfluenceContentBodyRepresentation = ConfluenceContentBodyRepresentation._unknown
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
         if (content := data.get(ConfluenceContentBodyRepresentation.view.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.view
 
         if (content := data.get(ConfluenceContentBodyRepresentation.export_view.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.export_view
 
         if (content := data.get(ConfluenceContentBodyRepresentation.styled_view.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.styled_view
 
         if (content := data.get(ConfluenceContentBodyRepresentation.storage.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.storage
 
         if (content := data.get(ConfluenceContentBodyRepresentation.wiki.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.wiki
 
         if (content := data.get(ConfluenceContentBodyRepresentation.editor.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.editor
 
         if (content := data.get(ConfluenceContentBodyRepresentation.editor2.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.editor2
 
         if (content := data.get(ConfluenceContentBodyRepresentation.anonymous_export_view.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.anonymous_export_view
 
         if (content := data.get(ConfluenceContentBodyRepresentation.atlas_doc_format.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.atlas_doc_format
 
         if (content := data.get(ConfluenceContentBodyRepresentation.dynamic.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.dynamic
 
         if (content := data.get(ConfluenceContentBodyRepresentation.raw.value)) is not None:
-            self.content = ConfluenceContentBody(content, ctx)
+            self.content = ConfluenceContentBody(content)
             self.representation = ConfluenceContentBodyRepresentation.raw
 
 
 class ConfluencePage(ConfluenceBaseModel):
-    ctx: ConfluenceContext
-    id: str
-    type: str
-    status: str
-    title: str
-    macro_rendered_output: JsonObject
-    extensions: JsonObject
+    id: Optional[str] = None
+    type: Optional[str] = None
+    status: Optional[str] = None
+    title: Optional[str] = None
+    macro_rendered_output: Optional[JsonObject] = None
+    extensions: Optional[JsonObject] = None
     ancestors: Optional[list[JsonObject]] = None
     container: Optional[JsonObject] = None
     body: Optional[ConfluencePageBody] = None
@@ -375,26 +367,26 @@ class ConfluencePage(ConfluenceBaseModel):
     history: Optional[ConfluencePageHistory] = None
     version: Optional[ConfluencePageVersion] = None
 
-    def __init__(self, data: JsonObject, ctx: ConfluenceContext) -> None:
-        super().__init__(data, ctx)
+    def __init__(self, data: JsonObject) -> None:
+        super().__init__(data)
 
-        self.id = data["id"]
-        self.type = data["type"]
-        self.status = data["status"]
-        self.title = data["title"]
-        self.macro_rendered_output = data["macroRenderedOutput"]
-        self.extensions = data["extensions"]
+        self.id = data.get("id")
+        self.type = data.get("type")
+        self.status = data.get("status")
+        self.title = data.get("title")
+        self.macro_rendered_output = data.get("macroRenderedOutput")
+        self.extensions = data.get("extensions")
         self.ancestors = data.get("ancestors")
         self.container = data.get("container")
 
         if (body := data.get("body")) is not None:
-            self.body = ConfluencePageBody(body, ctx)
+            self.body = ConfluencePageBody(body)
 
         if (space := data.get("space")) is not None:
-            self.space = ConfluenceSpace(space, ctx)
+            self.space = ConfluenceSpace(space)
 
         if (history := data.get("history")) is not None:
-            self.history = ConfluencePageHistory(history, ctx)
+            self.history = ConfluencePageHistory(history)
 
         if (version := data.get("version")) is not None:
-            self.version = ConfluencePageVersion(version, ctx)
+            self.version = ConfluencePageVersion(version)

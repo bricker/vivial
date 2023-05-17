@@ -42,10 +42,10 @@ enable_incomplete_feature = "Unpack"
 [tool.pytest.ini_options]
 log_cli = false
 pythonpath = [
-  "../../apps/core",
-  "../../apps/slack",
-  "../../apps/marketing",
-  "../../libs/eave-stdlib-py"
+  "../../../apps/core",
+  "../../../apps/slack",
+  "../../../apps/marketing",
+  "../../../libs/eave-stdlib-py"
 ]
 norecursedirs = [
   ".ruff_cache",
