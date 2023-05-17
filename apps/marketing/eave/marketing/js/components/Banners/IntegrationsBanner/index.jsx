@@ -2,23 +2,15 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
 import { INTEGRATION_LOGOS } from '../../../constants.js';
+import PageSection from '../../PageSection/index.jsx';
 import Copy from '../../Copy/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
-  section: {
-    backgroundColor: theme.palette.background.dark,
-    padding: '54px 40px',
-    [theme.breakpoints.up('sm')]: {
+  wrapper: {
+    [theme.breakpoints.up('md')]: {
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '54px 40px',
-    },
-    [theme.breakpoints.up('md')]: {
-      padding: '82px 164px',
-    },
-    [theme.breakpoints.up('lg')]: {
       flexDirection: 'row',
     },
   },
@@ -42,6 +34,7 @@ const makeClasses = makeStyles((theme) => ({
     justifyContent: 'space-between',
     [theme.breakpoints.up('md')]: {
       maxWidth: 738,
+      margin: '0 0 0 24px',
     },
     [theme.breakpoints.up('lg')]: {
       maxWidth: 'unset',
@@ -50,19 +43,19 @@ const makeClasses = makeStyles((theme) => ({
   },
   slack: {
     width: 84,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('lg')]: {
       width: 168,
     },
   },
   github: {
     width: 57,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('lg')]: {
       width: 103,
     },
   },
   jira: {
     width: 116,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('lg')]: {
       width: 232,
     },
   },
@@ -72,7 +65,7 @@ const IntegrationsBanner = ({ title, subtitle }) => {
   const classes = makeClasses();
 
   return (
-    <section id="eave-integrations-banner" className={classes.section}>
+    <PageSection alternateBackground wrapperClassName={classes.wrapper}>
       <div className={classes.copy}>
         <Copy variant="h2">
           {title}
@@ -86,7 +79,7 @@ const IntegrationsBanner = ({ title, subtitle }) => {
         <img className={classes.github} src={INTEGRATION_LOGOS.github.src} alt={INTEGRATION_LOGOS.github.alt} />
         <img className={classes.jira} src={INTEGRATION_LOGOS.jira.src} alt={INTEGRATION_LOGOS.jira.alt} />
       </div>
-  </section>
+    </PageSection>
   );
 };
 

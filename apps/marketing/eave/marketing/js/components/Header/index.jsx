@@ -23,6 +23,8 @@ const makeClasses = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '0px 16px',
+    maxWidth: 1440,
+    margin: '0 auto',
     [theme.breakpoints.up('md')]: {
       height: HEADER.desktop.height,
       padding: '0px 46px',
@@ -51,7 +53,6 @@ const makeClasses = makeStyles((theme) => ({
   mobileNavItem: {
     color: theme.palette.primary.main,
     textDecoration: 'none',
-    fontFamily: theme.typography.fontFamily.main,
     fontSize: 32,
     lineHeight: '37.5px',
     fontWeight: 400,
@@ -141,43 +142,43 @@ const Header = ({ simpleHeader }) => {
 
   return (
     <header className={classes.outterContainer}>
-    <div className={classes.innerContainer}>
-      <div className={classes.logoContainer}>
-        <EaveLogo />
-      </div>
-      {!simpleHeader && (
-        <>
-          <div className={classes.ctaContainer}>
-            {TopButtons}
-          </div>
-          <IconButton
-            classes={{ root: classes.menuIconBtn }}
-            onClick={() => setDrawerIsOpen(true)}
-          >
-            <HamburgerIcon />
-          </IconButton>
-          <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
-            <div className={classes.mobileMenu}>
-              <div className={classes.innerContainer}>
-                <div className={classes.logoContainer}>
-                  <EaveLogo />
-                </div>
-                <IconButton
-                  classes={{ root: classes.menuIconBtn }}
-                  onClick={() => setDrawerIsOpen(false)}
-                >
-                  <CloseIcon />
-                </IconButton>
-              </div>
-              <nav className={classes.mobileNav}>
-                {navButtons}
-              </nav>
+      <div className={classes.innerContainer}>
+        <div className={classes.logoContainer}>
+          <EaveLogo />
+        </div>
+        {!simpleHeader && (
+          <>
+            <div className={classes.ctaContainer}>
+              {TopButtons}
             </div>
-          </Drawer>
-        </>
-      )}
-    </div>
-  </header>
+            <IconButton
+              classes={{ root: classes.menuIconBtn }}
+              onClick={() => setDrawerIsOpen(true)}
+            >
+              <HamburgerIcon />
+            </IconButton>
+            <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
+              <div className={classes.mobileMenu}>
+                <div className={classes.innerContainer}>
+                  <div className={classes.logoContainer}>
+                    <EaveLogo />
+                  </div>
+                  <IconButton
+                    classes={{ root: classes.menuIconBtn }}
+                    onClick={() => setDrawerIsOpen(false)}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </div>
+                <nav className={classes.mobileNav}>
+                  {navButtons}
+                </nav>
+              </div>
+            </Drawer>
+          </>
+        )}
+      </div>
+    </header>
   );
 };
 

@@ -3,12 +3,12 @@ import { makeStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 
 import Copy from '../../Copy/index.jsx';
+import PageSection from '../../PageSection/index.jsx';
 import { imageUrl } from '../../../asset-helpers.js';
 
 const makeClasses = makeStyles((theme) => ({
-  section: {
+  wrapper: {
     display: 'grid',
-    padding: '54px 0',
     gridGap: '37px 0px',
     gridTemplateAreas: `
       'upperCopy'
@@ -16,9 +16,6 @@ const makeClasses = makeStyles((theme) => ({
       'lowerCopy'
     `,
     [theme.breakpoints.up('md')]: {
-      padding: '109px 164px',
-    },
-    [theme.breakpoints.up('lg')]: {
       gridTemplateColumns: '1fr 458px',
       gridGap: '0px 26px',
       gridTemplateAreas: `
@@ -75,7 +72,7 @@ const SlackBanner = ({ titles, subtitles }) => {
   const lowerCopyClasses = classNames(classes.copy, classes.lowerCopy);
 
   return (
-    <section className={classes.section}>
+    <PageSection wrapperClassName={classes.wrapper}>
       <picture className={classes.imgWrapper}>
         <source
           media="(min-width: 600px)"
@@ -109,7 +106,7 @@ const SlackBanner = ({ titles, subtitles }) => {
           {subtitles[1]}
         </Copy>
       </div>
-    </section>
+    </PageSection>
   );
 };
 

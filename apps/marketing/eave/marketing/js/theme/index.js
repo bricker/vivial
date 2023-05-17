@@ -21,10 +21,7 @@ const theme = createTheme({
       innactive: '#808182',
       link: '#1A2697',
     },
-    fontFamily: {
-      main: "'DM Sans', sans-serif",
-      logo: "'Pattaya', sans-serif",
-    },
+    fontFamily: ['DM Sans', 'sans-serif'],
   },
 });
 
