@@ -38,6 +38,10 @@ class SubscriptionOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    @property
+    def api_model(self) -> eave.stdlib.core_api.models.Subscription:
+        return eave.stdlib.core_api.models.Subscription.from_orm(self)
+
     async def get_document_reference(self, session: AsyncSession) -> Optional[DocumentReferenceOrm]:
         if self.document_reference_id is None:
             return None

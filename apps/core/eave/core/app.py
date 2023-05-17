@@ -70,12 +70,18 @@ def make_route(
 
 routes = [
     Route(path="/status", endpoint=status.StatusRequest),
+    Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
         path="/documents/upsert",
         auth_required=False,
         endpoint=documents.UpsertDocument,
+    ),
+    make_route(
+        path="/documents/search",
+        auth_required=False,
+        endpoint=documents.SearchDocuments,
     ),
     make_route(
         path="/subscriptions/create",

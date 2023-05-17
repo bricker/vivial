@@ -2,14 +2,15 @@ import enum
 import re
 from typing import List
 from eave.stdlib.exceptions import OpenAIDataError
-
+from .message_prompts import CONVO_STRUCTURE
 import eave.stdlib.openai_client as eave_openai
-
 
 async def get_topic(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
         f"""
         Create a short title for the following conversation. Respond with only the title and nothing else.
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###
@@ -43,6 +44,8 @@ async def get_hierarchy(conversation: str) -> List[str]:
 
         Give the answer as a comma-separated list of category names, sorted from least specific to most specific.
 
+        {CONVO_STRUCTURE}
+
         Conversation:
         ###
         {conversation}
@@ -70,6 +73,8 @@ async def get_project_title(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
         f"""
         Is the following conversation about a specific project? If so, what is the name of the project? If not, say: {eave_openai.STOP_SEQUENCE}
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###
@@ -112,6 +117,8 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
         - {DocumentationType.UNKNOWN.value}: You can write any other type of documentation, but you prefer the types listed above when appropriate.\n
 
         Which of those types of documentation is most appropriate for the following conversation? Respond with just the type of documentation and nothing else.
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###
@@ -180,6 +187,8 @@ async def get_documentation(conversation: str, documentation_type: Documentation
         f"""
         You should not simply summarize the conversation; instead, you should extract information that is important, novel, and is likely to be valuable to other team members in the future.
         The documentation should be formatted using plain HTML tags without any inline styling. The documentation will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>.
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###

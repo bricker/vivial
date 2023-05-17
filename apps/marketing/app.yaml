@@ -9,10 +9,15 @@ automatic_scaling:
 inbound_services:
 - warmup
 
+vpc_access_connector:
+  name: projects/eave-production/locations/us-central1/connectors/appengine
+
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
     --pythonpath vendor \
+    --workers 3 \
+    --preload \
     eave.marketing.app:app
 
 env_variables:
@@ -22,6 +27,10 @@ env_variables:
 handlers:
 - url: /static
   static_dir: eave/marketing/static
+
+- url: /_ah/.*
+  login: admin
+  script: auto
 
 - url: .*
   script: auto

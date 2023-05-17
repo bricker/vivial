@@ -257,7 +257,10 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         return acct
 
     def mock_atlassian_client(self) -> None:
-        self.patch(unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get"))
+        self.patch(
+            name="AtlassianRestAPI.get",
+            patch=unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.get")
+        )
 
         self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(
@@ -301,7 +304,6 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
                 "displayName": self.anystring("confluence.display_name"),
                 "email": self.anystring("confluence.email"),
             },
-            ctx=eave.stdlib.atlassian.ConfluenceContext(base_url=self.anystring("confluence.base_url")),
         )
 
         self.patch(

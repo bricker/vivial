@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import pydantic
 
-from .config import shared_config
+from .config import EaveConfig, shared_config
 from .core_api.operations import Status
 from starlette.routing import Route
 from starlette.requests import Request
@@ -17,7 +17,6 @@ def status_payload() -> Status.ResponseBody:
         version=shared_config.app_version,
         status="OK",
     )
-
 
 def status_endpoint_starlette(request: Request) -> Response:
     model = status_payload()

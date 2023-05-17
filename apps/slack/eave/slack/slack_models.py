@@ -1,5 +1,7 @@
 import asyncio
+from datetime import datetime, timezone
 import enum
+import os
 import re
 from typing import Any, AsyncGenerator, List, Optional
 
@@ -17,6 +19,11 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from .config import app_config
 
+class SlackAddReactionError(Exception):
+    error_code: str
+
+    def __init__(self, error_code: str, *args: object) -> None:
+        super().__init__(*args)
 
 class _SlackContext:
     _context: AsyncBoltContext
@@ -235,28 +242,28 @@ class SlackMessage:
     _ctx: _SlackContext
 
     event: eave.stdlib.typing.JsonObject
-    subtype: Optional[str]
+    subtype: Optional[str] = None
     """https://api.slack.com/events/message#subtypes"""
 
-    client_message_id: Optional[str]
-    bot_id: Optional[str]
-    app_id: Optional[str]
-    bot_profile: Optional[eave.stdlib.typing.JsonObject]
-    text: Optional[str]
-    user: Optional[str]
+    client_message_id: Optional[str] = None
+    bot_id: Optional[str] = None
+    app_id: Optional[str] = None
+    bot_profile: Optional[eave.stdlib.typing.JsonObject] = None
+    text: Optional[str] = None
+    user: Optional[str] = None
     ts: str
-    edited: Optional[eave.stdlib.typing.JsonObject]
-    channel: Optional[str]
-    blocks: Optional[list[Any]]
-    team: Optional[str]
-    thread_ts: Optional[str]
-    reply_count: Optional[int]
-    reply_users_count: Optional[int]
-    latest_reply: Optional[str]
-    reply_users: Optional[list[str]]
-    is_locked: Optional[bool]
-    subscribed: Optional[bool]
-    reactions: Optional[list[SlackReaction]]
+    edited: Optional[eave.stdlib.typing.JsonObject] = None
+    channel: Optional[str] = None
+    blocks: Optional[list[Any]] = None
+    team: Optional[str] = None
+    thread_ts: Optional[str] = None
+    reply_count: Optional[int] = None
+    reply_users_count: Optional[int] = None
+    latest_reply: Optional[str] = None
+    reply_users: Optional[list[str]] = None
+    is_locked: Optional[bool] = None
+    subscribed: Optional[bool] = None
+    reactions: Optional[list[SlackReaction]] = None
 
     # These properties are left intentionally uninitialized.
     # Call the respective get_*_mentions or expand_* methods to set the values.
@@ -408,20 +415,13 @@ class SlackMessage:
     #             )
     #             return
 
-    async def add_reaction(self, name: str) -> bool:
+    async def add_reaction(self, name: str) -> None:
         if self.channel is None:
             raise SlackDataError("channel")
         if self.ts is None:
             raise SlackDataError("message ts")
 
-        try:
-            await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
-            return True
-        except slack_sdk.errors.SlackApiError as e:
-            # https://api.slack.com/methods/reactions.add#errors
-            error_code = e.response.get("error")
-            logger.warning(f"Error reacting to message: {error_code}", exc_info=e)
-            return False
+        await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
 
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:
@@ -752,8 +752,20 @@ class SlackMessage:
             # FIXME: Maybe this will break for deactivated users?
             raise SlackDataError("message user profile")
 
-        # TODO: Add job titles
-        formatted_message = f"{user_profile.real_name}: {expanded_text}\n\n"
+        prefix = user_profile.real_name
+        if user_profile.title:
+            prefix += f" ({user_profile.title})"
+
+        try:
+            # Format: Wednesday, September 01 at 01:05PM
+            # A 12-hour format is used as context for OpenAI; otherwise we might have to explicitly tell it that the
+            # time is in 24-hour format.
+            formatteddt = datetime.fromtimestamp(float(self.ts), tz=timezone.utc).strftime("%A, %B %d at %I:%M%p")
+            prefix += f" on {formatteddt}"
+        except ValueError:
+            logger.exception(f"ts value couldn't be converted to float: {self.ts}")
+
+        formatted_message = f"{prefix}: {expanded_text}\n\n"
         return formatted_message
 
     @eave_util.memoized

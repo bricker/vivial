@@ -1,1 +1,2 @@
--e ../eave-pubsub-schemas/python
+-e ${EAVE_HOME}/libs/eave-pubsub-schemas/python
+types-redis

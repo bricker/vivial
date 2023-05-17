@@ -46,6 +46,10 @@ class TeamOrm(Base):
         await session.flush()
         return obj
 
+    @property
+    def api_model(self) -> eave.stdlib.core_api.models.Team:
+        return eave.stdlib.core_api.models.Team.from_orm(self)
+
     async def get_document_destination(
         self, session: AsyncSession
     ) -> Optional[abstract_destination.DocumentDestination]:

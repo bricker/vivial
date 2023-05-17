@@ -22,8 +22,8 @@ class CustomFormatter(logging.Formatter):
     formatstr = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
 
     FORMATS = {
-        logging.DEBUG: grey + formatstr + reset,
-        logging.INFO: green + formatstr + reset,
+        logging.DEBUG: purple + formatstr + reset,
+        logging.INFO: cyan + formatstr + reset,
         logging.WARNING: yellow + formatstr + reset,
         logging.ERROR: red + formatstr + reset,
         logging.CRITICAL: bold_red + formatstr + reset,
