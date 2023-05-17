@@ -9,7 +9,7 @@ function deploy() {
 	local skipdb=""
 	local skiptests=""
 
-	while getopts "dt" argname
+	while getopts "dth" argname
 	do
 		case "$argname" in
 			d) skipdb="1" ;;
