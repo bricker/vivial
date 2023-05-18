@@ -62,9 +62,10 @@ export function getKey(signer: string): SigningKeyDetails {
   }
   return keyDetails;
 }
-
+protos.google.cloud.kms.v1.AsymmetricSignRequest
 /**
- * Signs the data with GCP KMS and returns base64-encoded signature
+ * Signs the data with GCP KMS and returns base64-encoded signature.
+ * Throws InvalidChecksumError if any data is missing from the signing result.
  * 
  * @param signingKey key to sign the data payload with
  * @param data payload to sign using the `signingKey`
@@ -91,14 +92,17 @@ export async function signBase64(
     messageBytes = data;
   }
   const digest = crypto.createHash('sha256').update(messageBytes).digest();
-  // const digestCrc32c = generateChecksum(digest);
+  const digestCrc32c = generateChecksum(digest);
 
   const [signedResponse] = await kmsClient.asymmetricSign({
     name: keyVersionName,
     digest: { 'sha256': digest },
-    // digestCrc32c: digestCrc32c, // TODO: make this work??
+    digestCrc32c: {
+      value: digestCrc32c.toString(10), // convert to base 10 just in case
+    },
   });
 
+  // TODO: verifiedCrc32c is false
   if (signedResponse.signature === null || signedResponse.signature === undefined || !signedResponse.verifiedDataCrc32c || signedResponse.name !== keyVersionName) {
     throw new InvalidChecksumError('KMS signing failed');
   }
@@ -111,9 +115,9 @@ export async function signBase64(
   return Buffer.from(signedResponse.signature.valueOf()).toString('base64');
 }
 
-function generateChecksum(data: Buffer): protos.google.protobuf.IInt64Value {
+function generateChecksum(data: Buffer): number {
   const checksum = crc32c.calculate(data);
-  return <any>checksum;
+  return checksum;
 }
 
 function validateChecksumOrException(data: Buffer, checksum: number): void {
@@ -131,11 +135,17 @@ export async function verifySignatureOrException(
   if (typeof message === 'string') {
     // this byte encoding must match the python `bytes` type in order
     // to not break signing validation in the python core_api middleware
-    messageBytes = Buffer.from(message, 'utf8');
+    messageBytes = Buffer.from(message, 'utf8'); // TODO possibel error location
   } else {
     messageBytes = message;
   }
-  const signatureString = Buffer.from(signature).toString('base64');
+  let signatureString: string;
+  if (typeof signature === 'string') {
+    signatureString = signature;
+  } else {
+    // convert from buffer to b64 string
+    signatureString = Buffer.from(signature).toString('base64');
+  }
   const kmsClient = new KeyManagementServiceClient();
 
   const keyVersionName = kmsClient.cryptoKeyVersionPath(
@@ -146,11 +156,14 @@ export async function verifySignatureOrException(
     signingKey.version,
   );
 
+  // TODO: possible errro location
   const digest = crypto.createHash('sha256').update(messageBytes).digest();
 
   const [kmsPublicKey] = await kmsClient.getPublicKey({
     name: keyVersionName
   });
+
+  // TODO: possibel error, not doing pem conversion??
 
   if (!kmsPublicKey.pem) {
     throw new InvalidSignatureError('KMS public key was unexpectedly null');
