@@ -460,7 +460,7 @@ class SlackMessage:
         return SlackPermalink.parse_obj(response.data)
 
     @eave_util.memoized
-    async def get_conversation_messages(self) -> list["SlackMessage"] | None:
+    async def get_conversation_messages(self) -> list["SlackMessage"]:
         assert self.channel is not None
 
         response = await self._ctx.client.conversations_replies(
@@ -677,10 +677,11 @@ class SlackMessage:
         self.special_mentions_dict = {value: value for value in specials}
 
     @eave_util.memoized
-    async def resolve_urls(self) -> None:
+    async def resolve_urls(self) -> list[str]:
         links = self.parse_links()
         urls = links[SlackMessageLinkType.url]
         self.urls = urls
+        return self.urls
 
     @eave_util.sync_memoized
     def parse_links(self) -> dict[SlackMessageLinkType, list[str]]:

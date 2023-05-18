@@ -581,9 +581,11 @@ class Brain:
 
         Returns summarized context for each link in message thread, if any
         """
-        # see if we can pull content from any links in message
-        await self.message.resolve_urls()
-        supported_links = link_handler.filter_supported_links(self.message.urls)
+        # see if we can pull content from any links in messages from the thread
+        urls = [await msg.resolve_urls() for msg in await self.message.get_conversation_messages()]
+        # flatten
+        urls = [url for url_list in urls for url in url_list]
+        supported_links = link_handler.filter_supported_links(urls)
 
         if supported_links:
             links_contents = await link_handler.map_url_content(self.eave_team.id, supported_links)
