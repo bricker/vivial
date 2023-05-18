@@ -4,6 +4,7 @@ import { EaveRequestState, getEaveState } from '../lib/request-state.js';
 import { developmentBypassAllowed } from './development-bypass.js';
 import { buildMessageToSign } from '../lib/requests.js';
 import { getKey, verifySignatureOrException } from '../signing.js';
+import { HTTPException } from '../exceptions.js';
 
 /**
  * Reads the body and headers and verifies the signature.
@@ -38,7 +39,7 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, eave
 
   const message = buildMessageToSign(
     req.method, 
-    req.url, 
+    `${req.protocol}://${req.headers.host}${req.originalUrl}`, // reconstruct full request url 
     eaveState.request_id!, 
     origin, 
     body.toString('utf8'), 
@@ -51,8 +52,9 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, eave
   try {
     verifySignatureOrException(signingKey, message, signature);
   } catch(error: any) {
+    const eaveError = <HTTPException>error;
     res.statusMessage = error.message;
-    res.status(401).end();
+    res.status(eaveError.statusCode).end();
     return false;
   }
   return true;
