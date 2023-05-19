@@ -15,7 +15,6 @@ import HomePage from './components/Pages/HomePage/index.jsx';
 import TermsPage from './components/Pages/TermsPage/index.jsx';
 import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
 import ScrollToTop from './components/ScrollToTop/index.jsx';
-import ThanksPage from './components/Pages/ThanksPage/index.jsx';
 import PrivateRoutes from './components/PrivateRoutes/index.jsx';
 import Dashboard from './components/Pages/Dashboard/index.jsx';
 
@@ -35,7 +34,6 @@ class App extends React.Component {
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route element={<PrivateRoutes />}>
-                  <Route path="/thanks" element={<ThanksPage />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
                 <Route path="/" element={<HomePage />} />
