@@ -88,6 +88,7 @@ function setupgcloud () (
 	mv google-cloud-sdk $HOME
 	cd $HOME
 	./google-cloud-sdk/install.sh
+	gcloud auth application-default login
 )
 
 statusmsg -ni "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
@@ -135,6 +136,7 @@ function install-jq () (
 					statusmsg -e "Your operating system isn't supported. Please add support to this script!"
 					;;
 			esac
+			;;
 
 		"darwin")
 			if cmd-exists "brew"; then
