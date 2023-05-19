@@ -10,6 +10,7 @@ from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.routing import Route
 
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 from .public import middlewares
 from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, integrations, noop, subscriptions, team, status
@@ -41,7 +42,7 @@ def make_route(
     # The built route ends up being called like this:
     #   route = OuterMost(Second(InnerMost(endpoint)))
 
-    out_to_in_wrappers: list[Type[middlewares.EaveASGIMiddleware]] = []
+    out_to_in_wrappers: list[Type[EaveASGIMiddleware]] = []
 
     if origin_required:
         out_to_in_wrappers.append(middlewares.OriginASGIMiddleware)

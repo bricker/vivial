@@ -6,9 +6,8 @@ import pydantic
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.stdlib import request_state
 from eave.stdlib.logging import eaveLogger
-
-from . import request_state
 
 
 def internal_server_error(request: Request, exc: Exception) -> Response:

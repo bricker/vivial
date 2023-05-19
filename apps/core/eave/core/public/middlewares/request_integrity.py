@@ -3,8 +3,7 @@ import uuid
 import eave.stdlib
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 
-import eave.core.public
-from . import EaveASGIMiddleware
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 
 ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
 

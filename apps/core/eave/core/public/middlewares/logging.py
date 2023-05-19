@@ -2,7 +2,7 @@ from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 
 from eave.stdlib.logging import eaveLogger
 
-from . import EaveASGIMiddleware
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 
 
 class LoggingASGIMiddleware(EaveASGIMiddleware):
