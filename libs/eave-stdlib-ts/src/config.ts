@@ -8,6 +8,10 @@ export class EaveConfig {
     return value;
   }
 
+  get devMode(): boolean {
+    return this.nodeEnv === 'development';
+  }
+
   get nodeEnv(): string {
     return process.env['NODE_ENV'] || 'unknown';
   }
@@ -43,8 +47,12 @@ export class EaveConfig {
   get openaiApiKey(): Promise<string> {
     return this.getSecret('OPENAI_API_KEY');
   }
+  
+  get eaveGithubAppWebhookSecret(): Promise<string> {
+    return this.getSecret('EAVE_GITHUB_APP_WEBHOOK_SECRET');
+  }
 
-  private cache: {[key: string]: string} = {};
+  private cache: { [key: string]: string } = {};
 
   async getSecret(name: string): Promise<string> {
     const envValue = process.env[name];

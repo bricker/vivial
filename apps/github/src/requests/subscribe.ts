@@ -1,0 +1,81 @@
+import { Request, Response } from 'express';
+import { CreateGithubResourceSubscription } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
+import { Octokit } from 'octokit';
+import * as eaveClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
+import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
+import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types.js';
+import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
+import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
+
+export async function subscribe(req: Request, res: Response): Promise<void> {
+  const requestBody = (<Buffer>req.body).toString();
+  const input = <CreateGithubResourceSubscription.RequestBody>JSON.parse(requestBody);
+  if (!(input.eaveTeamId && input.url)) {
+    res.status(400).end();
+    return;
+  }
+
+  let output: CreateGithubResourceSubscription.ResponseBody;
+
+  const instllationId = await getInstallationId(input.eaveTeamId);
+  if (instllationId === null) {
+    res.status(500).end();
+    return;
+  }
+
+  // fetch unique info about repo to build subscription source ID
+  const client = await createOctokitClient(instllationId);
+  const repoInfo = await getRepo(client, input.url);
+  const pathChunks = input.url.split(`${repoInfo.full_name}/blob/`);
+  // we need the 2nd element, which is branch name + resource path
+  if (pathChunks.length < 2) {
+    output = { subscription: null };
+    res.json(output); // TODO: should we be 400ing or somthing instead of returning null?
+  }
+
+  const blobPath = pathChunks[1];
+  const sourceId = `${repoInfo.node_id}#${blobPath}`;
+  const platform = SubscriptionSourcePlatform.github;
+  const event = SubscriptionSourceEvent.github_file_change;
+
+  const subResponse = await eaveClient.createSubscription(input.eaveTeamId, {
+    subscription: {
+      source: {
+        platform,
+        event,
+        id: sourceId,
+      },
+    },
+  });
+  output = { subscription: subResponse.subscription };
+  res.json(output);
+}
+
+/**
+ * Request data about the github repo pointed to by `url` from the GitHub API
+ * (`url` doesnt have to point directly to the repo, it can point to any file w/in the repo too)
+ */
+async function getRepo(client: Octokit, url: string): Promise<GithubRepository> {
+  // gather data for API request URL
+  const { first: owner, second: repo } = getRepoLocation(url);
+
+  // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
+  const { data: repository } = await client.rest.repos.get({ owner, repo });
+  return <GithubRepository>repository;
+}
+
+/**
+ * Parse the GitHub org name and repo name from the input `url`
+ * @returns Pair(org name, repo name)
+ */
+function getRepoLocation(url: string): Pair<string, string> {
+  // split path from URL
+  const urlPathComponents = (new URL(url)).pathname.split('/');
+
+  if (urlPathComponents.length < 3) {
+    throw Error(`GitHub URL ${url} did not contain expected org and repo name in its path`);
+  }
+
+  // urlPathComponents === ['', 'org', 'repo', ...]
+  return { first: urlPathComponents[1]!, second: urlPathComponents[2]! };
+}

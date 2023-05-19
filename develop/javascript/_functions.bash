@@ -51,5 +51,12 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		statusmsg -sp " ✔ "
 	)
 
+	function node-test() (
+		node-validate-version
+		node-activate-venv
+
+		npx ava --config ${EAVE_HOME}/develop/javascript/configs/ava.config.mjs
+	)
+
 	_JAVASCRIPT_FUNCTIONS_LOADED=1
 fi
