@@ -1,5 +1,5 @@
 from .authentication import AuthASGIMiddleware as AuthASGIMiddleware
-from .exceptions import ExceptionHandlerASGIMiddleware as ExceptionHandlerASGIMiddleware
+from .logging import LoggingASGIMiddleware as LoggingASGIMiddleware
 from .origin import OriginASGIMiddleware as OriginASGIMiddleware
 from .request_integrity import RequestIntegrityASGIMiddleware as RequestIntegrityASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware as SignatureVerificationASGIMiddleware

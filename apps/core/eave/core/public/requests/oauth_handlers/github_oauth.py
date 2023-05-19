@@ -15,6 +15,7 @@ from eave.core.internal.oauth import state_cookies as oauth_cookies
 
 from ...http_endpoint import HTTPEndpoint
 from . import shared
+from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.github
 
@@ -78,11 +79,11 @@ class GithubOAuthCallback(HTTPEndpoint):
 
         setup_action = request.query_params.get("setup_action")
         if setup_action != "install":
-            eave.stdlib.logger.warn(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
+            eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
 
         installation_id = request.query_params.get("installation_id")
         if not installation_id:
-            eave.stdlib.logger.warn(
+            eaveLogger.warning(
                 f"github installation_id not provided for action {setup_action}. Cannot proceed.",
                 extra=eave_state.log_context,
             )
@@ -96,9 +97,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
         # arrive here then they're expect to be already logged in.
         if not auth_cookies.access_token or not auth_cookies.account_id:
-            eave.stdlib.logger.error(
-                "Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context
-            )
+            eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context)
             return shared.cancel_flow(response=response)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
@@ -122,7 +121,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             )
 
             if github_installation and github_installation.team_id != self.eave_account.team_id:
-                eave.stdlib.logger.warning(
+                eaveLogger.warning(
                     f"A Github integration already exists with github install id {self.installation_id}",
                     extra=self.eave_state.log_context,
                 )

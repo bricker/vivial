@@ -13,7 +13,7 @@ import {
 } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { HEADER, INTEGRATION_LOGOS, FEEDBACK_URL } from '../../../constants.js';
+import { INTEGRATION_LOGOS, FEEDBACK_URL } from '../../../constants.js';
 import useUser from '../../../hooks/useUser.js';
 import Copy from '../../Copy/index.jsx';
 import Page from '../Page/index.jsx';
@@ -22,15 +22,9 @@ import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ChatboxIcon from '../../Icons/ChatboxIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
 import DownIcon from '../../Icons/DownIcon.js';
+import PageSection from '../../PageSection/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
-  main: {
-    position: 'relative',
-    padding: `calc(${HEADER.mobile.heightPx} + 54px) 40px 0`,
-    [theme.breakpoints.up('md')]: {
-      padding: '164px',
-    },
-  },
   copy: {
     maxWidth: 838,
   },
@@ -199,7 +193,7 @@ const Dashboard = () => {
 
   return (
     <Page>
-      <main className={classes.main}>
+      <PageSection topSection>
         <Copy variant="h1">Welcome to Eave Early Access</Copy>
         <Copy className={classes.copy}>You’re on your way to better documentation. To get started using Eave, complete the below steps.</Copy>
         <Stepper orientation="vertical" activeStep={step} classes={{
@@ -320,7 +314,7 @@ const Dashboard = () => {
             </Copy>
             </div>
         </section>
-      </main>
+      </PageSection>
     </Page>
   );
 };

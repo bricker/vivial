@@ -6,7 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { CookiesProvider, withCookies } from 'react-cookie';
-import { ThemeProvider } from '@material-ui/core';
+import { ThemeProvider, CssBaseline } from '@material-ui/core';
 import { Helmet } from 'react-helmet';
 
 import AppStoreProvider from './context/Provider.js';
@@ -25,6 +25,7 @@ class App extends React.Component {
       <CookiesProvider>
         <AppStoreProvider>
           <ThemeProvider theme={theme}>
+            <CssBaseline />
             <Helmet>
                 <title>Eave, for your information.</title>
             </Helmet>

@@ -1,5 +1,6 @@
 from functools import reduce
 from typing import Type
+import eave.stdlib
 import eave.stdlib.api_util
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -16,7 +17,6 @@ from .public.requests import authed_account, documents, integrations, noop, subs
 from .public.requests.oauth_handlers import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 
 eave.stdlib.time.set_utc()
-eave.stdlib.logging.setup_logging()
 
 
 def make_route(
@@ -49,7 +49,7 @@ def make_route(
 
     if signature_required:
         # If signature is required, origin is also required.
-        assert origin_required
+        assert origin_required, "origin header is required for signature"
         out_to_in_wrappers.append(middlewares.SignatureVerificationASGIMiddleware)
 
     if auth_required:
@@ -71,12 +71,18 @@ def make_route(
 
 routes = [
     Route(path="/status", endpoint=status.StatusRequest),
+    Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
         path="/documents/upsert",
         auth_required=False,
         endpoint=documents.UpsertDocument,
+    ),
+    make_route(
+        path="/documents/search",
+        auth_required=False,
+        endpoint=documents.SearchDocuments,
     ),
     make_route(
         path="/subscriptions/create",
@@ -209,8 +215,8 @@ routes = [
 ]
 
 middleware = [
-    Middleware(middlewares.ExceptionHandlerASGIMiddleware),
     Middleware(middlewares.RequestIntegrityASGIMiddleware),
+    Middleware(middlewares.LoggingASGIMiddleware),
 ]
 
 app = starlette.applications.Starlette(

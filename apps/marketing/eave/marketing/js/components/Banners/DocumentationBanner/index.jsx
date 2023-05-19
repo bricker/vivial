@@ -2,22 +2,22 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
 import Copy from '../../Copy/index.jsx';
+import PageSection from '../../PageSection/index.jsx';
 import { imageUrl } from '../../../asset-helpers.js';
 
 const makeClasses = makeStyles((theme) => ({
   section: {
-    backgroundColor: theme.palette.background.dark,
     padding: '54px 40px 0',
-    [theme.breakpoints.up('sm')]: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
     [theme.breakpoints.up('md')]: {
-      padding: '82px 164px',
+      padding: '54px 40px',
     },
-    [theme.breakpoints.up('lg')]: {
+  },
+  wrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    [theme.breakpoints.up('md')]: {
       flexDirection: 'row',
     },
   },
@@ -44,7 +44,12 @@ const DocumentationBanner = ({ title, subtitle }) => {
   const classes = makeClasses();
 
   return (
-    <section id="eave-integrations-banner" className={classes.section}>
+    <PageSection
+      alternateBackground
+      id="eave-integrations-banner"
+      wrapperClassName={classes.wrapper}
+      sectionClassName={classes.section}
+    >
       <div className={classes.copy}>
         <Copy variant="h2">
           {title}
@@ -70,7 +75,7 @@ const DocumentationBanner = ({ title, subtitle }) => {
           alt="Confluence documentation written by Eave."
         />
       </picture>
-    </section>
+    </PageSection>
   );
 };
 

@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/styles';
 
 const makeClasses = makeStyles((theme) => ({
   logoWrapper: {
-    fontFamily: theme.typography.fontFamily.logo,
+    fontFamily: "'Pattaya', sans-serif",
     fontSize: 24,
     lineHeight: '24px',
     textDecoration: 'none',
@@ -19,7 +19,6 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   beta: {
-    fontFamily: theme.typography.fontFamily.main,
     fontSize: 12,
     fontWeight: 700,
     display: 'block',

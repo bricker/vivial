@@ -13,10 +13,6 @@ class AppConfig(eave.stdlib.config.EaveConfig):
             return "production"
 
     @property
-    def analytics_enabled(self) -> bool:
-        return os.getenv("EAVE_ANALYTICS_ENABLED") is not None
-
-    @property
     def asset_base(self) -> str:
         return os.getenv("EAVE_ASSET_BASE", "/static")
 

@@ -2,7 +2,7 @@ import base64
 import enum
 import hashlib
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, cast
 
 import cryptography.exceptions
 from cryptography.hazmat.backends import default_backend
@@ -137,7 +137,7 @@ def verify_signature_or_exception(
     try:
         match signing_key.algorithm:
             case SigningAlgorithm.RS256:
-                assert isinstance(public_key_from_pem, rsa.RSAPublicKey)
+                public_key_from_pem = cast(rsa.RSAPublicKey, public_key_from_pem)
                 pad = padding.PKCS1v15()
                 public_key_from_pem.verify(
                     signature=signature_bytes,
@@ -147,7 +147,7 @@ def verify_signature_or_exception(
                 )
                 return True
             case SigningAlgorithm.ES256:
-                assert isinstance(public_key_from_pem, ec.EllipticCurvePublicKey)
+                public_key_from_pem = cast(ec.EllipticCurvePublicKey, public_key_from_pem)
                 public_key_from_pem.verify(
                     signature=signature_bytes,
                     data=digest,
@@ -156,5 +156,5 @@ def verify_signature_or_exception(
                 return True
             case _:
                 raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
-    except cryptography.exceptions.InvalidSignature as e:
-        raise eave_exceptions.InvalidSignatureError() from e
+    except cryptography.exceptions.InvalidSignature:
+        raise eave_exceptions.InvalidSignatureError()

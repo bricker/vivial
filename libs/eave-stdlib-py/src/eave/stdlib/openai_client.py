@@ -9,7 +9,7 @@ import openai.error
 import openai.openai_object
 import tiktoken
 
-from . import exceptions, logger
+from . import exceptions, logging
 from .typing import JsonObject
 from .config import shared_config
 
@@ -118,16 +118,20 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
 
     ensure_api_key()
 
-    logger.debug(f"OpenAI Params: {params}")
+    logging.eaveLogger.debug(f"OpenAI Params: {params}")
 
     max_attempts = 3
     for i in range(max_attempts):
         try:
             response = await openai_sdk.ChatCompletion.acreate(**params.compile())
-            logger.debug(f"OpenAI Response: {response}")
+            try:
+                logging.eaveLogger.debug("OpenAI Response", extra={"json_fields": response})
+            except Exception:
+                # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
+                logging.eaveLogger.exception("error during logging")
             break
         except openai.error.RateLimitError as e:
-            logger.warn("OpenAI RateLimitError", exc_info=e)
+            logging.eaveLogger.warning("OpenAI RateLimitError", exc_info=e)
             if i + 1 < max_attempts:
                 time.sleep(i + 1)
     else:
@@ -135,13 +139,16 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
 
     response = cast(openai.openai_object.OpenAIObject, response)
     candidates = [c for c in response.choices if c["finish_reason"] == "stop"]
-    choice = candidates[0]
 
-    if len(candidates) < 1:
-        logger.warn("No valid choices from openAI; using the first result.")
-        choice = response.choices[0]
+    if len(candidates) > 0:
+        choice = candidates[0]
+    else:
+        logging.eaveLogger.warning("No valid choices from openAI; using the first result.")
+        if len(response.choices) > 0:
+            choice = response.choices[0]
+        else:
+            raise exceptions.OpenAIDataError("no choices given")
 
-    assert choice is not None
     answer = str(choice.message.content).strip()
     return answer
 

@@ -8,7 +8,8 @@ from http import HTTPStatus
 from pyparsing import Opt
 from .. import exceptions as eave_exceptions
 from .. import headers as eave_headers
-from .. import logger, signing
+from .. import signing
+from ..logging import eaveLogger
 from ..config import shared_config
 from .. import eave_origins as eave_origins
 
@@ -31,7 +32,7 @@ async def make_request(
     account_id: Optional[uuid.UUID] = None,
 ) -> aiohttp.ClientResponse:
     url = makeurl(path, base)
-    request_id = uuid.uuid4()
+    request_id = str(uuid.uuid4())
 
     headers = {
         "content-type": "application/json",
@@ -42,7 +43,7 @@ async def make_request(
     payload = input.json() if input else ""
 
     if access_token:
-        headers[eave_headers.EAVE_AUTHORIZATION_HEADER] = f"Bearer {access_token}"
+        headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
 
     if team_id:
         headers[eave_headers.EAVE_TEAM_ID_HEADER] = str(team_id)
@@ -66,7 +67,7 @@ async def make_request(
     )
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
-    logger.info(
+    eaveLogger.info(
         "Eave internal API request", extra={"json_fields": {"request_id": request_id, "method": method, "url": url}}
     )
 
@@ -78,7 +79,7 @@ async def make_request(
             data=payload,
         )
 
-    logger.info(
+    eaveLogger.info(
         "Eave internal API response",
         extra={
             "json_fields": {
@@ -95,13 +96,13 @@ async def make_request(
     except aiohttp.ClientResponseError as e:
         match e.status:
             case HTTPStatus.NOT_FOUND:
-                raise eave_exceptions.NotFoundError() from e
+                raise eave_exceptions.NotFoundError(request_id=request_id)
             case HTTPStatus.UNAUTHORIZED:
-                raise eave_exceptions.UnauthorizedError() from e
+                raise eave_exceptions.UnauthorizedError(request_id=request_id)
             case HTTPStatus.BAD_REQUEST:
-                raise eave_exceptions.BadRequestError() from e
+                raise eave_exceptions.BadRequestError(request_id=request_id)
             case HTTPStatus.INTERNAL_SERVER_ERROR:
-                raise eave_exceptions.InternalServerError() from e
+                raise eave_exceptions.InternalServerError(request_id=request_id)
             case _:
                 raise eave_exceptions.HTTPException(status_code=e.status) from e
 

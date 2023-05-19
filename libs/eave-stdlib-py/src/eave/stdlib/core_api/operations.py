@@ -104,12 +104,21 @@ class DeleteSubscription(Endpoint):
 class UpsertDocument(Endpoint):
     class RequestBody(BaseRequestBody):
         document: DocumentInput
-        subscriptions: Sequence[models.Subscription]
+        subscription: models.Subscription
 
     class ResponseBody(BaseResponseBody):
         team: models.Team
-        subscriptions: Sequence[models.Subscription]
+        subscription: models.Subscription
         document_reference: models.DocumentReference
+
+
+class SearchDocuments(Endpoint):
+    class RequestBody(BaseRequestBody):
+        query: str
+
+    class ResponseBody(BaseResponseBody):
+        team: models.Team
+        documents: list[models.DocumentSearchResult]
 
 
 class GetSlackInstallation(Endpoint):

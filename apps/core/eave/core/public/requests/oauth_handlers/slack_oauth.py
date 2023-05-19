@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import eave.pubsub_schemas
 import eave.stdlib
 import eave.stdlib.core_api
@@ -9,6 +10,7 @@ import eave.core.internal
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from eave.stdlib.logging import eaveLogger
 
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared
@@ -78,6 +80,14 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         slack_team_id = self.slack_oauth_data["team"]["id"]
         slack_bot_access_token = self.slack_oauth_data["access_token"]
         slack_bot_refresh_token = self.slack_oauth_data["refresh_token"]
+        slack_token_expires_in = self.slack_oauth_data["expires_in"]
+        log_context = self.eave_state.log_context_extras({"slack_team_id": slack_team_id})
+
+        if not slack_token_expires_in:
+            eaveLogger.warning(
+                "Slack token didn't contain an expires_in value.",
+                extra=log_context,
+            )
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             # try fetch existing slack installation
@@ -87,9 +97,9 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
             )
 
             if slack_installation and slack_installation.team_id != self.eave_account.team_id:
-                eave.stdlib.logger.warning(
+                eaveLogger.warning(
                     f"A Slack integration already exists with slack team id {slack_team_id}",
-                    extra=self.eave_state.log_context,
+                    extra=log_context,
                 )
 
                 # TODO: Probably don't want to change the account's team like this, it feels like it could cause problems.
@@ -113,12 +123,16 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     slack_team_id=slack_team_id,
                     bot_token=slack_bot_access_token,
                     bot_refresh_token=slack_bot_refresh_token,
+                    bot_token_exp=(datetime.utcnow() + timedelta(seconds=slack_token_expires_in))
+                    if slack_token_expires_in
+                    else None,
                 )
 
-                await self._run_post_install_procedures()
+                await self._run_post_install_procedures(log_context=log_context)
 
     async def _run_post_install_procedures(
         self,
+        log_context: eave.stdlib.typing.LogContext,
     ) -> None:
         slack_bot_access_token = self.slack_oauth_data["access_token"]
         slack_client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=slack_bot_access_token)
@@ -137,7 +151,10 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     exclude_archived=True,
                     types="public_channel",
                 )
-                assert isinstance(channels := channels_response.get("channels"), list), "Unexpected response data"
+
+                if not isinstance(channels := channels_response.get("channels"), list):
+                    raise TypeError("slack channels: list expected")
+
                 candidates = list(filter(lambda c: c.get("name") == "general", channels))
                 if len(candidates) > 0:
                     approximate_num_members = candidates[0].get("num_members")
@@ -146,15 +163,16 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     response_metadata = channels_response.get("response_metadata")
                     if not response_metadata:
                         break
-                    assert isinstance(response_metadata, dict)
+
+                    if not isinstance(response_metadata, dict):
+                        raise TypeError("slack response_metadata: dict expected")
+
                     cursor = response_metadata.get("next_cursor")
                     if not cursor:
                         break
 
-        except Exception as e:
-            eave.stdlib.logger.error(
-                "Error fetching Slack workspace user count", exc_info=e, extra=self.eave_state.log_context
-            )
+        except Exception:
+            eaveLogger.exception("Error fetching Slack workspace user count", extra=log_context)
 
         eave.stdlib.analytics.log_event(
             event_name="eave_application_integration",
@@ -175,7 +193,5 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 channel=slack_user_id,
                 text="Hey there! I’m Eave, and here to help with any of your documentation needs. Add me to channels or DMs, and simply tag me in a thread you want documented.",
             )
-        except Exception as e:
-            eave.stdlib.logger.error(
-                "Error sending welcome message on Slack", exc_info=e, extra=self.eave_state.log_context
-            )
+        except Exception:
+            eaveLogger.exception("Error sending welcome message on Slack", extra=log_context)

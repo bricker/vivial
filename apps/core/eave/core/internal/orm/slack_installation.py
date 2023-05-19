@@ -1,13 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
-import slack_sdk.errors
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.core.internal.oauth.slack
-import eave.stdlib.logging
+from eave.stdlib.exceptions import MissingOAuthCredentialsError
+from .resource_mutex import ResourceMutexOrm
+from eave.stdlib.logging import eaveLogger
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -33,6 +34,7 @@ class SlackInstallationOrm(Base):
     """team[id] from here: https://api.slack.com/methods/oauth.v2.access#examples"""
     # bot identification data for authorizing slack api calls
     bot_token: Mapped[str] = mapped_column()
+    bot_token_exp: Mapped[Optional[datetime]] = mapped_column()
     bot_refresh_token: Mapped[Optional[str]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -45,18 +47,20 @@ class SlackInstallationOrm(Base):
         slack_team_id: str,
         bot_token: str,
         bot_refresh_token: Optional[str],
+        bot_token_exp: Optional[datetime],
     ) -> Self:
         obj = cls(
             team_id=team_id,
             slack_team_id=slack_team_id,
             bot_token=bot_token,
             bot_refresh_token=bot_refresh_token,
+            bot_token_exp=bot_token_exp,
         )
         session.add(obj)
         await session.flush()
         return obj
 
-    async def refresh_token_or_exception(self) -> None:
+    async def refresh_token_or_exception(self, session: AsyncSession) -> None:
         """
         Checks if `bot_token` is still valid. If it is, no more action is taken.
         If it isn't valid, then we try to refresh the token and set the new values
@@ -65,33 +69,42 @@ class SlackInstallationOrm(Base):
         raises -- SlackApiError on auth errors unrelated to token expiration
                   InvalidAuthError when there is no `bot_refresh_token` set or if the refresh request fails
         """
-        try:
-            client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=self.bot_token)
-            await client.auth_test(token=self.bot_token)
-        except slack_sdk.errors.SlackApiError as e:
-            if e.response.get("error") == "token_expired":
-                # refresh expired slack token and set it in the orm to
-                if not self.bot_refresh_token:
-                    eave.stdlib.logger.error(f"SlackInstallationOrm {self.id} missing refresh token.")
-                    raise eave.stdlib.exceptions.InvalidAuthError()
 
-                new_tokens = await eave.core.internal.oauth.slack.refresh_access_token_or_exception(
-                    refresh_token=self.bot_refresh_token,
-                )
-                if (access_token := new_tokens.get("access_token")) and (
-                    refresh_token := new_tokens.get("refresh_token")
-                ):
-                    eave.stdlib.logger.debug("Refreshing Slack auth tokens.")
-                    self.bot_token = access_token
-                    self.bot_refresh_token = refresh_token
+        if not self.bot_refresh_token:
+            raise MissingOAuthCredentialsError("SlackInstallationOrm refresh token")
+
+        if self.bot_token_exp and self.bot_token_exp > (datetime.utcnow() + timedelta(minutes=60)):
+            # no need to refresh yet.
+            return
+
+        # FIXME: This doesn't really help if a request comes in while the token is being refreshed.
+        # The client will just get an error response. We could ask them to retry the request, or make them
+        # wait until the refresh is completed.
+        acquired = await ResourceMutexOrm.acquire(session=session, resource_id=self.id)
+        if not acquired:
+            return
+
+        try:
+            new_tokens = await eave.core.internal.oauth.slack.refresh_access_token_or_exception(
+                refresh_token=self.bot_refresh_token,
+            )
+
+            if (access_token := new_tokens.get("access_token")) and (refresh_token := new_tokens.get("refresh_token")):
+                eaveLogger.debug("Refreshing Slack auth tokens.")
+                self.bot_token = access_token
+                self.bot_refresh_token = refresh_token
+
+                if expires_in := new_tokens.get("expires_in"):
+                    self.bot_token_exp = datetime.utcnow() + timedelta(seconds=expires_in)
                 else:
-                    msg = "Failed to refresh Slack auth tokens; missing access token or refresh token in slack oauth response."
-                    eave.stdlib.logger.error(msg)
-                    raise eave.stdlib.exceptions.InvalidAuthError(msg)
+                    self.bot_token_exp = None  # Be sure we don't retain an old expire value
+
             else:
-                # error was some other error unrelated to token expiration
-                eave.stdlib.logger.error(e)
-                raise e
+                raise MissingOAuthCredentialsError("slack access or refresh token")
+        except Exception:
+            eaveLogger.exception("Error while refreshing tokens")
+        finally:
+            await ResourceMutexOrm.release(session=session, resource_id=self.id)
 
     class _selectparams(TypedDict):
         slack_team_id: NotRequired[str]
@@ -103,14 +116,14 @@ class SlackInstallationOrm(Base):
         slack_team_id = kwargs.get("slack_team_id")
         eave_team_id = kwargs.get("team_id")
 
-        assert slack_team_id or eave_team_id
+        assert slack_team_id or eave_team_id, "Invalid parameters"
 
         if slack_team_id:
             lookup = lookup.where(cls.slack_team_id == slack_team_id)
         if eave_team_id:
             lookup = lookup.where(cls.team_id == eave_team_id)
 
-        assert lookup.whereclause is not None
+        assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod

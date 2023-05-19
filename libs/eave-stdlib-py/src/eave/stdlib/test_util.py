@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta
 import json
 import os
 import uuid
 import random
-from typing import Any, TypeVar, Optional
+from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
 import eave.stdlib.atlassian
 import eave.stdlib.signing
@@ -16,6 +17,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     active_patches: dict[str, unittest.mock.Mock] = {}
     active_dict_patches: dict[str, Any] = {}
 
+    def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
+        super().__init__(methodName)
+
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         self.mock_google_services()
@@ -24,7 +28,12 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
+
+    async def cleanup(self) -> None:
         self.stop_all_patches()
+        self.testdata.clear()
+        self.active_patches.clear()
+        self.active_dict_patches.clear()
 
     @staticmethod
     async def mock_coroutine(value: T) -> T:
@@ -33,6 +42,40 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     @staticmethod
     def unwrap(value: Optional[T]) -> T:
         return eave.stdlib.util.unwrap(value)
+
+    def anydatetime(
+        self,
+        name: Optional[str] = None,
+        offset: Optional[int] = None,
+        future: Optional[Literal[True]] = None,
+        past: Optional[Literal[True]] = None,
+    ) -> datetime:
+        """
+        - offset, future, and past arguments are mutually exclusive. Passing more than one is undefined behavior.
+        - offset specified in positive or negative seconds.
+        - if future or past are given, the datetime will be a random number of seconds in that direction, within a year of the current date.
+        - if no arguments are given, the datetime will be a random number of seconds in a random direction, within a year of the current date.
+        """
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
+            oneyear = 60 * 60 * 24 * 365
+            if not offset:
+                if not future and not past:
+                    offset = random.randint(-oneyear, oneyear)
+                else:
+                    offset = random.randint(1, oneyear)
+                    if past:
+                        offset = -offset
+
+            delta = timedelta(seconds=offset)
+
+            data = datetime.utcnow() + delta
+            self.testdata[name] = data
+
+        value: datetime = self.testdata[name]
+        return value
 
     def anystring(self, name: Optional[str] = None) -> str:
         if name is None:
@@ -99,6 +142,48 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: int = self.testdata[name]
         return value
 
+    @staticmethod
+    def all_same(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
+        """
+        Checks if all attributes `attrs` on objects `obj1` and `obj2` are the same value.
+        """
+        if not attrs:
+            return obj1 == obj2
+        else:
+            # Using `all` seems like a better way to do this, but I deliberately don't because I want
+            # to fully loop through `attrs` to catch an invalid/unset attribute. Globally renaming Python attributes in an IDE
+            # doesn't update string references to those attributes, so this is a trade-off where it'll be caught during the tests
+            # at runtime instead of during static analysts.
+            # all(getattr(obj1, attr) == getattr(obj2, attr) for attr in attrs)
+
+            passing = True
+            for attr in attrs:
+                a1 = getattr(obj1, attr)
+                a2 = getattr(obj2, attr)
+                if a1 != a2:
+                    passing = False
+
+            return passing
+
+    @staticmethod
+    def all_different(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
+        """
+        Reciprical of `all_same`: Checks if all attributes `attrs` on objects `obj1` and `obj2` are a different value.
+        This is not the same as `not all_same(...)`; that would pass if _any_ of the attributes were different,
+        but we want to check if _all_ of the attributes are different, which is what this function does.
+        """
+        if not attrs:
+            return obj1 != obj2
+        else:
+            passing = True
+            for attr in attrs:
+                a1 = getattr(obj1, attr)
+                a2 = getattr(obj2, attr)
+                if a1 == a2:
+                    passing = False
+
+            return passing
+
     def mock_google_services(self) -> None:
         def _get_secret(name: str) -> str:
             v: str = os.getenv(name, f"not mocked: {name}")
@@ -134,10 +219,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    def patch(self, patch: unittest.mock._patch) -> unittest.mock.Mock:  # type:ignore
+    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:  # type:ignore
         m = patch.start()
         m._testMethodName = self._testMethodName
-        self.active_patches[f"{patch.target.__name__}.{patch.attribute}"] = m
+
+        if name is None:
+            name = f"{patch.target.__name__}.{patch.attribute}"
+        self.active_patches[name] = m
         return m
 
     def patch_dict(self, patch: unittest.mock._patch_dict) -> Any:
@@ -150,4 +238,3 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def stop_all_patches(self) -> None:
         unittest.mock.patch.stopall()
-        self.active_patches.clear()

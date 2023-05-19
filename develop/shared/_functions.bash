@@ -4,12 +4,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			Usage: statusmsg [-odiwesnh] MESSAGE
 			Options:
 				-o : [o]ff - No styling (pass-through to echo)
+				-n : no [n]ewline - Do not emit a newline after the message (same as echo -n)
 				-d : [d]ebug
 				-i : [i]nfo (default)
 				-w : [w]arn
 				-e : [e]rror
 				-s : [s]uccess
-				-n : [n]o message prefix
+				-p : no message [p]refix
 				-h : [h]elp - Prints this message and exits.
 			EOS
 		"
@@ -26,21 +27,24 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		local msgtype="info"
 		local noprefix=""
+		local nonewline=""
 		local OPTIND OPTARG argname
 
-		while getopts "odiwesnh" argname; do
+		while getopts "odiwesnph" argname
+		do
 			case "$argname" in
-			o) msgtype="off" ;;
-			d) msgtype="debug" ;;
-			i) msgtype="info" ;;
-			w) msgtype="warn" ;;
-			e) msgtype="error" ;;
-			s) msgtype="success" ;;
-			n) noprefix="1" ;;
-			h)
-				echo $usage
-				exit 0
-				;;
+				o) msgtype="off";;
+				d) msgtype="debug";;
+				i) msgtype="info";;
+				w) msgtype="warn";;
+				e) msgtype="error";;
+				s) msgtype="success";;
+				n) nonewline="1";;
+				p) noprefix="1";;
+				h)
+					echo $usage
+					exit 0
+					;;
 			esac
 		done
 
@@ -50,8 +54,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			exit 1
 		fi
 
-		if test "$msgtype" = "off"; then
-			echo -e $msg
+		if test "$msgtype" = "off"
+		then
+			if test -z "$nonewline"; then
+				echo -e $msg
+			else
+				echo -en $msg
+			fi
 			return 0
 		fi
 
@@ -105,7 +114,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			prefix="[$msgtype] "
 		fi
 
-		echo -e "$prefix$msg$_cc_reset"
+		if test -z "$nonewline"; then
+			echo -e "$prefix$msg$_cc_reset"
+		else
+			echo -en "$prefix$msg$_cc_reset"
+		fi
 		return 0
 	}
 

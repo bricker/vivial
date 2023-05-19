@@ -4,6 +4,8 @@ import eave.stdlib.core_api.enums as eave_enums
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.stdlib.exceptions import UnexpectedMissingValue
+
 from ..config import app_config
 
 
@@ -32,7 +34,9 @@ def save_state_cookie(response: Response, state: str, provider: eave_enums.AuthP
 
 def get_state_cookie(request: Request, provider: eave_enums.AuthProvider) -> str:
     state: str | None = request.cookies.get(_build_cookie_name(provider))
-    assert state is not None
+    if state is None:
+        raise UnexpectedMissingValue(f"state cookie for {provider.value}")
+
     return state
 
 

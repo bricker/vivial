@@ -71,8 +71,8 @@ class JWT:
             header_encoded, payload_encoded, signature_provided = jwt_encoded.split(".")
             header = JWTHeader.from_b64(header_encoded=header_encoded)
             payload = JWTRegisteredClaims.from_b64(payload_encoded=payload_encoded)
-        except ValueError as e:
-            raise exceptions.InvalidJWTError() from e
+        except ValueError:
+            raise exceptions.InvalidJWTError()
 
         return cls(
             header=header,

@@ -16,13 +16,19 @@ from werkzeug.wrappers import Response as BaseResponse
 from .config import app_config
 
 eave.stdlib.time.set_utc()
-eave.stdlib.logging.setup_logging()
 eave.stdlib.lib.requests.set_origin(eave_origins.EaveOrigin.eave_www)
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
 
 eave_api_util.add_standard_endpoints(app=app)
+
+
+@app.route("/_ah/warmup", methods=["GET"])
+async def warmup() -> str:
+    eave.stdlib.shared_config.preload()
+    app_config.preload()
+    return "OK"
 
 
 def _render_spa(**kwargs: Any) -> str:

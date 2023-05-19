@@ -15,9 +15,12 @@
         "--port",
         "5100",
         "--reload",
+        "--reload-dir",
+        "eave",
         "eave.core.app:app"
       ],
       "justMyCode": false,
+      "consoleTitle": "Core API",
     },
     {
       "name": "Slack App API",
@@ -34,6 +37,7 @@
         "eave.slack.app:api"
       ],
       "justMyCode": false,
+      "consoleTitle": "Slack App API",
     },
     {
       "name": "Slack Socket Mode",
@@ -50,6 +54,7 @@
       },
       "console": "integratedTerminal",
       "justMyCode": true,
+      "consoleTitle": "Slack Socket Mode",
       "env": {
         "SLACK_SOCKETMODE": "1"
       }
@@ -66,6 +71,7 @@
       "program": "./src/app.ts",
       "restart": true,
       "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
+      "consoleTitle": "GitHub App API",
       "env": {
         "PORT": "5300"
       },
@@ -87,7 +93,8 @@
         "5000"
       ],
       "jinja": true,
-      "justMyCode": true
+      "justMyCode": true,
+      "consoleTitle": "Marketing Website (Server)",
     },
     {
       "name": "Marketing Website (Client)",
@@ -99,7 +106,8 @@
       "args": [
         "-w",
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "consoleTitle": "Marketing Website (Client)",
     },
     {
       "name": "Debug Python Test",

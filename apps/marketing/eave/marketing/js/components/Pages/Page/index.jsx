@@ -9,7 +9,6 @@ const makeClasses = makeStyles((theme) => ({
   container: {
     position: 'relative',
     minHeight: '100vh',
-    fontFamily: theme.typography.fontFamily.main,
     color: theme.typography.color.main,
     backgroundColor: theme.palette.background.main,
   },

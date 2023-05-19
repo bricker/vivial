@@ -37,7 +37,8 @@ class TestSignatureVerification(BaseTestCase):
         assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 1
 
     async def test_signature_with_team_id(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
         response = await self.make_request(
             path="/subscriptions/create",
             payload={

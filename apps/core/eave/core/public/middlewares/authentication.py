@@ -10,6 +10,7 @@ from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Sco
 from eave.stdlib.lib.request_state import EaveRequestState
 from eave.stdlib.middleware import development_bypass
 from eave.stdlib.middleware.base import EaveASGIMiddleware
+from eave.stdlib.exceptions import BadRequestError
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
@@ -29,26 +30,20 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
         )
         if not account_id_header:
-            eave.stdlib.logger.error("account ID header missing/empty", extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError("eave-account-id")
+            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
 
         try:
             account_id = uuid.UUID(account_id_header)
-        except ValueError as e:
-            eave.stdlib.logger.error("malformed account ID", extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.BadRequestError() from e
+        except ValueError:
+            raise eave.stdlib.exceptions.BadRequestError("malformed eave-account-id header")
 
-        auth_header = eave.stdlib.api_util.get_header_value(
-            scope=scope, name=eave.stdlib.headers.EAVE_AUTHORIZATION_HEADER
-        )
+        auth_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.AUTHORIZATION_HEADER)
         if not auth_header:
-            eave.stdlib.logger.error("auth header missing/empty", extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.InvalidAuthError()
+            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.AUTHORIZATION_HEADER)
 
         auth_header_match = re.match("^Bearer (.+)$", auth_header)
         if auth_header_match is None:
-            eave.stdlib.logger.error("auth header malformed", extra=eave_state.log_context)
-            raise eave.stdlib.exceptions.InvalidAuthError()
+            raise BadRequestError("malformed authorization header")
 
         access_token: str = auth_header_match.group(1)
 
@@ -59,9 +54,8 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                     id=account_id,
                     access_token=access_token,
                 )
-            except sqlalchemy.exc.SQLAlchemyError as e:
-                eave.stdlib.logger.error("auth token or account not found", exc_info=e, extra=eave_state.log_context)
-                raise eave.stdlib.exceptions.UnauthorizedError()
+            except sqlalchemy.exc.SQLAlchemyError:
+                raise eave.stdlib.exceptions.UnauthorizedError("account not found")
 
             try:
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)

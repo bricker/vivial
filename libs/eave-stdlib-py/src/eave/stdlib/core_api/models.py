@@ -32,6 +32,11 @@ class DocumentReference(pydantic.BaseModel):
         orm_mode = True
 
 
+class DocumentSearchResult(pydantic.BaseModel):
+    title: str
+    url: str
+
+
 class SubscriptionSource(pydantic.BaseModel):
     platform: enums.SubscriptionSourcePlatform
     event: enums.SubscriptionSourceEvent
