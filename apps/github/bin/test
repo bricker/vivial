@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -e
+set -eu
 
-echo "WARNING: No tests."
+${EAVE_HOME}/develop/javascript/bin/test

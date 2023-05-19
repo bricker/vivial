@@ -3,7 +3,7 @@ import { sharedConfig } from "./config.js";
 import { KeyManagementServiceClient, protos } from '@google-cloud/kms';
 import crc32c from 'fast-crc32c';
 import crypto from 'crypto';
-import { InvalidChecksumError, InvalidSignatureError } from "./exceptions.js"; 
+import { InvalidChecksumError, InvalidSignatureError } from "./exceptions.js";
 
 const KMS_KEYRING_LOCATION = 'global';
 const KMS_KEYRING_NAME = 'primary';
@@ -66,7 +66,7 @@ protos.google.cloud.kms.v1.AsymmetricSignRequest
 /**
  * Signs the data with GCP KMS and returns base64-encoded signature.
  * Throws InvalidChecksumError if any data is missing from the signing result.
- * 
+ *
  * @param signingKey key to sign the data payload with
  * @param data payload to sign using the `signingKey`
  */
@@ -91,6 +91,7 @@ export async function signBase64(
   } else {
     messageBytes = data;
   }
+
   const digest = crypto.createHash('sha256').update(messageBytes).digest();
   const digestCrc32c = generateChecksum(digest);
 
@@ -102,14 +103,25 @@ export async function signBase64(
     },
   });
 
-  // TODO: verifiedCrc32c is false
-  if (signedResponse.signature === null || signedResponse.signature === undefined || !signedResponse.verifiedDataCrc32c || signedResponse.name !== keyVersionName) {
-    throw new InvalidChecksumError('KMS signing failed');
+  if (!signedResponse.signature) {
+    throw new InvalidChecksumError('No signature from server');
+  }
+
+  if (!signedResponse.signatureCrc32c?.value) {
+    throw new InvalidChecksumError('No signature checksum from server');
+  }
+
+  if (!signedResponse.verifiedDigestCrc32c) {
+    throw new InvalidChecksumError('Server could not verify client checksum');
+  }
+
+  if (signedResponse.name !== keyVersionName) {
+    throw new InvalidChecksumError('Name mismatch');
   }
 
   validateChecksumOrException(
     Buffer.from(signedResponse.signature),
-    parseInt(<any>signedResponse.signatureCrc32c?.value!, 10)
+    parseInt(<any>signedResponse.signatureCrc32c.value, 10)
   );
 
   return Buffer.from(signedResponse.signature.valueOf()).toString('base64');
