@@ -27,7 +27,7 @@ def filter_supported_links(urls: list[str]) -> list[tuple[str, enums.LinkType]]:
     return supported_links
 
 
-async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkType]]) -> list[Optional[str]]:
+async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkType]]) -> list[Optional[gh_ops.GetGithubUrlContent.ResponseBody]]:
     """
     Given a list of urls, returns mapping to content found at each link. Order is preserved.
 
@@ -35,7 +35,7 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkT
     the position of the link in the returned list is None.
     """
     # gather content from all links in parallel
-    tasks = []
+    tasks: list[asyncio.Task[gh_ops.GetGithubUrlContent.ResponseBody]] = []
     for link, link_type in urls:
         match link_type:
             case enums.LinkType.github:
@@ -51,8 +51,7 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkT
                     )
                 )
 
-    content_responses = await asyncio.gather(*tasks)
-    content: list[Optional[str]] = content_responses
+    content: list[Optional[gh_ops.GetGithubUrlContent.ResponseBody]] = await asyncio.gather(*tasks)
     return content
 
 
@@ -66,12 +65,12 @@ async def subscribe_to_file_changes(
     urls -- links paired with their platform type [(url, url platform)]
     returns -- list of subscriptions that got created
     """
-    tasks = []
+    tasks: list[asyncio.Task[eave_models.Subscription | None]] = []
     for link, link_type in urls:
         tasks.append(asyncio.ensure_future(_create_subscription_source(link, link_type, eave_team_id)))
 
-    # have asyncio.gather eat any network exceptions an return them as part of result
-    completed_tasks: list[Optional[eave_models.SubscriptionSource]] = await asyncio.gather(
+    # have asyncio.gather eat any network exceptions and return them as part of result
+    completed_tasks: list[Optional[eave_models.Subscription]] = await asyncio.gather(
         *tasks, return_exceptions=True
     )
     # only return the successful results

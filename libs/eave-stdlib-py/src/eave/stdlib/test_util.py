@@ -19,6 +19,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
         super().__init__(methodName)
+        self.addAsyncCleanup(self.cleanup)
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
