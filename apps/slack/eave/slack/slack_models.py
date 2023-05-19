@@ -8,10 +8,10 @@ import eave.pubsub_schemas
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
 from eave.stdlib.exceptions import SlackDataError
+from eave.stdlib.logging import eaveLogger
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
 import slack_sdk.models.blocks
-from eave.stdlib import logger
 from pydantic import BaseModel, HttpUrl
 from slack_bolt.async_app import AsyncBoltContext
 from slack_sdk.web.async_client import AsyncWebClient
@@ -513,7 +513,7 @@ class SlackMessage:
     @eave_util.memoized
     async def get_formatted_message(self) -> str | None:
         if self.is_bot_message:
-            logger.debug("skipping bot message")
+            eaveLogger.debug("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -522,7 +522,7 @@ class SlackMessage:
         )
 
         if expanded_text is None or user_profile is None:
-            logger.warning("expanded_text or user_profile were None")
+            eaveLogger.warning("expanded_text or user_profile were None")
             return None
 
         formatted_message = f"- Message from {user_profile.real_name}: {expanded_text}\n"
@@ -543,7 +543,7 @@ class SlackMessage:
         """
 
         if self.text is None:
-            eave.stdlib.logger.warning("slack message text unexpectedly None")
+            eaveLogger.warning("slack message text unexpectedly None")
             return None
 
         await asyncio.gather(
@@ -739,7 +739,7 @@ class SlackMessage:
     @eave_util.memoized
     async def simple_format(self) -> str | None:
         if self.is_bot_message:
-            logger.debug("skipping bot message")
+            eaveLogger.debug("skipping bot message")
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -764,7 +764,7 @@ class SlackMessage:
             formatteddt = datetime.fromtimestamp(float(self.ts), tz=timezone.utc).strftime("%A, %B %d at %I:%M%p")
             prefix += f" on {formatteddt}"
         except ValueError:
-            logger.exception(f"ts value couldn't be converted to float: {self.ts}")
+            eaveLogger.exception(f"ts value couldn't be converted to float: {self.ts}")
 
         formatted_message = f"{prefix}: {expanded_text}\n\n"
         return formatted_message

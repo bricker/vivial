@@ -12,22 +12,24 @@ inbound_services:
 vpc_access_connector:
   name: projects/eave-production/locations/us-central1/connectors/appengine
 
+# Don't use --preload, it breaks Google Cloud Logging and AppEngine
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
     --pythonpath vendor \
     --workers 3 \
     --worker-class uvicorn.workers.UvicornWorker \
-    --preload \
     eave.slack.app:api
 
 handlers:
-- url: /_ah/.*
-  login: admin
+- url: /_.*
   script: auto
+  login: admin
+  auth_fail_action: unauthorized
 
 - url: .*
   script: auto
 
 env_variables:
   EAVE_MONITORING_ENABLED: "1"
+  EAVE_ANALYTICS_ENABLED: "1"

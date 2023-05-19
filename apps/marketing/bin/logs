@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -eu
+
+gcloud app logs tail -s www --level warning

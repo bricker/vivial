@@ -4,6 +4,7 @@ import typing
 
 import eave.pubsub_schemas
 import eave.stdlib.core_api
+from eave.stdlib.logging import eaveLogger
 import eave.stdlib.slack
 from starlette.requests import Request
 from starlette.responses import Response
@@ -179,9 +180,7 @@ async def create_new_account_and_team(
             ),
         )
     except Exception:
-        eave.stdlib.logger.exception(
-            "Error while sending message to #sign-ups slack channel", extra=eave_state.log_context
-        )
+        eaveLogger.exception("Error while sending message to #sign-ups slack channel", extra=eave_state.log_context)
 
     return eave_account
 

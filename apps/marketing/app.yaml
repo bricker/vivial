@@ -17,7 +17,6 @@ entrypoint: |-
     --bind :$PORT \
     --pythonpath vendor \
     --workers 3 \
-    --preload \
     eave.marketing.app:app
 
 env_variables:

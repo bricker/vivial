@@ -6,6 +6,8 @@ import pydantic
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.stdlib.logging import eaveLogger
+
 from . import request_state
 
 
@@ -23,7 +25,7 @@ def internal_server_error(request: Request, exc: Exception) -> Response:
 
 def not_found(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.warning(http.HTTPStatus.NOT_FOUND, exc_info=exc, extra=eave_state.log_context)
+    eaveLogger.warning(http.HTTPStatus.NOT_FOUND, exc_info=exc, extra=eave_state.log_context)
 
     model = eave.stdlib.core_api.models.ErrorResponse(
         status_code=http.HTTPStatus.NOT_FOUND,
@@ -36,7 +38,7 @@ def not_found(request: Request, exc: Exception) -> Response:
 
 def bad_request(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.warning(http.HTTPStatus.BAD_REQUEST, exc_info=exc, extra=eave_state.log_context)
+    eaveLogger.warning(http.HTTPStatus.BAD_REQUEST, exc_info=exc, extra=eave_state.log_context)
 
     model = eave.stdlib.core_api.models.ErrorResponse(
         status_code=http.HTTPStatus.BAD_REQUEST,
@@ -49,7 +51,7 @@ def bad_request(request: Request, exc: Exception) -> Response:
 
 def unauthorized(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.warning(
+    eaveLogger.warning(
         "Authentication error occurred. The client will be logged out.", exc_info=exc, extra=eave_state.log_context
     )
 
@@ -65,7 +67,7 @@ def unauthorized(request: Request, exc: Exception) -> Response:
 
 def validation_error(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.warning("validation error", exc_info=exc, extra=eave_state.log_context)
+    eaveLogger.warning("validation error", exc_info=exc, extra=eave_state.log_context)
 
     if isinstance(exc, pydantic.ValidationError):
         eave_state.public_request_context["validation_errors"] = exc.json()

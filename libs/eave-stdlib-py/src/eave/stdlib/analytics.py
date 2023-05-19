@@ -9,9 +9,9 @@ from google.api_core.exceptions import NotFound
 from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
 
-from . import logger
 from .typing import JsonObject
 from .config import shared_config
+from .logging import eaveLogger
 
 publisher_client = PublisherClient()
 
@@ -48,7 +48,11 @@ def log_event(
         assert encoding == Encoding.BINARY
 
         data = event.SerializeToString()
-        publisher_client.publish(topic_path, data)
+
+        if not shared_config.analytics_enabled:
+            eaveLogger.warning("Analytics disabled.", extra={"event": str(data)})
+        else:
+            publisher_client.publish(topic_path, data)
 
     except NotFound:
-        logger.warning(f"{_EVENT_TOPIC_ID} not found.")
+        eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.")

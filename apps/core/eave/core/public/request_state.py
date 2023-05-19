@@ -1,4 +1,4 @@
-from typing import Literal, Optional, cast
+from typing import Optional, cast
 
 import eave.stdlib
 import starlette.applications
@@ -6,8 +6,6 @@ import starlette.requests
 from asgiref.typing import HTTPScope
 
 SCOPE_KEY = "eave_state"
-
-LogContext = dict[Literal["json_fields"], eave.stdlib.typing.JsonObject]
 
 
 class EaveRequestState:
@@ -26,7 +24,7 @@ class EaveRequestState:
                 self.__setattr__(key, v)
 
     @property
-    def log_context(self) -> LogContext:
+    def log_context(self) -> eave.stdlib.typing.LogContext:
         payload = {
             "eave_account_id": str(self.eave_account_id),
             "eave_team_id": str(self.eave_team_id),
@@ -41,7 +39,9 @@ class EaveRequestState:
         # This response structure is for Google Cloud Logging
         return {"json_fields": payload}
 
-    def log_context_extras(self, extras: Optional[eave.stdlib.typing.JsonObject] = None) -> LogContext:
+    def log_context_extras(
+        self, extras: Optional[eave.stdlib.typing.JsonObject] = None
+    ) -> eave.stdlib.typing.LogContext:
         v = self.log_context
         if extras:
             v["json_fields"].update(extras)

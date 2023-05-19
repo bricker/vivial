@@ -1,10 +1,10 @@
-import eave.stdlib
 import eave.stdlib.core_api as eave_core
 from starlette.requests import Request
 from starlette.responses import Response
 
 import eave.core.public.request_state as eave_request_util
 from eave.core.internal import app_config
+from eave.stdlib.logging import eaveLogger
 
 from ...http_endpoint import HTTPEndpoint
 from . import shared
@@ -33,7 +33,7 @@ class BaseOAuthCallback(HTTPEndpoint):
         error_description = request.query_params.get("error_description")
 
         if error or not code:
-            eave.stdlib.logger.warning(
+            eaveLogger.warning(
                 f"Error response from {self.auth_provider} oauth flow, or code missing. {error}: {error_description}",
                 extra=eave_state.log_context,
             )

@@ -18,7 +18,6 @@ entrypoint: |-
     --pythonpath vendor \
     --workers 3 \
     --worker-class uvicorn.workers.UvicornWorker \
-    --preload \
     eave.core.app:app
 
 handlers:
@@ -31,3 +30,4 @@ handlers:
 
 env_variables:
   EAVE_MONITORING_ENABLED: "1"
+  EAVE_ANALYTICS_ENABLED: "1"

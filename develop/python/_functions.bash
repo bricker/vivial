@@ -26,19 +26,13 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "Linting ${target}..."
-
-		statusmsg -i "(lint) ruff..."
-		python -m ruff --config=$configfile $target
-
-		statusmsg -i "(lint) black..."
-		python -m black --config=$configfile --check $target
-
-		statusmsg -i  "(lint) mypy..."
-		python -m mypy --config-file=$configfile $target
-
-		statusmsg -s "Linting passed ✔"
+		statusmsg -in "Linting $thisdir..."
+		python -m ruff --quiet --config=$configfile $target
+		python -m black --quiet --config=$configfile --check $target
+		python -m mypy --config-file=$configfile $target > /dev/null
+		statusmsg -sp " ✔ "
 	)
 
 	function python-format() (
@@ -47,14 +41,12 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "(format) ruff..."
-		python -m ruff --fix --config=$configfile $target
-
-		statusmsg -i  "(format) black..."
-		python -m black --config=$configfile $target
-
-		statusmsg -s "Formatting completed ✔"
+		statusmsg -in "Formatting $thisdir..."
+		python -m ruff --quiet --fix --config=$configfile $target
+		python -m black --quiet --config=$configfile $target
+		statusmsg -sp " ✔ "
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

@@ -63,7 +63,6 @@ async def _onetime_setup_db() -> None:
 
 class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     def __init__(self, methodName: str = "runTest") -> None:
-        print("")
         super().__init__(methodName)
         self.addAsyncCleanup(self.cleanup)
 

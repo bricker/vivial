@@ -6,7 +6,7 @@ fi
 
 source ${EAVE_HOME}/develop/functions.bash
 
-statusmsg -ns "Hi! Welcome to Eave. I will help you setup this repository."
+statusmsg -ps "Hi! Welcome to Eave. I will help you setup this repository."
 statusmsg -i "Before getting started, it is recommended to install the "nvm" and "pyenv" version management tools into your environment."
 
 echo ""
@@ -21,7 +21,7 @@ case $usershell in
 "bash" | "zsh")
 	loginfile=$(shloginfile)
 	varcmd="export EAVE_HOME=\"$(pwd)\""
-	statusmsg -ni "First, I'll add the following line to $loginfile:"
+	statusmsg -pi "First, I'll add the following line to $loginfile:"
 	echo ""
 	statusmsg -o "\t$varcmd"
 	echo ""
@@ -36,7 +36,7 @@ case $usershell in
 	;;
 "fish")
 	varcmd="set -Ux EAVE_HOME $(pwd)"
-	statusmsg -ni "First, I'll add a Universal variable to your Fish environment with the following command:"
+	statusmsg -pi "First, I'll add a Universal variable to your Fish environment with the following command:"
 	echo ""
 	echo -e "\t$varcmd"
 	echo ""
@@ -70,7 +70,7 @@ function setuppython() {
 	python-activate-venv
 }
 
-statusmsg -ni "Next, I will setup the python virtual environment."
+statusmsg -pi "Next, I will setup the python virtual environment."
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"; then
 	setuppython
@@ -90,7 +90,7 @@ function setupgcloud () (
 	./google-cloud-sdk/install.sh
 )
 
-statusmsg -ni "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
+statusmsg -pi "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"; then
 	setupgcloud
@@ -116,7 +116,7 @@ function setupcloudsqlproxy () (
 	sudo mv cloud-sql-proxy $cloudsqlproxypath
 )
 
-statusmsg -ni "Now I'll download and install the Cloud SQL Proxy for your system."
+statusmsg -pi "Now I'll download and install the Cloud SQL Proxy for your system."
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"; then
 	setupcloudsqlproxy
@@ -147,7 +147,7 @@ function install-jq () (
 )
 
 if ! cmd-exists "jq"; then
-	statusmsg -ni "The jq program is used (and assumed to be installed) in many utility scripts in this repository."
+	statusmsg -pi "The jq program is used (and assumed to be installed) in many utility scripts in this repository."
 	read -p "Do you want me to install it? [y/n] " proceed
 	if test "$proceed" = "y"; then
 		install-jq
@@ -157,7 +157,7 @@ fi
 
 function setupapps () (
 	cd ${EAVE_HOME}
-	statusmsg -ni "Setting up shared dev dependencies"
+	statusmsg -pi "Setting up shared dev dependencies"
 	(cd ${EAVE_HOME}/develop/javascript/eslint/ && bin/setup)
 
 	python-activate-venv
@@ -165,7 +165,7 @@ function setupapps () (
 	run-in-all-projects bin/setup
 )
 
-statusmsg -ni "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
+statusmsg -pi "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
 read -p "Should I proceed? [y/n] " proceed
 if test "$proceed" = "y"; then
 	setupapps

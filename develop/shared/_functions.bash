@@ -5,12 +5,13 @@ then
 			Usage: statusmsg [-odiwesnh] MESSAGE
 			Options:
 				-o : [o]ff - No styling (pass-through to echo)
+				-n : no [n]ewline - Do not emit a newline after the message (same as echo -n)
 				-d : [d]ebug
 				-i : [i]nfo (default)
 				-w : [w]arn
 				-e : [e]rror
 				-s : [s]uccess
-				-n : [n]o message prefix
+				-p : no message [p]refix
 				-h : [h]elp - Prints this message and exits.
 			EOS
 		"
@@ -27,9 +28,10 @@ then
 
 		local msgtype="info"
 		local noprefix=""
+		local nonewline=""
 		local OPTIND OPTARG argname
 
-		while getopts "odiwesnh" argname
+		while getopts "odiwesnph" argname
 		do
 			case "$argname" in
 				o) msgtype="off";;
@@ -38,7 +40,8 @@ then
 				w) msgtype="warn";;
 				e) msgtype="error";;
 				s) msgtype="success";;
-				n) noprefix="1";;
+				n) nonewline="1";;
+				p) noprefix="1";;
 				h)
 					echo $usage
 					exit 0
@@ -55,7 +58,11 @@ then
 
 		if test "$msgtype" = "off"
 		then
-			echo -e $msg
+			if test -z "$nonewline"; then
+				echo -e $msg
+			else
+				echo -en $msg
+			fi
 			return 0
 		fi
 
@@ -112,7 +119,11 @@ then
 			prefix="[$msgtype] "
 		fi
 
-		echo -e "$prefix$msg$_cc_reset"
+		if test -z "$nonewline"; then
+			echo -e "$prefix$msg$_cc_reset"
+		else
+			echo -en "$prefix$msg$_cc_reset"
+		fi
 		return 0
 	}
 

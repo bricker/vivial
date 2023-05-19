@@ -4,7 +4,8 @@ import re
 from eave.stdlib.exceptions import OpenAIDataError
 
 import eave.stdlib.openai_client as eave_openai
-from eave.stdlib import logger
+
+from eave.stdlib.logging import eaveLogger
 
 # I originally had instructions that "Newer messages are more relevant than older messages.", but I don't actually know if that's
 # true. Context matters I guess. Something to consider.
@@ -45,9 +46,9 @@ class MessageAction(enum.Enum):
 #         4. Something else
 #     """)
 
-#     logger.info(f"prompt:\n{prompt}")
+#     eaveLogger.info(f"prompt:\n{prompt}")
 #     response = await _get_openai_response(messages=[prompt], temperature=0)
-#     logger.info(f"response: {response}")
+#     eaveLogger.info(f"response: {response}")
 
 #     if re.search("request", response, re.IGNORECASE):
 #         purpose = MessageType.REQUEST
@@ -56,10 +57,10 @@ class MessageAction(enum.Enum):
 #     elif re.search("letting me know", response, re.IGNORECASE):
 #         purpose = MessageType.WATCH
 #     else:
-#         logger.warning(f"Unexpected purpose response: {response}")
+#         eaveLogger.warning(f"Unexpected purpose response: {response}")
 #         purpose = MessageType.OTHER
 
-#     logger.info(f"message purpose: {purpose}")
+#     eaveLogger.info(f"message purpose: {purpose}")
 #     return purpose
 
 
@@ -81,9 +82,11 @@ async def message_action(context: str) -> MessageAction:
         context,
     )
 
-    logger.debug(f"prompt:\n{prompt}")
+    eaveLogger.debug(f"prompt:\n{prompt}")
     response = await _get_openai_response(messages=[prompt], temperature=0)
-    logger.debug(f"response: {response}")
+    eaveLogger.debug(f"response: {response}")
+
+    response = response.lower()
 
     if re.search("create", response, re.IGNORECASE) is not None:
         action = MessageAction.CREATE_DOCUMENTATION
@@ -96,17 +99,17 @@ async def message_action(context: str) -> MessageAction:
         or re.search("archive", response, re.IGNORECASE) is not None
     ):
         action = MessageAction.DELETE_DOCUMENTATION
-    elif re.search("follow", response, re.IGNORECASE) is not None:
-        action = MessageAction.WATCH
     elif re.search("stop following", response, re.IGNORECASE) is not None:
         action = MessageAction.UNWATCH
+    elif re.search("follow", response, re.IGNORECASE) is not None:
+        action = MessageAction.WATCH
     elif re.search("no action", response, re.IGNORECASE) is not None:
         action = MessageAction.NONE
     else:
-        logger.warning(f"Unexpected message action response: {response}")
+        eaveLogger.warning(f"Unexpected message action response: {response}")
         action = MessageAction.UNKNOWN
 
-    logger.debug(f"message action: {action}")
+    eaveLogger.debug(f"message action: {action}")
     return action
 
 

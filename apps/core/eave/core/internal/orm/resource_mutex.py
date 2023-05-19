@@ -5,8 +5,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-import eave.core.internal.oauth.slack
-import eave.stdlib.logging
+from eave.stdlib.logging import eaveLogger
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
@@ -29,7 +28,7 @@ class ResourceMutexOrm(Base):
             # A lock already exists for this resource.
             # Automatically release locks after 60 seconds
             if datetime.utcnow() >= (result.created + timedelta(seconds=60)):
-                eave.stdlib.logger.warning("A lock is being forcefully released")
+                eaveLogger.warning("A lock is being forcefully released")
                 await cls.release(session=session, resource_id=resource_id)
             else:
                 # The lock is valid; access is denied.
@@ -41,7 +40,7 @@ class ResourceMutexOrm(Base):
             await session.flush()
             return True
         except Exception:
-            eave.stdlib.logger.exception("Error while acquiring lock")
+            eaveLogger.exception("Error while acquiring lock")
             return False
 
     @classmethod

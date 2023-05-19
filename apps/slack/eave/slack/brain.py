@@ -14,13 +14,14 @@ import eave.stdlib.core_api.operations as eave_ops
 from eave.stdlib.exceptions import HTTPException, OpenAIDataError, SlackDataError
 import eave.stdlib.openai_client as eave_openai
 import tiktoken
-from eave.stdlib import logger
 from slack_bolt.async_app import AsyncBoltContext
 
 from eave.stdlib.typing import JsonObject
 from eave.stdlib.util import memoized
 
 from . import document_metadata, message_prompts, slack_models
+
+from eave.stdlib.logging import eaveLogger
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
@@ -44,7 +45,7 @@ class Brain:
         self.log_extra = log_context(slack_context)
 
     async def process_message(self) -> None:
-        logger.debug("Brain.process_message", extra=self.log_extra)
+        eaveLogger.debug("Brain.process_message", extra=self.log_extra)
 
         await self.load_data()
 
@@ -81,7 +82,7 @@ class Brain:
             """
             subscription_response = await self.get_subscription()
             if subscription_response is None:
-                logger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.log_extra)
+                eaveLogger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.log_extra)
                 return
 
             self.message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
@@ -228,7 +229,7 @@ class Brain:
         """
         subscription = await self.get_subscription()
 
-        logger.warning("Unknown request to Eave in Slack", extra={"json_fields": {"message": self.message.text}})
+        eaveLogger.warning("Unknown request to Eave in Slack", extra={"json_fields": {"message": self.message.text}})
         eave.stdlib.analytics.log_event(
             event_name="eave_received_unknown_request",
             event_description="Eave received a request that she didn't know how to handle.",
@@ -581,7 +582,7 @@ class Brain:
         except slack_sdk.errors.SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
-            logger.warning(f"Error reacting to message: {error_code}", exc_info=e)
+            eaveLogger.warning(f"Error reacting to message: {error_code}", exc_info=e)
 
             if error_code == "invalid_name":
                 await self.message.add_reaction("thumbsup")

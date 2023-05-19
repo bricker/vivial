@@ -8,6 +8,7 @@ import eave.stdlib.atlassian
 from eave.stdlib.core_api.models import DocumentSearchResult
 import eave.stdlib.core_api.operations as eave_ops
 from eave.stdlib.exceptions import ConfluenceDataError, OpenAIDataError
+from eave.stdlib.logging import eaveLogger
 import eave.stdlib.openai_client
 from eave.stdlib.util import unwrap
 
@@ -46,7 +47,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
             if (results := json.get("results")) is None:
                 raise ConfluenceDataError("cql results")
         except Exception:
-            eave.stdlib.logger.exception("Error while fetching search results from Confluence")
+            eaveLogger.exception("Error while fetching search results from Confluence")
             return []
 
         pages = [
