@@ -1,15 +1,40 @@
+import fetch from "node-fetch";
 import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { signBase64, getKey } from '@eave-fyi/eave-stdlib-ts/src/signing.js';
+import { buildMessageToSign } from "@eave-fyi/eave-stdlib-ts/src/lib/requests.js";
 
 async function run() {
   const data = JSON.stringify({
     test: 'data',
   });
 
-  const key = getKey(EaveOrigin.eave_github_app);
-  const sig = await signBase64(key, data);
+  const rid = "any"
+  const msg = buildMessageToSign(
+    "POST",
+    "http://apps.eave.run:8080/github/api/content",
+    rid,
+    "eave_slack_app",
+    data,
+  );
+
+  console.log(msg);
+  const key = getKey(EaveOrigin.eave_slack_app);
+  const sig = await signBase64(key, msg);
 
   console.log(sig);
+
+  const r = await fetch("http://apps.eave.run:8080/github/api/content", {
+    method:"POST",
+    headers: {
+      'eave-origin': "eave_slack_app",
+      'eave-signature': sig,
+      'content-type': 'application/json',
+      'eave-request-id': rid,
+    },
+    body: data,
+  });
+
+  console.log(r);
 }
 
 run();

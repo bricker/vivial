@@ -15,7 +15,6 @@
     "@octokit/webhooks": "10.x",
     "bluebird": "3.x",
     "express": "4.x",
-    "node-fetch": "3.x",
     "octokit": "2.x",
     "superagent": "8.x"
   },
@@ -31,6 +30,7 @@
     "eslint-plugin-graphql": "4.x",
     "eslint-plugin-import": "2.x",
     "eslint-plugin-yaml": "0.5.x",
+    "node-fetch": "^3.3.1",
     "nodemon": "2.x",
     "ts-node": "10.x",
     "typescript": "4.x"
