@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Optional
 import aiohttp
 
 import pydantic
@@ -104,11 +104,11 @@ class DeleteSubscription(Endpoint):
 class UpsertDocument(Endpoint):
     class RequestBody(BaseRequestBody):
         document: DocumentInput
-        subscriptions: list[SubscriptionInput]
+        subscription: SubscriptionInput
 
     class ResponseBody(BaseResponseBody):
         team: models.Team
-        subscriptions: list[models.Subscription]
+        subscription: models.Subscription
         document_reference: models.DocumentReference
 
 

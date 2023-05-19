@@ -70,12 +70,11 @@
       ],
       "program": "./src/app.ts",
       "restart": true,
-      "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
+      "runtimeExecutable": "./node_modules/.bin/nodemon",
       "consoleTitle": "GitHub App API",
       "env": {
         "PORT": "5300"
       },
-      "console": "integratedTerminal"
     },
     {
       "name": "Marketing Website (Server)",

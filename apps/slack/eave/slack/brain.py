@@ -6,7 +6,6 @@ import slack_sdk.errors
 import slack_sdk.models.blocks
 import eave.pubsub_schemas
 from eave.slack.util import log_context
-from eave.stdlib import link_handler
 import eave.stdlib.analytics
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.enums
@@ -33,7 +32,6 @@ class Brain:
     expanded_text: str
     message_context: str
     eave_team: eave_models.Team
-    subscriptions: list[eave_models.Subscription] = []
     slack_context: AsyncBoltContext
     log_extra: JsonObject
     message_action: Optional[message_prompts.MessageAction] = None
@@ -217,7 +215,7 @@ class Brain:
             #     },
             # )
 
-            self.subscriptions.append((await self.create_subscription()).subscription)
+            await self.create_subscription()
             await self.create_documentation()
             return
         else:
@@ -333,16 +331,13 @@ class Brain:
 
     async def build_documentation(self) -> eave_ops.DocumentInput:
         conversation = await self.build_context()
-        link_context = await self.build_link_context_and_subscribe()
 
         document_topic = await document_metadata.get_topic(conversation)
         document_hierarchy = await document_metadata.get_hierarchy(conversation)
         # project_title = await document_metadata.get_project_title(conversation)
         documentation_type = await document_metadata.get_documentation_type(conversation)
         documentation = await document_metadata.get_documentation(
-            conversation=conversation,
-            documentation_type=documentation_type,
-            link_context=link_context,
+            conversation=conversation, documentation_type=documentation_type
         )
         document_resources = await self.build_resources()
 
@@ -368,7 +363,8 @@ class Brain:
             raise SlackDataError("all_messages")
 
         [await m.get_expanded_text() for m in all_messages]
-        links = set([link for message in all_messages for link in message.urls])
+        # TODO: Remove duplicate URLs
+        links = [link for message in all_messages for link in message.urls]
 
         resources_doc = ""
 
@@ -553,7 +549,7 @@ class Brain:
 
                     {joined_messages}
                     ###
-                    """
+                """
                 )
                 openai_params = eave_openai.ChatCompletionParameters(
                     model=eave_openai.OpenAIModel.GPT4,
@@ -575,161 +571,9 @@ class Brain:
         recent_messages = "\n\n".join(messages_for_prompt)
         return f"{condensed_context}\n\n" f"{recent_messages}"
 
-    async def build_link_context_and_subscribe(self) -> Optional[str]:
-        """
-        If there are any URL links in the message thread being analyzed,
-        it pulls the context from the links (if Eave has access) and summarizes it.
-        It then subscribes to watch for changes any files Eave could read.
-
-        Returns summarized context for each link in message thread, if any
-        """
-        # see if we can pull content from any links in messages from the thread
-        urls = [await msg.resolve_urls() for msg in await self.message.get_conversation_messages()]
-        # flatten
-        urls = [url for url_list in urls for url in url_list]
-        supported_links = link_handler.filter_supported_links(urls)
-
-        if supported_links:
-            links_contents = await link_handler.map_url_content(self.eave_team.id, supported_links)
-            if links_contents:
-                # summarize the content at each link, or None where link content wasnt obtained
-                summaries: list[Optional[str]] = await asyncio.gather(
-                    *[
-                        # sleep(0) as a no-op returning None to preserve output len/ordering
-                        asyncio.ensure_future(self._summarize_content(content)) if content else asyncio.sleep(0)
-                        for content in links_contents if content is not None
-                    ]
-                )
-
-                # subscribe Eave to any changes at the links we wer able to read content from
-                link_subscriptions = await link_handler.subscribe_to_file_changes(
-                    self.eave_team.id,
-                    [link_info for link_info, content in zip(supported_links, summaries) if content is not None],
-                )
-                self.subscriptions += link_subscriptions
-
-                # transform raw source text into less distracting (for AI) summaries
-                return "\n\n".join(
-                    [
-                        f"""
-                        {link}
-                        ###
-                        {summary}
-                        ###
-                        """
-                        for (link, _), summary in zip(supported_links, summaries)
-                        if summary is not None
-                    ]
-                )
-
-        return None
-
     """
     Utility
     """
-
-    async def _summarize_content(self, content: str) -> str:
-        """
-        Given some content (from a URL) return a summary of it.
-        """
-        if len(tokencoding.encode(content)) > eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4]:
-            # build rolling summary of long content
-            threshold = int(eave_openai.MAX_TOKENS[eave_openai.OpenAIModel.GPT4] / 2)
-            return await self._rolling_summarize_content(content, threshold)
-        else:
-            prompt = eave_openai.formatprompt(
-                f"""
-                Summarize the following information. Maintain the important information.
-
-                ###
-
-                {content}
-
-                ###
-                """
-            )
-            openai_params = eave_openai.ChatCompletionParameters(
-                model=eave_openai.OpenAIModel.GPT4,
-                messages=[prompt],
-                temperature=0.9,
-                frequency_penalty=1.0,
-                presence_penalty=1.0,
-            )
-            summary_resp: str | None = await eave_openai.chat_completion(params=openai_params)
-            assert summary_resp is not None
-            return summary_resp
-
-    async def _rolling_summarize_content(self, content: str, threshold: int) -> str:
-        """
-        Given a `content` string to summarize that is (assumed) longer then `threshold`
-        tokens (as defined by the AI model), break `content` into digestable chunks,
-        summarizing and integrating each chunk into a single "rolling" summary.
-
-        content -- raw text to summarize. Presumed to long to summarize in 1 AI API request.
-        threshold -- max number of tokens to feed to AI per request. (Recommended to be less than MAX_TOKENS allowed by API)
-        """
-        summary = content
-
-        while len(tokencoding.encode(summary)) > threshold:
-            new_summary = ""
-            chunk_size = threshold
-            current_position = 0
-            current_chunk = summary[current_position : current_position + chunk_size]
-            chunks = [current_chunk]
-            # there are generally 0.75 words per token, so approximating 1 character per token may
-            # be overly generous in some contexts, but it's a safe minimum
-            while len(current_chunk) == chunk_size:
-                current_position += chunk_size
-                current_chunk = summary[current_position : current_position + chunk_size]
-                chunks.append(current_chunk)
-
-            # summarize each chunk, combining it into existing summary
-            for chunk in filter(lambda chunk: len(chunk) > 0, chunks):
-                if new_summary == "":
-                    prompt = eave_openai.formatprompt(
-                        f"""
-                        Condense the following information. Maintain the important information.
-
-                        ###
-                        {chunk}
-                        ###
-                        """
-                    )
-                    openai_params = eave_openai.ChatCompletionParameters(
-                        model=eave_openai.OpenAIModel.GPT4,
-                        messages=[prompt],
-                        temperature=0.9,
-                        frequency_penalty=1.0,
-                        presence_penalty=1.0,
-                    )
-                    response = await eave_openai.chat_completion(params=openai_params)
-                    assert response is not None
-                    new_summary = response
-                else:
-                    prompt = eave_openai.formatprompt(
-                        f"""
-                        Amend and expand on the following information. Maintain the important information.
-
-                        ###
-                        {new_summary}
-
-                        {chunk}
-                        ###
-                        """
-                    )
-                    openai_params = eave_openai.ChatCompletionParameters(
-                        model=eave_openai.OpenAIModel.GPT4,
-                        messages=[prompt],
-                        temperature=0.9,
-                        frequency_penalty=1.0,
-                        presence_penalty=1.0,
-                    )
-                    response = await eave_openai.chat_completion(params=openai_params)
-                    assert response is not None
-                    new_summary = response
-            summary = new_summary
-
-        return summary
 
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
@@ -768,16 +612,7 @@ class Brain:
         response = await eave_core.upsert_document(
             team_id=self.eave_team.id,
             input=eave_ops.UpsertDocument.RequestBody(
-                subscriptions=[
-                    eave_ops.SubscriptionInput(
-                        source=eave_models.SubscriptionSource(
-                            platform=s.source.platform,
-                            event=s.source.event,
-                            id=s.source.id,
-                        )
-                    )
-                    for s in self.subscriptions
-                ],
+                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
                 document=document,
             ),
         )

@@ -7,10 +7,11 @@ import eave.core.public
 import sqlalchemy.exc
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
-from eave.stdlib.request_state import EaveRequestState
-from . import development_bypass
-from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.exceptions import BadRequestError
+
+
+from . import development_bypass
+from .base import EaveASGIMiddleware
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
@@ -25,7 +26,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         await self.app(scope, receive, send)
 
     @staticmethod
-    async def _verify_auth(scope: HTTPScope, eave_state: EaveRequestState) -> None:
+    async def _verify_auth(scope: HTTPScope, eave_state: eave.core.public.request_state.EaveRequestState) -> None:
         account_id_header = eave.stdlib.api_util.get_header_value(
             scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
         )

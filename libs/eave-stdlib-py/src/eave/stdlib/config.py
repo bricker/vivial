@@ -185,10 +185,6 @@ class EaveConfig:
     def eave_atlassian_app_client_secret(self) -> str:
         return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
 
-    @cached_property
-    def eave_github_app_webhook_secret(self) -> str:
-        return self.get_secret('EAVE_GITHUB_APP_WEBHOOK_SECRET')
-
     def get_required_env(self, name: str) -> str:
         if name not in os.environ:
             raise KeyError(f"{name} is a required environment variable, but is not set.")

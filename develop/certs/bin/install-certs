@@ -4,62 +4,48 @@ set -eu
 
 source $EAVE_HOME/develop/functions.bash
 
-function install-certs() {
+function install-certs() (
 	local certPath=$1
 	local certFileName=$(basename $certPath)
 	local certFileTemp=/tmp/$certFileName
 	local certName=$(basename $certPath .crt)
 	rm -f $certFileTemp
-	cat $certPath >$certFileTemp
+	cat $certPath > $certFileTemp
 
 	statusmsg -w "sudo privileges are needed to install the development certificate on your system"
 
 	# https://docs.mitmproxy.org/stable/concepts-certificates/
-	local kernel=$(get-kernel-name)
+	local kernel=$(uname -s)
 	case "$kernel" in
-	"linux")
-		case "$(get-os)" in
-		"manjarolinux")
-			local certDestDir=/etc/ca-certificates/trust-source/anchors/extra
-			local certDestFile=$certDestDir/$certFileName
-			sudo mkdir -p $certDestDir
-			sudo mv $certFileTemp $certDestDir
-			sudo trust anchor --store $certDestFile
-			;;
-		"ubuntu")
+		"Linux")
 			local certDestDir=/usr/local/share/ca-certificates/extra
 			local certDestFile=$certDestDir/$certFileName
 			sudo mkdir -p $certDestDir
 			sudo mv $certFileTemp $certDestDir
 			sudo update-ca-certificates --fresh
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$certName" &>/dev/null || true
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$certName" -i "$certDestFile"
+			;;
+		"Darwin")
+			sudo security add-trusted-cert \
+				-d \
+				-p ssl \
+				-p basic \
+				-k /Library/Keychains/System.keychain \
+				$certFileTemp
 			;;
 		*)
-			statusmsg -e "Your linux flavor is not supported. Please add support!"
+			statusmsg -e "This script does not support your operating system. Please add support!"
 			exit 1
 			;;
-		esac
-		sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$certName" &>/dev/null || true
-		sudo certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$certName" -i "$certDestFile"
-		;;
-	"darwin")
-		sudo security add-trusted-cert \
-			-d \
-			-p ssl \
-			-p basic \
-			-k /Library/Keychains/System.keychain \
-			$certFileTemp
-		;;
-	*)
-		statusmsg -e "This script does not support your operating system. Please add support!"
-		exit 1
-		;;
 	esac
 
 	# TODO: Does this work on macOS?
 	add-shell-variable REQUESTS_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
-}
+)
 
-for cert in ${EAVE_HOME}/develop/certs/**/*.crt; do
+for cert in ${EAVE_HOME}/develop/certs/**/*.crt
+do
 	install-certs $cert
 done
 

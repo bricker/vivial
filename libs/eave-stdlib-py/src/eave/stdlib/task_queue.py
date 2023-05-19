@@ -5,7 +5,7 @@ import uuid
 from google.cloud import tasks
 from starlette.requests import Request
 import eave.stdlib
-import eave.stdlib.requests
+from eave.stdlib.core_api.client import build_message_to_sign
 from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
@@ -100,7 +100,7 @@ async def create_task(
     headers["content-type"] = "application/json"
 
     eave_request_id = str(uuid.uuid4())
-    signature_message = eave.stdlib.requests.build_message_to_sign(
+    signature_message = build_message_to_sign(
         method="POST",
         origin=origin.value,
         request_id=eave_request_id,

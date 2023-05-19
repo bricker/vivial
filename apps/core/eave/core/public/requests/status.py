@@ -7,15 +7,16 @@ from starlette.responses import Response
 from ..http_endpoint import HTTPEndpoint
 from eave.stdlib.api_util import status_payload
 import eave.core.internal.database as eave_db
-import eave.stdlib.request_state
 import eave.core.internal
+import eave.core.public.request_state
 import eave.stdlib
+
 from eave.stdlib.logging import eaveLogger
 
 
 class StatusRequest(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
-        eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        eave_state = eave.core.public.request_state.get_eave_state(request=request)
         status_code = http.HTTPStatus.OK
 
         status = status_payload().dict()

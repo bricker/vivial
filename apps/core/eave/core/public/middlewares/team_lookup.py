@@ -6,8 +6,8 @@ import eave.core.public
 import sqlalchemy.exc
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
-from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.request_state import EaveRequestState
+
+from . import EaveASGIMiddleware
 
 
 class TeamLookupASGIMiddleware(EaveASGIMiddleware):
@@ -19,7 +19,7 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
         await self.app(scope, receive, send)
 
     @staticmethod
-    async def _lookup_team(scope: HTTPScope, eave_state: EaveRequestState) -> None:
+    async def _lookup_team(scope: HTTPScope, eave_state: eave.core.public.request_state.EaveRequestState) -> None:
         team_id_header = eave.stdlib.api_util.get_header_value(
             scope=scope, name=eave.stdlib.headers.EAVE_TEAM_ID_HEADER
         )

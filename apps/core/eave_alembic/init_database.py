@@ -54,8 +54,8 @@ async def seed_database() -> None:
         name=f"{socket.gethostname()}", document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
     )
     session.add(team)
-    await session.commit()
 
+    await session.commit()
     await session.close()
     await eave.core.internal.database.async_engine.dispose()
 

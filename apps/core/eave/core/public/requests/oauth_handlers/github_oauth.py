@@ -10,7 +10,7 @@ from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal
 import eave.core.internal.orm
-import eave.stdlib.request_state
+import eave.core.public.request_state
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 
 from ...http_endpoint import HTTPEndpoint
@@ -75,7 +75,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         # error = request.query_params.get("error")
         # error_description = request.query_params.get("error_description")
 
-        self.eave_state = eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        self.eave_state = eave_state = eave.core.public.request_state.get_eave_state(request=request)
 
         setup_action = request.query_params.get("setup_action")
         if setup_action != "install":

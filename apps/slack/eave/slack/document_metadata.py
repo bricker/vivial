@@ -1,6 +1,6 @@
 import enum
 import re
-from typing import Optional
+from typing import List
 from eave.stdlib.exceptions import OpenAIDataError
 from .message_prompts import CONVO_STRUCTURE
 import eave.stdlib.openai_client as eave_openai
@@ -34,7 +34,7 @@ async def get_topic(conversation: str) -> str:
     return openai_response
 
 
-async def get_hierarchy(conversation: str) -> list[str]:
+async def get_hierarchy(conversation: str) -> List[str]:
     prompt = eave_openai.formatprompt(
         f"""
         Create up to three cascading parent folder names for this conversation, from least specific to most specific. These folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
@@ -152,24 +152,21 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
         return DocumentationType.UNKNOWN
 
 
-async def get_documentation(
-    conversation: str, documentation_type: DocumentationType, link_context: Optional[str]
-) -> str:
+async def get_documentation(conversation: str, documentation_type: DocumentationType) -> str:
     # TODO: Try getting headers first, then fill in the sections with separate prompts
-    prompt_segments = []
     match documentation_type:
         case DocumentationType.TECHNICAL:
-            prompt_segments.append(
+            setup = (
                 "Create Technical Documentation for the information in the following conversation. "
                 "This documentation will be used primarily by software engineers."
             )
         case DocumentationType.PROJECT:
-            prompt_segments.append(
+            setup = eave_openai.formatprompt(
                 """
                 Create a Project One-Pager document for the project being discussed in the following conversation.
                 The document should be formatted as a table with the following headers: Category, Goal, Features, Notes.
                 Each row in the table should describe details of a feature in the project.
-                """
+            """
             )
         # case DocumentationType.TEAM_ONBOARDING:
         #     setup = (
@@ -184,9 +181,10 @@ async def get_documentation(
         #     )
         #     pass
         case _:
-            prompt_segments.append("Create Documentation for the information in the following conversation.")
+            setup = "Create Documentation for the information in the following conversation."
 
-    prompt_segments.append(
+    prompt = eave_openai.formatprompt(
+        setup,
         f"""
         You should not simply summarize the conversation; instead, you should extract information that is important, novel, and is likely to be valuable to other team members in the future.
         The documentation should be formatted using plain HTML tags without any inline styling. The documentation will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>.
@@ -199,19 +197,6 @@ async def get_documentation(
         ###
         """,
     )
-
-    if link_context:
-        prompt_segments.append(
-            f"""
-            Use the information provided about the following links to help you write the documentation.
-
-            ===
-            {link_context}
-            ===
-            """,
-        )
-
-    prompt = eave_openai.formatprompt(*prompt_segments)
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],
