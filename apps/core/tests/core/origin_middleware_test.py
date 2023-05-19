@@ -15,12 +15,7 @@ class TestOriginMiddleware(BaseTestCase):
 
     async def test_missing_origin_header(self) -> None:
         response = await self.make_request(
-            path="/access_request",
-            payload={
-                "visitor_id": self.anystring("visitor_id"),
-                "email": f"{self.anystring('email')}@example.com",
-                "opaque_input": self.anystring("opaque_input"),
-            },
+            path="/integrations/slack/query",
             headers={
                 "eave-origin": None,
             },
@@ -30,12 +25,7 @@ class TestOriginMiddleware(BaseTestCase):
 
     async def test_invalid_origin(self) -> None:
         response = await self.make_request(
-            path="/access_request",
-            payload={
-                "visitor_id": self.anystring("visitor_id"),
-                "email": f"{self.anystring('email')}@example.com",
-                "opaque_input": self.anystring("opaque_input"),
-            },
+            path="/integrations/slack/query",
             headers={
                 "eave-origin": "invalid",
             },

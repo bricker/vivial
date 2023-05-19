@@ -1,28 +1,34 @@
-from http import HTTPStatus
 from typing import Any
-import typing
 
 import eave.stdlib.api_util as eave_api_util
+import eave.stdlib.cookies
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
+import eave.stdlib.requests
 import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.auth_cookies
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
-from flask import Flask, Response, redirect, render_template, request, make_response
 import werkzeug.exceptions
+from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
+
 from .config import app_config
 
 eave.stdlib.time.set_utc()
-eave.stdlib.logging.setup_logging()
-eave_core.set_origin(eave_origins.EaveOrigin.eave_www)
+eave.stdlib.requests.set_origin(eave_origins.EaveOrigin.eave_www)
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
 
 eave_api_util.add_standard_endpoints(app=app)
+
+
+@app.route("/_ah/warmup", methods=["GET"])
+async def warmup() -> str:
+    eave.stdlib.shared_config.preload()
+    app_config.preload()
+    return "OK"
 
 
 def _render_spa(**kwargs: Any) -> str:
@@ -39,13 +45,19 @@ def _render_spa(**kwargs: Any) -> str:
     )
 
 
-@app.route("/dashboard", methods=["GET"])
-async def dashboard() -> str:
-    return "OK"
+@app.route("/authcheck", methods=["GET"])
+async def get_auth_state() -> dict[str, bool]:
+    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        return {"authenticated": False}
+    else:
+        return {"authenticated": True}
+
 
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
-    auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
@@ -55,17 +67,12 @@ async def authed_account_team() -> Response:
         access_token=auth_cookies.access_token,
     )
 
-    response = make_response(eave_response.json())
-    eave.stdlib.auth_cookies.set_auth_cookies(
-        response=response,
-        access_token=eave_response.account.access_token, # In case the access token was refreshed
-    )
+    return _clean_response(eave_response)
 
-    return response
 
 @app.route("/dashboard/me/team/integrations/atlassian/update", methods=["POST"])
 async def update_atlassian_integration() -> Response:
-    auth_cookies = eave.stdlib.auth_cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
@@ -73,47 +80,54 @@ async def update_atlassian_integration() -> Response:
     body = request.get_json()
     confluence_space_key = body["atlassian_integration"]["confluence_space_key"]
 
-    eave_response = await eave_core.update_atlassian_integration(
+    await eave_core.update_atlassian_integration(
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
         input=eave_ops.UpdateAtlassianInstallation.RequestBody(
             atlassian_integration=eave_ops.UpdateAtlassianInstallationInput(
-                confluence_space=confluence_space_key,
+                confluence_space_key=confluence_space_key,
             ),
         ),
     )
 
-    response = make_response(eave_response.json())
-    eave.stdlib.auth_cookies.set_auth_cookies(
-        response=response,
-        access_token=eave_response.account.access_token, # In case the access token was refreshed
+    eave_response = await eave_core.get_authenticated_account_team_integrations(
+        account_id=auth_cookies.account_id,
+        access_token=auth_cookies.access_token,
     )
 
-    return response
+    return _clean_response(eave_response)
+
 
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
     response = redirect(location=app_config.eave_www_base, code=302)
-    eave.stdlib.auth_cookies.delete_auth_cookies(response=response)
+    eave.stdlib.cookies.delete_auth_cookies(response=response)
     return response
-
-
-@app.route("/access_request", methods=["POST"])
-async def api_access_request() -> str:
-    body = request.get_json()
-
-    await eave_core.create_access_request(
-        input=eave_ops.CreateAccessRequest.RequestBody(
-            visitor_id=body["visitor_id"],
-            email=body["email"],
-            opaque_input=body["opaque_input"],
-        ),
-    )
-
-    return "OK"
 
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def catch_all(path: str) -> str:
     return _render_spa()
+
+
+def _clean_response(eave_response: eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody) -> Response:
+    # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
+    access_token = eave_response.account.access_token
+    del eave_response.account.access_token
+
+    # TODO: The server doesn't need to send these to the web app.
+    if eave_response.integrations.atlassian:
+        del eave_response.integrations.atlassian.oauth_token_encoded
+    if eave_response.integrations.slack:
+        del eave_response.integrations.slack.bot_token
+
+    response = make_response(eave_response.json())
+
+    eave.stdlib.cookies.set_auth_cookies(
+        response=response,
+        access_token=access_token,  # In case the access token was refreshed
+    )
+
+    # TODO: Forward cookies from server to client
+    return response

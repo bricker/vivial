@@ -5,6 +5,7 @@ class AuthProvider(enum.StrEnum):
     google = "google"
     slack = "slack"
     atlassian = "atlassian"
+    github = "github"
 
 
 class DocumentPlatform(enum.StrEnum):
@@ -33,3 +34,11 @@ class Integration(enum.StrEnum):
     slack = "slack"
     github = "github"
     atlassian = "atlassian"
+
+
+class LinkType(enum.StrEnum):
+    """
+    Link types that we support fetching content from for integration into AI documentation creation.
+    """
+
+    github = "github"

@@ -2,18 +2,20 @@ import dotenv
 
 dotenv.load_dotenv()
 
-import asyncio
-from typing import Any, Coroutine
-
 # Import some common modules
-import eave.core.internal.orm as eave_orm
-from eave.core.internal.config import app_config as app_config
+import asyncio  # noqa
+import sqlalchemy  # noqa
+import eave.stdlib  # noqa
+import eave.stdlib.core_api  # noqa
 
-def run_coro(func: Coroutine[Any, Any, Any]) -> None:
-    asyncio.run(func)
+import eave.core.internal.database  # noqa
+import eave.core.internal.orm  # noqa
+import eave.core.internal.orm.base  # noqa
+from eave.core.internal import app_config  # noqa
 
+eave.core.internal.orm.base._load_all()
 
-eave_orm._load_all()
+db_session = eave.core.internal.database.async_session()  # noqa
 
 print("Ready to go.")
 

@@ -3,7 +3,6 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-validate-version
-python-activate-venv
-
-run-with-dotenv python -m pytest -c ${EAVE_HOME}/develop/python/pyproject.toml
+python-test .
+run-in-path "${EAVE_HOME}/libs/eave-stdlib-py" "bin/test"
+run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/test"

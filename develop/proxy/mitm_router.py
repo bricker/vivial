@@ -10,7 +10,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         # do nothing
         return
 
-    tld = flow.request.host.split(".")[-1]
+    # tld = flow.request.host.split(".")[-1]
 
     if re.match(r"^www\.eave\.", flow.request.host):
         port = 5000

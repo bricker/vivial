@@ -1,26 +1,27 @@
-import eave.core.internal.database as eave_db
 import eave.stdlib.core_api.enums
 import eave.stdlib.core_api.models as eave_models
+
 from eave.core.internal.orm.subscription import SubscriptionOrm
+from pydantic import UUID4
 
 from .base import BaseTestCase
 
 
 class TestSubscriptionOrm(BaseTestCase):
     async def test_find_one(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
 
-        subscription = SubscriptionOrm(
-            team_id=team.id,
-            source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-            source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
-            source_id=self.anystring("source_id"),
-        )
-        await self.save(subscription)
+            subscription = SubscriptionOrm(
+                team_id=team.id,
+                source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
+                source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+                source_id=self.anystring("source_id"),
+            )
+            await self.save(s, subscription)
 
-        async with eave_db.async_session.begin() as db_session:
             result = await SubscriptionOrm.one_or_none(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 source=eave_models.SubscriptionSource(
                     platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,

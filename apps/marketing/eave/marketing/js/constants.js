@@ -1,5 +1,7 @@
 import { imageUrl } from './asset-helpers.js';
 
+export const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfkmCRGUy4IRG-jRwviYNiOk9oNIfRDBjc0CogtDpYGfsOktQ/viewform?usp=sf_link';
+
 export const HEADER = {
   mobile: {
     height: 66,
@@ -48,6 +50,10 @@ export const INTEGRATION_LOGOS = {
   },
   github: {
     src: imageUrl('github-logo-3x.png'),
+    alt: 'Github logo',
+  },
+  githubInline: {
+    src: imageUrl('github-logo-inline.png'),
     alt: 'Github logo',
   },
   gmail: {

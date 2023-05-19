@@ -1,6 +1,6 @@
 import React from 'react';
 import { withStyles } from '@material-ui/styles';
-import Copy from '../Copy/index.js';
+import Copy from '../Copy/index.jsx';
 import Block from '../Block/index.js';
 
 class BlockStack extends React.Component {

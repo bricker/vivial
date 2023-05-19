@@ -1,10 +1,12 @@
+import asyncio
 import json
 import typing
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
+import eave.stdlib.core_api.models
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,8 +15,9 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
 from ..oauth import atlassian as atlassian_oauth
-from . import UUID_DEFAULT_EXPR, Base, make_team_composite_pk, make_team_fk
-import eave.stdlib.core_api.models
+from .base import Base
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+
 
 class AtlassianInstallationOrm(Base):
     __tablename__ = "atlassian_installations"
@@ -32,12 +35,15 @@ class AtlassianInstallationOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
-    confluence_space: Mapped[Optional[str]] = mapped_column()
+    confluence_space_key: Mapped[Optional[str]] = mapped_column(
+        "confluence_space"
+    )  # This field was renamed from "confluence_space" to "confluence_space_key"
     oauth_token_encoded: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     class _selectparams(TypedDict):
+        id: NotRequired[uuid.UUID]
         team_id: NotRequired[uuid.UUID]
         atlassian_cloud_id: NotRequired[str]
 
@@ -45,13 +51,16 @@ class AtlassianInstallationOrm(Base):
     def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
         lookup = select(cls).limit(1)
 
+        if (id := kwargs.get("id")) is not None:
+            lookup = lookup.where(cls.id == id)
+
         if (team_id := kwargs.get("team_id")) is not None:
             lookup = lookup.where(cls.team_id == team_id)
 
         if (atlassian_cloud_id := kwargs.get("atlassian_cloud_id")) is not None:
             lookup = lookup.where(cls.atlassian_cloud_id == atlassian_cloud_id)
 
-        assert lookup.whereclause is not None
+        assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
@@ -73,12 +82,12 @@ class AtlassianInstallationOrm(Base):
         team_id: uuid.UUID,
         atlassian_cloud_id: str,
         oauth_token_encoded: str,
-        confluence_space: Optional[str],
+        confluence_space_key: Optional[str],
     ) -> Self:
         obj = cls(
             team_id=team_id,
             atlassian_cloud_id=atlassian_cloud_id,
-            confluence_space=confluence_space,
+            confluence_space_key=confluence_space_key,
             oauth_token_encoded=oauth_token_encoded,
         )
         session.add(obj)
@@ -95,31 +104,39 @@ class AtlassianInstallationOrm(Base):
         return confluence_destination.ConfluenceDestination(
             oauth_session=self.build_oauth_session(),
             atlassian_cloud_id=self.atlassian_cloud_id,
-            space=self.confluence_space,
+            space=self.confluence_space_key,
         )
 
     @property
     def available_confluence_spaces(self) -> typing.List[eave.stdlib.core_api.models.ConfluenceSpace]:
         spaces = self.confluence_destination.get_available_spaces()
-        return [
-            eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name)
-            for s in spaces
-            if s.key and s.name
-        ]
+        return [eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name) for s in spaces if s.key and s.name]
 
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(
             token=self.oauth_token_decoded,
-            token_updater=self.update_token,
+            token_updater=self.token_updater_factory(),
         )
 
         return session
 
-    def update_token(self, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
-        """
-        This function can't be async because it's called by OAuthSession.
-        Therefore, We need to use a sync engine.
-        Also why it is managing its own session.
-        """
-        with eave_db.sync_session.begin():
-            self.oauth_token_encoded = json.dumps(token)
+    _tasks = set[asyncio.Task[None]]()
+
+    def token_updater_factory(self) -> Callable[[oauthlib.oauth2.rfc6749.tokens.OAuth2Token], None]:
+        def token_updater(token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+            # FIXME: This just updates the token in the background, which could cause a race condition.
+            coro = AtlassianInstallationOrm.update_token(id=self.id, token=token)
+            task = asyncio.create_task(coro)
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
+
+        return token_updater
+
+    @classmethod
+    async def update_token(cls, id: uuid.UUID, token: oauthlib.oauth2.rfc6749.tokens.OAuth2Token) -> None:
+        async with eave_db.async_session.begin() as db_session:
+            query = select(cls).where(cls.id == id)
+            record = await db_session.scalar(query)
+            if record:
+                record.oauth_token_encoded = json.dumps(token)
+                await db_session.commit()

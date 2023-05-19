@@ -1,12 +1,13 @@
 import typing
 from dataclasses import dataclass
 
-import eave.stdlib.util as eave_util
+import eave.stdlib
 import google.auth.transport.requests
 import google.oauth2.credentials
 import google.oauth2.id_token
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
+
 from eave.core.internal.config import app_config
 
 from .models import OAuthFlowInfo
@@ -30,7 +31,7 @@ class GoogleIdToken:
     given_name: typing.Optional[str]
     email: typing.Optional[str]
 
-    def __init__(self, token: eave_util.JsonObject) -> None:
+    def __init__(self, token: eave.stdlib.typing.JsonObject) -> None:
         self.sub = token["sub"]
         self.given_name = token.get("given_name")
         self.email = token.get("email")
@@ -113,7 +114,7 @@ def get_oauth_flow_info() -> OAuthFlowInfo:
 
     authorization_url, state = flow.authorization_url(
         access_type="offline",
-        prompt="consent", # forces the consent screen to make sure we get a refresh token
+        prompt="consent",  # forces the consent screen to make sure we get a refresh token
         include_granted_scopes="true",
     )
 
@@ -121,7 +122,7 @@ def get_oauth_flow_info() -> OAuthFlowInfo:
 
 
 def decode_id_token(id_token: str) -> GoogleIdToken:
-    token_json: eave_util.JsonObject = google.oauth2.id_token.verify_oauth2_token(
+    token_json: eave.stdlib.typing.JsonObject = google.oauth2.id_token.verify_oauth2_token(
         id_token=id_token,
         audience=app_config.eave_google_oauth_client_id,
         request=google.auth.transport.requests.Request(),

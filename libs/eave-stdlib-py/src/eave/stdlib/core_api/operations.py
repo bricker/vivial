@@ -1,13 +1,13 @@
-from typing import Optional
+from typing import Optional, Sequence
+import aiohttp
 
-import eave.stdlib.core_api.enums
 import pydantic
 
-from . import models
+from . import enums, models
 
 
 class AccessTokenExchangeOfferInput(pydantic.BaseModel):
-    auth_provider: eave.stdlib.core_api.enums.AuthProvider
+    auth_provider: enums.AuthProvider
     auth_id: str
     oauth_token: str
 
@@ -41,115 +41,138 @@ class GithubInstallationInput(pydantic.BaseModel):
 class AtlassianInstallationInput(pydantic.BaseModel):
     atlassian_cloud_id: str
 
+
 class UpdateAtlassianInstallationInput(pydantic.BaseModel):
-    confluence_space: Optional[str]
+    confluence_space_key: Optional[str]
 
 
 class Endpoint:
     pass
 
 
+class BaseResponseBody(pydantic.BaseModel):
+    _raw_response: Optional[aiohttp.ClientResponse] = None
+
+    class Config:
+        underscore_attrs_are_private = True
+
+
+class BaseRequestBody(pydantic.BaseModel):
+    pass
+
+
 class Status(Endpoint):
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         service: str
         version: str
         status: str
 
 
 class CreateAccessRequest(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         visitor_id: Optional[pydantic.UUID4]
         email: pydantic.EmailStr
         opaque_input: str
 
 
 class GetSubscription(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         subscription: models.Subscription
         document_reference: Optional[models.DocumentReference] = None
 
 
 class CreateSubscription(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
         document_reference: Optional[DocumentReferenceInput] = None
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         subscription: models.Subscription
         document_reference: Optional[models.DocumentReference] = None
 
 
 class DeleteSubscription(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
 
 
 class UpsertDocument(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         document: DocumentInput
-        subscription: SubscriptionInput
+        subscriptions: list[SubscriptionInput]
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
-        subscription: models.Subscription
+        subscriptions: list[models.Subscription]
         document_reference: models.DocumentReference
 
 
+class SearchDocuments(Endpoint):
+    class RequestBody(BaseRequestBody):
+        query: str
+
+    class ResponseBody(BaseResponseBody):
+        team: models.Team
+        documents: list[models.DocumentSearchResult]
+
+
 class GetSlackInstallation(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         slack_integration: SlackInstallationInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         slack_integration: models.SlackInstallation
 
 
 class GetGithubInstallation(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         github_integration: GithubInstallationInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         github_integration: models.GithubInstallation
 
 
 class GetAtlassianInstallation(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         atlassian_integration: AtlassianInstallationInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         atlassian_integration: models.AtlassianInstallation
 
+
 class UpdateAtlassianInstallation(Endpoint):
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         atlassian_integration: UpdateAtlassianInstallationInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         account: models.AuthenticatedAccount
         team: models.Team
         atlassian_integration: models.AtlassianInstallation
 
 
 class GetAuthenticatedAccount(Endpoint):
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         account: models.AuthenticatedAccount
         team: models.Team
 
 
 class GetAuthenticatedAccountTeamIntegrations(Endpoint):
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         account: models.AuthenticatedAccount
         team: models.Team
         integrations: models.Integrations
+        _raw_response: aiohttp.ClientResponse
 
 
 class GetTeam(Endpoint):
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         integrations: models.Integrations

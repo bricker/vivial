@@ -3,19 +3,21 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
 } from 'react-router-dom';
 import { CookiesProvider, withCookies } from 'react-cookie';
-import { ThemeProvider } from '@material-ui/core';
+import { ThemeProvider, CssBaseline } from '@material-ui/core';
+import { Helmet } from 'react-helmet';
 
 import AppStoreProvider from './context/Provider.js';
 import theme from './theme/index.js';
-import EarlyAccessPage from './components/Pages/EarlyAccessPage/index.jsx';
 import HomePage from './components/Pages/HomePage/index.jsx';
 import TermsPage from './components/Pages/TermsPage/index.jsx';
 import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
 import ScrollToTop from './components/ScrollToTop/index.jsx';
-import ThanksPage from './components/Pages/ThanksPage/index.jsx';
 import PrivateRoutes from './components/PrivateRoutes/index.jsx';
+import Dashboard from './components/Pages/Dashboard/index.jsx';
+import AuthUser from './components/AuthUser/index.jsx';
 
 class App extends React.Component {
   render() {
@@ -23,18 +25,24 @@ class App extends React.Component {
       <CookiesProvider>
         <AppStoreProvider>
           <ThemeProvider theme={theme}>
-            <Router>
-              <ScrollToTop />
-              <Routes>
-                <Route path="/early" element={<EarlyAccessPage pageTitle="Early access submission" />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route element={<PrivateRoutes />}>
-                  <Route path="/thanks" element={<ThanksPage />} />
-                </Route>
-                <Route path="/" element={<HomePage />} />
-              </Routes>
-            </Router>
+            <CssBaseline />
+            <Helmet>
+                <title>Eave, for your information.</title>
+            </Helmet>
+            <AuthUser>
+              <Router>
+                <ScrollToTop />
+                <Routes>
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route element={<PrivateRoutes />}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                  </Route>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </Router>
+            </AuthUser>
           </ThemeProvider>
         </AppStoreProvider>
       </CookiesProvider>

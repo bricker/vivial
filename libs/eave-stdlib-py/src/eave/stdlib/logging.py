@@ -3,7 +3,6 @@ import sys
 
 import google.cloud.logging
 
-from . import logger
 from .config import shared_config
 
 
@@ -20,8 +19,8 @@ class CustomFormatter(logging.Formatter):
     formatstr = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
 
     FORMATS = {
-        logging.DEBUG: grey + formatstr + reset,
-        logging.INFO: green + formatstr + reset,
+        logging.DEBUG: purple + formatstr + reset,
+        logging.INFO: cyan + formatstr + reset,
         logging.WARNING: yellow + formatstr + reset,
         logging.ERROR: red + formatstr + reset,
         logging.CRITICAL: bold_red + formatstr + reset,
@@ -33,20 +32,20 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def setup_logging(level: int = logging.INFO) -> None:
-    logger.setLevel(level)
+rootLogger = logging.getLogger()
+level = shared_config.log_level
+rootLogger.setLevel(level)
 
-    if shared_config.dev_mode:
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(level)
+if shared_config.dev_mode:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(level)
+    formatter = CustomFormatter()
+    handler.setFormatter(formatter)
+    rootLogger.addHandler(handler)
 
-        formatter = CustomFormatter()
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+if shared_config.monitoring_enabled:
+    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
+    client = google.cloud.logging.Client()
+    client.setup_logging(log_level=level)
 
-    if shared_config.monitoring_enabled:
-        client = google.cloud.logging.Client()
-        client.setup_logging(log_level=level)
-
-
-eave_logger = logger
+eaveLogger = logging.getLogger("eave")

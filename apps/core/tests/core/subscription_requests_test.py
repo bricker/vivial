@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
-import eave.core.internal.database as eave_db
-import eave.core.internal.orm.document_reference
 import eave.stdlib.core_api.enums
+
+import eave.core.internal.orm.document_reference
 from eave.core.internal.orm.subscription import SubscriptionOrm
 
 from .base import BaseTestCase
@@ -11,23 +11,23 @@ from .base import BaseTestCase
 class TestSubscriptionsEndpoints(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
+        async with self.db_session.begin() as s:
+            self.team = await self.make_team(s)
 
-        self.team = await self.make_team()
+            document_reference = eave.core.internal.orm.document_reference.DocumentReferenceOrm(
+                team_id=self.team.id,
+                document_id=self.anystring("confluence_document_response.id"),
+                document_url=self.anystring("cdurl"),
+            )
+            self.document_reference = await self.save(s, document_reference)
 
-        document_reference = eave.core.internal.orm.document_reference.DocumentReferenceOrm(
-            team_id=self.team.id,
-            document_id=self.anystring("confluence_document_response.id"),
-            document_url=self.anystring("cdurl"),
-        )
-        self.document_reference = await self.save(document_reference)
-
-        subscription = SubscriptionOrm(
-            team_id=self.team.id,
-            source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-            source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
-            source_id=self.anystring("source_id"),
-        )
-        self.subscription = await self.save(subscription)
+            subscription = SubscriptionOrm(
+                team_id=self.team.id,
+                source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
+                source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+                source_id=self.anystring("source_id"),
+            )
+            self.subscription = await self.save(s, subscription)
 
     async def test_delete_subscription(self) -> None:
         response = await self.make_request(
@@ -47,10 +47,9 @@ class TestSubscriptionsEndpoints(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-
-        async with eave_db.async_session.begin() as db_session:
+        async with self.db_session.begin() as s:
             subscription = await SubscriptionOrm.one_or_none(
-                session=db_session, source=self.subscription.source, team_id=self.team.id
+                session=s, source=self.subscription.source, team_id=self.team.id
             )
 
         assert subscription is None

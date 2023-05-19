@@ -1,19 +1,18 @@
-import typing
 from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
-
-import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.models as eave_models
+import eave.stdlib
 from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..destinations import abstract as abstract_destination
-from . import UUID_DEFAULT_EXPR, Base
 from .atlassian_installation import AtlassianInstallationOrm
+from .base import Base
+from .github_installation import GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm
 from .subscription import SubscriptionOrm
+from .util import UUID_DEFAULT_EXPR
 
 
 class TeamOrm(Base):
@@ -21,7 +20,9 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    document_platform: Mapped[Optional[eave_models.DocumentPlatform]] = mapped_column(server_default=None)
+    document_platform: Mapped[Optional[eave.stdlib.core_api.enums.DocumentPlatform]] = mapped_column(
+        server_default=None
+    )
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
     beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
@@ -33,7 +34,7 @@ class TeamOrm(Base):
         cls,
         session: AsyncSession,
         name: str,
-        document_platform: Optional[eave_models.DocumentPlatform] = None,
+        document_platform: Optional[eave.stdlib.core_api.enums.DocumentPlatform] = None,
         beta_whitelisted: bool = False,
     ) -> Self:
         obj = cls(
@@ -44,6 +45,10 @@ class TeamOrm(Base):
         session.add(obj)
         await session.flush()
         return obj
+
+    @property
+    def api_model(self) -> eave.stdlib.core_api.models.Team:
+        return eave.stdlib.core_api.models.Team.from_orm(self)
 
     async def get_document_destination(
         self, session: AsyncSession
@@ -69,26 +74,32 @@ class TeamOrm(Base):
                 raise NotImplementedError(f"unsupported document platform: {self.document_platform}")
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, team_id: UUID) -> Self:
-        lookup = select(cls).where(cls.id == team_id).limit(1)
+    async def one_or_exception(cls, session: AsyncSession, team_id: UUID | str) -> Self:
+        lookup = select(cls).where(cls.id == eave.stdlib.util.ensure_uuid(team_id)).limit(1)
         team = (await session.scalars(lookup)).one()  # throws if not exists
         return team
 
-    async def get_integrations(
-        self, session: AsyncSession
-    ) -> eave_models.Integrations:
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, team_id: UUID | str) -> Self | None:
+        lookup = select(cls).where(cls.id == eave.stdlib.util.ensure_uuid(team_id)).limit(1)
+        team = await session.scalar(lookup)
+        return team
+
+    async def get_integrations(self, session: AsyncSession) -> eave.stdlib.core_api.models.Integrations:
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
 
-        # github_installation = await GithubInstallationOrm.one_or_none(
-        #     session=session, team_id=self.id
-        # )
-        # if github_installation:
-        #     integrations_list.append(eave.stdlib.core_api.enums.Integration.github)
+        github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
 
-        return eave_models.Integrations(
-                slack=eave_models.SlackInstallation.from_orm(slack_installation) if slack_installation else None,
-                github=None,  # eave_models.GithubInstallation.from_orm(github_installation) if github_installation else None,
-                atlassian=eave_models.AtlassianInstallation.from_orm(atlassian_installation) if atlassian_installation else None,
-            )
+        return eave.stdlib.core_api.models.Integrations(
+            slack=eave.stdlib.core_api.models.SlackInstallation.from_orm(slack_installation)
+            if slack_installation
+            else None,
+            github=eave.stdlib.core_api.models.GithubInstallation.from_orm(github_installation)
+            if github_installation
+            else None,
+            atlassian=eave.stdlib.core_api.models.AtlassianInstallation.from_orm(atlassian_installation)
+            if atlassian_installation
+            else None,
+        )

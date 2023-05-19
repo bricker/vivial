@@ -25,23 +25,14 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-activate-venv
 
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/pyproject.toml
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "Linting ${target}..."
-
-		statusmsg -i "(lint) autoflake..."
-		python -m autoflake --check-diff --config ${EAVE_HOME}/develop/python/autoflake.cfg $target
-
-		statusmsg -i "(lint) isort..."
-		python -m isort --settings-file=$configfile --check $target
-
-		statusmsg -i "(lint) black..."
-		python -m black --config=$configfile --check $target
-
-		statusmsg -i  "(lint) mypy..."
-		python -m mypy --config-file=$configfile $target
-
-		statusmsg -s "Linting passed ✔"
+		statusmsg -in "Linting $thisdir..."
+		python -m ruff --quiet --config=$configfile $target
+		python -m black --quiet --config=$configfile --check $target
+		python -m mypy --config-file=$configfile $target > /dev/null
+		statusmsg -sp " ✔ "
 	)
 
 	function python-format() (
@@ -49,18 +40,22 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-activate-venv
 
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/pyproject.toml
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "(format) autoflake..."
-		python -m autoflake --in-place --config ${EAVE_HOME}/develop/python/autoflake.cfg $target
+		statusmsg -in "Formatting $thisdir..."
+		python -m ruff --quiet --fix --config=$configfile $target
+		python -m black --quiet --config=$configfile $target
+		statusmsg -sp " ✔ "
+	)
 
-		statusmsg -i "(format) isort..."
-		python -m isort --settings-file=$configfile $target
+	function python-test() (
+		python-validate-version
+		python-activate-venv
 
-		statusmsg -i  "(format) black..."
-		python -m black --config=$configfile $target
-
-		statusmsg -s "Formatting completed ✔"
+		local target=$1
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		run-with-dotenv python -m pytest -c $configfile $target
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

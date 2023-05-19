@@ -2,7 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/shared/functions.bash
+source ${EAVE_HOME}/develop/functions.bash
 
 statusmsg -i "Compiling protobuf schemas..."
 
@@ -18,7 +18,7 @@ python -m grpc_tools.protoc \
 python -m grpc_tools.protoc \
 	--fatal_warnings \
 	--proto_path=protos \
-	--plugin=typescript/node_modules/.bin/protoc-gen-ts_proto \
+	--plugin=node_modules/.bin/protoc-gen-ts_proto \
 	--ts_proto_out=typescript/src/generated \
 	--ts_proto_opt=onlyTypes=true \
 	--ts_proto_opt=outputPartialMethods=false \

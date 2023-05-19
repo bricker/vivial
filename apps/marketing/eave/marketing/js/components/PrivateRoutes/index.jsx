@@ -4,9 +4,11 @@ import { Outlet, Navigate } from 'react-router-dom';
 import useUser from '../../hooks/useUser';
 
 function PrivateRoutes() {
-  const { isLoggedIn } = useUser();
+  const { userState } = useUser();
+  const { authenticated } = userState;
+
   return (
-    isLoggedIn ? <Outlet /> : <Navigate to="/" />
+    authenticated ? <Outlet /> : <Navigate to="/" />
   );
 }
 

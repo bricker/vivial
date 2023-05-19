@@ -1,7 +1,8 @@
 import enum
 import re
-from typing import List
-
+from typing import Optional
+from eave.stdlib.exceptions import OpenAIDataError
+from .message_prompts import CONVO_STRUCTURE
 import eave.stdlib.openai_client as eave_openai
 
 
@@ -9,6 +10,8 @@ async def get_topic(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
         f"""
         Create a short title for the following conversation. Respond with only the title and nothing else.
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###
@@ -26,11 +29,12 @@ async def get_topic(conversation: str) -> str:
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
     return openai_response
 
 
-async def get_hierarchy(conversation: str) -> List[str]:
+async def get_hierarchy(conversation: str) -> list[str]:
     prompt = eave_openai.formatprompt(
         f"""
         Create up to three cascading parent folder names for this conversation, from least specific to most specific. These folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
@@ -40,6 +44,8 @@ async def get_hierarchy(conversation: str) -> List[str]:
         - The parent folders for a conversation about a new project for the Marketing team might be: Marketing, Projects, [project name].
 
         Give the answer as a comma-separated list of category names, sorted from least specific to most specific.
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###
@@ -57,7 +63,8 @@ async def get_hierarchy(conversation: str) -> List[str]:
     )
 
     answer: str | None = await eave_openai.chat_completion(openai_params)
-    assert answer is not None
+    if answer is None:
+        raise OpenAIDataError()
 
     parents = list(map(lambda x: x.strip(), answer.split(",")))
     return parents
@@ -67,6 +74,8 @@ async def get_project_title(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
         f"""
         Is the following conversation about a specific project? If so, what is the name of the project? If not, say: {eave_openai.STOP_SEQUENCE}
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###
@@ -84,7 +93,8 @@ async def get_project_title(conversation: str) -> str:
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
     return openai_response
 
 
@@ -109,6 +119,8 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
 
         Which of those types of documentation is most appropriate for the following conversation? Respond with just the type of documentation and nothing else.
 
+        {CONVO_STRUCTURE}
+
         Conversation:
         ###
         {conversation}
@@ -125,7 +137,8 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
 
     if re.search(DocumentationType.TECHNICAL.value, openai_response, flags=re.IGNORECASE):
         return DocumentationType.TECHNICAL
@@ -139,21 +152,24 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
         return DocumentationType.UNKNOWN
 
 
-async def get_documentation(conversation: str, documentation_type: DocumentationType) -> str:
+async def get_documentation(
+    conversation: str, documentation_type: DocumentationType, link_context: Optional[str]
+) -> str:
     # TODO: Try getting headers first, then fill in the sections with separate prompts
+    prompt_segments = []
     match documentation_type:
         case DocumentationType.TECHNICAL:
-            setup = (
+            prompt_segments.append(
                 "Create Technical Documentation for the information in the following conversation. "
                 "This documentation will be used primarily by software engineers."
             )
         case DocumentationType.PROJECT:
-            setup = eave_openai.formatprompt(
+            prompt_segments.append(
                 """
                 Create a Project One-Pager document for the project being discussed in the following conversation.
                 The document should be formatted as a table with the following headers: Category, Goal, Features, Notes.
                 Each row in the table should describe details of a feature in the project.
-            """
+                """
             )
         # case DocumentationType.TEAM_ONBOARDING:
         #     setup = (
@@ -168,13 +184,14 @@ async def get_documentation(conversation: str, documentation_type: Documentation
         #     )
         #     pass
         case _:
-            setup = "Create Documentation for the information in the following conversation."
+            prompt_segments.append("Create Documentation for the information in the following conversation.")
 
-    prompt = eave_openai.formatprompt(
-        setup,
+    prompt_segments.append(
         f"""
         You should not simply summarize the conversation; instead, you should extract information that is important, novel, and is likely to be valuable to other team members in the future.
         The documentation should be formatted using plain HTML tags without any inline styling. The documentation will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>.
+
+        {CONVO_STRUCTURE}
 
         Conversation:
         ###
@@ -182,6 +199,19 @@ async def get_documentation(conversation: str, documentation_type: Documentation
         ###
         """,
     )
+
+    if link_context:
+        prompt_segments.append(
+            f"""
+            Use the information provided about the following links to help you write the documentation.
+
+            ===
+            {link_context}
+            ===
+            """,
+        )
+
+    prompt = eave_openai.formatprompt(*prompt_segments)
 
     openai_params = eave_openai.ChatCompletionParameters(
         messages=[prompt],
@@ -192,5 +222,6 @@ async def get_documentation(conversation: str, documentation_type: Documentation
     )
 
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    assert openai_response is not None
+    if openai_response is None:
+        raise OpenAIDataError()
     return openai_response

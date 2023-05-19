@@ -1,10 +1,7 @@
 from http import HTTPStatus
 
-import eave.stdlib.signing as eave_signing
-import mockito
-
+from eave.stdlib.test_util import UtilityBaseTestCase
 from .base import BaseTestCase
-
 
 class TestSignatureVerification(BaseTestCase):
     async def test_signature_bypass(self) -> None:
@@ -15,48 +12,33 @@ class TestSignatureVerification(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        mockito.verify(eave_signing, times=0).verify_signature_or_exception(...)
+        assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 0
 
     async def test_missing_signature_header(self) -> None:
         response = await self.make_request(
-            path="/access_request",
-            payload={
-                "visitor_id": self.anystring("visitor_id"),
-                "email": f"{self.anystring('email')}@example.com",
-                "opaque_input": self.anystring("opaque_input"),
-            },
+            path="/integrations/slack/query",
             headers={
                 "eave-signature": None,
             },
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        mockito.verify(eave_signing, times=0).verify_signature_or_exception(...)
+        assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 0
 
     async def test_mismatched_signature(self) -> None:
         response = await self.make_request(
-            path="/access_request",
-            payload={
-                "visitor_id": self.anystring("visitor_id"),
-                "email": f"{self.anystring('email')}@example.com",
-                "opaque_input": self.anystring("opaque_input"),
-            },
+            path="/integrations/slack/query",
             headers={
                 "eave-signature": "sdfdsfs",
             },
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        mockito.verify(eave_signing, times=1).verify_signature_or_exception(...)
-
-    async def test_empty_body(self) -> None:
-        response = await self.make_request(path="/access_request", payload=None, headers={})
-
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        mockito.verify(eave_signing, times=0).verify_signature_or_exception(...)
+        assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 1
 
     async def test_signature_with_team_id(self) -> None:
-        team = await self.make_team()
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
         response = await self.make_request(
             path="/subscriptions/create",
             payload={
@@ -74,4 +56,4 @@ class TestSignatureVerification(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.CREATED
-        mockito.verify(eave_signing, times=1).verify_signature_or_exception(...)
+        assert self.get_mock("eave.stdlib.signing.verify_signature_or_exception").call_count == 1

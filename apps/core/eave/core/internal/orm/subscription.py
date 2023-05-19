@@ -8,14 +8,9 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from . import (
-    UUID_DEFAULT_EXPR,
-    Base,
-    make_team_composite_fk,
-    make_team_composite_pk,
-    make_team_fk,
-)
+from .base import Base
 from .document_reference import DocumentReferenceOrm
+from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_composite_pk, make_team_fk
 
 
 class SubscriptionOrm(Base):
@@ -42,6 +37,10 @@ class SubscriptionOrm(Base):
     document_reference_id: Mapped[Optional[UUID]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @property
+    def api_model(self) -> eave.stdlib.core_api.models.Subscription:
+        return eave.stdlib.core_api.models.Subscription.from_orm(self)
 
     async def get_document_reference(self, session: AsyncSession) -> Optional[DocumentReferenceOrm]:
         if self.document_reference_id is None:

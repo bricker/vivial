@@ -1,273 +1,226 @@
-from typing import Any
-
+from functools import reduce
+from typing import Type
+import eave.stdlib
 import eave.stdlib.api_util
 import eave.stdlib.logging
 import eave.stdlib.time
-import fastapi
+import starlette.applications
+import starlette.endpoints
+from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
+from starlette.routing import Route
 
-from .public.middlewares import (
-    auth_middleware,
-    exception_handler_middleware,
-    origin_middleware,
-    request_integrity_middleware,
-    signature_verification_middleware,
-    team_lookup_middleware,
-)
-from .public.requests import (
-    access_requests,
-    authed_account,
-    documents,
-    integrations,
-    subscriptions,
-    team,
-)
-from .public.requests import util as eave_request_util
-from .public.requests.oauth_handlers import atlassian_oauth, google_oauth, slack_oauth
+from eave.stdlib.middleware.base import EaveASGIMiddleware
+from .public import middlewares
+from .public.exception_handlers import exception_handlers
+from .public.requests import authed_account, documents, integrations, noop, subscriptions, team, status
+from .public.requests.oauth_handlers import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 
 eave.stdlib.time.set_utc()
-eave.stdlib.logging.setup_logging()
-
-middleware = [
-    Middleware(exception_handler_middleware.ExceptionHandlerASGIMiddleware),
-    Middleware(request_integrity_middleware.RequestIntegrityASGIMiddleware),
-    Middleware(origin_middleware.OriginASGIMiddleware),
-    Middleware(signature_verification_middleware.SignatureVerificationASGIMiddleware),
-    Middleware(auth_middleware.AuthASGIMiddleware),
-    Middleware(team_lookup_middleware.TeamLookupASGIMiddleware),
-]
-
-app = fastapi.FastAPI(middleware=middleware)
-eave_request_util.add_standard_exception_handlers(app=app)
 
 
-def add_route(
-    method: str,
+def make_route(
     path: str,
-    handler: Any,
+    endpoint: ASGI3Application,
     signature_required: bool = True,
     auth_required: bool = True,
     origin_required: bool = True,
     team_id_required: bool = True,
-) -> None:
+) -> Route:
     """
-    Defines basic information about the route, passed-through to the FastAPI router.
+    Defines basic information about the route, passed-through to the Starlette router.
     More importantly, defines which headers are required and validated for this route.
     By default, all headers are required. This is an attempt to prevent a developer error from bypassing security mechanisms.
     """
 
-    # If signature is required, origin is also required.
+    # The middlewares in this list should be ordered starting with the outermost middleware first.
+    # The outermost middleware is the middleware that will be run first on the request, and last on the response.
+    #
+    # Example:
+    #   wrappers = [ OuterMost, Second, InnerMost ]
+    #
+    # The built route ends up being called like this:
+    #   route = OuterMost(Second(InnerMost(endpoint)))
+
+    out_to_in_wrappers: list[Type[EaveASGIMiddleware]] = []
+
+    if origin_required:
+        out_to_in_wrappers.append(middlewares.OriginASGIMiddleware)
+
     if signature_required:
-        assert origin_required
+        # If signature is required, origin is also required.
+        assert origin_required, "origin header is required for signature"
+        out_to_in_wrappers.append(middlewares.SignatureVerificationASGIMiddleware)
 
-    if not signature_required:
-        signature_verification_middleware.add_bypass(path)
+    if auth_required:
+        out_to_in_wrappers.append(middlewares.AuthASGIMiddleware)
 
-    if not origin_required:
-        origin_middleware.add_bypass(path)
+    if team_id_required:
+        out_to_in_wrappers.append(middlewares.TeamLookupASGIMiddleware)
 
-    if not auth_required:
-        auth_middleware.add_bypass(path)
-
-    if not team_id_required:
-        team_lookup_middleware.add_bypass(path)
-
-    app.add_api_route(
-        path=path,
-        endpoint=handler,
-        methods=[method],
-    )
-
-
-eave.stdlib.api_util.add_standard_endpoints(app=app)
-signature_verification_middleware.add_bypass("/status")
-auth_middleware.add_bypass("/status")
-origin_middleware.add_bypass("/status")
-team_lookup_middleware.add_bypass("/status")
-
-# Internal API Endpoints.
-# These endpoints require signature verification.
-add_route(
-    method="POST",
-    path="/access_request",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=access_requests.create_access_request,
-)
-add_route(
-    method="POST",
-    path="/documents/upsert",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=True,
-    handler=documents.upsert_document,
-)
-add_route(
-    method="POST",
-    path="/subscriptions/create",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=True,
-    handler=subscriptions.create_subscription,
-)
-add_route(
-    method="POST",
-    path="/subscriptions/query",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=True,
-    handler=subscriptions.get_subscription,
-)
-add_route(
-    method="POST",
-    path="/subscriptions/delete",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=True,
-    handler=subscriptions.delete_subscription,
-)
-
-add_route(
-    method="POST",
-    path="/integrations/slack/query",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=integrations.slack,
-)
-
-add_route(
-    method="POST",
-    path="/integrations/github/query",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=integrations.github,
-)
-
-add_route(
-    method="POST",
-    path="/integrations/atlassian/query",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=integrations.atlassian,
-)
-
-add_route(
-    method="POST",
-    path="/team/query",
-    auth_required=False,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=True,
-    handler=team.get_team,
-)
-
-# Authenticated API endpoints.
-add_route(
-    method="POST",
-    path="/me/query",
-    auth_required=True,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=authed_account.get_authed_account,
-)
-
-add_route(
-    method="POST",
-    path="/me/team/integrations/query",
-    auth_required=True,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=authed_account.get_authed_account_team_integrations,
-)
-
-add_route(
-    method="POST",
-    path="/me/team/integrations/atlassian/update",
-    auth_required=True,
-    signature_required=True,
-    origin_required=True,
-    team_id_required=False,
-    handler=authed_account.update_atlassian_integration,
-)
+    # The middlewares list needs to be reversed before initializing because of the call stack.
+    # Reversing the middlewares is the same as doing this:
+    #   route = InnerMost(endpoint)
+    #   route = Second(route)
+    #   route = OuterMost(route)
+    # Which is the same as:
+    #   route = OuterMost(Second(InnerMost(endpoint)))
+    wrapped_endpoint = reduce(lambda acc, v: v(app=acc), reversed(out_to_in_wrappers), endpoint)
+    return Route(path=path, endpoint=wrapped_endpoint)
 
 
-# OAuth endpoints.
-# These endpoints don't require any verification (except the OAuth flow itself)
-add_route(
-    method="GET",
-    path="/oauth/google/authorize",
-    auth_required=False,
-    signature_required=False,
-    origin_required=False,
-    team_id_required=False,
-    handler=google_oauth.google_oauth_authorize,
-)
-add_route(
-    method="GET",
-    path="/oauth/google/callback",
-    auth_required=False,
-    signature_required=False,
-    origin_required=False,
-    team_id_required=False,
-    handler=google_oauth.google_oauth_callback,
-)
-add_route(
-    method="GET",
-    path="/oauth/slack/authorize",
-    auth_required=False,
-    signature_required=False,
-    origin_required=False,
-    team_id_required=False,
-    handler=slack_oauth.slack_oauth_authorize,
-)
-add_route(
-    method="GET",
-    path="/oauth/slack/callback",
-    auth_required=False,
-    signature_required=False,
-    origin_required=False,
-    team_id_required=False,
-    handler=slack_oauth.slack_oauth_callback,
-)
-add_route(
-    method="GET",
-    path="/oauth/atlassian/authorize",
-    auth_required=False,
-    signature_required=False,
-    origin_required=False,
-    team_id_required=False,
-    handler=atlassian_oauth.atlassian_oauth_authorize,
-)
-add_route(
-    method="GET",
-    path="/oauth/atlassian/callback",
-    auth_required=False,
-    signature_required=False,
-    origin_required=False,
-    team_id_required=False,
-    handler=atlassian_oauth.atlassian_oauth_callback,
-)
+routes = [
+    Route(path="/status", endpoint=status.StatusRequest),
+    Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
+    # Internal API Endpoints.
+    # These endpoints require signature verification.
+    make_route(
+        path="/documents/upsert",
+        auth_required=False,
+        endpoint=documents.UpsertDocument,
+    ),
+    make_route(
+        path="/documents/search",
+        auth_required=False,
+        endpoint=documents.SearchDocuments,
+    ),
+    make_route(
+        path="/subscriptions/create",
+        auth_required=False,
+        endpoint=subscriptions.CreateSubscription,
+    ),
+    make_route(
+        path="/subscriptions/query",
+        auth_required=False,
+        endpoint=subscriptions.GetSubscription,
+    ),
+    make_route(
+        path="/subscriptions/delete",
+        auth_required=False,
+        endpoint=subscriptions.DeleteSubscription,
+    ),
+    make_route(
+        path="/integrations/slack/query",
+        auth_required=False,
+        team_id_required=False,
+        endpoint=integrations.SlackIntegration,
+    ),
+    make_route(
+        path="/integrations/github/query",
+        auth_required=False,
+        team_id_required=False,
+        endpoint=integrations.GithubIntegration,
+    ),
+    make_route(
+        path="/integrations/atlassian/query",
+        auth_required=False,
+        team_id_required=False,
+        endpoint=integrations.AtlassianIntegration,
+    ),
+    make_route(
+        path="/team/query",
+        auth_required=False,
+        endpoint=team.GetTeam,
+    ),
+    # Authenticated API endpoints.
+    make_route(
+        path="/me/query",
+        team_id_required=False,
+        endpoint=authed_account.GetAuthedAccount,
+    ),
+    make_route(
+        path="/me/team/integrations/query",
+        team_id_required=False,
+        endpoint=authed_account.GetAuthedAccountTeamIntegrations,
+    ),
+    make_route(
+        path="/me/team/integrations/atlassian/update",
+        team_id_required=False,
+        endpoint=authed_account.UpdateAtlassianIntegration,
+    ),
+    # OAuth endpoints.
+    # These endpoints don't require any verification (except the OAuth flow itself)
+    make_route(
+        path="/oauth/google/authorize",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=google_oauth.GoogleOAuthAuthorize,
+    ),
+    make_route(
+        path="/oauth/google/callback",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=google_oauth.GoogleOAuthCallback,
+    ),
+    make_route(
+        path="/oauth/slack/authorize",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=slack_oauth.SlackOAuthAuthorize,
+    ),
+    make_route(
+        path="/oauth/slack/callback",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=slack_oauth.SlackOAuthCallback,
+    ),
+    make_route(
+        path="/oauth/atlassian/authorize",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=atlassian_oauth.AtlassianOAuthAuthorize,
+    ),
+    make_route(
+        path="/oauth/atlassian/callback",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=atlassian_oauth.AtlassianOAuthCallback,
+    ),
+    make_route(
+        path="/oauth/github/authorize",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=github_oauth.GithubOAuthAuthorize,
+    ),
+    make_route(
+        path="/oauth/github/callback",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=github_oauth.GithubOAuthCallback,
+    ),
+    make_route(
+        path="/favicon.ico",
+        auth_required=False,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
+        endpoint=noop.NoopRequest,
+    ),
+]
 
-add_route(
-    method="GET",
-    path="/favicon.ico",
-    auth_required=False,
-    signature_required=False,
-    origin_required=False,
-    team_id_required=False,
-    handler=lambda: "",
+middleware = [
+    Middleware(middlewares.RequestIntegrityASGIMiddleware),
+    Middleware(middlewares.LoggingASGIMiddleware),
+]
+
+app = starlette.applications.Starlette(
+    middleware=middleware,
+    routes=routes,
+    exception_handlers=exception_handlers,
 )

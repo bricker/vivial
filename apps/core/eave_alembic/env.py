@@ -1,18 +1,15 @@
-import dotenv
-
-dotenv.load_dotenv()
-
-import eave.stdlib.time
-
-eave.stdlib.time.set_utc()
-
 import asyncio
 from logging.config import fileConfig
 
-import eave.core.internal.database as eave_db
-import eave.core.internal.orm
+import eave.stdlib.time  # noqa: E402
 from alembic import context
 from sqlalchemy import Connection
+
+import eave.core.internal.database as eave_db
+import eave.core.internal.orm
+import eave.core.internal.orm.base
+
+eave.stdlib.time.set_utc()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -26,7 +23,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-target_metadata = eave.core.internal.orm.get_base_metadata()
+target_metadata = eave.core.internal.orm.base.get_base_metadata()
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

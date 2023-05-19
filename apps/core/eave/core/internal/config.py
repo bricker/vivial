@@ -1,35 +1,58 @@
 import base64
 import json
-import os
 from functools import cached_property
-from typing import Any, List, Mapping, Optional
+import os
+from typing import Any, Mapping, Optional, Sequence
 
 import eave.stdlib.config
+from eave.stdlib.exceptions import UnexpectedMissingValue
+from eave.stdlib.logging import eaveLogger
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
-    @property
-    def db_host(self) -> Optional[str]:
-        value = os.getenv("EAVE_DB_HOST")
-        return value
+    @cached_property
+    def db_host(self) -> str:
+        key = "EAVE_DB_HOST"
+        if self.is_development:
+            return self.get_required_env(key)
+        else:
+            return self.get_secret(key)
 
     @cached_property
-    def db_user(self) -> Optional[str]:
-        try:
-            value: str = self.get_secret("EAVE_DB_USER")
-            return value
-        except AssertionError:
-            return None
+    def db_user(self) -> str:
+        key = "EAVE_DB_USER"
+        if self.is_development:
+            return self.get_required_env(key)
+        else:
+            return self.get_secret(key)
 
-    @property
+    @cached_property
+    def db_pass(self) -> Optional[str]:
+        key = "EAVE_DB_PASS"
+        if self.is_development:
+            value = os.getenv(key)
+            # Treat empty strings as None
+            return None if not value else value
+        else:
+            try:
+                return self.get_secret(key)
+            except Exception:
+                eaveLogger.exception(f"Fetching {key} from secrets failed.")
+                return None
+
+    @cached_property
     def db_name(self) -> str:
-        value: str = self.get_secret("EAVE_DB_NAME")
-        return value
+        key = "EAVE_DB_NAME"
+        if self.is_development:
+            return self.get_required_env(key)
+        else:
+            return self.get_secret(key)
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
         encoded = self.get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
-        assert encoded is not None
+        if not encoded:
+            raise UnexpectedMissingValue("secret: EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
         bytes = base64.b64decode(encoded)
         credentials: dict[str, Any] = json.loads(bytes)
         return credentials
@@ -41,12 +64,17 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         return client_id
 
     @property
-    def eave_beta_prewhitelisted_emails(self) -> List[str]:
+    def eave_beta_prewhitelisted_emails(self) -> Sequence[str]:
         try:
-            value: str = self.get_secret("EAVE_BETA_PREWHITELISTED_EMAILS_CSV")
+            key = "EAVE_BETA_PREWHITELISTED_EMAILS_CSV"
+            if self.is_development:
+                value = os.getenv(key, "")
+            else:
+                value = self.get_secret(key)
+
             emails = list(map(str.strip, value.split(",")))
             return emails
-        except:
+        except Exception:
             return []
 
 

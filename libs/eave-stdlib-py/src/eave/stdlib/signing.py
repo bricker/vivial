@@ -2,14 +2,14 @@ import base64
 import enum
 import hashlib
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, cast
 
 import cryptography.exceptions
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from eave.stdlib.config import shared_config
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveOrigin, ExternalOrigin
 from google.cloud import kms
 
 from . import checksum
@@ -60,9 +60,10 @@ _SIGNING_KEYS = {
         algorithm=SigningAlgorithm.ES256,
     ),
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
-    "github_api_client": SigningKeyDetails(
+    ExternalOrigin.github_api_client.value: SigningKeyDetails(
         id="eave-github-app-signing-key-01",
-        version="2",
+        # TODO: clean up this hack to change versions in prod/dev
+        version="2" if shared_config.google_cloud_project == "eave-production" else "1",
         algorithm=SigningAlgorithm.RS256,
     ),
 }
@@ -136,7 +137,7 @@ def verify_signature_or_exception(
     try:
         match signing_key.algorithm:
             case SigningAlgorithm.RS256:
-                assert isinstance(public_key_from_pem, rsa.RSAPublicKey)
+                public_key_from_pem = cast(rsa.RSAPublicKey, public_key_from_pem)
                 pad = padding.PKCS1v15()
                 public_key_from_pem.verify(
                     signature=signature_bytes,
@@ -146,7 +147,7 @@ def verify_signature_or_exception(
                 )
                 return True
             case SigningAlgorithm.ES256:
-                assert isinstance(public_key_from_pem, ec.EllipticCurvePublicKey)
+                public_key_from_pem = cast(ec.EllipticCurvePublicKey, public_key_from_pem)
                 public_key_from_pem.verify(
                     signature=signature_bytes,
                     data=digest,
@@ -155,5 +156,5 @@ def verify_signature_or_exception(
                 return True
             case _:
                 raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
-    except cryptography.exceptions.InvalidSignature as e:
-        raise eave_exceptions.InvalidSignatureError() from e
+    except cryptography.exceptions.InvalidSignature:
+        raise eave_exceptions.InvalidSignatureError()
