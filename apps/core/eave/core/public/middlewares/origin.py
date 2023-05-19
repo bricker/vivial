@@ -1,5 +1,5 @@
 import eave.stdlib
-import eave.stdlib.lib.request_state
+import eave.stdlib.request_state
 import eave.core.public
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
@@ -15,7 +15,7 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
         await self.app(scope, receive, send)
 
     @staticmethod
-    def _process_origin(scope: HTTPScope, eave_state: eave.stdlib.lib.request_state.EaveRequestState) -> None:
+    def _process_origin(scope: HTTPScope, eave_state: eave.stdlib.request_state.EaveRequestState) -> None:
         origin_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ORIGIN_HEADER)
         if not origin_header:
             raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ORIGIN_HEADER)

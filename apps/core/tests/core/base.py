@@ -11,7 +11,7 @@ import eave.stdlib.test_util
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
 import eave.stdlib.jwt
-import eave.stdlib.lib.requests
+import eave.stdlib.requests
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from httpx import AsyncClient, Response
@@ -179,7 +179,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         if "eave-signature" not in headers:
             origin = origin or eave.stdlib.EaveOrigin.eave_www
-            signature_message = eave.stdlib.lib.requests.build_message_to_sign(
+            signature_message = eave.stdlib.requests.build_message_to_sign(
                 method=method,
                 url=eave.stdlib.core_api.client.makeurl(path),
                 origin=origin,

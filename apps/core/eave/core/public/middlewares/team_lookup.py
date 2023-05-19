@@ -7,7 +7,7 @@ import sqlalchemy.exc
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
 from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.lib.request_state import EaveRequestState
+from eave.stdlib.request_state import EaveRequestState
 
 
 class TeamLookupASGIMiddleware(EaveASGIMiddleware):

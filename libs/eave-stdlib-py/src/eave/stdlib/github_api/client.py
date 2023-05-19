@@ -1,6 +1,6 @@
 import uuid
 from . import operations
-from ..lib.requests import make_request
+from ..requests import make_request
 from ..config import shared_config
 
 async def get_file_content(

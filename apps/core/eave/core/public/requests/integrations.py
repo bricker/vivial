@@ -5,7 +5,7 @@ from starlette.responses import Response
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.lib.request_state as eave_rutil
+import eave.stdlib.request_state as eave_rutil
 from eave.stdlib.exceptions import NotFoundError
 
 

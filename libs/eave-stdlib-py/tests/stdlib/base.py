@@ -1,5 +1,5 @@
 import eave.stdlib.test_util
-import eave.stdlib.lib.requests
+import eave.stdlib.requests
 import eave.core.internal.orm
 import eave.core.internal.orm.base
 import eave.core.internal.database
@@ -47,7 +47,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         path: str,
         payload: Optional[eave.stdlib.typing.JsonObject] = None,
         method: str = "POST",
-        base: Optional[str] = None, 
+        base: Optional[str] = None,
         headers: Optional[dict[str, Optional[str]]] = None,
         origin: Optional[eave.stdlib.eave_origins.EaveOrigin] = None,
         team_id: Optional[uuid.UUID] = None,
@@ -101,9 +101,9 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         if "eave-signature" not in headers:
             origin = origin or eave.stdlib.EaveOrigin.eave_www
-            signature_message = eave.stdlib.lib.requests.build_message_to_sign(
+            signature_message = eave.stdlib.requests.build_message_to_sign(
                 method=method,
-                url=eave.stdlib.lib.requests.makeurl(path, base),
+                url=eave.stdlib.requests.makeurl(path, base),
                 origin=origin,
                 payload=encoded_payload,
                 request_id=request_id,
@@ -141,12 +141,12 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         await self.save(team)
         return team
-    
+
     async def save(self, obj: J) -> J:
         async with self.db_session.begin() as db_session:
             db_session.add(obj)
         return obj
-    
+
     @property
     def db_session(self) -> async_sessionmaker[AsyncSession]:
         session: async_sessionmaker[AsyncSession] = eave.core.internal.database.async_session

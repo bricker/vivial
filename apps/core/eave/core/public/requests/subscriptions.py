@@ -7,7 +7,7 @@ import eave.core.public
 from starlette.requests import Request
 from starlette.responses import Response
 import eave.core.internal.orm.team
-from eave.stdlib.lib import request_state as request_util
+from eave.stdlib import request_state as request_util
 from ..http_endpoint import HTTPEndpoint
 
 

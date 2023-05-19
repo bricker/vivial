@@ -104,11 +104,11 @@ class DeleteSubscription(Endpoint):
 class UpsertDocument(Endpoint):
     class RequestBody(BaseRequestBody):
         document: DocumentInput
-        subscription: models.Subscription
+        subscriptions: list[SubscriptionInput]
 
     class ResponseBody(BaseResponseBody):
         team: models.Team
-        subscription: models.Subscription
+        subscriptions: list[models.Subscription]
         document_reference: models.DocumentReference
 
 

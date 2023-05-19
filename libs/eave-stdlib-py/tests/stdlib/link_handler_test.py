@@ -4,18 +4,17 @@ import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.github_api.client as gh_client
 import eave.stdlib.github_api.operations as gh_ops
-import eave.stdlib.lib.requests
+import eave.stdlib.requests
 import mockito
 from eave.stdlib.core_api.enums import LinkType
 from pydantic import UUID4
-
-from .base import BaseTestCase, mock_coroutine
+from eave.stdlib.test_util import UtilityBaseTestCase
 
 # set a core_api client origin to make tests not crash from it being unset
-eave.stdlib.lib.requests.set_origin(eave_origins.EaveOrigin.eave_slack_app)
+eave.stdlib.requests.set_origin(eave_origins.EaveOrigin.eave_slack_app)
 
 
-class TestLinkHandler(BaseTestCase):
+class TestLinkHandler(UtilityBaseTestCase):
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
         mockito.unstub()
@@ -38,8 +37,8 @@ class TestLinkHandler(BaseTestCase):
     async def test_map_link_content(self) -> None:
         # self.setup_shared_mocks()
         dummy_content = gh_ops.GetGithubUrlContent.ResponseBody(content="dummy gh content")
-        mockito.when2(gh_client.get_file_content, *mockito.args).thenReturn(mock_coroutine(dummy_content)).thenReturn(
-            mock_coroutine(dummy_content)
+        mockito.when2(gh_client.get_file_content, *mockito.args).thenReturn(self.mock_coroutine(dummy_content)).thenReturn(
+            self.mock_coroutine(dummy_content)
         )
 
         dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
@@ -63,7 +62,7 @@ class TestLinkHandler(BaseTestCase):
         # self.setup_shared_mocks()
         dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
         mockito.when2(gh_client.create_subscription, **mockito.kwargs).thenReturn(
-            mock_coroutine(
+            self.mock_coroutine(
                 gh_ops.CreateGithubResourceSubscription.ResponseBody(
                     subscription=eave_models.Subscription(
                         id=dummy_id,
@@ -93,7 +92,7 @@ class TestLinkHandler(BaseTestCase):
         # self.setup_shared_mocks()
         dummy_id = UUID4("7b1b3e6a-5a28-4e14-9cad-4a3cbebeee2c")
         mockito.when2(gh_client.create_subscription, **mockito.kwargs).thenReturn(
-            mock_coroutine(
+            self.mock_coroutine(
                 gh_ops.CreateGithubResourceSubscription.ResponseBody(
                     subscription=eave_models.Subscription(
                         id=dummy_id,

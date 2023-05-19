@@ -1,9 +1,9 @@
 import eave.stdlib
-import eave.stdlib.lib.request_state
-import eave.stdlib.lib.requests
+import eave.stdlib.request_state
+import eave.stdlib.requests
 from asgiref.typing import ASGIReceiveCallable, ASGIReceiveEvent, ASGISendCallable, HTTPScope, Scope
 
-from .base import EaveASGIMiddleware
+from eave.stdlib.middleware.base import EaveASGIMiddleware
 from . import development_bypass
 from eave.stdlib.logging import eaveLogger
 
@@ -51,7 +51,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
     @staticmethod
     def _do_signature_verification(
-        scope: HTTPScope, body: bytes, eave_state: eave.stdlib.lib.request_state.EaveRequestState
+        scope: HTTPScope, body: bytes, eave_state: eave.stdlib.request_state.EaveRequestState
     ) -> None:
         signature = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_SIGNATURE_HEADER)
         if not signature:
@@ -66,7 +66,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
         )
 
-        message = eave.stdlib.lib.requests.build_message_to_sign(
+        message = eave.stdlib.requests.build_message_to_sign(
             method=scope["method"],
             url=eave.stdlib.core_api.client.makeurl(scope["path"]),
             request_id=eave.stdlib.util.unwrap(eave_state.request_id),

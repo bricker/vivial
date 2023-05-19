@@ -7,8 +7,8 @@ import eave.core.public
 import sqlalchemy.exc
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
-from eave.stdlib.lib.request_state import EaveRequestState
-from eave.stdlib.middleware import development_bypass
+from eave.stdlib.request_state import EaveRequestState
+from . import development_bypass
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.exceptions import BadRequestError
 

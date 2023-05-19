@@ -6,12 +6,12 @@ import urllib.parse
 from http import HTTPStatus
 
 from pyparsing import Opt
-from .. import exceptions as eave_exceptions
-from .. import headers as eave_headers
-from .. import signing
-from ..logging import eaveLogger
-from ..config import shared_config
-from .. import eave_origins as eave_origins
+from . import exceptions as eave_exceptions
+from . import headers as eave_headers
+from . import signing
+from .logging import eaveLogger
+from .config import shared_config
+from . import eave_origins as eave_origins
 
 
 _ORIGIN: eave_origins.EaveOrigin

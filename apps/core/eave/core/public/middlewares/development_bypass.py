@@ -2,10 +2,10 @@ import uuid
 
 import eave.core.internal
 import eave.stdlib
-from ..config import shared_config
+from eave.stdlib.config import shared_config
 from asgiref.typing import HTTPScope
 
-from ..lib.request_state import EaveRequestState
+from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.logging import eaveLogger
 
 

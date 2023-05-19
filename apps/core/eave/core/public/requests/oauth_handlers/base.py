@@ -2,7 +2,7 @@ import eave.stdlib.core_api as eave_core
 from starlette.requests import Request
 from starlette.responses import Response
 
-import eave.stdlib.lib.request_state as eave_request_util
+import eave.stdlib.request_state as eave_request_util
 from eave.core.internal import app_config
 from eave.stdlib.logging import eaveLogger
 

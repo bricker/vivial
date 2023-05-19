@@ -768,7 +768,16 @@ class Brain:
         response = await eave_core.upsert_document(
             team_id=self.eave_team.id,
             input=eave_ops.UpsertDocument.RequestBody(
-                subscriptions=self.subscriptions,
+                subscriptions=[
+                    eave_ops.SubscriptionInput(
+                        source=eave_models.SubscriptionSource(
+                            platform=s.source.platform,
+                            event=s.source.event,
+                            id=s.source.id,
+                        )
+                    )
+                    for s in self.subscriptions
+                ],
                 document=document,
             ),
         )

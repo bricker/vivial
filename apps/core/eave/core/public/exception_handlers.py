@@ -6,7 +6,7 @@ import pydantic
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.stdlib.lib import request_state
+from eave.stdlib import request_state
 from eave.stdlib.logging import eaveLogger
 
 
