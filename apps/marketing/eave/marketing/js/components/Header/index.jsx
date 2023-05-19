@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { IconButton, Drawer } from '@material-ui/core';
 
@@ -91,12 +91,8 @@ const Header = ({ simpleHeader }) => {
   const classes = makeClasses();
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const { openModal } = useAuthModal();
-  const { userState, checkUserAuthState, logOut } = useUser();
+  const { userState, logOut } = useUser();
   const { authenticated } = userState;
-
-  useEffect(() => {
-    checkUserAuthState();
-  }, [authenticated]);
 
   const TopButtons = authenticated ? (
     <>

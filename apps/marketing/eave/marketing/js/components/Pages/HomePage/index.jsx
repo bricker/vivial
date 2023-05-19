@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+import useUser from '../../../hooks/useUser.js';
 import Hero from '../../Hero/index.jsx';
 import DocumentationBanner from '../../Banners/DocumentationBanner/index.jsx';
 import IntegrationsBanner from '../../Banners/IntegrationsBanner/index.jsx';
@@ -38,7 +40,17 @@ const copy = {
 };
 
 const HomePage = () => {
+  const { userState } = useUser();
+  const navigate = useNavigate();
+
+  const { authenticated } = userState;
   const { hero, integrations, slack, documentation, privacy } = copy;
+
+  useEffect(() => {
+    if (authenticated) {
+      navigate('/dashboard');
+    }
+  }, [authenticated]);
 
   return (
     <Page>

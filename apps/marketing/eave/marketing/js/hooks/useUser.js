@@ -1,14 +1,21 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { AppContext } from '../context/Provider.js';
 
 const useUser = () => {
-  const { user, error } = useContext(AppContext);
+  const { user } = useContext(AppContext);
   const [userState, setUserState] = user;
-  const [, setErrorState] = error;
+  const [getUserError, setGetUserError] = useState(null);
+  const [updateConfluenceError, setUpdateConfluenceError] = useState(null);
+  const [loadingGetUserInfo, setLoadingGetUserInfo] = useState(false);
+  const [loadingUpdateConfluenceSpace, setLoadingUpdateConfluenceSpace] = useState(false);
 
   return {
     userState,
     setUserState,
+    loadingGetUserInfo,
+    loadingUpdateConfluenceSpace,
+    getUserError,
+    updateConfluenceError,
     checkUserAuthState: () => {
       fetch('/authcheck', {
         method: 'GET',
@@ -22,6 +29,7 @@ const useUser = () => {
     },
     // gets user info
     getUserInfo: () => {
+      setLoadingGetUserInfo(true);
       fetch('/dashboard/me/team', {
         method: 'GET',
         headers: {
@@ -29,7 +37,7 @@ const useUser = () => {
         },
       }).then((resp) => {
         if (resp.ok === false) {
-          setErrorState('failed to fetch team info');
+          setGetUserError('failed to fetch team info');
         } else {
           resp.json().then((data) => {
             setUserState((prevState) => ({ ...prevState, teamInfo: data }));
@@ -38,11 +46,14 @@ const useUser = () => {
         // eslint-disable-next-line no-console
       }).catch((err) => {
         console.error('error fetching user info', err);
-        return setErrorState('failed to fetch team info');
+        return setGetUserError('failed to fetch team info');
+      }).finally(() => {
+        setLoadingGetUserInfo(false);
       });
     },
     // updates current selected confluene space
     updateConfluenceSpace: (key) => {
+      setLoadingUpdateConfluenceSpace(true);
       fetch('/dashboard/me/team/integrations/atlassian/update', {
         method: 'POST',
         headers: {
@@ -56,7 +67,7 @@ const useUser = () => {
       }).then((resp) => {
         // just logging this for now, will update on follow up
         if (resp.ok === false) {
-          setErrorState('failed to fetch team info');
+          setUpdateConfluenceError('failed to fetch team info');
         } else {
           resp.json().then((data) => {
             setUserState((prevState) => ({ ...prevState, teamInfo: data }));
@@ -65,6 +76,9 @@ const useUser = () => {
       // eslint-disable-next-line no-console
       }).catch((err) => {
         console.error('error setting up space', err);
+        return setUpdateConfluenceError('error setting up space');
+      }).finally(() => {
+        setLoadingUpdateConfluenceSpace(false);
       });
     },
     // logs user out
