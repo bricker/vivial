@@ -596,8 +596,8 @@ class Brain:
                 summaries: list[Optional[str]] = await asyncio.gather(
                     *[
                         # sleep(0) as a no-op returning None to preserve output len/ordering
-                        asyncio.ensure_future(self._summarize_content(content.content)) if content else asyncio.sleep(0)
-                        for content in links_contents if content.content is not None
+                        asyncio.ensure_future(self._summarize_content(content)) if content else asyncio.sleep(0)
+                        for content in links_contents if content is not None
                     ]
                 )
 
