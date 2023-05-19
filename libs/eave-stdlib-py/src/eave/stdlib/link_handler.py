@@ -27,7 +27,7 @@ def filter_supported_links(urls: list[str]) -> list[tuple[str, enums.LinkType]]:
     return supported_links
 
 
-async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkType]]) -> list[Optional[gh_ops.GetGithubUrlContent.ResponseBody]]:
+async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkType]]) -> list[Optional[str]]:
     """
     Given a list of urls, returns mapping to content found at each link. Order is preserved.
 
@@ -51,7 +51,8 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkT
                     )
                 )
 
-    content: list[Optional[gh_ops.GetGithubUrlContent.ResponseBody]] = await asyncio.gather(*tasks)
+    content_responses: list[Optional[gh_ops.GetGithubUrlContent.ResponseBody]] = await asyncio.gather(*tasks)
+    content = list(map(lambda x: x.content if x else None, content_responses))
     return content
 
 

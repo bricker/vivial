@@ -78,6 +78,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: datetime = self.testdata[name]
         return value
 
+    _increment = -1 # so that the first increment returns 0
+    def increment(self) -> int:
+        self._increment += 1
+        return self._increment
+
     def anystring(self, name: Optional[str] = None) -> str:
         if name is None:
             name = str(uuid.uuid4())

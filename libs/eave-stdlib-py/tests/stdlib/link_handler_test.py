@@ -56,8 +56,10 @@ class TestLinkHandler(UtilityBaseTestCase):
 
     async def test_map_link_content(self) -> None:
         mock = self.get_mock("github_client.get_file_content")
-        response = gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring())
-        mock.return_value = response
+        mock.side_effect=[
+            gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 1")),
+            gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 2")),
+        ]
 
         input_links = [
             ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", LinkType.github),
@@ -69,7 +71,7 @@ class TestLinkHandler(UtilityBaseTestCase):
         )
 
         expected_result = [
-            response, response,
+            self.anystring("file content 1"), self.anystring("file content 2"),
         ]
         assert actual_result == expected_result
 
