@@ -8,9 +8,10 @@ import eave.stdlib
 from eave.stdlib import task_queue
 import eave.stdlib.core_api
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
-from eave.stdlib import logger
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 from .config import SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
+
+from eave.stdlib.logging import eaveLogger
 
 # TODO: Handlers create tasks for Cloud Tasks, or pubsub perhaps
 
@@ -30,7 +31,7 @@ async def shortcut_eave_watch_request_handler(
     shortcut: Optional[eave.stdlib.typing.JsonObject],
     context: AsyncBoltContext,
 ) -> None:
-    eave.stdlib.logger.debug("Received event: eave_watch_request (shortcut)", extra=log_context(context))
+    eaveLogger.debug("Received event: eave_watch_request (shortcut)", extra=log_context(context))
     if shortcut is None:
         raise SlackDataError("shortcut parameter")
 
@@ -52,7 +53,7 @@ async def shortcut_eave_watch_request_handler(
 
 async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext) -> None:
     extra = log_context(context)
-    eave.stdlib.logger.debug("Received event: message", extra=extra)
+    eaveLogger.debug("Received event: message", extra=extra)
     if event is None:
         raise SlackDataError("event parameter")
 
@@ -65,7 +66,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
     if message.subtype in ["bot_message", "bot_remove", "bot_add"] or message.bot_id is not None:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
-        eave.stdlib.logger.debug("ignoring bot message", extra=extra)
+        eaveLogger.debug("ignoring bot message", extra=extra)
         return
 
     b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
@@ -95,7 +96,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         # There is risk of this task being run more than the max attempts, and the execution count header
         # can be imprecise, depending on timing, so this is an attempt to mitigate that.
         if total_attempts == max_attempts:
-            logger.warning("Max retries met. Eave will send a message that the request failed.")
+            eaveLogger.warning("Max retries met. Eave will send a message that the request failed.")
             await b.notify_failure(e)
 
         # Always re-raise, very important
@@ -106,7 +107,7 @@ async def event_member_joined_channel_handler(
     event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext
 ) -> None:
     extra = log_context(context)
-    eave.stdlib.logger.debug("Received event: member_joined_channel", extra=extra)
+    eaveLogger.debug("Received event: member_joined_channel", extra=extra)
 
     eave_team = context.get("eave_team")
 
@@ -114,7 +115,7 @@ async def event_member_joined_channel_handler(
         raise SlackDataError("event channel or user")
 
     if user_id != context.bot_user_id:
-        eave.stdlib.logger.debug("user_id != context.bot_user_id", extra=extra)
+        eaveLogger.debug("user_id != context.bot_user_id", extra=extra)
         return
 
     if context.client:
@@ -139,7 +140,7 @@ async def event_member_joined_channel_handler(
             },
         )
     else:
-        logger.warning("No Slack client available in the Slack context.", extra=extra)
+        eaveLogger.warning("No Slack client available in the Slack context.", extra=extra)
 
     eave.stdlib.analytics.log_event(
         event_name="eave_joined_slack_channel",

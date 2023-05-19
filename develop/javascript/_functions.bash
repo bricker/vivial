@@ -19,10 +19,10 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		case $usershell in
 		"fish")
 			# This is necessary because `nvm` in Fish might be a function, which can't be used from Bash.
-			fish -c "nvm install $EAVE_NODE_VERSION"
+			fish -c "nvm --silent install $EAVE_NODE_VERSION"
 			;;
 		*)
-			nvm install $EAVE_NODE_VERSION
+			nvm --silent install $EAVE_NODE_VERSION
 			;;
 		esac
 	}
@@ -32,11 +32,11 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-activate-venv
 
 		local target=$1
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "(lint) eslint..."
+		statusmsg -in "Linting $thisdir..."
 		npx eslint $target
-
-		statusmsg -s "Linting passed ✔"
+		statusmsg -sp " ✔ "
 	)
 
 	function node-format() (
@@ -44,11 +44,11 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-activate-venv
 
 		local target=$1
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "(format) eslint..."
+		statusmsg -in "Formatting $thisdir..."
 		npx eslint $target --fix
-
-		statusmsg -s "Formatting completed ✔"
+		statusmsg -sp " ✔ "
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

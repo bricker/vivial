@@ -9,7 +9,7 @@ import openai.error
 import openai.openai_object
 import tiktoken
 
-from . import exceptions, logger
+from . import exceptions, logging
 from .typing import JsonObject
 from .config import shared_config
 
@@ -118,20 +118,20 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
 
     ensure_api_key()
 
-    logger.debug(f"OpenAI Params: {params}")
+    logging.eaveLogger.debug(f"OpenAI Params: {params}")
 
     max_attempts = 3
     for i in range(max_attempts):
         try:
             response = await openai_sdk.ChatCompletion.acreate(**params.compile())
             try:
-                logger.debug("OpenAI Response", extra={"json_fields": response})
+                logging.eaveLogger.debug("OpenAI Response", extra={"json_fields": response})
             except Exception:
                 # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
-                logger.exception("error during logging")
+                logging.eaveLogger.exception("error during logging")
             break
         except openai.error.RateLimitError as e:
-            logger.warning("OpenAI RateLimitError", exc_info=e)
+            logging.eaveLogger.warning("OpenAI RateLimitError", exc_info=e)
             if i + 1 < max_attempts:
                 time.sleep(i + 1)
     else:
@@ -143,7 +143,7 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
     if len(candidates) > 0:
         choice = candidates[0]
     else:
-        logger.warning("No valid choices from openAI; using the first result.")
+        logging.eaveLogger.warning("No valid choices from openAI; using the first result.")
         if len(response.choices) > 0:
             choice = response.choices[0]
         else:

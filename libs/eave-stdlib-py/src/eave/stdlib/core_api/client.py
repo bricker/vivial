@@ -11,9 +11,11 @@ import pydantic
 from .. import eave_origins as eave_origins
 from .. import exceptions as eave_exceptions
 from .. import headers as eave_headers
-from .. import logger, signing
+from .. import signing
 from ..config import shared_config
 from . import operations
+
+from ..logging import eaveLogger
 
 _ORIGIN: eave_origins.EaveOrigin
 
@@ -266,7 +268,7 @@ async def _make_request(
     payload = input.json() if input else ""
 
     if access_token:
-        headers[eave_headers.EAVE_AUTHORIZATION_HEADER] = f"Bearer {access_token}"
+        headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
 
     if team_id:
         headers[eave_headers.EAVE_TEAM_ID_HEADER] = str(team_id)
@@ -290,7 +292,7 @@ async def _make_request(
     )
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
-    logger.info(
+    eaveLogger.info(
         "Eave Core API request", extra={"json_fields": {"request_id": request_id, "method": method, "url": url}}
     )
 
@@ -302,7 +304,7 @@ async def _make_request(
             data=payload,
         )
 
-    logger.info(
+    eaveLogger.info(
         "Eave Core API response",
         extra={
             "json_fields": {

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
+from eave.stdlib.logging import eaveLogger
 
 from .base import Base
 from .team import TeamOrm
@@ -184,7 +185,7 @@ class AccountOrm(Base):
                 if (access_token := new_tokens.get("access_token")) and (
                     refresh_token := new_tokens.get("refresh_token")
                 ):
-                    eave.stdlib.logger.debug("Refreshing Slack auth tokens.", extra=log_context)
+                    eaveLogger.debug("Refreshing Slack auth tokens.", extra=log_context)
                     self.access_token = access_token
                     self.refresh_token = refresh_token
                     return True

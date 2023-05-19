@@ -1,12 +1,23 @@
 import asyncio
 import json
-from typing import Any, Coroutine, Mapping, Optional, TypeVar
+from typing import Any, Coroutine, Optional, TypeVar
+import uuid
 from google.cloud import tasks
 from starlette.requests import Request
+import eave.stdlib
+from eave.stdlib.core_api.client import build_message_to_sign
+from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.headers import (
+    EAVE_ORIGIN_HEADER,
+    EAVE_REQUEST_ID_HEADER,
+    EAVE_SIGNATURE_HEADER,
+    GCP_CLOUD_TRACE_CONTEXT,
+    GCP_GAE_REQUEST_LOG_ID,
+)
 
-from eave.stdlib.typing import JsonObject
+from .typing import JsonObject
 from .config import shared_config
-from . import logger
+from .logging import eaveLogger
 
 T = TypeVar("T")
 
@@ -34,18 +45,35 @@ async def get_queue(queue_name: str) -> tasks.Queue:
 
 
 async def create_task_from_request(
-    queue_name: str, target_path: str, request: Request, unique_task_id: Optional[str] = None
+    queue_name: str,
+    target_path: str,
+    request: Request,
+    origin: EaveOrigin,
+    unique_task_id: Optional[str] = None,
+    task_name_prefix: Optional[str] = None,
 ) -> None:
     if not unique_task_id:
-        if trace_id := request.headers.get("X-Cloud-Trace-Context"):
+        if trace_id := request.headers.get(GCP_CLOUD_TRACE_CONTEXT):
             unique_task_id = trace_id.split("/")[0]
-        else:
-            unique_task_id = request.headers.get("X-Appengine-Request-Log-Id")
+        elif log_id := request.headers.get(GCP_GAE_REQUEST_LOG_ID):
+            unique_task_id = log_id
+
+    if unique_task_id and task_name_prefix:
+        unique_task_id = f"{task_name_prefix}{unique_task_id}"
 
     payload = await request.body()
-    headers = request.headers
+    headers = dict(request.headers)
+
+    # The "user agent" is Slack Bot when coming from Slack, but for the task processor that's not the case.
+    headers.pop("user-agent", None)
+
     await create_task(
-        queue_name=queue_name, target_path=target_path, payload=payload, unique_task_id=unique_task_id, headers=headers
+        queue_name=queue_name,
+        target_path=target_path,
+        payload=payload,
+        origin=origin,
+        unique_task_id=unique_task_id,
+        headers=headers,
     )
 
 
@@ -53,8 +81,9 @@ async def create_task(
     queue_name: str,
     target_path: str,
     payload: JsonObject | bytes,
+    origin: EaveOrigin,
     unique_task_id: Optional[str] = None,
-    headers: Optional[Mapping[str, str]] = None,
+    headers: Optional[dict[str, str]] = None,
 ) -> tasks.Task:
     client = tasks.CloudTasksAsyncClient()
 
@@ -66,6 +95,26 @@ async def create_task(
 
     if not headers:
         headers = {}
+
+    # Slack already sets this for the incoming event request, but setting it here too to be explicit.
+    headers["content-type"] = "application/json"
+
+    eave_request_id = str(uuid.uuid4())
+    signature_message = build_message_to_sign(
+        method="POST",
+        origin=origin.value,
+        request_id=eave_request_id,
+        url=target_path,
+        payload=body.decode(),
+        team_id=None,
+        account_id=None,
+    )
+
+    signature = eave.stdlib.signing.sign_b64(signing_key=eave.stdlib.signing.get_key(origin), data=signature_message)
+
+    headers[EAVE_SIGNATURE_HEADER] = signature
+    headers[EAVE_REQUEST_ID_HEADER] = eave_request_id
+    headers[EAVE_ORIGIN_HEADER] = origin.value
 
     parent = client.queue_path(
         project=shared_config.google_cloud_project,
@@ -94,7 +143,7 @@ async def create_task(
     else:
         task_name = None
 
-    logger.debug(
+    eaveLogger.debug(
         f"Creating task on queue {queue_name}",
         extra={
             "json_fields": {

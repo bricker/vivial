@@ -8,6 +8,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib.exceptions import UnexpectedMissingValue
+from eave.stdlib.logging import eaveLogger
 
 
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
@@ -48,7 +49,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                         },
                     )
                 except Exception:
-                    eave.stdlib.logger.exception("Error while creating document. Subscription will be deleted.")
+                    eaveLogger.exception("Error while creating document. Subscription will be deleted.")
                     await db_session.delete(subscription)
                     raise
 

@@ -39,8 +39,12 @@ class EaveConfig:
 
     @cached_property
     def log_level(self) -> int:
+        if self.is_development:
+            level = os.getenv("LOG_LEVEL", "INFO")
+        else:
+            level = self.get_runtimeconfig("LOG_LEVEL") or "INFO"
+
         mapping = logging.getLevelNamesMapping()
-        level = self.get_runtimeconfig("LOG_LEVEL") or "INFO"
         return mapping.get(level, logging.INFO)
 
     @property
@@ -63,6 +67,10 @@ class EaveConfig:
         return os.getenv("EAVE_MONITORING_ENABLED") is not None
 
     @property
+    def analytics_enabled(self) -> bool:
+        return os.getenv("EAVE_ANALYTICS_ENABLED") is not None
+
+    @property
     def google_cloud_project(self) -> str:
         return self.get_required_env("GOOGLE_CLOUD_PROJECT")
 
@@ -74,25 +82,34 @@ class EaveConfig:
     def app_version(self) -> str:
         return os.getenv("GAE_VERSION", "unknown")
 
-    @cached_property
+    @property
     def app_location(self) -> str:
-        return self.get_runtimeconfig("GAE_LOCATION") or "us-central1"
+        return os.getenv("GAE_LOCATION") or "us-central1"
 
-    @cached_property
+    @property
+    def eave_apps_base(self) -> str:
+        return os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"
+
+    @property
     def eave_api_base(self) -> str:
-        return self.get_runtimeconfig("EAVE_API_BASE") or "https://api.eave.fyi"
+        return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"
 
-    @cached_property
+    @property
     def eave_www_base(self) -> str:
-        return self.get_runtimeconfig("EAVE_WWW_BASE") or "https://www.eave.fyi"
+        return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"
 
-    @cached_property
+    @property
     def eave_cookie_domain(self) -> str:
-        return self.get_runtimeconfig("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
+        return os.getenv("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
 
     @cached_property
     def redis_connection(self) -> Optional[tuple[str, int, str]]:
-        connection = self.get_runtimeconfig("REDIS_CONNECTION")
+        key = "REDIS_CONNECTION"
+        if self.is_development:
+            connection = os.getenv(key)
+        else:
+            connection = self.get_runtimeconfig(key)
+
         if not connection:
             return None
 
@@ -100,7 +117,7 @@ class EaveConfig:
         if len(parts) == 3:
             host, port_, db = parts
             port = int(port_)
-        if len(parts) == 2:
+        elif len(parts) == 2:
             host, port_ = parts
             port = int(port_)
             db = "0"
@@ -113,11 +130,27 @@ class EaveConfig:
 
     @cached_property
     def redis_auth(self) -> Optional[str]:
-        try:
-            value = self.get_secret("REDIS_AUTH")
+        key = "REDIS_AUTH"
+        if self.is_development:
+            value = os.getenv(key)
             return value
-        except Exception:
-            return None
+        else:
+            try:
+                value = self.get_secret(key)
+                return value
+            except Exception:
+                return None
+
+    @cached_property
+    def redis_tls_ca(self) -> Optional[str]:
+        key = "REDIS_TLS_CA"
+        if self.is_development:
+            value = os.getenv(key)
+            return value
+        else:
+            # This certificate is not actually "secret" (it's a public cert), but secrets is a more convenient place to store it.
+            value = self.get_secret(key)
+            return value
 
     @cached_property
     def eave_openai_api_key(self) -> str:

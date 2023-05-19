@@ -1,12 +1,9 @@
 import logging
 import sys
-from typing import Optional
 
 import google.cloud.logging
 
 from .config import shared_config
-
-logger = logging.getLogger("eave")
 
 
 # https://stackoverflow.com/a/56944256/885036
@@ -35,20 +32,20 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def setup_logging(level: Optional[int] = None) -> None:
-    if level is None:
-        level = shared_config.log_level
+rootLogger = logging.getLogger()
+level = shared_config.log_level
+rootLogger.setLevel(level)
 
-    logger.setLevel(level)
+if shared_config.dev_mode:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(level)
+    formatter = CustomFormatter()
+    handler.setFormatter(formatter)
+    rootLogger.addHandler(handler)
 
-    if shared_config.dev_mode:
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(level)
+if shared_config.monitoring_enabled:
+    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
+    client = google.cloud.logging.Client()
+    client.setup_logging(log_level=level)
 
-        formatter = CustomFormatter()
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-
-    if shared_config.monitoring_enabled:
-        client = google.cloud.logging.Client()
-        client.setup_logging(log_level=level)
+eaveLogger = logging.getLogger("eave")

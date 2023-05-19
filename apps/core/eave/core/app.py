@@ -1,5 +1,6 @@
 from functools import reduce
 from typing import Type
+import eave.stdlib
 import eave.stdlib.api_util
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -15,7 +16,6 @@ from .public.requests import authed_account, documents, integrations, noop, subs
 from .public.requests.oauth_handlers import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 
 eave.stdlib.time.set_utc()
-eave.stdlib.logging.setup_logging()
 
 
 def make_route(

@@ -38,11 +38,9 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         except ValueError:
             raise eave.stdlib.exceptions.BadRequestError("malformed eave-account-id header")
 
-        auth_header = eave.stdlib.api_util.get_header_value(
-            scope=scope, name=eave.stdlib.headers.EAVE_AUTHORIZATION_HEADER
-        )
+        auth_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.AUTHORIZATION_HEADER)
         if not auth_header:
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_AUTHORIZATION_HEADER)
+            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.AUTHORIZATION_HEADER)
 
         auth_header_match = re.match("^Bearer (.+)$", auth_header)
         if auth_header_match is None:

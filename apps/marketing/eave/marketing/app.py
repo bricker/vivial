@@ -15,7 +15,6 @@ from werkzeug.wrappers import Response as BaseResponse
 from .config import app_config
 
 eave.stdlib.time.set_utc()
-eave.stdlib.logging.setup_logging()
 eave_core.set_origin(eave_origins.EaveOrigin.eave_www)
 
 app = Flask(__name__)

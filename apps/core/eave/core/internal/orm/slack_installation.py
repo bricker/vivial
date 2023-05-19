@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 import eave.core.internal.oauth.slack
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from .resource_mutex import ResourceMutexOrm
-import eave.stdlib.logging
+from eave.stdlib.logging import eaveLogger
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -90,7 +90,7 @@ class SlackInstallationOrm(Base):
             )
 
             if (access_token := new_tokens.get("access_token")) and (refresh_token := new_tokens.get("refresh_token")):
-                eave.stdlib.logger.debug("Refreshing Slack auth tokens.")
+                eaveLogger.debug("Refreshing Slack auth tokens.")
                 self.bot_token = access_token
                 self.bot_refresh_token = refresh_token
 
@@ -102,7 +102,7 @@ class SlackInstallationOrm(Base):
             else:
                 raise MissingOAuthCredentialsError("slack access or refresh token")
         except Exception:
-            eave.stdlib.logger.exception("Error while refreshing tokens")
+            eaveLogger.exception("Error while refreshing tokens")
         finally:
             await ResourceMutexOrm.release(session=session, resource_id=self.id)
 

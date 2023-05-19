@@ -4,7 +4,7 @@ import os
 import eave.stdlib.config
 
 SLACK_EVENT_QUEUE_NAME = "slack-events-processor"
-SLACK_EVENT_QUEUE_TARGET_PATH = "/_ah/tasks/slack-events"
+SLACK_EVENT_QUEUE_TARGET_PATH = "/_tasks/slack-events"
 TASK_EXECUTION_COUNT_CONTEXT_KEY = "TASK_EXECUTION_COUNT_CONTEXT_KEY"
 
 

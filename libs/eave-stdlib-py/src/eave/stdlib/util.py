@@ -1,14 +1,12 @@
 import base64
 import hashlib
-import logging
 from functools import wraps
 import traceback
 from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar, cast
 import uuid
+from .logging import eaveLogger
 
 from eave.stdlib.exceptions import UnexpectedMissingValue
-
-logger = logging.getLogger("eave-stdlib-py")
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -179,7 +177,7 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
     but carry on with the program. For example:
 
         if (foo := result.get("foo")) is None:
-            logger.warning("foo is None")
+            eaveLogger.warning("foo is None")
             foo = "default foo"
 
         do_something(foo)
@@ -196,7 +194,7 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
             raise UnexpectedMissingValue("force-unwrapped a None value")
         else:
             caller = "".join(traceback.format_stack()[-1:])
-            logger.warning(
+            eaveLogger.warning(
                 "unwrapped an unexpected None value; default will be used.", extra={"json_fields": {"caller": caller}}
             )
             return default

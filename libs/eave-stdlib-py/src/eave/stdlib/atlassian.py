@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .typing import JsonObject
-from . import logger
+from . import logging
 
 
 @dataclass
@@ -91,12 +91,12 @@ class ConfluenceBaseModel:
 
     def canonical_url(self, base_url: str) -> str:
         if self.links is None:
-            logger.warning("confluence content._links missing")
+            logging.eaveLogger.warning("confluence content._links missing")
             return base_url
 
         path = self.links.tinyui or self.links.webui
         if path is None:
-            logger.warning("confluence content._links missing tinyui and webui")
+            logging.eaveLogger.warning("confluence content._links missing tinyui and webui")
             return base_url
 
         # Path is prefixed with a slash already

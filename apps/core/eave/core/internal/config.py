@@ -5,8 +5,8 @@ import os
 from typing import Any, Mapping, Optional, Sequence
 
 import eave.stdlib.config
-from eave.stdlib import logger
 from eave.stdlib.exceptions import UnexpectedMissingValue
+from eave.stdlib.logging import eaveLogger
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
@@ -37,7 +37,7 @@ class AppConfig(eave.stdlib.config.EaveConfig):
             try:
                 return self.get_secret(key)
             except Exception:
-                logger.exception(f"Fetching {key} from secrets failed.")
+                eaveLogger.exception(f"Fetching {key} from secrets failed.")
                 return None
 
     @cached_property
