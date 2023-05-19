@@ -19,6 +19,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
         super().__init__(methodName)
+        self.addAsyncCleanup(self.cleanup)
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
@@ -76,6 +77,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         value: datetime = self.testdata[name]
         return value
+
+    _increment = -1 # so that the first increment returns 0
+    def increment(self) -> int:
+        self._increment += 1
+        return self._increment
 
     def anystring(self, name: Optional[str] = None) -> str:
         if name is None:

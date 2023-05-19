@@ -1,5 +1,6 @@
 import http
 from eave.stdlib import signing, eaveLogger
+import eave.stdlib.requests
 import eave.stdlib.core_api.client
 import eave.stdlib.eave_origins as eave_origins
 from eave.stdlib.exceptions import InvalidSignatureError
@@ -73,7 +74,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
             eaveLogger.warning(f"Invalid Eave origin: {origin_header}", extra=self._log_extra)
             return False
 
-        signature_message = eave.stdlib.core_api.client.build_message_to_sign(
+        signature_message = eave.stdlib.requests.build_message_to_sign(
             method=self._request.scope["method"],
             origin=origin.value,
             request_id=request_id,

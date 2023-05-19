@@ -4,54 +4,71 @@ import eave.pubsub_schemas
 import eave.stdlib
 import eave.core.internal
 import eave.core.public
+import eave.stdlib.request_state
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.core.internal.orm.team import TeamOrm
 
-from eave.stdlib.exceptions import UnexpectedMissingValue
-from eave.stdlib.logging import eaveLogger
-
+import eave.core.internal.database as eave_db
+from eave.stdlib.exceptions import BadRequestError, UnexpectedMissingValue
+import eave.stdlib.request_state as request_state
+from eave.core.internal.orm.subscription import SubscriptionOrm
+import eave.stdlib.core_api.models as eave_models
+import eave.stdlib.api_util
 
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = eave.core.public.request_state.get_eave_state(request=request)
+        eave_state = request_state.get_eave_state(request=request)
         body = await request.json()
         input = eave.stdlib.core_api.operations.UpsertDocument.RequestBody.parse_obj(body)
 
-        async with eave.core.internal.database.async_session.begin() as db_session:
-            team = await eave.core.internal.orm.TeamOrm.one_or_exception(
-                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
+        async with eave_db.async_session.begin() as db_session:
+            team = await TeamOrm.one_or_exception(
+                session=db_session,
+                team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id),
             )
-            subscription = await eave.core.internal.orm.SubscriptionOrm.one_or_exception(
-                team_id=team.id, source=input.subscription.source, session=db_session
-            )
+            # get all subscriptions we wish to associate the new document with
+            subscriptions = [
+                await SubscriptionOrm.one_or_exception(
+                    team_id=team.id,
+                    source=subscription.source,
+                    session=db_session,
+                )
+                for subscription in input.subscriptions
+            ]
+
+            # make sure we got even 1 subscription
+            if len(subscriptions) < 1:
+                raise UnexpectedMissingValue("Expected to have at least 1 subscription input")
 
             destination = await team.get_document_destination(session=db_session)
             if destination is None:
                 # TODO: Error message: "You have not setup a document destination"
                 raise UnexpectedMissingValue("document destination")
 
-            existing_document_reference = await subscription.get_document_reference(session=db_session)
+            # TODO: boldly assuming all subscriptions have the same value for document_reference_id
+            existing_document_reference = await subscriptions[0].get_document_reference(session=db_session)
 
             if existing_document_reference is None:
-                try:
-                    document_metadata = await destination.create_document(input=input.document)
+                document_metadata = await destination.create_document(input=input.document)
 
-                    eave.stdlib.analytics.log_event(
-                        event_name="eave_created_documentation",
-                        event_description="Eave created some documentation",
-                        event_source="core api",
-                        eave_team_id=team.id,
-                        opaque_params={
-                            "destination_platform": team.document_platform.value if team.document_platform else None,
-                            "subscription_source.platform": input.subscription.source.platform.value,
-                            "subscription_source.event": input.subscription.source.event.value,
-                            "subscription_source.id": input.subscription.source.id,
-                        },
-                    )
-                except Exception:
-                    eaveLogger.exception("Error while creating document. Subscription will be deleted.")
-                    await db_session.delete(subscription)
-                    raise
+                eave.stdlib.analytics.log_event(
+                    event_name="eave_created_documentation",
+                    event_description="Eave created some documentation",
+                    event_source="core api",
+                    eave_team_id=team.id,
+                    opaque_params={
+                        "destination_platform": team.document_platform.value if team.document_platform else None,
+                        "subscription_sources": [
+                            {
+                                "platform": subscription.source.platform.value,
+                                "event": subscription.source.event.value,
+                                "id": subscription.source.id,
+                            }
+                            for subscription in input.subscriptions
+                        ],
+                    },
+                )
 
                 document_reference = await eave.core.internal.orm.DocumentReferenceOrm.create(
                     session=db_session,
@@ -59,9 +76,6 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     document_id=document_metadata.id,
                     document_url=document_metadata.url,
                 )
-
-                subscription.document_reference_id = document_reference.id
-
             else:
                 await destination.update_document(
                     input=input.document,
@@ -75,25 +89,37 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     eave_team_id=team.id,
                     opaque_params={
                         "destination_platform": team.document_platform.value if team.document_platform else None,
-                        "subscription_source.platform": input.subscription.source.platform.value,
-                        "subscription_source.event": input.subscription.source.event.value,
-                        "subscription_source.id": input.subscription.source.id,
+                        "subscription_sources": [
+                            {
+                                "platform": subscription.source.platform.value,
+                                "event": subscription.source.event.value,
+                                "id": subscription.source.id,
+                            }
+                            for subscription in input.subscriptions
+                        ],
                     },
                 )
 
                 document_reference = existing_document_reference
 
+            # update all subscriptions without a document reference
+            for subscription in subscriptions:
+                if subscription.document_reference_id is None:
+                    subscription.document_reference_id = document_reference.id
+
         model = eave.stdlib.core_api.operations.UpsertDocument.ResponseBody(
             team=team.api_model,
-            subscription=subscription.api_model,
+            subscriptions=[subscription.api_model for subscription in subscriptions],
             document_reference=document_reference.api_model,
         )
+
         return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.ACCEPTED, model=model)
+
 
 
 class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = eave.core.public.request_state.get_eave_state(request=request)
+        eave_state = eave.stdlib.request_state.get_eave_state(request=request)
         body = await request.json()
         input = eave.stdlib.core_api.operations.SearchDocuments.RequestBody.parse_obj(body)
 

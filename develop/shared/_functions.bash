@@ -1,6 +1,5 @@
-if test -z "${_SHARED_FUNCTIONS_LOADED:-}"
-then
-	function statusmsg () {
+if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
+	function statusmsg() {
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE
 			Options:
@@ -50,8 +49,7 @@ then
 		done
 
 		local msg="${@:${OPTIND:-1}}"
-		if test -z "$msg"
-		then
+		if test -z "$msg"; then
 			echo $usage
 			exit 1
 		fi
@@ -66,56 +64,53 @@ then
 			return 0
 		fi
 
-		if command -v tput > /dev/null
-		then
+		if command -v tput >/dev/null; then
 			case $msgtype in
-				off)
-					;;
+			off) ;;
 
-				debug)
-					tput -S <<-EOC
-						setaf $_cc_white
-						rev
-						dim
-					EOC
-					;;
+			debug)
+				tput -S <<-EOC
+					setaf $_cc_white
+					rev
+					dim
+				EOC
+				;;
 
-				info)
-					tput -S <<-EOC
-						setaf $_cc_cyan
-						rev
-					EOC
-					;;
+			info)
+				tput -S <<-EOC
+					setaf $_cc_cyan
+					rev
+				EOC
+				;;
 
-				warn)
-					tput -S <<-EOC
-						setaf $_cc_yellow
-						rev
-						bold
-					EOC
-					;;
+			warn)
+				tput -S <<-EOC
+					setaf $_cc_yellow
+					rev
+					bold
+				EOC
+				;;
 
-				error)
-					tput -S <<-EOC
-						setab $_cc_red
-						setaf $_cc_white
-						bold
-					EOC
-					;;
+			error)
+				tput -S <<-EOC
+					setab $_cc_red
+					setaf $_cc_white
+					bold
+				EOC
+				;;
 
-				success)
-					tput -S <<-EOC
-						setaf $_cc_green
-						rev
-						bold
-					EOC
-					;;
+			success)
+				tput -S <<-EOC
+					setaf $_cc_green
+					rev
+					bold
+				EOC
+				;;
 			esac
 		fi
 
 		prefix=""
-		if test -z "$noprefix"
-		then
+		if test -z "$noprefix"; then
 			prefix="[$msgtype] "
 		fi
 
@@ -127,71 +122,69 @@ then
 		return 0
 	}
 
-	function shellname () {
+	function shellname() {
 		echo -n "$(basename $SHELL)"
 	}
 
-	function shloginfile () {
+	function shloginfile() {
 		case $usershell in
-			"bash")
-				echo -n "~/.bashrc";;
-			"zsh")
-				echo -n "~/.zshrc" ;;
-			*)
-				statusmsg -e "Shell $usershell not supported. Please add support!"
-				return 1
+		"bash")
+			echo -n ~/.bashrc
+			;;
+		"zsh")
+			echo -n ~/.zshrc
+			;;
+		*)
+			statusmsg -e "Shell $usershell not supported. Please add support!"
+			return 1
+			;;
 		esac
 	}
 
-	function cmd-exists () {
-		if command -v "$1" > /dev/null
-		then
+	function cmd-exists() {
+		if command -v "$1" >/dev/null; then
 			return 0
 		fi
 
 		local usershell=$(shellname)
 		case $usershell in
-			"fish")
-				if fish -c "functions -q $1"
-				then
-					return 0
-				else
-					return 1
-				fi
-				;;
-			"bash" | "zsh")
-				return 1
-				;;
-			*)
+		"fish")
+			if fish -c "functions -q $1"; then
 				return 0
-				;;
+			else
+				return 1
+			fi
+			;;
+		"bash" | "zsh")
+			return 1
+			;;
+		*)
+			return 0
+			;;
 		esac
 	}
 
-	function run-in-path () (
+	function run-in-path() (
 		local path=$1
 		local cmd=$2
 
 		local ex="$path/$cmd"
-		if test -x "$ex"
-		then
+		if test -x "$ex"; then
 			(cd $path && $cmd)
 		else
 			statusmsg -w "File $ex is not executable."
 		fi
 	)
 
-	function run-in-all-projects () {
-		if test -z "$1"
-		then
+	function run-in-all-projects() {
+		if test -z "$1"; then
 			statusmsg -e "Usage: run-in-all-projects bin/lint"
 			exit 1
 		fi
 
 		local cmd=$1
 
-		for dir in $(ls -d ./apps/* ./libs/*)
-		do
+		for dir in $(ls -d ./apps/* ./libs/*); do
 			if test "$dir" = "__pycache__"; then
 				continue
 			fi
@@ -201,61 +194,61 @@ then
 		done
 	}
 
-	function get-os () {
+	function get-os() {
 		local kernel=$(get-kernel-name)
 		case "$kernel" in
-			"linux")
-				lsb_release -is | tr '[:upper:]' '[:lower:]'
-				;;
-			"darwin")
-				echo -n "macos"
-				;;
-			*)
-				statusmsg -e "Your OS isn't supported by this script. Please add support!"
-				exit 1
-				;;
+		"linux")
+			lsb_release -is | tr '[:upper:]' '[:lower:]'
+			;;
+		"darwin")
+			echo -n "macos"
+			;;
+		*)
+			statusmsg -e "Your OS isn't supported by this script. Please add support!"
+			exit 1
+			;;
 		esac
 	}
 
-	function get-kernel-name () {
+	function get-kernel-name() {
 		uname -s | tr '[:upper:]' '[:lower:]'
 	}
 
-	function get-cpu-arch () {
+	function get-cpu-arch() {
 		uname -p
 	}
 
-	function get-cpu-arch-normalized () {
+	function get-cpu-arch-normalized() {
 		local arch=$(get-cpu-arch)
 		case $arch in
-			"arm64")
-				echo -n "arm"
-				;;
-			"amd64")
-				echo -n "x86_64"
-				;;
-			*)
-				echo -n "$arch"
-				;;
+		"arm64")
+			echo -n "arm"
+			;;
+		"amd64")
+			echo -n "x86_64"
+			;;
+		*)
+			echo -n "$arch"
+			;;
 		esac
 	}
 
-	function get-cpu-arch-normalized-alt () {
+	function get-cpu-arch-normalized-alt() {
 		local arch=$(get-cpu-arch)
 		case $arch in
-			"arm")
-				echo -n "arm64"
-				;;
-			"x86_64")
-				echo -n "amd64"
-				;;
-			*)
-				echo -n "$arch"
-				;;
+		"arm")
+			echo -n "arm64"
+			;;
+		"x86_64")
+			echo -n "amd64"
+			;;
+		*)
+			echo -n "$arch"
+			;;
 		esac
 	}
 
-	function add-shell-variable () (
+	function add-shell-variable() {
 		local varname=$1
 		local value=$2
 		local usershell=$(shellname)
@@ -264,8 +257,7 @@ then
 		"bash" | "zsh")
 			local loginfile=$(shloginfile)
 
-			if cat $loginfile | grep "export $varname"
-			then
+			if cat $loginfile | grep "export $varname"; then
 				statusmsg -w "variable $varname already set in $loginfile."
 				return 0
 			fi
@@ -276,8 +268,7 @@ then
 			;;
 		"fish")
 			varcmd="set -Ux $varname $value"
-			if fish -c "set -q $varname"
-			then
+			if fish -c "set -q $varname"; then
 				statusmsg -w "variable $varname already set in fish environment."
 				return 0
 			fi
@@ -287,29 +278,28 @@ then
 			statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
 			;;
 		esac
-	)
+	}
 
-	function run-with-dotenv () (
+	function run-with-dotenv() {
 		python-validate-version
 		python-activate-venv
 		PYTHONPATH=. python -m dotenv --file $EAVE_HOME/.env run --no-override -- "$@"
-	)
+	}
 
-	function run-appengine-dev-server () (
+	function run-appengine-dev-server() {
 		statusmsg -i "This script requires the gcloud SDK to be installed and in your path"
 		statusmsg -i "Additionally, a python2 program must be installed and in your PATH."
 		statusmsg -i "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"
 
 		local usage="Usage: run-appengine-dev-server -p PORT"
 		local port=""
-		while getopts "p:" argname
-		do
+		while getopts "p:" argname; do
 			case "$argname" in
-				p) port=$OPTARG ;;
-				h)
-					statusmsg -i "$usage"
-					exit 0
-					;;
+			p) port=$OPTARG ;;
+			h)
+				statusmsg -i "$usage"
+				exit 0
+				;;
 			esac
 		done
 
@@ -320,11 +310,11 @@ then
 
 		run-with-dotenv \
 			dev_appserver.py \
-				--host localhost \
-				--port "$port" \
-				app.yaml
+			--host localhost \
+			--port "$port" \
+			app.yaml
 
-	)
+	}
 
 	_SHARED_FUNCTIONS_LOADED=1
 fi

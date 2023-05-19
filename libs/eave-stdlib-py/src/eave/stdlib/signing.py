@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from eave.stdlib.config import shared_config
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveOrigin, ExternalOrigin
 from google.cloud import kms
 
 from . import checksum
@@ -60,9 +60,10 @@ _SIGNING_KEYS = {
         algorithm=SigningAlgorithm.ES256,
     ),
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
-    "github_api_client": SigningKeyDetails(
+    ExternalOrigin.github_api_client.value: SigningKeyDetails(
         id="eave-github-app-signing-key-01",
-        version="2",
+        # TODO: clean up this hack to change versions in prod/dev
+        version="2" if shared_config.google_cloud_project == "eave-production" else "1",
         algorithm=SigningAlgorithm.RS256,
     ),
 }

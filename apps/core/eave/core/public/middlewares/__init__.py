@@ -1,5 +1,4 @@
 from .authentication import AuthASGIMiddleware as AuthASGIMiddleware
-from .base import EaveASGIMiddleware as EaveASGIMiddleware
 from .logging import LoggingASGIMiddleware as LoggingASGIMiddleware
 from .origin import OriginASGIMiddleware as OriginASGIMiddleware
 from .request_integrity import RequestIntegrityASGIMiddleware as RequestIntegrityASGIMiddleware

@@ -15,9 +15,9 @@ class JWTRegisteredClaims:
     iss: str
     aud: str
     sub: str
-    iat: str
-    exp: str
-    nbf: str
+    iat: int
+    exp: int
+    nbf: int
     jti: str
 
     @classmethod
@@ -97,16 +97,19 @@ def create_jwt(
     iss: str,
     aud: str,
     sub: str,
-    iat: Optional[str] = None,
-    nbf: Optional[str] = None,
+    iat: Optional[int] = None,
+    nbf: Optional[int] = None,
     jti: Optional[str] = None,
     exp_minutes: int = 10,
 ) -> JWT:
-    now = time.time()
-    exp = str(now + (60 * exp_minutes))
+    # all time formats are expected to be in the format of an integer
+    # number of seconds since epoch (aka NumericDate)
+    # https://www.rfc-editor.org/rfc/rfc7519
+    now = int(time.time())
+    exp = now + (60 * exp_minutes)
 
     if iat is None:
-        iat = str(now - 60)  # allow for 60s of clock drift
+        iat = now - 60  # allow for 60s of clock drift
     if nbf is None:
         nbf = iat
     if jti is None:

@@ -1,17 +1,18 @@
 import uuid
 
-import eave.stdlib
 import eave.core.internal
-import eave.core.public
+import eave.stdlib
+from eave.stdlib.config import shared_config
 from asgiref.typing import HTTPScope
 
+from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.logging import eaveLogger
 
 
 def development_bypass_allowed(scope: HTTPScope) -> bool:
-    if not eave.core.internal.app_config.dev_mode:
+    if not shared_config.dev_mode:
         return False
-    if eave.core.internal.app_config.google_cloud_project == "eave-production":
+    if shared_config.google_cloud_project == "eave-production":
         return False
 
     dev_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_DEV_BYPASS_HEADER)
@@ -29,7 +30,7 @@ def development_bypass_allowed(scope: HTTPScope) -> bool:
 
 
 async def development_bypass_auth(
-    scope: HTTPScope, eave_state: eave.core.public.request_state.EaveRequestState
+    scope: HTTPScope, eave_state: EaveRequestState
 ) -> None:
     eaveLogger.warning("Bypassing auth verification in dev environment")
     account_id = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.AUTHORIZATION_HEADER)
