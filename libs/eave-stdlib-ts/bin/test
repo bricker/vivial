@@ -2,5 +2,4 @@
 
 set -e
 
-echo "WARNING: no tests"
-#npm test
+echo "WARNING: No tests."

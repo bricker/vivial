@@ -22,18 +22,14 @@ export type SlackInstallationInput = {
   slack_team_id: string;
 }
 
-export type GithubInstallationInput = {
-  github_install_id: string;
-}
-
 export namespace UpsertDocument {
   export type RequestBody = {
     document: DocumentInput;
-    subscriptions: Array<models.Subscription>;
+    subscription: SubscriptionInput;
   }
   export type ResponseBody = {
     team: models.Team;
-    subscriptions: Array<models.Subscription>;
+    subscription: models.Subscription;
     document_reference: models.DocumentReference;
   }
 }
@@ -90,26 +86,8 @@ export namespace GetSlackInstallation {
   }
 }
 
-export namespace GetGithubInstallation {
-  export type RequestBody = {
-    github_installation: GithubInstallationInput;
-  }
-
-  export type ResponseBody = {
-    team: models.Team;
-    github_installation: models.GithubInstallation;
-  }
-}
-
 export namespace DeleteSubscription {
   export type RequestBody = {
     subscription: SubscriptionInput;
-  }
-}
-
-export namespace GetTeam {
-  export type ResponseBody = {
-    team: models.Team;
-    integrations: models.Integrations;
   }
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
-import { sharedConfig } from './config.js';
+import { sharedConfig } from './config';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =

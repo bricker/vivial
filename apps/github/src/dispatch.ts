@@ -1,10 +1,10 @@
+import { App } from 'octokit';
 import { Request, Response } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';
 import * as Registry from './registry.js';
-import { appConfig } from './config.js';
+import appConfig from './config.js';
 import pushHandler from './events/push.js';
-import { createAppClient } from './lib/octokit-util.js';
 
 Registry.registerHandler('push', pushHandler);
 
@@ -37,7 +37,14 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
     return;
   }
 
-  const app = await createAppClient();
+  const secret = await appConfig.eaveGithubAppWebhookSecret;
+  const privateKey = await appConfig.eaveGithubAppPrivateKey;
+
+  const app = new App({
+    appId: appConfig.eaveGithubAppId,
+    privateKey,
+    webhooks: { secret },
+  });
 
   const verified = await app.webhooks.verify(requestBody, signature);
 

@@ -1,7 +1,7 @@
 export enum AuthProvider {
-  google = "google",
-  slack = "slack",
-  atlassian = "atlassian",
+    google = "google",
+    slack = "slack",
+    atlassian = "atlassian",
 }
 
 export enum DocumentPlatform {
@@ -20,11 +20,4 @@ export enum SubscriptionSourceEvent {
   slack_message = 'slack_message',
   github_file_change = 'github_file_change',
   jira_issue_comment = 'jira_issue_comment',
-}
-
-/**
- * Link types that we support fetching content from for integration into AI documentation creation.
- */
-export enum LinkType {
-  github = 'github',
 }
