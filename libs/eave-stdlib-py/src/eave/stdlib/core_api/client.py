@@ -6,10 +6,6 @@ from .. import eave_origins as eave_origins
 from . import operations
 from .. import exceptions as eave_exceptions
 from ..requests import make_request, makeurl
-from .. import headers as eave_headers
-from .. import signing
-from ..config import shared_config
-from ..logging import eaveLogger
 
 _ORIGIN: eave_origins.EaveOrigin
 

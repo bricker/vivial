@@ -423,7 +423,7 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.SEARCH_DOCUMENTATION.value,
-                "message_content": [b.text for b in blocks if isinstance(b, slack_sdk.models.blocks.SectionBlock)],
+                "message_content": [b.text.text for b in blocks if isinstance(b, slack_sdk.models.blocks.SectionBlock) and b.text],
                 "message_purpose": "provide search results",
             },
         )
@@ -888,7 +888,8 @@ class Brain:
 
             context += f"from {caller_name}"
             if caller_job_title:  # might be empty string
-                context += f" ({caller_job_title})"
+                # context += f" ({caller_job_title})"
+                pass
 
         # f"The question was asked in a Slack channel called \"\". "
         # f"The description of that channel is: \"\" "

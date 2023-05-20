@@ -712,24 +712,24 @@ class SlackMessage:
         for match in matches:
             link = match.groups()[0]
 
-            user_match = re.match("^@([UW]\\w+)", link)
-            if user_match is not None:
-                links[SlackMessageLinkType.user].append(user_match.groups()[0])
+            user_match = re.match(r"^@([UW]\w+)", link)
+            if user_match is not None and len(groups := user_match.groups()) > 0:
+                links[SlackMessageLinkType.user].append(groups[0])
                 continue
 
-            channel_match = re.match("^#(C\\w+)", link)
-            if channel_match is not None:
-                links[SlackMessageLinkType.channel].append(channel_match.groups()[0])
+            channel_match = re.match(r"^#(C\w+)", link)
+            if channel_match is not None and len(groups := channel_match.groups()) > 0:
+                links[SlackMessageLinkType.channel].append(groups[0])
                 continue
 
-            subteam_match = re.match("^!subteam\\^(\\w+)", link)
-            if subteam_match is not None:
-                links[SlackMessageLinkType.subteam].append(subteam_match.groups()[0])
+            subteam_match = re.match(r"^!subteam\^(\w+)", link)
+            if subteam_match is not None and len(groups := subteam_match.groups()) > 0:
+                links[SlackMessageLinkType.subteam].append(groups[0])
                 continue
 
-            special_match = re.match("^![(here)|(channel)|(everyone)]", link)
-            if special_match is not None:
-                links[SlackMessageLinkType.special].append(special_match.groups()[0])
+            special_match = re.match(r"^!(here|channel|everyone)", link)
+            if special_match is not None and len(groups := special_match.groups()) > 0:
+                links[SlackMessageLinkType.special].append(groups[0])
                 continue
 
             links[SlackMessageLinkType.url].append(link)
@@ -757,14 +757,14 @@ class SlackMessage:
         if user_profile.title:
             prefix += f" ({user_profile.title})"
 
-        try:
-            # Format: Wednesday, September 01 at 01:05PM
-            # A 12-hour format is used as context for OpenAI; otherwise we might have to explicitly tell it that the
-            # time is in 24-hour format.
-            formatteddt = datetime.fromtimestamp(float(self.ts), tz=timezone.utc).strftime("%A, %B %d at %I:%M%p")
-            prefix += f" on {formatteddt}"
-        except ValueError:
-            eaveLogger.exception(f"ts value couldn't be converted to float: {self.ts}")
+        # try:
+        #     # Format: Wednesday, September 01 at 01:05PM
+        #     # A 12-hour format is used as context for OpenAI; otherwise we might have to explicitly tell it that the
+        #     # time is in 24-hour format.
+        #     formatteddt = datetime.fromtimestamp(float(self.ts), tz=timezone.utc).strftime("%A, %B %d at %I:%M%p")
+        #     prefix += f" on {formatteddt}"
+        # except ValueError:
+        #     eaveLogger.exception(f"ts value couldn't be converted to float: {self.ts}")
 
         formatted_message = f"{prefix}: {expanded_text}\n\n"
         return formatted_message

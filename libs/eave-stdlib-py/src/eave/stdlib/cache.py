@@ -74,8 +74,9 @@ impl: _Cache
 if redis_cfg := shared_config.redis_connection:
     host, port, db = redis_cfg
     auth = shared_config.redis_auth
+    logauth = auth[:4] if auth else "(none)"
     eaveLogger.debug(
-        "Redis connection: host={}, port={}, db={}, auth={}...".format(host, port, db, auth[:4] if auth else "(none)")
+        f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}..."
     )
 
     redis_tls_ca = shared_config.redis_tls_ca
