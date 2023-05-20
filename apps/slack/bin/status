@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+curl -is https://apps.eave.fyi/slack/status

@@ -313,7 +313,35 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			--host localhost \
 			--port "$port" \
 			app.yaml
+	)
 
+	function verbose () {
+		test -n "${VERBOSE:-}"
+	}
+
+	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
+	function setup-deployment-workspace () {
+		local builddir=$EAVE_HOME/.build
+		local appname=$(basename $PWD)
+		mkdir -p $builddir
+		rm -rf $builddir/$appname
+
+		local vflag=""
+		if verbose; then
+			vflag="-v"
+		fi
+
+		rsync -a $vflag \
+			--exclude='.git' \
+			--exclude 'node_modules' \
+			--exclude '.yalc' \
+			--exclude 'vendor' \
+			--exclude '.venv' \
+			$PWD $builddir
+
+		cd $builddir/$appname && \
+		cp $EAVE_HOME/.gitignore . && \
+		cp $EAVE_HOME/.gcloudignore .
 	}
 
 	_SHARED_FUNCTIONS_LOADED=1

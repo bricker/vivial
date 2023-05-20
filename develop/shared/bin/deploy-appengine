@@ -2,7 +2,24 @@
 
 set -eu
 
-gcloud meta list-files-for-upload | grep -v "^vendor/"
-echo "vendor/..."
+source $EAVE_HOME/develop/functions.bash
 
-gcloud app deploy
+function deploy () (
+	local cmd="gcloud meta list-files-for-upload"
+
+	statusmsg -i "The following files will be uploaded and deployed:"
+	if verbose; then
+		$cmd
+	else
+		$cmd | grep -v "^vendor/"
+		if test -d "vendor"; then
+			echo "vendor/..."
+		fi
+	fi
+
+	echo ""
+	statusmsg -i "Deployment details:"
+	gcloud app deploy
+)
+
+deploy
