@@ -5,7 +5,6 @@ import aiohttp
 import urllib.parse
 from http import HTTPStatus
 
-from pyparsing import Opt
 from . import exceptions as eave_exceptions
 from . import headers as eave_headers
 from . import signing
@@ -68,7 +67,16 @@ async def make_request(
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
     eaveLogger.info(
-        "Eave internal API request", extra={"json_fields": {"request_id": request_id, "method": method, "url": url}}
+        f"Eave internal API request ({request_id})",
+        extra={
+            "json_fields": {
+                "origin": _ORIGIN.value,
+                "team_id": str(team_id),
+                "request_id": request_id,
+                "method": method,
+                "url": url,
+            }
+        },
     )
 
     async with aiohttp.ClientSession() as session:
@@ -80,9 +88,11 @@ async def make_request(
         )
 
     eaveLogger.info(
-        "Eave internal API response",
+        f"Eave internal API response ({request_id})",
         extra={
             "json_fields": {
+                "origin": _ORIGIN.value,
+                "team_id": str(team_id),
                 "request_id": request_id,
                 "method": method,
                 "url": url,

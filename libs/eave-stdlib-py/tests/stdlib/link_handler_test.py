@@ -2,11 +2,9 @@ import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.enums as eave_enums
 import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.link_handler as link_handler
-import eave.stdlib.github_api.client as gh_client
 import eave.stdlib.github_api.operations as gh_ops
 import eave.stdlib.requests
 from eave.stdlib.core_api.enums import LinkType, SubscriptionSourcePlatform
-from pydantic import UUID4
 from eave.stdlib.test_util import UtilityBaseTestCase
 import unittest.mock
 
@@ -30,7 +28,7 @@ class TestLinkHandler(UtilityBaseTestCase):
                             id=self.anystring(),
                         ),
                     )
-                )
+                ),
             ),
         )
 
@@ -56,7 +54,7 @@ class TestLinkHandler(UtilityBaseTestCase):
 
     async def test_map_link_content(self) -> None:
         mock = self.get_mock("github_client.get_file_content")
-        mock.side_effect=[
+        mock.side_effect = [
             gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 1")),
             gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 2")),
         ]
@@ -71,7 +69,8 @@ class TestLinkHandler(UtilityBaseTestCase):
         )
 
         expected_result = [
-            self.anystring("file content 1"), self.anystring("file content 2"),
+            self.anystring("file content 1"),
+            self.anystring("file content 2"),
         ]
         assert actual_result == expected_result
 

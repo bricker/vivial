@@ -71,9 +71,7 @@ async def subscribe_to_file_changes(
         tasks.append(asyncio.ensure_future(_create_subscription_source(link, link_type, eave_team_id)))
 
     # have asyncio.gather eat any network exceptions and return them as part of result
-    completed_tasks: list[Optional[eave_models.Subscription]] = await asyncio.gather(
-        *tasks, return_exceptions=True
-    )
+    completed_tasks: list[Optional[eave_models.Subscription]] = await asyncio.gather(*tasks, return_exceptions=True)
     # only return the successful results
     subscription_sources = [src for src in completed_tasks if isinstance(src, eave_models.Subscription)]
     return subscription_sources

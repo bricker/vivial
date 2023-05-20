@@ -38,7 +38,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
 
     async def search_documents(self, query: str) -> list[DocumentSearchResult]:
         try:
-            cql = f"space={self.space} AND text ~ {query}"
+            cql = f'space={self.space} AND text ~ "{query}"'
             eaveLogger.debug(f"Confluence CQL query: {cql}")
             response = self._confluence_client.cql(cql=cql)
 

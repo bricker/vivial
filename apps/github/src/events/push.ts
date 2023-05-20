@@ -115,8 +115,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         + `${codeDescriptionString}. `
         + 'Explain what the above code does: ';
 
-      // FIXME: using gpt3.5 for now since openai node module docs for CreateChatCompletionRequest
-      // currently says it only supports gtp3.5 turbo models. not sure if thats actually true tho
       // NOTE: According to the OpenAI docs, model gpt-3.5-turbo-0301 doesn't pay attention to the system messages,
       // but it seems it's specific to that model, and neither gpt-3.5-turbo or gpt-4 are affected, so watch out
       const openaiResponse = await openai.createChatCompletion({

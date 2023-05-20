@@ -29,9 +29,7 @@ def development_bypass_allowed(scope: HTTPScope) -> bool:
     raise Exception()
 
 
-async def development_bypass_auth(
-    scope: HTTPScope, eave_state: EaveRequestState
-) -> None:
+async def development_bypass_auth(scope: HTTPScope, eave_state: EaveRequestState) -> None:
     eaveLogger.warning("Bypassing auth verification in dev environment")
     account_id = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.AUTHORIZATION_HEADER)
     if not account_id:

@@ -18,6 +18,7 @@ def set_origin(origin: eave_origins.EaveOrigin) -> None:
     global _ORIGIN
     _ORIGIN = origin
 
+
 async def status() -> operations.Status.ResponseBody:
     async with aiohttp.ClientSession() as session:
         response = await session.request(

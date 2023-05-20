@@ -78,7 +78,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: datetime = self.testdata[name]
         return value
 
-    _increment = -1 # so that the first increment returns 0
+    _increment = -1  # so that the first increment returns 0
+
     def increment(self) -> int:
         self._increment += 1
         return self._increment

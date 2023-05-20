@@ -10,11 +10,11 @@ from starlette.responses import Response
 from eave.core.internal.orm.team import TeamOrm
 
 import eave.core.internal.database as eave_db
-from eave.stdlib.exceptions import BadRequestError, UnexpectedMissingValue
+from eave.stdlib.exceptions import UnexpectedMissingValue
 import eave.stdlib.request_state as request_state
 from eave.core.internal.orm.subscription import SubscriptionOrm
-import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.api_util
+
 
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
@@ -114,7 +114,6 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
         )
 
         return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.ACCEPTED, model=model)
-
 
 
 class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):

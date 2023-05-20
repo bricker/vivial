@@ -12,10 +12,6 @@ from eave.stdlib.exceptions import RuntimeConfigRetrievalError
 
 from . import checksum
 
-# TODO: Use runtime-configs
-# https://cloud.google.com/deployment-manager/runtime-configurator/create-and-delete-runtimeconfig-resources#gcloud
-# config created called "shared-config"
-
 
 class EaveEnvironment(enum.Enum):
     development = "development"
@@ -187,7 +183,7 @@ class EaveConfig:
 
     @cached_property
     def eave_github_app_webhook_secret(self) -> str:
-        return self.get_secret('EAVE_GITHUB_APP_WEBHOOK_SECRET')
+        return self.get_secret("EAVE_GITHUB_APP_WEBHOOK_SECRET")
 
     def get_required_env(self, name: str) -> str:
         if name not in os.environ:

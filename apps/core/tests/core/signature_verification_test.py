@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from eave.stdlib.test_util import UtilityBaseTestCase
 from .base import BaseTestCase
+
 
 class TestSignatureVerification(BaseTestCase):
     async def test_signature_bypass(self) -> None:

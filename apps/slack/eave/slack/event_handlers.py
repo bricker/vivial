@@ -13,9 +13,6 @@ from .config import SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, ap
 
 from eave.stdlib.logging import eaveLogger
 
-# TODO: Handlers create tasks for Cloud Tasks, or pubsub perhaps
-
-
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
@@ -82,9 +79,6 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         # Assume that the exception was already logged.
         # The purpose of this catch block is so that Eave has the opportunity to warn the user that the request failed.
         # But we only want to do that after Cloud Tasks has retried the task a few times.
-        # `app_config.slack_event_task_max_retries` _should_ match the configured max retry count for the queue,
-        # but currently it's hardcoded as an environment variable.
-        # TODO: Pull the retry count from GCP.
         queue = await task_queue.get_queue(SLACK_EVENT_QUEUE_NAME)
 
         max_attempts = queue.retry_config.max_attempts  # The total number of attempts allowed (this will be > 0)

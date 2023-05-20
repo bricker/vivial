@@ -5,6 +5,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 import eave.stdlib.request_state as request_state
 
+
 class GetAuthedAccount(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_state.get_eave_state(request=request)
