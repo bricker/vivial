@@ -1,3 +1,7 @@
 {
-  "name": "@eave-fyi/eave-stdlib-ts"
+  "name": "@eave-fyi/eave-pubsub-schemas",
+  "version": "0.1.0",
+  "dependencies": {
+    "protobufjs": "^7.2.3"
+  }
 }

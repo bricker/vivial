@@ -1,7 +1,7 @@
 export enum AuthProvider {
-  google = "google",
-  slack = "slack",
-  atlassian = "atlassian",
+  google = 'google',
+  slack = 'slack',
+  atlassian = 'atlassian',
 }
 
 export enum DocumentPlatform {

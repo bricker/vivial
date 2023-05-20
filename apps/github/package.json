@@ -5,24 +5,24 @@
   },
   "type": "module",
   "scripts": {
-    "//": "The following scripts are used by AppEngine",
     "start": "node dist/app.js",
-    "gcp-build": "tsc --project ."
+    "build": "tsc --project ."
   },
   "dependencies": {
     "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "@octokit/graphql-schema": "12.x",
     "@octokit/webhooks": "10.x",
-    "bluebird": "3.x",
     "express": "4.x",
-    "octokit": "2.x",
-    "superagent": "8.x"
+    "node-fetch": "3.x",
+    "octokit": "2.x"
   },
   "devDependencies": {
     "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
-    "@types/bluebird": "3.x",
     "@types/express": "4.x",
-    "@types/superagent": "4.x",
+    "@types/fast-crc32c": "2.x",
+    "@types/node": "18.x",
+    "@types/node-fetch": "2.x",
+    "@types/uuid": "9.x",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
     "eslint": "8.x",
@@ -30,9 +30,10 @@
     "eslint-plugin-graphql": "4.x",
     "eslint-plugin-import": "2.x",
     "eslint-plugin-yaml": "0.5.x",
-    "node-fetch": "^3.3.1",
     "nodemon": "2.x",
+    "ts-loader": "^9.4.2",
     "ts-node": "10.x",
-    "typescript": "4.x"
+    "typescript": "4.x",
+    "webpack-cli": "^5.1.1"
   }
 }

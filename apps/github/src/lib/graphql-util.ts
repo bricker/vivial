@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import { validate, Query, ProjectV2Item, Issue } from '@octokit/graphql-schema';
-import GlobalCache from '../lib/cache.js';
-import { GitHubOperationsContext } from '../types.js';
+import GlobalCache from '../lib/cache';
+import { GitHubOperationsContext } from '../types';
 
 export async function loadQuery(name: string): Promise<string> {
   return GlobalCache.getOrSet(`query.${name}`, null, async () => {

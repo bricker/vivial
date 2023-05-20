@@ -1,11 +1,11 @@
 import * as ops from './operations';
-import { makeRequest } from '../lib/requests.js';
-import { sharedConfig } from '../config.js';
+import { makeRequest } from '../lib/requests';
+import { sharedConfig } from '../config';
 
 export async function createSubscription(
   teamId: string,
-  input: ops.CreateGithubResourceSubscription.RequestBody
-): Promise<ops.CreateGithubResourceSubscription.ResponseBody> {
+  input: ops.CreateGithubResourceSubscriptionRequestBody,
+): Promise<ops.CreateGithubResourceSubscriptionResponseBody> {
   const resp = await makeRequest(
     '/github/api/subscribe',
     input,
@@ -13,14 +13,14 @@ export async function createSubscription(
     undefined,
     teamId,
   );
-  const responseData = <ops.CreateGithubResourceSubscription.ResponseBody>(await resp.json());
+  const responseData = <ops.CreateGithubResourceSubscriptionResponseBody>(await resp.json());
   return responseData;
 }
 
 export async function getFileContent(
   teamId: string,
-  input: ops.GetGithubUrlContent.RequestBody
-): Promise<ops.GetGithubUrlContent.ResponseBody> {
+  input: ops.GetGithubUrlContentRequestBody,
+): Promise<ops.GetGithubUrlContentResponseBody> {
   const resp = await makeRequest(
     '/github/api/content',
     input,
@@ -28,6 +28,6 @@ export async function getFileContent(
     undefined,
     teamId,
   );
-  const responseData = <ops.GetGithubUrlContent.ResponseBody>(await resp.json());
+  const responseData = <ops.GetGithubUrlContentResponseBody>(await resp.json());
   return responseData;
 }

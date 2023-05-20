@@ -54,12 +54,10 @@ export type GithubInstallation = {
   github_install_id: string;
 }
 
-
 export type ConfluenceSpace = {
   key: string;
   name: string;
 }
-
 
 export type AtlassianInstallation = {
   id: string;

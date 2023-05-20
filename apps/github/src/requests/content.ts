@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import { GetGithubUrlContent } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
+import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
 import { Octokit } from 'octokit';
-import * as superagent from 'superagent';
-import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
+import fetch from 'node-fetch';
+import { getInstallationId, createOctokitClient } from '../lib/octokit-util';
 
 export async function getSummary(req: Request, res: Response): Promise<void> {
   const requestBody = (<Buffer>req.body).toString();
-  const input = <GetGithubUrlContent.RequestBody>JSON.parse(requestBody);
+  const input = <GetGithubUrlContentRequestBody>JSON.parse(requestBody);
   if (!(input.url)) {
     res.status(400).end();
     return;
@@ -20,7 +21,7 @@ export async function getSummary(req: Request, res: Response): Promise<void> {
   const client = await createOctokitClient(installationId);
 
   const content = await getFileContent(client, input.url);
-  const output: GetGithubUrlContent.ResponseBody = { content };
+  const output: GetGithubUrlContentResponseBody = { content };
   res.json(output);
 }
 
@@ -33,7 +34,7 @@ async function getFileContent(client: Octokit, url: string): Promise<string | nu
     return getRawContent(client, url);
   } catch (error) {
     // TODO: logger?
-    console.log(error);
+    eaveLogger.error(error);
     return null;
   }
 }
@@ -63,11 +64,17 @@ async function getRawContent(client: Octokit, url: string): Promise<string | nul
   // auth() documented here https://www.npmjs.com/package/@octokit/auth-token
   const { token: accessToken } = (await client.auth()) as { token: string };
 
-  const result = await superagent.get(requestUrl)
-    .set('Authorization', `Bearer ${accessToken}`)
-    .set('Accept', 'application/vnd.github.v3.raw');
+  const result = await fetch(
+    requestUrl, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github.v3.raw',
+      },
+    },
+  );
 
-  const fileContent = result.body as string;
+  const fileContent = <string> await result.json();
   if (fileContent === '404: Not Found') {
     return null;
   }

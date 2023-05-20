@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
-import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
-import { signBase64, getKey } from '@eave-fyi/eave-stdlib-ts/src/signing.js';
-import { buildMessageToSign } from '@eave-fyi/eave-stdlib-ts/src/lib/requests.js';
+import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins';
+import { signBase64, getKey } from '@eave-fyi/eave-stdlib-ts/src/signing';
+import { buildMessageToSign } from '@eave-fyi/eave-stdlib-ts/src/lib/requests';
 
 async function run() {
   const data = JSON.stringify({
@@ -17,11 +17,12 @@ async function run() {
     data,
   );
 
-  console.log(msg);
+  console.log(msg); /* eslint-ignore */
+
   const key = getKey(EaveOrigin.eave_slack_app);
   const sig = await signBase64(key, msg);
 
-  console.log(sig);
+  console.log(sig); /* eslint-ignore */
 
   const r = await fetch('http://apps.eave.run:8080/github/api/content', {
     method: 'POST',
@@ -34,7 +35,7 @@ async function run() {
     body: data,
   });
 
-  console.log(r);
+  console.log(r); /* eslint-ignore */
 }
 
 run();

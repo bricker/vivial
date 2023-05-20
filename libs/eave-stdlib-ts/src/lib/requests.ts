@@ -1,17 +1,17 @@
 import fetch, { Response } from 'node-fetch';
 import { v4 as uuid4 } from 'uuid';
-import { EaveOrigin } from '../eave-origins.js';
-import { getKey, signBase64 } from '../signing.js';
-import eaveHeaders from '../headers.js';
+import eaveLogger from '../logging';
+import { EaveOrigin } from '../eave-origins';
+import { getKey, signBase64 } from '../signing';
+import eaveHeaders from '../headers';
 import {
   NotFoundError,
   UnauthorizedError,
   BadRequestError,
   InternalServerError,
-  HTTPException
-} from '../exceptions.js';
-import { sharedConfig } from '../config.js';
-
+  HTTPException,
+} from '../exceptions';
+import { sharedConfig } from '../config';
 
 let ORIGIN: EaveOrigin;
 
@@ -38,7 +38,7 @@ export function buildMessageToSign(
     url,
     requestId,
     payload,
-  ]
+  ];
 
   if (teamId !== undefined) {
     signatureElements.push(teamId);
@@ -57,23 +57,21 @@ export async function makeRequest(
   accessToken?: string,
   teamId?: string,
   accountId?: string,
-  method: string = 'post',
+  method = 'post',
 ): Promise<Response> {
-  if (base === undefined) {
-    base = sharedConfig.eaveApiBase;
-  }
-  const url = new URL(path, base).href;
+  const resolvedBase = base || sharedConfig.eaveApiBase;
+  const url = new URL(path, resolvedBase).href;
   const requestId = uuid4();
 
   const payload = JSON.stringify(input);
   const message = buildMessageToSign(
-    method, 
-    url, 
-    requestId, 
-    ORIGIN, 
-    input === undefined ? '' : JSON.stringify(input), 
-    teamId, 
-    accountId
+    method,
+    url,
+    requestId,
+    ORIGIN,
+    input === undefined ? '' : JSON.stringify(input),
+    teamId,
+    accountId,
   );
 
   const signature = await signBase64(
@@ -105,27 +103,22 @@ export async function makeRequest(
     headers,
   };
 
-  console.log('Eave internal API request', {
-    'json_fields': {
-      'request_id': requestId,
-      method,
-      url,
-    }
+  eaveLogger.info('Eave internal API request', {
+    request_id: requestId,
+    method,
+    url,
   });
 
   const response = await fetch(url, requestInit);
 
-  console.log(
-    'Eave internal API response',
-    {
-      'json_fields': {
-        'request_id': requestId,
-        method,
-        url,
-        'status': response.status,
-      }
+  eaveLogger.info(
+    'Eave internal API response', {
+      request_id: requestId,
+      method,
+      url,
+      status: response.status,
     },
-  )
+  );
 
   if (response.status >= 400) {
     switch (response.status) {

@@ -1,5 +1,4 @@
-import { Request } from "express";
-
+import { Response } from 'express';
 
 const SCOPE_KEY = 'eave_state';
 
@@ -14,23 +13,23 @@ export type EaveRequestState = {
   request_headers?: { [key: string]: string };
 }
 
-export function getEaveState(req: Request): EaveRequestState {
-  normalizeScope(req);
-  return <EaveRequestState>(<any>req)['extensions'][SCOPE_KEY];
+export function getEaveState(res: Response): EaveRequestState {
+  normalizeScope(res);
+  return <EaveRequestState>res.locals[SCOPE_KEY];
 }
 
-export function setEaveScope(req: Request, eaveState: EaveRequestState): void {
-  normalizeScope(req);
-  (<any>req)['extensions'][SCOPE_KEY] = eaveState;
+export function setEaveScope(res: Response, eaveState: EaveRequestState): void {
+  normalizeScope(res);
+  res.locals[SCOPE_KEY] = eaveState;
 }
 
 /**
- * Update the provided request with the scope extensions.
- * 
- * @param req request to add/edit extensions scope to
+ * Update the provided response.locals with the scope.
+ *
+ * @param res response to add/edit scope to
  */
-function normalizeScope(req: Request): void {
-  if ((<any>req)['extensions'] === undefined) {
-    (<any>req)['extensions'] = { [SCOPE_KEY]: {} };
+function normalizeScope(res: Response): void {
+  if (res.locals[SCOPE_KEY] === undefined) {
+    res.locals[SCOPE_KEY] = {};
   }
 }

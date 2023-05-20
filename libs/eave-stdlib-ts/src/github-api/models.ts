@@ -1,4 +1,3 @@
-
 // Source response object defined in Github API
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
 export type GithubRepository = {

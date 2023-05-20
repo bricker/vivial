@@ -1,14 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
-import { EaveRequestState, setEaveScope } from '../lib/request-state.js';
-import eaveHeaders from '../headers.js';
 import { v4 as uuid4 } from 'uuid';
-import { EaveOrigin } from '../eave-origins.js';
-import { BadRequestError } from '../exceptions.js';
+import { EaveRequestState, setEaveScope } from '../lib/request-state';
+import eaveHeaders from '../headers';
+import { EaveOrigin } from '../eave-origins';
+import { BadRequestError } from '../exceptions';
+import eaveLogger from '../logging';
 
 /**
- * Makes sure the eaveState is set on `req.extensions.SCOPE` for signature verification. 
+ * Makes sure the eaveState is set on `req.extensions.SCOPE` for signature verification.
  */
-export function requestIntegrity(req: Request, _: Response, next: NextFunction): void {
+export function requestIntegrity(req: Request, res: Response, next: NextFunction): void {
   const eaveState: EaveRequestState = {};
 
   const reqIdHeaderValue = req.header(eaveHeaders.EAVE_REQUEST_ID_HEADER);
@@ -30,7 +31,7 @@ export function requestIntegrity(req: Request, _: Response, next: NextFunction):
 
   eaveState.request_headers = {};
   const redactedHeaders = [eaveHeaders.EAVE_AUTHORIZATION_HEADER, eaveHeaders.EAVE_COOKIE_HEADER];
-  Object.keys(req.headers).forEach(headerName => {
+  Object.keys(req.headers).forEach((headerName) => {
     if (redactedHeaders.includes(headerName)) {
       eaveState.request_headers![headerName] = '[redacted]';
     } else {
@@ -39,8 +40,8 @@ export function requestIntegrity(req: Request, _: Response, next: NextFunction):
   });
 
   // save constructed eaveState for future middlewares
-  setEaveScope(req, eaveState);
+  setEaveScope(res, eaveState);
 
-  console.log(`Request: ${req.path}`, eaveState);
+  eaveLogger.info(`Request: ${req.path}`, eaveState);
   next();
 }

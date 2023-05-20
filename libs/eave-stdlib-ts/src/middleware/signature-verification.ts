@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveHeaders from '../headers.js';
-import { EaveRequestState, getEaveState } from '../lib/request-state.js';
-import { developmentBypassAllowed } from './development-bypass.js';
-import { buildMessageToSign } from '../lib/requests.js';
-import { getKey, verifySignatureOrException } from '../signing.js';
-import { HTTPException } from '../exceptions.js';
+import eaveHeaders from '../headers';
+import { EaveRequestState, getEaveState } from '../lib/request-state';
+import { developmentBypassAllowed } from './development-bypass';
+import { buildMessageToSign } from '../lib/requests';
+import { getKey, verifySignatureOrException } from '../signing';
+import { HTTPException } from '../exceptions';
+import eaveLogger from '../logging';
 
 /**
  * Reads the body and headers and verifies the signature.
@@ -13,12 +14,12 @@ import { HTTPException } from '../exceptions.js';
  */
 export async function signatureVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (developmentBypassAllowed(req)) {
-    console.warn('Bypassing signature verification in dev environment');
+    eaveLogger.warn('Bypassing signature verification in dev environment');
     next();
   }
 
-  const body = req.body;
-  const eaveState = getEaveState(req);
+  const { body } = req;
+  const eaveState = getEaveState(res);
   if (doSignatureVerification(req, res, body, eaveState)) {
     next();
   }
@@ -38,20 +39,20 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, eave
   const origin = eaveState.eave_origin!;
 
   const message = buildMessageToSign(
-    req.method, 
-    `${req.protocol}://${req.headers.host}${req.originalUrl}`, // reconstruct full request url 
-    eaveState.request_id!, 
-    origin, 
-    body.toString('utf8'), 
-    teamId, 
-    accountId
+    req.method,
+    `${req.protocol}://${req.headers.host}${req.originalUrl}`, // reconstruct full request url
+    eaveState.request_id!,
+    origin,
+    body.toString('utf8'),
+    teamId,
+    accountId,
   );
 
   const signingKey = getKey(origin);
 
   try {
     verifySignatureOrException(signingKey, message, signature);
-  } catch(error: any) {
+  } catch (error) {
     const eaveError = <HTTPException>error;
     res.statusMessage = error.message;
     res.status(eaveError.statusCode).end();

@@ -176,7 +176,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	)
 
-	function run-in-all-projects() {
+	function run-in-all-projects() (
 		if test -z "$1"; then
 			statusmsg -e "Usage: run-in-all-projects bin/lint"
 			exit 1
@@ -192,7 +192,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			run-in-path "$dir" "$cmd"
 			echo -e "\n"
 		done
-	}
+	)
 
 	function get-os() {
 		local kernel=$(get-kernel-name)
@@ -280,13 +280,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function run-with-dotenv() {
+	function run-with-dotenv() (
 		python-validate-version
 		python-activate-venv
 		PYTHONPATH=. python -m dotenv --file $EAVE_HOME/.env run --no-override -- "$@"
-	}
+	)
 
-	function run-appengine-dev-server() {
+	function run-appengine-dev-server() (
 		statusmsg -i "This script requires the gcloud SDK to be installed and in your path"
 		statusmsg -i "Additionally, a python2 program must be installed and in your PATH."
 		statusmsg -i "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"

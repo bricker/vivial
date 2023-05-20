@@ -1,5 +1,6 @@
 {
   "name": "@eave-fyi/eslint-config",
+  "version": "0.1.0",
   "type": "commonjs",
   "engines": {
     "node": "18",
