@@ -1,29 +1,29 @@
-import Bluebird from 'bluebird';
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
-import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations.js';
-import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
+import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai';
+import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client';
+import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations';
+import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
 import { GitHubOperationsContext } from '../types';
-import * as GraphQLUtil from '../lib/graphql-util.js';
+import * as GraphQLUtil from '../lib/graphql-util';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
-  console.info('Processing push', event, context);
+  eaveLogger.debug('Processing push', event, context);
 
   // only handling branch push events for now; ignore tag pushes
   if (!event.ref.startsWith('refs/heads/')) {
-    console.log(`Ignoring event with ref ${event.ref}`);
+    eaveLogger.debug(`Ignoring event with ref ${event.ref}`);
     return;
   }
 
   // TODO: This event only contains a maximum of 20 commits. Additional commits need to be fetched from the API.
   // Also, this event is not triggered when more than 3 tags are pushed.
   // https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#push
-  await Bluebird.all(event.commits.map(async (eventCommit) => {
+  await Promise.all(event.commits.map(async (eventCommit) => {
     const modifiedFiles = Array.from(new Set([...eventCommit.added, ...eventCommit.removed, ...eventCommit.modified]));
 
-    await Bluebird.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
+    await Promise.all(modifiedFiles.map(async (eventCommitTouchedFilename) => {
       const branchName = event.ref.replace('refs/heads/', '');
       // b64 encode since our chosen ID delimiter '#' is a valid character in file paths and branch names
       const resourceId = Buffer.from(`${branchName}/${eventCommitTouchedFilename}`).toString('base64');
@@ -43,7 +43,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const eaveTeamId = teamResponse.team.id;
 
       // check if we are subscribed to this file
-      let subscriptionResponse: eaveOps.GetSubscription.ResponseBody | null = null;
+      let subscriptionResponse: eaveOps.GetSubscriptionResponseBody | null = null;
       try {
         subscriptionResponse = await eaveCoreApiClient.getSubscription(eaveTeamId, {
           subscription: {
@@ -56,7 +56,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         });
       } catch (error) {
         // TODO: only catch 404?
-        console.log(error);
+        eaveLogger.error(error);
         // return;
       }
 
@@ -140,7 +140,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       );
 
       // TODO: real logging
-      console.log(upsertDocumentResponse);
+      eaveLogger.debug(upsertDocumentResponse);
     }));
   }));
 }

@@ -1,13 +1,13 @@
 import express from 'express';
-import { Status } from './core-api/operations';
-import { sharedConfig } from './config.js';
+import { StatusResponseBody } from './core-api/operations';
+import { sharedConfig } from './config';
 
-export function statusPayload(): Status.ResponseBody {
+export function statusPayload(): StatusResponseBody {
   return {
-    "service": sharedConfig.appService,
-    "version": sharedConfig.appVersion,
-    "status": "OK",
-  }
+    service: sharedConfig.appService,
+    version: sharedConfig.appVersion,
+    status: 'OK',
+  };
 }
 
 export const standardEndpointsRouter = express.Router();

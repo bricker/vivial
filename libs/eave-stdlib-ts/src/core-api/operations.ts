@@ -26,90 +26,72 @@ export type GithubInstallationInput = {
   github_install_id: string;
 }
 
-export namespace UpsertDocument {
-  export type RequestBody = {
-    document: DocumentInput;
-    subscriptions: Array<models.Subscription>;
-  }
-  export type ResponseBody = {
-    team: models.Team;
-    subscriptions: Array<models.Subscription>;
-    document_reference: models.DocumentReference;
-  }
+export type UpsertDocumentRequestBody = {
+  document: DocumentInput;
+  subscriptions: Array<models.Subscription>;
+}
+export type UpsertDocumentResponseBody = {
+  team: models.Team;
+  subscriptions: Array<models.Subscription>;
+  document_reference: models.DocumentReference;
 }
 
-export namespace Status {
-  export type ResponseBody = {
-    service: string;
-    version: string;
-    status: string;
-  }
+export type StatusResponseBody = {
+  service: string;
+  version: string;
+  status: string;
 }
 
-export namespace CreateAccessRequest {
-  export type RequestBody = {
-    visitor_id?: string;
-    email: string;
-    opaque_input?: unknown;
-  }
+export type CreateAccessRequestRequestBody = {
+  visitor_id?: string;
+  email: string;
+  opaque_input?: unknown;
 }
 
-export namespace GetSubscription {
-  export type RequestBody = {
-    subscription: SubscriptionInput;
-  }
-
-  export type ResponseBody = {
-    team: models.Team;
-    subscription: models.Subscription;
-    document_reference?: models.DocumentReference;
-  }
+export type GetSubscriptionRequestBody = {
+  subscription: SubscriptionInput;
 }
 
-export namespace CreateSubscription {
-  export type RequestBody = {
-    subscription: SubscriptionInput;
-    document_reference?: DocumentReferenceInput;
-  }
-
-  export type ResponseBody = {
-    team: models.Team;
-    subscription: models.Subscription;
-    document_reference?: models.DocumentReference;
-  }
+export type GetSubscriptionResponseBody = {
+  team: models.Team;
+  subscription: models.Subscription;
+  document_reference?: models.DocumentReference;
 }
 
-export namespace GetSlackInstallation {
-  export type RequestBody = {
-    slack_installation: SlackInstallationInput;
-  }
-
-  export type ResponseBody = {
-    team: models.Team;
-    slack_installation: models.SlackInstallation;
-  }
+export type CreateSubscriptionRequestBody = {
+  subscription: SubscriptionInput;
+  document_reference?: DocumentReferenceInput;
 }
 
-export namespace GetGithubInstallation {
-  export type RequestBody = {
-    github_installation: GithubInstallationInput;
-  }
-
-  export type ResponseBody = {
-    team: models.Team;
-    github_installation: models.GithubInstallation;
-  }
+export type CreateSubscriptionResponseBody = {
+  team: models.Team;
+  subscription: models.Subscription;
+  document_reference?: models.DocumentReference;
 }
 
-export namespace DeleteSubscription {
-  export type RequestBody = {
-    subscription: SubscriptionInput;
-  }
+export type GetSlackInstallationRequestBody = {
+  slack_installation: SlackInstallationInput;
 }
 
-export namespace GetTeam {
-  export type ResponseBody = {
-    team: models.Team;
-    integrations: models.Integrations;
-  }
+export type GetSlackInstallationResponseBody = {
+  team: models.Team;
+  slack_installation: models.SlackInstallation;
+}
+
+export type GetGithubInstallationRequestBody = {
+  github_installation: GithubInstallationInput;
+}
+
+export type GetGithubInstallationResponseBody = {
+  team: models.Team;
+  github_installation: models.GithubInstallation;
+}
+
+export type DeleteSubscriptionRequestBody = {
+  subscription: SubscriptionInput;
+}
+
+export type GetTeamResponseBody = {
+  team: models.Team;
+  integrations: models.Integrations;
 }

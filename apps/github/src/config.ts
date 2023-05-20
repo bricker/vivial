@@ -1,4 +1,4 @@
-import { EaveConfig } from '@eave-fyi/eave-stdlib-ts/src/config.js';
+import { EaveConfig } from '@eave-fyi/eave-stdlib-ts/src/config';
 
 class AppConfig extends EaveConfig {
   eaveGithubAppId = '300560';

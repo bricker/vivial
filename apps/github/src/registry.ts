@@ -1,4 +1,5 @@
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
 import { GitHubOperationsContext } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,7 +9,7 @@ const registry: { [key:string]: HandlerFunction } = {};
 
 export function registerHandler(name: string, func: HandlerFunction) {
   registry[name] = func.bind(null);
-  console.info('Registered github event handler', name);
+  eaveLogger.debug('Registered github event handler', name);
 }
 
 export function getHandler(name: string): HandlerFunction | undefined {

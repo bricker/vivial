@@ -3,4 +3,4 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-run-with-dotenv python -i repl.py
+run-with-dotenv python -i bin/repl.py
