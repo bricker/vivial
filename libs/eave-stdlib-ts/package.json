@@ -1,5 +1,6 @@
 {
   "name": "@eave-fyi/eave-stdlib-ts",
+  "version": "0.1.0",
   "engines": {
     "node": "18",
     "npm": "9"

@@ -9,3 +9,4 @@ vendor/
 build/
 .cloudsqlproxy
 .ruff_cache
+.yalc

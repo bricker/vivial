@@ -143,14 +143,6 @@ export async function verifySignatureOrException(
   message: string | Buffer,
   signature: string | Buffer,
 ): Promise<boolean> {
-  let messageBytes: Buffer;
-  if (typeof message === 'string') {
-    // this byte encoding must match the python `bytes` type in order
-    // to not break signing validation in the python core_api middleware
-    messageBytes = Buffer.from(message, 'utf8');
-  } else {
-    messageBytes = message;
-  }
   let signatureString: string;
   if (typeof signature === 'string') {
     signatureString = signature;
@@ -168,8 +160,6 @@ export async function verifySignatureOrException(
     signingKey.version,
   );
 
-  const digest = crypto.createHash('sha256').update(messageBytes).digest();
-
   const [kmsPublicKey] = await kmsClient.getPublicKey({
     name: keyVersionName
   });
@@ -179,29 +169,27 @@ export async function verifySignatureOrException(
   }
 
   let isVerified = false;
-  let signatureVerification;
 
   switch (signingKey.algorithm) {
-    case SigningAlgorithm.RS256:
-      signatureVerification = crypto.createVerify('sha256');
-      signatureVerification.update(digest);
-      signatureVerification.end();
-      isVerified = signatureVerification.verify(
-        kmsPublicKey.pem,
+    case SigningAlgorithm.RS256: {
+      const verify = crypto.createVerify('RSA-SHA256');
+      verify.update(message);
+      verify.end();
+      isVerified = verify.verify(
+        { key: kmsPublicKey.pem, padding: crypto.constants.RSA_PKCS1_PADDING },
         signatureString,
         'base64',
       );
       break;
-    case SigningAlgorithm.ES256:
-      signatureVerification = crypto.createVerify('sha256');
-      signatureVerification.update(digest);
-      signatureVerification.end();
-      isVerified = signatureVerification.verify(
-        kmsPublicKey.pem,
-        signatureString,
-        'base64',
-      );
+    }
+    case SigningAlgorithm.ES256: {
+      // Algorithm for our keys is EC_SIGN_P256_SHA256
+      const verify = crypto.createVerify('sha256');
+      verify.update(message);
+      verify.end();
+      isVerified = verify.verify(kmsPublicKey.pem, signatureString, 'base64');
       break;
+    }
     default:
       throw new InvalidSignatureError(`Unsupported algorithm: ${signingKey.algorithm}`);
   }
