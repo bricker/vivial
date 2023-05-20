@@ -128,7 +128,7 @@ const Steps = () => {
   const { teamInfo } = userState;
   const [step, setStep] = useState(0);
   // placeholder until flow is integrated
-  const [appInstalled, setAppInstalled] = useState(true);
+  const [appInstalled, setAppInstalled] = useState(false);
 
   useEffect(() => {
     if (!appInstalled) {
