@@ -54,7 +54,7 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, eave
     verifySignatureOrException(signingKey, message, signature);
   } catch (error) {
     const eaveError = <HTTPException>error;
-    res.statusMessage = error.message;
+    res.statusMessage = eaveError.message;
     res.status(eaveError.statusCode).end();
     return false;
   }

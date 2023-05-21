@@ -1,10 +1,8 @@
 {
   "extends": "./node_modules/@eave-fyi/eslint-config/tsconfig.json",
   "compilerOptions": {
-    "module": "ES2020",
-    "moduleResolution": "node"
   },
   "include": [
-    "src/*"
+    "src/**/*"
   ]
 }

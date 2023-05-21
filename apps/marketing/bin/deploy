@@ -6,6 +6,6 @@ bin/lint
 bin/test
 
 rm -rf eave/marketing/static/dist
-npx webpack --mode=production --no-devtool
+npx webpack build --mode=production --no-devtool
 
 ${EAVE_HOME}/develop/python/bin/deploy-appengine

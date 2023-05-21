@@ -7,7 +7,8 @@
   },
   "type": "module",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "prepare": "tsc --project ."
   },
   "dependencies": {
     "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript",
@@ -40,7 +41,8 @@
     "nodemon": "2.x",
     "sinon": "15.x",
     "ts-node": "10.x",
-    "typescript": "4.x"
+    "typescript": "4.x",
+    "request": "2.x"
   },
   "ava": {
     "extensions": {

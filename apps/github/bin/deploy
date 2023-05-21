@@ -4,9 +4,6 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-bin/lint
-bin/test
-
 function deploy () (
 	setup-deployment-workspace
 
@@ -15,7 +12,8 @@ function deploy () (
 		qflag=""
 	fi
 
-	npm ci
+	# Remove references to the monorepo packages
+	npm prune
 
 	# yalc publish [path] only accepts relative paths
 	yalc publish ../../libs/eave-stdlib-ts --replace $qflag
@@ -28,10 +26,9 @@ function deploy () (
 	# https://github.com/wclr/yalc/blob/ff35865652f54519d4f6da101c83c43c2277b268/src/yalc.ts#L166
 	yalc add @eave-fyi/eslint-config $qflag
 
-	# Remove references to the monorepo packages
-	npm prune
-
 	${EAVE_HOME}/develop/shared/bin/deploy-appengine
 )
 
+bin/lint
+bin/test
 deploy

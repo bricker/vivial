@@ -1,7 +1,8 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
+  devtool: 'eval-source-map',
   entry: path.join(__dirname, 'src/app.ts'),
   target: 'node18',
   module: {

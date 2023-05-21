@@ -1,5 +1,5 @@
 import express from 'express';
-import eaveLogger from '@eave-fyi/eaave-stdlib-ts/src/logging';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
 import { standardEndpointsRouter } from '@eave-fyi/eave-stdlib-ts/src/api-util';
 import { signatureVerification } from '@eave-fyi/eave-stdlib-ts/src/middleware/signature-verification';
 import { requestIntegrity } from '@eave-fyi/eave-stdlib-ts/src/middleware/request-integrity';
