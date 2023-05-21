@@ -4,6 +4,8 @@ import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { Octokit } from 'octokit';
 import fetch from 'node-fetch';
 import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
+import { loadQuery } from '../lib/graphql-util.js';
+import { Query, Repository, Scalars } from '@octokit/graphql-schema';
 
 export async function getSummary(req: Request, res: Response): Promise<void> {
   const requestBody = (<Buffer>req.body).toString();
@@ -40,6 +42,30 @@ async function getFileContent(client: Octokit, url: string): Promise<string | nu
   }
 }
 
+async function getResourceByUrl(client: Octokit, url: string): Promise<Repository | null> {
+  const query = await loadQuery('getResource');
+  const variables: {
+    url: Scalars['String'],
+  } = {
+    url,
+  };
+
+  const response = await client.graphql<{ resource: Query['resource'] }>(query, variables);
+  if (!response.resource) {
+    // Invalid URL
+    return null;
+  }
+
+  // FIXME: This is not guaranteed to be a Repository
+  const repository = <Repository>response.resource;
+  if (!repository.owner?.login || !repository.name) {
+    // Invalid response
+    return null;
+  }
+
+  return repository;
+}
+
 /**
  * Fetch github file content from `url` using the raw.githubusercontent.com feature
  * Returns null if `url` is not a path to a file (or if some other error was encountered).
@@ -49,15 +75,42 @@ async function getFileContent(client: Octokit, url: string): Promise<string | nu
  */
 async function getRawContent(client: Octokit, url: string): Promise<string | null> {
   const urlComponents = new URL(url);
-  // remove blob from URL since raw content URLs dont have it
-  const contentLocation = urlComponents.pathname.replace('blob/', '');
-  let rawUrl = '';
-  // check if enterprise host
-  if (!(urlComponents.hostname.match(/github\.com/))) {
-    rawUrl = `https://${urlComponents.hostname}/raw`;
-  } else {
-    rawUrl = 'https://raw.githubusercontent.com';
-  }
+
+  const normalizedUrl = url.replace('/(.+?)/(.+?)/blob/', '/\\1/\\2/tree/')
+
+  const resource = await getResourceByUrl(client, normalizedUrl);
+
+  // replace "blob" with "tree", because the `resource` query doesn't recognize blob URLs.
+  // const contentLocation = urlComponents.pathname.replace('blob/', '');
+
+  // let rawUrl = '';
+  // // check if enterprise host
+  // if (!(urlComponents.hostname.match(/github\.com/))) {
+  //   rawUrl = `https://${urlComponents.hostname}/raw`;
+  // } else {
+  //   rawUrl = 'https://raw.githubusercontent.com';
+  // }
+
+    const refsQuery = await loadQuery('getRefs');
+
+    const variables: {
+      repoOwner: Scalars['String'],
+      repoName: Scalars['String'],
+      refPrefix: Scalars['String'],
+      query: Scalars['String']
+    } = {
+      repoOwner: event.repository.owner.name!,
+      repoName: event.repository.name,
+      commitOid: eventCommit.id,
+      filePath: eventCommitTouchedFilename,
+    };
+
+    const fileContentsResponse = await context.octokit.graphql<{ repository: Query['repository'] }>(query, variables);
+    const fileContentsRepository = <Repository>fileContentsResponse.repository!;
+    const fileContentsCommit = <Commit>fileContentsRepository.object!;
+    const fileContentsTreeEntry = <TreeEntry>fileContentsCommit.file!;
+    const fileContentsBlob = <Blob>fileContentsTreeEntry.object!;
+    const fileContents = fileContentsBlob.text!;
 
   const requestUrl = `${rawUrl}${contentLocation}`;
 

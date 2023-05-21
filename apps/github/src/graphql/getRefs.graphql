@@ -1,0 +1,12 @@
+query ($repoOwner: String!, $repoName: String!, $query: String!, $refPrefix: String!) {
+  repository(owner: $repoOwner, name: $repoName) {
+    refs(
+      first: 10
+      orderBy: { direction: DESC, field: TAG_COMMIT_DATE }
+      refPrefix: $refPrefix
+      query: $query
+    ) {
+      name
+    }
+  }
+}

@@ -1,6 +1,6 @@
-import { CommentedIssueEventPayload, ContentType } from './types';
-import { addComment } from './lib/jira-api';
-// import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, SubscriptionSourcePlatform } from './lib/core-api';
+import { CommentedIssueEventPayload, ContentType } from './types.js';
+import { addComment } from './lib/jira-api.js';
+// import coreApiClient, { SubscriptionSource, SubscriptionSourceEvent, SubscriptionSourcePlatform } from './lib/core-api.js';
 
 export const run = async (payload: CommentedIssueEventPayload) => {
   console.debug(payload.eventType);
