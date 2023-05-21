@@ -18,7 +18,7 @@ export function getEaveState(res: Response): EaveRequestState {
   return <EaveRequestState>res.locals[SCOPE_KEY];
 }
 
-export function setEaveScope(res: Response, eaveState: EaveRequestState): void {
+export function setEaveState(res: Response, eaveState: EaveRequestState): void {
   normalizeScope(res);
   res.locals[SCOPE_KEY] = eaveState;
 }

@@ -1,6 +1,6 @@
-import * as ops from './operations';
-import { makeRequest } from '../lib/requests';
-import { sharedConfig } from '../config';
+import * as ops from './operations.js';
+import { makeRequest } from '../lib/requests.js';
+import { sharedConfig } from '../config.js';
 
 export async function createSubscription(
   teamId: string,

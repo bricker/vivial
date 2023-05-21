@@ -1,36 +1,44 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveHeaders from '../headers';
-import { EaveRequestState, getEaveState } from '../lib/request-state';
-import { developmentBypassAllowed } from './development-bypass';
-import { buildMessageToSign } from '../lib/requests';
-import { getKey, verifySignatureOrException } from '../signing';
-import { HTTPException } from '../exceptions';
-import eaveLogger from '../logging';
+import eaveHeaders from '../headers.js';
+import { getEaveState } from '../lib/request-state.js';
+import { developmentBypassAllowed } from './development-bypass.js';
+import { buildMessageToSign } from '../lib/requests.js';
+import { getKey, verifySignatureOrException } from '../signing.js';
+import { HTTPException } from '../exceptions.js';
+import eaveLogger from '../logging.js';
 
 /**
  * Reads the body and headers and verifies the signature.
  * Note that this middleware necessarily blocks the request until the full body is received,
  * so that it can calculate the expected signature and compare it to the provided signature.
  */
-export async function signatureVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
-  if (developmentBypassAllowed(req)) {
-    eaveLogger.warn('Bypassing signature verification in dev environment');
-    next();
-  }
+export function signatureVerification(baseUrl: string): ((req: Request, res: Response, next: NextFunction) => void) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (developmentBypassAllowed(req)) {
+      eaveLogger.warn('Bypassing signature verification in dev environment');
+      next();
+      return;
+    }
 
-  const { body } = req;
-  const eaveState = getEaveState(res);
-  if (doSignatureVerification(req, res, body, eaveState)) {
-    next();
-  }
+    const { body } = req;
+    if (doSignatureVerification(req, res, body, baseUrl)) {
+      next();
+    } else {
+      const eaveState = getEaveState(res);
+      eaveLogger.warn('signature validation failed', eaveState);
+      res.status(400).end();
+      return;
+    }
+  };
 }
 
-function doSignatureVerification(req: Request, res: Response, body: Buffer, eaveState: EaveRequestState): boolean {
+function doSignatureVerification(req: Request, res: Response, body: Buffer, baseUrl: string): boolean {
+  const eaveState = getEaveState(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    res.statusMessage = 'Missing Eave signature header';
-    res.status(401).end();
+    eaveLogger.warn('Missing Eave signature header', eaveState);
+    res.status(400).end();
     return false;
   }
 
@@ -40,7 +48,7 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, eave
 
   const message = buildMessageToSign(
     req.method,
-    `${req.protocol}://${req.headers.host}${req.originalUrl}`, // reconstruct full request url
+    `${baseUrl}${req.originalUrl}`,
     eaveState.request_id!,
     origin,
     body.toString('utf8'),
@@ -54,7 +62,7 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, eave
     verifySignatureOrException(signingKey, message, signature);
   } catch (error) {
     const eaveError = <HTTPException>error;
-    res.statusMessage = eaveError.message;
+    eaveLogger.error(eaveError);
     res.status(eaveError.statusCode).end();
     return false;
   }

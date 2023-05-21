@@ -2,7 +2,6 @@
   "name": "@eave-fyi/eave-pubsub-schemas",
   "version": "0.1.0",
   "scripts": {
-    "prepare": "tsc --project ."
   },
   "dependencies": {
     "@eave-fyi/eslint-configs": "file:../../../develop/javascript/eslint",

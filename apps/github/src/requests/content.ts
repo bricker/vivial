@@ -1,20 +1,22 @@
 import { Request, Response } from 'express';
-import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
+import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { Octokit } from 'octokit';
 import fetch from 'node-fetch';
-import { getInstallationId, createOctokitClient } from '../lib/octokit-util';
+import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 
 export async function getSummary(req: Request, res: Response): Promise<void> {
   const requestBody = (<Buffer>req.body).toString();
   const input = <GetGithubUrlContentRequestBody>JSON.parse(requestBody);
-  if (!(input.url)) {
+  if (!input.url) {
+    eaveLogger.error('Invalid input');
     res.status(400).end();
     return;
   }
 
   const installationId = await getInstallationId(input.eaveTeamId);
   if (installationId === null) {
+    eaveLogger.error('missing github installation id');
     res.status(500).end();
     return;
   }
@@ -33,7 +35,6 @@ async function getFileContent(client: Octokit, url: string): Promise<string | nu
   try {
     return getRawContent(client, url);
   } catch (error) {
-    // TODO: logger?
     eaveLogger.error(error);
     return null;
   }
@@ -76,6 +77,7 @@ async function getRawContent(client: Octokit, url: string): Promise<string | nul
 
   const fileContent = <string> await result.json();
   if (fileContent === '404: Not Found') {
+    eaveLogger.warning(`file not found: ${requestUrl}`);
     return null;
   }
   return fileContent;

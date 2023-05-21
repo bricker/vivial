@@ -1,6 +1,3 @@
 {
-  "extends": "./node_modules/@eave-fyi/eslint-config/tsconfig.json",
-  "compilerOptions": {
-    "outDir": "dist"
-  }
+  "extends": "./node_modules/@eave-fyi/eslint-config/tsconfig.json"
 }
