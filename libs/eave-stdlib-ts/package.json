@@ -7,8 +7,7 @@
   },
   "type": "module",
   "scripts": {
-    "test": "ava",
-    "prepare": "tsc --project ."
+    "test": "ava"
   },
   "dependencies": {
     "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript",

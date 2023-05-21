@@ -68,14 +68,15 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "./src/app.ts",
+      "program": "${workspaceFolder}/apps/github/src/app.ts",
       "restart": true,
+      "args": [],
       "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
       "consoleTitle": "GitHub App API",
+      "console": "integratedTerminal",
       "env": {
         "PORT": "5300"
       },
-      "console": "integratedTerminal"
     },
     {
       "name": "Marketing Website (Server)",

@@ -1,12 +1,12 @@
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai';
-import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client';
-import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations';
-import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
-import { GitHubOperationsContext } from '../types';
-import * as GraphQLUtil from '../lib/graphql-util';
+import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
+import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations.js';
+import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { GitHubOperationsContext } from '../types.js';
+import * as GraphQLUtil from '../lib/graphql-util.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   eaveLogger.debug('Processing push', event, context);

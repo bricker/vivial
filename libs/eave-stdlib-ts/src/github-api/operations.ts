@@ -1,4 +1,4 @@
-import { Subscription } from '../core-api/models';
+import { Subscription } from '../core-api/models.js';
 
 export type GetGithubUrlContentRequestBody = {
   eaveTeamId: string;

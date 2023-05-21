@@ -1,3 +1,5 @@
+// Express lowercases all header names, so these should all be lowercased.
+
 export default {
   EAVE_TEAM_ID_HEADER: 'eave-team-id',
   EAVE_ACCOUNT_ID_HEADER: 'eave-account-id',
@@ -12,5 +14,5 @@ export default {
   It works because Google removes all "X-Google-*" headers on incoming requests, so if this header
   is present, we can be reasonably sure that this is a development machine.
   */
-  EAVE_DEV_BYPASS_HEADER: 'X-Google-EAVEDEV',
+  EAVE_DEV_BYPASS_HEADER: 'x-google-eavedev',
 };

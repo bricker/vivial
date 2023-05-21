@@ -46,7 +46,7 @@ export class EaveConfig {
   }
 
   get logLevel(): string {
-    return process.env['LOG_LEVEL'] || 'INFO';
+    return (process.env['LOG_LEVEL'] || 'INFO').toLowerCase();
   }
 
   get appService(): string {

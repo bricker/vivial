@@ -16,6 +16,7 @@ handlers:
 - url: /_ah/.*
   login: admin
   script: auto
+  auth_fail_action: unauthorized
 
 - url: .*
   secure: always
@@ -23,5 +24,6 @@ handlers:
   script: auto
 
 env_variables:
-  EAVE_API_BASE: "https://api.eave.fyi"
   EAVE_MONITORING_ENABLED: "1"
+  EAVE_ANALYTICS_ENABLED: "1"
+  LOG_LEVEL: debug

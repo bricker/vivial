@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
-import { sharedConfig } from '../config';
-import * as ops from './operations';
-import { makeRequest } from '../lib/requests';
+import { sharedConfig } from '../config.js';
+import * as ops from './operations.js';
+import { makeRequest } from '../lib/requests.js';
 
 export async function status(): Promise<ops.StatusResponseBody> {
   const resp = await fetch(`${sharedConfig.eaveApiBase}/status`, {

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
-import * as Registry from './registry';
-import { appConfig } from './config';
-import pushHandler from './events/push';
-import { createAppClient } from './lib/octokit-util';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import * as Registry from './registry.js';
+import { appConfig } from './config.js';
+import pushHandler from './events/push.js';
+import { createAppClient } from './lib/octokit-util.js';
 
 Registry.registerHandler('push', pushHandler);
 

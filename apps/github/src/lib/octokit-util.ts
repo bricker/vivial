@@ -1,6 +1,6 @@
 import { App, Octokit } from 'octokit';
-import * as eaveClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client';
-import { appConfig } from '../config';
+import * as eaveClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
+import { appConfig } from '../config.js';
 
 export async function createOctokitClient(installationId: number): Promise<Octokit> {
   const app = await createAppClient();

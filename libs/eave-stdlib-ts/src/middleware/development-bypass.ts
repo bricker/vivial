@@ -1,16 +1,16 @@
 import os from 'os';
 import { Request } from 'express';
-import eaveLogger from '../logging';
-import { sharedConfig } from '../config';
-import eaveHeaders from '../headers';
-import { EaveRequestState } from '../lib/request-state';
+import eaveLogger from '../logging.js';
+import { sharedConfig } from '../config.js';
+import eaveHeaders from '../headers.js';
+import { EaveRequestState } from '../lib/request-state.js';
 
 export function developmentBypassAllowed(req: Request): boolean {
   if (!sharedConfig.devMode || sharedConfig.googleCloudProject === 'eave-production') {
     return false;
   }
 
-  const devHeader = req.headers[eaveHeaders.EAVE_DEV_BYPASS_HEADER];
+  const devHeader = req.header(eaveHeaders.EAVE_DEV_BYPASS_HEADER);
   if (devHeader === undefined) {
     return false;
   }
@@ -26,7 +26,7 @@ export function developmentBypassAllowed(req: Request): boolean {
 export function developmentBypassAuth(req: Request, eaveState: EaveRequestState): void {
   eaveLogger.warn('Bypassing auth verification in dev env');
 
-  const accountId = req.headers[eaveHeaders.EAVE_AUTHORIZATION_HEADER];
+  const accountId = req.header(eaveHeaders.EAVE_AUTHORIZATION_HEADER);
   if (accountId === undefined || typeof accountId !== 'string') {
     throw new Error('Authorization header was empty');
   }
