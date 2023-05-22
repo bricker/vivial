@@ -67,7 +67,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         eaveLogger.debug("ignoring bot message", extra=extra)
         return
 
-    b = eave.slack.brain.Brain(message=message, slack_context=context, eave_team=eave_team)
+    b = eave.slack.brain.Brain(message=message, eave_team=eave_team)
 
     try:
         await b.process_message()

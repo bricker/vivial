@@ -38,13 +38,11 @@ class Brain:
     log_extra: JsonObject
     message_action: Optional[message_prompts.MessageAction] = None
 
-    def __init__(
-        self, message: slack_models.SlackMessage, slack_context: AsyncBoltContext, eave_team: eave_models.Team
-    ) -> None:
+    def __init__(self, message: slack_models.SlackMessage, eave_team: eave_models.Team) -> None:
         self.message = message
         self.eave_team = eave_team
-        self.slack_context = slack_context
-        self.log_extra = log_context(slack_context)
+        self.slack_context = message._ctx._context  # FIXME: Make the AsyncBoltContext public
+        self.log_extra = log_context(self.slack_context)
         self.analytics_extra = {
             "integration": eave.stdlib.core_api.enums.Integration.slack.value,
             "message_content": self.message.text,

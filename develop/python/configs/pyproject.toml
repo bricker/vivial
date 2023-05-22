@@ -9,6 +9,7 @@ extend-exclude = '''
   | __pycache__
   | \\.mypy_cache
   | build
+  | \\.build
 )
 '''
 line-length = 120
@@ -24,6 +25,7 @@ exclude = [
   "__pycache__",
   ".mypy_cache",
   "build",
+  ".build"
 ]
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -56,13 +58,20 @@ norecursedirs = [
   "__pycache__",
   ".mypy_cache",
   "build",
+  ".build"
 ]
 
 [tool.ruff]
 line-length = 1000
 extend-exclude = [
   "generated",
+  ".git",
+  ".venv",
   "__pycache__",
-  "vendor"
+  ".mypy_cache",
+  "node_modules",
+  "vendor",
+  ".build",
+  "build"
 ]
 ignore-init-module-imports = true
