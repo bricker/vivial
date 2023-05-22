@@ -1,5 +1,5 @@
-query ($url: String!) {
-  resource(url: $url) {
+query ($resourceUrl: URI!) {
+  resource(url: $resourceUrl) {
     ...on Repository {
       owner { login }
       name
