@@ -5,6 +5,8 @@ import aiohttp
 import urllib.parse
 from http import HTTPStatus
 
+from eave.stdlib.util import redact
+
 from . import exceptions as eave_exceptions
 from . import headers as eave_headers
 from . import signing
@@ -22,15 +24,13 @@ def set_origin(origin: eave_origins.EaveOrigin) -> None:
 
 
 async def make_request(
-    path: str,
+    url: str,
     input: Optional[pydantic.BaseModel],
-    base: Optional[str] = None,
     method: str = "POST",
     access_token: Optional[str] = None,
     team_id: Optional[uuid.UUID] = None,
     account_id: Optional[uuid.UUID] = None,
 ) -> aiohttp.ClientResponse:
-    url = makeurl(path, base)
     request_id = str(uuid.uuid4())
 
     headers = {
@@ -67,11 +67,14 @@ async def make_request(
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
     eaveLogger.info(
-        f"Eave internal API request ({request_id})",
+        f"Eave Client Request: {request_id}: {method} {url}",
         extra={
             "json_fields": {
+                "signature": redact(signature),
+                "access_token": redact(access_token),
                 "origin": _ORIGIN.value,
                 "team_id": str(team_id),
+                "account_id": str(account_id),
                 "request_id": request_id,
                 "method": method,
                 "url": url,
@@ -88,11 +91,14 @@ async def make_request(
         )
 
     eaveLogger.info(
-        f"Eave internal API response ({request_id})",
+        f"Eave Client Response: {request_id}: {method} {url}",
         extra={
             "json_fields": {
+                "signature": redact(signature),
+                "access_token": redact(access_token),
                 "origin": _ORIGIN.value,
                 "team_id": str(team_id),
+                "account_id": str(account_id),
                 "request_id": request_id,
                 "method": method,
                 "url": url,
@@ -114,7 +120,7 @@ async def make_request(
             case HTTPStatus.INTERNAL_SERVER_ERROR:
                 raise eave_exceptions.InternalServerError(request_id=request_id)
             case _:
-                raise eave_exceptions.HTTPException(status_code=e.status) from e
+                raise eave_exceptions.HTTPException(status_code=e.status)
 
     return response
 

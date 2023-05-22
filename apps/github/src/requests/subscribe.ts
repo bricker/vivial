@@ -5,20 +5,34 @@ import * as eaveClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
 import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types.js';
 import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
+import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 
 export async function subscribe(req: Request, res: Response): Promise<void> {
+  const eaveState = getEaveState(res);
+
+  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER);
+  if (!eaveTeamId) {
+    eaveLogger.error('Missing eave-team-id header', eaveState);
+    res.status(400).end();
+    return;
+  }
+
   const requestBody = (<Buffer>req.body).toString();
   const input = <CreateGithubResourceSubscriptionRequestBody>JSON.parse(requestBody);
-  if (!(input.eaveTeamId && input.url)) {
+  if (!input.url) {
+    eaveLogger.error('Missing input.url', eaveState);
     res.status(400).end();
     return;
   }
 
   let output: CreateGithubResourceSubscriptionResponseBody;
 
-  const instllationId = await getInstallationId(input.eaveTeamId);
+  const instllationId = await getInstallationId(eaveTeamId);
   if (instllationId === null) {
+    eaveLogger.error('installation ID not found', eaveState);
     res.status(500).end();
     return;
   }
@@ -38,7 +52,7 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
   const platform = SubscriptionSourcePlatform.github;
   const event = SubscriptionSourceEvent.github_file_change;
 
-  const subResponse = await eaveClient.createSubscription(input.eaveTeamId, {
+  const subResponse = await eaveClient.createSubscription(eaveTeamId, {
     subscription: {
       source: {
         platform,

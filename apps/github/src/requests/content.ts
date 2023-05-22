@@ -1,24 +1,35 @@
 import { Request, Response } from 'express';
-import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { Octokit } from 'octokit';
 import fetch from 'node-fetch';
+import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 import { loadQuery } from '../lib/graphql-util.js';
 import { Query, Repository, Scalars } from '@octokit/graphql-schema';
 
 export async function getSummary(req: Request, res: Response): Promise<void> {
-  const requestBody = (<Buffer>req.body).toString();
-  const input = <GetGithubUrlContentRequestBody>JSON.parse(requestBody);
-  if (!input.url) {
-    eaveLogger.error('Invalid input');
+  const eaveState = getEaveState(res);
+
+  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER);
+  if (!eaveTeamId) {
+    eaveLogger.error('Missing eave-team-id header', eaveState);
     res.status(400).end();
     return;
   }
 
-  const installationId = await getInstallationId(input.eaveTeamId);
+  const requestBody = (<Buffer>req.body).toString();
+  const input = <GetGithubUrlContentRequestBody>JSON.parse(requestBody);
+  if (!input.url) {
+    eaveLogger.error('Invalid input', eaveState);
+    res.status(400).end();
+    return;
+  }
+
+  const installationId = await getInstallationId(eaveTeamId);
   if (installationId === null) {
-    eaveLogger.error('missing github installation id');
+    eaveLogger.error('missing github installation id', eaveState);
     res.status(500).end();
     return;
   }

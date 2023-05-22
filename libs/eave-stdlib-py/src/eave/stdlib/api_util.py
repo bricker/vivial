@@ -3,6 +3,8 @@ from typing import Any, Optional
 
 import pydantic
 
+from eave.stdlib.util import redact
+
 
 from .config import shared_config
 from .core_api.operations import Status
@@ -50,7 +52,7 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
 
 
 def get_headers(
-    scope: HTTPScope, exclude: Optional[list[str]] = None, redact: Optional[list[str]] = None
+    scope: HTTPScope, excluded: Optional[list[str]] = None, redacted: Optional[list[str]] = None
 ) -> dict[str, str]:
     """
     This function doesn't support multiple headers with the same name.
@@ -58,13 +60,15 @@ def get_headers(
     See here for details about the scope["headers"] object:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
-    if exclude is None:
-        exclude = []
-    if redact is None:
-        redact = []
+    if excluded is None:
+        excluded = []
+    if redacted is None:
+        redacted = []
 
     return {
-        n.decode(): (v.decode() if n not in redact else "[redacted]") for [n, v] in scope["headers"] if n not in exclude
+        n.decode(): (v.decode() if n not in redacted else redact(v.decode()))
+        for [n, v] in scope["headers"]
+        if n not in excluded
     }
 
 

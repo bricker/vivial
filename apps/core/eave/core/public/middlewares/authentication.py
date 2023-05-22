@@ -4,7 +4,6 @@ import uuid
 import eave.stdlib
 import eave.core.internal
 import eave.core.public
-import sqlalchemy.exc
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
 from eave.stdlib.request_state import EaveRequestState
@@ -32,10 +31,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         if not account_id_header:
             raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
 
-        try:
-            account_id = uuid.UUID(account_id_header)
-        except ValueError:
-            raise eave.stdlib.exceptions.BadRequestError("malformed eave-account-id header")
+        account_id = uuid.UUID(account_id_header)
 
         auth_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.AUTHORIZATION_HEADER)
         if not auth_header:
@@ -48,14 +44,11 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         access_token: str = auth_header_match.group(1)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
-            try:
-                eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
-                    session=db_session,
-                    id=account_id,
-                    access_token=access_token,
-                )
-            except sqlalchemy.exc.SQLAlchemyError:
-                raise eave.stdlib.exceptions.UnauthorizedError("account not found")
+            eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
+                session=db_session,
+                id=account_id,
+                access_token=access_token,
+            )
 
             try:
                 await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)

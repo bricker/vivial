@@ -1,7 +1,6 @@
 import { Subscription } from '../core-api/models.js';
 
 export type GetGithubUrlContentRequestBody = {
-  eaveTeamId: string;
   url: string;
 }
 
@@ -10,7 +9,6 @@ export type GetGithubUrlContentResponseBody = {
 }
 
 export type CreateGithubResourceSubscriptionRequestBody = {
-  eaveTeamId: string;
   url: string;
 }
 

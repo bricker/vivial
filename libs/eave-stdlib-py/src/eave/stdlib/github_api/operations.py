@@ -1,6 +1,5 @@
 from typing import Optional
 import pydantic
-import uuid
 from eave.stdlib.core_api.models import Subscription
 
 
@@ -10,7 +9,6 @@ class Endpoint:
 
 class GetGithubUrlContent(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        eave_team_id: uuid.UUID
         url: str
 
     class ResponseBody(pydantic.BaseModel):
@@ -19,7 +17,6 @@ class GetGithubUrlContent(Endpoint):
 
 class CreateGithubResourceSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        eave_team_id: uuid.UUID
         url: str
 
     class ResponseBody(pydantic.BaseModel):

@@ -77,9 +77,7 @@ class TestInstallationsRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND
-
-        response_obj = eave.stdlib.core_api.models.ErrorResponse(**response.json())
-        assert response_obj
+        assert response.text == "Not Found"
 
     async def test_get_github_installation(self) -> None:
         async with self.db_session.begin() as s:
@@ -116,7 +114,7 @@ class TestInstallationsRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND
-        assert response.json().get("status_code") == HTTPStatus.NOT_FOUND
+        assert response.text == "Not Found"
 
     async def test_get_atlassian_installation(self) -> None:
         async with self.db_session.begin() as s:
@@ -157,5 +155,4 @@ class TestInstallationsRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND
-        response_obj = eave.stdlib.core_api.models.ErrorResponse(**response.json())
-        assert response_obj
+        assert response.text == "Not Found"

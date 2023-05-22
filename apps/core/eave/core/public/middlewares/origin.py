@@ -20,8 +20,5 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
         if not origin_header:
             raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ORIGIN_HEADER)
 
-        try:
-            origin = eave.stdlib.EaveOrigin(value=origin_header)
-            eave_state.eave_origin = str(origin)
-        except ValueError:
-            raise eave.stdlib.exceptions.BadRequestError("invalid eave-origin")
+        origin = eave.stdlib.EaveOrigin(value=origin_header)
+        eave_state.eave_origin = str(origin)
