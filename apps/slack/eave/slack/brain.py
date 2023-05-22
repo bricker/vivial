@@ -237,7 +237,10 @@ class Brain:
         """
         subscription = await self.get_subscription()
 
-        eaveLogger.warning("Unknown request to Eave in Slack", extra=log_context(self.slack_context, addl={"message": self.message.text}))
+        eaveLogger.warning(
+            "Unknown request to Eave in Slack",
+            extra=log_context(self.slack_context, addl={"message": self.message.text}),
+        )
         eave.stdlib.analytics.log_event(
             event_name="eave_received_unknown_request",
             event_description="Eave received a request that she didn't know how to handle.",
@@ -898,9 +901,15 @@ class Brain:
 
         expanded_text = await self.message.get_expanded_text()
         if expanded_text is None:
-            eaveLogger.warning("slack message expanded_text is unexpectedly None", extra=log_context(self.slack_context, addl={
-                "message_text": redact(self.message.text),
-            }))
+            eaveLogger.warning(
+                "slack message expanded_text is unexpectedly None",
+                extra=log_context(
+                    self.slack_context,
+                    addl={
+                        "message_text": self.message.text,
+                    },
+                ),
+            )
 
             # FIXME: Brain should allow None expanded_text so it can retry.
             expanded_text = ""

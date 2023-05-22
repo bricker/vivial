@@ -201,6 +201,7 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
     else:
         return value
 
+
 def redact(string: str | None) -> str:
     if string is None:
         return "(none)"

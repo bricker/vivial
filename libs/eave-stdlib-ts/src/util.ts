@@ -1,6 +1,6 @@
-export function redact(str: string | undefined): string {
+export function redact(str: string | undefined): string | undefined {
   if (str === undefined) {
-    return '(undefined)';
+    return undefined;
   }
   if (str.length <= 8) {
     return '(redacted)';
