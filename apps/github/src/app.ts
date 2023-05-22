@@ -49,10 +49,7 @@ internalApiRouter.use(signatureVerification(appConfig.eaveAppsBase));
 
 internalApiRouter.post('/content', (req, res, next) => {
   // POST /github/api/content
-  getSummary(req, res).catch((e) => {
-    console.log('caught error');
-    next(e);
-  });
+  getSummary(req, res).catch(next);
 });
 
 internalApiRouter.post('/subscribe', (req, res, next) => {

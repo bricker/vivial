@@ -11,7 +11,7 @@ import {
   InternalServerError,
   HTTPException,
 } from '../exceptions.js';
-import { sharedConfig } from '../config.js';
+import { redact } from '../util.js';
 
 let ORIGIN: EaveOrigin;
 
@@ -34,7 +34,7 @@ export function buildMessageToSign(
 ): string {
   const signatureElements = [
     origin,
-    method,
+    method.toUpperCase(),
     url,
     requestId,
     payload,
@@ -50,17 +50,25 @@ export function buildMessageToSign(
   return signatureElements.join(':');
 }
 
-export async function makeRequest(
-  path: string,
-  input?: unknown,
-  base?: string,
-  accessToken?: string,
-  teamId?: string,
-  accountId?: string,
-  method = 'post',
-): Promise<Response> {
-  const resolvedBase = base || sharedConfig.eaveApiBase;
-  const url = new URL(path, resolvedBase).href;
+interface RequestArgs {
+  url: string;
+  input?: unknown;
+  accessToken?: string;
+  teamId?: string;
+  accountId?: string;
+  method?: string;
+}
+
+export async function makeRequest(args: RequestArgs): Promise<Response> {
+  const {
+    url,
+    input,
+    accessToken,
+    teamId,
+    accountId,
+    method = 'post',
+  } = args;
+
   const requestId = uuid4();
 
   const payload = JSON.stringify(input);
@@ -104,7 +112,12 @@ export async function makeRequest(
   };
 
   eaveLogger.info('Eave internal API request', {
+    origin: ORIGIN,
+    signature: redact(signature),
     request_id: requestId,
+    team_id: teamId,
+    account_id: accountId,
+    access_token: redact(accessToken),
     method,
     url,
   });

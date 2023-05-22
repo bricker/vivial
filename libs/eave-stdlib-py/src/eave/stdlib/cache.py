@@ -75,9 +75,7 @@ if redis_cfg := shared_config.redis_connection:
     host, port, db = redis_cfg
     auth = shared_config.redis_auth
     logauth = auth[:4] if auth else "(none)"
-    eaveLogger.debug(
-        f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}..."
-    )
+    eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
 
     redis_tls_ca = shared_config.redis_tls_ca
     impl = redis.Redis(

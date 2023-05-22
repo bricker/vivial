@@ -12,8 +12,7 @@ async def get_file_content(
     POST /github/api/content
     """
     response = await make_request(
-        base=shared_config.eave_apps_base,
-        path="/github/api/content",
+        url=f"{shared_config.eave_apps_base}/github/api/content",
         input=input,
         team_id=eave_team_id,
     )
@@ -30,8 +29,7 @@ async def create_subscription(
     POST /github/api/subscribe
     """
     response = await make_request(
-        base=shared_config.eave_apps_base,
-        path="/github/api/subscribe",
+        url=f"{shared_config.eave_apps_base}/github/api/subscribe",
         input=input,
         team_id=eave_team_id,
     )
