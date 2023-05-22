@@ -18,7 +18,7 @@ import tiktoken
 from slack_bolt.async_app import AsyncBoltContext
 
 from eave.stdlib.typing import JsonObject
-from eave.stdlib.util import memoized, redact
+from eave.stdlib.util import memoized
 
 from . import document_metadata, message_prompts, slack_models
 

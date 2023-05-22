@@ -4,7 +4,6 @@ import uuid
 import eave.stdlib
 import eave.core.internal
 import eave.core.public
-import sqlalchemy.exc
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
 from eave.stdlib.request_state import EaveRequestState
