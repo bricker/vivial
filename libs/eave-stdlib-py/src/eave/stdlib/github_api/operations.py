@@ -1,6 +1,5 @@
 from typing import Optional
 import pydantic
-import uuid
 from eave.stdlib.core_api.models import Subscription
 
 
