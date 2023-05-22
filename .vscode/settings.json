@@ -122,4 +122,6 @@
   "ruff.args": [
     "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
   ],
+  "typescript.implementationsCodeLens.enabled": true,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
 }

@@ -33,9 +33,11 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local thisdir=$(basename $PWD)
+		statusmsg -in "Linting $thisdir/$target"
 
-		statusmsg -in "Linting $thisdir..."
-		npx eslint $target
+		cd $target
+		npx eslint .
+		npx tsc --project . --noEmit --checkJs
 		statusmsg -sp " ✔ "
 	)
 
@@ -45,9 +47,10 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local thisdir=$(basename $PWD)
+		statusmsg -in "Formatting $thisdir/$target"
 
-		statusmsg -in "Formatting $thisdir..."
-		npx eslint $target --fix
+		cd $target
+		npx eslint . --fix
 		statusmsg -sp " ✔ "
 	)
 

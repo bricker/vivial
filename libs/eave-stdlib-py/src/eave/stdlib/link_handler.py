@@ -44,7 +44,6 @@ async def map_url_content(eave_team_id: UUID4, urls: list[tuple[str, enums.LinkT
                         github_api_client.get_file_content(
                             eave_team_id=eave_team_id,
                             input=gh_ops.GetGithubUrlContent.RequestBody(
-                                eave_team_id=eave_team_id,
                                 url=link,
                             ),
                         )
@@ -105,7 +104,6 @@ async def _create_subscription_source(
             subscription_response = await github_api_client.create_subscription(
                 eave_team_id=eave_team_id,
                 input=gh_ops.CreateGithubResourceSubscription.RequestBody(
-                    eave_team_id=eave_team_id,
                     url=url,
                 ),
             )

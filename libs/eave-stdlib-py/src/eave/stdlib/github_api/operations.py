@@ -10,7 +10,6 @@ class Endpoint:
 
 class GetGithubUrlContent(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        eave_team_id: uuid.UUID
         url: str
 
     class ResponseBody(pydantic.BaseModel):
@@ -19,7 +18,6 @@ class GetGithubUrlContent(Endpoint):
 
 class CreateGithubResourceSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
-        eave_team_id: uuid.UUID
         url: str
 
     class ResponseBody(pydantic.BaseModel):
