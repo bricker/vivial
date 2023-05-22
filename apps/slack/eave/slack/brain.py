@@ -18,7 +18,7 @@ import tiktoken
 from slack_bolt.async_app import AsyncBoltContext
 
 from eave.stdlib.typing import JsonObject
-from eave.stdlib.util import memoized
+from eave.stdlib.util import memoized, redact
 
 from . import document_metadata, message_prompts, slack_models
 
@@ -45,6 +45,13 @@ class Brain:
         self.eave_team = eave_team
         self.slack_context = slack_context
         self.log_extra = log_context(slack_context)
+        self.analytics_extra = {
+            "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+            "message_content": self.message.text,
+            "message_user_id": self.message.user,
+            "message_team": self.message.team,
+            "message_channel": self.message.channel,
+        }
 
     async def process_message(self) -> None:
         eaveLogger.debug("Brain.process_message", extra=self.log_extra)
@@ -69,9 +76,8 @@ class Brain:
                 event_source="slack app",
                 eave_team_id=self.eave_team.id,
                 opaque_params={
-                    "integration": eave.stdlib.core_api.enums.Integration.slack.value,
-                    "message_content": self.message.text,
                     "message_action": self.message_action.value,
+                    **self.analytics_extra,
                 },
             )
 
@@ -231,7 +237,7 @@ class Brain:
         """
         subscription = await self.get_subscription()
 
-        eaveLogger.warning("Unknown request to Eave in Slack", extra={"json_fields": {"message": self.message.text}})
+        eaveLogger.warning("Unknown request to Eave in Slack", extra=log_context(self.slack_context, addl={"message": self.message.text}))
         eave.stdlib.analytics.log_event(
             event_name="eave_received_unknown_request",
             event_description="Eave received a request that she didn't know how to handle.",
@@ -240,7 +246,7 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.UNKNOWN.value,
-                "message_content": self.message.text,
+                **self.analytics_extra,
             },
         )
 
@@ -289,8 +295,9 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.UNKNOWN.value,
-                "message_content": msg,
-                "message_purpose": "responding to unknown request",
+                "eave_message_content": msg,
+                "eave_message_purpose": "responding to unknown request",
+                **self.analytics_extra,
             },
         )
 
@@ -326,8 +333,9 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
-                "message_content": msg,
-                "message_purpose": "link to initial documentation",
+                "eave_message_content": msg,
+                "eave_message_purpose": "link to initial documentation",
+                **self.analytics_extra,
             },
         )
 
@@ -401,6 +409,16 @@ class Brain:
     async def search_documentation(self) -> None:
         search_results = await self.search_documents()
 
+        eaveLogger.debug(
+            "Received search results",
+            extra=log_context(
+                self.slack_context,
+                addl={
+                    "search_results": [d.dict() for d in search_results.documents],
+                },
+            ),
+        )
+
         blocks: list[slack_sdk.models.blocks.Block] = []
         for result in search_results.documents:
             section = slack_sdk.models.blocks.SectionBlock(
@@ -423,8 +441,11 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.SEARCH_DOCUMENTATION.value,
-                "message_content": [b.text.text for b in blocks if isinstance(b, slack_sdk.models.blocks.SectionBlock) and b.text],
-                "message_purpose": "provide search results",
+                "eave_message_content": [
+                    b.text.text for b in blocks if isinstance(b, slack_sdk.models.blocks.SectionBlock) and b.text
+                ],
+                "eave_message_purpose": "provide search results",
+                **self.analytics_extra,
             },
         )
 
@@ -441,8 +462,9 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.UPDATE_DOCUMENTATION.value,
-                "message_content": msg,
-                "message_purpose": "unable to perform action",
+                "eave_message_content": msg,
+                "eave_message_purpose": "unable to perform action",
+                **self.analytics_extra,
             },
         )
 
@@ -462,8 +484,9 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": message_prompts.MessageAction.DELETE_DOCUMENTATION.value,
-                "message_content": msg,
-                "message_purpose": "unable to perform action",
+                "eave_message_content": msg,
+                "eave_message_purpose": "unable to perform action",
+                **self.analytics_extra,
             },
         )
 
@@ -739,7 +762,7 @@ class Brain:
         except slack_sdk.errors.SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
-            eaveLogger.warning(f"Error reacting to message: {error_code}", exc_info=e)
+            eaveLogger.warning(f"Error reacting to message: {error_code}", exc_info=e, extra=self.log_extra)
 
             if error_code == "invalid_name":
                 await self.message.add_reaction("thumbsup")
@@ -839,8 +862,9 @@ class Brain:
                 opaque_params={
                     "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                     "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
-                    "message_content": msg,
-                    "message_purpose": "notify of existing subscription",
+                    "eave_message_content": msg,
+                    "eave_message_purpose": "notify of existing subscription",
+                    **self.analytics_extra,
                 },
             )
             return
@@ -861,8 +885,9 @@ class Brain:
                 opaque_params={
                     "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                     "request_type": message_prompts.MessageAction.CREATE_DOCUMENTATION.value,
-                    "message_content": msg,
-                    "message_purpose": "notify of existing subscription",
+                    "eave_message_content": msg,
+                    "eave_message_purpose": "notify of existing subscription",
+                    **self.analytics_extra,
                 },
             )
             return
@@ -873,7 +898,12 @@ class Brain:
 
         expanded_text = await self.message.get_expanded_text()
         if expanded_text is None:
-            raise SlackDataError("message expanded_text")
+            eaveLogger.warning("slack message expanded_text is unexpectedly None", extra=log_context(self.slack_context, addl={
+                "message_text": redact(self.message.text),
+            }))
+
+            # FIXME: Brain should allow None expanded_text so it can retry.
+            expanded_text = ""
 
         self.expanded_text = expanded_text
 
@@ -922,8 +952,9 @@ class Brain:
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "request_type": self.message_action,
-                "message_content": msg,
+                "eave_message_content": msg,
                 "request_id": e.request_id if isinstance(e, HTTPException) else None,
-                "message_purpose": "inform the user of a failure while processing a request",
+                "eave_message_purpose": "inform the user of a failure while processing a request",
+                **self.analytics_extra,
             },
         )

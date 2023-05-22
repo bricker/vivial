@@ -4,7 +4,6 @@ import hashlib
 from dataclasses import dataclass
 from typing import Literal, cast
 
-import cryptography.exceptions
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
@@ -134,27 +133,24 @@ def verify_signature_or_exception(
     )
     sha256 = hashes.SHA256()
 
-    try:
-        match signing_key.algorithm:
-            case SigningAlgorithm.RS256:
-                public_key_from_pem = cast(rsa.RSAPublicKey, public_key_from_pem)
-                pad = padding.PKCS1v15()
-                public_key_from_pem.verify(
-                    signature=signature_bytes,
-                    data=digest,
-                    padding=pad,
-                    algorithm=utils.Prehashed(sha256),
-                )
-                return True
-            case SigningAlgorithm.ES256:
-                public_key_from_pem = cast(ec.EllipticCurvePublicKey, public_key_from_pem)
-                public_key_from_pem.verify(
-                    signature=signature_bytes,
-                    data=digest,
-                    signature_algorithm=ec.ECDSA(utils.Prehashed(sha256)),
-                )
-                return True
-            case _:
-                raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
-    except cryptography.exceptions.InvalidSignature:
-        raise eave_exceptions.InvalidSignatureError()
+    match signing_key.algorithm:
+        case SigningAlgorithm.RS256:
+            public_key_from_pem = cast(rsa.RSAPublicKey, public_key_from_pem)
+            pad = padding.PKCS1v15()
+            public_key_from_pem.verify(
+                signature=signature_bytes,
+                data=digest,
+                padding=pad,
+                algorithm=utils.Prehashed(sha256),
+            )
+            return True
+        case SigningAlgorithm.ES256:
+            public_key_from_pem = cast(ec.EllipticCurvePublicKey, public_key_from_pem)
+            public_key_from_pem.verify(
+                signature=signature_bytes,
+                data=digest,
+                signature_algorithm=ec.ECDSA(utils.Prehashed(sha256)),
+            )
+            return True
+        case _:
+            raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")

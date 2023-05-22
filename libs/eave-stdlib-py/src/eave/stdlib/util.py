@@ -200,3 +200,10 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
             return default
     else:
         return value
+
+def redact(string: str | None) -> str:
+    if string is None:
+        return "(none)"
+    if len(string) <= 8:
+        return "(redacted)"
+    return f"{string[:4]}..(redacted)..{string[-4:]}"

@@ -396,24 +396,13 @@ class SlackMessage:
 
             return
 
-    #         if blocks is not None:
-    #             blocks.extend([
-    #                 slack_sdk.models.blocks.DividerBlock(),
-    #                 slack_sdk.models.blocks.ContextBlock(
-    #                     elements=[
-    # slack_sdk.models.blocks.basic_components.MarkdownTextObject(
-    #                         text=f"*<{document_reference.document_url}|{document.title}>*\n{document.summary}",
-    #                     ),
-    #                     ]
-    #                     text=
-    #                 ),
-    #             ])
-    #             await eave.slack.client.chat_postMessage(
-    #                 channel=self.message.channel,
-    #                 blocks=blocks,
-    #                 thread_ts=self.message.parent_ts,
-    #             )
-    #             return
+        if blocks is not None:
+            await self._ctx.client.chat_postMessage(
+                channel=self.channel,
+                blocks=blocks,
+                thread_ts=self.parent_ts,
+            )
+            return
 
     async def add_reaction(self, name: str) -> None:
         if self.channel is None:

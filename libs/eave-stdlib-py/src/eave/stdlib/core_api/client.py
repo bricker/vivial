@@ -6,6 +6,7 @@ from .. import eave_origins as eave_origins
 from . import operations
 from .. import exceptions as eave_exceptions
 from ..requests import make_request, makeurl
+from ..config import shared_config
 
 _ORIGIN: eave_origins.EaveOrigin
 
@@ -33,7 +34,7 @@ async def create_access_request(
     POST /access_request
     """
     response = await make_request(
-        path="/access_request",
+        url=f"{shared_config.eave_api_base}/access_request",
         input=input,
     )
 
@@ -48,7 +49,7 @@ async def upsert_document(
     POST /documents/upsert
     """
     response = await make_request(
-        path="/documents/upsert",
+        url=f"{shared_config.eave_api_base}/documents/upsert",
         input=input,
         team_id=team_id,
     )
@@ -62,7 +63,7 @@ async def search_documents(
     input: operations.SearchDocuments.RequestBody,
 ) -> operations.SearchDocuments.ResponseBody:
     response = await make_request(
-        path="/documents/search",
+        url=f"{shared_config.eave_api_base}/documents/search",
         input=input,
         team_id=team_id,
     )
@@ -79,7 +80,7 @@ async def create_subscription(
     POST /subscriptions/create
     """
     response = await make_request(
-        path="/subscriptions/create",
+        url=f"{shared_config.eave_api_base}/subscriptions/create",
         input=input,
         team_id=team_id,
     )
@@ -96,7 +97,7 @@ async def delete_subscription(
     POST /subscriptions/delete
     """
     response = await make_request(
-        path="/subscriptions/delete",
+        url=f"{shared_config.eave_api_base}/subscriptions/delete",
         input=input,
         team_id=team_id,
     )
@@ -112,7 +113,7 @@ async def get_subscription(
     """
     try:
         response = await make_request(
-            path="/subscriptions/query",
+            url=f"{shared_config.eave_api_base}/subscriptions/query",
             input=input,
             team_id=team_id,
         )
@@ -131,7 +132,7 @@ async def get_slack_installation(
     POST /integrations/slack/query
     """
     response = await make_request(
-        path="/integrations/slack/query",
+        url=f"{shared_config.eave_api_base}/integrations/slack/query",
         input=input,
     )
 
@@ -146,7 +147,7 @@ async def get_github_installation(
     POST /integrations/github/query
     """
     response = await make_request(
-        path="/integrations/github/query",
+        url=f"{shared_config.eave_api_base}/integrations/github/query",
         input=input,
     )
 
@@ -161,7 +162,7 @@ async def get_atlassian_installation(
     POST /integrations/atlassian/query
     """
     response = await make_request(
-        path="/integrations/atlassian/query",
+        url=f"{shared_config.eave_api_base}/integrations/atlassian/query",
         input=input,
     )
 
@@ -176,7 +177,7 @@ async def get_team(
     POST /team/query
     """
     response = await make_request(
-        path="/team/query",
+        url=f"{shared_config.eave_api_base}/team/query",
         input=None,
         team_id=team_id,
     )
@@ -194,7 +195,7 @@ async def update_atlassian_integration(
     POST /me/team/integrations/atlassian/update
     """
     response = await make_request(
-        path="/me/team/integrations/atlassian/update",
+        url=f"{shared_config.eave_api_base}/me/team/integrations/atlassian/update",
         input=input,
         access_token=access_token,
         account_id=account_id,
@@ -211,7 +212,7 @@ async def get_authenticated_account_team_integrations(
     POST /me/team/integrations/query
     """
     response = await make_request(
-        path="/me/team/integrations/query",
+        url=f"{shared_config.eave_api_base}/me/team/integrations/query",
         input=None,
         access_token=access_token,
         account_id=account_id,
@@ -228,7 +229,7 @@ async def get_authenticated_account(
     POST /me/query
     """
     response = await make_request(
-        path="/me/query",
+        url=f"{shared_config.eave_api_base}/me/query",
         input=None,
         access_token=access_token,
         account_id=account_id,

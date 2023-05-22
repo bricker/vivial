@@ -12,6 +12,7 @@ from eave.stdlib.logging import eaveLogger
 
 def internal_server_error(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
+    eaveLogger.exception(exc, extra=eave_state.log_context)
 
     model = eave.stdlib.core_api.models.ErrorResponse(
         status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,

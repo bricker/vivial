@@ -13,6 +13,7 @@ from .config import SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, ap
 
 from eave.stdlib.logging import eaveLogger
 
+
 def register_event_handlers(app: AsyncApp) -> None:
     app.shortcut("eave_watch_request")(shortcut_eave_watch_request_handler)
     app.event("message")(event_message_handler)
