@@ -84,12 +84,17 @@ def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOA
 
 def get_oauth_credentials(access_token: str, refresh_token: str) -> google.oauth2.credentials.Credentials:
     google_oauth_client_config = app_config.eave_google_oauth_client_credentials
+    creds = google_oauth_client_config["web"]
+    token_uri = creds["token_uri"]
+    client_id = creds["client_id"]
+    client_secret = creds["client_secret"]
+
     credentials = google.oauth2.credentials.Credentials(
         token=access_token,
         refresh_token=refresh_token,
-        token_uri=google_oauth_client_config.get("token_uri"),
-        client_id=google_oauth_client_config.get("client_id"),
-        client_secret=google_oauth_client_config.get("client_secret"),
+        token_uri=token_uri,
+        client_id=client_id,
+        client_secret=client_secret,
         scopes=_OAUTH_SCOPES,
     )
     return credentials
