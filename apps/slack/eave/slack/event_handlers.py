@@ -114,13 +114,18 @@ async def event_member_joined_channel_handler(
         return
 
     if context.client:
+        ref = f"<@{context.bot_user_id}>" if context.bot_user_id else "@Eave"
+
+        message = (
+            "Hey there, I’m Eave! I’m here to help with any of your documentation needs. Try the following:\n"
+            f"  • Tag {ref} in a thread that you want documented\n"
+            f"  • Tag {ref} in a message that includes GitHub links to document code\n"
+            f"  • Tag {ref} to help look for existing documentation\n"
+        )
+
         await context.client.chat_postMessage(
             channel=event["channel"],
-            text=(
-                msg := (
-                    "Hello, I’m Eave! I can assist with any of your documentation needs. Simply tag me in threads you want documented, and I’ll take care of it."
-                )
-            ),
+            text=message,
         )
 
         eave.stdlib.analytics.log_event(

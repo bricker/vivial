@@ -189,9 +189,18 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
         try:
             slack_user_id = self.slack_oauth_data["authed_user"]["id"]
+            slack_bot_id = self.slack_oauth_data.get("bot_user_id")
+            ref = f"<@{slack_bot_id}>" if slack_bot_id else "@Eave"
+
+            message = (
+                "Hey there, I’m Eave! I’m here to help with any of your documentation needs. Try the following:\n"
+                f"  • Add me to any channels or DMs, and tag {ref} in a thread that you want documented\n"
+                f"  • Tag {ref} in a message that includes GitHub links to document code\n"
+                f"  • Tag {ref} to help look for existing documentation"
+            )
             await slack_client.chat_postMessage(
                 channel=slack_user_id,
-                text="Hey there! I’m Eave, and here to help with any of your documentation needs. Add me to channels or DMs, and simply tag me in a thread you want documented.",
+                text=message,
             )
         except Exception:
             eaveLogger.exception("Error sending welcome message on Slack", extra=log_context)
