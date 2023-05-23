@@ -58,6 +58,9 @@ class ConfluenceDestination(abstract.DocumentDestination):
         base_url = self.oauth_session.confluence_context.base_url
         return [DocumentSearchResult(title=(page.title or ""), url=page.canonical_url(base_url)) for page in pages]
 
+    async def delete_document(self, document_id: str) -> None:
+        self._confluence_client.remove_content(content_id=document_id)
+
     async def create_document(self, input: eave_ops.DocumentInput) -> abstract.DocumentMetadata:
         confluence_page = await self._get_or_create_confluence_page(document=input)
         base_url = self.oauth_session.confluence_context.base_url
