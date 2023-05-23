@@ -100,18 +100,20 @@ class TestAtlassianOAuth(BaseTestCase):
             )
             assert atlassian_installation
 
-            assert eave_account.access_token == self.anystring("atlassian.access_token")
-            assert eave_account.refresh_token == self.anystring("atlassian.refresh_token")
-            assert eave_account.auth_id == self.anystring("confluence.account_id")
+            assert eave_account.access_token == self.getstr("atlassian.access_token")
+            assert eave_account.refresh_token == self.getstr("atlassian.refresh_token")
+            assert eave_account.auth_id == self.getstr("confluence.account_id")
             assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.atlassian
-            assert eave_team.name == self.anystring("atlassian.resource.name")
+            assert eave_team.name == self.getstr("atlassian.resource.name")
             assert eave_team.document_platform == eave.stdlib.core_api.enums.DocumentPlatform.confluence
             assert atlassian_installation.oauth_token_encoded == json.dumps(self.testdata["fake_atlassian_token"])
-            assert atlassian_installation.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
+            assert atlassian_installation.atlassian_cloud_id == self.getstr("atlassian_cloud_id")
             assert atlassian_installation.team_id == eave_team.id
+            assert atlassian_installation.atlassian_site_name == self.getstr("atlassian.resource.name")
 
     async def test_atlassian_callback_new_account_without_team_name_from_atlassian(self) -> None:
         self.testdata["fake_atlassian_resources"][0].name = ""
+        self.testdata["fake_atlassian_resources"][0].url = self.anystring("atlassian url")
 
         response = await self.make_request(
             path="/oauth/atlassian/callback",
@@ -131,7 +133,14 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
-            assert eave_team.name == f"{self.anystring('confluence.display_name')}'s Team"
+            assert eave_team.name == f"{self.getstr('confluence.display_name')}'s Team"
+
+            atlassian_installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
+                session=s, atlassian_cloud_id=self.getstr("atlassian_cloud_id")
+            )
+
+            assert atlassian_installation
+            assert atlassian_installation.atlassian_site_name == self.getstr("atlassian url")
 
     async def test_atlassian_callback_new_account_without_user_name_from_atlassian(self) -> None:
         self.testdata["fake_atlassian_resources"][0].name = ""

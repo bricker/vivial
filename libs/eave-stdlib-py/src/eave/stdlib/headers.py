@@ -14,6 +14,7 @@ is present, we can be reasonably sure that this is a development machine.
 
 # Well-known request headers
 AUTHORIZATION_HEADER = "authorization"
+CONTENT_TYPE = "content-type"
 COOKIE_HEADER = "cookie"
 
 # Request headers added by Google

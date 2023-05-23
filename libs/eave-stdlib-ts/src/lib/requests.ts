@@ -111,7 +111,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     headers,
   };
 
-  eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, {
+  const requestContext = {
     origin: ORIGIN,
     signature: redact(signature),
     access_token: redact(accessToken),
@@ -120,29 +120,24 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     account_id: accountId,
     method,
     url,
-  });
+  }
+
+  eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, requestContext);
 
   const response = await fetch(url, requestInit);
 
   eaveLogger.info(`Eave Client Response: ${requestId}: ${method} ${url}`, {
-    origin: ORIGIN,
-    signature: redact(signature),
-    access_token: redact(accessToken),
-    request_id: requestId,
-    team_id: teamId,
-    account_id: accountId,
-    method,
-    url,
+    ...requestContext,
     status: response.status,
   });
 
   if (response.status >= 400) {
     switch (response.status) {
-      case 404: throw new NotFoundError(response.statusText);
-      case 401: throw new UnauthorizedError(response.statusText);
-      case 400: throw new BadRequestError(response.statusText);
-      case 500: throw new InternalServerError(response.statusText);
-      default: throw new HTTPException(response.status, response.statusText);
+      case 404: throw new NotFoundError(JSON.stringify(requestContext));
+      case 401: throw new UnauthorizedError(JSON.stringify(requestContext));
+      case 400: throw new BadRequestError(JSON.stringify(requestContext));
+      case 500: throw new InternalServerError(JSON.stringify(requestContext));
+      default: throw new HTTPException(response.status, JSON.stringify(requestContext));
     }
   }
 

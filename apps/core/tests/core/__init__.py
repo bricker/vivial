@@ -7,9 +7,12 @@ import eave.stdlib.time
 
 eave.stdlib.time.set_utc()
 
-# os.environ["EAVE_API_BASE"] = "https://api.eave.tests"
-# os.environ["EAVE_WWW_BASE"] = "https://www.eave.tests"
-# os.environ["EAVE_COOKIE_DOMAIN"] = ".eave.tests"
+dotenv.load_dotenv(dotenv_path=os.path.join(os.environ["EAVE_HOME"], ".env.test"), override=True)
+
+os.environ["EAVE_API_BASE"] = "https://api.eave.tests"
+os.environ["EAVE_APPS_BASE"] = "https://apps.eave.tests"
+os.environ["EAVE_WWW_BASE"] = "https://www.eave.tests"
+os.environ["EAVE_COOKIE_DOMAIN"] = ".eave.tests"
 
 os.environ["EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64"] = eave.stdlib.util.b64encode(
     json.dumps(
@@ -26,5 +29,3 @@ os.environ["EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64"] = eave.stdlib.util.b64enc
         }
     )
 )
-
-dotenv.load_dotenv(dotenv_path=os.path.join(os.environ["EAVE_HOME"], ".env.test"), override=True)
