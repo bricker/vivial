@@ -137,6 +137,7 @@ async def create_new_account_and_team(
             auth_id=auth_id,
             access_token=access_token,
             refresh_token=refresh_token,
+            email=user_email,
         )
 
     eave.stdlib.analytics.log_event(
@@ -148,6 +149,7 @@ async def create_new_account_and_team(
         event_source="core api oauth",
         opaque_params={
             "auth_provider": auth_provider.value,
+            "user_email": user_email,
         },
     )
 
