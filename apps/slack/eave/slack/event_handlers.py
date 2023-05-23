@@ -135,7 +135,7 @@ async def event_member_joined_channel_handler(
             eave_team_id=eave_team.id if eave_team else None,
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
-                "message_content": msg,
+                "message_content": message,
                 "message_purpose": "introduction after joining a channel",
             },
         )
