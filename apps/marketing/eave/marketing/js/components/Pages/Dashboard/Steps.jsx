@@ -189,10 +189,6 @@ const Steps = () => {
     }
   };
 
-  console.log('space', space);
-  console.log(teamInfo?.integrations.atlassian.confluence_space_key);
-  console.log('editingSpace', editingSpace)
-
   return (
     <section>
       <Copy variant="h1">Welcome to Eave Early Access</Copy>
