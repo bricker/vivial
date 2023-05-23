@@ -5,6 +5,8 @@ import aiohttp
 import urllib.parse
 from http import HTTPStatus
 
+from eave.stdlib.util import redact
+
 from . import exceptions as eave_exceptions
 from . import headers as eave_headers
 from . import signing
@@ -68,8 +70,11 @@ async def make_request(
         f"Eave Client Request: {request_id}: {method} {url}",
         extra={
             "json_fields": {
+                "signature": redact(signature),
+                "access_token": redact(access_token),
                 "origin": _ORIGIN.value,
                 "team_id": str(team_id),
+                "account_id": str(account_id),
                 "request_id": request_id,
                 "method": method,
                 "url": url,
@@ -89,8 +94,11 @@ async def make_request(
         f"Eave Client Response: {request_id}: {method} {url}",
         extra={
             "json_fields": {
+                "signature": redact(signature),
+                "access_token": redact(access_token),
                 "origin": _ORIGIN.value,
                 "team_id": str(team_id),
+                "account_id": str(account_id),
                 "request_id": request_id,
                 "method": method,
                 "url": url,

@@ -8,7 +8,7 @@ export async function loadQuery(name: string): Promise<string> {
     const query = await fs.readFile(`./src/graphql/${name}.graphql`, 'utf-8');
     const errors = await validate(query);
     if (errors.length > 0) {
-      throw new Error(`GraphQL query ${name} is invalid`);
+      throw new Error(`GraphQL query ${name} is invalid: ${errors}`);
     }
     return query;
   });

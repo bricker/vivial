@@ -24,14 +24,22 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-validate-version
 		python-activate-venv
 
+		local qflag="--quiet"
+		local mypyout=/dev/null
+		if verbose; then
+			qflag=""
+			mypyout=/dev/stdout
+		fi
+
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 		local thisdir=$(basename $PWD)
 
-		statusmsg -in "Linting $thisdir..."
-		python -m ruff --quiet --config=$configfile $target
-		python -m black --quiet --config=$configfile --check $target
-		python -m mypy --config-file=$configfile $target > /dev/null
+
+		statusmsg -in "Linting $thisdir/$target"
+		python -m ruff $qflag --config=$configfile $target
+		python -m black $qflag --config=$configfile --check $target
+		python -m mypy --config-file=$configfile $target > $mypyout
 		statusmsg -sp " ✔ "
 	)
 
@@ -39,13 +47,18 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-validate-version
 		python-activate-venv
 
+		local qflag="--quiet"
+		if verbose; then
+			qflag=""
+		fi
+
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 		local thisdir=$(basename $PWD)
 
-		statusmsg -in "Formatting $thisdir..."
-		python -m ruff --quiet --fix --config=$configfile $target
-		python -m black --quiet --config=$configfile $target
+		statusmsg -in "Formatting $thisdir/$target"
+		python -m ruff $qflag --fix --config=$configfile $target
+		python -m black $qflag --config=$configfile $target
 		statusmsg -sp " ✔ "
 	)
 

@@ -1,0 +1,24 @@
+query ($repoOwner: String!, $repoName: String!, $expression: String!) {
+  repository(owner: $repoOwner, name: $repoName) {
+    object(expression: $expression) {
+      __typename
+      commitResourcePath
+      id
+      oid
+      ...on Blob {
+        text
+      }
+      ...on Tree {
+        entries {
+          name
+          object {
+            ...on Blob {
+              oid
+              text
+            }
+          }
+        }
+      }
+    }
+  }
+}

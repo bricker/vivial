@@ -25,6 +25,7 @@ def internal_server_error(request: Request, exc: Exception) -> Response:
 
 def not_found(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
+    # FIXME: This log message is bad
     eaveLogger.warning(http.HTTPStatus.NOT_FOUND, exc_info=exc, extra=eave_state.log_context)
 
     model = eave.stdlib.core_api.models.ErrorResponse(
@@ -38,6 +39,7 @@ def not_found(request: Request, exc: Exception) -> Response:
 
 def bad_request(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
+    # FIXME: This log message is bad
     eaveLogger.warning(http.HTTPStatus.BAD_REQUEST, exc_info=exc, extra=eave_state.log_context)
 
     model = eave.stdlib.core_api.models.ErrorResponse(
@@ -82,9 +84,9 @@ def validation_error(request: Request, exc: Exception) -> Response:
 
 
 exception_handlers: Mapping[Any, Callable[[Request, Exception], Response]] = {
-    eave.stdlib.exceptions.NotFoundError: not_found,
-    eave.stdlib.exceptions.BadRequestError: bad_request,
-    eave.stdlib.exceptions.UnauthorizedError: unauthorized,
+    # eave.stdlib.exceptions.NotFoundError: not_found,
+    # eave.stdlib.exceptions.BadRequestError: bad_request,
+    # eave.stdlib.exceptions.UnauthorizedError: unauthorized,
     pydantic.ValidationError: validation_error,
     # This special case is used by Starlette for the ServerErrorMiddleware, which always re-raises the error.
     # This generic handler allows us to define our own Internal Server Error response.

@@ -37,7 +37,6 @@ export async function mapUrlContent(eaveTeamId: string, urls: Array<Pair<string,
       case LinkType.github: {
         const contentResponse = await githubClient.getFileContent(eaveTeamId, {
           url,
-          eaveTeamId,
         });
         return contentResponse.content;
       }
@@ -108,7 +107,6 @@ async function createSubscription(url: string, linkType: LinkType, eaveTeamId: s
     case LinkType.github: {
       const subscriptionResponse = await githubClient.createSubscription(eaveTeamId, {
         url,
-        eaveTeamId,
       });
       return subscriptionResponse.subscription;
     }

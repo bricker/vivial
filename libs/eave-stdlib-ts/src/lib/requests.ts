@@ -111,27 +111,30 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     headers,
   };
 
-  eaveLogger.info('Eave internal API request', {
+  eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, {
     origin: ORIGIN,
     signature: redact(signature),
+    access_token: redact(accessToken),
     request_id: requestId,
     team_id: teamId,
     account_id: accountId,
-    access_token: redact(accessToken),
     method,
     url,
   });
 
   const response = await fetch(url, requestInit);
 
-  eaveLogger.info(
-    'Eave internal API response', {
-      request_id: requestId,
-      method,
-      url,
-      status: response.status,
-    },
-  );
+  eaveLogger.info(`Eave Client Response: ${requestId}: ${method} ${url}`, {
+    origin: ORIGIN,
+    signature: redact(signature),
+    access_token: redact(accessToken),
+    request_id: requestId,
+    team_id: teamId,
+    account_id: accountId,
+    method,
+    url,
+    status: response.status,
+  });
 
   if (response.status >= 400) {
     switch (response.status) {
