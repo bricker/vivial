@@ -14,6 +14,18 @@ from eave.stdlib.logging import eaveLogger
 
 
 class StatusRequest(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        return await self.get(request=request)
+
+    async def delete(self, request: Request) -> Response:
+        return await self.get(request=request)
+
+    async def head(self, request: Request) -> Response:
+        return await self.get(request=request)
+
+    async def options(self, request: Request) -> Response:
+        return await self.get(request=request)
+
     async def get(self, request: Request) -> Response:
         eave_state = eave.stdlib.request_state.get_eave_state(request=request)
         status_code = http.HTTPStatus.OK

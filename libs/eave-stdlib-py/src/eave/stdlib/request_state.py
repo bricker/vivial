@@ -5,6 +5,8 @@ import starlette.applications
 import starlette.requests
 from asgiref.typing import HTTPScope
 
+from eave.stdlib.typing import JsonObject
+
 SCOPE_KEY = "eave_state"
 
 
@@ -17,6 +19,8 @@ class EaveRequestState:
     request_scheme: Optional[str] = None
     request_path: Optional[str] = None
     request_headers: Optional[dict[str, str]] = None
+    raw_request_body: Optional[bytes] = None
+    parsed_request_body: Optional[JsonObject] = None
 
     def __init__(self, attrs: dict[object, object]) -> None:
         for key, _ in self.__annotations__.items():
@@ -34,6 +38,7 @@ class EaveRequestState:
             "request_scheme": str(self.request_scheme),
             "request_path": str(self.request_path),
             "request_headers": self.request_headers,
+            "request_body": self.parsed_request_body,
         }
 
         # This response structure is for Google Cloud Logging

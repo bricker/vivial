@@ -30,6 +30,7 @@ class SlackInstallationOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     """eave TeamOrm id"""
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    slack_team_name: Mapped[Optional[str]] = mapped_column()
     slack_team_id: Mapped[str] = mapped_column(unique=True, index=True)
     """team[id] from here: https://api.slack.com/methods/oauth.v2.access#examples"""
     # bot identification data for authorizing slack api calls
@@ -48,6 +49,7 @@ class SlackInstallationOrm(Base):
         bot_token: str,
         bot_refresh_token: Optional[str],
         bot_token_exp: Optional[datetime],
+        slack_team_name: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
@@ -55,6 +57,7 @@ class SlackInstallationOrm(Base):
             bot_token=bot_token,
             bot_refresh_token=bot_refresh_token,
             bot_token_exp=bot_token_exp,
+            slack_team_name=slack_team_name,
         )
         session.add(obj)
         await session.flush()

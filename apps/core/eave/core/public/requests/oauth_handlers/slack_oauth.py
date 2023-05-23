@@ -78,6 +78,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         self,
     ) -> None:
         slack_team_id = self.slack_oauth_data["team"]["id"]
+        slack_team_name = self.slack_oauth_data["team"]["name"]
         slack_bot_access_token = self.slack_oauth_data["access_token"]
         slack_bot_refresh_token = self.slack_oauth_data["refresh_token"]
         slack_token_expires_in = self.slack_oauth_data["expires_in"]
@@ -91,12 +92,12 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             # try fetch existing slack installation
-            slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
+            self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
                 session=db_session,
                 slack_team_id=slack_team_id,
             )
 
-            if slack_installation and slack_installation.team_id != self.eave_account.team_id:
+            if self.slack_installation and self.slack_installation.team_id != self.eave_account.team_id:
                 eaveLogger.warning(
                     f"A Slack integration already exists with slack team id {slack_team_id}",
                     extra=log_context,
@@ -107,20 +108,23 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 # team was already connected. Eventually we could perhaps display an error to the customer, but we don't
                 # current have that.
                 db_session.add(self.eave_account)
-                self.eave_account.team_id = slack_installation.team_id
+                self.eave_account.team_id = self.slack_installation.team_id
                 return
 
-            if slack_installation:
+            if self.slack_installation:
                 if slack_bot_access_token:
-                    slack_installation.bot_token = slack_bot_access_token
+                    self.slack_installation.bot_token = slack_bot_access_token
                 if slack_bot_refresh_token:
-                    slack_installation.bot_refresh_token = slack_bot_refresh_token
+                    self.slack_installation.bot_refresh_token = slack_bot_refresh_token
+                if slack_team_name:
+                    self.slack_installation.slack_team_name = slack_team_name
             else:
                 # create new slack installation associated with the TeamOrm
-                slack_installation = await eave.core.internal.orm.SlackInstallationOrm.create(
+                self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.create(
                     session=db_session,
                     team_id=self.eave_account.team_id,
                     slack_team_id=slack_team_id,
+                    slack_team_name=slack_team_name,
                     bot_token=slack_bot_access_token,
                     bot_refresh_token=slack_bot_refresh_token,
                     bot_token_exp=(datetime.utcnow() + timedelta(seconds=slack_token_expires_in))
@@ -184,6 +188,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
             opaque_params={
                 "integration_name": eave.stdlib.core_api.enums.Integration.slack.value,
                 "approximate_num_members": approximate_num_members,
+                "slack_team_name": self.slack_installation.slack_team_name if self.slack_installation else None,
             },
         )
 

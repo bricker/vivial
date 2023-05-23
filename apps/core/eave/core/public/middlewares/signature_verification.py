@@ -25,29 +25,12 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        body: bytes = b""
-
-        while True:
-            # https://asgi.readthedocs.io/en/latest/specs/www.html#request-receive-event
-            message = await receive()
-            assert message["type"] == "http.request"
-            chunk: bytes = message.get("body", b"")
-            body += chunk
-
-            if message.get("more_body", False) is False:
-                break
+        body = await self.read_body(scope=scope, receive=receive)
 
         with self.auto_eave_state(scope=scope) as eave_state:
             self._do_signature_verification(scope=scope, body=body, eave_state=eave_state)
 
-        async def dummy_receive() -> ASGIReceiveEvent:
-            return {
-                "type": "http.request",
-                "body": body,
-                "more_body": False,
-            }
-
-        await self.app(scope, dummy_receive, send)
+        await self.app(scope, receive, send)
 
     @staticmethod
     def _do_signature_verification(
