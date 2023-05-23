@@ -29,7 +29,7 @@ function run-cloud-sql-proxy() {
 	# unix socket path names must be less than 108 characters long
 	# https://github.com/GoogleCloudPlatform/cloud-sql-proxy/issues/970
 	# so we'll put our socketdir close to root to keep the path short
-	local socketdir="$XDG_RUNTIME_DIR/.cloudsqlproxy"
+	local socketdir="${XDG_RUNTIME_DIR:-/tmp}/.cloudsqlproxy"
 	mkdir -p $socketdir
 
 	local connectionName=$(gcloud --format json sql instances list --filter="state=RUNNABLE" | jq -r .[0].connectionName)
