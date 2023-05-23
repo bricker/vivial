@@ -54,6 +54,7 @@ class AccountOrm(Base):
     )  # This field was renamed from "oauth_token" to "access_token"
     """access token from 3rd party"""
     refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
+    email: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -69,6 +70,7 @@ class AccountOrm(Base):
         auth_id: str,
         access_token: str,
         refresh_token: Optional[str],
+        email: Optional[str] = None
     ) -> Self:
         obj = cls(
             team_id=team_id,
@@ -78,6 +80,7 @@ class AccountOrm(Base):
             auth_id=auth_id,
             access_token=access_token,
             refresh_token=refresh_token,
+            email=email,
         )
 
         session.add(obj)
