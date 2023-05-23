@@ -1,7 +1,7 @@
 from typing import Optional
 
 import eave.pubsub_schemas
-import eave.slack.brain
+from eave.slack.brain.core import Brain
 import eave.slack.slack_models
 from eave.slack.util import log_context
 import eave.stdlib
@@ -67,7 +67,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         eaveLogger.debug("ignoring bot message", extra=extra)
         return
 
-    b = eave.slack.brain.Brain(message=message, eave_team=eave_team)
+    b = Brain(message=message, eave_team=eave_team)
 
     try:
         await b.process_message()
