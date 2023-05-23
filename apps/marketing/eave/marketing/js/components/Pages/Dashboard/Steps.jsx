@@ -147,14 +147,14 @@ const Steps = () => {
     }
   }, [teamInfo, appInstalled]);
 
-  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
+  const isStep3Clickable = step > 2 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
 
   const handleSpaceUpdate = (event) => {
     updateConfluenceSpace(event.target.value);
   };
 
   const handleStepClick = () => {
-    if (isStep2Clickable) {
+    if (isStep3Clickable) {
       setStep(2);
     }
   };
@@ -209,9 +209,9 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon} onClick={handleStepClick}>
-            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep2Clickable })} >
+            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep3Clickable })} >
               Step 3: Select your <ConfluenceIcon /> Confluence Space
-              {isStep2Clickable && <DownIcon className={classes.downIcon} />}
+              {isStep3Clickable && <DownIcon className={classes.downIcon} />}
             </Copy>
           </StepLabel>
           <StepContent className={classes.content}>
