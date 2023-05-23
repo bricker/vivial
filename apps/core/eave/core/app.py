@@ -85,6 +85,11 @@ routes = [
         endpoint=documents.SearchDocuments,
     ),
     make_route(
+        path="/documents/delete",
+        auth_required=False,
+        endpoint=documents.DeleteDocument,
+    ),
+    make_route(
         path="/subscriptions/create",
         auth_required=False,
         endpoint=subscriptions.CreateSubscription,
