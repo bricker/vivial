@@ -90,7 +90,9 @@ async def authorize(
     # After we've validated that the auth is good, cache the new data.
     if cached_data is None:  # if the data is already cached, we don't need to add it back
         try:
-            await cache.set(name=cachekey, value=installation_data.json(), ex=(60 * 60))  # expires in one hour
+            # expires cache entries in 12 hours since that is the valid lifetime of a slack auth token
+            ttl_12_hours = 12 * 60 * 60
+            await cache.set(name=cachekey, value=installation_data.json(), ex=ttl_12_hours)
         except Exception:
             eaveLogger.exception("Exception saving cached slack installation details")
 
