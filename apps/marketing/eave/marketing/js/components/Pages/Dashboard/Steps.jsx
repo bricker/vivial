@@ -152,7 +152,7 @@ const Steps = () => {
   const [space, setSpace] = useState('');
   const [editingSpace, setEditingSpace] = useState(false);
   // placeholder until flow is integrated
-  const [appInstalled, setAppInstalled] = useState(true);
+  const [appInstalled, setAppInstalled] = useState(false);
 
   useEffect(() => {
     if (!appInstalled) {
