@@ -120,7 +120,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     account_id: accountId,
     method,
     url,
-  }
+  };
 
   eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, requestContext);
 

@@ -1,5 +1,3 @@
-import slack_sdk.models.blocks
-from eave.slack.brain.communication import CommunicationMixin
 from eave.slack.brain.subscription_management import SubscriptionManagementMixin
 import eave.stdlib.analytics
 import eave.stdlib.core_api.client
@@ -13,6 +11,7 @@ from . import message_prompts
 from . import document_metadata
 from .context_building import ContextBuildingMixin
 from ..util import log_context
+
 
 class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin):
     async def create_documentation_and_subscribe(self) -> None:
@@ -59,7 +58,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 "document_reference": upsert_document_response.document_reference.dict(),
                 "document.title": api_document.title,
                 "document.parent": api_document.parent.title if api_document.parent else None,
-            }
+            },
         )
 
     async def build_documentation(self) -> eave.stdlib.core_api.operations.DocumentInput:
@@ -143,7 +142,10 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
         if len(search_results.documents) == 0:
-            await self.send_response(text="I couldn't find any relevant documentation.", eave_message_purpose="notify of empty search results")
+            await self.send_response(
+                text="I couldn't find any relevant documentation.",
+                eave_message_purpose="notify of empty search results",
+            )
             return
 
         link_list = [f":arrow_right: *<{result.url}|{result.title}>*" for result in search_results.documents]
@@ -153,12 +155,15 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             text=f"Here is some relevant documentation:\n{link_list_str}",
             eave_message_purpose="provide search results",
             opaque_params={
-                "search_results": [{ "title": result.title, "url": result.url } for result in search_results.documents],
-            }
+                "search_results": [{"title": result.title, "url": result.url} for result in search_results.documents],
+            },
         )
 
     async def update_documentation(self) -> None:
-        await self.send_response(text="I haven't yet been taught how to update existing documentation.", eave_message_purpose="unable to perform action")
+        await self.send_response(
+            text="I haven't yet been taught how to update existing documentation.",
+            eave_message_purpose="unable to perform action",
+        )
 
     async def refine_documentation(self) -> None:
         api_document = await self.build_documentation()
@@ -193,10 +198,12 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                     document_reference=eave.stdlib.core_api.operations.DocumentReferenceInput(
                         id=document_reference_id,
                     )
-                )
+                ),
             )
 
-    async def upsert_document(self, document: eave.stdlib.core_api.operations.DocumentInput) -> eave.stdlib.core_api.operations.UpsertDocument.ResponseBody:
+    async def upsert_document(
+        self, document: eave.stdlib.core_api.operations.DocumentInput
+    ) -> eave.stdlib.core_api.operations.UpsertDocument.ResponseBody:
         response = await eave.stdlib.core_api.client.upsert_document(
             team_id=self.eave_team.id,
             input=eave.stdlib.core_api.operations.UpsertDocument.RequestBody(
@@ -262,10 +269,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             self.log_event(
                 event_name="search_results",
                 event_description="Eave returned search results",
-                opaque_params={
-                    "search_query": answer,
-                    "search_results": [d.dict() for d in response.documents]
-                },
+                opaque_params={"search_query": answer, "search_results": [d.dict() for d in response.documents]},
             )
 
         return response

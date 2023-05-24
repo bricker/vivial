@@ -71,6 +71,7 @@ async def search_documents(
     response_json = await response.json()
     return operations.SearchDocuments.ResponseBody(**response_json, _raw_response=response)
 
+
 async def delete_document(
     team_id: UUID,
     input: operations.DeleteDocument.RequestBody,

@@ -7,8 +7,11 @@ from eave.stdlib.logging import eaveLogger
 
 from .base import Base
 
+
 class CommunicationMixin(Base):
-    async def send_response(self, text: str, eave_message_purpose: str, opaque_params: Optional[JsonObject] = None) -> None:
+    async def send_response(
+        self, text: str, eave_message_purpose: str, opaque_params: Optional[JsonObject] = None
+    ) -> None:
         await self.message.send_response(text=text)
 
         if opaque_params is None:
@@ -24,21 +27,20 @@ class CommunicationMixin(Base):
             },
         )
 
-
     async def notify_failure(self, e: Exception) -> None:
         await self.send_response(
             text="I wasn't able to complete the request because of a technical issue. I've let my developers know about it. I can try again if you want, just repeat the request!",
             eave_message_purpose="inform the user of a failure while processing a request",
             opaque_params={
                 "request_id": e.request_id if isinstance(e, HTTPException) else None,
-            }
+            },
         )
 
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
         try:
             await self.message.add_reaction("eave")
-            reaction="eave"
+            reaction = "eave"
         except SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
@@ -46,7 +48,7 @@ class CommunicationMixin(Base):
 
             if error_code == "invalid_name":
                 await self.message.add_reaction("thumbsup")
-                reaction="thumbsup"
+                reaction = "thumbsup"
             else:
                 raise
 
@@ -55,5 +57,5 @@ class CommunicationMixin(Base):
             event_description="Eave acknowledged that she received a message",
             opaque_params={
                 "reaction": reaction,
-            }
+            },
         )

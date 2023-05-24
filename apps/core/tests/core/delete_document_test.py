@@ -2,8 +2,6 @@ import http
 
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
-from eave.stdlib.atlassian import ConfluencePage
-from eave.stdlib.core_api.operations import SearchDocuments
 from .base import BaseTestCase
 
 
@@ -45,5 +43,7 @@ class TestDeleteDocument(BaseTestCase):
         assert mock.call_count == 1
 
         async with self.db_session.begin() as s:
-            after = await DocumentReferenceOrm.one_or_none(session=s, team_id=self.testdata["eave_team"].id, id=document_reference.id)
+            after = await DocumentReferenceOrm.one_or_none(
+                session=s, team_id=self.testdata["eave_team"].id, id=document_reference.id
+            )
             assert after is None

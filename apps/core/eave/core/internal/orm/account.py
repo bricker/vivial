@@ -70,7 +70,7 @@ class AccountOrm(Base):
         auth_id: str,
         access_token: str,
         refresh_token: Optional[str],
-        email: Optional[str] = None
+        email: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,

@@ -3,7 +3,7 @@ import json
 import os
 import uuid
 import random
-from typing import Any, Literal, Never, TypeVar, Optional
+from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
 import eave.stdlib.atlassian
 import eave.stdlib.signing
@@ -238,8 +238,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def mock_slack_client(self) -> None:
         self.patch(
-            name="slack client",
-            patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True))
+            name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True)
+        )
 
     def mock_signing(self) -> None:
         def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
@@ -260,10 +260,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def mock_analytics(self) -> None:
-        self.patch(
-            name="analytics",
-            patch=unittest.mock.patch("eave.stdlib.analytics.log_event")
-        )
+        self.patch(name="analytics", patch=unittest.mock.patch("eave.stdlib.analytics.log_event"))
 
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:
         mock = self.get_mock("analytics")
@@ -275,7 +272,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             opaque_params = kwargs.pop("opaque_params", None)
             kwargs_matched = all([call_args.kwargs[k] == v for k, v in kwargs.items()])
             if opaque_params:
-                opaque_params_matched = all([call_args.kwargs["opaque_params"][k] == v for k, v in opaque_params.items()])
+                opaque_params_matched = all(
+                    [call_args.kwargs["opaque_params"][k] == v for k, v in opaque_params.items()]
+                )
             else:
                 opaque_params_matched = True
 

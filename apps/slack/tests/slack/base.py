@@ -1,7 +1,6 @@
 import unittest.mock
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock
 from httpx import AsyncClient
-import httpx
 from slack_bolt.async_app import AsyncBoltContext
 from slack_sdk.web.async_client import AsyncWebClient
 from eave.slack.config import app_config
@@ -33,18 +32,20 @@ class BaseTestCase(UtilityBaseTestCase):
 
         self._data_slack_context = AsyncMock(spec=AsyncBoltContext)
         self._data_slack_context.client = AsyncMock(spec=AsyncWebClient)
-        self._data_message = SlackMessage(data={
-            "ts": self.anystring("message.ts"),
-            "team": self.anystring("message.team"),
-            "channel": self.anystring("message.channel"),
-            "thread_ts": self.anystring("message.thread_ts"),
-            "user": self.anystring("message.user"),
-        }, slack_context=self._data_slack_context)
+        self._data_message = SlackMessage(
+            data={
+                "ts": self.anystring("message.ts"),
+                "team": self.anystring("message.team"),
+                "channel": self.anystring("message.channel"),
+                "thread_ts": self.anystring("message.thread_ts"),
+                "user": self.anystring("message.user"),
+            },
+            slack_context=self._data_slack_context,
+        )
 
         self._data_eave_team = Team(
-            id=self.anyuuid(),
-            name=self.anystring(),
-            document_platform=DocumentPlatform.confluence)
+            id=self.anyuuid(), name=self.anystring(), document_platform=DocumentPlatform.confluence
+        )
 
         self._data_subscription = Subscription(
             id=self.anyuuid(),
@@ -66,15 +67,19 @@ class BaseTestCase(UtilityBaseTestCase):
 
         self.patch(
             name="get subscription",
-            patch=unittest.mock.patch("eave.stdlib.core_api.client.get_subscription", return_value=self._data_subscription_response)
+            patch=unittest.mock.patch(
+                "eave.stdlib.core_api.client.get_subscription", return_value=self._data_subscription_response
+            ),
         )
         self.patch(
             name="create subscription",
-            patch=unittest.mock.patch("eave.stdlib.core_api.client.create_subscription", return_value=self._data_subscription_response)
+            patch=unittest.mock.patch(
+                "eave.stdlib.core_api.client.create_subscription", return_value=self._data_subscription_response
+            ),
         )
         self.patch(
             name="delete subscription",
-            patch=unittest.mock.patch("eave.stdlib.core_api.client.delete_subscription", return_value=None)
+            patch=unittest.mock.patch("eave.stdlib.core_api.client.delete_subscription", return_value=None),
         )
 
         self.sut = Brain(message=self._data_message, eave_team=self._data_eave_team)

@@ -130,7 +130,8 @@ class SlackOAuthResponse(TypedDict):
     expires_in: Optional[int]
     team: SlackTeam
     authed_user: SlackAuthorizedUser
-    bot_user_id: Optional[str]
+    bot_user_id: NotRequired[Optional[str]]
+
 
 def get_authenticated_client(access_token: str) -> slack_sdk.web.async_client.AsyncWebClient:
     client = slack_sdk.web.async_client.AsyncWebClient(token=access_token)

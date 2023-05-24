@@ -139,6 +139,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
 
         return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.OK, model=model)
 
+
 class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave.stdlib.request_state.get_eave_state(request=request)
@@ -155,7 +156,9 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 raise UnexpectedMissingValue("document destination")
 
             document_reference = await eave.core.internal.orm.DocumentReferenceOrm.one_or_exception(
-                session=db_session, team_id=eave_team.id, id=input.document_reference.id,
+                session=db_session,
+                team_id=eave_team.id,
+                id=input.document_reference.id,
             )
             await destination.delete_document(document_id=document_reference.document_id)
             await db_session.delete(document_reference)

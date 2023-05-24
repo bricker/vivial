@@ -1,15 +1,6 @@
-import slack_sdk
-import slack_sdk.errors
-import slack_sdk.models.blocks
-import eave.pubsub_schemas
 from . import message_prompts
 from eave.slack.util import log_context
-import eave.stdlib.analytics
-import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.models as eave_models
-from eave.stdlib.exceptions import HTTPException
 
-from .. import slack_models
 
 from eave.stdlib.logging import eaveLogger
 from .intent_processing import IntentProcessingMixin
@@ -36,8 +27,7 @@ class Brain(IntentProcessingMixin):
             self.log_event(
                 event_name="eave_mentioned",
                 event_description="Eave was mentioned somewhere",
-                opaque_params={
-                },
+                opaque_params={},
             )
 
         else:

@@ -7,6 +7,7 @@ import eave.stdlib.openai_client as eave_openai
 
 STRIPPED_CHARS = "\"' "
 
+
 async def get_topic(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
         f"""

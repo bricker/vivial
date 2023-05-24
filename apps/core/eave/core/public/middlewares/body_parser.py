@@ -17,16 +17,19 @@ class BodyParserASGIMiddleware(EaveASGIMiddleware):
         if len(body) > 0:
             with self.auto_eave_state(scope=scope) as eave_state:
                 content_type = eave.stdlib.api_util.get_header_value(
-                    scope=scope, name=eave.stdlib.headers.CONTENT_TYPE,
+                    scope=scope,
+                    name=eave.stdlib.headers.CONTENT_TYPE,
                 )
 
-                if content_type == 'application/json':
+                if content_type == "application/json":
                     try:
                         eave_state.parsed_request_body = json.loads(body)
                     except Exception:
-                        eave.stdlib.logging.eaveLogger.exception("Error while parsing body as JSON", extra=eave_state.log_context)
+                        eave.stdlib.logging.eaveLogger.exception(
+                            "Error while parsing body as JSON", extra=eave_state.log_context
+                        )
                 else:
-                    eave_state.parsed_request_body = { "text": str(body) }
+                    eave_state.parsed_request_body = {"text": str(body)}
 
         async def dummy_receive() -> ASGIReceiveEvent:
             return {

@@ -120,6 +120,7 @@ class SearchDocuments(Endpoint):
         team: models.Team
         documents: list[models.DocumentSearchResult]
 
+
 class DeleteDocument(Endpoint):
     class RequestBody(BaseRequestBody):
         document_reference: DocumentReferenceInput

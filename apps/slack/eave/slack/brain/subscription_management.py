@@ -2,9 +2,7 @@ from eave.slack.brain.communication import CommunicationMixin
 import eave.stdlib.core_api.client
 import eave.stdlib.core_api.operations
 import eave.stdlib.core_api.enums
-import eave.stdlib.analytics as eave_analytics
-from .base import Base
-from . import message_prompts
+
 
 class SubscriptionManagementMixin(CommunicationMixin):
     async def get_subscription(self) -> eave.stdlib.core_api.operations.GetSubscription.ResponseBody | None:
@@ -32,13 +30,14 @@ class SubscriptionManagementMixin(CommunicationMixin):
             event_description="Eave subscribed to a slack message",
             opaque_params={
                 "subscription": subscription.dict(),
-            }
+            },
         )
 
         return subscription
 
-
-    async def notify_existing_subscription(self, subscription: eave.stdlib.core_api.operations.GetSubscription.ResponseBody) -> None:
+    async def notify_existing_subscription(
+        self, subscription: eave.stdlib.core_api.operations.GetSubscription.ResponseBody
+    ) -> None:
         if subscription.document_reference is not None:
             await self.send_response(
                 text=(
