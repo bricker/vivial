@@ -20,7 +20,7 @@ import Copy from '../../Copy/index.jsx';
 import Button from '../../Button/index.jsx';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
-import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
+// import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
 import DownIcon from '../../Icons/DownIcon.js';
 import Footnote from './Footnote.jsx';
 import StepIcon from './StepIcon.jsx';
@@ -152,26 +152,27 @@ const Steps = () => {
   const [space, setSpace] = useState('');
   const [editingSpace, setEditingSpace] = useState(false);
   // placeholder until flow is integrated
-  const [appInstalled, setAppInstalled] = useState(false);
+  const [appInstalled] = useState(false);
 
   useEffect(() => {
-    if (!appInstalled) {
+    // if (!appInstalled) {
+    //   setStep(0);
+    // }
+    if (!teamInfo?.integrations.atlassian) {
       setStep(0);
-    } else if (!teamInfo?.integrations.atlassian) {
-      setStep(1);
       // if user has not selected a conflunece space
     } else if (!teamInfo?.integrations.atlassian.confluence_space_key || editingSpace) {
-      setStep(2);
+      setStep(1);
     // confluence integration happens by default, if user has not linked their github or slack
     } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
-      setStep(3);
+      setStep(2);
     // user has linked all so we can just show a completed stepper
     } else {
-      setStep(4);
+      setStep(3);
     }
   }, [teamInfo, appInstalled, space]);
 
-  const isStep3Clickable = step > 2 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
+  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
 
   const handleSpaceUpdate = () => {
     updateConfluenceSpace(space, () => setEditingSpace(false));
@@ -182,10 +183,10 @@ const Steps = () => {
   };
 
   const handleStepClick = () => {
-    if (isStep3Clickable) {
+    if (isStep2Clickable) {
       setSpace(teamInfo?.integrations.atlassian.confluence_space_key);
       setEditingSpace(true);
-      setStep(2);
+      setStep(1);
     }
   };
 
@@ -196,7 +197,7 @@ const Steps = () => {
       <Stepper orientation="vertical" activeStep={step} classes={{
         vertical: classes.stepper,
       }}>
-        <Step>
+        {/* <Step>
           <StepLabel StepIconComponent={StepIcon}>
             <Copy variant="h3" className={classes.header}>
               Step 1: Add Eave to <AtlassianIcon className={classes.atlassian} />
@@ -214,17 +215,17 @@ const Steps = () => {
               Add App
             </Button>
           </StepContent>
-        </Step>
+        </Step> */}
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
             <Copy variant="h3" className={classes.header}>
               {isDesktop ? (
                 <span>
-                  Step 2: Connect to your <ConfluenceIcon /> Confluence Account
+                  Step 1: Connect to your <ConfluenceIcon /> Confluence Account
                 </span>
               ) : (
                 <span>
-                  Step 2: Connect to <ConfluenceIcon /> Confluence
+                  Step 1: Connect to <ConfluenceIcon /> Confluence
                 </span>
               )}
 
@@ -239,9 +240,9 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon} onClick={handleStepClick}>
-            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep3Clickable })} >
-              Step 3: Select your <ConfluenceIcon /> Confluence Space
-              {isStep3Clickable && <DownIcon className={classes.downIcon} />}
+            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep2Clickable })} >
+              Step 2: Select your <ConfluenceIcon /> Confluence Space
+              {isStep2Clickable && <DownIcon className={classes.downIcon} />}
             </Copy>
           </StepLabel>
           <StepContent className={classes.content}>
@@ -282,7 +283,7 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
-            <Copy variant="h3" className={classes.header}>Step 4: Integrate your business tools</Copy>
+            <Copy variant="h3" className={classes.header}>Step 3: Integrate your business tools</Copy>
           </StepLabel>
           <StepContent className={classes.content}>
             <Copy variant="pSmall" className={classes.copy}>Select the tools where Eave can pull information from and be tagged to created documentation. Note Jira is automatically granted permissions via the Confluence connection.</Copy>

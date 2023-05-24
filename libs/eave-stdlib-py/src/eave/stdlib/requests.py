@@ -90,6 +90,9 @@ async def make_request(
             data=payload,
         )
 
+        # Consume the body while the session is still open
+        await response.read()
+
     eaveLogger.info(
         f"Eave Client Response: {request_id}: {method} {url}",
         extra={
