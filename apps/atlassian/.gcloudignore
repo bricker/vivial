@@ -1,8 +1,0 @@
-#!include:.gitignore
-
-.*
-*.md
-bin
-tests
-node_modules
-credentials.json
