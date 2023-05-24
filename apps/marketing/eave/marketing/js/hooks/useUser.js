@@ -30,6 +30,7 @@ const useUser = () => {
     // gets user info
     getUserInfo: () => {
       setLoadingGetUserInfo(true);
+      setGetUserError(null);
       fetch('/dashboard/me/team', {
         method: 'GET',
         headers: {
@@ -52,8 +53,9 @@ const useUser = () => {
       });
     },
     // updates current selected confluene space
-    updateConfluenceSpace: (key) => {
+    updateConfluenceSpace: (key, onComplete) => {
       setLoadingUpdateConfluenceSpace(true);
+      setUpdateConfluenceError(null);
       fetch('/dashboard/me/team/integrations/atlassian/update', {
         method: 'POST',
         headers: {
@@ -72,6 +74,7 @@ const useUser = () => {
           resp.json().then((data) => {
             setUserState((prevState) => ({ ...prevState, teamInfo: data }));
           });
+          onComplete?.();
         }
       // eslint-disable-next-line no-console
       }).catch((err) => {

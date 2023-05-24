@@ -9,6 +9,8 @@ import {
   FormControl,
   MenuItem,
   useMediaQuery,
+  CircularProgress,
+  InputLabel,
 } from '@material-ui/core';
 import classNames from 'classnames';
 
@@ -79,11 +81,31 @@ const makeClasses = makeStyles((theme) => ({
       opacity: 0.7,
     },
   },
+  selectWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    [theme.breakpoints.up('sm')]: {
+      flexDirection: 'row',
+    },
+  },
   select: {
     width: 275,
     marginTop: 12,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('sm')]: {
       width: 418,
+    },
+  },
+  error: {
+    color: 'red',
+    marginTop: 12,
+  },
+  submit: {
+    width: 275,
+    height: 56,
+    marginTop: 12,
+    [theme.breakpoints.up('sm')]: {
+      width: 166,
+      marginLeft: 30,
     },
   },
   connectButton: {
@@ -124,9 +146,11 @@ const makeClasses = makeStyles((theme) => ({
 const Steps = () => {
   const classes = makeClasses();
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
-  const { userState, updateConfluenceSpace } = useUser();
+  const { userState, updateConfluenceSpace, loadingUpdateConfluenceSpace, updateConfluenceError } = useUser();
   const { teamInfo } = userState;
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(2);
+  const [space, setSpace] = useState('');
+  const [editingSpace, setEditingSpace] = useState(false);
   // placeholder until flow is integrated
   const [appInstalled, setAppInstalled] = useState(false);
 
@@ -136,7 +160,7 @@ const Steps = () => {
     } else if (!teamInfo?.integrations.atlassian) {
       setStep(1);
       // if user has not selected a conflunece space
-    } else if (!teamInfo?.integrations.atlassian.confluence_space_key) {
+    } else if (!teamInfo?.integrations.atlassian.confluence_space_key || editingSpace) {
       setStep(2);
     // confluence integration happens by default, if user has not linked their github or slack
     } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
@@ -145,16 +169,22 @@ const Steps = () => {
     } else {
       setStep(4);
     }
-  }, [teamInfo, appInstalled]);
+  }, [teamInfo, appInstalled, space]);
 
   const isStep3Clickable = step > 2 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
 
-  const handleSpaceUpdate = (event) => {
-    updateConfluenceSpace(event.target.value);
+  const handleSpaceUpdate = () => {
+    updateConfluenceSpace(space, () => setEditingSpace(false));
+  };
+
+  const handleSelectChange = (event) => {
+    setSpace(event.target.value);
   };
 
   const handleStepClick = () => {
     if (isStep3Clickable) {
+      setSpace(teamInfo?.integrations.atlassian.confluence_space_key);
+      setEditingSpace(true);
       setStep(2);
     }
   };
@@ -216,22 +246,38 @@ const Steps = () => {
           </StepLabel>
           <StepContent className={classes.content}>
             <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
-            <div>
+            <div className={classes.selectWrapper}>
               <FormControl variant='outlined' className={classes.select}>
+              {!space && <InputLabel id="space-selector-label">Select your Confluence Space</InputLabel>}
                 <Select
                   labelId="space-selector-label"
                   id="space-selector"
-                  value={teamInfo?.integrations?.atlassian?.confluence_space_key || ''}
-                  onChange={handleSpaceUpdate}
+                  value={space}
+                  onChange={handleSelectChange}
+                  disabled={loadingUpdateConfluenceSpace}
                 >
-                  {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((space) => {
+                  {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((spc) => {
                     return (
-                      <MenuItem value={space.key} key={space.key}>{space.name}</MenuItem>
+                      <MenuItem value={spc.key} key={spc.key}>{spc.name}</MenuItem>
                     );
                   })}
                 </Select>
               </FormControl>
+              <Button
+                  className={classes.submit}
+                  onClick={handleSpaceUpdate}
+                  disabled={loadingUpdateConfluenceSpace}
+                >
+                  {loadingUpdateConfluenceSpace ? (
+                    <CircularProgress />
+                  ) : (
+                    'Submit'
+                  )}
+                </Button>
             </div>
+            {updateConfluenceError && (
+              <Copy variant="footnote" className={classes.error}>Something went wrong setting the Confluence space, please try again</Copy>
+            )}
           </StepContent>
         </Step>
         <Step>
