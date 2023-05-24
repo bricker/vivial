@@ -91,7 +91,7 @@ def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> N
         max_age=(60 * 60 * 24 * 365),
         domain=shared_config.eave_cookie_domain,
         httponly=True,
-        secure=(shared_config.dev_mode is False),
+        secure=(not shared_config.is_development),
     )
 
 
@@ -108,5 +108,5 @@ def _delete_auth_cookie(response: ResponseCookieMutator, key: str) -> None:
         expires=0,
         domain=shared_config.eave_cookie_domain,
         httponly=True,
-        secure=(shared_config.dev_mode is False),
+        secure=(not shared_config.is_development),
     )

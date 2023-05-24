@@ -33,11 +33,15 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local thisdir=$(basename $PWD)
-		statusmsg -in "Linting $thisdir/$target"
+		statusmsg -in "Linting $thisdir/$target (js/ts)"
 
 		cd $target
 		npx eslint .
-		npx tsc --project . --noEmit --checkJs
+		if test -f "tsconfig.json"; then
+			npx tsc --project . --noEmit
+		else
+			statusmsg -w "No tsconfig.json, skipping TypeScript linting"
+		fi
 		statusmsg -sp " ✔ "
 	)
 
@@ -47,7 +51,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local thisdir=$(basename $PWD)
-		statusmsg -in "Formatting $thisdir/$target"
+		statusmsg -in "Formatting $thisdir/$target (js/ts)"
 
 		cd $target
 		npx eslint . --fix

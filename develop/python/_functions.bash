@@ -36,7 +36,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local thisdir=$(basename $PWD)
 
 
-		statusmsg -in "Linting $thisdir/$target"
+		statusmsg -in "Linting $thisdir/$target (py)"
 		python -m ruff $qflag --config=$configfile $target
 		python -m black $qflag --config=$configfile --check $target
 		python -m mypy --config-file=$configfile $target > $mypyout
@@ -56,7 +56,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 		local thisdir=$(basename $PWD)
 
-		statusmsg -in "Formatting $thisdir/$target"
+		statusmsg -in "Formatting $thisdir/$target (py)"
 		python -m ruff $qflag --fix --config=$configfile $target
 		python -m black $qflag --config=$configfile $target
 		statusmsg -sp " ✔ "
