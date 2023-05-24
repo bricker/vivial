@@ -34,6 +34,7 @@ class AtlassianInstallationOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    atlassian_site_name: Mapped[Optional[str]] = mapped_column()
     atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
     confluence_space_key: Mapped[Optional[str]] = mapped_column(
         "confluence_space"
@@ -83,12 +84,14 @@ class AtlassianInstallationOrm(Base):
         atlassian_cloud_id: str,
         oauth_token_encoded: str,
         confluence_space_key: Optional[str],
+        atlassian_site_name: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             atlassian_cloud_id=atlassian_cloud_id,
             confluence_space_key=confluence_space_key,
             oauth_token_encoded=oauth_token_encoded,
+            atlassian_site_name=atlassian_site_name,
         )
         session.add(obj)
         await session.flush()

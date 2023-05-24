@@ -1,5 +1,6 @@
 from functools import reduce
 from typing import Type
+from eave.core.public.middlewares.body_parser import BodyParserASGIMiddleware
 import eave.stdlib
 import eave.stdlib.api_util
 import eave.stdlib.logging
@@ -70,7 +71,7 @@ def make_route(
 
 
 routes = [
-    Route(path="/status", endpoint=status.StatusRequest),
+    Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
     Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
@@ -83,6 +84,11 @@ routes = [
         path="/documents/search",
         auth_required=False,
         endpoint=documents.SearchDocuments,
+    ),
+    make_route(
+        path="/documents/delete",
+        auth_required=False,
+        endpoint=documents.DeleteDocument,
     ),
     make_route(
         path="/subscriptions/create",
@@ -216,6 +222,7 @@ routes = [
 
 middleware = [
     Middleware(middlewares.RequestIntegrityASGIMiddleware),
+    Middleware(BodyParserASGIMiddleware),
     Middleware(middlewares.LoggingASGIMiddleware),
 ]
 

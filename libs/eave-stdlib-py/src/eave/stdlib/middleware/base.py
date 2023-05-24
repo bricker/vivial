@@ -27,3 +27,23 @@ class EaveASGIMiddleware:
     @staticmethod
     def eave_state(scope: HTTPScope) -> eave.stdlib.request_state.EaveRequestState:
         return eave.stdlib.request_state.get_eave_state(scope=scope)
+
+    @staticmethod
+    async def read_body(scope: HTTPScope, receive: ASGIReceiveCallable) -> bytes:
+        with EaveASGIMiddleware.auto_eave_state(scope=scope) as eave_state:
+            if not eave_state.raw_request_body:
+                body: bytes = b""
+
+                while True:
+                    # https://asgi.readthedocs.io/en/latest/specs/www.html#request-receive-event
+                    message = await receive()
+                    assert message["type"] == "http.request"
+                    chunk: bytes = message.get("body", b"")
+                    body += chunk
+
+                    if message.get("more_body", False) is False:
+                        break
+
+                eave_state.raw_request_body = body
+
+        return eave_state.raw_request_body

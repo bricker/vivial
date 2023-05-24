@@ -19,6 +19,7 @@ import eave.stdlib.api_util
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_state.get_eave_state(request=request)
+        # FIXME: Use the parsed body already at `eave_state.parsed_request_body`
         body = await request.json()
         input = eave.stdlib.core_api.operations.UpsertDocument.RequestBody.parse_obj(body)
 
@@ -138,3 +139,29 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
         )
 
         return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.OK, model=model)
+
+
+class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        body = await request.json()
+        input = eave.stdlib.core_api.operations.DeleteDocument.RequestBody.parse_obj(body)
+
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
+                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
+            )
+
+            destination = await eave_team.get_document_destination(session=db_session)
+            if destination is None:
+                raise UnexpectedMissingValue("document destination")
+
+            document_reference = await eave.core.internal.orm.DocumentReferenceOrm.one_or_exception(
+                session=db_session,
+                team_id=eave_team.id,
+                id=input.document_reference.id,
+            )
+            await destination.delete_document(document_id=document_reference.document_id)
+            await db_session.delete(document_reference)
+
+        return Response(status_code=http.HTTPStatus.OK)

@@ -5,6 +5,8 @@ from eave.stdlib.exceptions import OpenAIDataError
 from .message_prompts import CONVO_STRUCTURE
 import eave.stdlib.openai_client as eave_openai
 
+STRIPPED_CHARS = "\"' "
+
 
 async def get_topic(conversation: str) -> str:
     prompt = eave_openai.formatprompt(
@@ -28,20 +30,23 @@ async def get_topic(conversation: str) -> str:
         temperature=0.5,
     )
 
-    openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    if openai_response is None:
+    title: str | None = await eave_openai.chat_completion(openai_params)
+    if title is None:
         raise OpenAIDataError()
-    return openai_response
+
+    # Remove quotes and spaces at the beginning or end
+    title = title.strip(STRIPPED_CHARS)
+    return title
 
 
 async def get_hierarchy(conversation: str) -> list[str]:
     prompt = eave_openai.formatprompt(
         f"""
-        Create up to three cascading parent folder names for this conversation, from least specific to most specific. These folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
+        Create up to two cascading parent folder names for this conversation, from least specific to most specific. These folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
 
         Examples:
         - The parent folders for a conversation about Python might be: Engineering, Python.
-        - The parent folders for a conversation about a new project for the Marketing team might be: Marketing, Projects, [project name].
+        - The parent folders for a conversation about a new project for the Marketing team might be: Marketing, Projects
 
         Give the answer as a comma-separated list of category names, sorted from least specific to most specific.
 
@@ -66,7 +71,7 @@ async def get_hierarchy(conversation: str) -> list[str]:
     if answer is None:
         raise OpenAIDataError()
 
-    parents = list(map(lambda x: x.strip(), answer.split(",")))
+    parents = list(map(lambda x: x.strip(STRIPPED_CHARS), answer.split(",")))
     return parents
 
 

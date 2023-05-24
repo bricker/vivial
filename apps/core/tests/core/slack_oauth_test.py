@@ -25,6 +25,7 @@ class TestSlackOAuthHandler(BaseTestCase):
             "access_token": self.anystring("access_token"),
             "refresh_token": self.anystring("refresh_token"),
             "expires_in": self.anyint("expires_in"),
+            "bot_user_id": self.anystring("bot user id"),
             "team": {
                 "id": self.anystring("team.id"),
                 "name": self.anystring("team.name"),
@@ -138,6 +139,7 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")
             assert eave_account.auth_id == self.anystring("authed_user.id")
             assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.slack
+            assert eave_account.email == self.anystring("slack_user_email")
             assert eave_team.name == self.anystring("team.name")
             assert slack_installation.bot_token == self.anystring("access_token")
             assert slack_installation.bot_refresh_token == self.anystring("refresh_token")

@@ -72,6 +72,18 @@ async def search_documents(
     return operations.SearchDocuments.ResponseBody(**response_json, _raw_response=response)
 
 
+async def delete_document(
+    team_id: UUID,
+    input: operations.DeleteDocument.RequestBody,
+) -> operations.BaseResponseBody:
+    response = await make_request(
+        url=f"{shared_config.eave_api_base}/documents/delete",
+        input=input,
+        team_id=team_id,
+    )
+    return operations.BaseResponseBody(_raw_response=response)
+
+
 async def create_subscription(
     team_id: UUID,
     input: operations.CreateSubscription.RequestBody,

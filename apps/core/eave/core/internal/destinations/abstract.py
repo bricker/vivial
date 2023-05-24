@@ -29,3 +29,7 @@ class DocumentDestination(Protocol):
     @abc.abstractmethod
     async def search_documents(self, query: str) -> list[DocumentSearchResult]:
         ...
+
+    @abc.abstractmethod
+    async def delete_document(self, document_id: str) -> None:
+        ...

@@ -46,3 +46,9 @@ class DocumentReferenceOrm(Base):
         stmt = select(cls).where(cls.team_id == team_id).where(cls.id == id).limit(1)
         result = (await session.scalars(stmt)).one()
         return result
+
+    @classmethod
+    async def one_or_none(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self | None:
+        stmt = select(cls).where(cls.team_id == team_id).where(cls.id == id).limit(1)
+        result = await session.scalar(stmt)
+        return result

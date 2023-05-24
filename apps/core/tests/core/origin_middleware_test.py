@@ -1,7 +1,6 @@
 from http import HTTPStatus
 import http
 
-import eave.stdlib.exceptions
 
 from .base import BaseTestCase
 

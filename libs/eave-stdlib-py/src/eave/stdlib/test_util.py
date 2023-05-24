@@ -26,6 +26,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.mock_google_services()
         self.mock_slack_client()
         self.mock_signing()
+        self.mock_analytics()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -84,22 +85,31 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self._increment += 1
         return self._increment
 
-    def anystring(self, name: Optional[str] = None) -> str:
+    def anystring(self, name: Optional[str] = None, only_if_exists: bool = False) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
+            if only_if_exists:
+                raise KeyError(f"testdata {name} not set")
+
             data = str(uuid.uuid4())
             self.testdata[name] = data
 
         value: str = self.testdata[name]
         return value
 
-    def anyjson(self, name: Optional[str] = None) -> str:
+    def getstr(self, name: str) -> str:
+        return self.anystring(name=name, only_if_exists=True)
+
+    def anyjson(self, name: Optional[str] = None, only_if_exists: bool = False) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
+            if only_if_exists:
+                raise KeyError(f"testdata {name} not set")
+
             data = json.dumps(
                 {
                     str(uuid.uuid4()): str(uuid.uuid4()),
@@ -112,11 +122,17 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: str = self.testdata[name]
         return value
 
-    def anydict(self, name: Optional[str] = None) -> dict[str, str]:
+    def getjson(self, name: str) -> str:
+        return self.anyjson(name=name, only_if_exists=True)
+
+    def anydict(self, name: Optional[str] = None, only_if_exists: bool = False) -> dict[str, str]:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
+            if only_if_exists:
+                raise KeyError(f"testdata {name} not set")
+
             data = {
                 str(uuid.uuid4()): str(uuid.uuid4()),
                 str(uuid.uuid4()): str(uuid.uuid4()),
@@ -127,27 +143,42 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         value: dict[str, str] = self.testdata[name]
         return value
 
-    def anyuuid(self, name: Optional[str] = None) -> uuid.UUID:
+    def getdict(self, name: str) -> dict[str, str]:
+        return self.anydict(name=name, only_if_exists=True)
+
+    def anyuuid(self, name: Optional[str] = None, only_if_exists: bool = False) -> uuid.UUID:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
+            if only_if_exists:
+                raise KeyError(f"testdata {name} not set")
+
             data = uuid.uuid4()
             self.testdata[name] = data
 
         value: uuid.UUID = self.testdata[name]
         return value
 
-    def anyint(self, name: Optional[str] = None) -> int:
+    def getuuid(self, name: str) -> uuid.UUID:
+        return self.anyuuid(name=name, only_if_exists=True)
+
+    def anyint(self, name: Optional[str] = None, only_if_exists: bool = False) -> int:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
+            if only_if_exists:
+                raise KeyError(f"testdata {name} not set")
+
             data = random.randint(0, 9999)
             self.testdata[name] = data
 
         value: int = self.testdata[name]
         return value
+
+    def getint(self, name: str) -> int:
+        return self.anyint(name=name, only_if_exists=True)
 
     @staticmethod
     def all_same(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
@@ -206,7 +237,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def mock_slack_client(self) -> None:
-        self.patch(unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True))
+        self.patch(
+            name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True)
+        )
 
     def mock_signing(self) -> None:
         def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
@@ -226,12 +259,41 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
+    def mock_analytics(self) -> None:
+        self.patch(name="analytics", patch=unittest.mock.patch("eave.stdlib.analytics.log_event"))
+
+    def logged_event(self, *args: Any, **kwargs: Any) -> bool:
+        mock = self.get_mock("analytics")
+        if not mock.called:
+            return False
+
+        for call_args in mock.call_args_list:
+            args_matched = all([call_args.args[i] == v for i, v in enumerate(args)])
+            opaque_params = kwargs.pop("opaque_params", None)
+            kwargs_matched = all([call_args.kwargs[k] == v for k, v in kwargs.items()])
+            if opaque_params:
+                opaque_params_matched = all(
+                    [call_args.kwargs["opaque_params"][k] == v for k, v in opaque_params.items()]
+                )
+            else:
+                opaque_params_matched = True
+
+            if args_matched and kwargs_matched and opaque_params_matched:
+                return True
+
+        # No calls matched the given args
+        return False
+
     def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:  # type:ignore
         m = patch.start()
         m._testMethodName = self._testMethodName
 
         if name is None:
-            name = f"{patch.target.__name__}.{patch.attribute}"
+            if hasattr(patch.target, "__name__"):
+                name = f"{patch.target.__name__}.{patch.attribute}"
+            else:
+                name = f"{patch.target}.{patch.attribute}"
+
         self.active_patches[name] = m
         return m
 

@@ -1,6 +1,6 @@
 from slack_bolt.async_app import AsyncBoltContext
 
-from eave.slack.brain import Brain
+from eave.slack.brain.core import Brain
 from eave.slack.slack_models import SlackMessage
 from eave.stdlib.core_api.enums import DocumentPlatform
 from eave.stdlib.core_api.models import Team

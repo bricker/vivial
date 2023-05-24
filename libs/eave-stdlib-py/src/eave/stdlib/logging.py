@@ -36,7 +36,7 @@ rootLogger = logging.getLogger()
 level = shared_config.log_level
 rootLogger.setLevel(level)
 
-if shared_config.dev_mode:
+if shared_config.is_development:
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
     formatter = CustomFormatter()

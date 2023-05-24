@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Core API",
       "envFile": "${workspaceFolder}/.env",
@@ -130,6 +131,17 @@
       "name": "API + Website",
       "configurations": [
         "Core API",
+        "Marketing Website (Client)",
+        "Marketing Website (Server)",
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "All Services",
+      "configurations": [
+        "Core API",
+        "Slack Socket Mode",
+        "GitHub App API",
         "Marketing Website (Client)",
         "Marketing Website (Server)",
       ],

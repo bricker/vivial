@@ -49,6 +49,7 @@ const Button = ({
       classes={{ root: rootClass }}
       color={color || 'primary'}
       variant={variant || 'contained'}
+      target={target}
       {...rest}
     >
       {children}

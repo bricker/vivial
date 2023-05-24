@@ -9,3 +9,7 @@ def merged_dotenv_values(files: list[str]) -> dict[str,str]:
         env.update(valuesnormalized)
 
     return env
+
+def load_merged_dotenv_files(files: list[str]) -> None:
+    for f in files:
+        dotenv.load_dotenv(f, override=True)

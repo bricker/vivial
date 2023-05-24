@@ -12,7 +12,7 @@ db_uri = sqlalchemy.engine.url.URL.create(
     password=app_config.db_pass,
     database=app_config.db_name,
 )
-async_engine = create_async_engine(db_uri, echo=app_config.dev_mode)
+async_engine = create_async_engine(db_uri, echo=app_config.is_development)
 
 async_session = async_sessionmaker(async_engine, expire_on_commit=False)
 """

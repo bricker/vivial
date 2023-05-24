@@ -17,7 +17,7 @@ def _build_cookie_params(provider: eave_enums.AuthProvider) -> dict[str, Any]:
     return {
         "domain": app_config.eave_cookie_domain,
         "path": f"/oauth/{provider.value}/callback",
-        "secure": app_config.dev_mode is False,
+        "secure": not app_config.is_development,
         "httponly": True,
         "samesite": "lax",
     }

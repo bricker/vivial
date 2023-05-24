@@ -215,7 +215,14 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function get-cpu-arch() {
-		uname -p
+		local arch=$(uname -p)
+		if test "$arch" = "unknown"; then
+			# `uname -p` isnt portible/POSIX, so it's often unknown
+			# on linux systems. use `uname -m` instead in that case
+			uname -m
+		else
+			echo "$arch"
+		fi
 	}
 
 	function get-cpu-arch-normalized() {

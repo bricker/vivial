@@ -1,7 +1,7 @@
 from typing import Optional
 
 import eave.pubsub_schemas
-import eave.slack.brain
+from eave.slack.brain.core import Brain
 import eave.slack.slack_models
 from eave.slack.util import log_context
 import eave.stdlib
@@ -67,7 +67,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         eaveLogger.debug("ignoring bot message", extra=extra)
         return
 
-    b = eave.slack.brain.Brain(message=message, eave_team=eave_team)
+    b = Brain(message=message, eave_team=eave_team)
 
     try:
         await b.process_message()
@@ -114,13 +114,18 @@ async def event_member_joined_channel_handler(
         return
 
     if context.client:
+        ref = f"<@{context.bot_user_id}>" if context.bot_user_id else "@Eave"
+
+        message = (
+            "Hey there, I’m Eave! I’m here to help with any of your documentation needs. Try the following:\n"
+            f"  • Tag {ref} in a thread that you want documented\n"
+            f"  • Tag {ref} in a message that includes GitHub links to document code\n"
+            f"  • Tag {ref} to help look for existing documentation\n"
+        )
+
         await context.client.chat_postMessage(
             channel=event["channel"],
-            text=(
-                msg := (
-                    "Hello, I’m Eave! I can assist with any of your documentation needs. Simply tag me in threads you want documented, and I’ll take care of it."
-                )
-            ),
+            text=message,
         )
 
         eave.stdlib.analytics.log_event(
@@ -130,7 +135,7 @@ async def event_member_joined_channel_handler(
             eave_team_id=eave_team.id if eave_team else None,
             opaque_params={
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
-                "message_content": msg,
+                "message_content": message,
                 "message_purpose": "introduction after joining a channel",
             },
         )

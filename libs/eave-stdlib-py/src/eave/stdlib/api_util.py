@@ -66,9 +66,9 @@ def get_headers(
         redacted = []
 
     return {
-        n.decode(): (v.decode() if n not in redacted else redact(v.decode()))
+        n.decode(): (v.decode() if n.decode().lower() not in redacted else redact(v.decode()))
         for [n, v] in scope["headers"]
-        if n not in excluded
+        if n.decode().lower() not in excluded
     }
 
 

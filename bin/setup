@@ -110,6 +110,13 @@ function setupcloudsqlproxy() {
 	local arch=$(get-cpu-arch-normalized-alt)
 
 	curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch
+	# see if we got an error back instead of binary content
+	if test "$(head -n1 cloud-sql-proxy | cut -c 3-5)" = "xml"; then
+		statusmsg -e "Error downloading cloud-sql-proxy:"
+		cat cloud-sql-proxy
+		rm cloud-sql-proxy
+		return
+	fi
 	chmod +x cloud-sql-proxy
 
 	statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
@@ -125,26 +132,6 @@ echo ""
 
 function install-jq() {
 	case "$kernel" in
-<<<<<<< HEAD
-		"linux")
-			case "$opsys" in
-				"ubuntu")
-					statusmsg -w "sudo privileges are needed to install jq via apt"
-					sudo apt install jq
-					;;
-				*)
-					statusmsg -e "Your operating system isn't supported. Please add support to this script!"
-					;;
-			esac
-			;;
-
-		"darwin")
-			if cmd-exists "brew"; then
-				brew install jq
-			else
-				statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
-			fi
-=======
 	"linux")
 		case "$opsys" in
 		"ubuntu")
@@ -157,7 +144,6 @@ function install-jq() {
 			;;
 		*)
 			statusmsg -e "Your operating system isn't supported. Please add support to this script!"
->>>>>>> e06187773616905e6a2a3c0a7bd80ff2f743fde4
 			;;
 		esac
 		;;

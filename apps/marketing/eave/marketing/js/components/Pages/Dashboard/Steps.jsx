@@ -7,7 +7,6 @@ import {
   Stepper,
   Select,
   FormControl,
-  InputLabel,
   MenuItem,
   useMediaQuery,
 } from '@material-ui/core';
@@ -19,6 +18,7 @@ import Copy from '../../Copy/index.jsx';
 import Button from '../../Button/index.jsx';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
+import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
 import DownIcon from '../../Icons/DownIcon.js';
 import Footnote from './Footnote.jsx';
 import StepIcon from './StepIcon.jsx';
@@ -75,15 +75,15 @@ const makeClasses = makeStyles((theme) => ({
     '& .MuiStepLabel-completed $header': {
       color: theme.typography.color.innactive,
     },
+    '& .MuiStepLabel-completed svg': {
+      opacity: 0.7,
+    },
   },
   select: {
     width: 275,
     marginTop: 12,
     [theme.breakpoints.up('md')]: {
       width: 418,
-    },
-    '& .MuiFormLabel-filled': {
-      background: theme.palette.background.main,
     },
   },
   connectButton: {
@@ -101,6 +101,12 @@ const makeClasses = makeStyles((theme) => ({
     left: 5,
     width: 14,
   },
+  atlassian: {
+    width: 95,
+    [theme.breakpoints.up('sm')]: {
+      width: 144,
+    },
+  },
   githubButtonLogo: {
     maxWidth: 116,
   },
@@ -110,6 +116,9 @@ const makeClasses = makeStyles((theme) => ({
   jiraButtonLogo: {
     maxWidth: 128,
   },
+  completed: {
+    opacity: 0.5,
+  },
 }));
 
 const Steps = () => {
@@ -118,31 +127,35 @@ const Steps = () => {
   const { userState, updateConfluenceSpace } = useUser();
   const { teamInfo } = userState;
   const [step, setStep] = useState(0);
+  // placeholder until flow is integrated
+  const [appInstalled, setAppInstalled] = useState(false);
 
   useEffect(() => {
-    if (teamInfo?.integrations.atlassian) {
+    if (!appInstalled) {
+      setStep(0);
+    } else if (!teamInfo?.integrations.atlassian) {
+      setStep(1);
       // if user has not selected a conflunece space
-      if (!teamInfo?.integrations.atlassian.confluence_space_key) {
-        setStep(1);
-      // confluence integration happens by default, if user has not linked their github or slack
-      } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
-        setStep(2);
-      // user has linked all so we can just show a completed stepper
-      } else {
-        setStep(3);
-      }
+    } else if (!teamInfo?.integrations.atlassian.confluence_space_key) {
+      setStep(2);
+    // confluence integration happens by default, if user has not linked their github or slack
+    } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
+      setStep(3);
+    // user has linked all so we can just show a completed stepper
+    } else {
+      setStep(4);
     }
-  }, [teamInfo]);
+  }, [teamInfo, appInstalled]);
 
-  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
+  const isStep3Clickable = step > 2 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
 
   const handleSpaceUpdate = (event) => {
     updateConfluenceSpace(event.target.value);
   };
 
   const handleStepClick = () => {
-    if (isStep2Clickable) {
-      setStep(1);
+    if (isStep3Clickable) {
+      setStep(2);
     }
   };
 
@@ -156,13 +169,32 @@ const Steps = () => {
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
             <Copy variant="h3" className={classes.header}>
+              Step 1: Add Eave to <AtlassianIcon className={classes.atlassian} />
+            </Copy>
+          </StepLabel>
+          <StepContent className={classes.content}>
+            <Copy variant="pSmall">Add Eave, and then come back to this page to complete setup.</Copy>
+            <Button
+              lg
+              className={classes.button}
+              onClick={() => setAppInstalled(true)}
+              target="_blank"
+              href="https://developer.atlassian.com/console/install/e3c57ac8-296e-4392-b128-4330b1ab2883/?signature=9e7204e3d1f2898b576427da60ab2182353879b1173469f1b59e0e9cab271d5439c0ff55d59dab60621d9c871125afe79fac266aa532eb29778a2d751bbe0508&product=confluence&product=jira"
+            >
+              Add App
+            </Button>
+          </StepContent>
+        </Step>
+        <Step>
+          <StepLabel StepIconComponent={StepIcon}>
+            <Copy variant="h3" className={classes.header}>
               {isDesktop ? (
                 <span>
-                  Step 1: Connect to your <ConfluenceIcon /> Confluence Account
+                  Step 2: Connect to your <ConfluenceIcon /> Confluence Account
                 </span>
               ) : (
                 <span>
-                  Step 1: Connect to <ConfluenceIcon /> Confluence
+                  Step 2: Connect to <ConfluenceIcon /> Confluence
                 </span>
               )}
 
@@ -177,25 +209,21 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon} onClick={handleStepClick}>
-            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep2Clickable })} >
-              Step 2: Select your Confluence Space
-              {isStep2Clickable && <DownIcon className={classes.downIcon} />}
+            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep3Clickable })} >
+              Step 3: Select your <ConfluenceIcon /> Confluence Space
+              {isStep3Clickable && <DownIcon className={classes.downIcon} />}
             </Copy>
           </StepLabel>
           <StepContent className={classes.content}>
             <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
             <div>
               <FormControl variant='outlined' className={classes.select}>
-                <InputLabel id="space-selector-label">Eave Megastar Beta Team</InputLabel>
                 <Select
                   labelId="space-selector-label"
                   id="space-selector"
                   value={teamInfo?.integrations?.atlassian?.confluence_space_key || ''}
                   onChange={handleSpaceUpdate}
                 >
-                  <MenuItem value="">
-                    None
-                  </MenuItem>
                   {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((space) => {
                     return (
                       <MenuItem value={space.key} key={space.key}>{space.name}</MenuItem>
@@ -208,7 +236,7 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
-            <Copy variant="h3" className={classes.header}>Step 3: Integrate your business tools</Copy>
+            <Copy variant="h3" className={classes.header}>Step 4: Integrate your business tools</Copy>
           </StepLabel>
           <StepContent className={classes.content}>
             <Copy variant="pSmall" className={classes.copy}>Select the tools where Eave can pull information from and be tagged to created documentation. Note Jira is automatically granted permissions via the Confluence connection.</Copy>
@@ -221,7 +249,7 @@ const Steps = () => {
               lg
             >
               <img
-                className={classes.githubButtonLogo}
+                className={classNames(classes.githubButtonLogo, { [classes.completed]: teamInfo?.integrations.github })}
                 src={INTEGRATION_LOGOS.githubInline.src}
                 alt={INTEGRATION_LOGOS.githubInline.alt}
               />
@@ -235,7 +263,7 @@ const Steps = () => {
               lg
             >
               <img
-                className={classes.slackButtonLogo}
+                className={classNames(classes.slackButtonLogo, { [classes.completed]: teamInfo?.integrations.slack })}
                 src={INTEGRATION_LOGOS.slack.src}
                 alt={INTEGRATION_LOGOS.slack.alt}
               />
@@ -249,7 +277,7 @@ const Steps = () => {
               lg
             >
               <img
-                className={classes.jiraButtonLogo}
+                className={classNames(classes.jiraButtonLogo, { [classes.completed]: teamInfo?.integrations.atlassian })}
                 src={INTEGRATION_LOGOS.jira.src}
                 alt={INTEGRATION_LOGOS.jira.alt}
               />

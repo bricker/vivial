@@ -121,6 +121,11 @@ class SearchDocuments(Endpoint):
         documents: list[models.DocumentSearchResult]
 
 
+class DeleteDocument(Endpoint):
+    class RequestBody(BaseRequestBody):
+        document_reference: DocumentReferenceInput
+
+
 class GetSlackInstallation(Endpoint):
     class RequestBody(BaseRequestBody):
         slack_integration: SlackInstallationInput

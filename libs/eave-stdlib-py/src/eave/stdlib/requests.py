@@ -34,7 +34,7 @@ async def make_request(
     request_id = str(uuid.uuid4())
 
     headers = {
-        "content-type": "application/json",
+        eave_headers.CONTENT_TYPE: "application/json",
         eave_headers.EAVE_ORIGIN_HEADER: _ORIGIN.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: str(request_id),
     }
