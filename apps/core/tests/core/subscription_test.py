@@ -55,7 +55,9 @@ class TestSubscriptionOrm(BaseTestCase):
                 document_reference_id=document_reference.id,
             )
 
-            result = await SubscriptionOrm.select(session=s, team_id=team.id, document_reference_id=document_reference.id)
+            result = await SubscriptionOrm.select(
+                session=s, team_id=team.id, document_reference_id=document_reference.id
+            )
             assert len(result) == 1
             assert result[0].document_reference_id == document_reference.id
 

@@ -110,8 +110,7 @@ class SubscriptionOrm(Base):
 
         if source := kwargs.get("source"):
             lookup = (
-                lookup
-                .where(cls.source_platform == source.platform)
+                lookup.where(cls.source_platform == source.platform)
                 .where(cls.source_event == source.event)
                 .where(cls.source_id == source.id)
             )

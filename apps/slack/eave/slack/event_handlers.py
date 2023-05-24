@@ -25,12 +25,14 @@ def register_event_handlers(app: AsyncApp) -> None:
     app.event("member_joined_channel")(event_member_joined_channel_handler)
     app.error(error_handler)
 
+
 async def error_handler(error: Exception, context: AsyncBoltContext) -> None:
     # FIXME: This probably duplicates logs
     eaveLogger.error(str(error), exc_info=error, extra=log_context(context))
 
     # Re-raise here so that Cloud Tasks can retry it
     raise error
+
 
 async def shortcut_eave_watch_request_handler(
     shortcut: Optional[eave.stdlib.typing.JsonObject],

@@ -59,12 +59,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         return [DocumentSearchResult(title=(page.title or ""), url=page.canonical_url(base_url)) for page in pages]
 
     async def delete_document(self, document_id: str) -> None:
-        self._confluence_client.post("rest/api/content/archive", data={
-            "pages": [
-                { "id": int(document_id) }
-            ]
-        })
-
+        self._confluence_client.post("rest/api/content/archive", data={"pages": [{"id": int(document_id)}]})
 
     async def create_document(self, input: eave_ops.DocumentInput) -> abstract.DocumentMetadata:
         confluence_page = await self._get_or_create_confluence_page(document=input)

@@ -270,7 +270,10 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             self.log_event(
                 event_name="search_results",
                 event_description="Eave returned search results",
-                opaque_params={"search_query": answer, "search_results": [json.loads(d.json()) for d in response.documents]},
+                opaque_params={
+                    "search_query": answer,
+                    "search_results": [json.loads(d.json()) for d in response.documents],
+                },
             )
 
         return response
