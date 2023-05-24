@@ -49,8 +49,8 @@ class SubscriptionManagementMixin(CommunicationMixin):
             return
 
         else:
-            await self.send_response(
-                text="Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready.",
-                eave_message_purpose="notify of existing subscription",
-            )
+            # await self.send_response(
+            #     text="Hey! I'm currently working on the documentation for this conversation. I'll send an update when it's ready.",
+            #     eave_message_purpose="notify of existing subscription",
+            # )
             return

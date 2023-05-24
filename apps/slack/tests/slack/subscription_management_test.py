@@ -42,10 +42,12 @@ class SubscriptionManagementMixinTest(BaseTestCase):
 
     async def test_notify_existing_subscription_no_document_reference(self) -> None:
         self._data_subscription_response.document_reference = None
+
         await self.sut.notify_existing_subscription(subscription=self._data_subscription_response)
+
         mock = self._data_slack_context.client.chat_postMessage
-        assert mock.call_count == 1
-        assert mock.call_args.kwargs["channel"] == self.getstr("message.channel")
-        assert mock.call_args.kwargs["thread_ts"] == self.getstr("message.thread_ts")
-        assert re.search("I'm currently working on the documentation", mock.call_args.kwargs["text"])
-        assert self.logged_event(event_name="eave_sent_message")
+        assert mock.call_count == 0
+        # assert mock.call_args.kwargs["channel"] == self.getstr("message.channel")
+        # assert mock.call_args.kwargs["thread_ts"] == self.getstr("message.thread_ts")
+        # assert re.search("I'm currently working on the documentation", mock.call_args.kwargs["text"])
+        # assert self.logged_event(event_name="eave_sent_message")
