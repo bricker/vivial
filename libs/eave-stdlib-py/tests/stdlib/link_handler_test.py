@@ -6,6 +6,7 @@ from eave.stdlib.core_api.enums import LinkType, SubscriptionSourcePlatform
 from eave.stdlib.test_util import UtilityBaseTestCase
 import unittest.mock
 
+
 class TestLinkHandler(UtilityBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
