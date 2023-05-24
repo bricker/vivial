@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Core API",
       "envFile": "${workspaceFolder}/.env",
@@ -15,9 +16,12 @@
         "--port",
         "5100",
         "--reload",
+        "--reload-dir",
+        "eave",
         "eave.core.app:app"
       ],
       "justMyCode": false,
+      "consoleTitle": "Core API",
     },
     {
       "name": "Slack App API",
@@ -34,6 +38,7 @@
         "eave.slack.app:api"
       ],
       "justMyCode": false,
+      "consoleTitle": "Slack App API",
     },
     {
       "name": "Slack Socket Mode",
@@ -41,7 +46,7 @@
       "cwd": "${workspaceFolder}/apps/slack",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/apps/slack/socketmode.py",
+      "program": "./socketmode.py",
       "autoReload": {
         "enable": true,
         "include": [
@@ -50,6 +55,7 @@
       },
       "console": "integratedTerminal",
       "justMyCode": true,
+      "consoleTitle": "Slack Socket Mode",
       "env": {
         "SLACK_SOCKETMODE": "1"
       }
@@ -65,7 +71,10 @@
       ],
       "program": "${workspaceFolder}/apps/github/src/app.ts",
       "restart": true,
+      "args": [],
       "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
+      "consoleTitle": "GitHub App API",
+      "console": "integratedTerminal",
       "env": {
         "PORT": "5300"
       },
@@ -86,7 +95,8 @@
         "5000"
       ],
       "jinja": true,
-      "justMyCode": true
+      "justMyCode": true,
+      "consoleTitle": "Marketing Website (Server)",
     },
     {
       "name": "Marketing Website (Client)",
@@ -94,11 +104,12 @@
       "cwd": "${workspaceFolder}/apps/marketing",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/apps/marketing/node_modules/.bin/webpack",
+      "program": "./node_modules/.bin/webpack",
       "args": [
         "-w",
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "consoleTitle": "Marketing Website (Client)",
     },
     {
       "name": "Debug Python Test",
@@ -113,6 +124,26 @@
       "configurations": [
         "Marketing Website (Client)",
         "Marketing Website (Server)"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "API + Website",
+      "configurations": [
+        "Core API",
+        "Marketing Website (Client)",
+        "Marketing Website (Server)",
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "All Services",
+      "configurations": [
+        "Core API",
+        "Slack Socket Mode",
+        "GitHub App API",
+        "Marketing Website (Client)",
+        "Marketing Website (Server)",
       ],
       "stopAll": true
     },

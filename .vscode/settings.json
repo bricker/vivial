@@ -58,7 +58,7 @@
   "typescript.inlayHints.parameterTypes.enabled": false,
   "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
   "typescript.inlayHints.variableTypes.enabled": false,
-  "typescript.referencesCodeLens.enabled": false,
+  "typescript.referencesCodeLens.enabled": true,
   "typescript.updateImportsOnFileMove.enabled": "prompt",
   "javascript.inlayHints.enumMemberValues.enabled": false,
   "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
@@ -72,7 +72,7 @@
     "--show-column-numbers",
     "--no-pretty",
     "--follow-imports=silent",
-    "--config-file=${workspaceFolder}/develop/python/pyproject.toml"
+    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "python.linting.mypyEnabled": true,
   "python.linting.enabled": true,
@@ -81,7 +81,13 @@
   "python.analysis.inlayHints.functionReturnTypes": true,
   "python.analysis.inlayHints.variableTypes": true,
   "python.analysis.extraPaths": [
-    "vendor"
+    "vendor",
+    "${workspaceFolder}/libs/eave-stdlib-py/src",
+    "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
+    "${workspaceFolder}/apps/core",
+    "${workspaceFolder}/apps/slack",
+    "${workspaceFolder}/apps/marketing",
+    "${workspaceFolder}/develop/python/src",
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
@@ -94,11 +100,11 @@
   ],
   "git.openRepositoryInParentFolders": "always",
   "python.formatting.blackArgs": [
-    "--config=${workspaceFolder}/develop/python/pyproject.toml"
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "-c=${workspaceFolder}/develop/python/pyproject.toml"
+    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "python.analysis.exclude": [
     "**/node_modules",
@@ -112,17 +118,13 @@
   ],
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
-    "${workspaceFolder}/apps/core",
-    "${workspaceFolder}/apps/slack",
-    "${workspaceFolder}/apps/marketing",
-    "${workspaceFolder}/libs/eave-stdlib-py/src",
-    "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
   ],
   "python.analysis.inlayHints.pytestParameters": true,
   "ruff.args": [
-    "--config=${EAVE_HOME}/develop/python/pyproject.toml"
+    "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
   ],
-  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "typescript.implementationsCodeLens.enabled": true,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
   "markdownlint.run": "onSave",
   "markdownlint.config": {
     "first-line-heading": false,
