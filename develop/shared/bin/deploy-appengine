@@ -17,9 +17,12 @@ function deploy () (
 		fi
 	fi
 
+	local timestamp=$(date --utc "+%Y%m%dT%H%MZ")
+	local gitrev=$(git rev-parse --short HEAD)
+	local version="$timestamp-$gitrev"
 	echo ""
 	statusmsg -i "Deployment details:"
-	gcloud app deploy
+	gcloud app deploy --version=$version
 )
 
 deploy
