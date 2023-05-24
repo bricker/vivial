@@ -19,6 +19,7 @@ import eave.stdlib.api_util
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_state.get_eave_state(request=request)
+        # FIXME: Use the parsed body already at `eave_state.parsed_request_body`
         body = await request.json()
         input = eave.stdlib.core_api.operations.UpsertDocument.RequestBody.parse_obj(body)
 

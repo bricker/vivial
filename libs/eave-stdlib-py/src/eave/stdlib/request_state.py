@@ -39,8 +39,10 @@ class EaveRequestState:
             "request_scheme": str(self.request_scheme),
             "request_path": str(self.request_path),
             "request_headers": self.request_headers,
-            "request_body": self.parsed_request_body,
         }
+
+        if eave.stdlib.logging.eaveLogger.level == logging.DEBUG:
+            payload["request_body"] = self.parsed_request_body
 
         # This response structure is for Google Cloud Logging
         return {"json_fields": payload}
