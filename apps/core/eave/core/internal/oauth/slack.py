@@ -1,5 +1,5 @@
 import typing
-from typing import Any, Optional, TypedDict
+from typing import Any, NotRequired, Optional, TypedDict
 
 import slack_sdk.web.async_client
 from slack_sdk.oauth import AuthorizeUrlGenerator
@@ -130,6 +130,7 @@ class SlackOAuthResponse(TypedDict):
     expires_in: Optional[int]
     team: SlackTeam
     authed_user: SlackAuthorizedUser
+    bot_user_id: NotRequired[Optional[str]]
 
 
 def get_authenticated_client(access_token: str) -> slack_sdk.web.async_client.AsyncWebClient:
@@ -139,9 +140,10 @@ def get_authenticated_client(access_token: str) -> slack_sdk.web.async_client.As
 
 async def get_userinfo_or_exception(client: slack_sdk.web.async_client.AsyncWebClient) -> SlackIdentity:
     response = await client.openid_connect_userInfo()
-
     response.validate()
-    assert isinstance(response.data, dict)
+    if not isinstance(response.data, dict):
+        raise TypeError("slack oauth userinfo response, dict expected")
+
     return SlackIdentity(response=response.data)
 
 

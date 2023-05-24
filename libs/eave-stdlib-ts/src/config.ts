@@ -1,6 +1,11 @@
 import assert from 'node:assert';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 
+export enum EaveEnvironment {
+  development = 'development',
+  production = 'production',
+}
+
 export class EaveConfig {
   get googleCloudProject(): string {
     const value = process.env['GOOGLE_CLOUD_PROJECT'];
@@ -8,12 +13,40 @@ export class EaveConfig {
     return value;
   }
 
+  get devMode(): boolean {
+    return this.nodeEnv === 'development';
+  }
+
   get nodeEnv(): string {
-    return process.env['NODE_ENV'] || 'unknown';
+    return process.env['NODE_ENV'] || 'production';
+  }
+
+  get eaveEnv(): EaveEnvironment {
+    const strenv = process.env['EAVE_ENV'] || 'production';
+    switch (strenv) {
+      case 'development':
+        return EaveEnvironment.development;
+      case 'production':
+        return EaveEnvironment.production;
+      default:
+        return EaveEnvironment.production;
+    }
+  }
+
+  get isDevelopment(): boolean {
+    return this.eaveEnv === EaveEnvironment.development;
   }
 
   get monitoringEnabled(): boolean {
     return process.env['EAVE_MONITORING_ENABLED'] !== undefined;
+  }
+
+  get analyticsEnabled(): boolean {
+    return process.env['EAVE_ANALYTICS_ENABLED'] !== undefined;
+  }
+
+  get logLevel(): string {
+    return (process.env['LOG_LEVEL'] || 'INFO').toLowerCase();
   }
 
   get appService(): string {
@@ -44,7 +77,11 @@ export class EaveConfig {
     return this.getSecret('OPENAI_API_KEY');
   }
 
-  private cache: {[key: string]: string} = {};
+  get eaveGithubAppWebhookSecret(): Promise<string> {
+    return this.getSecret('EAVE_GITHUB_APP_WEBHOOK_SECRET');
+  }
+
+  private cache: { [key: string]: string } = {};
 
   async getSecret(name: string): Promise<string> {
     const envValue = process.env[name];

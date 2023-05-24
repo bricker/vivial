@@ -34,3 +34,12 @@ class Integration(enum.StrEnum):
     slack = "slack"
     github = "github"
     forge = "forge"
+    atlassian = "atlassian"
+
+
+class LinkType(enum.StrEnum):
+    """
+    Link types that we support fetching content from for integration into AI documentation creation.
+    """
+
+    github = "github"

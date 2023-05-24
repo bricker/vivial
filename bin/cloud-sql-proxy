@@ -12,18 +12,38 @@ function run-cloud-sql-proxy() {
 		exit 1
 	fi
 
-	local socketdir=${EAVE_HOME}/.cloudsqlproxy
+	local usage="Usage: cloud-sql-proxy [-u username]"
+	local username=""
+
+	while getopts "u:" argname
+	do
+		case "$argname" in
+			u) username=$OPTARG ;;
+			h)
+				echo $usage
+				exit 0
+				;;
+		esac
+	done
+
+	# unix socket path names must be less than 108 characters long
+	# https://github.com/GoogleCloudPlatform/cloud-sql-proxy/issues/970
+	# so we'll put our socketdir close to root to keep the path short
+	local socketdir="${XDG_RUNTIME_DIR:-/tmp}/.cloudsqlproxy"
 	mkdir -p $socketdir
 
-	local connectionName=$(gcloud --format json sql instances list | jq -r .[0].connectionName)
-	local account=$(gcloud --format json info | jq -r .config.account)
+	local connectionName=$(gcloud --format json sql instances list --filter="state=RUNNABLE" | jq -r .[0].connectionName)
 
-	if test -z "$connectionName" || test -z "$account"; then
+	if test -z "$username"; then
+		username=$(gcloud --format json info | jq -r .config.account)
+	fi
+
+	if test -z "$connectionName" || test -z "$username"; then
 		statusmsg -e "gcloud command failed. Cannot connect to Cloud SQL."
 		exit 1
 	fi
 
-	statusmsg -s "Connecting to CloudSQL as $account via $connectionName"
+	statusmsg -s "Connecting to CloudSQL as $username via $connectionName"
 	cloud-sql-proxy "$connectionName" --auto-iam-authn --unix-socket $socketdir
 }
 

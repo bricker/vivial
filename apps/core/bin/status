@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+curl -is https://api.eave.fyi/status

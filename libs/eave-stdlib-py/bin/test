@@ -2,4 +2,5 @@
 
 set -eu
 
-echo "WARNING: No tests."
+source ${EAVE_HOME}/develop/functions.bash
+python-test .

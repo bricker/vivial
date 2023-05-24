@@ -19,10 +19,10 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		case $usershell in
 		"fish")
 			# This is necessary because `nvm` in Fish might be a function, which can't be used from Bash.
-			fish -c "nvm install $EAVE_NODE_VERSION"
+			fish -c "nvm install $EAVE_NODE_VERSION 1>/dev/null 2>&1"
 			;;
 		*)
-			nvm install $EAVE_NODE_VERSION
+			nvm install $EAVE_NODE_VERSION 1>/dev/null 2>&1
 			;;
 		esac
 	}
@@ -32,11 +32,17 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-activate-venv
 
 		local target=$1
+		local thisdir=$(basename $PWD)
+		statusmsg -in "Linting $thisdir/$target (js/ts)"
 
-		statusmsg -i "(lint) eslint..."
-		npx eslint $target
-
-		statusmsg -s "Linting passed ✔"
+		cd $target
+		npx eslint .
+		if test -f "tsconfig.json"; then
+			npx tsc --project . --noEmit
+		else
+			statusmsg -w "No tsconfig.json, skipping TypeScript linting"
+		fi
+		statusmsg -sp " ✔ "
 	)
 
 	function node-format() (
@@ -44,11 +50,19 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-activate-venv
 
 		local target=$1
+		local thisdir=$(basename $PWD)
+		statusmsg -in "Formatting $thisdir/$target (js/ts)"
 
-		statusmsg -i "(format) eslint..."
-		npx eslint $target --fix
+		cd $target
+		npx eslint . --fix
+		statusmsg -sp " ✔ "
+	)
 
-		statusmsg -s "Formatting completed ✔"
+	function node-test() (
+		node-validate-version
+		node-activate-venv
+
+		npx ava --config ${EAVE_HOME}/develop/javascript/configs/ava.config.mjs
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

@@ -5,8 +5,12 @@ from typing import Optional, cast
 import atlassian
 import eave.stdlib
 import eave.stdlib.atlassian
+from eave.stdlib.core_api.models import DocumentSearchResult
 import eave.stdlib.core_api.operations as eave_ops
+from eave.stdlib.exceptions import ConfluenceDataError, OpenAIDataError
+from eave.stdlib.logging import eaveLogger
 import eave.stdlib.openai_client
+from eave.stdlib.util import unwrap
 
 from ..oauth import atlassian as atlassian_oauth
 from . import abstract
@@ -29,17 +33,40 @@ class ConfluenceDestination(abstract.DocumentDestination):
         https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-get
         """
         response = self._confluence_client.get_all_spaces(space_status="current", space_type="global")
-        response_json = cast(eave.stdlib.util.JsonObject, response)
-        return [
-            eave.stdlib.atlassian.ConfluenceSpace(s, ctx=self.oauth_session.confluence_context)
-            for s in response_json["results"]
+        response_json = cast(eave.stdlib.typing.JsonObject, response)
+        return [eave.stdlib.atlassian.ConfluenceSpace(s) for s in response_json["results"]]
+
+    async def search_documents(self, query: str) -> list[DocumentSearchResult]:
+        try:
+            cql = f'space={self.space} AND text ~ "{query}"'
+            eaveLogger.debug(f"Confluence CQL query: {cql}")
+            response = self._confluence_client.cql(cql=cql)
+
+            if response is None:
+                raise ConfluenceDataError("cql results")
+
+            json = cast(eave.stdlib.typing.JsonObject, response)
+            if (results := json.get("results")) is None:
+                raise ConfluenceDataError("cql results")
+        except Exception:
+            eaveLogger.exception("Error while fetching search results from Confluence")
+            return []
+
+        pages = [
+            eave.stdlib.atlassian.ConfluencePage(content) for result in results if (content := result.get("content"))
         ]
+        base_url = self.oauth_session.confluence_context.base_url
+        return [DocumentSearchResult(title=(page.title or ""), url=page.canonical_url(base_url)) for page in pages]
+
+    async def delete_document(self, document_id: str) -> None:
+        self._confluence_client.post("rest/api/content/archive", data={"pages": [{"id": int(document_id)}]})
 
     async def create_document(self, input: eave_ops.DocumentInput) -> abstract.DocumentMetadata:
         confluence_page = await self._get_or_create_confluence_page(document=input)
+        base_url = self.oauth_session.confluence_context.base_url
         return abstract.DocumentMetadata(
-            id=confluence_page.id,
-            url=confluence_page.canonical_url,
+            id=unwrap(confluence_page.id, ""),
+            url=confluence_page.canonical_url(base_url),
         )
 
     async def update_document(
@@ -77,7 +104,10 @@ class ConfluenceDestination(abstract.DocumentDestination):
                 messages=[prompt],
             )
             resolved_document_body = await eave.stdlib.openai_client.chat_completion(params=openai_params)
-            assert resolved_document_body is not None
+
+            if resolved_document_body is None:
+                raise OpenAIDataError()
+
         else:
             resolved_document_body = input.content
 
@@ -89,12 +119,15 @@ class ConfluenceDestination(abstract.DocumentDestination):
             body=content,
         )
 
-        assert response is not None
-        json = cast(eave.stdlib.util.JsonObject, response)
-        page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
+        if response is None:
+            raise ConfluenceDataError("confluence update_page response")
+
+        json = cast(eave.stdlib.typing.JsonObject, response)
+        page = eave.stdlib.atlassian.ConfluencePage(json)
+        base_url = self.oauth_session.confluence_context.base_url
         return abstract.DocumentMetadata(
-            id=page.id,
-            url=page.canonical_url,
+            id=page.id or "",
+            url=page.canonical_url(base_url),
         )
 
     @cached_property
@@ -126,10 +159,12 @@ class ConfluenceDestination(abstract.DocumentDestination):
             body=content,
             parent_id=parent_page.id if parent_page is not None else None,
         )
-        assert response is not None
 
-        json = cast(eave.stdlib.util.JsonObject, response)
-        page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
+        if response is None:
+            raise ConfluenceDataError("confluence create_page response")
+
+        json = cast(eave.stdlib.typing.JsonObject, response)
+        page = eave.stdlib.atlassian.ConfluencePage(json)
         return page
 
     async def _get_confluence_page_by_id(
@@ -143,8 +178,8 @@ class ConfluenceDestination(abstract.DocumentDestination):
         if response is None:
             return None
 
-        json = cast(eave.stdlib.util.JsonObject, response)
-        page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
+        json = cast(eave.stdlib.typing.JsonObject, response)
+        page = eave.stdlib.atlassian.ConfluencePage(json)
         return page
 
     async def _get_confluence_page_by_title(
@@ -157,6 +192,6 @@ class ConfluenceDestination(abstract.DocumentDestination):
         if response is None:
             return None
 
-        json = cast(eave.stdlib.util.JsonObject, response)
-        page = eave.stdlib.atlassian.ConfluencePage(json, self.oauth_session.confluence_context)
+        json = cast(eave.stdlib.typing.JsonObject, response)
+        page = eave.stdlib.atlassian.ConfluencePage(json)
         return page

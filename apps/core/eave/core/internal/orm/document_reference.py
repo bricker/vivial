@@ -2,9 +2,11 @@ from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
 
-from sqlalchemy import Index, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.stdlib.core_api.models import DocumentReference
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -15,12 +17,6 @@ class DocumentReferenceOrm(Base):
     __table_args__ = (
         make_team_composite_pk(),
         make_team_fk(),
-        Index(
-            "document_key",
-            "team_id",
-            "document_id",
-            unique=True,
-        ),
     )
 
     team_id: Mapped[UUID] = mapped_column()
@@ -29,6 +25,10 @@ class DocumentReferenceOrm(Base):
     document_url: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @property
+    def api_model(self) -> DocumentReference:
+        return DocumentReference.from_orm(self)
 
     @classmethod
     async def create(cls, session: AsyncSession, team_id: UUID, document_id: str, document_url: str | None) -> Self:
@@ -45,4 +45,10 @@ class DocumentReferenceOrm(Base):
     async def one_or_exception(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self:
         stmt = select(cls).where(cls.team_id == team_id).where(cls.id == id).limit(1)
         result = (await session.scalars(stmt)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self | None:
+        stmt = select(cls).where(cls.team_id == team_id).where(cls.id == id).limit(1)
+        result = await session.scalar(stmt)
         return result

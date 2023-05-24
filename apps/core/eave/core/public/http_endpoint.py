@@ -15,7 +15,7 @@ class HTTPEndpoint:
     """
 
     def __init__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
-        assert scope["type"] == "http"
+        assert scope["type"] == "http", "only http type supported"
         self.scope = scope
         self.receive = receive
         self.send = send

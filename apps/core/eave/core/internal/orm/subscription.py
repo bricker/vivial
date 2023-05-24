@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Self, Tuple
+from typing import NotRequired, Optional, Required, Self, Sequence, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib.core_api.enums
@@ -7,6 +7,8 @@ import eave.stdlib.core_api.models as eave_models
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.stdlib.util import ensure_uuid
 
 from .base import Base
 from .document_reference import DocumentReferenceOrm
@@ -38,6 +40,10 @@ class SubscriptionOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    @property
+    def api_model(self) -> eave.stdlib.core_api.models.Subscription:
+        return eave.stdlib.core_api.models.Subscription.from_orm(self)
+
     async def get_document_reference(self, session: AsyncSession) -> Optional[DocumentReferenceOrm]:
         if self.document_reference_id is None:
             return None
@@ -64,29 +70,68 @@ class SubscriptionOrm(Base):
         self.source_id = source.id
 
     @classmethod
-    async def one_or_none(
-        cls, session: AsyncSession, team_id: UUID, source: eave_models.SubscriptionSource
-    ) -> Optional[Self]:
-        lookup = cls._select_one(team_id=team_id, source=source)
-        subscription = await session.scalar(lookup)
-        return subscription
-
-    @classmethod
-    async def one_or_exception(
-        cls, session: AsyncSession, team_id: UUID, source: eave_models.SubscriptionSource
+    async def create(
+        cls,
+        session: AsyncSession,
+        team_id: UUID,
+        source: eave_models.SubscriptionSource,
+        document_reference_id: Optional[UUID] = None,
     ) -> Self:
-        lookup = cls._select_one(team_id=team_id, source=source)
-        subscription = (await session.scalars(lookup)).one()
-        return subscription
+        obj = cls(
+            team_id=team_id,
+            source_platform=source.platform,
+            source_event=source.event,
+            source_id=source.id,
+            document_reference_id=document_reference_id,
+        )
+        session.add(obj)
+        await session.flush()
+        return obj
+
+    class _selectparams(TypedDict):
+        team_id: Required[UUID | str]
+        id: NotRequired[UUID | str]
+        source: NotRequired[eave_models.SubscriptionSource]
+        document_reference_id: NotRequired[UUID | str]
 
     @classmethod
-    def _select_one(cls, team_id: UUID, source: eave_models.SubscriptionSource) -> Select[Tuple[Self]]:
-        lookup = (
-            select(cls)
-            .where(cls.team_id == team_id)
-            .where(cls.source_platform == source.platform)
-            .where(cls.source_event == source.event)
-            .where(cls.source_id == source.id)
-            .limit(1)
-        )
+    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+        lookup = select(cls)
+        team_id = kwargs.get("team_id")
+        lookup = lookup.where(cls.team_id == ensure_uuid(team_id))
+
+        if id := kwargs.get("id"):
+            id = ensure_uuid(id)
+            lookup = lookup.where(cls.id == id)
+
+        if document_reference_id := kwargs.get("document_reference_id"):
+            document_reference_id = ensure_uuid(document_reference_id)
+            lookup = lookup.where(cls.document_reference_id == document_reference_id)
+
+        if source := kwargs.get("source"):
+            lookup = (
+                lookup.where(cls.source_platform == source.platform)
+                .where(cls.source_event == source.event)
+                .where(cls.source_id == source.id)
+            )
+
+        assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
+
+    @classmethod
+    async def select(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Sequence[Self]:
+        lookup = cls._build_select(**kwargs)
+        result = (await session.scalars(lookup)).all()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Optional[Self]:
+        lookup = cls._build_select(**kwargs).limit(1)
+        result = (await session.scalars(lookup)).one_or_none()
+        return result
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
+        lookup = cls._build_select(**kwargs).limit(1)
+        result = (await session.scalars(lookup)).one()
+        return result

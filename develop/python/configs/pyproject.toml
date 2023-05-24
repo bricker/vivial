@@ -1,0 +1,78 @@
+[tool.black]
+extend-exclude = '''
+(
+  generated
+  | \\.git
+  | \\.venv
+  | vendor
+  | node_modules
+  | __pycache__
+  | \\.mypy_cache
+  | build
+  | \\.build
+)
+'''
+line-length = 120
+
+[tool.mypy]
+exclude = [
+  "eave_alembic/versions",
+  "generated",
+  ".git",
+  ".venv",
+  "vendor",
+  "node_modules",
+  "__pycache__",
+  ".mypy_cache",
+  "build",
+  ".build"
+]
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = false
+warn_unreachable = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_any_explicit = false
+disallow_any_generics = true
+disallow_subclassing_any = false
+ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true
+enable_incomplete_feature = "Unpack"
+
+[tool.pytest.ini_options]
+log_cli = false
+pythonpath = [
+  "../../../apps/core",
+  "../../../apps/slack",
+  "../../../apps/marketing",
+  "../../../libs/eave-stdlib-py"
+]
+norecursedirs = [
+  ".ruff_cache",
+  ".git",
+  ".venv",
+  "vendor",
+  "node_modules",
+  "__pycache__",
+  ".mypy_cache",
+  "build",
+  ".build"
+]
+
+[tool.ruff]
+extend-select = ["B006"]
+line-length = 1000
+extend-exclude = [
+  "generated",
+  ".git",
+  ".venv",
+  "__pycache__",
+  ".mypy_cache",
+  "node_modules",
+  "vendor",
+  ".build",
+  "build"
+]
+ignore-init-module-imports = true

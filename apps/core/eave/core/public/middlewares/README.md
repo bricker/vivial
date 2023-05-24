@@ -2,6 +2,7 @@
 
 To bypass the signature and auth verification middlewares in development mode, the following conditions must be met:
 
+1. `EAVE_ENV` must be set to "development"
 1. Python "dev_mode" must be enabled. You can set `PYTHONDEVMODE=1` in your `.env` file to enable it.
 1. The `GOOGLE_CLOUD_PROJECT` must not be set to `eave-production`.
 1. A header `X-Google-EAVEDEV` exists on the request, and is set to the string you get from the following Python command:

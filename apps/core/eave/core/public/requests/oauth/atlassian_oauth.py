@@ -4,22 +4,22 @@ import json
 import typing
 
 import atlassian
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 import eave.pubsub_schemas
 import eave.stdlib
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
-from eave.stdlib import logger
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal
 import eave.core.internal.oauth.atlassian as oauth_atlassian
 import eave.core.internal.oauth.state_cookies as oauth_cookies
-import eave.core.internal.orm
-import eave.core.public.request_state
 
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared
+
+from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.atlassian
 
@@ -53,21 +53,20 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         refresh_token = token.get("refresh_token")
 
         if not access_token or not refresh_token:
-            eave.stdlib.logger.warning(msg := "missing tokens.", extra=self.eave_state.log_context)
-            raise eave.stdlib.exceptions.InvalidAuthError(msg)
+            raise eave.stdlib.exceptions.MissingOAuthCredentialsError("atlassian access or refresh token")
 
         userinfo = oauth_session.get_userinfo()
         if not userinfo.account_id:
-            eave.stdlib.logger.warning(
+            eaveLogger.warning(
                 msg := "atlassian account_id missing; can't create account.", extra=self.eave_state.log_context
             )
             raise eave.stdlib.exceptions.InvalidAuthError(msg)
 
         resources = oauth_session.get_available_resources()
-        resource = next(iter(resources), None)
+        self.atlassian_resource = next(iter(resources), None)
 
-        if resource and resource.name:
-            eave_team_name = resource.name
+        if self.atlassian_resource and self.atlassian_resource.name:
+            eave_team_name = self.atlassian_resource.name
         else:
             name = userinfo.display_name
             eave_team_name = f"{name}'s Team" if name else "Your Team"
@@ -92,20 +91,26 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         oauth_token_encoded = json.dumps(self.oauth_session.get_token())
 
         async with eave.core.internal.database.async_session.begin() as db_session:
-            installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
+            installation = await AtlassianInstallationOrm.one_or_none(
                 session=db_session,
                 atlassian_cloud_id=self.atlassian_cloud_id,
             )
 
-            if installation and installation.team_id != self.eave_account.team_id:
-                logger.warning(
-                    f"An Atlassian integration already exists for atlassian_cloud_id {self.atlassian_cloud_id}",
-                    extra=self.eave_state.log_context,
-                )
-                return
+            if installation:
+                if installation.team_id != self.eave_account.team_id:
+                    eaveLogger.warning(
+                        f"An Atlassian integration already exists for atlassian_cloud_id {self.atlassian_cloud_id}",
+                        extra=self.eave_state.log_context,
+                    )
+                    db_session.add(self.eave_account)
+                    self.eave_account.team_id = installation.team_id
+                    return
 
-            if installation and oauth_token_encoded:
-                installation.oauth_token_encoded = oauth_token_encoded
+                if self.atlassian_resource:
+                    installation.atlassian_site_name = self.atlassian_resource.name or self.atlassian_resource.url
+
+                if oauth_token_encoded:
+                    installation.oauth_token_encoded = oauth_token_encoded
 
             else:
                 default_space_key = None
@@ -118,19 +123,19 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     )
 
                     spaces_response = confluence_client.get_all_spaces(space_status="current", space_type="global")
-                    spaces_response_json = typing.cast(eave.stdlib.util.JsonObject, spaces_response)
-                    spaces = [
-                        eave.stdlib.atlassian.ConfluenceSpace(s, self.oauth_session.confluence_context)
-                        for s in spaces_response_json["results"]
-                    ]
+                    spaces_response_json = typing.cast(eave.stdlib.typing.JsonObject, spaces_response)
+                    spaces = [eave.stdlib.atlassian.ConfluenceSpace(s) for s in spaces_response_json["results"]]
                     if len(spaces) == 1 and (first_space := next(iter(spaces), None)):
                         default_space_key = first_space.key
 
-                except Exception as e:
+                except Exception:
                     # We aggressively catch any error because this space fetching procedure is a convenience, but failure shouldn't prevent sign-up.
-                    eave.stdlib.logger.error(
-                        "error while fetching confluence spaces", exc_info=e, extra=self.eave_state.log_context
-                    )
+                    eaveLogger.exception("error while fetching confluence spaces", extra=self.eave_state.log_context)
+
+                if self.atlassian_resource:
+                    site_name = self.atlassian_resource.name or self.atlassian_resource.url
+                else:
+                    site_name = None
 
                 installation = await eave.core.internal.orm.AtlassianInstallationOrm.create(
                     session=db_session,
@@ -138,7 +143,14 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     atlassian_cloud_id=self.atlassian_cloud_id,
                     oauth_token_encoded=oauth_token_encoded,
                     confluence_space_key=default_space_key,
+                    atlassian_site_name=site_name,
                 )
+
+                eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
+                    session=db_session, team_id=self.eave_account.team_id
+                )
+
+                eave_team.document_platform = eave.stdlib.core_api.enums.DocumentPlatform.confluence
 
                 eave.stdlib.analytics.log_event(
                     event_name="eave_application_integration",
@@ -150,5 +162,6 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     opaque_params={
                         "integration_name": eave.stdlib.core_api.enums.Integration.atlassian.value,
                         "default_confluence_space_was_used": default_space_key is not None,
+                        "atlassian_site_name": installation.atlassian_site_name,
                     },
                 )

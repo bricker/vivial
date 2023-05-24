@@ -3,89 +3,92 @@ from typing import Any, Callable, Mapping
 
 import eave.stdlib
 import pydantic
-import slack_sdk.errors
-import sqlalchemy.exc
-from eave.stdlib.core_api.models import ErrorResponse
-from eave.stdlib import api_util
 from starlette.requests import Request
 from starlette.responses import Response
 
-from . import request_state
-
-
-def not_found(request: Request, exc: Exception) -> Response:
-    eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.error("not found", exc_info=exc, extra=eave_state.log_context)
-
-    model = ErrorResponse(
-        status_code=http.HTTPStatus.NOT_FOUND,
-        error_message="not found",
-        context=eave_state.public_request_context,
-    )
-    return api_util.json_response(model=model, status_code=model.status_code)
+from eave.stdlib import request_state
+from eave.stdlib.logging import eaveLogger
 
 
 def internal_server_error(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.error("internal server error", exc_info=exc, extra=eave_state.log_context)
+    eaveLogger.error(str(exc), exc_info=exc, extra=eave_state.log_context)
 
-    model = ErrorResponse(
+    model = eave.stdlib.core_api.models.ErrorResponse(
         status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
-        error_message="internal server error",
+        error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
         context=eave_state.public_request_context,
     )
 
-    return api_util.json_response(model=model, status_code=model.status_code)
+    return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
+
+
+def not_found(request: Request, exc: Exception) -> Response:
+    eave_state = request_state.get_eave_state(request=request)
+    # FIXME: This log message is bad
+    eaveLogger.warning(http.HTTPStatus.NOT_FOUND, exc_info=exc, extra=eave_state.log_context)
+
+    model = eave.stdlib.core_api.models.ErrorResponse(
+        status_code=http.HTTPStatus.NOT_FOUND,
+        error_message=http.HTTPStatus.NOT_FOUND.phrase,
+        context=eave_state.public_request_context,
+    )
+
+    return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def bad_request(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.error("bad request", exc_info=exc, extra=eave_state.log_context)
+    # FIXME: This log message is bad
+    eaveLogger.warning(http.HTTPStatus.BAD_REQUEST, exc_info=exc, extra=eave_state.log_context)
 
-    model = ErrorResponse(
+    model = eave.stdlib.core_api.models.ErrorResponse(
         status_code=http.HTTPStatus.BAD_REQUEST,
-        error_message="bad request",
+        error_message=http.HTTPStatus.BAD_REQUEST.phrase,
         context=eave_state.public_request_context,
     )
 
-    return api_util.json_response(model=model, status_code=model.status_code)
+    return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def unauthorized(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.error("unauthorized", exc_info=exc, extra=eave_state.log_context)
-
-    model = ErrorResponse(
-        status_code=http.HTTPStatus.UNAUTHORIZED,
-        error_message="unauthorized",
-        context=eave_state.public_request_context,
+    eaveLogger.warning(
+        "Authentication error occurred. The client will be logged out.", exc_info=exc, extra=eave_state.log_context
     )
 
-    return api_util.json_response(model=model, status_code=model.status_code)
+    model = eave.stdlib.core_api.models.ErrorResponse(
+        status_code=http.HTTPStatus.UNAUTHORIZED,
+        error_message=http.HTTPStatus.UNAUTHORIZED.phrase,
+        context=eave_state.public_request_context,
+    )
+    response = eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
+    eave.stdlib.cookies.delete_auth_cookies(response=response)
+    return response
 
 
 def validation_error(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
-    eave.stdlib.logger.error("validation error", exc_info=exc, extra=eave_state.log_context)
+    eaveLogger.warning("validation error", exc_info=exc, extra=eave_state.log_context)
 
     if isinstance(exc, pydantic.ValidationError):
         eave_state.public_request_context["validation_errors"] = exc.json()
 
-    model = ErrorResponse(
+    model = eave.stdlib.core_api.models.ErrorResponse(
         status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY,
         error_message="validation errors",
         context=eave_state.public_request_context,
     )
 
-    return api_util.json_response(model=model, status_code=model.status_code)
+    return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 exception_handlers: Mapping[Any, Callable[[Request, Exception], Response]] = {
-    sqlalchemy.exc.NoResultFound: not_found,
-    sqlalchemy.exc.MultipleResultsFound: internal_server_error,
-    eave.stdlib.exceptions.BadRequestError: bad_request,
-    eave.stdlib.exceptions.UnauthorizedError: unauthorized,
-    eave.stdlib.exceptions.InternalServerError: internal_server_error,
+    # eave.stdlib.exceptions.NotFoundError: not_found,
+    # eave.stdlib.exceptions.BadRequestError: bad_request,
+    # eave.stdlib.exceptions.UnauthorizedError: unauthorized,
     pydantic.ValidationError: validation_error,
-    slack_sdk.errors.SlackApiError: internal_server_error,
+    # This special case is used by Starlette for the ServerErrorMiddleware, which always re-raises the error.
+    # This generic handler allows us to define our own Internal Server Error response.
+    Exception: internal_server_error,
 }

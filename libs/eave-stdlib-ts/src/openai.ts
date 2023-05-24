@@ -9,19 +9,19 @@ export const PROMPT_PREFIX =
   + "You are responsible for the quality and integrity of this organization's documentation.";
 
 export enum OpenAIModel {
-  GPT_35_TURBO = "gpt-3.5-turbo",
-  GPT4 = "gpt-4",
-  GPT4_32K = "gpt-4-32k",
+  GPT_35_TURBO = 'gpt-3.5-turbo',
+  GPT4 = 'gpt-4',
+  GPT4_32K = 'gpt-4-32k',
 }
 
 export const MAX_TOKENS = {
-    [OpenAIModel.GPT_35_TURBO]: 4096,
-    [OpenAIModel.GPT4]: 8192,
-    [OpenAIModel.GPT4_32K]: 32768,
-}
+  [OpenAIModel.GPT_35_TURBO]: 4096,
+  [OpenAIModel.GPT4]: 8192,
+  [OpenAIModel.GPT4_32K]: 32768,
+};
 
 export async function createChatCompletion(parameters: CreateChatCompletionRequest): Promise<string> {
-  parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX })
+  parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
   const client = await getOpenAIClient();
   const completion = await client.createChatCompletion(parameters);

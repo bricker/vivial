@@ -1,0 +1,51 @@
+#!include:.gitignore
+
+# NOTE: Many of these directives are redundant, but it's better to be over-verbose in this file to avoid deploying
+# anything to App Engine that isn't supposed to be there.
+
+# Don't push any "hidden" files (.git, tooling configs, etc)
+.*
+*.md
+.env*
+
+# Cache, build, dependencies
+__pycache__
+.mypy_cache
+.ruff_cache
+.venv
+node_modules
+*.egg-info
+build
+.build
+.cloudsqlproxy
+yalc.lock
+.DS_Store
+
+# Python requirements files not needed for deployment (requirements.txt is used by Google during deployment so must be kept)
+requirements-dev.txt
+requirements-vendor.txt
+pyproject.toml
+
+# Standard directories that don't contain source code
+/bin
+/tests
+
+# files specific to apps/core
+alembic.ini
+eave_alembic
+
+# files specific to apps/slack
+/socketmode.py
+
+# files specific to apps/marketing
+webpack.config*
+# Because we pre-build everything, the whole JS source directory and dependencies aren't needed in production
+/eave/marketing/js
+
+
+# Local dependencies/builds are copied to these folders before pushing to App Engine.
+# Because these are ignored in .gitignore, they need to be un-ignored in this file.
+# These are placed at the bottom to have highest priority
+!/vendor
+!/.yalc
+!dist/

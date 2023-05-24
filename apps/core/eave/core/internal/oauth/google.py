@@ -1,7 +1,7 @@
 import typing
 from dataclasses import dataclass
 
-import eave.stdlib.util as eave_util
+import eave.stdlib
 import google.auth.transport.requests
 import google.oauth2.credentials
 import google.oauth2.id_token
@@ -31,7 +31,7 @@ class GoogleIdToken:
     given_name: typing.Optional[str]
     email: typing.Optional[str]
 
-    def __init__(self, token: eave_util.JsonObject) -> None:
+    def __init__(self, token: eave.stdlib.typing.JsonObject) -> None:
         self.sub = token["sub"]
         self.given_name = token.get("given_name")
         self.email = token.get("email")
@@ -84,12 +84,17 @@ def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOA
 
 def get_oauth_credentials(access_token: str, refresh_token: str) -> google.oauth2.credentials.Credentials:
     google_oauth_client_config = app_config.eave_google_oauth_client_credentials
+    creds = google_oauth_client_config["web"]
+    token_uri = creds["token_uri"]
+    client_id = creds["client_id"]
+    client_secret = creds["client_secret"]
+
     credentials = google.oauth2.credentials.Credentials(
         token=access_token,
         refresh_token=refresh_token,
-        token_uri=google_oauth_client_config.get("token_uri"),
-        client_id=google_oauth_client_config.get("client_id"),
-        client_secret=google_oauth_client_config.get("client_secret"),
+        token_uri=token_uri,
+        client_id=client_id,
+        client_secret=client_secret,
         scopes=_OAUTH_SCOPES,
     )
     return credentials
@@ -122,7 +127,7 @@ def get_oauth_flow_info() -> OAuthFlowInfo:
 
 
 def decode_id_token(id_token: str) -> GoogleIdToken:
-    token_json: eave_util.JsonObject = google.oauth2.id_token.verify_oauth2_token(
+    token_json: eave.stdlib.typing.JsonObject = google.oauth2.id_token.verify_oauth2_token(
         id_token=id_token,
         audience=app_config.eave_google_oauth_client_id,
         request=google.auth.transport.requests.Request(),

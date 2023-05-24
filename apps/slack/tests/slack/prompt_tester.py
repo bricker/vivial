@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import textwrap
@@ -8,17 +7,17 @@ import eave.stdlib.core_api.enums
 import asyncio
 import json
 
-import eave.slack.brain
-import eave.slack.message_prompts
+import eave.slack.brain.core
+import eave.slack.brain.message_prompts
 import eave.slack.slack_models
 import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.logging
 import eave.stdlib.openai_client
 from slack_bolt.async_app import AsyncBoltContext
 from slack_sdk.web.async_client import AsyncWebClient
-from eave.stdlib import logger
 
-eave.stdlib.logging.setup_logging(level=logging.DEBUG)
+import eave.stdlib.logging
+
+logger = eave.stdlib.logging.eaveLogger
 
 eave_team = eave_models.Team(
     id=uuid.uuid4(), name="Test Team", document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
@@ -31,23 +30,23 @@ slack_context = AsyncBoltContext({"client": AsyncWebClient()})
 async def test_slack_message_processing(fixture: dict[str, Any]) -> None:
     logger.info("test_slack_message_processing")
     message = eave.slack.slack_models.SlackMessage(fixture, slack_context=slack_context)
-    brain = eave.slack.brain.Brain(message=message, slack_context=slack_context, eave_team=eave_team)
+    brain = eave.slack.brain.core.Brain(message=message, eave_team=eave_team)
     await brain.process_message()
 
 
 async def test_action_prompt(fixture: dict[str, Any]) -> None:
     logger.info("test_action_prompt")
     message = eave.slack.slack_models.SlackMessage(fixture, slack_context=slack_context)
-    brain = eave.slack.brain.Brain(message=message, slack_context=slack_context, eave_team=eave_team)
+    brain = eave.slack.brain.core.Brain(message=message, eave_team=eave_team)
     await brain.load_data()
-    message_action = await eave.slack.message_prompts.message_action(context=brain.message_context)
+    message_action = await eave.slack.brain.message_prompts.message_action(context=brain.message_context)
     logger.info(message_action)
 
 
 async def test_document_builder(fixture: dict[str, Any]) -> None:
     logger.info("test_document_builder")
     message = eave.slack.slack_models.SlackMessage(fixture, slack_context=slack_context)
-    brain = eave.slack.brain.Brain(message=message, slack_context=slack_context, eave_team=eave_team)
+    brain = eave.slack.brain.core.Brain(message=message, eave_team=eave_team)
     await brain.load_data()
     doc = await brain.build_documentation()
 

@@ -1,9 +1,0 @@
-{
-  "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
-  "compilerOptions": {
-    "outDir": "typescript/dist",
-  },
-  "include": [
-    "typescript/src/**/*"
-  ]
-}

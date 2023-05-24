@@ -67,7 +67,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert re.search(redirect_uri, response.headers["Location"])
 
     async def test_google_callback_new_account(self) -> None:
-        assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
+        async with self.db_session.begin() as s:
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
 
         response = await self.make_request(
             path="/oauth/google/callback",
@@ -81,28 +82,29 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
         )
 
-        assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-        assert not response.cookies.get("ev_oauth_state_google")  # Test the cookie was deleted
-        assert response.headers["Location"]
-        assert (
-            response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
-        )  # Default for non-whitelisted teams
+        async with self.db_session.begin() as s:
+            assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
+            assert not response.cookies.get("ev_oauth_state_google")  # Test the cookie was deleted
+            assert response.headers["Location"]
+            assert (
+                response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
+            )  # Default for non-whitelisted teams
 
-        account_id = response.cookies.get("ev_account_id")
-        assert account_id
-        assert response.cookies.get("ev_access_token")
-        assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
+            account_id = response.cookies.get("ev_account_id")
+            assert account_id
+            assert response.cookies.get("ev_access_token")
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
 
-        eave_account = await self.get_eave_account(id=uuid.UUID(account_id))
-        assert eave_account
-        eave_team = await self.get_eave_team(id=eave_account.team_id)
-        assert eave_team
+            eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
+            assert eave_account
+            eave_team = await self.get_eave_team(s, id=eave_account.team_id)
+            assert eave_team
 
-        assert eave_account.access_token == self.anystring("google.token")
-        assert eave_account.refresh_token == self.anystring("google.refresh_token")
-        assert eave_account.auth_id == self.anystring("google.sub")
-        assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.google
-        assert eave_team.name == f"{self.anystring('google.given_name')}'s Team"
+            assert eave_account.access_token == self.anystring("google.token")
+            assert eave_account.refresh_token == self.anystring("google.refresh_token")
+            assert eave_account.auth_id == self.anystring("google.sub")
+            assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.google
+            assert eave_team.name == f"{self.anystring('google.given_name')}'s Team"
 
     async def test_google_callback_new_account_without_name_from_google(self) -> None:
         self.testdata["google.given_name"] = None
@@ -119,12 +121,13 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
         )
 
-        account_id = response.cookies.get("ev_account_id")
-        eave_account = await self.get_eave_account(id=uuid.UUID(account_id))
-        assert eave_account
-        eave_team = await self.get_eave_team(id=eave_account.team_id)
-        assert eave_team
-        assert eave_team.name == "Your Team"
+        async with self.db_session.begin() as s:
+            account_id = response.cookies.get("ev_account_id")
+            eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
+            assert eave_account
+            eave_team = await self.get_eave_team(s, id=eave_account.team_id)
+            assert eave_team
+            assert eave_team.name == "Your Team"
 
     async def test_google_callback_whitelisted_team(self) -> None:
         self.patch_dict(
@@ -148,28 +151,31 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
         )
 
-        account_id = response.cookies.get("ev_account_id")
-        assert account_id
-        eave_account = await self.get_eave_account(id=uuid.UUID(account_id))
-        assert eave_account
-        eave_team = await self.get_eave_team(id=eave_account.team_id)
-        assert eave_team
+        async with self.db_session.begin() as s:
+            account_id = response.cookies.get("ev_account_id")
+            assert account_id
+            eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
+            assert eave_account
+            eave_team = await self.get_eave_team(s, id=eave_account.team_id)
+            assert eave_team
 
-        assert eave_team.beta_whitelisted is True
+            assert eave_team.beta_whitelisted is True
 
-        assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-        assert response.headers["Location"]
-        assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
+            assert response.headers["Location"]
+            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
     async def test_google_callback_existing_account(self) -> None:
-        eave_team = await self.make_team()
-        eave_account_before = await self.make_account(
-            team_id=eave_team.id,
-            auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
-            auth_id=self.anystring("google.sub"),
-            access_token=self.anystring("old_access_token"),
-            refresh_token=self.anystring("old_refresh_token"),
-        )
+        async with self.db_session.begin() as s:
+            eave_team = await self.make_team(s)
+            eave_account_before = await self.make_account(
+                s,
+                team_id=eave_team.id,
+                auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
+                auth_id=self.anystring("google.sub"),
+                access_token=self.anystring("old_access_token"),
+                refresh_token=self.anystring("old_refresh_token"),
+            )
 
         response = await self.make_request(
             path="/oauth/google/callback",
@@ -183,26 +189,29 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
         )
 
-        assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        eave_account_after = await self.reload(eave_account_before)
-        assert eave_account_after
-        # Test that the tokens were updated
-        assert eave_account_after.access_token == self.anystring("google.token")
-        assert eave_account_after.refresh_token == self.anystring("google.refresh_token")
+        async with self.db_session.begin() as s:
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            eave_account_after = await self.reload(s, eave_account_before)
+            assert eave_account_after
+            # Test that the tokens were updated
+            assert eave_account_after.access_token == self.anystring("google.token")
+            assert eave_account_after.refresh_token == self.anystring("google.refresh_token")
 
-        # Test that the cookies were updated
-        assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-        assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            # Test that the cookies were updated
+            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
+            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
 
     async def test_google_callback_logged_in_account(self) -> None:
-        eave_team = await self.make_team()
-        eave_account_before = await self.make_account(
-            team_id=eave_team.id,
-            auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
-            auth_id=self.anystring("google.sub"),
-            access_token=self.anystring("old_access_token"),
-            refresh_token=self.anystring("old_refresh_token"),
-        )
+        async with self.db_session.begin() as s:
+            eave_team = await self.make_team(s)
+            eave_account_before = await self.make_account(
+                s,
+                team_id=eave_team.id,
+                auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
+                auth_id=self.anystring("google.sub"),
+                access_token=self.anystring("old_access_token"),
+                refresh_token=self.anystring("old_refresh_token"),
+            )
 
         response = await self.make_request(
             path="/oauth/google/callback",
@@ -218,26 +227,29 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
         )
 
-        assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        eave_account_after = await self.reload(eave_account_before)
-        assert eave_account_after
-        # Test that the tokens were updated
-        assert eave_account_after.access_token == self.anystring("google.token")
-        assert eave_account_after.refresh_token == self.anystring("google.refresh_token")
+        async with self.db_session.begin() as s:
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            eave_account_after = await self.reload(s, eave_account_before)
+            assert eave_account_after
+            # Test that the tokens were updated
+            assert eave_account_after.access_token == self.anystring("google.token")
+            assert eave_account_after.refresh_token == self.anystring("google.refresh_token")
 
-        # Test that the cookies were updated
-        assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-        assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            # Test that the cookies were updated
+            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
+            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
 
     async def test_google_callback_logged_in_account_another_provider(self) -> None:
-        eave_team = await self.make_team()
-        eave_account_before = await self.make_account(
-            team_id=eave_team.id,
-            auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
-            auth_id=self.anystring("slack.user_id"),
-            access_token=self.anystring("old_access_token"),
-            refresh_token=self.anystring("old_refresh_token"),
-        )
+        async with self.db_session.begin() as s:
+            eave_team = await self.make_team(s)
+            eave_account_before = await self.make_account(
+                s,
+                team_id=eave_team.id,
+                auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
+                auth_id=self.anystring("slack.user_id"),
+                access_token=self.anystring("old_access_token"),
+                refresh_token=self.anystring("old_refresh_token"),
+            )
 
         response = await self.make_request(
             path="/oauth/google/callback",
@@ -252,17 +264,17 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 "ev_access_token": eave_account_before.access_token,
             },
         )
+        async with self.db_session.begin() as s:
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            eave_account_after = await self.reload(s, eave_account_before)
+            assert eave_account_after
+            # Test that the tokens were NOT updated
+            assert eave_account_after.access_token == self.anystring("old_access_token")
+            assert eave_account_after.refresh_token == self.anystring("old_refresh_token")
 
-        assert (await self.count(eave.core.internal.orm.AccountOrm)) == 1
-        eave_account_after = await self.reload(eave_account_before)
-        assert eave_account_after
-        # Test that the tokens were NOT updated
-        assert eave_account_after.access_token == self.anystring("old_access_token")
-        assert eave_account_after.refresh_token == self.anystring("old_refresh_token")
-
-        # Test that the cookies were NOT updated
-        assert response.cookies.get("ev_account_id") == str(eave_account_before.id)
-        assert response.cookies.get("ev_access_token") == eave_account_before.access_token
+            # Test that the cookies were NOT updated
+            assert response.cookies.get("ev_account_id") == str(eave_account_before.id)
+            assert response.cookies.get("ev_access_token") == eave_account_before.access_token
 
     async def test_google_callback_invalid_state(self) -> None:
         response = await self.make_request(
@@ -277,6 +289,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
         )
 
-        assert response.status_code == http.HTTPStatus.BAD_REQUEST
-        assert (await self.count(eave.core.internal.orm.AccountOrm)) == 0
-        assert (await self.count(eave.core.internal.orm.TeamOrm)) == 0
+        async with self.db_session.begin() as s:
+            assert response.status_code == http.HTTPStatus.BAD_REQUEST
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
+            assert (await self.count(s, eave.core.internal.orm.TeamOrm)) == 0

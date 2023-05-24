@@ -11,7 +11,6 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         return
 
     # tld = flow.request.host.split(".")[-1]
-
     port = None
 
     if re.match(r"^www\.eave\.", flow.request.host):

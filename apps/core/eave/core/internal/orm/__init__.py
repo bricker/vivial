@@ -7,3 +7,4 @@ from .github_installation import GithubInstallationOrm as GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm as SlackInstallationOrm
 from .subscription import SubscriptionOrm as SubscriptionOrm
 from .team import TeamOrm as TeamOrm
+from .resource_mutex import ResourceMutexOrm as ResourceMutexOrm

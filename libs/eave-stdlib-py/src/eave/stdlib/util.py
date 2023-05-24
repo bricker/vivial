@@ -1,14 +1,12 @@
-import asyncio
 import base64
 import hashlib
-import logging
 from functools import wraps
-from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar, cast
+import traceback
+from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar, cast
+import uuid
+from .logging import eaveLogger
 
-logger = logging.getLogger("eave-stdlib-py")
-
-JsonScalar = str | int | bool | None
-JsonObject = dict[str, Any]
+from eave.stdlib.exceptions import UnexpectedMissingValue
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -102,14 +100,15 @@ def ensure_bytes(data: str | bytes) -> bytes:
         return data
 
 
-tasks = set[asyncio.Task[Any]]()
-
-
-def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
-    task = asyncio.create_task(coro)
-    tasks.add(task)
-    task.add_done_callback(tasks.discard)
-    return task
+def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
+    if isinstance(data, uuid.UUID):
+        return data
+    elif isinstance(data, bytes):
+        return uuid.UUID(bytes=data)
+    elif isinstance(data, int):
+        return uuid.UUID(int=data)
+    elif isinstance(data, str):
+        return uuid.UUID(hex=data)
 
 
 def nand(a: Any, b: Any) -> bool:
@@ -130,3 +129,82 @@ def xor(a: Any, b: Any) -> bool:
 def xnor(a: Any, b: Any) -> bool:
     """Neither or both"""
     return not xor(a, b)
+
+
+def dict_from_obj_dict(obj: object, attrs: list[str]) -> dict[str, Any]:
+    return {attr: obj.__dict__[attr] for attr in attrs if attr in obj.__dict__}
+
+
+def set_obj_dict_from_dict(obj: object, allowed_attrs: list[str], provided_attrs: dict[object, object]) -> None:
+    for attr in allowed_attrs:
+        if attr in provided_attrs:
+            obj.__dict__[attr] = provided_attrs[attr]
+
+
+def dict_from_attrs(obj: object, attrs: list[str]) -> dict[str, Any]:
+    return {attr: getattr(obj, attr) for attr in attrs if hasattr(obj, attr)}
+
+
+def set_attrs_from_dict(obj: object, allowed_attrs: list[str], provided_attrs: dict[object, object]) -> None:
+    for attr in allowed_attrs:
+        if attr in provided_attrs:
+            obj.__setattr__(attr, provided_attrs[attr])
+
+
+def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
+    """
+    Unwraps an Optional object to its wrapped type.
+    You should use this method when you expect the wrapped type not to be None.
+    If the object is not None, returns the unwrapped object.
+    If the object is None and no default given, raises UnexpectedMissingValue
+    If the object is None and a default is given, logs a warning and returns the default.
+    This is meant to be used when you know the object isn't None. It's a short-hand for the following verbose pattern:
+
+        if (foo := result.get("foo")) is None:
+            raise UnexpectedMissingValue()
+
+        do_something(foo)
+
+    or, using this function:
+
+        foo = unwrap(result.get("foo"))
+        do_something(foo)
+
+    You can optionally specify a default value, which does two things if given:
+    1. Logs a warning that the default value was used
+    1. Returns the default value instead of raising
+    This is the "safe" version of this operation, where you want to know that an unexpected None was encountered,
+    but carry on with the program. For example:
+
+        if (foo := result.get("foo")) is None:
+            eaveLogger.warning("foo is None")
+            foo = "default foo"
+
+        do_something(foo)
+
+    or, using this function:
+
+        foo = unwrap(result.get("foo"), "default foo")
+        do_something(foo)
+
+    This is different from other default-value mechanisms because it automatically logs a warning.
+    """
+    if value is None:
+        if default is None:
+            raise UnexpectedMissingValue("force-unwrapped a None value")
+        else:
+            caller = "".join(traceback.format_stack()[-1:])
+            eaveLogger.warning(
+                "unwrapped an unexpected None value; default will be used.", extra={"json_fields": {"caller": caller}}
+            )
+            return default
+    else:
+        return value
+
+
+def redact(string: str | None) -> str:
+    if string is None:
+        return "(none)"
+    if len(string) <= 8:
+        return "(redacted)"
+    return f"{string[:4]}..(redacted)..{string[-4:]}"

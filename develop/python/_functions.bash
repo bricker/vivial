@@ -24,37 +24,51 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-validate-version
 		python-activate-venv
 
+		local qflag="--quiet"
+		local mypyout=/dev/null
+		if verbose; then
+			qflag=""
+			mypyout=/dev/stdout
+		fi
+
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/pyproject.toml
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "Linting ${target}..."
 
-		statusmsg -i "(lint) ruff..."
-		python -m ruff --config=$configfile $target
-
-		statusmsg -i "(lint) black..."
-		python -m black --config=$configfile --check $target
-
-		statusmsg -i  "(lint) mypy..."
-		python -m mypy --config-file=$configfile $target
-
-		statusmsg -s "Linting passed ✔"
+		statusmsg -in "Linting $thisdir/$target (py)"
+		python -m ruff $qflag --config=$configfile $target
+		python -m black $qflag --config=$configfile --check $target
+		python -m mypy --config-file=$configfile $target > $mypyout
+		statusmsg -sp " ✔ "
 	)
 
 	function python-format() (
 		python-validate-version
 		python-activate-venv
 
+		local qflag="--quiet"
+		if verbose; then
+			qflag=""
+		fi
+
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/pyproject.toml
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local thisdir=$(basename $PWD)
 
-		statusmsg -i "(format) ruff..."
-		python -m ruff --fix --config=$configfile $target
+		statusmsg -in "Formatting $thisdir/$target (py)"
+		python -m ruff $qflag --fix --config=$configfile $target
+		python -m black $qflag --config=$configfile $target
+		statusmsg -sp " ✔ "
+	)
 
-		statusmsg -i  "(format) black..."
-		python -m black --config=$configfile $target
+	function python-test() (
+		python-validate-version
+		python-activate-venv
 
-		statusmsg -s "Formatting completed ✔"
+		local target=$1
+		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		run-with-dotenv python -m pytest -c $configfile $target
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

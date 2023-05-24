@@ -5,17 +5,15 @@ from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib
-import eave.stdlib.core_api
+import eave.core.internal
 import slack_sdk.errors
-from eave.stdlib.typing import LogContext
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-import eave.core.internal.oauth.atlassian
-import eave.core.internal.oauth.google
-import eave.core.internal.oauth.slack
+from eave.stdlib.exceptions import MissingOAuthCredentialsError
+from eave.stdlib.logging import eaveLogger
 
 from .base import Base
 from .team import TeamOrm
@@ -45,7 +43,7 @@ class AccountOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     visitor_id: Mapped[Optional[UUID]] = mapped_column()
-    opaque_utm_params: Mapped[Optional[eave.stdlib.util.JsonObject]] = mapped_column(JSONB)
+    opaque_utm_params: Mapped[Optional[eave.stdlib.typing.JsonObject]] = mapped_column(JSONB)
     """Opaque, JSON-encoded utm params."""
     auth_provider: Mapped[eave.stdlib.core_api.enums.AuthProvider] = mapped_column()
     """3rd party login provider"""
@@ -56,6 +54,7 @@ class AccountOrm(Base):
     )  # This field was renamed from "oauth_token" to "access_token"
     """access token from 3rd party"""
     refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
+    email: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -66,11 +65,12 @@ class AccountOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         visitor_id: Optional[UUID],
-        opaque_utm_params: Optional[eave.stdlib.util.JsonObject],
+        opaque_utm_params: Optional[eave.stdlib.typing.JsonObject],
         auth_provider: eave.stdlib.core_api.enums.AuthProvider,
         auth_id: str,
         access_token: str,
         refresh_token: Optional[str],
+        email: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
@@ -80,6 +80,7 @@ class AccountOrm(Base):
             auth_id=auth_id,
             access_token=access_token,
             refresh_token=refresh_token,
+            email=email,
         )
 
         session.add(obj)
@@ -87,8 +88,8 @@ class AccountOrm(Base):
         return obj
 
     class _selectparams(TypedDict):
-        id: NotRequired[uuid.UUID]
-        team_id: NotRequired[uuid.UUID]
+        id: NotRequired[uuid.UUID | str]
+        team_id: NotRequired[uuid.UUID | str]
         auth_provider: NotRequired[eave.stdlib.core_api.enums.AuthProvider]
         auth_id: NotRequired[str]
         access_token: NotRequired[str]
@@ -116,7 +117,7 @@ class AccountOrm(Base):
         if refresh_token := kwargs.get("refresh_token"):
             lookup = lookup.where(cls.refresh_token == refresh_token)
 
-        assert lookup.whereclause is not None
+        assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
@@ -132,7 +133,7 @@ class AccountOrm(Base):
         return result
 
     async def verify_oauth_or_exception(
-        self, session: AsyncSession, log_context: Optional[LogContext] = None
+        self, session: AsyncSession, log_context: Optional[eave.stdlib.typing.JsonObject] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
@@ -150,14 +151,13 @@ class AccountOrm(Base):
                     return True
                 except slack_sdk.errors.SlackApiError as e:
                     if e.response.get("error") == "token_expired":
-                        raise eave.stdlib.exceptions.AccessTokenExpiredError() from e
+                        raise eave.stdlib.exceptions.AccessTokenExpiredError("slack")
                     else:
                         raise e
 
             case eave.stdlib.core_api.enums.AuthProvider.google:
                 if not self.refresh_token:
-                    eave.stdlib.logger.error("missing refresh token.", extra=log_context)
-                    raise eave.stdlib.exceptions.InvalidAuthError()
+                    raise MissingOAuthCredentialsError("AccountOrm refresh token")
 
                 credentials = eave.core.internal.oauth.google.get_oauth_credentials(
                     access_token=self.access_token, refresh_token=self.refresh_token
@@ -172,14 +172,13 @@ class AccountOrm(Base):
                 raise
 
     async def refresh_oauth_token(
-        self, session: AsyncSession, log_context: Optional[LogContext] = None
+        self, session: AsyncSession, log_context: Optional[eave.stdlib.typing.JsonObject] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
         """
         if not self.refresh_token:
-            eave.stdlib.logger.error("missing refresh token.", extra=log_context)
-            raise eave.stdlib.exceptions.InvalidAuthError()
+            raise MissingOAuthCredentialsError("account refresh token")
 
         match self.auth_provider:
             case eave.stdlib.core_api.enums.AuthProvider.slack:
@@ -189,16 +188,12 @@ class AccountOrm(Base):
                 if (access_token := new_tokens.get("access_token")) and (
                     refresh_token := new_tokens.get("refresh_token")
                 ):
-                    eave.stdlib.logger.debug("Refreshing Slack auth tokens.", extra=log_context)
+                    eaveLogger.debug("Refreshing Slack auth tokens.", extra=log_context)
                     self.access_token = access_token
                     self.refresh_token = refresh_token
                     return True
                 else:
-                    eave.stdlib.logger.error(
-                        (msg := "Failed to refresh Slack auth tokens; missing access token or refresh token."),
-                        extra=log_context,
-                    )
-                    raise eave.stdlib.exceptions.InvalidAuthError(msg)
+                    raise MissingOAuthCredentialsError("slack access or refresh token")
 
             case eave.stdlib.core_api.enums.AuthProvider.google:
                 # The google client automatically refreshes the access token and updates the Credentials object,

@@ -1,8 +1,10 @@
 import http
+import re
 import typing
 
 import eave.pubsub_schemas
 import eave.stdlib.core_api
+from eave.stdlib.logging import eaveLogger
 import eave.stdlib.slack
 from starlette.requests import Request
 from starlette.responses import Response
@@ -10,7 +12,7 @@ from starlette.responses import Response
 import eave.core.internal
 import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
-import eave.core.public.request_state
+import eave.stdlib.request_state
 
 
 def verify_oauth_state_or_exception(
@@ -115,7 +117,7 @@ async def create_new_account_and_team(
     access_token: str,
     refresh_token: typing.Optional[str],
 ) -> eave.core.internal.orm.AccountOrm:
-    eave_state = eave.core.public.request_state.get_eave_state(request=request)
+    eave_state = eave.stdlib.request_state.get_eave_state(request=request)
     tracking_cookies = eave.stdlib.cookies.get_tracking_cookies(request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -135,6 +137,7 @@ async def create_new_account_and_team(
             auth_id=auth_id,
             access_token=access_token,
             refresh_token=refresh_token,
+            email=user_email,
         )
 
     eave.stdlib.analytics.log_event(
@@ -146,13 +149,19 @@ async def create_new_account_and_team(
         event_source="core api oauth",
         opaque_params={
             "auth_provider": auth_provider.value,
+            "user_email": user_email,
         },
     )
 
     try:
         # TODO: This should happen in a pubsub subscriber on the "eave_account_registration" event.
         # Notify #sign-ups Slack channel.
-        channel_id = "C04HH2N08LD"  # #sign-ups in eave slack
+
+        if user_email and re.search("@eave.fyi$", user_email):
+            channel_id = "C04GDPU3B5Z"  # #bot-testing in eave slack
+        else:
+            channel_id = "C04HH2N08LD"  # #sign-ups in eave slack
+
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
         slack_response = await slack_client.chat_postMessage(
             channel=channel_id,
@@ -172,10 +181,8 @@ async def create_new_account_and_team(
                 f"```{eave_account.opaque_utm_params}```"
             ),
         )
-    except Exception as e:
-        eave.stdlib.logger.error(
-            "Error while sending message to #sign-ups slack channel", exc_info=e, extra=eave_state.log_context
-        )
+    except Exception:
+        eaveLogger.exception("Error while sending message to #sign-ups slack channel", extra=eave_state.log_context)
 
     return eave_account
 

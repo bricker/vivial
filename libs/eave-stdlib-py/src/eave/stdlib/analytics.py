@@ -3,13 +3,15 @@ import time
 import typing
 import uuid
 
+import eave.stdlib
 import eave.pubsub_schemas
 from google.api_core.exceptions import NotFound
 from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
 
-from . import logger, util
+from .typing import JsonObject
 from .config import shared_config
+from .logging import eaveLogger
 
 publisher_client = PublisherClient()
 
@@ -21,12 +23,21 @@ def log_event(
     event_name: str,
     event_description: str,
     event_source: str,
-    opaque_params: typing.Optional[util.JsonObject] = None,
-    eave_account_id: typing.Optional[uuid.UUID] = None,
-    eave_visitor_id: typing.Optional[uuid.UUID] = None,
-    eave_team_id: typing.Optional[uuid.UUID] = None,
+    opaque_params: typing.Optional[JsonObject] = None,
+    eave_account_id: typing.Optional[uuid.UUID | str] = None,
+    eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
+    eave_team_id: typing.Optional[uuid.UUID | str] = None,
     event_ts: typing.Optional[float] = None,
 ) -> None:
+    if opaque_params:
+        try:
+            serialized_params = json.dumps(opaque_params)
+        except Exception:
+            eaveLogger.exception("Error while serialized opaque params for analytics")
+            serialized_params = str(opaque_params)
+    else:
+        serialized_params = None
+
     event = eave.pubsub_schemas.EaveEvent(
         event_name=event_name,
         event_description=event_description,
@@ -34,7 +45,7 @@ def log_event(
         eave_account_id=str(eave_account_id) if eave_account_id else None,
         eave_visitor_id=str(eave_visitor_id) if eave_visitor_id else None,
         eave_team_id=str(eave_team_id) if eave_team_id else None,
-        opaque_params=json.dumps(opaque_params) if opaque_params else None,
+        opaque_params=serialized_params,
         event_ts=event_ts if event_ts else time.time(),
     )
 
@@ -46,7 +57,11 @@ def log_event(
         assert encoding == Encoding.BINARY
 
         data = event.SerializeToString()
-        publisher_client.publish(topic_path, data)
+
+        if not shared_config.analytics_enabled:
+            eaveLogger.warning("Analytics disabled.", extra={"event": str(data)})
+        else:
+            publisher_client.publish(topic_path, data)
 
     except NotFound:
-        logger.warning(f"{_EVENT_TOPIC_ID} not found.")
+        eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.")

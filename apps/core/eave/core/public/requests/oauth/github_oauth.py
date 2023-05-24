@@ -10,11 +10,12 @@ from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal
 import eave.core.internal.orm
-import eave.core.public.request_state
+import eave.stdlib.request_state
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 
 from ...http_endpoint import HTTPEndpoint
 from . import shared
+from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.github
 
@@ -62,7 +63,9 @@ class GithubOAuthCallback(HTTPEndpoint):
         if redirect_uri := state_decoded.get("redirect_uri"):
             url = urllib.parse.urlparse(redirect_uri)
             if url.hostname != request.url.hostname:
-                return shared.set_redirect(response=response, location=redirect_uri)
+                qp = urllib.parse.urlencode(request.query_params)
+                location = f"{redirect_uri}?{qp}"
+                return shared.set_redirect(response=response, location=location)
 
         shared.verify_oauth_state_or_exception(
             state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=response
@@ -72,15 +75,15 @@ class GithubOAuthCallback(HTTPEndpoint):
         # error = request.query_params.get("error")
         # error_description = request.query_params.get("error_description")
 
-        self.eave_state = eave_state = eave.core.public.request_state.get_eave_state(request=request)
+        self.eave_state = eave_state = eave.stdlib.request_state.get_eave_state(request=request)
 
         setup_action = request.query_params.get("setup_action")
         if setup_action != "install":
-            eave.stdlib.logger.warn(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
+            eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
 
         installation_id = request.query_params.get("installation_id")
         if not installation_id:
-            eave.stdlib.logger.warn(
+            eaveLogger.warning(
                 f"github installation_id not provided for action {setup_action}. Cannot proceed.",
                 extra=eave_state.log_context,
             )
@@ -94,9 +97,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
         # arrive here then they're expect to be already logged in.
         if not auth_cookies.access_token or not auth_cookies.account_id:
-            eave.stdlib.logger.error(
-                "Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context
-            )
+            eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context)
             return shared.cancel_flow(response=response)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
@@ -120,10 +121,12 @@ class GithubOAuthCallback(HTTPEndpoint):
             )
 
             if github_installation and github_installation.team_id != self.eave_account.team_id:
-                eave.stdlib.logger.warning(
+                eaveLogger.warning(
                     f"A Github integration already exists with github install id {self.installation_id}",
                     extra=self.eave_state.log_context,
                 )
+                db_session.add(self.eave_account)
+                self.eave_account.team_id = github_installation.team_id
                 return
 
             else:

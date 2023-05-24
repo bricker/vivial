@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import Mapping, Optional
+import aiohttp
 
 from .. import models
-from .base import Endpoint, EndpointConfiguration
+from .base import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 from . import forge as forge
 import pydantic
 
@@ -40,8 +41,10 @@ class SlackInstallationInput(pydantic.BaseModel):
 class GithubInstallationInput(pydantic.BaseModel):
     github_install_id: str
 
+
+
 class Status(Endpoint):
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         service: str
         version: str
         status: str
@@ -52,10 +55,10 @@ class GetSubscription(Endpoint):
         auth_required=False,
     )
 
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         subscription: models.Subscription
         document_reference: Optional[models.DocumentReference] = None
@@ -67,11 +70,11 @@ class CreateSubscription(Endpoint):
         auth_required=False,
     )
 
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
         document_reference: Optional[DocumentReferenceInput] = None
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         subscription: models.Subscription
         document_reference: Optional[models.DocumentReference] = None
@@ -83,7 +86,7 @@ class DeleteSubscription(Endpoint):
         auth_required=False,
     )
 
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
 
 
@@ -93,14 +96,38 @@ class UpsertDocument(Endpoint):
         auth_required=False,
     )
 
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         document: DocumentInput
-        subscription: SubscriptionInput
+        subscriptions: list[SubscriptionInput]
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
-        subscription: models.Subscription
+        subscriptions: list[models.Subscription]
         document_reference: models.DocumentReference
+
+
+class SearchDocuments(Endpoint):
+    config = EndpointConfiguration(
+        path="/documents/search",
+        auth_required=False,
+    )
+
+    class RequestBody(BaseRequestBody):
+        query: str
+
+    class ResponseBody(BaseResponseBody):
+        team: models.Team
+        documents: list[models.DocumentSearchResult]
+
+
+class DeleteDocument(Endpoint):
+    config = EndpointConfiguration(
+        path="/documents/delete",
+        auth_required=False,
+    )
+
+    class RequestBody(BaseRequestBody):
+        document_reference: DocumentReferenceInput
 
 
 class GetSlackInstallation(Endpoint):
@@ -110,10 +137,10 @@ class GetSlackInstallation(Endpoint):
         team_id_required=False,
     )
 
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         slack_integration: SlackInstallationInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         slack_integration: models.SlackInstallation
 
@@ -125,14 +152,12 @@ class GetGithubInstallation(Endpoint):
         team_id_required=False,
     )
 
-    class RequestBody(pydantic.BaseModel):
+    class RequestBody(BaseRequestBody):
         github_integration: GithubInstallationInput
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         github_integration: models.GithubInstallation
-
-
 
 
 class GetAuthenticatedAccount(Endpoint):
@@ -141,7 +166,7 @@ class GetAuthenticatedAccount(Endpoint):
         team_id_required=False,
     )
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         account: models.AuthenticatedAccount
         team: models.Team
 
@@ -152,7 +177,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
         team_id_required=False,
     )
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         account: models.AuthenticatedAccount
         team: models.Team
         integrations: models.Integrations
@@ -164,6 +189,6 @@ class GetTeam(Endpoint):
         auth_required=False,
     )
 
-    class ResponseBody(pydantic.BaseModel):
+    class ResponseBody(BaseResponseBody):
         team: models.Team
         integrations: models.Integrations

@@ -1,10 +1,12 @@
-import { App } from 'octokit';
 import { Request, Response } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import * as Registry from './registry.js';
-import appConfig from './config.js';
+import { appConfig } from './config.js';
 import pushHandler from './events/push.js';
+import { createAppClient } from './lib/octokit-util.js';
 
 Registry.registerHandler('push', pushHandler);
 
@@ -14,6 +16,8 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   const signature = req.header('x-hub-signature-256');
   const installationId = req.header('x-github-hook-installation-target-id');
 
+  const eaveState = getEaveState(res);
+
   const requestBody = (<Buffer>req.body).toString();
 
   const payload: EmitterWebhookEvent<EmitterWebhookEventName> & {
@@ -22,36 +26,30 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   } = JSON.parse(requestBody);
 
   if (!eventName || !id || !signature || !payload) {
+    eaveLogger.error('missing header data from GitHub', eaveState);
     res.status(400).end();
     return;
   }
 
   const { action } = payload;
-  console.log({ id, eventName, action, installationId });
+  eaveLogger.info('Webhook request', { id, eventName, action, installationId }, eaveState);
   const event = [eventName, action].filter((n) => n).join('.');
 
   const handler = Registry.getHandler(event);
   if (handler === undefined) {
-    console.warn('Event not supported:', event);
+    eaveLogger.warn(`Event not supported: ${event}`, eaveState);
     res.status(200).end();
     return;
   }
 
-  const secret = await appConfig.eaveGithubAppWebhookSecret;
-  const privateKey = await appConfig.eaveGithubAppPrivateKey;
-
-  const app = new App({
-    appId: appConfig.eaveGithubAppId,
-    privateKey,
-    webhooks: { secret },
-  });
+  const app = await createAppClient();
 
   const verified = await app.webhooks.verify(requestBody, signature);
 
   if (!verified) {
-    console.warn('signature verification failed');
+    eaveLogger.error('signature verification failed', eaveState);
 
-    if (!['test', 'development'].includes(appConfig.nodeEnv)) {
+    if (!appConfig.isDevelopment && !appConfig.devMode) {
       res.status(400).end();
       return;
     }

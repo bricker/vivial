@@ -4,7 +4,6 @@ from http import HTTPStatus
 
 import eave.stdlib.core_api.operations as eave_ops
 
-import eave.core.internal.database as eave_db
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
@@ -43,13 +42,13 @@ class TestAuthedAccountRequests(BaseTestCase):
         )
 
     async def test_get_authed_account(self) -> None:
-        account = await self.make_account()
+        async with self.db_session.begin() as s:
+            account = await self.make_account(s)
 
         response = await self.make_request(
             path="/me/query",
             payload=None,
             account_id=account.id,
-            team_id=account.team_id,
             access_token=account.access_token,
         )
 
@@ -61,19 +60,20 @@ class TestAuthedAccountRequests(BaseTestCase):
         assert response_obj.team.id == account.team_id
 
     async def test_get_authed_account_with_team_integrations(self) -> None:
-        team = await self.make_team()
-        account = await self.make_account(team_id=team.id)
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
+            account = await self.make_account(s, team_id=team.id)
 
-        async with eave_db.async_session.begin() as db_session:
             await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
                 slack_team_id=self.anystring("slack_team_id"),
+                bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
@@ -84,7 +84,6 @@ class TestAuthedAccountRequests(BaseTestCase):
             path="/me/query",
             payload=None,
             account_id=account.id,
-            team_id=account.team_id,
             access_token=account.access_token,
         )
 
@@ -92,19 +91,20 @@ class TestAuthedAccountRequests(BaseTestCase):
         eave_ops.GetAuthenticatedAccount.ResponseBody(**response.json())
 
     async def test_get_authed_account_team_integrations(self) -> None:
-        team = await self.make_team()
-        account = await self.make_account(team_id=team.id)
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
+            account = await self.make_account(s, team_id=team.id)
 
-        async with eave_db.async_session.begin() as db_session:
             await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 bot_refresh_token=self.anystring("bot_refresh_token"),
                 bot_token=self.anystring("bot_token"),
                 slack_team_id=self.anystring("slack_team_id"),
+                bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
             await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
-                session=db_session,
+                session=s,
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
@@ -115,7 +115,6 @@ class TestAuthedAccountRequests(BaseTestCase):
             path="/me/team/integrations/query",
             payload=None,
             account_id=account.id,
-            team_id=account.team_id,
             access_token=account.access_token,
         )
 

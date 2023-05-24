@@ -1,0 +1,8 @@
+{
+  "extends": "./node_modules/@eave-fyi/eslint-configs/tsconfig.json",
+  "compilerOptions": {
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

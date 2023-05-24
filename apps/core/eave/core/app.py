@@ -1,4 +1,8 @@
 from typing import Type
+from functools import reduce
+from typing import Type
+from eave.core.public.middlewares.body_parser import BodyParserASGIMiddleware
+import eave.stdlib
 import eave.stdlib.api_util
 import eave.stdlib.core_api.operations.base
 import eave.stdlib.logging
@@ -17,9 +21,12 @@ from .public import middlewares
 from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team
 from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
+from eave.stdlib.middleware.base import EaveASGIMiddleware
+from .public import middlewares
+from .public.exception_handlers import exception_handlers
+from .public.requests import authed_account, documents, integrations, noop, subscriptions, team, status
 
 eave.stdlib.time.set_utc()
-eave.stdlib.logging.setup_logging()
 
 
 def make_route(
@@ -32,32 +39,40 @@ def make_route(
     By default, all headers are required. This is an attempt to prevent a developer error from bypassing security mechanisms.
     """
 
-    route: ASGI3Application = endpoint
+    if config.origin_required:
+        endpoint = middlewares.OriginASGIMiddleware(app=endpoint)
 
     if config.signature_required:
         # If signature is required, origin is also required.
         assert config.origin_required
-        route = middlewares.SignatureVerificationASGIMiddleware(app=route)
-
-    if config.origin_required:
-        route = middlewares.OriginASGIMiddleware(app=route)
+        endpoint = middlewares.SignatureVerificationASGIMiddleware(app=endpoint)
 
     if config.auth_required:
-        route = middlewares.AuthASGIMiddleware(app=route)
+        endpoint = middlewares.AuthASGIMiddleware(app=endpoint)
 
     if config.team_id_required:
-        route = middlewares.TeamLookupASGIMiddleware(app=route)
+        endpoint = middlewares.TeamLookupASGIMiddleware(app=endpoint)
 
-    return Route(path=config.path, endpoint=route)
+    return Route(path=config.path, endpoint=endpoint)
+
 
 
 routes = [
-    *eave.stdlib.api_util.standard_endpoints,
+    Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
+    Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
         config=eave_ops.UpsertDocument.config,
         endpoint=documents.UpsertDocument,
+    ),
+    make_route(
+        config=eave_ops.SearchDocuments.config,
+        endpoint=documents.SearchDocuments,
+    ),
+    make_route(
+        config=eave_ops.DeleteDocument.config,
+        endpoint=documents.DeleteDocument,
     ),
     make_route(
         config=eave_ops.CreateSubscription.config,
@@ -209,8 +224,9 @@ routes = [
 ]
 
 middleware = [
-    Middleware(middlewares.ExceptionHandlerASGIMiddleware),
     Middleware(middlewares.RequestIntegrityASGIMiddleware),
+    Middleware(BodyParserASGIMiddleware),
+    Middleware(middlewares.LoggingASGIMiddleware),
 ]
 
 app = starlette.applications.Starlette(

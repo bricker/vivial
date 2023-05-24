@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import List, Optional
+from eave.stdlib.typing import JsonObject
 
 import pydantic
 
@@ -8,6 +9,7 @@ from .. import enums
 from ...typing import LogContext
 from . import forge as forge
 from .base import EaveBaseModel
+
 
 class ConfluenceSpace(EaveBaseModel):
     key: str
@@ -21,6 +23,11 @@ class DocumentReference(EaveBaseModel):
 
     class Config:
         orm_mode = True
+
+
+class DocumentSearchResult(EaveBaseModel):
+    title: str
+    url: str
 
 
 class SubscriptionSource(EaveBaseModel):
@@ -42,6 +49,7 @@ class Team(EaveBaseModel):
     id: pydantic.UUID4
     name: str
     document_platform: Optional[enums.DocumentPlatform]
+    beta_whitelisted: bool = False
 
     class Config:
         orm_mode = True
@@ -93,4 +101,4 @@ class Integrations(EaveBaseModel):
 class ErrorResponse(EaveBaseModel):
     status_code: int
     error_message: str
-    context: Optional[LogContext]
+    context: Optional[JsonObject]
