@@ -13,6 +13,8 @@ permissions:
     - read:confluence-content.permission
     - read:confluence-user
     - read:confluence-groups
+    - read:jira-work
+    - write:jira-work
     # Granular Scopes
     - read:page:confluence
     - write:page:confluence
@@ -34,7 +36,10 @@ modules:
       function: func-upgradedAppEventHandler
       events:
         - avi:forge:upgraded:app
-
+    - key: issue-comment-event
+      function: XXX
+      events:
+        - avi:jira:commented:issue
   webtrigger:
     - key: webtrigger-createDocument
       function: func-createDocument
