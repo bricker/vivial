@@ -23,7 +23,14 @@ def register_event_handlers(app: AsyncApp) -> None:
     # app.event("file_public")(noop_handler)
     # app.event("file_deleted")(noop_handler)
     app.event("member_joined_channel")(event_member_joined_channel_handler)
+    app.error(error_handler)
 
+async def error_handler(error: Exception, context: AsyncBoltContext) -> None:
+    # FIXME: This probably duplicates logs
+    eaveLogger.error(str(error), exc_info=error, extra=log_context(context))
+
+    # Re-raise here so that Cloud Tasks can retry it
+    raise error
 
 async def shortcut_eave_watch_request_handler(
     shortcut: Optional[eave.stdlib.typing.JsonObject],
@@ -85,7 +92,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         max_attempts = queue.retry_config.max_attempts  # The total number of attempts allowed (this will be > 0)
         total_attempts = context.get(
             TASK_EXECUTION_COUNT_CONTEXT_KEY, 0
-        )  # The number of times Cloud Tasks executed this tasks so far, excluding this one
+        )  # The number of times Cloud Tasks executed this task so far, excluding this one
 
         # This is on purpose == instead of >=, because we only want to send this message once.
         # There is risk of this task being run more than the max attempts, and the execution count header
@@ -94,7 +101,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
             eaveLogger.warning("Max retries met. Eave will send a message that the request failed.")
             await b.notify_failure(e)
 
-        # Always re-raise, very important
+        # Always re-raise, very important. Cloud Tasks will decide if it wants to try this task again, not the app.
         raise
 
 

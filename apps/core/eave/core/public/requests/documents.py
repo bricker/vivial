@@ -162,6 +162,16 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 id=input.document_reference.id,
             )
             await destination.delete_document(document_id=document_reference.document_id)
+
+            subscriptions = await eave.core.internal.orm.SubscriptionOrm.select(
+                session=db_session,
+                team_id=eave_team.id,
+                document_reference_id=document_reference.id,
+            )
+
+            for subscription in subscriptions:
+                await db_session.delete(subscription)
+            await db_session.flush()
             await db_session.delete(document_reference)
 
         return Response(status_code=http.HTTPStatus.OK)

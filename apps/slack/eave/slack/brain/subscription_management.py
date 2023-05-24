@@ -1,3 +1,4 @@
+import json
 from eave.slack.brain.communication import CommunicationMixin
 import eave.stdlib.core_api.client
 import eave.stdlib.core_api.operations
@@ -29,7 +30,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
             event_name="eave_subscribed",
             event_description="Eave subscribed to a slack message",
             opaque_params={
-                "subscription": subscription.dict(),
+                "subscription": json.loads(subscription.json()),
             },
         )
 
