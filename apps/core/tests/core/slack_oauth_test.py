@@ -25,6 +25,7 @@ class TestSlackOAuthHandler(BaseTestCase):
             "access_token": self.anystring("access_token"),
             "refresh_token": self.anystring("refresh_token"),
             "expires_in": self.anyint("expires_in"),
+            "bot_user_id": self.anystring("bot user id"),
             "team": {
                 "id": self.anystring("team.id"),
                 "name": self.anystring("team.name"),

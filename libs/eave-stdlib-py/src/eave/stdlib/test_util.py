@@ -289,7 +289,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         m._testMethodName = self._testMethodName
 
         if name is None:
-            name = f"{patch.target.__name__}.{patch.attribute}"
+            if hasattr(patch.target, "__name__"):
+                name = f"{patch.target.__name__}.{patch.attribute}"
+            else:
+                name = f"{patch.target}.{patch.attribute}"
+
         self.active_patches[name] = m
         return m
 
