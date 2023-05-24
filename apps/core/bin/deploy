@@ -30,7 +30,8 @@ function deploy() {
 	fi
 
 	if test -z "$skipdb"; then
-		bin/run-db-migration
+		statusmsg -w "Loading production configuration for db migration"
+		PYTHONPATH=. bin/run-db-migration -e ../../.env -e ../../.env.production
 	else
 		statusmsg -w "Skipping database operations (-d flag passed)"
 	fi
