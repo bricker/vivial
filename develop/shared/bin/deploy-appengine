@@ -17,7 +17,7 @@ function deploy () (
 		fi
 	fi
 
-	local timestamp=$(date --utc "+%Y%m%dT%H%MZ")
+	local timestamp=$(date --utc "+%Y%m%dt%H%Mz")
 	local gitrev=$(git rev-parse --short HEAD)
 	local version="$timestamp-$gitrev"
 	echo ""
