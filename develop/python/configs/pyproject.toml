@@ -62,6 +62,7 @@ norecursedirs = [
 ]
 
 [tool.ruff]
+extend-select = ["B006"]
 line-length = 1000
 extend-exclude = [
   "generated",

@@ -9,16 +9,18 @@ import eave.stdlib.core_api.enums
 from eave.stdlib.core_api.models import Subscription, Team
 from eave.stdlib.typing import JsonObject
 
+
 class Base:
     """
     Base annotations for all Brain mixins
     """
+
     message: SlackMessage
     user_profile: Optional[SlackProfile]
     expanded_text: str
     message_context: str
     eave_team: Team
-    subscriptions: list[Subscription] = []
+    subscriptions: list[Subscription]
     slack_context: AsyncBoltContext
     message_action: Optional[MessageAction] = None
 
@@ -26,6 +28,7 @@ class Base:
         self.message = message
         self.eave_team = eave_team
         self.slack_context = message._ctx._context  # FIXME: Make the AsyncBoltContext public
+        self.subscriptions = []
 
     def log_event(self, event_name: str, event_description: str, opaque_params: Optional[JsonObject] = None) -> None:
         if opaque_params is None:
