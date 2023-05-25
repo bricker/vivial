@@ -1,15 +1,10 @@
 import eave.stdlib.core_api.models as eave_models
 import eave.stdlib.core_api.enums as eave_enums
-import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.github_api.operations as gh_ops
-import eave.stdlib.requests
 from eave.stdlib.core_api.enums import LinkType, SubscriptionSourcePlatform
 from eave.stdlib.test_util import UtilityBaseTestCase
 import unittest.mock
-
-# set a core_api client origin to make tests not crash from it being unset
-eave.stdlib.requests.set_origin(eave_origins.EaveOrigin.eave_slack_app)
 
 
 class TestLinkHandler(UtilityBaseTestCase):

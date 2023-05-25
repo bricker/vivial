@@ -24,9 +24,9 @@ def log_event(
     event_description: str,
     event_source: str,
     opaque_params: typing.Optional[JsonObject] = None,
-    eave_account_id: typing.Optional[uuid.UUID] = None,
-    eave_visitor_id: typing.Optional[uuid.UUID] = None,
-    eave_team_id: typing.Optional[uuid.UUID] = None,
+    eave_account_id: typing.Optional[uuid.UUID | str] = None,
+    eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
+    eave_team_id: typing.Optional[uuid.UUID | str] = None,
     event_ts: typing.Optional[float] = None,
 ) -> None:
     if opaque_params:

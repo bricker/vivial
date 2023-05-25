@@ -23,7 +23,7 @@ async def status() -> operations.Status.ResponseBody:
             makeurl("/status"),
         )
 
-    response_json = await response.json()
+        response_json = await response.json()
     return operations.Status.ResponseBody(**response_json, _raw_response=response)
 
 

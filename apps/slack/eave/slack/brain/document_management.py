@@ -1,3 +1,4 @@
+import json
 from eave.slack.brain.subscription_management import SubscriptionManagementMixin
 import eave.stdlib.analytics
 import eave.stdlib.core_api.client
@@ -55,7 +56,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             event_description="Eave created a new document",
             opaque_params={
                 "document_platform": upsert_document_response.team.document_platform,
-                "document_reference": upsert_document_response.document_reference.dict(),
+                "document_reference": json.loads(upsert_document_response.document_reference.json()),
                 "document.title": api_document.title,
                 "document.parent": api_document.parent.title if api_document.parent else None,
             },
@@ -136,7 +137,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             extra=log_context(
                 self.slack_context,
                 addl={
-                    "search_results": [d.dict() for d in search_results.documents],
+                    "search_results": [json.loads(d.json()) for d in search_results.documents],
                 },
             ),
         )
@@ -269,7 +270,10 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             self.log_event(
                 event_name="search_results",
                 event_description="Eave returned search results",
-                opaque_params={"search_query": answer, "search_results": [d.dict() for d in response.documents]},
+                opaque_params={
+                    "search_query": answer,
+                    "search_results": [json.loads(d.json()) for d in response.documents],
+                },
             )
 
         return response

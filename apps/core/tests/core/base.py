@@ -260,6 +260,9 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         self.patch(
             name="AtlassianRestAPI.delete", patch=unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.delete")
         )
+        self.patch(
+            name="AtlassianRestAPI.post", patch=unittest.mock.patch("atlassian.rest_client.AtlassianRestAPI.post")
+        )
 
         self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(

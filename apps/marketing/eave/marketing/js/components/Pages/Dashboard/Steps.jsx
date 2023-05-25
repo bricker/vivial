@@ -9,6 +9,8 @@ import {
   FormControl,
   MenuItem,
   useMediaQuery,
+  CircularProgress,
+  InputLabel,
 } from '@material-ui/core';
 import classNames from 'classnames';
 
@@ -18,7 +20,7 @@ import Copy from '../../Copy/index.jsx';
 import Button from '../../Button/index.jsx';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
-import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
+// import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
 import DownIcon from '../../Icons/DownIcon.js';
 import Footnote from './Footnote.jsx';
 import StepIcon from './StepIcon.jsx';
@@ -79,11 +81,31 @@ const makeClasses = makeStyles((theme) => ({
       opacity: 0.7,
     },
   },
+  selectWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    [theme.breakpoints.up('sm')]: {
+      flexDirection: 'row',
+    },
+  },
   select: {
     width: 275,
     marginTop: 12,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('sm')]: {
       width: 418,
+    },
+  },
+  error: {
+    color: 'red',
+    marginTop: 12,
+  },
+  submit: {
+    width: 275,
+    height: 56,
+    marginTop: 12,
+    [theme.breakpoints.up('sm')]: {
+      width: 166,
+      marginLeft: 30,
     },
   },
   connectButton: {
@@ -124,38 +146,47 @@ const makeClasses = makeStyles((theme) => ({
 const Steps = () => {
   const classes = makeClasses();
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
-  const { userState, updateConfluenceSpace } = useUser();
+  const { userState, updateConfluenceSpace, loadingUpdateConfluenceSpace, updateConfluenceError } = useUser();
   const { teamInfo } = userState;
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(2);
+  const [space, setSpace] = useState('');
+  const [editingSpace, setEditingSpace] = useState(false);
   // placeholder until flow is integrated
-  const [appInstalled, setAppInstalled] = useState(false);
+  const [appInstalled] = useState(false);
 
   useEffect(() => {
-    if (!appInstalled) {
+    // if (!appInstalled) {
+    //   setStep(0);
+    // }
+    if (!teamInfo?.integrations.atlassian) {
       setStep(0);
-    } else if (!teamInfo?.integrations.atlassian) {
-      setStep(1);
       // if user has not selected a conflunece space
-    } else if (!teamInfo?.integrations.atlassian.confluence_space_key) {
-      setStep(2);
+    } else if (!teamInfo?.integrations.atlassian.confluence_space_key || editingSpace) {
+      setStep(1);
     // confluence integration happens by default, if user has not linked their github or slack
     } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
-      setStep(3);
+      setStep(2);
     // user has linked all so we can just show a completed stepper
     } else {
-      setStep(4);
+      setStep(3);
     }
-  }, [teamInfo, appInstalled]);
+  }, [teamInfo, appInstalled, space]);
 
-  const isStep3Clickable = step > 2 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
+  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
 
-  const handleSpaceUpdate = (event) => {
-    updateConfluenceSpace(event.target.value);
+  const handleSpaceUpdate = () => {
+    updateConfluenceSpace(space, () => setEditingSpace(false));
+  };
+
+  const handleSelectChange = (event) => {
+    setSpace(event.target.value);
   };
 
   const handleStepClick = () => {
-    if (isStep3Clickable) {
-      setStep(2);
+    if (isStep2Clickable) {
+      setSpace(teamInfo?.integrations.atlassian.confluence_space_key);
+      setEditingSpace(true);
+      setStep(1);
     }
   };
 
@@ -166,7 +197,7 @@ const Steps = () => {
       <Stepper orientation="vertical" activeStep={step} classes={{
         vertical: classes.stepper,
       }}>
-        <Step>
+        {/* <Step>
           <StepLabel StepIconComponent={StepIcon}>
             <Copy variant="h3" className={classes.header}>
               Step 1: Add Eave to <AtlassianIcon className={classes.atlassian} />
@@ -184,17 +215,17 @@ const Steps = () => {
               Add App
             </Button>
           </StepContent>
-        </Step>
+        </Step> */}
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
             <Copy variant="h3" className={classes.header}>
               {isDesktop ? (
                 <span>
-                  Step 2: Connect to your <ConfluenceIcon /> Confluence Account
+                  Step 1: Connect to your <ConfluenceIcon /> Confluence Account
                 </span>
               ) : (
                 <span>
-                  Step 2: Connect to <ConfluenceIcon /> Confluence
+                  Step 1: Connect to <ConfluenceIcon /> Confluence
                 </span>
               )}
 
@@ -209,34 +240,50 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon} onClick={handleStepClick}>
-            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep3Clickable })} >
-              Step 3: Select your <ConfluenceIcon /> Confluence Space
-              {isStep3Clickable && <DownIcon className={classes.downIcon} />}
+            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep2Clickable })} >
+              Step 2: Select your <ConfluenceIcon /> Confluence Space
+              {isStep2Clickable && <DownIcon className={classes.downIcon} />}
             </Copy>
           </StepLabel>
           <StepContent className={classes.content}>
             <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
-            <div>
+            <div className={classes.selectWrapper}>
               <FormControl variant='outlined' className={classes.select}>
+              {!space && <InputLabel id="space-selector-label">Select your Confluence Space</InputLabel>}
                 <Select
                   labelId="space-selector-label"
                   id="space-selector"
-                  value={teamInfo?.integrations?.atlassian?.confluence_space_key || ''}
-                  onChange={handleSpaceUpdate}
+                  value={space}
+                  onChange={handleSelectChange}
+                  disabled={loadingUpdateConfluenceSpace}
                 >
-                  {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((space) => {
+                  {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((spc) => {
                     return (
-                      <MenuItem value={space.key} key={space.key}>{space.name}</MenuItem>
+                      <MenuItem value={spc.key} key={spc.key}>{spc.name}</MenuItem>
                     );
                   })}
                 </Select>
               </FormControl>
+              <Button
+                  className={classes.submit}
+                  onClick={handleSpaceUpdate}
+                  disabled={loadingUpdateConfluenceSpace}
+                >
+                  {loadingUpdateConfluenceSpace ? (
+                    <CircularProgress />
+                  ) : (
+                    'Submit'
+                  )}
+                </Button>
             </div>
+            {updateConfluenceError && (
+              <Copy variant="footnote" className={classes.error}>Something went wrong setting the Confluence space, please try again</Copy>
+            )}
           </StepContent>
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
-            <Copy variant="h3" className={classes.header}>Step 4: Integrate your business tools</Copy>
+            <Copy variant="h3" className={classes.header}>Step 3: Integrate your business tools</Copy>
           </StepLabel>
           <StepContent className={classes.content}>
             <Copy variant="pSmall" className={classes.copy}>Select the tools where Eave can pull information from and be tagged to created documentation. Note Jira is automatically granted permissions via the Confluence connection.</Copy>
@@ -268,7 +315,7 @@ const Steps = () => {
                 alt={INTEGRATION_LOGOS.slack.alt}
               />
             </Button>
-            <Button
+            {/* <Button
               className={classes.connectButton}
               variant="outlined"
               startIcon={teamInfo?.integrations.atlassian && <PurpleCheckIcon className={classes.connected} />}
@@ -281,7 +328,7 @@ const Steps = () => {
                 src={INTEGRATION_LOGOS.jira.src}
                 alt={INTEGRATION_LOGOS.jira.alt}
               />
-            </Button>
+            </Button> */}
           </StepContent>
         </Step>
       </Stepper>

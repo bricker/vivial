@@ -2,6 +2,9 @@ import http
 
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
+from eave.core.internal.orm.subscription import SubscriptionOrm
+from eave.stdlib.core_api.enums import SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models import SubscriptionSource
 from .base import BaseTestCase
 
 
@@ -23,11 +26,38 @@ class TestDeleteDocument(BaseTestCase):
             document_reference = await DocumentReferenceOrm.create(
                 session=s,
                 team_id=self.testdata["eave_team"].id,
-                document_id=self.anystring("document id"),
+                document_id=str(self.anyint("document id")),
                 document_url=self.anystring("document url"),
             )
 
-        mock = self.get_mock("AtlassianRestAPI.delete")
+            await SubscriptionOrm.create(
+                session=s,
+                team_id=self.testdata["eave_team"].id,
+                source=SubscriptionSource(
+                    platform=SubscriptionSourcePlatform.slack,
+                    event=SubscriptionSourceEvent.slack_message,
+                    id=self.anystring(),
+                ),
+                document_reference_id=document_reference.id,
+            )
+
+            await SubscriptionOrm.create(
+                session=s,
+                team_id=self.testdata["eave_team"].id,
+                source=SubscriptionSource(
+                    platform=SubscriptionSourcePlatform.slack,
+                    event=SubscriptionSourceEvent.slack_message,
+                    id=self.anystring(),
+                ),
+                document_reference_id=document_reference.id,
+            )
+
+            subs = await SubscriptionOrm.select(
+                session=s, team_id=self.testdata["eave_team"].id, document_reference_id=document_reference.id
+            )
+            assert len(subs) == 2
+
+        mock = self.get_mock("AtlassianRestAPI.post")
 
         response = await self.make_request(
             path="/documents/delete",
@@ -47,3 +77,8 @@ class TestDeleteDocument(BaseTestCase):
                 session=s, team_id=self.testdata["eave_team"].id, id=document_reference.id
             )
             assert after is None
+
+            subs = await SubscriptionOrm.select(
+                session=s, team_id=self.testdata["eave_team"].id, document_reference_id=document_reference.id
+            )
+            assert len(subs) == 0

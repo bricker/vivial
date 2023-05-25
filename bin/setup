@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 if test -z "${EAVE_HOME}"; then
 	export EAVE_HOME=$(pwd)
@@ -26,7 +26,8 @@ case $usershell in
 	statusmsg -o "\t$varcmd"
 	echo ""
 
-	read -p "Should I proceed? [y/n] " proceed
+	echo -n "Should I proceed? [y/n] "
+	read proceed
 	if test "$proceed" = "y"; then
 		echo -e "\n$varcmd" >>"$loginfile"
 	fi
@@ -41,7 +42,8 @@ case $usershell in
 	echo -e "\t$varcmd"
 	echo ""
 
-	read -p "Should I proceed? [y/n] " proceed
+	echo -n "Should I proceed? [y/n] "
+	read proceed
 	if test "$proceed" = "y"; then
 		fish -c "$varcmd"
 	fi
@@ -70,7 +72,8 @@ function setuppython() {
 }
 
 statusmsg -pi "Next, I will setup the python virtual environment."
-read -p "Should I proceed? [y/n] " proceed
+echo -n "Should I proceed? [y/n] "
+read proceed
 if test "$proceed" = "y"; then
 	setuppython
 fi
@@ -91,7 +94,8 @@ function setupgcloud() {
 }
 
 statusmsg -pi "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
-read -p "Should I proceed? [y/n] " proceed
+echo -n "Should I proceed? [y/n] "
+read proceed
 if test "$proceed" = "y"; then
 	setupgcloud
 fi
@@ -124,7 +128,8 @@ function setupcloudsqlproxy() {
 }
 
 statusmsg -pi "Now I'll download and install the Cloud SQL Proxy for your system."
-read -p "Should I proceed? [y/n] " proceed
+echo -n "Should I proceed? [y/n] "
+read proceed
 if test "$proceed" = "y"; then
 	setupcloudsqlproxy
 fi
@@ -160,7 +165,8 @@ function install-jq() {
 
 if ! cmd-exists "jq"; then
 	statusmsg -pi "The jq program is used (and assumed to be installed) in many utility scripts in this repository."
-	read -p "Do you want me to install it? [y/n] " proceed
+	echo -n "Do you want me to install it? [y/n] "
+	read proceed
 	if test "$proceed" = "y"; then
 		install-jq
 	fi
@@ -178,7 +184,8 @@ function setupapps() {
 }
 
 statusmsg -pi "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
-read -p "Should I proceed? [y/n] " proceed
+echo -n "Should I proceed? [y/n] "
+read proceed
 if test "$proceed" = "y"; then
 	setupapps
 fi
