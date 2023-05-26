@@ -1,6 +1,7 @@
 import asyncio
 import os
 import socket
+from dotenv import load_dotenv
 
 import eave.stdlib.core_api
 import sqlalchemy
@@ -9,6 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
+
+
+load_dotenv(f"{os.getenv('EAVE_HOME')}/.env", override=True)
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 
