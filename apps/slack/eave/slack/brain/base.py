@@ -3,10 +3,10 @@ from typing import Optional
 from slack_bolt.async_app import AsyncBoltContext
 from eave.slack.brain.message_prompts import MessageAction
 from eave.slack.slack_models import SlackMessage, SlackProfile
-from eave.slack.util import log_context
 from eave.stdlib import analytics
 import eave.stdlib.core_api.enums
 from eave.stdlib.core_api.models import Subscription, Team
+from eave.stdlib.logging import LogContext
 from eave.stdlib.typing import JsonObject
 
 
@@ -23,11 +23,13 @@ class Base:
     subscriptions: list[Subscription]
     slack_context: AsyncBoltContext
     message_action: Optional[MessageAction] = None
+    eave_ctx: LogContext
 
-    def __init__(self, message: SlackMessage, eave_team: Team) -> None:
+    def __init__(self, message: SlackMessage, eave_team: Team, ctx: LogContext) -> None:
         self.message = message
         self.eave_team = eave_team
         self.slack_context = message._ctx._context  # FIXME: Make the AsyncBoltContext public
+        self.eave_ctx = ctx
         self.subscriptions = []
 
     def log_event(self, event_name: str, event_description: str, opaque_params: Optional[JsonObject] = None) -> None:
@@ -46,10 +48,7 @@ class Base:
                 "message_user_id": self.message.user,
                 "message_team": self.message.team,
                 "message_channel": self.message.channel,
+                "eave_ctx": self.eave_ctx,
                 **opaque_params,
             },
         )
-
-    @property
-    def log_extra(self) -> dict[str, Optional[str]]:
-        return log_context(self.slack_context)

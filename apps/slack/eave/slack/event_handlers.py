@@ -1,9 +1,11 @@
+import json
 from typing import Optional
+
+from google.cloud.tasks import Queue
 
 import eave.pubsub_schemas
 from eave.slack.brain.core import Brain
 import eave.slack.slack_models
-from eave.slack.util import log_context
 import eave.stdlib
 from eave.stdlib import task_queue
 import eave.stdlib.core_api
@@ -11,7 +13,7 @@ from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 from .config import SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
 
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LogContext, eaveLogger
 
 
 def register_event_handlers(app: AsyncApp) -> None:
@@ -28,17 +30,17 @@ def register_event_handlers(app: AsyncApp) -> None:
 
 async def error_handler(error: Exception, context: AsyncBoltContext) -> None:
     # FIXME: This probably duplicates logs
-    eaveLogger.error(str(error), exc_info=error, extra=log_context(context))
-
-    # Re-raise here so that Cloud Tasks can retry it
-    raise error
+    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eaveLogger.error(str(error), exc_info=error, extra=eave_ctx)
 
 
 async def shortcut_eave_watch_request_handler(
     shortcut: Optional[eave.stdlib.typing.JsonObject],
     context: AsyncBoltContext,
 ) -> None:
-    eaveLogger.debug("Received event: eave_watch_request (shortcut)", extra=log_context(context))
+    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eaveLogger.debug("Received event: eave_watch_request (shortcut)", extra=eave_ctx)
+
     if shortcut is None:
         raise SlackDataError("shortcut parameter")
 
@@ -59,8 +61,8 @@ async def shortcut_eave_watch_request_handler(
 
 
 async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext) -> None:
-    extra = log_context(context)
-    eaveLogger.debug("Received event: message", extra=extra)
+    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eaveLogger.debug("Received event: message", extra=eave_ctx)
     if event is None:
         raise SlackDataError("event parameter")
 
@@ -73,10 +75,10 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
     if message.subtype in ["bot_message", "bot_remove", "bot_add"] or message.bot_id is not None:
         # Ignore messages from bots.
         # TODO: We should accept messages from bots
-        eaveLogger.debug("ignoring bot message", extra=extra)
+        eaveLogger.debug("ignoring bot message", extra=eave_ctx)
         return
 
-    b = Brain(message=message, eave_team=eave_team)
+    b = Brain(message=message, eave_team=eave_team, ctx=eave_ctx)
 
     try:
         await b.process_message()
@@ -96,11 +98,20 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
             TASK_EXECUTION_COUNT_CONTEXT_KEY, 0
         )  # The number of times Cloud Tasks executed this task so far, excluding this one
 
+        eave_ctx.set({
+            "queue": json.loads(Queue.to_json(queue)),
+            "task": {
+                "max_attempts": max_attempts,
+                "total_attempts": total_attempts,
+            }
+        })
+        eaveLogger.debug(f"{SLACK_EVENT_QUEUE_NAME} task state", extra=eave_ctx)
+
         # This is on purpose == instead of >=, because we only want to send this message once.
         # There is risk of this task being run more than the max attempts, and the execution count header
         # can be imprecise, depending on timing, so this is an attempt to mitigate that.
         if total_attempts == max_attempts:
-            eaveLogger.warning("Max retries met. Eave will send a message that the request failed.")
+            eaveLogger.warning("Max retries met. Eave will send a message that the request failed.", extra=eave_ctx)
             await b.notify_failure(e)
 
         # Always re-raise, very important. Cloud Tasks will decide if it wants to try this task again, not the app.
@@ -110,8 +121,8 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
 async def event_member_joined_channel_handler(
     event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext
 ) -> None:
-    extra = log_context(context)
-    eaveLogger.debug("Received event: member_joined_channel", extra=extra)
+    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eaveLogger.debug("Received event: member_joined_channel", extra=eave_ctx)
 
     eave_team = context.get("eave_team")
 
@@ -119,7 +130,7 @@ async def event_member_joined_channel_handler(
         raise SlackDataError("event channel or user")
 
     if user_id != context.bot_user_id:
-        eaveLogger.debug("user_id != context.bot_user_id", extra=extra)
+        eaveLogger.debug("user_id != context.bot_user_id", extra=eave_ctx)
         return
 
     if context.client:
@@ -146,17 +157,20 @@ async def event_member_joined_channel_handler(
                 "integration": eave.stdlib.core_api.enums.Integration.slack.value,
                 "message_content": message,
                 "message_purpose": "introduction after joining a channel",
+                "eave_ctx": eave_ctx,
             },
         )
     else:
-        eaveLogger.warning("No Slack client available in the Slack context.", extra=extra)
+        eaveLogger.warning("No Slack client available in the Slack context.", extra=eave_ctx)
 
     eave.stdlib.analytics.log_event(
         event_name="eave_joined_slack_channel",
         event_description="Eave joined a slack channel",
         event_source="slack app",
         eave_team_id=eave_team.id if eave_team else None,
-        opaque_params=None,
+        opaque_params={
+            "eave_ctx": eave_ctx,
+        },
     )
 
 

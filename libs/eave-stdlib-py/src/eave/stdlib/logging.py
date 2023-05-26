@@ -1,7 +1,10 @@
 import logging
 import sys
+from typing import Any, Literal, Mapping, Optional, Self, TypeVar, cast
 
 import google.cloud.logging
+
+from eave.stdlib.typing import JsonObject
 
 from .config import shared_config
 
@@ -49,3 +52,37 @@ if shared_config.monitoring_enabled:
     client.setup_logging(log_level=level)
 
 eaveLogger = logging.getLogger("eave")
+
+
+# This format is for Google Cloud Logging
+# LogContext = dict[Literal["json_fields"], JsonObject]
+
+T = TypeVar("T")
+class LogContext(dict[str, object]):
+    @classmethod
+    def wrap(cls, ctx: Optional["LogContext"]) -> "LogContext":
+        return ctx if ctx else cls()
+
+    def getset(self, key: str, default: T) -> T:
+        """
+        Gets the value at the given key. If the key doesn't exist, sets it to the default value.
+        Returns the value.
+        """
+        f = self.setdefault("json_fields", JsonObject())
+        fc = cast(JsonObject, f)
+        if key in fc:
+            return fc[key]
+        else:
+            self.set({key: default})
+            return default
+
+    def set(self, attributes: JsonObject) -> Self:
+        f = self.setdefault("json_fields", dict[str, JsonObject]())
+        fc = cast(JsonObject, f)
+        fc.update(attributes)
+        return self
+
+    def get(self, key: str, default: Optional[Any | T] = None) -> Any | T | None:
+        f = self.setdefault("json_fields", dict[str, JsonObject]())
+        fc = cast(JsonObject, f)
+        return fc.get(key, default)

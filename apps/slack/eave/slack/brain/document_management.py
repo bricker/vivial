@@ -11,7 +11,6 @@ from eave.stdlib.logging import eaveLogger
 from . import message_prompts
 from . import document_metadata
 from .context_building import ContextBuildingMixin
-from ..util import log_context
 
 
 class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin):
@@ -134,12 +133,9 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
         eaveLogger.debug(
             "Received search results",
-            extra=log_context(
-                self.slack_context,
-                addl={
-                    "search_results": [json.loads(d.json()) for d in search_results.documents],
-                },
-            ),
+            extra=self.eave_ctx.set({
+                "search_results": [json.loads(d.json()) for d in search_results.documents],
+            }),
         )
 
         if len(search_results.documents) == 0:
