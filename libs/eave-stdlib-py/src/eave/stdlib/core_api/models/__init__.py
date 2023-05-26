@@ -1,13 +1,12 @@
 import uuid
 from datetime import datetime
 from typing import List, Optional
+from eave.stdlib.core_api.operations.forge import ForgeInstallation
 from eave.stdlib.typing import JsonObject
 
 import pydantic
 
 from .. import enums
-from ...typing import LogContext
-from . import forge as forge
 from .base import EaveBaseModel
 
 
@@ -95,7 +94,7 @@ class Integrations(EaveBaseModel):
 
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
-    forge: Optional[forge.ForgeInstallation]
+    forge: Optional[ForgeInstallation]
 
 
 class ErrorResponse(EaveBaseModel):

@@ -5,12 +5,12 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.operations as eave_ops
-from sqlalchemy import Index, Select, func, select
+from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.stdlib.util import ensure_uuid
+from eave.stdlib.core_api.operations.forge import ForgeInstallation, UpdateForgeInstallationInput, RegisterForgeInstallationInput
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
@@ -18,17 +18,23 @@ from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 class ForgeInstallationOrm(Base):
     __tablename__ = "forge_installations"
     __table_args__ = (
-        make_team_composite_pk(),
         make_team_fk(),
+        PrimaryKeyConstraint(
+            "forge_app_installation_id",
+            "id",
+        )
     )
 
-    team_id: Mapped[UUID] = mapped_column()
+    team_id: Mapped[Optional[UUID]] = mapped_column()
+    """team_id has to be optional because on initial integration we don't know which team the app is associated with."""
+
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     confluence_space_key: Mapped[Optional[str]] = mapped_column()
     forge_app_id: Mapped[str] = mapped_column()
     forge_app_version: Mapped[str] = mapped_column()
     forge_app_installation_id: Mapped[str] = mapped_column(index=True)
     forge_app_installer_account_id: Mapped[str] = mapped_column()
+    webtrigger_url: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -73,15 +79,16 @@ class ForgeInstallationOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        team_id: uuid.UUID,
-        input: eave_ops.forge.RegisterForgeInstallationInput,
+        input: RegisterForgeInstallationInput,
+        team_id: Optional[uuid.UUID | str] = None,
     ) -> Self:
         obj = cls(
-            team_id=team_id,
+            team_id=ensure_uuid(team_id) if team_id else None,
             forge_app_id=input.forge_app_id,
             forge_app_version=input.forge_app_version,
             forge_app_installation_id=input.forge_app_installation_id,
             forge_app_installer_account_id=input.forge_app_installer_account_id,
+            webtrigger_url=input.webtrigger_url,
             confluence_space_key=input.confluence_space_key,
         )
         session.add(obj)
@@ -91,7 +98,7 @@ class ForgeInstallationOrm(Base):
     def update(
         self,
         session: AsyncSession,
-        input: eave_ops.forge.UpdateForgeInstallationInput,
+        input: UpdateForgeInstallationInput,
     ) -> Self:
         """
         Updates the given attributes.
@@ -120,7 +127,14 @@ class ForgeInstallationOrm(Base):
         if ("forge_app_installer_account_id" in fs) and input.forge_app_installer_account_id:
             self.forge_app_installer_account_id = input.forge_app_installer_account_id
 
+        if ("webtrigger_url" in fs) and input.webtrigger_url:
+            self.webtrigger_url = input.webtrigger_url
+
         if "confluence_space_key" in fs:
             self.confluence_space_key = input.confluence_space_key
 
         return self
+
+    @property
+    def api_model(self) -> ForgeInstallation:
+        return ForgeInstallation.from_orm(self)

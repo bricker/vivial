@@ -133,46 +133,6 @@ async def get_github_installation(
     response_json = await response.json()
     return operations.GetGithubInstallation.ResponseBody(**response_json, _raw_response=response)
 
-
-async def query_forge_installation(
-    input: operations.forge.QueryForgeInstallation.RequestBody,
-) -> operations.forge.QueryForgeInstallation.ResponseBody:
-    response = await make_request(
-        url=operations.forge.QueryForgeInstallation.config.url,
-        input=input,
-    )
-
-    response_json = await response.json()
-    return operations.forge.QueryForgeInstallation.ResponseBody(**response_json)
-
-
-async def register_forge_installation(
-    input: operations.forge.RegisterForgeInstallation.RequestBody,
-) -> operations.forge.RegisterForgeInstallation.ResponseBody:
-    response = await make_request(
-        url=operations.forge.RegisterForgeInstallation.config.url,
-        input=input,
-    )
-
-    response_json = await response.json()
-    return operations.forge.RegisterForgeInstallation.ResponseBody(**response_json)
-
-async def update_forge_installation_authed(
-    account_id: uuid.UUID,
-    access_token: str,
-    input: operations.forge.UpdateForgeInstallation.RequestBody,
-) -> operations.forge.UpdateForgeInstallation.ResponseBody:
-    response = await make_request(
-        url=operations.forge.UpdateForgeInstallation.config.url,
-        input=input,
-        access_token=access_token,
-        account_id=account_id,
-    )
-
-    response_json = await response.json()
-    return operations.forge.UpdateForgeInstallation.ResponseBody(**response_json)
-
-
 async def get_team(
     team_id: UUID,
 ) -> operations.GetTeam.ResponseBody:

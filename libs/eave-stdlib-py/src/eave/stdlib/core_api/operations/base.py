@@ -1,4 +1,20 @@
+from typing import Optional
+
+import aiohttp
+import pydantic
+from ...config import shared_config
+
 class Endpoint:
+    pass
+
+class BaseResponseBody(pydantic.BaseModel):
+    _raw_response: Optional[aiohttp.ClientResponse] = None
+
+    class Config:
+        underscore_attrs_are_private = True
+
+
+class BaseRequestBody(pydantic.BaseModel):
     pass
 
 
@@ -15,3 +31,7 @@ class EndpointConfiguration:
         self.team_id_required = team_id_required
         self.signature_required = signature_required
         self.origin_required = origin_required
+
+    @property
+    def url(self) -> str:
+        return f"{shared_config.eave_api_base}{self.path}"
