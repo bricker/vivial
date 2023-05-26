@@ -1,4 +1,5 @@
 import http
+import uuid
 from eave.stdlib import signing, eaveLogger
 import eave.stdlib.requests
 import eave.stdlib.core_api.client
@@ -16,28 +17,28 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.endpoints import HTTPEndpoint
 
-from eave.stdlib.typing import LogContext
+from eave.stdlib.logging import LogContext
 from .. import slack_app
 from ..config import TASK_EXECUTION_COUNT_CONTEXT_KEY
 
 
 # https://cloud.google.com/tasks/docs/creating-appengine-handlers
 class SlackEventProcessorTask(HTTPEndpoint):
-    _log_extra: LogContext
+    _ctx: LogContext
     _request: Request
 
     async def post(self, request: Request) -> Response:
-        self._log_extra = {
-            "json_fields": {
-                "headers": dict(request.headers),
-            }
-        }
+        request_id = request.headers.get(EAVE_REQUEST_ID_HEADER)
+        self._ctx = LogContext().set({
+            "task_headers": dict(request.headers),
+            "request_id": request_id,
+        })
 
         self._request = request
 
         eaveLogger.info(
             "Request: POST /_tasks/slack-events",
-            extra=self._log_extra,
+            extra=self._ctx,
         )
 
         default_success_response = Response(status_code=http.HTTPStatus.OK)
@@ -53,8 +54,10 @@ class SlackEventProcessorTask(HTTPEndpoint):
             request,
             addition_context_properties={
                 TASK_EXECUTION_COUNT_CONTEXT_KEY: task_execution_count,
+                "eave_ctx": self._ctx,
             },
         )
+
         return response
 
     async def _is_valid_signature(self) -> bool:
@@ -64,14 +67,14 @@ class SlackEventProcessorTask(HTTPEndpoint):
         origin_header = self._request.headers.get(EAVE_ORIGIN_HEADER)
 
         if not request_id or not origin_header or not signature:
-            eaveLogger.warning("Missing required Eave header", extra=self._log_extra)
+            eaveLogger.warning("Missing required Eave header", extra=self._ctx)
             return False
 
         try:
             origin = eave_origins.EaveOrigin(value=origin_header)
             signing_key = signing.get_key(origin)
         except (ValueError, KeyError):
-            eaveLogger.warning(f"Invalid Eave origin: {origin_header}", extra=self._log_extra)
+            eaveLogger.warning(f"Invalid Eave origin: {origin_header}", extra=self._ctx)
             return False
 
         signature_message = eave.stdlib.requests.build_message_to_sign(
@@ -91,5 +94,5 @@ class SlackEventProcessorTask(HTTPEndpoint):
             )
             return True
         except InvalidSignatureError:
-            eaveLogger.warning("Invalid Eave signature", extra=self._log_extra)
+            eaveLogger.warning("Invalid Eave signature", extra=self._ctx)
             return False

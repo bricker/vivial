@@ -11,7 +11,7 @@ from google.pubsub_v1.types import Encoding
 
 from .typing import JsonObject
 from .config import shared_config
-from .logging import eaveLogger
+from .logging import LogContext, eaveLogger
 
 publisher_client = PublisherClient()
 
@@ -28,12 +28,14 @@ def log_event(
     eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
     eave_team_id: typing.Optional[uuid.UUID | str] = None,
     event_ts: typing.Optional[float] = None,
+    ctx: typing.Optional[LogContext] = None,
 ) -> None:
+    eave_context = LogContext.wrap(ctx)
     if opaque_params:
         try:
             serialized_params = json.dumps(opaque_params)
         except Exception:
-            eaveLogger.exception("Error while serialized opaque params for analytics")
+            eaveLogger.exception("Error while serialized opaque params for analytics", extra=eave_context)
             serialized_params = str(opaque_params)
     else:
         serialized_params = None
@@ -59,9 +61,9 @@ def log_event(
         data = event.SerializeToString()
 
         if not shared_config.analytics_enabled:
-            eaveLogger.warning("Analytics disabled.", extra={"event": str(data)})
+            eaveLogger.warning("Analytics disabled.", extra=eave_context.set({"pubsub": {"event": str(data)}}))
         else:
             publisher_client.publish(topic_path, data)
 
     except NotFound:
-        eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.")
+        eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.", extra=eave_context)

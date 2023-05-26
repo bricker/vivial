@@ -1,5 +1,4 @@
 from . import message_prompts
-from eave.slack.util import log_context
 
 
 from eave.stdlib.logging import eaveLogger
@@ -8,7 +7,7 @@ from .intent_processing import IntentProcessingMixin
 
 class Brain(IntentProcessingMixin):
     async def process_message(self) -> None:
-        eaveLogger.debug("Brain.process_message", extra=self.log_extra)
+        eaveLogger.debug("Brain.process_message", extra=self.eave_ctx)
 
         await self.load_data()
 
@@ -42,7 +41,7 @@ class Brain(IntentProcessingMixin):
             1. Otherwise, continue processing.
             """
             if subscription_response is None:
-                eaveLogger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.log_extra)
+                eaveLogger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.eave_ctx)
                 return
 
             self.message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
@@ -69,12 +68,9 @@ class Brain(IntentProcessingMixin):
         if expanded_text is None:
             eaveLogger.warning(
                 "slack message expanded_text is unexpectedly None",
-                extra=log_context(
-                    self.slack_context,
-                    addl={
-                        "message_text": self.message.text,
-                    },
-                ),
+                extra=self.eave_ctx.set({
+                    "message_text": self.message.text,
+                }),
             )
 
             # FIXME: Brain should allow None expanded_text so it can retry.

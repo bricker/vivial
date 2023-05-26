@@ -82,7 +82,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         slack_bot_access_token = self.slack_oauth_data["access_token"]
         slack_bot_refresh_token = self.slack_oauth_data["refresh_token"]
         slack_token_expires_in = self.slack_oauth_data["expires_in"]
-        log_context = self.eave_state.log_context_extras({"slack_team_id": slack_team_id})
+        log_context = self.eave_state.log_context.set({"slack_team_id": slack_team_id})
 
         if not slack_token_expires_in:
             eaveLogger.warning(
@@ -136,7 +136,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
     async def _run_post_install_procedures(
         self,
-        log_context: eave.stdlib.typing.LogContext,
+        log_context: eave.stdlib.logging.LogContext,
     ) -> None:
         slack_bot_access_token = self.slack_oauth_data["access_token"]
         slack_client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=slack_bot_access_token)
