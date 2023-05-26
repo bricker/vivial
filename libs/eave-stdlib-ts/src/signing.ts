@@ -41,7 +41,7 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
     version: '1',
     algorithm: SigningAlgorithm.ES256,
   },
-  [EaveOrigin.eave_atlassian_app]: {
+  [EaveOrigin.eave_forge_app]: {
     id: 'eave-atlassian-app-signing-key',
     version: '1',
     algorithm: SigningAlgorithm.ES256,

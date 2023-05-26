@@ -1,12 +1,5 @@
 import * as enums from './enums.js';
 
-export type AccessRequest = {
-  id: string;
-  visitor_id?: string;
-  email: string;
-  created: Date;
-}
-
 export type DocumentReference = {
   id: string;
   document_id: string;

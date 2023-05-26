@@ -1,4 +1,3 @@
-import assert from 'node:assert';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 
 export enum EaveEnvironment {
@@ -9,7 +8,9 @@ export enum EaveEnvironment {
 export class EaveConfig {
   get googleCloudProject(): string {
     const value = process.env['GOOGLE_CLOUD_PROJECT'];
-    assert(value !== undefined);
+    if (value === undefined) {
+      throw new Error('GOOGLE_CLOUD_PROJECT is undefined');
+    }
     return value;
   }
 

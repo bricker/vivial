@@ -1,4 +1,3 @@
-import fetch, { Response } from 'node-fetch';
 import { v4 as uuid4 } from 'uuid';
 import eaveLogger from '../logging.js';
 import { EaveOrigin } from '../eave-origins.js';

@@ -52,7 +52,7 @@ export async function getSubscription(teamId: string, input: ops.GetSubscription
 
 export async function getSlackInstallation(input: ops.GetSlackInstallationRequestBody): Promise<ops.GetSlackInstallationResponseBody> {
   const resp = await makeRequest({
-    url: `${sharedConfig.eaveApiBase}/installations/slack/query`,
+    url: `${sharedConfig.eaveApiBase}/integrations/slack/query`,
     input,
   });
   const responseData = <ops.GetSlackInstallationResponseBody>(await resp.json());
@@ -61,7 +61,7 @@ export async function getSlackInstallation(input: ops.GetSlackInstallationReques
 
 export async function getGithubInstallation(input: ops.GetGithubInstallationRequestBody): Promise<ops.GetGithubInstallationResponseBody> {
   const resp = await makeRequest({
-    url: `${sharedConfig.eaveApiBase}/installations/github/query`,
+    url: `${sharedConfig.eaveApiBase}/integrations/github/query`,
     input,
   });
   const responseData = <ops.GetGithubInstallationResponseBody>(await resp.json());
