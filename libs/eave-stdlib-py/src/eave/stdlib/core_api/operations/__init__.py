@@ -40,6 +40,12 @@ class SlackInstallationInput(pydantic.BaseModel):
 class GithubInstallationInput(pydantic.BaseModel):
     github_install_id: str
 
+class AtlassianInstallationInput(pydantic.BaseModel):
+    atlassian_cloud_id: str
+
+
+class UpdateAtlassianInstallationInput(pydantic.BaseModel):
+    confluence_space_key: Optional[str]
 
 
 class Status(Endpoint):
@@ -157,6 +163,25 @@ class GetGithubInstallation(Endpoint):
     class ResponseBody(BaseResponseBody):
         team: models.Team
         github_integration: models.GithubInstallation
+
+
+class GetAtlassianInstallation(Endpoint):
+    class RequestBody(BaseRequestBody):
+        atlassian_integration: AtlassianInstallationInput
+
+    class ResponseBody(BaseResponseBody):
+        team: models.Team
+        atlassian_integration: models.AtlassianInstallation
+
+
+class UpdateAtlassianInstallation(Endpoint):
+    class RequestBody(BaseRequestBody):
+        atlassian_integration: UpdateAtlassianInstallationInput
+
+    class ResponseBody(BaseResponseBody):
+        account: models.AuthenticatedAccount
+        team: models.Team
+        atlassian_integration: models.AtlassianInstallation
 
 
 class GetAuthenticatedAccount(Endpoint):

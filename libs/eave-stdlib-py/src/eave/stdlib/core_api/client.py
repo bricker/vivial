@@ -133,6 +133,21 @@ async def get_github_installation(
     response_json = await response.json()
     return operations.GetGithubInstallation.ResponseBody(**response_json, _raw_response=response)
 
+
+async def get_atlassian_installation(
+    input: operations.GetAtlassianInstallation.RequestBody,
+) -> operations.GetAtlassianInstallation.ResponseBody:
+    """
+    POST /integrations/atlassian/query
+    """
+    response = await make_request(
+        url=f"{shared_config.eave_api_base}/integrations/atlassian/query",
+        input=input,
+    )
+
+    response_json = await response.json()
+    return operations.GetAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
+
 async def get_team(
     team_id: UUID,
 ) -> operations.GetTeam.ResponseBody:
@@ -145,6 +160,24 @@ async def get_team(
     response_json = await response.json()
     return operations.GetTeam.ResponseBody(**response_json, _raw_response=response)
 
+
+async def update_atlassian_integration(
+    account_id: uuid.UUID,
+    access_token: str,
+    input: operations.UpdateAtlassianInstallation.RequestBody,
+) -> operations.UpdateAtlassianInstallation.ResponseBody:
+    """
+    POST /me/team/integrations/atlassian/update
+    """
+    response = await make_request(
+        url=f"{shared_config.eave_api_base}/me/team/integrations/atlassian/update",
+        input=input,
+        access_token=access_token,
+        account_id=account_id,
+    )
+
+    response_json = await response.json()
+    return operations.UpdateAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
 
 async def get_authenticated_account_team_integrations(
     account_id: UUID, access_token: str

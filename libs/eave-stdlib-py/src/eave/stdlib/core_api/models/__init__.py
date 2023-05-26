@@ -76,6 +76,18 @@ class SlackInstallation(EaveBaseModel):
         orm_mode = True
 
 
+class AtlassianInstallation(pydantic.BaseModel):
+    id: pydantic.UUID4
+    team_id: pydantic.UUID4
+    """eave TeamOrm model id"""
+    atlassian_cloud_id: str
+    confluence_space_key: Optional[str]
+    available_confluence_spaces: Optional[List[ConfluenceSpace]]
+    oauth_token_encoded: str
+
+    class Config:
+        orm_mode = True
+
 class GithubInstallation(EaveBaseModel):
     id: pydantic.UUID4
     team_id: pydantic.UUID4
