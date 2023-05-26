@@ -1,8 +1,8 @@
 const config = {
   extends: [
-    '@eave-fyi/es-config/eslint',
-    '@eave-fyi/es-config/eslint/typescript',
-    '@eave-fyi/es-config/eslint/yaml',
+    './node_modules/@eave-fyi/es-config/eslint',
+    './node_modules/@eave-fyi/es-config/eslint/typescript',
+    './node_modules/@eave-fyi/es-config/eslint/yaml',
   ],
   rules: {
     'no-console': 'off',
