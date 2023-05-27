@@ -78,10 +78,6 @@ async def create_task_from_request(
         ctx=ctx,
     )
 
-
-client = tasks.CloudTasksAsyncClient()
-
-
 async def create_task(
     queue_name: str,
     target_path: str,
@@ -121,6 +117,8 @@ async def create_task(
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_REQUEST_ID_HEADER] = request_id
     headers[EAVE_ORIGIN_HEADER] = origin.value
+
+    client = tasks.CloudTasksAsyncClient()
 
     parent = client.queue_path(
         project=shared_config.google_cloud_project,
