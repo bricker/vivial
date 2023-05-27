@@ -16,7 +16,7 @@ class EaveRequestState:
     eave_account_id: Optional[str] = None
     eave_team_id: Optional[str] = None
     eave_origin: Optional[str] = None
-    request_id: Optional[str] = None
+    eave_request_id: Optional[str] = None
     request_method: Optional[str] = None
     request_scheme: Optional[str] = None
     request_path: Optional[str] = None
@@ -35,7 +35,7 @@ class EaveRequestState:
             "eave_account_id": str(self.eave_account_id),
             "eave_team_id": str(self.eave_team_id),
             "eave_origin": str(self.eave_origin),
-            "request_id": str(self.request_id),
+            "eave_request_id": str(self.eave_request_id),
             "request_method": str(self.request_method),
             "request_scheme": str(self.request_scheme),
             "request_path": str(self.request_path),
@@ -56,7 +56,7 @@ class EaveRequestState:
         """
 
         payload = {
-            "request_id": str(self.request_id),
+            "eave_request_id": str(self.eave_request_id),
         }
         return payload
 

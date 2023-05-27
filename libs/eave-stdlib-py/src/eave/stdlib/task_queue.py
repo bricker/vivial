@@ -79,9 +79,6 @@ async def create_task_from_request(
     )
 
 
-client = tasks.CloudTasksAsyncClient()
-
-
 async def create_task(
     queue_name: str,
     target_path: str,
@@ -105,11 +102,10 @@ async def create_task(
     # Slack already sets this for the incoming event request, but setting it here too to be explicit.
     headers["content-type"] = "application/json"
 
-    request_id = ctx.getset("request_id", str(uuid.uuid4()))
     signature_message = eave.stdlib.requests.build_message_to_sign(
         method="POST",
         origin=origin.value,
-        request_id=request_id,
+        request_id=ctx.eave_request_id,
         url=target_path,
         payload=body.decode(),
         team_id=None,
@@ -119,8 +115,10 @@ async def create_task(
     signature = eave.stdlib.signing.sign_b64(signing_key=eave.stdlib.signing.get_key(origin), data=signature_message)
 
     headers[EAVE_SIGNATURE_HEADER] = signature
-    headers[EAVE_REQUEST_ID_HEADER] = request_id
+    headers[EAVE_REQUEST_ID_HEADER] = ctx.eave_request_id
     headers[EAVE_ORIGIN_HEADER] = origin.value
+
+    client = tasks.CloudTasksAsyncClient()
 
     parent = client.queue_path(
         project=shared_config.google_cloud_project,
@@ -151,7 +149,7 @@ async def create_task(
 
     eaveLogger.debug(
         f"Creating task on queue {queue_name}",
-        extra=LogContext.wrap(ctx).set(
+        extra=ctx.set(
             {
                 "task_name": task_name,
                 "queue_name": parent,

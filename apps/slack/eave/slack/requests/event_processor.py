@@ -1,5 +1,4 @@
 import http
-import uuid
 from eave.stdlib import signing, eaveLogger
 import eave.stdlib.requests
 import eave.stdlib.core_api.client
@@ -28,11 +27,13 @@ class SlackEventProcessorTask(HTTPEndpoint):
     _request: Request
 
     async def post(self, request: Request) -> Response:
-        request_id = request.headers.get(EAVE_REQUEST_ID_HEADER)
-        self._ctx = LogContext().set({
-            "task_headers": dict(request.headers),
-            "request_id": request_id,
-        })
+        eave_request_id = request.headers.get(EAVE_REQUEST_ID_HEADER)
+        self._ctx = LogContext().set(
+            {
+                "task_headers": dict(request.headers),
+                "eave_request_id": eave_request_id,
+            }
+        )
 
         self._request = request
 
@@ -63,10 +64,10 @@ class SlackEventProcessorTask(HTTPEndpoint):
     async def _is_valid_signature(self) -> bool:
         body = await self._request.body()
         signature = self._request.headers.get(EAVE_SIGNATURE_HEADER)
-        request_id = self._request.headers.get(EAVE_REQUEST_ID_HEADER)
+        request_id_header = self._request.headers.get(EAVE_REQUEST_ID_HEADER)
         origin_header = self._request.headers.get(EAVE_ORIGIN_HEADER)
 
-        if not request_id or not origin_header or not signature:
+        if not request_id_header or not origin_header or not signature:
             eaveLogger.warning("Missing required Eave header", extra=self._ctx)
             return False
 
@@ -80,7 +81,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
         signature_message = eave.stdlib.requests.build_message_to_sign(
             method=self._request.scope["method"],
             origin=origin.value,
-            request_id=request_id,
+            request_id=request_id_header,
             url=self._request.scope["path"],
             payload=body.decode(),
             team_id=None,

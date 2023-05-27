@@ -31,7 +31,7 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
                 else:
                     request_id = request_id_header
 
-                eave_state.request_id = request_id
+                eave_state.eave_request_id = request_id
                 eave_state.request_method = scope["method"]
                 eave_state.request_scheme = scope["scheme"]
                 eave_state.request_path = scope["path"]

@@ -1,6 +1,5 @@
 import http
 import uuid
-from slack_bolt.async_app import AsyncBoltRequest
 from slack_bolt.response import BoltResponse
 from slack_sdk.signature import SignatureVerifier
 from eave.stdlib import eaveLogger
@@ -19,14 +18,12 @@ from ..config import SLACK_EVENT_QUEUE_NAME, SLACK_EVENT_QUEUE_TARGET_PATH, app_
 
 class SlackEventCallbackHandler(HTTPEndpoint):
     _request: Request
-    _bolt_request: AsyncBoltRequest
     _raw_body: bytes
     _json_body: JsonObject
     _ctx: LogContext
 
     async def post(self, request: Request) -> Response:
-        request_id = str(uuid.uuid4())
-        self._ctx = LogContext().set({"request_id": request_id, "slack_headers": dict(request.headers)})
+        self._ctx = LogContext().set({"slack_headers": dict(request.headers)})
 
         eaveLogger.info("Request: POST /slack/events", extra=self._ctx)
 
@@ -59,8 +56,9 @@ class SlackEventCallbackHandler(HTTPEndpoint):
             eaveLogger.debug("Ignoring unmatched Slack event", extra=self._ctx)
             return default_success_response
 
-        self._bolt_request = to_async_bolt_request(req=self._request, body=self._raw_body)
-        # await self._try_react()
+        self._ctx.set({"request_body": self._json_body})
+        eaveLogger.debug("Request body received", extra=self._ctx)
+
         await self._create_task()
         return default_success_response
 
@@ -86,20 +84,6 @@ class SlackEventCallbackHandler(HTTPEndpoint):
 
         # No matches
         return False
-
-    # async def _try_react(self) -> None:
-    #     event = self._json_body.get("event")
-    #     if not event:
-    #         eaveLogger.warning("Received payload without event field.")
-    #         return
-
-    #     client = self._bolt_request.context.client
-    #     channel = event.get("channel")
-    #     ts = event.get("ts")
-    #     if client and channel and ts:
-    #         await client.reactions_add(channel=channel, name="thumbsup", timestamp=ts)
-    #     else:
-    #         eaveLogger.warning("client, channel, or ts missing; cannot add reaction")
 
     async def _create_task(self) -> None:
         if team_id := self._json_body.get("team_id"):

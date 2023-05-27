@@ -13,11 +13,11 @@ class LoggingASGIMiddleware(EaveASGIMiddleware):
 
         eave_state = self.eave_state(scope=scope)
         eaveLogger.info(
-            f"Request Start: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}",
+            f"Request Start: {eave_state.eave_request_id}: {eave_state.request_method} {eave_state.request_path}",
             extra=eave_state.log_context,
         )
         await self.app(scope, receive, send)
         eaveLogger.info(
-            f"Request End: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}",
+            f"Request End: {eave_state.eave_request_id}: {eave_state.request_method} {eave_state.request_path}",
             extra=eave_state.log_context,
         )

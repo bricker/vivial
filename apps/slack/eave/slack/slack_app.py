@@ -3,7 +3,6 @@ from typing import Optional
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 import eave.slack.event_handlers
-from eave.slack.util import log_context
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.exceptions
@@ -33,16 +32,18 @@ async def authorize(
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
     """
     eave_ctx = LogContext.wrap(context.get("eave_ctx"))
-    eave_ctx.set({
-        "request_id": context.get("request_id"),
-        "slack_team_id": context.team_id,
-        "slack_user_id": context.user_id,
-        "slack_channel_id": context.channel_id,
-        "slack_bot_id": context.bot_id,
-        "slack_bot_user_id": context.bot_user_id,
-        "slack_bot_token": f"{context.bot_token[0:5]}..." if context.bot_token else None,
-        "slack_user_token": f"{context.user_token[0:5]}..." if context.user_token else None,
-    })
+    eave_ctx.set(
+        {
+            "eave_request_id": context.get("eave_request_id"),
+            "slack_team_id": context.team_id,
+            "slack_user_id": context.user_id,
+            "slack_channel_id": context.channel_id,
+            "slack_bot_id": context.bot_id,
+            "slack_bot_user_id": context.bot_user_id,
+            "slack_bot_token": f"{context.bot_token[0:5]}..." if context.bot_token else None,
+            "slack_user_token": f"{context.user_token[0:5]}..." if context.user_token else None,
+        }
+    )
     eaveLogger.debug("slack authorize request", extra=eave_ctx)
 
     # TODO: team_id can be None for org-wide installed apps

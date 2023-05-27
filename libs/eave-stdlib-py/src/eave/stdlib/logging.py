@@ -1,6 +1,7 @@
 import logging
 import sys
 from typing import Any, Optional, Self, TypeVar, cast
+import uuid
 
 import google.cloud.logging
 
@@ -61,30 +62,41 @@ T = TypeVar("T")
 
 
 class LogContext(dict[str, object]):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        super().setdefault("json_fields", {})
+        self.setdefault("eave_request_id", str(uuid.uuid4()))
+
     @classmethod
     def wrap(cls, ctx: Optional["LogContext"]) -> "LogContext":
         return ctx if ctx else cls()
 
-    def getset(self, key: str, default: T) -> T:
+    def setdefault(self, key: str, default: T) -> T:
         """
         Gets the value at the given key. If the key doesn't exist, sets it to the default value.
         Returns the value.
         """
-        f = self.setdefault("json_fields", JsonObject())
-        fc = cast(JsonObject, f)
-        if key in fc:
-            return fc[key]
+        if key in self.json_fields:
+            return self.json_fields[key]
         else:
             self.set({key: default})
             return default
 
     def set(self, attributes: JsonObject) -> Self:
-        f = self.setdefault("json_fields", dict[str, JsonObject]())
-        fc = cast(JsonObject, f)
-        fc.update(attributes)
+        self.json_fields.update(attributes)
         return self
 
     def get(self, key: str, default: Optional[Any | T] = None) -> Any | T | None:
-        f = self.setdefault("json_fields", dict[str, JsonObject]())
+        return self.json_fields.get(key, default)
+
+    @property
+    def eave_request_id(self) -> str:
+        if not self.json_fields["eave_request_id"]:
+            self.set({"eave_request_id": str(uuid.uuid4())})
+        return self.json_fields["eave_request_id"]
+
+    @property
+    def json_fields(self) -> JsonObject:
+        f = self["json_fields"]
         fc = cast(JsonObject, f)
-        return fc.get(key, default)
+        return fc
