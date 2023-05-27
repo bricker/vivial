@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/@eave-fyi/eslint-configs/tsconfig.json",
+  "extends": "./node_modules/@eave-fyi/eslint-config/tsconfig.json",
   "compilerOptions": {
   },
   "include": [

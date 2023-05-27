@@ -1,6 +1,6 @@
 const config = {
   extends: [
-    '@eave-fyi/eslint-config',
+    './node_modules/@eave-fyi/eslint-config/index',
   ],
 };
 
