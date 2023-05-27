@@ -13,8 +13,6 @@ from .typing import JsonObject
 from .config import shared_config
 from .logging import LogContext, eaveLogger
 
-publisher_client = PublisherClient()
-
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event_topic"
 
@@ -51,10 +49,12 @@ def log_event(
         event_ts=event_ts if event_ts else time.time(),
     )
 
-    topic_path = publisher_client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
+    client = PublisherClient()
+
+    topic_path = client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
 
     try:
-        topic = publisher_client.get_topic(request={"topic": topic_path})
+        topic = client.get_topic(request={"topic": topic_path})
         encoding = topic.schema_settings.encoding
         assert encoding == Encoding.BINARY
 
@@ -63,7 +63,7 @@ def log_event(
         if not shared_config.analytics_enabled:
             eaveLogger.warning("Analytics disabled.", extra=eave_context.set({"pubsub": {"event": str(data)}}))
         else:
-            publisher_client.publish(topic_path, data)
+            client.publish(topic_path, data)
 
     except NotFound:
         eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.", extra=eave_context)
