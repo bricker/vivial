@@ -68,9 +68,11 @@ class Brain(IntentProcessingMixin):
         if expanded_text is None:
             eaveLogger.warning(
                 "slack message expanded_text is unexpectedly None",
-                extra=self.eave_ctx.set({
-                    "message_text": self.message.text,
-                }),
+                extra=self.eave_ctx.set(
+                    {
+                        "message_text": self.message.text,
+                    }
+                ),
             )
 
             # FIXME: Brain should allow None expanded_text so it can retry.

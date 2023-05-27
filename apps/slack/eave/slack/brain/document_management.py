@@ -133,9 +133,11 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
         eaveLogger.debug(
             "Received search results",
-            extra=self.eave_ctx.set({
-                "search_results": [json.loads(d.json()) for d in search_results.documents],
-            }),
+            extra=self.eave_ctx.set(
+                {
+                    "search_results": [json.loads(d.json()) for d in search_results.documents],
+                }
+            ),
         )
 
         if len(search_results.documents) == 0:
