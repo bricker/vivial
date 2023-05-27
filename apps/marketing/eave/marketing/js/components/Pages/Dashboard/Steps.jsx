@@ -172,7 +172,7 @@ const Steps = () => {
     }
   }, [teamInfo, appInstalled, space]);
 
-  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key.length > 0;
+  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key?.length > 0;
 
   const handleSpaceUpdate = () => {
     updateConfluenceSpace(space, () => setEditingSpace(false));
