@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Literal, Mapping, Optional, Self, TypeVar, cast
+from typing import Any, Optional, Self, TypeVar, cast
 
 import google.cloud.logging
 
@@ -58,6 +58,8 @@ eaveLogger = logging.getLogger("eave")
 # LogContext = dict[Literal["json_fields"], JsonObject]
 
 T = TypeVar("T")
+
+
 class LogContext(dict[str, object]):
     @classmethod
     def wrap(cls, ctx: Optional["LogContext"]) -> "LogContext":

@@ -81,6 +81,7 @@ async def create_task_from_request(
 
 client = tasks.CloudTasksAsyncClient()
 
+
 async def create_task(
     queue_name: str,
     target_path: str,
@@ -150,11 +151,13 @@ async def create_task(
 
     eaveLogger.debug(
         f"Creating task on queue {queue_name}",
-        extra=LogContext.wrap(ctx).set({
-            "task_name": task_name,
-            "queue_name": parent,
-            "eave_headers": headers,
-        }),
+        extra=LogContext.wrap(ctx).set(
+            {
+                "task_name": task_name,
+                "queue_name": parent,
+                "eave_headers": headers,
+            }
+        ),
     )
 
     t = await client.create_task(parent=parent, task=task)
