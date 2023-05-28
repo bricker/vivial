@@ -91,9 +91,10 @@ class TeamOrm(Base):
 
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
 
+        atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
+
         forge_installation = await ForgeInstallationOrm.one_or_none(session=session, team_id=self.id)
 
-        atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         return eave.stdlib.core_api.models.Integrations(
             slack=slack_installation.api_model
@@ -102,10 +103,10 @@ class TeamOrm(Base):
             github=github_installation.api_model
             if github_installation
             else None,
-            forge=forge_installation.api_model
-            if forge_installation
-            else None,
             atlassian=atlassian_installation.api_model
             if atlassian_installation
+            else None,
+            forge=forge_installation.api_model
+            if forge_installation
             else None,
         )

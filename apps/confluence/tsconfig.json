@@ -1,3 +1,6 @@
 {
   "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
+  "include": [
+    "src/*"
+  ]
 }

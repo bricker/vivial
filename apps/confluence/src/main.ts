@@ -12,7 +12,7 @@ import { InstalledAppEventPayload, UpgradedAppEventPayload, CommentedIssueEventP
 import appConfig from './config';
 import jiraCommentedIssueEventHandler from './events/jira-commented-issue';
 
-const WEBTRIGGER_KEY = 'webtrigger-eaveInbound';
+const WEBTRIGGER_KEY = 'webtrigger-eaveApi';
 
 export async function forgeInstalledApp(event: InstalledAppEventPayload) {
   const { registerForgeInstallation } = await import('@eave-fyi/eave-stdlib-ts/src/core-api/operations/forge');

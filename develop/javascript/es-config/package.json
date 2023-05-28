@@ -11,7 +11,7 @@
     "npm": "9"
   },
   "scripts": {
-    "yalc": "yalc publish --push --replace"
+    "yalc": "yalc publish --push"
   },
   "dependencies": {
     "eslint": "8.x",

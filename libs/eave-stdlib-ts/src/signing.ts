@@ -43,17 +43,20 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
     version: '1',
     algorithm: SigningAlgorithm.ES256,
   },
-  [EaveOrigin.eave_forge_app]: {
+  [EaveOrigin.eave_atlassian_app]: {
     id: 'eave-atlassian-app-signing-key',
+    version: '1',
+    algorithm: SigningAlgorithm.ES256,
+  },
+  [EaveOrigin.eave_forge_app]: {
+    id: 'eave-atlassian-app-signing-key', // this key ID is correct for Forge, it's shared with the Atlassian app
     version: '1',
     algorithm: SigningAlgorithm.ES256,
   },
   // This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
   [ExternalOrigin.github_api_client]: {
     id: 'eave-github-app-signing-key-01',
-    // TODO: clean up this hack to change versions in prod/ dev
-    // version: sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1',
-    version: '2',
+    version: '2', // Warning! This version is only valid for prod. See the getVersion function.
     algorithm: SigningAlgorithm.RS256,
   },
 };
@@ -64,6 +67,15 @@ export function getKey(signer: string): SigningKeyDetails {
     throw Error(`No signing key details found for ${signer}`);
   }
   return keyDetails;
+}
+
+// FIXME: This is a hack because the key versions are different between dev and prod.
+function getVersion(key: SigningKeyDetails): string {
+  let version = key.version;
+  if (key.id === 'eave-github-app-signing-key-01') {
+    version = sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1';
+  }
+  return version;
 }
 
 /**
@@ -83,7 +95,7 @@ export async function signBase64(
     KMS_KEYRING_LOCATION,
     KMS_KEYRING_NAME,
     signingKey.id,
-    signingKey.version,
+    getVersion(signingKey),
   );
 
   let messageBytes: Buffer;
@@ -169,7 +181,7 @@ export async function verifySignatureOrException(
     KMS_KEYRING_LOCATION,
     KMS_KEYRING_NAME,
     signingKey.id,
-    signingKey.version,
+    getVersion(signingKey),
   );
 
   const [kmsPublicKey] = await kmsClient.getPublicKey({

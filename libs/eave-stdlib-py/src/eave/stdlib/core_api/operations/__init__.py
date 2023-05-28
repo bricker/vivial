@@ -166,6 +166,12 @@ class GetGithubInstallation(Endpoint):
 
 
 class GetAtlassianInstallation(Endpoint):
+    config = EndpointConfiguration(
+        path="/integrations/atlassian/query",
+        auth_required=False,
+        team_id_required=False,
+    )
+
     class RequestBody(BaseRequestBody):
         atlassian_integration: AtlassianInstallationInput
 
@@ -175,6 +181,11 @@ class GetAtlassianInstallation(Endpoint):
 
 
 class UpdateAtlassianInstallation(Endpoint):
+    config = EndpointConfiguration(
+        path="/integrations/atlassian/update",
+        auth_required=False,
+        team_id_required=False,
+    )
     class RequestBody(BaseRequestBody):
         atlassian_integration: UpdateAtlassianInstallationInput
 

@@ -22,8 +22,6 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
             port = 5200
         elif re.match("/github", flow.request.path):
             port = 5300
-        elif re.match("/atlassian", flow.request.path):
-            port = 5400
 
     if not port:
         flow.kill()

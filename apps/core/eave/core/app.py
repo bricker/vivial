@@ -1,4 +1,5 @@
 from eave.core.public.middlewares.body_parser import BodyParserASGIMiddleware
+from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 import eave.stdlib
 import eave.stdlib.api_util
 import eave.stdlib.core_api.operations.base
@@ -89,6 +90,10 @@ routes = [
         endpoint=eave.core.public.requests.github_integration.GithubIntegration,
     ),
     make_route(
+        config=eave_ops.GetAtlassianInstallation.config,
+        endpoint=AtlassianIntegration,
+    ),
+    make_route(
         config=forge_ops.QueryForgeInstallation.config,
         endpoint=eave.core.public.requests.forge_integration.QueryForgeIntegration,
     ),
@@ -99,6 +104,13 @@ routes = [
     make_route(
         config=forge_ops.UpdateForgeInstallation.config,
         endpoint=eave.core.public.requests.forge_integration.UpdateForgeIntegration,
+    ),
+    make_route(
+        config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
+            path=f"/me/team/{eave_ops.UpdateAtlassianInstallation.config.path}",
+            team_id_required=False,
+        ),
+        endpoint=authed_account.UpdateAtlassianIntegration,
     ),
     make_route(
         config=eave.stdlib.core_api.operations.base.EndpointConfiguration(

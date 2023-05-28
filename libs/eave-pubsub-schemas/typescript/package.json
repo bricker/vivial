@@ -1,6 +1,9 @@
 {
   "name": "@eave-fyi/eave-pubsub-schemas",
   "version": "0.1.0",
+  "files": [
+    "src/"
+  ],
   "scripts": {
     "yalc": "yalc publish --push"
   },

@@ -37,7 +37,6 @@ export type RegisterForgeInstallationRequestBody = {
   forge_integration: RegisterForgeInstallationInput;
 }
 export type RegisterForgeInstallationResponseBody = {
-  team: models.Team;
   forge_integration: forgemodels.ForgeInstallation;
 }
 

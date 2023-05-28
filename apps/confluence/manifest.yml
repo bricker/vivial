@@ -45,6 +45,7 @@ modules:
         - avi:jira:commented:issue
 
   webtrigger:
+    # Warning! There are references to this key in the code - if you change this, you must change those too.
     - key: webtrigger-eaveApi
       function: func-eaveApiDispatch
 

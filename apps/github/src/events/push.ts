@@ -148,7 +148,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         },
       });
 
-      // TODO: real logging
       eaveLogger.debug(upsertDocumentResponse);
     }));
   }));

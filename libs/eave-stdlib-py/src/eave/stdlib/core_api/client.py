@@ -137,11 +137,8 @@ async def get_github_installation(
 async def get_atlassian_installation(
     input: operations.GetAtlassianInstallation.RequestBody,
 ) -> operations.GetAtlassianInstallation.ResponseBody:
-    """
-    POST /integrations/atlassian/query
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/integrations/atlassian/query",
+        url=operations.GetAtlassianInstallation.config.url,
         input=input,
     )
 
@@ -166,11 +163,8 @@ async def update_atlassian_integration(
     access_token: str,
     input: operations.UpdateAtlassianInstallation.RequestBody,
 ) -> operations.UpdateAtlassianInstallation.ResponseBody:
-    """
-    POST /me/team/integrations/atlassian/update
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/me/team/integrations/atlassian/update",
+        url=operations.UpdateAtlassianInstallation.config.url,
         input=input,
         access_token=access_token,
         account_id=account_id,
