@@ -44,7 +44,8 @@ class LinkType(enum.StrEnum):
 
     github = "github"
 
+
 class EaveForgeInboundOperation(enum.StrEnum):
-    createDocument = 'createDocument'
-    updateDocument = 'updateDocument'
-    archiveDocument = 'archiveDocument'
+    createDocument = "createDocument"
+    updateDocument = "updateDocument"
+    archiveDocument = "archiveDocument"

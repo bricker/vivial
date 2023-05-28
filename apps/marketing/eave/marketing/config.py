@@ -6,13 +6,6 @@ import eave.stdlib.config
 
 class AppConfig(eave.stdlib.config.EaveConfig):
     @property
-    def app_env(self) -> str:
-        if os.getenv("FLASK_DEBUG") is not None:
-            return "development"
-        else:
-            return "production"
-
-    @property
     def asset_base(self) -> str:
         return os.getenv("EAVE_ASSET_BASE", "/static")
 

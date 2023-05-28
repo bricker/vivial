@@ -7,6 +7,8 @@ from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+import eave.stdlib.core_api.operations.integrations
+
 from ..destinations import abstract as abstract_destination
 from .forge_installation import ForgeInstallationOrm
 from .base import Base
@@ -86,7 +88,9 @@ class TeamOrm(Base):
         team = await session.scalar(lookup)
         return team
 
-    async def get_integrations(self, session: AsyncSession) -> eave.stdlib.core_api.models.Integrations:
+    async def get_integrations(
+        self, session: AsyncSession
+    ) -> eave.stdlib.core_api.operations.integrations.Integrations:
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
@@ -95,18 +99,9 @@ class TeamOrm(Base):
 
         forge_installation = await ForgeInstallationOrm.one_or_none(session=session, team_id=self.id)
 
-
-        return eave.stdlib.core_api.models.Integrations(
-            slack=slack_installation.api_model
-            if slack_installation
-            else None,
-            github=github_installation.api_model
-            if github_installation
-            else None,
-            atlassian=atlassian_installation.api_model
-            if atlassian_installation
-            else None,
-            forge=forge_installation.api_model
-            if forge_installation
-            else None,
+        return eave.stdlib.core_api.operations.integrations.Integrations(
+            slack=slack_installation.api_model if slack_installation else None,
+            github=github_installation.api_model if github_installation else None,
+            atlassian=atlassian_installation.api_model if atlassian_installation else None,
+            forge=forge_installation.api_model if forge_installation else None,
         )

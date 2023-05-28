@@ -2,11 +2,17 @@ import uuid
 from uuid import UUID
 import aiohttp
 
+from eave.stdlib.core_api.operations.integrations import (
+    GetAtlassianInstallation,
+    GetGithubInstallation,
+    GetSlackInstallation,
+    UpdateAtlassianInstallation,
+)
+
 from .. import eave_origins as eave_origins
 from . import operations
 from .. import exceptions as eave_exceptions
 from ..requests import make_request, makeurl
-from ..config import shared_config
 
 _ORIGIN: eave_origins.EaveOrigin
 
@@ -25,6 +31,7 @@ async def status() -> operations.Status.ResponseBody:
 
         response_json = await response.json()
     return operations.Status.ResponseBody(**response_json, _raw_response=response)
+
 
 async def upsert_document(
     team_id: UUID,
@@ -111,39 +118,40 @@ async def get_subscription(
 
 
 async def get_slack_installation(
-    input: operations.GetSlackInstallation.RequestBody,
-) -> operations.GetSlackInstallation.ResponseBody:
+    input: GetSlackInstallation.RequestBody,
+) -> GetSlackInstallation.ResponseBody:
     response = await make_request(
-        url=operations.GetSlackInstallation.config.url,
+        url=GetSlackInstallation.config.url,
         input=input,
     )
 
     response_json = await response.json()
-    return operations.GetSlackInstallation.ResponseBody(**response_json, _raw_response=response)
+    return GetSlackInstallation.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_github_installation(
-    input: operations.GetGithubInstallation.RequestBody,
-) -> operations.GetGithubInstallation.ResponseBody:
+    input: GetGithubInstallation.RequestBody,
+) -> GetGithubInstallation.ResponseBody:
     response = await make_request(
-        url=operations.GetGithubInstallation.config.url,
+        url=GetGithubInstallation.config.url,
         input=input,
     )
 
     response_json = await response.json()
-    return operations.GetGithubInstallation.ResponseBody(**response_json, _raw_response=response)
+    return GetGithubInstallation.ResponseBody(**response_json, _raw_response=response)
 
 
 async def get_atlassian_installation(
-    input: operations.GetAtlassianInstallation.RequestBody,
-) -> operations.GetAtlassianInstallation.ResponseBody:
+    input: GetAtlassianInstallation.RequestBody,
+) -> GetAtlassianInstallation.ResponseBody:
     response = await make_request(
-        url=operations.GetAtlassianInstallation.config.url,
+        url=GetAtlassianInstallation.config.url,
         input=input,
     )
 
     response_json = await response.json()
-    return operations.GetAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
+    return GetAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
+
 
 async def get_team(
     team_id: UUID,
@@ -161,17 +169,18 @@ async def get_team(
 async def update_atlassian_integration(
     account_id: uuid.UUID,
     access_token: str,
-    input: operations.UpdateAtlassianInstallation.RequestBody,
-) -> operations.UpdateAtlassianInstallation.ResponseBody:
+    input: UpdateAtlassianInstallation.RequestBody,
+) -> UpdateAtlassianInstallation.ResponseBody:
     response = await make_request(
-        url=operations.UpdateAtlassianInstallation.config.url,
+        url=UpdateAtlassianInstallation.config.url,
         input=input,
         access_token=access_token,
         account_id=account_id,
     )
 
     response_json = await response.json()
-    return operations.UpdateAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
+    return UpdateAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
+
 
 async def get_authenticated_account_team_integrations(
     account_id: UUID, access_token: str

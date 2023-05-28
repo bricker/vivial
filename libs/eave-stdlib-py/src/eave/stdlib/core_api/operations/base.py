@@ -1,11 +1,13 @@
-from typing import Any, Optional
+from typing import Optional
 
 import aiohttp
 import pydantic
 from ...config import shared_config
 
+
 class Endpoint:
     pass
+
 
 class BaseResponseBody(pydantic.BaseModel):
     _raw_response: Optional[aiohttp.ClientResponse] = None
@@ -25,7 +27,14 @@ class EndpointConfiguration:
     signature_required: bool
     origin_required: bool
 
-    def __init__(self, path: str, auth_required: bool = True, team_id_required: bool = True, signature_required: bool = True, origin_required: bool = True) -> None:
+    def __init__(
+        self,
+        path: str,
+        auth_required: bool = True,
+        team_id_required: bool = True,
+        signature_required: bool = True,
+        origin_required: bool = True,
+    ) -> None:
         self.path = path
         self.auth_required = auth_required
         self.team_id_required = team_id_required

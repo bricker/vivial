@@ -4,7 +4,7 @@ from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 import eave.slack.event_handlers
 import eave.stdlib.core_api.client as eave_core
-import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.core_api.operations.integrations
 import eave.stdlib.exceptions
 from eave.stdlib import cache
 from slack_bolt.async_app import AsyncApp, AsyncBoltContext
@@ -32,16 +32,18 @@ async def authorize(
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
     """
     eave_ctx = LogContext.wrap(context.get("eave_ctx"))
-    eave_ctx.set({
-        "request_id": context.get("request_id"),
-        "slack_team_id": context.team_id,
-        "slack_user_id": context.user_id,
-        "slack_channel_id": context.channel_id,
-        "slack_bot_id": context.bot_id,
-        "slack_bot_user_id": context.bot_user_id,
-        "slack_bot_token": f"{context.bot_token[0:5]}..." if context.bot_token else None,
-        "slack_user_token": f"{context.user_token[0:5]}..." if context.user_token else None,
-    })
+    eave_ctx.set(
+        {
+            "request_id": context.get("request_id"),
+            "slack_team_id": context.team_id,
+            "slack_user_id": context.user_id,
+            "slack_channel_id": context.channel_id,
+            "slack_bot_id": context.bot_id,
+            "slack_bot_user_id": context.bot_user_id,
+            "slack_bot_token": f"{context.bot_token[0:5]}..." if context.bot_token else None,
+            "slack_user_token": f"{context.user_token[0:5]}..." if context.user_token else None,
+        }
+    )
     eaveLogger.debug("slack authorize request", extra=eave_ctx)
 
     # TODO: team_id can be None for org-wide installed apps
@@ -65,7 +67,7 @@ async def authorize(
     # - context.bot_id, context.bot_token, and context.bot_user_id are all None in this function.
     # - context.team_id and context.user_id are available (barring org-wide installs mentioned above)
 
-    installation_data: eave_ops.GetSlackInstallation.ResponseBody | None = None
+    installation_data: eave.stdlib.core_api.operations.integrations.GetSlackInstallation.ResponseBody | None = None
     auth_response: AsyncSlackResponse | None = None
 
     # The idea here is that we check the cache, and check if the cached token is valid.
@@ -73,7 +75,9 @@ async def authorize(
     if cached_data:
         try:
             # If there is cached data, inflate the object and do an auth test.
-            installation_data = eave_ops.GetSlackInstallation.ResponseBody.parse_raw(cached_data)
+            installation_data = (
+                eave.stdlib.core_api.operations.integrations.GetSlackInstallation.ResponseBody.parse_raw(cached_data)
+            )
             auth_response = (await client.auth_test(token=installation_data.slack_integration.bot_token)).validate()
         except Exception:
             eaveLogger.warning("Cached auth token was not valid", extra=eave_ctx)
@@ -86,8 +90,8 @@ async def authorize(
     if installation_data is None:
         # Raises for non-OK response.
         installation_data = await eave_core.get_slack_installation(
-            input=eave_ops.GetSlackInstallation.RequestBody(
-                slack_integration=eave_ops.SlackInstallationInput(
+            input=eave.stdlib.core_api.operations.integrations.GetSlackInstallation.RequestBody(
+                slack_integration=eave.stdlib.core_api.operations.integrations.SlackInstallationInput(
                     slack_team_id=team_id,
                 ),
             )

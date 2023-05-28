@@ -1,6 +1,6 @@
-from dataclasses import dataclass
-from typing import Mapping, Optional
-import aiohttp
+from typing import Optional
+
+from eave.stdlib.core_api.operations.integrations import Integrations
 
 from .. import models
 from .base import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
@@ -33,26 +33,12 @@ class TeamInput(pydantic.BaseModel):
     id: pydantic.UUID4
 
 
-class SlackInstallationInput(pydantic.BaseModel):
-    slack_team_id: str
-
-
-class GithubInstallationInput(pydantic.BaseModel):
-    github_install_id: str
-
-class AtlassianInstallationInput(pydantic.BaseModel):
-    atlassian_cloud_id: str
-
-
-class UpdateAtlassianInstallationInput(pydantic.BaseModel):
-    confluence_space_key: Optional[str]
-
-
 class Status(Endpoint):
     class ResponseBody(BaseResponseBody):
         service: str
         version: str
         status: str
+
 
 class GetSubscription(Endpoint):
     config = EndpointConfiguration(
@@ -135,66 +121,6 @@ class DeleteDocument(Endpoint):
         document_reference: DocumentReferenceInput
 
 
-class GetSlackInstallation(Endpoint):
-    config = EndpointConfiguration(
-        path="/integrations/slack/query",
-        auth_required=False,
-        team_id_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        slack_integration: SlackInstallationInput
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        slack_integration: models.SlackInstallation
-
-
-class GetGithubInstallation(Endpoint):
-    config = EndpointConfiguration(
-        path="/integrations/github/query",
-        auth_required=False,
-        team_id_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        github_integration: GithubInstallationInput
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        github_integration: models.GithubInstallation
-
-
-class GetAtlassianInstallation(Endpoint):
-    config = EndpointConfiguration(
-        path="/integrations/atlassian/query",
-        auth_required=False,
-        team_id_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        atlassian_integration: AtlassianInstallationInput
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        atlassian_integration: models.AtlassianInstallation
-
-
-class UpdateAtlassianInstallation(Endpoint):
-    config = EndpointConfiguration(
-        path="/integrations/atlassian/update",
-        auth_required=False,
-        team_id_required=False,
-    )
-    class RequestBody(BaseRequestBody):
-        atlassian_integration: UpdateAtlassianInstallationInput
-
-    class ResponseBody(BaseResponseBody):
-        account: models.AuthenticatedAccount
-        team: models.Team
-        atlassian_integration: models.AtlassianInstallation
-
-
 class GetAuthenticatedAccount(Endpoint):
     config = EndpointConfiguration(
         path="/me/query",
@@ -215,7 +141,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
     class ResponseBody(BaseResponseBody):
         account: models.AuthenticatedAccount
         team: models.Team
-        integrations: models.Integrations
+        integrations: Integrations
 
 
 class GetTeam(Endpoint):
@@ -226,4 +152,4 @@ class GetTeam(Endpoint):
 
     class ResponseBody(BaseResponseBody):
         team: models.Team
-        integrations: models.Integrations
+        integrations: Integrations

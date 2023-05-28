@@ -1,6 +1,5 @@
 import asyncio
 import json
-import typing
 import uuid
 from datetime import datetime
 from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
@@ -11,7 +10,8 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models import AtlassianInstallation, ConfluenceSpace
+from eave.stdlib.core_api.models import ConfluenceSpace
+from eave.stdlib.core_api.operations.integrations import AtlassianInstallation
 
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination

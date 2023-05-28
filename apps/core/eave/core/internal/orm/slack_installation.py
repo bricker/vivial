@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.core.internal.oauth.slack
-from eave.stdlib.core_api.models import SlackInstallation
+from eave.stdlib.core_api.operations.integrations import SlackInstallation
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from .resource_mutex import ResourceMutexOrm
 from eave.stdlib.logging import eaveLogger

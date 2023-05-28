@@ -1,18 +1,20 @@
-import json
-import typing
 import uuid
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.util import ensure_uuid
-from eave.stdlib.core_api.operations.forge import ForgeInstallation, UpdateForgeInstallationInput, RegisterForgeInstallationInput
+from eave.stdlib.core_api.operations.forge import (
+    ForgeInstallation,
+    UpdateForgeInstallationInput,
+    RegisterForgeInstallationInput,
+)
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class ForgeInstallationOrm(Base):
@@ -22,7 +24,7 @@ class ForgeInstallationOrm(Base):
         PrimaryKeyConstraint(
             "forge_app_installation_id",
             "id",
-        )
+        ),
     )
 
     team_id: Mapped[Optional[UUID]] = mapped_column()

@@ -3,6 +3,7 @@ import eave.core.internal
 import eave.core.public
 from starlette.requests import Request
 from starlette.responses import Response
+import eave.stdlib.core_api.operations.integrations
 import eave.stdlib.request_state as request_state
 
 
@@ -58,7 +59,7 @@ class UpdateAtlassianIntegration(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_state.get_eave_state(request=request)
         body = await request.json()
-        input = eave.stdlib.core_api.operations.UpdateAtlassianInstallation.RequestBody.parse_obj(body)
+        input = eave.stdlib.core_api.operations.integrations.UpdateAtlassianInstallation.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_team_orm = await eave.core.internal.orm.TeamOrm.one_or_exception(
@@ -78,10 +79,12 @@ class UpdateAtlassianIntegration(eave.core.public.http_endpoint.HTTPEndpoint):
 
         eave_team = eave.stdlib.core_api.models.Team.from_orm(eave_team_orm)
         eave_account = eave.stdlib.core_api.models.AuthenticatedAccount.from_orm(eave_account_orm)
-        atlassian_integration = eave.stdlib.core_api.models.AtlassianInstallation.from_orm(installation)
+        atlassian_integration = eave.stdlib.core_api.operations.integrations.AtlassianInstallation.from_orm(
+            installation
+        )
 
         return eave.stdlib.api_util.json_response(
-            eave.stdlib.core_api.operations.UpdateAtlassianInstallation.ResponseBody(
+            eave.stdlib.core_api.operations.integrations.UpdateAtlassianInstallation.ResponseBody(
                 account=eave_account,
                 team=eave_team,
                 atlassian_integration=atlassian_integration,

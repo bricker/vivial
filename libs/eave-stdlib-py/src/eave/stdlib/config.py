@@ -188,7 +188,6 @@ class EaveConfig:
 
         return os.environ[name]
 
-
     def get_runtimeconfig(self, name: str) -> str | None:
         """
         https://cloud.google.com/python/docs/reference/runtimeconfig/latest

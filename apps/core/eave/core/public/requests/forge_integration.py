@@ -1,20 +1,18 @@
 import eave.core.internal.database as eave_db
-from eave.core.internal import app_config
 import eave.core.internal.orm as eave_orm
-from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
-from eave.stdlib.core_api.operations.forge import QueryForgeInstallation, RegisterForgeInstallation, UpdateForgeInstallation
+from eave.stdlib.core_api.operations.forge import (
+    QueryForgeInstallation,
+    RegisterForgeInstallation,
+    UpdateForgeInstallation,
+)
 
 
 import eave.stdlib.util
 from eave.stdlib import analytics
 import eave.stdlib.api_util as eave_api_util
-import eave.stdlib.core_api as eave_core
 from starlette.requests import Request
 from starlette.responses import Response
-
-from eave.stdlib.exceptions import NotFoundError
-from eave.stdlib.request_state import get_eave_state
 
 
 class QueryForgeIntegration(HTTPEndpoint):
@@ -75,6 +73,7 @@ class RegisterForgeIntegration(HTTPEndpoint):
             )
         )
 
+
 class UpdateForgeIntegration(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         body = await request.json()
@@ -91,10 +90,7 @@ class UpdateForgeIntegration(HTTPEndpoint):
             else:
                 eave_team = None
 
-            installation.update(
-                session=db_session,
-                input=input.forge_integration
-            )
+            installation.update(session=db_session, input=input.forge_integration)
 
         return eave_api_util.json_response(
             UpdateForgeInstallation.ResponseBody(

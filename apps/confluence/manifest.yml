@@ -1,7 +1,5 @@
 permissions:
-  # https://developer.atlassian.com/cloud/confluence/scopes-for-oauth-2-3LO-and-forge-apps/
   scopes:
-    # Classic Scopes
     - write:confluence-content
     - read:confluence-space.summary
     - write:confluence-file
@@ -15,12 +13,10 @@ permissions:
     - read:confluence-groups
     - read:jira-work
     - write:jira-work
-    # Granular Scopes
     - read:page:confluence
     - write:page:confluence
     - read:space:confluence
     - read:configuration:confluence
-
   external:
     fetch:
       backend:
@@ -61,7 +57,6 @@ modules:
 
     - key: func-eaveApiDispatch
       handler: main.eaveApiDispatch
-
 
 app:
   id: ari:cloud:ecosystem::app/e3c57ac8-296e-4392-b128-4330b1ab2883

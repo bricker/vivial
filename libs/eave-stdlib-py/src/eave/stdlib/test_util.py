@@ -15,7 +15,6 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any] = {}
     active_patches: dict[str, unittest.mock.Mock] = {}
-    active_dict_patches: dict[str, Any] = {}
 
     def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
         super().__init__(methodName)
@@ -35,7 +34,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.stop_all_patches()
         self.testdata.clear()
         self.active_patches.clear()
-        self.active_dict_patches.clear()
 
     @staticmethod
     async def mock_coroutine(value: T) -> T:
@@ -297,9 +295,15 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.active_patches[name] = m
         return m
 
-    def patch_dict(self, patch: unittest.mock._patch_dict) -> Any:
-        name = patch.in_dict
-        self.active_dict_patches[name] = patch.start()
+    def patch_env(self, values: dict[str, Optional[str]]) -> unittest.mock.Mock:
+        m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", values))
+        return m
+
+    def patch_dict(self, patch: unittest.mock._patch_dict, name: Optional[str] = None) -> unittest.mock.Mock:
+        name = name or str(patch.in_dict)
+        mock = patch.start()
+        self.active_patches[name] = mock
+        return mock
 
     def get_mock(self, name: str) -> unittest.mock.Mock:
         assert name in self.active_patches, f"{name} is not patched!"

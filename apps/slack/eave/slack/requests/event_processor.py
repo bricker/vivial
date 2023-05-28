@@ -1,5 +1,4 @@
 import http
-import uuid
 from eave.stdlib import signing, eaveLogger
 import eave.stdlib.requests
 import eave.stdlib.core_api.client
@@ -29,10 +28,12 @@ class SlackEventProcessorTask(HTTPEndpoint):
 
     async def post(self, request: Request) -> Response:
         request_id = request.headers.get(EAVE_REQUEST_ID_HEADER)
-        self._ctx = LogContext().set({
-            "task_headers": dict(request.headers),
-            "request_id": request_id,
-        })
+        self._ctx = LogContext().set(
+            {
+                "task_headers": dict(request.headers),
+                "request_id": request_id,
+            }
+        )
 
         self._request = request
 

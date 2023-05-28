@@ -1,12 +1,10 @@
-import eave.stdlib.api_util as eave_api_util
-import eave.stdlib.core_api as eave_core
 from starlette.requests import Request
 from starlette.responses import Response
-
+import eave.stdlib.api_util as eave_api_util
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
+import eave.stdlib.core_api.operations.integrations
 from eave.stdlib.exceptions import NotFoundError
-from eave.stdlib.request_state import get_eave_state
 
 from ..http_endpoint import HTTPEndpoint
 
@@ -18,9 +16,8 @@ class SlackIntegration(HTTPEndpoint):
         a problem refreshing the SlackInstallation access tokens.
         """
 
-        get_eave_state(request=request)
         body = await request.json()
-        input = eave_core.operations.GetSlackInstallation.RequestBody.parse_obj(body)
+        input = eave.stdlib.core_api.operations.integrations.GetSlackInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
             installation = await eave_orm.SlackInstallationOrm.one_or_none(
@@ -39,15 +36,9 @@ class SlackIntegration(HTTPEndpoint):
                 team_id=installation.team_id,
             )
 
-        eave_team = eave_core.models.Team.from_orm(eave_team_orm)
-        integration = eave_core.models.SlackInstallation.from_orm(installation)
-
-        model = eave_core.operations.GetSlackInstallation.ResponseBody(
-            slack_integration=integration,
-            team=eave_team,
+        model = eave.stdlib.core_api.operations.integrations.GetSlackInstallation.ResponseBody(
+            slack_integration=installation.api_model,
+            team=eave_team_orm.api_model,
         )
 
         return eave_api_util.json_response(model=model)
-
-
-

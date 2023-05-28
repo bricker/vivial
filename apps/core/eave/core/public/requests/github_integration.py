@@ -4,19 +4,17 @@ from eave.core.public.http_endpoint import HTTPEndpoint
 
 
 import eave.stdlib.api_util as eave_api_util
-import eave.stdlib.core_api as eave_core
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.stdlib.core_api.operations.integrations import GetGithubInstallation
 
 from eave.stdlib.exceptions import NotFoundError
-from eave.stdlib.request_state import get_eave_state
 
 
 class GithubIntegration(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        get_eave_state(request=request)
         body = await request.json()
-        input = eave_core.operations.GetGithubInstallation.RequestBody.parse_obj(body)
+        input = GetGithubInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
             installation = await eave_orm.GithubInstallationOrm.one_or_none(
@@ -32,12 +30,9 @@ class GithubIntegration(HTTPEndpoint):
                 team_id=installation.team_id,
             )
 
-        eave_team = eave_core.models.Team.from_orm(eave_team)
-        integration = eave_core.models.GithubInstallation.from_orm(installation)
-
         return eave_api_util.json_response(
-            eave_core.operations.GetGithubInstallation.ResponseBody(
-                github_integration=integration,
-                team=eave_team,
+            GetGithubInstallation.ResponseBody(
+                github_integration=installation.api_model,
+                team=eave_team.api_model,
             )
         )

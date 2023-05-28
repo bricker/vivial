@@ -4,6 +4,7 @@ import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.cookies
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
+import eave.stdlib.core_api.operations.integrations
 import eave.stdlib.requests
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.eave_origins as eave_origins
@@ -39,7 +40,7 @@ def _render_spa(**kwargs: Any) -> str:
         asset_base=app_config.asset_base,
         analytics_enabled=app_config.analytics_enabled,
         monitoring_enabled=app_config.monitoring_enabled,
-        app_env=app_config.app_env,
+        app_env=app_config.eave_env,
         app_version=app_config.app_version,
         **kwargs,
     )
@@ -83,8 +84,8 @@ async def update_atlassian_integration() -> Response:
     await eave_core.update_atlassian_integration(
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
-        input=eave_ops.UpdateAtlassianInstallation.RequestBody(
-            atlassian_integration=eave_ops.UpdateAtlassianInstallationInput(
+        input=eave.stdlib.core_api.operations.integrations.UpdateAtlassianInstallation.RequestBody(
+            atlassian_integration=eave.stdlib.core_api.operations.integrations.UpdateAtlassianInstallationInput(
                 confluence_space_key=confluence_space_key,
             ),
         ),

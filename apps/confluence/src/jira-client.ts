@@ -30,11 +30,11 @@ export async function addComment(issue: Issue, content: Content[]) {
   return response.json();
 }
 
-const fetchCommentsForIssue = async (issueIdOrKey: string) => {
-  const res = await api
-    .asUser()
-    .requestJira(route`/rest/api/3/issue/${issueIdOrKey}/comment`);
+// const fetchCommentsForIssue = async (issueIdOrKey: string) => {
+//   const res = await api
+//     .asUser()
+//     .requestJira(route`/rest/api/3/issue/${issueIdOrKey}/comment`);
 
-  const data = await res.json();
-  return data.comments;
-};
+//   const data = await res.json();
+//   return data.comments;
+// };

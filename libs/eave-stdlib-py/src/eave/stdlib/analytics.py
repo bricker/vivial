@@ -5,7 +5,6 @@ import uuid
 
 import eave.stdlib
 import eave.pubsub_schemas
-from google.api_core.exceptions import NotFound
 from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
 
@@ -53,17 +52,13 @@ def log_event(
 
     topic_path = client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
 
-    try:
-        topic = client.get_topic(request={"topic": topic_path})
-        encoding = topic.schema_settings.encoding
-        assert encoding == Encoding.BINARY
+    topic = client.get_topic(request={"topic": topic_path})
+    encoding = topic.schema_settings.encoding
+    assert encoding == Encoding.BINARY, "schema encoding misconfigured"
 
-        data = event.SerializeToString()
+    data = event.SerializeToString()
 
-        if not shared_config.analytics_enabled:
-            eaveLogger.warning("Analytics disabled.", extra=eave_context.set({"pubsub": {"event": str(data)}}))
-        else:
-            client.publish(topic_path, data)
-
-    except NotFound:
-        eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.", extra=eave_context)
+    if not shared_config.analytics_enabled:
+        eaveLogger.warning("Analytics disabled.", extra=eave_context.set({"pubsub": {"event": str(data)}}))
+    else:
+        client.publish(topic_path, data)

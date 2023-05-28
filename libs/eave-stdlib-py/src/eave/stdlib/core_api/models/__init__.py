@@ -1,7 +1,5 @@
 import uuid
-from datetime import datetime
-from typing import List, Optional
-from eave.stdlib.core_api.operations.forge import ForgeInstallation
+from typing import Optional
 from eave.stdlib.typing import JsonObject
 
 import pydantic
@@ -63,51 +61,6 @@ class AuthenticatedAccount(EaveBaseModel):
 
     class Config:
         orm_mode = True
-
-
-class SlackInstallation(EaveBaseModel):
-    id: pydantic.UUID4
-    team_id: pydantic.UUID4
-    """eave TeamOrm model id"""
-    slack_team_id: str
-    bot_token: str
-
-    class Config:
-        orm_mode = True
-
-
-class AtlassianInstallation(pydantic.BaseModel):
-    id: pydantic.UUID4
-    team_id: pydantic.UUID4
-    """eave TeamOrm model id"""
-    atlassian_cloud_id: str
-    confluence_space_key: Optional[str]
-    available_confluence_spaces: Optional[List[ConfluenceSpace]]
-    oauth_token_encoded: str
-
-    class Config:
-        orm_mode = True
-
-class GithubInstallation(EaveBaseModel):
-    id: pydantic.UUID4
-    team_id: pydantic.UUID4
-    """eave TeamOrm model id"""
-    github_install_id: str
-
-    class Config:
-        orm_mode = True
-
-
-class Integrations(EaveBaseModel):
-    """
-    Key-value mapping of Integration to Installation info.
-    The keys here will match the enum cases in enums.Integration
-    """
-
-    github: Optional[GithubInstallation]
-    slack: Optional[SlackInstallation]
-    forge: Optional[ForgeInstallation]
-    atlassian: Optional[AtlassianInstallation]
 
 
 class ErrorResponse(EaveBaseModel):

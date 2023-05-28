@@ -47,7 +47,7 @@ class CommunicationMixin(Base):
             eaveLogger.warning(f"Error reacting to message: {error_code}", exc_info=e, extra=self.eave_ctx)
 
             if error_code == "invalid_name":
-                reaction = "large_purple_circle" # This seems to be available on all Slack workspaces
+                reaction = "large_purple_circle"  # This seems to be available on all Slack workspaces
                 await self.message.add_reaction(reaction)
             else:
                 raise

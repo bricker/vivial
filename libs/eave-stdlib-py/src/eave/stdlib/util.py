@@ -2,7 +2,7 @@ import base64
 import hashlib
 from functools import wraps
 import traceback
-from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar, cast
+from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar
 import uuid
 from .logging import eaveLogger
 
@@ -48,15 +48,6 @@ def memoized(f: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
         return value
 
     return wrapper
-
-
-def use_signature(source_func: Callable[P, Any]) -> Callable[[Callable[..., T]], Callable[P, T]]:
-    """Casts the decorated function to have the same signature as the source function, for type checkers"""
-
-    def casted_func(original_func: Callable[..., T]) -> Callable[P, T]:
-        return cast(Callable[P, T], original_func)
-
-    return casted_func
 
 
 def sha256hexdigest(data: str | bytes) -> str:
@@ -129,26 +120,6 @@ def xor(a: Any, b: Any) -> bool:
 def xnor(a: Any, b: Any) -> bool:
     """Neither or both"""
     return not xor(a, b)
-
-
-def dict_from_obj_dict(obj: object, attrs: list[str]) -> dict[str, Any]:
-    return {attr: obj.__dict__[attr] for attr in attrs if attr in obj.__dict__}
-
-
-def set_obj_dict_from_dict(obj: object, allowed_attrs: list[str], provided_attrs: dict[object, object]) -> None:
-    for attr in allowed_attrs:
-        if attr in provided_attrs:
-            obj.__dict__[attr] = provided_attrs[attr]
-
-
-def dict_from_attrs(obj: object, attrs: list[str]) -> dict[str, Any]:
-    return {attr: getattr(obj, attr) for attr in attrs if hasattr(obj, attr)}
-
-
-def set_attrs_from_dict(obj: object, allowed_attrs: list[str], provided_attrs: dict[object, object]) -> None:
-    for attr in allowed_attrs:
-        if attr in provided_attrs:
-            obj.__setattr__(attr, provided_attrs[attr])
 
 
 def unwrap(value: Optional[T], default: Optional[T] = None) -> T:

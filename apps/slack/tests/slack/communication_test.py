@@ -108,12 +108,12 @@ class CommunicationMixinTest(BaseTestCase):
 
         assert mock.call_count == 2
         assert mock.call_args_list[0].kwargs["name"] == "eave"
-        assert mock.call_args_list[1].kwargs["name"] == "thumbsup"
+        assert mock.call_args_list[1].kwargs["name"] == "large_purple_circle"
 
         assert self.logged_event(
             event_name="eave_acknowledged_receipt",
             opaque_params={
-                "reaction": "thumbsup",
+                "reaction": "large_purple_circle",
             },
         )
 
