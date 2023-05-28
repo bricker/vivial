@@ -10,6 +10,9 @@
     "node": "18",
     "npm": "9"
   },
+  "scripts": {
+    "yalc": "yalc publish --push --replace"
+  },
   "dependencies": {
     "eslint": "8.x",
     "@typescript-eslint/parser": "5.x",

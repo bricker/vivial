@@ -25,40 +25,45 @@ permissions:
     fetch:
       backend:
         - api.eave.fyi
+        - apps.eave.fyi
 
 modules:
   trigger:
-    - key: trigger-installedApp
-      function: func-installedAppEventHandler
+    - key: trigger-forgeInstalledApp
+      function: func-forgeInstalledApp
       events:
         - avi:forge:installed:app
-    - key: trigger-upgradedApp
-      function: func-upgradedAppEventHandler
+
+    - key: trigger-forgeUpgradedApp
+      function: func-forgeUpgradedApp
       events:
         - avi:forge:upgraded:app
-    - key: issue-comment-event
-      function: XXX
+
+    - key: trigger-forgeEvent
+      function: func-forgeEventDispatch
       events:
         - avi:jira:commented:issue
+
   webtrigger:
-    - key: webtrigger-createDocument
-      function: func-createDocument
-    - key: webtrigger-updateDocument
-      function: func-updateDocument
-    - key: webtrigger-archiveDocument
-      function: func-archiveDocument
+    - key: webtrigger-eaveApi
+      function: func-eaveApiDispatch
 
   function:
-    - key: func-createDocument
-      handler: web-triggers.createDocument
-    - key: func-updateDocument
-      handler: web-triggers.updateDocument
-    - key: func-archiveDocument
-      handler: web-triggers.archiveDocument
-    - key: func-installedAppEventHandler
-      handler: events.installedAppEventHandler
-    - key: func-upgradedAppEventHandler
-      handler: events.upgradedAppEventHandler
+    - key: func-forgeInstalledApp
+      handler: main.forgeInstalledApp
+
+    - key: func-forgeUpgradedApp
+      handler: main.forgeUpgradedApp
+
+    - key: func-forgeEventDispatch
+      handler: main.forgeEventDispatch
+
+    - key: func-eaveApiDispatch
+      handler: main.eaveApiDispatch
+
 
 app:
   id: ari:cloud:ecosystem::app/e3c57ac8-296e-4392-b128-4330b1ab2883
+  runtime:
+    # This is too restrictive. Even the Google Cloud Logging library does some basic crypto operations in the module context, which breaks snapshotting.
+    snapshots: false

@@ -2,12 +2,13 @@
   "name": "@eave-fyi/eave-pubsub-schemas",
   "version": "0.1.0",
   "scripts": {
+    "yalc": "yalc publish --push"
   },
   "dependencies": {
-    "@eave-fyi/eslint-configs": "file:../../../develop/javascript/eslint",
-    "protobufjs": "^7.2.3"
+    "protobufjs": "7.x"
   },
   "devDependencies": {
+    "@eave-fyi/es-config": "file:../../../develop/javascript/es-config",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
     "eslint": "8.x",

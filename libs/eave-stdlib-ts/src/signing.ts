@@ -1,9 +1,11 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import crc32c from 'fast-crc32c';
-import crypto from 'crypto';
-import { sharedConfig } from './config.js';
-import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
-import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
+import { createHash, createVerify, constants as cryptoConstants } from 'crypto';
+import { calculate as calculateCrc32c } from 'fast-crc32c';
+import { sharedConfig } from './config';
+import { EaveOrigin, ExternalOrigin } from './eave-origins';
+import { InvalidChecksumError, InvalidSignatureError } from './exceptions';
+
+const { RSA_PKCS1_PADDING } = cryptoConstants;
 
 const KMS_KEYRING_LOCATION = 'global';
 const KMS_KEYRING_NAME = 'primary';
@@ -50,7 +52,8 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
   [ExternalOrigin.github_api_client]: {
     id: 'eave-github-app-signing-key-01',
     // TODO: clean up this hack to change versions in prod/ dev
-    version: sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1',
+    // version: sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1',
+    version: '2',
     algorithm: SigningAlgorithm.RS256,
   },
 };
@@ -92,7 +95,7 @@ export async function signBase64(
     messageBytes = data;
   }
 
-  const digest = crypto.createHash('sha256').update(messageBytes).digest();
+  const digest = createHash('sha256').update(messageBytes).digest();
   const digestCrc32c = generateChecksum(digest);
 
   const [signedResponse] = await kmsClient.asymmetricSign({
@@ -137,7 +140,7 @@ export async function signBase64(
 }
 
 function generateChecksum(data: Buffer): number {
-  const checksum = crc32c.calculate(data);
+  const checksum = calculateCrc32c(data);
   return checksum;
 }
 
@@ -181,11 +184,11 @@ export async function verifySignatureOrException(
 
   switch (signingKey.algorithm) {
     case SigningAlgorithm.RS256: {
-      const verify = crypto.createVerify('RSA-SHA256');
+      const verify = createVerify('RSA-SHA256');
       verify.update(message);
       verify.end();
       isVerified = verify.verify(
-        { key: kmsPublicKey.pem, padding: crypto.constants.RSA_PKCS1_PADDING },
+        { key: kmsPublicKey.pem, padding: RSA_PKCS1_PADDING },
         signatureString,
         'base64',
       );
@@ -193,7 +196,7 @@ export async function verifySignatureOrException(
     }
     case SigningAlgorithm.ES256: {
       // Algorithm for our keys is EC_SIGN_P256_SHA256
-      const verify = crypto.createVerify('sha256');
+      const verify = createVerify('sha256');
       verify.update(message);
       verify.end();
       isVerified = verify.verify(kmsPublicKey.pem, signatureString, 'base64');

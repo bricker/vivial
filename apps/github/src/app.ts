@@ -6,14 +6,10 @@ import { requestIntegrity } from '@eave-fyi/eave-stdlib-ts/src/middleware/reques
 import { loggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/logging.js';
 import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin.js';
 import { exceptionHandlingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/exception-handling.js';
-import { setOrigin } from '@eave-fyi/eave-stdlib-ts/src/lib/requests.js';
-import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import dispatch from './dispatch.js';
 import { getSummary } from './requests/content.js';
 import { subscribe } from './requests/subscribe.js';
 import { appConfig } from './config.js';
-
-setOrigin(EaveOrigin.eave_github_app);
 
 const app = express();
 app.disable('x-powered-by');

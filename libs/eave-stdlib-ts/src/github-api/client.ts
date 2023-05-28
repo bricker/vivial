@@ -1,12 +1,12 @@
-import * as ops from './operations.js';
-import { makeRequest } from '../lib/requests.js';
-import { sharedConfig } from '../config.js';
+import * as ops from './operations';
+import { RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests';
+import { sharedConfig } from '../config';
 
-export async function createSubscription(
-  teamId: string,
+export async function createSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {
   input: ops.CreateGithubResourceSubscriptionRequestBody,
-): Promise<ops.CreateGithubResourceSubscriptionResponseBody> {
+}): Promise<ops.CreateGithubResourceSubscriptionResponseBody> {
   const resp = await makeRequest({
+    origin,
     url: `${sharedConfig.eaveAppsBase}/github/api/subscribe`,
     input,
     teamId,
@@ -15,11 +15,11 @@ export async function createSubscription(
   return responseData;
 }
 
-export async function getFileContent(
-  teamId: string,
+export async function getFileContent({ origin, teamId, input }: RequestArgsOriginAndTeamId & {
   input: ops.GetGithubUrlContentRequestBody,
-): Promise<ops.GetGithubUrlContentResponseBody> {
+}): Promise<ops.GetGithubUrlContentResponseBody> {
   const resp = await makeRequest({
+    origin,
     url: `${sharedConfig.eaveAppsBase}/github/api/content`,
     input,
     teamId,
