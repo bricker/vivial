@@ -1,9 +1,6 @@
 {
   "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "src"
-  },
   "include": [
-    "src/*"
+    "src/**/*"
   ]
 }

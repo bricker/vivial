@@ -6,7 +6,6 @@ const EVENT_TOPIC_ID = 'eave_event_topic';
 const pubSubClient = new PubSub();
 
 export async function logEvent(event: EaveEvent) {
-
   // Get the topic metadata to learn about its schema.
   const topic = pubSubClient.topic(EVENT_TOPIC_ID);
   const [topicMetadata] = await topic.getMetadata();

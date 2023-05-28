@@ -3,7 +3,6 @@ import { LinkType } from './core-api/enums';
 import { Pair } from './types';
 import eaveLogger from './logging';
 import { Subscription } from './core-api/models/models';
-import { EaveOrigin } from './eave-origins';
 import { RequestArgsOriginAndTeamId } from './lib/requests';
 
 // mapping from link type to regex for matching raw links against
@@ -37,9 +36,11 @@ export async function mapUrlContent({ origin, teamId, urls }: RequestArgsOriginA
 
     switch (type) {
       case LinkType.github: {
-        const contentResponse = await githubClient.getFileContent({ origin: origin, teamId: teamId, input: {
-          url,
-        }});
+        const contentResponse = await githubClient.getFileContent({ origin,
+          teamId,
+          input: {
+            url,
+          } });
         return contentResponse.content;
       }
       default:
@@ -107,9 +108,11 @@ function getLinkType(link: string): LinkType | null {
 async function createSubscription({ origin, teamId, url, linkType }: RequestArgsOriginAndTeamId & { url: string, linkType: LinkType }): Promise<Subscription | null> {
   switch (linkType) {
     case LinkType.github: {
-      const subscriptionResponse = await githubClient.createSubscription({ origin, teamId, input: {
-        url,
-      }});
+      const subscriptionResponse = await githubClient.createSubscription({ origin,
+        teamId,
+        input: {
+          url,
+        } });
       return subscriptionResponse.subscription;
     }
     default:

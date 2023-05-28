@@ -1,18 +1,12 @@
 [tool.black]
-extend-exclude = '''
+force-exclude = '''
 (
   generated
-  | \\.git
-  | \\.venv
   | vendor
   | node_modules
   | __pycache__
-  | \\.mypy_cache
-  | \\..+?_cache
-  | \\.pytest_cache
-  | \\.ruff_cache
   | build
-  | \\.build
+  | /\.
 )
 '''
 line-length = 120
@@ -21,17 +15,11 @@ line-length = 120
 exclude = [
   "eave_alembic/versions",
   "generated",
-  ".git",
-  ".venv",
   "vendor",
   "node_modules",
   "__pycache__",
-  ".mypy_cache",
-  ".pytest_cache",
-  ".ruff_cache",
-  ".*_cache",
   "build",
-  ".build"
+  "^\\.",
 ]
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -47,6 +35,10 @@ namespace_packages = true
 explicit_package_bases = true
 enable_incomplete_feature = "Unpack"
 
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
 [tool.pytest.ini_options]
 log_cli = false
 pythonpath = [
@@ -56,17 +48,11 @@ pythonpath = [
   "../../../libs/eave-stdlib-py"
 ]
 norecursedirs = [
-  ".git",
-  ".venv",
   "vendor",
   "node_modules",
   "__pycache__",
-  ".mypy_cache",
-  ".pytest_cache",
-  ".ruff_cache",
-  ".*_cache",
   "build",
-  ".build"
+  ".*",
 ]
 
 [tool.ruff]
@@ -74,15 +60,10 @@ extend-select = ["B006"]
 line-length = 1000
 extend-exclude = [
   "generated",
-  ".git",
-  ".venv",
   "__pycache__",
-  ".mypy_cache",
-  ".pytest_cache",
-  ".*_cache",
   "node_modules",
   "vendor",
-  ".build",
-  "build"
+  "build",
+  ".*",
 ]
 ignore-init-module-imports = true

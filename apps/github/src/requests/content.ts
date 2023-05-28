@@ -106,7 +106,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
   // '/owner/repo/tree/some/branch' -> ['', 'owner', 'repo', tree', 'some', 'branch']
   const rest = url.pathname.split('/').slice(4);
   if (rest.length === 0) {
-    eaveLogger.error('invalid url', url.toString());
+    eaveLogger.error('invalid url', { url: url.toString() });
     return null;
   }
 
@@ -161,7 +161,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
     }
   }
 
-  eaveLogger.warning('No branches matched', url.toString());
+  eaveLogger.warning('No branches matched', { url: url.toString() });
   return null;
 }
 
@@ -182,13 +182,13 @@ async function getRawContent(client: Octokit, url: string): Promise<string | nul
 
   const repository = await getRepositoryByUrl(client, normalizedUrl);
   if (!repository) {
-    eaveLogger.warn(`Repository not found for ${url}`);
+    eaveLogger.warning(`Repository not found for ${url}`);
     return null;
   }
 
   const fileInfo = await getFileInfoFromUrl(client, repository, urlComponents);
   if (!fileInfo) {
-    eaveLogger.warn(`couldn't get file info for ${url}`);
+    eaveLogger.warning(`couldn't get file info for ${url}`);
     return null;
   }
 
@@ -208,19 +208,19 @@ async function getRawContent(client: Octokit, url: string): Promise<string | nul
   const response = await client.graphql<{ repository: Query['repository'] }>(contentsQuery, variables);
   const objectRepository = <Repository>response.repository;
   if (!objectRepository) {
-    eaveLogger.warn(`Repository not found for ${url}`);
+    eaveLogger.warning(`Repository not found for ${url}`);
     return null;
   }
 
   const gitObject = <Blob>objectRepository.object;
   if (!gitObject) {
-    eaveLogger.warn(`invalid git object for ${url}`);
+    eaveLogger.warning(`invalid git object for ${url}`);
     return null;
   }
 
   const fileContent = gitObject.text;
   if (!fileContent) {
-    eaveLogger.warn(`invalid git object for ${url}`);
+    eaveLogger.warning(`invalid git object for ${url}`);
     return null;
   }
 

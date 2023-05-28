@@ -8,6 +8,7 @@ const config = {
       rules: {
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-shadow': 'error',
+        '@typescript-eslint/no-explicit-any': 'off',
         'no-shadow': 'off', // There is a bug with this rule for typescript files
       },
     },

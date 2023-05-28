@@ -55,7 +55,7 @@ esac
 
 echo ""
 
-function setuppython() {
+function setuppython() (
 	if ! cmd-exists pyenv; then
 		pythonversion="$(python --version)"
 		pythonpath="$(which python)"
@@ -69,7 +69,7 @@ function setuppython() {
 
 	python -m venv --clear --upgrade-deps .venv
 	python-activate-venv
-}
+)
 
 statusmsg -pi "Next, I will setup the python virtual environment."
 echo -n "Should I proceed? [y/n] "
@@ -79,7 +79,7 @@ if test "$proceed" = "y"; then
 fi
 echo ""
 
-function setupgcloud() {
+function setupgcloud() (
 	cd $tmpdir
 
 	local gcloudversion="426.0.0"
@@ -91,7 +91,7 @@ function setupgcloud() {
 	cd $HOME
 	./google-cloud-sdk/install.sh
 	gcloud auth application-default login
-}
+)
 
 statusmsg -pi "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
 echo -n "Should I proceed? [y/n] "
@@ -101,7 +101,7 @@ if test "$proceed" = "y"; then
 fi
 echo ""
 
-function setupcloudsqlproxy() {
+function setupcloudsqlproxy() (
 	cd $tmpdir
 
 	if cmd-exists "gcloud"; then
@@ -125,7 +125,7 @@ function setupcloudsqlproxy() {
 
 	statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
 	sudo mv cloud-sql-proxy $cloudsqlproxypath
-}
+)
 
 statusmsg -pi "Now I'll download and install the Cloud SQL Proxy for your system."
 echo -n "Should I proceed? [y/n] "
@@ -135,7 +135,7 @@ if test "$proceed" = "y"; then
 fi
 echo ""
 
-function install-jq() {
+function install-jq() (
 	case "$kernel" in
 	"linux")
 		case "$opsys" in
@@ -161,7 +161,7 @@ function install-jq() {
 		fi
 		;;
 	esac
-}
+)
 
 if ! cmd-exists "jq"; then
 	statusmsg -pi "The jq program is used (and assumed to be installed) in many utility scripts in this repository."
@@ -173,15 +173,15 @@ if ! cmd-exists "jq"; then
 	echo ""
 fi
 
-function setupapps() {
+function setupapps() (
 	cd ${EAVE_HOME}
 	statusmsg -pi "Setting up shared dev dependencies"
-	(cd ${EAVE_HOME}/develop/javascript/eslint/ && bin/setup)
+	(cd ${EAVE_HOME}/develop/javascript/es-config/ && bin/setup)
 
 	python-activate-venv
-	python -m pip install -r develop/requirements-dev.txt
+	python -m pip install --quiet r develop/requirements-dev.txt
 	run-in-all-projects bin/setup
-}
+)
 
 statusmsg -pi "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
 echo -n "Should I proceed? [y/n] "

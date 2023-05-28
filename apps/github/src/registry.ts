@@ -9,7 +9,7 @@ const registry: { [key:string]: HandlerFunction } = {};
 
 export function registerHandler(name: string, func: HandlerFunction) {
   registry[name] = func.bind(null);
-  eaveLogger.debug('Registered github event handler', name);
+  eaveLogger.debug(`Registered github event handler ${name}`);
 }
 
 export function getHandler(name: string): HandlerFunction | undefined {

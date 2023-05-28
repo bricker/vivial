@@ -71,7 +71,7 @@ export function getKey(signer: string): SigningKeyDetails {
 
 // FIXME: This is a hack because the key versions are different between dev and prod.
 function getVersion(key: SigningKeyDetails): string {
-  let version = key.version;
+  let { version } = key;
   if (key.id === 'eave-github-app-signing-key-01') {
     version = sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1';
   }

@@ -33,7 +33,7 @@ const config = {
     'function-paren-newline': 'off',
     'no-useless-return': 'off',
     'no-continue': 'off',
-    'no-console': 'warn',
+    'no-console': 'off', // Appengine reads stdout and stderr for app logs
     'no-underscore-dangle': 'off',
     'dot-notation': 'off',
     'no-use-before-define': ['error', {

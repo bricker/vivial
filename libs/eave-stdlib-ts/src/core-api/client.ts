@@ -10,7 +10,7 @@ export async function status(): Promise<ops.StatusResponseBody> {
   const responseData = <ops.StatusResponseBody>(await resp.json());
   return responseData;
 }
-export async function upsertDocument({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.UpsertDocumentRequestBody}): Promise<ops.UpsertDocumentResponseBody> {
+export async function upsertDocument({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: ops.UpsertDocumentRequestBody}): Promise<ops.UpsertDocumentResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/documents/upsert`,
     origin,
@@ -21,7 +21,7 @@ export async function upsertDocument({origin,teamId,input}: RequestArgsOriginAnd
   return responseData;
 }
 
-export async function createSubscription({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.CreateSubscriptionRequestBody}): Promise<ops.CreateSubscriptionResponseBody> {
+export async function createSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: ops.CreateSubscriptionRequestBody}): Promise<ops.CreateSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/create`,
     origin,
@@ -32,7 +32,7 @@ export async function createSubscription({origin,teamId,input}: RequestArgsOrigi
   return responseData;
 }
 
-export async function deleteSubscription({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.DeleteSubscriptionRequestBody}): Promise<null> {
+export async function deleteSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: ops.DeleteSubscriptionRequestBody}): Promise<null> {
   await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/delete`,
     origin,
@@ -42,7 +42,7 @@ export async function deleteSubscription({origin,teamId,input}: RequestArgsOrigi
   return null;
 }
 
-export async function getSubscription({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.GetSubscriptionRequestBody}): Promise<ops.GetSubscriptionResponseBody> {
+export async function getSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: ops.GetSubscriptionRequestBody}): Promise<ops.GetSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/query`,
     origin,
@@ -53,7 +53,7 @@ export async function getSubscription({origin,teamId,input}: RequestArgsOriginAn
   return responseData;
 }
 
-export async function getSlackInstallation({ origin,input}: RequestArgsOrigin & {input: ops.GetSlackInstallationRequestBody}): Promise<ops.GetSlackInstallationResponseBody> {
+export async function getSlackInstallation({ origin, input }: RequestArgsOrigin & {input: ops.GetSlackInstallationRequestBody}): Promise<ops.GetSlackInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/integrations/slack/query`,
     origin,
@@ -63,7 +63,7 @@ export async function getSlackInstallation({ origin,input}: RequestArgsOrigin & 
   return responseData;
 }
 
-export async function getGithubInstallation({origin, input}: RequestArgsOrigin & {input: ops.GetGithubInstallationRequestBody}): Promise<ops.GetGithubInstallationResponseBody> {
+export async function getGithubInstallation({ origin, input }: RequestArgsOrigin & {input: ops.GetGithubInstallationRequestBody}): Promise<ops.GetGithubInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/integrations/github/query`,
     origin,
@@ -73,7 +73,7 @@ export async function getGithubInstallation({origin, input}: RequestArgsOrigin &
   return responseData;
 }
 
-export async function getTeam({origin,teamId}: RequestArgsOriginAndTeamId): Promise<ops.GetTeamResponseBody> {
+export async function getTeam({ origin, teamId }: RequestArgsOriginAndTeamId): Promise<ops.GetTeamResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/team/query`,
     origin,

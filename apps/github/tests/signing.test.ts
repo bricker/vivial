@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { signBase64, getKey } from '@eave-fyi/eave-stdlib-ts/src/signing.js';
 import { buildMessageToSign } from '@eave-fyi/eave-stdlib-ts/src/lib/requests.js';

@@ -7,13 +7,6 @@
     "@eave-fyi/es-config": "file:./es-config",
     "eslint": "8.x",
     "eslint-config-airbnb-base": "15.x",
-    "eslint-plugin-import": "2.x",
-    "eslint-plugin-jsx-a11y": "6.x",
-    "eslint-plugin-react": "7.x",
-    "eslint-plugin-react-hooks": "4.x",
-    "eslint-plugin-yaml": "0.5.x",
-    "@typescript-eslint/eslint-plugin": "5.x",
-    "@typescript-eslint/parser": "5.x",
-    "@graphql-eslint/eslint-plugin": "3.x"
+    "eslint-plugin-import": "2.x"
   }
 }

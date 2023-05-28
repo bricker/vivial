@@ -18,22 +18,21 @@ const LOG_LEVEL_TO_NAME: {[key:number]: LogLevelNames} = {
   [LogLevel.info]: 'info',
   [LogLevel.warn]: 'warn',
   [LogLevel.error]: 'error',
-}
+};
 
 const LOG_LEVEL_TO_GCP_SEVERITY_NAME: {[key:number]: SeverityNames} = {
   [LogLevel.debug]: 'debug',
   [LogLevel.info]: 'info',
   [LogLevel.warn]: 'warning',
   [LogLevel.error]: 'error',
-}
+};
 
 const NAME_TO_LOG_LEVEL: {[key:string]: LogLevel} = {
   debug: LogLevel.debug,
   info: LogLevel.info,
   warn: LogLevel.warn,
   error: LogLevel.error,
-}
-
+};
 
 interface Transport {
   log: (level: LogLevel, data: any, metadata?: {[key:string]: any}) => void;
@@ -47,7 +46,7 @@ class ConsoleTransport implements Transport {
 }
 
 class CloudLoggingTransport implements Transport {
-  cloudLogger: Logging
+  cloudLogger: Logging;
 
   constructor() {
     this.cloudLogger = new Logging();
@@ -57,11 +56,9 @@ class CloudLoggingTransport implements Transport {
     const log = this.cloudLogger.log('eave');
     const severity: SeverityNames = LOG_LEVEL_TO_GCP_SEVERITY_NAME[level] || 'info';
 
-    if (metadata === undefined) {
-      metadata = {};
-    }
-    metadata['severity'] = severity.toUpperCase()
-    const entry = log.entry(metadata, data);
+    const metadataNormalized = metadata || {};
+    metadataNormalized['severity'] = severity.toUpperCase();
+    const entry = log.entry(metadataNormalized, data);
     // This is an async function, intentionally not being awaited
     log.write(entry);
   }
@@ -69,6 +66,7 @@ class CloudLoggingTransport implements Transport {
 
 class EaveLogger {
   level: LogLevel;
+
   transport: Transport;
 
   constructor(level: LogLevel = LogLevel.info) {
@@ -96,7 +94,6 @@ class EaveLogger {
       return;
     }
     this.transport.log(LogLevel.warn, data, metadata);
-
   }
 
   error(data: any, metadata?: {[key:string]: any}) {
