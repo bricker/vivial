@@ -1,10 +1,9 @@
 const config = {
   extends: [
-    '@eave-fyi/eslint-config',
-    '@eave-fyi/eslint-config/typescript',
-    // FIXME: Add this back. It was removed because something something commonjs
-    // '@eave-fyi/eslint-config/graphql',
-    '@eave-fyi/eslint-config/yaml',
+    './node_modules/@eave-fyi/es-config/eslint',
+    './node_modules/@eave-fyi/es-config/eslint/typescript',
+    './node_modules/@eave-fyi/es-config/eslint/graphql',
+    './node_modules/@eave-fyi/es-config/eslint/yaml',
   ],
   rules: {
     'no-console': 'off',

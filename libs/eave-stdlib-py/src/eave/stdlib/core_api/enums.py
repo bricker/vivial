@@ -33,6 +33,7 @@ class Integration(enum.StrEnum):
 
     slack = "slack"
     github = "github"
+    forge = "forge"
     atlassian = "atlassian"
 
 
@@ -42,3 +43,8 @@ class LinkType(enum.StrEnum):
     """
 
     github = "github"
+
+class EaveForgeInboundOperation(enum.StrEnum):
+    createDocument = 'createDocument'
+    updateDocument = 'updateDocument'
+    archiveDocument = 'archiveDocument'

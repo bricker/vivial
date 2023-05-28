@@ -7,6 +7,7 @@ from typing import Optional, Self
 
 import google.cloud.secretmanager
 import google.cloud.runtimeconfig
+import google.cloud.client
 
 from eave.stdlib.exceptions import RuntimeConfigRetrievalError
 
@@ -181,15 +182,12 @@ class EaveConfig:
     def eave_atlassian_app_client_secret(self) -> str:
         return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
 
-    @cached_property
-    def eave_github_app_webhook_secret(self) -> str:
-        return self.get_secret("EAVE_GITHUB_APP_WEBHOOK_SECRET")
-
     def get_required_env(self, name: str) -> str:
         if name not in os.environ:
             raise KeyError(f"{name} is a required environment variable, but is not set.")
 
         return os.environ[name]
+
 
     def get_runtimeconfig(self, name: str) -> str | None:
         """
@@ -215,8 +213,11 @@ class EaveConfig:
             return os.environ[name]
 
         secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
-
-        fqname = f"projects/{self.google_cloud_project}/secrets/{name}/versions/latest"
+        fqname = secrets_client.secret_version_path(
+            project=self.google_cloud_project,
+            secret=name,
+            secret_version="latest",
+        )
         response = secrets_client.access_secret_version(request={"name": fqname})
         data = response.payload.data
         data_crc32c = response.payload.data_crc32c

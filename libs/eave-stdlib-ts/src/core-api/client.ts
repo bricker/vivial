@@ -1,7 +1,6 @@
-import fetch from 'node-fetch';
-import { sharedConfig } from '../config.js';
-import * as ops from './operations.js';
-import { makeRequest } from '../lib/requests.js';
+import { sharedConfig } from '../config';
+import * as ops from './operations/operations';
+import { RequestArgsOrigin, RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests';
 
 export async function status(): Promise<ops.StatusResponseBody> {
   const resp = await fetch(`${sharedConfig.eaveApiBase}/status`, {
@@ -11,9 +10,10 @@ export async function status(): Promise<ops.StatusResponseBody> {
   const responseData = <ops.StatusResponseBody>(await resp.json());
   return responseData;
 }
-export async function upsertDocument(teamId: string, input: ops.UpsertDocumentRequestBody): Promise<ops.UpsertDocumentResponseBody> {
+export async function upsertDocument({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.UpsertDocumentRequestBody}): Promise<ops.UpsertDocumentResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/documents/upsert`,
+    origin,
     input,
     teamId,
   });
@@ -21,9 +21,10 @@ export async function upsertDocument(teamId: string, input: ops.UpsertDocumentRe
   return responseData;
 }
 
-export async function createSubscription(teamId: string, input: ops.CreateSubscriptionRequestBody): Promise<ops.CreateSubscriptionResponseBody> {
+export async function createSubscription({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.CreateSubscriptionRequestBody}): Promise<ops.CreateSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/create`,
+    origin,
     input,
     teamId,
   });
@@ -31,18 +32,20 @@ export async function createSubscription(teamId: string, input: ops.CreateSubscr
   return responseData;
 }
 
-export async function deleteSubscription(teamId: string, input: ops.DeleteSubscriptionRequestBody): Promise<null> {
+export async function deleteSubscription({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.DeleteSubscriptionRequestBody}): Promise<null> {
   await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/delete`,
+    origin,
     input,
     teamId,
   });
   return null;
 }
 
-export async function getSubscription(teamId: string, input: ops.GetSubscriptionRequestBody): Promise<ops.GetSubscriptionResponseBody> {
+export async function getSubscription({origin,teamId,input}: RequestArgsOriginAndTeamId & {input: ops.GetSubscriptionRequestBody}): Promise<ops.GetSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/query`,
+    origin,
     input,
     teamId,
   });
@@ -50,27 +53,30 @@ export async function getSubscription(teamId: string, input: ops.GetSubscription
   return responseData;
 }
 
-export async function getSlackInstallation(input: ops.GetSlackInstallationRequestBody): Promise<ops.GetSlackInstallationResponseBody> {
+export async function getSlackInstallation({ origin,input}: RequestArgsOrigin & {input: ops.GetSlackInstallationRequestBody}): Promise<ops.GetSlackInstallationResponseBody> {
   const resp = await makeRequest({
-    url: `${sharedConfig.eaveApiBase}/installations/slack/query`,
+    url: `${sharedConfig.eaveApiBase}/integrations/slack/query`,
+    origin,
     input,
   });
   const responseData = <ops.GetSlackInstallationResponseBody>(await resp.json());
   return responseData;
 }
 
-export async function getGithubInstallation(input: ops.GetGithubInstallationRequestBody): Promise<ops.GetGithubInstallationResponseBody> {
+export async function getGithubInstallation({origin, input}: RequestArgsOrigin & {input: ops.GetGithubInstallationRequestBody}): Promise<ops.GetGithubInstallationResponseBody> {
   const resp = await makeRequest({
-    url: `${sharedConfig.eaveApiBase}/installations/github/query`,
+    url: `${sharedConfig.eaveApiBase}/integrations/github/query`,
+    origin,
     input,
   });
   const responseData = <ops.GetGithubInstallationResponseBody>(await resp.json());
   return responseData;
 }
 
-export async function getTeam(teamId: string): Promise<ops.GetTeamResponseBody> {
+export async function getTeam({origin,teamId}: RequestArgsOriginAndTeamId): Promise<ops.GetTeamResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/team/query`,
+    origin,
     teamId,
   });
   const responseData = <ops.GetTeamResponseBody>(await resp.json());

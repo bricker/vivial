@@ -163,7 +163,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             )
             await destination.delete_document(document_id=document_reference.document_id)
 
-            subscriptions = await eave.core.internal.orm.SubscriptionOrm.select(
+            subscriptions = await eave.core.internal.orm.SubscriptionOrm.query(
                 session=db_session,
                 team_id=eave_team.id,
                 document_reference_id=document_reference.id,

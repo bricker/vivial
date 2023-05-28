@@ -351,5 +351,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		cp $EAVE_HOME/.gcloudignore .
 	}
 
+	function clean-deployment-workspace () {
+		local builddir=$EAVE_HOME/.build
+		local appname=$(basename $PWD)
+		rm -r $builddir/$appname
+	}
+
 	_SHARED_FUNCTIONS_LOADED=1
 fi

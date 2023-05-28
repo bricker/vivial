@@ -11,9 +11,7 @@ from google.pubsub_v1.types import Encoding
 
 from .typing import JsonObject
 from .config import shared_config
-from .logging import eaveLogger
-
-publisher_client = PublisherClient()
+from .logging import LogContext, eaveLogger
 
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event_topic"
@@ -28,12 +26,14 @@ def log_event(
     eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
     eave_team_id: typing.Optional[uuid.UUID | str] = None,
     event_ts: typing.Optional[float] = None,
+    ctx: typing.Optional[LogContext] = None,
 ) -> None:
+    eave_context = LogContext.wrap(ctx)
     if opaque_params:
         try:
             serialized_params = json.dumps(opaque_params)
         except Exception:
-            eaveLogger.exception("Error while serialized opaque params for analytics")
+            eaveLogger.exception("Error while serialized opaque params for analytics", extra=eave_context)
             serialized_params = str(opaque_params)
     else:
         serialized_params = None
@@ -49,19 +49,21 @@ def log_event(
         event_ts=event_ts if event_ts else time.time(),
     )
 
-    topic_path = publisher_client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
+    client = PublisherClient()
+
+    topic_path = client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
 
     try:
-        topic = publisher_client.get_topic(request={"topic": topic_path})
+        topic = client.get_topic(request={"topic": topic_path})
         encoding = topic.schema_settings.encoding
         assert encoding == Encoding.BINARY
 
         data = event.SerializeToString()
 
         if not shared_config.analytics_enabled:
-            eaveLogger.warning("Analytics disabled.", extra={"event": str(data)})
+            eaveLogger.warning("Analytics disabled.", extra=eave_context.set({"pubsub": {"event": str(data)}}))
         else:
-            publisher_client.publish(topic_path, data)
+            client.publish(topic_path, data)
 
     except NotFound:
-        eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.")
+        eaveLogger.warning(f"{_EVENT_TOPIC_ID} not found.", extra=eave_context)

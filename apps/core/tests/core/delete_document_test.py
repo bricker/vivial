@@ -52,7 +52,7 @@ class TestDeleteDocument(BaseTestCase):
                 document_reference_id=document_reference.id,
             )
 
-            subs = await SubscriptionOrm.select(
+            subs = await SubscriptionOrm.query(
                 session=s, team_id=self.testdata["eave_team"].id, document_reference_id=document_reference.id
             )
             assert len(subs) == 2
@@ -78,7 +78,7 @@ class TestDeleteDocument(BaseTestCase):
             )
             assert after is None
 
-            subs = await SubscriptionOrm.select(
+            subs = await SubscriptionOrm.query(
                 session=s, team_id=self.testdata["eave_team"].id, document_reference_id=document_reference.id
             )
             assert len(subs) == 0

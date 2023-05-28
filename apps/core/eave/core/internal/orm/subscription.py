@@ -119,7 +119,7 @@ class SubscriptionOrm(Base):
         return lookup
 
     @classmethod
-    async def select(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Sequence[Self]:
+    async def query(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Sequence[Self]:
         lookup = cls._build_select(**kwargs)
         result = (await session.scalars(lookup)).all()
         return result

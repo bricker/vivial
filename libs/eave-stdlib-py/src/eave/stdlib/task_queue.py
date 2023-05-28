@@ -17,7 +17,7 @@ from eave.stdlib.headers import (
 
 from .typing import JsonObject
 from .config import shared_config
-from .logging import eaveLogger
+from .logging import LogContext, eaveLogger
 
 T = TypeVar("T")
 
@@ -51,6 +51,7 @@ async def create_task_from_request(
     origin: EaveOrigin,
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
+    ctx: Optional[LogContext] = None,
 ) -> None:
     if not unique_task_id:
         if trace_id := request.headers.get(GCP_CLOUD_TRACE_CONTEXT):
@@ -74,8 +75,8 @@ async def create_task_from_request(
         origin=origin,
         unique_task_id=unique_task_id,
         headers=headers,
+        ctx=ctx,
     )
-
 
 async def create_task(
     queue_name: str,
@@ -84,8 +85,9 @@ async def create_task(
     origin: EaveOrigin,
     unique_task_id: Optional[str] = None,
     headers: Optional[dict[str, str]] = None,
+    ctx: Optional[LogContext] = None,
 ) -> tasks.Task:
-    client = tasks.CloudTasksAsyncClient()
+    ctx = LogContext.wrap(ctx)
 
     if isinstance(payload, dict):
         # FIXME: Encrypt this; it's visible as plaintext in Cloud Tasks
@@ -99,11 +101,11 @@ async def create_task(
     # Slack already sets this for the incoming event request, but setting it here too to be explicit.
     headers["content-type"] = "application/json"
 
-    eave_request_id = str(uuid.uuid4())
+    request_id = ctx.getset("request_id", str(uuid.uuid4()))
     signature_message = eave.stdlib.requests.build_message_to_sign(
         method="POST",
         origin=origin.value,
-        request_id=eave_request_id,
+        request_id=request_id,
         url=target_path,
         payload=body.decode(),
         team_id=None,
@@ -113,8 +115,10 @@ async def create_task(
     signature = eave.stdlib.signing.sign_b64(signing_key=eave.stdlib.signing.get_key(origin), data=signature_message)
 
     headers[EAVE_SIGNATURE_HEADER] = signature
-    headers[EAVE_REQUEST_ID_HEADER] = eave_request_id
+    headers[EAVE_REQUEST_ID_HEADER] = request_id
     headers[EAVE_ORIGIN_HEADER] = origin.value
+
+    client = tasks.CloudTasksAsyncClient()
 
     parent = client.queue_path(
         project=shared_config.google_cloud_project,
@@ -145,13 +149,13 @@ async def create_task(
 
     eaveLogger.debug(
         f"Creating task on queue {queue_name}",
-        extra={
-            "json_fields": {
+        extra=ctx.set(
+            {
                 "task_name": task_name,
                 "queue_name": parent,
-                "headers": headers,
-            },
-        },
+                "eave_headers": headers,
+            }
+        ),
     )
 
     t = await client.create_task(parent=parent, task=task)

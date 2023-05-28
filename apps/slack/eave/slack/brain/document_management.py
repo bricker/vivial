@@ -11,7 +11,6 @@ from eave.stdlib.logging import eaveLogger
 from . import message_prompts
 from . import document_metadata
 from .context_building import ContextBuildingMixin
-from ..util import log_context
 
 
 class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin):
@@ -23,6 +22,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         existing_subscription_response = await self.get_subscription()
 
         if existing_subscription_response is None:
+            await self.send_response(text="On it!", eave_message_purpose="confirmation that documentation is being worked on")
             subscription_response = await self.create_subscription()
             self.subscriptions.append(subscription_response.subscription)
             await self.create_documentation()
@@ -130,15 +130,15 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         return resources_doc
 
     async def search_documentation(self) -> None:
+        await self.send_response(text="On it!", eave_message_purpose="confirmation that documentation is being searched")
         search_results = await self.search_documents()
 
         eaveLogger.debug(
             "Received search results",
-            extra=log_context(
-                self.slack_context,
-                addl={
+            extra=self.eave_ctx.set(
+                {
                     "search_results": [json.loads(d.json()) for d in search_results.documents],
-                },
+                }
             ),
         )
 

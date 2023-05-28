@@ -1,0 +1,28 @@
+{
+  "engines": {
+    "node": "18",
+    "npm": "9"
+  },
+  "type": "module",
+  "scripts": {},
+  "dependencies": {
+    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
+    "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
+    "@forge/api": "2.x"
+  },
+  "devDependencies": {
+    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
+    "@forge/cli": "6.x",
+    "@types/fast-crc32c": "2.x",
+    "@types/node": "^20.2.5",
+    "@types/uuid": "9.x",
+    "@typescript-eslint/eslint-plugin": "5.x",
+    "@typescript-eslint/parser": "5.x",
+    "eslint": "8.x",
+    "eslint-config-airbnb-base": "15.x",
+    "eslint-plugin-import": "2.x",
+    "eslint-plugin-yaml": "0.5.x",
+    "ts-loader": "^9.4.3",
+    "typescript": "5.x"
+  }
+}

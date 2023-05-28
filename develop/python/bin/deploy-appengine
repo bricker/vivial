@@ -3,13 +3,23 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-validate-version
-python-activate-venv
 
-if test -f requirements-vendor.txt
-then
-	rm -rf vendor
-	python -m pip install -t vendor -r requirements-vendor.txt
-fi
+function deploy () (
+	python-validate-version
+	python-activate-venv
 
-${EAVE_HOME}/develop/shared/bin/deploy-appengine
+	local qflag="--quiet"
+	if verbose; then
+		qflag=""
+	fi
+
+	if test -f requirements-vendor.txt
+	then
+		rm -rf vendor
+		python -m pip $qflag install -t vendor -r requirements-vendor.txt
+	fi
+
+	${EAVE_HOME}/develop/shared/bin/deploy-appengine
+)
+
+deploy

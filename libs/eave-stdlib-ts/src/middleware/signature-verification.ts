@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveHeaders from '../headers.js';
-import { getEaveState } from '../lib/request-state.js';
-import { developmentBypassAllowed } from './development-bypass.js';
-import { buildMessageToSign } from '../lib/requests.js';
-import { getKey, verifySignatureOrException } from '../signing.js';
-import { HTTPException } from '../exceptions.js';
-import eaveLogger from '../logging.js';
+import eaveHeaders from '../headers';
+import { getEaveState } from '../lib/request-state';
+import { developmentBypassAllowed } from './development-bypass';
+import { buildMessageToSign } from '../lib/requests';
+import { getKey, verifySignatureOrException } from '../signing';
+import { HTTPException } from '../exceptions';
+import eaveLogger from '../logging';
 
 /**
  * Reads the body and headers and verifies the signature.
@@ -15,7 +15,7 @@ import eaveLogger from '../logging.js';
 export function signatureVerification(baseUrl: string): ((req: Request, res: Response, next: NextFunction) => void) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (developmentBypassAllowed(req)) {
-      eaveLogger.warn('Bypassing signature verification in dev environment');
+      eaveLogger.warning('Bypassing signature verification in dev environment');
       next();
       return;
     }
@@ -25,7 +25,7 @@ export function signatureVerification(baseUrl: string): ((req: Request, res: Res
       next();
     } else {
       const eaveState = getEaveState(res);
-      eaveLogger.warn('signature validation failed', eaveState);
+      eaveLogger.warning('signature validation failed', eaveState);
       res.status(400).end();
       return;
     }
@@ -37,7 +37,7 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, base
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    eaveLogger.warn('Missing Eave signature header', eaveState);
+    eaveLogger.warning('Missing Eave signature header', eaveState);
     res.status(400).end();
     return false;
   }

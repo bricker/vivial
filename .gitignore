@@ -3,17 +3,20 @@
 __pycache__
 .mypy_cache
 .ruff_cache
+.pytest_cache
+.*_cache
 node_modules
 *.egg-info
-build/
+build
 .build
 .cloudsqlproxy
+*.tgz
 yalc.lock
 .DS_Store
 *.log*
 .swc
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
-dist/
+dist
 .yalc
-vendor/
+vendor

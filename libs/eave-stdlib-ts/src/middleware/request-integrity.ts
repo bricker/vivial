@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuid4 } from 'uuid';
-import { EaveRequestState, setEaveState } from '../lib/request-state.js';
-import eaveHeaders from '../headers.js';
+import { EaveRequestState, setEaveState } from '../lib/request-state';
+import eaveHeaders from '../headers';
 
 /**
  * Makes sure the eaveState is set on `req.extensions.SCOPE` for signature verification.

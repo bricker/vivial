@@ -1,0 +1,70 @@
+permissions:
+  # https://developer.atlassian.com/cloud/confluence/scopes-for-oauth-2-3LO-and-forge-apps/
+  scopes:
+    # Classic Scopes
+    - write:confluence-content
+    - read:confluence-space.summary
+    - write:confluence-file
+    - read:confluence-props
+    - write:confluence-props
+    - read:confluence-content.all
+    - read:confluence-content.summary
+    - search:confluence
+    - read:confluence-content.permission
+    - read:confluence-user
+    - read:confluence-groups
+    - read:jira-work
+    - write:jira-work
+    # Granular Scopes
+    - read:page:confluence
+    - write:page:confluence
+    - read:space:confluence
+    - read:configuration:confluence
+
+  external:
+    fetch:
+      backend:
+        - api.eave.fyi
+        - apps.eave.fyi
+
+modules:
+  trigger:
+    - key: trigger-forgeInstalledApp
+      function: func-forgeInstalledApp
+      events:
+        - avi:forge:installed:app
+
+    - key: trigger-forgeUpgradedApp
+      function: func-forgeUpgradedApp
+      events:
+        - avi:forge:upgraded:app
+
+    - key: trigger-forgeEvent
+      function: func-forgeEventDispatch
+      events:
+        - avi:jira:commented:issue
+
+  webtrigger:
+    # Warning! There are references to this key in the code - if you change this, you must change those too.
+    - key: webtrigger-eaveApi
+      function: func-eaveApiDispatch
+
+  function:
+    - key: func-forgeInstalledApp
+      handler: main.forgeInstalledApp
+
+    - key: func-forgeUpgradedApp
+      handler: main.forgeUpgradedApp
+
+    - key: func-forgeEventDispatch
+      handler: main.forgeEventDispatch
+
+    - key: func-eaveApiDispatch
+      handler: main.eaveApiDispatch
+
+
+app:
+  id: ari:cloud:ecosystem::app/e3c57ac8-296e-4392-b128-4330b1ab2883
+  runtime:
+    # This is too restrictive. Even the Google Cloud Logging library does some basic crypto operations in the module context, which breaks snapshotting.
+    snapshots: false

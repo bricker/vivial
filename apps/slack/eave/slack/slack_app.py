@@ -3,7 +3,6 @@ from typing import Optional
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 import eave.slack.event_handlers
-from eave.slack.util import log_context
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.exceptions
@@ -12,7 +11,7 @@ from slack_bolt.async_app import AsyncApp, AsyncBoltContext
 from slack_bolt.authorization import AuthorizeResult
 from slack_sdk.web.async_client import AsyncWebClient
 
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LogContext, eaveLogger
 
 from .config import app_config
 
@@ -32,8 +31,18 @@ async def authorize(
     https://slack.dev/bolt-python/concepts#authorization
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
     """
-    extra = log_context(context)
-    eaveLogger.debug("slack authorize request", extra=extra)
+    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eave_ctx.set({
+        "request_id": context.get("request_id"),
+        "slack_team_id": context.team_id,
+        "slack_user_id": context.user_id,
+        "slack_channel_id": context.channel_id,
+        "slack_bot_id": context.bot_id,
+        "slack_bot_user_id": context.bot_user_id,
+        "slack_bot_token": f"{context.bot_token[0:5]}..." if context.bot_token else None,
+        "slack_user_token": f"{context.user_token[0:5]}..." if context.user_token else None,
+    })
+    eaveLogger.debug("slack authorize request", extra=eave_ctx)
 
     # TODO: team_id can be None for org-wide installed apps
     # https://slack.dev/bolt-python/api-docs/slack_bolt/authorization/async_authorize.html
@@ -47,9 +56,9 @@ async def authorize(
     cached_data: str | None = None
     try:
         cached_data = await cache.get(cachekey)
-        eaveLogger.debug(f"cache hit: {cachekey}")
+        eaveLogger.debug(f"cache hit: {cachekey}", extra=eave_ctx)
     except Exception:
-        eaveLogger.exception("Exception loading cached slack installation details")
+        eaveLogger.exception("Exception loading cached slack installation details", extra=eave_ctx)
         # fall back to making the API requests
 
     # Notes:
@@ -67,7 +76,7 @@ async def authorize(
             installation_data = eave_ops.GetSlackInstallation.ResponseBody.parse_raw(cached_data)
             auth_response = (await client.auth_test(token=installation_data.slack_integration.bot_token)).validate()
         except Exception:
-            eaveLogger.warning("Cached auth token was not valid")
+            eaveLogger.warning("Cached auth token was not valid", extra=eave_ctx)
             await cache.delete(cachekey)
             cached_data = None
             installation_data = None
@@ -94,7 +103,7 @@ async def authorize(
             ttl_12_hours = 12 * 60 * 60
             await cache.set(name=cachekey, value=installation_data.json(), ex=ttl_12_hours)
         except Exception:
-            eaveLogger.exception("Exception saving cached slack installation details")
+            eaveLogger.exception("Exception saving cached slack installation details", extra=eave_ctx)
 
     context["eave_team"] = installation_data.team
 
@@ -126,8 +135,11 @@ signing_secret = app_config.eave_slack_app_signing_secret
 # - SSL Check only adds an endpoint used by Slack to verify that the endpoint is accessible over HTTPS. It's used by Slack in real-time, so enabling it on a background queue is useless.
 # - URL Verification only adds an endpoint used by Slack to verify that the endpoint is owned by the app owner, and is disabled for the same reason as the SSL Check middleware.
 # All of the above middlewares are handled manually in the Slack Event API endpoint.
+# Additionally, `process_before_response` is ENABLED because we're already running this in the background, and we specifically do not want to return a response until the event is done being processed.
+# This allows Cloud Tasks to retry the task in case of a failure.
 app = AsyncApp(
     # signing_secret=signing_secret,
+    process_before_response=True,
     ssl_check_enabled=False,
     request_verification_enabled=False,
     url_verification_enabled=False,

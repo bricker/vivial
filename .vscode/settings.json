@@ -8,10 +8,16 @@
   },
   "files.exclude": {
     "**/__pycache__": true,
+    "**/.build": true,
     "**/.classpath": true,
+    "**/.cloudsqlproxy": true,
     "**/.factorypath": true,
+    "**/.mypy_cache": true,
     "**/.project": true,
-    "**/.settings": true
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.settings": true,
+    "**/*.egg-info": true
   },
   "files.trimFinalNewlines": false,
   "files.insertFinalNewline": false,
@@ -114,7 +120,10 @@
     "**/vendor",
     "**/.mypy_cache",
     "**/generated",
-    "**/build"
+    "**/build",
+    "**/.build",
+    "**/.ruff_cache",
+    "**/.pytest_cache"
   ],
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
@@ -125,4 +134,9 @@
   ],
   "typescript.implementationsCodeLens.enabled": true,
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+  "markdownlint.run": "onSave",
+  "markdownlint.config": {
+    "first-line-heading": false,
+  },
+  "python.analysis.gotoDefinitionInStringLiteral": true,
 }

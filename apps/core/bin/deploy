@@ -38,6 +38,7 @@ function deploy() {
 
 	setup-deployment-workspace
 	${EAVE_HOME}/develop/python/bin/deploy-appengine
+	clean-deployment-workspace
 }
 
 deploy "$@"

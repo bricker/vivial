@@ -4,7 +4,6 @@ import eave.stdlib.core_api.operations as eave_ops
 from . import message_prompts
 from .document_management import DocumentManagementMixin
 from .subscription_management import SubscriptionManagementMixin
-from ..util import log_context
 
 
 class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin):
@@ -50,7 +49,7 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
 
         eaveLogger.warning(
             "Unknown request to Eave in Slack",
-            extra=log_context(self.slack_context, addl={"message": self.message.text}),
+            extra=self.eave_ctx.set({"message": self.message.text}),
         )
         self.log_event(
             event_name="eave_received_unknown_request",

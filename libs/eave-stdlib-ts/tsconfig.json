@@ -1,8 +1,7 @@
 {
-  "extends": "./node_modules/@eave-fyi/eslint-config/tsconfig.json",
+  "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
   "compilerOptions": {
-    "module": "ES2020",
-    "moduleResolution": "node"
+    "rootDir": "src"
   },
   "include": [
     "src/*"

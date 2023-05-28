@@ -1,13 +1,12 @@
 import { PubSub, Encodings } from '@google-cloud/pubsub';
 import { EaveEvent } from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event';
-import eaveLogger from './logging.js';
-
-// Creates a client; cache this for further use
-const pubSubClient = new PubSub();
+import eaveLogger from './logging';
 
 const EVENT_TOPIC_ID = 'eave_event_topic';
+const pubSubClient = new PubSub();
 
 export async function logEvent(event: EaveEvent) {
+
   // Get the topic metadata to learn about its schema.
   const topic = pubSubClient.topic(EVENT_TOPIC_ID);
   const [topicMetadata] = await topic.getMetadata();

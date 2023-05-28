@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
-    "@eave-fyi/eslint-config": "file:../../develop/javascript/eslint",
+    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@octokit/graphql-schema": "12.x",
     "@octokit/webhooks": "10.x",
     "@swc/core": "1.x",

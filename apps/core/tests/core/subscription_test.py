@@ -55,7 +55,7 @@ class TestSubscriptionOrm(BaseTestCase):
                 document_reference_id=document_reference.id,
             )
 
-            result = await SubscriptionOrm.select(
+            result = await SubscriptionOrm.query(
                 session=s, team_id=team.id, document_reference_id=document_reference.id
             )
             assert len(result) == 1
@@ -76,7 +76,7 @@ class TestSubscriptionOrm(BaseTestCase):
                 source=source,
             )
 
-            result = await SubscriptionOrm.select(session=s, team_id=team.id, source=source)
+            result = await SubscriptionOrm.query(session=s, team_id=team.id, source=source)
             assert len(result) == 1
             assert result[0].source_id == self.getstr("source id")
 
@@ -95,6 +95,6 @@ class TestSubscriptionOrm(BaseTestCase):
                 source=source,
             )
 
-            result = await SubscriptionOrm.select(session=s, team_id=team.id, id=sub.id)
+            result = await SubscriptionOrm.query(session=s, team_id=team.id, id=sub.id)
             assert len(result) == 1
             assert result[0].id == sub.id

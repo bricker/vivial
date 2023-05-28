@@ -26,30 +26,12 @@ async def status() -> operations.Status.ResponseBody:
         response_json = await response.json()
     return operations.Status.ResponseBody(**response_json, _raw_response=response)
 
-
-async def create_access_request(
-    input: operations.CreateAccessRequest.RequestBody,
-) -> operations.BaseResponseBody:
-    """
-    POST /access_request
-    """
-    response = await make_request(
-        url=f"{shared_config.eave_api_base}/access_request",
-        input=input,
-    )
-
-    return operations.BaseResponseBody(_raw_response=response)
-
-
 async def upsert_document(
     team_id: UUID,
     input: operations.UpsertDocument.RequestBody,
 ) -> operations.UpsertDocument.ResponseBody:
-    """
-    POST /documents/upsert
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/documents/upsert",
+        url=operations.UpsertDocument.config.url,
         input=input,
         team_id=team_id,
     )
@@ -63,7 +45,7 @@ async def search_documents(
     input: operations.SearchDocuments.RequestBody,
 ) -> operations.SearchDocuments.ResponseBody:
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/documents/search",
+        url=operations.SearchDocuments.config.url,
         input=input,
         team_id=team_id,
     )
@@ -77,7 +59,7 @@ async def delete_document(
     input: operations.DeleteDocument.RequestBody,
 ) -> operations.BaseResponseBody:
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/documents/delete",
+        url=operations.DeleteDocument.config.url,
         input=input,
         team_id=team_id,
     )
@@ -88,11 +70,8 @@ async def create_subscription(
     team_id: UUID,
     input: operations.CreateSubscription.RequestBody,
 ) -> operations.CreateSubscription.ResponseBody:
-    """
-    POST /subscriptions/create
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/subscriptions/create",
+        url=operations.CreateSubscription.config.url,
         input=input,
         team_id=team_id,
     )
@@ -105,11 +84,8 @@ async def delete_subscription(
     team_id: UUID,
     input: operations.DeleteSubscription.RequestBody,
 ) -> operations.BaseResponseBody:
-    """
-    POST /subscriptions/delete
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/subscriptions/delete",
+        url=operations.DeleteSubscription.config.url,
         input=input,
         team_id=team_id,
     )
@@ -120,12 +96,9 @@ async def delete_subscription(
 async def get_subscription(
     team_id: UUID, input: operations.GetSubscription.RequestBody
 ) -> operations.GetSubscription.ResponseBody | None:
-    """
-    POST /subscriptions/query
-    """
     try:
         response = await make_request(
-            url=f"{shared_config.eave_api_base}/subscriptions/query",
+            url=operations.GetSubscription.config.url,
             input=input,
             team_id=team_id,
         )
@@ -140,11 +113,8 @@ async def get_subscription(
 async def get_slack_installation(
     input: operations.GetSlackInstallation.RequestBody,
 ) -> operations.GetSlackInstallation.ResponseBody:
-    """
-    POST /integrations/slack/query
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/integrations/slack/query",
+        url=operations.GetSlackInstallation.config.url,
         input=input,
     )
 
@@ -155,11 +125,8 @@ async def get_slack_installation(
 async def get_github_installation(
     input: operations.GetGithubInstallation.RequestBody,
 ) -> operations.GetGithubInstallation.ResponseBody:
-    """
-    POST /integrations/github/query
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/integrations/github/query",
+        url=operations.GetGithubInstallation.config.url,
         input=input,
     )
 
@@ -170,26 +137,19 @@ async def get_github_installation(
 async def get_atlassian_installation(
     input: operations.GetAtlassianInstallation.RequestBody,
 ) -> operations.GetAtlassianInstallation.ResponseBody:
-    """
-    POST /integrations/atlassian/query
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/integrations/atlassian/query",
+        url=operations.GetAtlassianInstallation.config.url,
         input=input,
     )
 
     response_json = await response.json()
     return operations.GetAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
 
-
 async def get_team(
     team_id: UUID,
 ) -> operations.GetTeam.ResponseBody:
-    """
-    POST /team/query
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/team/query",
+        url=operations.GetTeam.config.url,
         input=None,
         team_id=team_id,
     )
@@ -203,11 +163,8 @@ async def update_atlassian_integration(
     access_token: str,
     input: operations.UpdateAtlassianInstallation.RequestBody,
 ) -> operations.UpdateAtlassianInstallation.ResponseBody:
-    """
-    POST /me/team/integrations/atlassian/update
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/me/team/integrations/atlassian/update",
+        url=operations.UpdateAtlassianInstallation.config.url,
         input=input,
         access_token=access_token,
         account_id=account_id,
@@ -216,15 +173,11 @@ async def update_atlassian_integration(
     response_json = await response.json()
     return operations.UpdateAtlassianInstallation.ResponseBody(**response_json, _raw_response=response)
 
-
 async def get_authenticated_account_team_integrations(
     account_id: UUID, access_token: str
 ) -> operations.GetAuthenticatedAccountTeamIntegrations.ResponseBody:
-    """
-    POST /me/team/integrations/query
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/me/team/integrations/query",
+        url=operations.GetAuthenticatedAccountTeamIntegrations.config.url,
         input=None,
         access_token=access_token,
         account_id=account_id,
@@ -237,11 +190,8 @@ async def get_authenticated_account_team_integrations(
 async def get_authenticated_account(
     account_id: UUID, access_token: str
 ) -> operations.GetAuthenticatedAccount.ResponseBody:
-    """
-    POST /me/query
-    """
     response = await make_request(
-        url=f"{shared_config.eave_api_base}/me/query",
+        url=operations.GetAuthenticatedAccount.config.url,
         input=None,
         access_token=access_token,
         account_id=account_id,
