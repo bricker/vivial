@@ -3,7 +3,6 @@ from typing import Optional
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 import eave.slack.event_handlers
-from eave.slack.util import log_context
 import eave.stdlib.core_api.client as eave_core
 import eave.stdlib.core_api.operations as eave_ops
 import eave.stdlib.exceptions

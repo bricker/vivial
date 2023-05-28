@@ -7,6 +7,8 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.stdlib.core_api.models import GithubInstallation
+
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
@@ -73,3 +75,7 @@ class GithubInstallationOrm(Base):
         lookup = cls._build_select(**kwargs)
         result = (await session.scalars(lookup)).one()
         return result
+
+    @property
+    def api_model(self) -> GithubInstallation:
+        return GithubInstallation.from_orm(self)

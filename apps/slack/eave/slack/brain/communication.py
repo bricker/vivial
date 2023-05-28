@@ -39,12 +39,12 @@ class CommunicationMixin(Base):
     async def acknowledge_receipt(self) -> None:
         # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
         try:
-            await self.message.add_reaction("eave")
             reaction = "eave"
+            await self.message.add_reaction(reaction)
         except SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
-            eaveLogger.warning(f"Error reacting to message: {error_code}", exc_info=e, extra=self.log_extra)
+            eaveLogger.warning(f"Error reacting to message: {error_code}", exc_info=e, extra=self.eave_ctx)
 
             if error_code == "invalid_name":
                 await self.message.add_reaction("thumbsup")

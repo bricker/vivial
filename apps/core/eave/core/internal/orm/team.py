@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 import eave.stdlib
 from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -92,14 +93,19 @@ class TeamOrm(Base):
 
         forge_installation = await ForgeInstallationOrm.one_or_none(session=session, team_id=self.id)
 
+        atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
+
         return eave.stdlib.core_api.models.Integrations(
-            slack=eave.stdlib.core_api.models.SlackInstallation.from_orm(slack_installation)
+            slack=slack_installation.api_model
             if slack_installation
             else None,
-            github=eave.stdlib.core_api.models.GithubInstallation.from_orm(github_installation)
+            github=github_installation.api_model
             if github_installation
             else None,
-            forge=eave.stdlib.core_api.models.forge.ForgeInstallation.from_orm(forge_installation)
+            forge=forge_installation.api_model
             if forge_installation
+            else None,
+            atlassian=atlassian_installation.api_model
+            if atlassian_installation
             else None,
         )

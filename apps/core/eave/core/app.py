@@ -1,6 +1,3 @@
-from typing import Type
-from functools import reduce
-from typing import Type
 from eave.core.public.middlewares.body_parser import BodyParserASGIMiddleware
 import eave.stdlib
 import eave.stdlib.api_util
@@ -8,6 +5,7 @@ import eave.stdlib.core_api.operations.base
 import eave.stdlib.logging
 import eave.stdlib.time
 import eave.stdlib.core_api.operations as eave_ops
+import eave.stdlib.core_api.operations.forge as forge_ops
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -19,12 +17,8 @@ import eave.core.public.requests.github_integration
 
 from .public import middlewares
 from .public.exception_handlers import exception_handlers
-from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team
+from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team, status
 from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
-from eave.stdlib.middleware.base import EaveASGIMiddleware
-from .public import middlewares
-from .public.exception_handlers import exception_handlers
-from .public.requests import authed_account, documents, integrations, noop, subscriptions, team, status
 
 eave.stdlib.time.set_utc()
 
@@ -95,23 +89,20 @@ routes = [
         endpoint=eave.core.public.requests.github_integration.GithubIntegration,
     ),
     make_route(
-        # FIXME: Add signing etc. to this endpoint
-        config=eave_ops.forge.QueryForgeInstallation.config,
+        config=forge_ops.QueryForgeInstallation.config,
         endpoint=eave.core.public.requests.forge_integration.QueryForgeIntegration,
     ),
     make_route(
-        # FIXME: Add signing etc. to this endpoint
-        config=eave_ops.forge.RegisterForgeInstallation.config,
+        config=forge_ops.RegisterForgeInstallation.config,
         endpoint=eave.core.public.requests.forge_integration.RegisterForgeIntegration,
     ),
     make_route(
-        # FIXME: Add signing etc. to this endpoint
-        config=eave_ops.forge.UpdateForgeInstallation.config,
+        config=forge_ops.UpdateForgeInstallation.config,
         endpoint=eave.core.public.requests.forge_integration.UpdateForgeIntegration,
     ),
     make_route(
         config=eave.stdlib.core_api.operations.base.EndpointConfiguration(
-            path=f"/me/team/{eave_ops.forge.UpdateForgeInstallation.config.path}",
+            path=f"/me/team/{forge_ops.UpdateForgeInstallation.config.path}",
             team_id_required=False,
         ),
         endpoint=eave.core.public.requests.forge_integration.UpdateForgeIntegration, # TODO: This can be shared with the one in 'integrations'

@@ -107,6 +107,7 @@ class Integrations(EaveBaseModel):
     github: Optional[GithubInstallation]
     slack: Optional[SlackInstallation]
     forge: Optional[ForgeInstallation]
+    atlassian: Optional[AtlassianInstallation]
 
 
 class ErrorResponse(EaveBaseModel):

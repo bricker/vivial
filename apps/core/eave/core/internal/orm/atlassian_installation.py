@@ -6,11 +6,12 @@ from datetime import datetime
 from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-import eave.stdlib.core_api.models
 import oauthlib.oauth2.rfc6749.tokens
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.stdlib.core_api.models import AtlassianInstallation, ConfluenceSpace
 
 from .. import database as eave_db
 from ..destinations import confluence as confluence_destination
@@ -37,6 +38,7 @@ class AtlassianInstallationOrm(Base):
     atlassian_site_name: Mapped[Optional[str]] = mapped_column()
     atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
     oauth_token_encoded: Mapped[str] = mapped_column()
+    confluence_space_key: Mapped[Optional[str]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -108,9 +110,9 @@ class AtlassianInstallationOrm(Base):
         )
 
     @property
-    def available_confluence_spaces(self) -> typing.List[eave.stdlib.core_api.models.ConfluenceSpace]:
+    def available_confluence_spaces(self) -> list[ConfluenceSpace]:
         spaces = self.confluence_destination.get_available_spaces()
-        return [eave.stdlib.core_api.models.ConfluenceSpace(key=s.key, name=s.name) for s in spaces if s.key and s.name]
+        return [ConfluenceSpace(key=s.key, name=s.name) for s in spaces if s.key and s.name]
 
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(
@@ -140,3 +142,7 @@ class AtlassianInstallationOrm(Base):
             if record:
                 record.oauth_token_encoded = json.dumps(token)
                 await db_session.commit()
+
+    @property
+    def api_model(self) -> AtlassianInstallation:
+        return AtlassianInstallation.from_orm(self)
