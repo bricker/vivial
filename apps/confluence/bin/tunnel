@@ -3,5 +3,4 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-
-forge tunnel --debug
+FORGE_DEV_TUNNEL=true forge tunnel
