@@ -98,13 +98,16 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
             TASK_EXECUTION_COUNT_CONTEXT_KEY, 0
         )  # The number of times Cloud Tasks executed this task so far, excluding this one
 
-        eave_ctx.set({
-            "queue": json.loads(Queue.to_json(queue)),
-            "task": {
-                "max_attempts": max_attempts,
-                "total_attempts": total_attempts,
+        eave_ctx.set(
+            {
+                "queue": json.loads(Queue.to_json(queue)),
+                "task": {
+                    "max_attempts": max_attempts,
+                    "total_attempts": total_attempts,
+                },
             }
-        })
+        )
+
         eaveLogger.debug(f"{SLACK_EVENT_QUEUE_NAME} task state", extra=eave_ctx)
 
         # This is on purpose == instead of >=, because we only want to send this message once.

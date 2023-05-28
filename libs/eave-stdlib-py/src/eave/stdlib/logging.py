@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Literal, Mapping, Optional, Self, TypeVar, cast
+from typing import Any, Optional, Self, TypeVar, cast
 
 import google.cloud.logging
 

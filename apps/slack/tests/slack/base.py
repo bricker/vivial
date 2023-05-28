@@ -10,6 +10,7 @@ from eave.slack.brain.core import Brain
 from eave.stdlib.core_api.enums import DocumentPlatform
 from eave.stdlib.core_api.models import DocumentReference, Subscription, Team
 from eave.stdlib.core_api.operations import GetSubscription
+from eave.stdlib.logging import LogContext
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 
@@ -82,7 +83,8 @@ class BaseTestCase(UtilityBaseTestCase):
             patch=unittest.mock.patch("eave.stdlib.core_api.client.delete_subscription", return_value=None),
         )
 
-        self.sut = Brain(message=self._data_message, eave_team=self._data_eave_team)
+        self.eave_ctx = LogContext()
+        self.sut = Brain(message=self._data_message, eave_team=self._data_eave_team, ctx=self.eave_ctx)
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()

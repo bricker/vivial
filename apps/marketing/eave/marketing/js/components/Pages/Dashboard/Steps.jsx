@@ -315,7 +315,7 @@ const Steps = () => {
                 alt={INTEGRATION_LOGOS.slack.alt}
               />
             </Button>
-            <Button
+            {/* <Button
               className={classes.connectButton}
               variant="outlined"
               startIcon={teamInfo?.integrations.atlassian && <PurpleCheckIcon className={classes.connected} />}
@@ -328,7 +328,7 @@ const Steps = () => {
                 src={INTEGRATION_LOGOS.jira.src}
                 alt={INTEGRATION_LOGOS.jira.alt}
               />
-            </Button>
+            </Button> */}
           </StepContent>
         </Step>
       </Stepper>
