@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-${EAVE_HOME}/develop/javascript/bin/format
-npx forge lint --fix

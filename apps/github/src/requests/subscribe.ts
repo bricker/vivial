@@ -9,6 +9,7 @@ import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
+import { appConfig } from '../config.js';
 
 export async function subscribe(req: Request, res: Response): Promise<void> {
   const eaveState = getEaveState(res);
@@ -52,12 +53,16 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
   const platform = SubscriptionSourcePlatform.github;
   const event = SubscriptionSourceEvent.github_file_change;
 
-  const subResponse = await eaveClient.createSubscription(eaveTeamId, {
-    subscription: {
-      source: {
-        platform,
-        event,
-        id: sourceId,
+  const subResponse = await eaveClient.createSubscription({
+    origin: appConfig.origin,
+    teamId: eaveTeamId,
+    input: {
+      subscription: {
+        source: {
+          platform,
+          event,
+          id: sourceId,
+        },
       },
     },
   });

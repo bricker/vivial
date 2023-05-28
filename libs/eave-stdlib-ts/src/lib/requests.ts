@@ -1,27 +1,16 @@
-import fetch, { Response } from 'node-fetch';
 import { v4 as uuid4 } from 'uuid';
-import eaveLogger from '../logging.js';
-import { EaveOrigin } from '../eave-origins.js';
-import { getKey, signBase64 } from '../signing.js';
-import eaveHeaders from '../headers.js';
+import eaveLogger from '../logging';
+import { EaveOrigin } from '../eave-origins';
+import { getKey, signBase64 } from '../signing';
+import eaveHeaders from '../headers';
 import {
   NotFoundError,
   UnauthorizedError,
   BadRequestError,
   InternalServerError,
   HTTPException,
-} from '../exceptions.js';
-import { redact } from '../util.js';
-
-let ORIGIN: EaveOrigin;
-
-export function setOrigin(origin: EaveOrigin): void {
-  ORIGIN = origin;
-}
-
-export function getOrigin(): EaveOrigin {
-  return ORIGIN;
-}
+} from '../exceptions';
+import { redact } from '../util';
 
 export function buildMessageToSign(
   method: string,
@@ -52,6 +41,7 @@ export function buildMessageToSign(
 
 interface RequestArgs {
   url: string;
+  origin: EaveOrigin | string;
   input?: unknown;
   accessToken?: string;
   teamId?: string;
@@ -62,6 +52,7 @@ interface RequestArgs {
 export async function makeRequest(args: RequestArgs): Promise<Response> {
   const {
     url,
+    origin,
     input,
     accessToken,
     teamId,
@@ -70,25 +61,24 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   } = args;
 
   const requestId = uuid4();
-
   const payload = JSON.stringify(input);
   const message = buildMessageToSign(
     method,
     url,
     requestId,
-    ORIGIN,
+    origin,
     input === undefined ? '' : JSON.stringify(input),
     teamId,
     accountId,
   );
 
   const signature = await signBase64(
-    getKey(ORIGIN),
+    getKey(origin),
     message,
   );
   const headers: { [key: string]: string } = {
     'content-type': 'application/json',
-    [eaveHeaders.EAVE_ORIGIN_HEADER]: ORIGIN,
+    [eaveHeaders.EAVE_ORIGIN_HEADER]: origin,
     [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
     [eaveHeaders.EAVE_SIGNATURE_HEADER]: signature,
   };
@@ -112,7 +102,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   };
 
   const requestContext = {
-    origin: ORIGIN,
+    origin,
     signature: redact(signature),
     access_token: redact(accessToken),
     request_id: requestId,
@@ -142,4 +132,12 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   }
 
   return response;
+}
+
+export type RequestArgsOrigin = {
+  origin: EaveOrigin | string;
+}
+
+export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
+  teamId: string;
 }

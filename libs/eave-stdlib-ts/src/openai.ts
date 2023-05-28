@@ -1,6 +1,5 @@
-import assert from 'node:assert';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
-import { sharedConfig } from './config.js';
+import { sharedConfig } from './config';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -26,7 +25,9 @@ export async function createChatCompletion(parameters: CreateChatCompletionReque
   const client = await getOpenAIClient();
   const completion = await client.createChatCompletion(parameters);
   const text = completion.data.choices[0]?.message?.content;
-  assert(text !== undefined);
+  if (text === undefined) {
+    throw new Error('openai text response is undefined');
+  }
   return text;
 }
 

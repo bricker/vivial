@@ -28,3 +28,10 @@ export enum SubscriptionSourceEvent {
 export enum LinkType {
   github = 'github',
 }
+
+export enum EaveForgeInboundOperation {
+  createDocument = 'createDocument',
+  updateDocument = 'updateDocument',
+  archiveDocument = 'archiveDocument',
+
+}

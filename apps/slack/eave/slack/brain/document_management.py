@@ -22,6 +22,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         existing_subscription_response = await self.get_subscription()
 
         if existing_subscription_response is None:
+            await self.send_response(text="On it!", eave_message_purpose="confirmation that documentation is being worked on")
             subscription_response = await self.create_subscription()
             self.subscriptions.append(subscription_response.subscription)
             await self.create_documentation()
@@ -129,6 +130,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         return resources_doc
 
     async def search_documentation(self) -> None:
+        await self.send_response(text="On it!", eave_message_purpose="confirmation that documentation is being searched")
         search_results = await self.search_documents()
 
         eaveLogger.debug(

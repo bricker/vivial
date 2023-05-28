@@ -58,8 +58,6 @@ eaveLogger = logging.getLogger("eave")
 # LogContext = dict[Literal["json_fields"], JsonObject]
 
 T = TypeVar("T")
-
-
 class LogContext(dict[str, object]):
     @classmethod
     def wrap(cls, ctx: Optional["LogContext"]) -> "LogContext":

@@ -22,7 +22,7 @@ export async function createAppClient(): Promise<App> {
 }
 
 export async function getInstallationId(eaveTeamId: string): Promise<number | null> {
-  const teamResponse = await eaveClient.getTeam(eaveTeamId);
+  const teamResponse = await eaveClient.getTeam({ origin: appConfig.origin, teamId: eaveTeamId });
   const ghIntegration = teamResponse.integrations.github;
   if (!ghIntegration) {
     eaveLogger.error(`GitHub Integration missing for team ${teamResponse.team.id}`, teamResponse);

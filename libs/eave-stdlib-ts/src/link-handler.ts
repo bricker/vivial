@@ -1,8 +1,10 @@
-import * as githubClient from './github-api/client.js';
-import { LinkType } from './core-api/enums.js';
-import { Pair } from './types.js';
-import eaveLogger from './logging.js';
-import { Subscription } from './core-api/models.js';
+import * as githubClient from './github-api/client';
+import { LinkType } from './core-api/enums';
+import { Pair } from './types';
+import eaveLogger from './logging';
+import { Subscription } from './core-api/models/models';
+import { EaveOrigin } from './eave-origins';
+import { RequestArgsOriginAndTeamId } from './lib/requests';
 
 // mapping from link type to regex for matching raw links against
 const SUPPORTED_LINKS: { [linkType: string]: Array<RegExp> } = {
@@ -29,15 +31,15 @@ export function filterSupportedLinks(urls: Array<string>): Array<Pair<string, Li
  * If an error is encountered while attempting to access the info at a link, the value at
  * the position of the link in the returned list is None.
  */
-export async function mapUrlContent(eaveTeamId: string, urls: Array<Pair<string, LinkType>>): Promise<Array<string | null>> {
+export async function mapUrlContent({ origin, teamId, urls }: RequestArgsOriginAndTeamId & { urls: Array<Pair<string, LinkType>> }): Promise<Array<string | null>> {
   const contentResponses = await Promise.all(urls.map(async (linkContext: Pair<string, LinkType>) => {
     const { first: url, second: type } = linkContext;
 
     switch (type) {
       case LinkType.github: {
-        const contentResponse = await githubClient.getFileContent(eaveTeamId, {
+        const contentResponse = await githubClient.getFileContent({ origin: origin, teamId: teamId, input: {
           url,
-        });
+        }});
         return contentResponse.content;
       }
       default:
@@ -55,12 +57,12 @@ export async function mapUrlContent(eaveTeamId: string, urls: Array<Pair<string,
  * @param eaveTeamId -- TeamOrm ID to create the subscription for
  * @param urls -- links paired with their platform type [(url, url platform)]
  */
-export async function subscribeToFileChanges(eaveTeamId: string, urls: Array<Pair<string, LinkType>>): Promise<Array<Subscription>> {
+export async function subscribeToFileChanges({ origin, teamId, urls }: RequestArgsOriginAndTeamId & { urls: Array<Pair<string, LinkType>> }): Promise<Array<Subscription>> {
   // string key is a LinkType case, but ts won't let me define it that way
   const subscriptions: Array<Subscription> = [];
   urls.forEach(async (linkContext) => {
-    const { first: url, second: type } = linkContext;
-    const maybeSubscription = await createSubscription(url, type, eaveTeamId);
+    const { first: url, second: linkType } = linkContext;
+    const maybeSubscription = await createSubscription({ origin, teamId, url, linkType });
 
     if (maybeSubscription !== null) {
       subscriptions.push(maybeSubscription);
@@ -102,12 +104,12 @@ function getLinkType(link: string): LinkType | null {
  * @param linkType -- resource platform to subscribe on
  * @param eaveTeamId -- ID of team to associate subscription with
  */
-async function createSubscription(url: string, linkType: LinkType, eaveTeamId: string): Promise<Subscription | null> {
+async function createSubscription({ origin, teamId, url, linkType }: RequestArgsOriginAndTeamId & { url: string, linkType: LinkType }): Promise<Subscription | null> {
   switch (linkType) {
     case LinkType.github: {
-      const subscriptionResponse = await githubClient.createSubscription(eaveTeamId, {
+      const subscriptionResponse = await githubClient.createSubscription({ origin, teamId, input: {
         url,
-      });
+      }});
       return subscriptionResponse.subscription;
     }
     default:

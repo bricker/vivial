@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -eu
+
+${EAVE_HOME}/develop/javascript/bin/lint
+forge lint

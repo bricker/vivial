@@ -1,9 +1,11 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import crc32c from 'fast-crc32c';
-import crypto from 'crypto';
-import { sharedConfig } from './config.js';
-import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
-import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
+import { createHash, createVerify, constants as cryptoConstants } from 'crypto';
+import { calculate as calculateCrc32c } from 'fast-crc32c';
+import { sharedConfig } from './config';
+import { EaveOrigin, ExternalOrigin } from './eave-origins';
+import { InvalidChecksumError, InvalidSignatureError } from './exceptions';
+
+const { RSA_PKCS1_PADDING } = cryptoConstants;
 
 const KMS_KEYRING_LOCATION = 'global';
 const KMS_KEYRING_NAME = 'primary';
@@ -46,11 +48,15 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
     version: '1',
     algorithm: SigningAlgorithm.ES256,
   },
+  [EaveOrigin.eave_forge_app]: {
+    id: 'eave-atlassian-app-signing-key', // this key ID is correct for Forge, it's shared with the Atlassian app
+    version: '1',
+    algorithm: SigningAlgorithm.ES256,
+  },
   // This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
   [ExternalOrigin.github_api_client]: {
     id: 'eave-github-app-signing-key-01',
-    // TODO: clean up this hack to change versions in prod/ dev
-    version: sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1',
+    version: '2', // Warning! This version is only valid for prod. See the getVersion function.
     algorithm: SigningAlgorithm.RS256,
   },
 };
@@ -61,6 +67,15 @@ export function getKey(signer: string): SigningKeyDetails {
     throw Error(`No signing key details found for ${signer}`);
   }
   return keyDetails;
+}
+
+// FIXME: This is a hack because the key versions are different between dev and prod.
+function getVersion(key: SigningKeyDetails): string {
+  let version = key.version;
+  if (key.id === 'eave-github-app-signing-key-01') {
+    version = sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1';
+  }
+  return version;
 }
 
 /**
@@ -80,7 +95,7 @@ export async function signBase64(
     KMS_KEYRING_LOCATION,
     KMS_KEYRING_NAME,
     signingKey.id,
-    signingKey.version,
+    getVersion(signingKey),
   );
 
   let messageBytes: Buffer;
@@ -92,7 +107,7 @@ export async function signBase64(
     messageBytes = data;
   }
 
-  const digest = crypto.createHash('sha256').update(messageBytes).digest();
+  const digest = createHash('sha256').update(messageBytes).digest();
   const digestCrc32c = generateChecksum(digest);
 
   const [signedResponse] = await kmsClient.asymmetricSign({
@@ -137,7 +152,7 @@ export async function signBase64(
 }
 
 function generateChecksum(data: Buffer): number {
-  const checksum = crc32c.calculate(data);
+  const checksum = calculateCrc32c(data);
   return checksum;
 }
 
@@ -166,7 +181,7 @@ export async function verifySignatureOrException(
     KMS_KEYRING_LOCATION,
     KMS_KEYRING_NAME,
     signingKey.id,
-    signingKey.version,
+    getVersion(signingKey),
   );
 
   const [kmsPublicKey] = await kmsClient.getPublicKey({
@@ -181,11 +196,11 @@ export async function verifySignatureOrException(
 
   switch (signingKey.algorithm) {
     case SigningAlgorithm.RS256: {
-      const verify = crypto.createVerify('RSA-SHA256');
+      const verify = createVerify('RSA-SHA256');
       verify.update(message);
       verify.end();
       isVerified = verify.verify(
-        { key: kmsPublicKey.pem, padding: crypto.constants.RSA_PKCS1_PADDING },
+        { key: kmsPublicKey.pem, padding: RSA_PKCS1_PADDING },
         signatureString,
         'base64',
       );
@@ -193,7 +208,7 @@ export async function verifySignatureOrException(
     }
     case SigningAlgorithm.ES256: {
       // Algorithm for our keys is EC_SIGN_P256_SHA256
-      const verify = crypto.createVerify('sha256');
+      const verify = createVerify('sha256');
       verify.update(message);
       verify.end();
       isVerified = verify.verify(kmsPublicKey.pem, signatureString, 'base64');

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { getEaveState } from '../lib/request-state.js';
-import eaveLogger from '../logging.js';
+import { getEaveState } from '../lib/request-state';
+import eaveLogger from '../logging';
 
 export function loggingMiddleware(_: Request, res: Response, next: NextFunction): void {
   const eaveState = getEaveState(res);

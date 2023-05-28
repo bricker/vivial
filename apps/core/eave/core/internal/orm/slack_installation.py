@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.core.internal.oauth.slack
+from eave.stdlib.core_api.models import SlackInstallation
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from .resource_mutex import ResourceMutexOrm
 from eave.stdlib.logging import eaveLogger
@@ -140,3 +141,7 @@ class SlackInstallationOrm(Base):
         lookup = cls._build_select(**kwargs)
         result = (await session.scalars(lookup)).one()
         return result
+
+    @property
+    def api_model(self) -> SlackInstallation:
+        return SlackInstallation.from_orm(self)

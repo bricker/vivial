@@ -4,6 +4,7 @@ export enum EaveOrigin {
   eave_github_app = 'eave_github_app',
   eave_slack_app = 'eave_slack_app',
   eave_atlassian_app = 'eave_atlassian_app',
+  eave_forge_app = 'eave_forge_app',
 }
 
 export enum ExternalOrigin {

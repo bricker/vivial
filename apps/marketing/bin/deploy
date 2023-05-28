@@ -5,11 +5,14 @@ set -eu
 source ${EAVE_HOME}/develop/functions.bash
 
 function deploy () (
+	setup-deployment-workspace
+	npm install
+
 	rm -rf eave/marketing/static/dist
 	npx webpack build --mode=production --no-devtool
 
-	setup-deployment-workspace
 	${EAVE_HOME}/develop/python/bin/deploy-appengine
+	clean-deployment-workspace
 )
 
 bin/lint

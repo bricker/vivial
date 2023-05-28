@@ -149,7 +149,7 @@ async def create_task(
 
     eaveLogger.debug(
         f"Creating task on queue {queue_name}",
-        extra=LogContext.wrap(ctx).set(
+        extra=ctx.set(
             {
                 "task_name": task_name,
                 "queue_name": parent,

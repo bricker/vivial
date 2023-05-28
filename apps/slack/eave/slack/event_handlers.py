@@ -107,6 +107,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
                 },
             }
         )
+
         eaveLogger.debug(f"{SLACK_EVENT_QUEUE_NAME} task state", extra=eave_ctx)
 
         # This is on purpose == instead of >=, because we only want to send this message once.

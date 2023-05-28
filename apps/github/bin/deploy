@@ -18,13 +18,14 @@ function deploy () (
 	yalc publish ../../libs/eave-stdlib-ts --replace $qflag
 	yalc add @eave-fyi/eave-stdlib-ts $qflag
 
-	yalc publish ../../develop/javascript/eslint --replace $qflag
-	yalc add @eave-fyi/eslint-config $qflag
+	yalc publish ../../develop/javascript/es-config --replace $qflag
+	yalc add @eave-fyi/es-config $qflag
 
 	# Remove references to the monorepo packages
 	npm prune
 
 	${EAVE_HOME}/develop/shared/bin/deploy-appengine
+	clean-deployment-workspace
 )
 
 bin/lint

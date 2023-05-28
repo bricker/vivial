@@ -2,14 +2,15 @@ import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
 import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
-import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations.js';
+import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/operations.js';
 import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
+import { appConfig } from '../config.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
-  eaveLogger.debug('Processing push', event, context);
+  eaveLogger.debug('Processing push', { event, context });
 
   // only handling branch push events for now; ignore tag pushes
   if (!event.ref.startsWith('refs/heads/')) {
@@ -36,8 +37,11 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       // fetch eave team id required for core_api requests
       const installationId = event.installation!.id;
       const teamResponse = await eaveCoreApiClient.getGithubInstallation({
-        github_installation: {
-          github_install_id: `${installationId}`,
+        origin: appConfig.origin,
+        input: {
+          github_installation: {
+            github_install_id: `${installationId}`,
+          },
         },
       });
       const eaveTeamId = teamResponse.team.id;
@@ -45,12 +49,16 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       // check if we are subscribed to this file
       let subscriptionResponse: eaveOps.GetSubscriptionResponseBody | null = null;
       try {
-        subscriptionResponse = await eaveCoreApiClient.getSubscription(eaveTeamId, {
-          subscription: {
-            source: {
-              platform: eaveEnums.SubscriptionSourcePlatform.github,
-              event: eaveEnums.SubscriptionSourceEvent.github_file_change,
-              id: eventId,
+        subscriptionResponse = await eaveCoreApiClient.getSubscription({
+          origin: appConfig.origin,
+          teamId: eaveTeamId,
+          input: {
+            subscription: {
+              source: {
+                platform: eaveEnums.SubscriptionSourcePlatform.github,
+                event: eaveEnums.SubscriptionSourceEvent.github_file_change,
+                id: eventId,
+              },
             },
           },
         });
@@ -131,15 +139,15 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         content: openaiResponse,
       };
 
-      const upsertDocumentResponse = await eaveCoreApiClient.upsertDocument(
-        eaveTeamId,
-        {
+      const upsertDocumentResponse = await eaveCoreApiClient.upsertDocument({
+        origin: appConfig.origin,
+        teamId: eaveTeamId,
+        input: {
           document,
           subscriptions: [subscriptionResponse.subscription],
         },
-      );
+      });
 
-      // TODO: real logging
       eaveLogger.debug(upsertDocumentResponse);
     }));
   }));
