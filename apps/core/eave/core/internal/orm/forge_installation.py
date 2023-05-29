@@ -34,7 +34,7 @@ class ForgeInstallationOrm(Base):
     confluence_space_key: Mapped[Optional[str]] = mapped_column()
     forge_app_id: Mapped[str] = mapped_column()
     forge_app_version: Mapped[str] = mapped_column()
-    forge_app_installation_id: Mapped[str] = mapped_column(index=True)
+    forge_app_installation_id: Mapped[str] = mapped_column(index=True, unique=True)
     forge_app_installer_account_id: Mapped[str] = mapped_column()
     webtrigger_url: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
