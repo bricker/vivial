@@ -14,22 +14,21 @@
     "yalc": "yalc publish --push"
   },
   "dependencies": {
+    "@aws-crypto/crc32c": "4.x",
     "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript",
     "@google-cloud/kms": "3.x",
     "@google-cloud/logging": "10.x",
-    "@google-cloud/pubsub": "^3.x",
+    "@google-cloud/pubsub": "3.x",
     "@google-cloud/secret-manager": "4.x",
     "express": "4.x",
-    "fast-crc32c": "2.x",
     "openai": "3.x",
     "protobufjs": "7.x",
-    "uuid": "9.x",
-    "request": "2.x"
+    "request": "2.x",
+    "uuid": "9.x"
   },
   "devDependencies": {
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@types/express": "4.x",
-    "@types/fast-crc32c": "2.x",
     "@types/node": "18.x",
     "@types/sinon": "10.x",
     "@types/uuid": "9.x",

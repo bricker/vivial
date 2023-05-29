@@ -76,7 +76,7 @@ class RegisterForgeInstallation(Endpoint):
         path="/integrations/forge/register",
         auth_required=False,
         team_id_required=False,
-        signature_required=True,
+        signature_required=False, # FIXME: Get signing working from Forge
         origin_required=True,
     )
 

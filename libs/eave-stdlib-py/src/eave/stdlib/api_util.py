@@ -1,7 +1,9 @@
 import http
+import re
 from typing import Any, Optional
 
 import pydantic
+from eave.stdlib.headers import AUTHORIZATION_HEADER
 
 from eave.stdlib.util import redact
 
@@ -71,6 +73,16 @@ def get_headers(
         if n.decode().lower() not in excluded
     }
 
+def get_bearer_token(scope: HTTPScope) -> str | None:
+    auth_header = get_header_value(scope=scope, name=AUTHORIZATION_HEADER)
+    if auth_header is None:
+        return None
+
+    auth_header_match = re.match("^Bearer (.+)$", auth_header)
+    if auth_header_match is None:
+        return None
+
+    return auth_header_match.group(1)
 
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
     response = Response(status_code=status_code, content=model.json(), media_type="application/json")

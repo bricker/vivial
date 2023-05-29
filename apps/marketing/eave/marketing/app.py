@@ -4,6 +4,7 @@ import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.cookies
 import eave.stdlib.core_api
 import eave.stdlib.core_api.client as eave_core
+from eave.stdlib.core_api.operations.forge import UpdateForgeInstallation, UpdateForgeInstallationInput, update_forge_installation_authed
 import eave.stdlib.core_api.operations.integrations
 import eave.stdlib.requests
 import eave.stdlib.core_api.operations as eave_ops
@@ -71,23 +72,27 @@ async def authed_account_team() -> Response:
     return _clean_response(eave_response)
 
 
-@app.route("/dashboard/me/team/integrations/atlassian/update", methods=["POST"])
-async def update_atlassian_integration() -> Response:
+@app.route("/dashboard/me/team/integrations/forge/update", methods=["POST"])
+async def update_forge_integration() -> Response:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
 
     body = request.get_json()
-    confluence_space_key = body["atlassian_integration"]["confluence_space_key"]
 
-    await eave_core.update_atlassian_integration(
+    # FIXME: The forge app installation ID can be saved in cookies or something, no need for the client to pass it back to us.
+    forge_app_installation_id = body["forge_integration"]["forge_app_installation_id"]
+    confluence_space_key = body["forge_integration"]["confluence_space_key"]
+
+    await update_forge_installation_authed(
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
-        input=eave.stdlib.core_api.operations.integrations.UpdateAtlassianInstallation.RequestBody(
-            atlassian_integration=eave.stdlib.core_api.operations.integrations.UpdateAtlassianInstallationInput(
-                confluence_space_key=confluence_space_key,
-            ),
+        input=UpdateForgeInstallation.RequestBody(
+            forge_integration=UpdateForgeInstallationInput.parse_obj({
+                "forge_app_installation_id": forge_app_installation_id,
+                "confluence_space_key": confluence_space_key,
+            }),
         ),
     )
 

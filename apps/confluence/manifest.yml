@@ -20,24 +20,16 @@ permissions:
   external:
     fetch:
       backend:
-        - api.eave.fyi
-        - apps.eave.fyi
+        - eave.fyi
+        - eave.run
 
 modules:
   trigger:
-    - key: trigger-forgeInstalledApp
-      function: func-forgeInstalledApp
-      events:
-        - avi:forge:installed:app
-
-    - key: trigger-forgeUpgradedApp
-      function: func-forgeUpgradedApp
-      events:
-        - avi:forge:upgraded:app
-
     - key: trigger-forgeEvent
       function: func-forgeEventDispatch
       events:
+        - avi:forge:installed:app
+        - avi:forge:upgraded:app
         - avi:jira:commented:issue
 
   webtrigger:
@@ -46,12 +38,6 @@ modules:
       function: func-eaveApiDispatch
 
   function:
-    - key: func-forgeInstalledApp
-      handler: main.forgeInstalledApp
-
-    - key: func-forgeUpgradedApp
-      handler: main.forgeUpgradedApp
-
     - key: func-forgeEventDispatch
       handler: main.forgeEventDispatch
 

@@ -161,6 +161,18 @@ export interface Context {
 // Example: "avi:jira:commented:issue" -> CommentedIssueEventPayload"
 export interface EventPayload {
   eventType: string;
+  environment?: { id: string };
+  contextToken?: string;
+  context?: {
+    cloudId?: string;
+    moduleKey?: string;
+  };
+  selfGenerated?: boolean;
+  retryContext?: {
+    retryData?: unknown;
+    retryCount?: number;
+    retryReason?: string;
+  };
 }
 
 export interface CommentedIssueEventPayload extends EventPayload {
@@ -178,14 +190,14 @@ export interface MentionedCommentEventPayload extends EventPayload {
 }
 
 // https://developer.atlassian.com/platform/forge/events-reference/life-cycle/#installation
-export interface InstalledAppEventPayload {
+export interface InstalledAppEventPayload extends EventPayload {
   id: string;
   installerAccountId: string;
   app: App;
 }
 
 // https://developer.atlassian.com/platform/forge/events-reference/life-cycle/#upgrade
-export interface UpgradedAppEventPayload {
+export interface UpgradedAppEventPayload extends EventPayload {
   id: string;
   installerAccountId: string;
   app: App;

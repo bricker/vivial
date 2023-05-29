@@ -1,6 +1,6 @@
 import * as forgemodels from '../models/forge.js';
 import * as models from '../models/models.js';
-import { makeRequest } from '../../lib/requests.js';
+import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
 import { sharedConfig } from '../../config.js';
 import { EaveOrigin } from '../../eave-origins.js';
 
@@ -48,7 +48,7 @@ export type UpdateForgeInstallationResponseBody = {
   forge_integration: forgemodels.ForgeInstallation;
 }
 
-export async function queryForgeInstallation(origin: EaveOrigin | string, input: QueryForgeInstallationRequestBody): Promise<QueryForgeInstallationResponseBody> {
+export async function queryForgeInstallation({ origin, input }: RequestArgsOrigin & {input: QueryForgeInstallationInput}): Promise<QueryForgeInstallationResponseBody> {
   const resp = await makeRequest({
     origin,
     url: `${sharedConfig.eaveApiBase}/integrations/forge/query`,
@@ -58,9 +58,11 @@ export async function queryForgeInstallation(origin: EaveOrigin | string, input:
   return responseData;
 }
 
-export async function registerForgeInstallation(origin: EaveOrigin | string, input: RegisterForgeInstallationRequestBody): Promise<RegisterForgeInstallationResponseBody> {
+export async function registerForgeInstallationInsecure({ origin, sharedSecret, input }: RequestArgsOrigin & {sharedSecret: string, input: RegisterForgeInstallationRequestBody}): Promise<RegisterForgeInstallationResponseBody> {
   const resp = await makeRequest({
     origin,
+    accessToken: sharedSecret,
+    sign: false, // TODO: Get signing working
     url: `${sharedConfig.eaveApiBase}/integrations/forge/register`,
     input,
   });
@@ -68,9 +70,11 @@ export async function registerForgeInstallation(origin: EaveOrigin | string, inp
   return responseData;
 }
 
-export async function updateForgeInstallation(origin: EaveOrigin | string, input: UpdateForgeInstallationRequestBody): Promise<UpdateForgeInstallationResponseBody> {
+export async function updateForgeInstallationInsecure({ origin, sharedSecret, input }: RequestArgsOrigin & {sharedSecret: string, input: UpdateForgeInstallationRequestBody}): Promise<UpdateForgeInstallationResponseBody> {
   const resp = await makeRequest({
     origin,
+    accessToken: sharedSecret,
+    sign: false,
     url: `${sharedConfig.eaveApiBase}/integrations/forge/update`,
     input,
   });

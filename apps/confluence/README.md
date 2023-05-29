@@ -30,3 +30,5 @@ publicPath: '',
 ```
 
 This fixes some error talking about `auto publicPath not supported in this browser`, idk, just do it.
+
+To deploy, you need to do the same thing but on the files in another location (`@forge/cli` instead of `@forge/sandbox-tunnel`: `(path/to/node/install)/lib/node_modules/@forge/cli/node_modules/@forge/bundler/out/config/common.js`

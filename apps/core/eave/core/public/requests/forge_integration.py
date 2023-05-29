@@ -1,3 +1,7 @@
+from typing import Literal, cast
+
+from asgiref.typing import HTTPScope
+from starlette.types import Scope
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 from eave.core.public.http_endpoint import HTTPEndpoint
@@ -6,10 +10,13 @@ from eave.stdlib.core_api.operations.forge import (
     RegisterForgeInstallation,
     UpdateForgeInstallation,
 )
+from eave.stdlib.exceptions import BadRequestError
+from eave.stdlib.headers import AUTHORIZATION_HEADER
 
 
 import eave.stdlib.util
 from eave.stdlib import analytics
+from eave.stdlib.config import shared_config
 import eave.stdlib.api_util as eave_api_util
 from starlette.requests import Request
 from starlette.responses import Response
@@ -44,6 +51,8 @@ class QueryForgeIntegration(HTTPEndpoint):
 
 class RegisterForgeIntegration(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
+        validate_shared_secret(scope=request.scope) # FIXME: This should use real signing
+
         body = await request.json()
         input = RegisterForgeInstallation.RequestBody.parse_obj(body)
 
@@ -116,3 +125,16 @@ class UpdateForgeIntegration(HTTPEndpoint):
                 forge_integration=installation.api_model,
             )
         )
+
+def validate_shared_secret(scope: Scope) -> Literal[True]:
+    cscope = cast(HTTPScope, scope)
+    given_secret = eave_api_util.get_bearer_token(scope=cscope)
+    if given_secret is None:
+        raise BadRequestError("malformed or missing authorization header")
+
+    shared_secret = shared_config.eave_forge_app_shared_secret
+
+    if given_secret != shared_secret:
+        raise BadRequestError("malformed or missing authorization header")
+
+    return True
