@@ -85,12 +85,30 @@ class UpdateForgeIntegration(HTTPEndpoint):
                 forge_app_installation_id=input.forge_integration.forge_app_installation_id,
             )
 
+            previous_version = installation.forge_app_version
+
             if installation.team_id:
                 eave_team = await eave_orm.TeamOrm.one_or_exception(session=db_session, team_id=installation.team_id)
             else:
                 eave_team = None
 
             installation.update(session=db_session, input=input.forge_integration)
+
+        analytics.log_event(
+            event_name="eave_forge_app_updated",
+            event_description="The team's forge app was updated",
+            eave_account_id="unknown",
+            eave_team_id=str(eave_team.id) if eave_team else None,
+            eave_visitor_id="unknown",
+            event_source="core api",
+            opaque_params={
+                "integration_name": eave.stdlib.core_api.enums.Integration.forge.value,
+                "installer_atlassian_account_id": input.forge_integration.forge_app_installer_account_id,
+                "forge_app_installation_id": input.forge_integration.forge_app_installation_id,
+                "forge_app_previous_version": previous_version,
+                "forge_app_new_version": input.forge_integration.forge_app_version,
+            },
+        )
 
         return eave_api_util.json_response(
             UpdateForgeInstallation.ResponseBody(

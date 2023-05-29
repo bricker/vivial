@@ -50,7 +50,7 @@ class UpdateForgeInstallationInput(pydantic.BaseModel):
     forge_app_installation_id: str
     forge_app_version: typing.Optional[str]
     forge_app_installer_account_id: typing.Optional[str]
-    webtrigger_url: str
+    webtrigger_url: typing.Optional[str]
     confluence_space_key: typing.Optional[str]
 
 
@@ -127,6 +127,17 @@ async def register_forge_installation(
     response_json = await response.json()
     return RegisterForgeInstallation.ResponseBody(**response_json)
 
+
+async def update_forge_installation(
+    input: UpdateForgeInstallation.RequestBody,
+) -> UpdateForgeInstallation.ResponseBody:
+    response = await make_request(
+        url=UpdateForgeInstallation.config.url,
+        input=input,
+    )
+
+    response_json = await response.json()
+    return UpdateForgeInstallation.ResponseBody(**response_json)
 
 async def update_forge_installation_authed(
     account_id: uuid.UUID,
