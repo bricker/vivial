@@ -1,5 +1,5 @@
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
-import { CommentedIssueEventPayload } from '../types';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { CommentedIssueEventPayload } from '../types.js';
 
 export default async function jiraCommentedIssueEventHandler(event: CommentedIssueEventPayload) {
   eaveLogger.info('jiraCommentedIssue', event);

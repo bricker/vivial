@@ -1,8 +1,8 @@
 import { v4 as uuid4 } from 'uuid';
-import eaveLogger from '../logging';
-import { EaveOrigin } from '../eave-origins';
-import { getKey, signBase64 } from '../signing';
-import eaveHeaders from '../headers';
+import eaveLogger from '../logging.js';
+import { EaveOrigin } from '../eave-origins.js';
+import { getKey, signBase64 } from '../signing.js';
+import eaveHeaders from '../headers.js';
 import {
   NotFoundError,
   UnauthorizedError,
@@ -10,7 +10,7 @@ import {
   InternalServerError,
   HTTPException,
 } from '../exceptions';
-import { redact } from '../util';
+import { redact } from '../util.js';
 
 export function buildMessageToSign(
   method: string,

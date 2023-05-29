@@ -1,5 +1,5 @@
 import { Logging, SeverityNames } from '@google-cloud/logging';
-import { sharedConfig } from './config';
+import { sharedConfig } from './config.js';
 
 // This module defines some basic functionality for switching between console and Cloud Logger, depending on environment.
 // Winston is a more robust solution, but has many dependencies and doesn't play nicely with the Forge runtime environment.

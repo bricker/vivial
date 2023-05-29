@@ -1,9 +1,9 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
 import { createHash, createVerify, constants as cryptoConstants } from 'crypto';
 import { calculate as calculateCrc32c } from 'fast-crc32c';
-import { sharedConfig } from './config';
-import { EaveOrigin, ExternalOrigin } from './eave-origins';
-import { InvalidChecksumError, InvalidSignatureError } from './exceptions';
+import { sharedConfig } from './config.js';
+import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
+import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
 
 const { RSA_PKCS1_PADDING } = cryptoConstants;
 

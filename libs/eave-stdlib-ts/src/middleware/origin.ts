@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { getEaveState, setEaveState } from '../lib/request-state';
-import eaveHeaders from '../headers';
-import { EaveOrigin } from '../eave-origins';
-import eaveLogger from '../logging';
+import { getEaveState, setEaveState } from '../lib/request-state.js';
+import eaveHeaders from '../headers.js';
+import { EaveOrigin } from '../eave-origins.js';
+import eaveLogger from '../logging.js';
 
 export function originMiddleware(req: Request, res: Response, next: NextFunction): void {
   const eaveState = getEaveState(res);

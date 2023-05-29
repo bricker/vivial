@@ -1,6 +1,6 @@
 import { PubSub, Encodings } from '@google-cloud/pubsub';
-import { EaveEvent } from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event';
-import eaveLogger from './logging';
+import { EaveEvent } from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event.js';
+import eaveLogger from './logging.js';
 
 const EVENT_TOPIC_ID = 'eave_event_topic';
 const pubSubClient = new PubSub();

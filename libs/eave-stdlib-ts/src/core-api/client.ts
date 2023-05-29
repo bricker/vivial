@@ -1,6 +1,6 @@
-import { sharedConfig } from '../config';
-import * as ops from './operations/operations';
-import { RequestArgsOrigin, RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests';
+import { sharedConfig } from '../config.js';
+import * as ops from './operations/operations.js';
+import { RequestArgsOrigin, RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests.js';
 
 export async function status(): Promise<ops.StatusResponseBody> {
   const resp = await fetch(`${sharedConfig.eaveApiBase}/status`, {

@@ -1,6 +1,6 @@
-import * as ops from './operations';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests';
-import { sharedConfig } from '../config';
+import * as ops from './operations.js';
+import { RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests.js';
+import { sharedConfig } from '../config.js';
 
 export async function createSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {
   input: ops.CreateGithubResourceSubscriptionRequestBody,

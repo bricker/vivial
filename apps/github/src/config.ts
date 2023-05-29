@@ -1,5 +1,5 @@
 import { EaveConfig } from '@eave-fyi/eave-stdlib-ts/src/config.js';
-import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins';
+import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 
 class AppConfig extends EaveConfig {
   origin = EaveOrigin.eave_github_app;

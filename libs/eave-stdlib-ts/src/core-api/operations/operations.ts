@@ -1,4 +1,4 @@
-import * as models from '../models/models';
+import * as models from '../models/models.js';
 
 export type DocumentInput = {
   title: string;

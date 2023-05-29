@@ -1,8 +1,8 @@
 import qs from 'querystring';
 import api, { route } from '@forge/api';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
-import { JsonObject, WebTriggerRequestPayload, WebTriggerResponsePayload } from '../types';
-import { makeResponse } from '../response';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { JsonObject, WebTriggerRequestPayload, WebTriggerResponsePayload } from '../types.js';
+import { makeResponse } from '../response.js';
 
 export default async function createDocument(request: WebTriggerRequestPayload): Promise<WebTriggerResponsePayload> {
   eaveLogger.info('createDocument', request);

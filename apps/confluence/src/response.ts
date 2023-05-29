@@ -1,4 +1,4 @@
-import { WebTriggerResponsePayload } from './types';
+import { WebTriggerResponsePayload } from './types.js';
 
 export function makeResponse(
   { statusCode = 200, statusText, body = {} }:

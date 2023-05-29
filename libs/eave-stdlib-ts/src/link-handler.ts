@@ -1,9 +1,9 @@
-import * as githubClient from './github-api/client';
-import { LinkType } from './core-api/enums';
-import { Pair } from './types';
-import eaveLogger from './logging';
-import { Subscription } from './core-api/models/models';
-import { RequestArgsOriginAndTeamId } from './lib/requests';
+import * as githubClient from './github-api/client.js';
+import { LinkType } from './core-api/enums.js';
+import { Pair } from './types.js';
+import eaveLogger from './logging.js';
+import { Subscription } from './core-api/models/models.js';
+import { RequestArgsOriginAndTeamId } from './lib/requests.js';
 
 // mapping from link type to regex for matching raw links against
 const SUPPORTED_LINKS: { [linkType: string]: Array<RegExp> } = {

@@ -2,9 +2,6 @@
 // The Forge app runs in a Node-ish environment, but with limitations.
 // See here for more info:  https://developer.atlassian.com/platform/forge/runtime-reference/
 
-// eslint-disable-next-line camelcase, no-undef
-__webpack_public_path__ = '';
-
 if (process.argv === undefined) {
   process.argv = [];
 }

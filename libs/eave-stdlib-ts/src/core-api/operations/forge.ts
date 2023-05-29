@@ -1,8 +1,8 @@
-import * as forgemodels from '../models/forge';
-import * as models from '../models/models';
-import { makeRequest } from '../../lib/requests';
-import { sharedConfig } from '../../config';
-import { EaveOrigin } from '../../eave-origins';
+import * as forgemodels from '../models/forge.js';
+import * as models from '../models/models.js';
+import { makeRequest } from '../../lib/requests.js';
+import { sharedConfig } from '../../config.js';
+import { EaveOrigin } from '../../eave-origins.js';
 
 export type QueryForgeInstallationInput = {
   forge_app_id: string;

@@ -1,9 +1,9 @@
 import * as os from 'os';
 import { Request } from 'express';
-import eaveLogger from '../logging';
-import { sharedConfig } from '../config';
-import eaveHeaders from '../headers';
-import { EaveRequestState } from '../lib/request-state';
+import eaveLogger from '../logging.js';
+import { sharedConfig } from '../config.js';
+import eaveHeaders from '../headers.js';
+import { EaveRequestState } from '../lib/request-state.js';
 
 export function developmentBypassAllowed(req: Request): boolean {
   if (!sharedConfig.devMode || sharedConfig.googleCloudProject === 'eave-production') {

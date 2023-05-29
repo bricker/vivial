@@ -2,20 +2,20 @@ import './polyfill';
 
 import fs from 'fs';
 import { webTrigger } from '@forge/api';
-import { EaveForgeInboundOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/enums';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging';
-import createDocument from './api/create-document';
-import updateDocument from './api/update-document';
-import archiveDocument from './api/archive-document';
-import { makeResponse } from './response';
-import { InstalledAppEventPayload, UpgradedAppEventPayload, CommentedIssueEventPayload, WebTriggerRequestPayload, WebTriggerResponsePayload, EventPayload } from './types';
-import appConfig from './config';
-import jiraCommentedIssueEventHandler from './events/jira-commented-issue';
+import { EaveForgeInboundOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import createDocument from './api/create-document.js';
+import updateDocument from './api/update-document.js';
+import archiveDocument from './api/archive-document.js';
+import { makeResponse } from './response.js';
+import { InstalledAppEventPayload, UpgradedAppEventPayload, CommentedIssueEventPayload, WebTriggerRequestPayload, WebTriggerResponsePayload, EventPayload } from './types.js';
+import appConfig from './config.js';
+import jiraCommentedIssueEventHandler from './events/jira-commented-issue.js';
 
 const WEBTRIGGER_KEY = 'webtrigger-eaveApi';
 
 export async function forgeInstalledApp(event: InstalledAppEventPayload) {
-  const { registerForgeInstallation } = await import('@eave-fyi/eave-stdlib-ts/src/core-api/operations/forge');
+  const { registerForgeInstallation } = await import('@eave-fyi/eave-stdlib-ts/src/core-api/operations/forge.js');
 
   putGCPServiceAccountKey();
   eaveLogger.info('forgeInstalledApp', event);

@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveHeaders from '../headers';
-import { getEaveState } from '../lib/request-state';
-import { developmentBypassAllowed } from './development-bypass';
-import { buildMessageToSign } from '../lib/requests';
-import { getKey, verifySignatureOrException } from '../signing';
-import { HTTPException } from '../exceptions';
-import eaveLogger from '../logging';
+import eaveHeaders from '../headers.js';
+import { getEaveState } from '../lib/request-state.js';
+import { developmentBypassAllowed } from './development-bypass.js';
+import { buildMessageToSign } from '../lib/requests.js';
+import { getKey, verifySignatureOrException } from '../signing.js';
+import { HTTPException } from '../exceptions.js';
+import eaveLogger from '../logging.js';
 
 /**
  * Reads the body and headers and verifies the signature.

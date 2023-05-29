@@ -1,5 +1,5 @@
 import api, { route } from '@forge/api';
-import { Issue, Content, ContentType } from './types';
+import { Issue, Content, ContentType } from './types.js';
 
 export async function addComment(issue: Issue, content: Content[]) {
   const requestUrl = route`/rest/api/3/issue/${issue.id}/comment`;

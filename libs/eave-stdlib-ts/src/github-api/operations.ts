@@ -1,4 +1,4 @@
-import { Subscription } from '../core-api/models/models';
+import { Subscription } from '../core-api/models/models.js';
 
 export type GetGithubUrlContentRequestBody = {
   url: string;
