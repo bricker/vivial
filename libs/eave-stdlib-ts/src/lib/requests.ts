@@ -9,7 +9,7 @@ import {
   BadRequestError,
   InternalServerError,
   HTTPException,
-} from '../exceptions';
+} from '../exceptions.js';
 import { redact } from '../util.js';
 
 export function buildMessageToSign(
