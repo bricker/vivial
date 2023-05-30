@@ -165,10 +165,11 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
     async def update_documentation(self) -> None:
-        await self.send_response(
-            text="I haven't yet been taught how to update existing documentation.",
-            eave_message_purpose="unable to perform action",
-        )
+        pass
+        # await self.send_response(
+        #     text="I haven't yet been taught how to update existing documentation.",
+        #     eave_message_purpose="unable to perform action",
+        # )
 
     async def refine_documentation(self) -> None:
         api_document = await self.build_documentation()

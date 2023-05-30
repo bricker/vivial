@@ -1,3 +1,4 @@
+import html
 import typing
 from functools import cached_property
 from typing import Optional, cast
@@ -111,8 +112,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         else:
             resolved_document_body = input.content
 
-        # TODO: Hack
-        content = resolved_document_body.replace("&", "&amp;")
+        content = clean_document(raw_doc=resolved_document_body)
         response = self._confluence_client.update_page(
             page_id=document_id,
             title=existing_page.title,
@@ -151,8 +151,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         if document.parent is not None:
             parent_page = await self._get_or_create_confluence_page(document=document.parent)
 
-        # TODO: Hack
-        content = document.content.replace("&", "&amp;")
+        content = clean_document(raw_doc=document.content)
         response = self._confluence_client.create_page(
             space=self.space,
             title=document.title,
@@ -195,3 +194,13 @@ class ConfluenceDestination(abstract.DocumentDestination):
         json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json)
         return page
+
+
+def clean_document(raw_doc: str) -> str:
+    """
+    Fixes some HTML things that Confluence chokes on
+    """
+    content = html.unescape(raw_doc)
+    content = content.replace("&", "&amp;")  # TODO: Hack; Confluence API chokes on & characters
+    content = content.replace("<br>", "<br/>")
+    return content

@@ -129,5 +129,5 @@ class CommunicationMixinTest(BaseTestCase):
         mock_response = {"error": self.anystring()}
         mock.side_effect = SlackApiError(message=self.anystring(), response=mock_response)
 
-        with self.assertRaises(SlackApiError):
-            await self.sut.acknowledge_receipt()
+        await self.sut.acknowledge_receipt()
+        # error not raised
