@@ -39,7 +39,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const teamResponse = await eaveCoreApiClient.getGithubInstallation({
         origin: appConfig.origin,
         input: {
-          github_installation: {
+          github_integration: {
             github_install_id: `${installationId}`,
           },
         },

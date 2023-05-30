@@ -70,21 +70,21 @@ export type CreateSubscriptionResponseBody = {
 }
 
 export type GetSlackInstallationRequestBody = {
-  slack_installation: SlackInstallationInput;
+  slack_integration: SlackInstallationInput;
 }
 
 export type GetSlackInstallationResponseBody = {
   team: models.Team;
-  slack_installation: models.SlackInstallation;
+  slack_integration: models.SlackInstallation;
 }
 
 export type GetGithubInstallationRequestBody = {
-  github_installation: GithubInstallationInput;
+  github_integration: GithubInstallationInput;
 }
 
 export type GetGithubInstallationResponseBody = {
   team: models.Team;
-  github_installation: models.GithubInstallation;
+  github_integration: models.GithubInstallation;
 }
 
 export type DeleteSubscriptionRequestBody = {
