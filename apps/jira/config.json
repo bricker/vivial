@@ -1,0 +1,29 @@
+{
+    "development": {
+        "errorTemplate": true,
+        "port": 5500,
+        "store": {
+            "adapter": "sequelize",
+            "dialect": "sqlite3",
+            "logging": false,
+            "type": "memory"
+        },
+        // The host part of  this URL is placeholder; it is overridden in development at runtime with the ngrok host.
+        "localBaseUrl": "http://apps.eave.run/jira"
+    },
+    "production": {
+        "port": "$PORT",
+        "errorTemplate": true,
+        "localBaseUrl": "https://apps.eave.fyi/jira",
+        "store": {
+            "adapter": "eave-api"
+        },
+        "whitelist": [
+            "*.jira-dev.com",
+            "*.atlassian.net",
+            "*.atlassian.com",
+            "*.jira.com"
+        ]
+    },
+    "product": "jira"
+}

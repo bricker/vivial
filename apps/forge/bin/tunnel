@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/functions.bash
+
+export FORGE_DEV_TUNNEL=true
+
+${EAVE_HOME}/develop/shared/bin/run-with-dotenv -f ../../../.env -- forge tunnel --verbose

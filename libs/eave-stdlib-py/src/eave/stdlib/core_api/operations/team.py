@@ -1,4 +1,3 @@
-import pydantic
 import uuid
 
 from eave.stdlib.core_api.models.team import Team
@@ -7,12 +6,7 @@ from ..models import integrations
 
 from eave.stdlib.eave_origins import EaveOrigin
 
-from ..models import BaseInputModel
 from ... import requests
-
-
-class TeamInput(BaseInputModel):
-    id: pydantic.UUID4
 
 
 class GetTeam(Endpoint):
@@ -40,5 +34,6 @@ class GetTeam(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 

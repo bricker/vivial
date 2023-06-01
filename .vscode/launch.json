@@ -80,6 +80,25 @@
       },
     },
     {
+      "name": "Jira App",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/jira",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/apps/jira/src/app.ts",
+      "restart": true,
+      "args": [],
+      "runtimeExecutable": "${workspaceFolder}/apps/jira/node_modules/.bin/nodemon",
+      "consoleTitle": "Jira App",
+      "console": "integratedTerminal",
+      "env": {
+        "PORT": "5500"
+      },
+    },
+    {
       "name": "Marketing Website (Server)",
       "envFile": "${workspaceFolder}/.env",
       "cwd": "${workspaceFolder}/apps/marketing",
