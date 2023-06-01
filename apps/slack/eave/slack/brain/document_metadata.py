@@ -229,4 +229,5 @@ async def get_documentation(
     openai_response: str | None = await eave_openai.chat_completion(openai_params)
     if openai_response is None:
         raise OpenAIDataError()
+
     return openai_response

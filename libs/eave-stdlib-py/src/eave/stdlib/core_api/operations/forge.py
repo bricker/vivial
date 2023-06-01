@@ -13,7 +13,6 @@ from eave.stdlib.eave_origins import EaveOrigin
 from ..models import team
 from ... import requests
 
-
 class RegisterForgeInstallation(Endpoint):
     config = EndpointConfiguration(
         path="/integrations/forge/register",
@@ -93,11 +92,6 @@ class UpdateForgeInstallation(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json)
-
-
-
-
-
 
 class QueryForgeInstallation(Endpoint):
     config = EndpointConfiguration(
