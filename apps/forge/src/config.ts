@@ -16,6 +16,7 @@ class AppConfig extends EaveConfig {
   }
 
   get eaveGCPServiceAccountCredentials(): Buffer {
+    // TODO: Change this to have a forge-specific name
     const b64 = process.env['EAVE_GCP_SA_CREDENTIALS_B64'];
     if (!b64) {
       throw new Error('EAVE_GCP_SA_CREDENTIALS_B64 not set');

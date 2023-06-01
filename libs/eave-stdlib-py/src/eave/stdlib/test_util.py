@@ -268,10 +268,10 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         for call_args in mock.call_args_list:
             args_matched = all([call_args.args[i] == v for i, v in enumerate(args)])
             opaque_params = kwargs.pop("opaque_params", None)
-            kwargs_matched = all([call_args.kwargs[k] == v for k, v in kwargs.items()])
+            kwargs_matched = all([call_args.kwargs.get(k) == v for k, v in kwargs.items()])
             if opaque_params:
                 opaque_params_matched = all(
-                    [call_args.kwargs["opaque_params"][k] == v for k, v in opaque_params.items()]
+                    [call_args.kwargs["opaque_params"].get(k) == v for k, v in opaque_params.items()]
                 )
             else:
                 opaque_params_matched = True
