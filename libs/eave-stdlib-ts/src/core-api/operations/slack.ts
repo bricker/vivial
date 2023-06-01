@@ -4,12 +4,12 @@ import { SlackInstallation, SlackInstallationInput } from '../models/slack.js';
 import { Team } from '../models/team.js';
 
 export type GetSlackInstallationRequestBody = {
-  slack_installation: SlackInstallationInput;
+  slack_integration: SlackInstallationInput;
 }
 
 export type GetSlackInstallationResponseBody = {
   team: Team;
-  slack_installation: SlackInstallation;
+  slack_integration: SlackInstallation;
 }
 
 export async function getSlackInstallation({ origin, input }: RequestArgsOrigin & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
