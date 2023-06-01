@@ -17,6 +17,7 @@ from .slack_installation import SlackInstallationOrm
 from .subscription import SubscriptionOrm
 from .util import UUID_DEFAULT_EXPR
 
+import time # debug
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -91,6 +92,8 @@ class TeamOrm(Base):
     async def get_integrations(
         self, session: AsyncSession
     ) -> eave.stdlib.core_api.operations.integrations.Integrations:
+        # do a series of left joins on Team tabel so that we don't lose info
+        start = time.time()
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
@@ -98,7 +101,8 @@ class TeamOrm(Base):
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
 
         forge_installation = await ForgeInstallationOrm.one_or_none(session=session, team_id=self.id)
-
+        res = time.time() - start
+        print(f"\n\nTIME ELAPSED: {res}\n\n")
         return eave.stdlib.core_api.operations.integrations.Integrations(
             slack=slack_installation.api_model if slack_installation else None,
             github=github_installation.api_model if github_installation else None,
