@@ -6,8 +6,8 @@ from typing import Optional, cast
 import atlassian
 import eave.stdlib
 import eave.stdlib.atlassian
-from eave.stdlib.core_api.models import DocumentSearchResult
-import eave.stdlib.core_api.operations as eave_ops
+from eave.stdlib.core_api.models.documents import DocumentInput
+from eave.stdlib.core_api.models.documents import DocumentSearchResult
 from eave.stdlib.exceptions import ConfluenceDataError, OpenAIDataError
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.openai_client
@@ -62,7 +62,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
     async def delete_document(self, document_id: str) -> None:
         self._confluence_client.post("rest/api/content/archive", data={"pages": [{"id": int(document_id)}]})
 
-    async def create_document(self, input: eave_ops.DocumentInput) -> abstract.DocumentMetadata:
+    async def create_document(self, input: DocumentInput) -> abstract.DocumentMetadata:
         confluence_page = await self._get_or_create_confluence_page(document=input)
         base_url = self.oauth_session.confluence_context.base_url
         return abstract.DocumentMetadata(
@@ -72,7 +72,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
 
     async def update_document(
         self,
-        input: eave_ops.DocumentInput,
+        input: DocumentInput,
         document_id: str,
     ) -> abstract.DocumentMetadata:
         """
@@ -140,9 +140,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
             session=self.oauth_session,
         )
 
-    async def _get_or_create_confluence_page(
-        self, document: eave_ops.DocumentInput
-    ) -> eave.stdlib.atlassian.ConfluencePage:
+    async def _get_or_create_confluence_page(self, document: DocumentInput) -> eave.stdlib.atlassian.ConfluencePage:
         existing_page = await self._get_confluence_page_by_title(document=document)
         if existing_page:
             return existing_page
@@ -182,7 +180,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         return page
 
     async def _get_confluence_page_by_title(
-        self, document: eave_ops.DocumentInput
+        self, document: DocumentInput
     ) -> eave.stdlib.atlassian.ConfluencePage | None:
         response = self._confluence_client.get_page_by_title(
             space=self.space,

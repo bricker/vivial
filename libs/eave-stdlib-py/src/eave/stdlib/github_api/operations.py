@@ -1,6 +1,7 @@
 from typing import Optional
 import pydantic
-from eave.stdlib.core_api.models import Subscription
+
+from ..core_api.models.subscriptions import Subscription
 
 
 class Endpoint:

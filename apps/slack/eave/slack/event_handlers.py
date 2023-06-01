@@ -9,6 +9,7 @@ import eave.slack.slack_models
 import eave.stdlib
 from eave.stdlib import task_queue
 import eave.stdlib.core_api
+from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
 from .config import SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
@@ -157,7 +158,7 @@ async def event_member_joined_channel_handler(
             event_source="slack app",
             eave_team_id=eave_team.id if eave_team else None,
             opaque_params={
-                "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                "integration": Integration.slack.value,
                 "message_content": message,
                 "message_purpose": "introduction after joining a channel",
                 "eave_ctx": eave_ctx,

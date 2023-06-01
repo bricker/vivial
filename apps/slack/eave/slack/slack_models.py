@@ -5,7 +5,8 @@ from typing import Any, AsyncGenerator, List, Optional
 
 import eave.pubsub_schemas
 import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.models as eave_models
+from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from eave.stdlib.exceptions import SlackDataError
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.util as eave_util
@@ -367,10 +368,10 @@ class SlackMessage:
         return re.sub("^(<@.+?>\\s?)+", "", self.text)
 
     @property
-    def subscription_source(self) -> eave_models.SubscriptionSource:
-        return eave_models.SubscriptionSource(
-            platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-            event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+    def subscription_source(self) -> SubscriptionSource:
+        return SubscriptionSource(
+            platform=SubscriptionSourcePlatform.slack,
+            event=SubscriptionSourceEvent.slack_message,
             id=self.subscription_id,
         )
 

@@ -20,7 +20,7 @@ import Copy from '../../Copy/index.jsx';
 import Button from '../../Button/index.jsx';
 import PurpleCheckIcon from '../../Icons/PurpleCheckIcon.jsx';
 import ConfluenceIcon from '../../Icons/ConfluenceIcon.jsx';
-// import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
+import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
 import DownIcon from '../../Icons/DownIcon.js';
 import Footnote from './Footnote.jsx';
 import StepIcon from './StepIcon.jsx';
@@ -143,6 +143,8 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
+const FORGE_APP_INSTALL_URL = 'https://developer.atlassian.com/console/install/e3c57ac8-296e-4392-b128-4330b1ab2883/?signature=9e7204e3d1f2898b576427da60ab2182353879b1173469f1b59e0e9cab271d5439c0ff55d59dab60621d9c871125afe79fac266aa532eb29778a2d751bbe0508&product=confluence&product=jira';
+
 const Steps = () => {
   const classes = makeClasses();
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
@@ -151,31 +153,29 @@ const Steps = () => {
   const [step, setStep] = useState(2);
   const [space, setSpace] = useState('');
   const [editingSpace, setEditingSpace] = useState(false);
-  // placeholder until flow is integrated
-  const [appInstalled] = useState(false);
+  const [didClickForgeButton, setDidClickForgeButton] = useState(false);
 
   useEffect(() => {
-    // if (!appInstalled) {
-    //   setStep(0);
-    // }
-    if (!teamInfo?.integrations.atlassian) {
+    if (!teamInfo?.integrations.forge && !didClickForgeButton) {
       setStep(0);
+    } else if (!teamInfo?.integrations.atlassian) {
+      setStep(1);
       // if user has not selected a conflunece space
     } else if (!teamInfo?.integrations.atlassian.confluence_space_key || editingSpace) {
-      setStep(1);
+      setStep(2);
     // confluence integration happens by default, if user has not linked their github or slack
     } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
-      setStep(2);
+      setStep(3);
     // user has linked all so we can just show a completed stepper
     } else {
-      setStep(3);
+      setStep(4);
     }
-  }, [teamInfo, appInstalled, space]);
+  }, [teamInfo, didClickForgeButton, space]);
 
-  const isStep2Clickable = step > 1 && teamInfo?.integrations?.atlassian?.confluence_space_key?.length > 0;
+  const isStep3Clickable = step > 2 && teamInfo?.integrations?.atlassian?.confluence_space_key?.length > 0;
 
   const handleSpaceUpdate = () => {
-    updateConfluenceSpace(space, () => setEditingSpace(false));
+    updateConfluenceSpace(space, teamInfo?.integrations.forge?.forge_app_installation_id, () => setEditingSpace(false));
   };
 
   const handleSelectChange = (event) => {
@@ -183,10 +183,10 @@ const Steps = () => {
   };
 
   const handleStepClick = () => {
-    if (isStep2Clickable) {
+    if (isStep3Clickable) {
       setSpace(teamInfo?.integrations.atlassian.confluence_space_key);
       setEditingSpace(true);
-      setStep(1);
+      setStep(2);
     }
   };
 
@@ -197,7 +197,7 @@ const Steps = () => {
       <Stepper orientation="vertical" activeStep={step} classes={{
         vertical: classes.stepper,
       }}>
-        {/* <Step>
+        <Step>
           <StepLabel StepIconComponent={StepIcon}>
             <Copy variant="h3" className={classes.header}>
               Step 1: Add Eave to <AtlassianIcon className={classes.atlassian} />
@@ -208,24 +208,24 @@ const Steps = () => {
             <Button
               lg
               className={classes.button}
-              onClick={() => setAppInstalled(true)}
+              onClick={() => setDidClickForgeButton(true)}
               target="_blank"
-              href="https://developer.atlassian.com/console/install/e3c57ac8-296e-4392-b128-4330b1ab2883/?signature=9e7204e3d1f2898b576427da60ab2182353879b1173469f1b59e0e9cab271d5439c0ff55d59dab60621d9c871125afe79fac266aa532eb29778a2d751bbe0508&product=confluence&product=jira"
+              href={FORGE_APP_INSTALL_URL}
             >
               Add App
             </Button>
           </StepContent>
-        </Step> */}
+        </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
             <Copy variant="h3" className={classes.header}>
               {isDesktop ? (
                 <span>
-                  Step 1: Connect to your <ConfluenceIcon /> Confluence Account
+                  Step 2: Connect to your <ConfluenceIcon /> Confluence Account
                 </span>
               ) : (
                 <span>
-                  Step 1: Connect to <ConfluenceIcon /> Confluence
+                  Step 2: Connect to <ConfluenceIcon /> Confluence
                 </span>
               )}
 
@@ -240,9 +240,9 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon} onClick={handleStepClick}>
-            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep2Clickable })} >
-              Step 2: Select your <ConfluenceIcon /> Confluence Space
-              {isStep2Clickable && <DownIcon className={classes.downIcon} />}
+            <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep3Clickable })} >
+              Step 3: Select your <ConfluenceIcon /> Confluence Space
+              {isStep3Clickable && <DownIcon className={classes.downIcon} />}
             </Copy>
           </StepLabel>
           <StepContent className={classes.content}>
@@ -283,7 +283,7 @@ const Steps = () => {
         </Step>
         <Step>
           <StepLabel StepIconComponent={StepIcon}>
-            <Copy variant="h3" className={classes.header}>Step 3: Integrate your business tools</Copy>
+            <Copy variant="h3" className={classes.header}>Step 4: Integrate your business tools</Copy>
           </StepLabel>
           <StepContent className={classes.content}>
             <Copy variant="pSmall" className={classes.copy}>Select the tools where Eave can pull information from and be tagged to created documentation. Note Jira is automatically granted permissions via the Confluence connection.</Copy>
@@ -315,12 +315,12 @@ const Steps = () => {
                 alt={INTEGRATION_LOGOS.slack.alt}
               />
             </Button>
-            {/* <Button
+            <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={teamInfo?.integrations.atlassian && <PurpleCheckIcon className={classes.connected} />}
-              disabled={!!teamInfo?.integrations.atlassian}
-              to={`${window.eave.apiBase}/oauth/atlassian/authorize`}
+              startIcon={teamInfo?.integrations.forge && <PurpleCheckIcon className={classes.connected} />}
+              disabled={!!teamInfo?.integrations.forge}
+              to={FORGE_APP_INSTALL_URL}
               lg
             >
               <img
@@ -328,7 +328,7 @@ const Steps = () => {
                 src={INTEGRATION_LOGOS.jira.src}
                 alt={INTEGRATION_LOGOS.jira.alt}
               />
-            </Button> */}
+            </Button>
           </StepContent>
         </Step>
       </Stepper>

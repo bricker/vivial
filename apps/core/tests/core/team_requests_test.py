@@ -1,11 +1,8 @@
 from http import HTTPStatus
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 
-import eave.stdlib.core_api.operations as eave_ops
-
-import eave.core.internal.oauth.slack
-import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.slack_installation
-import eave.core.internal.orm.team
+from eave.stdlib.core_api.operations.team import GetTeam
 
 from .base import BaseTestCase
 
@@ -15,7 +12,7 @@ class TestTeamRequests(BaseTestCase):
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
 
-            await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
+            await SlackInstallationOrm.create(
                 session=s,
                 team_id=team.id,
                 bot_refresh_token=self.anystring("bot_refresh_token"),
@@ -23,7 +20,7 @@ class TestTeamRequests(BaseTestCase):
                 slack_team_id=self.anystring("slack_team_id"),
                 bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
-            await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
+            await AtlassianInstallationOrm.create(
                 session=s,
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
@@ -38,16 +35,16 @@ class TestTeamRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave_ops.GetTeam.ResponseBody(**response.json())
+        response_obj = GetTeam.ResponseBody(**response.json())
 
-        assert response_obj.integrations.slack is not None
-        assert response_obj.integrations.slack.slack_team_id == self.anystring("slack_team_id")
-        assert response_obj.integrations.slack.bot_token == self.anystring("bot_token")
+        assert response_obj.integrations.slack_integration is not None
+        assert response_obj.integrations.slack_integration.slack_team_id == self.anystring("slack_team_id")
+        assert response_obj.integrations.slack_integration.bot_token == self.anystring("bot_token")
 
-        assert response_obj.integrations.atlassian is not None
-        assert response_obj.integrations.atlassian.confluence_space_key == self.anystring("confluence_space")
-        assert response_obj.integrations.atlassian.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert response_obj.integrations.atlassian.oauth_token_encoded == self.anyjson("oauth_token_encoded")
+        assert response_obj.integrations.atlassian_integration is not None
+        assert response_obj.integrations.atlassian_integration.confluence_space_key == self.anystring("confluence_space")
+        assert response_obj.integrations.atlassian_integration.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
+        assert response_obj.integrations.atlassian_integration.oauth_token_encoded == self.anyjson("oauth_token_encoded")
 
     async def test_get_team_without_integrations(self) -> None:
         async with self.db_session.begin() as s:
@@ -60,7 +57,5 @@ class TestTeamRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave_ops.GetTeam.ResponseBody(**response.json())
-
-        assert response_obj.integrations.slack is None
-        assert response_obj.integrations.atlassian is None
+        response_obj = GetTeam.ResponseBody(**response.json())
+        assert response_obj.team.id == team.id

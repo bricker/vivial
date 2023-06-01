@@ -1,6 +1,6 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
 import { createHash, createVerify, constants as cryptoConstants } from 'crypto';
-import crc32c from 'fast-crc32c';
+import { calculate as calculateCrc32c } from 'fast-crc32c';
 import { sharedConfig } from './config.js';
 import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
 import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
@@ -152,8 +152,7 @@ export async function signBase64(
 }
 
 function generateChecksum(data: Buffer): number {
-  const checksum = crc32c.calculate(data);
-  return checksum;
+  return calculateCrc32c(data);
 }
 
 function validateChecksumOrException(data: Buffer, checksum: number): void {

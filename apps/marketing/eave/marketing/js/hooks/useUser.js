@@ -52,17 +52,18 @@ const useUser = () => {
         setLoadingGetUserInfo(false);
       });
     },
-    // updates current selected confluene space
-    updateConfluenceSpace: (key, onComplete) => {
+    // updates current selected confluence space
+    updateConfluenceSpace: (key, forgeAppInstallationId, onComplete) => {
       setLoadingUpdateConfluenceSpace(true);
       setUpdateConfluenceError(null);
-      fetch('/dashboard/me/team/integrations/atlassian/update', {
+      fetch('/dashboard/me/team/integrations/forge/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          atlassian_integration: {
+          forge_integration: {
+            forge_app_installation_id: forgeAppInstallationId,
             confluence_space_key: key,
           },
         }),

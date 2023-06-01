@@ -4,6 +4,7 @@ import uuid
 import aiohttp
 import urllib.parse
 from http import HTTPStatus
+from eave.stdlib.eave_origins import EaveOrigin
 
 from eave.stdlib.util import redact
 
@@ -12,19 +13,11 @@ from . import headers as eave_headers
 from . import signing
 from .logging import eaveLogger
 from .config import shared_config
-from . import eave_origins as eave_origins
-
-
-_ORIGIN: eave_origins.EaveOrigin
-
-
-def set_origin(origin: eave_origins.EaveOrigin) -> None:
-    global _ORIGIN
-    _ORIGIN = origin
 
 
 async def make_request(
     url: str,
+    origin: EaveOrigin,
     input: Optional[pydantic.BaseModel],
     method: str = "POST",
     access_token: Optional[str] = None,
@@ -35,7 +28,7 @@ async def make_request(
 
     headers = {
         eave_headers.CONTENT_TYPE: "application/json",
-        eave_headers.EAVE_ORIGIN_HEADER: _ORIGIN.value,
+        eave_headers.EAVE_ORIGIN_HEADER: origin.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: str(request_id),
     }
 
@@ -54,14 +47,14 @@ async def make_request(
         method=method,
         url=url,
         request_id=request_id,
-        origin=_ORIGIN,
+        origin=origin.value,
         team_id=team_id,
         account_id=account_id,
         payload=payload,
     )
 
     signature = signing.sign_b64(
-        signing_key=signing.get_key(signer=_ORIGIN.value),
+        signing_key=signing.get_key(signer=origin.value),
         data=signature_message,
     )
 
@@ -72,7 +65,7 @@ async def make_request(
             "json_fields": {
                 "signature": redact(signature),
                 "access_token": redact(access_token),
-                "origin": _ORIGIN.value,
+                "origin": origin.value,
                 "team_id": str(team_id),
                 "account_id": str(account_id),
                 "request_id": request_id,
@@ -99,7 +92,7 @@ async def make_request(
             "json_fields": {
                 "signature": redact(signature),
                 "access_token": redact(access_token),
-                "origin": _ORIGIN.value,
+                "origin": origin.value,
                 "team_id": str(team_id),
                 "account_id": str(account_id),
                 "request_id": request_id,
@@ -138,7 +131,7 @@ def build_message_to_sign(
     method: str,
     url: str,
     request_id: uuid.UUID | str,
-    origin: eave_origins.EaveOrigin | str,
+    origin: EaveOrigin | str,
     payload: str,
     team_id: Optional[uuid.UUID | str],
     account_id: Optional[uuid.UUID | str],

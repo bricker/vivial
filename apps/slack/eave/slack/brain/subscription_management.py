@@ -1,28 +1,30 @@
 import json
-from eave.slack.brain.communication import CommunicationMixin
-import eave.stdlib.core_api.client
-import eave.stdlib.core_api.operations
-import eave.stdlib.core_api.enums
+import eave.stdlib.core_api.models.subscriptions
+import eave.stdlib.core_api.operations.subscriptions as eave_subscriptions
+from .communication import CommunicationMixin
+from ..config import app_config
 
 
 class SubscriptionManagementMixin(CommunicationMixin):
-    async def get_subscription(self) -> eave.stdlib.core_api.operations.GetSubscription.ResponseBody | None:
-        subscription = await eave.stdlib.core_api.client.get_subscription(
+    async def get_subscription(self) -> eave_subscriptions.GetSubscription.ResponseBody | None:
+        subscription = await eave_subscriptions.GetSubscription.perform(
+            origin=app_config.eave_origin,
             team_id=self.eave_team.id,
-            input=eave.stdlib.core_api.operations.GetSubscription.RequestBody(
-                subscription=eave.stdlib.core_api.operations.SubscriptionInput(source=self.message.subscription_source),
+            input=eave_subscriptions.GetSubscription.RequestBody(
+                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(source=self.message.subscription_source),
             ),
         )
         return subscription
 
-    async def create_subscription(self) -> eave.stdlib.core_api.operations.CreateSubscription.ResponseBody:
+    async def create_subscription(self) -> eave_subscriptions.CreateSubscription.ResponseBody:
         """
         Gets and returns the subscription if it already exists, otherwise creates and returns a new subscription.
         """
-        subscription = await eave.stdlib.core_api.client.create_subscription(
+        subscription = await eave_subscriptions.CreateSubscription.perform(
+            origin=app_config.eave_origin,
             team_id=self.eave_team.id,
-            input=eave.stdlib.core_api.operations.CreateSubscription.RequestBody(
-                subscription=eave.stdlib.core_api.operations.SubscriptionInput(source=self.message.subscription_source),
+            input=eave_subscriptions.CreateSubscription.RequestBody(
+                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(source=self.message.subscription_source),
             ),
         )
 
@@ -36,9 +38,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
 
         return subscription
 
-    async def notify_existing_subscription(
-        self, subscription: eave.stdlib.core_api.operations.GetSubscription.ResponseBody
-    ) -> None:
+    async def notify_existing_subscription(self, subscription: eave_subscriptions.GetSubscription.ResponseBody) -> None:
         if subscription.document_reference is not None:
             await self.send_response(
                 text=(

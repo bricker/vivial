@@ -2,6 +2,18 @@
 // The Forge app runs in a Node-ish environment, but with limitations.
 // See here for more info:  https://developer.atlassian.com/platform/forge/runtime-reference/
 
+import fetch from 'node-fetch';
+
+if (global.fetch === undefined) {
+  global.fetch = fetch;
+}
+
+if (global.importScripts === undefined) {
+  global.importScripts = () => {
+    console.warn('  ');
+  };
+}
+
 if (process.argv === undefined) {
   process.argv = [];
 }

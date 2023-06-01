@@ -3,8 +3,8 @@ from typing import Optional
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 import eave.slack.event_handlers
-import eave.stdlib.core_api.client as eave_core
-import eave.stdlib.core_api.operations.integrations
+import eave.stdlib.core_api.operations.slack as eave_slack
+import eave.stdlib.core_api.models.slack
 import eave.stdlib.exceptions
 from eave.stdlib import cache
 from slack_bolt.async_app import AsyncApp, AsyncBoltContext
@@ -67,7 +67,7 @@ async def authorize(
     # - context.bot_id, context.bot_token, and context.bot_user_id are all None in this function.
     # - context.team_id and context.user_id are available (barring org-wide installs mentioned above)
 
-    installation_data: eave.stdlib.core_api.operations.integrations.GetSlackInstallation.ResponseBody | None = None
+    installation_data: eave_slack.GetSlackInstallation.ResponseBody | None = None
     auth_response: AsyncSlackResponse | None = None
 
     # The idea here is that we check the cache, and check if the cached token is valid.
@@ -75,9 +75,7 @@ async def authorize(
     if cached_data:
         try:
             # If there is cached data, inflate the object and do an auth test.
-            installation_data = (
-                eave.stdlib.core_api.operations.integrations.GetSlackInstallation.ResponseBody.parse_raw(cached_data)
-            )
+            installation_data = eave_slack.GetSlackInstallation.ResponseBody.parse_raw(cached_data)
             auth_response = (await client.auth_test(token=installation_data.slack_integration.bot_token)).validate()
         except Exception:
             eaveLogger.warning("Cached auth token was not valid", extra=eave_ctx)
@@ -89,12 +87,13 @@ async def authorize(
 
     if installation_data is None:
         # Raises for non-OK response.
-        installation_data = await eave_core.get_slack_installation(
-            input=eave.stdlib.core_api.operations.integrations.GetSlackInstallation.RequestBody(
-                slack_integration=eave.stdlib.core_api.operations.integrations.SlackInstallationInput(
+        installation_data = await eave_slack.GetSlackInstallation.perform(
+            origin=app_config.eave_origin,
+            input=eave_slack.GetSlackInstallation.RequestBody(
+                slack_integration=eave.stdlib.core_api.models.slack.SlackInstallationInput(
                     slack_team_id=team_id,
                 ),
-            )
+            ),
         )
 
     if auth_response is None:

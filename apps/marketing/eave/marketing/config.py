@@ -2,9 +2,12 @@ import os
 from functools import cached_property
 
 import eave.stdlib.config
+from eave.stdlib.eave_origins import EaveOrigin
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
+    eave_origin = EaveOrigin.eave_www
+
     @property
     def asset_base(self) -> str:
         return os.getenv("EAVE_ASSET_BASE", "/static")

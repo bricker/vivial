@@ -13,6 +13,7 @@ import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
+from eave.stdlib.core_api.models.account import AuthProvider
 
 from .base import BaseTestCase
 
@@ -138,7 +139,7 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account.access_token == self.anystring("authed_user.access_token")
             assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")
             assert eave_account.auth_id == self.anystring("authed_user.id")
-            assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.slack
+            assert eave_account.auth_provider == AuthProvider.slack
             assert eave_account.email == self.anystring("slack_user_email")
             assert eave_team.name == self.anystring("team.name")
             assert slack_installation.bot_token == self.anystring("access_token")
@@ -235,7 +236,7 @@ class TestSlackOAuthHandler(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
+                auth_provider=AuthProvider.slack,
                 auth_id=self.anystring("authed_user.id"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),
@@ -271,7 +272,7 @@ class TestSlackOAuthHandler(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
+                auth_provider=AuthProvider.slack,
                 auth_id=self.anystring("authed_user.id"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),
@@ -309,7 +310,7 @@ class TestSlackOAuthHandler(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
+                auth_provider=AuthProvider.google,
                 auth_id=self.anystring("google.user_id"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),

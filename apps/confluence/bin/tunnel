@@ -3,4 +3,11 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-FORGE_DEV_TUNNEL=true forge tunnel
+
+export FORGE_DEV_TUNNEL=true
+export FORGE_USER_VAR_EAVE_API_BASE=https://api.eave.run:8080
+export FORGE_USER_VAR_GOOGLE_CLOUD_PROJECT=eave-production
+export FORGE_USER_VAR_EAVE_GCP_SA_CREDENTIALS_B64="xxx"
+export FORGE_USER_VAR_GOOGLE_APPLICATION_CREDENTIALS=gcp-app-creds.json
+
+forge tunnel --verbose

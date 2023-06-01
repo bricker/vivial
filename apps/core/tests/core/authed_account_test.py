@@ -2,12 +2,11 @@ import typing
 import unittest.mock
 from http import HTTPStatus
 
-import eave.stdlib.core_api.operations as eave_ops
-
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
+from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
 
 from .base import BaseTestCase
 
@@ -54,7 +53,7 @@ class TestAuthedAccountRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
 
-        response_obj = eave_ops.GetAuthenticatedAccount.ResponseBody(**response.json())
+        response_obj = GetAuthenticatedAccount.ResponseBody(**response.json())
 
         assert response_obj.account.id == account.id
         assert response_obj.team.id == account.team_id
@@ -88,7 +87,7 @@ class TestAuthedAccountRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        eave_ops.GetAuthenticatedAccount.ResponseBody(**response.json())
+        GetAuthenticatedAccount.ResponseBody(**response.json())
 
     async def test_get_authed_account_team_integrations(self) -> None:
         async with self.db_session.begin() as s:
@@ -119,13 +118,19 @@ class TestAuthedAccountRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response.json())
+        response_obj = GetAuthenticatedAccountTeamIntegrations.ResponseBody(**response.json())
 
-        assert response_obj.integrations.slack is not None
-        assert response_obj.integrations.slack.slack_team_id == self.anystring("slack_team_id")
-        assert response_obj.integrations.slack.bot_token == self.anystring("bot_token")
+        assert response_obj.integrations.slack_integration is not None
+        assert response_obj.integrations.slack_integration.slack_team_id == self.anystring("slack_team_id")
+        assert response_obj.integrations.slack_integration.bot_token == self.anystring("bot_token")
 
-        assert response_obj.integrations.atlassian is not None
-        assert response_obj.integrations.atlassian.confluence_space_key == self.anystring("confluence_space")
-        assert response_obj.integrations.atlassian.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert response_obj.integrations.atlassian.oauth_token_encoded == self.anystring("oauth_token_encoded")
+        assert response_obj.integrations.atlassian_integration is not None
+        assert response_obj.integrations.atlassian_integration.confluence_space_key == self.anystring(
+            "confluence_space"
+        )
+        assert response_obj.integrations.atlassian_integration.atlassian_cloud_id == self.anystring(
+            "atlassian_cloud_id"
+        )
+        assert response_obj.integrations.atlassian_integration.oauth_token_encoded == self.anystring(
+            "oauth_token_encoded"
+        )

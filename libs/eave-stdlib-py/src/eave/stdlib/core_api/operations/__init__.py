@@ -1,155 +1,45 @@
+import aiohttp
 from typing import Optional
-
-from eave.stdlib.core_api.operations.integrations import Integrations
-
-from .. import models
-from .base import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 import pydantic
-
-from .. import enums
-
-
-class AccessTokenExchangeOfferInput(pydantic.BaseModel):
-    auth_provider: enums.AuthProvider
-    auth_id: str
-    oauth_token: str
+from eave.stdlib.config import shared_config
 
 
-class DocumentInput(pydantic.BaseModel):
-    title: str
-    content: str
-    parent: Optional["DocumentInput"] = None
+class EndpointConfiguration:
+    path: str
+    auth_required: bool
+    team_id_required: bool
+    signature_required: bool
+    origin_required: bool
+
+    def __init__(
+        self,
+        path: str,
+        auth_required: bool = True,
+        team_id_required: bool = True,
+        signature_required: bool = True,
+        origin_required: bool = True,
+    ) -> None:
+        self.path = path
+        self.auth_required = auth_required
+        self.team_id_required = team_id_required
+        self.signature_required = signature_required
+        self.origin_required = origin_required
+
+    @property
+    def url(self) -> str:
+        return f"{shared_config.eave_api_base}{self.path}"
 
 
-class DocumentReferenceInput(pydantic.BaseModel):
-    id: pydantic.UUID4
+class BaseRequestBody(pydantic.BaseModel):
+    pass
 
 
-class SubscriptionInput(pydantic.BaseModel):
-    source: models.SubscriptionSource
+class BaseResponseBody(pydantic.BaseModel):
+    _raw_response: Optional[aiohttp.ClientResponse] = None
+
+    class Config:
+        underscore_attrs_are_private = True
 
 
-class TeamInput(pydantic.BaseModel):
-    id: pydantic.UUID4
-
-
-class Status(Endpoint):
-    class ResponseBody(BaseResponseBody):
-        service: str
-        version: str
-        status: str
-
-
-class GetSubscription(Endpoint):
-    config = EndpointConfiguration(
-        path="/subscriptions/query",
-        auth_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        subscription: SubscriptionInput
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        subscription: models.Subscription
-        document_reference: Optional[models.DocumentReference] = None
-
-
-class CreateSubscription(Endpoint):
-    config = EndpointConfiguration(
-        path="/subscriptions/create",
-        auth_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        subscription: SubscriptionInput
-        document_reference: Optional[DocumentReferenceInput] = None
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        subscription: models.Subscription
-        document_reference: Optional[models.DocumentReference] = None
-
-
-class DeleteSubscription(Endpoint):
-    config = EndpointConfiguration(
-        path="/subscriptions/delete",
-        auth_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        subscription: SubscriptionInput
-
-
-class UpsertDocument(Endpoint):
-    config = EndpointConfiguration(
-        path="/documents/upsert",
-        auth_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        document: DocumentInput
-        subscriptions: list[SubscriptionInput]
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        subscriptions: list[models.Subscription]
-        document_reference: models.DocumentReference
-
-
-class SearchDocuments(Endpoint):
-    config = EndpointConfiguration(
-        path="/documents/search",
-        auth_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        query: str
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        documents: list[models.DocumentSearchResult]
-
-
-class DeleteDocument(Endpoint):
-    config = EndpointConfiguration(
-        path="/documents/delete",
-        auth_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        document_reference: DocumentReferenceInput
-
-
-class GetAuthenticatedAccount(Endpoint):
-    config = EndpointConfiguration(
-        path="/me/query",
-        team_id_required=False,
-    )
-
-    class ResponseBody(BaseResponseBody):
-        account: models.AuthenticatedAccount
-        team: models.Team
-
-
-class GetAuthenticatedAccountTeamIntegrations(Endpoint):
-    config = EndpointConfiguration(
-        path="/me/team/integrations/query",
-        team_id_required=False,
-    )
-
-    class ResponseBody(BaseResponseBody):
-        account: models.AuthenticatedAccount
-        team: models.Team
-        integrations: Integrations
-
-
-class GetTeam(Endpoint):
-    config = EndpointConfiguration(
-        path="/team/query",
-        auth_required=False,
-    )
-
-    class ResponseBody(BaseResponseBody):
-        team: models.Team
-        integrations: Integrations
+class Endpoint:
+    pass

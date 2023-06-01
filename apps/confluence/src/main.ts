@@ -1,7 +1,6 @@
 import './polyfill';
 
 import fs from 'fs';
-import { webTrigger } from '@forge/api';
 import { EaveForgeInboundOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import createDocument from './api/create-document.js';
@@ -11,53 +10,31 @@ import { makeResponse } from './response.js';
 import { InstalledAppEventPayload, UpgradedAppEventPayload, CommentedIssueEventPayload, WebTriggerRequestPayload, WebTriggerResponsePayload, EventPayload } from './types.js';
 import appConfig from './config.js';
 import jiraCommentedIssueEventHandler from './events/jira-commented-issue.js';
-
-const WEBTRIGGER_KEY = 'webtrigger-eaveApi';
-
-export async function forgeInstalledApp(event: InstalledAppEventPayload) {
-  const { registerForgeInstallation } = await import('@eave-fyi/eave-stdlib-ts/src/core-api/operations/forge.js');
-
-  putGCPServiceAccountKey();
-  eaveLogger.info('forgeInstalledApp', event);
-  const webtriggerUrl = await webTrigger.getUrl(WEBTRIGGER_KEY);
-  const resp = await registerForgeInstallation(appConfig.eaveOrigin, {
-    forge_integration: {
-      // atlassian_cloud_id: event['context']['cloudId'], // TODO Is this correct?
-      forge_app_id: event.app.id,
-      forge_app_version: event.app.version,
-      forge_app_installation_id: event.id,
-      forge_app_installer_account_id: event.installerAccountId,
-      webtrigger_url: webtriggerUrl,
-    },
-  });
-
-  eaveLogger.info('core API response', resp);
-}
-
-export async function forgeUpgradedApp(event: UpgradedAppEventPayload) {
-  putGCPServiceAccountKey();
-  eaveLogger.info('forgeUpgradedApp', event);
-  return makeResponse({
-    statusCode: 200,
-    body: {},
-  });
-}
+import forgeInstalledAppEventHandler from './events/forge-installed-app.js';
+import forgeUpgradedAppEventHandler from './events/forge-upgraded-app.js';
 
 export async function forgeEventDispatch(event: EventPayload) {
   putGCPServiceAccountKey();
-  eaveLogger.info('event received', event);
-
   const { eventType } = event;
+  eaveLogger.info(`event received: ${eventType}`, {
+    ...event,
+    context: null, // logging this is too noisy
+    cloudId: event.context?.cloudId,
+    moduleKey: event.context?.moduleKey,
+  });
 
   switch (eventType) {
+    case 'avi:forge:installed:app':
+      await forgeInstalledAppEventHandler(<InstalledAppEventPayload>event);
+      break;
+    case 'avi:forge:upgraded:app':
+      await forgeUpgradedAppEventHandler(<UpgradedAppEventPayload>event);
+      break;
     case 'avi:jira:commented:issue':
-      return jiraCommentedIssueEventHandler(<CommentedIssueEventPayload>event);
+      await jiraCommentedIssueEventHandler(<CommentedIssueEventPayload>event);
+      break;
     default:
       eaveLogger.warning(`No event handler for event ${eventType}`, event);
-      return makeResponse({
-        statusCode: 200,
-        body: {},
-      });
   }
 }
 
@@ -83,12 +60,11 @@ export async function eaveApiDispatch(request: WebTriggerRequestPayload): Promis
       return makeResponse({ statusCode: 400 });
   }
 
-  return makeResponse({
-    statusCode: 200,
-    body: {},
-  });
+  return makeResponse();
 }
 
-function putGCPServiceAccountKey(): void {
+function putGCPServiceAccountKey() {
+  // GCP client libraries require application credentials to be in a file, so we have to write it to a file every time.
+  // Alternatively, we could bundle the service account key with the app on each deployment.
   fs.writeFileSync(appConfig.googleApplicationCredentialsFile, appConfig.eaveGCPServiceAccountCredentials);
 }

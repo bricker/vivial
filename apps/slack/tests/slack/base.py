@@ -7,24 +7,23 @@ from eave.slack.config import app_config
 import eave.slack.app
 from eave.slack.slack_models import SlackMessage
 from eave.slack.brain.core import Brain
-from eave.stdlib.core_api.enums import DocumentPlatform
-from eave.stdlib.core_api.models import DocumentReference, Subscription, Team
-from eave.stdlib.core_api.operations import GetSubscription
+from eave.stdlib.core_api.models.subscriptions import DocumentReference, Subscription
+from eave.stdlib.core_api.models.team import DocumentPlatform
+from eave.stdlib.core_api.operations.subscriptions import GetSubscription
+from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.logging import LogContext
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 
 class BaseTestCase(UtilityBaseTestCase):
+    mut: str | None = None
+
     def __init__(self, methodName: str) -> None:
         super().__init__(methodName)
         self.addAsyncCleanup(self.cleanup)
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-        # transport = httpx.ASGITransport(
-        #     app=eave.slack.app.api,  # type:ignore
-        #     raise_app_exceptions=True,
-        # )
 
         self.httpclient = AsyncClient(
             app=eave.slack.app.api,
@@ -69,18 +68,18 @@ class BaseTestCase(UtilityBaseTestCase):
         self.patch(
             name="get subscription",
             patch=unittest.mock.patch(
-                "eave.stdlib.core_api.client.get_subscription", return_value=self._data_subscription_response
+                "eave.stdlib.core_api.subscriptions.client.get_subscription", return_value=self._data_subscription_response
             ),
         )
         self.patch(
             name="create subscription",
             patch=unittest.mock.patch(
-                "eave.stdlib.core_api.client.create_subscription", return_value=self._data_subscription_response
+                "eave.stdlib.core_api.subscriptions.client.create_subscription", return_value=self._data_subscription_response
             ),
         )
         self.patch(
             name="delete subscription",
-            patch=unittest.mock.patch("eave.stdlib.core_api.client.delete_subscription", return_value=None),
+            patch=unittest.mock.patch("eave.stdlib.core_api.subscriptions.client.delete_subscription", return_value=None),
         )
 
         self.eave_ctx = LogContext()
