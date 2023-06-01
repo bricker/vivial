@@ -11,9 +11,9 @@ class JiraInstallation(BaseResponseModel):
     id: pydantic.UUID4
     client_key: str
     base_url: str
+    shared_secret: str
     team_id: Optional[pydantic.UUID4]
     atlassian_actor_account_id: Optional[str]
-    shared_secret: Optional[str]
     display_url: Optional[str]
     description: Optional[str]
 
@@ -27,7 +27,7 @@ class RegisterJiraInstallationInput(BaseInputModel):
     """
     client_key: str
     base_url: str
+    shared_secret: str
     atlassian_actor_account_id: Optional[str]
-    shared_secret: Optional[str]
     display_url: Optional[str]
     description: Optional[str]

@@ -9,6 +9,12 @@ import { loggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/loggi
 import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import appConfig from './config.js';
+import EaveApiAdapter from './eave-api-adapter.js';
+
+// This <any> case is necessary to tell Typescript to effectively ignore this expression.
+// ace.store is exported in the javascript implementation, but not in the typescript type definitions,
+// so Typescript (rightfully) shows an error.
+(<any>ace).store.register('eave-api-store', EaveApiAdapter)
 
 const app = express();
 const addon = ace(app);
