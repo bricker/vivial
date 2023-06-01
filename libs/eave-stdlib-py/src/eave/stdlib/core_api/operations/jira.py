@@ -1,7 +1,7 @@
 from typing import Optional
 import uuid
 from eave.stdlib.core_api.models import team
-from eave.stdlib.core_api.models.jira import JiraInstallation, RegisterJiraInstallationInput
+from eave.stdlib.core_api.models.jira import JiraInstallation, QueryJiraInstallationInput, RegisterJiraInstallationInput
 
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
@@ -40,32 +40,32 @@ class RegisterJiraIntegrationRequest(Endpoint):
         return cls.ResponseBody(**response_json)
 
 
-# class QueryJiraInstallation(Endpoint):
-#     config = EndpointConfiguration(
-#         path="/integrations/jira/query",
-#         auth_required=False,
-#         team_id_required=False,
-#         signature_required=True,
-#         origin_required=True,
-#     )
+class QueryJiraIntegrationRequest(Endpoint):
+    config = EndpointConfiguration(
+        path="/integrations/jira/query",
+        auth_required=False,
+        team_id_required=False,
+        signature_required=True,
+        origin_required=True,
+    )
 
-#     class RequestBody(BaseRequestBody):
-#         jira_integration: QueryJiraInstallationInput
+    class RequestBody(BaseRequestBody):
+        jira_integration: QueryJiraInstallationInput
 
-#     class ResponseBody(BaseResponseBody):
-#         team: Optional[team.Team]
-#         jira_integration: Optional[JiraInstallation]
+    class ResponseBody(BaseResponseBody):
+        team: Optional[team.Team]
+        jira_integration: JiraInstallation
 
-#     @classmethod
-#     async def perform(cls,
-#         origin: EaveOrigin,
-#         input: RequestBody,
-#     ) -> ResponseBody:
-#         response = await requests.make_request(
-#             url=cls.config.url,
-#             origin=origin,
-#             input=input,
-#         )
+    @classmethod
+    async def perform(cls,
+        origin: EaveOrigin,
+        input: RequestBody,
+    ) -> ResponseBody:
+        response = await requests.make_request(
+            url=cls.config.url,
+            origin=origin,
+            input=input,
+        )
 
-#         response_json = await response.json()
-#         return cls.ResponseBody(**response_json)
+        response_json = await response.json()
+        return cls.ResponseBody(**response_json)

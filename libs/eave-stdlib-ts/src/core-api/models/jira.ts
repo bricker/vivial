@@ -17,3 +17,7 @@ export type RegisterJiraInstallationInput = {
     display_url?: string;
     description?: string;
 }
+
+export type QueryJiraInstallationInput = {
+    client_key: string;
+}

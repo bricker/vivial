@@ -1,3 +1,4 @@
+import http
 from typing import Literal, cast
 
 from asgiref.typing import HTTPScope
@@ -8,9 +9,9 @@ from eave.core.internal.orm.jira_installation import JiraInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
 from eave.stdlib.core_api.models.integrations import Integration
-from eave.stdlib.core_api.operations.jira import RegisterJiraIntegrationRequest
+from eave.stdlib.core_api.operations.jira import QueryJiraIntegrationRequest, RegisterJiraIntegrationRequest
 from eave.stdlib.exceptions import BadRequestError
-
+from eave.stdlib.logging import eaveLogger
 
 from eave.stdlib import analytics
 from eave.stdlib.config import shared_config
@@ -18,32 +19,39 @@ import eave.stdlib.api_util as eave_api_util
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.stdlib.request_state import get_eave_state
 
-# class QueryJiraIntegration(HTTPEndpoint):
-#     async def post(self, request: Request) -> Response:
-#         body = await request.json()
-#         input = QueryJiraInstallation.RequestBody.parse_obj(body)
 
-#         async with eave_db.async_session.begin() as db_session:
-#             installation = await JiraInstallationOrm.one_or_exception(
-#                 session=db_session,
-#                 client_key=input.jira_integration.client_key,
-#             )
+class QueryJiraIntegrationEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = get_eave_state(request=request)
+        body = await request.json()
+        input = QueryJiraIntegrationRequest.RequestBody.parse_obj(body)
 
-#             if installation.team_id:
-#                 eave_team = await eave_orm.TeamOrm.one_or_exception(
-#                     session=db_session,
-#                     team_id=installation.team_id,
-#                 )
-#             else:
-#                 eave_team = None
+        async with eave_db.async_session.begin() as db_session:
+            installation = await JiraInstallationOrm.one_or_none(
+                session=db_session,
+                client_key=input.jira_integration.client_key,
+            )
 
-#         return eave_api_util.json_response(
-#             QueryJiraInstallation.ResponseBody(
-#                 team=eave_team.api_model if eave_team else None,
-#                 jira_integration=installation.api_model,
-#             )
-#         )
+            if not installation:
+                eaveLogger.warn(f"JiraIntegration not found for client key {input.jira_integration.client_key}", extra=eave_state.log_context)
+                return Response(status_code=http.HTTPStatus.NOT_FOUND)
+
+            if installation.team_id:
+                eave_team = await eave_orm.TeamOrm.one_or_exception(
+                    session=db_session,
+                    team_id=installation.team_id,
+                )
+            else:
+                eave_team = None
+
+        return eave_api_util.json_response(
+            QueryJiraIntegrationRequest.ResponseBody(
+                team=eave_team.api_model if eave_team else None,
+                jira_integration=installation.api_model,
+            )
+        )
 
 
 class RegisterJiraIntegrationEndpoint(HTTPEndpoint):

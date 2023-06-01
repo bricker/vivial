@@ -3,12 +3,12 @@ import http
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.internal.orm.jira_installation import JiraInstallationOrm
 from eave.stdlib.core_api.models.jira import RegisterJiraInstallationInput
-from eave.stdlib.core_api.operations.jira import RegisterJiraIntegrationRequest
+from eave.stdlib.core_api.operations.jira import QueryJiraIntegrationRequest, RegisterJiraIntegrationRequest
 from eave.stdlib.util import unwrap
 from .base import BaseTestCase
 
 
-class JiraIntegrationRequestTests(BaseTestCase):
+class RegisterJiraIntegrationTests(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -199,6 +199,75 @@ class JiraIntegrationRequestTests(BaseTestCase):
             event_name="eave_application_integration_updated",
             eave_team_id=team.id,
         )
+
+class QueryJiraIntegrationTests(BaseTestCase):
+    async def test_query_when_integration_exists(self) -> None:
+        async with self.db_session.begin() as s:
+            await JiraInstallationOrm.create(
+                session=s,
+                # parse_obj is used here to allow initialization with unset properties
+                input=RegisterJiraInstallationInput.parse_obj({
+                    "client_key":self.anystring("client_key"),
+                    "shared_secret":self.anystring("shared_secret"),
+                    "base_url":self.anystring("base_url"),
+                })
+            )
+
+        response = await self.make_request(
+            path="/integrations/jira/query",
+            payload={
+                "jira_integration": {
+                    "client_key": self.getstr("client_key"),
+                },
+            },
+        )
+
+        assert response.status_code == http.HTTPStatus.OK
+        obj = QueryJiraIntegrationRequest.ResponseBody(**response.json())
+        assert obj.jira_integration.client_key == self.getstr("client_key")
+        assert obj.team is None
+
+    async def test_query_when_integration_exists_with_team(self) -> None:
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
+            await JiraInstallationOrm.create(
+                session=s,
+                team_id=team.id,
+                # parse_obj is used here to allow initialization with unset properties
+                input=RegisterJiraInstallationInput.parse_obj({
+                    "client_key":self.anystring("client_key"),
+                    "shared_secret":self.anystring("shared_secret"),
+                    "base_url":self.anystring("base_url"),
+                })
+            )
+
+        response = await self.make_request(
+            path="/integrations/jira/query",
+            payload={
+                "jira_integration": {
+                    "client_key": self.getstr("client_key"),
+                },
+            },
+        )
+
+        assert response.status_code == http.HTTPStatus.OK
+        obj = QueryJiraIntegrationRequest.ResponseBody(**response.json())
+        assert obj.jira_integration.client_key == self.getstr("client_key")
+        assert obj.team is not None
+        assert obj.team.id == team.id
+
+    async def test_query_when_integration_doesnt_exist(self) -> None:
+        response = await self.make_request(
+            path="/integrations/jira/query",
+            payload={
+                "jira_integration": {
+                    "client_key": self.anystring("client_key"),
+                },
+            },
+        )
+
+        assert response.status_code == http.HTTPStatus.NOT_FOUND
+        assert response.text == ""
 
 class JiraIntegrationModelTests(BaseTestCase):
     async def asyncSetUp(self) -> None:

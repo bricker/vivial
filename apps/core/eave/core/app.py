@@ -11,7 +11,7 @@ from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.core_api.operations.subscriptions import CreateSubscription, DeleteSubscription, GetSubscription
 from eave.stdlib.core_api.operations.team import GetTeam
-from eave.stdlib.core_api.operations.jira import RegisterJiraIntegrationRequest
+from eave.stdlib.core_api.operations.jira import QueryJiraIntegrationRequest, RegisterJiraIntegrationRequest
 import eave.stdlib.logging
 import eave.stdlib.time
 import starlette.applications
@@ -177,6 +177,10 @@ routes = [
     make_route(
         config=RegisterJiraIntegrationRequest.config,
         endpoint=jira_integration.RegisterJiraIntegrationEndpoint,
+    ),
+    make_route(
+        config=QueryJiraIntegrationRequest.config,
+        endpoint=jira_integration.QueryJiraIntegrationEndpoint,
     ),
     make_route(
         config=GetSlackInstallation.config,

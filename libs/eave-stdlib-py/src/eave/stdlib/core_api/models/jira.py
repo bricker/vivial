@@ -17,9 +17,8 @@ class JiraInstallation(BaseResponseModel):
     display_url: Optional[str]
     description: Optional[str]
 
-# class QueryJiraInstallationInput(BaseInputModel):
-#     client_key: str
-
+class QueryJiraInstallationInput(BaseInputModel):
+    client_key: str
 
 class RegisterJiraInstallationInput(BaseInputModel):
     """
