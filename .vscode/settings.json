@@ -64,7 +64,6 @@
   "typescript.inlayHints.parameterTypes.enabled": false,
   "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
   "typescript.inlayHints.variableTypes.enabled": false,
-  "typescript.referencesCodeLens.enabled": false,
   "typescript.updateImportsOnFileMove.enabled": "prompt",
   "javascript.inlayHints.enumMemberValues.enabled": false,
   "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
@@ -132,11 +131,26 @@
   "ruff.args": [
     "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
   ],
-  "typescript.implementationsCodeLens.enabled": true,
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
   "markdownlint.run": "onSave",
   "markdownlint.config": {
     "first-line-heading": false,
   },
   "python.analysis.gotoDefinitionInStringLiteral": true,
+  "json.schemas": [
+
+  {
+    "fileMatch": [
+      "/confluence/atlassian-connect.json"
+    ],
+    "url": "https://bitbucket.org/atlassian/connect-schemas/raw/master/confluence-global-schema.json"
+  },
+  {
+    "fileMatch": [
+      "/jira/atlassian-connect.json"
+    ],
+    "url": "https://bitbucket.org/atlassian/connect-schemas/raw/master/jira-global-schema.json"
+  }
+  ],
+  "typescript.preferences.importModuleSpecifierEnding": "js",
 }
