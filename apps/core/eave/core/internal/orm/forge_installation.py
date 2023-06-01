@@ -6,12 +6,11 @@ from uuid import UUID
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from eave.stdlib.core_api.models.forge import ForgeInstallation, RegisterForgeInstallationInput
 
 from eave.stdlib.util import ensure_uuid
-from eave.stdlib.core_api.operations.forge import (
-    ForgeInstallation,
+from eave.stdlib.core_api.models.forge import (
     UpdateForgeInstallationInput,
-    RegisterForgeInstallationInput,
 )
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk

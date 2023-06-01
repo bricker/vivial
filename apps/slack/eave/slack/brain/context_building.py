@@ -7,6 +7,7 @@ from eave.stdlib import link_handler
 from eave.stdlib.exceptions import SlackDataError, OpenAIDataError
 from .base import Base
 from . import message_prompts
+from ..config import app_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
@@ -238,7 +239,7 @@ class ContextBuildingMixin(Base):
         supported_links = link_handler.filter_supported_links(urls)
 
         if supported_links:
-            links_contents = await link_handler.map_url_content(self.eave_team.id, supported_links)
+            links_contents = await link_handler.map_url_content(origin=app_config.eave_origin, eave_team_id=self.eave_team.id, urls=supported_links)
             if links_contents:
                 # summarize the content at each link, or None where link content wasnt obtained
                 summaries: list[Optional[str]] = await asyncio.gather(
@@ -252,8 +253,9 @@ class ContextBuildingMixin(Base):
 
                 # subscribe Eave to any changes at the links we wer able to read content from
                 link_subscriptions = await link_handler.subscribe_to_file_changes(
-                    self.eave_team.id,
-                    [link_info for link_info, content in zip(supported_links, summaries) if content is not None],
+                    origin=app_config.eave_origin,
+                    eave_team_id=self.eave_team.id,
+                    urls=[link_info for link_info, content in zip(supported_links, summaries) if content is not None],
                 )
                 self.subscriptions += link_subscriptions
 

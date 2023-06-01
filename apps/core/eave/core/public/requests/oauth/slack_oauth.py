@@ -10,12 +10,14 @@ import eave.core.internal
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.logging import eaveLogger
 
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared
 
-_AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.slack
+_AUTH_PROVIDER = AuthProvider.slack
 
 
 class SlackOAuthAuthorize(HTTPEndpoint):
@@ -186,7 +188,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
             eave_visitor_id=self.eave_account.visitor_id,
             event_source="core api oauth",
             opaque_params={
-                "integration_name": eave.stdlib.core_api.enums.Integration.slack.value,
+                "integration_name": Integration.slack.value,
                 "approximate_num_members": approximate_num_members,
                 "slack_team_name": self.slack_installation.slack_team_name if self.slack_installation else None,
             },

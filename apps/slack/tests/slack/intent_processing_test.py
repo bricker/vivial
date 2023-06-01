@@ -4,10 +4,9 @@ import unittest.mock
 from eave.slack.brain.message_prompts import MessageAction
 from .base import BaseTestCase
 
-mut = "eave.slack.brain.subscription_management"
-
-
 class IntentProcessingMixinTest(BaseTestCase):
+    mut = "eave.slack.brain.intent_processing"
+
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 

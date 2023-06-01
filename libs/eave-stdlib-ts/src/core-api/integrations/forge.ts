@@ -1,8 +1,23 @@
-import * as forgemodels from '../models/forge.js';
-import * as models from '../models/models.js';
 import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
 import { sharedConfig } from '../../config.js';
-import { EaveOrigin } from '../../eave-origins.js';
+import { Team } from '../team.js';
+
+export enum EaveForgeInboundOperation {
+  createDocument = 'createDocument',
+  updateDocument = 'updateDocument',
+  archiveDocument = 'archiveDocument',
+
+}
+
+export type ForgeInstallation = {
+  id: string;
+  forge_app_id: string;
+  forge_app_version: string;
+  forge_app_installation_id: string;
+  forge_app_installer_account_id: string;
+  webtrigger_url: string;
+  confluence_space_key?: string;
+}
 
 export type QueryForgeInstallationInput = {
   forge_app_id: string;
@@ -30,22 +45,22 @@ export type QueryForgeInstallationRequestBody = {
 }
 
 export type QueryForgeInstallationResponseBody = {
-  team: models.Team;
-  forge_integration: forgemodels.ForgeInstallation;
+  team: Team;
+  forge_integration: ForgeInstallation;
 }
 export type RegisterForgeInstallationRequestBody = {
   forge_integration: RegisterForgeInstallationInput;
 }
 export type RegisterForgeInstallationResponseBody = {
-  forge_integration: forgemodels.ForgeInstallation;
+  forge_integration: ForgeInstallation;
 }
 
 export type UpdateForgeInstallationRequestBody = {
   forge_integration: UpdateForgeInstallationInput;
 }
 export type UpdateForgeInstallationResponseBody = {
-  team: models.Team;
-  forge_integration: forgemodels.ForgeInstallation;
+  team: Team;
+  forge_integration: ForgeInstallation;
 }
 
 export async function queryForgeInstallation({ origin, input }: RequestArgsOrigin & {input: QueryForgeInstallationInput}): Promise<QueryForgeInstallationResponseBody> {

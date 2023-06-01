@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models import DocumentReference
+from eave.stdlib.core_api.models.subscriptions import DocumentReference
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk

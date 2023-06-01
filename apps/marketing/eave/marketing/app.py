@@ -2,13 +2,10 @@ from typing import Any
 
 import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.cookies
-import eave.stdlib.core_api
-import eave.stdlib.core_api.client as eave_core
-from eave.stdlib.core_api.operations.forge import UpdateForgeInstallation, UpdateForgeInstallationInput, update_forge_installation_authed
-import eave.stdlib.core_api.operations.integrations
+import eave.stdlib.core_api.models.forge
+import eave.stdlib.core_api.operations.account as account
+import eave.stdlib.core_api.operations.forge as forge
 import eave.stdlib.requests
-import eave.stdlib.core_api.operations as eave_ops
-import eave.stdlib.eave_origins as eave_origins
 import eave.stdlib.logging
 import eave.stdlib.time
 import werkzeug.exceptions
@@ -18,7 +15,6 @@ from werkzeug.wrappers import Response as BaseResponse
 from .config import app_config
 
 eave.stdlib.time.set_utc()
-eave.stdlib.requests.set_origin(eave_origins.EaveOrigin.eave_www)
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
@@ -64,7 +60,8 @@ async def authed_account_team() -> Response:
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
 
-    eave_response = await eave_core.get_authenticated_account_team_integrations(
+    eave_response = await account.GetAuthenticatedAccountTeamIntegrations.perform(
+        origin=app_config.eave_origin,
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
     )
@@ -85,18 +82,20 @@ async def update_forge_integration() -> Response:
     forge_app_installation_id = body["forge_integration"]["forge_app_installation_id"]
     confluence_space_key = body["forge_integration"]["confluence_space_key"]
 
-    await update_forge_installation_authed(
+    await forge.UpdateForgeInstallation.perform_authed(
+        origin=app_config.eave_origin,
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
-        input=UpdateForgeInstallation.RequestBody(
-            forge_integration=UpdateForgeInstallationInput.parse_obj({
+        input=forge.UpdateForgeInstallation.RequestBody(
+            forge_integration=eave.stdlib.core_api.models.forge.UpdateForgeInstallationInput.parse_obj({
                 "forge_app_installation_id": forge_app_installation_id,
                 "confluence_space_key": confluence_space_key,
             }),
         ),
     )
 
-    eave_response = await eave_core.get_authenticated_account_team_integrations(
+    eave_response = await account.GetAuthenticatedAccountTeamIntegrations.perform(
+        origin=app_config.eave_origin,
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
     )
@@ -117,16 +116,16 @@ def catch_all(path: str) -> str:
     return _render_spa()
 
 
-def _clean_response(eave_response: eave_ops.GetAuthenticatedAccountTeamIntegrations.ResponseBody) -> Response:
+def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegrations.ResponseBody) -> Response:
     # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
     access_token = eave_response.account.access_token
     del eave_response.account.access_token
 
     # TODO: The server doesn't need to send these to the web app.
-    if eave_response.integrations.atlassian:
-        del eave_response.integrations.atlassian.oauth_token_encoded
-    if eave_response.integrations.slack:
-        del eave_response.integrations.slack.bot_token
+    if eave_response.integrations.atlassian_integration:
+        del eave_response.integrations.atlassian_integration.oauth_token_encoded
+    if eave_response.integrations.slack_integration:
+        del eave_response.integrations.slack_integration.bot_token
 
     response = make_response(eave_response.json())
 

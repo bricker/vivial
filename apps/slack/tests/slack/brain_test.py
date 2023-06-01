@@ -2,8 +2,7 @@ from slack_bolt.async_app import AsyncBoltContext
 
 from eave.slack.brain.core import Brain
 from eave.slack.slack_models import SlackMessage
-from eave.stdlib.core_api.enums import DocumentPlatform
-from eave.stdlib.core_api.models import Team
+import eave.stdlib.core_api.models.team
 from .base import BaseTestCase
 
 
@@ -12,7 +11,7 @@ class BrainTest(BaseTestCase):
         await super().asyncSetUp()
 
     async def test_alive(self) -> None:
-        eave_team = Team(id=self.anyuuid(), name=self.anystring(), document_platform=DocumentPlatform.confluence)
+        eave_team = eave.stdlib.core_api.models.team.Team(id=self.anyuuid(), name=self.anystring(), document_platform=eave.stdlib.core_api.models.team.DocumentPlatform.confluence)
         slack_context = AsyncBoltContext()
         slack_message = SlackMessage(data={"ts": "123"}, slack_context=slack_context)
         brain = Brain(message=slack_message, eave_team=eave_team, ctx=self.eave_ctx)

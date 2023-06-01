@@ -31,9 +31,7 @@ def upgrade() -> None:
         sa.Column("forge_app_id", sa.String(), nullable=False),
         sa.Column("forge_app_version", sa.String(), nullable=False),
         sa.Column("forge_app_installation_id", sa.String(), nullable=False),
-        sa.Column(
-            "forge_app_installer_account_id", sa.String(), nullable=False
-        ),
+        sa.Column("forge_app_installer_account_id", sa.String(), nullable=False),
         sa.Column("webtrigger_url", sa.String(), nullable=False),
         sa.Column(
             "created",
@@ -55,9 +53,7 @@ def upgrade() -> None:
         unique=True,
     )
     op.drop_index("ix_access_requests_email", table_name="access_requests")
-    op.drop_index(
-        "ix_access_requests_visitor_id", table_name="access_requests"
-    )
+    op.drop_index("ix_access_requests_visitor_id", table_name="access_requests")
     op.drop_table("access_requests")
     # ### end Alembic commands ###
 
@@ -75,9 +71,7 @@ def downgrade() -> None:
         ),
         sa.Column("visitor_id", sa.UUID(), autoincrement=False, nullable=True),
         sa.Column("email", sa.VARCHAR(), autoincrement=False, nullable=False),
-        sa.Column(
-            "opaque_input", sa.VARCHAR(), autoincrement=False, nullable=True
-        ),
+        sa.Column("opaque_input", sa.VARCHAR(), autoincrement=False, nullable=True),
         sa.Column(
             "created",
             postgresql.TIMESTAMP(),
@@ -93,9 +87,7 @@ def downgrade() -> None:
         ["visitor_id"],
         unique=False,
     )
-    op.create_index(
-        "ix_access_requests_email", "access_requests", ["email"], unique=False
-    )
+    op.create_index("ix_access_requests_email", "access_requests", ["email"], unique=False)
     op.drop_index(
         op.f("ix_forge_installations_forge_app_installation_id"),
         table_name="forge_installations",

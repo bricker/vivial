@@ -14,7 +14,7 @@
     "yalc": "yalc publish --push"
   },
   "dependencies": {
-    "@aws-crypto/crc32c": "4.x",
+    "fast-crc32c": "2.x",
     "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript",
     "@google-cloud/kms": "3.x",
     "@google-cloud/logging": "10.x",

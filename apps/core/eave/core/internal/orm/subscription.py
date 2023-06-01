@@ -2,11 +2,13 @@ from datetime import datetime
 from typing import NotRequired, Optional, Required, Self, Sequence, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.models as eave_models
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from eave.stdlib.core_api.models.subscriptions import SubscriptionSource, SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import (
+    Subscription,
+)
 
 from eave.stdlib.util import ensure_uuid
 
@@ -33,16 +35,16 @@ class SubscriptionOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    source_platform: Mapped[eave.stdlib.core_api.enums.SubscriptionSourcePlatform] = mapped_column()
-    source_event: Mapped[eave.stdlib.core_api.enums.SubscriptionSourceEvent] = mapped_column()
+    source_platform: Mapped[SubscriptionSourcePlatform] = mapped_column()
+    source_event: Mapped[SubscriptionSourceEvent] = mapped_column()
     source_id: Mapped[str] = mapped_column()
     document_reference_id: Mapped[Optional[UUID]] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @property
-    def api_model(self) -> eave.stdlib.core_api.models.Subscription:
-        return eave.stdlib.core_api.models.Subscription.from_orm(self)
+    def api_model(self) -> Subscription:
+        return Subscription.from_orm(self)
 
     async def get_document_reference(self, session: AsyncSession) -> Optional[DocumentReferenceOrm]:
         if self.document_reference_id is None:
@@ -56,15 +58,15 @@ class SubscriptionOrm(Base):
         return result
 
     @property
-    def source(self) -> eave_models.SubscriptionSource:
-        return eave_models.SubscriptionSource(
+    def source(self) -> SubscriptionSource:
+        return SubscriptionSource(
             platform=self.source_platform,
             event=self.source_event,
             id=self.source_id,
         )
 
     @source.setter
-    def source(self, source: eave_models.SubscriptionSource) -> None:
+    def source(self, source: SubscriptionSource) -> None:
         self.source_platform = source.platform
         self.source_event = source.event
         self.source_id = source.id
@@ -74,7 +76,7 @@ class SubscriptionOrm(Base):
         cls,
         session: AsyncSession,
         team_id: UUID,
-        source: eave_models.SubscriptionSource,
+        source: SubscriptionSource,
         document_reference_id: Optional[UUID] = None,
     ) -> Self:
         obj = cls(
@@ -91,7 +93,7 @@ class SubscriptionOrm(Base):
     class _selectparams(TypedDict):
         team_id: Required[UUID | str]
         id: NotRequired[UUID | str]
-        source: NotRequired[eave_models.SubscriptionSource]
+        source: NotRequired[SubscriptionSource]
         document_reference_id: NotRequired[UUID | str]
 
     @classmethod

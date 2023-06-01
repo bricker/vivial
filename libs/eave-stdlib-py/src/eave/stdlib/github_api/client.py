@@ -1,18 +1,22 @@
 import uuid
+
+from eave.stdlib.eave_origins import EaveOrigin
 from . import operations
-from ..requests import make_request
+from .. import requests
 from ..config import shared_config
 
 
 async def get_file_content(
+    origin: EaveOrigin,
     eave_team_id: uuid.UUID,
     input: operations.GetGithubUrlContent.RequestBody,
 ) -> operations.GetGithubUrlContent.ResponseBody:
     """
     POST /github/api/content
     """
-    response = await make_request(
+    response = await requests.make_request(
         url=f"{shared_config.eave_apps_base}/github/api/content",
+        origin=origin,
         input=input,
         team_id=eave_team_id,
     )
@@ -22,14 +26,16 @@ async def get_file_content(
 
 
 async def create_subscription(
+    origin: EaveOrigin,
     eave_team_id: uuid.UUID,
     input: operations.CreateGithubResourceSubscription.RequestBody,
 ) -> operations.CreateGithubResourceSubscription.ResponseBody:
     """
     POST /github/api/subscribe
     """
-    response = await make_request(
+    response = await requests.make_request(
         url=f"{shared_config.eave_apps_base}/github/api/subscribe",
+        origin=origin,
         input=input,
         team_id=eave_team_id,
     )
