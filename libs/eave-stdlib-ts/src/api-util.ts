@@ -1,5 +1,5 @@
 import express from 'express';
-import { StatusResponseBody } from './core-api/status.js';
+import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
 
 export function statusPayload(): StatusResponseBody {

@@ -1,20 +1,7 @@
 import { sharedConfig } from '../../config.js';
 import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
-import { Team } from '../team.js';
-
-export type SlackInstallationInput = {
-  slack_team_id: string;
-}
-
-export type SlackInstallation = {
-  id: string;
-  /** eave TeamOrm model id */
-  team_id: string;
-  slack_team_id: string;
-  bot_token: string;
-  bot_id: string;
-  bot_user_id?: string;
-}
+import { SlackInstallation, SlackInstallationInput } from '../models/slack.js';
+import { Team } from '../models/team.js';
 
 export type GetSlackInstallationRequestBody = {
   slack_installation: SlackInstallationInput;

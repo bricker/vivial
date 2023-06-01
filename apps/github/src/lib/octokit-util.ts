@@ -1,6 +1,6 @@
 import { App, Octokit } from 'octokit';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getTeam } from '@eave-fyi/eave-stdlib-ts/src/core-api/team.js';
+import { getTeam } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
 import { appConfig } from '../config.js';
 
 export async function createOctokitClient(installationId: number): Promise<Octokit> {

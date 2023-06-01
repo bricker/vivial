@@ -1,19 +1,9 @@
-import { sharedConfig } from '../config.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests.js';
-import { DocumentReference, Subscription } from './subscriptions.js';
-import { Team } from './team.js';
+import { sharedConfig } from '../../config.js';
+import { RequestArgsOriginAndTeamId, makeRequest } from '../../lib/requests.js';
+import { DocumentInput } from '../models/documents.js';
+import { DocumentReference, Subscription } from '../models/subscriptions.js';
+import { Team } from '../models/team.js';
 
-export type DocumentInput = {
-  title: string;
-  content: string;
-  parent?: DocumentInput;
-}
-
-export type EaveDocument = {
-  title: string;
-  content: string;
-  parent?: EaveDocument;
-}
 
 export type UpsertDocumentRequestBody = {
   document: DocumentInput;

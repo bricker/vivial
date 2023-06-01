@@ -1,9 +1,9 @@
-import { AtlassianInstallation } from './atlassian.js';
-import { ConfluenceInstallation } from './confluence.js';
-import { ForgeInstallation } from './forge';
-import { GithubInstallation } from './github.js';
-import { JiraInstallation } from './jira.js';
-import { SlackInstallation } from './slack.js';
+import { AtlassianInstallation } from "./atlassian.js";
+import { ConfluenceInstallation } from "./confluence.js";
+import { ForgeInstallation } from "./forge.js";
+import { GithubInstallation } from "./github.js";
+import { JiraInstallation } from "./jira.js";
+import { SlackInstallation } from "./slack.js";
 
 /**
  * Key-value mapping of Integration to Installation info.

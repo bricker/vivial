@@ -6,7 +6,8 @@ import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
-import { SubscriptionSourceEvent, SubscriptionSourcePlatform, createSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/subscriptions.js';
+import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
+import { createSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
 import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 import { appConfig } from '../config.js';
 

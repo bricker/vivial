@@ -1,4 +1,4 @@
-import { sharedConfig } from '../config.js';
+import { sharedConfig } from '../../config.js';
 
 export type StatusResponseBody = {
   service: string;

@@ -1,17 +1,8 @@
 import { sharedConfig } from '../../config.js';
 import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
-import { Team } from '../team.js';
+import { GithubInstallation, GithubInstallationInput } from '../models/github.js';
+import { Team } from '../models/team.js';
 
-export type GithubInstallationInput = {
-  github_install_id: string;
-}
-
-export type GithubInstallation = {
-  id: string;
-  /** eave TeamOrm model id */
-  team_id: string;
-  github_install_id: string;
-}
 
 export type GetGithubInstallationRequestBody = {
   github_integration: GithubInstallationInput;
