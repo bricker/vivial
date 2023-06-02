@@ -1,6 +1,5 @@
 from .account import AccountOrm as AccountOrm
 from .atlassian_installation import AtlassianInstallationOrm as AtlassianInstallationOrm
-from .forge_installation import ForgeInstallationOrm as ForgeInstallationOrm
 from .document_reference import DocumentReferenceOrm as DocumentReferenceOrm
 from .github_installation import GithubInstallationOrm as GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm as SlackInstallationOrm

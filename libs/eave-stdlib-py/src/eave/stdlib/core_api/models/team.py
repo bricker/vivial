@@ -5,9 +5,16 @@ from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 import pydantic
 from typing import Optional
 
+class ConfluenceDestination(BaseResponseModel):
+    space_key: Optional[str]
+
+class ConfluenceDestinationInput(BaseInputModel):
+    space_key: Optional[str]
 
 class TeamInput(BaseInputModel):
-    id: pydantic.UUID4
+    name: Optional[str]
+    document_platform: Optional[str]
+    beta_whitelisted: Optional[bool]
 
 
 class DocumentPlatform(enum.StrEnum):

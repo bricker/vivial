@@ -7,7 +7,6 @@ class EaveOrigin(enum.StrEnum):
     eave_github_app = "eave_github_app"
     eave_slack_app = "eave_slack_app"
     eave_atlassian_app = "eave_atlassian_app"
-    eave_forge_app = "eave_forge_app"
     eave_jira_app = "eave_jira_app"
     eave_confluence_app = "eave_confluence_app"
 

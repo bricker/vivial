@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import NotRequired, Optional, Self, Tuple, TypeAlias, TypedDict, Unpack
 from uuid import UUID
 
 from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
@@ -23,17 +23,12 @@ class ConnectInstallationOrm(Base):
             "client_key",
             unique=True,
         ),
-        PrimaryKeyConstraint(
-            "product",
-            "client_key",
-            "id",
-        ),
     )
 
     team_id: Mapped[Optional[UUID]] = mapped_column()
     """team_id has to be optional because on initial integration we don't know which team the app is associated with."""
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, primary_key=True)
     product: Mapped[AtlassianProduct] = mapped_column()
     client_key: Mapped[str] = mapped_column()
     shared_secret: Mapped[str] = mapped_column()
@@ -44,14 +39,14 @@ class ConnectInstallationOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    class _selectparams(TypedDict):
+    class QueryParams(TypedDict):
         id: NotRequired[uuid.UUID]
         product: NotRequired[AtlassianProduct]
         team_id: NotRequired[uuid.UUID]
         client_key: NotRequired[str]
 
     @classmethod
-    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
         if (id := kwargs.get("id")) is not None:
@@ -71,14 +66,14 @@ class ConnectInstallationOrm(Base):
         return lookup
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
-        lookup = cls._build_select(**kwargs).limit(1)
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
+        lookup = cls.query(**kwargs).limit(1)
         result = (await session.scalars(lookup)).one()
         return result
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
-        lookup = cls._build_select(**kwargs).limit(1)
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self | None:
+        lookup = cls.query(**kwargs).limit(1)
         result = await session.scalar(lookup)
         return result
 

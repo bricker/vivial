@@ -20,8 +20,8 @@ async def make_request(
     origin: EaveOrigin,
     input: Optional[pydantic.BaseModel],
     method: str = "POST",
-    access_token: Optional[str] = None,
     team_id: Optional[uuid.UUID] = None,
+    access_token: Optional[str] = None,
     account_id: Optional[uuid.UUID] = None,
 ) -> aiohttp.ClientResponse:
     request_id = str(uuid.uuid4())

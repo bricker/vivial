@@ -1,5 +1,4 @@
 import { AtlassianInstallation } from './atlassian.js';
-import { ForgeInstallation } from './forge.js';
 import { GithubInstallation } from './github.js';
 import { ConnectInstallation } from './connect.js';
 import { SlackInstallation } from './slack.js';
@@ -12,7 +11,6 @@ export type Integrations = {
   github_integration?: GithubInstallation;
   slack_integration?: SlackInstallation;
   atlassian_integration?: AtlassianInstallation;
-  forge_integration?: ForgeInstallation;
   confluence_integration?: ConnectInstallation;
   jira_integration?: ConnectInstallation;
 }

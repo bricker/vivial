@@ -1,3 +1,4 @@
+from typing import Optional, TypeAlias
 import uuid
 
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
@@ -32,8 +33,8 @@ class UpsertDocument(Endpoint):
     async def perform(
         cls,
         origin: EaveOrigin,
-        team_id: uuid.UUID,
         input: RequestBody,
+        team_id: uuid.UUID,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
@@ -44,7 +45,6 @@ class UpsertDocument(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
-
 
 class SearchDocuments(Endpoint):
     config = EndpointConfiguration(
@@ -63,8 +63,8 @@ class SearchDocuments(Endpoint):
     async def perform(
         cls,
         origin: EaveOrigin,
-        team_id: uuid.UUID,
         input: RequestBody,
+        team_id: uuid.UUID,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
@@ -76,7 +76,6 @@ class SearchDocuments(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-
 class DeleteDocument(Endpoint):
     config = EndpointConfiguration(
         path="/documents/delete",
@@ -86,17 +85,21 @@ class DeleteDocument(Endpoint):
     class RequestBody(BaseRequestBody):
         document_reference: DocumentReferenceInput
 
+    class ResponseBody(BaseResponseBody):
+        pass
+
     @classmethod
     async def perform(
         cls,
         origin: EaveOrigin,
-        team_id: uuid.UUID,
         input: RequestBody,
-    ) -> BaseResponseBody:
+        team_id: uuid.UUID,
+    ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
             input=input,
             team_id=team_id,
         )
-        return BaseResponseBody(_raw_response=response)
+
+        return cls.ResponseBody(_raw_response=response)

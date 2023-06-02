@@ -1,7 +1,11 @@
+import uuid
 import aiohttp
-from typing import Optional
+from typing import Optional, Self, TypeAlias
 import pydantic
+from eave.stdlib import requests
 from eave.stdlib.config import shared_config
+from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.headers import CONTENT_LENGTH
 
 
 class EndpointConfiguration:
@@ -42,4 +46,29 @@ class BaseResponseBody(pydantic.BaseModel):
 
 
 class Endpoint:
-    pass
+    config: EndpointConfiguration
+
+    # @classmethod
+    # async def perform(
+    #     cls,
+    #     origin: EaveOrigin,
+    #     input: Optional[RequestBody] = None,
+    #     team_id: Optional[uuid.UUID] = None,
+    #     access_token: Optional[str] = None,
+    #     account_id: Optional[uuid.UUID] = None,
+    # ) -> ResponseBody:
+    #     response = await requests.make_request(
+    #         url=cls.config.url,
+    #         origin=origin,
+    #         input=input,
+    #         team_id=team_id,
+    #         access_token=access_token,
+    #         account_id=account_id,
+    #     )
+
+    #     content_length = response.headers.get(aiohttp.hdrs.CONTENT_LENGTH)
+    #     if content_length and int(content_length) > 0:
+    #         response_json = await response.json()
+    #         return cls.ResponseBody(**response_json, _raw_response=response)
+    #     else:
+    #         return cls.ResponseBody(_raw_response=response)

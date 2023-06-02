@@ -58,11 +58,6 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
     version: '1',
     algorithm: SigningAlgorithm.ES256,
   },
-  [EaveOrigin.eave_forge_app]: {
-    id: 'eave-atlassian-app-signing-key', // this key ID is correct for Forge, it's shared with the Atlassian app
-    version: '1',
-    algorithm: SigningAlgorithm.ES256,
-  },
   // This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
   [ExternalOrigin.github_api_client]: {
     id: 'eave-github-app-signing-key-01',

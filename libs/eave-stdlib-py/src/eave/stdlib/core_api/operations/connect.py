@@ -42,7 +42,7 @@ class RegisterConnectIntegrationRequest(Endpoint):
         )
 
         response_json = await response.json()
-        return cls.ResponseBody(**response_json)
+        return cls.ResponseBody(**response_json, _raw_response=response)
 
 
 class QueryConnectIntegrationRequest(Endpoint):
@@ -74,4 +74,4 @@ class QueryConnectIntegrationRequest(Endpoint):
         )
 
         response_json = await response.json()
-        return cls.ResponseBody(**response_json)
+        return cls.ResponseBody(**response_json, _raw_response=response)

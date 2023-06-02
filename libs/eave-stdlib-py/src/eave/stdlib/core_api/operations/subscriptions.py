@@ -28,7 +28,12 @@ class GetSubscriptionRequest(Endpoint):
         document_reference: Optional[DocumentReference] = None
 
     @classmethod
-    async def perform(cls, origin: EaveOrigin, team_id: uuid.UUID, input: RequestBody) -> ResponseBody | None:
+    async def perform(
+        cls,
+        origin: EaveOrigin,
+        input: RequestBody,
+        team_id: uuid.UUID,
+    ) -> ResponseBody | None:
         try:
             response = await requests.make_request(
                 url=cls.config.url,
@@ -42,7 +47,6 @@ class GetSubscriptionRequest(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
-
 
 class CreateSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
@@ -63,8 +67,8 @@ class CreateSubscriptionRequest(Endpoint):
     async def perform(
         cls,
         origin: EaveOrigin,
-        team_id: uuid.UUID,
         input: RequestBody,
+        team_id: uuid.UUID,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
@@ -76,7 +80,6 @@ class CreateSubscriptionRequest(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-
 class DeleteSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
         path="/subscriptions/delete",
@@ -86,13 +89,16 @@ class DeleteSubscriptionRequest(Endpoint):
     class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
 
+    class ResponseBody(BaseResponseBody):
+        pass
+
     @classmethod
     async def perform(
         cls,
         origin: EaveOrigin,
-        team_id: uuid.UUID,
         input: RequestBody,
-    ) -> BaseResponseBody:
+        team_id: uuid.UUID,
+    ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
@@ -100,4 +106,4 @@ class DeleteSubscriptionRequest(Endpoint):
             team_id=team_id,
         )
 
-        return BaseResponseBody(_raw_response=response)
+        return cls.ResponseBody(_raw_response=response)

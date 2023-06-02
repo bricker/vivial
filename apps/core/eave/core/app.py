@@ -24,7 +24,6 @@ from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.routing import Route
 
-import eave.core.public.requests.forge_integration
 import eave.core.public.requests.github_integration
 
 from .public import middlewares
