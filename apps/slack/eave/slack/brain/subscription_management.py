@@ -6,24 +6,24 @@ from ..config import app_config
 
 
 class SubscriptionManagementMixin(CommunicationMixin):
-    async def get_subscription(self) -> eave_subscriptions.GetSubscription.ResponseBody | None:
-        subscription = await eave_subscriptions.GetSubscription.perform(
+    async def get_subscription(self) -> eave_subscriptions.GetSubscriptionRequest.ResponseBody | None:
+        subscription = await eave_subscriptions.GetSubscriptionRequest.perform(
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
-            input=eave_subscriptions.GetSubscription.RequestBody(
+            input=eave_subscriptions.GetSubscriptionRequest.RequestBody(
                 subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(source=self.message.subscription_source),
             ),
         )
         return subscription
 
-    async def create_subscription(self) -> eave_subscriptions.CreateSubscription.ResponseBody:
+    async def create_subscription(self) -> eave_subscriptions.CreateSubscriptionRequest.ResponseBody:
         """
         Gets and returns the subscription if it already exists, otherwise creates and returns a new subscription.
         """
-        subscription = await eave_subscriptions.CreateSubscription.perform(
+        subscription = await eave_subscriptions.CreateSubscriptionRequest.perform(
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
-            input=eave_subscriptions.CreateSubscription.RequestBody(
+            input=eave_subscriptions.CreateSubscriptionRequest.RequestBody(
                 subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(source=self.message.subscription_source),
             ),
         )
@@ -38,7 +38,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
 
         return subscription
 
-    async def notify_existing_subscription(self, subscription: eave_subscriptions.GetSubscription.ResponseBody) -> None:
+    async def notify_existing_subscription(self, subscription: eave_subscriptions.GetSubscriptionRequest.ResponseBody) -> None:
         if subscription.document_reference is not None:
             await self.send_response(
                 text=(

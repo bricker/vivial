@@ -1,5 +1,11 @@
-export type JiraInstallation = {
+export enum AtlassianProduct {
+    jira = 'jira',
+    confluence = 'confluence',
+}
+
+export type ConnectInstallation = {
     id: string;
+    product: AtlassianProduct;
     client_key: string;
     base_url: string;
     shared_secret: string;
@@ -9,7 +15,8 @@ export type JiraInstallation = {
     description?: string;
 }
 
-export type RegisterJiraInstallationInput = {
+export type RegisterConnectInstallationInput = {
+    product: AtlassianProduct;
     client_key: string;
     base_url: string;
     shared_secret: string;
@@ -18,6 +25,7 @@ export type RegisterJiraInstallationInput = {
     description?: string;
 }
 
-export type QueryJiraInstallationInput = {
+export type QueryConnectInstallationInput = {
+    product: AtlassianProduct;
     client_key: string;
 }

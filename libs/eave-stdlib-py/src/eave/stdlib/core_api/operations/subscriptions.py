@@ -13,7 +13,7 @@ from ... import requests
 from ... import exceptions
 
 
-class GetSubscription(Endpoint):
+class GetSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
         path="/subscriptions/query",
         auth_required=False,
@@ -46,7 +46,7 @@ class GetSubscription(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-class CreateSubscription(Endpoint):
+class CreateSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
         path="/subscriptions/create",
         auth_required=False,
@@ -78,7 +78,7 @@ class CreateSubscription(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-class DeleteSubscription(Endpoint):
+class DeleteSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
         path="/subscriptions/delete",
         auth_required=False,

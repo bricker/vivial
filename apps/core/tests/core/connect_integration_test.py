@@ -1,22 +1,23 @@
 import http
 
 from eave.core.internal.orm.team import TeamOrm
-from eave.core.internal.orm.jira_installation import JiraInstallationOrm
-from eave.stdlib.core_api.models.jira import RegisterJiraInstallationInput
-from eave.stdlib.core_api.operations.jira import QueryJiraIntegrationRequest, RegisterJiraIntegrationRequest
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
+from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 from eave.stdlib.util import unwrap
 from .base import BaseTestCase
 
 
-class RegisterJiraIntegrationTests(BaseTestCase):
+class RegisterConnectIntegrationTests(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-    async def test_register_new_jira_integration(self) -> None:
+    async def test_register_new_connect_integration(self) -> None:
         response = await self.make_request(
-            path="/integrations/jira/register",
+            path="/integrations/connect/register",
             payload={
-                "jira_integration": {
+                "connect_integration": {
+                    "product": "confluence",
                     "client_key": self.anystring("client_key"),
                     "base_url": self.anystring("base_url"),
                     "atlassian_actor_account_id": self.anystring("atlassian_actor_account_id"),
@@ -28,8 +29,8 @@ class RegisterJiraIntegrationTests(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        obj = RegisterJiraIntegrationRequest.ResponseBody(**response.json())
-        assert obj.jira_integration.client_key == self.getstr("client_key")
+        obj = RegisterConnectIntegrationRequest.ResponseBody(**response.json())
+        assert obj.connect_integration.client_key == self.getstr("client_key")
 
         assert self.logged_event(
             event_name="eave_application_integration",
@@ -37,16 +38,18 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             eave_visitor_id=None,
             eave_team_id=None,
             opaque_params={
-                "integration_name": "jira",
+                "integration_name": "confluence",
             }
         )
 
         async with self.db_session.begin() as s:
-            install = await JiraInstallationOrm.one_or_none(
+            install = await ConnectInstallationOrm.one_or_none(
                 session=s,
+                product=AtlassianProduct.confluence,
                 client_key=self.getstr("client_key"),
             )
             assert install is not None
+            assert install.product == AtlassianProduct.confluence
             assert install.client_key == self.getstr("client_key")
             assert install.base_url == self.getstr("base_url")
             assert install.atlassian_actor_account_id == self.getstr("atlassian_actor_account_id")
@@ -54,11 +57,12 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             assert install.display_url == self.getstr("display_url")
             assert install.description == self.getstr("description")
 
-    async def test_register_with_existing_jira_integration(self) -> None:
+    async def test_register_with_existing_connect_integration(self) -> None:
         async with self.db_session.begin() as s:
-            await JiraInstallationOrm.create(
+            await ConnectInstallationOrm.create(
                 session=s,
-                input=RegisterJiraInstallationInput.parse_obj({
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "jira",
                     "client_key":self.anystring("client_key"),
                     "shared_secret":self.anystring("shared_secret"),
                     "base_url":self.anystring("base_url"),
@@ -66,9 +70,10 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/jira/register",
+            path="/integrations/connect/register",
             payload={
-                "jira_integration": {
+                "connect_integration": {
+                    "product": "jira",
                     "client_key": self.getstr("client_key"),
                     "base_url": self.getstr("base_url"),
                     "shared_secret": self.getstr("shared_secret"),
@@ -80,8 +85,8 @@ class RegisterJiraIntegrationTests(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        obj = RegisterJiraIntegrationRequest.ResponseBody(**response.json())
-        assert obj.jira_integration.client_key == self.getstr("client_key")
+        obj = RegisterConnectIntegrationRequest.ResponseBody(**response.json())
+        assert obj.connect_integration.client_key == self.getstr("client_key")
 
         assert self.logged_event(
             event_name="eave_application_integration_updated",
@@ -94,11 +99,13 @@ class RegisterJiraIntegrationTests(BaseTestCase):
         )
 
         async with self.db_session.begin() as s:
-            install2 = await JiraInstallationOrm.one_or_none(
+            install2 = await ConnectInstallationOrm.one_or_none(
                 session=s,
+                product=AtlassianProduct.jira,
                 client_key=self.getstr("client_key"),
             )
             assert install2 is not None
+            assert install2.product == "jira"
             assert install2.client_key == self.getstr("client_key")
             assert install2.base_url == self.getstr("base_url")
             assert install2.atlassian_actor_account_id == self.getstr("atlassian_actor_account_id")
@@ -107,11 +114,12 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             assert install2.description == self.getstr("description")
 
 
-    async def test_update_existing_jira_integration(self) -> None:
+    async def test_update_existing_connect_integration(self) -> None:
         async with self.db_session.begin() as s:
-            await JiraInstallationOrm.create(
+            await ConnectInstallationOrm.create(
                 session=s,
-                input=RegisterJiraInstallationInput(
+                input=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
                     client_key=self.anystring("client_key"),
                     shared_secret=self.anystring("shared_secret"),
                     base_url=self.anystring("base_url"),
@@ -123,9 +131,10 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/jira/register",
+            path="/integrations/connect/register",
             payload={
-                "jira_integration": {
+                "connect_integration": {
+                    "product": "jira",
                     "client_key": self.getstr("client_key"),
                     "base_url": self.anystring("updated base_url"),
                     "shared_secret": self.anystring("updated shared_secret"),
@@ -135,8 +144,8 @@ class RegisterJiraIntegrationTests(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        obj = RegisterJiraIntegrationRequest.ResponseBody(**response.json())
-        assert obj.jira_integration.client_key == self.getstr("client_key")
+        obj = RegisterConnectIntegrationRequest.ResponseBody(**response.json())
+        assert obj.connect_integration.client_key == self.getstr("client_key")
 
         assert self.logged_event(
             event_name="eave_application_integration_updated",
@@ -145,16 +154,17 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             eave_team_id=None,
             opaque_params={
                 "integration_name": "jira",
-                "fields_given": ["atlassian_actor_account_id", "base_url", "client_key", "shared_secret"],
             }
         )
 
         async with self.db_session.begin() as s:
-            install = await JiraInstallationOrm.one_or_none(
+            install = await ConnectInstallationOrm.one_or_none(
                 session=s,
+                product=AtlassianProduct.jira,
                 client_key=self.getstr("client_key"),
             )
             assert install is not None
+            assert install.product == "jira"
             assert install.client_key == self.getstr("client_key")
             assert install.base_url == self.getstr("updated base_url")
             assert install.atlassian_actor_account_id == self.getstr("updated atlassian_actor_account_id")
@@ -162,15 +172,16 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             assert install.display_url == self.getstr("display_url") # test not updated
             assert install.description == self.getstr("description") # test not updated
 
-    async def test_update_existing_jira_integration_with_team(self) -> None:
+    async def test_update_existing_connect_integration_with_team(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
 
-            await JiraInstallationOrm.create(
+            await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
                 # parse_obj is used here to allow initialization with unset properties
-                input=RegisterJiraInstallationInput.parse_obj({
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "jira",
                     "client_key":self.anystring("client_key"),
                     "shared_secret":self.anystring("shared_secret"),
                     "base_url":self.anystring("base_url"),
@@ -178,9 +189,10 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/jira/register",
+            path="/integrations/connect/register",
             payload={
-                "jira_integration": {
+                "connect_integration": {
+                    "product": "jira",
                     "client_key": self.getstr("client_key"),
                     "base_url": self.getstr("base_url"),
                     "shared_secret": self.getstr("shared_secret"),
@@ -189,9 +201,9 @@ class RegisterJiraIntegrationTests(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        obj = RegisterJiraIntegrationRequest.ResponseBody(**response.json())
-        assert obj.jira_integration.client_key == self.getstr("client_key")
-        assert obj.jira_integration.display_url is None # Not really part of this test case, just checking that this property can be None in this scenario
+        obj = RegisterConnectIntegrationRequest.ResponseBody(**response.json())
+        assert obj.connect_integration.client_key == self.getstr("client_key")
+        assert obj.connect_integration.display_url is None # Not really part of this test case, just checking that this property can be None in this scenario
         assert obj.team is not None
         assert obj.team.id == team.id
 
@@ -200,13 +212,14 @@ class RegisterJiraIntegrationTests(BaseTestCase):
             eave_team_id=team.id,
         )
 
-class QueryJiraIntegrationTests(BaseTestCase):
+class QueryConnectIntegrationTests(BaseTestCase):
     async def test_query_when_integration_exists(self) -> None:
         async with self.db_session.begin() as s:
-            await JiraInstallationOrm.create(
+            await ConnectInstallationOrm.create(
                 session=s,
                 # parse_obj is used here to allow initialization with unset properties
-                input=RegisterJiraInstallationInput.parse_obj({
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "jira",
                     "client_key":self.anystring("client_key"),
                     "shared_secret":self.anystring("shared_secret"),
                     "base_url":self.anystring("base_url"),
@@ -214,27 +227,84 @@ class QueryJiraIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/jira/query",
+            path="/integrations/connect/query",
             payload={
-                "jira_integration": {
+                "connect_integration": {
+                    "product": "jira",
                     "client_key": self.getstr("client_key"),
                 },
             },
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        obj = QueryJiraIntegrationRequest.ResponseBody(**response.json())
-        assert obj.jira_integration.client_key == self.getstr("client_key")
+        obj = QueryConnectIntegrationRequest.ResponseBody(**response.json())
+        assert obj.connect_integration.product == "jira"
+        assert obj.connect_integration.client_key == self.getstr("client_key")
         assert obj.team is None
+
+    async def test_query_confluence(self) -> None:
+        async with self.db_session.begin() as s:
+            await ConnectInstallationOrm.create(
+                session=s,
+                # parse_obj is used here to allow initialization with unset properties
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "confluence",
+                    "client_key":self.anystring("client_key"),
+                    "shared_secret":self.anystring("shared_secret"),
+                    "base_url":self.anystring("base_url"),
+                })
+            )
+
+        response = await self.make_request(
+            path="/integrations/connect/query",
+            payload={
+                "connect_integration": {
+                    "product": "confluence",
+                    "client_key": self.getstr("client_key"),
+                },
+            },
+        )
+
+        assert response.status_code == http.HTTPStatus.OK
+        obj = QueryConnectIntegrationRequest.ResponseBody(**response.json())
+        assert obj.connect_integration.product == AtlassianProduct.confluence
+        assert obj.connect_integration.client_key == self.getstr("client_key")
+
+    async def test_query_with_product(self) -> None:
+        async with self.db_session.begin() as s:
+            await ConnectInstallationOrm.create(
+                session=s,
+                # parse_obj is used here to allow initialization with unset properties
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "confluence",
+                    "client_key":self.anystring("client_key"),
+                    "shared_secret":self.anystring("shared_secret"),
+                    "base_url":self.anystring("base_url"),
+                })
+            )
+
+        response = await self.make_request(
+            path="/integrations/connect/query",
+            payload={
+                "connect_integration": {
+                    "product": "jira", # This is different from the object created above
+                    "client_key": self.getstr("client_key"),
+                },
+            },
+        )
+
+        assert response.status_code == http.HTTPStatus.NOT_FOUND
+        assert response.text == ""
 
     async def test_query_when_integration_exists_with_team(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            await JiraInstallationOrm.create(
+            await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
                 # parse_obj is used here to allow initialization with unset properties
-                input=RegisterJiraInstallationInput.parse_obj({
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "jira",
                     "client_key":self.anystring("client_key"),
                     "shared_secret":self.anystring("shared_secret"),
                     "base_url":self.anystring("base_url"),
@@ -242,25 +312,27 @@ class QueryJiraIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/jira/query",
+            path="/integrations/connect/query",
             payload={
-                "jira_integration": {
+                "connect_integration": {
+                    "product": "jira",
                     "client_key": self.getstr("client_key"),
                 },
             },
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        obj = QueryJiraIntegrationRequest.ResponseBody(**response.json())
-        assert obj.jira_integration.client_key == self.getstr("client_key")
+        obj = QueryConnectIntegrationRequest.ResponseBody(**response.json())
+        assert obj.connect_integration.client_key == self.getstr("client_key")
         assert obj.team is not None
         assert obj.team.id == team.id
 
     async def test_query_when_integration_doesnt_exist(self) -> None:
         response = await self.make_request(
-            path="/integrations/jira/query",
+            path="/integrations/connect/query",
             payload={
-                "jira_integration": {
+                "connect_integration": {
+                    "product": "jira",
                     "client_key": self.anystring("client_key"),
                 },
             },
@@ -269,15 +341,16 @@ class QueryJiraIntegrationTests(BaseTestCase):
         assert response.status_code == http.HTTPStatus.NOT_FOUND
         assert response.text == ""
 
-class JiraIntegrationModelTests(BaseTestCase):
+class ConnectIntegrationModelTests(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            self._data_integration = await JiraInstallationOrm.create(
+            self._data_integration = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                input=RegisterJiraInstallationInput(
+                input=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
                     client_key=self.anystring("client_key"),
                     shared_secret=self.anystring("shared_secret"),
                     base_url=self.anystring("base_url"),
@@ -291,7 +364,8 @@ class JiraIntegrationModelTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_integration.update(
                 session=s,
-                input=RegisterJiraInstallationInput.parse_obj({
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "jira",
                     "client_key": self.getstr("client_key"),
                     "base_url": self.getstr("base_url"),
                     "shared_secret": self.anystring("updated shared_secret")
@@ -308,7 +382,8 @@ class JiraIntegrationModelTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_integration.update(
                 session=s,
-                input=RegisterJiraInstallationInput.parse_obj({
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "jira",
                     "client_key": self.getstr("client_key"),
                     "shared_secret": "",
                     "base_url": "",
@@ -324,9 +399,10 @@ class JiraIntegrationModelTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_integration.update(
                 session=s,
-                input=RegisterJiraInstallationInput.parse_obj({
+                input=RegisterConnectInstallationInput.parse_obj({
                     # TODO: It's a little awkward to pass `client_key` into this function, knowing it's not used.
                     # Maybe this function should accept a different object, eg `UpdateJiraInstallationInput`
+                    "product": "jira",
                     "client_key": self.anystring("updated client_key"),
                     "shared_secret": self.getstr("shared_secret"),
                     "base_url": self.getstr("base_url"),
@@ -335,20 +411,41 @@ class JiraIntegrationModelTests(BaseTestCase):
 
             assert self._data_integration.client_key == self.getstr("client_key")
 
-    async def test_query_with_client_key(self) -> None:
+    async def test_update_doesnt_update_product(self) -> None:
         async with self.db_session.begin() as s:
-            result = await JiraInstallationOrm.one_or_none(session=s, client_key=self._data_integration.client_key)
+            self._data_integration.update(
+                session=s,
+                input=RegisterConnectInstallationInput.parse_obj({
+                    # TODO: It's a little awkward to pass `client_key` into this function, knowing it's not used.
+                    # Maybe this function should accept a different object, eg `UpdateJiraInstallationInput`
+                    "product": "confluence",
+                    "client_key": self.getstr("client_key"),
+                    "shared_secret": self.getstr("shared_secret"),
+                    "base_url": self.getstr("base_url"),
+                })
+            )
+
+            assert self._data_integration.product == AtlassianProduct.jira
+
+    async def test_query_with_product_and_client_key(self) -> None:
+        async with self.db_session.begin() as s:
+            result = await ConnectInstallationOrm.one_or_none(session=s, client_key=self._data_integration.client_key, product=AtlassianProduct.jira)
             assert result is not None
             assert result.id == self._data_integration.id
 
+    async def test_query_with_client_key_only(self) -> None:
+        async with self.db_session.begin() as s:
+            with self.assertRaises(AssertionError):
+                await ConnectInstallationOrm.one_or_none(session=s, client_key=self._data_integration.client_key)
+
     async def test_query_with_team_id(self) -> None:
         async with self.db_session.begin() as s:
-            result = await JiraInstallationOrm.one_or_none(session=s, team_id=unwrap(self._data_integration.team_id))
+            result = await ConnectInstallationOrm.one_or_none(session=s, team_id=unwrap(self._data_integration.team_id))
             assert result is not None
             assert result.id == self._data_integration.id
 
     async def test_query_with_team_id_and_client_key(self) -> None:
         async with self.db_session.begin() as s:
-            result = await JiraInstallationOrm.one_or_none(session=s, team_id=unwrap(self._data_integration.team_id), client_key=self._data_integration.client_key)
+            result = await ConnectInstallationOrm.one_or_none(session=s, team_id=unwrap(self._data_integration.team_id), product=AtlassianProduct.jira, client_key=self._data_integration.client_key)
             assert result is not None
             assert result.id == self._data_integration.id

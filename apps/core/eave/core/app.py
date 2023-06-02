@@ -1,5 +1,5 @@
 from eave.core.public.middlewares.body_parser import BodyParserASGIMiddleware
-from eave.core.public.requests import jira_integration
+from eave.core.public.requests import connect_integration
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 import eave.stdlib
 import eave.stdlib.api_util
@@ -9,9 +9,9 @@ from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.core_api.operations.github import GetGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.core_api.operations import EndpointConfiguration
-from eave.stdlib.core_api.operations.subscriptions import CreateSubscription, DeleteSubscription, GetSubscription
+from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest, DeleteSubscriptionRequest, GetSubscriptionRequest
 from eave.stdlib.core_api.operations.team import GetTeam
-from eave.stdlib.core_api.operations.jira import QueryJiraIntegrationRequest, RegisterJiraIntegrationRequest
+from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 import eave.stdlib.logging
 import eave.stdlib.time
 import starlette.applications
@@ -163,24 +163,24 @@ routes = [
         endpoint=documents.DeleteDocument,
     ),
     make_route(
-        config=CreateSubscription.config,
+        config=CreateSubscriptionRequest.config,
         endpoint=subscriptions.CreateSubscription,
     ),
     make_route(
-        config=GetSubscription.config,
+        config=GetSubscriptionRequest.config,
         endpoint=subscriptions.GetSubscription,
     ),
     make_route(
-        config=DeleteSubscription.config,
+        config=DeleteSubscriptionRequest.config,
         endpoint=subscriptions.DeleteSubscription,
     ),
     make_route(
-        config=RegisterJiraIntegrationRequest.config,
-        endpoint=jira_integration.RegisterJiraIntegrationEndpoint,
+        config=RegisterConnectIntegrationRequest.config,
+        endpoint=connect_integration.RegisterConnectIntegrationEndpoint,
     ),
     make_route(
-        config=QueryJiraIntegrationRequest.config,
-        endpoint=jira_integration.QueryJiraIntegrationEndpoint,
+        config=QueryConnectIntegrationRequest.config,
+        endpoint=connect_integration.QueryConnectIntegrationEndpoint,
     ),
     make_route(
         config=GetSlackInstallation.config,

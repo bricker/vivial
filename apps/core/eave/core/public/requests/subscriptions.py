@@ -10,9 +10,9 @@ import eave.core.internal.orm.team
 from eave.stdlib import request_state as request_util
 from eave.stdlib.core_api.models.subscriptions import DocumentReference, Subscription
 from eave.stdlib.core_api.operations.subscriptions import (
-    GetSubscription as GetSubscriptionOp,
-    CreateSubscription as CreateSubscriptionOp,
-    DeleteSubscription as DeleteSubscriptionOp,
+    GetSubscriptionRequest as GetSubscriptionOp,
+    CreateSubscriptionRequest as CreateSubscriptionOp,
+    DeleteSubscriptionRequest as DeleteSubscriptionOp,
 )
 from eave.stdlib.core_api.models.team import Team
 from ..http_endpoint import HTTPEndpoint

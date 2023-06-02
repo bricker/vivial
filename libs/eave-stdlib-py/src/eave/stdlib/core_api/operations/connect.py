@@ -1,7 +1,7 @@
 from typing import Optional
 import uuid
 from eave.stdlib.core_api.models import team
-from eave.stdlib.core_api.models.jira import JiraInstallation, QueryJiraInstallationInput, RegisterJiraInstallationInput
+from eave.stdlib.core_api.models.connect import ConnectInstallation, QueryConnectInstallationInput, RegisterConnectInstallationInput
 
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
@@ -9,9 +9,9 @@ from eave.stdlib.eave_origins import EaveOrigin
 
 from ... import requests
 
-class RegisterJiraIntegrationRequest(Endpoint):
+class RegisterConnectIntegrationRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/integrations/jira/register",
+        path="/integrations/connect/register",
         auth_required=False,
         team_id_required=False,
         signature_required=True,
@@ -19,11 +19,11 @@ class RegisterJiraIntegrationRequest(Endpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        jira_integration: RegisterJiraInstallationInput
+        connect_integration: RegisterConnectInstallationInput
 
     class ResponseBody(BaseResponseBody):
         team: Optional[team.Team]
-        jira_integration: JiraInstallation
+        connect_integration: ConnectInstallation
 
     @classmethod
     async def perform(cls,
@@ -40,9 +40,9 @@ class RegisterJiraIntegrationRequest(Endpoint):
         return cls.ResponseBody(**response_json)
 
 
-class QueryJiraIntegrationRequest(Endpoint):
+class QueryConnectIntegrationRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/integrations/jira/query",
+        path="/integrations/connect/query",
         auth_required=False,
         team_id_required=False,
         signature_required=True,
@@ -50,11 +50,11 @@ class QueryJiraIntegrationRequest(Endpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        jira_integration: QueryJiraInstallationInput
+        connect_integration: QueryConnectInstallationInput
 
     class ResponseBody(BaseResponseBody):
         team: Optional[team.Team]
-        jira_integration: JiraInstallation
+        connect_integration: ConnectInstallation
 
     @classmethod
     async def perform(cls,

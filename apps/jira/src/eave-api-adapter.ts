@@ -1,14 +1,15 @@
 import AddOnFactory from 'atlassian-connect-express';
-import { queryJiraInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/jira.js';
+import { queryConnectInstallation, registerConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import appConfig from './config.js';
+import { QueryConnectInstallationResponseBody } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
+import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 
 type AppKey = "eave-confluence" | "eave-jira"
-type ProductType = "confluence" | "jira"
-type AdapterParams = { appKey: AppKey, productType: ProductType }
+type AdapterParams = { appKey: AppKey, productType: AtlassianProduct }
 
 class EaveApiAdapter /* implements StoreAdapter */ {
   appKey: AppKey
-  productType: ProductType
+  productType: AtlassianProduct
 
   constructor({appKey, productType}: AdapterParams) {
     this.appKey = appKey;
@@ -20,43 +21,73 @@ class EaveApiAdapter /* implements StoreAdapter */ {
   // So, this class is completely broken with OAuth.
 
   async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo> {
-    const response = await queryJiraInstallation({
+    const response = await queryConnectInstallation({
       origin: appConfig.eaveOrigin,
       input: {
-        jira_integration: {
+        connect_integration: {
+          product: this.productType,
           client_key: clientKey,
         },
       },
     });
 
+    return this.buildClientInfo(response);
+  }
+
+  async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
+    let parsedValue: AddOnFactory.ClientInfo;
+
+    if (typeof value === 'string') {
+      parsedValue = JSON.parse(value);
+    } else {
+      parsedValue = value;
+    }
+
+    const response = await registerConnectInstallation({
+      origin: appConfig.eaveOrigin,
+      input: {
+        connect_integration: {
+          product: this.productType,
+          client_key: clientKey,
+          base_url: parsedValue.baseUrl,
+          shared_secret: parsedValue.sharedSecret,
+          description: parsedValue.description,
+
+        },
+      },
+    });
+
+    return this.buildClientInfo(response);
+  }
+
+  async del(key: string, clientKey: string): Promise<void> {
+    // TODO: Fill in the delete function for Connect client info
+  }
+
+  async getAllClientInfos(): Promise<AddOnFactory.ClientInfo[]> {
+    // TODO: Fill in the getAllClientInfos function
+    return [];
+  }
+
+  isMemoryStore() {
+    return false;
+  }
+
+  private buildClientInfo(response: QueryConnectInstallationResponseBody): AddOnFactory.ClientInfo {
     // The ClientInfo interface contains several properties which are non-nullable, but aren't needed for our purpose.
     // For those properties, we'll fill in with dummy values.
     return {
       key: this.appKey,
       productType: this.productType,
-      clientKey: response.jira_integration.client_key,
-      sharedSecret: response.jira_integration.shared_secret,
-      baseUrl: response.jira_integration.base_url,
+      clientKey: response.connect_integration.client_key,
+      sharedSecret: response.connect_integration.shared_secret,
+      baseUrl: response.connect_integration.base_url,
       description: '', // We actually have this, but it's not needed here.
       eventType: '',
       publicKey: '',
       serverVersion: '',
       pluginsVersion: '',
     }
-  }
-
-  async set(key: string, value: any, clientKey: string): Promise<any> {
-  }
-
-  async del(key: string, clientKey: string): Promise<void> {
-  }
-
-  async getAllClientInfos(): Promise<AddOnFactory.ClientInfo[]> {
-    return [];
-  }
-
-  isMemoryStore() {
-    return false;
   }
 }
 

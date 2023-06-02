@@ -13,6 +13,7 @@ from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.logging import eaveLogger
+from eave.core.internal.config import app_config
 
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared
@@ -135,6 +136,13 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 )
 
                 await self._run_post_install_procedures(log_context=log_context)
+
+                # shared.set_redirect(response=self.response, location=(
+                #     f"slack://app"
+                #     f"?team={slack_team_id}"
+                #     f"&id={app_config.eave_slack_app_id}"
+                #     "&tab=messages"
+                # ))
 
     async def _run_post_install_procedures(
         self,

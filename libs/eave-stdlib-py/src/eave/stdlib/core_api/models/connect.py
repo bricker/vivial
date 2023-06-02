@@ -1,14 +1,19 @@
+import enum
 from typing import Optional
 import pydantic
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
+class AtlassianProduct(enum.StrEnum):
+    jira = "jira"
+    confluence = "confluence"
 
-class JiraInstallation(BaseResponseModel):
+class ConnectInstallation(BaseResponseModel):
     """
     https://developer.atlassian.com/cloud/confluence/connect-app-descriptor/#lifecycle
     """
     id: pydantic.UUID4
+    product: AtlassianProduct
     client_key: str
     base_url: str
     shared_secret: str
@@ -17,15 +22,17 @@ class JiraInstallation(BaseResponseModel):
     display_url: Optional[str]
     description: Optional[str]
 
-class QueryJiraInstallationInput(BaseInputModel):
+class QueryConnectInstallationInput(BaseInputModel):
     client_key: str
+    product: AtlassianProduct
 
-class RegisterJiraInstallationInput(BaseInputModel):
+class RegisterConnectInstallationInput(BaseInputModel):
     """
     These field names MUST match the field names defined in the ORM.
     It is recommended to not change these.
     """
     client_key: str
+    product: AtlassianProduct
     base_url: str
     shared_secret: str
     atlassian_actor_account_id: Optional[str]
