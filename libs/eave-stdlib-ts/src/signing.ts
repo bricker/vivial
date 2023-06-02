@@ -48,6 +48,16 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
     version: '1',
     algorithm: SigningAlgorithm.ES256,
   },
+  [EaveOrigin.eave_jira_app]: {
+    id: 'eave-jira-app-signing-key',
+    version: '1',
+    algorithm: SigningAlgorithm.ES256,
+  },
+  [EaveOrigin.eave_confluence_app]: {
+    id: 'eave-confluence-app-signing-key',
+    version: '1',
+    algorithm: SigningAlgorithm.ES256,
+  },
   [EaveOrigin.eave_forge_app]: {
     id: 'eave-atlassian-app-signing-key', // this key ID is correct for Forge, it's shared with the Atlassian app
     version: '1',

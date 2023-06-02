@@ -10,6 +10,7 @@ import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import appConfig from './config.js';
 import EaveApiAdapter from './eave-api-adapter.js';
+import { CommentCreatedEventPayload, ContentType } from './types.js';
 
 // This <any> case is necessary to tell Typescript to effectively ignore this expression.
 // ace.store is exported in the javascript implementation, but not in the typescript type definitions,
@@ -67,8 +68,51 @@ rootRouter.use(standardEndpointsRouter);
 // webhooks
 const webhookRouter = express.Router();
 rootRouter.use('/events', webhookRouter);
+
 webhookRouter.post('/', addon.authenticate(), async (req, res) => {
-  eaveLogger.info('received webhook event', req);
+  eaveLogger.info('received webhook event', req.body);
+  eaveLogger.info('received webhook event', req.headers);
+
+  const payload = <CommentCreatedEventPayload>req.body;
+  const client = addon.httpClient(req);
+
+  if (payload.comment.author.accountType === 'app') {
+    eaveLogger.info('Ignoring app comment');
+    return;
+  }
+
+  if (payload.issue) {
+    await client.post({
+      url: `/rest/api/3/issue/${payload.issue.id}/comment`,
+      json: true,
+      body: {
+        body: {
+          type: ContentType.doc,
+          version: 1,
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                {
+                  type: ContentType.text,
+                  text: "Eave",
+                  marks: [
+                    {
+                      type: ContentType.link,
+                      attrs: {
+                        href: "https://www.eave.fyi",
+                        title: 'Eave Website',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ]
+        },
+      }
+    })
+  }
 });
 
 // API

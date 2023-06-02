@@ -3,6 +3,7 @@ import { queryConnectInstallation, registerConnectInstallation } from '@eave-fyi
 import appConfig from './config.js';
 import { QueryConnectInstallationResponseBody } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
+import { NotFoundError } from '@eave-fyi/eave-stdlib-ts/src/exceptions.js';
 
 type AppKey = "eave-confluence" | "eave-jira"
 type AdapterParams = { appKey: AppKey, productType: AtlassianProduct }
@@ -20,18 +21,23 @@ class EaveApiAdapter /* implements StoreAdapter */ {
   // However, for OAuth, the key is dynamically generated using the user identifier and scopes.
   // So, this class is completely broken with OAuth.
 
-  async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo> {
-    const response = await queryConnectInstallation({
-      origin: appConfig.eaveOrigin,
-      input: {
-        connect_integration: {
-          product: this.productType,
-          client_key: clientKey,
+  async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
+    try {
+      const response = await queryConnectInstallation({
+        origin: appConfig.eaveOrigin,
+        input: {
+          connect_integration: {
+            product: this.productType,
+            client_key: clientKey,
+          },
         },
-      },
-    });
+      });
 
-    return this.buildClientInfo(response);
+      return this.buildClientInfo(response);
+    } catch (e: any) {
+      // HTTP error. Not Found is common, if the registration doesn't already exist.
+      return null;
+    }
   }
 
   async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
