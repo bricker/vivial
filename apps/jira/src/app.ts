@@ -15,7 +15,7 @@ import { CommentCreatedEventPayload, ContentType } from './types.js';
 // This <any> case is necessary to tell Typescript to effectively ignore this expression.
 // ace.store is exported in the javascript implementation, but not in the typescript type definitions,
 // so Typescript (rightfully) shows an error.
-(<any>ace).store.register('eave-api-store', EaveApiAdapter)
+(<any>ace).store.register('eave-api-store', EaveApiAdapter);
 
 const app = express();
 const addon = ace(app);
@@ -25,29 +25,29 @@ const addon = ace(app);
 // HSTS must be enabled with a minimum age of at least one year
 app.use(helmet.hsts({
   maxAge: 31536000,
-  includeSubDomains: false
+  includeSubDomains: false,
 }));
 app.use(helmet.referrerPolicy({
-  policy: ['origin']
+  policy: ['origin'],
 }));
 
 // Atlassian security policy requirements
 // http://go.atlassian.com/security-requirements-for-cloud-apps
 app.use((req, res, next) => {
-  res.setHeader("Surrogate-Control", "no-store");
+  res.setHeader('Surrogate-Control', 'no-store');
   res.setHeader(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate',
   );
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
 
   next();
 });
 
 // Include request parsers
 app.use(express.json());
-app.use(express.urlencoded({extended: false})); // For GET requests
+app.use(express.urlencoded({ extended: false })); // For GET requests
 
 // Include atlassian-connect-express middleware
 app.use(addon.middleware());
@@ -95,12 +95,12 @@ webhookRouter.post('/', addon.authenticate(), async (req, res) => {
               content: [
                 {
                   type: ContentType.text,
-                  text: "Eave",
+                  text: 'Eave',
                   marks: [
                     {
                       type: ContentType.link,
                       attrs: {
-                        href: "https://www.eave.fyi",
+                        href: 'https://www.eave.fyi',
                         title: 'Eave Website',
                       },
                     },
@@ -108,10 +108,10 @@ webhookRouter.post('/', addon.authenticate(), async (req, res) => {
                 },
               ],
             },
-          ]
+          ],
         },
-      }
-    })
+      },
+    });
   }
 });
 

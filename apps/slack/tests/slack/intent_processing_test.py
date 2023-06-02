@@ -4,6 +4,7 @@ import unittest.mock
 from eave.slack.brain.message_prompts import MessageAction
 from .base import BaseTestCase
 
+
 class IntentProcessingMixinTest(BaseTestCase):
     mut = "eave.slack.brain.intent_processing"
 

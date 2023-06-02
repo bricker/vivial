@@ -7,7 +7,6 @@ from eave.stdlib.core_api.operations.account import (
     GetAuthenticatedAccount,
     GetAuthenticatedAccountTeamIntegrations,
 )
-from eave.stdlib.core_api.models.atlassian import AtlassianInstallation
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Team
 import eave.stdlib.request_state as request_state

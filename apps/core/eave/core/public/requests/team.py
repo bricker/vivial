@@ -8,6 +8,7 @@ from eave.stdlib.core_api.operations.team import (
     GetTeam as GetTeamOp,
 )
 
+
 class GetTeam(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave.stdlib.request_state.get_eave_state(request=request)

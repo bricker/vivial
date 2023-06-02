@@ -1,5 +1,9 @@
 from eave.stdlib.core_api.enums import LinkType
-from eave.stdlib.core_api.models.subscriptions import SubscriptionSource, SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import (
+    SubscriptionSource,
+    SubscriptionSourceEvent,
+    SubscriptionSourcePlatform,
+)
 from eave.stdlib.core_api.models.subscriptions import (
     Subscription,
 )

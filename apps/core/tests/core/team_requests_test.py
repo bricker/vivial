@@ -42,9 +42,15 @@ class TestTeamRequests(BaseTestCase):
         assert response_obj.integrations.slack_integration.bot_token == self.anystring("bot_token")
 
         assert response_obj.integrations.atlassian_integration is not None
-        assert response_obj.integrations.atlassian_integration.confluence_space_key == self.anystring("confluence_space")
-        assert response_obj.integrations.atlassian_integration.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert response_obj.integrations.atlassian_integration.oauth_token_encoded == self.anyjson("oauth_token_encoded")
+        assert response_obj.integrations.atlassian_integration.confluence_space_key == self.anystring(
+            "confluence_space"
+        )
+        assert response_obj.integrations.atlassian_integration.atlassian_cloud_id == self.anystring(
+            "atlassian_cloud_id"
+        )
+        assert response_obj.integrations.atlassian_integration.oauth_token_encoded == self.anyjson(
+            "oauth_token_encoded"
+        )
 
     async def test_get_team_without_integrations(self) -> None:
         async with self.db_session.begin() as s:

@@ -34,6 +34,3 @@ class GetTeam(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
-
-
-

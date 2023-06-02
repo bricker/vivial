@@ -29,7 +29,8 @@ class UpsertDocument(Endpoint):
         document_reference: DocumentReference
 
     @classmethod
-    async def perform(cls,
+    async def perform(
+        cls,
         origin: EaveOrigin,
         team_id: uuid.UUID,
         input: RequestBody,
@@ -43,6 +44,7 @@ class UpsertDocument(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 class SearchDocuments(Endpoint):
     config = EndpointConfiguration(
@@ -58,7 +60,8 @@ class SearchDocuments(Endpoint):
         documents: list[DocumentSearchResult]
 
     @classmethod
-    async def perform(cls,
+    async def perform(
+        cls,
         origin: EaveOrigin,
         team_id: uuid.UUID,
         input: RequestBody,
@@ -73,6 +76,7 @@ class SearchDocuments(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
+
 class DeleteDocument(Endpoint):
     config = EndpointConfiguration(
         path="/documents/delete",
@@ -83,7 +87,8 @@ class DeleteDocument(Endpoint):
         document_reference: DocumentReferenceInput
 
     @classmethod
-    async def perform(cls,
+    async def perform(
+        cls,
         origin: EaveOrigin,
         team_id: uuid.UUID,
         input: RequestBody,
@@ -95,4 +100,3 @@ class DeleteDocument(Endpoint):
             team_id=team_id,
         )
         return BaseResponseBody(_raw_response=response)
-

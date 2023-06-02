@@ -9,7 +9,11 @@ from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.core_api.operations.github import GetGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.core_api.operations import EndpointConfiguration
-from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest, DeleteSubscriptionRequest, GetSubscriptionRequest
+from eave.stdlib.core_api.operations.subscriptions import (
+    CreateSubscriptionRequest,
+    DeleteSubscriptionRequest,
+    GetSubscriptionRequest,
+)
 from eave.stdlib.core_api.operations.team import GetTeam
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 import eave.stdlib.logging

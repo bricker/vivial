@@ -1,4 +1,3 @@
-
 export type SlackInstallationInput = {
   slack_team_id: string;
 }

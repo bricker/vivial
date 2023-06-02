@@ -4,7 +4,6 @@ import { DocumentInput } from '../models/documents.js';
 import { DocumentReference, Subscription } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
 
-
 export type UpsertDocumentRequestBody = {
   document: DocumentInput;
   subscriptions: Array<Subscription>;

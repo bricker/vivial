@@ -11,7 +11,9 @@ class SubscriptionManagementMixin(CommunicationMixin):
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.GetSubscriptionRequest.RequestBody(
-                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(source=self.message.subscription_source),
+                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(
+                    source=self.message.subscription_source
+                ),
             ),
         )
         return subscription
@@ -24,7 +26,9 @@ class SubscriptionManagementMixin(CommunicationMixin):
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.CreateSubscriptionRequest.RequestBody(
-                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(source=self.message.subscription_source),
+                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(
+                    source=self.message.subscription_source
+                ),
             ),
         )
 
@@ -38,7 +42,9 @@ class SubscriptionManagementMixin(CommunicationMixin):
 
         return subscription
 
-    async def notify_existing_subscription(self, subscription: eave_subscriptions.GetSubscriptionRequest.ResponseBody) -> None:
+    async def notify_existing_subscription(
+        self, subscription: eave_subscriptions.GetSubscriptionRequest.ResponseBody
+    ) -> None:
         if subscription.document_reference is not None:
             await self.send_response(
                 text=(

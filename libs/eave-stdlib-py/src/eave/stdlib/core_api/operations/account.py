@@ -20,9 +20,7 @@ class GetAuthenticatedAccount(Endpoint):
         team: team.Team
 
     @classmethod
-    async def perform(cls,
-        origin: EaveOrigin, account_id: uuid.UUID, access_token: str
-    ) -> ResponseBody:
+    async def perform(cls, origin: EaveOrigin, account_id: uuid.UUID, access_token: str) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
@@ -47,9 +45,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
         integrations: Integrations
 
     @classmethod
-    async def perform(cls,
-        origin: EaveOrigin, account_id: uuid.UUID, access_token: str
-    ) -> ResponseBody:
+    async def perform(cls, origin: EaveOrigin, account_id: uuid.UUID, access_token: str) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
@@ -60,4 +56,3 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
-

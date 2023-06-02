@@ -1,20 +1,14 @@
 import http
-from typing import Literal, cast
 
-from asgiref.typing import HTTPScope
-from starlette.types import Scope
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
-from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
-from eave.stdlib.exceptions import BadRequestError
 from eave.stdlib.logging import eaveLogger
 
 from eave.stdlib import analytics
-from eave.stdlib.config import shared_config
 import eave.stdlib.api_util as eave_api_util
 from starlette.requests import Request
 from starlette.responses import Response
@@ -36,7 +30,10 @@ class QueryConnectIntegrationEndpoint(HTTPEndpoint):
             )
 
             if not installation:
-                eaveLogger.warn(f"{input.connect_integration.product} Integration not found for client key {input.connect_integration.client_key}", extra=eave_state.log_context)
+                eaveLogger.warn(
+                    f"{input.connect_integration.product} Integration not found for client key {input.connect_integration.client_key}",
+                    extra=eave_state.log_context,
+                )
                 return Response(status_code=http.HTTPStatus.NOT_FOUND)
 
             if installation.team_id:
@@ -70,7 +67,9 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
 
         async with eave_db.async_session.begin() as db_session:
             integration = await ConnectInstallationOrm.one_or_none(
-                session=db_session, product=input.connect_integration.product, client_key=input.connect_integration.client_key,
+                session=db_session,
+                product=input.connect_integration.product,
+                client_key=input.connect_integration.client_key,
             )
 
             if not integration:

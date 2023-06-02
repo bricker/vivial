@@ -54,9 +54,7 @@ def upgrade() -> None:
         ["product", "client_key"],
         unique=True,
     )
-    op.drop_index(
-        "ix_jira_installations_client_key", table_name="jira_installations"
-    )
+    op.drop_index("ix_jira_installations_client_key", table_name="jira_installations")
     op.drop_table("jira_installations")
     # ### end Alembic commands ###
 
@@ -73,27 +71,17 @@ def downgrade() -> None:
             autoincrement=False,
             nullable=False,
         ),
-        sa.Column(
-            "client_key", sa.VARCHAR(), autoincrement=False, nullable=False
-        ),
-        sa.Column(
-            "shared_secret", sa.VARCHAR(), autoincrement=False, nullable=False
-        ),
-        sa.Column(
-            "base_url", sa.VARCHAR(), autoincrement=False, nullable=False
-        ),
+        sa.Column("client_key", sa.VARCHAR(), autoincrement=False, nullable=False),
+        sa.Column("shared_secret", sa.VARCHAR(), autoincrement=False, nullable=False),
+        sa.Column("base_url", sa.VARCHAR(), autoincrement=False, nullable=False),
         sa.Column(
             "atlassian_actor_account_id",
             sa.VARCHAR(),
             autoincrement=False,
             nullable=True,
         ),
-        sa.Column(
-            "display_url", sa.VARCHAR(), autoincrement=False, nullable=True
-        ),
-        sa.Column(
-            "description", sa.VARCHAR(), autoincrement=False, nullable=True
-        ),
+        sa.Column("display_url", sa.VARCHAR(), autoincrement=False, nullable=True),
+        sa.Column("description", sa.VARCHAR(), autoincrement=False, nullable=True),
         sa.Column(
             "created",
             postgresql.TIMESTAMP(),
@@ -113,9 +101,7 @@ def downgrade() -> None:
             name="jira_installations_team_id_fkey",
             ondelete="CASCADE",
         ),
-        sa.PrimaryKeyConstraint(
-            "client_key", "id", name="jira_installations_pkey"
-        ),
+        sa.PrimaryKeyConstraint("client_key", "id", name="jira_installations_pkey"),
     )
     op.create_index(
         "ix_jira_installations_client_key",

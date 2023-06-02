@@ -50,9 +50,7 @@ def upgrade() -> None:
         unique=True,
     )
     op.drop_constraint("accounts_team_id_fkey", "accounts", type_="foreignkey")
-    op.create_foreign_key(
-        None, "accounts", "teams", ["team_id"], ["id"], ondelete="CASCADE"
-    )
+    op.create_foreign_key(None, "accounts", "teams", ["team_id"], ["id"], ondelete="CASCADE")
     op.drop_constraint(
         "atlassian_installations_team_id_fkey",
         "atlassian_installations",
@@ -115,23 +113,15 @@ def upgrade() -> None:
         ["id"],
         ondelete="CASCADE",
     )
-    op.drop_constraint(
-        "slack_sources_team_id_fkey", "slack_sources", type_="foreignkey"
-    )
-    op.create_foreign_key(
-        None, "slack_sources", "teams", ["team_id"], ["id"], ondelete="CASCADE"
-    )
+    op.drop_constraint("slack_sources_team_id_fkey", "slack_sources", type_="foreignkey")
+    op.create_foreign_key(None, "slack_sources", "teams", ["team_id"], ["id"], ondelete="CASCADE")
     op.drop_constraint(
         "subscriptions_team_id_document_reference_id_fkey",
         "subscriptions",
         type_="foreignkey",
     )
-    op.drop_constraint(
-        "subscriptions_team_id_fkey", "subscriptions", type_="foreignkey"
-    )
-    op.create_foreign_key(
-        None, "subscriptions", "teams", ["team_id"], ["id"], ondelete="CASCADE"
-    )
+    op.drop_constraint("subscriptions_team_id_fkey", "subscriptions", type_="foreignkey")
+    op.create_foreign_key(None, "subscriptions", "teams", ["team_id"], ["id"], ondelete="CASCADE")
     op.create_foreign_key(
         None,
         "subscriptions",

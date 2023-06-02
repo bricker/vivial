@@ -22,7 +22,8 @@ class GetGithubInstallation(Endpoint):
         github_integration: GithubInstallation
 
     @classmethod
-    async def perform(cls,
+    async def perform(
+        cls,
         origin: EaveOrigin,
         input: RequestBody,
     ) -> ResponseBody:

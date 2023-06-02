@@ -3,7 +3,6 @@ import { RequestArgsOriginAndTeamId, makeRequest } from '../../lib/requests.js';
 import { Integrations } from '../models/integrations.js';
 import { Team } from '../models/team.js';
 
-
 export type GetTeamResponseBody = {
   team: Team;
   integrations: Integrations;

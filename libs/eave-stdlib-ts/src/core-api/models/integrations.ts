@@ -1,8 +1,8 @@
-import { AtlassianInstallation } from "./atlassian.js";
-import { ForgeInstallation } from "./forge.js";
-import { GithubInstallation } from "./github.js";
-import { ConnectInstallation } from "./connect.js";
-import { SlackInstallation } from "./slack.js";
+import { AtlassianInstallation } from './atlassian.js';
+import { ForgeInstallation } from './forge.js';
+import { GithubInstallation } from './github.js';
+import { ConnectInstallation } from './connect.js';
+import { SlackInstallation } from './slack.js';
 
 /**
  * Key-value mapping of Integration to Installation info.

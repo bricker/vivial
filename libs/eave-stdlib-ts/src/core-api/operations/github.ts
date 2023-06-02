@@ -3,7 +3,6 @@ import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
 import { GithubInstallation, GithubInstallationInput } from '../models/github.js';
 import { Team } from '../models/team.js';
 
-
 export type GetGithubInstallationRequestBody = {
   github_integration: GithubInstallationInput;
 }

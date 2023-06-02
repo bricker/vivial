@@ -1,18 +1,18 @@
 import AddOnFactory from 'atlassian-connect-express';
-import { queryConnectInstallation, registerConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
-import appConfig from './config.js';
-import { QueryConnectInstallationResponseBody } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
+import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { NotFoundError } from '@eave-fyi/eave-stdlib-ts/src/exceptions.js';
+import appConfig from './config.js';
 
-type AppKey = "eave-confluence" | "eave-jira"
+type AppKey = 'eave-confluence' | 'eave-jira'
 type AdapterParams = { appKey: AppKey, productType: AtlassianProduct }
 
 class EaveApiAdapter /* implements StoreAdapter */ {
-  appKey: AppKey
-  productType: AtlassianProduct
+  appKey: AppKey;
 
-  constructor({appKey, productType}: AdapterParams) {
+  productType: AtlassianProduct;
+
+  constructor({ appKey, productType }: AdapterParams) {
     this.appKey = appKey;
     this.productType = productType;
   }
@@ -93,10 +93,10 @@ class EaveApiAdapter /* implements StoreAdapter */ {
       publicKey: '',
       serverVersion: '',
       pluginsVersion: '',
-    }
+    };
   }
 }
 
 export default (logger: Console, opts: AdapterParams) => {
   return new EaveApiAdapter(opts);
-}
+};

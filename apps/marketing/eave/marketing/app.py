@@ -87,10 +87,12 @@ async def update_forge_integration() -> Response:
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
         input=forge.UpdateForgeInstallation.RequestBody(
-            forge_integration=eave.stdlib.core_api.models.forge.UpdateForgeInstallationInput.parse_obj({
-                "forge_app_installation_id": forge_app_installation_id,
-                "confluence_space_key": confluence_space_key,
-            }),
+            forge_integration=eave.stdlib.core_api.models.forge.UpdateForgeInstallationInput.parse_obj(
+                {
+                    "forge_app_installation_id": forge_app_installation_id,
+                    "confluence_space_key": confluence_space_key,
+                }
+            ),
         ),
     )
 

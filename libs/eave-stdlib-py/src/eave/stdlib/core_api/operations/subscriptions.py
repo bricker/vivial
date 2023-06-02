@@ -28,10 +28,7 @@ class GetSubscriptionRequest(Endpoint):
         document_reference: Optional[DocumentReference] = None
 
     @classmethod
-    async def perform(
-        cls,
-        origin: EaveOrigin, team_id: uuid.UUID, input: RequestBody
-    ) -> ResponseBody | None:
+    async def perform(cls, origin: EaveOrigin, team_id: uuid.UUID, input: RequestBody) -> ResponseBody | None:
         try:
             response = await requests.make_request(
                 url=cls.config.url,
@@ -45,6 +42,7 @@ class GetSubscriptionRequest(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 class CreateSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
@@ -78,6 +76,7 @@ class CreateSubscriptionRequest(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
+
 class DeleteSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
         path="/subscriptions/delete",
@@ -102,5 +101,3 @@ class DeleteSubscriptionRequest(Endpoint):
         )
 
         return BaseResponseBody(_raw_response=response)
-
-

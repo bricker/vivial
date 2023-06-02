@@ -17,8 +17,8 @@ class Integration(enum.StrEnum):
     github = "github"
     forge = "forge"
     atlassian = "atlassian"
-    confluence = 'confluence'
-    jira = 'jira'
+    confluence = "confluence"
+    jira = "jira"
 
 
 class Integrations(BaseResponseModel):

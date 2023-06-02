@@ -1,4 +1,3 @@
-
 export enum SubscriptionSourcePlatform {
   slack = 'slack',
   github = 'github',

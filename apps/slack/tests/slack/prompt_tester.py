@@ -19,7 +19,9 @@ import eave.stdlib.logging
 
 logger = eave.stdlib.logging.eaveLogger
 
-eave_team = eave.stdlib.core_api.models.team.Team(id=uuid.uuid4(), name="Test Team", document_platform=eave.stdlib.core_api.models.team.DocumentPlatform.confluence)
+eave_team = eave.stdlib.core_api.models.team.Team(
+    id=uuid.uuid4(), name="Test Team", document_platform=eave.stdlib.core_api.models.team.DocumentPlatform.confluence
+)
 
 # TODO: This client isn't usable, needs a token
 slack_context = AsyncBoltContext({"client": AsyncWebClient()})

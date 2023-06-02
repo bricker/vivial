@@ -1,4 +1,3 @@
-
 export type GithubInstallationInput = {
   github_install_id: string;
 }

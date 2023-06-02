@@ -209,7 +209,9 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 ),
             )
 
-    async def upsert_document(self, document: eave.stdlib.core_api.models.documents.DocumentInput) -> documents.UpsertDocument.ResponseBody:
+    async def upsert_document(
+        self, document: eave.stdlib.core_api.models.documents.DocumentInput
+    ) -> documents.UpsertDocument.ResponseBody:
         response = await documents.UpsertDocument.perform(
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,

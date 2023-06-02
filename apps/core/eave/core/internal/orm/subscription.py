@@ -5,7 +5,11 @@ from uuid import UUID
 from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib.core_api.models.subscriptions import SubscriptionSource, SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import (
+    SubscriptionSource,
+    SubscriptionSourceEvent,
+    SubscriptionSourcePlatform,
+)
 from eave.stdlib.core_api.models.subscriptions import (
     Subscription,
 )

@@ -1,13 +1,17 @@
 from typing import Optional
-import uuid
 from eave.stdlib.core_api.models import team
-from eave.stdlib.core_api.models.connect import ConnectInstallation, QueryConnectInstallationInput, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import (
+    ConnectInstallation,
+    QueryConnectInstallationInput,
+    RegisterConnectInstallationInput,
+)
 
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
 from eave.stdlib.eave_origins import EaveOrigin
 
 from ... import requests
+
 
 class RegisterConnectIntegrationRequest(Endpoint):
     config = EndpointConfiguration(
@@ -26,7 +30,8 @@ class RegisterConnectIntegrationRequest(Endpoint):
         connect_integration: ConnectInstallation
 
     @classmethod
-    async def perform(cls,
+    async def perform(
+        cls,
         origin: EaveOrigin,
         input: RequestBody,
     ) -> ResponseBody:
@@ -57,7 +62,8 @@ class QueryConnectIntegrationRequest(Endpoint):
         connect_integration: ConnectInstallation
 
     @classmethod
-    async def perform(cls,
+    async def perform(
+        cls,
         origin: EaveOrigin,
         input: RequestBody,
     ) -> ResponseBody:

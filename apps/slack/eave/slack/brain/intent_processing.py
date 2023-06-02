@@ -95,7 +95,9 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.DeleteSubscriptionRequest.RequestBody(
-                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(source=self.message.subscription_source),
+                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(
+                    source=self.message.subscription_source
+                ),
             ),
         )
 

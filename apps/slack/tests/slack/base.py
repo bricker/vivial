@@ -68,18 +68,22 @@ class BaseTestCase(UtilityBaseTestCase):
         self.patch(
             name="get subscription",
             patch=unittest.mock.patch(
-                "eave.stdlib.core_api.operations.subscriptions.GetSubscriptionRequest.perform", return_value=self._data_subscription_response
+                "eave.stdlib.core_api.operations.subscriptions.GetSubscriptionRequest.perform",
+                return_value=self._data_subscription_response,
             ),
         )
         self.patch(
             name="create subscription",
             patch=unittest.mock.patch(
-                "eave.stdlib.core_api.operations.subscriptions.CreateSubscriptionRequest.perform", return_value=self._data_subscription_response
+                "eave.stdlib.core_api.operations.subscriptions.CreateSubscriptionRequest.perform",
+                return_value=self._data_subscription_response,
             ),
         )
         self.patch(
             name="delete subscription",
-            patch=unittest.mock.patch("eave.stdlib.core_api.operations.subscriptions.DeleteSubscriptionRequest.perform", return_value=None),
+            patch=unittest.mock.patch(
+                "eave.stdlib.core_api.operations.subscriptions.DeleteSubscriptionRequest.perform", return_value=None
+            ),
         )
 
         self.eave_ctx = LogContext()

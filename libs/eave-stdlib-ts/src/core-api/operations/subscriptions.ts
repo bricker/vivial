@@ -3,7 +3,6 @@ import { RequestArgsOriginAndTeamId, makeRequest } from '../../lib/requests.js';
 import { DocumentReference, DocumentReferenceInput, Subscription, SubscriptionInput } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
 
-
 export type GetSubscriptionRequestBody = {
   subscription: SubscriptionInput;
 }

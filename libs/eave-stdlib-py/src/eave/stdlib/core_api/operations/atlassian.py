@@ -1,4 +1,3 @@
-
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallation
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallationInput
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
@@ -23,7 +22,8 @@ class GetAtlassianInstallation(Endpoint):
         atlassian_integration: AtlassianInstallation
 
     @classmethod
-    async def perform(cls,
+    async def perform(
+        cls,
         origin: EaveOrigin,
         input: RequestBody,
     ) -> ResponseBody:
@@ -35,5 +35,3 @@ class GetAtlassianInstallation(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
-
-
