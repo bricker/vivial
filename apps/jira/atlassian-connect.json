@@ -2,6 +2,7 @@
     "key": "eave-jira",
     "name": "Eave for Jira",
     "description": "eave.fyi",
+    "enableLicensing": false,
     "vendor": {
         "name": "Eave Technologies, Inc.",
         "url": "https://www.eave.fyi"

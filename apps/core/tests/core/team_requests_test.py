@@ -1,6 +1,9 @@
 from http import HTTPStatus
+import http
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
+from eave.stdlib.core_api.models.connect import RegisterConnectInstallationInput
 
 from eave.stdlib.core_api.operations.team import GetTeamRequest
 
@@ -65,3 +68,34 @@ class TestTeamRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = GetTeamRequest.ResponseBody(**response.json())
         assert response_obj.team.id == team.id
+
+
+class CreateConfluenceDestinationTests(BaseTestCase):
+    async def test_create_confluence_destination(self) -> None:
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
+            account = await self.make_account(s, team_id=team.id)
+
+            connect = await ConnectInstallationOrm.create(
+                session=s,
+                team_id=team.id,
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "confluence",
+                    "client_key": self.anystring("client_key"),
+                    "base_url": self.anystring("base_url"),
+                    "shared_secret": self.anystring("shared_secret"),
+                }),
+            )
+
+        response = await self.make_request(
+            path="/",
+            payload={
+                "confluence_destination": {
+                    "space_key": self.anystring("space_key"),
+                },
+            },
+            account_id=account.id,
+            access_token=account.access_token,
+        )
+
+        assert response.status_code == http.HTTPStatus.OK
