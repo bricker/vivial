@@ -8,6 +8,8 @@ import { requestIntegrity } from '@eave-fyi/eave-stdlib-ts/src/middleware/reques
 import { loggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/logging.js';
 import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import { searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import appConfig from './config.js';
 import EaveApiAdapter from './eave-api-adapter.js';
 import { CommentCreatedEventPayload, ContentType } from './types.js';
@@ -69,7 +71,7 @@ rootRouter.use(standardEndpointsRouter);
 const webhookRouter = express.Router();
 rootRouter.use('/events', webhookRouter);
 
-webhookRouter.post('/', addon.authenticate(), async (req, res) => {
+webhookRouter.post('/', addon.authenticate(), async (req/* , res */) => {
   eaveLogger.info('received webhook event', req.body);
   eaveLogger.info('received webhook event', req.headers);
 
@@ -80,6 +82,35 @@ webhookRouter.post('/', addon.authenticate(), async (req, res) => {
     eaveLogger.info('Ignoring app comment');
     return;
   }
+
+  const prompt = [
+    'Is the following message asking you to look up some existing documentation? Say either Yes or No.',
+    'Message:',
+    '###',
+    payload.comment.body,
+    '###',
+  ].join('\n');
+
+  const openaiResponse = await openai.createChatCompletion({
+    messages: [
+      { role: 'system', content: openai.PROMPT_PREFIX },
+      { role: 'user', content: prompt },
+    ],
+    model: openai.OpenAIModel.GPT4,
+    max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT4],
+  });
+
+  if (!openaiResponse.match(/yes/i)) {
+    eaveLogger.debug('Comment ignored');
+    return;
+  }
+  const searchResults = await searchDocuments({
+    origin: appConfig.eaveOrigin,
+    teamId: 'xx',
+    input: {
+      query: payload.comment.body,
+    },
+  });
 
   if (payload.issue) {
     await client.post({
@@ -92,21 +123,21 @@ webhookRouter.post('/', addon.authenticate(), async (req, res) => {
           content: [
             {
               type: 'paragraph',
-              content: [
+              content: searchResults.documents.map((document) => (
                 {
                   type: ContentType.text,
-                  text: 'Eave',
+                  text: document.title,
                   marks: [
                     {
                       type: ContentType.link,
                       attrs: {
-                        href: 'https://www.eave.fyi',
-                        title: 'Eave Website',
+                        href: document.url,
+                        title: document.title,
                       },
                     },
                   ],
-                },
-              ],
+                }
+              )),
             },
           ],
         },
@@ -120,7 +151,7 @@ const internalApiRouter = express.Router();
 rootRouter.use('/api', internalApiRouter);
 internalApiRouter.use(originMiddleware);
 internalApiRouter.use(signatureVerification(appConfig.eaveAppsBase));
-internalApiRouter.post('/_', (req, res, next) => {
+internalApiRouter.post('/_', (/* req, res, next */) => {
   // not used, just here for placeholder
 });
 

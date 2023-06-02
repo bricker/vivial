@@ -9,7 +9,7 @@ class ConfluenceDestination(BaseResponseModel):
     space_key: Optional[str]
 
 class ConfluenceDestinationInput(BaseInputModel):
-    space_key: Optional[str]
+    space_key: str
 
 class TeamInput(BaseInputModel):
     name: Optional[str]

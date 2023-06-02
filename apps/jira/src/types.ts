@@ -126,7 +126,7 @@ export interface Changelog {
 export interface Comment extends ApiResource {
   id: string;
   author: User;
-  body: unknown;
+  body: string;
   updateAuthor: User;
   created: string;
   updated: string;

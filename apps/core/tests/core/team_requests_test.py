@@ -2,7 +2,7 @@ from http import HTTPStatus
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 
-from eave.stdlib.core_api.operations.team import GetTeam
+from eave.stdlib.core_api.operations.team import GetTeamRequest
 
 from .base import BaseTestCase
 
@@ -35,7 +35,7 @@ class TestTeamRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = GetTeam.ResponseBody(**response.json())
+        response_obj = GetTeamRequest.ResponseBody(**response.json())
 
         assert response_obj.integrations.slack_integration is not None
         assert response_obj.integrations.slack_integration.slack_team_id == self.anystring("slack_team_id")
@@ -63,5 +63,5 @@ class TestTeamRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = GetTeam.ResponseBody(**response.json())
+        response_obj = GetTeamRequest.ResponseBody(**response.json())
         assert response_obj.team.id == team.id

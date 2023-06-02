@@ -1,6 +1,6 @@
 import { sharedConfig } from '../../config.js';
 import { RequestArgsOriginAndTeamId, makeRequest } from '../../lib/requests.js';
-import { DocumentInput } from '../models/documents.js';
+import { DocumentInput, DocumentSearchResult } from '../models/documents.js';
 import { DocumentReference, Subscription } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
 
@@ -22,5 +22,25 @@ export async function upsertDocument({ origin, teamId, input }: RequestArgsOrigi
     teamId,
   });
   const responseData = <UpsertDocumentResponseBody>(await resp.json());
+  return responseData;
+}
+
+export type SearchDocumentsRequestBody = {
+  query: string;
+}
+
+export type SearchDocumentsResponseBody = {
+  team: Team;
+  documents: DocumentSearchResult[];
+}
+
+export async function searchDocuments({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
+  const resp = await makeRequest({
+    url: `${sharedConfig.eaveApiBase}/documents/search`,
+    origin,
+    input,
+    teamId,
+  });
+  const responseData = <SearchDocumentsResponseBody>(await resp.json());
   return responseData;
 }

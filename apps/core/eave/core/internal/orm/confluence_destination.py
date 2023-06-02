@@ -18,8 +18,9 @@ class ConfluenceDestinationOrm(Base):
     __tablename__ = "confluence_destinations"
     __table_args__ = (
         ForeignKeyConstraint(
-            "connect_installation_id",
-            "connect_installations.id",
+            ["connect_installation_id"],
+            ["connect_installations.id"],
+            ondelete="CASCADE"
         ),
     )
 

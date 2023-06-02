@@ -6,7 +6,7 @@ from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 from ..models import integrations
 
 
-class GetTeam(Endpoint):
+class GetTeamRequest(Endpoint):
     config = EndpointConfiguration(
         path="/team/query",
         auth_required=False,
@@ -32,7 +32,7 @@ class GetTeam(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-class UpdateConfluenceDestinationAuthed(Endpoint):
+class UpdateConfluenceDestinationAuthedRequest(Endpoint):
     config = EndpointConfiguration(
         path="/me/team/destinations/confluence/update",
     )
@@ -62,7 +62,7 @@ class UpdateConfluenceDestinationAuthed(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-class CreateConfluenceDestinationAuthed(Endpoint):
+class CreateConfluenceDestinationAuthedRequest(Endpoint):
     config = EndpointConfiguration(
         path="/me/team/destinations/confluence/create",
     )
@@ -71,6 +71,7 @@ class CreateConfluenceDestinationAuthed(Endpoint):
         confluence_destination: ConfluenceDestinationInput
 
     class ResponseBody(BaseResponseBody):
+        team: Team
         confluence_destination: ConfluenceDestination
 
     @classmethod

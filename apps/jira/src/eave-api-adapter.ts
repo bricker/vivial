@@ -1,7 +1,6 @@
 import AddOnFactory from 'atlassian-connect-express';
 import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
-import { NotFoundError } from '@eave-fyi/eave-stdlib-ts/src/exceptions.js';
 import appConfig from './config.js';
 
 type AppKey = 'eave-confluence' | 'eave-jira'
@@ -66,7 +65,7 @@ class EaveApiAdapter /* implements StoreAdapter */ {
     return this.buildClientInfo(response);
   }
 
-  async del(key: string, clientKey: string): Promise<void> {
+  async del(/* key: string, clientKey: string */): Promise<void> {
     // TODO: Fill in the delete function for Connect client info
   }
 

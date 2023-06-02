@@ -14,7 +14,7 @@ from eave.stdlib.core_api.operations.subscriptions import (
     DeleteSubscriptionRequest,
     GetSubscriptionRequest,
 )
-from eave.stdlib.core_api.operations.team import GetTeam
+from eave.stdlib.core_api.operations.team import GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -198,8 +198,8 @@ routes = [
         endpoint=AtlassianIntegration,
     ),
     make_route(
-        config=GetTeam.config,
-        endpoint=team.GetTeam,
+        config=GetTeamRequest.config,
+        endpoint=team.GetTeamEndpoint,
     ),
     # Authenticated API endpoints.
     make_route(

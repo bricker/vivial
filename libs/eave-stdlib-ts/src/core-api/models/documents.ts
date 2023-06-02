@@ -9,3 +9,8 @@ export type EaveDocument = {
   content: string;
   parent?: EaveDocument;
 }
+
+export type DocumentSearchResult = {
+    title: string;
+    url: string;
+}
