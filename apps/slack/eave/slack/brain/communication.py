@@ -37,7 +37,6 @@ class CommunicationMixin(Base):
         )
 
     async def acknowledge_receipt(self) -> None:
-        # TODO: Check if an "eave" emoji exists in the workspace. If not, use eg "thumbsup"
         try:
             reaction = "eave"
             await self.message.add_reaction(reaction)

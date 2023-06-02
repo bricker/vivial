@@ -3,21 +3,28 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib.core_api.models.jira import JiraInstallation, RegisterJiraInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct, ConnectInstallation, RegisterConnectInstallationInput
 
 from eave.stdlib.util import ensure_uuid
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
-class JiraInstallationOrm(Base):
-    __tablename__ = "jira_installations"
+class ConnectInstallationOrm(Base):
+    __tablename__ = "connect_installations"
     __table_args__ = (
         make_team_fk(),
+        Index(
+            None,
+            "product",
+            "client_key",
+            unique=True,
+        ),
         PrimaryKeyConstraint(
+            "product",
             "client_key",
             "id",
         ),
@@ -27,7 +34,8 @@ class JiraInstallationOrm(Base):
     """team_id has to be optional because on initial integration we don't know which team the app is associated with."""
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    client_key: Mapped[str] = mapped_column(index=True, unique=True)
+    product: Mapped[AtlassianProduct] = mapped_column()
+    client_key: Mapped[str] = mapped_column()
     shared_secret: Mapped[str] = mapped_column()
     base_url: Mapped[str] = mapped_column()
     atlassian_actor_account_id: Mapped[Optional[str]] = mapped_column()
@@ -38,12 +46,13 @@ class JiraInstallationOrm(Base):
 
     class _selectparams(TypedDict):
         id: NotRequired[uuid.UUID]
+        product: NotRequired[AtlassianProduct]
         team_id: NotRequired[uuid.UUID]
         client_key: NotRequired[str]
 
     @classmethod
     def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
-        lookup = select(cls).limit(1)
+        lookup = select(cls)
 
         if (id := kwargs.get("id")) is not None:
             lookup = lookup.where(cls.id == id)
@@ -51,7 +60,11 @@ class JiraInstallationOrm(Base):
         if (team_id := kwargs.get("team_id")) is not None:
             lookup = lookup.where(cls.team_id == team_id)
 
+        if (product := kwargs.get("product")) is not None:
+            lookup = lookup.where(cls.product == product)
+
         if (client_key := kwargs.get("client_key")) is not None:
+            assert product is not None, "product must be specified when querying client_key"
             lookup = lookup.where(cls.client_key == client_key)
 
         assert lookup.whereclause is not None
@@ -59,13 +72,13 @@ class JiraInstallationOrm(Base):
 
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
-        lookup = cls._build_select(**kwargs)
+        lookup = cls._build_select(**kwargs).limit(1)
         result = (await session.scalars(lookup)).one()
         return result
 
     @classmethod
     async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
-        lookup = cls._build_select(**kwargs)
+        lookup = cls._build_select(**kwargs).limit(1)
         result = await session.scalar(lookup)
         return result
 
@@ -73,11 +86,12 @@ class JiraInstallationOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        input: RegisterJiraInstallationInput,
+        input: RegisterConnectInstallationInput,
         team_id: Optional[uuid.UUID | str] = None,
     ) -> Self:
         obj = cls(
             team_id=ensure_uuid(team_id) if team_id else None,
+            product=input.product,
             client_key=input.client_key,
             shared_secret=input.shared_secret,
             atlassian_actor_account_id=input.atlassian_actor_account_id,
@@ -92,7 +106,7 @@ class JiraInstallationOrm(Base):
     def update(
         self,
         session: AsyncSession,
-        input: RegisterJiraInstallationInput,
+        input: RegisterConnectInstallationInput,
     ) -> Self:
         """
         Updates the given attributes.
@@ -134,5 +148,5 @@ class JiraInstallationOrm(Base):
         return self
 
     @property
-    def api_model(self) -> JiraInstallation:
-        return JiraInstallation.from_orm(self)
+    def api_model(self) -> ConnectInstallation:
+        return ConnectInstallation.from_orm(self)

@@ -1,16 +1,17 @@
+import http
 from typing import Literal, cast
 
 from asgiref.typing import HTTPScope
 from starlette.types import Scope
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-from eave.core.internal.orm.jira_installation import JiraInstallationOrm
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
 from eave.stdlib.core_api.models.integrations import Integration
-from eave.stdlib.core_api.operations.jira import RegisterJiraIntegrationRequest
+from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 from eave.stdlib.exceptions import BadRequestError
-
+from eave.stdlib.logging import eaveLogger
 
 from eave.stdlib import analytics
 from eave.stdlib.config import shared_config
@@ -18,37 +19,45 @@ import eave.stdlib.api_util as eave_api_util
 from starlette.requests import Request
 from starlette.responses import Response
 
-
-# class QueryJiraIntegration(HTTPEndpoint):
-#     async def post(self, request: Request) -> Response:
-#         body = await request.json()
-#         input = QueryJiraInstallation.RequestBody.parse_obj(body)
-
-#         async with eave_db.async_session.begin() as db_session:
-#             installation = await JiraInstallationOrm.one_or_exception(
-#                 session=db_session,
-#                 client_key=input.jira_integration.client_key,
-#             )
-
-#             if installation.team_id:
-#                 eave_team = await eave_orm.TeamOrm.one_or_exception(
-#                     session=db_session,
-#                     team_id=installation.team_id,
-#                 )
-#             else:
-#                 eave_team = None
-
-#         return eave_api_util.json_response(
-#             QueryJiraInstallation.ResponseBody(
-#                 team=eave_team.api_model if eave_team else None,
-#                 jira_integration=installation.api_model,
-#             )
-#         )
+from eave.stdlib.request_state import get_eave_state
 
 
-class RegisterJiraIntegrationEndpoint(HTTPEndpoint):
+class QueryConnectIntegrationEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = get_eave_state(request=request)
+        body = await request.json()
+        input = QueryConnectIntegrationRequest.RequestBody.parse_obj(body)
+
+        async with eave_db.async_session.begin() as db_session:
+            installation = await ConnectInstallationOrm.one_or_none(
+                session=db_session,
+                product=input.connect_integration.product,
+                client_key=input.connect_integration.client_key,
+            )
+
+            if not installation:
+                eaveLogger.warn(f"{input.connect_integration.product} Integration not found for client key {input.connect_integration.client_key}", extra=eave_state.log_context)
+                return Response(status_code=http.HTTPStatus.NOT_FOUND)
+
+            if installation.team_id:
+                eave_team = await eave_orm.TeamOrm.one_or_exception(
+                    session=db_session,
+                    team_id=installation.team_id,
+                )
+            else:
+                eave_team = None
+
+        return eave_api_util.json_response(
+            QueryConnectIntegrationRequest.ResponseBody(
+                team=eave_team.api_model if eave_team else None,
+                connect_integration=installation.api_model,
+            )
+        )
+
+
+class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
     """
-    Creates or update a Jira integration.
+    Creates or update a Connect integration.
     If the given client_key already exists, this endpoint updates the existing integration.
     If it doesn't exist, it creates a new integration.
     The client_key is unique and will never change.
@@ -57,11 +66,11 @@ class RegisterJiraIntegrationEndpoint(HTTPEndpoint):
 
     async def post(self, request: Request) -> Response:
         body = await request.json()
-        input = RegisterJiraIntegrationRequest.RequestBody.parse_obj(body)
+        input = RegisterConnectIntegrationRequest.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            integration = await JiraInstallationOrm.one_or_none(
-                session=db_session, client_key=input.jira_integration.client_key,
+            integration = await ConnectInstallationOrm.one_or_none(
+                session=db_session, product=input.connect_integration.product, client_key=input.connect_integration.client_key,
             )
 
             if not integration:
@@ -72,9 +81,9 @@ class RegisterJiraIntegrationEndpoint(HTTPEndpoint):
                 https://developer.atlassian.com/cloud/confluence/connect-app-descriptor/#lifecycle-attribute-example
                 https://ecosystem.atlassian.net/browse/AC-1528
                 """
-                integration = await JiraInstallationOrm.create(
+                integration = await ConnectInstallationOrm.create(
                     session=db_session,
-                    input=input.jira_integration,
+                    input=input.connect_integration,
                 )
 
                 team = None
@@ -85,17 +94,17 @@ class RegisterJiraIntegrationEndpoint(HTTPEndpoint):
                     eave_team_id=None,
                     event_source="core api",
                     opaque_params={
-                        "integration_name": Integration.jira.value,
-                        "atlassian_site_url": input.jira_integration.base_url,
-                        "atlassian_site_description": input.jira_integration.description,
-                        "atlassian_actor_account_id": input.jira_integration.atlassian_actor_account_id,
+                        "integration_name": input.connect_integration.product,
+                        "atlassian_site_url": input.connect_integration.base_url,
+                        "atlassian_site_description": input.connect_integration.description,
+                        "atlassian_actor_account_id": input.connect_integration.atlassian_actor_account_id,
                     },
                 )
 
             else:
                 integration.update(
                     session=db_session,
-                    input=input.jira_integration,
+                    input=input.connect_integration,
                 )
 
                 if integration.team_id:
@@ -109,18 +118,17 @@ class RegisterJiraIntegrationEndpoint(HTTPEndpoint):
                     eave_team_id=integration.team_id,
                     event_source="core api",
                     opaque_params={
-                        "integration_name": Integration.jira.value,
-                        "atlassian_site_url": input.jira_integration.base_url,
-                        "atlassian_site_description": input.jira_integration.description,
-                        "atlassian_actor_account_id": input.jira_integration.atlassian_actor_account_id,
-                        "fields_given": sorted(input.jira_integration.__fields_set__),
+                        "integration_name": input.connect_integration.product,
+                        "atlassian_site_url": input.connect_integration.base_url,
+                        "atlassian_site_description": input.connect_integration.description,
+                        "atlassian_actor_account_id": input.connect_integration.atlassian_actor_account_id,
                     },
                 )
 
         return eave_api_util.json_response(
-            RegisterJiraIntegrationRequest.ResponseBody(
+            RegisterConnectIntegrationRequest.ResponseBody(
                 team=team.api_model if team else None,
-                jira_integration=integration.api_model,
+                connect_integration=integration.api_model,
             )
         )
 

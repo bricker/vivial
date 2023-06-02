@@ -54,7 +54,6 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   const {
     url,
     origin,
-    sign = true,
     input,
     accessToken,
     teamId,
@@ -71,26 +70,22 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
   };
 
-  let signature: string | undefined;
+  const message = buildMessageToSign(
+    method,
+    url,
+    requestId,
+    origin,
+    input === undefined ? '' : JSON.stringify(input),
+    teamId,
+    accountId,
+  );
 
-  if (sign) {
-    const message = buildMessageToSign(
-      method,
-      url,
-      requestId,
-      origin,
-      input === undefined ? '' : JSON.stringify(input),
-      teamId,
-      accountId,
-    );
+  const signature = await signBase64(
+    getKey(origin),
+    message,
+  );
 
-    signature = await signBase64(
-      getKey(origin),
-      message,
-    );
-
-    headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
-  }
+  headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 
   if (accessToken !== undefined) {
     headers[eaveHeaders.EAVE_AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;

@@ -4,8 +4,7 @@ from .atlassian import AtlassianInstallation
 from .forge import ForgeInstallation
 from .github import GithubInstallation
 from .slack import SlackInstallation
-from .confluence import ConfluenceInstallation
-from .jira import JiraInstallation
+from .connect import ConnectInstallation
 from . import BaseResponseModel
 
 
@@ -27,5 +26,5 @@ class Integrations(BaseResponseModel):
     slack_integration: Optional[SlackInstallation]
     forge_integration: Optional[ForgeInstallation]
     atlassian_integration: Optional[AtlassianInstallation]
-    confluence_integration: Optional[ConfluenceInstallation]
-    jira_integration: Optional[JiraInstallation]
+    confluence_integration: Optional[ConnectInstallation]
+    jira_integration: Optional[ConnectInstallation]

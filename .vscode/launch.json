@@ -61,7 +61,7 @@
       }
     },
     {
-      "name": "GitHub App API",
+      "name": "GitHub App",
       "envFile": "${workspaceFolder}/.env",
       "cwd": "${workspaceFolder}/apps/github",
       "type": "node",
@@ -73,7 +73,7 @@
       "restart": true,
       "args": [],
       "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
-      "consoleTitle": "GitHub App API",
+      "consoleTitle": "GitHub App",
       "console": "integratedTerminal",
       "env": {
         "PORT": "5300"
@@ -160,7 +160,8 @@
       "configurations": [
         "Core API",
         "Slack Socket Mode",
-        "GitHub App API",
+        "GitHub App",
+        "Jira App",
         "Marketing Website (Client)",
         "Marketing Website (Server)",
       ],
