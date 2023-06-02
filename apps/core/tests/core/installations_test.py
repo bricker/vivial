@@ -1,14 +1,12 @@
 from http import HTTPStatus
-
-import eave.stdlib.core_api.models
-import eave.stdlib.core_api.operations
-
 import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.github_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
-import eave.stdlib.core_api.operations.integrations
+from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
+from eave.stdlib.core_api.operations.github import GetGithubInstallation
+from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 
 from .base import BaseTestCase
 
@@ -37,7 +35,7 @@ class TestInstallationsRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave.stdlib.core_api.operations.integrations.GetSlackInstallation.ResponseBody(**response.json())
+        response_obj = GetSlackInstallation.ResponseBody(**response.json())
 
         assert response_obj.slack_integration.slack_team_id == self.anystring("slack_team_id")
         assert response_obj.slack_integration.bot_token == self.anystring("bot_token")
@@ -99,9 +97,7 @@ class TestInstallationsRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave.stdlib.core_api.operations.integrations.GetGithubInstallation.ResponseBody(
-            **response.json()
-        )
+        response_obj = GetGithubInstallation.ResponseBody(**response.json())
 
         assert response_obj.github_integration.github_install_id == self.anystring("github_install_id")
 
@@ -140,9 +136,7 @@ class TestInstallationsRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave.stdlib.core_api.operations.integrations.GetAtlassianInstallation.ResponseBody(
-            **response.json()
-        )
+        response_obj = GetAtlassianInstallation.ResponseBody(**response.json())
 
         assert response_obj.atlassian_integration.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
         assert response_obj.atlassian_integration.confluence_space_key == self.anystring("confluence_space")

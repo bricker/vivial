@@ -1,4 +1,5 @@
 from typing import cast
+from eave.stdlib.core_api.models.account import AuthProvider
 
 import eave.stdlib.core_api.enums
 import google.oauth2.credentials
@@ -13,7 +14,7 @@ from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared
 
-_AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.google
+_AUTH_PROVIDER = AuthProvider.google
 
 
 class GoogleOAuthAuthorize(HTTPEndpoint):

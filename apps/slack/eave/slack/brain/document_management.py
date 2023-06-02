@@ -1,16 +1,17 @@
 import json
 from eave.slack.brain.subscription_management import SubscriptionManagementMixin
 import eave.stdlib.analytics
-import eave.stdlib.core_api.client
-import eave.stdlib.core_api.models
-import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.operations
+import eave.stdlib.core_api.operations.documents as documents
+import eave.stdlib.core_api.models.documents
+from eave.stdlib.core_api.models.subscriptions import DocumentReferenceInput, SubscriptionSource
+from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
 from eave.stdlib.exceptions import OpenAIDataError, SlackDataError
 import eave.stdlib.openai_client
 from eave.stdlib.logging import eaveLogger
 from . import message_prompts
 from . import document_metadata
 from .context_building import ContextBuildingMixin
+from ..config import app_config
 
 
 class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin):
@@ -64,7 +65,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             },
         )
 
-    async def build_documentation(self) -> eave.stdlib.core_api.operations.DocumentInput:
+    async def build_documentation(self) -> eave.stdlib.core_api.models.documents.DocumentInput:
         conversation = await self.build_context()
         link_context = await self.build_link_context_and_subscribe()
 
@@ -79,14 +80,14 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
         document_resources = await self.build_resources()
 
-        api_document = eave.stdlib.core_api.operations.DocumentInput(
+        api_document = eave.stdlib.core_api.models.documents.DocumentInput(
             title=document_topic,
             content=documentation + document_resources,
         )
 
         current = api_document
         for category in document_hierarchy:
-            p = eave.stdlib.core_api.operations.DocumentInput(
+            p = eave.stdlib.core_api.models.documents.DocumentInput(
                 title=category,
                 content="",
             )
@@ -165,10 +166,11 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
     async def update_documentation(self) -> None:
-        await self.send_response(
-            text="I haven't yet been taught how to update existing documentation.",
-            eave_message_purpose="unable to perform action",
-        )
+        pass
+        # await self.send_response(
+        #     text="I haven't yet been taught how to update existing documentation.",
+        #     eave_message_purpose="unable to perform action",
+        # )
 
     async def refine_documentation(self) -> None:
         api_document = await self.build_documentation()
@@ -197,24 +199,26 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 )
                 return
 
-            await eave.stdlib.core_api.client.delete_document(
+            await documents.DeleteDocument.perform(
+                origin=app_config.eave_origin,
                 team_id=self.eave_team.id,
-                input=eave.stdlib.core_api.operations.DeleteDocument.RequestBody(
-                    document_reference=eave.stdlib.core_api.operations.DocumentReferenceInput(
+                input=documents.DeleteDocument.RequestBody(
+                    document_reference=DocumentReferenceInput(
                         id=document_reference_id,
                     )
                 ),
             )
 
     async def upsert_document(
-        self, document: eave.stdlib.core_api.operations.DocumentInput
-    ) -> eave.stdlib.core_api.operations.UpsertDocument.ResponseBody:
-        response = await eave.stdlib.core_api.client.upsert_document(
+        self, document: eave.stdlib.core_api.models.documents.DocumentInput
+    ) -> documents.UpsertDocument.ResponseBody:
+        response = await documents.UpsertDocument.perform(
+            origin=app_config.eave_origin,
             team_id=self.eave_team.id,
-            input=eave.stdlib.core_api.operations.UpsertDocument.RequestBody(
+            input=documents.UpsertDocument.RequestBody(
                 subscriptions=[
-                    eave.stdlib.core_api.operations.SubscriptionInput(
-                        source=eave.stdlib.core_api.models.SubscriptionSource(
+                    SubscriptionInput(
+                        source=SubscriptionSource(
                             platform=s.source.platform,
                             event=s.source.event,
                             id=s.source.id,
@@ -227,7 +231,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
         return response
 
-    async def search_documents(self) -> eave.stdlib.core_api.operations.SearchDocuments.ResponseBody:
+    async def search_documents(self) -> documents.SearchDocuments.ResponseBody:
         conversation = await self.build_context()
 
         prompt = eave.stdlib.openai_client.formatprompt(
@@ -257,9 +261,10 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         if answer is None:
             raise OpenAIDataError()
 
-        response = await eave.stdlib.core_api.client.search_documents(
+        response = await documents.SearchDocuments.perform(
+            origin=app_config.eave_origin,
             team_id=self.eave_team.id,
-            input=eave.stdlib.core_api.operations.SearchDocuments.RequestBody(query=answer),
+            input=documents.SearchDocuments.RequestBody(query=answer),
         )
 
         if len(response.documents) == 0:

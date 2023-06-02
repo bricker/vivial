@@ -7,6 +7,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib import request_state
+from eave.stdlib.core_api.models.error import ErrorResponse
 from eave.stdlib.logging import eaveLogger
 
 
@@ -14,7 +15,7 @@ def internal_server_error(request: Request, exc: Exception) -> Response:
     eave_state = request_state.get_eave_state(request=request)
     eaveLogger.error(str(exc), exc_info=exc, extra=eave_state.log_context)
 
-    model = eave.stdlib.core_api.models.ErrorResponse(
+    model = ErrorResponse(
         status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
         context=eave_state.public_request_context,
@@ -28,7 +29,7 @@ def not_found(request: Request, exc: Exception) -> Response:
     # FIXME: This log message is bad
     eaveLogger.warning(http.HTTPStatus.NOT_FOUND, exc_info=exc, extra=eave_state.log_context)
 
-    model = eave.stdlib.core_api.models.ErrorResponse(
+    model = ErrorResponse(
         status_code=http.HTTPStatus.NOT_FOUND,
         error_message=http.HTTPStatus.NOT_FOUND.phrase,
         context=eave_state.public_request_context,
@@ -42,7 +43,7 @@ def bad_request(request: Request, exc: Exception) -> Response:
     # FIXME: This log message is bad
     eaveLogger.warning(http.HTTPStatus.BAD_REQUEST, exc_info=exc, extra=eave_state.log_context)
 
-    model = eave.stdlib.core_api.models.ErrorResponse(
+    model = ErrorResponse(
         status_code=http.HTTPStatus.BAD_REQUEST,
         error_message=http.HTTPStatus.BAD_REQUEST.phrase,
         context=eave_state.public_request_context,
@@ -57,7 +58,7 @@ def unauthorized(request: Request, exc: Exception) -> Response:
         "Authentication error occurred. The client will be logged out.", exc_info=exc, extra=eave_state.log_context
     )
 
-    model = eave.stdlib.core_api.models.ErrorResponse(
+    model = ErrorResponse(
         status_code=http.HTTPStatus.UNAUTHORIZED,
         error_message=http.HTTPStatus.UNAUTHORIZED.phrase,
         context=eave_state.public_request_context,
@@ -74,7 +75,7 @@ def validation_error(request: Request, exc: Exception) -> Response:
     if isinstance(exc, pydantic.ValidationError):
         eave_state.public_request_context["validation_errors"] = exc.json()
 
-    model = eave.stdlib.core_api.models.ErrorResponse(
+    model = ErrorResponse(
         status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY,
         error_message="validation errors",
         context=eave_state.public_request_context,

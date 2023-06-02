@@ -1,7 +1,6 @@
 import http
 from eave.stdlib import signing, eaveLogger
 import eave.stdlib.requests
-import eave.stdlib.core_api.client
 import eave.stdlib.eave_origins as eave_origins
 from eave.stdlib.exceptions import InvalidSignatureError
 from eave.stdlib.headers import (

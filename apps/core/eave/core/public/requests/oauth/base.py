@@ -1,6 +1,6 @@
-import eave.stdlib.core_api as eave_core
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.stdlib.core_api.models.account import AuthProvider
 
 import eave.stdlib.request_state as eave_request_util
 from eave.core.internal import app_config
@@ -15,7 +15,7 @@ class BaseOAuthCallback(HTTPEndpoint):
     response: Response
     state: str
     code: str
-    auth_provider: eave_core.enums.AuthProvider
+    auth_provider: AuthProvider
     eave_state: eave_request_util.EaveRequestState
 
     async def get(self, request: Request) -> Response:

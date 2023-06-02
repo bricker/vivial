@@ -4,7 +4,7 @@ from starlette.responses import Response
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-from eave.stdlib.core_api.operations.integrations import GetAtlassianInstallation
+from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.exceptions import NotFoundError
 
 

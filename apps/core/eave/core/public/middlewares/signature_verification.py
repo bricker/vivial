@@ -51,7 +51,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
         message = eave.stdlib.requests.build_message_to_sign(
             method=scope["method"],
-            url=eave.stdlib.core_api.client.makeurl(scope["path"]),
+            url=eave.stdlib.requests.makeurl(scope["path"]),
             request_id=eave.stdlib.util.unwrap(eave_state.request_id),
             origin=eave.stdlib.util.unwrap(eave_state.eave_origin),
             team_id=team_id_header,

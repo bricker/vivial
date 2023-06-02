@@ -1,8 +1,8 @@
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
-import eave.stdlib.core_api.enums
-import eave.stdlib.core_api.models as eave_models
 
 from eave.core.internal.orm.subscription import SubscriptionOrm
+from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 
 from .base import BaseTestCase
 
@@ -14,8 +14,8 @@ class TestSubscriptionOrm(BaseTestCase):
 
             subscription = SubscriptionOrm(
                 team_id=team.id,
-                source_platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-                source_event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+                source_platform=SubscriptionSourcePlatform.slack,
+                source_event=SubscriptionSourceEvent.slack_message,
                 source_id=self.anystring("source_id"),
             )
             await self.save(s, subscription)
@@ -23,9 +23,9 @@ class TestSubscriptionOrm(BaseTestCase):
             result = await SubscriptionOrm.one_or_none(
                 session=s,
                 team_id=team.id,
-                source=eave_models.SubscriptionSource(
-                    platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-                    event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+                source=SubscriptionSource(
+                    platform=SubscriptionSourcePlatform.slack,
+                    event=SubscriptionSourceEvent.slack_message,
                     id=self.anystring("source_id"),
                 ),
             )
@@ -47,9 +47,9 @@ class TestSubscriptionOrm(BaseTestCase):
             await SubscriptionOrm.create(
                 session=s,
                 team_id=team.id,
-                source=eave_models.SubscriptionSource(
-                    platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-                    event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+                source=SubscriptionSource(
+                    platform=SubscriptionSourcePlatform.slack,
+                    event=SubscriptionSourceEvent.slack_message,
                     id=self.anystring(),
                 ),
                 document_reference_id=document_reference.id,
@@ -65,9 +65,9 @@ class TestSubscriptionOrm(BaseTestCase):
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
 
-            source = eave_models.SubscriptionSource(
-                platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-                event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+            source = SubscriptionSource(
+                platform=SubscriptionSourcePlatform.slack,
+                event=SubscriptionSourceEvent.slack_message,
                 id=self.anystring("source id"),
             )
             await SubscriptionOrm.create(
@@ -84,9 +84,9 @@ class TestSubscriptionOrm(BaseTestCase):
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
 
-            source = eave_models.SubscriptionSource(
-                platform=eave.stdlib.core_api.enums.SubscriptionSourcePlatform.slack,
-                event=eave.stdlib.core_api.enums.SubscriptionSourceEvent.slack_message,
+            source = SubscriptionSource(
+                platform=SubscriptionSourcePlatform.slack,
+                event=SubscriptionSourceEvent.slack_message,
                 id=self.anystring("source id"),
             )
             sub = await SubscriptionOrm.create(

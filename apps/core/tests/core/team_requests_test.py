@@ -1,11 +1,11 @@
 from http import HTTPStatus
+import http
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
+from eave.stdlib.core_api.models.connect import RegisterConnectInstallationInput
 
-import eave.stdlib.core_api.operations as eave_ops
-
-import eave.core.internal.oauth.slack
-import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.slack_installation
-import eave.core.internal.orm.team
+from eave.stdlib.core_api.operations.team import GetTeamRequest
 
 from .base import BaseTestCase
 
@@ -15,7 +15,7 @@ class TestTeamRequests(BaseTestCase):
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
 
-            await eave.core.internal.orm.slack_installation.SlackInstallationOrm.create(
+            await SlackInstallationOrm.create(
                 session=s,
                 team_id=team.id,
                 bot_refresh_token=self.anystring("bot_refresh_token"),
@@ -23,7 +23,7 @@ class TestTeamRequests(BaseTestCase):
                 slack_team_id=self.anystring("slack_team_id"),
                 bot_token_exp=self.anydatetime("bot_token_exp", future=True),
             )
-            await eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm.create(
+            await AtlassianInstallationOrm.create(
                 session=s,
                 team_id=team.id,
                 confluence_space_key=self.anystring("confluence_space"),
@@ -38,16 +38,22 @@ class TestTeamRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave_ops.GetTeam.ResponseBody(**response.json())
+        response_obj = GetTeamRequest.ResponseBody(**response.json())
 
-        assert response_obj.integrations.slack is not None
-        assert response_obj.integrations.slack.slack_team_id == self.anystring("slack_team_id")
-        assert response_obj.integrations.slack.bot_token == self.anystring("bot_token")
+        assert response_obj.integrations.slack_integration is not None
+        assert response_obj.integrations.slack_integration.slack_team_id == self.anystring("slack_team_id")
+        assert response_obj.integrations.slack_integration.bot_token == self.anystring("bot_token")
 
-        assert response_obj.integrations.atlassian is not None
-        assert response_obj.integrations.atlassian.confluence_space_key == self.anystring("confluence_space")
-        assert response_obj.integrations.atlassian.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert response_obj.integrations.atlassian.oauth_token_encoded == self.anyjson("oauth_token_encoded")
+        assert response_obj.integrations.atlassian_integration is not None
+        assert response_obj.integrations.atlassian_integration.confluence_space_key == self.anystring(
+            "confluence_space"
+        )
+        assert response_obj.integrations.atlassian_integration.atlassian_cloud_id == self.anystring(
+            "atlassian_cloud_id"
+        )
+        assert response_obj.integrations.atlassian_integration.oauth_token_encoded == self.anyjson(
+            "oauth_token_encoded"
+        )
 
     async def test_get_team_without_integrations(self) -> None:
         async with self.db_session.begin() as s:
@@ -60,7 +66,36 @@ class TestTeamRequests(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = eave_ops.GetTeam.ResponseBody(**response.json())
+        response_obj = GetTeamRequest.ResponseBody(**response.json())
+        assert response_obj.team.id == team.id
 
-        assert response_obj.integrations.slack is None
-        assert response_obj.integrations.atlassian is None
+
+class CreateConfluenceDestinationTests(BaseTestCase):
+    async def test_create_confluence_destination(self) -> None:
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
+            account = await self.make_account(s, team_id=team.id)
+
+            connect = await ConnectInstallationOrm.create(
+                session=s,
+                team_id=team.id,
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "confluence",
+                    "client_key": self.anystring("client_key"),
+                    "base_url": self.anystring("base_url"),
+                    "shared_secret": self.anystring("shared_secret"),
+                }),
+            )
+
+        response = await self.make_request(
+            path="/",
+            payload={
+                "confluence_destination": {
+                    "space_key": self.anystring("space_key"),
+                },
+            },
+            account_id=account.id,
+            access_token=account.access_token,
+        )
+
+        assert response.status_code == http.HTTPStatus.OK

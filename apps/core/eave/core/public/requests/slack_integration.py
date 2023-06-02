@@ -3,7 +3,7 @@ from starlette.responses import Response
 import eave.stdlib.api_util as eave_api_util
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
-import eave.stdlib.core_api.operations.integrations
+from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.exceptions import NotFoundError
 
 from ..http_endpoint import HTTPEndpoint
@@ -17,7 +17,7 @@ class SlackIntegration(HTTPEndpoint):
         """
 
         body = await request.json()
-        input = eave.stdlib.core_api.operations.integrations.GetSlackInstallation.RequestBody.parse_obj(body)
+        input = GetSlackInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
             installation = await eave_orm.SlackInstallationOrm.one_or_none(
@@ -36,7 +36,7 @@ class SlackIntegration(HTTPEndpoint):
                 team_id=installation.team_id,
             )
 
-        model = eave.stdlib.core_api.operations.integrations.GetSlackInstallation.ResponseBody(
+        model = GetSlackInstallation.ResponseBody(
             slack_integration=installation.api_model,
             team=eave_team_orm.api_model,
         )

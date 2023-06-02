@@ -58,6 +58,16 @@ _SIGNING_KEYS = {
         version="1",
         algorithm=SigningAlgorithm.ES256,
     ),
+    EaveOrigin.eave_jira_app.value: SigningKeyDetails(
+        id="eave-jira-app-signing-key",
+        version="1",
+        algorithm=SigningAlgorithm.ES256,
+    ),
+    EaveOrigin.eave_confluence_app.value: SigningKeyDetails(
+        id="eave-confluence-app-signing-key",
+        version="1",
+        algorithm=SigningAlgorithm.ES256,
+    ),
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
     ExternalOrigin.github_api_client.value: SigningKeyDetails(
         id="eave-github-app-signing-key-01",

@@ -1,10 +1,8 @@
 import unittest.mock
-
-import eave.stdlib.core_api.operations as eave_ops
-
 import eave.core.internal.destinations.confluence as confluence_destination
 import eave.core.internal.oauth.atlassian as atlassian_oauth
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
+from eave.stdlib.core_api.models.documents import DocumentInput
 
 from .base import BaseTestCase
 
@@ -36,7 +34,7 @@ class TestConfluenceDestination(BaseTestCase):
                 )
             )
 
-            input = eave_ops.DocumentInput(
+            input = DocumentInput(
                 title=self.anystring("doctitle"),
                 content=self.anystring("doccontent"),
             )

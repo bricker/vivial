@@ -8,7 +8,11 @@ import eave.stdlib.request_state
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.core.internal.orm.team import TeamOrm
-
+from eave.stdlib.core_api.operations.documents import (
+    UpsertDocument as UpsertDocumentOp,
+    SearchDocuments as SearchDocumentsOp,
+    DeleteDocument as DeleteDocumentOp,
+)
 import eave.core.internal.database as eave_db
 from eave.stdlib.exceptions import UnexpectedMissingValue
 import eave.stdlib.request_state as request_state
@@ -21,7 +25,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
         eave_state = request_state.get_eave_state(request=request)
         # FIXME: Use the parsed body already at `eave_state.parsed_request_body`
         body = await request.json()
-        input = eave.stdlib.core_api.operations.UpsertDocument.RequestBody.parse_obj(body)
+        input = UpsertDocumentOp.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
             team = await TeamOrm.one_or_exception(
@@ -108,7 +112,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 if subscription.document_reference_id is None:
                     subscription.document_reference_id = document_reference.id
 
-        model = eave.stdlib.core_api.operations.UpsertDocument.ResponseBody(
+        model = UpsertDocumentOp.ResponseBody(
             team=team.api_model,
             subscriptions=[subscription.api_model for subscription in subscriptions],
             document_reference=document_reference.api_model,
@@ -121,7 +125,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave.stdlib.request_state.get_eave_state(request=request)
         body = await request.json()
-        input = eave.stdlib.core_api.operations.SearchDocuments.RequestBody.parse_obj(body)
+        input = SearchDocumentsOp.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
@@ -133,7 +137,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
                 raise UnexpectedMissingValue("document destination")
 
         search_results = await destination.search_documents(query=input.query)
-        model = eave.stdlib.core_api.operations.SearchDocuments.ResponseBody(
+        model = SearchDocumentsOp.ResponseBody(
             team=eave_team.api_model,
             documents=search_results,
         )
@@ -145,7 +149,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave.stdlib.request_state.get_eave_state(request=request)
         body = await request.json()
-        input = eave.stdlib.core_api.operations.DeleteDocument.RequestBody.parse_obj(body)
+        input = DeleteDocumentOp.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(

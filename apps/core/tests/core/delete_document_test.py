@@ -3,8 +3,8 @@ import http
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 from eave.core.internal.orm.subscription import SubscriptionOrm
-from eave.stdlib.core_api.enums import SubscriptionSourceEvent, SubscriptionSourcePlatform
-from eave.stdlib.core_api.models import SubscriptionSource
+from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from .base import BaseTestCase
 
 

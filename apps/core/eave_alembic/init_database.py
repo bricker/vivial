@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
+from eave.stdlib.core_api.models.team import DocumentPlatform
 
 
 load_dotenv(f"{os.getenv('EAVE_HOME')}/.env", override=True)
@@ -54,9 +55,7 @@ async def seed_database() -> None:
 
     session = AsyncSession(eave.core.internal.database.async_engine)
 
-    team = eave.core.internal.orm.TeamOrm(
-        name=f"{socket.gethostname()}", document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence
-    )
+    team = eave.core.internal.orm.TeamOrm(name=f"{socket.gethostname()}", document_platform=DocumentPlatform.confluence)
     session.add(team)
     await session.commit()
 

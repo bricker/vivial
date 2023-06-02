@@ -1,6 +1,6 @@
 import { App, Octokit } from 'octokit';
-import * as eaveClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { getTeam } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
 import { appConfig } from '../config.js';
 
 export async function createOctokitClient(installationId: number): Promise<Octokit> {
@@ -22,8 +22,8 @@ export async function createAppClient(): Promise<App> {
 }
 
 export async function getInstallationId(eaveTeamId: string): Promise<number | null> {
-  const teamResponse = await eaveClient.getTeam({ origin: appConfig.origin, teamId: eaveTeamId });
-  const ghIntegration = teamResponse.integrations.github;
+  const teamResponse = await getTeam({ origin: appConfig.eaveOrigin, teamId: eaveTeamId });
+  const ghIntegration = teamResponse.integrations.github_integration;
   if (!ghIntegration) {
     eaveLogger.error(`GitHub Integration missing for team ${teamResponse.team.id}`, teamResponse);
     return null;

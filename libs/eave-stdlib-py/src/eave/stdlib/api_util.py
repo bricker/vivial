@@ -1,21 +1,22 @@
 import http
+import re
 from typing import Any, Optional
 
 import pydantic
+from eave.stdlib.headers import AUTHORIZATION_HEADER
 
 from eave.stdlib.util import redact
-
+import eave.stdlib.core_api.operations.status as status
 
 from .config import shared_config
-from .core_api.operations import Status
 from starlette.routing import Route
 from starlette.requests import Request
 from starlette.responses import Response
 from asgiref.typing import HTTPScope
 
 
-def status_payload() -> Status.ResponseBody:
-    return Status.ResponseBody(
+def status_payload() -> status.Status.ResponseBody:
+    return status.Status.ResponseBody(
         service=shared_config.app_service,
         version=shared_config.app_version,
         status="OK",
@@ -70,6 +71,18 @@ def get_headers(
         for [n, v] in scope["headers"]
         if n.decode().lower() not in excluded
     }
+
+
+def get_bearer_token(scope: HTTPScope) -> str | None:
+    auth_header = get_header_value(scope=scope, name=AUTHORIZATION_HEADER)
+    if auth_header is None:
+        return None
+
+    auth_header_match = re.match("^Bearer (.+)$", auth_header)
+    if auth_header_match is None:
+        return None
+
+    return auth_header_match.group(1)
 
 
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:

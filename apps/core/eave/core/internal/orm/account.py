@@ -11,6 +11,8 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from eave.stdlib.core_api.models.account import AuthenticatedAccount
+from eave.stdlib.core_api.models.account import AuthProvider
 
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.logging import eaveLogger
@@ -45,7 +47,7 @@ class AccountOrm(Base):
     visitor_id: Mapped[Optional[UUID]] = mapped_column()
     opaque_utm_params: Mapped[Optional[eave.stdlib.typing.JsonObject]] = mapped_column(JSONB)
     """Opaque, JSON-encoded utm params."""
-    auth_provider: Mapped[eave.stdlib.core_api.enums.AuthProvider] = mapped_column()
+    auth_provider: Mapped[AuthProvider] = mapped_column()
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
     """userid from 3rd party auth_provider"""
@@ -66,7 +68,7 @@ class AccountOrm(Base):
         team_id: UUID,
         visitor_id: Optional[UUID],
         opaque_utm_params: Optional[eave.stdlib.typing.JsonObject],
-        auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+        auth_provider: AuthProvider,
         auth_id: str,
         access_token: str,
         refresh_token: Optional[str],
@@ -90,7 +92,7 @@ class AccountOrm(Base):
     class _selectparams(TypedDict):
         id: NotRequired[uuid.UUID | str]
         team_id: NotRequired[uuid.UUID | str]
-        auth_provider: NotRequired[eave.stdlib.core_api.enums.AuthProvider]
+        auth_provider: NotRequired[AuthProvider]
         auth_id: NotRequired[str]
         access_token: NotRequired[str]
         refresh_token: NotRequired[str]
@@ -144,7 +146,7 @@ class AccountOrm(Base):
         retry the request. Otherwise the refresh token serves no purpose.
         """
         match self.auth_provider:
-            case eave.stdlib.core_api.enums.AuthProvider.slack:
+            case AuthProvider.slack:
                 try:
                     client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=self.access_token)
                     await eave.core.internal.oauth.slack.get_userinfo_or_exception(client=client)
@@ -155,7 +157,7 @@ class AccountOrm(Base):
                     else:
                         raise e
 
-            case eave.stdlib.core_api.enums.AuthProvider.google:
+            case AuthProvider.google:
                 if not self.refresh_token:
                     raise MissingOAuthCredentialsError("AccountOrm refresh token")
 
@@ -166,7 +168,7 @@ class AccountOrm(Base):
                 self.access_token = credentials.token
                 self.refresh_token = credentials.refresh_token
                 return True
-            case eave.stdlib.core_api.enums.AuthProvider.atlassian:
+            case AuthProvider.atlassian:
                 return True
             case _:
                 raise
@@ -181,7 +183,7 @@ class AccountOrm(Base):
             raise MissingOAuthCredentialsError("account refresh token")
 
         match self.auth_provider:
-            case eave.stdlib.core_api.enums.AuthProvider.slack:
+            case AuthProvider.slack:
                 new_tokens = await eave.core.internal.oauth.slack.refresh_access_token_or_exception(
                     refresh_token=self.refresh_token
                 )
@@ -195,12 +197,12 @@ class AccountOrm(Base):
                 else:
                     raise MissingOAuthCredentialsError("slack access or refresh token")
 
-            case eave.stdlib.core_api.enums.AuthProvider.google:
+            case AuthProvider.google:
                 # The google client automatically refreshes the access token and updates the Credentials object,
                 # So we always update the token values in the database any time the Credentials are used.
                 await self.verify_oauth_or_exception(session=session, log_context=log_context)
                 return True
-            case eave.stdlib.core_api.enums.AuthProvider.atlassian:
+            case AuthProvider.atlassian:
                 return True
             case _:
                 raise
@@ -208,3 +210,7 @@ class AccountOrm(Base):
     async def get_team(self, session: AsyncSession) -> TeamOrm:
         team = await TeamOrm.one_or_exception(session=session, team_id=self.team_id)
         return team
+
+    @property
+    def api_model(self) -> AuthenticatedAccount:
+        return AuthenticatedAccount.from_orm(self)

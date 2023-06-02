@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/functions.bash
+
+function deploy () (
+	setup-deployment-workspace
+
+	local qflag="--quiet"
+	if verbose; then
+		qflag=""
+	fi
+
+	# yalc publish [path] only accepts relative paths
+	# --quiet flag MUST be at the end, otherwise the command silently fails
+	# https://github.com/wclr/yalc/blob/ff35865652f54519d4f6da101c83c43c2277b268/src/yalc.ts#L166
+	yalc publish ../../libs/eave-stdlib-ts --replace $qflag
+	yalc add @eave-fyi/eave-stdlib-ts $qflag
+
+	yalc publish ../../develop/javascript/es-config --replace $qflag
+	yalc add @eave-fyi/es-config $qflag
+
+	# Remove references to the monorepo packages
+	npm prune
+
+	${EAVE_HOME}/develop/shared/bin/deploy-appengine
+	clean-deployment-workspace
+)
+
+bin/lint
+bin/test
+deploy

@@ -36,7 +36,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		statusmsg -in "Linting $thisdir/$target (js/ts)"
 
 		cd $target
-		npx eslint .
+		npx eslint --max-warnings=0 .
 		if test -f "tsconfig.json"; then
 			npx tsc --project . --noEmit
 		else

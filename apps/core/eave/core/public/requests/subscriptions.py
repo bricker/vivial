@@ -8,6 +8,13 @@ from starlette.requests import Request
 from starlette.responses import Response
 import eave.core.internal.orm.team
 from eave.stdlib import request_state as request_util
+from eave.stdlib.core_api.models.subscriptions import DocumentReference, Subscription
+from eave.stdlib.core_api.operations.subscriptions import (
+    GetSubscriptionRequest,
+    CreateSubscriptionRequest,
+    DeleteSubscriptionRequest,
+)
+from eave.stdlib.core_api.models.team import Team
 from ..http_endpoint import HTTPEndpoint
 
 
@@ -15,7 +22,7 @@ class GetSubscription(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_util.get_eave_state(request=request)
         body = await request.json()
-        input = eave.stdlib.core_api.operations.GetSubscription.RequestBody.parse_obj(body)
+        input = GetSubscriptionRequest.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             team = await eave.core.internal.orm.TeamOrm.one_or_exception(
@@ -36,15 +43,13 @@ class GetSubscription(HTTPEndpoint):
             document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
 
         document_reference_public = (
-            eave.stdlib.core_api.models.DocumentReference.from_orm(document_reference_orm)
-            if document_reference_orm is not None
-            else None
+            DocumentReference.from_orm(document_reference_orm) if document_reference_orm is not None else None
         )
 
         return eave.stdlib.api_util.json_response(
-            eave.stdlib.core_api.operations.GetSubscription.ResponseBody(
-                team=eave.stdlib.core_api.models.Team.from_orm(team),
-                subscription=eave.stdlib.core_api.models.Subscription.from_orm(subscription_orm),
+            GetSubscriptionRequest.ResponseBody(
+                team=Team.from_orm(team),
+                subscription=Subscription.from_orm(subscription_orm),
                 document_reference=document_reference_public,
             )
         )
@@ -54,7 +59,7 @@ class CreateSubscription(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_util.get_eave_state(request=request)
         body = await request.json()
-        input = eave.stdlib.core_api.operations.CreateSubscription.RequestBody.parse_obj(body)
+        input = CreateSubscriptionRequest.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             team = await eave.core.internal.orm.TeamOrm.one_or_exception(
@@ -80,15 +85,13 @@ class CreateSubscription(eave.core.public.http_endpoint.HTTPEndpoint):
             document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
 
         document_reference_public = (
-            eave.stdlib.core_api.models.DocumentReference.from_orm(document_reference_orm)
-            if document_reference_orm is not None
-            else None
+            DocumentReference.from_orm(document_reference_orm) if document_reference_orm is not None else None
         )
 
         return eave.stdlib.api_util.json_response(
-            model=eave.stdlib.core_api.operations.CreateSubscription.ResponseBody(
-                team=eave.stdlib.core_api.models.Team.from_orm(team),
-                subscription=eave.stdlib.core_api.models.Subscription.from_orm(subscription_orm),
+            model=CreateSubscriptionRequest.ResponseBody(
+                team=Team.from_orm(team),
+                subscription=Subscription.from_orm(subscription_orm),
                 document_reference=document_reference_public,
             ),
             status_code=status_code,
@@ -99,7 +102,7 @@ class DeleteSubscription(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = request_util.get_eave_state(request=request)
         body = await request.json()
-        input = eave.stdlib.core_api.operations.DeleteSubscription.RequestBody.parse_obj(body)
+        input = DeleteSubscriptionRequest.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             team = await eave.core.internal.orm.TeamOrm.one_or_exception(

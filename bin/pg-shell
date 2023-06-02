@@ -26,7 +26,7 @@ function run-pg-shell() {
 		exit 1
 	fi
 
-	local socketdir=${EAVE_HOME}/.cloudsqlproxy
+	local socketdir=${XDG_RUNTIME_DIR}/.cloudsqlproxy
 	local connectionName=$(gcloud --format json sql instances list --filter="state=RUNNABLE" | jq -r .[0].connectionName)
 
 	if test -z "$username"; then

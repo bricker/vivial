@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 if test -z "${EAVE_HOME}"; then
 	export EAVE_HOME=$(pwd)
@@ -179,7 +179,7 @@ function setupapps() (
 	(cd ${EAVE_HOME}/develop/javascript/es-config/ && bin/setup)
 
 	python-activate-venv
-	python -m pip install --quiet r develop/requirements-dev.txt
+	python -m pip install --quiet -r develop/requirements-dev.txt
 	run-in-all-projects bin/setup
 )
 

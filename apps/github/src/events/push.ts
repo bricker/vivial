@@ -1,10 +1,12 @@
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
 import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import * as eaveCoreApiClient from '@eave-fyi/eave-stdlib-ts/src/core-api/client.js';
-import * as eaveOps from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/operations.js';
-import * as eaveEnums from '@eave-fyi/eave-stdlib-ts/src/core-api/enums.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
+import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
+import { GetSubscriptionResponseBody, getSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
+import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
+import { upsertDocument } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
@@ -36,10 +38,10 @@ export default async function handler(event: PushEvent, context: GitHubOperation
 
       // fetch eave team id required for core_api requests
       const installationId = event.installation!.id;
-      const teamResponse = await eaveCoreApiClient.getGithubInstallation({
-        origin: appConfig.origin,
+      const teamResponse = await getGithubInstallation({
+        origin: appConfig.eaveOrigin,
         input: {
-          github_installation: {
+          github_integration: {
             github_install_id: `${installationId}`,
           },
         },
@@ -47,16 +49,16 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       const eaveTeamId = teamResponse.team.id;
 
       // check if we are subscribed to this file
-      let subscriptionResponse: eaveOps.GetSubscriptionResponseBody | null = null;
+      let subscriptionResponse: GetSubscriptionResponseBody | null = null;
       try {
-        subscriptionResponse = await eaveCoreApiClient.getSubscription({
-          origin: appConfig.origin,
+        subscriptionResponse = await getSubscription({
+          origin: appConfig.eaveOrigin,
           teamId: eaveTeamId,
           input: {
             subscription: {
               source: {
-                platform: eaveEnums.SubscriptionSourcePlatform.github,
-                event: eaveEnums.SubscriptionSourceEvent.github_file_change,
+                platform: SubscriptionSourcePlatform.github,
+                event: SubscriptionSourceEvent.github_file_change,
                 id: eventId,
               },
             },
@@ -134,13 +136,13 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT4],
       });
 
-      const document: eaveOps.DocumentInput = {
+      const document: DocumentInput = {
         title: `Description of code in ${repositoryName} ${filePath}`,
         content: openaiResponse,
       };
 
-      const upsertDocumentResponse = await eaveCoreApiClient.upsertDocument({
-        origin: appConfig.origin,
+      const upsertDocumentResponse = await upsertDocument({
+        origin: appConfig.eaveOrigin,
         teamId: eaveTeamId,
         input: {
           document,

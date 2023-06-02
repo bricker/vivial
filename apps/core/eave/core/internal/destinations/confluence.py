@@ -1,3 +1,4 @@
+import html
 import typing
 from functools import cached_property
 from typing import Optional, cast
@@ -5,8 +6,8 @@ from typing import Optional, cast
 import atlassian
 import eave.stdlib
 import eave.stdlib.atlassian
-from eave.stdlib.core_api.models import DocumentSearchResult
-import eave.stdlib.core_api.operations as eave_ops
+from eave.stdlib.core_api.models.documents import DocumentInput
+from eave.stdlib.core_api.models.documents import DocumentSearchResult
 from eave.stdlib.exceptions import ConfluenceDataError, OpenAIDataError
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.openai_client
@@ -61,7 +62,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
     async def delete_document(self, document_id: str) -> None:
         self._confluence_client.post("rest/api/content/archive", data={"pages": [{"id": int(document_id)}]})
 
-    async def create_document(self, input: eave_ops.DocumentInput) -> abstract.DocumentMetadata:
+    async def create_document(self, input: DocumentInput) -> abstract.DocumentMetadata:
         confluence_page = await self._get_or_create_confluence_page(document=input)
         base_url = self.oauth_session.confluence_context.base_url
         return abstract.DocumentMetadata(
@@ -71,7 +72,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
 
     async def update_document(
         self,
-        input: eave_ops.DocumentInput,
+        input: DocumentInput,
         document_id: str,
     ) -> abstract.DocumentMetadata:
         """
@@ -111,8 +112,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         else:
             resolved_document_body = input.content
 
-        # TODO: Hack
-        content = resolved_document_body.replace("&", "&amp;")
+        content = clean_document(raw_doc=resolved_document_body)
         response = self._confluence_client.update_page(
             page_id=document_id,
             title=existing_page.title,
@@ -140,9 +140,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
             session=self.oauth_session,
         )
 
-    async def _get_or_create_confluence_page(
-        self, document: eave_ops.DocumentInput
-    ) -> eave.stdlib.atlassian.ConfluencePage:
+    async def _get_or_create_confluence_page(self, document: DocumentInput) -> eave.stdlib.atlassian.ConfluencePage:
         existing_page = await self._get_confluence_page_by_title(document=document)
         if existing_page:
             return existing_page
@@ -151,8 +149,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         if document.parent is not None:
             parent_page = await self._get_or_create_confluence_page(document=document.parent)
 
-        # TODO: Hack
-        content = document.content.replace("&", "&amp;")
+        content = clean_document(raw_doc=document.content)
         response = self._confluence_client.create_page(
             space=self.space,
             title=document.title,
@@ -183,7 +180,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
         return page
 
     async def _get_confluence_page_by_title(
-        self, document: eave_ops.DocumentInput
+        self, document: DocumentInput
     ) -> eave.stdlib.atlassian.ConfluencePage | None:
         response = self._confluence_client.get_page_by_title(
             space=self.space,
@@ -195,3 +192,13 @@ class ConfluenceDestination(abstract.DocumentDestination):
         json = cast(eave.stdlib.typing.JsonObject, response)
         page = eave.stdlib.atlassian.ConfluencePage(json)
         return page
+
+
+def clean_document(raw_doc: str) -> str:
+    """
+    Fixes some HTML things that Confluence chokes on
+    """
+    content = html.unescape(raw_doc)
+    content = content.replace("&", "&amp;")  # TODO: Hack; Confluence API chokes on & characters
+    content = content.replace("<br>", "<br/>")
+    return content
