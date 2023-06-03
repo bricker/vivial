@@ -14,7 +14,7 @@ from eave.stdlib.core_api.operations.subscriptions import (
     DeleteSubscriptionRequest,
     GetSubscriptionRequest,
 )
-from eave.stdlib.core_api.operations.team import GetTeamRequest
+from eave.stdlib.core_api.operations.team import CreateConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -200,6 +200,10 @@ routes = [
     make_route(
         config=GetTeamRequest.config,
         endpoint=team.GetTeamEndpoint,
+    ),
+    make_route(
+        config=CreateConfluenceDestinationAuthedRequest.config,
+        endpoint=team.CreateConfluenceDestinationAuthedEndpoint,
     ),
     # Authenticated API endpoints.
     make_route(
