@@ -129,7 +129,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       // but it seems it's specific to that model, and neither gpt-3.5-turbo or gpt-4 are affected, so watch out
       const openaiResponse = await openai.createChatCompletion({
         messages: [
-          { role: 'system', content: openai.PROMPT_PREFIX },
           { role: 'user', content: prompt },
         ],
         model: openai.OpenAIModel.GPT4,
