@@ -7,7 +7,6 @@ Create Date: 2023-06-02 18:45:05.976827
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "8b9901c4cc2c"
@@ -84,9 +83,7 @@ def upgrade() -> None:
     # )
     # op.drop_table("forge_installations")
     op.drop_constraint("accounts_team_id_fkey", "accounts", type_="foreignkey")
-    op.create_foreign_key(
-        None, "accounts", "teams", ["team_id"], ["id"], ondelete="CASCADE"
-    )
+    op.create_foreign_key(None, "accounts", "teams", ["team_id"], ["id"], ondelete="CASCADE")
     op.drop_constraint(
         "atlassian_installations_team_id_fkey",
         "atlassian_installations",
@@ -126,20 +123,14 @@ def upgrade() -> None:
         ["id"],
         ondelete="CASCADE",
     )
-    op.drop_constraint(
-        "slack_sources_team_id_fkey", "slack_sources", type_="foreignkey"
-    )
-    op.create_foreign_key(
-        None, "slack_sources", "teams", ["team_id"], ["id"], ondelete="CASCADE"
-    )
+    op.drop_constraint("slack_sources_team_id_fkey", "slack_sources", type_="foreignkey")
+    op.create_foreign_key(None, "slack_sources", "teams", ["team_id"], ["id"], ondelete="CASCADE")
     op.drop_constraint(
         "subscriptions_team_id_document_reference_id_fkey",
         "subscriptions",
         type_="foreignkey",
     )
-    op.drop_constraint(
-        "subscriptions_team_id_fkey", "subscriptions", type_="foreignkey"
-    )
+    op.drop_constraint("subscriptions_team_id_fkey", "subscriptions", type_="foreignkey")
     op.create_foreign_key(
         None,
         "subscriptions",
@@ -148,9 +139,7 @@ def upgrade() -> None:
         ["team_id", "id"],
         ondelete="CASCADE",
     )
-    op.create_foreign_key(
-        None, "subscriptions", "teams", ["team_id"], ["id"], ondelete="CASCADE"
-    )
+    op.create_foreign_key(None, "subscriptions", "teams", ["team_id"], ["id"], ondelete="CASCADE")
     # ### end Alembic commands ###
 
 

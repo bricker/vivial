@@ -1,8 +1,6 @@
 import typing
-import uuid
 
-from sqlalchemy import MetaData, Select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
 

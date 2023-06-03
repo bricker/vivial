@@ -5,8 +5,6 @@ import unittest.mock
 import uuid
 from http import HTTPStatus
 
-import eave.stdlib.core_api
-
 import eave.core.internal
 import eave.core.internal.oauth.google
 import eave.core.internal.oauth.slack

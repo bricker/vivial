@@ -3,7 +3,6 @@ import urllib.parse
 
 import eave.pubsub_schemas
 import eave.stdlib
-import eave.stdlib.core_api
 import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response

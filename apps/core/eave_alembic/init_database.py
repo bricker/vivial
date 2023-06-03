@@ -3,7 +3,6 @@ import os
 import socket
 from dotenv import load_dotenv
 
-import eave.stdlib.core_api
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 

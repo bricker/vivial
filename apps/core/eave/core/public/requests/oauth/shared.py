@@ -3,7 +3,6 @@ import re
 import typing
 
 import eave.pubsub_schemas
-import eave.stdlib.core_api
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.slack

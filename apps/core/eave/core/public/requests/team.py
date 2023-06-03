@@ -19,9 +19,7 @@ class GetTeamEndpoint(HTTPEndpoint):
         eave_state = eave.stdlib.request_state.get_eave_state(request=request)
 
         async with database.async_session.begin() as db_session:
-            eave_team_orm = await TeamOrm.one_or_exception(
-                session=db_session, team_id=unwrap(eave_state.eave_team_id)
-            )
+            eave_team_orm = await TeamOrm.one_or_exception(session=db_session, team_id=unwrap(eave_state.eave_team_id))
 
             integrations = await eave_team_orm.get_integrations(session=db_session)
 
@@ -32,6 +30,7 @@ class GetTeamEndpoint(HTTPEndpoint):
             )
         )
 
+
 class CreateConfluenceDestinationAuthedEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = eave.stdlib.request_state.get_eave_state(request=request)
@@ -39,9 +38,7 @@ class CreateConfluenceDestinationAuthedEndpoint(HTTPEndpoint):
         input = CreateConfluenceDestinationAuthedRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            team = await TeamOrm.one_or_exception(
-                session=db_session, team_id=unwrap(eave_state.eave_team_id)
-            )
+            team = await TeamOrm.one_or_exception(session=db_session, team_id=unwrap(eave_state.eave_team_id))
 
             connect_installation = await ConnectInstallationOrm.one_or_exception(
                 session=db_session,
