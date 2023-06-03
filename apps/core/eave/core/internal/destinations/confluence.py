@@ -57,7 +57,7 @@ class ConfluenceDestination(abstract.DocumentDestination):
             eave.stdlib.atlassian.ConfluencePage(content) for result in results if (content := result.get("content"))
         ]
         base_url = self.oauth_session.confluence_context.base_url
-        return [DocumentSearchResult(title=(page.title or ""), url=page.canonical_url(base_url)) for page in pages]
+        return [DocumentSearchResult(title=(page.title or ""), url=page.canonical_url(base_url)) for page in pages if page.body]
 
     async def delete_document(self, document_id: str) -> None:
         self._confluence_client.post("rest/api/content/archive", data={"pages": [{"id": int(document_id)}]})
