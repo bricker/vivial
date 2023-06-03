@@ -100,9 +100,11 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         all_messages = await self.message.get_conversation_messages()
         if all_messages is None:
             raise SlackDataError("all_messages")
+        
+        messages_without_self = filter(lambda m: m.is_eave is False, all_messages)
 
-        [await m.get_expanded_text() for m in all_messages]
-        links = set([link for message in all_messages for link in message.urls])
+        [await m.resolve_urls() for m in messages_without_self]
+        links = set([link for message in messages_without_self for link in message.urls])
 
         resources_doc = ""
 
