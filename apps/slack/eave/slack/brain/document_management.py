@@ -101,7 +101,9 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         if all_messages is None:
             raise SlackDataError("all_messages")
         
-        messages_without_self = filter(lambda m: m.is_eave is False, all_messages)
+        # convert to list so the generator produced by filter is not
+        # consumed completely the first time we iterate the entire iterable
+        messages_without_self = list(filter(lambda m: m.is_eave is False, all_messages))
 
         [await m.resolve_urls() for m in messages_without_self]
         links = set([link for message in messages_without_self for link in message.urls])
