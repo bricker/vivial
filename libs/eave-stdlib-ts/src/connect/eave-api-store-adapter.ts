@@ -1,19 +1,22 @@
 import AddOnFactory from 'atlassian-connect-express';
-import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
-import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
-import appConfig from './config.js';
+import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody } from '../core-api/operations/connect.js';
+import { AtlassianProduct } from '../core-api/models/connect.js';
+import { EaveOrigin } from '../eave-origins.js';
 
 type AppKey = 'eave-confluence' | 'eave-jira'
-type AdapterParams = { appKey: AppKey, productType: AtlassianProduct }
+type AdapterParams = { appKey: AppKey, eaveOrigin: EaveOrigin, productType: AtlassianProduct }
 
 class EaveApiAdapter /* implements StoreAdapter */ {
   appKey: AppKey;
 
+  eaveOrigin: EaveOrigin;
+
   productType: AtlassianProduct;
 
-  constructor({ appKey, productType }: AdapterParams) {
+  constructor({ appKey, eaveOrigin, productType }: AdapterParams) {
     this.appKey = appKey;
     this.productType = productType;
+    this.eaveOrigin = eaveOrigin;
   }
 
   // FIXME: The `key` in this function params is usually `clientInfo`, which we can get from the API.
@@ -23,7 +26,7 @@ class EaveApiAdapter /* implements StoreAdapter */ {
   async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
     try {
       const response = await queryConnectInstallation({
-        origin: appConfig.eaveOrigin,
+        origin: this.eaveOrigin,
         input: {
           connect_integration: {
             product: this.productType,
@@ -49,7 +52,7 @@ class EaveApiAdapter /* implements StoreAdapter */ {
     }
 
     const response = await registerConnectInstallation({
-      origin: appConfig.eaveOrigin,
+      origin: this.eaveOrigin,
       input: {
         connect_integration: {
           product: this.productType,

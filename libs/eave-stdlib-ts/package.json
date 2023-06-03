@@ -26,6 +26,9 @@
     "request": "2.x",
     "uuid": "9.x"
   },
+  "peerDependencies": {
+    "atlassian-connect-express": "8.x"
+  },
   "devDependencies": {
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@types/express": "4.x",
