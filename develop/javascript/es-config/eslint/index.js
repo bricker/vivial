@@ -46,7 +46,7 @@ const config = {
     'no-multiple-empty-lines': 'warn',
     'eol-last': 'warn',
     'import/order': 'warn',
-
+    'lines-between-class-members': 'warn',
   },
   overrides: [
     {
