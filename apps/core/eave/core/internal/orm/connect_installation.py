@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypeAlias, TypedDict, Unpack
+from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from eave.stdlib.core_api.models.connect import AtlassianProduct, ConnectInstallation, RegisterConnectInstallationInput
