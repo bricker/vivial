@@ -42,6 +42,7 @@ export function buildMessageToSign(
 interface RequestArgs {
   url: string;
   origin: EaveOrigin | string;
+  sign?: boolean;
   input?: unknown;
   accessToken?: string;
   teamId?: string;
@@ -62,6 +63,13 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
 
   const requestId = uuid4();
   const payload = JSON.stringify(input);
+
+  const headers: { [key: string]: string } = {
+    'content-type': 'application/json',
+    [eaveHeaders.EAVE_ORIGIN_HEADER]: origin,
+    [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
+  };
+
   const message = buildMessageToSign(
     method,
     url,
@@ -76,12 +84,8 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     getKey(origin),
     message,
   );
-  const headers: { [key: string]: string } = {
-    'content-type': 'application/json',
-    [eaveHeaders.EAVE_ORIGIN_HEADER]: origin,
-    [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
-    [eaveHeaders.EAVE_SIGNATURE_HEADER]: signature,
-  };
+
+  headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 
   if (accessToken !== undefined) {
     headers[eaveHeaders.EAVE_AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;

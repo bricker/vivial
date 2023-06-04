@@ -7,7 +7,7 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.operations.integrations import GithubInstallation
+from eave.stdlib.core_api.models.github import GithubInstallation
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk

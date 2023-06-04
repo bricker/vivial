@@ -17,7 +17,7 @@ const copy = {
   },
   integrations: {
     title: 'Connect Data Sources',
-    subtitle: 'integrate Eave with your existing business tools such as messenger apps, email clients, or existing documentation platforms.',
+    subtitle: 'Seamlessly integrate Eave with your existing business tools such as messenger apps, email clients, or existing documentation platforms.',
   },
   slack: {
     titles: [

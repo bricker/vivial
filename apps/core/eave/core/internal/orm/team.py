@@ -1,16 +1,18 @@
 from datetime import datetime
-from typing import Optional, Self
+from typing import Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.stdlib
-from sqlalchemy import false, func, select
+from sqlalchemy import Select, false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from eave.stdlib.core_api.models.connect import AtlassianProduct
+from eave.stdlib.core_api.models.team import DocumentPlatform
 
-import eave.stdlib.core_api.operations.integrations
-
+from eave.stdlib.core_api.models.team import Team
+from eave.stdlib.core_api.models.integrations import Integrations
 from ..destinations import abstract as abstract_destination
-from .forge_installation import ForgeInstallationOrm
 from .base import Base
 from .github_installation import GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm
@@ -23,9 +25,7 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    document_platform: Mapped[Optional[eave.stdlib.core_api.enums.DocumentPlatform]] = mapped_column(
-        server_default=None
-    )
+    document_platform: Mapped[Optional[DocumentPlatform]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
     beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
@@ -37,7 +37,7 @@ class TeamOrm(Base):
         cls,
         session: AsyncSession,
         name: str,
-        document_platform: Optional[eave.stdlib.core_api.enums.DocumentPlatform] = None,
+        document_platform: Optional[DocumentPlatform] = None,
         beta_whitelisted: bool = False,
     ) -> Self:
         obj = cls(
@@ -50,8 +50,8 @@ class TeamOrm(Base):
         return obj
 
     @property
-    def api_model(self) -> eave.stdlib.core_api.models.Team:
-        return eave.stdlib.core_api.models.Team.from_orm(self)
+    def api_model(self) -> Team:
+        return Team.from_orm(self)
 
     async def get_document_destination(
         self, session: AsyncSession
@@ -60,48 +60,58 @@ class TeamOrm(Base):
             case None:
                 return None
 
-            case eave.stdlib.core_api.enums.DocumentPlatform.confluence:
+            case DocumentPlatform.confluence:
                 atlassian_installation = await AtlassianInstallationOrm.one_or_exception(
                     session=session,
                     team_id=self.id,
                 )
                 return atlassian_installation.confluence_destination
 
-            case eave.stdlib.core_api.enums.DocumentPlatform.google_drive:
+            case DocumentPlatform.google_drive:
                 raise NotImplementedError("google drive document destination is not yet implemented.")
 
-            case eave.stdlib.core_api.enums.DocumentPlatform.eave:
+            case DocumentPlatform.eave:
                 raise NotImplementedError("eave document destination is not yet implemented.")
 
             case _:
                 raise NotImplementedError(f"unsupported document platform: {self.document_platform}")
 
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, team_id: UUID | str) -> Self:
-        lookup = select(cls).where(cls.id == eave.stdlib.util.ensure_uuid(team_id)).limit(1)
-        team = (await session.scalars(lookup)).one()  # throws if not exists
-        return team
+    class QueryParams(TypedDict):
+        team_id: UUID | str
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, team_id: UUID | str) -> Self | None:
-        lookup = select(cls).where(cls.id == eave.stdlib.util.ensure_uuid(team_id)).limit(1)
-        team = await session.scalar(lookup)
-        return team
+    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
+        team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
+        lookup = select(cls).where(cls.id == team_id)
+        return lookup
 
-    async def get_integrations(
-        self, session: AsyncSession
-    ) -> eave.stdlib.core_api.operations.integrations.Integrations:
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
+        lookup = cls.query(**kwargs).limit(1)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self | None:
+        lookup = cls.query(**kwargs).limit(1)
+        result = await session.scalar(lookup)
+        return result
+
+    async def get_integrations(self, session: AsyncSession) -> Integrations:
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
-
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
-
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
+        confluence_installation = await ConnectInstallationOrm.one_or_none(
+            session=session, team_id=self.id, product=AtlassianProduct.confluence
+        )
+        jira_installation = await ConnectInstallationOrm.one_or_none(
+            session=session, team_id=self.id, product=AtlassianProduct.jira
+        )
 
-        forge_installation = await ForgeInstallationOrm.one_or_none(session=session, team_id=self.id)
-
-        return eave.stdlib.core_api.operations.integrations.Integrations(
-            slack=slack_installation.api_model if slack_installation else None,
-            github=github_installation.api_model if github_installation else None,
-            atlassian=atlassian_installation.api_model if atlassian_installation else None,
-            forge=forge_installation.api_model if forge_installation else None,
+        return Integrations(
+            slack_integration=slack_installation.api_model if slack_installation else None,
+            github_integration=github_installation.api_model if github_installation else None,
+            atlassian_integration=atlassian_installation.api_model if atlassian_installation else None,
+            confluence_integration=confluence_installation.api_model if confluence_installation else None,
+            jira_integration=jira_installation.api_model if jira_installation else None,
         )

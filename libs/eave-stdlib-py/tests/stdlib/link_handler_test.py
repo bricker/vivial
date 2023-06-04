@@ -1,8 +1,15 @@
-import eave.stdlib.core_api.models as eave_models
-import eave.stdlib.core_api.enums as eave_enums
+from eave.stdlib.core_api.enums import LinkType
+from eave.stdlib.core_api.models.subscriptions import (
+    SubscriptionSource,
+    SubscriptionSourceEvent,
+    SubscriptionSourcePlatform,
+)
+from eave.stdlib.core_api.models.subscriptions import (
+    Subscription,
+)
+from eave.stdlib.eave_origins import EaveOrigin
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.github_api.operations as gh_ops
-from eave.stdlib.core_api.enums import LinkType, SubscriptionSourcePlatform
 from eave.stdlib.test_util import UtilityBaseTestCase
 import unittest.mock
 
@@ -14,12 +21,12 @@ class TestLinkHandler(UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "eave.stdlib.link_handler.github_api_client.create_subscription",
                 return_value=gh_ops.CreateGithubResourceSubscription.ResponseBody(
-                    subscription=eave_models.Subscription(
+                    subscription=Subscription(
                         id=self.anyuuid(),
                         document_reference_id=self.anyuuid(),
-                        source=eave_models.SubscriptionSource(
-                            platform=eave_enums.SubscriptionSourcePlatform.github,
-                            event=eave_enums.SubscriptionSourceEvent.github_file_change,
+                        source=SubscriptionSource(
+                            platform=SubscriptionSourcePlatform.github,
+                            event=SubscriptionSourceEvent.github_file_change,
                             id=self.anystring(),
                         ),
                     )
@@ -59,6 +66,7 @@ class TestLinkHandler(UtilityBaseTestCase):
             ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
         ]
         actual_result = await link_handler.map_url_content(
+            origin=EaveOrigin.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )
@@ -75,6 +83,7 @@ class TestLinkHandler(UtilityBaseTestCase):
             ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
+            origin=EaveOrigin.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )

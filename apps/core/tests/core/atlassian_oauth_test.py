@@ -10,13 +10,14 @@ from http import HTTPStatus
 from eave.core.internal.orm.account import AccountOrm
 
 import eave.stdlib.atlassian
-import eave.stdlib.core_api
 
 import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 import eave.core.internal.orm.team
+from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.models.team import DocumentPlatform
 
 from .base import BaseTestCase
 
@@ -103,9 +104,9 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_account.access_token == self.getstr("atlassian.access_token")
             assert eave_account.refresh_token == self.getstr("atlassian.refresh_token")
             assert eave_account.auth_id == self.getstr("confluence.account_id")
-            assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.atlassian
+            assert eave_account.auth_provider == AuthProvider.atlassian
             assert eave_team.name == self.getstr("atlassian.resource.name")
-            assert eave_team.document_platform == eave.stdlib.core_api.enums.DocumentPlatform.confluence
+            assert eave_team.document_platform == DocumentPlatform.confluence
             assert atlassian_installation.oauth_token_encoded == json.dumps(self.testdata["fake_atlassian_token"])
             assert atlassian_installation.atlassian_cloud_id == self.getstr("atlassian_cloud_id")
             assert atlassian_installation.team_id == eave_team.id
@@ -207,7 +208,7 @@ class TestAtlassianOAuth(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.atlassian,
+                auth_provider=AuthProvider.atlassian,
                 auth_id=self.anystring("confluence.account_id"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),
@@ -243,7 +244,7 @@ class TestAtlassianOAuth(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.atlassian,
+                auth_provider=AuthProvider.atlassian,
                 auth_id=self.anystring("authed_user.id"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),
@@ -281,7 +282,7 @@ class TestAtlassianOAuth(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
+                auth_provider=AuthProvider.slack,
                 auth_id=self.anystring("slack.user_id"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),

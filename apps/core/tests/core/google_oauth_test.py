@@ -6,7 +6,6 @@ import uuid
 from http import HTTPStatus
 from typing import Any
 
-import eave.stdlib.core_api
 import google.oauth2.credentials
 import google.oauth2.id_token
 
@@ -16,6 +15,7 @@ import eave.core.internal.oauth.slack
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
+from eave.stdlib.core_api.models.account import AuthProvider
 
 from .base import BaseTestCase
 
@@ -103,7 +103,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert eave_account.access_token == self.anystring("google.token")
             assert eave_account.refresh_token == self.anystring("google.refresh_token")
             assert eave_account.auth_id == self.anystring("google.sub")
-            assert eave_account.auth_provider == eave.stdlib.core_api.enums.AuthProvider.google
+            assert eave_account.auth_provider == AuthProvider.google
             assert eave_team.name == f"{self.anystring('google.given_name')}'s Team"
 
     async def test_google_callback_new_account_without_name_from_google(self) -> None:
@@ -171,7 +171,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
+                auth_provider=AuthProvider.google,
                 auth_id=self.anystring("google.sub"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),
@@ -207,7 +207,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.google,
+                auth_provider=AuthProvider.google,
                 auth_id=self.anystring("google.sub"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),
@@ -245,7 +245,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_before = await self.make_account(
                 s,
                 team_id=eave_team.id,
-                auth_provider=eave.stdlib.core_api.enums.AuthProvider.slack,
+                auth_provider=AuthProvider.slack,
                 auth_id=self.anystring("slack.user_id"),
                 access_token=self.anystring("old_access_token"),
                 refresh_token=self.anystring("old_refresh_token"),

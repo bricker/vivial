@@ -6,7 +6,7 @@ from eave.core.public.http_endpoint import HTTPEndpoint
 import eave.stdlib.api_util as eave_api_util
 from starlette.requests import Request
 from starlette.responses import Response
-from eave.stdlib.core_api.operations.integrations import GetGithubInstallation
+from eave.stdlib.core_api.operations.github import GetGithubInstallation
 
 from eave.stdlib.exceptions import NotFoundError
 

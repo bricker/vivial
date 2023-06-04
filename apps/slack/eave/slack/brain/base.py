@@ -4,8 +4,9 @@ from slack_bolt.async_app import AsyncBoltContext
 from eave.slack.brain.message_prompts import MessageAction
 from eave.slack.slack_models import SlackMessage, SlackProfile
 from eave.stdlib import analytics
-import eave.stdlib.core_api.enums
-from eave.stdlib.core_api.models import Subscription, Team
+from eave.stdlib.core_api.models.integrations import Integration
+from eave.stdlib.core_api.models.subscriptions import Subscription
+import eave.stdlib.core_api.models.team as team
 from eave.stdlib.logging import LogContext
 from eave.stdlib.typing import JsonObject
 
@@ -19,13 +20,13 @@ class Base:
     user_profile: Optional[SlackProfile]
     expanded_text: str
     message_context: str
-    eave_team: Team
+    eave_team: team.Team
     subscriptions: list[Subscription]
     slack_context: AsyncBoltContext
     message_action: Optional[MessageAction] = None
     eave_ctx: LogContext
 
-    def __init__(self, message: SlackMessage, eave_team: Team, ctx: LogContext) -> None:
+    def __init__(self, message: SlackMessage, eave_team: team.Team, ctx: LogContext) -> None:
         self.message = message
         self.eave_team = eave_team
         self.slack_context = message._ctx._context  # FIXME: Make the AsyncBoltContext public
@@ -42,7 +43,7 @@ class Base:
             event_source="slack app",
             eave_team_id=self.eave_team.id,
             opaque_params={
-                "integration": eave.stdlib.core_api.enums.Integration.slack.value,
+                "integration": Integration.slack.value,
                 "request_type": self.message_action.value if self.message_action else None,
                 "message_content": self.message.text,
                 "message_user_id": self.message.user,

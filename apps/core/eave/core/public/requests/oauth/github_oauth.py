@@ -3,13 +3,14 @@ import urllib.parse
 
 import eave.pubsub_schemas
 import eave.stdlib
-import eave.stdlib.core_api
 import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal
 import eave.core.internal.orm
+from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.models.integrations import Integration
 import eave.stdlib.request_state
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 
@@ -17,7 +18,7 @@ from ...http_endpoint import HTTPEndpoint
 from . import shared
 from eave.stdlib.logging import eaveLogger
 
-_AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.github
+_AUTH_PROVIDER = AuthProvider.github
 
 
 class GithubOAuthAuthorize(HTTPEndpoint):
@@ -145,6 +146,6 @@ class GithubOAuthCallback(HTTPEndpoint):
             eave_visitor_id=self.eave_account.visitor_id,
             event_source="core api oauth",
             opaque_params={
-                "integration_name": eave.stdlib.core_api.enums.Integration.github.value,
+                "integration_name": Integration.github.value,
             },
         )

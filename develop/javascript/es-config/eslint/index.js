@@ -41,6 +41,12 @@ const config = {
       classes: false,
       variables: true,
     }],
+    // Styling only
+    'quotes': 'warn',
+    'no-multiple-empty-lines': 'warn',
+    'eol-last': 'warn',
+    'import/order': 'warn',
+    'lines-between-class-members': 'warn',
   },
   overrides: [
     {

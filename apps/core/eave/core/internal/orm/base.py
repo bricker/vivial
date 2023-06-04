@@ -6,6 +6,24 @@ from sqlalchemy.orm import DeclarativeBase
 
 class Base(DeclarativeBase):
     pass
+    # QueryParams = typing.TypedDict("QueryParams", {})
+    # QueryParamsType: typing.TypeAlias = QueryParams
+
+    # @classmethod
+    # async def one_or_exception(cls, session: AsyncSession, **kwargs: typing.Unpack[QueryParamsType]) -> typing.Self:
+    #     lookup = cls.query(**kwargs).limit(1)
+    #     result = (await session.scalars(lookup)).one()
+    #     return result
+
+    # @classmethod
+    # async def one_or_none(cls, session: AsyncSession, **kwargs: typing.Unpack[QueryParamsType]) -> typing.Self | None:
+    #     lookup = cls.query(**kwargs).limit(1)
+    #     result = await session.scalar(lookup)
+    #     return result
+
+    # @classmethod
+    # def query(cls, **kwargs: typing.Unpack[QueryParamsType]) -> Select[typing.Tuple[typing.Self]]:
+    #     raise NotImplementedError()
 
 
 def _load_all() -> None:

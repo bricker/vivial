@@ -2,7 +2,7 @@ import http
 
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.stdlib.atlassian import ConfluencePage
-from eave.stdlib.core_api.operations import SearchDocuments
+from eave.stdlib.core_api.operations.documents import SearchDocuments
 from .base import BaseTestCase
 
 

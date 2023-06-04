@@ -4,7 +4,8 @@
     "start": "pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion start pm2.config.cjs"
   },
   "dependencies": {
-    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
+    "@eave-fyi/eave-stdlib-ts": "file:.yalc/@eave-fyi/eave-stdlib-ts",
+    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@octokit/graphql-schema": "12.x",
     "@octokit/webhooks": "10.x",
     "@swc/core": "1.x",
@@ -14,7 +15,7 @@
     "ts-node": "10.x"
   },
   "devDependencies": {
-    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
+    "@graphql-eslint/eslint-plugin": "3.x",
     "@types/express": "4.x",
     "@types/fast-crc32c": "2.x",
     "@types/node": "18.x",
@@ -23,7 +24,6 @@
     "@typescript-eslint/parser": "5.x",
     "eslint": "8.x",
     "eslint-config-airbnb-base": "15.x",
-    "@graphql-eslint/eslint-plugin": "3.x",
     "eslint-plugin-import": "2.x",
     "eslint-plugin-yaml": "0.5.x",
     "nodemon": "2.x",

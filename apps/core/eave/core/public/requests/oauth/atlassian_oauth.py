@@ -15,13 +15,16 @@ from starlette.responses import RedirectResponse, Response
 import eave.core.internal
 import eave.core.internal.oauth.atlassian as oauth_atlassian
 import eave.core.internal.oauth.state_cookies as oauth_cookies
+from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.models.integrations import Integration
+from eave.stdlib.core_api.models.team import DocumentPlatform
 
 from ...http_endpoint import HTTPEndpoint
 from . import base, shared
 
 from eave.stdlib.logging import eaveLogger
 
-_AUTH_PROVIDER = eave.stdlib.core_api.enums.AuthProvider.atlassian
+_AUTH_PROVIDER = AuthProvider.atlassian
 
 
 class AtlassianOAuthAuthorize(HTTPEndpoint):
@@ -150,7 +153,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     session=db_session, team_id=self.eave_account.team_id
                 )
 
-                eave_team.document_platform = eave.stdlib.core_api.enums.DocumentPlatform.confluence
+                eave_team.document_platform = DocumentPlatform.confluence
 
                 eave.stdlib.analytics.log_event(
                     event_name="eave_application_integration",
@@ -160,7 +163,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     eave_visitor_id=self.eave_account.visitor_id,
                     event_source="core api oauth",
                     opaque_params={
-                        "integration_name": eave.stdlib.core_api.enums.Integration.atlassian.value,
+                        "integration_name": Integration.atlassian.value,
                         "default_confluence_space_was_used": default_space_key is not None,
                         "atlassian_site_name": installation.atlassian_site_name,
                     },

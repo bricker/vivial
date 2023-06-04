@@ -7,9 +7,10 @@ from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
 
 import eave.stdlib
+from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.models.team import DocumentPlatform
 import eave.stdlib.test_util
 import eave.stdlib.atlassian
-import eave.stdlib.core_api
 import eave.stdlib.jwt
 import eave.stdlib.requests
 import sqlalchemy.orm
@@ -180,7 +181,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             origin = origin or eave.stdlib.EaveOrigin.eave_www
             signature_message = eave.stdlib.requests.build_message_to_sign(
                 method=method,
-                url=eave.stdlib.core_api.client.makeurl(path),
+                url=eave.stdlib.requests.makeurl(path),
                 origin=origin,
                 payload=encoded_payload,
                 request_id=request_id,
@@ -214,7 +215,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         team = await eave.core.internal.orm.TeamOrm.create(
             session=session,
             name=self.anystring("team name"),
-            document_platform=eave.stdlib.core_api.enums.DocumentPlatform.confluence,
+            document_platform=DocumentPlatform.confluence,
             beta_whitelisted=False,
         )
 
@@ -225,7 +226,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         session: AsyncSession,
         /,
         team_id: Optional[uuid.UUID] = None,
-        auth_provider: Optional[eave.stdlib.core_api.enums.AuthProvider] = None,
+        auth_provider: Optional[AuthProvider] = None,
         auth_id: Optional[str] = None,
         access_token: Optional[str] = None,
         refresh_token: Optional[str] = None,
@@ -234,12 +235,13 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             team = await self.make_team(session=session)
             team_id = team.id
 
+        # TODO: Maybe this function should also mock out the oauth functions corresponding to the auth provider
         account = await eave.core.internal.orm.account.AccountOrm.create(
             session=session,
             team_id=team_id,
             visitor_id=self.anyuuid("account.visitor_id"),
             opaque_utm_params=self.anydict("account.opaque_utm_params"),
-            auth_provider=auth_provider or eave.stdlib.core_api.enums.AuthProvider.slack,
+            auth_provider=auth_provider or AuthProvider.slack,
             auth_id=auth_id or self.anystring("account.auth_id"),
             access_token=access_token or self.anystring("account.oauth_token"),
             refresh_token=refresh_token or self.anystring("account.refresh_token"),

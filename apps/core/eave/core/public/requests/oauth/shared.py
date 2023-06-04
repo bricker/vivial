@@ -3,7 +3,7 @@ import re
 import typing
 
 import eave.pubsub_schemas
-import eave.stdlib.core_api
+from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.slack
 from starlette.requests import Request
@@ -17,7 +17,7 @@ import eave.stdlib.request_state
 
 def verify_oauth_state_or_exception(
     state: typing.Optional[str],
-    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_provider: AuthProvider,
     request: Request,
     response: Response,
 ) -> typing.Literal[True]:
@@ -51,7 +51,7 @@ def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
 
 async def get_logged_in_eave_account(
     request: Request,
-    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_provider: AuthProvider,
     access_token: str,
     refresh_token: typing.Optional[str],
 ) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
@@ -81,7 +81,7 @@ async def get_logged_in_eave_account(
 
 
 async def get_existing_eave_account(
-    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_provider: AuthProvider,
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
@@ -112,7 +112,7 @@ async def create_new_account_and_team(
     eave_team_name: str,
     user_email: str | None,
     beta_whitelisted: bool,
-    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_provider: AuthProvider,
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
@@ -192,7 +192,7 @@ async def get_or_create_eave_account(
     response: Response,
     eave_team_name: str,
     user_email: typing.Optional[str],
-    auth_provider: eave.stdlib.core_api.enums.AuthProvider,
+    auth_provider: AuthProvider,
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],

@@ -13,7 +13,7 @@ export enum OpenAIModel {
   GPT4_32K = 'gpt-4-32k',
 }
 
-export const MAX_TOKENS = {
+export const MAX_TOKENS: {[key:string]: number} = {
   [OpenAIModel.GPT_35_TURBO]: 4096,
   [OpenAIModel.GPT4]: 8192,
   [OpenAIModel.GPT4_32K]: 32768,
@@ -21,6 +21,20 @@ export const MAX_TOKENS = {
 
 export async function createChatCompletion(parameters: CreateChatCompletionRequest): Promise<string> {
   parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
+
+  const promptLength = parameters.messages.reduce((acc, v) => {
+    // eslint-disable-next-line no-param-reassign
+    acc += v.content.length;
+    return acc;
+  }, 0);
+
+  const modelMaxTokens = MAX_TOKENS[parameters.model];
+  if (!modelMaxTokens) {
+    throw new Error(`Unexpected model value ${parameters.model}`);
+  }
+
+  // eslint-disable-next-line no-param-reassign
+  parameters.max_tokens = modelMaxTokens - promptLength;
 
   const client = await getOpenAIClient();
   const completion = await client.createChatCompletion(parameters);

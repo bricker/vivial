@@ -1,0 +1,32 @@
+{
+    "key": "eave-jira",
+    "name": "Eave for Jira",
+    "description": "eave.fyi",
+    "enableLicensing": false,
+    "vendor": {
+        "name": "Eave Technologies, Inc.",
+        "url": "https://www.eave.fyi"
+    },
+    "baseUrl": "{{localBaseUrl}}",
+    "authentication": {
+        "type": "jwt"
+    },
+    "lifecycle": {
+        "installed": "/installed",
+        "enable": "/enabled",
+        "disabled": "/disabled",
+        "uninstalled": "/uninstalled"
+    },
+    "scopes": [
+        "READ",
+        "WRITE"
+    ],
+    "modules": {
+        "webhooks": [
+            {
+                "event": "comment_created",
+                "url": "/events"
+            }
+        ]
+    }
+}

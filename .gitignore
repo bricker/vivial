@@ -15,6 +15,7 @@ yalc.lock
 .DS_Store
 *.log*
 .swc
+credentials.json
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist

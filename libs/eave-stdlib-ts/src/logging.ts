@@ -41,7 +41,15 @@ interface Transport {
 class ConsoleTransport implements Transport {
   log(level: LogLevel, data: any, metadata?: {[key:string]: any}) {
     const severity: LogLevelNames = LOG_LEVEL_TO_NAME[level] || 'info';
-    console[severity](data, metadata);
+
+    if (typeof data === 'string') {
+      console[severity](data, metadata);
+    } else if (data['message'] !== undefined) {
+      console[severity](data['message'], metadata);
+      console.dir(data, { depth: null });
+    } else {
+      console.dir(data, { depth: null });
+    }
   }
 }
 

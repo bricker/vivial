@@ -6,7 +6,6 @@ dotenv.load_dotenv()
 import asyncio  # noqa
 import sqlalchemy  # noqa
 import eave.stdlib  # noqa
-import eave.stdlib.core_api  # noqa
 
 import eave.core.internal.database  # noqa
 import eave.core.internal.orm  # noqa

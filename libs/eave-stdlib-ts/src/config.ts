@@ -78,6 +78,10 @@ export class EaveConfig {
     return this.getSecret('OPENAI_API_KEY');
   }
 
+  get eaveForgeAppSharedSecret(): Promise<string> {
+    return this.getSecret('EAVE_FORGE_SHARED_SECRET');
+  }
+
   private cache: { [key: string]: string } = {};
 
   async getSecret(name: string): Promise<string> {

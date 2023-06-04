@@ -1,9 +1,10 @@
+import eave.stdlib.core_api.models.subscriptions
+import eave.stdlib.core_api.operations.subscriptions as eave_subscriptions
 from eave.stdlib.logging import eaveLogger
-import eave.stdlib.core_api.client as eave_core
-import eave.stdlib.core_api.operations as eave_ops
 from . import message_prompts
 from .document_management import DocumentManagementMixin
 from .subscription_management import SubscriptionManagementMixin
+from ..config import app_config
 
 
 class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin):
@@ -90,10 +91,13 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
             )
 
     async def unwatch_conversation(self) -> None:
-        await eave_core.delete_subscription(
+        await eave_subscriptions.DeleteSubscriptionRequest.perform(
+            origin=app_config.eave_origin,
             team_id=self.eave_team.id,
-            input=eave_ops.DeleteSubscription.RequestBody(
-                subscription=eave_ops.SubscriptionInput(source=self.message.subscription_source),
+            input=eave_subscriptions.DeleteSubscriptionRequest.RequestBody(
+                subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(
+                    source=self.message.subscription_source
+                ),
             ),
         )
 

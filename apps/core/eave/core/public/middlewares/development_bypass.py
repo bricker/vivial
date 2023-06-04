@@ -12,8 +12,6 @@ from eave.stdlib.logging import eaveLogger
 def development_bypass_allowed(scope: HTTPScope) -> bool:
     if not shared_config.is_development:
         return False
-    if not shared_config.dev_mode:
-        return False
     if shared_config.google_cloud_project == "eave-production":
         return False
 
