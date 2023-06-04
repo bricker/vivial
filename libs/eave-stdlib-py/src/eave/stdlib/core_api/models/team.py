@@ -5,14 +5,11 @@ from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 import pydantic
 from typing import Optional
 
-
 class ConfluenceDestination(BaseResponseModel):
     space_key: Optional[str]
 
-
 class ConfluenceDestinationInput(BaseInputModel):
     space_key: str
-
 
 class TeamInput(BaseInputModel):
     name: Optional[str]

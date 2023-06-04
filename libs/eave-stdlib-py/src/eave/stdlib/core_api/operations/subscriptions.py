@@ -48,7 +48,6 @@ class GetSubscriptionRequest(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-
 class CreateSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(
         path="/subscriptions/create",
@@ -80,7 +79,6 @@ class CreateSubscriptionRequest(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
-
 
 class DeleteSubscriptionRequest(Endpoint):
     config = EndpointConfiguration(

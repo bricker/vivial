@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Self, Tuple, TypedDict, Unpack
+from typing import Optional, Self, Tuple, TypeAlias, TypedDict, Unpack
 from uuid import UUID
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
@@ -85,6 +85,7 @@ class TeamOrm(Base):
         lookup = select(cls).where(cls.id == team_id)
         return lookup
 
+
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
         lookup = cls.query(**kwargs).limit(1)
@@ -101,12 +102,8 @@ class TeamOrm(Base):
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
-        confluence_installation = await ConnectInstallationOrm.one_or_none(
-            session=session, team_id=self.id, product=AtlassianProduct.confluence
-        )
-        jira_installation = await ConnectInstallationOrm.one_or_none(
-            session=session, team_id=self.id, product=AtlassianProduct.jira
-        )
+        confluence_installation = await ConnectInstallationOrm.one_or_none(session=session, team_id=self.id, product=AtlassianProduct.confluence)
+        jira_installation = await ConnectInstallationOrm.one_or_none(session=session, team_id=self.id, product=AtlassianProduct.jira)
 
         return Integrations(
             slack_integration=slack_installation.api_model if slack_installation else None,

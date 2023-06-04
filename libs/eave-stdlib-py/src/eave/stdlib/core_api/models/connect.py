@@ -9,7 +9,6 @@ class AtlassianProduct(enum.StrEnum):
     jira = "jira"
     confluence = "confluence"
 
-
 class ConnectInstallation(BaseResponseModel):
     """
     https://developer.atlassian.com/cloud/confluence/connect-app-descriptor/#lifecycle

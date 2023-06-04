@@ -76,17 +76,15 @@ class CreateConfluenceDestinationTests(BaseTestCase):
             team = await self.make_team(s)
             account = await self.make_account(s, team_id=team.id)
 
-            await ConnectInstallationOrm.create(
+            connect = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": "confluence",
-                        "client_key": self.anystring("client_key"),
-                        "base_url": self.anystring("base_url"),
-                        "shared_secret": self.anystring("shared_secret"),
-                    }
-                ),
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": "confluence",
+                    "client_key": self.anystring("client_key"),
+                    "base_url": self.anystring("base_url"),
+                    "shared_secret": self.anystring("shared_secret"),
+                }),
             )
 
         response = await self.make_request(
