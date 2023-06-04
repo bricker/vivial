@@ -10,7 +10,6 @@ from http import HTTPStatus
 from eave.core.internal.orm.account import AccountOrm
 
 import eave.stdlib.atlassian
-import eave.stdlib.core_api
 
 import eave.core.internal
 import eave.core.internal.oauth.atlassian

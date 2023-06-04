@@ -3,29 +3,24 @@ from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 import uuid
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import ForeignKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.subscriptions import DocumentReference
 from eave.stdlib.core_api.models.team import ConfluenceDestination
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR
 
 
 class ConfluenceDestinationOrm(Base):
     __tablename__ = "confluence_destinations"
     __table_args__ = (
-        ForeignKeyConstraint(
-            ["connect_installation_id"],
-            ["connect_installations.id"],
-            ondelete="CASCADE"
-        ),
+        ForeignKeyConstraint(["connect_installation_id"], ["connect_installations.id"], ondelete="CASCADE"),
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR,  primary_key=True)
-    connect_installation_id: Mapped[uuid.UUID]= mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, primary_key=True)
+    connect_installation_id: Mapped[uuid.UUID] = mapped_column()
     space_key: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -43,7 +38,6 @@ class ConfluenceDestinationOrm(Base):
         session.add(obj)
         await session.flush()
         return obj
-
 
     class QueryParams(TypedDict):
         id: NotRequired[uuid.UUID]
@@ -65,7 +59,6 @@ class ConfluenceDestinationOrm(Base):
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
-
 
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:

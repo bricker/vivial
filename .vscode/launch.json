@@ -80,6 +80,25 @@
       },
     },
     {
+      "name": "Confluence App",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/confluence",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/apps/confluence/src/app.ts",
+      "restart": true,
+      "args": [],
+      "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
+      "consoleTitle": "Confluence App",
+      "console": "integratedTerminal",
+      "env": {
+        "PORT": "5400"
+      },
+    },
+    {
       "name": "Jira App",
       "envFile": "${workspaceFolder}/.env",
       "cwd": "${workspaceFolder}/apps/jira",
@@ -161,11 +180,12 @@
         "Core API",
         "Slack Socket Mode",
         "GitHub App",
+        "Confluence App",
         "Jira App",
         "Marketing Website (Client)",
         "Marketing Website (Server)",
       ],
-      "stopAll": true
+      "stopAll": false
     },
   ]
 }

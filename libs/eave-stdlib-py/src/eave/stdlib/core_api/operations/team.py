@@ -1,6 +1,6 @@
 import uuid
 from eave.stdlib import requests
-from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team, TeamInput
+from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
 from eave.stdlib.eave_origins import EaveOrigin
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 from ..models import integrations
@@ -32,6 +32,7 @@ class GetTeamRequest(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
+
 class UpdateConfluenceDestinationAuthedRequest(Endpoint):
     config = EndpointConfiguration(
         path="/me/team/destinations/confluence/update",
@@ -48,7 +49,7 @@ class UpdateConfluenceDestinationAuthedRequest(Endpoint):
         cls,
         origin: EaveOrigin,
         input: RequestBody,
-        access_token:  str,
+        access_token: str,
         account_id: uuid.UUID,
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -62,9 +63,11 @@ class UpdateConfluenceDestinationAuthedRequest(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
+
 class CreateConfluenceDestinationAuthedRequest(Endpoint):
     config = EndpointConfiguration(
         path="/me/team/destinations/confluence/create",
+        team_id_required=False,
     )
 
     class RequestBody(BaseRequestBody):
@@ -79,7 +82,7 @@ class CreateConfluenceDestinationAuthedRequest(Endpoint):
         cls,
         origin: EaveOrigin,
         input: RequestBody,
-        access_token:  str,
+        access_token: str,
         account_id: uuid.UUID,
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -92,6 +95,7 @@ class CreateConfluenceDestinationAuthedRequest(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 # class UpdateTeam(Endpoint):
 #     config = EndpointConfiguration(

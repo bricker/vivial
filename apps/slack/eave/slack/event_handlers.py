@@ -8,7 +8,6 @@ from eave.slack.brain.core import Brain
 import eave.slack.slack_models
 import eave.stdlib
 from eave.stdlib import task_queue
-import eave.stdlib.core_api
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext

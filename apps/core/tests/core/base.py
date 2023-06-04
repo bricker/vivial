@@ -11,7 +11,6 @@ from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.team import DocumentPlatform
 import eave.stdlib.test_util
 import eave.stdlib.atlassian
-import eave.stdlib.core_api
 import eave.stdlib.jwt
 import eave.stdlib.requests
 import sqlalchemy.orm
@@ -236,6 +235,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             team = await self.make_team(session=session)
             team_id = team.id
 
+        # TODO: Maybe this function should also mock out the oauth functions corresponding to the auth provider
         account = await eave.core.internal.orm.account.AccountOrm.create(
             session=session,
             team_id=team_id,

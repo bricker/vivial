@@ -1,5 +1,8 @@
+import unittest.mock
 from http import HTTPStatus
 import http
+from typing import Any
+from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
@@ -71,24 +74,47 @@ class TestTeamRequests(BaseTestCase):
 
 
 class CreateConfluenceDestinationTests(BaseTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+
+        self.userinfo_val = SlackIdentity(
+            response={
+                "slack_user_id": self.anystring("authed_user.id"),
+                "slack_team_id": self.anystring("team.id"),
+                "email": self.anystring("slack_user_email"),
+                "given_name": self.anystring("slack_given_name"),
+            }
+        )
+
+        async def _get_userinfo_or_exception(*args: Any, **kwargs: Any) -> SlackIdentity:
+            return self.userinfo_val
+
+        self.patch(
+            unittest.mock.patch(
+                "eave.core.internal.oauth.slack.get_userinfo_or_exception", new=_get_userinfo_or_exception
+            )
+        )
+
     async def test_create_confluence_destination(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
             account = await self.make_account(s, team_id=team.id)
 
-            connect = await ConnectInstallationOrm.create(
+            await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                input=RegisterConnectInstallationInput.parse_obj({
-                    "product": "confluence",
-                    "client_key": self.anystring("client_key"),
-                    "base_url": self.anystring("base_url"),
-                    "shared_secret": self.anystring("shared_secret"),
-                }),
+                input=RegisterConnectInstallationInput.parse_obj(
+                    {
+                        "product": "confluence",
+                        "client_key": self.anystring("client_key"),
+                        "base_url": self.anystring("base_url"),
+                        "shared_secret": self.anystring("shared_secret"),
+                    }
+                ),
             )
 
         response = await self.make_request(
-            path="/",
+            path="/me/team/destinations/confluence/create",
             payload={
                 "confluence_destination": {
                     "space_key": self.anystring("space_key"),

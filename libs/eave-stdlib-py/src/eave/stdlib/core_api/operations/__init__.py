@@ -1,11 +1,7 @@
-import uuid
 import aiohttp
-from typing import Optional, Self, TypeAlias
+from typing import Optional
 import pydantic
-from eave.stdlib import requests
 from eave.stdlib.config import shared_config
-from eave.stdlib.eave_origins import EaveOrigin
-from eave.stdlib.headers import CONTENT_LENGTH
 
 
 class EndpointConfiguration:
