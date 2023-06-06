@@ -6,6 +6,7 @@ from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
+from eave.stdlib.headers import EAVE_TEAM_ID_HEADER
 from eave.stdlib.logging import eaveLogger
 
 from eave.stdlib import analytics
@@ -27,11 +28,12 @@ class QueryConnectIntegrationEndpoint(HTTPEndpoint):
                 session=db_session,
                 product=input.connect_integration.product,
                 client_key=input.connect_integration.client_key,
+                team_id=input.connect_integration.team_id,
             )
 
             if not installation:
-                eaveLogger.warn(
-                    f"{input.connect_integration.product} Integration not found for client key {input.connect_integration.client_key}",
+                eaveLogger.warning(
+                    f"{input.connect_integration.product} Integration not found",
                     extra=eave_state.log_context,
                 )
                 return Response(status_code=http.HTTPStatus.NOT_FOUND)
@@ -80,9 +82,16 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                 https://developer.atlassian.com/cloud/confluence/connect-app-descriptor/#lifecycle-attribute-example
                 https://ecosystem.atlassian.net/browse/AC-1528
                 """
+
                 integration = await ConnectInstallationOrm.create(
                     session=db_session,
-                    input=input.connect_integration,
+                    client_key=input.connect_integration.client_key,
+                    product=input.connect_integration.product,
+                    base_url=input.connect_integration.base_url,
+                    shared_secret=input.connect_integration.shared_secret,
+                    atlassian_actor_account_id=input.connect_integration.atlassian_actor_account_id,
+                    display_url=input.connect_integration.display_url,
+                    description=input.connect_integration.description,
                 )
 
                 team = None
@@ -93,10 +102,10 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     eave_team_id=None,
                     event_source="core api",
                     opaque_params={
-                        "integration_name": input.connect_integration.product,
-                        "atlassian_site_url": input.connect_integration.base_url,
-                        "atlassian_site_description": input.connect_integration.description,
-                        "atlassian_actor_account_id": input.connect_integration.atlassian_actor_account_id,
+                        "integration_name": integration.product,
+                        "atlassian_org_url": integration.org_url,
+                        "atlassian_site_description": integration.description,
+                        "atlassian_actor_account_id": integration.atlassian_actor_account_id,
                     },
                 )
 
@@ -117,10 +126,10 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     eave_team_id=integration.team_id,
                     event_source="core api",
                     opaque_params={
-                        "integration_name": input.connect_integration.product,
-                        "atlassian_site_url": input.connect_integration.base_url,
-                        "atlassian_site_description": input.connect_integration.description,
-                        "atlassian_actor_account_id": input.connect_integration.atlassian_actor_account_id,
+                        "integration_name": integration.product,
+                        "atlassian_org_url": integration.org_url,
+                        "atlassian_site_description": integration.description,
+                        "atlassian_actor_account_id": integration.atlassian_actor_account_id,
                     },
                 )
 

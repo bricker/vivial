@@ -1,5 +1,6 @@
 import enum
 from typing import Optional
+import uuid
 from eave.stdlib.core_api.models import BaseResponseModel
 
 from eave.stdlib.core_api.models import BaseInputModel
@@ -20,7 +21,7 @@ class SubscriptionSourceEvent(enum.StrEnum):
 
 
 class DocumentReference(BaseResponseModel):
-    id: pydantic.UUID4
+    id: uuid.UUID
     document_id: str
     document_url: str
 
@@ -32,13 +33,13 @@ class SubscriptionSource(BaseResponseModel):
 
 
 class Subscription(BaseResponseModel):
-    id: pydantic.UUID4
-    document_reference_id: Optional[pydantic.UUID4]
+    id: uuid.UUID
+    document_reference_id: Optional[uuid.UUID]
     source: SubscriptionSource
 
 
 class DocumentReferenceInput(BaseInputModel):
-    id: pydantic.UUID4
+    id: uuid.UUID
 
 
 class SubscriptionInput(BaseInputModel):

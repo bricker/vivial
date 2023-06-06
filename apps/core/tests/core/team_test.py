@@ -1,9 +1,11 @@
 import sqlalchemy.exc
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.destinations.confluence as confluence_destination
-import eave.core.internal.orm.atlassian_installation
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
 
 from .base import BaseTestCase
 
@@ -27,17 +29,25 @@ class TestTeamOrm(BaseTestCase):
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
 
-            atlassian_installation = eave.core.internal.orm.atlassian_installation.AtlassianInstallationOrm(
+            connect_installation = await ConnectInstallationOrm.create(
+                session=s,
                 team_id=team.id,
-                atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                confluence_space_key=self.anystring("confluence_space"),
-                oauth_token_encoded=self.anyjson("oauth_token_encoded"),
+                input=RegisterConnectInstallationInput.parse_obj({
+                    "product": AtlassianProduct.confluence,
+                    "client_key": self.anystring("client_key"),
+                    "shared_secret": self.anystring("shared_secret"),
+                    "base_url": self.anystring("base_url"),
+                })
             )
-            await self.save(s, atlassian_installation)
+            confluence_destination = await ConfluenceDestinationOrm.create(
+                session=s,
+                connect_installation_id=connect_installation.id,
+                team_id=team.id,
+                space_key=self.anystring("space_key"),
+            )
 
-            document_destination = await team.get_document_destination(session=s)
-
+            document_destination = await team.get_document_client(session=s)
             assert document_destination is not None
-            assert isinstance(document_destination, confluence_destination.ConfluenceDestination)
-            assert document_destination.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-            assert document_destination.space == self.anystring("confluence_space")
+            # document_destination is type-erased, but we want to test that the correct object was fetched.
+            assert isinstance(document_destination, ConfluenceDestinationOrm)
+            assert document_destination.id == confluence_destination.id

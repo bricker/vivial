@@ -24,6 +24,7 @@ import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
 import DownIcon from '../../Icons/DownIcon.js';
 import Footnote from './Footnote.jsx';
 import StepIcon from './StepIcon.jsx';
+import { EAVE_ONBOARDING_STATE_COOKIE, getCookie, saveCookie, saveSessionCookie } from '../../../cookies.js';
 
 const makeClasses = makeStyles((theme) => ({
   main: {
@@ -143,39 +144,52 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const FORGE_APP_INSTALL_URL = 'https://developer.atlassian.com/console/install/e3c57ac8-296e-4392-b128-4330b1ab2883/?signature=9e7204e3d1f2898b576427da60ab2182353879b1173469f1b59e0e9cab271d5439c0ff55d59dab60621d9c871125afe79fac266aa532eb29778a2d751bbe0508&product=confluence&product=jira';
+const JIRA_APP_INSTALL_URL = 'https://marketplace.atlassian.com/apps/1231329/eave-for-jira';
+const CONFLUENCE_APP_INSTALL_URL = 'https://marketplace.atlassian.com/apps/1231330/eave-for-confluence';
 
 const Steps = () => {
   const classes = makeClasses();
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
-  const { userState, updateConfluenceSpace, loadingUpdateConfluenceSpace, updateConfluenceError } = useUser();
-  const { teamInfo } = userState;
+  const { userState, updateConfluenceSpace, getAvailableSpaces, loadingUpdateConfluenceSpace, loadingAvailableSpaces, updateConfluenceError } = useUser();
+  const { teamInfo, availableSpaces } = userState;
   const [step, setStep] = useState(2);
   const [space, setSpace] = useState('');
   const [editingSpace, setEditingSpace] = useState(false);
   const [didClickForgeButton, setDidClickForgeButton] = useState(false);
+  const [didClickJiraButton, setDidClickJiraButton] = useState(false);
 
   useEffect(() => {
-    if (!teamInfo?.integrations.forge && !didClickForgeButton) {
+    if (!teamInfo?.integrations.confluence_integration && !didClickForgeButton) {
       setStep(0);
-    } else if (!teamInfo?.integrations.atlassian) {
+    } else if (!teamInfo?.integrations.confluence_integration) {
       setStep(1);
-      // if user has not selected a conflunece space
-    } else if (!teamInfo?.integrations.atlassian.confluence_space_key || editingSpace) {
+      // if user has not selected a confluence space
+    } else if (!teamInfo?.destination?.confluence_destination?.space_key || editingSpace) {
+      if (!loadingAvailableSpaces && !availableSpaces) {
+        getAvailableSpaces();
+      }
       setStep(2);
-    // confluence integration happens by default, if user has not linked their github or slack
-    } else if (!teamInfo?.integrations.github || !teamInfo?.integrations.slack) {
+    // if user has not linked their github, slack, or jira
+    } else if (!teamInfo?.integrations.github_integration || !teamInfo?.integrations.slack_integration || !teamInfo?.integrations.jira_integration) {
       setStep(3);
     // user has linked all so we can just show a completed stepper
     } else {
       setStep(4);
     }
-  }, [teamInfo, didClickForgeButton, space]);
+  }, [teamInfo, availableSpaces, didClickForgeButton, space]);
 
-  const isStep3Clickable = step > 2 && teamInfo?.integrations?.atlassian?.confluence_space_key?.length > 0;
+  const isStep3Clickable = step > 2 && teamInfo?.destination?.confluence_destination?.space_key?.length > 0;
+
+  const handleForgeButtonClick = () => {
+    setDidClickForgeButton(true);
+  };
+
+  const handleJiraButtonClick = () => {
+    setDidClickJiraButton(true);
+  };
 
   const handleSpaceUpdate = () => {
-    updateConfluenceSpace(space, teamInfo?.integrations.forge?.forge_app_installation_id, () => setEditingSpace(false));
+    updateConfluenceSpace(space, () => setEditingSpace(false));
   };
 
   const handleSelectChange = (event) => {
@@ -184,7 +198,7 @@ const Steps = () => {
 
   const handleStepClick = () => {
     if (isStep3Clickable) {
-      setSpace(teamInfo?.integrations.atlassian.confluence_space_key);
+      setSpace(teamInfo?.destination?.confluence_destination?.space_key);
       setEditingSpace(true);
       setStep(2);
     }
@@ -208,9 +222,9 @@ const Steps = () => {
             <Button
               lg
               className={classes.button}
-              onClick={() => setDidClickForgeButton(true)}
+              onClick={() => handleForgeButtonClick()}
               target="_blank"
-              href={FORGE_APP_INSTALL_URL}
+              href={CONFLUENCE_APP_INSTALL_URL}
             >
               Add App
             </Button>
@@ -249,25 +263,29 @@ const Steps = () => {
             <Copy variant="pSmall">This will allow Eave to automatically generate documentation in Confluence.</Copy>
             <div className={classes.selectWrapper}>
               <FormControl variant='outlined' className={classes.select}>
-              {!space && <InputLabel id="space-selector-label">Select your Confluence Space</InputLabel>}
-                <Select
-                  labelId="space-selector-label"
-                  id="space-selector"
-                  value={space}
-                  onChange={handleSelectChange}
-                  disabled={loadingUpdateConfluenceSpace}
-                >
-                  {teamInfo?.integrations?.atlassian?.available_confluence_spaces.map((spc) => {
-                    return (
-                      <MenuItem value={spc.key} key={spc.key}>{spc.name}</MenuItem>
-                    );
-                  })}
-                </Select>
+                {loadingAvailableSpaces ? <CircularProgress /> : (
+                  <>
+                    {!space && <InputLabel id="space-selector-label">Select your Confluence Space</InputLabel>}
+                    <Select
+                      labelId="space-selector-label"
+                      id="space-selector"
+                      value={space}
+                      onChange={handleSelectChange}
+                      disabled={loadingUpdateConfluenceSpace}
+                    >
+                      {availableSpaces?.map((spc) => {
+                        return (
+                          <MenuItem value={spc.key} key={spc.key}>{spc.name}</MenuItem>
+                        );
+                      })}
+                    </Select>
+                  </>
+                )}
               </FormControl>
               <Button
                   className={classes.submit}
                   onClick={handleSpaceUpdate}
-                  disabled={loadingUpdateConfluenceSpace}
+                  disabled={loadingUpdateConfluenceSpace || loadingAvailableSpaces}
                 >
                   {loadingUpdateConfluenceSpace ? (
                     <CircularProgress />
@@ -290,13 +308,13 @@ const Steps = () => {
             <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={teamInfo?.integrations.github && <PurpleCheckIcon className={classes.connected} />}
-              disabled={!!teamInfo?.integrations.github}
+              startIcon={teamInfo?.integrations.github_integration && <PurpleCheckIcon className={classes.connected} />}
+              disabled={!!teamInfo?.integrations.github_integration}
               to={`${window.eave.apiBase}/oauth/github/authorize`}
               lg
             >
               <img
-                className={classNames(classes.githubButtonLogo, { [classes.completed]: teamInfo?.integrations.github })}
+                className={classNames(classes.githubButtonLogo, { [classes.completed]: teamInfo?.integrations.github_integration })}
                 src={INTEGRATION_LOGOS.githubInline.src}
                 alt={INTEGRATION_LOGOS.githubInline.alt}
               />
@@ -304,13 +322,13 @@ const Steps = () => {
             <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={teamInfo?.integrations.slack && <PurpleCheckIcon className={classes.connected} />}
-              disabled={!!teamInfo?.integrations.slack}
+              startIcon={teamInfo?.integrations.slack_integration && <PurpleCheckIcon className={classes.connected} />}
+              disabled={!!teamInfo?.integrations.slack_integration}
               to={`${window.eave.apiBase}/oauth/slack/authorize`}
               lg
             >
               <img
-                className={classNames(classes.slackButtonLogo, { [classes.completed]: teamInfo?.integrations.slack })}
+                className={classNames(classes.slackButtonLogo, { [classes.completed]: teamInfo?.integrations.slack_integration })}
                 src={INTEGRATION_LOGOS.slack.src}
                 alt={INTEGRATION_LOGOS.slack.alt}
               />
@@ -318,13 +336,15 @@ const Steps = () => {
             <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={teamInfo?.integrations.forge && <PurpleCheckIcon className={classes.connected} />}
-              disabled={!!teamInfo?.integrations.forge}
-              to={FORGE_APP_INSTALL_URL}
+              startIcon={(teamInfo?.integrations.jira_integration || didClickJiraButton) && <PurpleCheckIcon className={classes.connected} />}
+              disabled={!!teamInfo?.integrations.jira_integration}
+              to={JIRA_APP_INSTALL_URL}
+              target="_blank"
+              onClick={() => handleJiraButtonClick()}
               lg
             >
               <img
-                className={classNames(classes.jiraButtonLogo, { [classes.completed]: teamInfo?.integrations.atlassian })}
+                className={classNames(classes.jiraButtonLogo, { [classes.completed]: teamInfo?.integrations.jira_integration || didClickJiraButton })}
                 src={INTEGRATION_LOGOS.jira.src}
                 alt={INTEGRATION_LOGOS.jira.alt}
               />

@@ -17,7 +17,7 @@ class DocumentMetadata:
     url: Optional[str]
 
 
-class DocumentDestination(Protocol):
+class DocumentClient(Protocol):
     @abc.abstractmethod
     async def create_document(self, input: DocumentInput) -> DocumentMetadata:
         ...

@@ -23,16 +23,17 @@ async def make_request(
     team_id: Optional[uuid.UUID] = None,
     access_token: Optional[str] = None,
     account_id: Optional[uuid.UUID] = None,
+    addl_headers: Optional[dict[str,str]] = None,
 ) -> aiohttp.ClientResponse:
     request_id = str(uuid.uuid4())
 
-    headers = {
+    headers: dict[str,str] = {
         eave_headers.CONTENT_TYPE: "application/json",
         eave_headers.EAVE_ORIGIN_HEADER: origin.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: str(request_id),
     }
 
-    payload = input.json() if input else ""
+    payload = input.json() if input else "{}" # empty JSON object
 
     if access_token:
         headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
@@ -59,6 +60,10 @@ async def make_request(
     )
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
+
+    if addl_headers:
+        headers.update(addl_headers)
+
     eaveLogger.info(
         f"Eave Client Request: {request_id}: {method} {url}",
         extra={

@@ -9,7 +9,7 @@ export class CacheEntry<T> {
     this.key = key;
     this.value = value;
 
-    if (ttlMillis) {
+    if (ttlMillis !== null) {
       this.ttl = Date.now() + ttlMillis;
     }
   }
@@ -20,7 +20,7 @@ export class Cache {
 
   async getOrSet<T>(key: string, ttlMillis: number | null, func: () => Promise<T>): Promise<T> {
     const cachedValue = <T | undefined> this.get(key);
-    if (cachedValue) {
+    if (cachedValue !== undefined) {
       return cachedValue;
     }
 

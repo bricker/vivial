@@ -27,5 +27,6 @@ export type RegisterConnectInstallationInput = {
 
 export type QueryConnectInstallationInput = {
     product: AtlassianProduct;
-    client_key: string;
+    client_key?: string;
+    team_id?: string;
 }

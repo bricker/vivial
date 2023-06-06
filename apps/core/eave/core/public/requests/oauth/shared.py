@@ -236,13 +236,7 @@ async def get_or_create_eave_account(
         access_token=eave_account.access_token,
     )
 
-    async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_team = await eave_account.get_team(session=db_session)
-
-    if eave_team.beta_whitelisted:
-        location = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
-    else:
-        location = f"{eave.core.internal.app_config.eave_www_base}/thanks"
+    location = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
     set_redirect(response=response, location=location)
     return eave_account

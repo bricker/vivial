@@ -13,3 +13,7 @@ export type Team = {
 export type TeamInput = {
   id: string;
 }
+
+export interface ConfluenceDestinationInput {
+    space_key: string;
+}
