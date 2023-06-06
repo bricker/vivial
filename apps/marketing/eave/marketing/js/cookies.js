@@ -29,7 +29,7 @@ export function getCookie(key) {
 export function saveSessionCookie(key, value) {
   cookies.set(key, value, {
     path: '/',
-    domain: window.eave.cookieDomain || '.eave.fyi'
+    domain: window.eave.cookieDomain || '.eave.fyi',
   });
 }
 

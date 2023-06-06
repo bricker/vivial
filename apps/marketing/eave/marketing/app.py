@@ -69,6 +69,7 @@ async def authed_account_team() -> Response:
 
     return _clean_response(eave_response)
 
+
 @app.route("/dashboard/me/team/destinations/confluence/spaces/query", methods=["GET"])
 async def get_available_spaces() -> Response:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
@@ -103,15 +104,15 @@ async def upsert_confluence_destination() -> Response:
     confluence_space_key = body["confluence_destination"]["space_key"]
 
     await UpsertConfluenceDestinationAuthedRequest.perform(
-            origin=app_config.eave_origin,
-            account_id=auth_cookies.account_id,
-            access_token=auth_cookies.access_token,
-            input=UpsertConfluenceDestinationAuthedRequest.RequestBody(
-                confluence_destination=ConfluenceDestinationInput(
-                    space_key=confluence_space_key,
-                ),
+        origin=app_config.eave_origin,
+        account_id=auth_cookies.account_id,
+        access_token=auth_cookies.access_token,
+        input=UpsertConfluenceDestinationAuthedRequest.RequestBody(
+            confluence_destination=ConfluenceDestinationInput(
+                space_key=confluence_space_key,
             ),
-        )
+        ),
+    )
 
     eave_response = await account.GetAuthenticatedAccountTeamIntegrations.perform(
         origin=app_config.eave_origin,
