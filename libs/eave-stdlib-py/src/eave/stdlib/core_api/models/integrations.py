@@ -1,9 +1,10 @@
 import enum
 from typing import Optional
-from .atlassian import AtlassianInstallation
-from .github import GithubInstallation
-from .slack import SlackInstallation
-from .connect import ConnectInstallation
+
+from .atlassian import AtlassianInstallationPeek
+from .github import GithubInstallationPeek
+from .slack import SlackInstallationPeek
+from .connect import ConnectInstallationPeek
 from . import BaseResponseModel
 
 
@@ -20,8 +21,8 @@ class Integration(enum.StrEnum):
 
 
 class Integrations(BaseResponseModel):
-    github_integration: Optional[GithubInstallation]
-    slack_integration: Optional[SlackInstallation]
-    atlassian_integration: Optional[AtlassianInstallation]
-    confluence_integration: Optional[ConnectInstallation]
-    jira_integration: Optional[ConnectInstallation]
+    github_integration: Optional[GithubInstallationPeek]
+    slack_integration: Optional[SlackInstallationPeek]
+    atlassian_integration: Optional[AtlassianInstallationPeek]
+    confluence_integration: Optional[ConnectInstallationPeek]
+    jira_integration: Optional[ConnectInstallationPeek]

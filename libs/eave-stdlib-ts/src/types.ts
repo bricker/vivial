@@ -1,11 +1,13 @@
-export declare type JsonValue =
+export type JsonObject = { [key: string]: any };
+
+export type JsonValue =
   string |
   number |
   null |
   string[] |
   number[] |
   null[] |
-  { [key: string]: JsonValue } |
-  { [key: string]: JsonValue }[];
+  JsonObject |
+  JsonObject[];
 
 export type Pair<A, B> = { first: A, second: B };

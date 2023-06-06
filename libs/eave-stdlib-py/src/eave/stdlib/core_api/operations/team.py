@@ -33,40 +33,9 @@ class GetTeamRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class UpdateConfluenceDestinationAuthedRequest(Endpoint):
+class UpsertConfluenceDestinationAuthedRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/me/team/destinations/confluence/update",
-    )
-
-    class RequestBody(BaseRequestBody):
-        confluence_destination: ConfluenceDestinationInput
-
-    class ResponseBody(BaseResponseBody):
-        confluence_destination: ConfluenceDestination
-
-    @classmethod
-    async def perform(
-        cls,
-        origin: EaveOrigin,
-        input: RequestBody,
-        access_token: str,
-        account_id: uuid.UUID,
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            url=cls.config.url,
-            origin=origin,
-            input=input,
-            access_token=access_token,
-            account_id=account_id,
-        )
-
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
-
-
-class CreateConfluenceDestinationAuthedRequest(Endpoint):
-    config = EndpointConfiguration(
-        path="/me/team/destinations/confluence/create",
+        path="/me/team/destinations/confluence/upsert",
         team_id_required=False,
     )
 

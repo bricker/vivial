@@ -12,10 +12,10 @@
         "type": "jwt"
     },
     "lifecycle": {
-        "installed": "/installed",
-        "enable": "/enabled",
-        "disabled": "/disabled",
-        "uninstalled": "/uninstalled"
+        "installed": "/events/installed",
+        "enabled": "/events/enabled",
+        "disabled": "/events/disabled",
+        "uninstalled": "/events/uninstalled"
     },
     "scopes": [
         "READ",
@@ -28,5 +28,10 @@
                 "url": "/events"
             }
         ]
+    },
+    "links": {
+        "self": "https://apps.eave.fyi/jira/atlassian-connect.json",
+        "website": "https://www.eave.fyi"
     }
+
 }

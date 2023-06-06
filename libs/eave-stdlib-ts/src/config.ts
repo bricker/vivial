@@ -100,7 +100,7 @@ export class EaveConfig {
     const qualifiedName = `projects/${this.googleCloudProject}/secrets/${name}/versions/latest`;
     const [version] = await client.accessSecretVersion({ name: qualifiedName });
     const value = version.payload?.data?.toString();
-    if (!value) {
+    if (value === undefined) {
       throw new Error(`secret not found: ${name}`);
     }
 

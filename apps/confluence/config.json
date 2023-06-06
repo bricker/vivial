@@ -1,32 +1,32 @@
 {
+    "product": "confluence",
     "development": {
-        "errorTemplate": true,
-        "port": 5500,
+        // The host part of  this URL is placeholder; it is overridden in development at runtime with the ngrok host.
+        "localBaseUrl": "http://apps.eave.run/confluence",
+        "setupInstallRoute": false,
         "store": {
             "adapter": "eave-api-store",
             "appKey": "eave-confluence",
             "productType": "confluence",
             "eaveOrigin": "eave_confluence_app"
         },
-        // The host part of  this URL is placeholder; it is overridden in development at runtime with the ngrok host.
-        "localBaseUrl": "http://apps.eave.run/confluence"
+        "port": "$PORT"
     },
     "production": {
-        "port": "$PORT",
-        "errorTemplate": true,
         "localBaseUrl": "https://apps.eave.fyi/confluence",
+        "setupInstallRoute": false,
         "store": {
             "adapter": "eave-api-store",
             "appKey": "eave-confluence",
             "productType": "confluence",
             "eaveOrigin": "eave_confluence_app"
         },
+        "port": "$PORT",
         "whitelist": [
             "*.jira-dev.com",
             "*.atlassian.net",
             "*.atlassian.com",
             "*.jira.com"
         ]
-    },
-    "product": "confluence"
+    }
 }

@@ -22,6 +22,10 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
             port = 5200
         elif re.match("/github", flow.request.path):
             port = 5300
+        elif re.match("/confluence", flow.request.path):
+            port = 5400
+        elif re.match("/jira", flow.request.path):
+            port = 5500
 
     if not port:
         flow.kill()
