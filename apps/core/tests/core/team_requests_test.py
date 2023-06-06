@@ -1,8 +1,5 @@
-import unittest.mock
 from http import HTTPStatus
 import http
-from typing import Any
-from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
@@ -149,7 +146,6 @@ class UpsertConfluenceDestinationTests(BaseTestCase):
         assert response_obj.confluence_destination.space_key == self.getstr("updated space_key")
 
         async with self.db_session.begin() as s:
-            dest_after = await ConfluenceDestinationOrm.one_or_none(
-                session=s, connect_installation_id=install.id)
+            dest_after = await ConfluenceDestinationOrm.one_or_none(session=s, connect_installation_id=install.id)
             assert dest_after is not None
             assert dest_after.space_key == self.getstr("updated space_key")

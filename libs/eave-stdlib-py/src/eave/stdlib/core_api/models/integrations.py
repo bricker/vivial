@@ -1,11 +1,10 @@
 import enum
 from typing import Optional
 
-from eave.stdlib.core_api.models.team import ConfluenceDestination
-from .atlassian import AtlassianInstallation, AtlassianInstallationPeek
-from .github import GithubInstallation, GithubInstallationPeek
-from .slack import SlackInstallation, SlackInstallationPeek
-from .connect import ConnectInstallation, ConnectInstallationPeek
+from .atlassian import AtlassianInstallationPeek
+from .github import GithubInstallationPeek
+from .slack import SlackInstallationPeek
+from .connect import ConnectInstallationPeek
 from . import BaseResponseModel
 
 

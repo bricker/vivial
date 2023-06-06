@@ -1,7 +1,6 @@
 import sqlalchemy.exc
 
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
@@ -32,12 +31,14 @@ class TestTeamOrm(BaseTestCase):
             connect_installation = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                input=RegisterConnectInstallationInput.parse_obj({
-                    "product": AtlassianProduct.confluence,
-                    "client_key": self.anystring("client_key"),
-                    "shared_secret": self.anystring("shared_secret"),
-                    "base_url": self.anystring("base_url"),
-                })
+                input=RegisterConnectInstallationInput.parse_obj(
+                    {
+                        "product": AtlassianProduct.confluence,
+                        "client_key": self.anystring("client_key"),
+                        "shared_secret": self.anystring("shared_secret"),
+                        "base_url": self.anystring("base_url"),
+                    }
+                ),
             )
             confluence_destination = await ConfluenceDestinationOrm.create(
                 session=s,

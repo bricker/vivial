@@ -1,10 +1,6 @@
-import unittest.mock
-import eave.core.internal.oauth.atlassian as atlassian_oauth
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 from eave.stdlib.core_api.models.connect import RegisterConnectInstallationInput
-from eave.stdlib.core_api.models.documents import DocumentInput
 
 from .base import BaseTestCase
 
@@ -15,12 +11,14 @@ class ConfluenceDestinationOrmTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_install = await ConnectInstallationOrm.create(
                 session=s,
-                input=RegisterConnectInstallationInput.parse_obj({
-                    "client_key": self.anystring("client_key"),
-                    "product": "confluence",
-                    "base_url": self.anystring("base_url"),
-                    "shared_secret": self.anystring("shared_secret"),
-                })
+                input=RegisterConnectInstallationInput.parse_obj(
+                    {
+                        "client_key": self.anystring("client_key"),
+                        "product": "confluence",
+                        "base_url": self.anystring("base_url"),
+                        "shared_secret": self.anystring("shared_secret"),
+                    }
+                ),
             )
 
             self._data_team = await self.make_team(s)

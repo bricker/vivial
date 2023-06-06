@@ -1,7 +1,6 @@
 import http
 import unittest.mock
 
-from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
@@ -20,12 +19,14 @@ class TestDeleteDocument(BaseTestCase):
             connect = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=self.testdata["eave_team"].id,
-                input=RegisterConnectInstallationInput.parse_obj({
-                    "product": AtlassianProduct.confluence,
-                    "client_key": self.anystring("client_key"),
-                    "base_url": self.anystring("base_url"),
-                    "shared_secret": self.anystring("shared_secret"),
-                }),
+                input=RegisterConnectInstallationInput.parse_obj(
+                    {
+                        "product": AtlassianProduct.confluence,
+                        "client_key": self.anystring("client_key"),
+                        "base_url": self.anystring("base_url"),
+                        "shared_secret": self.anystring("shared_secret"),
+                    }
+                ),
             )
 
             await ConfluenceDestinationOrm.create(
@@ -37,7 +38,7 @@ class TestDeleteDocument(BaseTestCase):
 
             self._request_mock = self.patch(
                 name="DeleteContentRequest",
-                patch=unittest.mock.patch('eave.stdlib.confluence_api.operations.DeleteContentRequest.perform')
+                patch=unittest.mock.patch("eave.stdlib.confluence_api.operations.DeleteContentRequest.perform"),
             )
 
     async def test_delete(self) -> None:

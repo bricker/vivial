@@ -557,18 +557,24 @@ class ConnectIntegrationModelTests(BaseTestCase):
 
     async def test_query_with_client_key_only(self) -> None:
         async with self.db_session.begin() as s:
-            result = await ConnectInstallationOrm.one_or_none(session=s, product=AtlassianProduct.jira, client_key=self._data_integration.client_key)
+            result = await ConnectInstallationOrm.one_or_none(
+                session=s, product=AtlassianProduct.jira, client_key=self._data_integration.client_key
+            )
             assert result is not None
 
     async def test_query_with_team_id(self) -> None:
         async with self.db_session.begin() as s:
-            result = await ConnectInstallationOrm.one_or_none(session=s, product=AtlassianProduct.jira, team_id=unwrap(self._data_integration.team_id))
+            result = await ConnectInstallationOrm.one_or_none(
+                session=s, product=AtlassianProduct.jira, team_id=unwrap(self._data_integration.team_id)
+            )
             assert result is not None
             assert result.id == self._data_integration.id
 
     async def test_query_with_team_id_but_wrong_product(self) -> None:
         async with self.db_session.begin() as s:
-            result = await ConnectInstallationOrm.one_or_none(session=s, product=AtlassianProduct.confluence, team_id=unwrap(self._data_integration.team_id))
+            result = await ConnectInstallationOrm.one_or_none(
+                session=s, product=AtlassianProduct.confluence, team_id=unwrap(self._data_integration.team_id)
+            )
             assert result is None
 
     async def test_query_with_team_id_and_client_key(self) -> None:

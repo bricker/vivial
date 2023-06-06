@@ -6,7 +6,6 @@ from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
-from eave.stdlib.headers import EAVE_TEAM_ID_HEADER
 from eave.stdlib.logging import eaveLogger
 
 from eave.stdlib import analytics

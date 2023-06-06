@@ -2,8 +2,7 @@ import uuid
 from eave.stdlib import requests
 from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, ConfluenceSearchResult, DeleteContentInput
 from eave.stdlib.confluence_api.models import ConfluencePage, ConfluenceSpace
-from eave.stdlib.core_api.models.connect import ConnectInstallation
-from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput
+from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 from eave.stdlib.core_api.models.documents import DocumentInput
 from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
 from eave.stdlib.eave_origins import EaveOrigin
@@ -35,6 +34,7 @@ class GetAvailableSpacesRequest(ConfluenceEndpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
+
 class SearchContentRequest(ConfluenceEndpoint):
     config = ConfluenceEndpointConfiguration(
         path="/content/search",
@@ -63,6 +63,7 @@ class SearchContentRequest(ConfluenceEndpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 class CreateContentRequest(ConfluenceEndpoint):
     config = ConfluenceEndpointConfiguration(
@@ -94,6 +95,7 @@ class CreateContentRequest(ConfluenceEndpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
+
 class UpdateContentRequest(ConfluenceEndpoint):
     config = ConfluenceEndpointConfiguration(
         path="/content/update",
@@ -123,6 +125,7 @@ class UpdateContentRequest(ConfluenceEndpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 class DeleteContentRequest(ConfluenceEndpoint):
     config = ConfluenceEndpointConfiguration(

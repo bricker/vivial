@@ -1,13 +1,18 @@
 from urllib.parse import urlparse
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Sequence, Tuple, TypedDict, Unpack
+from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib.core_api.models.connect import AtlassianProduct, ConnectInstallation, ConnectInstallationPeek, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import (
+    AtlassianProduct,
+    ConnectInstallation,
+    ConnectInstallationPeek,
+    RegisterConnectInstallationInput,
+)
 
 from eave.stdlib.util import ensure_uuid
 from .base import Base

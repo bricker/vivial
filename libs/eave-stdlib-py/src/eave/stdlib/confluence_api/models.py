@@ -6,12 +6,15 @@ from eave.stdlib.core_api.models import BaseInputModel
 
 from eave.stdlib.typing import JsonObject
 
+
 class ConfluenceSearchParamsInput(BaseInputModel):
     space_key: Optional[str]
     text: str
 
+
 class DeleteContentInput(BaseInputModel):
-   content_id: str
+    content_id: str
+
 
 class AtlassianAvailableResource(BaseModel):
     """
@@ -24,30 +27,36 @@ class AtlassianAvailableResource(BaseModel):
     scopes: Optional[list[str]]
     avatarUrl: Optional[str]
 
+
 class ConfluenceSpaceType(enum.StrEnum):
-  global_ = 'global'
-  personal = 'personal'
+    global_ = "global"
+    personal = "personal"
+
 
 class ConfluenceSpaceStatus(enum.StrEnum):
-  current = 'current'
-  archived = 'archived'
+    current = "current"
+    archived = "archived"
+
 
 class BodyType(BaseModel):
-  representation: str
-  value: str
+    representation: str
+    value: str
+
 
 class ConfluenceSpaceDescription(BaseModel):
-  plain: BodyType
-  view: BodyType
+    plain: BodyType
+    view: BodyType
+
 
 class ConfluenceSpace(BaseModel):
-  id: str | int # https://developer.atlassian.com/cloud/confluence/changelog/#CHANGE-905
-  key: str
-  name: str
-  type: ConfluenceSpaceType
-  status: ConfluenceSpaceStatus
-  homepageId: Optional[str | int] # https://developer.atlassian.com/cloud/confluence/changelog/#CHANGE-905
-  description: Optional[ConfluenceSpaceDescription]
+    id: str | int  # https://developer.atlassian.com/cloud/confluence/changelog/#CHANGE-905
+    key: str
+    name: str
+    type: ConfluenceSpaceType
+    status: ConfluenceSpaceStatus
+    homepageId: Optional[str | int]  # https://developer.atlassian.com/cloud/confluence/changelog/#CHANGE-905
+    description: Optional[ConfluenceSpaceDescription]
+
 
 class ConfluenceUserType(enum.Enum):
     known = "known"
@@ -91,6 +100,7 @@ class ApiResource:
     expandable: Optional[JsonObject]
     links: Optional[ConfluenceGenericLinks]
 
+
 class ConfluencePageVersion(BaseModel):
     pass
 
@@ -101,7 +111,6 @@ class ConfluenceOperationCheckResult(BaseModel):
 
 class ConfluenceUserIcon(BaseModel):
     pass
-
 
 
 class ConfluenceUserDetails(BaseModel):
@@ -124,6 +133,7 @@ class ConfluenceUser(BaseModel):
     profilePicture: Optional[ConfluenceUserIcon]
     operations: Optional[list[ConfluenceOperationCheckResult]]
     personalSpace: Optional[ConfluenceSpace]
+
 
 class ConfluenceUsersUserKeys(BaseModel):
     users: Optional[list[ConfluenceUser]]
@@ -152,6 +162,7 @@ class ConfluenceMediaToken(BaseModel):
     fileIds: Optional[list[str]]
     token: Optional[str]
 
+
 class ConfluenceWebResourceDependencies(BaseModel):
     pass
 
@@ -173,9 +184,11 @@ class ConfluenceContentBody(BaseModel):
     mediaToken: Optional[ConfluenceMediaToken]
     webresource: Optional[ConfluenceWebResourceDependencies]
 
+
 class ConfluencePageBody(BaseModel):
     content: Optional[ConfluenceContentBody]
     representation: ConfluenceContentBodyRepresentation
+
 
 class ConfluencePage(BaseModel):
     id: str
@@ -194,33 +207,35 @@ class ConfluencePage(BaseModel):
 
     @property
     def url(self) -> str:
-       if self._links and self._links.base and self._links.context and self._links.webui:
-          return "".join([self._links.base, self._links.context, self._links.webui])
-       else:
-          return ""
+        if self._links and self._links.base and self._links.context and self._links.webui:
+            return "".join([self._links.base, self._links.context, self._links.webui])
+        else:
+            return ""
+
 
 class ContainerSummary(BaseModel):
-  title: str
-  displayUrl: str
+    title: str
+    displayUrl: str
+
 
 class Breadcrumb(BaseModel):
-  label: str
-  url: str
-  separator: str
+    label: str
+    url: str
+    separator: str
 
 
 class ConfluenceSearchResult(BaseModel):
-  content: Optional[ConfluencePage]
-  user: Optional[ConfluenceUser]
-  space: Optional[ConfluenceSpace]
-  title: str
-  excerpt: str
-  url: str
-  resultParentContainer: Optional[ContainerSummary]
-  resultGlobalContainer: Optional[ContainerSummary]
-  breadcrumbs: list[Breadcrumb]
-  entityType: str
-  iconCssClass: str
-  lastModified: str
-  friendlyLastModified: Optional[str]
-  score: int
+    content: Optional[ConfluencePage]
+    user: Optional[ConfluenceUser]
+    space: Optional[ConfluenceSpace]
+    title: str
+    excerpt: str
+    url: str
+    resultParentContainer: Optional[ContainerSummary]
+    resultGlobalContainer: Optional[ContainerSummary]
+    breadcrumbs: list[Breadcrumb]
+    entityType: str
+    iconCssClass: str
+    lastModified: str
+    friendlyLastModified: Optional[str]
+    score: int

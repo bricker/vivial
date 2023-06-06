@@ -5,8 +5,6 @@ from eave.stdlib.core_api.models import BaseResponseModel
 
 from eave.stdlib.core_api.models import BaseInputModel
 
-import pydantic
-
 
 class SubscriptionSourcePlatform(enum.StrEnum):
     slack = "slack"

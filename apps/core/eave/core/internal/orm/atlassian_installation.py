@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallation, AtlassianInstallationPeek
-from eave.stdlib.core_api.models.atlassian import ConfluenceSpace
 
 from .. import database as eave_db
 from ..oauth import atlassian as atlassian_oauth

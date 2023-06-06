@@ -3,7 +3,7 @@ from typing import Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 from eave.core.internal.document_client import DocumentClient
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
-from eave.core.internal.orm.confluence_destination import ConfluenceClient, ConfluenceDestinationOrm
+from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.stdlib
 from sqlalchemy import Select, false, func, select
@@ -20,6 +20,7 @@ from .slack_installation import SlackInstallationOrm
 from .subscription import SubscriptionOrm
 from .util import UUID_DEFAULT_EXPR
 from eave.stdlib.logging import eaveLogger
+
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -54,9 +55,7 @@ class TeamOrm(Base):
     def api_model(self) -> Team:
         return Team.from_orm(self)
 
-    async def get_document_client(
-        self, session: AsyncSession
-    ) -> Optional[DocumentClient]:
+    async def get_document_client(self, session: AsyncSession) -> Optional[DocumentClient]:
         match self.document_platform:
             case None:
                 return None
@@ -73,7 +72,7 @@ class TeamOrm(Base):
                 )
 
                 if not destination:
-                    eaveLogger.warning(f'No destination configured for team {self.id}')
+                    eaveLogger.warning(f"No destination configured for team {self.id}")
                     return None
 
                 return destination.document_client
@@ -143,7 +142,7 @@ class TeamOrm(Base):
                 )
 
                 if not destination:
-                    eaveLogger.warning(f'No destination configured for team {self.id}')
+                    eaveLogger.warning(f"No destination configured for team {self.id}")
                     return None
 
                 return Destination(confluence_destination=destination.api_model)

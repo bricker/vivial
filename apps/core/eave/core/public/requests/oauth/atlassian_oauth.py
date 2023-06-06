@@ -1,10 +1,8 @@
 # INSTALL URL: https://developer.atlassian.com/console/install/e3c57ac8-296e-4392-b128-4330b1ab2883?signature=9e7204e3d1f2898b576427da60ab2182353879b1173469f1b59e0e9cab271d5439c0ff55d59dab60621d9c871125afe79fac266aa532eb29778a2d751bbe0508&product=confluence&product=jira
 
 import json
-import typing
 
-import atlassian
-from sqlalchemy import null, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
@@ -12,7 +10,6 @@ from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.pubsub_schemas
 import eave.stdlib
 import eave.stdlib.atlassian
-from eave.stdlib.confluence_api.models import ConfluenceSpace
 import eave.stdlib.core_api
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
@@ -103,11 +100,13 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         # First, check if this team already has a linked ConnectInstallation.
         # If so, nothing else to do.
         async with eave.core.internal.database.async_session.begin() as db_session:
-            connect_install = (await ConnectInstallationOrm.query(
-                session=db_session,
-                product=AtlassianProduct.confluence,
-                team_id=self.eave_account.team_id,
-            )).first()
+            connect_install = (
+                await ConnectInstallationOrm.query(
+                    session=db_session,
+                    product=AtlassianProduct.confluence,
+                    team_id=self.eave_account.team_id,
+                )
+            ).first()
 
             if not connect_install:
                 connect_install = await self._get_free_connect_installation(session=db_session)
@@ -145,12 +144,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             .where(ConnectInstallationOrm.team_id.is_(None))
             .where(
                 or_(
+                    *[ConnectInstallationOrm.org_url == resource.url for resource in self.atlassian_resources],
                     *[
-                        ConnectInstallationOrm.org_url == resource.url
-                        for resource in self.atlassian_resources
-                    ],
-                    *[
-                        ConnectInstallationOrm.base_url == resource.url # backwards compat
+                        ConnectInstallationOrm.base_url == resource.url  # backwards compat
                         for resource in self.atlassian_resources
                     ],
                 )
@@ -169,7 +165,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
     async def _maybe_set_default_confluence_space(self, connect_installation: ConnectInstallationOrm) -> None:
         try:
             async with eave.core.internal.database.async_session.begin() as db_session:
-                existing_dest = await ConfluenceDestinationOrm.one_or_none(session=db_session, team_id=self.eave_account.team_id)
+                existing_dest = await ConfluenceDestinationOrm.one_or_none(
+                    session=db_session, team_id=self.eave_account.team_id
+                )
                 if existing_dest:
                     return
 
@@ -204,7 +202,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     )
         except Exception as e:
             # Aggressively rescue any type of error, as this is a non-essential procedure.
-            eaveLogger.error('Error while getting confluence spaces', exc_info=e, extra=self.eave_state.log_context)
+            eaveLogger.error("Error while getting confluence spaces", exc_info=e, extra=self.eave_state.log_context)
 
     async def _update_or_create_atlassian_install(self) -> None:
         oauth_token_encoded = json.dumps(self.oauth_session.get_token())

@@ -8,14 +8,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from eave.core.internal.document_client import DocumentClient, DocumentMetadata
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-from eave.stdlib.confluence_api.operations import CreateContentRequest, DeleteContentRequest, GetAvailableSpacesRequest, SearchContentRequest, UpdateContentRequest
-from eave.stdlib.confluence_api.models import ConfluencePage, ConfluenceSearchParamsInput, ConfluenceSpace, DeleteContentInput
+from eave.stdlib.confluence_api.operations import (
+    CreateContentRequest,
+    DeleteContentRequest,
+    GetAvailableSpacesRequest,
+    SearchContentRequest,
+    UpdateContentRequest,
+)
+from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, DeleteContentInput
 from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.documents import DocumentInput, DocumentSearchResult
 
 from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput
 from eave.core.internal.config import app_config
-from eave.stdlib.logging import eaveLogger
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
@@ -115,7 +120,9 @@ class ConfluenceDestinationOrm(Base):
 
     async def get_connect_installation(self, session: AsyncSession) -> ConnectInstallationOrm:
         obj = await ConnectInstallationOrm.one_or_exception(
-            session=session, product=AtlassianProduct.confluence, id=self.connect_installation_id,
+            session=session,
+            product=AtlassianProduct.confluence,
+            id=self.connect_installation_id,
         )
         return obj
 
@@ -123,12 +130,12 @@ class ConfluenceDestinationOrm(Base):
     def document_client(self) -> "ConfluenceClient":
         return ConfluenceClient(self)
 
+
 class ConfluenceClient(DocumentClient):
     confluence_destination: ConfluenceDestinationOrm
 
     def __init__(self, confluence_destination: ConfluenceDestinationOrm):
         self.confluence_destination = confluence_destination
-
 
     async def get_available_spaces(self) -> GetAvailableSpacesRequest.ResponseBody:
         response = await GetAvailableSpacesRequest.perform(
@@ -142,17 +149,13 @@ class ConfluenceClient(DocumentClient):
             origin=app_config.eave_origin,
             team_id=self.confluence_destination.team_id,
             input=SearchContentRequest.RequestBody(
-                search_params=ConfluenceSearchParamsInput(space_key=self.confluence_destination.space_key, text=search_query),
+                search_params=ConfluenceSearchParamsInput(
+                    space_key=self.confluence_destination.space_key, text=search_query
+                ),
             ),
         )
 
-        return [
-            DocumentSearchResult(
-                title=result.title,
-                url=result.url
-            )
-            for result in response.results
-        ]
+        return [DocumentSearchResult(title=result.title, url=result.url) for result in response.results]
 
     async def delete_document(self, document_id: str) -> None:
         await DeleteContentRequest.perform(
