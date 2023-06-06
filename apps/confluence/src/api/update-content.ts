@@ -5,10 +5,9 @@ import { AddOn, HostClient } from 'atlassian-connect-express';
 import { CreateContentRequestBody, CreateContentResponseBody, SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResult, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
+import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
 import { getAuthedConnectClient } from './util.js';
 import { createPage, getPageByTitle, getPageChildren, getSpaceByKey, getSpaceRootPages } from '../confluence-client.js';
-import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
-
 
 export default async function updateContent(req: Request, res: Response, addon: AddOn) {
 }

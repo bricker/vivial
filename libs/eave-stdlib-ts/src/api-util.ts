@@ -17,7 +17,6 @@ standardEndpointsRouter.get('/status', (_: express.Request, res: express.Respons
   res.json(payload).status(200).end();
 });
 
-
 // def get_headers(
 //   scope: HTTPScope, excluded: Optional[list[str]] = None, redacted: Optional[list[str]] = None
 // ) -> dict[str, str]:

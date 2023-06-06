@@ -1,8 +1,8 @@
-import { Request, Response, Router } from "express";
+import { Request, Response, Router } from 'express';
 import AddOnFactory, { AddOn } from 'atlassian-connect-express';
-import { registerConnectInstallation } from "../core-api/operations/connect.js";
-import { AtlassianProduct } from "../core-api/models/connect.js";
-import { EaveOrigin } from "../eave-origins.js";
+import { registerConnectInstallation } from '../core-api/operations/connect.js';
+import { AtlassianProduct } from '../core-api/models/connect.js';
+import { EaveOrigin } from '../eave-origins.js';
 import eaveLogger from '../logging.js';
 
 export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn, product: AtlassianProduct, eaveOrigin: EaveOrigin }): Router {

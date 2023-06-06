@@ -1,9 +1,9 @@
-import { ConfluenceBodyCreateStorage, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResult, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
-import { DocumentReferenceInput } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js";
-import { HostClient } from "atlassian-connect-express";
-import { RequestResponse } from "request";
-import { cleanDocument } from "./api/util.js";
+import { ConfluenceBodyCreateStorage, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResult, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
+import { DocumentReferenceInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
+import { HostClient } from 'atlassian-connect-express';
+import { RequestResponse } from 'request';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { cleanDocument } from './api/util.js';
 
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-space/#api-spaces-get
@@ -147,7 +147,7 @@ export async function archivePage({ client, contentId }: { client: HostClient, c
         { id: contentId },
       ],
     },
-  }
+  };
   eaveLogger.debug({ message: 'archivePage request', request });
   await client.post(request);
 }
@@ -228,7 +228,7 @@ export async function updatePage({ client, page, body }: { client: HostClient, p
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-settings/#api-wiki-rest-api-settings-systeminfo-get
 */
-export async function getSystemInfo({client}: {client: HostClient}): Promise<SystemInfoEntity> {
+export async function getSystemInfo({ client }: {client: HostClient}): Promise<SystemInfoEntity> {
   const request = {
     url: '/rest/api/settings/systemInfo',
   };

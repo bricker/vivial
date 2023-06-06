@@ -1,4 +1,4 @@
-import { JsonObject } from "../types.js";
+import { JsonObject } from '../types.js';
 
 export interface ConfluenceSearchParamsInput {
   space_key?: string;
@@ -52,31 +52,31 @@ export enum ConfluenceSpaceContentDepth {
 }
 
 export enum ConfluenceUserType {
-  known = "known",
-  unknown = "unknown",
-  anonymous = "anonymous",
-  user = "user",
+  known = 'known',
+  unknown = 'unknown',
+  anonymous = 'anonymous',
+  user = 'user',
 }
 
 export enum ConfluenceUserAccountType {
-  atlassian = "atlassian",
-  app = "app",
-  unavailable = "",
+  atlassian = 'atlassian',
+  app = 'app',
+  unavailable = '',
 }
 
 export enum ConfluenceContentBodyRepresentation {
-  view = "view",
-  export_view = "export_view",
-  styled_view = "styled_view",
-  storage = "storage",
-  editor = "editor",
-  editor2 = "editor2",
-  anonymous_export_view = "anonymous_export_view",
-  wiki = "wiki",
-  atlas_doc_format = "atlas_doc_format",
-  dynamic = "dynamic",
-  raw = "raw",
-  _unknown = "_unknown",
+  view = 'view',
+  export_view = 'export_view',
+  styled_view = 'styled_view',
+  storage = 'storage',
+  editor = 'editor',
+  editor2 = 'editor2',
+  anonymous_export_view = 'anonymous_export_view',
+  wiki = 'wiki',
+  atlas_doc_format = 'atlas_doc_format',
+  dynamic = 'dynamic',
+  raw = 'raw',
+  _unknown = '_unknown',
 }
 
 export enum ConfluenceContentStatus {
@@ -104,7 +104,6 @@ export interface ConfluenceOperationCheckResult {
 
 export interface ConfluenceUserIcon {
 }
-
 
 export interface ConfluenceUserDetails {
 }
