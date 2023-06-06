@@ -1,7 +1,7 @@
 {
     "development": {
-        "errorTemplate": true,
-        "port": 5500,
+        "port": "$PORT",
+        "setupInstallRoute": false,
         "store": {
             "adapter": "eave-api-store",
             "appKey": "eave-jira",
@@ -13,7 +13,7 @@
     },
     "production": {
         "port": "$PORT",
-        "errorTemplate": true,
+        "setupInstallRoute": false,
         "localBaseUrl": "https://apps.eave.fyi/jira",
         "store": {
             "adapter": "eave-api-store",

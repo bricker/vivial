@@ -17,8 +17,21 @@ const availableTrackingParams = [
 
 export const cookiePrefixUtm = 'ev_utm_';
 export const EAVE_VISITOR_ID_COOKIE = 'ev_visitor_id';
+export const EAVE_ONBOARDING_STATE_COOKIE = 'ev_onboarding_state';
 export const EAVE_EARLY_ACCESS_REQUEST_COOKIE = 'ev_ear';
 export const GOOGLE_OPTIMIZE_EXP_COOKIE = '_gaexp';
+
+export function getCookie(key) {
+  const v = cookies.get(key);
+  return v;
+}
+
+export function saveSessionCookie(key, value) {
+  cookies.set(key, value, {
+    path: '/',
+    domain: window.eave.cookieDomain || '.eave.fyi'
+  });
+}
 
 export function saveCookie(key, value) {
   cookies.set(key, value, {

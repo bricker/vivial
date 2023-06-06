@@ -153,4 +153,12 @@
   }
   ],
   "typescript.preferences.importModuleSpecifierEnding": "js",
+  "eslint.rules.customizations": [
+
+    {
+      "rule": "*",
+      "severity": "downgrade"
+    }
+  ],
+  "typescript.validate.enable": true,
 }

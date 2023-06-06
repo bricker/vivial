@@ -1,12 +1,18 @@
+from urllib.parse import urlparse
 import uuid
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import Index, Select, func, select
+from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib.core_api.models.connect import AtlassianProduct, ConnectInstallation, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import (
+    AtlassianProduct,
+    ConnectInstallation,
+    ConnectInstallationPeek,
+    RegisterConnectInstallationInput,
+)
 
 from eave.stdlib.util import ensure_uuid
 from .base import Base
@@ -33,6 +39,15 @@ class ConnectInstallationOrm(Base):
     client_key: Mapped[str] = mapped_column()
     shared_secret: Mapped[str] = mapped_column()
     base_url: Mapped[str] = mapped_column()
+    """
+    base_url for the product, given by Connect installation. Includes the product context path.
+    eg: https://eave-fyi.atlassian.net/wiki
+    """
+    org_url: Mapped[Optional[str]] = mapped_column()
+    """
+    base URL for the Atlassian organization
+    eg: https://eave-fyi.atlassian.net
+    """
     atlassian_actor_account_id: Mapped[Optional[str]] = mapped_column()
     display_url: Mapped[Optional[str]] = mapped_column()
     description: Mapped[Optional[str]] = mapped_column()
@@ -40,59 +55,87 @@ class ConnectInstallationOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     class QueryParams(TypedDict):
+        product: AtlassianProduct
         id: NotRequired[uuid.UUID]
-        product: NotRequired[AtlassianProduct]
-        team_id: NotRequired[uuid.UUID]
-        client_key: NotRequired[str]
+        team_id: NotRequired[uuid.UUID | str | None]
+        client_key: NotRequired[str | None]
+        org_url: NotRequired[str]
 
     @classmethod
-    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
+    def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-        if (id := kwargs.get("id")) is not None:
+        product = kwargs["product"]
+        lookup = lookup.where(cls.product == product)
+
+        id = kwargs.get("id")
+        team_id = kwargs.get("team_id")
+        client_key = kwargs.get("client_key")
+        org_url = kwargs.get("org_url")
+        assert id or team_id or client_key or org_url, "at least one parameter must be specified"
+
+        if id:
             lookup = lookup.where(cls.id == id)
 
-        if (team_id := kwargs.get("team_id")) is not None:
+        if team_id:
             lookup = lookup.where(cls.team_id == team_id)
 
-        if (product := kwargs.get("product")) is not None:
-            lookup = lookup.where(cls.product == product)
-
-        if (client_key := kwargs.get("client_key")) is not None:
-            assert product is not None, "product must be specified when querying client_key"
+        if client_key:
             lookup = lookup.where(cls.client_key == client_key)
+
+        if org_url:
+            lookup = lookup.where(cls.base_url == cls.org_url)
 
         assert lookup.whereclause is not None
         return lookup
 
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
-        lookup = cls.query(**kwargs).limit(1)
+        lookup = cls._build_query(**kwargs).limit(1)
         result = (await session.scalars(lookup)).one()
         return result
 
     @classmethod
     async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self | None:
-        lookup = cls.query(**kwargs).limit(1)
+        lookup = cls._build_query(**kwargs).limit(1)
         result = await session.scalar(lookup)
         return result
+
+    @classmethod
+    async def query(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> ScalarResult[Self]:
+        lookup = cls._build_query(**kwargs)
+        results = await session.scalars(lookup)
+        return results
+
+    @staticmethod
+    def make_org_url(base_url: str) -> str:
+        u = urlparse(base_url)
+        base = f"{u.scheme}://{u.netloc}"
+        return base
 
     @classmethod
     async def create(
         cls,
         session: AsyncSession,
-        input: RegisterConnectInstallationInput,
+        client_key: str,
+        product: AtlassianProduct,
+        base_url: str,
+        shared_secret: str,
+        atlassian_actor_account_id: Optional[str],
+        display_url: Optional[str],
+        description: Optional[str],
         team_id: Optional[uuid.UUID | str] = None,
     ) -> Self:
         obj = cls(
             team_id=ensure_uuid(team_id) if team_id else None,
-            product=input.product,
-            client_key=input.client_key,
-            shared_secret=input.shared_secret,
-            atlassian_actor_account_id=input.atlassian_actor_account_id,
-            base_url=input.base_url,
-            display_url=input.display_url,
-            description=input.description,
+            product=product,
+            client_key=client_key,
+            shared_secret=shared_secret,
+            atlassian_actor_account_id=atlassian_actor_account_id,
+            base_url=base_url,
+            org_url=cls.make_org_url(base_url),
+            display_url=display_url,
+            description=description,
         )
         session.add(obj)
         await session.flush()
@@ -130,6 +173,7 @@ class ConnectInstallationOrm(Base):
 
         if ("base_url" in fs) and input.base_url:
             self.base_url = input.base_url
+            self.org_url = self.make_org_url(input.base_url)
 
         if "atlassian_actor_account_id" in fs:
             self.atlassian_actor_account_id = input.atlassian_actor_account_id
@@ -145,3 +189,7 @@ class ConnectInstallationOrm(Base):
     @property
     def api_model(self) -> ConnectInstallation:
         return ConnectInstallation.from_orm(self)
+
+    @property
+    def api_model_peek(self) -> ConnectInstallationPeek:
+        return ConnectInstallationPeek.from_orm(self)

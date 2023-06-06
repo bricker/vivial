@@ -23,21 +23,8 @@ class AtlassianOAuthTokenResponse:
 
 
 ATLASSIAN_OAUTH_SCOPES = [
-    "write:confluence-content",
-    "read:confluence-space.summary",
-    "write:confluence-file",
-    "read:confluence-props",
-    "write:confluence-props",
-    "read:confluence-content.all",
-    "read:confluence-content.summary",
-    "search:confluence",
-    "read:confluence-content.permission",
     "read:confluence-user",
-    "read:confluence-groups",
-    "readonly:content.attachment:confluence",
-    "read:jira-work",
     "read:jira-user",
-    "write:jira-work",
     "read:me",
     "read:account",
     "offline_access",

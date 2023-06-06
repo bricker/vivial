@@ -5,11 +5,16 @@ import os
 from typing import Any, Mapping, Optional, Sequence
 
 import eave.stdlib.config
+from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.exceptions import UnexpectedMissingValue
 from eave.stdlib.logging import eaveLogger
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
+    @property
+    def eave_origin(self) -> EaveOrigin:
+        return EaveOrigin.eave_api
+
     @cached_property
     def db_host(self) -> str:
         key = "EAVE_DB_HOST"

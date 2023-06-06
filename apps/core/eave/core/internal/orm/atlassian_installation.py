@@ -10,11 +10,9 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.atlassian import AtlassianInstallation
-from eave.stdlib.core_api.models.atlassian import ConfluenceSpace
+from eave.stdlib.core_api.models.atlassian import AtlassianInstallation, AtlassianInstallationPeek
 
 from .. import database as eave_db
-from ..destinations import confluence as confluence_destination
 from ..oauth import atlassian as atlassian_oauth
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -37,9 +35,9 @@ class AtlassianInstallationOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     atlassian_site_name: Mapped[Optional[str]] = mapped_column()
     atlassian_cloud_id: Mapped[str] = mapped_column(unique=True)
-    confluence_space_key: Mapped[Optional[str]] = mapped_column(
-        "confluence_space"
-    )  # This field was renamed from "confluence_space" to "confluence_space_key"
+    """DEPRECATED"""
+    confluence_space_key: Mapped[Optional[str]] = mapped_column("confluence_space")
+    """DEPRECATED"""
     oauth_token_encoded: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -84,13 +82,11 @@ class AtlassianInstallationOrm(Base):
         team_id: uuid.UUID,
         atlassian_cloud_id: str,
         oauth_token_encoded: str,
-        confluence_space_key: Optional[str],
         atlassian_site_name: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             atlassian_cloud_id=atlassian_cloud_id,
-            confluence_space_key=confluence_space_key,
             oauth_token_encoded=oauth_token_encoded,
             atlassian_site_name=atlassian_site_name,
         )
@@ -102,19 +98,6 @@ class AtlassianInstallationOrm(Base):
     def oauth_token_decoded(self) -> oauthlib.oauth2.rfc6749.tokens.OAuth2Token:
         jsonv = json.loads(self.oauth_token_encoded)
         return oauthlib.oauth2.rfc6749.tokens.OAuth2Token(params=jsonv)
-
-    @property
-    def confluence_destination(self) -> confluence_destination.ConfluenceDestination:
-        return confluence_destination.ConfluenceDestination(
-            oauth_session=self.build_oauth_session(),
-            atlassian_cloud_id=self.atlassian_cloud_id,
-            space=self.confluence_space_key,
-        )
-
-    @property
-    def available_confluence_spaces(self) -> list[ConfluenceSpace]:
-        spaces = self.confluence_destination.get_available_spaces()
-        return [ConfluenceSpace(key=s.key, name=s.name) for s in spaces if s.key and s.name]
 
     def build_oauth_session(self) -> atlassian_oauth.AtlassianOAuthSession:
         session = atlassian_oauth.AtlassianOAuthSession(
@@ -148,3 +131,7 @@ class AtlassianInstallationOrm(Base):
     @property
     def api_model(self) -> AtlassianInstallation:
         return AtlassianInstallation.from_orm(self)
+
+    @property
+    def api_model_peek(self) -> AtlassianInstallationPeek:
+        return AtlassianInstallationPeek.from_orm(self)

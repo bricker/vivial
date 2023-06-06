@@ -46,15 +46,22 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, base
   const accountId = req.header(eaveHeaders.EAVE_ACCOUNT_ID_HEADER);
   const origin = eaveState.eave_origin!;
 
-  const message = buildMessageToSign(
-    req.method,
-    `${baseUrl}${req.originalUrl}`,
-    eaveState.request_id!,
+  let serializedBody;
+  if (typeof body === 'string' || body instanceof Buffer) {
+    serializedBody = body.toString();
+  } else {
+    serializedBody = JSON.stringify(body);
+  }
+
+  const message = buildMessageToSign({
+    method: req.method,
+    url: `${baseUrl}${req.originalUrl}`,
+    requestId: eaveState.request_id!,
     origin,
-    body.toString('utf8'),
+    payload: serializedBody,
     teamId,
     accountId,
-  );
+  });
 
   const signingKey = getKey(origin);
 

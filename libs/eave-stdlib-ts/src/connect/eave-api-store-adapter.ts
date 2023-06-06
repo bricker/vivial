@@ -1,5 +1,5 @@
 import AddOnFactory from 'atlassian-connect-express';
-import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody } from '../core-api/operations/connect.js';
+import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveOrigin } from '../eave-origins.js';
 
@@ -21,7 +21,7 @@ class EaveApiAdapter /* implements StoreAdapter */ {
 
   // FIXME: The `key` in this function params is usually `clientInfo`, which we can get from the API.
   // However, for OAuth, the key is dynamically generated using the user identifier and scopes.
-  // So, this class is completely broken with OAuth.
+  // So, this class is completely broken with OAuth, but we don't currently use OAuth in this context.
 
   async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
     try {
@@ -43,45 +43,24 @@ class EaveApiAdapter /* implements StoreAdapter */ {
   }
 
   async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
-    let parsedValue: AddOnFactory.ClientInfo;
-
-    if (typeof value === 'string') {
-      parsedValue = JSON.parse(value);
-    } else {
-      parsedValue = value;
-    }
-
-    const response = await registerConnectInstallation({
-      origin: this.eaveOrigin,
-      input: {
-        connect_integration: {
-          product: this.productType,
-          client_key: clientKey,
-          base_url: parsedValue.baseUrl,
-          shared_secret: parsedValue.sharedSecret,
-          description: parsedValue.description,
-
-        },
-      },
-    });
-
-    return this.buildClientInfo(response);
+    throw new Error('not implemented');
   }
 
   async del(/* key: string, clientKey: string */): Promise<void> {
     // TODO: Fill in the delete function for Connect client info
+    throw new Error('not implemented');
   }
 
   async getAllClientInfos(): Promise<AddOnFactory.ClientInfo[]> {
     // TODO: Fill in the getAllClientInfos function
-    return [];
+    throw new Error('not implemented');
   }
 
   isMemoryStore() {
     return false;
   }
 
-  private buildClientInfo(response: QueryConnectInstallationResponseBody): AddOnFactory.ClientInfo {
+  private buildClientInfo(response: QueryConnectInstallationResponseBody | RegisterConnectInstallationResponseBody): AddOnFactory.ClientInfo {
     // The ClientInfo interface contains several properties which are non-nullable, but aren't needed for our purpose.
     // For those properties, we'll fill in with dummy values.
     return {

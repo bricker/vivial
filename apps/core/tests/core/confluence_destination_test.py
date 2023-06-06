@@ -1,47 +1,65 @@
-import unittest.mock
-import eave.core.internal.destinations.confluence as confluence_destination
-import eave.core.internal.oauth.atlassian as atlassian_oauth
-from eave.core.internal.orm.document_reference import DocumentReferenceOrm
-from eave.stdlib.core_api.models.documents import DocumentInput
+from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
+from eave.stdlib.core_api.models.connect import RegisterConnectInstallationInput
 
 from .base import BaseTestCase
 
 
-class TestConfluenceDestination(BaseTestCase):
-    async def test_create_document(self) -> None:
+class ConfluenceDestinationOrmTests(BaseTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
         async with self.db_session.begin() as s:
-            team = await self.make_team(s)
-
-            oauth_session = atlassian_oauth.AtlassianOAuthSession()
-
-            destination = confluence_destination.ConfluenceDestination(
-                atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
-                space=self.anystring("space"),
-                oauth_session=oauth_session,
+            self._data_install = await ConnectInstallationOrm.create(
+                session=s,
+                input=RegisterConnectInstallationInput.parse_obj(
+                    {
+                        "client_key": self.anystring("client_key"),
+                        "product": "confluence",
+                        "base_url": self.anystring("base_url"),
+                        "shared_secret": self.anystring("shared_secret"),
+                    }
+                ),
             )
 
-            document_reference = DocumentReferenceOrm(
-                team_id=team.id,
-                document_id=self.anystring("confluence_document_response.id"),
-                document_url=self.anystring("cdurl"),
-            )
-            await self.save(s, document_reference)
+            self._data_team = await self.make_team(s)
 
-            self.patch(unittest.mock.patch("atlassian.Confluence.get_page_by_title", return_value=None))
-            self.patch(
-                unittest.mock.patch(
-                    "atlassian.Confluence.create_page", return_value=self.confluence_document_response_fixture()
-                )
+    async def test_upsert_existing(self) -> None:
+        async with self.db_session.begin() as s:
+            # Create the Existing one
+            dest = await ConfluenceDestinationOrm.upsert(
+                session=s,
+                team_id=self._data_team.id,
+                connect_installation_id=self._data_install.id,
+                space_key=self.anystring("space_key"),
             )
 
-            input = DocumentInput(
-                title=self.anystring("doctitle"),
-                content=self.anystring("doccontent"),
+        async with self.db_session.begin() as s:
+            dest_after = await ConfluenceDestinationOrm.upsert(
+                session=s,
+                team_id=self._data_team.id,
+                connect_installation_id=self._data_install.id,
+                space_key=self.anystring("updated space_key"),
             )
-            document_metadata = await destination.create_document(input=input)
-            assert document_metadata.id == self.anystring("confluence_document_response.id")
-            assert document_metadata.url == (
-                self.anystring("confluence_document_response._links.base")
-                + "/wiki/"
-                + self.anystring("confluence_document_response._links.tinyui")
+            assert dest_after.id == dest.id
+            assert dest_after.connect_installation_id == self._data_install.id
+            assert dest_after.space_key == self.getstr("updated space_key")
+
+    async def test_upsert_new(self) -> None:
+        async with self.db_session.begin() as s:
+            dest = await ConfluenceDestinationOrm.upsert(
+                session=s,
+                team_id=self._data_team.id,
+                connect_installation_id=self._data_install.id,
+                space_key=self.anystring("space_key"),
             )
+
+            assert dest.connect_installation_id == self._data_install.id
+            assert dest.space_key == self.getstr("space_key")
+
+        async with self.db_session.begin() as s:
+            dest_after = await ConfluenceDestinationOrm.one_or_none(
+                session=s,
+                connect_installation_id=self._data_install.id,
+            )
+            assert dest_after is not None
+            assert dest_after.space_key == self.getstr("space_key")

@@ -5,6 +5,7 @@ import urllib.parse
 import uuid
 from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
+from eave.core.internal.oauth.slack import SlackIdentity
 
 import eave.stdlib
 from eave.stdlib.core_api.models.account import AuthProvider
@@ -235,7 +236,6 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             team = await self.make_team(session=session)
             team_id = team.id
 
-        # TODO: Maybe this function should also mock out the oauth functions corresponding to the auth provider
         account = await eave.core.internal.orm.account.AccountOrm.create(
             session=session,
             team_id=team_id,
@@ -246,6 +246,32 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             access_token=access_token or self.anystring("account.oauth_token"),
             refresh_token=refresh_token or self.anystring("account.refresh_token"),
         )
+
+        match account.auth_provider:
+            case AuthProvider.slack:
+                mock_userinfo = SlackIdentity(
+                    response={
+                        "slack_user_id": self.anystring("slack.authed_user.id"),
+                        "slack_team_id": self.anystring("slack.team.id"),
+                        "email": self.anystring("slack.slack_user_email"),
+                        "given_name": self.anystring("slack.slack_given_name"),
+                    }
+                )
+
+                async def _get_userinfo_or_exception(*args: Any, **kwargs: Any) -> SlackIdentity:
+                    return mock_userinfo
+
+                self.patch(
+                    unittest.mock.patch(
+                        "eave.core.internal.oauth.slack.get_userinfo_or_exception", new=_get_userinfo_or_exception
+                    )
+                )
+            case AuthProvider.google:
+                pass
+            case AuthProvider.github:
+                pass
+            case AuthProvider.atlassian:
+                pass
 
         return account
 

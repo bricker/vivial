@@ -12,7 +12,15 @@ import {
 } from '../exceptions.js';
 import { redact } from '../util.js';
 
-export function buildMessageToSign(
+export function buildMessageToSign({
+  method,
+  url,
+  requestId,
+  origin,
+  payload,
+  teamId,
+  accountId,
+}: {
   method: string,
   url: string,
   requestId: string,
@@ -20,7 +28,7 @@ export function buildMessageToSign(
   payload: string,
   teamId?: string,
   accountId?: string,
-): string {
+}): string {
   const signatureElements = [
     origin,
     method.toUpperCase(),
@@ -70,15 +78,15 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
   };
 
-  const message = buildMessageToSign(
+  const message = buildMessageToSign({
     method,
     url,
     requestId,
     origin,
-    input === undefined ? '' : JSON.stringify(input),
+    payload: input === undefined ? '{}' : JSON.stringify(input),
     teamId,
     accountId,
-  );
+  });
 
   const signature = await signBase64(
     getKey(origin),
@@ -117,6 +125,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   };
 
   eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, requestContext);
+  eaveLogger.debug({ message: `request body: ${requestId}`, body: requestInit });
 
   const response = await fetch(url, requestInit);
 

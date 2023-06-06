@@ -12,21 +12,19 @@
         "type": "jwt"
     },
     "lifecycle": {
-        "installed": "/installed",
-        "enable": "/enabled",
-        "disabled": "/disabled",
-        "uninstalled": "/uninstalled"
+        "installed": "/events/installed",
+        "enabled": "/events/enabled",
+        "disabled": "/events/disabled",
+        "uninstalled": "/events/uninstalled"
     },
     "scopes": [
         "READ",
         "WRITE"
     ],
     "modules": {
-        "webhooks": [
-            {
-                "event": "comment_created",
-                "url": "/events"
-            }
-        ]
+    },
+    "links": {
+        "self": "https://apps.eave.fyi/confluence/atlassian-connect.json",
+        "website": "https://www.eave.fyi"
     }
 }
