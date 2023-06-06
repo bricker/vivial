@@ -76,7 +76,30 @@
       "consoleTitle": "GitHub App",
       "console": "integratedTerminal",
       "env": {
-        "PORT": "5300"
+        "PORT": "5300",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+      },
+    },
+    {
+      "name": "Confluence App",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/confluence",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/apps/confluence/src/app.ts",
+      "restart": true,
+      "args": [
+        "--exec", "pkill -n ngrok || true && ts-node"
+      ],
+      "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
+      "consoleTitle": "Confluence App",
+      "console": "integratedTerminal",
+      "env": {
+        "PORT": "5400",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
       },
     },
     {
@@ -90,12 +113,15 @@
       ],
       "program": "${workspaceFolder}/apps/jira/src/app.ts",
       "restart": true,
-      "args": [],
+      "args": [
+        "--exec", "pkill -n ngrok || true && ts-node"
+      ],
       "runtimeExecutable": "${workspaceFolder}/apps/jira/node_modules/.bin/nodemon",
       "consoleTitle": "Jira App",
       "console": "integratedTerminal",
       "env": {
-        "PORT": "5500"
+        "PORT": "5500",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
       },
     },
     {
@@ -161,11 +187,12 @@
         "Core API",
         "Slack Socket Mode",
         "GitHub App",
+        "Confluence App",
         "Jira App",
         "Marketing Website (Client)",
         "Marketing Website (Server)",
       ],
-      "stopAll": true
+      "stopAll": false
     },
   ]
 }

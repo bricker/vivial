@@ -5,14 +5,14 @@
   },
   "dependencies": {
     "@eave-fyi/eave-stdlib-ts": "file:.yalc/@eave-fyi/eave-stdlib-ts",
+    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@octokit/graphql-schema": "12.x",
     "@octokit/webhooks": "10.x",
     "@swc/core": "1.x",
     "express": "4.x",
     "octokit": "2.x",
     "pm2": "5.x",
-    "ts-node": "10.x",
-    "@eave-fyi/es-config": "file:../../develop/javascript/es-config"
+    "ts-node": "10.x"
   },
   "devDependencies": {
     "@graphql-eslint/eslint-plugin": "3.x",

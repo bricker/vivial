@@ -41,7 +41,15 @@ interface Transport {
 class ConsoleTransport implements Transport {
   log(level: LogLevel, data: any, metadata?: {[key:string]: any}) {
     const severity: LogLevelNames = LOG_LEVEL_TO_NAME[level] || 'info';
-    console[severity](data, metadata);
+
+    if (typeof data === 'string') {
+      console[severity](data, metadata);
+    } else if (data['message'] !== undefined) {
+      console[severity](data['message'], metadata);
+      console.dir(data, { depth: null });
+    } else {
+      console.dir(data, { depth: null });
+    }
   }
 }
 
@@ -75,7 +83,7 @@ class EaveLogger {
   }
 
   debug(data: any, metadata?: {[key:string]: any}) {
-    if (this.level < LogLevel.debug) {
+    if (this.level > LogLevel.debug) {
       return;
     }
 
@@ -83,21 +91,21 @@ class EaveLogger {
   }
 
   info(data: any, metadata?: {[key:string]: any}) {
-    if (this.level < LogLevel.info) {
+    if (this.level > LogLevel.info) {
       return;
     }
     this.transport.log(LogLevel.info, data, metadata);
   }
 
   warning(data: any, metadata?: {[key:string]: any}) {
-    if (this.level < LogLevel.warn) {
+    if (this.level > LogLevel.warn) {
       return;
     }
     this.transport.log(LogLevel.warn, data, metadata);
   }
 
   error(data: any, metadata?: {[key:string]: any}) {
-    if (this.level < LogLevel.error) {
+    if (this.level > LogLevel.error) {
       return;
     }
     this.transport.log(LogLevel.error, data, metadata);

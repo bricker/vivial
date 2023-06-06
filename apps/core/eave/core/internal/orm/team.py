@@ -1,23 +1,25 @@
 from datetime import datetime
-from typing import Optional, Self, Tuple, TypeAlias, TypedDict, Unpack
+from typing import Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
+from eave.core.internal.document_client import DocumentClient
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.stdlib
 from sqlalchemy import Select, false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from eave.stdlib.core_api.models.connect import AtlassianProduct
-from eave.stdlib.core_api.models.team import DocumentPlatform
+from eave.stdlib.core_api.models.team import Destination, DocumentPlatform
 
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.core_api.models.integrations import Integrations
-from ..destinations import abstract as abstract_destination
 from .base import Base
 from .github_installation import GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm
 from .subscription import SubscriptionOrm
 from .util import UUID_DEFAULT_EXPR
+from eave.stdlib.logging import eaveLogger
 
 import time  # debug
 
@@ -55,19 +57,27 @@ class TeamOrm(Base):
     def api_model(self) -> Team:
         return Team.from_orm(self)
 
-    async def get_document_destination(
-        self, session: AsyncSession
-    ) -> Optional[abstract_destination.DocumentDestination]:
+    async def get_document_client(self, session: AsyncSession) -> Optional[DocumentClient]:
         match self.document_platform:
             case None:
                 return None
 
             case DocumentPlatform.confluence:
-                atlassian_installation = await AtlassianInstallationOrm.one_or_exception(
+                connect_installation = await ConnectInstallationOrm.one_or_exception(
                     session=session,
+                    product=AtlassianProduct.confluence,
                     team_id=self.id,
                 )
-                return atlassian_installation.confluence_destination
+                destination = await ConfluenceDestinationOrm.one_or_none(
+                    session=session,
+                    connect_installation_id=connect_installation.id,
+                )
+
+                if not destination:
+                    eaveLogger.warning(f"No destination configured for team {self.id}")
+                    return None
+
+                return destination.document_client
 
             case DocumentPlatform.google_drive:
                 raise NotImplementedError("google drive document destination is not yet implemented.")
@@ -114,9 +124,33 @@ class TeamOrm(Base):
         end = time.perf_counter_ns()
         print(f"\n\n\n elapcsed: {(end - start) / 1e9}\n\n\n")
         return Integrations(
-            slack_integration=slack_installation.api_model if slack_installation else None,
-            github_integration=github_installation.api_model if github_installation else None,
-            atlassian_integration=atlassian_installation.api_model if atlassian_installation else None,
-            confluence_integration=confluence_installation.api_model if confluence_installation else None,
-            jira_integration=jira_installation.api_model if jira_installation else None,
+            slack_integration=slack_installation.api_model_peek if slack_installation else None,
+            github_integration=github_installation.api_model_peek if github_installation else None,
+            atlassian_integration=atlassian_installation.api_model_peek if atlassian_installation else None,
+            confluence_integration=confluence_installation.api_model_peek if confluence_installation else None,
+            jira_integration=jira_installation.api_model_peek if jira_installation else None,
         )
+
+    async def get_destination(self, session: AsyncSession) -> Destination | None:
+        """
+        Although a Team can currently only have one destination, the Destinations object acts as a
+        container where the destination object lives under its own key.
+        """
+        match self.document_platform:
+            case None:
+                return None
+
+            case DocumentPlatform.confluence:
+                destination = await ConfluenceDestinationOrm.one_or_none(
+                    session=session,
+                    team_id=self.id,
+                )
+
+                if not destination:
+                    eaveLogger.warning(f"No destination configured for team {self.id}")
+                    return None
+
+                return Destination(confluence_destination=destination.api_model)
+
+            case _:
+                raise NotImplementedError(f"unsupported document platform: {self.document_platform}")

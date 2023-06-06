@@ -23,9 +23,9 @@ function deploy () (
 
 	echo ""
 
-	statusmsg -i "Diff:"
+	statusmsg -i "Diff since last release:"
 	git describe
-	git --no-pager diff $(git describe)
+	git --no-pager diff --name-only $(git describe)
 
 	echo ""
 

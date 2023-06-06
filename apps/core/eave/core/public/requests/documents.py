@@ -46,7 +46,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             if len(subscriptions) < 1:
                 raise UnexpectedMissingValue("Expected to have at least 1 subscription input")
 
-            destination = await team.get_document_destination(session=db_session)
+            destination = await team.get_document_client(session=db_session)
             if destination is None:
                 # TODO: Error message: "You have not setup a document destination"
                 raise UnexpectedMissingValue("document destination")
@@ -132,7 +132,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
                 session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
             )
 
-            destination = await eave_team.get_document_destination(session=db_session)
+            destination = await eave_team.get_document_client(session=db_session)
             if destination is None:
                 raise UnexpectedMissingValue("document destination")
 
@@ -156,7 +156,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
             )
 
-            destination = await eave_team.get_document_destination(session=db_session)
+            destination = await eave_team.get_document_client(session=db_session)
             if destination is None:
                 raise UnexpectedMissingValue("document destination")
 

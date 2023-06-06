@@ -3,7 +3,6 @@ import re
 import typing
 
 import eave.pubsub_schemas
-import eave.stdlib.core_api
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.slack
@@ -237,13 +236,7 @@ async def get_or_create_eave_account(
         access_token=eave_account.access_token,
     )
 
-    async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_team = await eave_account.get_team(session=db_session)
-
-    if eave_team.beta_whitelisted:
-        location = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
-    else:
-        location = f"{eave.core.internal.app_config.eave_www_base}/thanks"
+    location = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
     set_redirect(response=response, location=location)
     return eave_account

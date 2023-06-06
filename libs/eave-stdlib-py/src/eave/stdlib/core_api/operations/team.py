@@ -1,6 +1,6 @@
 import uuid
 from eave.stdlib import requests
-from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team, TeamInput
+from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
 from eave.stdlib.eave_origins import EaveOrigin
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 from ..models import integrations
@@ -32,39 +32,11 @@ class GetTeamRequest(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-class UpdateConfluenceDestinationAuthedRequest(Endpoint):
+
+class UpsertConfluenceDestinationAuthedRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/me/team/destinations/confluence/update",
-    )
-
-    class RequestBody(BaseRequestBody):
-        confluence_destination: ConfluenceDestinationInput
-
-    class ResponseBody(BaseResponseBody):
-        confluence_destination: ConfluenceDestination
-
-    @classmethod
-    async def perform(
-        cls,
-        origin: EaveOrigin,
-        input: RequestBody,
-        access_token:  str,
-        account_id: uuid.UUID,
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            url=cls.config.url,
-            origin=origin,
-            input=input,
-            access_token=access_token,
-            account_id=account_id,
-        )
-
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
-
-class CreateConfluenceDestinationAuthedRequest(Endpoint):
-    config = EndpointConfiguration(
-        path="/me/team/destinations/confluence/create",
+        path="/me/team/destinations/confluence/upsert",
+        team_id_required=False,
     )
 
     class RequestBody(BaseRequestBody):
@@ -79,7 +51,7 @@ class CreateConfluenceDestinationAuthedRequest(Endpoint):
         cls,
         origin: EaveOrigin,
         input: RequestBody,
-        access_token:  str,
+        access_token: str,
         account_id: uuid.UUID,
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -92,6 +64,7 @@ class CreateConfluenceDestinationAuthedRequest(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 # class UpdateTeam(Endpoint):
 #     config = EndpointConfiguration(

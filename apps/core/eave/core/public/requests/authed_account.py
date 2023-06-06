@@ -47,11 +47,13 @@ class GetAuthedAccountTeamIntegrations(eave.core.public.http_endpoint.HTTPEndpoi
                 session=db_session, id=eave.stdlib.util.unwrap(eave_state.eave_account_id)
             )
             integrations = await eave_team_orm.get_integrations(session=db_session)
+            destination = await eave_team_orm.get_destination(session=db_session)
 
         return eave.stdlib.api_util.json_response(
             GetAuthenticatedAccountTeamIntegrations.ResponseBody(
                 account=eave_account_orm.api_model,
                 team=eave_team_orm.api_model,
                 integrations=integrations,
+                destination=destination,
             )
         )

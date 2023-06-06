@@ -1,3 +1,4 @@
+import util from 'node:util';
 import express from 'express';
 import ace from 'atlassian-connect-express';
 import helmet from 'helmet';
@@ -10,9 +11,13 @@ import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
+import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
+import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
+import EaveApiAdapter from '@eave-fyi/eave-stdlib-ts/src/connect/eave-api-store-adapter.js';
 import appConfig from './config.js';
-import EaveApiAdapter from './eave-api-adapter.js';
-import { CommentCreatedEventPayload, ContentType } from './types.js';
+import { CommentCreatedEventPayload, ContentType, User } from './types.js';
+import { IncomingMessage } from 'node:http';
+import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-router.js';
 
 // This <any> case is necessary to tell Typescript to effectively ignore this expression.
 // ace.store is exported in the javascript implementation, but not in the typescript type definitions,
@@ -71,15 +76,55 @@ rootRouter.use(standardEndpointsRouter);
 const webhookRouter = express.Router();
 rootRouter.use('/events', webhookRouter);
 
-webhookRouter.post('/', addon.authenticate(), async (req/* , res */) => {
-  eaveLogger.info('received webhook event', req.body);
-  eaveLogger.info('received webhook event', req.headers);
+const lifecycleRouter = LifecycleRouter({ addon, product: AtlassianProduct.jira, eaveOrigin: appConfig.eaveOrigin });
+webhookRouter.use(lifecycleRouter);
+
+webhookRouter.post('/', addon.authenticate(), async (req /* , res */) => {
+  // FIXME: Dispatch different events
+  // FIXME: Redact auth header
+  eaveLogger.debug({ message: 'received webhook event', body: req.body, headers: req.headers });
 
   const payload = <CommentCreatedEventPayload>req.body;
   const client = addon.httpClient(req);
 
   if (payload.comment.author.accountType === 'app') {
     eaveLogger.info('Ignoring app comment');
+    return;
+  }
+
+  // [~accountid:712020:d50089b8-586c-4f54-a3ad-db70381e4cae]
+  const mentionAccountIds = payload.comment.body.match(/\[~accountid:(.+?)\]/i);
+  if (!mentionAccountIds) {
+    eaveLogger.info('No mentions in this message, ignoring');
+    return;
+  }
+
+  // We have to use an old-fashioned Promise chain this way because the atlassian express library
+  // uses the request library directly and uses the callback function interface.
+  const eaveMentioned = await Promise.any(mentionAccountIds.map((accountId) => {
+    return new Promise<boolean>((resolve, reject) => {
+      client.get({
+        url: '/rest/api/3/user',
+        qs: { accountId },
+      }, (err: any, response: IncomingMessage, body: string) => {
+        if (err) {
+          reject();
+          return;
+        }
+        if (response.statusCode === 200) {
+          const user = <User>JSON.parse(body);
+          if (user.accountType === 'app' && user.displayName === 'Eave for Jira') {
+            resolve(true);
+          } else {
+            reject();
+          }
+        }
+      });
+    });
+  }));
+
+  if (!eaveMentioned) {
+    eaveLogger.info('Eave not mentioned, ignoring');
     return;
   }
 
@@ -93,26 +138,43 @@ webhookRouter.post('/', addon.authenticate(), async (req/* , res */) => {
 
   const openaiResponse = await openai.createChatCompletion({
     messages: [
-      { role: 'system', content: openai.PROMPT_PREFIX },
       { role: 'user', content: prompt },
     ],
     model: openai.OpenAIModel.GPT4,
-    max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT4],
   });
+
+  eaveLogger.debug('OpenAI response', { openaiResponse });
 
   if (!openaiResponse.match(/yes/i)) {
     eaveLogger.debug('Comment ignored');
     return;
   }
+
+  const connectInstallation = await queryConnectInstallation({
+    origin: appConfig.eaveOrigin,
+    input: {
+      connect_integration: {
+        product: AtlassianProduct.jira,
+        client_key: client.clientKey,
+      },
+    },
+  });
+
+  const teamId = connectInstallation.team?.id;
+  if (!teamId) {
+    eaveLogger.warning({ message: 'No teamId available', clientKey: client.clientKey });
+    return;
+  }
+
   const searchResults = await searchDocuments({
     origin: appConfig.eaveOrigin,
-    teamId: 'xx',
+    teamId,
     input: {
       query: payload.comment.body,
     },
   });
 
-  if (payload.issue) {
+  if (payload.issue !== undefined) {
     await client.post({
       url: `/rest/api/3/issue/${payload.issue.id}/comment`,
       json: true,

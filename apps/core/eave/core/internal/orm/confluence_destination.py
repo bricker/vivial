@@ -3,13 +3,24 @@ from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 import uuid
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import ForeignKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from eave.core.internal.document_client import DocumentClient, DocumentMetadata
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
+from eave.stdlib.confluence_api.operations import (
+    CreateContentRequest,
+    DeleteContentRequest,
+    GetAvailableSpacesRequest,
+    SearchContentRequest,
+    UpdateContentRequest,
+)
+from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, DeleteContentInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct
+from eave.stdlib.core_api.models.documents import DocumentInput, DocumentSearchResult
 
-from eave.stdlib.core_api.models.subscriptions import DocumentReference
-from eave.stdlib.core_api.models.team import ConfluenceDestination
-
+from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput
+from eave.core.internal.config import app_config
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
@@ -17,15 +28,14 @@ from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 class ConfluenceDestinationOrm(Base):
     __tablename__ = "confluence_destinations"
     __table_args__ = (
-        ForeignKeyConstraint(
-            ["connect_installation_id"],
-            ["connect_installations.id"],
-            ondelete="CASCADE"
-        ),
+        make_team_composite_pk(),
+        make_team_fk(),
+        ForeignKeyConstraint(["connect_installation_id"], ["connect_installations.id"], ondelete="CASCADE"),
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR,  primary_key=True)
-    connect_installation_id: Mapped[uuid.UUID]= mapped_column()
+    team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    connect_installation_id: Mapped[uuid.UUID] = mapped_column()
     space_key: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -34,38 +44,67 @@ class ConfluenceDestinationOrm(Base):
     def api_model(self) -> ConfluenceDestination:
         return ConfluenceDestination.from_orm(self)
 
+    class InsertParams(TypedDict):
+        team_id: UUID
+        connect_installation_id: UUID
+        space_key: str
+
     @classmethod
-    async def create(cls, session: AsyncSession, connect_installation_id: UUID, space_key: str) -> Self:
+    async def create(cls, session: AsyncSession, **kwargs: Unpack[InsertParams]) -> Self:
         obj = cls(
-            connect_installation_id=connect_installation_id,
-            space_key=space_key,
+            team_id=kwargs["team_id"],
+            connect_installation_id=kwargs["connect_installation_id"],
+            space_key=kwargs["space_key"],
         )
         session.add(obj)
         await session.flush()
         return obj
 
+    @classmethod
+    async def upsert(cls, session: AsyncSession, **kwargs: Unpack[InsertParams]) -> Self:
+        existing = await cls.one_or_none(
+            session=session,
+            connect_installation_id=kwargs["connect_installation_id"],
+        )
+        if existing:
+            existing.update(space_key=kwargs["space_key"])
+            await session.flush()
+            return existing
+        else:
+            new = await cls.create(session=session, **kwargs)
+            return new
+
+    class UpdateParams(TypedDict):
+        space_key: str
+
+    def update(self, **kwargs: Unpack[UpdateParams]) -> Self:
+        self.space_key = kwargs["space_key"]
+        return self
 
     class QueryParams(TypedDict):
-        id: NotRequired[uuid.UUID]
-        connect_installation_id: NotRequired[uuid.UUID]
+        id: NotRequired[UUID]
+        team_id: NotRequired[UUID]
+        connect_installation_id: NotRequired[UUID]
 
     @classmethod
     def query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         id = kwargs.get("id")
+        team_id = kwargs.get("team_id")
         connect_installation_id = kwargs.get("connect_installation_id")
-        assert id or connect_installation_id, "At least one of id or connect_installation_id is required"
 
         lookup = select(cls)
 
         if id:
             lookup = lookup.where(cls.id == id)
 
+        if team_id:
+            lookup = lookup.where(cls.team_id == team_id)
+
         if connect_installation_id:
             lookup = lookup.where(cls.connect_installation_id == connect_installation_id)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
-
 
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
@@ -78,3 +117,89 @@ class ConfluenceDestinationOrm(Base):
         lookup = cls.query(**kwargs).limit(1)
         result = await session.scalar(lookup)
         return result
+
+    async def get_connect_installation(self, session: AsyncSession) -> ConnectInstallationOrm:
+        obj = await ConnectInstallationOrm.one_or_exception(
+            session=session,
+            product=AtlassianProduct.confluence,
+            id=self.connect_installation_id,
+        )
+        return obj
+
+    @property
+    def document_client(self) -> "ConfluenceClient":
+        return ConfluenceClient(self)
+
+
+class ConfluenceClient(DocumentClient):
+    confluence_destination: ConfluenceDestinationOrm
+
+    def __init__(self, confluence_destination: ConfluenceDestinationOrm):
+        self.confluence_destination = confluence_destination
+
+    async def get_available_spaces(self) -> GetAvailableSpacesRequest.ResponseBody:
+        response = await GetAvailableSpacesRequest.perform(
+            origin=app_config.eave_origin,
+            team_id=self.confluence_destination.team_id,
+        )
+        return response
+
+    async def search_documents(self, search_query: str) -> list[DocumentSearchResult]:
+        response = await SearchContentRequest.perform(
+            origin=app_config.eave_origin,
+            team_id=self.confluence_destination.team_id,
+            input=SearchContentRequest.RequestBody(
+                search_params=ConfluenceSearchParamsInput(
+                    space_key=self.confluence_destination.space_key, text=search_query
+                ),
+            ),
+        )
+
+        return [DocumentSearchResult(title=result.title, url=result.url) for result in response.results]
+
+    async def delete_document(self, document_id: str) -> None:
+        await DeleteContentRequest.perform(
+            origin=app_config.eave_origin,
+            team_id=self.confluence_destination.team_id,
+            input=DeleteContentRequest.RequestBody(
+                content=DeleteContentInput(
+                    content_id=document_id,
+                ),
+            ),
+        )
+
+    async def create_document(self, input: DocumentInput) -> DocumentMetadata:
+        response = await CreateContentRequest.perform(
+            origin=app_config.eave_origin,
+            team_id=self.confluence_destination.team_id,
+            input=CreateContentRequest.RequestBody(
+                confluence_destination=ConfluenceDestinationInput(
+                    space_key=self.confluence_destination.space_key,
+                ),
+                document=input,
+            ),
+        )
+
+        return DocumentMetadata(
+            id=response.content.id,
+            url=response.content.url,
+        )
+
+    async def update_document(
+        self,
+        input: DocumentInput,
+        document_id: str,
+    ) -> DocumentMetadata:
+        response = await UpdateContentRequest.perform(
+            origin=app_config.eave_origin,
+            team_id=self.confluence_destination.team_id,
+            input=UpdateContentRequest.RequestBody(
+                document_id=document_id,
+                document=input,
+            ),
+        )
+
+        return DocumentMetadata(
+            id=response.content.id,
+            url=response.content.url,
+        )

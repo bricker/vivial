@@ -6,7 +6,6 @@ import uuid
 from http import HTTPStatus
 from typing import Any
 
-import eave.stdlib.core_api
 import google.oauth2.credentials
 import google.oauth2.id_token
 

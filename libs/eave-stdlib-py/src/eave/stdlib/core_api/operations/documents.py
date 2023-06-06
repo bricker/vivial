@@ -1,4 +1,3 @@
-from typing import Optional, TypeAlias
 import uuid
 
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
@@ -46,6 +45,7 @@ class UpsertDocument(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
+
 class SearchDocuments(Endpoint):
     config = EndpointConfiguration(
         path="/documents/search",
@@ -75,6 +75,7 @@ class SearchDocuments(Endpoint):
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
+
 
 class DeleteDocument(Endpoint):
     config = EndpointConfiguration(
