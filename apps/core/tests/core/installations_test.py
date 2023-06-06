@@ -140,7 +140,6 @@ class TestInstallationsRequests(BaseTestCase):
 
         assert response_obj.atlassian_integration.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
         assert response_obj.atlassian_integration.confluence_space_key == self.anystring("confluence_space")
-        assert response_obj.atlassian_integration.oauth_token_encoded == self.anyjson("oauth_token_encoded")
 
     async def test_get_atlassian_installation_not_found(self) -> None:
         response = await self.make_request(

@@ -1,10 +1,10 @@
 import uuid
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
+from eave.stdlib.core_api.models.team import Destination, Team
 from . import BaseResponseBody, EndpointConfiguration
 
 from eave.stdlib.eave_origins import EaveOrigin
 from . import Endpoint
-from ..models import team
 from ..models.integrations import Integrations
 from ... import requests
 
@@ -17,7 +17,7 @@ class GetAuthenticatedAccount(Endpoint):
 
     class ResponseBody(BaseResponseBody):
         account: AuthenticatedAccount
-        team: team.Team
+        team: Team
 
     @classmethod
     async def perform(
@@ -46,8 +46,9 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
 
     class ResponseBody(BaseResponseBody):
         account: AuthenticatedAccount
-        team: team.Team
+        team: Team
         integrations: Integrations
+        destination: Destination | None
 
     @classmethod
     async def perform(

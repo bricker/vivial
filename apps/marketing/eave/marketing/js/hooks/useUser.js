@@ -7,12 +7,14 @@ const useUser = () => {
   const [getUserError, setGetUserError] = useState(null);
   const [updateConfluenceError, setUpdateConfluenceError] = useState(null);
   const [loadingGetUserInfo, setLoadingGetUserInfo] = useState(false);
+  const [loadingAvailableSpaces, setLoadingAvailableSpaces] = useState(false);
   const [loadingUpdateConfluenceSpace, setLoadingUpdateConfluenceSpace] = useState(false);
 
   return {
     userState,
     setUserState,
     loadingGetUserInfo,
+    loadingAvailableSpaces,
     loadingUpdateConfluenceSpace,
     getUserError,
     updateConfluenceError,
@@ -52,19 +54,40 @@ const useUser = () => {
         setLoadingGetUserInfo(false);
       });
     },
+    getAvailableSpaces: () => {
+      setLoadingAvailableSpaces(true);
+      fetch('/dashboard/me/team/destinations/confluence/spaces/query', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then((resp) => {
+        if (resp.ok === false) {
+          console.error('failed to fetch available spaces');
+        } else {
+          resp.json().then((data) => {
+            setUserState((prevState) => ({ ...prevState, availableSpaces: data.confluence_spaces }));
+          });
+        }
+        // eslint-disable-next-line no-console
+      }).catch((err) => {
+        console.error('failed to fetch available spaces', err);
+      }).finally(() => {
+        setLoadingAvailableSpaces(false);
+      });
+    },
     // updates current selected confluence space
     updateConfluenceSpace: (key, forgeAppInstallationId, onComplete) => {
       setLoadingUpdateConfluenceSpace(true);
       setUpdateConfluenceError(null);
-      fetch('/dashboard/me/team/integrations/forge/update', {
+      fetch('/dashboard/me/team/destinations/confluence/upsert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          forge_integration: {
-            forge_app_installation_id: forgeAppInstallationId,
-            confluence_space_key: key,
+          confluence_destination: {
+            space_key: key,
           },
         }),
       }).then((resp) => {

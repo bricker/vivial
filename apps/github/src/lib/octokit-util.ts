@@ -22,6 +22,7 @@ export async function createAppClient(): Promise<App> {
 }
 
 export async function getInstallationId(eaveTeamId: string): Promise<number | null> {
+  // TODO: Use /integrations/github/query endpoint instead
   const teamResponse = await getTeam({ origin: appConfig.eaveOrigin, teamId: eaveTeamId });
   const ghIntegration = teamResponse.integrations.github_integration;
   if (!ghIntegration) {

@@ -40,7 +40,7 @@ const Dashboard = () => {
         {!teamInfo || loadingGetUserInfo ? (
           <div className={classes.loading}>
             {getUserError ? (
-              <Copy>something went wrong please try again</Copy>
+              <Copy>something went wrong, please try again</Copy>
             ) : (
               <CircularProgress />
             )}

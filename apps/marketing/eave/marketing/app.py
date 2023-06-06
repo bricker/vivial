@@ -1,8 +1,11 @@
 from typing import Any
 
 import eave.stdlib.api_util as eave_api_util
+from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
 import eave.stdlib.cookies
+from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 import eave.stdlib.core_api.operations.account as account
+from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest
 import eave.stdlib.requests
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -67,29 +70,46 @@ async def authed_account_team() -> Response:
     return _clean_response(eave_response)
 
 
-@app.route("/dashboard/me/team/integrations/forge/update", methods=["POST"])
-async def update_forge_integration() -> Response:
+@app.route("/dashboard/me/team/destinations/confluence/spaces/query", methods=["GET"])
+async def get_available_spaces() -> Response:
+    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        raise werkzeug.exceptions.Unauthorized()
+
+    # HACK: Just using this endpoint to validate the access token
+    team_response = await account.GetAuthenticatedAccountTeamIntegrations.perform(
+        origin=app_config.eave_origin,
+        account_id=auth_cookies.account_id,
+        access_token=auth_cookies.access_token,
+    )
+
+    spaces_response = await GetAvailableSpacesRequest.perform(
+        origin=app_config.eave_origin,
+        team_id=team_response.team.id,
+    )
+
+    response = make_response(spaces_response.json())
+    return response
+
+
+@app.route("/dashboard/me/team/destinations/confluence/upsert", methods=["POST"])
+async def upsert_confluence_destination() -> Response:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
 
     body = request.get_json()
+    confluence_space_key = body["confluence_destination"]["space_key"]
 
-    # FIXME: The forge app installation ID can be saved in cookies or something, no need for the client to pass it back to us.
-    forge_app_installation_id = body["forge_integration"]["forge_app_installation_id"]
-    confluence_space_key = body["forge_integration"]["confluence_space_key"]
-
-    await forge.UpdateForgeInstallation.perform_authed(
+    await UpsertConfluenceDestinationAuthedRequest.perform(
         origin=app_config.eave_origin,
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
-        input=forge.UpdateForgeInstallation.RequestBody(
-            forge_integration=eave.stdlib.core_api.models.forge.UpdateForgeInstallationInput.parse_obj(
-                {
-                    "forge_app_installation_id": forge_app_installation_id,
-                    "confluence_space_key": confluence_space_key,
-                }
+        input=UpsertConfluenceDestinationAuthedRequest.RequestBody(
+            confluence_destination=ConfluenceDestinationInput(
+                space_key=confluence_space_key,
             ),
         ),
     )
@@ -120,12 +140,6 @@ def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegratio
     # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
     access_token = eave_response.account.access_token
     del eave_response.account.access_token
-
-    # TODO: The server doesn't need to send these to the web app.
-    if eave_response.integrations.atlassian_integration:
-        del eave_response.integrations.atlassian_integration.oauth_token_encoded
-    if eave_response.integrations.slack_integration:
-        del eave_response.integrations.slack_integration.bot_token
 
     response = make_response(eave_response.json())
 

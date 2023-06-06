@@ -10,5 +10,4 @@ export type AtlassianInstallation = {
   atlassian_cloud_id: string;
   confluence_space?: string;
   available_confluence_spaces?: Array<ConfluenceSpace>;
-  oauth_token_encoded: string;
 }

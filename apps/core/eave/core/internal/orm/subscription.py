@@ -94,14 +94,14 @@ class SubscriptionOrm(Base):
         await session.flush()
         return obj
 
-    class _selectparams(TypedDict):
+    class QueryParams(TypedDict):
         team_id: Required[UUID | str]
         id: NotRequired[UUID | str]
         source: NotRequired[SubscriptionSource]
         document_reference_id: NotRequired[UUID | str]
 
     @classmethod
-    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+    def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
         team_id = kwargs.get("team_id")
         lookup = lookup.where(cls.team_id == ensure_uuid(team_id))
@@ -125,19 +125,19 @@ class SubscriptionOrm(Base):
         return lookup
 
     @classmethod
-    async def query(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Sequence[Self]:
-        lookup = cls._build_select(**kwargs)
+    async def query(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Sequence[Self]:
+        lookup = cls._build_query(**kwargs)
         result = (await session.scalars(lookup)).all()
         return result
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Optional[Self]:
-        lookup = cls._build_select(**kwargs).limit(1)
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Optional[Self]:
+        lookup = cls._build_query(**kwargs).limit(1)
         result = (await session.scalars(lookup)).one_or_none()
         return result
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
-        lookup = cls._build_select(**kwargs).limit(1)
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
+        lookup = cls._build_query(**kwargs).limit(1)
         result = (await session.scalars(lookup)).one()
         return result
