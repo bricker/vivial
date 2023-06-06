@@ -6,10 +6,8 @@ ASSETS_PATH="$EAVE_HOME/apps/marketing/eave/marketing/static/images"
 CODE_PATH="$EAVE_HOME/apps/marketing/eave/marketing"
 ASSETS="$(ls $ASSETS_PATH)"
 
-for image in $ASSETS ;
-do
-	if ! grep -rq "$image" $CODE_PATH ;
-	then
+for image in $ASSETS; do
+	if ! grep -rq "$image" $CODE_PATH; then
 		echo "rm $image"
 		rm "$ASSETS_PATH/$image"
 	fi
