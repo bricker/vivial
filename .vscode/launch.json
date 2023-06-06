@@ -76,7 +76,8 @@
       "consoleTitle": "GitHub App",
       "console": "integratedTerminal",
       "env": {
-        "PORT": "5300"
+        "PORT": "5300",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
       },
     },
     {
@@ -90,12 +91,15 @@
       ],
       "program": "${workspaceFolder}/apps/confluence/src/app.ts",
       "restart": true,
-      "args": [],
+      "args": [
+        "--exec", "pkill -n ngrok || true && ts-node"
+      ],
       "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
       "consoleTitle": "Confluence App",
       "console": "integratedTerminal",
       "env": {
-        "PORT": "5400"
+        "PORT": "5400",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
       },
     },
     {
@@ -109,12 +113,15 @@
       ],
       "program": "${workspaceFolder}/apps/jira/src/app.ts",
       "restart": true,
-      "args": [],
+      "args": [
+        "--exec", "pkill -n ngrok || true && ts-node"
+      ],
       "runtimeExecutable": "${workspaceFolder}/apps/jira/node_modules/.bin/nodemon",
       "consoleTitle": "Jira App",
       "console": "integratedTerminal",
       "env": {
-        "PORT": "5500"
+        "PORT": "5500",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
       },
     },
     {
