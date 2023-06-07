@@ -1,3 +1,4 @@
+import logging
 import pydantic
 from typing import Optional
 import uuid
@@ -33,7 +34,9 @@ async def make_request(
         eave_headers.EAVE_REQUEST_ID_HEADER: str(request_id),
     }
 
-    payload = input.json() if input else "{}"  # empty JSON object
+    # The indent and separators params here ensure that the payload is as compact as possible.
+    # It's mostly a way to normalize the payload so services know what to expect.
+    payload = input.json(indent=None, separators=(',',':')) if input else "{}"  # empty JSON object
 
     if access_token:
         headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
@@ -80,6 +83,12 @@ async def make_request(
         },
     )
 
+    eaveLogger.debug(f"request payload: {request_id}", extra={
+        "json_fields": {
+            "payload": payload,
+        },
+    })
+
     async with aiohttp.ClientSession() as session:
         response = await session.request(
             method=method,
@@ -107,6 +116,14 @@ async def make_request(
             }
         },
     )
+
+    if eaveLogger.level >= logging.DEBUG:
+        # Doing this check to avoid parsing the JSON unless necessary
+        eaveLogger.debug(f"response body: {request_id}", extra={
+            "json_fields": {
+                "body": await response.json(),
+            },
+        })
 
     try:
         response.raise_for_status()

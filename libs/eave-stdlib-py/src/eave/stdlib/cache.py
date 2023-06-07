@@ -19,6 +19,9 @@ class _Cache(Protocol):
     async def delete(self, *names: str) -> int:
         ...
 
+    @abc.abstractmethod
+    async def quit(self) -> str:
+        ...
 
 class _CacheEntry:
     value: str
@@ -68,6 +71,8 @@ class EphemeralCache(_Cache):
 
         return num
 
+    async def quit(self) -> str:
+        return '1'
 
 impl: _Cache
 
@@ -110,3 +115,6 @@ async def delete(*names: str) -> int:
     eaveLogger.debug(f"deleting cache keys {names}")
     num = await impl.delete(*names)
     return num
+
+async def quit() -> None:
+    await impl.quit()

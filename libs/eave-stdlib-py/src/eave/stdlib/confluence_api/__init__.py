@@ -1,3 +1,6 @@
+from typing import Optional
+import aiohttp
+import pydantic
 from eave.stdlib.core_api.operations import EndpointConfiguration
 from ..config import shared_config
 

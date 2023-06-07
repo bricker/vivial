@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import { AddOn, HostClient } from 'atlassian-connect-express';
 import { CreateContentRequestBody, CreateContentResponseBody, SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResult, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
+import { ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
 import { getAuthedConnectClient } from './util.js';
 import { createPage, getPageByTitle, getPageChildren, getSpaceByKey, getSpaceRootPages } from '../confluence-client.js';
@@ -67,7 +67,7 @@ export default async function createContent(req: Request, res: Response, addon: 
     if (existingDirAtThisLevel !== undefined) {
       // A directory with the given name exists at this level; enter it.
       currentDir = existingDirAtThisLevel;
-      currentDirId = existingDirAtThisLevel.id;
+      currentDirId = String(existingDirAtThisLevel.id);
     } else {
       // A directory with the given name doesn't exist at this level.
       // Call resolveTitleConflict to get a unique name. This accomplishes three things at once:
@@ -87,12 +87,18 @@ export default async function createContent(req: Request, res: Response, addon: 
         body: '', // A "folder" is just an empty page.
         parentId: currentDirId, // If we get here and currentDir is null, it means we're creating a new folder in the root of the space.
       });
-      // Now enter the new folder
-      currentDir = newFolderAtThisLevel;
-      currentDirId = newFolderAtThisLevel.id;
+      if (newFolderAtThisLevel) {
+        // TODO: What happens if createPage returns an error?
+        // Now enter the new folder
+        currentDir = newFolderAtThisLevel;
+        currentDirId = String(newFolderAtThisLevel.id);
+      }
     }
 
-    currentDirContent = await getPageChildren({ client, pageId: currentDir.id });
+    if (currentDir) {
+      // TODO: What happens if currentDir is null?
+      currentDirContent = await getPageChildren({ client, pageId: String(currentDir.id) });
+    }
   }
 
   // At this point, we're "in" the direct parent directory of the new document.
@@ -115,6 +121,7 @@ export default async function createContent(req: Request, res: Response, addon: 
     space,
     title: resolvedDocumentTitle,
     body: document.content,
+    parentId: currentDirId,
   });
 
   const responseBody: CreateContentResponseBody = {

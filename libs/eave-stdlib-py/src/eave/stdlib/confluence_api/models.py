@@ -1,7 +1,7 @@
 import enum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from eave.stdlib.core_api.models import BaseInputModel
 
 from eave.stdlib.typing import JsonObject
@@ -186,15 +186,14 @@ class ConfluenceContentBody(BaseModel):
 
 
 class ConfluencePageBody(BaseModel):
-    content: Optional[ConfluenceContentBody]
-    representation: ConfluenceContentBodyRepresentation
+    storage: Optional[ConfluenceContentBody]
 
 
 class ConfluencePage(BaseModel):
     id: str
-    type: str
     status: str
     title: str
+    type: Optional[str]
     macroRenderedOutput: Optional[JsonObject]
     extensions: Optional[JsonObject]
     ancestors: Optional[list[JsonObject]]
@@ -203,12 +202,12 @@ class ConfluencePage(BaseModel):
     space: Optional[ConfluenceSpace]
     history: Optional[ConfluencePageHistory]
     version: Optional[ConfluencePageVersion]
-    _links: Optional[ConfluenceGenericLinks]
+    links: Optional[ConfluenceGenericLinks] = Field(alias="_links")
 
     @property
     def url(self) -> str:
-        if self._links and self._links.base and self._links.context and self._links.webui:
-            return "".join([self._links.base, self._links.context, self._links.webui])
+        if self.links and self.links.base and self.links.webui:
+            return "".join([self.links.base, self.links.webui])
         else:
             return ""
 

@@ -18,6 +18,7 @@ import appConfig from './config.js';
 import { CommentCreatedEventPayload, ContentType, User } from './types.js';
 import { IncomingMessage } from 'node:http';
 import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-router.js';
+import getCacheClient from '@eave-fyi/eave-stdlib-ts/src/cache.js';
 
 // This <any> case is necessary to tell Typescript to effectively ignore this expression.
 // ace.store is exported in the javascript implementation, but not in the typescript type definitions,
@@ -220,9 +221,23 @@ internalApiRouter.post('/_', (/* req, res, next */) => {
 app.use(exceptionHandlingMiddleware);
 
 const PORT = parseInt(process.env['PORT'] || '5500', 10);
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.info(`App listening on port ${PORT}`, process.env['NODE_ENV']);
   if (appConfig.isDevelopment) {
     addon.register();
   }
 });
+
+// TODO: move this into stdlib
+const gracefulShutdownHandler = () => {
+  getCacheClient
+    .then((client) => client.quit())
+    .then(() => { eaveLogger.info('redis connection closed.'); });
+
+  server.close(() => {
+    eaveLogger.info('HTTP server closed');
+  });
+};
+
+process.on('SIGTERM', gracefulShutdownHandler);
+process.on('SIGINT', gracefulShutdownHandler);

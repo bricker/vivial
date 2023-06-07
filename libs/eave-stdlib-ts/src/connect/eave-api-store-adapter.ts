@@ -2,16 +2,33 @@ import AddOnFactory from 'atlassian-connect-express';
 import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveOrigin } from '../eave-origins.js';
+import getCacheClient, { Cache } from '../cache.js';
+import eaveLogger from '../logging.js';
 
 type AppKey = 'eave-confluence' | 'eave-jira'
 type AdapterParams = { appKey: AppKey, eaveOrigin: EaveOrigin, productType: AtlassianProduct }
 
-class EaveApiAdapter /* implements StoreAdapter */ {
+export class EaveApiAdapter /* implements StoreAdapter */ {
   appKey: AppKey;
 
   eaveOrigin: EaveOrigin;
 
   productType: AtlassianProduct;
+
+  cacheKey(clientKey: string): string {
+    return `confluence:${clientKey}:installation`;
+  }
+
+  async cacheClientInfo(clientKey: string, clientInfo: AddOnFactory.ClientInfo) {
+    const cacheKey = this.cacheKey(clientInfo.clientKey);
+    try {
+      eaveLogger.debug({ message: `writing cache entry: ${cacheKey}`, clientInfo });
+      const cacheClient = await getCacheClient;
+      await cacheClient.set(cacheKey, JSON.stringify(clientInfo));
+    } catch (e: unknown) {
+      eaveLogger.error({ message: `error writing to cache ${cacheKey}`, exc: e });
+    }
+  }
 
   constructor({ appKey, eaveOrigin, productType }: AdapterParams) {
     this.appKey = appKey;
@@ -24,6 +41,46 @@ class EaveApiAdapter /* implements StoreAdapter */ {
   // So, this class is completely broken with OAuth, but we don't currently use OAuth in this context.
 
   async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
+    if (key !== 'clientInfo') {
+      throw new Error(`key not supported: ${key}`);
+    }
+
+    const cacheKey = this.cacheKey(clientKey);
+    let cacheClient: Cache | undefined;
+    try {
+      cacheClient = await getCacheClient;
+    } catch (e: unknown) {
+      eaveLogger.error({ message: 'error initializing cache client', exc: e });
+    }
+
+    if (cacheClient !== undefined) {
+      try {
+        const cachedData = await cacheClient.get(cacheKey);
+        if (cachedData) {
+          const clientInfo = <AddOnFactory.ClientInfo>JSON.parse(cachedData.toString());
+          eaveLogger.debug({ message: `cache hit: ${cacheKey}`, clientInfo });
+          // Do some basic validation to make sure the cached data is valid.
+          if (
+            clientInfo.key
+            && clientInfo.productType
+            && clientInfo.clientKey
+            && clientInfo.sharedSecret
+            && clientInfo.baseUrl
+          ) {
+            return clientInfo;
+          } else {
+            eaveLogger.warning({ message: `Bad cache data: ${cacheKey}` });
+            await cacheClient.del(cacheKey);
+          }
+        } else {
+          eaveLogger.debug({ message: `cache miss: ${cacheKey}` });
+        }
+      } catch (e: unknown) {
+        eaveLogger.error({ message: 'error getting cached data', exc: e });
+        await cacheClient.del(cacheKey);
+      }
+    }
+
     try {
       const response = await queryConnectInstallation({
         origin: this.eaveOrigin,
@@ -35,7 +92,9 @@ class EaveApiAdapter /* implements StoreAdapter */ {
         },
       });
 
-      return this.buildClientInfo(response);
+      const clientInfo = this.buildClientInfo(response);
+      await this.cacheClientInfo(clientKey, clientInfo);
+      return clientInfo;
     } catch (e: any) {
       // HTTP error. Not Found is common, if the registration doesn't already exist.
       return null;
@@ -43,7 +102,17 @@ class EaveApiAdapter /* implements StoreAdapter */ {
   }
 
   async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
-    throw new Error('not implemented');
+    if (key !== 'clientInfo') {
+      throw new Error(`key not supported: ${key}`);
+    }
+
+    let clientInfo: AddOnFactory.ClientInfo;
+    if (typeof value === 'string') {
+      clientInfo = JSON.parse(value);
+    } else {
+      clientInfo = value;
+    }
+    await this.cacheClientInfo(clientKey, clientInfo);
   }
 
   async del(/* key: string, clientKey: string */): Promise<void> {

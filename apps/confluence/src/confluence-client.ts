@@ -1,4 +1,4 @@
-import { ConfluenceBodyCreateStorage, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResult, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
+import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
 import { DocumentReferenceInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
 import { HostClient } from 'atlassian-connect-express';
 import { RequestResponse } from 'request';
@@ -10,21 +10,19 @@ https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-space/#api-sp
 */
 export async function getSpaceByKey({ client, spaceKey }: { client: HostClient, spaceKey: string }): Promise<ConfluenceSpace | null> {
   const request = {
-    url: '/api/v2/spaces',
-    qs: {
-      keys: [spaceKey],
-      type: ConfluenceSpaceType.global,
-      status: ConfluenceSpaceStatus.current,
-    },
+    url: `/rest/api/space/${spaceKey}`,
   };
-  eaveLogger.debug({ message: 'getSpaceByKey request', request });
+  logRequest('getSpaceByKey', request);
 
   const response: RequestResponse = await client.get(request);
-  eaveLogger.debug({ message: 'getSpaceByKey response', response });
-  const body = JSON.parse(response.body);
+  logResponse('getSpaceByKey', response);
+  if (response.statusCode >= 400) {
+    return null;
+  }
 
-  const results = <ConfluenceSpace[]>body.results;
-  return results[0] || null;
+  const body = JSON.parse(response.body);
+  const space = <ConfluenceSpace>body;
+  return space;
 }
 
 /*
@@ -39,12 +37,15 @@ export async function getPageByTitle({ client, space, title }: { client: HostCli
       title,
     },
   };
-  eaveLogger.debug({ message: 'getPageByTitle request', request });
+  logRequest('getPageByTitle', request);
 
   const response: RequestResponse = await client.get(request);
-  const body = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'getPageByTitle response', body });
+  logResponse('getPageByTitle', response);
+  if (response.statusCode >= 400) {
+    return null;
+  }
 
+  const body = JSON.parse(response.body);
   const results = <ConfluencePage[]>body.results;
   return results[0] || null;
 }
@@ -52,16 +53,19 @@ export async function getPageByTitle({ client, space, title }: { client: HostCli
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-get
 */
-export async function getPageById({ client, pageId }: { client: HostClient, pageId: string }): Promise<ConfluencePage> {
+export async function getPageById({ client, pageId }: { client: HostClient, pageId: string }): Promise<ConfluencePage | null> {
   const request = {
-    url: `/wiki/rest/api/content/${pageId}`,
+    url: `/rest/api/content/${pageId}`,
   };
-  eaveLogger.debug({ message: 'getPageById request', request });
+  logRequest('getPageById', request);
 
   const response: RequestResponse = await client.get(request);
-  const body = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'getPageById response', body });
+  logResponse('getPageById', response);
+  if (response.statusCode >= 400) {
+    return null;
+  }
 
+  const body = JSON.parse(response.body);
   const page = <ConfluencePage>body;
   return page;
 }
@@ -71,17 +75,20 @@ https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content---chi
 */
 export async function getPageChildren({ client, pageId }: { client: HostClient, pageId: string }): Promise<ConfluencePage[]> {
   const request = {
-    url: `/wiki/rest/api/content/${pageId}/child/${ConfluenceContentType.page}`,
+    url: `/rest/api/content/${pageId}/child/${ConfluenceContentType.page}`,
     qs: {
       limit: 100, // TODO: Pagination
     },
   };
-  eaveLogger.debug({ message: 'getPageChildren request', request });
+  logRequest('getPageChildren', request);
 
   const response: RequestResponse = await client.get(request);
-  const body = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'getPageChildren response', body });
+  logResponse('getPageChildren', response);
+  if (response.statusCode >= 400) {
+    return [];
+  }
 
+  const body = JSON.parse(response.body);
   const results = <ConfluencePage[]>body.results;
   return results;
 }
@@ -91,47 +98,63 @@ https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wi
 */
 export async function getSpaceRootPages({ client, space }: { client: HostClient, space: ConfluenceSpace }): Promise<ConfluencePage[]> {
   const request = {
-    url: `/wiki/rest/api/space/${space.key}/content/${ConfluenceContentType.page}`,
+    url: `/rest/api/space/${space.key}/content/${ConfluenceContentType.page}`,
     qs: {
       depth: ConfluenceSpaceContentDepth.root,
       limit: 100, // TODO: Pagination
     },
   };
-  eaveLogger.debug({ message: 'getSpaceRootPages request', request });
+  logRequest('getSpaceRootPages', request);
 
   const response: RequestResponse = await client.get(request);
-  const body = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'getSpaceRootPages response', body });
+  logResponse('getSpaceRootPages', response);
+  if (response.statusCode >= 400) {
+    return [];
+  }
 
+  const body = JSON.parse(response.body);
   const results = <ConfluencePage[]>body.results;
   return results;
 }
 
 /* https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-page/#api-pages-post */
-export async function createPage({ client, space, body, title, parentId }: { client: HostClient, space: ConfluenceSpace, title: string, body: string, parentId?: string }): Promise<ConfluencePage> {
+export async function createPage({ client, space, body, title, parentId }: { client: HostClient, space: ConfluenceSpace, title: string, body: string, parentId?: string }): Promise<ConfluencePage | null> {
   const pageBody: ConfluencePageBodyWrite = {
     representation: ConfluenceContentBodyRepresentation.storage,
     value: cleanDocument(body),
   };
 
+  let ancestors: {id: string}[] | undefined;
+  if (parentId !== undefined) {
+    ancestors = [{ id: parentId }];
+  }
+
   const request = {
-    url: '/api/v2/pages',
+    url: '/rest/api/content',
     json: true,
     body: {
-      spaceId: space.id,
-      status: ConfluenceContentStatus.current,
       title,
-      body: pageBody,
-      parentId,
+      type: ConfluenceContentType.page,
+      space: {
+        id: space.id,
+      },
+      status: ConfluenceContentStatus.current,
+      body: {
+        storage: pageBody,
+      },
+      ancestors,
     },
   };
-  eaveLogger.debug({ message: 'createPage request', request });
+
+  logRequest('createPage', request);
 
   const response: RequestResponse = await client.post(request);
-  const responseBody = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'createPage response', body: responseBody });
+  logResponse('createPage', response);
+  if (response.statusCode >= 400) {
+    return null;
+  }
 
-  const page = <ConfluencePage>responseBody;
+  const page = <ConfluencePage>response.body;
   return page;
 }
 
@@ -148,8 +171,9 @@ export async function archivePage({ client, contentId }: { client: HostClient, c
       ],
     },
   };
-  eaveLogger.debug({ message: 'archivePage request', request });
-  await client.post(request);
+  logRequest('archivePage', request);
+  const response: RequestResponse = await client.post(request);
+  logResponse('archivePage', response);
 }
 
 /*
@@ -163,12 +187,15 @@ export async function getSpaces({ client }: { client: HostClient }): Promise<Con
       type: ConfluenceSpaceType.global,
     },
   };
-  eaveLogger.debug({ message: 'getSpaces request', request });
+  logRequest('getSpaces', request);
 
   const response: RequestResponse = await client.get(request);
-  eaveLogger.debug({ message: 'getSpaces response', body: response.body });
-  const body = JSON.parse(response.body);
+  logResponse('getSpaces', response);
+  if (response.statusCode >= 400) {
+    return [];
+  }
 
+  const body = JSON.parse(response.body);
   const spaces = <ConfluenceSpace[]>body.results;
   return spaces;
 }
@@ -176,37 +203,40 @@ export async function getSpaces({ client }: { client: HostClient }): Promise<Con
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/#api-wiki-rest-api-search-get
 */
-export async function search({ client, cql, cqlcontext }: { client: HostClient, cql: string, cqlcontext?: string }): Promise<ConfluenceSearchResult[]> {
+export async function search({ client, cql, cqlcontext }: { client: HostClient, cql: string, cqlcontext?: string }): Promise<ConfluenceSearchResultWithBody[]> {
   const request = {
     url: '/rest/api/content/search',
-    qs: { cql, cqlcontext },
+    qs: { cql, cqlcontext, expand: ['body.storage'] },
   };
-  eaveLogger.debug({ message: 'search request', request });
+  logRequest('search', request);
 
   const response: RequestResponse = await client.get(request);
-  const body = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'search response', body });
+  logResponse('search', response);
+  if (response.statusCode >= 400) {
+    return [];
+  }
 
-  const results = <ConfluenceSearchResult[]>body.results;
+  const body = JSON.parse(response.body);
+  const results = <ConfluenceSearchResultWithBody[]>body.results;
   return results;
 }
 
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-id-put
 */
-export async function updatePage({ client, page, body }: { client: HostClient, page: ConfluencePage, body: string }): Promise<ConfluencePage> {
+export async function updatePage({ client, page, body }: { client: HostClient, page: ConfluencePage, body: string }): Promise<ConfluencePage | null> {
   let currentVersion = page.version?.number;
   if (currentVersion === undefined) {
     currentVersion = 0;
   }
 
-  const newBody: ConfluenceBodyCreateStorage = {
+  const newBody: ConfluenceContentBody = {
     value: body,
-    represenation: ConfluenceContentBodyRepresentation.storage,
+    representation: ConfluenceContentBodyRepresentation.storage,
   };
 
   const request = {
-    url: `/wiki/rest/api/content/${page.id}`,
+    url: `/rest/api/content/${page.id}`,
     json: true,
     body: {
       version: currentVersion + 1,
@@ -215,29 +245,44 @@ export async function updatePage({ client, page, body }: { client: HostClient, p
       body: newBody,
     },
   };
-  eaveLogger.debug({ message: 'updatePage request', request });
+  logRequest('updatePage', request);
 
   const response: RequestResponse = await client.put(request);
+  logResponse('updatePage', response);
+  if (response.statusCode >= 400) {
+    return null;
+  }
 
-  const responseBody = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'updatePage response', body: responseBody });
-
-  return <ConfluencePage>responseBody;
+  return <ConfluencePage>response.body;
 }
 
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-settings/#api-wiki-rest-api-settings-systeminfo-get
 */
-export async function getSystemInfo({ client }: {client: HostClient}): Promise<SystemInfoEntity> {
+export async function getSystemInfo({ client }: {client: HostClient}): Promise<SystemInfoEntity | null> {
   const request = {
     url: '/rest/api/settings/systemInfo',
   };
-  eaveLogger.debug({ message: 'getSystemInfo request', request });
+  logRequest('getSystemInfo', request);
 
   const response: RequestResponse = await client.put(request);
+  logResponse('getSystemInfo', response);
+  if (response.statusCode >= 400) {
+    return null;
+  }
 
   const body = JSON.parse(response.body);
-  eaveLogger.debug({ message: 'getSystemInfo response ', body });
-
   return <SystemInfoEntity>body;
+}
+
+function logRequest(name: string, request: any) {
+  eaveLogger.debug({ message: `${name}: request`, request });
+}
+
+function logResponse(name: string, response: RequestResponse) {
+  if (response.statusCode < 400) {
+    eaveLogger.debug({ message: `${name}: response`, body: response.body, statusCode: response.statusCode });
+  } else {
+    eaveLogger.error({ message: `${name}: API error`, body: response.body, statusCode: response.statusCode });
+  }
 }

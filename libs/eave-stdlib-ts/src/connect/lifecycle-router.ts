@@ -25,6 +25,7 @@ export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn, 
       },
     });
 
+    await addon.settings.set('clientInfo', settings, settings.clientKey);
     res.status(204).send();
   });
 

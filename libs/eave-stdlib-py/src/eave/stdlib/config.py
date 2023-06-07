@@ -34,15 +34,11 @@ class EaveConfig:
     def dev_mode(self) -> bool:
         return sys.flags.dev_mode
 
-    @cached_property
+    @property
     def log_level(self) -> int:
-        if self.is_development:
-            level = os.getenv("LOG_LEVEL", "INFO")
-        else:
-            level = self.get_runtimeconfig("LOG_LEVEL") or "INFO"
-
+        level = os.getenv("LOG_LEVEL", "INFO")
         mapping = logging.getLevelNamesMapping()
-        return mapping.get(level, logging.INFO)
+        return mapping.get(level.upper(), logging.INFO)
 
     @property
     def eave_env(self) -> EaveEnvironment:
@@ -99,13 +95,9 @@ class EaveConfig:
     def eave_cookie_domain(self) -> str:
         return os.getenv("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
 
-    @cached_property
+    @property
     def redis_connection(self) -> Optional[tuple[str, int, str]]:
-        key = "REDIS_CONNECTION"
-        if self.is_development:
-            connection = os.getenv(key)
-        else:
-            connection = self.get_runtimeconfig(key)
+        connection = os.getenv("REDIS_CONNECTION")
 
         if not connection:
             return None
@@ -138,16 +130,9 @@ class EaveConfig:
             except Exception:
                 return None
 
-    @cached_property
+    @property
     def redis_tls_ca(self) -> Optional[str]:
-        key = "REDIS_TLS_CA"
-        if self.is_development:
-            value = os.getenv(key)
-            return value
-        else:
-            # This certificate is not actually "secret" (it's a public cert), but secrets is a more convenient place to store it.
-            value = self.get_secret(key)
-            return value
+        return os.getenv("REDIS_TLS_CA")
 
     @cached_property
     def eave_openai_api_key(self) -> str:
@@ -159,12 +144,9 @@ class EaveConfig:
         value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
-    @cached_property
+    @property
     def eave_slack_app_id(self) -> str:
-        value = self.get_runtimeconfig("EAVE_SLACK_APP_ID")
-        if value is None:
-            raise RuntimeConfigRetrievalError("runtimeconfig: EAVE_SLACK_APP_ID")
-        return value
+        return os.getenv("EAVE_SLACK_APP_ID", "A04HD948UHE") # This is the production ID, and won't change.
 
     @cached_property
     def eave_slack_client_id(self) -> str:
@@ -188,23 +170,24 @@ class EaveConfig:
 
         return os.environ[name]
 
-    def get_runtimeconfig(self, name: str) -> str | None:
-        """
-        https://cloud.google.com/python/docs/reference/runtimeconfig/latest
-        https://github.com/googleapis/python-runtimeconfig
-        """
-        # Allow overrides
-        if name in os.environ:
-            return os.environ[name]
+    # TODO: Can/should we use Runtime Config? It's nifty but adds extra network requests.
+    # def get_runtimeconfig(self, name: str) -> str | None:
+    #     """
+    #     https://cloud.google.com/python/docs/reference/runtimeconfig/latest
+    #     https://github.com/googleapis/python-runtimeconfig
+    #     """
+    #     # Allow overrides
+    #     if name in os.environ:
+    #         return os.environ[name]
 
-        client = google.cloud.runtimeconfig.Client()
-        config = client.config("eave-global-config")
+    #     client = google.cloud.runtimeconfig.Client()
+    #     config = client.config("eave-global-config")
 
-        variable = config.get_variable(name)
-        if variable is None:
-            return None
+    #     variable = config.get_variable(name)
+    #     if variable is None:
+    #         return None
 
-        return variable.text
+    #     return variable.text
 
     def get_secret(self, name: str) -> str:
         # Allow overrides

@@ -23,6 +23,7 @@
     "fast-crc32c": "2.x",
     "openai": "3.x",
     "protobufjs": "7.x",
+    "redis": "4.x",
     "request": "2.x",
     "uuid": "9.x"
   },

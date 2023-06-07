@@ -413,6 +413,14 @@ class SlackMessage:
 
         await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
 
+    async def add_reaction_to_parent(self, name: str) -> None:
+        if self.channel is None:
+            raise SlackDataError("channel")
+        if self.ts is None:
+            raise SlackDataError("message ts")
+
+        await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.parent_ts)
+
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:
         await self.get_expanded_text()
