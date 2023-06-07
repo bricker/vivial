@@ -75,22 +75,22 @@ export class EaveConfig {
   }
 
   get redisConnection(): {host: string, port: number, db: number} | undefined {
-    const connection = process.env["REDIS_CONNECTION"];
+    const connection = process.env['REDIS_CONNECTION'];
 
     if (connection === undefined) {
       return undefined;
     }
 
-    const parts = connection.split(":");
+    const parts = connection.split(':');
 
     const host = parts[0] || 'localhost';
     const port = parseInt(parts[1] || '6379', 10);
-    const db = parseInt(parts[2] || "0", 10);
-    return {host, port, db};
+    const db = parseInt(parts[2] || '0', 10);
+    return { host, port, db };
   }
 
   async redisAuth(): Promise<string | undefined> {
-    const key = "REDIS_AUTH";
+    const key = 'REDIS_AUTH';
     if (this.isDevelopment) {
       // Doing it this way because it would never make sense to use the gcloud secret in local dev.
       const value = process.env[key];
@@ -106,7 +106,7 @@ export class EaveConfig {
   }
 
   get redisTlsCA(): string | undefined {
-    return process.env["REDIS_TLS_CA"];
+    return process.env['REDIS_TLS_CA'];
   }
 
   get openaiApiKey(): Promise<string> {

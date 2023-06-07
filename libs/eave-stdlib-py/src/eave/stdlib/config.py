@@ -9,7 +9,6 @@ import google.cloud.secretmanager
 import google.cloud.runtimeconfig
 import google.cloud.client
 
-from eave.stdlib.exceptions import RuntimeConfigRetrievalError
 
 from . import checksum
 
@@ -146,7 +145,7 @@ class EaveConfig:
 
     @property
     def eave_slack_app_id(self) -> str:
-        return os.getenv("EAVE_SLACK_APP_ID", "A04HD948UHE") # This is the production ID, and won't change.
+        return os.getenv("EAVE_SLACK_APP_ID", "A04HD948UHE")  # This is the production ID, and won't change.
 
     @cached_property
     def eave_slack_client_id(self) -> str:

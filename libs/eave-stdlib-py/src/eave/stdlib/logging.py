@@ -1,6 +1,5 @@
 import logging
 from logging import LogRecord
-from pprint import pformat
 import sys
 from typing import Any, Optional, Self, TypeVar, cast
 
@@ -32,40 +31,44 @@ class CustomFormatter(logging.Formatter):
         logging.CRITICAL: bold_red + formatstr + reset,
     }
 
-    IGNORE_KEYS = set([
-        "asctime",
-        "created",
-        "exc_info",
-        "exc_text",
-        "filename",
-        "levelname",
-        "levelno",
-        "message",
-        "module",
-        "msecs",
-        "msg",
-        "name",
-        "process",
-        "processName",
-        "relativeCreated",
-        "stack_info",
-        "thread",
-        "threadName",
-    ])
+    IGNORE_KEYS = set(
+        [
+            "asctime",
+            "created",
+            "exc_info",
+            "exc_text",
+            "filename",
+            "levelname",
+            "levelno",
+            "message",
+            "module",
+            "msecs",
+            "msg",
+            "name",
+            "process",
+            "processName",
+            "relativeCreated",
+            "stack_info",
+            "thread",
+            "threadName",
+        ]
+    )
 
     def format(self, record: logging.LogRecord) -> str:
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         string = formatter.format(record)
 
-        extra = {k: v for k,v in record.__dict__.items() if k not in self.IGNORE_KEYS}
+        extra = {k: v for k, v in record.__dict__.items() if k not in self.IGNORE_KEYS}
         string += f"{self.dimgrey}{extra}{self.reset}"
         return string
+
 
 class CustomFilter(logging.Filter):
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
         return log and record.name == "eave"
+
 
 rootLogger = logging.getLogger()
 level = shared_config.log_level

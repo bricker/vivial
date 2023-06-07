@@ -14,11 +14,11 @@ import { searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operation
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import EaveApiAdapter from '@eave-fyi/eave-stdlib-ts/src/connect/eave-api-store-adapter.js';
-import appConfig from './config.js';
-import { CommentCreatedEventPayload, ContentType, User } from './types.js';
 import { IncomingMessage } from 'node:http';
 import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-router.js';
 import getCacheClient from '@eave-fyi/eave-stdlib-ts/src/cache.js';
+import { CommentCreatedEventPayload, ContentType, User } from './types.js';
+import appConfig from './config.js';
 
 // This <any> case is necessary to tell Typescript to effectively ignore this expression.
 // ace.store is exported in the javascript implementation, but not in the typescript type definitions,

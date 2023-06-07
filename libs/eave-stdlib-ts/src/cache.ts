@@ -1,7 +1,7 @@
 import { createClient } from 'redis';
 import { RedisCommandArgument } from '@redis/client/dist/lib/commands/index.js';
 import { SetOptions } from '@redis/client/dist/lib/commands/SET.js';
-import { sharedConfig } from "./config.js";
+import { sharedConfig } from './config.js';
 import eaveLogger from './logging.js';
 
 export interface Cache {
@@ -40,7 +40,6 @@ class CacheEntry {
 export class EphemeralCache implements Cache {
   private storage: {[key:string]: CacheEntry} = {};
 
-
   async get(key: RedisCommandArgument): Promise<RedisCommandArgument | null> {
     const entry = this.storage[key.toString()];
     if (entry === undefined) {
@@ -61,7 +60,6 @@ export class EphemeralCache implements Cache {
     this.storage[key.toString()] = entry;
     return '1';
   }
-
 
   async del(keys: RedisCommandArgument | Array<RedisCommandArgument>): Promise<number> {
     let k: RedisCommandArgument[];
@@ -98,10 +96,10 @@ async function loadCacheImpl(): Promise<Cache> {
     return impl;
   }
 
-  const {host, port, db} = redisConnection;
+  const { host, port, db } = redisConnection;
   const redisAuth = await sharedConfig.redisAuth();
 
-  const logAuth = redisAuth ? redisAuth.slice(0, 4) : "(none)";
+  const logAuth = redisAuth ? redisAuth.slice(0, 4) : '(none)';
   eaveLogger.debug({ message: `Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...` });
 
   const redisTlsCA = sharedConfig.redisTlsCA;

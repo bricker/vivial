@@ -1,5 +1,3 @@
-import asyncio
-import signal
 from eave.core.public.middlewares.body_parser import BodyParserASGIMiddleware
 from eave.core.public.requests import connect_integration
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
@@ -36,6 +34,7 @@ from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, 
 from .internal.database import async_engine
 
 eave.stdlib.time.set_utc()
+
 
 def make_route(
     config: EndpointConfiguration,
@@ -317,13 +316,12 @@ middleware = [
     Middleware(middlewares.LoggingASGIMiddleware),
 ]
 
+
 async def graceful_shutdown() -> None:
     await async_engine.dispose()
     await cache.quit()
 
+
 app = starlette.applications.Starlette(
-    middleware=middleware,
-    routes=routes,
-    exception_handlers=exception_handlers,
-    on_shutdown=[graceful_shutdown]
+    middleware=middleware, routes=routes, exception_handlers=exception_handlers, on_shutdown=[graceful_shutdown]
 )
