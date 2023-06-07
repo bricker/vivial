@@ -343,6 +343,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			--exclude 'node_modules' \
 			--exclude '.yalc' \
 			--exclude 'vendor' \
+			--exclude 'dist' \
 			--exclude '.venv' \
 			--exclude '.ruff_cache' \
 			--exclude '.mypy_cache' \
