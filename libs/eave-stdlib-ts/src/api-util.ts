@@ -11,8 +11,8 @@ export function statusPayload(): StatusResponseBody {
 }
 
 export const standardEndpointsRouter = express.Router();
-
 standardEndpointsRouter.get('/status', (_: express.Request, res: express.Response) => {
+  // TODO: Redis connection check
   const payload = statusPayload();
   res.json(payload).status(200).end();
 });

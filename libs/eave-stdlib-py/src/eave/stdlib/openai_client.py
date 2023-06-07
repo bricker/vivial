@@ -122,7 +122,7 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     ensure_api_key()
 
     eave_ctx = LogContext.wrap(ctx)
-    eaveLogger.debug("OpenAI Request", extra=eave_ctx.set({"openai_request_params": params}))
+    eaveLogger.debug("OpenAI Request", extra=eave_ctx.set({"openai_request_params": params.__dict__}))
 
     max_attempts = 3
     for i in range(max_attempts):

@@ -752,8 +752,9 @@ class SlackMessage:
             raise SlackDataError("message user profile")
 
         prefix = user_profile.real_name
-        if user_profile.title:
-            prefix += f" ({user_profile.title})"
+        # Adding job title makes the documentation unnatural
+        # if user_profile.title:
+        #     prefix += f" ({user_profile.title})"
 
         # try:
         #     # Format: Wednesday, September 01 at 01:05PM

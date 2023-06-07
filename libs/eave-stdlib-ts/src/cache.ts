@@ -104,7 +104,6 @@ async function loadCacheImpl(): Promise<Cache> {
 
   const redisTlsCA = sharedConfig.redisTlsCA;
   const impl = createClient({
-    name: sharedConfig.appService,
     socket: {
       host,
       port,
