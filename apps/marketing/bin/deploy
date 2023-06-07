@@ -6,7 +6,7 @@ source ${EAVE_HOME}/develop/functions.bash
 
 function deploy () (
 	setup-deployment-workspace
-	npm install
+	npm install --force
 
 	rm -rf eave/marketing/static/dist
 	npx webpack build --mode=production --no-devtool
