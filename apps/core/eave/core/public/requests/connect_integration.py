@@ -107,18 +107,32 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     team_id=eave_team_id,
                 )
 
-                analytics.log_event(
-                    event_name="eave_application_integration",
-                    event_description="An integration was added for a team",
-                    eave_team_id=eave_team_id,
-                    event_source="core api",
-                    opaque_params={
-                        "integration_name": integration.product,
-                        "atlassian_org_url": integration.org_url,
-                        "atlassian_site_description": integration.description,
-                        "atlassian_actor_account_id": integration.atlassian_actor_account_id,
-                    },
-                )
+                if eave_team_id:
+                    analytics.log_event(
+                        event_name="eave_application_integration",
+                        event_description="An integration was added for a team",
+                        eave_team_id=eave_team_id,
+                        event_source="core api",
+                        opaque_params={
+                            "integration_name": integration.product,
+                            "atlassian_org_url": integration.org_url,
+                            "atlassian_site_description": integration.description,
+                            "atlassian_actor_account_id": integration.atlassian_actor_account_id,
+                        },
+                    )
+                else:
+                    analytics.log_event(
+                        event_name="eave_connect_app_registered",
+                        event_description="An connect app was registered, but has no linked team",
+                        eave_team_id=None,
+                        event_source="core api",
+                        opaque_params={
+                            "integration_name": integration.product,
+                            "atlassian_org_url": integration.org_url,
+                            "atlassian_site_description": integration.description,
+                            "atlassian_actor_account_id": integration.atlassian_actor_account_id,
+                        },
+                    )
 
             else:
                 integration.update(
