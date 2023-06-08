@@ -110,27 +110,31 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             ).first()
 
             if not connect_install:
-                connect_installs = await self._get_free_connect_installations(session=db_session)
+                connect_installs = await self._get_matching_connect_installations(session=db_session)
                 if len(connect_installs) > 0:
                     for connect_install in connect_installs:
-                        # Link the Connect installation with this team
-                        connect_install.team_id = self.eave_account.team_id
-                        await self._update_eave_team_document_platform(session=db_session)
+                        if connect_install.team_id:
+                            db_session.add(self.eave_account)
+                            self.eave_account.team_id = connect_install.team_id
+                        else:
+                            # Link the Connect installation with this team
+                            connect_install.team_id = self.eave_account.team_id
+                            await self._update_eave_team_document_platform(session=db_session)
 
-                        eave.stdlib.analytics.log_event(
-                            event_name="eave_application_integration",
-                            event_description="An integration was added for a team",
-                            eave_account_id=self.eave_account.id,
-                            eave_team_id=self.eave_account.team_id,
-                            eave_visitor_id=self.eave_account.visitor_id,
-                            event_source="core api oauth",
-                            opaque_params={
-                                "integration_name": Integration.confluence.value,
-                                "atlassian_site_name": self.atlassian_resource.name
-                                if self.atlassian_resource
-                                else None,
-                            },
-                        )
+                            eave.stdlib.analytics.log_event(
+                                event_name="eave_application_integration",
+                                event_description="An integration was added for a team",
+                                eave_account_id=self.eave_account.id,
+                                eave_team_id=self.eave_account.team_id,
+                                eave_visitor_id=self.eave_account.visitor_id,
+                                event_source="core api oauth",
+                                opaque_params={
+                                    "integration_name": Integration.confluence.value,
+                                    "atlassian_site_name": self.atlassian_resource.name
+                                    if self.atlassian_resource
+                                    else None,
+                                },
+                            )
 
                 else:
                     # TODO: This probably means they didn't complete the connect install, how should we handle this case?
@@ -142,18 +146,12 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         if connect_install:
             await self._maybe_set_default_confluence_space(connect_installation=connect_install)
 
-    async def _get_free_connect_installations(self, session: AsyncSession) -> Sequence[ConnectInstallationOrm]:
+    async def _get_matching_connect_installations(self, session: AsyncSession) -> Sequence[ConnectInstallationOrm]:
         lookup = (
             select(ConnectInstallationOrm)
-            .where(ConnectInstallationOrm.team_id.is_(None))
             .where(
                 or_(
                     *[ConnectInstallationOrm.org_url == resource.url for resource in self.atlassian_resources],
-                    *[
-                        ConnectInstallationOrm.base_url
-                        == resource.url  # backwards compat, org_url was added later and might be null
-                        for resource in self.atlassian_resources
-                    ],
                 )
             )
         )
