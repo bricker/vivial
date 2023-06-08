@@ -1,6 +1,11 @@
 import uuid
 from eave.stdlib import requests
-from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, ConfluenceSearchResultWithBody, DeleteContentInput
+from eave.stdlib.confluence_api.models import (
+    ConfluenceSearchParamsInput,
+    ConfluenceSearchResultWithBody,
+    DeleteContentInput,
+    UpdateContentInput,
+)
 from eave.stdlib.confluence_api.models import ConfluencePage, ConfluenceSpace
 from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 from eave.stdlib.core_api.models.documents import DocumentInput
@@ -103,8 +108,7 @@ class UpdateContentRequest(ConfluenceEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        document_id: str
-        document: DocumentInput
+        content: UpdateContentInput
 
     class ResponseBody(BaseResponseBody):
         content: ConfluencePage

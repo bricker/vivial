@@ -4,7 +4,7 @@ from uuid import UUID
 import uuid
 
 from sqlalchemy import ForeignKeyConstraint, Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession, async_session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from eave.core.internal.document_client import DocumentClient, DocumentMetadata
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
@@ -15,7 +15,7 @@ from eave.stdlib.confluence_api.operations import (
     SearchContentRequest,
     UpdateContentRequest,
 )
-from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, DeleteContentInput
+from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, DeleteContentInput, UpdateContentInput
 from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.documents import DocumentInput, DocumentSearchResult
 
@@ -24,6 +24,7 @@ from eave.core.internal.config import app_config
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 from .. import database
+
 
 class ConfluenceDestinationOrm(Base):
     __tablename__ = "confluence_destinations"
@@ -144,7 +145,7 @@ class ConfluenceClient(DocumentClient):
         )
         return response
 
-    async def search_documents(self, query: str) -> list[DocumentSearchResult]:
+    async def search_documents(self, *, query: str) -> list[DocumentSearchResult]:
         response = await SearchContentRequest.perform(
             origin=app_config.eave_origin,
             team_id=self.confluence_destination.team_id,
@@ -158,9 +159,14 @@ class ConfluenceClient(DocumentClient):
 
         base = connect_installation.base_url
         # TODO: Better handling of nil title
-        return [DocumentSearchResult(title=result.title or "Document", url=(f"{base}{result.links.webui}" if result.links else base)) for result in response.results]
+        return [
+            DocumentSearchResult(
+                title=result.title or "Document", url=(f"{base}{result.links.webui}" if result.links else base)
+            )
+            for result in response.results
+        ]
 
-    async def delete_document(self, document_id: str) -> None:
+    async def delete_document(self, *, document_id: str) -> None:
         await DeleteContentRequest.perform(
             origin=app_config.eave_origin,
             team_id=self.confluence_destination.team_id,
@@ -171,7 +177,7 @@ class ConfluenceClient(DocumentClient):
             ),
         )
 
-    async def create_document(self, input: DocumentInput) -> DocumentMetadata:
+    async def create_document(self, *, input: DocumentInput) -> DocumentMetadata:
         response = await CreateContentRequest.perform(
             origin=app_config.eave_origin,
             team_id=self.confluence_destination.team_id,
@@ -190,6 +196,7 @@ class ConfluenceClient(DocumentClient):
 
     async def update_document(
         self,
+        *,
         input: DocumentInput,
         document_id: str,
     ) -> DocumentMetadata:
@@ -197,8 +204,10 @@ class ConfluenceClient(DocumentClient):
             origin=app_config.eave_origin,
             team_id=self.confluence_destination.team_id,
             input=UpdateContentRequest.RequestBody(
-                document_id=document_id,
-                document=input,
+                content=UpdateContentInput(
+                    id=document_id,
+                    body=input.content,
+                ),
             ),
         )
 

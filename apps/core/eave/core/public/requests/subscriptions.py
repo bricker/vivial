@@ -1,5 +1,4 @@
 from http import HTTPStatus
-import http
 
 import eave.stdlib
 import eave.core.internal

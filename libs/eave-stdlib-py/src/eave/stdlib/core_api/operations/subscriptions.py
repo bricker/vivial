@@ -10,7 +10,6 @@ from eave.stdlib.eave_origins import EaveOrigin
 from . import Endpoint
 from ..models import team
 from ... import requests
-from ... import exceptions
 
 
 class GetSubscriptionRequest(Endpoint):

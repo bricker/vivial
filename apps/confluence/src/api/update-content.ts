@@ -26,16 +26,19 @@ export default async function updateContent(req: Request, res: Response, addon: 
   const prompt = [
     'Merge the two HTML documents so that the unique information is retained, but duplicate information is removed.',
     'The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>',
-    'Maintain the overall document layout and style from the first document.\n',
+    'Maintain the overall document layout and style from the first document.',
+    'Return only the merged document.\n',
+    '=========================',
     'First Document:',
     '=========================',
     existingBody,
-    '=========================\n',
+    '=========================',
     'Second Document:',
     '=========================',
     content.body,
     '=========================',
-    '###',
+    'Merged Document:',
+    '=========================',
   ].join('\n');
 
   // TODO: Token counting

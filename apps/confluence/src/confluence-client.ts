@@ -242,10 +242,16 @@ export async function updatePage({ client, page, body }: { client: HostClient, p
     url: `/rest/api/content/${page.id}`,
     json: true,
     body: {
-      version: currentVersion + 1,
+      version: {
+        number: currentVersion + 1,
+        message: 'Update from Eave',
+      },
       title: page.title,
       type: page.type,
-      body: newBody,
+      status: ConfluenceContentStatus.current,
+      body: {
+        storage: newBody,
+      },
     },
   };
   logRequest('updatePage', request);

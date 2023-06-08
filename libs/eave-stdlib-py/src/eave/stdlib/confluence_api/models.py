@@ -11,6 +11,9 @@ class ConfluenceSearchParamsInput(BaseInputModel):
     space_key: Optional[str]
     text: str
 
+class UpdateContentInput(BaseInputModel):
+    id: str
+    body: str
 
 class DeleteContentInput(BaseInputModel):
     content_id: str
@@ -37,14 +40,17 @@ class ConfluenceSpaceStatus(enum.StrEnum):
     current = "current"
     archived = "archived"
 
+
 class ConfluenceContentType(enum.StrEnum):
-  page = 'page'
-  blogpost = 'blogpost'
-  custom = 'custom'
+    page = "page"
+    blogpost = "blogpost"
+    custom = "custom"
+
 
 class ConfluenceContentStatus(enum.StrEnum):
-  current = 'current'
-  draft = 'draft'
+    current = "current"
+    draft = "draft"
+
 
 class BodyType(BaseModel):
     representation: str
