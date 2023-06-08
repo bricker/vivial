@@ -4,6 +4,7 @@ import { AppContext } from '../context/Provider.js';
 const useUser = () => {
   const { user } = useContext(AppContext);
   const [userState, setUserState] = user;
+  const [availableSpaces, setAvailableSpaces] = useState(null);
   const [getUserError, setGetUserError] = useState(null);
   const [updateConfluenceError, setUpdateConfluenceError] = useState(null);
   const [loadingGetUserInfo, setLoadingGetUserInfo] = useState(false);
@@ -13,6 +14,7 @@ const useUser = () => {
   return {
     userState,
     setUserState,
+    availableSpaces,
     loadingGetUserInfo,
     loadingAvailableSpaces,
     loadingUpdateConfluenceSpace,
@@ -54,7 +56,7 @@ const useUser = () => {
         setLoadingGetUserInfo(false);
       });
     },
-    getAvailableSpaces: () => {
+    loadAvailableSpaces: () => {
       setLoadingAvailableSpaces(true);
       fetch('/dashboard/me/team/destinations/confluence/spaces/query', {
         method: 'GET',
@@ -66,11 +68,12 @@ const useUser = () => {
           console.error('failed to fetch available spaces');
         } else {
           resp.json().then((data) => {
-            setUserState((prevState) => ({ ...prevState, availableSpaces: data.confluence_spaces }));
+            setAvailableSpaces(data.confluence_spaces);
           });
         }
         // eslint-disable-next-line no-console
       }).catch((err) => {
+        // TODO: Handle error case.
         console.error('failed to fetch available spaces', err);
       }).finally(() => {
         setLoadingAvailableSpaces(false);
@@ -98,7 +101,6 @@ const useUser = () => {
           resp.json().then((data) => {
             setUserState((prevState) => ({ ...prevState, teamInfo: data }));
           });
-          onComplete?.();
         }
       // eslint-disable-next-line no-console
       }).catch((err) => {
@@ -106,6 +108,7 @@ const useUser = () => {
         return setUpdateConfluenceError('error setting up space');
       }).finally(() => {
         setLoadingUpdateConfluenceSpace(false);
+        onComplete?.();
       });
     },
     // logs user out
