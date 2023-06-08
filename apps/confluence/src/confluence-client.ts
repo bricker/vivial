@@ -1,5 +1,4 @@
 import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
-import { DocumentReferenceInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
 import { HostClient } from 'atlassian-connect-express';
 import { RequestResponse } from 'request';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
@@ -203,10 +202,14 @@ export async function getSpaces({ client }: { client: HostClient }): Promise<Con
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/#api-wiki-rest-api-search-get
 */
-export async function search({ client, cql, cqlcontext }: { client: HostClient, cql: string, cqlcontext?: string }): Promise<ConfluenceSearchResultWithBody[]> {
+export async function search({ client, cql, cqlcontext }: { client: HostClient, cql: string, cqlcontext?: {[key: string]: any} }): Promise<ConfluenceSearchResultWithBody[]> {
   const request = {
     url: '/rest/api/content/search',
-    qs: { cql, cqlcontext, expand: ['body.storage'] },
+    qs: {
+      cql,
+      cqlcontext: cqlcontext ? JSON.stringify(cqlcontext) : undefined,
+      expand: ['body.storage'],
+    },
   };
   logRequest('search', request);
 
@@ -280,9 +283,19 @@ function logRequest(name: string, request: any) {
 }
 
 function logResponse(name: string, response: RequestResponse) {
+  let message: string;
+
   if (response.statusCode < 400) {
-    eaveLogger.debug({ message: `${name}: response`, body: response.body, statusCode: response.statusCode });
+    message = `${name}: response`;
   } else {
-    eaveLogger.error({ message: `${name}: API error`, body: response.body, statusCode: response.statusCode });
+    message = `${name}: API error`;
   }
+
+  eaveLogger.debug({
+    message,
+    body: response.body,
+    statusCode: response.statusCode,
+    requestBody: response.request.body,
+    requestUri: response.request.uri,
+  });
 }

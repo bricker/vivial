@@ -24,7 +24,7 @@ class GetSubscriptionRequest(Endpoint):
 
     class ResponseBody(BaseResponseBody):
         team: team.Team
-        subscription: Subscription
+        subscription: Optional[Subscription]
         document_reference: Optional[DocumentReference] = None
 
     @classmethod
@@ -33,17 +33,13 @@ class GetSubscriptionRequest(Endpoint):
         origin: EaveOrigin,
         input: RequestBody,
         team_id: uuid.UUID,
-    ) -> ResponseBody | None:
-        try:
-            response = await requests.make_request(
-                url=cls.config.url,
-                origin=origin,
-                input=input,
-                team_id=team_id,
-            )
-        except exceptions.NotFoundError:
-            # This operation is used to check for existing subscriptions, so a 404 is expected sometimes.
-            return None
+    ) -> ResponseBody:
+        response = await requests.make_request(
+            url=cls.config.url,
+            origin=origin,
+            input=input,
+            team_id=team_id,
+        )
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)

@@ -5,7 +5,7 @@ from eave.stdlib.core_api.models import BaseInputModel
 
 class DocumentSearchResult(BaseResponseModel):
     title: str
-    url: str
+    url: Optional[str]
 
 
 class DocumentInput(BaseInputModel):

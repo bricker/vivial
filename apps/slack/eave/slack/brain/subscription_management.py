@@ -6,7 +6,7 @@ from ..config import app_config
 
 
 class SubscriptionManagementMixin(CommunicationMixin):
-    async def get_subscription(self) -> eave_subscriptions.GetSubscriptionRequest.ResponseBody | None:
+    async def get_subscription(self) -> eave_subscriptions.GetSubscriptionRequest.ResponseBody:
         subscription = await eave_subscriptions.GetSubscriptionRequest.perform(
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,

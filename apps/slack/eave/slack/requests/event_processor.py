@@ -49,6 +49,8 @@ class SlackEventProcessorTask(HTTPEndpoint):
             return default_success_response  # Return success so Cloud Tasks doesn't retry
 
         task_execution_count = request.headers.get(GCP_GAE_TASK_EXECUTION_COUNT)
+        self._ctx.set({ TASK_EXECUTION_COUNT_CONTEXT_KEY: task_execution_count })
+
         handler = AsyncSlackRequestHandler(slack_app.app)
         response = await handler.handle(
             request,

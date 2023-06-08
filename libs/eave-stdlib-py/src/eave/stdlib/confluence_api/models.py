@@ -37,6 +37,14 @@ class ConfluenceSpaceStatus(enum.StrEnum):
     current = "current"
     archived = "archived"
 
+class ConfluenceContentType(enum.StrEnum):
+  page = 'page'
+  blogpost = 'blogpost'
+  custom = 'custom'
+
+class ConfluenceContentStatus(enum.StrEnum):
+  current = 'current'
+  draft = 'draft'
 
 class BodyType(BaseModel):
     representation: str
@@ -223,18 +231,23 @@ class Breadcrumb(BaseModel):
     separator: str
 
 
-class ConfluenceSearchResult(BaseModel):
-    content: Optional[ConfluencePage]
-    user: Optional[ConfluenceUser]
-    space: Optional[ConfluenceSpace]
-    title: str
-    excerpt: str
-    url: str
-    resultParentContainer: Optional[ContainerSummary]
-    resultGlobalContainer: Optional[ContainerSummary]
-    breadcrumbs: list[Breadcrumb]
-    entityType: str
-    iconCssClass: str
-    lastModified: str
-    friendlyLastModified: Optional[str]
-    score: int
+class ConfluenceSearchResultWithBody(BaseModel):
+    id: Optional[str | int]
+    type: Optional[ConfluenceContentType]
+    status: Optional[ConfluenceContentStatus]
+    title: Optional[str]
+    body: ConfluencePageBody
+    links: Optional[ConfluenceGenericLinks] = Field(alias="_links")
+    # These properties are documented in Confluence API docs but never actually returned...?
+    # content: Optional[ConfluencePage]
+    # user: Optional[ConfluenceUser]
+    # space: Optional[ConfluenceSpace]
+    # excerpt: Optional[str]
+    # resultParentContainer: Optional[ContainerSummary]
+    # resultGlobalContainer: Optional[ContainerSummary]
+    # breadcrumbs: Optional[list[Breadcrumb]]
+    # entityType: Optional[str]
+    # iconCssClass: Optional[str]
+    # lastModified: Optional[str]
+    # friendlyLastModified: Optional[str]
+    # score: Optional[int]

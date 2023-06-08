@@ -12,7 +12,7 @@ class Brain(IntentProcessingMixin):
         await self.load_data()
 
         subscription_response = await self.get_subscription()
-        if subscription_response and subscription_response.subscription:
+        if subscription_response.subscription:
             self.subscriptions.append(subscription_response.subscription)
 
         i_am_mentioned = await self.message.check_eave_is_mentioned()
@@ -40,7 +40,7 @@ class Brain(IntentProcessingMixin):
             1. If she is not subscribed, then ignore the message and stop processing.
             1. Otherwise, continue processing.
             """
-            if subscription_response is None:
+            if len(self.subscriptions) == 0:
                 eaveLogger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.eave_ctx)
                 return
 

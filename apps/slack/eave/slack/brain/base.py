@@ -2,6 +2,7 @@ from typing import Optional
 
 from slack_bolt.async_app import AsyncBoltContext
 from eave.slack.brain.message_prompts import MessageAction
+from eave.slack.config import TASK_EXECUTION_COUNT_CONTEXT_KEY
 from eave.slack.slack_models import SlackMessage, SlackProfile
 from eave.stdlib import analytics
 from eave.stdlib.core_api.models.integrations import Integration
@@ -53,3 +54,7 @@ class Base:
                 **opaque_params,
             },
         )
+
+    def execution_count(self) -> int:
+        count = self.slack_context.get(TASK_EXECUTION_COUNT_CONTEXT_KEY, 0)
+        return int(count)

@@ -237,7 +237,8 @@ export interface ConfluenceSearchResultWithBody {
   title: string;
   body: {
     storage: ConfluenceContentBody;
-  }
+  },
+  _links?: ConfluenceGenericLinks;
 }
 
 export interface ContainerSummary {

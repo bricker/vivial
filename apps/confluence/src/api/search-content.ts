@@ -12,12 +12,12 @@ export default async function searchContent(req: Request, res: Response, addon: 
 
   const { space_key, text } = requestBody.search_params;
   const cqlConditions: string[] = [];
-  let cqlcontext: string | undefined;
+  let cqlcontext: {[key:string]: any} = {};
 
   if (space_key !== undefined) {
-    cqlcontext = JSON.stringify({
+    cqlcontext = {
       spaceKey: space_key,
-    });
+    };
   }
   if (text.length > 0) {
     cqlConditions.push(`text ~ "${text}"`);

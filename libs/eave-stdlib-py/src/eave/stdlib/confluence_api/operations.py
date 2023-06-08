@@ -1,6 +1,6 @@
 import uuid
 from eave.stdlib import requests
-from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, ConfluenceSearchResult, DeleteContentInput
+from eave.stdlib.confluence_api.models import ConfluenceSearchParamsInput, ConfluenceSearchResultWithBody, DeleteContentInput
 from eave.stdlib.confluence_api.models import ConfluencePage, ConfluenceSpace
 from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 from eave.stdlib.core_api.models.documents import DocumentInput
@@ -45,7 +45,7 @@ class SearchContentRequest(ConfluenceEndpoint):
         search_params: ConfluenceSearchParamsInput
 
     class ResponseBody(BaseResponseBody):
-        results: list[ConfluenceSearchResult]
+        results: list[ConfluenceSearchResultWithBody]
 
     @classmethod
     async def perform(

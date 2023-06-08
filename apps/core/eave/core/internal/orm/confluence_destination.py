@@ -4,7 +4,7 @@ from uuid import UUID
 import uuid
 
 from sqlalchemy import ForeignKeyConstraint, Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_session
 from sqlalchemy.orm import Mapped, mapped_column
 from eave.core.internal.document_client import DocumentClient, DocumentMetadata
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
@@ -23,7 +23,7 @@ from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDe
 from eave.core.internal.config import app_config
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
-
+from .. import database
 
 class ConfluenceDestinationOrm(Base):
     __tablename__ = "confluence_destinations"
@@ -144,18 +144,21 @@ class ConfluenceClient(DocumentClient):
         )
         return response
 
-    async def search_documents(self, search_query: str) -> list[DocumentSearchResult]:
+    async def search_documents(self, query: str) -> list[DocumentSearchResult]:
         response = await SearchContentRequest.perform(
             origin=app_config.eave_origin,
             team_id=self.confluence_destination.team_id,
             input=SearchContentRequest.RequestBody(
-                search_params=ConfluenceSearchParamsInput(
-                    space_key=self.confluence_destination.space_key, text=search_query
-                ),
+                search_params=ConfluenceSearchParamsInput(space_key=self.confluence_destination.space_key, text=query),
             ),
         )
 
-        return [DocumentSearchResult(title=result.title, url=result.url) for result in response.results]
+        async with database.async_session.begin() as db_session:
+            connect_installation = await self.confluence_destination.get_connect_installation(session=db_session)
+
+        base = connect_installation.base_url
+        # TODO: Better handling of nil title
+        return [DocumentSearchResult(title=result.title or "Document", url=(f"{base}{result.links.webui}" if result.links else base)) for result in response.results]
 
     async def delete_document(self, document_id: str) -> None:
         await DeleteContentRequest.perform(
