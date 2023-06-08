@@ -231,7 +231,7 @@ export async function updatePage({ client, page, body }: { client: HostClient, p
   }
 
   const newBody: ConfluenceContentBody = {
-    value: body,
+    value: cleanDocument(body),
     representation: ConfluenceContentBodyRepresentation.storage,
   };
 

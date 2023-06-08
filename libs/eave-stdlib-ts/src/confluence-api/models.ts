@@ -224,6 +224,11 @@ export interface ConfluencePage {
   _links?: ConfluenceGenericLinks;
 }
 
+export interface UpdateConfluenceContentInput {
+  id: string;
+  body: string;
+}
+
 // This is made up, not part of any official Atlassian documentation
 export interface ConfluenceSearchResultWithBody {
   id: string | number;
