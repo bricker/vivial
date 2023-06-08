@@ -1,6 +1,7 @@
 # INSTALL URL: https://developer.atlassian.com/console/install/e3c57ac8-296e-4392-b128-4330b1ab2883?signature=9e7204e3d1f2898b576427da60ab2182353879b1173469f1b59e0e9cab271d5439c0ff55d59dab60621d9c871125afe79fac266aa532eb29778a2d751bbe0508&product=confluence&product=jira
 
 import json
+from typing import Sequence
 
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -109,24 +110,25 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             ).first()
 
             if not connect_install:
-                connect_install = await self._get_free_connect_installation(session=db_session)
-                if connect_install:
-                    # Link the Connect installation with this team
-                    connect_install.team_id = self.eave_account.team_id
-                    await self._update_eave_team_document_platform(session=db_session)
+                connect_installs = await self._get_free_connect_installations(session=db_session)
+                if len(connect_installs) > 0:
+                    for connect_install in connect_installs:
+                        # Link the Connect installation with this team
+                        connect_install.team_id = self.eave_account.team_id
+                        await self._update_eave_team_document_platform(session=db_session)
 
-                    eave.stdlib.analytics.log_event(
-                        event_name="eave_application_integration",
-                        event_description="An integration was added for a team",
-                        eave_account_id=self.eave_account.id,
-                        eave_team_id=self.eave_account.team_id,
-                        eave_visitor_id=self.eave_account.visitor_id,
-                        event_source="core api oauth",
-                        opaque_params={
-                            "integration_name": Integration.confluence.value,
-                            "atlassian_site_name": self.atlassian_resource.name if self.atlassian_resource else None,
-                        },
-                    )
+                        eave.stdlib.analytics.log_event(
+                            event_name="eave_application_integration",
+                            event_description="An integration was added for a team",
+                            eave_account_id=self.eave_account.id,
+                            eave_team_id=self.eave_account.team_id,
+                            eave_visitor_id=self.eave_account.visitor_id,
+                            event_source="core api oauth",
+                            opaque_params={
+                                "integration_name": Integration.confluence.value,
+                                "atlassian_site_name": self.atlassian_resource.name if self.atlassian_resource else None,
+                            },
+                        )
 
                 else:
                     # TODO: This probably means they didn't complete the connect install, how should we handle this case?
@@ -138,7 +140,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         if connect_install:
             await self._maybe_set_default_confluence_space(connect_installation=connect_install)
 
-    async def _get_free_connect_installation(self, session: AsyncSession) -> ConnectInstallationOrm | None:
+    async def _get_free_connect_installations(self, session: AsyncSession) -> Sequence[ConnectInstallationOrm]:
         lookup = (
             select(ConnectInstallationOrm)
             .where(ConnectInstallationOrm.team_id.is_(None))
@@ -146,7 +148,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                 or_(
                     *[ConnectInstallationOrm.org_url == resource.url for resource in self.atlassian_resources],
                     *[
-                        ConnectInstallationOrm.base_url == resource.url  # backwards compat
+                        ConnectInstallationOrm.base_url == resource.url  # backwards compat, org_url was added later and might be null
                         for resource in self.atlassian_resources
                     ],
                 )
@@ -154,7 +156,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         )
 
         results = await session.scalars(lookup)
-        return results.first()
+        return results.all()
 
     async def _update_eave_team_document_platform(self, session: AsyncSession) -> None:
         eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
