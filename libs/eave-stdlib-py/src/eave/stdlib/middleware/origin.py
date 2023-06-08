@@ -7,6 +7,7 @@ from ..exceptions import MissingRequiredHeaderError
 from ..eave_origins import EaveOrigin
 from ..request_state import EaveRequestState
 
+
 class OriginASGIMiddleware(EaveASGIMiddleware):
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":

@@ -24,9 +24,7 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
 
         if scope["type"] == "http":
             with self.auto_eave_state(scope=scope) as eave_state:
-                request_id_header = get_header_value(
-                    scope=scope, name=EAVE_REQUEST_ID_HEADER
-                )
+                request_id_header = get_header_value(scope=scope, name=EAVE_REQUEST_ID_HEADER)
 
                 if not request_id_header:
                     request_id = str(uuid.uuid4())

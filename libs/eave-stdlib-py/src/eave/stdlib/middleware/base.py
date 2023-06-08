@@ -3,6 +3,7 @@ from typing import Any, Generator
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, Scope, HTTPScope
 from ..request_state import EaveRequestState, set_eave_state, get_eave_state
 
+
 class EaveASGIMiddleware:
     """
     https://asgi.readthedocs.io/en/latest/specs/www.html#http

@@ -11,6 +11,7 @@ from ..requests import build_message_to_sign, makeurl
 from ..util import unwrap
 from ..signing import get_key, verify_signature_or_exception
 
+
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """
     Reads the body and headers and verifies the signature.
@@ -36,21 +37,15 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
         await self.app(scope, receive, send)
 
     @staticmethod
-    def _do_signature_verification(
-        scope: HTTPScope, body: bytes, eave_state: EaveRequestState
-    ) -> None:
+    def _do_signature_verification(scope: HTTPScope, body: bytes, eave_state: EaveRequestState) -> None:
         signature = get_header_value(scope=scope, name=EAVE_SIGNATURE_HEADER)
         if not signature:
             # reject None or empty strings
             raise MissingRequiredHeaderError(EAVE_SIGNATURE_HEADER)
 
         payload = body.decode()
-        team_id_header = get_header_value(
-            scope=scope, name=EAVE_TEAM_ID_HEADER
-        )
-        account_id_header = get_header_value(
-            scope=scope, name=EAVE_ACCOUNT_ID_HEADER
-        )
+        team_id_header = get_header_value(scope=scope, name=EAVE_TEAM_ID_HEADER)
+        account_id_header = get_header_value(scope=scope, name=EAVE_ACCOUNT_ID_HEADER)
 
         message = build_message_to_sign(
             method=scope["method"],

@@ -41,6 +41,7 @@ standard_endpoints_starlette = [
     Route("/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
 ]
 
+
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
     This function doesn't support multiple headers with the same name.

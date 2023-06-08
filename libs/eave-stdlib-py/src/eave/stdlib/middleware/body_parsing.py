@@ -8,6 +8,7 @@ from .base import EaveASGIMiddleware
 from ..api_util import get_header_value
 from ..logging import eaveLogger
 
+
 class BodyParsingASGIMiddleware(EaveASGIMiddleware):
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] != "http":
@@ -27,9 +28,7 @@ class BodyParsingASGIMiddleware(EaveASGIMiddleware):
                     try:
                         eave_state.parsed_request_body = json.loads(body)
                     except Exception:
-                        eaveLogger.exception(
-                            "Error while parsing body as JSON", extra=eave_state.log_context
-                        )
+                        eaveLogger.exception("Error while parsing body as JSON", extra=eave_state.log_context)
                 else:
                     eave_state.parsed_request_body = {"text": str(body)}
 
