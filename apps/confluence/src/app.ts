@@ -45,6 +45,8 @@ app.use(helmet.referrerPolicy({
   policy: ['origin'],
 }));
 
+app.use(helmet.xPoweredBy);
+
 // Atlassian security policy requirements
 // http://go.atlassian.com/security-requirements-for-cloud-apps
 app.use((req, res, next) => {

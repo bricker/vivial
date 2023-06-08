@@ -23,7 +23,6 @@ class AtlassianOAuthTokenResponse:
 
 ATLASSIAN_OAUTH_SCOPES = [
     "read:confluence-user",
-    "read:jira-user",
     "read:me",
     "read:account",
     "offline_access",

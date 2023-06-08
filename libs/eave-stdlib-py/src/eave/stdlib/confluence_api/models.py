@@ -11,9 +11,11 @@ class ConfluenceSearchParamsInput(BaseInputModel):
     space_key: Optional[str]
     text: str
 
+
 class UpdateContentInput(BaseInputModel):
     id: str
     body: str
+
 
 class DeleteContentInput(BaseInputModel):
     content_id: str
