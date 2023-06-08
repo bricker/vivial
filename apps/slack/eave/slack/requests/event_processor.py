@@ -60,6 +60,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
 
         return response
 
+    # TODO: Make this a middleware and move to stdlib
     async def _is_valid_signature(self) -> bool:
         body = await self._request.body()
         signature = self._request.headers.get(EAVE_SIGNATURE_HEADER)

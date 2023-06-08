@@ -1,6 +1,5 @@
 import eave.stdlib
 import eave.stdlib.request_state
-import eave.core.public
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
 from eave.stdlib.middleware.base import EaveASGIMiddleware

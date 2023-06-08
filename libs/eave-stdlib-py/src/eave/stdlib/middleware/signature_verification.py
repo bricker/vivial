@@ -4,7 +4,7 @@ import eave.stdlib.requests
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
 from eave.stdlib.middleware.base import EaveASGIMiddleware
-from . import development_bypass
+from eave.stdlib.middleware.development_bypass import development_bypass_allowed
 from eave.stdlib.logging import eaveLogger
 
 
@@ -20,7 +20,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        if development_bypass.development_bypass_allowed(scope=scope):
+        if development_bypass_allowed(scope=scope):
             eaveLogger.warning("Bypassing signature verification in dev environment")
             await self.app(scope, receive, send)
             return

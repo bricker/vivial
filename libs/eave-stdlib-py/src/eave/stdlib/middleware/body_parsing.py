@@ -6,7 +6,7 @@ from asgiref.typing import ASGIReceiveCallable, ASGIReceiveEvent, ASGISendCallab
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 
 
-class BodyParserASGIMiddleware(EaveASGIMiddleware):
+class BodyParsingASGIMiddleware(EaveASGIMiddleware):
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)

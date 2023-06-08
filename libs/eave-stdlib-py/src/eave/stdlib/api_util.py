@@ -3,7 +3,12 @@ import re
 from typing import Any, Optional
 
 import pydantic
+from starlette.middleware import Middleware
 from eave.stdlib.headers import AUTHORIZATION_HEADER
+from eave.stdlib.middleware.body_parsing import BodyParsingASGIMiddleware
+from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
+from eave.stdlib.middleware.logging import LoggingASGIMiddleware
+from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
 
 from eave.stdlib.util import redact
 import eave.stdlib.core_api.operations.status as status
@@ -41,6 +46,12 @@ standard_endpoints_starlette = [
     Route("/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
 ]
 
+standard_middleware_starlette = [
+    Middleware(ExceptionHandlingASGIMiddleware),
+    Middleware(RequestIntegrityASGIMiddleware),
+    Middleware(BodyParsingASGIMiddleware),
+    Middleware(LoggingASGIMiddleware),
+]
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
