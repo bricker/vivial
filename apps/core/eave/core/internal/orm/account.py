@@ -205,7 +205,7 @@ class AccountOrm(Base):
             case AuthProvider.atlassian:
                 return True
             case _:
-                raise # TODO: Better error reporting. This case should never be reached though.
+                raise  # TODO: Better error reporting. This case should never be reached though.
 
     async def get_team(self, session: AsyncSession) -> TeamOrm:
         team = await TeamOrm.one_or_exception(session=session, team_id=self.team_id)

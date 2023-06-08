@@ -9,7 +9,7 @@ import { getPageById, updatePage } from '../confluence-client.js';
 export default async function updateContent(req: Request, res: Response, addon: AddOn) {
   const client = await getAuthedConnectClient(req, addon);
   const { content } = <UpdateContentRequestBody>req.body;
-  const page = await getPageById({client, pageId: content.id});
+  const page = await getPageById({ client, pageId: content.id });
   if (page === null) {
     eaveLogger.error(`Confluence page not found for ID ${content.id}`);
     res.status(500);

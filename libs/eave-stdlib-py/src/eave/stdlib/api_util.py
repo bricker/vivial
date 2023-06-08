@@ -53,6 +53,7 @@ standard_middleware_starlette = [
     Middleware(LoggingASGIMiddleware),
 ]
 
+
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
     This function doesn't support multiple headers with the same name.

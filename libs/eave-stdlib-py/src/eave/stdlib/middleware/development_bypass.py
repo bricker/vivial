@@ -1,10 +1,7 @@
-import uuid
-
 import eave.stdlib
 from eave.stdlib.config import shared_config
 from asgiref.typing import HTTPScope
 
-from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.logging import eaveLogger
 
 """
@@ -35,6 +32,8 @@ Copy that string into the `X-Google-EAVEDEV` header. It will be verified when re
 
 When bypassing auth, the `Authorization` header should contain the ID of the account you want to act as.
 """
+
+
 def development_bypass_allowed(scope: HTTPScope) -> bool:
     if not shared_config.is_development:
         return False

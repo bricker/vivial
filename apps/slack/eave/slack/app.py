@@ -1,4 +1,3 @@
-from starlette.middleware import Middleware
 import eave.stdlib.api_util as eave_api_util
 import eave.stdlib.requests
 import eave.stdlib.time
@@ -29,8 +28,10 @@ routes = [
     ),
 ]
 
+
 async def graceful_shutdown() -> None:
     await cache.quit()
+
 
 api = Starlette(
     middleware=standard_middleware_starlette,

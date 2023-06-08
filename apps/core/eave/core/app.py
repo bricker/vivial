@@ -312,6 +312,7 @@ routes = [
     ),
 ]
 
+
 async def graceful_shutdown() -> None:
     await async_engine.dispose()
     await cache.quit()
@@ -321,5 +322,5 @@ app = starlette.applications.Starlette(
     middleware=standard_middleware_starlette,
     routes=routes,
     exception_handlers=exception_handlers,
-    on_shutdown=[graceful_shutdown]
+    on_shutdown=[graceful_shutdown],
 )

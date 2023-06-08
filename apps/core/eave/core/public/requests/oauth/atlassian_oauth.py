@@ -126,7 +126,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                             event_source="core api oauth",
                             opaque_params={
                                 "integration_name": Integration.confluence.value,
-                                "atlassian_site_name": self.atlassian_resource.name if self.atlassian_resource else None,
+                                "atlassian_site_name": self.atlassian_resource.name
+                                if self.atlassian_resource
+                                else None,
                             },
                         )
 
@@ -148,7 +150,8 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                 or_(
                     *[ConnectInstallationOrm.org_url == resource.url for resource in self.atlassian_resources],
                     *[
-                        ConnectInstallationOrm.base_url == resource.url  # backwards compat, org_url was added later and might be null
+                        ConnectInstallationOrm.base_url
+                        == resource.url  # backwards compat, org_url was added later and might be null
                         for resource in self.atlassian_resources
                     ],
                 )

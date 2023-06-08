@@ -4,12 +4,10 @@ from typing import Optional
 import uuid
 import aiohttp
 import urllib.parse
-from http import HTTPStatus
 from eave.stdlib.eave_origins import EaveOrigin
 
 from eave.stdlib.util import redact
 
-from . import exceptions as eave_exceptions
 from . import headers as eave_headers
 from . import signing
 from .logging import eaveLogger

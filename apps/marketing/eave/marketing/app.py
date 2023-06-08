@@ -1,4 +1,3 @@
-import http
 import json
 from typing import Any
 
@@ -12,7 +11,7 @@ import eave.stdlib.requests
 import eave.stdlib.logging
 import eave.stdlib.time
 import werkzeug.exceptions
-from flask import Flask, Response, make_response, redirect, render_template, request
+from flask import Flask, Response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
 from eave.stdlib.typing import JsonObject
 from .config import app_config
@@ -55,6 +54,7 @@ async def get_auth_state() -> Response:
         response_body = {"authenticated": True}
 
     return _json_response(body=response_body)
+
 
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
@@ -151,6 +151,7 @@ def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegratio
 
     # TODO: Forward cookies from server to client
     return response
+
 
 def _json_response(body: JsonObject | str) -> Response:
     if not isinstance(body, str):

@@ -7,7 +7,6 @@ import eave.stdlib
 import eave.stdlib.atlassian
 import requests_oauthlib
 from oauthlib.oauth2 import OAuth2Token
-import oauthlib.oauth2.rfc6749
 
 from eave.stdlib.exceptions import ConfluenceDataError
 

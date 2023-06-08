@@ -65,16 +65,13 @@ class ConnectInstallationOrm(Base):
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-
-
         id = kwargs.get("id")
         team_id = kwargs.get("team_id")
         client_key = kwargs.get("client_key")
         org_url = kwargs.get("org_url")
         assert id or team_id or client_key or org_url, "at least one parameter must be specified"
 
-
-        if (product := kwargs.get("product")):
+        if product := kwargs.get("product"):
             lookup = lookup.where(cls.product == product)
 
         if id:

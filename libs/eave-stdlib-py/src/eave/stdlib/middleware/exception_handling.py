@@ -9,11 +9,13 @@ from eave.stdlib.logging import eaveLogger
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.core_api.models.error import ErrorResponse
 
+
 class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
     """
     Although Starlette includes its own Exception handling middleware, it always re-raises the exception,
     which isn't the best when running on AppEngine, because AppEngine sends stderr messages to the Error Reporting API.
     """
+
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)

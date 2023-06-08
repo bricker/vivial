@@ -2,7 +2,6 @@ import uuid
 
 import eave.core.internal
 import eave.stdlib
-from eave.stdlib.config import shared_config
 from asgiref.typing import HTTPScope
 
 from eave.stdlib.request_state import EaveRequestState
