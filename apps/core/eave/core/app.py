@@ -2,9 +2,7 @@ from eave.core.public.middlewares.authentication import AuthASGIMiddleware
 from eave.core.public.middlewares.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
-import eave.stdlib
 from eave.stdlib import cache
-import eave.stdlib.api_util
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
 from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocuments, UpsertDocument
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
@@ -18,7 +16,6 @@ from eave.stdlib.core_api.operations.subscriptions import (
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
-import eave.stdlib.logging
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -33,7 +30,7 @@ from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team, status
 from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 from .internal.database import async_engine
-from eave.stdlib.api_util import standard_middleware_starlette
+from eave.stdlib.middleware import standard_middleware_starlette
 
 eave.stdlib.time.set_utc()
 

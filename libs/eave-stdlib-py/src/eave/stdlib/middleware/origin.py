@@ -1,9 +1,11 @@
-import eave.stdlib
-import eave.stdlib.request_state
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
-from eave.stdlib.middleware.base import EaveASGIMiddleware
-
+from .base import EaveASGIMiddleware
+from ..api_util import get_header_value
+from ..headers import EAVE_ORIGIN_HEADER
+from ..exceptions import MissingRequiredHeaderError
+from ..eave_origins import EaveOrigin
+from ..request_state import EaveRequestState
 
 class OriginASGIMiddleware(EaveASGIMiddleware):
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
@@ -14,10 +16,10 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
         await self.app(scope, receive, send)
 
     @staticmethod
-    def _process_origin(scope: HTTPScope, eave_state: eave.stdlib.request_state.EaveRequestState) -> None:
-        origin_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ORIGIN_HEADER)
+    def _process_origin(scope: HTTPScope, eave_state: EaveRequestState) -> None:
+        origin_header = get_header_value(scope=scope, name=EAVE_ORIGIN_HEADER)
         if not origin_header:
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ORIGIN_HEADER)
+            raise MissingRequiredHeaderError(EAVE_ORIGIN_HEADER)
 
-        origin = eave.stdlib.EaveOrigin(value=origin_header)
+        origin = EaveOrigin(value=origin_header)
         eave_state.eave_origin = str(origin)

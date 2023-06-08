@@ -1,13 +1,13 @@
 import logging
 from typing import Optional, cast
 
-import eave.stdlib
 import starlette.applications
 import starlette.requests
 from asgiref.typing import HTTPScope
-import eave.stdlib.logging
 
-from eave.stdlib.typing import JsonObject
+from .util import xor
+from .logging import LogContext, eaveLogger
+from .typing import JsonObject
 
 SCOPE_KEY = "eave_state"
 
@@ -30,7 +30,7 @@ class EaveRequestState:
                 self.__setattr__(key, v)
 
     @property
-    def log_context(self) -> eave.stdlib.logging.LogContext:
+    def log_context(self) -> LogContext:
         payload = {
             "eave_account_id": str(self.eave_account_id),
             "eave_team_id": str(self.eave_team_id),
@@ -42,13 +42,13 @@ class EaveRequestState:
             "request_headers": self.request_headers,
         }
 
-        if eave.stdlib.logging.eaveLogger.level == logging.DEBUG:
+        if eaveLogger.level == logging.DEBUG:
             payload["request_body"] = self.parsed_request_body
 
-        return eave.stdlib.logging.LogContext().set(payload)
+        return LogContext().set(payload)
 
     @property
-    def public_request_context(self) -> eave.stdlib.typing.JsonObject:
+    def public_request_context(self) -> JsonObject:
         """
         Return this from an endpoint to give the caller some context.
         This is similar to log_context, except it is intended for public, and therefore shouldn't contain any
@@ -90,7 +90,7 @@ def _normalized_scope(
     scope: Optional[HTTPScope] = None, request: Optional[starlette.requests.Request] = None
 ) -> HTTPScope:
     # Validate that exactly one parameter is supplied.
-    assert eave.stdlib.util.xor(scope, request), "invalid parameters"
+    assert xor(scope, request), "invalid parameters"
 
     if scope is None and request is not None:
         scope = cast(HTTPScope, request.scope)

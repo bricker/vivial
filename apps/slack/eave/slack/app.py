@@ -10,7 +10,7 @@ from .config import SLACK_EVENT_QUEUE_TARGET_PATH
 from .requests.warmup import WarmupRequest
 from .requests.event_callback import SlackEventCallbackHandler
 from .requests.event_processor import SlackEventProcessorTask
-from eave.stdlib.api_util import standard_middleware_starlette
+from eave.stdlib.middleware import standard_middleware_starlette
 
 eave.stdlib.time.set_utc()
 

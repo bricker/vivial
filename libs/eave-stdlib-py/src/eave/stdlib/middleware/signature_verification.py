@@ -1,12 +1,15 @@
-import eave.stdlib
-import eave.stdlib.request_state
-import eave.stdlib.requests
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
-from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.middleware.development_bypass import development_bypass_allowed
-from eave.stdlib.logging import eaveLogger
-
+from .base import EaveASGIMiddleware
+from .development_bypass import development_bypass_allowed
+from ..logging import eaveLogger
+from ..api_util import get_header_value
+from ..headers import EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER, EAVE_ACCOUNT_ID_HEADER
+from ..exceptions import MissingRequiredHeaderError
+from ..request_state import EaveRequestState
+from ..requests import build_message_to_sign, makeurl
+from ..util import unwrap
+from ..signing import get_key, verify_signature_or_exception
 
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """
@@ -34,34 +37,34 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
     @staticmethod
     def _do_signature_verification(
-        scope: HTTPScope, body: bytes, eave_state: eave.stdlib.request_state.EaveRequestState
+        scope: HTTPScope, body: bytes, eave_state: EaveRequestState
     ) -> None:
-        signature = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_SIGNATURE_HEADER)
+        signature = get_header_value(scope=scope, name=EAVE_SIGNATURE_HEADER)
         if not signature:
             # reject None or empty strings
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_SIGNATURE_HEADER)
+            raise MissingRequiredHeaderError(EAVE_SIGNATURE_HEADER)
 
         payload = body.decode()
-        team_id_header = eave.stdlib.api_util.get_header_value(
-            scope=scope, name=eave.stdlib.headers.EAVE_TEAM_ID_HEADER
+        team_id_header = get_header_value(
+            scope=scope, name=EAVE_TEAM_ID_HEADER
         )
-        account_id_header = eave.stdlib.api_util.get_header_value(
-            scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
+        account_id_header = get_header_value(
+            scope=scope, name=EAVE_ACCOUNT_ID_HEADER
         )
 
-        message = eave.stdlib.requests.build_message_to_sign(
+        message = build_message_to_sign(
             method=scope["method"],
-            url=eave.stdlib.requests.makeurl(scope["path"]),
-            request_id=eave.stdlib.util.unwrap(eave_state.request_id),
-            origin=eave.stdlib.util.unwrap(eave_state.eave_origin),
+            url=makeurl(scope["path"]),
+            request_id=unwrap(eave_state.request_id),
+            origin=unwrap(eave_state.eave_origin),
             team_id=team_id_header,
             account_id=account_id_header,
             payload=payload,
         )
 
-        signing_key = eave.stdlib.signing.get_key(signer=eave.stdlib.util.unwrap(eave_state.eave_origin))
+        signing_key = get_key(signer=unwrap(eave_state.eave_origin))
 
-        eave.stdlib.signing.verify_signature_or_exception(
+        verify_signature_or_exception(
             signing_key=signing_key,
             message=message,
             signature=signature,

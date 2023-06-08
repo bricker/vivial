@@ -1,8 +1,9 @@
-import eave.stdlib
-from eave.stdlib.config import shared_config
+from ..api_util import get_header_value
+from ..headers import EAVE_DEV_BYPASS_HEADER
+from ..config import shared_config
 from asgiref.typing import HTTPScope
 
-from eave.stdlib.logging import eaveLogger
+from ..logging import eaveLogger
 
 """
 ## middleware check bypass
@@ -40,7 +41,7 @@ def development_bypass_allowed(scope: HTTPScope) -> bool:
     if shared_config.google_cloud_project == "eave-production":
         return False
 
-    dev_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_DEV_BYPASS_HEADER)
+    dev_header = get_header_value(scope=scope, name=EAVE_DEV_BYPASS_HEADER)
     if not dev_header:
         return False
 

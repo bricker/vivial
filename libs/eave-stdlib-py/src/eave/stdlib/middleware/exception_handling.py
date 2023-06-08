@@ -2,12 +2,12 @@ import http
 from typing import cast
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, Scope
 import starlette.types
-from eave.stdlib.api_util import json_response
+from ..api_util import json_response
 
-from eave.stdlib.logging import eaveLogger
+from ..logging import eaveLogger
 
-from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.core_api.models.error import ErrorResponse
+from .base import EaveASGIMiddleware
+from ..core_api.models.error import ErrorResponse
 
 
 class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):

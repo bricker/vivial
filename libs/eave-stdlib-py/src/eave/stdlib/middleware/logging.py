@@ -1,8 +1,8 @@
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 
-from eave.stdlib.logging import eaveLogger
+from ..logging import eaveLogger
 
-from eave.stdlib.middleware.base import EaveASGIMiddleware
+from .base import EaveASGIMiddleware
 
 
 class LoggingASGIMiddleware(EaveASGIMiddleware):
