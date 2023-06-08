@@ -80,6 +80,7 @@ class AppConfig(eave.stdlib.config.EaveConfig):
             emails = list(map(str.strip, value.split(",")))
             return emails
         except Exception:
+            eaveLogger.exception("Error while fetching beta whitelist")
             return []
 
 

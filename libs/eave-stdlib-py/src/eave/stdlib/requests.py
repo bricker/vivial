@@ -131,21 +131,7 @@ async def make_request(
             },
         )
 
-    try:
-        response.raise_for_status()
-    except aiohttp.ClientResponseError as e:
-        match e.status:
-            case HTTPStatus.NOT_FOUND:
-                raise eave_exceptions.NotFoundError(request_id=request_id)
-            case HTTPStatus.UNAUTHORIZED:
-                raise eave_exceptions.UnauthorizedError(request_id=request_id)
-            case HTTPStatus.BAD_REQUEST:
-                raise eave_exceptions.BadRequestError(request_id=request_id)
-            case HTTPStatus.INTERNAL_SERVER_ERROR:
-                raise eave_exceptions.InternalServerError(request_id=request_id)
-            case _:
-                raise eave_exceptions.HTTPException(status_code=e.status)
-
+    response.raise_for_status()
     return response
 
 

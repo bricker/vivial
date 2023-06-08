@@ -59,8 +59,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// We don't attach any routes to the root path / because all requests to this app are prefixed with /github
 const rootRouter = express.Router();
+app.get('/_ah/warmup', async (req: Request, res: Response) => {
+  await getCacheClient; // Initializes a client and connects to Redis
+  res.status(200);
+});
+
 app.use('/confluence', rootRouter);
 rootRouter.use(requestIntegrity);
 rootRouter.use(loggingMiddleware);

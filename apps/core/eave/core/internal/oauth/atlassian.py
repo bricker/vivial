@@ -83,10 +83,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
         )
 
     def request(self, method, url, data=None, headers=None, withhold_token=False, client_id=None, client_secret=None, **kwargs):  # type: ignore[no-untyped-def]
-        try:
-            return super().request(method, url, data, headers, withhold_token, client_id, client_secret, **kwargs)
-        except oauthlib.oauth2.rfc6749.errors.UnauthorizedClientError:
-            raise eave.stdlib.exceptions.InvalidAuthError()
+        return super().request(method, url, data, headers, withhold_token, client_id, client_secret, **kwargs)
 
     def oauth_flow_info(self) -> OAuthFlowInfo:
         authorization_url, state = self.authorization_url()

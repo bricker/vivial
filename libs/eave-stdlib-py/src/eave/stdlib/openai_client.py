@@ -130,12 +130,12 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
             response = await openai_sdk.ChatCompletion.acreate(**params.compile())
             try:
                 eaveLogger.debug("OpenAI Response", extra=eave_ctx.set({"openai_response": response}))
-            except Exception as e:
+            except Exception:
                 # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
-                eaveLogger.exception("error during logging", extra=eave_ctx.set({"exc": e}))
+                eaveLogger.exception("error during logging", extra=eave_ctx)
             break
         except openai.error.RateLimitError as e:
-            eaveLogger.warning("OpenAI RateLimitError", exc_info=e, extra=eave_ctx.set({"exc": e}))
+            eaveLogger.warning("OpenAI RateLimitError", exc_info=e, extra=eave_ctx)
             if i + 1 < max_attempts:
                 time.sleep(i + 1)
     else:

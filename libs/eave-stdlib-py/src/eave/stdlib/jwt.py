@@ -67,12 +67,9 @@ class JWT:
 
     @classmethod
     def from_str(cls, jwt_encoded: str) -> Self:
-        try:
-            header_encoded, payload_encoded, signature_provided = jwt_encoded.split(".")
-            header = JWTHeader.from_b64(header_encoded=header_encoded)
-            payload = JWTRegisteredClaims.from_b64(payload_encoded=payload_encoded)
-        except ValueError:
-            raise exceptions.InvalidJWTError()
+        header_encoded, payload_encoded, signature_provided = jwt_encoded.split(".")
+        header = JWTHeader.from_b64(header_encoded=header_encoded)
+        payload = JWTRegisteredClaims.from_b64(payload_encoded=payload_encoded)
 
         return cls(
             header=header,

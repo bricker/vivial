@@ -200,9 +200,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                             "confluence_space_key": space_key,
                         },
                     )
-        except Exception as e:
+        except Exception:
             # Aggressively rescue any type of error, as this is a non-essential procedure.
-            eaveLogger.error("Error while getting confluence spaces", exc_info=e, extra=self.eave_state.log_context)
+            eaveLogger.exception("Error while getting confluence spaces", extra=self.eave_state.log_context)
 
     async def _update_or_create_atlassian_install(self) -> None:
         oauth_token_encoded = json.dumps(self.oauth_session.get_token())
