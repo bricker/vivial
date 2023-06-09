@@ -31,7 +31,7 @@ class ConnectInstallationOrm(Base):
         ),
     )
 
-    team_id: Mapped[Optional[UUID]] = mapped_column()
+    team_id: Mapped[Optional[UUID]] = mapped_column(index=True)
     """team_id has to be optional because on initial integration we don't know which team the app is associated with."""
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, primary_key=True)
