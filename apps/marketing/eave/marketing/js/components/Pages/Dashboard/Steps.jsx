@@ -150,10 +150,10 @@ const CONFLUENCE_APP_INSTALL_URL = 'https://marketplace.atlassian.com/apps/12313
 const Steps = () => {
   const classes = makeClasses();
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'));
-  const { userState, updateConfluenceSpace, getAvailableSpaces, loadingUpdateConfluenceSpace, loadingAvailableSpaces, updateConfluenceError } = useUser();
-  const { teamInfo, availableSpaces } = userState;
+  const { userState, updateConfluenceSpace, availableSpaces, loadAvailableSpaces, loadingUpdateConfluenceSpace, loadingAvailableSpaces, updateConfluenceError } = useUser();
+  const { teamInfo } = userState;
   const [step, setStep] = useState(2);
-  const [space, setSpace] = useState('');
+  const [space, setSpace] = useState(teamInfo?.destination?.confluence_destination?.space_key || '');
   const [editingSpace, setEditingSpace] = useState(false);
   const [didClickForgeButton, setDidClickForgeButton] = useState(false);
   const [didClickJiraButton, setDidClickJiraButton] = useState(false);
@@ -164,9 +164,9 @@ const Steps = () => {
     } else if (!teamInfo?.integrations.confluence_integration) {
       setStep(1);
       // if user has not selected a confluence space
-    } else if (!teamInfo?.destination?.confluence_destination?.space_key || editingSpace) {
-      if (!loadingAvailableSpaces && !availableSpaces) {
-        getAvailableSpaces();
+    } else if (!loadingUpdateConfluenceSpace && (!teamInfo?.destination?.confluence_destination?.space_key || editingSpace || updateConfluenceError)) {
+      if (!loadingAvailableSpaces && availableSpaces === null) {
+        loadAvailableSpaces();
       }
       setStep(2);
     // if user has not linked their github, slack, or jira
@@ -176,9 +176,9 @@ const Steps = () => {
     } else {
       setStep(4);
     }
-  }, [teamInfo, availableSpaces, didClickForgeButton, space]);
+  }, [teamInfo, loadingUpdateConfluenceSpace, availableSpaces, didClickForgeButton, editingSpace, updateConfluenceError]);
 
-  const isStep3Clickable = step > 2 && teamInfo?.destination?.confluence_destination?.space_key?.length > 0;
+  const isStep3Clickable = step > 2;
 
   const handleForgeButtonClick = () => {
     setDidClickForgeButton(true);
@@ -189,7 +189,8 @@ const Steps = () => {
   };
 
   const handleSpaceUpdate = () => {
-    updateConfluenceSpace(space, () => setEditingSpace(false));
+    setEditingSpace(false);
+    updateConfluenceSpace(space);
   };
 
   const handleSelectChange = (event) => {
@@ -198,9 +199,7 @@ const Steps = () => {
 
   const handleStepClick = () => {
     if (isStep3Clickable) {
-      setSpace(teamInfo?.destination?.confluence_destination?.space_key);
       setEditingSpace(true);
-      setStep(2);
     }
   };
 
@@ -256,7 +255,11 @@ const Steps = () => {
           <StepLabel StepIconComponent={StepIcon} onClick={handleStepClick}>
             <Copy variant="h3" className={classNames(classes.header, { [classes.clickable]: isStep3Clickable })} >
               Step 3: Select your <ConfluenceIcon /> Confluence Space
-              {isStep3Clickable && <DownIcon className={classes.downIcon} />}
+              {isStep3Clickable && (
+                loadingUpdateConfluenceSpace
+                  ? <CircularProgress className={classes.downIcon} size={16} thickness={2} />
+                  : <DownIcon className={classes.downIcon} />
+              )}
             </Copy>
           </StepLabel>
           <StepContent className={classes.content}>
@@ -287,11 +290,7 @@ const Steps = () => {
                   onClick={handleSpaceUpdate}
                   disabled={loadingUpdateConfluenceSpace || loadingAvailableSpaces}
                 >
-                  {loadingUpdateConfluenceSpace ? (
-                    <CircularProgress />
-                  ) : (
-                    'Submit'
-                  )}
+                  {loadingUpdateConfluenceSpace ? <CircularProgress /> : 'Submit'}
                 </Button>
             </div>
             {updateConfluenceError && (

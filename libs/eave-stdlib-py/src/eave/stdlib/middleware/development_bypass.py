@@ -1,3 +1,11 @@
+from ..api_util import get_header_value
+from ..headers import EAVE_DEV_BYPASS_HEADER
+from ..config import shared_config
+from asgiref.typing import HTTPScope
+
+from ..logging import eaveLogger
+
+"""
 ## middleware check bypass
 
 To bypass the signature and auth verification middlewares in development mode, the following conditions must be met:
@@ -24,3 +32,24 @@ Copy that string into the `X-Google-EAVEDEV` header. It will be verified when re
 ### Auth Bypass
 
 When bypassing auth, the `Authorization` header should contain the ID of the account you want to act as.
+"""
+
+
+def development_bypass_allowed(scope: HTTPScope) -> bool:
+    if not shared_config.is_development:
+        return False
+    if shared_config.google_cloud_project == "eave-production":
+        return False
+
+    dev_header = get_header_value(scope=scope, name=EAVE_DEV_BYPASS_HEADER)
+    if not dev_header:
+        return False
+
+    import os
+
+    expected_uname = str(os.uname())
+    if dev_header == expected_uname:
+        eaveLogger.warning("Development bypass request accepted; some checks will be bypassed.")
+        return True
+
+    raise Exception()

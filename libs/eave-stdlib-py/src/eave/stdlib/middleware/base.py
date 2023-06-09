@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from typing import Any, Generator
-import eave.stdlib.request_state
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, Scope, HTTPScope
+from ..request_state import EaveRequestState, set_eave_state, get_eave_state
 
 
 class EaveASGIMiddleware:
@@ -19,14 +19,14 @@ class EaveASGIMiddleware:
 
     @staticmethod
     @contextmanager
-    def auto_eave_state(scope: HTTPScope) -> Generator[eave.stdlib.request_state.EaveRequestState, Any, None]:
+    def auto_eave_state(scope: HTTPScope) -> Generator[EaveRequestState, Any, None]:
         eave_state = EaveASGIMiddleware.eave_state(scope=scope)
         yield eave_state
-        eave.stdlib.request_state.set_eave_state(scope=scope, eave_state=eave_state)
+        set_eave_state(scope=scope, eave_state=eave_state)
 
     @staticmethod
-    def eave_state(scope: HTTPScope) -> eave.stdlib.request_state.EaveRequestState:
-        return eave.stdlib.request_state.get_eave_state(scope=scope)
+    def eave_state(scope: HTTPScope) -> EaveRequestState:
+        return get_eave_state(scope=scope)
 
     @staticmethod
     async def read_body(scope: HTTPScope, receive: ASGIReceiveCallable) -> bytes:

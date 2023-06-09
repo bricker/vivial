@@ -7,7 +7,8 @@ from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Sco
 from eave.stdlib.api_util import get_bearer_token
 
 from eave.stdlib.request_state import EaveRequestState
-from . import development_bypass
+from eave.stdlib.middleware.development_bypass import development_bypass_allowed
+from .development_bypass import development_bypass_auth
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.exceptions import BadRequestError
 
@@ -16,8 +17,8 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
             with self.auto_eave_state(scope=scope) as eave_state:
-                if development_bypass.development_bypass_allowed(scope=scope):
-                    await development_bypass.development_bypass_auth(scope=scope, eave_state=eave_state)
+                if development_bypass_allowed(scope=scope):
+                    await development_bypass_auth(scope=scope, eave_state=eave_state)
                 else:
                     await self._verify_auth(scope=scope, eave_state=eave_state)
 

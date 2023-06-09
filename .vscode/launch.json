@@ -18,6 +18,8 @@
         "--reload",
         "--reload-dir",
         "eave",
+        "--reload-dir",
+        "${workspaceFolder}/libs/eave-stdlib-py",
         "eave.core.app:app"
       ],
       "justMyCode": false,
@@ -92,7 +94,9 @@
       "program": "${workspaceFolder}/apps/confluence/src/app.ts",
       "restart": true,
       "args": [
-        "--exec", "pkill -n ngrok || true && ts-node"
+        "--exec", "pkill -n ngrok || true && ts-node",
+        "--watch", "${workspaceFolder}/apps/confluence/src",
+        "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
       "consoleTitle": "Confluence App",

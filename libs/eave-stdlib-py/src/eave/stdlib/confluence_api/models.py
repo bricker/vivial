@@ -1,7 +1,7 @@
 import enum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from eave.stdlib.core_api.models import BaseInputModel
 
 from eave.stdlib.typing import JsonObject
@@ -10,6 +10,11 @@ from eave.stdlib.typing import JsonObject
 class ConfluenceSearchParamsInput(BaseInputModel):
     space_key: Optional[str]
     text: str
+
+
+class UpdateContentInput(BaseInputModel):
+    id: str
+    body: str
 
 
 class DeleteContentInput(BaseInputModel):
@@ -36,6 +41,17 @@ class ConfluenceSpaceType(enum.StrEnum):
 class ConfluenceSpaceStatus(enum.StrEnum):
     current = "current"
     archived = "archived"
+
+
+class ConfluenceContentType(enum.StrEnum):
+    page = "page"
+    blogpost = "blogpost"
+    custom = "custom"
+
+
+class ConfluenceContentStatus(enum.StrEnum):
+    current = "current"
+    draft = "draft"
 
 
 class BodyType(BaseModel):
@@ -186,15 +202,14 @@ class ConfluenceContentBody(BaseModel):
 
 
 class ConfluencePageBody(BaseModel):
-    content: Optional[ConfluenceContentBody]
-    representation: ConfluenceContentBodyRepresentation
+    storage: Optional[ConfluenceContentBody]
 
 
 class ConfluencePage(BaseModel):
     id: str
-    type: str
     status: str
     title: str
+    type: Optional[str]
     macroRenderedOutput: Optional[JsonObject]
     extensions: Optional[JsonObject]
     ancestors: Optional[list[JsonObject]]
@@ -203,12 +218,12 @@ class ConfluencePage(BaseModel):
     space: Optional[ConfluenceSpace]
     history: Optional[ConfluencePageHistory]
     version: Optional[ConfluencePageVersion]
-    _links: Optional[ConfluenceGenericLinks]
+    links: Optional[ConfluenceGenericLinks] = Field(alias="_links")
 
     @property
     def url(self) -> str:
-        if self._links and self._links.base and self._links.context and self._links.webui:
-            return "".join([self._links.base, self._links.context, self._links.webui])
+        if self.links and self.links.base and self.links.webui:
+            return "".join([self.links.base, self.links.webui])
         else:
             return ""
 
@@ -224,18 +239,23 @@ class Breadcrumb(BaseModel):
     separator: str
 
 
-class ConfluenceSearchResult(BaseModel):
-    content: Optional[ConfluencePage]
-    user: Optional[ConfluenceUser]
-    space: Optional[ConfluenceSpace]
-    title: str
-    excerpt: str
-    url: str
-    resultParentContainer: Optional[ContainerSummary]
-    resultGlobalContainer: Optional[ContainerSummary]
-    breadcrumbs: list[Breadcrumb]
-    entityType: str
-    iconCssClass: str
-    lastModified: str
-    friendlyLastModified: Optional[str]
-    score: int
+class ConfluenceSearchResultWithBody(BaseModel):
+    id: Optional[str | int]
+    type: Optional[ConfluenceContentType]
+    status: Optional[ConfluenceContentStatus]
+    title: Optional[str]
+    body: ConfluencePageBody
+    links: Optional[ConfluenceGenericLinks] = Field(alias="_links")
+    # These properties are documented in Confluence API docs but never actually returned...?
+    # content: Optional[ConfluencePage]
+    # user: Optional[ConfluenceUser]
+    # space: Optional[ConfluenceSpace]
+    # excerpt: Optional[str]
+    # resultParentContainer: Optional[ContainerSummary]
+    # resultGlobalContainer: Optional[ContainerSummary]
+    # breadcrumbs: Optional[list[Breadcrumb]]
+    # entityType: Optional[str]
+    # iconCssClass: Optional[str]
+    # lastModified: Optional[str]
+    # friendlyLastModified: Optional[str]
+    # score: Optional[int]

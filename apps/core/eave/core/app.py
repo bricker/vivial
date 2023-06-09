@@ -1,8 +1,8 @@
-from eave.core.public.middlewares.body_parser import BodyParserASGIMiddleware
+from eave.core.public.middlewares.authentication import AuthASGIMiddleware
+from eave.core.public.middlewares.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
-import eave.stdlib
-import eave.stdlib.api_util
+from eave.stdlib import cache
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
 from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocuments, UpsertDocument
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
@@ -16,20 +16,21 @@ from eave.stdlib.core_api.operations.subscriptions import (
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
-import eave.stdlib.logging
+from eave.stdlib.middleware.origin import OriginASGIMiddleware
+from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
-from starlette.middleware import Middleware
 from starlette.routing import Route
 
 import eave.core.public.requests.github_integration
 
-from .public import middlewares
 from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team, status
 from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
+from .internal.database import async_engine
+from eave.stdlib.middleware import standard_middleware_starlette
 
 eave.stdlib.time.set_utc()
 
@@ -131,19 +132,19 @@ def make_route(
 
     if config.team_id_required:
         # Last thing to happen before the Route handler
-        endpoint = middlewares.TeamLookupASGIMiddleware(app=endpoint)
+        endpoint = TeamLookupASGIMiddleware(app=endpoint)
 
     if config.auth_required:
-        endpoint = middlewares.AuthASGIMiddleware(app=endpoint)
+        endpoint = AuthASGIMiddleware(app=endpoint)
 
     if config.signature_required:
         # If signature is required, origin is also required.
         assert config.origin_required
-        endpoint = middlewares.SignatureVerificationASGIMiddleware(app=endpoint)
+        endpoint = SignatureVerificationASGIMiddleware(app=endpoint)
 
     if config.origin_required:
         # First thing to happen when the middleware chain is kicked off
-        endpoint = middlewares.OriginASGIMiddleware(app=endpoint)
+        endpoint = OriginASGIMiddleware(app=endpoint)
 
     return Route(path=config.path, endpoint=endpoint)
 
@@ -308,14 +309,15 @@ routes = [
     ),
 ]
 
-middleware = [
-    Middleware(middlewares.RequestIntegrityASGIMiddleware),
-    Middleware(BodyParserASGIMiddleware),
-    Middleware(middlewares.LoggingASGIMiddleware),
-]
+
+async def graceful_shutdown() -> None:
+    await async_engine.dispose()
+    await cache.quit()
+
 
 app = starlette.applications.Starlette(
-    middleware=middleware,
+    middleware=standard_middleware_starlette,
     routes=routes,
     exception_handlers=exception_handlers,
+    on_shutdown=[graceful_shutdown],
 )

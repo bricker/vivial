@@ -19,10 +19,12 @@
     "@google-cloud/logging": "10.x",
     "@google-cloud/pubsub": "3.x",
     "@google-cloud/secret-manager": "4.x",
+    "@redis/client": "^1.5.8",
     "express": "4.x",
     "fast-crc32c": "2.x",
     "openai": "3.x",
     "protobufjs": "7.x",
+    "redis": "4.x",
     "request": "2.x",
     "uuid": "9.x"
   },

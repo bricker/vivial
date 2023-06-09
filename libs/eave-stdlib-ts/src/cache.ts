@@ -1,59 +1,121 @@
-export class CacheEntry<T> {
+import { createClient } from 'redis';
+import { RedisCommandArgument } from '@redis/client/dist/lib/commands/index.js';
+import { SetOptions } from '@redis/client/dist/lib/commands/SET.js';
+import { sharedConfig } from './config.js';
+import eaveLogger from './logging.js';
+
+export interface Cache {
+  get: (key: RedisCommandArgument) => Promise<RedisCommandArgument | null>;
+  set: (key: RedisCommandArgument, value: RedisCommandArgument | number, options?: SetOptions) => Promise<RedisCommandArgument | null>;
+  del: (keys: RedisCommandArgument | RedisCommandArgument[]) => Promise<number>;
+  quit: () => Promise<string>;
+}
+
+class CacheEntry {
   key: string;
 
-  value: T;
+  value: string;
 
-  ttl: number | undefined;
+  ex?: number;
 
-  constructor(key: string, value: T, ttlMillis: number | null = null) {
+  ts: number;
+
+  constructor(key: string, value: string, ex?: number) {
     this.key = key;
     this.value = value;
+    this.ex = ex;
+    this.ts = new Date().getTime();
+  }
 
-    if (ttlMillis !== null) {
-      this.ttl = Date.now() + ttlMillis;
+  get expired(): boolean {
+    if (this.ex === undefined) {
+      return false;
     }
+
+    const now = new Date().getTime();
+    return this.ts + this.ex < now;
   }
 }
 
-export class Cache {
-  private storage: {[key:string]: CacheEntry<unknown>} = {};
+export class EphemeralCache implements Cache {
+  private storage: {[key:string]: CacheEntry} = {};
 
-  async getOrSet<T>(key: string, ttlMillis: number | null, func: () => Promise<T>): Promise<T> {
-    const cachedValue = <T | undefined> this.get(key);
-    if (cachedValue !== undefined) {
-      return cachedValue;
+  async get(key: RedisCommandArgument): Promise<RedisCommandArgument | null> {
+    const entry = this.storage[key.toString()];
+    if (entry === undefined) {
+      return null;
     }
 
-    const value = await func();
-    this.set(key, value, ttlMillis);
-    return value;
-  }
-
-  set<T>(key: string, value: T, ttlMillis: number | null = null) {
-    const entry = new CacheEntry(key, value, ttlMillis);
-    this.storage[key] = entry;
-  }
-
-  get<T>(key: string): T | undefined {
-    const entry = this.storage[key];
-    const now = Date.now();
-
-    if (!entry) return undefined;
-    if (entry && !entry.ttl) return <T>entry.value;
-    if (entry && entry.ttl && entry.ttl > now) return <T>entry.value;
-
-    if (entry && entry.ttl && entry.ttl <= now) {
-      this.remove(key);
+    if (entry.expired) {
+      // TODO: Not threadsafe
+      await this.del(key);
+      return null;
     }
 
-    return undefined;
+    return entry.value;
   }
 
-  remove(key: string) {
-    delete this.storage[key];
+  async set(key: RedisCommandArgument, value: RedisCommandArgument | number, options?: SetOptions): Promise<RedisCommandArgument | null> {
+    const entry = new CacheEntry(key.toString(), value.toString(), options?.EX);
+    this.storage[key.toString()] = entry;
+    return '1';
   }
 
-  clear() {
-    this.storage = {};
+  async del(keys: RedisCommandArgument | Array<RedisCommandArgument>): Promise<number> {
+    let k: RedisCommandArgument[];
+
+    if (keys.length === 0) {
+      return 0;
+    }
+    if (keys instanceof Array) {
+      k = keys;
+    } else {
+      k = [keys];
+    }
+
+    let count = 0;
+    for (const key of k) {
+      if (this.storage[key.toString()] !== undefined) {
+        delete this.storage[key.toString()];
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  async quit(): Promise<string> {
+    return '1';
   }
 }
+
+async function loadCacheImpl(): Promise<Cache> {
+  const redisConnection = sharedConfig.redisConnection;
+  if (redisConnection === undefined) {
+    const impl = new EphemeralCache();
+    return impl;
+  }
+
+  const { host, port, db } = redisConnection;
+  const redisAuth = await sharedConfig.redisAuth();
+
+  const logAuth = redisAuth ? redisAuth.slice(0, 4) : '(none)';
+  eaveLogger.debug({ message: `Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...` });
+
+  const redisTlsCA = sharedConfig.redisTlsCA;
+  const impl = createClient({
+    socket: {
+      host,
+      port,
+      tls: redisTlsCA !== undefined,
+      ca: redisTlsCA,
+    },
+    database: db,
+    password: redisAuth,
+  });
+
+  await impl.connect();
+  return impl;
+}
+
+export default loadCacheImpl();

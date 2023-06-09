@@ -20,8 +20,7 @@ export function signatureVerification(baseUrl: string): ((req: Request, res: Res
       return;
     }
 
-    const { body } = req;
-    if (doSignatureVerification(req, res, body, baseUrl)) {
+    if (doSignatureVerification(req, res, baseUrl)) {
       next();
     } else {
       const eaveState = getEaveState(res);
@@ -32,7 +31,7 @@ export function signatureVerification(baseUrl: string): ((req: Request, res: Res
   };
 }
 
-function doSignatureVerification(req: Request, res: Response, body: Buffer, baseUrl: string): boolean {
+function doSignatureVerification(req: Request, res: Response, baseUrl: string): boolean {
   const eaveState = getEaveState(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
@@ -46,19 +45,21 @@ function doSignatureVerification(req: Request, res: Response, body: Buffer, base
   const accountId = req.header(eaveHeaders.EAVE_ACCOUNT_ID_HEADER);
   const origin = eaveState.eave_origin!;
 
-  let serializedBody;
-  if (typeof body === 'string' || body instanceof Buffer) {
-    serializedBody = body.toString();
-  } else {
-    serializedBody = JSON.stringify(body);
-  }
+  // let serializedBody;
+  // if (typeof req.body === 'string' || req.body instanceof Buffer) {
+  //   serializedBody = req.body.toString();
+  // } else {
+  //   serializedBody = JSON.stringify(req.body, undefined, 0);
+  // }
+
+  const payload = (<Buffer>req.body).toString();
 
   const message = buildMessageToSign({
     method: req.method,
     url: `${baseUrl}${req.originalUrl}`,
     requestId: eaveState.request_id!,
     origin,
-    payload: serializedBody,
+    payload,
     teamId,
     accountId,
   });

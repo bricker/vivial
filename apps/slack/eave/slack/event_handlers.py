@@ -29,7 +29,9 @@ def register_event_handlers(app: AsyncApp) -> None:
 
 
 async def error_handler(error: Exception, context: AsyncBoltContext) -> None:
-    # FIXME: This probably duplicates logs
+    """
+    Called by slack bolt when an exception occurs when running the event handler.
+    """
     eave_ctx = LogContext.wrap(context.get("eave_ctx"))
     eaveLogger.error(str(error), exc_info=error, extra=eave_ctx)
 
@@ -64,11 +66,11 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
     eave_ctx = LogContext.wrap(context.get("eave_ctx"))
     eaveLogger.debug("Received event: message", extra=eave_ctx)
     if event is None:
-        raise SlackDataError("event parameter")
+        raise SlackDataError("event parameter is missing")
 
     eave_team = context.get("eave_team")
     if not eave_team:
-        raise UnexpectedMissingValue("slack event eave team")
+        raise UnexpectedMissingValue("eave_team")
 
     message = eave.slack.slack_models.SlackMessage(data=event, slack_context=context)
 
@@ -88,7 +90,6 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
             await b.notify_failure(e)
             raise
 
-        # Assume that the exception was already logged.
         # The purpose of this catch block is so that Eave has the opportunity to warn the user that the request failed.
         # But we only want to do that after Cloud Tasks has retried the task a few times.
         queue = await task_queue.get_queue(SLACK_EVENT_QUEUE_NAME)
@@ -118,6 +119,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
             await b.notify_failure(e)
 
         # Always re-raise, very important. Cloud Tasks will decide if it wants to try this task again, not the app.
+        # This error will in turn be handled by the Slack Bolt middleware, which calls `error_handler`, which logs the error.
         raise
 
 

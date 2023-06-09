@@ -32,6 +32,7 @@ const config = {
     'class-methods-use-this': 'off', // I refuse to refactor code if I remove references to `this` in a function
     'max-classes-per-file': 'off', // I refuse to refactor code to make a file shorter
     'max-len': 'off', // I refuse to refactor code to make a line shorter
+    'no-else-return': 'off', // else after return can be good for readability
     'no-continue': 'off', // continues are a valid and useful language feature
     'no-await-in-loop': 'off', // awaiting in a loop is a valid and useful language feature
     'no-useless-return': 'off', // useless returns are good for readability and don't cause bugs

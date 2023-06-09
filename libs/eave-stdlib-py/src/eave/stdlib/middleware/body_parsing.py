@@ -1,12 +1,15 @@
 import json
 
-import eave.stdlib
 from asgiref.typing import ASGIReceiveCallable, ASGIReceiveEvent, ASGISendCallable, Scope
 
-from eave.stdlib.middleware.base import EaveASGIMiddleware
+from ..headers import CONTENT_TYPE
+
+from .base import EaveASGIMiddleware
+from ..api_util import get_header_value
+from ..logging import eaveLogger
 
 
-class BodyParserASGIMiddleware(EaveASGIMiddleware):
+class BodyParsingASGIMiddleware(EaveASGIMiddleware):
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
@@ -16,18 +19,16 @@ class BodyParserASGIMiddleware(EaveASGIMiddleware):
 
         if len(body) > 0:
             with self.auto_eave_state(scope=scope) as eave_state:
-                content_type = eave.stdlib.api_util.get_header_value(
+                content_type = get_header_value(
                     scope=scope,
-                    name=eave.stdlib.headers.CONTENT_TYPE,
+                    name=CONTENT_TYPE,
                 )
 
                 if content_type == "application/json":
                     try:
                         eave_state.parsed_request_body = json.loads(body)
                     except Exception:
-                        eave.stdlib.logging.eaveLogger.exception(
-                            "Error while parsing body as JSON", extra=eave_state.log_context
-                        )
+                        eaveLogger.exception("Error while parsing body as JSON", extra=eave_state.log_context)
                 else:
                     eave_state.parsed_request_body = {"text": str(body)}
 

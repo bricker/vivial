@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 import eave.stdlib.api_util as eave_api_util
@@ -10,9 +11,9 @@ import eave.stdlib.requests
 import eave.stdlib.logging
 import eave.stdlib.time
 import werkzeug.exceptions
-from flask import Flask, Response, make_response, redirect, render_template, request
+from flask import Flask, Response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
-
+from eave.stdlib.typing import JsonObject
 from .config import app_config
 
 eave.stdlib.time.set_utc()
@@ -45,13 +46,14 @@ def _render_spa(**kwargs: Any) -> str:
 
 
 @app.route("/authcheck", methods=["GET"])
-async def get_auth_state() -> dict[str, bool]:
+async def get_auth_state() -> Response:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
-
     if not auth_cookies.access_token or not auth_cookies.account_id:
-        return {"authenticated": False}
+        response_body = {"authenticated": False}
     else:
-        return {"authenticated": True}
+        response_body = {"authenticated": True}
+
+    return _json_response(body=response_body)
 
 
 @app.route("/dashboard/me/team", methods=["GET"])
@@ -89,8 +91,7 @@ async def get_available_spaces() -> Response:
         team_id=team_response.team.id,
     )
 
-    response = make_response(spaces_response.json())
-    return response
+    return _json_response(body=spaces_response.json())
 
 
 @app.route("/dashboard/me/team/destinations/confluence/upsert", methods=["POST"])
@@ -141,7 +142,7 @@ def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegratio
     access_token = eave_response.account.access_token
     del eave_response.account.access_token
 
-    response = make_response(eave_response.json())
+    response = _json_response(body=eave_response.json())
 
     eave.stdlib.cookies.set_auth_cookies(
         response=response,
@@ -150,3 +151,13 @@ def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegratio
 
     # TODO: Forward cookies from server to client
     return response
+
+
+def _json_response(body: JsonObject | str) -> Response:
+    if not isinstance(body, str):
+        body = json.dumps(body)
+
+    return Response(
+        response=body,
+        mimetype="application/json",
+    )

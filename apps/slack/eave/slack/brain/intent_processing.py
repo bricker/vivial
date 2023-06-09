@@ -46,7 +46,7 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
         Processes a request that wasn't recognized.
         Basically lets the user know that I wasn't able to process the message, and reminds them if I'm already documenting this conversation.
         """
-        subscription = await self.get_subscription()
+        subscription_response = await self.get_subscription()
 
         eaveLogger.warning(
             "Unknown request to Eave in Slack",
@@ -59,7 +59,7 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
 
         # TODO: Create a Jira ticket (or similar) when Eave doesn't know how to handle a message.
 
-        if subscription is None:
+        if subscription_response.subscription is None:
             await self.send_response(
                 text=(
                     "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
@@ -70,11 +70,11 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
 
             # TODO: handle the response to this, eg if the user says "Yes please" or "No thanks"
 
-        elif subscription.document_reference is not None:
+        elif subscription_response.document_reference is not None:
             await self.send_response(
                 text=(
                     "Hey! I haven't been trained on how to respond to your message. I've let my development team know about it. "
-                    f"As a reminder, I'm watching this conversation and documenting the information <{subscription.document_reference.document_url}|here>. "
+                    f"As a reminder, I'm watching this conversation and documenting the information <{subscription_response.document_reference.document_url}|here>. "
                     "If you needed something else, try phrasing it differently."
                 ),
                 eave_message_purpose="responding to unknown request",

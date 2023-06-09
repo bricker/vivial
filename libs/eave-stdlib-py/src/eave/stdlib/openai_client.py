@@ -9,9 +9,12 @@ import openai.error
 import openai.openai_object
 import tiktoken
 
-from . import exceptions, logging
+from eave.stdlib.logging import LogContext
+
 from .typing import JsonObject
 from .config import shared_config
+from .logging import eaveLogger
+from .exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
 
 tokencoding = tiktoken.get_encoding("gpt2")
 
@@ -111,31 +114,32 @@ def ensure_api_key() -> None:
         openai_sdk.api_key = shared_config.eave_openai_api_key
 
 
-async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
+async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogContext] = None) -> Optional[str]:
     """
     https://beta.openai.com/docs/api-reference/completions/create
     """
 
     ensure_api_key()
 
-    logging.eaveLogger.debug(f"OpenAI Params: {params}")
+    eave_ctx = LogContext.wrap(ctx)
+    eaveLogger.debug("OpenAI Request", extra=eave_ctx.set({"openai_request_params": params.__dict__}))
 
     max_attempts = 3
     for i in range(max_attempts):
         try:
             response = await openai_sdk.ChatCompletion.acreate(**params.compile())
             try:
-                logging.eaveLogger.debug("OpenAI Response", extra={"json_fields": response})
+                eaveLogger.debug("OpenAI Response", extra=eave_ctx.set({"openai_response": response}))
             except Exception:
                 # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
-                logging.eaveLogger.exception("error during logging")
+                eaveLogger.exception("error during logging", extra=eave_ctx)
             break
         except openai.error.RateLimitError as e:
-            logging.eaveLogger.warning("OpenAI RateLimitError", exc_info=e)
+            eaveLogger.warning("OpenAI RateLimitError", exc_info=e, extra=eave_ctx)
             if i + 1 < max_attempts:
                 time.sleep(i + 1)
     else:
-        raise exceptions.MaxRetryAttemptsReachedError("OpenAI")
+        raise MaxRetryAttemptsReachedError("OpenAI")
 
     response = cast(openai.openai_object.OpenAIObject, response)
     candidates = [c for c in response.choices if c["finish_reason"] == "stop"]
@@ -143,11 +147,11 @@ async def chat_completion(params: ChatCompletionParameters) -> Optional[str]:
     if len(candidates) > 0:
         choice = candidates[0]
     else:
-        logging.eaveLogger.warning("No valid choices from openAI; using the first result.")
+        eaveLogger.warning("No valid choices from openAI; using the first result.", extra=eave_ctx)
         if len(response.choices) > 0:
             choice = response.choices[0]
         else:
-            raise exceptions.OpenAIDataError("no choices given")
+            raise OpenAIDataError("no choices given")
 
     answer = str(choice.message.content).strip()
     return answer

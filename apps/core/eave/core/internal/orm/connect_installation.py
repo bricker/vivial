@@ -43,7 +43,7 @@ class ConnectInstallationOrm(Base):
     base_url for the product, given by Connect installation. Includes the product context path.
     eg: https://eave-fyi.atlassian.net/wiki
     """
-    org_url: Mapped[Optional[str]] = mapped_column()
+    org_url: Mapped[Optional[str]] = mapped_column(index=True)
     """
     base URL for the Atlassian organization
     eg: https://eave-fyi.atlassian.net
@@ -55,7 +55,7 @@ class ConnectInstallationOrm(Base):
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     class QueryParams(TypedDict):
-        product: AtlassianProduct
+        product: NotRequired[AtlassianProduct]
         id: NotRequired[uuid.UUID]
         team_id: NotRequired[uuid.UUID | str | None]
         client_key: NotRequired[str | None]
@@ -65,14 +65,14 @@ class ConnectInstallationOrm(Base):
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-        product = kwargs["product"]
-        lookup = lookup.where(cls.product == product)
-
         id = kwargs.get("id")
         team_id = kwargs.get("team_id")
         client_key = kwargs.get("client_key")
         org_url = kwargs.get("org_url")
         assert id or team_id or client_key or org_url, "at least one parameter must be specified"
+
+        if product := kwargs.get("product"):
+            lookup = lookup.where(cls.product == product)
 
         if id:
             lookup = lookup.where(cls.id == id)

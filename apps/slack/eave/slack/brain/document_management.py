@@ -22,7 +22,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         """
         existing_subscription_response = await self.get_subscription()
 
-        if existing_subscription_response is None:
+        if existing_subscription_response.subscription is None:
             await self.send_response(
                 text="On it!", eave_message_purpose="confirmation that documentation is being worked on"
             )
@@ -100,7 +100,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         all_messages = await self.message.get_conversation_messages()
         if all_messages is None:
             raise SlackDataError("all_messages")
-        
+
         # convert to list so the generator produced by filter is not
         # consumed completely the first time we iterate the entire iterable
         messages_without_self = list(filter(lambda m: m.is_eave is False, all_messages))

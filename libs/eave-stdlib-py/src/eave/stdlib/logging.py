@@ -1,4 +1,5 @@
 import logging
+from logging import LogRecord
 import sys
 from typing import Any, Optional, Self, TypeVar, cast
 
@@ -11,7 +12,8 @@ from .config import shared_config
 
 # https://stackoverflow.com/a/56944256/885036
 class CustomFormatter(logging.Formatter):
-    grey = "\x1b[38;1m"
+    dimgrey = "\x1b[2;39m"
+    grey = "\x1b[39;1m"
     yellow = "\x1b[33;1m"
     green = "\x1b[32;1m"
     purple = "\x1b[35;1m"
@@ -19,7 +21,7 @@ class CustomFormatter(logging.Formatter):
     red = "\x1b[31;20m"
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
-    formatstr = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+    formatstr = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)\n"
 
     FORMATS = {
         logging.DEBUG: purple + formatstr + reset,
@@ -29,10 +31,43 @@ class CustomFormatter(logging.Formatter):
         logging.CRITICAL: bold_red + formatstr + reset,
     }
 
+    IGNORE_KEYS = set(
+        [
+            "asctime",
+            "created",
+            "exc_info",
+            "exc_text",
+            "filename",
+            "levelname",
+            "levelno",
+            "message",
+            "module",
+            "msecs",
+            "msg",
+            "name",
+            "process",
+            "processName",
+            "relativeCreated",
+            "stack_info",
+            "thread",
+            "threadName",
+        ]
+    )
+
     def format(self, record: logging.LogRecord) -> str:
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        string = formatter.format(record)
+
+        extra = {k: v for k, v in record.__dict__.items() if k not in self.IGNORE_KEYS}
+        string += f"{self.dimgrey}{extra}{self.reset}"
+        return string
+
+
+class CustomFilter(logging.Filter):
+    def filter(self, record: LogRecord) -> bool:
+        log = super().filter(record)
+        return log and record.name == "eave"
 
 
 rootLogger = logging.getLogger()
@@ -42,8 +77,8 @@ rootLogger.setLevel(level)
 if shared_config.is_development:
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
-    formatter = CustomFormatter()
-    handler.setFormatter(formatter)
+    handler.setFormatter(CustomFormatter())
+    handler.addFilter(CustomFilter())
     rootLogger.addHandler(handler)
 
 if shared_config.monitoring_enabled:

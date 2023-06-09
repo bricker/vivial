@@ -1,14 +1,13 @@
+import logging
 import pydantic
 from typing import Optional
 import uuid
 import aiohttp
 import urllib.parse
-from http import HTTPStatus
 from eave.stdlib.eave_origins import EaveOrigin
 
 from eave.stdlib.util import redact
 
-from . import exceptions as eave_exceptions
 from . import headers as eave_headers
 from . import signing
 from .logging import eaveLogger
@@ -33,7 +32,9 @@ async def make_request(
         eave_headers.EAVE_REQUEST_ID_HEADER: str(request_id),
     }
 
-    payload = input.json() if input else "{}"  # empty JSON object
+    # The indent and separators params here ensure that the payload is as compact as possible.
+    # It's mostly a way to normalize the payload so services know what to expect.
+    payload = input.json(indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
 
     if access_token:
         headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
@@ -80,6 +81,15 @@ async def make_request(
         },
     )
 
+    eaveLogger.debug(
+        f"request payload: {request_id}",
+        extra={
+            "json_fields": {
+                "payload": payload,
+            },
+        },
+    )
+
     async with aiohttp.ClientSession() as session:
         response = await session.request(
             method=method,
@@ -108,21 +118,18 @@ async def make_request(
         },
     )
 
-    try:
-        response.raise_for_status()
-    except aiohttp.ClientResponseError as e:
-        match e.status:
-            case HTTPStatus.NOT_FOUND:
-                raise eave_exceptions.NotFoundError(request_id=request_id)
-            case HTTPStatus.UNAUTHORIZED:
-                raise eave_exceptions.UnauthorizedError(request_id=request_id)
-            case HTTPStatus.BAD_REQUEST:
-                raise eave_exceptions.BadRequestError(request_id=request_id)
-            case HTTPStatus.INTERNAL_SERVER_ERROR:
-                raise eave_exceptions.InternalServerError(request_id=request_id)
-            case _:
-                raise eave_exceptions.HTTPException(status_code=e.status)
+    if eaveLogger.level >= logging.DEBUG:
+        # Doing this check to avoid parsing the JSON unless necessary
+        eaveLogger.debug(
+            f"response body: {request_id}",
+            extra={
+                "json_fields": {
+                    "body": await response.json(),
+                },
+            },
+        )
 
+    response.raise_for_status()
     return response
 
 

@@ -133,6 +133,8 @@ export interface ConfluenceUsersUserKeys {
 export interface ConfluencePageVersion {
   by?: ConfluenceUser;
   when: string;
+  authorId?: string;
+  createdAt?: string;
   friendlyWhen?: string;
   message?: string;
   number: number;
@@ -194,22 +196,23 @@ export interface ConfluencePageBodyWrite {
   value?: string;
 }
 
-export interface ConfluenceBodyCreateStorage {
-  value: string;
-  represenation: ConfluenceContentBodyRepresentation;
-}
-
+// TODO: Add the rest of the representations.
+// Confluence API returns body as a map of represenation -> value
+// This interface represents that mapping.
 export interface ConfluencePageBody {
-  content?: ConfluenceContentBody;
-  representation: ConfluenceContentBodyRepresentation;
+  storage?: ConfluenceContentBody;
 }
 
 // This is the same as "Content"
 export interface ConfluencePage {
-  id: string;
-  type: string;
+  id: string | number;
   status: string;
   title: string;
+  type?: string;
+  authorId?: string;
+  parentId?: string | number;
+  spaceId?: string | number;
+  createdAt?: string;
   macroRenderedOutput?: JsonObject;
   extensions?: JsonObject;
   ancestors?: JsonObject[];
@@ -218,6 +221,24 @@ export interface ConfluencePage {
   space?: ConfluenceSpace;
   history?: ConfluencePageHistory;
   version?: ConfluencePageVersion;
+  _links?: ConfluenceGenericLinks;
+}
+
+export interface UpdateConfluenceContentInput {
+  id: string;
+  body: string;
+}
+
+// This is made up, not part of any official Atlassian documentation
+export interface ConfluenceSearchResultWithBody {
+  id: string | number;
+  type: ConfluenceContentType;
+  status: ConfluenceContentStatus;
+  title: string;
+  body: {
+    storage: ConfluenceContentBody;
+  },
+  _links?: ConfluenceGenericLinks;
 }
 
 export interface ContainerSummary {
@@ -231,22 +252,24 @@ export interface Breadcrumb {
   separator: string;
 }
 
-export interface ConfluenceSearchResult {
-  content?: ConfluencePage;
-  user?: ConfluenceUser;
-  space?: ConfluenceSpace;
-  title: string;
-  excerpt: string;
-  url: string;
-  resultParentContainer?: ContainerSummary;
-  resultGlobalContainer?: ContainerSummary;
-  breadcrumbs: Breadcrumb[];
-  entityType: string;
-  iconCssClass: string;
-  lastModified: string;
-  friendlyLastModified?: string;
-  score: number;
-}
+// I don't know what this is, it's documented here but the actual response is completely different.
+// https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/#api-wiki-rest-api-search-get
+// export interface ConfluenceSearchResult {
+//   content?: ConfluencePage;
+//   user?: ConfluenceUser;
+//   space?: ConfluenceSpace;
+//   title: string;
+//   excerpt?: string;
+//   url?: string;
+//   resultParentContainer?: ContainerSummary;
+//   resultGlobalContainer?: ContainerSummary;
+//   breadcrumbs?: Breadcrumb[];
+//   entityType?: string;
+//   iconCssClass?: string;
+//   lastModified?: string;
+//   friendlyLastModified?: string;
+//   score?: number;
+// }
 
 export interface SystemInfoEntity {
   cloudId: string;

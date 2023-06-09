@@ -4,6 +4,7 @@ import crc32c from 'fast-crc32c';
 import { sharedConfig } from './config.js';
 import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
 import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
+import eaveLogger from './logging.js';
 
 const { RSA_PKCS1_PADDING } = cryptoConstants;
 
@@ -94,6 +95,7 @@ export async function signBase64(
   signingKey: SigningKeyDetails,
   data: string | Buffer,
 ): Promise<string> {
+  eaveLogger.debug({ message: 'signBase64', data });
   const kmsClient = new KeyManagementServiceClient();
   const keyVersionName = kmsClient.cryptoKeyVersionPath(
     sharedConfig.googleCloudProject,
@@ -171,6 +173,7 @@ export async function verifySignatureOrException(
   message: string | Buffer,
   signature: string | Buffer,
 ): Promise<boolean> {
+  eaveLogger.debug({ message: 'verifySignatureOrException', sigMessage: message, signature });
   let signatureString: string;
   if (typeof signature === 'string') {
     signatureString = signature;

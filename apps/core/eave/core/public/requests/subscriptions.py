@@ -1,5 +1,4 @@
 from http import HTTPStatus
-import http
 
 import eave.stdlib
 import eave.core.internal
@@ -35,22 +34,19 @@ class GetSubscription(HTTPEndpoint):
                 session=db_session,
             )
 
-            if not subscription_orm:
-                # This endpoint expects to return None frequently, as it's used to check for an existing subscription.
-                # So we shouldn't log anything.
-                return Response(status_code=http.HTTPStatus.NOT_FOUND)
+            # This endpoint is used to check for an existing subscription. If the resource isn't found, it's not a
+            # client error and a 404 is inappropriate, instead we return nils.
 
+        if subscription_orm:
             document_reference_orm = await subscription_orm.get_document_reference(session=db_session)
-
-        document_reference_public = (
-            DocumentReference.from_orm(document_reference_orm) if document_reference_orm is not None else None
-        )
+        else:
+            document_reference_orm = None
 
         return eave.stdlib.api_util.json_response(
             GetSubscriptionRequest.ResponseBody(
-                team=Team.from_orm(team),
-                subscription=Subscription.from_orm(subscription_orm),
-                document_reference=document_reference_public,
+                team=team.api_model,
+                subscription=subscription_orm.api_model if subscription_orm else None,
+                document_reference=document_reference_orm.api_model if document_reference_orm else None,
             )
         )
 

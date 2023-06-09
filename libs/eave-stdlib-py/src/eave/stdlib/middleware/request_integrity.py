@@ -1,9 +1,11 @@
 import uuid
 
-import eave.stdlib
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 
-from eave.stdlib.middleware.base import EaveASGIMiddleware
+from .base import EaveASGIMiddleware
+from ..api_util import get_header_value, get_headers
+from ..headers import EAVE_REQUEST_ID_HEADER, AUTHORIZATION_HEADER, COOKIE_HEADER
+from ..exceptions import BadRequestError
 
 ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
 
@@ -18,13 +20,11 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
 
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] not in ALLOWED_ASGI_PROTOCOLS:
-            raise eave.stdlib.exceptions.BadRequestError(f"Unsupported protocol: {scope['type']}")
+            raise BadRequestError(f"Unsupported protocol: {scope['type']}")
 
         if scope["type"] == "http":
             with self.auto_eave_state(scope=scope) as eave_state:
-                request_id_header = eave.stdlib.api_util.get_header_value(
-                    scope=scope, name=eave.stdlib.headers.EAVE_REQUEST_ID_HEADER
-                )
+                request_id_header = get_header_value(scope=scope, name=EAVE_REQUEST_ID_HEADER)
 
                 if not request_id_header:
                     request_id = str(uuid.uuid4())
@@ -35,9 +35,9 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
                 eave_state.request_method = scope["method"]
                 eave_state.request_scheme = scope["scheme"]
                 eave_state.request_path = scope["path"]
-                eave_state.request_headers = eave.stdlib.api_util.get_headers(
+                eave_state.request_headers = get_headers(
                     scope,
-                    redacted=[eave.stdlib.headers.COOKIE_HEADER, eave.stdlib.headers.AUTHORIZATION_HEADER],
+                    redacted=[COOKIE_HEADER, AUTHORIZATION_HEADER],
                 )
 
         await self.app(scope, receive, send)

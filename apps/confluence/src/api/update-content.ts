@@ -1,73 +1,59 @@
-import { v4 as uuidv4 } from 'uuid';
-import { RequestResponse } from 'request';
 import { Request, Response } from 'express';
-import { AddOn, HostClient } from 'atlassian-connect-express';
-import { CreateContentRequestBody, CreateContentResponseBody, SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
+import { AddOn } from 'atlassian-connect-express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResult, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
-import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
+import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
+import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { getAuthedConnectClient } from './util.js';
-import { createPage, getPageByTitle, getPageChildren, getSpaceByKey, getSpaceRootPages } from '../confluence-client.js';
+import { getPageById, updatePage } from '../confluence-client.js';
 
 export default async function updateContent(req: Request, res: Response, addon: AddOn) {
+  const client = await getAuthedConnectClient(req, addon);
+  const { content } = <UpdateContentRequestBody>req.body;
+  const page = await getPageById({ client, pageId: content.id });
+  if (page === null) {
+    eaveLogger.error(`Confluence page not found for ID ${content.id}`);
+    res.status(500);
+    return;
+  }
+
+  const existingBody = page.body?.storage?.value;
+  if (existingBody === null) {
+    eaveLogger.error(`Confluence page body is empty for ID ${content.id}`);
+    res.status(500); // TODO: is 500 appropriate here?
+    return;
+  }
+
+  const prompt = [
+    'Merge the two HTML documents so that the unique information is retained, but duplicate information is removed.',
+    'The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>',
+    'Maintain the overall document layout and style from the first document.',
+    'Return only the merged document.\n',
+    '=========================',
+    'First Document:',
+    '=========================',
+    existingBody,
+    '=========================',
+    'Second Document:',
+    '=========================',
+    content.body,
+    '=========================',
+    'Merged Document:',
+    '=========================',
+  ].join('\n');
+
+  // TODO: Token counting
+  const openaiResponse = await openai.createChatCompletion({
+    messages: [
+      { role: 'user', content: prompt },
+    ],
+    model: openai.OpenAIModel.GPT4,
+  });
+
+  eaveLogger.debug({ message: 'OpenAI response', openaiResponse });
+
+  const response = await updatePage({ client, page, body: openaiResponse });
+  const responseBody: UpdateContentResponseBody = {
+    content: response,
+  };
+  res.json(responseBody);
 }
-
-// async def update_document(
-//   self,
-//   input: DocumentInput,
-//   document_id: str,
-// ) -> abstract.DocumentMetadata:
-//   """
-//   Update an existing Confluence document with the new body.
-//   Notably, the title and parent are not changed.
-//   """
-//   existing_page = await self._get_confluence_page_by_id(document_id=document_id)
-//   if existing_page is None:
-//       # TODO: This page was probably deleted. Remove it from our database?
-//       raise NotImplementedError()
-
-//   # TODO: Use a different body format? Currently it will probably return the "storage" format,
-//   # which is XML (HTML), and probably not great for an OpenAI prompt.
-//   if existing_page.body is not None and existing_page.body.content is not None:
-//       # TODO: Token counting
-//       prompt = (
-//           "Merge the following two documents."
-//           "\n\n"
-//           "First Document:\n"
-//           "=========================\n"
-//           f"{existing_page.body.content}\n"
-//           "=========================\n\n"
-//           "Second Document:\n"
-//           "=========================\n"
-//           f"{input.content}\n"
-//           "=========================\n"
-//       )
-//       openai_params = eave.stdlib.openai_client.ChatCompletionParameters(
-//           temperature=0.2,
-//           messages=[prompt],
-//       )
-//       resolved_document_body = await eave.stdlib.openai_client.chat_completion(params=openai_params)
-
-//       if resolved_document_body is None:
-//           raise OpenAIDataError()
-
-//   else:
-//       resolved_document_body = input.content
-
-//   content = clean_document(raw_doc=resolved_document_body)
-//   response = self._confluence_client.update_page(
-//       page_id=document_id,
-//       title=existing_page.title,
-//       body=content,
-//   )
-
-//   if response is None:
-//       raise ConfluenceDataError("confluence update_page response")
-
-//   json = cast(eave.stdlib.typing.JsonObject, response)
-//   page = eave.stdlib.atlassian.ConfluencePage(json)
-//   base_url = self.oauth_session.confluence_context.base_url
-//   return abstract.DocumentMetadata(
-//       id=page.id or "",
-//       url=page.canonical_url(base_url),
-//   )

@@ -39,21 +39,22 @@ class CommunicationMixin(Base):
     async def acknowledge_receipt(self) -> None:
         try:
             reaction = "eave"
-            await self.message.add_reaction(reaction)
+            await self._add_reaction(name=reaction)
         except SlackApiError as e:
             # https://api.slack.com/methods/reactions.add#errors
             error_code = e.response.get("error")
-            eaveLogger.warning(f"Error reacting to message: {error_code}", exc_info=e, extra=self.eave_ctx)
-
             if error_code == "invalid_name":
                 try:
-                    reaction = "large_purple_circle"  # This seems to be available on all Slack workspaces
-                    await self.message.add_reaction(reaction)
+                    # This seems to be available on all Slack workspaces
+                    reaction = "large_purple_circle"
+                    await self._add_reaction(name=reaction)
                 except SlackApiError as e:
-                    eaveLogger.exception("Error acknowledging receipt", exc_info=e, extra=self.eave_ctx)
+                    # Failed twice; give up
+                    eaveLogger.warning("unable to react to message, giving up", exc_info=e, extra=self.eave_ctx)
                     return
             else:
-                eaveLogger.exception("Error acknowledging receipt", exc_info=e, extra=self.eave_ctx)
+                # Error was something else; do nothing.
+                # Exception already logged.
                 return
 
         self.log_event(
@@ -63,3 +64,20 @@ class CommunicationMixin(Base):
                 "reaction": reaction,
             },
         )
+
+    async def _add_reaction(self, name: str) -> None:
+        try:
+            await self.message.add_reaction(name)
+            await self.message.add_reaction_to_parent(name)
+        except SlackApiError as e:
+            # https://api.slack.com/methods/reactions.add#errors
+            error_code = e.response.get("error")
+            if error_code == "already_reacted":
+                # this is expected sometimes, not a problem.
+                return
+            elif error_code == "invalid_name":
+                eaveLogger.warning(f"reaction {name} doesn't exist in workspace", exc_info=e, extra=self.eave_ctx)
+                raise
+            else:
+                eaveLogger.exception(f"Error reacting to message: {e}", exc_info=e, extra=self.eave_ctx)
+                raise

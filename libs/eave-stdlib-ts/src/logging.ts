@@ -2,7 +2,7 @@ import { Logging, SeverityNames } from '@google-cloud/logging';
 import { sharedConfig } from './config.js';
 
 // This module defines some basic functionality for switching between console and Cloud Logger, depending on environment.
-// Winston is a more robust solution, but has many dependencies and doesn't play nicely with the Forge runtime environment.
+// Winston is a more robust solution, but has too many dependencies.
 
 enum LogLevel {
   debug = 0,
@@ -113,7 +113,11 @@ class EaveLogger {
 }
 
 function createLogger() {
-  const logLevel = NAME_TO_LOG_LEVEL[sharedConfig.logLevel.toLowerCase()] || LogLevel.info;
+  let logLevel = NAME_TO_LOG_LEVEL[sharedConfig.logLevel.toLowerCase()];
+  if (logLevel === undefined) {
+    logLevel = LogLevel.info;
+  }
+
   const logger = new EaveLogger(logLevel);
 
   if (sharedConfig.monitoringEnabled) {
