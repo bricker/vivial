@@ -24,7 +24,7 @@ from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.core_api.models.team import DocumentPlatform
 
 from ...http_endpoint import HTTPEndpoint
-from . import base, shared
+from . import EaveOnboardingErrorCode, base, shared
 from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
 from eave.core.internal.config import app_config
 from eave.stdlib.logging import eaveLogger
@@ -51,6 +51,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
 
     async def get(self, request: Request) -> Response:
         await super().get(request=request)
+
+        if not self._check_valid_callback():
+            return self.response
 
         self.oauth_session = oauth_session = oauth_atlassian.AtlassianOAuthSession(state=self.state)
         oauth_session.fetch_token(code=self.code)

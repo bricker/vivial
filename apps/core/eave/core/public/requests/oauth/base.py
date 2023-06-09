@@ -1,3 +1,4 @@
+from typing import Optional
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.core_api.models.account import AuthProvider
@@ -14,7 +15,9 @@ class BaseOAuthCallback(HTTPEndpoint):
     request: Request
     response: Response
     state: str
-    code: str
+    code: Optional[str]
+    error: Optional[str]
+    error_description: Optional[str]
     auth_provider: AuthProvider
     eave_state: eave_request_util.EaveRequestState
 
@@ -28,22 +31,24 @@ class BaseOAuthCallback(HTTPEndpoint):
 
         eave_state = eave_request_util.get_eave_state(request=request)
 
-        code = request.query_params.get("code")
-        error = request.query_params.get("error")
-        error_description = request.query_params.get("error_description")
-
-        if error or not code:
-            eaveLogger.warning(
-                f"Error response from {self.auth_provider} oauth flow, or code missing. {error}: {error_description}",
-                extra=eave_state.log_context,
-            )
-            shared.set_redirect(response=response, location=app_config.eave_www_base)
-            return response
+        self.code = request.query_params.get("code")
+        self.error = request.query_params.get("error")
+        self.error_description = request.query_params.get("error_description")
 
         self.request = request
         self.response = response
         self.state = state
-        self.code = code
         self.eave_state = eave_state
 
         return self.response
+
+    def _check_valid_callback(self) -> bool:
+        if self.error or not self.code:
+            eaveLogger.warning(
+                f"Error response from {self.auth_provider} oauth flow, or code missing. {self.error}: {self.error_description}",
+                extra=self.eave_state.log_context,
+            )
+            shared.cancel_flow(response=self.response)
+            return False
+
+        return True

@@ -35,6 +35,9 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
     async def get(self, request: Request) -> Response:
         await super().get(request=request)
 
+        if not self._check_valid_callback():
+            return self.response
+
         flow = eave.core.internal.oauth.google.build_flow(state=self.state)
         flow.fetch_token(code=self.code)
 

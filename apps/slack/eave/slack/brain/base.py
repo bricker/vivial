@@ -55,6 +55,7 @@ class Base:
             },
         )
 
+    @property
     def execution_count(self) -> int:
         count = self.slack_context.get(TASK_EXECUTION_COUNT_CONTEXT_KEY, 0)
         return int(count)

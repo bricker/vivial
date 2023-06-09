@@ -15,7 +15,7 @@ import eave.stdlib.request_state
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 
 from ...http_endpoint import HTTPEndpoint
-from . import shared
+from . import EaveOnboardingErrorCode, shared
 from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = AuthProvider.github
@@ -54,7 +54,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         self,
         request: Request,
     ) -> Response:
-        response = Response()
+        self.response = Response()
         self.state = state = request.query_params["state"]
 
         # Because of the GitHub redirect_uri issue described in this file, we need to get the redirect_uri from state,
@@ -66,10 +66,10 @@ class GithubOAuthCallback(HTTPEndpoint):
             if url.hostname != request.url.hostname:
                 qp = urllib.parse.urlencode(request.query_params)
                 location = f"{redirect_uri}?{qp}"
-                return shared.set_redirect(response=response, location=location)
+                return shared.set_redirect(response=self.response, location=location)
 
         shared.verify_oauth_state_or_exception(
-            state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=response
+            state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=self.response
         )
 
         # code = request.query_params.get("code")
@@ -88,7 +88,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 f"github installation_id not provided for action {setup_action}. Cannot proceed.",
                 extra=eave_state.log_context,
             )
-            return shared.cancel_flow(response=response)
+            return shared.cancel_flow(response=self.response)
 
         self.installation_id = installation_id
 
@@ -99,17 +99,18 @@ class GithubOAuthCallback(HTTPEndpoint):
         # arrive here then they're expect to be already logged in.
         if not auth_cookies.access_token or not auth_cookies.account_id:
             eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context)
-            return shared.cancel_flow(response=response)
+            return shared.cancel_flow(response=self.response)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             self.eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
                 session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
             )
 
-        await self._update_or_create_github_installation()
-        return shared.set_redirect(
-            response=response, location=f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+        shared.set_redirect(
+            response=self.response, location=shared.DEFAULT_REDIRECT_LOCATION,
         )
+        await self._update_or_create_github_installation()
+        return self.response
 
     async def _update_or_create_github_installation(
         self,

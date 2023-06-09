@@ -11,10 +11,11 @@ import eave.core.internal.orm
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.integrations import Integration
+from eave.core.internal.config import app_config
 from eave.stdlib.logging import eaveLogger
 
 from ...http_endpoint import HTTPEndpoint
-from . import base, shared
+from . import EaveOnboardingErrorCode, base, shared
 
 _AUTH_PROVIDER = AuthProvider.slack
 
@@ -38,6 +39,10 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
     async def get(self, request: Request) -> Response:
         await super().get(request=request)
+
+        # The self.code check here is mostly for the typechecker, as the _check_invalid_callback function also checks the value
+        if not self.code or not self._check_valid_callback():
+            return self.response
 
         self.slack_oauth_data = slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token_or_exception(
             code=self.code
