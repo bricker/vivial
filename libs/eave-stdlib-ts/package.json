@@ -38,7 +38,7 @@
   "devDependencies": {
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@types/express": "4.x",
-    "@types/fast-crc32c": "^2.0.0",
+    "@types/fast-crc32c": "2.x",
     "@types/node": "18.x",
     "@types/sinon": "10.x",
     "@types/uuid": "9.x",
@@ -48,6 +48,7 @@
     "eslint": "8.x",
     "eslint-config-airbnb-base": "15.x",
     "eslint-plugin-import": "2.x",
+    "eslint-plugin-unused-imports": "2.x",
     "nodemon": "2.x",
     "sinon": "15.x",
     "ts-node": "10.x",

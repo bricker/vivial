@@ -101,5 +101,5 @@
   "ts-node": {
     "esm": true,
     "experimentalResolver": true,
-  }
+  },
 }
