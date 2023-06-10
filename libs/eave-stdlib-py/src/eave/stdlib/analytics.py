@@ -18,8 +18,8 @@ _EVENT_TOPIC_ID = "eave_event_topic"
 
 def log_event(
     event_name: str,
-    event_description: str,
-    event_source: str,
+    event_description: typing.Optional[str] = None,
+    event_source: typing.Optional[str] = None,
     opaque_params: typing.Optional[JsonObject] = None,
     eave_account_id: typing.Optional[uuid.UUID | str] = None,
     eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
