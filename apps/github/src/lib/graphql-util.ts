@@ -4,14 +4,20 @@ import GlobalCache from '../lib/cache.js';
 import { GitHubOperationsContext } from '../types.js';
 
 export async function loadQuery(name: string): Promise<string> {
-  return GlobalCache.getOrSet(`query.${name}`, null, async () => {
-    const query = await fs.readFile(`./src/graphql/${name}.graphql`, 'utf-8');
-    const errors = await validate(query);
-    if (errors.length > 0) {
-      throw new Error(`GraphQL query ${name} is invalid: ${errors}`);
-    }
-    return query;
-  });
+  const cacheKey = `query.${name}`;
+  const cachedValue = await GlobalCache.get(cacheKey);
+  if (cachedValue !== null) {
+    return cachedValue.toString();
+  }
+
+  const query = await fs.readFile(`./src/graphql/${name}.graphql`, 'utf-8');
+  const errors = await validate(query);
+  if (errors.length > 0) {
+    throw new Error(`GraphQL query ${name} is invalid: ${errors}`);
+  }
+
+  await GlobalCache.set(cacheKey, query);
+  return query;
 }
 
 export async function getProjectV2ItemFieldValue(itemNodeId: string, fieldName: string, context: GitHubOperationsContext): Promise<ProjectV2Item> {
