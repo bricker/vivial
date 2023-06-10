@@ -1,4 +1,7 @@
 const config = {
+  parserOptions: {
+    project: './tsconfig.json',
+  },
   overrides: [
     {
       files: ['*.ts', '*.tsx'],
@@ -6,6 +9,7 @@ const config = {
       plugins: ['@typescript-eslint'],
       parser: '@typescript-eslint/parser',
       rules: {
+        '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-shadow': 'error',
         '@typescript-eslint/no-explicit-any': 'off',

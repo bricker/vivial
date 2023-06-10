@@ -69,7 +69,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
           ) {
             return clientInfo;
           } else {
-            eaveLogger.warning({ message: `Bad cache data: ${cacheKey}` });
+            eaveLogger.warn({ message: `Bad cache data: ${cacheKey}` });
             await cacheClient.del(cacheKey);
           }
         } else {

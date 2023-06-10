@@ -13,30 +13,30 @@ import eaveLogger from '../logging.js';
  * so that it can calculate the expected signature and compare it to the provided signature.
  */
 export function signatureVerification(baseUrl: string): ((req: Request, res: Response, next: NextFunction) => void) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (developmentBypassAllowed(req)) {
-      eaveLogger.warning('Bypassing signature verification in dev environment');
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await doSignatureVerification(req, res, baseUrl);
       next();
-      return;
-    }
-
-    if (doSignatureVerification(req, res, baseUrl)) {
-      next();
-    } else {
-      const eaveState = getEaveState(res);
-      eaveLogger.warning('signature validation failed', eaveState);
-      res.status(400).end();
-      return;
+    } catch (e: any) {
+      if (developmentBypassAllowed(req)) {
+        eaveLogger.warn('Bypassing signature verification in dev environment');
+        next();
+      } else {
+        const eaveState = getEaveState(res);
+        eaveLogger.warn('signature validation failed', eaveState);
+        res.status(400).end();
+        return;
+      }
     }
   };
 }
 
-function doSignatureVerification(req: Request, res: Response, baseUrl: string): boolean {
+async function doSignatureVerification(req: Request, res: Response, baseUrl: string): Promise<boolean> {
   const eaveState = getEaveState(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    eaveLogger.warning('Missing Eave signature header', eaveState);
+    eaveLogger.warn('Missing Eave signature header', eaveState);
     res.status(400).end();
     return false;
   }
@@ -66,13 +66,6 @@ function doSignatureVerification(req: Request, res: Response, baseUrl: string): 
 
   const signingKey = getKey(origin);
 
-  try {
-    verifySignatureOrException(signingKey, message, signature);
-  } catch (error) {
-    const eaveError = <HTTPException>error;
-    eaveLogger.error(eaveError);
-    res.status(eaveError.statusCode).end();
-    return false;
-  }
+  await verifySignatureOrException(signingKey, message, signature);
   return true;
 }
