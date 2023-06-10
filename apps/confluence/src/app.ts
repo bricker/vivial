@@ -1,16 +1,15 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import ace from 'atlassian-connect-express';
+import { applyAtlassianSecurityPolicyMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/connect/security-policy-middlewares.js';
 import { exceptionHandlingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/exception-handling.js';
-import { standardEndpointsRouter } from '@eave-fyi/eave-stdlib-ts/src/api-util.js';
-import { requestIntegrity } from '@eave-fyi/eave-stdlib-ts/src/middleware/request-integrity.js';
-import { requestLoggingMiddleware, responseLoggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/logging.js';
+import { GAELifecycleRouter, StatusRouter, applyShutdownHandlers } from '@eave-fyi/eave-stdlib-ts/src/api-util.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import EaveApiAdapter from '@eave-fyi/eave-stdlib-ts/src/connect/eave-api-store-adapter.js';
 import getCacheClient from '@eave-fyi/eave-stdlib-ts/src/cache.js';
-import { securityMiddlewares, genericMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
+import { helmetMiddleware, applyCommonRequestMiddlewares, applyCommonResponseMiddlewares, applyInternalApiMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
 import appConfig from './config.js';
-import { internalApiMiddlewares, InternalApiRouter } from './api/routes.js';
-import { WebhookRouter, webhookMiddlewares } from './events/routes.js';
+import { InternalApiRouter } from './api/routes.js';
+import { WebhookRouter, applyWebhookMiddlewares } from './events/routes.js';
 
 // This <any> case is necessary to tell Typescript to effectively ignore this expression.
 // ace.store is exported in the javascript implementation, but not in the typescript type definitions,
@@ -19,29 +18,22 @@ import { WebhookRouter, webhookMiddlewares } from './events/routes.js';
 
 const app = express();
 const addon = ace(app);
-app.use(securityMiddlewares);
-app.use(genericMiddlewares);
-app.use('/confluence/api', internalApiMiddlewares());
-app.use('/confluence/events', webhookMiddlewares({ addon }));
+app.use(helmetMiddleware());
+applyAtlassianSecurityPolicyMiddlewares({ app });
+applyCommonRequestMiddlewares({ app });
+applyInternalApiMiddlewares({ path: '/confluence/api', app });
+applyWebhookMiddlewares({ app, addon, path: '/confluence/events' });
 
-app.get('/_ah/warmup', async (req: Request, res: Response) => {
-  await getCacheClient; // Initializes a client and connects to Redis
-  res.status(200);
-});
+app.use(GAELifecycleRouter());
 
 const rootRouter = express.Router();
 app.use('/confluence', rootRouter);
-rootRouter.use(standardEndpointsRouter);
 
-// webhooks
-const webhookRouter = WebhookRouter({ addon });
-rootRouter.use('/events', webhookRouter);
+rootRouter.use(StatusRouter());
+rootRouter.use('/events', WebhookRouter({ addon }));
+rootRouter.use('/api', InternalApiRouter({ addon }));
 
-const internalApiRouter = InternalApiRouter({ addon });
-rootRouter.use('/api', internalApiRouter);
-
-app.use(responseLoggingMiddleware);
-app.use(exceptionHandlingMiddleware);
+applyCommonResponseMiddlewares({ app });
 
 const PORT = parseInt(process.env['PORT'] || '5400', 10);
 const server = app.listen(PORT, '0.0.0.0', () => {
@@ -51,15 +43,4 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   }
 });
 
-const gracefulShutdownHandler = () => {
-  getCacheClient
-    .then((client) => client.quit())
-    .then(() => { eaveLogger.info('redis connection closed.'); });
-
-  server.close(() => {
-    eaveLogger.info('HTTP server closed');
-  });
-};
-
-process.on('SIGTERM', gracefulShutdownHandler);
-process.on('SIGINT', gracefulShutdownHandler);
+applyShutdownHandlers({ server });

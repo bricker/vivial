@@ -1,5 +1,12 @@
 import { JsonObject } from '../types.js';
 
+export interface PaginatedResults<T> {
+  start?: number;
+  limit?: number;
+  size?: number;
+  results: T[];
+}
+
 export interface ConfluenceSearchParamsInput {
   space_key?: string;
   text: string;
@@ -7,6 +14,25 @@ export interface ConfluenceSearchParamsInput {
 
 export interface DeleteContentInput {
   content_id: string;
+}
+
+export enum ConfluenceOperation {
+  administer = 'administer',
+  archive = 'archive',
+  clear_permissions = 'clear_permissions',
+  copy = 'copy',
+  create = 'create',
+  create_space = 'create_space',
+  delete = 'delete',
+  export = 'export',
+  move = 'move',
+  purge = 'purge',
+  purge_version = 'purge_version',
+  read = 'read',
+  restore = 'restore',
+  restrict_content = 'restrict_content',
+  update = 'update',
+  use = 'use',
 }
 
 export enum ConfluenceSpaceType {
@@ -19,25 +45,6 @@ export enum ConfluenceSpaceStatus {
   archived = 'archived',
 }
 
-export interface BodyType {
-  representation: string;
-  value: string;
-}
-
-export interface ConfluenceSpaceDescription {
-  plain: BodyType;
-  view: BodyType;
-}
-
-export interface ConfluenceSpace {
-  id: string | number; // https://developer.atlassian.com/cloud/confluence/changelog/#CHANGE-905
-  key: string;
-  name: string;
-  type: ConfluenceSpaceType;
-  status: ConfluenceSpaceStatus;
-  homepageId: string | number; // https://developer.atlassian.com/cloud/confluence/changelog/#CHANGE-905
-  description: ConfluenceSpaceDescription;
-}
 
 export enum ConfluenceContentType {
   page = 'page',
@@ -84,6 +91,168 @@ export enum ConfluenceContentStatus {
   draft = 'draft',
 }
 
+export enum ConfluenceGroupType {
+  group = 'group',
+}
+
+export interface BodyType {
+  representation: string;
+  value: string;
+}
+
+export interface ConfluenceSpaceDescription {
+  plain: BodyType;
+  view: BodyType;
+}
+
+export interface ConfluenceLabel {
+  prefix?: string;
+  name?: string;
+  id?: string;
+  label?: string;
+}
+
+export interface ConfluenceSpaceMetadata {
+  labels?: PaginatedResults<ConfluenceLabel>;
+  _links: ConfluenceGenericLinks;
+}
+export interface ConfluenceSpaceIcon {
+  path?: string;
+  width?: string;
+  height?: string;
+  isDefault?: boolean;
+}
+
+export interface ConfluenceOperationCheckResult {
+  operation?: ConfluenceOperation;
+  targetType?: string;
+}
+
+export interface ConfluenceSpacePermission {
+  id: number;
+  subjects?: {
+    user?: PaginatedResults<ConfluenceUser>;
+    group?: PaginatedResults<ConfluenceGroup>;
+  };
+  operation?: ConfluenceOperationCheckResult;
+  anonymousAccess?: boolean;
+  unlicensedAccess?: boolean;
+}
+
+export interface ConfluenceSpaceSettingsEditor {
+  page?: string;
+  blogpost?: string;
+  default?: string;
+}
+
+export interface ConfluenceSpaceSettings {
+  routeOverrideEnabled?: boolean;
+  editor?: ConfluenceSpaceSettingsEditor;
+  spaceKey?: string;
+}
+
+export interface ConfluenceSpaceTheme {
+  themeKey?: string;
+  name?: string;
+  description?: string;
+  icon?: ConfluenceSpaceIcon;
+}
+
+export interface ConfluenceSpaceLookAndFeelColors {
+  backgroundColor?: string;
+  color?: string;
+}
+export interface ConfluenceSpaceNavigationLookAndFeel {
+  color?: string;
+  highlightColor?: string;
+  hoverOrFocus?: ConfluenceSpaceLookAndFeelColors;
+}
+
+export interface ConfluenceSpaceBackgroundLookAndFeel {
+  background?: string;
+  backgroundAttachment?: string;
+  backgroundBlendMode?: string;
+  backgroundClip?: string;
+  backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundOrigin?: string;
+  backgroundPosition?: string;
+  backgroundRepeat?: string;
+  backgroundSize?: string;
+}
+
+export interface ConfluenceSpaceContainerLookAndFeel extends ConfluenceSpaceBackgroundLookAndFeel {
+  padding?: string;
+  borderRadius?: string;
+}
+
+export interface ConfluenceSpaceScreenLookAndFeel extends ConfluenceSpaceBackgroundLookAndFeel {
+  layer?: object;
+  gutterTop?: string;
+  gutterRight?: string;
+  gutterBottom?: string;
+  gutterLeft?: string;
+}
+
+export interface ConfluenceSpaceLookAndFeel {
+  headings?: {
+    color?: string;
+  };
+  links?: {
+    color?: string;
+  };
+  menus?: {
+    color?: string;
+    hoverOrFocus?: ConfluenceSpaceLookAndFeelColors;
+  };
+  header?: {
+    backgroundColor?: string;
+    button?: ConfluenceSpaceLookAndFeelColors;
+    primaryNavigation?: ConfluenceSpaceNavigationLookAndFeel;
+    secondaryNavigation?: ConfluenceSpaceNavigationLookAndFeel;
+    search?: ConfluenceSpaceLookAndFeelColors;
+  };
+  horizontalHeader?: {
+    backgroundColor?: string;
+    button?: ConfluenceSpaceLookAndFeelColors;
+    primaryNavigation?: ConfluenceSpaceNavigationLookAndFeel;
+    secondaryNavigation?: ConfluenceSpaceNavigationLookAndFeel;
+    search?: ConfluenceSpaceLookAndFeelColors;
+  };
+  content?: {
+    screen?: ConfluenceSpaceScreenLookAndFeel;
+    container?: ConfluenceSpaceContainerLookAndFeel;
+    header?: ConfluenceSpaceContainerLookAndFeel;
+    body?: ConfluenceSpaceContainerLookAndFeel;
+  };
+  bordersAndDividers?: {
+    color?: string;
+  };
+  spaceReference?: object; // Schema not documented
+}
+
+export interface ConfluenceSpaceHistory {
+  createdDate?: string; // Atlassian says "date-time" format, whatever that means
+  createdBy?: ConfluenceUser;
+}
+
+export interface ConfluenceSpace {
+  id: string | number; // https://developer.atlassian.com/cloud/confluence/changelog/#CHANGE-905
+  key: string;
+  name: string;
+  type: ConfluenceSpaceType;
+  status: ConfluenceSpaceStatus;
+  description?: ConfluenceSpaceDescription;
+  icon?: ConfluenceSpaceIcon;
+  homepage?: ConfluencePage;
+  operations?: ConfluenceOperationCheckResult[];
+  permissions?: ConfluenceSpacePermission[];
+  settings?: ConfluenceSpaceSettings;
+  theme?: ConfluenceSpaceTheme;
+  lookAndFeel?: ConfluenceSpaceLookAndFeel;
+  history?: ConfluenceSpaceHistory;
+}
+
 export interface ConfluenceGenericLinks {
   base?: string;
   self?: string;
@@ -97,9 +266,6 @@ export interface ConfluenceGenericLinks {
 export interface ApiResource {
   expandable?: JsonObject;
   links?: ConfluenceGenericLinks;
-}
-
-export interface ConfluenceOperationCheckResult {
 }
 
 export interface ConfluenceUserIcon {
@@ -125,9 +291,17 @@ export interface ConfluenceUser {
   operations?: ConfluenceOperationCheckResult[];
   personalSpace?: ConfluenceSpace;
 }
+
 export interface ConfluenceUsersUserKeys {
   users?: ConfluenceUser[];
   userKeys?: string[];
+}
+
+
+export interface ConfluenceGroup {
+  type?: ConfluenceGroupType;
+  name?: string;
+  id?: string;
 }
 
 export interface ConfluencePageVersion {
@@ -203,6 +377,10 @@ export interface ConfluencePageBody {
   storage?: ConfluenceContentBody;
 }
 
+export interface ConfluenceContentChildren {
+  page?: PaginatedResults<ConfluencePage>;
+}
+
 // This is the same as "Content"
 export interface ConfluencePage {
   id: string | number;
@@ -221,6 +399,7 @@ export interface ConfluencePage {
   space?: ConfluenceSpace;
   history?: ConfluencePageHistory;
   version?: ConfluencePageVersion;
+  children?: ConfluenceContentChildren;
   _links?: ConfluenceGenericLinks;
 }
 

@@ -70,7 +70,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   } = args;
 
   const requestId = uuid4();
-  const payload = JSON.stringify(input);
+  const payload = input === undefined ? '{}' : JSON.stringify(input);
 
   const headers: { [key: string]: string } = {
     'content-type': 'application/json',
@@ -83,11 +83,12 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     url,
     requestId,
     origin,
-    payload: input === undefined ? '{}' : JSON.stringify(input),
+    payload,
     teamId,
     accountId,
   });
 
+  eaveLogger.debug({ message: 'sig message', sigMessage: message });
   const signature = await signBase64(
     getKey(origin),
     message,

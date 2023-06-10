@@ -1,6 +1,9 @@
-import express from 'express';
+import express, { Request, Response, Router } from 'express';
 import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
+import getCacheClient from './cache.js';
+import eaveLogger from './logging.js';
+import { Server } from 'http';
 
 export function statusPayload(): StatusResponseBody {
   return {
@@ -10,12 +13,51 @@ export function statusPayload(): StatusResponseBody {
   };
 }
 
-export const standardEndpointsRouter = express.Router();
-standardEndpointsRouter.get('/status', (_: express.Request, res: express.Response) => {
-  // TODO: Redis connection check
-  const payload = statusPayload();
-  res.json(payload).status(200);
-});
+export function StatusRouter(): Router {
+  const router = Router();
+  router.get('/status', (_req: Request, res: Response) => {
+    // TODO: Redis connection check
+    const payload = statusPayload();
+    res.json(payload).status(200);
+  });
+
+  return router;
+}
+
+export function GAELifecycleRouter(): Router {
+  const router = Router();
+
+  router.get('/_ah/start', (_req: Request, res: Response) => {
+    res.status(200);
+  });
+
+  router.get('/_ah/warmup', async (req: Request, res: Response) => {
+    await getCacheClient; // Initializes a client and connects to Redis
+    res.status(200);
+  });
+
+  return router;
+}
+
+export function gracefulShutdownHandler({ server }: { server: Server }): () => void {
+  return () => {
+    getCacheClient
+      .then((client) => client.quit())
+      .then(() => { eaveLogger.info('redis connection closed.'); })
+      .catch((e) => { eaveLogger.error(e) })
+      .finally(() => {
+        server.close(() => {
+          eaveLogger.info('HTTP server closed');
+        });
+      });
+  };
+};
+
+export function applyShutdownHandlers({ server }: { server: Server }) {
+  const handler = gracefulShutdownHandler({ server });
+  process.on('SIGTERM', handler);
+  process.on('SIGINT', handler);
+}
 
 // def get_headers(
 //   scope: HTTPScope, excluded: Optional[list[str]] = None, redacted: Optional[list[str]] = None

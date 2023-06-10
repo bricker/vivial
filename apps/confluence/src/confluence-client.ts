@@ -5,11 +5,14 @@ import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { cleanDocument } from './api/util.js';
 
 /*
-https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-space/#api-spaces-get
+https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-spacekey-get
 */
 export async function getSpaceByKey({ client, spaceKey }: { client: HostClient, spaceKey: string }): Promise<ConfluenceSpace | null> {
   const request = {
     url: `/rest/api/space/${spaceKey}`,
+    qs: {
+      expand: 'homepage',
+    },
   };
   logRequest('getSpaceByKey', request);
 
@@ -72,7 +75,7 @@ export async function getPageById({ client, pageId }: { client: HostClient, page
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content---children-and-descendants/#api-wiki-rest-api-content-id-child-type-get
 */
-export async function getPageChildren({ client, pageId }: { client: HostClient, pageId: string }): Promise<ConfluencePage[]> {
+export async function getPageChildren({ client, pageId }: { client: HostClient, pageId: string | number }): Promise<ConfluencePage[]> {
   const request = {
     url: `/rest/api/content/${pageId}/child/${ConfluenceContentType.page}`,
     qs: {
@@ -95,25 +98,29 @@ export async function getPageChildren({ client, pageId }: { client: HostClient, 
 /*
 https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-spacekey-content-type-get
 */
-export async function getSpaceRootPages({ client, space }: { client: HostClient, space: ConfluenceSpace }): Promise<ConfluencePage[]> {
+export async function getSpaceRootPage({ client, space }: { client: HostClient, space: ConfluenceSpace }): Promise<ConfluencePage | null> {
   const request = {
     url: `/rest/api/space/${space.key}/content/${ConfluenceContentType.page}`,
     qs: {
       depth: ConfluenceSpaceContentDepth.root,
-      limit: 100, // TODO: Pagination
     },
   };
-  logRequest('getSpaceRootPages', request);
+  logRequest('getSpaceRootPage', request);
 
   const response: RequestResponse = await client.get(request);
-  logResponse('getSpaceRootPages', response);
+  logResponse('getSpaceRootPage', response);
   if (response.statusCode >= 400) {
-    return [];
+    return null;
   }
 
   const body = JSON.parse(response.body);
-  const results = <ConfluencePage[]>body.results;
-  return results;
+  const root = <ConfluencePage[]>body.results;
+
+  if (root && root[0]) {
+    return <ConfluencePage>root[0];
+  } else {
+    return null;
+  }
 }
 
 /* https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-page/#api-pages-post */
