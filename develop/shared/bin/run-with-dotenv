@@ -7,9 +7,9 @@ from eave.dev_tooling.dotenv_loader import merged_dotenv_values
 @click.command()
 @click.option("-f", "--file", "files", multiple=True, default=[".env"])
 @click.argument("cmd", type=click.UNPROCESSED, nargs=-1, required=True)
-def run(files: list[str], cmd: str) -> None:
+def run(files: list[str], cmd: list[str]) -> None:
     env = merged_dotenv_values(files)
-    p = Popen(cmd, env=env)
+    p = Popen(cmd, env=env, shell=False)
     p.communicate()
 
 if __name__ == "__main__":
