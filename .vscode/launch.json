@@ -24,6 +24,10 @@
       ],
       "justMyCode": false,
       "consoleTitle": "Core API",
+      "env": {
+        "GAE_SERVICE": "api",
+        "GAE_VERSION": "dev",
+      }
     },
     {
       "name": "Slack App API",
@@ -41,6 +45,10 @@
       ],
       "justMyCode": false,
       "consoleTitle": "Slack App API",
+      "env": {
+        "GAE_SERVICE": "slack",
+        "GAE_VERSION": "dev",
+      }
     },
     {
       "name": "Slack Socket Mode",
@@ -59,7 +67,9 @@
       "justMyCode": true,
       "consoleTitle": "Slack Socket Mode",
       "env": {
-        "SLACK_SOCKETMODE": "1"
+        "SLACK_SOCKETMODE": "1",
+        "GAE_SERVICE": "slack (socketmode)",
+        "GAE_VERSION": "dev",
       }
     },
     {
@@ -80,6 +90,8 @@
       "env": {
         "PORT": "5300",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "github",
+        "GAE_VERSION": "dev",
       },
     },
     {
@@ -104,6 +116,8 @@
       "env": {
         "PORT": "5400",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "confluence",
+        "GAE_VERSION": "dev",
       },
     },
     {
@@ -126,6 +140,8 @@
       "env": {
         "PORT": "5500",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "jira",
+        "GAE_VERSION": "dev",
       },
     },
     {
@@ -146,6 +162,10 @@
       "jinja": true,
       "justMyCode": true,
       "consoleTitle": "Marketing Website (Server)",
+      "env": {
+        "GAE_SERVICE": "www",
+        "GAE_VERSION": "dev",
+      }
     },
     {
       "name": "Marketing Website (Client)",
