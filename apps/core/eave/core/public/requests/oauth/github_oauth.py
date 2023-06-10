@@ -127,8 +127,13 @@ class GithubOAuthCallback(HTTPEndpoint):
                     f"A Github integration already exists with github install id {self.installation_id}",
                     extra=self.eave_state.log_context,
                 )
-                db_session.add(self.eave_account)
-                self.eave_account.team_id = github_installation.team_id
+                eave.stdlib.analytics.log_event(
+                    event_name="duplicate_integration_attempt",
+                    eave_account_id=self.eave_account.id,
+                    eave_team_id=self.eave_account.team_id,
+                    opaque_params={"integration": Integration.github}
+                )
+                shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 return
 
             else:

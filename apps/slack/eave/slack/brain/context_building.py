@@ -153,7 +153,7 @@ class ContextBuildingMixin(Base):
 
     async def _rolling_summarize_content(self, content: str, threshold: int) -> str:
         """
-        Given a `content` string to summarize that is (assumed) longer then `threshold`
+        Given a `content` string to summarize that is (assumed) longer than `threshold`
         tokens (as defined by the AI model), break `content` into digestable chunks,
         summarizing and integrating each chunk into a single "rolling" summary.
 

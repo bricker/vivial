@@ -116,9 +116,20 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                 connect_installs = await self._get_matching_connect_installations(session=db_session)
                 if len(connect_installs) > 0:
                     for connect_install in connect_installs:
-                        if connect_install.team_id:
-                            db_session.add(self.eave_account)
-                            self.eave_account.team_id = connect_install.team_id
+                        if connect_install.team_id and connect_install.team_id != self.eave_account.team_id:
+                            eaveLogger.warning(
+                                f"A {connect_install.product} connect integration for org {connect_install.org_url} already exists for a different team",
+                                extra=self.eave_state.log_context,
+                            )
+                            eave.stdlib.analytics.log_event(
+                                event_name="duplicate_integration_attempt",
+                                eave_account_id=self.eave_account.id,
+                                eave_team_id=self.eave_account.team_id,
+                                opaque_params={"integration": connect_install.product}
+                            )
+                            shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
+                            return
+
                         else:
                             # Link the Connect installation with this team
                             connect_install.team_id = self.eave_account.team_id
@@ -150,12 +161,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             await self._maybe_set_default_confluence_space(connect_installation=connect_install)
 
     async def _get_matching_connect_installations(self, session: AsyncSession) -> Sequence[ConnectInstallationOrm]:
-        lookup = (
-            select(ConnectInstallationOrm)
-            .where(
-                or_(
-                    *[ConnectInstallationOrm.org_url == resource.url for resource in self.atlassian_resources],
-                )
+        lookup = select(ConnectInstallationOrm).where(
+            or_(
+                *[ConnectInstallationOrm.org_url == resource.url for resource in self.atlassian_resources],
             )
         )
 

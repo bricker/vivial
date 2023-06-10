@@ -108,13 +108,14 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     f"A Slack integration already exists with slack team id {slack_team_id}",
                     extra=log_context,
                 )
+                eave.stdlib.analytics.log_event(
+                    event_name="duplicate_integration_attempt",
+                    eave_account_id=self.eave_account.id,
+                    eave_team_id=self.eave_account.team_id,
+                    opaque_params={"integration": Integration.slack}
+                )
 
-                # TODO: Probably don't want to change the account's team like this, it feels like it could cause problems.
-                # The reason we're doing this is because otherwise, connecting a Slack team silently fails if the Slack
-                # team was already connected. Eventually we could perhaps display an error to the customer, but we don't
-                # current have that.
-                db_session.add(self.eave_account)
-                self.eave_account.team_id = self.slack_installation.team_id
+                shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 return
 
             if self.slack_installation:
@@ -140,12 +141,8 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
                 await self._run_post_install_procedures(log_context=log_context)
 
-                # shared.set_redirect(response=self.response, location=(
-                #     f"slack://app"
-                #     f"?team={slack_team_id}"
-                #     f"&id={app_config.eave_slack_app_id}"
-                #     "&tab=messages"
-                # ))
+                slack_redirect_location = f"https://slack.com/app_redirect?app={app_config.eave_slack_app_id}&team={slack_team_id}"
+                shared.set_redirect(response=self.response, location=slack_redirect_location)
 
     async def _run_post_install_procedures(
         self,
