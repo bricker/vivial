@@ -32,7 +32,6 @@ class TestAtlassianOAuth(BaseTestCase):
 
             sut = await AtlassianInstallationOrm.create(
                 atlassian_cloud_id=self.anystring(),
-                confluence_space_key=None,
                 oauth_token_encoded=self.anyjson(),
                 session=s,
                 team_id=team.id,
@@ -81,8 +80,8 @@ class TestAtlassianOAuth(BaseTestCase):
             assert not response.cookies.get("ev_oauth_state_atlassian")  # Test the cookie was deleted
             assert response.headers["Location"]
             assert (
-                response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
-            )  # Default for non-whitelisted teams
+                response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            )
 
             account_id = response.cookies.get("ev_account_id")
             assert account_id
@@ -106,7 +105,7 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_account.auth_id == self.getstr("confluence.account_id")
             assert eave_account.auth_provider == AuthProvider.atlassian
             assert eave_team.name == self.getstr("atlassian.resource.name")
-            assert eave_team.document_platform == DocumentPlatform.confluence
+            assert eave_team.document_platform is None # No connect installation has been linked yet
             assert atlassian_installation.oauth_token_encoded == json.dumps(self.testdata["fake_atlassian_token"])
             assert atlassian_installation.atlassian_cloud_id == self.getstr("atlassian_cloud_id")
             assert atlassian_installation.team_id == eave_team.id

@@ -83,22 +83,53 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self._increment += 1
         return self._increment
 
-    def anystring(self, name: Optional[str] = None, only_if_exists: bool = False) -> str:
+    def anyurl(self, name: Optional[str] = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            if only_if_exists:
-                raise KeyError(f"testdata {name} not set")
+            data = f"https://{uuid.uuid4()}.example.com/{uuid.uuid4()}"
+            self.testdata[name] = data
 
+        value: str = self.testdata[name]
+        return value
+
+    def geturl(self, name: str) -> str:
+        return self.getstr(name=name)
+
+    def anypath(self, name: Optional[str] = None) -> str:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
+            data = "/" + str(uuid.uuid4())
+            self.testdata[name] = data
+
+        value: str = self.testdata[name]
+        return value
+
+    def getpath(self, name: str) -> str:
+        return self.getstr(name=name)
+
+    def anystr(self, name: Optional[str] = None) -> str:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
             data = str(uuid.uuid4())
             self.testdata[name] = data
 
         value: str = self.testdata[name]
         return value
 
+    def anystring(self, name: Optional[str] = None) -> str:
+        """
+        DEPRECATED, use anystr
+        """
+        return self.anystr(name=name)
+
     def getstr(self, name: str) -> str:
-        return self.anystring(name=name, only_if_exists=True)
+        return self.testdata[name]
 
     def anyjson(self, name: Optional[str] = None, only_if_exists: bool = False) -> str:
         if name is None:
@@ -225,14 +256,14 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             v: str = os.getenv(name, f"not mocked: {name}")
             return v
 
-        def _get_runtimeconfig(name: str) -> str:
-            v: str = os.getenv(name, f"not mocked: {name}")
-            return v
+        # def _get_runtimeconfig(name: str) -> str:
+        #     v: str = os.getenv(name, f"not mocked: {name}")
+        #     return v
 
         self.patch(unittest.mock.patch("eave.stdlib.config.EaveConfig.get_secret", side_effect=_get_secret))
-        self.patch(
-            unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
-        )
+        # self.patch(
+        #     unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
+        # )
 
     def mock_slack_client(self) -> None:
         self.patch(

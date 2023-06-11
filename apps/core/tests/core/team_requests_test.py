@@ -4,7 +4,7 @@ from eave.core.internal.orm.atlassian_installation import AtlassianInstallationO
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
-from eave.stdlib.core_api.models.connect import RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
 
 from eave.stdlib.core_api.operations.team import GetTeamRequest, UpsertConfluenceDestinationAuthedRequest
 
@@ -27,7 +27,6 @@ class TestTeamRequests(BaseTestCase):
             await AtlassianInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                confluence_space_key=self.anystring("confluence_space"),
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
                 oauth_token_encoded=self.anyjson("oauth_token_encoded"),
             )
@@ -45,9 +44,6 @@ class TestTeamRequests(BaseTestCase):
         assert response_obj.integrations.slack_integration.slack_team_id == self.anystring("slack_team_id")
 
         assert response_obj.integrations.atlassian_integration is not None
-        assert response_obj.integrations.atlassian_integration.confluence_space_key == self.anystring(
-            "confluence_space"
-        )
         assert response_obj.integrations.atlassian_integration.atlassian_cloud_id == self.anystring(
             "atlassian_cloud_id"
         )
@@ -79,14 +75,10 @@ class UpsertConfluenceDestinationTests(BaseTestCase):
             await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": "confluence",
-                        "client_key": self.anystring("client_key"),
-                        "base_url": self.anystring("base_url"),
-                        "shared_secret": self.anystring("shared_secret"),
-                    }
-                ),
+                product=AtlassianProduct.confluence,
+                client_key=self.anystring("client_key"),
+                base_url=self.anystring("base_url"),
+                shared_secret=self.anystring("shared_secret"),
             )
 
         response = await self.make_request(
@@ -113,14 +105,10 @@ class UpsertConfluenceDestinationTests(BaseTestCase):
             install = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": "confluence",
-                        "client_key": self.anystring("client_key"),
-                        "base_url": self.anystring("base_url"),
-                        "shared_secret": self.anystring("shared_secret"),
-                    }
-                ),
+                product=AtlassianProduct.confluence,
+                client_key=self.anystring("client_key"),
+                base_url=self.anystring("base_url"),
+                shared_secret=self.anystring("shared_secret"),
             )
 
             await ConfluenceDestinationOrm.create(

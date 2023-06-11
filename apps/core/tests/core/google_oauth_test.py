@@ -87,8 +87,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert not response.cookies.get("ev_oauth_state_google")  # Test the cookie was deleted
             assert response.headers["Location"]
             assert (
-                response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
-            )  # Default for non-whitelisted teams
+                response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            )
 
             account_id = response.cookies.get("ev_account_id")
             assert account_id

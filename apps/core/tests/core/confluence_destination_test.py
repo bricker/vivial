@@ -1,6 +1,6 @@
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-from eave.stdlib.core_api.models.connect import RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
 
 from .base import BaseTestCase
 
@@ -11,14 +11,10 @@ class ConfluenceDestinationOrmTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_install = await ConnectInstallationOrm.create(
                 session=s,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "client_key": self.anystring("client_key"),
-                        "product": "confluence",
-                        "base_url": self.anystring("base_url"),
-                        "shared_secret": self.anystring("shared_secret"),
-                    }
-                ),
+                product=AtlassianProduct.confluence,
+                client_key=self.anystring("client_key"),
+                base_url=self.anystring("base_url"),
+                shared_secret=self.anystring("shared_secret"),
             )
 
             self._data_team = await self.make_team(s)

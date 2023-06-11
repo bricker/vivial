@@ -19,14 +19,10 @@ class TestDeleteDocument(BaseTestCase):
             connect = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=self.testdata["eave_team"].id,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": AtlassianProduct.confluence,
-                        "client_key": self.anystring("client_key"),
-                        "base_url": self.anystring("base_url"),
-                        "shared_secret": self.anystring("shared_secret"),
-                    }
-                ),
+                product=AtlassianProduct.confluence,
+                client_key=self.anystring("client_key"),
+                shared_secret=self.anystring("shared_secret"),
+                base_url=self.anystring("base_url"),
             )
 
             await ConfluenceDestinationOrm.create(

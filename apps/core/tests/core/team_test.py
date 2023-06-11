@@ -31,16 +31,12 @@ class TestTeamOrm(BaseTestCase):
             connect_installation = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=team.id,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": AtlassianProduct.confluence,
-                        "client_key": self.anystring("client_key"),
-                        "shared_secret": self.anystring("shared_secret"),
-                        "base_url": self.anystring("base_url"),
-                    }
-                ),
+                product=AtlassianProduct.confluence,
+                client_key=self.anystring("client_key"),
+                shared_secret=self.anystring("shared_secret"),
+                base_url=self.anystring("base_url"),
             )
-            confluence_destination = await ConfluenceDestinationOrm.create(
+            await ConfluenceDestinationOrm.create(
                 session=s,
                 connect_installation_id=connect_installation.id,
                 team_id=team.id,
@@ -49,6 +45,3 @@ class TestTeamOrm(BaseTestCase):
 
             document_destination = await team.get_document_client(session=s)
             assert document_destination is not None
-            # document_destination is type-erased, but we want to test that the correct object was fetched.
-            assert isinstance(document_destination, ConfluenceDestinationOrm)
-            assert document_destination.id == confluence_destination.id

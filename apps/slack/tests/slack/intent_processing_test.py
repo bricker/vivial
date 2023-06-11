@@ -2,6 +2,7 @@ import re
 import unittest.mock
 
 from eave.slack.brain.message_prompts import MessageAction
+from eave.stdlib.core_api.operations.subscriptions import GetSubscriptionRequest
 from .base import BaseTestCase
 
 
@@ -69,7 +70,10 @@ class IntentProcessingMixinTest(BaseTestCase):
 
     async def test_create_documentation_and_subscribe_with_no_subscription(self) -> None:
         mock = self.patch(patch=unittest.mock.patch.object(self.sut, "create_documentation"))
-        self.get_mock("get subscription").return_value = None
+        self.get_mock("get subscription").return_value = GetSubscriptionRequest.ResponseBody(
+            team=self._data_eave_team,
+            subscription=None,
+        )
         assert len(self.sut.subscriptions) == 0
 
         await self.sut.handle_action(message_action=MessageAction.CREATE_DOCUMENTATION)
@@ -109,7 +113,10 @@ class IntentProcessingMixinTest(BaseTestCase):
         assert not re.search(self._data_document_reference.document_url, slackmock.call_args.kwargs["text"])
 
     async def test_unknown_request_with_no_subscription(self) -> None:
-        self.get_mock("get subscription").return_value = None
+        self.get_mock("get subscription").return_value = GetSubscriptionRequest.ResponseBody(
+            team=self._data_eave_team,
+            subscription=None,
+        )
         assert len(self.sut.subscriptions) == 0
 
         await self.sut.handle_action(message_action=MessageAction.UNKNOWN)
