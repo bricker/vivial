@@ -324,6 +324,7 @@ const Steps = () => {
               startIcon={teamInfo?.integrations.slack_integration && <PurpleCheckIcon className={classes.connected} />}
               disabled={!!teamInfo?.integrations.slack_integration}
               to={`${window.eave.apiBase}/oauth/slack/authorize`}
+              target="_blank"
               lg
             >
               <img
