@@ -6,7 +6,7 @@ import { exceptionHandlingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middle
 import { standardEndpointsRouter } from '@eave-fyi/eave-stdlib-ts/src/api-util.js';
 import { signatureVerification } from '@eave-fyi/eave-stdlib-ts/src/middleware/signature-verification.js';
 import { requestIntegrity } from '@eave-fyi/eave-stdlib-ts/src/middleware/request-integrity.js';
-import { loggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/logging.js';
+import { requestLoggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/logging.js';
 import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
@@ -38,7 +38,7 @@ app.use(helmet.hsts({
 app.use(helmet.referrerPolicy({
   policy: ['origin'],
 }));
-app.use(helmet.xPoweredBy);
+app.use(helmet.xPoweredBy());
 
 // Atlassian security policy requirements
 // http://go.atlassian.com/security-requirements-for-cloud-apps
@@ -65,7 +65,7 @@ app.use(addon.middleware());
 const rootRouter = express.Router();
 app.use('/jira', rootRouter);
 rootRouter.use(requestIntegrity);
-rootRouter.use(loggingMiddleware);
+rootRouter.use(requestLoggingMiddleware);
 rootRouter.use(standardEndpointsRouter);
 
 // // Redirect root path to /atlassian-connect.json,
@@ -164,7 +164,7 @@ webhookRouter.post('/', addon.authenticate(), async (req /* , res */) => {
 
   const teamId = connectInstallation.team?.id;
   if (!teamId) {
-    eaveLogger.warning({ message: 'No teamId available', clientKey: client.clientKey });
+    eaveLogger.warn({ message: 'No teamId available', clientKey: client.clientKey });
     return;
   }
 
