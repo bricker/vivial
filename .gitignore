@@ -16,6 +16,7 @@ yalc.lock
 *.log*
 .swc
 credentials.json
+.coverage
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist
