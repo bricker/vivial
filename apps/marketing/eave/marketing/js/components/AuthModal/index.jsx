@@ -68,7 +68,7 @@ const AuthModal = () => {
           <CloseIcon />
         </IconButton>
         <Copy variant="h2">{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
-        <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google and Slack sign up only. Additional account options coming soon.'}</Copy>
+        <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google sign up only. Additional account options coming soon.'}</Copy>
         <Button
           to={`${window.eave.apiBase}/oauth/google/authorize`}
           className={classes.loginButton}
@@ -78,7 +78,7 @@ const AuthModal = () => {
         >
           Continue with Google
         </Button>
-        <Button
+        {/* <Button
           to={`${window.eave.apiBase}/oauth/slack/authorize`}
           className={classes.loginButton}
           variant="outlined"
@@ -86,10 +86,10 @@ const AuthModal = () => {
           lg
         >
           Continue with Slack
-        </Button>
+        </Button> */}
         {isSignupMode && (
           <Copy className={classes.disclaimer} variant="footnote">
-            By clicking “Continue with Google” or “Continue with Slack”, you agree to Eave’s{' '}
+            By clicking “Continue with Google” you agree to Eave’s{' '}
             <a
               href="/terms"
               rel="noreferrer"
