@@ -48,6 +48,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
             code=self.code
         )
         slack_team_name = slack_oauth_data["team"]["name"]
+        slack_team_id = self.slack_oauth_data["team"]["id"]
         slack_user_id = slack_oauth_data["authed_user"]["id"]
         slack_user_access_token = slack_oauth_data["authed_user"]["access_token"]
         slack_user_refresh_token = slack_oauth_data["authed_user"]["refresh_token"]
@@ -77,6 +78,11 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         )
 
         await self._update_or_create_slack_installation()
+
+        slack_redirect_location = (
+            f"https://slack.com/app_redirect?app={app_config.eave_slack_app_id}&team={slack_team_id}"
+        )
+        shared.set_redirect(response=self.response, location=slack_redirect_location)
 
         return self.response
 
@@ -140,10 +146,6 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 )
 
                 await self._run_post_install_procedures(log_context=log_context)
-                slack_redirect_location = (
-                    f"https://slack.com/app_redirect?app={app_config.eave_slack_app_id}&team={slack_team_id}"
-                )
-                shared.set_redirect(response=self.response, location=slack_redirect_location)
 
     async def _run_post_install_procedures(
         self,
