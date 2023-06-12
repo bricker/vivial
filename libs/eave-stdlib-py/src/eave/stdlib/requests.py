@@ -10,7 +10,7 @@ from eave.stdlib.util import redact
 
 from . import headers as eave_headers
 from . import signing
-from .logging import eaveLogger
+from .logging import LogContext, eaveLogger
 from .config import shared_config
 
 
@@ -23,8 +23,10 @@ async def make_request(
     access_token: Optional[str] = None,
     account_id: Optional[uuid.UUID] = None,
     addl_headers: Optional[dict[str, str]] = None,
+    ctx: Optional[LogContext] = None,
 ) -> aiohttp.ClientResponse:
-    request_id = str(uuid.uuid4())
+    ctx = LogContext.wrap(ctx)
+    request_id = ctx.request_id
 
     headers: dict[str, str] = {
         eave_headers.CONTENT_TYPE: "application/json",
@@ -58,6 +60,7 @@ async def make_request(
     signature = signing.sign_b64(
         signing_key=signing.get_key(signer=origin.value),
         data=signature_message,
+        ctx=ctx,
     )
 
     headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
@@ -67,27 +70,15 @@ async def make_request(
 
     eaveLogger.info(
         f"Eave Client Request: {request_id}: {method} {url}",
-        extra={
-            "json_fields": {
-                "signature": redact(signature),
-                "access_token": redact(access_token),
-                "origin": origin.value,
-                "team_id": str(team_id),
-                "account_id": str(account_id),
-                "request_id": request_id,
-                "method": method,
-                "url": url,
-            }
-        },
-    )
-
-    eaveLogger.debug(
-        f"request payload: {request_id}",
-        extra={
-            "json_fields": {
-                "payload": payload,
-            },
-        },
+        extra=ctx.set({
+            "signature": redact(signature),
+            "access_token": redact(access_token),
+            "origin": origin.value,
+            "team_id": str(team_id),
+            "account_id": str(account_id),
+            "method": method,
+            "url": url,
+        }),
     )
 
     async with aiohttp.ClientSession() as session:
@@ -103,31 +94,10 @@ async def make_request(
 
     eaveLogger.info(
         f"Eave Client Response: {request_id}: {method} {url}",
-        extra={
-            "json_fields": {
-                "signature": redact(signature),
-                "access_token": redact(access_token),
-                "origin": origin.value,
-                "team_id": str(team_id),
-                "account_id": str(account_id),
-                "request_id": request_id,
-                "method": method,
-                "url": url,
-                "status": response.status,
-            }
-        },
+        extra=ctx.set({
+            "status": response.status,
+        }),
     )
-
-    if eaveLogger.level >= logging.DEBUG:
-        # Doing this check to avoid parsing the JSON unless necessary
-        eaveLogger.debug(
-            f"response body: {request_id}",
-            extra={
-                "json_fields": {
-                    "body": await response.json(),
-                },
-            },
-        )
 
     response.raise_for_status()
     return response

@@ -4,6 +4,7 @@ from typing import Optional, Protocol
 
 from eave.stdlib.core_api.models.documents import DocumentInput
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
+from eave.stdlib.logging import LogContext
 
 
 @dataclass
@@ -19,17 +20,17 @@ class DocumentMetadata:
 
 class DocumentClient(Protocol):
     @abc.abstractmethod
-    async def create_document(self, *, input: DocumentInput) -> DocumentMetadata:
+    async def create_document(self, *, input: DocumentInput, ctx: Optional[LogContext] = None) -> DocumentMetadata:
         ...
 
     @abc.abstractmethod
-    async def update_document(self, *, input: DocumentInput, document_id: str) -> DocumentMetadata:
+    async def update_document(self, *, input: DocumentInput, document_id: str, ctx: Optional[LogContext] = None) -> DocumentMetadata:
         ...
 
     @abc.abstractmethod
-    async def search_documents(self, *, query: str) -> list[DocumentSearchResult]:
+    async def search_documents(self, *, query: str, ctx: Optional[LogContext] = None) -> list[DocumentSearchResult]:
         ...
 
     @abc.abstractmethod
-    async def delete_document(self, *, document_id: str) -> None:
+    async def delete_document(self, *, document_id: str, ctx: Optional[LogContext] = None) -> None:
         ...

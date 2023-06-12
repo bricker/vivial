@@ -88,6 +88,7 @@ async def authorize(
     if installation_data is None:
         # Raises for non-OK response.
         installation_data = await eave_slack.GetSlackInstallation.perform(
+            ctx=eave_ctx,
             origin=app_config.eave_origin,
             input=eave_slack.GetSlackInstallation.RequestBody(
                 slack_integration=eave.stdlib.core_api.models.slack.SlackInstallationInput(

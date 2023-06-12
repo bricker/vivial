@@ -32,7 +32,7 @@ def log_event(
         try:
             serialized_params = json.dumps(opaque_params)
         except Exception:
-            eaveLogger.exception("Error while serialized opaque params for analytics", extra=eave_context)
+            eaveLogger.exception("Error while serializing opaque params for analytics", extra=eave_context)
             serialized_params = str(opaque_params)
     else:
         serialized_params = None

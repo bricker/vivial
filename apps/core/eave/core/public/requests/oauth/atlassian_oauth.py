@@ -188,6 +188,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     return
 
                 response = await GetAvailableSpacesRequest.perform(
+                    ctx=self.eave_state.log_context,
                     origin=app_config.eave_origin,
                     team_id=self.eave_account.team_id,
                 )

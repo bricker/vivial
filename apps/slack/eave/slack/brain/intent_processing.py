@@ -92,6 +92,7 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
 
     async def unwatch_conversation(self) -> None:
         await eave_subscriptions.DeleteSubscriptionRequest.perform(
+            ctx=self.eave_ctx,
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.DeleteSubscriptionRequest.RequestBody(

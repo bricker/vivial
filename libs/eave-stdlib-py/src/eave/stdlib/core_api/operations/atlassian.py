@@ -1,5 +1,7 @@
+from typing import Optional
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallation
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallationInput
+from eave.stdlib.logging import LogContext
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 from eave.stdlib.eave_origins import EaveOrigin
 
@@ -26,11 +28,13 @@ class GetAtlassianInstallation(Endpoint):
         cls,
         origin: EaveOrigin,
         input: RequestBody,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
             input=input,
+            ctx=ctx
         )
 
         response_json = await response.json()

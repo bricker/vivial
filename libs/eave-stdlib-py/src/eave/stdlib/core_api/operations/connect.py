@@ -5,6 +5,7 @@ from eave.stdlib.core_api.models.connect import (
     QueryConnectInstallationInput,
     RegisterConnectInstallationInput,
 )
+from eave.stdlib.logging import LogContext
 
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
@@ -34,11 +35,13 @@ class RegisterConnectIntegrationRequest(Endpoint):
         cls,
         origin: EaveOrigin,
         input: RequestBody,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
             input=input,
+            ctx=ctx,
         )
 
         response_json = await response.json()
@@ -66,11 +69,13 @@ class QueryConnectIntegrationRequest(Endpoint):
         cls,
         origin: EaveOrigin,
         input: RequestBody,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
             input=input,
+            ctx=ctx,
         )
 
         response_json = await response.json()

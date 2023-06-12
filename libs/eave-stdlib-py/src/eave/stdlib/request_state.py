@@ -42,9 +42,6 @@ class EaveRequestState:
             "request_headers": self.request_headers,
         }
 
-        if eaveLogger.level == logging.DEBUG:
-            payload["request_body"] = self.parsed_request_body
-
         return LogContext().set(payload)
 
     @property

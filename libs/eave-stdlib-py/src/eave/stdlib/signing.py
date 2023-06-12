@@ -2,7 +2,7 @@ import base64
 import enum
 import hashlib
 from dataclasses import dataclass
-from typing import Literal, cast
+from typing import Literal, Optional, cast
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
@@ -14,7 +14,7 @@ from google.cloud import kms
 from . import checksum
 from . import exceptions as eave_exceptions
 from . import util as eave_util
-from .logging import eaveLogger
+from .logging import LogContext, eaveLogger
 
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"
@@ -83,11 +83,11 @@ def get_key(signer: str) -> SigningKeyDetails:
     return _SIGNING_KEYS[signer]
 
 
-def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
+def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[LogContext] = None) -> str:
     """
     Signs the data with GCP KMS, and returns the base64-encoded signature
     """
-    eaveLogger.debug("sign_b64", extra={"data": data})
+    eaveLogger.debug("sign_b64", extra=ctx)
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
@@ -117,7 +117,7 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes) -> str:
 
 
 def verify_signature_or_exception(
-    signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes
+    signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes, ctx: Optional[LogContext] = None
 ) -> Literal[True]:
     """
     Verifies the signature matches the message.
@@ -125,7 +125,7 @@ def verify_signature_or_exception(
     The return value is to help you, the developer, understand that if this function doesn't throw,
     then the signature is verified.
     """
-    eaveLogger.debug("verify_signature_or_exception", extra={"sigMessage": message, "signature": signature})
+    eaveLogger.debug("verify_signature_or_exception", extra=ctx)
     message_bytes = eave_util.ensure_bytes(message)
     signature_bytes = base64.b64decode(signature)
     kms_client = kms.KeyManagementServiceClient()

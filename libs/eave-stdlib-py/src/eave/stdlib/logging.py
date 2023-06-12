@@ -2,6 +2,7 @@ import logging
 from logging import LogRecord
 import sys
 from typing import Any, Optional, Self, TypeVar, cast
+import uuid
 
 import google.cloud.logging
 
@@ -123,3 +124,15 @@ class LogContext(dict[str, object]):
         f = self.setdefault("json_fields", dict[str, JsonObject]())
         fc = cast(JsonObject, f)
         return fc.get(key, default)
+
+    @property
+    def request_id(self) -> str:
+        v: str | None = self.get(key="request_id")
+        if v is None:
+            v = str(uuid.uuid4())
+            self.request_id = v
+        return v
+
+    @request_id.setter
+    def request_id(self, value: str) -> None:
+        self.set({ "request_id": value })

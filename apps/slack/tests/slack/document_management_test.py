@@ -12,6 +12,7 @@ eave_app_id = shared_config.eave_slack_app_id
 
 class DocumentManagementMixinTest(BaseTestCase):
     async def test_build_resources_eave_messages_ignored(self) -> None:
+        eave_ctx = LogContext()
         # givent the slack message has a thread with many link resources
         # including some from the Eave app
         eave_team = eave.stdlib.core_api.models.team.Team(
@@ -28,7 +29,8 @@ class DocumentManagementMixinTest(BaseTestCase):
                 "text": "a resource <https://google.com>",
                 "app_id": "not_eave",
             },
-            slack_context=slack_context,
+            slack_ctx=slack_context,
+            eave_ctx=eave_ctx
         )
         # according to slack api docs, conversations.replies also returns the
         # root message that started the thread, not just replies to it, so we repeat
@@ -65,7 +67,8 @@ class DocumentManagementMixinTest(BaseTestCase):
         sut = DocumentManagementMixin(
             message=slack_message,
             eave_team=eave_team,
-            ctx=LogContext(),
+            slack_ctx=slack_context,
+            eave_ctx=eave_ctx,
         )
 
         # when we build the resources list from the message
