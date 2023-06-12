@@ -4,7 +4,6 @@ import { getEaveState } from '../lib/request-state.js';
 import { developmentBypassAllowed } from './development-bypass.js';
 import { buildMessageToSign } from '../lib/requests.js';
 import Signing from '../signing.js';
-import { HTTPException } from '../exceptions.js';
 import eaveLogger from '../logging.js';
 
 /**

@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import { JsonObject } from '../types.js';
 
 export interface PaginatedResults<T> {
@@ -44,7 +45,6 @@ export enum ConfluenceSpaceStatus {
   current = 'current',
   archived = 'archived',
 }
-
 
 export enum ConfluenceContentType {
   page = 'page',
@@ -296,7 +296,6 @@ export interface ConfluenceUsersUserKeys {
   users?: ConfluenceUser[];
   userKeys?: string[];
 }
-
 
 export interface ConfluenceGroup {
   type?: ConfluenceGroupType;

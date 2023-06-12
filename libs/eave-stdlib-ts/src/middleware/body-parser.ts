@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveLogger from '../logging.js';
 
 /*
 Simple JSON body parser. Similar to body-parser's json parser, but different in two ways:

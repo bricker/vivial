@@ -1,5 +1,5 @@
 import helmet from 'helmet';
-import { Express, NextFunction, Request, RequestHandler, Response } from "express";
+import { Express, NextFunction, Request, Response } from 'express';
 
 // Atlassian security policy requirements
 // http://go.atlassian.com/security-requirements-for-cloud-apps

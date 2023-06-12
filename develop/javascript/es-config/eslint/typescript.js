@@ -27,6 +27,12 @@ const config = {
         ],
       },
     },
+    {
+      files: ['*.test.ts'],
+      rules: {
+        'unused-imports/no-unused-vars': 'off', // Allow ava test context to be unused
+      },
+    },
   ],
 };
 

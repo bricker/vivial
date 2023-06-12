@@ -1,13 +1,9 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import ace from 'atlassian-connect-express';
 import { applyAtlassianSecurityPolicyMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/connect/security-policy-middlewares.js';
-import { exceptionHandlingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/exception-handling.js';
-import { GAELifecycleRouter, StatusRouter, applyShutdownHandlers } from '@eave-fyi/eave-stdlib-ts/src/api-util.js';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { GAELifecycleRouter, StatusRouter } from '@eave-fyi/eave-stdlib-ts/src/api-util.js';
 import EaveApiAdapter from '@eave-fyi/eave-stdlib-ts/src/connect/eave-api-store-adapter.js';
-import getCacheClient from '@eave-fyi/eave-stdlib-ts/src/cache.js';
 import { helmetMiddleware, applyCommonRequestMiddlewares, applyCommonResponseMiddlewares, applyInternalApiMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
-import appConfig from './config.js';
 import { InternalApiRouter } from './api/routes.js';
 import { WebhookRouter, applyWebhookMiddlewares } from './events/routes.js';
 

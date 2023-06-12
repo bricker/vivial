@@ -5,7 +5,7 @@ from eave.core.internal.orm.confluence_destination import ConfluenceDestinationO
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 from eave.core.internal.orm.subscription import SubscriptionOrm
-from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, SubscriptionSourcePlatform
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from .base import BaseTestCase

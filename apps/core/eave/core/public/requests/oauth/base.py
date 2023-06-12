@@ -4,7 +4,6 @@ from starlette.responses import Response
 from eave.stdlib.core_api.models.account import AuthProvider
 
 import eave.stdlib.request_state as eave_request_util
-from eave.core.internal import app_config
 from eave.stdlib.logging import eaveLogger
 
 from ...http_endpoint import HTTPEndpoint

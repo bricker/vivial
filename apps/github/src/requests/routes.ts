@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response, Router } from "express";
-import { getSummary } from "./content.js";
-import { subscribe } from "./subscribe.js";
+import { NextFunction, Request, Response, Router } from 'express';
+import { getSummary } from './content.js';
+import { subscribe } from './subscribe.js';
 
 export function InternalApiRouter(): Router {
   const router = Router();

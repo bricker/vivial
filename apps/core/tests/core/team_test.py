@@ -4,7 +4,7 @@ import eave.core.internal.database as eave_db
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct
 
 from .base import BaseTestCase
 

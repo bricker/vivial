@@ -4,7 +4,7 @@ from eave.core.internal.orm.atlassian_installation import AtlassianInstallationO
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
-from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct
 
 from eave.stdlib.core_api.operations.team import GetTeamRequest, UpsertConfluenceDestinationAuthedRequest
 

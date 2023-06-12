@@ -107,7 +107,8 @@ class GithubOAuthCallback(HTTPEndpoint):
             )
 
         shared.set_redirect(
-            response=self.response, location=shared.DEFAULT_REDIRECT_LOCATION,
+            response=self.response,
+            location=shared.DEFAULT_REDIRECT_LOCATION,
         )
         await self._update_or_create_github_installation()
         return self.response
@@ -131,7 +132,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     event_name="duplicate_integration_attempt",
                     eave_account_id=self.eave_account.id,
                     eave_team_id=self.eave_account.team_id,
-                    opaque_params={"integration": Integration.github}
+                    opaque_params={"integration": Integration.github},
                 )
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 return

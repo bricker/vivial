@@ -3,7 +3,7 @@ import lf from 'logform';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 import { sharedConfig } from './config.js';
 
-const customErrorFormatter = winston.format((info: lf.TransformableInfo, opts?: any): lf.TransformableInfo | boolean => {
+const customErrorFormatter = winston.format((info: lf.TransformableInfo, _opts?: any): lf.TransformableInfo | boolean => {
   if (info instanceof Error) {
     // Example: logger.error(e)
     // eslint-disable-next-line no-param-reassign

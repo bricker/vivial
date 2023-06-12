@@ -2,13 +2,13 @@ import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceC
 import { AddOn, HostClient } from 'atlassian-connect-express';
 import { RequestResponse } from 'request';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { cleanDocument } from './api/util.js';
 import { Request } from 'express';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
-import appConfig from './config.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { promisify } from 'util';
+import appConfig from './config.js';
+import { cleanDocument } from './api/util.js';
 
 export default class ConfluenceClient {
   static async getAuthedConnectClient(req: Request, addon: AddOn): Promise<ConfluenceClient> {

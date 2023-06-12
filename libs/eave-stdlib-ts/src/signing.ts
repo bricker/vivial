@@ -70,12 +70,13 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
 export default class Signing {
   /**
    * proxy constructor for easier stubbing in tests.
-   **/
+   * */
   static new(signer: string): Signing {
     return new Signing(signer);
   }
 
   signingKey: SigningKeyDetails;
+
   signingKeyVersion: string;
 
   constructor(signer: string) {

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from eave.core.internal.orm.team import TeamOrm
 import eave.pubsub_schemas
 import eave.stdlib
 import oauthlib.common
@@ -113,7 +112,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     event_name="duplicate_integration_attempt",
                     eave_account_id=self.eave_account.id,
                     eave_team_id=self.eave_account.team_id,
-                    opaque_params={"integration": Integration.slack}
+                    opaque_params={"integration": Integration.slack},
                 )
 
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
@@ -141,9 +140,10 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 )
 
                 await self._run_post_install_procedures(log_context=log_context)
-                slack_redirect_location = f"https://slack.com/app_redirect?app={app_config.eave_slack_app_id}&team={slack_team_id}"
+                slack_redirect_location = (
+                    f"https://slack.com/app_redirect?app={app_config.eave_slack_app_id}&team={slack_team_id}"
+                )
                 shared.set_redirect(response=self.response, location=slack_redirect_location)
-
 
     async def _run_post_install_procedures(
         self,

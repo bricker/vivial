@@ -3,10 +3,17 @@ import unittest.mock
 
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-from eave.stdlib.atlassian import ConfluencePage
-from eave.stdlib.confluence_api.models import ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluenceGenericLinks, ConfluencePageBody, ConfluenceSearchResultWithBody
+from eave.stdlib.confluence_api.models import (
+    ConfluenceContentBody,
+    ConfluenceContentBodyRepresentation,
+    ConfluenceContentStatus,
+    ConfluenceContentType,
+    ConfluenceGenericLinks,
+    ConfluencePageBody,
+    ConfluenceSearchResultWithBody,
+)
 from eave.stdlib.confluence_api.operations import SearchContentRequest
-from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.operations.documents import SearchDocuments
 from .base import BaseTestCase
 

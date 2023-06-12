@@ -86,9 +86,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
             assert not response.cookies.get("ev_oauth_state_google")  # Test the cookie was deleted
             assert response.headers["Location"]
-            assert (
-                response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
-            )
+            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
             account_id = response.cookies.get("ev_account_id")
             assert account_id

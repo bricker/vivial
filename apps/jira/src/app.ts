@@ -1,4 +1,3 @@
-import util from 'node:util';
 import express from 'express';
 import ace from 'atlassian-connect-express';
 import helmet from 'helmet';
@@ -9,7 +8,7 @@ import { requestIntegrity } from '@eave-fyi/eave-stdlib-ts/src/middleware/reques
 import { requestLoggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/logging.js';
 import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import OpenAIClient, {OpenAIModel} from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
@@ -121,7 +120,7 @@ webhookRouter.post('/', addon.authenticate(), async (req /* , res */) => {
             reject();
           }
         }
-      });
+      }).catch(reject);
     });
   }));
 
@@ -222,10 +221,10 @@ internalApiRouter.post('/_', (/* req, res, next */) => {
 app.use(exceptionHandlingMiddleware);
 
 const PORT = parseInt(process.env['PORT'] || '5500', 10);
-const server = app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', async () => {
   console.info(`App listening on port ${PORT}`, process.env['NODE_ENV']);
   if (appConfig.isDevelopment) {
-    addon.register();
+    await addon.register();
   }
 });
 
@@ -233,7 +232,8 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 const gracefulShutdownHandler = () => {
   getCacheClient
     .then((client) => client.quit())
-    .then(() => { eaveLogger.info('redis connection closed.'); });
+    .then(() => { eaveLogger.info('redis connection closed.'); })
+    .catch((e) => { eaveLogger.error(e); });
 
   server.close(() => {
     eaveLogger.info('HTTP server closed');

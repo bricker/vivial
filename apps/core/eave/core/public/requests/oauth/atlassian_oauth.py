@@ -125,9 +125,11 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                                 event_name="duplicate_integration_attempt",
                                 eave_account_id=self.eave_account.id,
                                 eave_team_id=self.eave_account.team_id,
-                                opaque_params={"integration": connect_install.product}
+                                opaque_params={"integration": connect_install.product},
                             )
-                            shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
+                            shared.set_error_code(
+                                response=self.response, error_code=EaveOnboardingErrorCode.already_linked
+                            )
                             return
 
                         else:

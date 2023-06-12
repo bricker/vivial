@@ -1,4 +1,4 @@
-import express, { Request, Response, Router } from 'express';
+import { Request, Response, Router } from 'express';
 import { Server } from 'http';
 import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
@@ -44,14 +44,14 @@ export function gracefulShutdownHandler({ server }: { server: Server }): () => v
     getCacheClient
       .then((client) => client.quit())
       .then(() => { eaveLogger.info('redis connection closed.'); })
-      .catch((e) => { eaveLogger.error(e) })
+      .catch((e) => { eaveLogger.error(e); })
       .finally(() => {
         server.close(() => {
           eaveLogger.info('HTTP server closed');
         });
       });
   };
-};
+}
 
 export function applyShutdownHandlers({ server }: { server: Server }) {
   const handler = gracefulShutdownHandler({ server });

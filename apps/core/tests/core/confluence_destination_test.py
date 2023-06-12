@@ -1,6 +1,6 @@
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct
 
 from .base import BaseTestCase
 

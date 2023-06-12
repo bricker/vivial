@@ -86,7 +86,7 @@ class CommunicationMixinTest(BaseTestCase):
 
         await self.sut.acknowledge_receipt()
 
-        assert mock.call_count == 2 # Once for message, once for parent
+        assert mock.call_count == 2  # Once for message, once for parent
         assert mock.call_args_list[0].kwargs["name"] == "eave"
         assert mock.call_args_list[0].kwargs["channel"] == self.getstr("message.channel")
         assert mock.call_args_list[0].kwargs["timestamp"] == self.getstr("message.ts")
@@ -110,7 +110,7 @@ class CommunicationMixinTest(BaseTestCase):
 
         await self.sut.acknowledge_receipt()
 
-        assert mock.call_count == 3 # Once for message, second for message re-try, third for parent.
+        assert mock.call_count == 3  # Once for message, second for message re-try, third for parent.
         assert mock.call_args_list[0].kwargs["name"] == "eave"
         assert mock.call_args_list[1].kwargs["name"] == "large_purple_circle"
 

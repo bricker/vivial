@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { AddOn } from 'atlassian-connect-express';
 import { CreateContentRequestBody, CreateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { ConfluencePage,ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
+import { ConfluencePage, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
 import ConfluenceClient from '../confluence-client.js';
 
@@ -56,7 +56,7 @@ export default async function createContent(req: Request, res: Response, addon: 
   // Get the pages at the root of the space.
   let currentDir: ConfluencePage | undefined; // undefined is root
   let currentDirId: string | undefined; // We have to track this separately because of hoisting, I think
-  let currentDirContent = await client.getPageChildren({ pageId: space.homepage?.id })
+  let currentDirContent = await client.getPageChildren({ pageId: space.homepage?.id });
 
   // Figure out where the document goes in the Space hierarchy.
   // For each level in the given hierarchy, check if a page (i.e. folder, same thing) already exists with the given name.

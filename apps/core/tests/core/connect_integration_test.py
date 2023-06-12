@@ -1,6 +1,4 @@
 import http
-from typing import Optional
-from uuid import UUID
 
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
@@ -223,7 +221,6 @@ class RegisterConnectIntegrationTests(BaseTestCase):
                 base_url=self.anyurl("base_url") + "/wiki",
             )
 
-
         response = await self.make_request(
             path="/integrations/connect/register",
             payload={
@@ -250,6 +247,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
                 "integration_name": AtlassianProduct.jira,
             },
         )
+
 
 class QueryConnectIntegrationTests(BaseTestCase):
     async def test_query_when_integration_exists(self) -> None:

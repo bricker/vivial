@@ -1,8 +1,7 @@
-import { NextFunction, Request, Response, Router, raw, Express } from "express";
-import dispatch from "../dispatch.js";
+import { NextFunction, Request, Response, Router, raw, Express } from 'express';
+import dispatch from '../dispatch.js';
 
-
-export function applyWebhookMiddlewares({app, path}:{ app: Express, path: string }) {
+export function applyWebhookMiddlewares({ app, path }:{ app: Express, path: string }) {
   /*
   Using raw parsing rather than express.json() parser because of GitHub signature verification.
   If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
