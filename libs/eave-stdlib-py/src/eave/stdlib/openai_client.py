@@ -3,6 +3,7 @@ import textwrap
 import time
 from dataclasses import asdict, dataclass
 from typing import Any, List, LiteralString, Optional, cast
+import uuid
 
 import openai as openai_sdk
 import openai.error
@@ -106,6 +107,7 @@ class ChatCompletionParameters:
         else:
             params["stop"] = [STOP_SEQUENCE]
 
+        params["timeout"] = 10 # seconds
         return params
 
 
@@ -122,6 +124,8 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     ensure_api_key()
 
     eave_ctx = LogContext.wrap(ctx)
+    openai_request_id = str(uuid.uuid4())
+    eave_ctx.set({ "openai_request_id": openai_request_id })
     eaveLogger.debug("OpenAI Request", extra=eave_ctx.set({"openai_request_params": params.__dict__}))
 
     max_attempts = 3
@@ -134,8 +138,8 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
                 # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
                 eaveLogger.exception("error during logging", extra=eave_ctx)
             break
-        except openai.error.RateLimitError as e:
-            eaveLogger.warning("OpenAI RateLimitError", exc_info=e, extra=eave_ctx)
+        except openai.error.OpenAIError as e:
+            eaveLogger.warning("OpenAI Error", exc_info=e, extra=eave_ctx)
             if i + 1 < max_attempts:
                 time.sleep(i + 1)
     else:

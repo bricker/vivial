@@ -1,5 +1,6 @@
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 import { sharedConfig } from './config.js';
+import eaveLogger from './logging.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -49,9 +50,24 @@ export default class OpenAIClient {
 
     // eslint-disable-next-line no-param-reassign
     parameters.max_tokens = modelMaxTokens - promptLength;
+    let text: string | undefined;
 
-    const completion = await this.client.createChatCompletion(parameters);
-    const text = completion.data.choices[0]?.message?.content;
+    const maxAttempts = 3;
+    for (let i = 0; i < maxAttempts; i += 1) {
+      try {
+        const completion = await this.client.createChatCompletion(parameters, { timeout: 10 }); // timeout in seconds
+        text = completion.data.choices[0]?.message?.content;
+      } catch (e: unknown) {
+        // Network error?
+        if (i < maxAttempts - 1) {
+          eaveLogger.warning(e);
+          await new Promise((r) => { setTimeout(r, i + 1); });
+        } else {
+          throw e;
+        }
+      }
+    }
+
     if (text === undefined) {
       throw new Error('openai text response is undefined');
     }
