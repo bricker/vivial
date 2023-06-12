@@ -18,8 +18,7 @@ export async function getSummary(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const requestBody = (<Buffer>req.body).toString();
-  const input = <GetGithubUrlContentRequestBody>JSON.parse(requestBody);
+  const input = <GetGithubUrlContentRequestBody>req.body;
   if (!input.url) {
     eaveLogger.error('Invalid input', eaveState);
     res.status(400).end();

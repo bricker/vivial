@@ -21,8 +21,7 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const requestBody = (<Buffer>req.body).toString();
-  const input = <CreateGithubResourceSubscriptionRequestBody>JSON.parse(requestBody);
+  const input = <CreateGithubResourceSubscriptionRequestBody>req.body;
   if (!input.url) {
     eaveLogger.error('Missing input.url', eaveState);
     res.status(400).end();

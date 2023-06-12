@@ -5,7 +5,7 @@ export function requireHeaders(...headers: string[]): ((req: Request, res: Respo
     for (const header of headers) {
       const value = req.header(header);
       if (!value) {
-        res.send(400).end();
+        res.sendStatus(400).end();
         return;
       }
     }

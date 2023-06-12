@@ -322,7 +322,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getSystemInfo', request);
 
-    const response: RequestResponse = await client.put(request);
+    const response: RequestResponse = await this.client.put(request);
     this.logResponse('getSystemInfo', response);
     if (response.statusCode >= 400) {
       return null;
