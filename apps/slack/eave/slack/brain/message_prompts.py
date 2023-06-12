@@ -22,7 +22,7 @@ CONVO_STRUCTURE = eave_openai.formatprompt(
 #     UNKNOWN = "UNKNOWN"
 
 
-class MessageAction(enum.Enum):
+class MessageAction(enum.StrEnum):
     CREATE_DOCUMENTATION = "CREATE_DOCUMENTATION"
     SEARCH_DOCUMENTATION = "SEARCH_DOCUMENTATION"
     UPDATE_DOCUMENTATION = "UPDATE_DOCUMENTATION"

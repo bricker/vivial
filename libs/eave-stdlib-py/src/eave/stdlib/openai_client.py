@@ -19,7 +19,7 @@ from .exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
 tokencoding = tiktoken.get_encoding("gpt2")
 
 
-class DocumentationType(enum.Enum):
+class DocumentationType(enum.StrEnum):
     TECHNICAL = "TECHNICAL"
     PROJECT = "PROJECT"
     TEAM_ONBOARDING = "TEAM_ONBOARDING"
@@ -38,7 +38,7 @@ def prompt_prefix() -> LiteralString:
 STOP_SEQUENCE = "STOP_SEQUENCE"
 
 
-class OpenAIModel(str, enum.Enum):
+class OpenAIModel(enum.StrEnum):
     # ADA_EMBEDDING = "text-embedding-ada-002"
     GPT_35_TURBO = "gpt-3.5-turbo"
     GPT4 = "gpt-4"
@@ -52,7 +52,7 @@ MAX_TOKENS = {
 }
 
 
-class ChatRole(str, enum.Enum):
+class ChatRole(enum.StrEnum):
     SYSTEM = "system"
     ASSISTANT = "assistant"
     USER = "user"
