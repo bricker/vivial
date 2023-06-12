@@ -21,7 +21,7 @@ export function applyCommonRequestMiddlewares({ app }: { app: Express }) {
 export function applyCommonResponseMiddlewares({ app }: { app: Express }) {
   app.use(responseLoggingMiddleware);
   app.use(exceptionHandlingMiddleware);
-  }
+}
 
 export function applyInternalApiMiddlewares({ app, path }: {app: Express, path: string}) {
   /*

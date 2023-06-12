@@ -160,5 +160,5 @@
     }
   ],
   "typescript.validate.enable": true,
-  "eslint.run": "onSave",
+  "eslint.run": "onSave"
 }

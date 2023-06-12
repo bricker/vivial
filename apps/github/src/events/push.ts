@@ -1,6 +1,6 @@
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, { OpenAIModel, MAX_TOKENS } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
@@ -13,6 +13,7 @@ import { appConfig } from '../config.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   eaveLogger.debug('Processing push', { event, context });
+  const openaiClient = await OpenAIClient.getAuthedClient();
 
   // only handling branch push events for now; ignore tag pushes
   if (!event.ref.startsWith('refs/heads/')) {
@@ -127,12 +128,12 @@ export default async function handler(event: PushEvent, context: GitHubOperation
 
       // NOTE: According to the OpenAI docs, model gpt-3.5-turbo-0301 doesn't pay attention to the system messages,
       // but it seems it's specific to that model, and neither gpt-3.5-turbo or gpt-4 are affected, so watch out
-      const openaiResponse = await openai.createChatCompletion({
+      const openaiResponse = await openaiClient.createChatCompletion({
         messages: [
           { role: 'user', content: prompt },
         ],
-        model: openai.OpenAIModel.GPT4,
-        max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT4],
+        model: OpenAIModel.GPT4,
+        max_tokens: MAX_TOKENS[OpenAIModel.GPT4],
       });
 
       const document: DocumentInput = {

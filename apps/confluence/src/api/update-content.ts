@@ -2,14 +2,13 @@ import { Request, Response } from 'express';
 import { AddOn } from 'atlassian-connect-express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import { getAuthedConnectClient } from './util.js';
-import { getPageById, updatePage } from '../confluence-client.js';
+import OpenAIClient, * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import ConfluenceClient from '../confluence-client.js';
 
 export default async function updateContent(req: Request, res: Response, addon: AddOn) {
-  const client = await getAuthedConnectClient(req, addon);
+  const confluenceClient = await ConfluenceClient.getAuthedConnectClient(req, addon);
   const { content } = <UpdateContentRequestBody>req.body;
-  const page = await getPageById({ client, pageId: content.id });
+  const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {
     eaveLogger.error(`Confluence page not found for ID ${content.id}`);
     res.status(500);
@@ -42,7 +41,8 @@ export default async function updateContent(req: Request, res: Response, addon: 
   ].join('\n');
 
   // TODO: Token counting
-  const openaiResponse = await openai.createChatCompletion({
+  const openaiClient = await OpenAIClient.getAuthedClient();
+  const openaiResponse = await openaiClient.createChatCompletion({
     messages: [
       { role: 'user', content: prompt },
     ],
@@ -51,7 +51,7 @@ export default async function updateContent(req: Request, res: Response, addon: 
 
   eaveLogger.debug({ message: 'OpenAI response', openaiResponse });
 
-  const response = await updatePage({ client, page, body: openaiResponse });
+  const response = await confluenceClient.updatePage({ page, body: openaiResponse });
   const responseBody: UpdateContentResponseBody = {
     content: response,
   };

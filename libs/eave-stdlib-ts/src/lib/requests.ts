@@ -1,7 +1,7 @@
 import { v4 as uuid4 } from 'uuid';
 import eaveLogger from '../logging.js';
 import { EaveOrigin } from '../eave-origins.js';
-import { getKey, signBase64 } from '../signing.js';
+import Signing from '../signing.js';
 import eaveHeaders from '../headers.js';
 import {
   NotFoundError,
@@ -89,10 +89,8 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   });
 
   eaveLogger.debug({ message: 'sig message', sigMessage: message });
-  const signature = await signBase64(
-    getKey(origin),
-    message,
-  );
+  const signing = Signing.new(origin);
+  const signature = await signing.signBase64(message);
 
   headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 

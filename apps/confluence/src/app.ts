@@ -16,8 +16,8 @@ import { WebhookRouter, applyWebhookMiddlewares } from './events/routes.js';
 // so Typescript (rightfully) shows an error.
 (<any>ace).store.register('eave-api-store', EaveApiAdapter);
 
-const app = express();
-const addon = ace(app);
+export const app = express();
+export const addon = ace(app);
 app.use(helmetMiddleware());
 applyAtlassianSecurityPolicyMiddlewares({ app });
 applyCommonRequestMiddlewares({ app });
@@ -34,13 +34,3 @@ rootRouter.use('/events', WebhookRouter({ addon }));
 rootRouter.use('/api', InternalApiRouter({ addon }));
 
 applyCommonResponseMiddlewares({ app });
-
-const PORT = parseInt(process.env['PORT'] || '5400', 10);
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.info(`App listening on port ${PORT}`, process.env['NODE_ENV']);
-  if (appConfig.isDevelopment) {
-    addon.register();
-  }
-});
-
-applyShutdownHandlers({ server });

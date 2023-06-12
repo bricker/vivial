@@ -3,6 +3,6 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-node-test .
+node-test "$@"
 run-in-path "${EAVE_HOME}/libs/eave-stdlib-ts" "bin/test"
 run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/test"

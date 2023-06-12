@@ -19,41 +19,42 @@ export const MAX_TOKENS: {[key:string]: number} = {
   [OpenAIModel.GPT4_32K]: 32768,
 };
 
-export async function createChatCompletion(parameters: CreateChatCompletionRequest): Promise<string> {
-  parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
+export default class OpenAIClient {
+  client: OpenAIApi;
 
-  const promptLength = parameters.messages.reduce((acc, v) => {
+  static async getAuthedClient(): Promise<OpenAIClient> {
+    const apiKey = await sharedConfig.openaiApiKey;
+    const configuration = new Configuration({ apiKey });
+    const openaiClient = new OpenAIApi(configuration);
+    return new OpenAIClient(openaiClient);
+  }
+
+  constructor(client: OpenAIApi) {
+    this.client = client;
+  }
+
+  async createChatCompletion(parameters: CreateChatCompletionRequest): Promise<string> {
+    parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
+
+    const promptLength = parameters.messages.reduce((acc, v) => {
+      // eslint-disable-next-line no-param-reassign
+      acc += v.content.length;
+      return acc;
+    }, 0);
+
+    const modelMaxTokens = MAX_TOKENS[parameters.model];
+    if (!modelMaxTokens) {
+      throw new Error(`Unexpected model value ${parameters.model}`);
+    }
+
     // eslint-disable-next-line no-param-reassign
-    acc += v.content.length;
-    return acc;
-  }, 0);
+    parameters.max_tokens = modelMaxTokens - promptLength;
 
-  const modelMaxTokens = MAX_TOKENS[parameters.model];
-  if (!modelMaxTokens) {
-    throw new Error(`Unexpected model value ${parameters.model}`);
+    const completion = await this.client.createChatCompletion(parameters);
+    const text = completion.data.choices[0]?.message?.content;
+    if (text === undefined) {
+      throw new Error('openai text response is undefined');
+    }
+    return text;
   }
-
-  // eslint-disable-next-line no-param-reassign
-  parameters.max_tokens = modelMaxTokens - promptLength;
-
-  const client = await getOpenAIClient();
-  const completion = await client.createChatCompletion(parameters);
-  const text = completion.data.choices[0]?.message?.content;
-  if (text === undefined) {
-    throw new Error('openai text response is undefined');
-  }
-  return text;
-}
-
-let client: OpenAIApi;
-
-async function getOpenAIClient(): Promise<OpenAIApi> {
-  if (client !== undefined) {
-    return client;
-  }
-
-  const apiKey = await sharedConfig.openaiApiKey;
-  const configuration = new Configuration({ apiKey });
-  client = new OpenAIApi(configuration);
-  return client;
 }

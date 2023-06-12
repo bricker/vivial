@@ -73,6 +73,5 @@ branch = true
 data_file = ".coverage/data"
 
 [tool.coverage.lcov]
-data_file = ".coverage/data"
 output = ".coverage/report.lcov"
 

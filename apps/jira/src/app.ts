@@ -9,7 +9,7 @@ import { requestIntegrity } from '@eave-fyi/eave-stdlib-ts/src/middleware/reques
 import { requestLoggingMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/logging.js';
 import { originMiddleware } from '@eave-fyi/eave-stdlib-ts/src/middleware/origin.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, {OpenAIModel} from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
@@ -85,7 +85,7 @@ webhookRouter.post('/', addon.authenticate(), async (req /* , res */) => {
   // FIXME: Dispatch different events
   // FIXME: Redact auth header
   eaveLogger.debug({ message: 'received webhook event', body: req.body, headers: req.headers });
-
+  const openaiClient = await OpenAIClient.getAuthedClient();
   const payload = <CommentCreatedEventPayload>req.body;
   const client = addon.httpClient(req);
 
@@ -138,11 +138,11 @@ webhookRouter.post('/', addon.authenticate(), async (req /* , res */) => {
     '###',
   ].join('\n');
 
-  const openaiResponse = await openai.createChatCompletion({
+  const openaiResponse = await openaiClient.createChatCompletion({
     messages: [
       { role: 'user', content: prompt },
     ],
-    model: openai.OpenAIModel.GPT4,
+    model: OpenAIModel.GPT4,
   });
 
   eaveLogger.debug('OpenAI response', { openaiResponse });

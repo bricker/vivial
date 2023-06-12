@@ -3,7 +3,7 @@ import eaveHeaders from '../headers.js';
 import { getEaveState } from '../lib/request-state.js';
 import { developmentBypassAllowed } from './development-bypass.js';
 import { buildMessageToSign } from '../lib/requests.js';
-import { getKey, verifySignatureOrException } from '../signing.js';
+import Signing from '../signing.js';
 import { HTTPException } from '../exceptions.js';
 import eaveLogger from '../logging.js';
 
@@ -64,8 +64,7 @@ async function doSignatureVerification(req: Request, res: Response, baseUrl: str
     accountId,
   });
 
-  const signingKey = getKey(origin);
-
-  await verifySignatureOrException(signingKey, message, signature);
+  const signing = Signing.new(origin);
+  await signing.verifySignatureOrException(message, signature);
   return true;
 }

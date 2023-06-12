@@ -103,7 +103,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/apps/confluence/src/app.ts",
+      "program": "${workspaceFolder}/apps/confluence/server.ts",
       "restart": true,
       "args": [
         "--exec", "pkill -n ngrok || true && ts-node",
@@ -111,6 +111,27 @@
         "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
+      "consoleTitle": "Confluence App",
+      "console": "integratedTerminal",
+      "env": {
+        "PORT": "5400",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "confluence",
+        "GAE_VERSION": "dev",
+      },
+    },
+    {
+      "name": "Confluence Tests",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/confluence",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "test",
+      "restart": true,
+      "runtimeExecutable": "npm",
       "consoleTitle": "Confluence App",
       "console": "integratedTerminal",
       "env": {

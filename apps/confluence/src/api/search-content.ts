@@ -1,13 +1,11 @@
-import { RequestResponse } from 'request';
 import { Request, Response } from 'express';
 import { AddOn } from 'atlassian-connect-express';
 import { SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getAuthedConnectClient } from './util.js';
-import { search } from '../confluence-client.js';
+import ConfluenceClient from '../confluence-client.js';
 
 export default async function searchContent(req: Request, res: Response, addon: AddOn) {
-  const client = await getAuthedConnectClient(req, addon);
+  const client = await ConfluenceClient.getAuthedConnectClient(req, addon);
   const requestBody = <SearchContentRequestBody>req.body;
 
   const { space_key, text } = requestBody.search_params;
@@ -31,7 +29,7 @@ export default async function searchContent(req: Request, res: Response, addon: 
     return;
   }
 
-  const results = await search({ client, cql, cqlcontext });
+  const results = await client.search({ cql, cqlcontext });
   // Remove pages with no body
   const filteredResults = results.filter((r) => r.body?.storage?.value);
 

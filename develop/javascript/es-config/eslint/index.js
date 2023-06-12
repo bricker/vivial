@@ -57,9 +57,10 @@ const config = {
     },
     {
       // ava's `t` context variable is intended to be modified during the lifecycle of a test.
-      files: ['*.test.js'],
+      files: ['*.test.js', '*.test.ts'],
       rules: {
         'no-param-reassign': 'off',
+        'import/no-extraneous-dependencies': 'off',
       },
     },
     {

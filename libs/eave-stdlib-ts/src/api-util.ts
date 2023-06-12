@@ -1,9 +1,9 @@
 import express, { Request, Response, Router } from 'express';
+import { Server } from 'http';
 import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
 import getCacheClient from './cache.js';
 import eaveLogger from './logging.js';
-import { Server } from 'http';
 
 export function statusPayload(): StatusResponseBody {
   return {
