@@ -87,7 +87,9 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
         current = api_document
-        for category in document_hierarchy:
+        # The hierarchy comes sorted from least specific to most specific, so we reverse it because we're applying the
+        # parent pages from the inside out.
+        for category in reversed(document_hierarchy):
             p = eave.stdlib.core_api.models.documents.DocumentInput(
                 title=category,
                 content="",
@@ -207,6 +209,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 return
 
             await documents.DeleteDocument.perform(
+                ctx=self.eave_ctx,
                 origin=app_config.eave_origin,
                 team_id=self.eave_team.id,
                 input=documents.DeleteDocument.RequestBody(
@@ -220,6 +223,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         self, document: eave.stdlib.core_api.models.documents.DocumentInput
     ) -> documents.UpsertDocument.ResponseBody:
         response = await documents.UpsertDocument.perform(
+            ctx=self.eave_ctx,
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=documents.UpsertDocument.RequestBody(
@@ -269,6 +273,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             raise OpenAIDataError()
 
         response = await documents.SearchDocuments.perform(
+            ctx=self.eave_ctx,
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=documents.SearchDocuments.RequestBody(query=answer),
