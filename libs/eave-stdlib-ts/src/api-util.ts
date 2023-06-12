@@ -28,12 +28,12 @@ export function GAELifecycleRouter(): Router {
   const router = Router();
 
   router.get('/_ah/start', (_req: Request, res: Response) => {
-    res.status(200);
+    res.sendStatus(200);
   });
 
-  router.get('/_ah/warmup', async (req: Request, res: Response) => {
+  router.get('/_ah/warmup', async (_req: Request, res: Response) => {
     await getCacheClient; // Initializes a client and connects to Redis
-    res.status(200);
+    res.sendStatus(200);
   });
 
   return router;

@@ -26,19 +26,22 @@ export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn, 
     });
 
     await addon.settings.set('clientInfo', settings, settings.clientKey);
-    res.status(204).send();
+    res.sendStatus(204);
   });
 
-  router.post('/enabled', async (req: Request /* res: Response */) => {
+  router.post('/enabled', async (req: Request, res: Response) => {
     eaveLogger.info({ message: 'received enabled lifecycle event', body: req.body, product, eaveOrigin });
+    res.sendStatus(204);
   });
 
-  router.post('/disabled', async (req: Request /* res: Response */) => {
+  router.post('/disabled', async (req: Request, res: Response) => {
     eaveLogger.info({ message: 'received disabled lifecycle event', body: req.body, product, eaveOrigin });
+    res.sendStatus(204);
   });
 
-  router.post('/uninstalled', addon.verifyInstallation(), async (req: Request /* res: Response */) => {
+  router.post('/uninstalled', addon.verifyInstallation(), async (req: Request, res: Response) => {
     eaveLogger.info({ message: 'received uninstalled lifecycle event', body: req.body, product, eaveOrigin });
+    res.sendStatus(204);
   });
 
   return router;
