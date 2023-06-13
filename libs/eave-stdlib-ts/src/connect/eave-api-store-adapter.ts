@@ -22,11 +22,11 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   async cacheClientInfo(clientKey: string, clientInfo: AddOnFactory.ClientInfo) {
     const cacheKey = this.cacheKey(clientInfo.clientKey);
     try {
-      eaveLogger.debug({ message: `writing cache entry: ${cacheKey}`, clientInfo });
-      const cacheClient = await getCacheClient;
+      eaveLogger.debug({ message: `[store adapter] writing cache entry: ${cacheKey}`, clientInfo });
+      const cacheClient = await getCacheClient();
       await cacheClient.set(cacheKey, JSON.stringify(clientInfo));
     } catch (e: unknown) {
-      eaveLogger.error({ message: `error writing to cache ${cacheKey}`, exc: e });
+      eaveLogger.error(e);
     }
   }
 
@@ -41,6 +41,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   // So, this class is completely broken with OAuth, but we don't currently use OAuth in this context.
 
   async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
+    eaveLogger.debug(`[store adapter] getting credentials: ${key}, ${clientKey}`);
     if (key !== 'clientInfo') {
       throw new Error(`key not supported: ${key}`);
     }
@@ -48,9 +49,9 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     const cacheKey = this.cacheKey(clientKey);
     let cacheClient: Cache | undefined;
     try {
-      cacheClient = await getCacheClient;
+      cacheClient = await getCacheClient();
     } catch (e: unknown) {
-      eaveLogger.error({ message: 'error initializing cache client', exc: e });
+      eaveLogger.error(e);
     }
 
     if (cacheClient !== undefined) {
@@ -58,7 +59,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
         const cachedData = await cacheClient.get(cacheKey);
         if (cachedData) {
           const clientInfo = <AddOnFactory.ClientInfo>JSON.parse(cachedData.toString());
-          eaveLogger.debug({ message: `cache hit: ${cacheKey}`, clientInfo });
+          eaveLogger.debug({ message: `[store adapter] cache hit: ${cacheKey}`, clientInfo });
           // Do some basic validation to make sure the cached data is valid.
           if (
             clientInfo.key
@@ -69,14 +70,14 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
           ) {
             return clientInfo;
           } else {
-            eaveLogger.warn({ message: `Bad cache data: ${cacheKey}` });
+            eaveLogger.warn({ message: `[store adapter] Bad cache data: ${cacheKey}` });
             await cacheClient.del(cacheKey);
           }
         } else {
-          eaveLogger.debug({ message: `cache miss: ${cacheKey}` });
+          eaveLogger.debug({ message: `[store adapter] cache miss: ${cacheKey}` });
         }
       } catch (e: unknown) {
-        eaveLogger.error({ message: 'error getting cached data', exc: e });
+        eaveLogger.error({ message: '[store adapter] error getting cached data', exc: e });
         await cacheClient.del(cacheKey);
       }
     }
@@ -97,11 +98,13 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
       return clientInfo;
     } catch (e: any) {
       // HTTP error. Not Found is common, if the registration doesn't already exist.
+      eaveLogger.debug(`[store adapter] no connect install exists (this is normal): ${key}, ${clientKey}`);
       return null;
     }
   }
 
   async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
+    eaveLogger.debug(`[store adapter] setting client credentials: ${key}, ${value}, ${clientKey}`);
     if (key !== 'clientInfo') {
       throw new Error(`key not supported: ${key}`);
     }
@@ -116,13 +119,16 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   }
 
   async del(/* key: string, clientKey: string */): Promise<void> {
+    eaveLogger.debug('[store adapter] del called');
     // TODO: Fill in the delete function for Connect client info
-    throw new Error('not implemented');
+    // throw new Error('not implemented');
   }
 
   async getAllClientInfos(): Promise<AddOnFactory.ClientInfo[]> {
+    eaveLogger.debug('[store adapter] getAllClientInfos called');
+    return [];
     // TODO: Fill in the getAllClientInfos function
-    throw new Error('not implemented');
+    // throw new Error('not implemented');
   }
 
   isMemoryStore() {
