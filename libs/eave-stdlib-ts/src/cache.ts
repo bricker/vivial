@@ -112,7 +112,13 @@ async function loadCacheImpl(): Promise<Cache> {
     },
     database: db,
     password: redisAuth,
+    pingInterval: 1000 * 60 * 5,
   });
+
+  impl.on('error', (e) => { eaveLogger.error(e); });
+  impl.on('connect', () => { eaveLogger.debug('redis client connected'); });
+  impl.on('reconnecting', () => { eaveLogger.debug('redis client reconnecting'); });
+  impl.on('ready', () => { eaveLogger.debug('redis client ready'); });
 
   await impl.connect();
   return impl;

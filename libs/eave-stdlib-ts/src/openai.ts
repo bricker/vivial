@@ -60,7 +60,7 @@ export default class OpenAIClient {
       } catch (e: unknown) {
         // Network error?
         if (i < maxAttempts - 1) {
-          eaveLogger.warning(e);
+          eaveLogger.warn(e);
           await new Promise((r) => { setTimeout(r, i + 1); });
         } else {
           throw e;

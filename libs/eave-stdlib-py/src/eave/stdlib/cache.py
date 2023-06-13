@@ -23,6 +23,10 @@ class _Cache(Protocol):
     async def quit(self) -> str:
         ...
 
+    @abc.abstractmethod
+    async def close(self, close_connection_pool: Optional[bool] = None) -> None:
+        ...
+
 
 class _CacheEntry:
     value: str
@@ -75,6 +79,9 @@ class EphemeralCache(_Cache):
     async def quit(self) -> str:
         return "1"
 
+    async def close(self, close_connection_pool: Optional[bool] = None) -> None:
+        return None
+
 
 impl: _Cache
 
@@ -93,6 +100,8 @@ if redis_cfg := shared_config.redis_connection:
         decode_responses=True,
         ssl=redis_tls_ca is not None,
         ssl_ca_data=redis_tls_ca,
+        health_check_interval=60 * 5,
+        socket_keepalive=True,
     )
 else:
     impl = EphemeralCache()
@@ -120,4 +129,5 @@ async def delete(*names: str) -> int:
 
 
 async def quit() -> None:
+    await impl.close()
     await impl.quit()
