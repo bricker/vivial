@@ -8,6 +8,7 @@ export interface Cache {
   get: (key: RedisCommandArgument) => Promise<RedisCommandArgument | null>;
   set: (key: RedisCommandArgument, value: RedisCommandArgument | number, options?: SetOptions) => Promise<RedisCommandArgument | null>;
   del: (keys: RedisCommandArgument | RedisCommandArgument[]) => Promise<number>;
+  ping: () => Promise<string>;
   quit: () => Promise<string>;
 }
 
@@ -84,6 +85,10 @@ export class EphemeralCache implements Cache {
     return count;
   }
 
+  async ping(): Promise<string> {
+    return '1';
+  }
+
   async quit(): Promise<string> {
     return '1';
   }
@@ -124,4 +129,15 @@ async function loadCacheImpl(): Promise<Cache> {
   return impl;
 }
 
-export default loadCacheImpl();
+let _PROCESS_CACHE_CLIENT: Cache | undefined;
+
+export default async function client(): Promise<Cache> {
+  if (_PROCESS_CACHE_CLIENT === undefined) {
+    _PROCESS_CACHE_CLIENT = await loadCacheImpl();
+  }
+  return _PROCESS_CACHE_CLIENT;
+}
+
+export function cacheInitialized(): boolean {
+  return _PROCESS_CACHE_CLIENT !== undefined;
+}
