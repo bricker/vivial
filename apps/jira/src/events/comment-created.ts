@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import { CommentCreatedEventPayload, ContentType, User } from '../types.js';
 import { AddOn } from 'atlassian-connect-express';
 import { IncomingMessage } from 'http';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
-import appConfig from '../config.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
+import appConfig from '../config.js';
+import { CommentCreatedEventPayload, ContentType, User } from '../types.js';
 
 export default async function commentCreatedEventHandler({ req, res, addon }: { req: Request, res: Response, addon: AddOn }) {
   // FIXME: Redact auth header

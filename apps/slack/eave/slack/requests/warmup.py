@@ -22,6 +22,6 @@ class WarmupRequest(HTTPEndpoint):
         except Exception:
             # If a Redis connection can't be established, it shouldn't prevent the app from warming up,
             # because currently Redis isn't technically required to run the app (cache requests fallback to API requests)
-            eaveLogger.exception('Error connecting to redis')
+            eaveLogger.exception("Error connecting to redis")
 
         return Response(status_code=http.HTTPStatus.OK, content="OK")

@@ -317,7 +317,6 @@ async def graceful_shutdown() -> None:
         await cache.client().close()
 
 
-
 app = starlette.applications.Starlette(
     middleware=standard_middleware_starlette,
     routes=routes,

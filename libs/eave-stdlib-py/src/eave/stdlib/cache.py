@@ -78,6 +78,7 @@ class EphemeralCache(CacheInterface):
 
 _PROCESS_CACHE_CLIENT: Optional[CacheInterface] = None
 
+
 def client() -> CacheInterface:
     global _PROCESS_CACHE_CLIENT
 
@@ -104,6 +105,7 @@ def client() -> CacheInterface:
             _PROCESS_CACHE_CLIENT = EphemeralCache()
 
     return _PROCESS_CACHE_CLIENT
+
 
 def initialized() -> bool:
     """

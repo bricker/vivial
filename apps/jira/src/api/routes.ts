@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, Router } from 'express';
+import { Router } from 'express';
 import { AddOn } from 'atlassian-connect-express';
 
 export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
