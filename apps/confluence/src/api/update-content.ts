@@ -11,14 +11,14 @@ export default async function updateContent(req: Request, res: Response, addon: 
   const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {
     eaveLogger.error(`Confluence page not found for ID ${content.id}`);
-    res.status(500);
+    res.sendStatus(500);
     return;
   }
 
   const existingBody = page.body?.storage?.value;
   if (existingBody === null) {
     eaveLogger.error(`Confluence page body is empty for ID ${content.id}`);
-    res.status(500); // TODO: is 500 appropriate here?
+    res.sendStatus(500); // TODO: is 500 appropriate here?
     return;
   }
 

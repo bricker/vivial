@@ -55,13 +55,13 @@ export default class OpenAIClient {
     const maxAttempts = 3;
     for (let i = 0; i < maxAttempts; i += 1) {
       try {
-        const completion = await this.client.createChatCompletion(parameters, { timeout: 10 }); // timeout in seconds
+        const completion = await this.client.createChatCompletion(parameters, { timeout: 1000 * 10 }); // timeout in ms
         text = completion.data.choices[0]?.message?.content;
       } catch (e: unknown) {
         // Network error?
         if (i < maxAttempts - 1) {
           eaveLogger.warn(e);
-          await new Promise((r) => { setTimeout(r, i + 1); });
+          await new Promise((r) => { setTimeout(r, (i + 1) * 1000); });
         } else {
           throw e;
         }

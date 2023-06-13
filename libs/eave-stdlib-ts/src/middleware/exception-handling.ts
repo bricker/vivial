@@ -9,5 +9,5 @@ import { getEaveState } from '../lib/request-state.js';
 export function exceptionHandlingMiddleware(err: any, _req: Request, res: Response, _next: NextFunction): void {
   const eaveState = getEaveState(res);
   eaveLogger.error(err, eaveState);
-  res.status(500).end();
+  res.sendStatus(500).end();
 }
