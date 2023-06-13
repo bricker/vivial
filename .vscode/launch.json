@@ -150,7 +150,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/apps/jira/src/app.ts",
+      "program": "${workspaceFolder}/apps/jira/server.ts",
       "restart": true,
       "args": [
         "--exec", "pkill -n ngrok || true && ts-node"

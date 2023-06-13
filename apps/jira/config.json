@@ -1,6 +1,8 @@
 {
+    "product": "jira",
     "development": {
-        "port": "$PORT",
+        // The host part of  this URL is placeholder; it is overridden in development at runtime with the ngrok host.
+        "localBaseUrl": "http://apps.eave.run/jira",
         "setupInstallRoute": false,
         "store": {
             "adapter": "eave-api-store",
@@ -8,25 +10,23 @@
             "productType": "jira",
             "eaveOrigin": "eave_jira_app"
         },
-        // The host part of  this URL is placeholder; it is overridden in development at runtime with the ngrok host.
-        "localBaseUrl": "http://apps.eave.run/jira"
+        "port": "$PORT"
     },
     "production": {
-        "port": "$PORT",
-        "setupInstallRoute": false,
         "localBaseUrl": "https://apps.eave.fyi/jira",
+        "setupInstallRoute": false,
         "store": {
             "adapter": "eave-api-store",
             "appKey": "eave-jira",
             "productType": "jira",
             "eaveOrigin": "eave_jira_app"
         },
+        "port": "$PORT",
         "whitelist": [
             "*.jira-dev.com",
             "*.atlassian.net",
             "*.atlassian.com",
             "*.jira.com"
         ]
-    },
-    "product": "jira"
+    }
 }
