@@ -312,7 +312,10 @@ routes = [
 
 async def graceful_shutdown() -> None:
     await async_engine.dispose()
-    await cache.quit()
+
+    if cache.initialized():
+        await cache.client().close()
+
 
 
 app = starlette.applications.Starlette(
