@@ -1,4 +1,3 @@
-import logging
 import pydantic
 from typing import Optional
 import uuid
@@ -70,18 +69,20 @@ async def make_request(
 
     eaveLogger.info(
         f"Eave Client Request: {request_id}: {method} {url}",
-        extra=ctx.set({
-            "signature": redact(signature),
-            "access_token": redact(access_token),
-            "origin": origin.value,
-            "team_id": str(team_id),
-            "account_id": str(account_id),
-            "method": method,
-            "url": url,
-        }),
+        extra=ctx.set(
+            {
+                "signature": redact(signature),
+                "access_token": redact(access_token),
+                "origin": origin.value,
+                "team_id": str(team_id),
+                "account_id": str(account_id),
+                "method": method,
+                "url": url,
+            }
+        ),
     )
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=10) as session:
         response = await session.request(
             method=method,
             url=url,
@@ -94,9 +95,11 @@ async def make_request(
 
     eaveLogger.info(
         f"Eave Client Response: {request_id}: {method} {url}",
-        extra=ctx.set({
-            "status": response.status,
-        }),
+        extra=ctx.set(
+            {
+                "status": response.status,
+            }
+        ),
     )
 
     response.raise_for_status()

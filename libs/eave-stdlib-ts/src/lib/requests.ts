@@ -106,12 +106,6 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     headers[eaveHeaders.EAVE_ACCOUNT_ID_HEADER] = accountId;
   }
 
-  const requestInit = {
-    method,
-    body: payload,
-    headers,
-  };
-
   const requestContext = {
     origin,
     signature: redact(signature),
@@ -124,9 +118,16 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   };
 
   eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, requestContext);
-  eaveLogger.debug({ message: `request body: ${requestId}`, body: requestInit });
 
-  const response = await fetch(url, requestInit);
+  const abortController = new AbortController();
+  setTimeout(() => abortController.abort(), 1000 * 10); // Abort after 10 seconds
+
+  const response = await fetch(url, {
+    method,
+    body: payload,
+    headers,
+    signal: abortController.signal,
+  });
 
   eaveLogger.info(`Eave Client Response: ${requestId}: ${method} ${url}`, {
     ...requestContext,

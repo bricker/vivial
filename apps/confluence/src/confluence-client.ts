@@ -57,7 +57,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getSpaceByKey', request);
 
-    const response: RequestResponse = await this.client.get(request);
+    const response = await this.request('get', request);
     this.logResponse('getSpaceByKey', response);
     if (response.statusCode >= 400) {
       return null;
@@ -82,7 +82,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getPageByTitle', request);
 
-    const response: RequestResponse = await this.client.get(request);
+    const response = await this.request('get', request);
     this.logResponse('getPageByTitle', response);
     if (response.statusCode >= 400) {
       return null;
@@ -102,7 +102,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getPageById', request);
 
-    const response: RequestResponse = await this.client.get(request);
+    const response = await this.request('get', request);
     this.logResponse('getPageById', response);
     if (response.statusCode >= 400) {
       return null;
@@ -125,7 +125,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getPageChildren', request);
 
-    const response: RequestResponse = await this.client.get(request);
+    const response = await this.request('get', request);
     this.logResponse('getPageChildren', response);
     if (response.statusCode >= 400) {
       return [];
@@ -148,7 +148,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getSpaceRootPage', request);
 
-    const response: RequestResponse = await this.client.get(request);
+    const response = await this.request('get', request);
     this.logResponse('getSpaceRootPage', response);
     if (response.statusCode >= 400) {
       return null;
@@ -195,7 +195,7 @@ export default class ConfluenceClient {
 
     this.logRequest('createPage', request);
 
-    const response: RequestResponse = await this.client.post(request);
+    const response = await this.request('post', request);
     this.logResponse('createPage', response);
     if (response.statusCode >= 400) {
       return null;
@@ -219,7 +219,7 @@ export default class ConfluenceClient {
       },
     };
     this.logRequest('archivePage', request);
-    const response: RequestResponse = await this.client.post(request);
+    const response = await this.request('post', request);
     this.logResponse('archivePage', response);
   }
 
@@ -236,7 +236,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getSpaces', request);
 
-    const response: RequestResponse = await this.client.get(request);
+    const response = await this.request('get', request);
     this.logResponse('getSpaces', response);
     if (response.statusCode >= 400) {
       return [];
@@ -261,7 +261,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('search', request);
 
-    const response: RequestResponse = await this.client.get(request);
+    const response = await this.request('get', request);
     this.logResponse('search', response);
     if (response.statusCode >= 400) {
       return [];
@@ -304,7 +304,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('updatePage', request);
 
-    const response: RequestResponse = await this.client.put(request);
+    const response = await this.request('put', request);
     this.logResponse('updatePage', response);
     if (response.statusCode >= 400) {
       return null;
@@ -322,7 +322,7 @@ export default class ConfluenceClient {
     };
     this.logRequest('getSystemInfo', request);
 
-    const response: RequestResponse = await this.client.put(request);
+    const response = await this.request('put', request);
     this.logResponse('getSystemInfo', response);
     if (response.statusCode >= 400) {
       return null;
@@ -330,6 +330,16 @@ export default class ConfluenceClient {
 
     const body = JSON.parse(response.body);
     return <SystemInfoEntity>body;
+  }
+
+  private async request(method: 'get' | 'post' | 'put' | 'del' | 'patch' | 'head', payload: {[key:string]: any}): Promise<RequestResponse> {
+    const finalPayload = {
+      timeout: 1000 * 10, // 10 seconds,
+      ...payload,
+    };
+
+    const response: RequestResponse = await this.client[method](finalPayload);
+    return response;
   }
 
   private logRequest(name: string, request: any) {
