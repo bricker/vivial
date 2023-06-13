@@ -3,6 +3,7 @@ from .atlassian_installation import AtlassianInstallationOrm as AtlassianInstall
 from .document_reference import DocumentReferenceOrm as DocumentReferenceOrm
 from .github_installation import GithubInstallationOrm as GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm as SlackInstallationOrm
+from .connect_installation import ConnectInstallationOrm as ConnectInstallationOrm
 from .subscription import SubscriptionOrm as SubscriptionOrm
 from .team import TeamOrm as TeamOrm
 from .resource_mutex import ResourceMutexOrm as ResourceMutexOrm

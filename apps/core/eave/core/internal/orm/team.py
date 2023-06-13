@@ -21,8 +21,6 @@ from .subscription import SubscriptionOrm
 from .util import UUID_DEFAULT_EXPR
 from eave.stdlib.logging import eaveLogger
 
-import time  # debug
-
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -110,7 +108,9 @@ class TeamOrm(Base):
         return result
 
     async def get_integrations(self, session: AsyncSession) -> Integrations:
+        import time  # debug
         start = time.perf_counter_ns()
+
         slack_installation = await SlackInstallationOrm.one_or_none(session=session, team_id=self.id)
         github_installation = await GithubInstallationOrm.one_or_none(session=session, team_id=self.id)
         atlassian_installation = await AtlassianInstallationOrm.one_or_none(session=session, team_id=self.id)
@@ -122,7 +122,7 @@ class TeamOrm(Base):
         )
 
         end = time.perf_counter_ns()
-        print(f"\n\n\n elapcsed: {(end - start) / 1e9}\n\n\n")
+        print(f"\n\n\n elapcsed: {(end - start) / 1e9}\n\n\n") # 0.2 to 0.4 seconds in my empty ass db
         return Integrations(
             slack_integration=slack_installation.api_model_peek if slack_installation else None,
             github_integration=github_installation.api_model_peek if github_installation else None,
