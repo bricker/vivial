@@ -42,7 +42,7 @@ class BaseTestCase(UtilityBaseTestCase):
                 "user": self.anystring("message.user"),
             },
             slack_ctx=self._data_slack_context,
-            eave_ctx=self.eave_ctx
+            eave_ctx=self.eave_ctx,
         )
 
         self._data_eave_team = Team(
@@ -88,7 +88,12 @@ class BaseTestCase(UtilityBaseTestCase):
             ),
         )
 
-        self.sut = Brain(message=self._data_message, eave_team=self._data_eave_team, slack_ctx=self._data_slack_context, eave_ctx=self.eave_ctx)
+        self.sut = Brain(
+            message=self._data_message,
+            eave_team=self._data_eave_team,
+            slack_ctx=self._data_slack_context,
+            eave_ctx=self.eave_ctx,
+        )
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()

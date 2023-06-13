@@ -30,7 +30,7 @@ class DocumentManagementMixinTest(BaseTestCase):
                 "app_id": "not_eave",
             },
             slack_ctx=slack_context,
-            eave_ctx=eave_ctx
+            eave_ctx=eave_ctx,
         )
         # according to slack api docs, conversations.replies also returns the
         # root message that started the thread, not just replies to it, so we repeat

@@ -107,7 +107,7 @@ class ChatCompletionParameters:
         else:
             params["stop"] = [STOP_SEQUENCE]
 
-        params["timeout"] = 10 # seconds
+        params["timeout"] = 10  # seconds
         return params
 
 
@@ -125,7 +125,7 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
 
     eave_ctx = LogContext.wrap(ctx)
     openai_request_id = str(uuid.uuid4())
-    eave_ctx.set({ "openai_request_id": openai_request_id })
+    eave_ctx.set({"openai_request_id": openai_request_id})
     eaveLogger.debug("OpenAI Request", extra=eave_ctx.set({"openai_request_params": params.__dict__}))
 
     max_attempts = 3

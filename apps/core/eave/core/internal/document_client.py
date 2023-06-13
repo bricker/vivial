@@ -24,7 +24,9 @@ class DocumentClient(Protocol):
         ...
 
     @abc.abstractmethod
-    async def update_document(self, *, input: DocumentInput, document_id: str, ctx: Optional[LogContext] = None) -> DocumentMetadata:
+    async def update_document(
+        self, *, input: DocumentInput, document_id: str, ctx: Optional[LogContext] = None
+    ) -> DocumentMetadata:
         ...
 
     @abc.abstractmethod

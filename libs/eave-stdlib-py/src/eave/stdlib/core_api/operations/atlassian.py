@@ -30,12 +30,7 @@ class GetAtlassianInstallation(Endpoint):
         input: RequestBody,
         ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
-        response = await requests.make_request(
-            url=cls.config.url,
-            origin=origin,
-            input=input,
-            ctx=ctx
-        )
+        response = await requests.make_request(url=cls.config.url, origin=origin, input=input, ctx=ctx)
 
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)

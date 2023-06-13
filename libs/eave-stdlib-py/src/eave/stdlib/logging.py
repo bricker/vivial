@@ -135,4 +135,4 @@ class LogContext(dict[str, object]):
 
     @request_id.setter
     def request_id(self, value: str) -> None:
-        self.set({ "request_id": value })
+        self.set({"request_id": value})

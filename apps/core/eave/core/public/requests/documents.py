@@ -104,7 +104,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                             for subscription in input.subscriptions
                         ],
                     },
-                    ctx=eave_state.log_context
+                    ctx=eave_state.log_context,
                 )
 
                 document_reference = existing_document_reference
@@ -149,7 +149,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
                 "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
                 "search_query": input.query,
             },
-            ctx=eave_state.log_context
+            ctx=eave_state.log_context,
         )
 
         model = SearchDocumentsOp.ResponseBody(
@@ -202,7 +202,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
                 "document_id": document_reference.id,
             },
-            ctx=eave_state.log_context
+            ctx=eave_state.log_context,
         )
 
         return Response(status_code=http.HTTPStatus.OK)

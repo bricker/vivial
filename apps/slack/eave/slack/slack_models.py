@@ -161,7 +161,9 @@ class SlackConversation:
     previous_names: list[str]
 
     @classmethod
-    async def get(cls, channel_id: str, slack_ctx: _SlackContext, eave_ctx: LogContext) -> Optional["SlackConversation"]:
+    async def get(
+        cls, channel_id: str, slack_ctx: _SlackContext, eave_ctx: LogContext
+    ) -> Optional["SlackConversation"]:
         response = await slack_ctx.client.conversations_info(channel=channel_id)
         json = response.get("channel")
         if json is None:
@@ -288,7 +290,11 @@ class SlackMessage:
     urls: list[str]
 
     def __init__(
-        self, data: eave.stdlib.typing.JsonObject, slack_ctx: AsyncBoltContext, eave_ctx: LogContext, channel: Optional[str] = None
+        self,
+        data: eave.stdlib.typing.JsonObject,
+        slack_ctx: AsyncBoltContext,
+        eave_ctx: LogContext,
+        channel: Optional[str] = None,
     ) -> None:
         self._slack_ctx = _SlackContext(context=slack_ctx)
         self._eave_ctx = eave_ctx

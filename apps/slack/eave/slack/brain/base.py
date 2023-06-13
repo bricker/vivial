@@ -27,7 +27,9 @@ class Base:
     message_action: Optional[MessageAction] = None
     eave_ctx: LogContext
 
-    def __init__(self, message: SlackMessage, eave_team: team.Team, slack_ctx: AsyncBoltContext, eave_ctx: LogContext) -> None:
+    def __init__(
+        self, message: SlackMessage, eave_team: team.Team, slack_ctx: AsyncBoltContext, eave_ctx: LogContext
+    ) -> None:
         self.message = message
         self.eave_team = eave_team
         self.slack_context = slack_ctx

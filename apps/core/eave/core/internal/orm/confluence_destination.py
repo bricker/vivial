@@ -200,11 +200,7 @@ class ConfluenceClient(DocumentClient):
         )
 
     async def update_document(
-        self,
-        *,
-        input: DocumentInput,
-        document_id: str,
-        ctx: Optional[LogContext] = None
+        self, *, input: DocumentInput, document_id: str, ctx: Optional[LogContext] = None
     ) -> DocumentMetadata:
         response = await UpdateContentRequest.perform(
             ctx=ctx,

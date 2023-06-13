@@ -1,4 +1,3 @@
-import logging
 from typing import Optional, cast
 
 import starlette.applications
@@ -6,7 +5,7 @@ import starlette.requests
 from asgiref.typing import HTTPScope
 
 from .util import xor
-from .logging import LogContext, eaveLogger
+from .logging import LogContext
 from .typing import JsonObject
 
 SCOPE_KEY = "eave_state"
