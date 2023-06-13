@@ -12,7 +12,7 @@ import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
-  eaveLogger.debug('Processing push', { event, context });
+  eaveLogger.debug('Processing push');
   const openaiClient = await OpenAIClient.getAuthedClient();
 
   // only handling branch push events for now; ignore tag pushes
@@ -149,8 +149,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           subscriptions: [subscriptionResponse.subscription],
         },
       });
-
-      eaveLogger.debug(upsertDocumentResponse);
     }));
   }));
 }
