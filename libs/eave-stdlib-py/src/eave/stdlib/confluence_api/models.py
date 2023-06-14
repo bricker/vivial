@@ -47,6 +47,7 @@ class ConfluenceContentType(enum.StrEnum):
     page = "page"
     blogpost = "blogpost"
     custom = "custom"
+    attachment = "attachment"
 
 
 class ConfluenceContentStatus(enum.StrEnum):
