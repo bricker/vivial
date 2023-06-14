@@ -80,7 +80,7 @@ export default class ConnectClient {
 
   private logResponse(response: RequestResponse) {
     let message: string;
-    let level: 'info' | 'warning';
+    let level: 'info' | 'warn';
 
     const url = response.request.uri.href;
 
@@ -88,7 +88,7 @@ export default class ConnectClient {
       level = 'info';
       message = `Response: ${url}`;
     } else {
-      level = 'warning';
+      level = 'warn';
       const { statusCode, message: errorMessage } = response.body || {};
       message = `API error: ${url} (${statusCode}) ${errorMessage}`;
     }
