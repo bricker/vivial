@@ -37,7 +37,7 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
         break;
 
       default:
-        eaveLogger.warning({ message: `unhandled webhook event: ${payload.webhookEvent}`, eaveState });
+        eaveLogger.warn({ message: `unhandled webhook event: ${payload.webhookEvent}`, eaveState });
         res.status(200);
     }
 

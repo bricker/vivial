@@ -38,7 +38,7 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
 
   const handler = Registry.getHandler(event);
   if (handler === undefined) {
-    eaveLogger.warning({ message: `Event not supported: ${event}`, eaveState, webhookInfo });
+    eaveLogger.warn({ message: `Event not supported: ${event}`, eaveState, webhookInfo });
     res.sendStatus(200);
     return;
   }

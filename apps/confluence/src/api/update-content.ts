@@ -53,7 +53,7 @@ export default async function updateContent({ req, res, confluenceClient }: { re
   let newBody: string;
 
   if (openaiResponse.match(/UNABLE/i)) {
-    eaveLogger.warning({ message: 'openai was unable to merge the documents. The new content will be used.', eaveState });
+    eaveLogger.warn({ message: 'openai was unable to merge the documents. The new content will be used.', eaveState });
     newBody = content.body;
   } else {
     newBody = openaiResponse;

@@ -19,7 +19,6 @@ const customErrorFormatter = winston.format((info: lf.TransformableInfo, _opts?:
 
 function createLogger(): winston.Logger {
   const level = sharedConfig.logLevel.toLowerCase();
-  const levels = winston.config.syslog.levels;
   let logger: winston.Logger;
 
   /*
@@ -34,7 +33,6 @@ function createLogger(): winston.Logger {
     // LoggingWinston does its own formatting
     logger = winston.createLogger({
       level,
-      levels,
       transports: loggingWinston,
     });
   } else {
@@ -42,7 +40,6 @@ function createLogger(): winston.Logger {
 
     logger = winston.createLogger({
       level,
-      levels,
       format: winston.format.combine(
         customErrorFormatter(),
         winston.format.simple(),
@@ -61,10 +58,6 @@ function createLogger(): winston.Logger {
     });
   }
 
-  // We use the syslog levels, which uses 'warning' instead of 'warn'
-  // But the Winston Logger interface defines both, even though calling `warn` results in a runtime error.
-  // So to prevent this, define `warn` as an alias for `warning`.
-  logger.warn = logger.warning;
   return logger;
 }
 

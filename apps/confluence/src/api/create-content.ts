@@ -14,13 +14,13 @@ export default async function createContent({ req, res, confluenceClient }: { re
   // Get the space
   const space = await confluenceClient.getSpaceByKey({ spaceKey: confluence_destination.space_key });
   if (space === null) {
-    eaveLogger.warning({ message: `Space not found for key ${confluence_destination.space_key}`, eaveState });
+    eaveLogger.warn({ message: `Space not found for key ${confluence_destination.space_key}`, eaveState });
     res.sendStatus(400);
     return;
   }
 
   if (!space.homepage) {
-    eaveLogger.warning({ message: `Homepage not found for space ${confluence_destination.space_key}`, eaveState });
+    eaveLogger.warn({ message: `Homepage not found for space ${confluence_destination.space_key}`, eaveState });
     res.sendStatus(400);
     return;
   }
@@ -144,7 +144,7 @@ async function resolveTitleConflict({ confluenceClient, title, space, eaveState 
 
   while (page) {
     if (n > limit) {
-      eaveLogger.warning({ message: 'title conflict failsafe condition reached', eaveState });
+      eaveLogger.warn({ message: 'title conflict failsafe condition reached', eaveState });
       // failsafe to avoid forever loop. I don't know why this would happen, but it would be a big problem if it did.
       const giveup = uuidv4();
       resolvedTitle = `${title} (${giveup})`;

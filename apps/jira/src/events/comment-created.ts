@@ -75,7 +75,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
 
   const teamId = connectInstallation.team?.id;
   if (!teamId) {
-    eaveLogger.warning({ message: 'No teamId available', clientKey: jiraClient.client.clientKey, eaveState });
+    eaveLogger.warn({ message: 'No teamId available', clientKey: jiraClient.client.clientKey, eaveState });
     return;
   }
 
