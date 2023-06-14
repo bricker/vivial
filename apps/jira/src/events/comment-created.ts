@@ -1,14 +1,12 @@
 import { Request, Response } from 'express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import { AddOn } from 'atlassian-connect-express';
-import { IncomingMessage } from 'http';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import appConfig from '../config.js';
-import { AtlassianDoc, CommentCreatedEventPayload, Content, ContentType, User } from '../types.js';
+import { AtlassianDoc, CommentCreatedEventPayload, ContentType } from '../types.js';
 import JiraClient from '../jira-client.js';
 
 export default async function commentCreatedEventHandler({ req, res, jiraClient }: { req: Request, res: Response, jiraClient: JiraClient }) {

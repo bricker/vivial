@@ -3,7 +3,6 @@ import { CoreOptions, RequestResponse, UrlOptions } from 'request';
 import { promisify } from 'util';
 import { Request } from 'express';
 import eaveLogger from '../logging.js';
-import headers from '../headers.js';
 import { queryConnectInstallation } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveOrigin } from '../eave-origins.js';
@@ -12,7 +11,6 @@ export type RequestOpts = CoreOptions & UrlOptions;
 
 export default class ConnectClient {
   static async getAuthedConnectClient({
-    req,
     addon,
     product,
     origin,
