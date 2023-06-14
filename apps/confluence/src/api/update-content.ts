@@ -3,8 +3,8 @@ import { AddOn } from 'atlassian-connect-express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import OpenAIClient, * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import ConfluenceClient from '../confluence-client.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import ConfluenceClient from '../confluence-client.js';
 
 export default async function updateContent(req: Request, res: Response, addon: AddOn) {
   const eaveState = getEaveState(res);

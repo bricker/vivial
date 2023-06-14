@@ -4,7 +4,6 @@ import crc32c from 'fast-crc32c';
 import { sharedConfig } from './config.js';
 import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
 import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
-import eaveLogger from './logging.js';
 
 const { RSA_PKCS1_PADDING } = cryptoConstants;
 

@@ -1,9 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuid4 } from 'uuid';
 import onFinished from 'on-finished';
-import { EaveRequestState, getEaveState, setEaveState } from '../lib/request-state.js';
+import { getEaveState } from '../lib/request-state.js';
 import eaveLogger from '../logging.js';
-import headers from '../headers.js';
 
 export function requestLoggingMiddleware(_req: Request, res: Response, next: NextFunction) {
   const eaveState = getEaveState(res);

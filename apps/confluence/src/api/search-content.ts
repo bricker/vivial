@@ -2,8 +2,8 @@ import { Request, Response } from 'express';
 import { AddOn } from 'atlassian-connect-express';
 import { SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import ConfluenceClient from '../confluence-client.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import ConfluenceClient from '../confluence-client.js';
 
 export default async function searchContent(req: Request, res: Response, addon: AddOn) {
   const eaveState = getEaveState(res);

@@ -3,8 +3,8 @@ import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/c
 import { AddOn } from 'atlassian-connect-express';
 import express, { Request, Response, Router, Express } from 'express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import appConfig from '../config.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import appConfig from '../config.js';
 
 export function applyWebhookMiddlewares({ app, addon, path }: {app: Express, addon: AddOn, path: string}) {
   app.use(path, express.json());

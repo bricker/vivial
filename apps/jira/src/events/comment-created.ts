@@ -5,9 +5,9 @@ import { AddOn } from 'atlassian-connect-express';
 import { IncomingMessage } from 'http';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import appConfig from '../config.js';
 import { CommentCreatedEventPayload, ContentType, User } from '../types.js';
-import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 
 export default async function commentCreatedEventHandler({ req, res, addon }: { req: Request, res: Response, addon: AddOn }) {
   const eaveState = getEaveState(res);

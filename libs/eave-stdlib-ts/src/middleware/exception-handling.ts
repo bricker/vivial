@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import { getEaveState } from "../lib/request-state.js";
+import { NextFunction, Request, Response } from 'express';
+import { getEaveState } from '../lib/request-state.js';
 import eaveLogger from '../logging.js';
 
 // This function has to accept 4 parameters for Express to consider it an error handler

@@ -133,7 +133,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     eaveState: {
       ...requestContext,
       status: response.status,
-    }
+    },
   });
 
   if (response.status >= 400) {

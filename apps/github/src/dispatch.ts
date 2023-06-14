@@ -32,7 +32,7 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   }
 
   const { action } = payload;
-  const webhookInfo = { id, eventName, action, installationId }
+  const webhookInfo = { id, eventName, action, installationId };
   eaveLogger.info({ message: 'Webhook request', eaveState, webhookInfo });
   const event = [eventName, action].filter((n) => n).join('.');
 

@@ -153,7 +153,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
     }
   }
 
-  eaveLogger.warning({message: `No branches matched ${url.toString()}`, eaveState });
+  eaveLogger.warning({ message: `No branches matched ${url.toString()}`, eaveState });
   return null;
 }
 
