@@ -97,7 +97,7 @@ def client() -> CacheInterface:
             eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
 
             redis_tls_ca = shared_config.redis_tls_ca
-            client = redis.Redis(
+            _PROCESS_CACHE_CLIENT = redis.Redis(
                 host=host,
                 port=port,
                 db=db,
@@ -108,8 +108,6 @@ def client() -> CacheInterface:
                 health_check_interval=60 * 5,
                 socket_keepalive=True,
             )
-
-            _PROCESS_CACHE_CLIENT = client
         else:
             _PROCESS_CACHE_CLIENT = EphemeralCache()
 
