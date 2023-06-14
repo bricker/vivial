@@ -12,12 +12,24 @@ import appConfig from './config.js';
 import { cleanDocument } from './api/util.js';
 
 export default class ConfluenceClient extends ConnectClient {
-  static async getAuthedConfluenceClient(req: Request, addon: AddOn): Promise<ConfluenceClient> {
+  static async getAuthedConfluenceClient({
+    req,
+    addon,
+    teamId,
+    clientKey,
+  }: {
+    req: Request,
+    addon: AddOn,
+    teamId?: string,
+    clientKey?: string,
+  }): Promise<ConfluenceClient> {
     const connectClient = await ConnectClient.getAuthedConnectClient({
       req,
       addon,
       product: AtlassianProduct.confluence,
       origin: appConfig.eaveOrigin,
+      teamId,
+      clientKey,
     });
 
     return new ConfluenceClient(connectClient);

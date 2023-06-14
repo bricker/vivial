@@ -5,13 +5,16 @@ import searchContent from './search-content.js';
 import createContent from './create-content.js';
 import updateContent from './update-content.js';
 import deleteContent from './delete-content.js';
+import ConfluenceClient from '../confluence-client.js';
+import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 
-export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
+export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
   const router = Router();
 
   router.post('/spaces/query', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await getAvailableSpaces(req, res, addon);
+      const confluenceClient = await getConfluenceClient(req, res, addon);
+      await getAvailableSpaces({ req, res, confluenceClient });
       next();
     } catch (e: unknown) {
       next(e);
@@ -20,7 +23,8 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
 
   router.post('/content/search', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await searchContent(req, res, addon);
+      const confluenceClient = await getConfluenceClient(req, res, addon);
+      await searchContent({ req, res, confluenceClient });
       next();
     } catch (e: unknown) {
       next(e);
@@ -29,7 +33,8 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
 
   router.post('/content/create', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await createContent(req, res, addon);
+      const confluenceClient = await getConfluenceClient(req, res, addon);
+      await createContent({ req, res, confluenceClient });
       res.end(); // safety
     } catch (e: unknown) {
       next(e);
@@ -38,7 +43,8 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
 
   router.post('/content/update', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await updateContent(req, res, addon);
+      const confluenceClient = await getConfluenceClient(req, res, addon);
+      await updateContent({ req, res, confluenceClient });
       res.end(); // safety
     } catch (e: unknown) {
       next(e);
@@ -47,7 +53,8 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
 
   router.post('/content/delete', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await deleteContent(req, res, addon);
+      const confluenceClient = await getConfluenceClient(req, res, addon);
+      await deleteContent({ req, res, confluenceClient });
       res.end(); // safety
     } catch (e: unknown) {
       next(e);
@@ -59,4 +66,14 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
   // });
 
   return router;
+}
+
+async function getConfluenceClient(req: Request, _res: Response, addon: AddOn): Promise<ConfluenceClient> {
+  const teamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
+  const client = await ConfluenceClient.getAuthedConfluenceClient({
+    req,
+    addon,
+    teamId,
+  });
+  return client;
 }

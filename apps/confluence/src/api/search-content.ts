@@ -5,9 +5,8 @@ import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import ConfluenceClient from '../confluence-client.js';
 
-export default async function searchContent(req: Request, res: Response, addon: AddOn) {
+export default async function searchContent({ req, res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
   const eaveState = getEaveState(res);
-  const client = await ConfluenceClient.getAuthedConfluenceClient(req, addon);
   const requestBody = <SearchContentRequestBody>req.body;
 
   const { space_key, text } = requestBody.search_params;
@@ -31,7 +30,7 @@ export default async function searchContent(req: Request, res: Response, addon: 
     return;
   }
 
-  const results = await client.search({ cql, cqlcontext });
+  const results = await confluenceClient.search({ cql, cqlcontext });
   // Remove pages with no body
   const filteredResults = results.filter((r) => r.body?.storage?.value);
 

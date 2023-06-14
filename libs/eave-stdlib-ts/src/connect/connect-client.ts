@@ -11,20 +11,37 @@ import { EaveOrigin } from '../eave-origins.js';
 export type RequestOpts = CoreOptions & UrlOptions;
 
 export default class ConnectClient {
-  static async getAuthedConnectClient({ req, addon, product, origin }: { req: Request, addon: AddOn, product: AtlassianProduct, origin: EaveOrigin }): Promise<HostClient> {
-    const teamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
-
-    const connectIntegrationResponse = await queryConnectInstallation({
-      origin,
-      input: {
-        connect_integration: {
-          product,
-          team_id: teamId,
+  static async getAuthedConnectClient({
+    req,
+    addon,
+    product,
+    origin,
+    teamId,
+    clientKey,
+  }: {
+    req: Request,
+    addon: AddOn,
+    product: AtlassianProduct,
+    origin: EaveOrigin,
+    teamId?: string,
+    clientKey?: string,
+  }): Promise<HostClient> {
+    if (!clientKey) {
+      const connectIntegrationResponse = await queryConnectInstallation({
+        origin,
+        input: {
+          connect_integration: {
+            product,
+            team_id: teamId,
+          },
         },
-      },
-    });
+      });
 
-    const client = this.getAuthedConnectClientForClientKey(connectIntegrationResponse.connect_integration.client_key, addon);
+      // eslint-disable-next-line no-param-reassign
+      clientKey = connectIntegrationResponse.connect_integration.client_key;
+    }
+
+    const client = this.getAuthedConnectClientForClientKey(clientKey, addon);
     return client;
   }
 

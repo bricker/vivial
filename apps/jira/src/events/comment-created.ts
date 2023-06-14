@@ -11,13 +11,12 @@ import appConfig from '../config.js';
 import { AtlassianDoc, CommentCreatedEventPayload, Content, ContentType, User } from '../types.js';
 import JiraClient from '../jira-client.js';
 
-export default async function commentCreatedEventHandler({ req, res, addon }: { req: Request, res: Response, addon: AddOn }) {
+export default async function commentCreatedEventHandler({ req, res, jiraClient }: { req: Request, res: Response, jiraClient: JiraClient }) {
   const eaveState = getEaveState(res);
   // FIXME: Redact auth header
   eaveLogger.debug({ message: 'received comment created webhook event', eaveState });
   const openaiClient = await OpenAIClient.getAuthedClient();
   const payload = <CommentCreatedEventPayload>req.body;
-  const jiraClient = await JiraClient.getAuthedJiraClient(req, addon);
 
   if (payload.comment.author.accountType === 'app') {
     eaveLogger.info({ message: 'Ignoring app comment', eaveState });
@@ -25,16 +24,12 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
   }
 
   // [~accountid:712020:d50089b8-586c-4f54-a3ad-db70381e4cae]
-  const mentionAccountIds = payload.comment.body.match(/\[~accountid:(.+?)\]/i);
-  if (!mentionAccountIds) {
-    eaveLogger.info({ message: 'No mentions in this message, ignoring', eaveState });
-    return;
-  }
+  const mentionAccountIds = Array.from(payload.comment.body.matchAll(/\[~accountid:(.+?)\]/ig));
 
   // We have to use an old-fashioned Promise chain this way because the atlassian express library
   // uses the request library directly and uses the callback function interface.
-  const eaveMentioned = await Promise.any(mentionAccountIds.map(async (accountId) => {
-    const user = await jiraClient.getUser({ accountId });
+  const eaveMentioned = await Promise.any(mentionAccountIds.map(async (match) => {
+    const user = await jiraClient.getUser({ accountId: match[1]! });
     if (user?.accountType === 'app' && user?.displayName === 'Eave for Jira') {
       return true;
     }

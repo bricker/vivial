@@ -6,10 +6,8 @@ import OpenAIClient, * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import ConfluenceClient from '../confluence-client.js';
 
-export default async function updateContent(req: Request, res: Response, addon: AddOn) {
+export default async function updateContent({ req, res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
   const eaveState = getEaveState(res);
-
-  const confluenceClient = await ConfluenceClient.getAuthedConfluenceClient(req, addon);
   const { content } = <UpdateContentRequestBody>req.body;
   const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {

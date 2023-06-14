@@ -7,6 +7,7 @@ import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js'
 import appConfig from '../config.js';
 import { WebhookEvent } from '../types.js';
 import commentCreatedEventHandler from './comment-created.js';
+import JiraClient from '../jira-client.js';
 
 export function applyWebhookMiddlewares({ app, addon, path }: {app: Express, addon: AddOn, path: string}) {
   app.use(path, express.json());
@@ -23,10 +24,16 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   router.post('/', addon.authenticate(), async (req: Request, res: Response) => {
     const eaveState = getEaveState(res);
     eaveLogger.info({ message: 'received webhook event', eaveState });
+    const jiraClient = await JiraClient.getAuthedJiraClient({
+      req,
+      addon,
+      clientKey: (<any>res.locals).clientKey, // TODO: make this typed
+    });
+
     const payload = <WebhookEvent>req.body;
     switch (payload.webhookEvent) {
       case 'comment_created':
-        await commentCreatedEventHandler({ req, res, addon });
+        await commentCreatedEventHandler({ req, res, jiraClient });
         break;
 
       default:

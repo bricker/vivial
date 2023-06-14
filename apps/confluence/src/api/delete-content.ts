@@ -3,8 +3,7 @@ import { AddOn } from 'atlassian-connect-express';
 import { DeleteContentRequestBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import ConfluenceClient from '../confluence-client.js';
 
-export default async function deleteContent(req: Request, res: Response, addon: AddOn) {
-  const client = await ConfluenceClient.getAuthedConfluenceClient(req, addon);
+export default async function deleteContent({ req, res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
   const { content } = <DeleteContentRequestBody>req.body;
-  await client.archivePage({ contentId: content.content_id });
+  await confluenceClient.archivePage({ contentId: content.content_id });
 }

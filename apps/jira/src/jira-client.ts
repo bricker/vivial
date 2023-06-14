@@ -12,12 +12,24 @@ import appConfig from './config.js';
 import { AtlassianDoc, Comment, ContentType, User } from './types.js';
 
 export default class JiraClient extends ConnectClient {
-  static async getAuthedJiraClient(req: Request, addon: AddOn): Promise<JiraClient> {
+  static async getAuthedJiraClient({
+    req,
+    addon,
+    teamId,
+    clientKey,
+  }: {
+    req: Request,
+    addon: AddOn,
+    teamId?: string,
+    clientKey?: string,
+  }): Promise<JiraClient> {
     const connectClient = await ConnectClient.getAuthedConnectClient({
       req,
       addon,
       product: AtlassianProduct.jira,
       origin: appConfig.eaveOrigin,
+      teamId,
+      clientKey,
     });
 
     return new JiraClient(connectClient);
