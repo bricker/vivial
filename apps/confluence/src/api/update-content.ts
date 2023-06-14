@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { AddOn } from 'atlassian-connect-express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import OpenAIClient, * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';

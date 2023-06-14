@@ -1,13 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
-import { AddOn } from 'atlassian-connect-express';
 import { CreateContentRequestBody, CreateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { ConfluencePage, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
 import { EaveRequestState, getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import ConfluenceClient from '../confluence-client.js';
-import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 
 export default async function createContent({ req, res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
   const { document, confluence_destination } = <CreateContentRequestBody>req.body;
