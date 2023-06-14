@@ -1,6 +1,6 @@
 import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
 import { AddOn, HostClient } from 'atlassian-connect-express';
-import { RequestResponse } from 'request';
+import { CoreOptions, RequestResponse, UrlOptions } from 'request';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { Request } from 'express';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
@@ -9,6 +9,8 @@ import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/c
 import { promisify } from 'util';
 import appConfig from './config.js';
 import { cleanDocument } from './api/util.js';
+
+type RequestOpts = CoreOptions & UrlOptions;
 
 export default class ConfluenceClient {
   static async getAuthedConnectClient(req: Request, addon: AddOn): Promise<ConfluenceClient> {
@@ -49,7 +51,7 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-spacekey-get
   */
   async getSpaceByKey({ spaceKey }: { spaceKey: string }): Promise<ConfluenceSpace | null> {
-    const request = {
+    const request: RequestOpts = {
       url: `/rest/api/space/${spaceKey}`,
       qs: {
         expand: 'homepage',
@@ -72,7 +74,7 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-get
   */
   async getPageByTitle({ space, title }: { space: ConfluenceSpace, title: string }): Promise<ConfluencePage | null> {
-    const request = {
+    const request: RequestOpts = {
       url: '/rest/api/content',
       qs: {
         type: 'page',
@@ -97,8 +99,11 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-get
   */
   async getPageById({ pageId }: { pageId: string }): Promise<ConfluencePage | null> {
-    const request = {
+    const request: RequestOpts = {
       url: `/rest/api/content/${pageId}`,
+      qs: {
+        expand: 'body.storage,version',
+      },
     };
     this.logRequest('getPageById', request);
 
@@ -117,7 +122,7 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content---children-and-descendants/#api-wiki-rest-api-content-id-child-type-get
   */
   async getPageChildren({ pageId }: { pageId: string | number }): Promise<ConfluencePage[]> {
-    const request = {
+    const request: RequestOpts = {
       url: `/rest/api/content/${pageId}/child/${ConfluenceContentType.page}`,
       qs: {
         limit: 100, // TODO: Pagination
@@ -140,7 +145,7 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-spacekey-content-type-get
   */
   async getSpaceRootPage({ space }: { space: ConfluenceSpace }): Promise<ConfluencePage | null> {
-    const request = {
+    const request: RequestOpts = {
       url: `/rest/api/space/${space.key}/content/${ConfluenceContentType.page}`,
       qs: {
         depth: ConfluenceSpaceContentDepth.root,
@@ -176,7 +181,7 @@ export default class ConfluenceClient {
       ancestors = [{ id: parentId }];
     }
 
-    const request = {
+    const request: RequestOpts = {
       url: '/rest/api/content',
       json: true,
       body: {
@@ -209,7 +214,7 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-archive-post
   */
   async archivePage({ contentId }: { contentId: string }) {
-    const request = {
+    const request: RequestOpts = {
       url: '/rest/api/content/archive',
       json: true,
       body: {
@@ -227,7 +232,7 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-space/#api-spaces-get
   */
   async getSpaces(): Promise<ConfluenceSpace[]> {
-    const request = {
+    const request: RequestOpts = {
       url: '/rest/api/space',
       qs: {
         status: ConfluenceSpaceStatus.current,
@@ -251,12 +256,12 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/#api-wiki-rest-api-search-get
   */
   async search({ cql, cqlcontext }: { cql: string, cqlcontext?: {[key: string]: any} }): Promise<ConfluenceSearchResultWithBody[]> {
-    const request = {
+    const request: RequestOpts = {
       url: '/rest/api/content/search',
       qs: {
         cql,
         cqlcontext: cqlcontext ? JSON.stringify(cqlcontext) : undefined,
-        expand: ['body.storage'],
+        expand: 'body.storage,version',
       },
     };
     this.logRequest('search', request);
@@ -286,7 +291,7 @@ export default class ConfluenceClient {
       representation: ConfluenceContentBodyRepresentation.storage,
     };
 
-    const request = {
+    const request: RequestOpts = {
       url: `/rest/api/content/${page.id}`,
       json: true,
       body: {
@@ -317,7 +322,7 @@ export default class ConfluenceClient {
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-settings/#api-wiki-rest-api-settings-systeminfo-get
   */
   async getSystemInfo(): Promise<SystemInfoEntity | null> {
-    const request = {
+    const request: RequestOpts = {
       url: '/rest/api/settings/systemInfo',
     };
     this.logRequest('getSystemInfo', request);
@@ -348,17 +353,20 @@ export default class ConfluenceClient {
 
   private logResponse(name: string, response: RequestResponse) {
     let message: string;
+    let level: 'info' | 'warning';
 
     if (response.statusCode < 400) {
+      level = 'info';
       message = `${name}: response`;
     } else {
-      message = `${name}: API error`;
+      level = 'warning';
+      const { statusCode, message: errorMessage } = response.body || {};
+      message = `${name}: API error (${statusCode}): ${errorMessage}`;
     }
 
-    eaveLogger.debug({
+    eaveLogger[level]({
       message,
       statusCode: response.statusCode,
-      requestBody: response.request.body,
       requestUri: response.request.uri,
     });
   }

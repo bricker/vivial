@@ -19,7 +19,7 @@ export default async function updateContent(req: Request, res: Response, addon: 
   }
 
   const existingBody = page.body?.storage?.value;
-  if (existingBody === null) {
+  if (!existingBody) {
     eaveLogger.error({ message: `Confluence page body is empty for ID ${content.id}`, eaveState });
     res.sendStatus(500); // TODO: is 500 appropriate here?
     return;
@@ -29,7 +29,8 @@ export default async function updateContent(req: Request, res: Response, addon: 
     'Merge the two HTML documents so that the unique information is retained, but duplicate information is removed.',
     'The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>',
     'Maintain the overall document layout and style from the first document.',
-    'Return only the merged document.\n',
+    'Respond with only the merged document.',
+    "If you can't perform this task because of insuffient information or any other reason, respond with the word \"UNABLE\" and nothing else.\n",
     '=========================',
     'First Document:',
     '=========================',
@@ -52,7 +53,16 @@ export default async function updateContent(req: Request, res: Response, addon: 
     model: openai.OpenAIModel.GPT4,
   }, eaveState);
 
-  const response = await confluenceClient.updatePage({ page, body: openaiResponse });
+  let newBody: string;
+
+  if (openaiResponse.match(/UNABLE/i)) {
+    eaveLogger.warning({ message: 'openai was unable to merge the documents. The new content will be used.', eaveState });
+    newBody = content.body;
+  } else {
+    newBody = openaiResponse;
+  }
+
+  const response = await confluenceClient.updatePage({ page, body: newBody });
   const responseBody: UpdateContentResponseBody = {
     content: response,
   };

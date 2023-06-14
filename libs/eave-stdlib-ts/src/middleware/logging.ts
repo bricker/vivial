@@ -5,7 +5,7 @@ import { EaveRequestState, getEaveState, setEaveState } from '../lib/request-sta
 import eaveLogger from '../logging.js';
 import headers from '../headers.js';
 
-export function requestLoggingMiddleware(req: Request, res: Response, next: NextFunction) {
+export function requestLoggingMiddleware(_req: Request, res: Response, next: NextFunction) {
   const eaveState = getEaveState(res);
   eaveLogger.info({
     message: `Eave Server Request Start: ${eaveState.request_id}: ${eaveState.request_method} ${eaveState.request_path}`,
