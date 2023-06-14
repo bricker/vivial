@@ -13,7 +13,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from eave.stdlib.logging import LogContext, eaveLogger
 
-from .config import app_config
+from .config import EAVE_CTX_KEY, app_config
 
 
 class MissingSlackTeamIdError(Exception):
@@ -31,7 +31,7 @@ async def authorize(
     https://slack.dev/bolt-python/concepts#authorization
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
     """
-    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eave_ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
     eave_ctx.set(
         {
             "request_id": context.get("request_id"),

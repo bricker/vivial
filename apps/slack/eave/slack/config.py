@@ -7,6 +7,7 @@ from eave.stdlib.eave_origins import EaveOrigin
 SLACK_EVENT_QUEUE_NAME = "slack-events-processor"
 SLACK_EVENT_QUEUE_TARGET_PATH = "/_tasks/slack-events"
 TASK_EXECUTION_COUNT_CONTEXT_KEY = "TASK_EXECUTION_COUNT"
+EAVE_CTX_KEY = "EAVE_CTX_KEY"
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):

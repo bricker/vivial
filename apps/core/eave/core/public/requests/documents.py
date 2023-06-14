@@ -28,14 +28,14 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
         input = UpsertDocumentOp.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            team = await TeamOrm.one_or_exception(
+            eave_team = await TeamOrm.one_or_exception(
                 session=db_session,
                 team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id),
             )
             # get all subscriptions we wish to associate the new document with
             subscriptions = [
                 await SubscriptionOrm.one_or_exception(
-                    team_id=team.id,
+                    team_id=eave_team.id,
                     source=subscription.source,
                     session=db_session,
                 )
@@ -46,7 +46,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             if len(subscriptions) < 1:
                 raise UnexpectedMissingValue("Expected to have at least 1 subscription input")
 
-            destination = await team.get_document_client(session=db_session)
+            destination = await eave_team.get_document_client(session=db_session)
             if destination is None:
                 # TODO: Error message: "You have not setup a document destination"
                 raise UnexpectedMissingValue("document destination")
@@ -61,9 +61,11 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     event_name="eave_created_documentation",
                     event_description="Eave created some documentation",
                     event_source="core api",
-                    eave_team_id=team.id,
+                    eave_team_id=str(eave_team.id),
                     opaque_params={
-                        "destination_platform": team.document_platform.value if team.document_platform else None,
+                        "destination_platform": eave_team.document_platform.value
+                        if eave_team.document_platform
+                        else None,
                         "subscription_sources": [
                             {
                                 "platform": subscription.source.platform.value,
@@ -77,7 +79,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
 
                 document_reference = await eave.core.internal.orm.DocumentReferenceOrm.create(
                     session=db_session,
-                    team_id=team.id,
+                    team_id=eave_team.id,
                     document_id=document_metadata.id,
                     document_url=document_metadata.url,
                 )
@@ -92,9 +94,11 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     event_name="eave_updated_documentation",
                     event_description="Eave updated some existing documentation",
                     event_source="core api",
-                    eave_team_id=team.id,
+                    eave_team_id=eave_team.id,
                     opaque_params={
-                        "destination_platform": team.document_platform.value if team.document_platform else None,
+                        "destination_platform": eave_team.document_platform.value
+                        if eave_team.document_platform
+                        else None,
                         "subscription_sources": [
                             {
                                 "platform": subscription.source.platform.value,
@@ -115,7 +119,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     subscription.document_reference_id = document_reference.id
 
         model = UpsertDocumentOp.ResponseBody(
-            team=team.api_model,
+            team=eave_team.api_model,
             subscriptions=[subscription.api_model for subscription in subscriptions],
             document_reference=document_reference.api_model,
         )
@@ -200,7 +204,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             eave_team_id=eave_team.id,
             opaque_params={
                 "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
-                "document_id": document_reference.id,
+                "document_id": str(document_reference.id),
             },
             ctx=eave_state.log_context,
         )

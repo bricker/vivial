@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Any
 from typing_extensions import override
 import unittest.mock
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
@@ -107,14 +108,14 @@ class AnalyticsTest(UtilityBaseTestCase):
         assert mock.call_count == 1
         mock.assert_called_with(self._expected_topic_path, expected_event.SerializeToString())
 
-    async def test_publish_with_malformed_opaque_params(self):
+    async def test_publish_with_malformed_opaque_params(self) -> None:
         self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
         self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
 
         class unserializable:
             pass
 
-        bad_params = {self.anystring("paramkey"): unserializable()}
+        bad_params: Any = {self.anystring("paramkey"): unserializable()}
         analytics.log_event(
             event_name=self.anystring("event_name"),
             event_description=self.anystring("event_description"),

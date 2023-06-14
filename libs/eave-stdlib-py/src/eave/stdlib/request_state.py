@@ -51,7 +51,7 @@ class EaveRequestState:
         internal information.
         """
 
-        payload = {
+        payload: JsonObject = {
             "request_id": str(self.request_id),
         }
         return payload

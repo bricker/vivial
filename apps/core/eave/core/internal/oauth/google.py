@@ -1,7 +1,6 @@
 import typing
 from dataclasses import dataclass
 
-import eave.stdlib
 import google.auth.transport.requests
 import google.oauth2.credentials
 import google.oauth2.id_token
@@ -9,6 +8,8 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 
 from eave.core.internal.config import app_config
+from eave.stdlib.typing import JsonObject
+from eave.stdlib.util import erasetype
 
 from .models import OAuthFlowInfo
 
@@ -31,11 +32,10 @@ class GoogleIdToken:
     given_name: typing.Optional[str]
     email: typing.Optional[str]
 
-    def __init__(self, token: eave.stdlib.typing.JsonObject) -> None:
-        self.sub = token["sub"]
-        self.given_name = token.get("given_name")
-        self.email = token.get("email")
-        self._token = token
+    def __init__(self, data: JsonObject) -> None:
+        self.sub = erasetype(data, "sub", "")
+        self.given_name = erasetype(data, "given_name")
+        self.email = erasetype(data, "email")
 
 
 @dataclass
@@ -127,12 +127,12 @@ def get_oauth_flow_info() -> OAuthFlowInfo:
 
 
 def decode_id_token(id_token: str) -> GoogleIdToken:
-    token_json: eave.stdlib.typing.JsonObject = google.oauth2.id_token.verify_oauth2_token(
+    token_json = google.oauth2.id_token.verify_oauth2_token(
         id_token=id_token,
         audience=app_config.eave_google_oauth_client_id,
         request=google.auth.transport.requests.Request(),
     )
 
     # TODO: Verify nonce
-    token = GoogleIdToken(token=token_json)
+    token = GoogleIdToken(data=token_json)
     return token

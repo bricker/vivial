@@ -46,10 +46,10 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             )
 
             try:
-                await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
+                await eave_account.verify_oauth_or_exception(session=db_session, ctx=eave_state.log_context)
             except eave.stdlib.exceptions.AccessTokenExpiredError:
-                await eave_account.refresh_oauth_token(session=db_session, log_context=eave_state.log_context)
-                await eave_account.verify_oauth_or_exception(session=db_session, log_context=eave_state.log_context)
+                await eave_account.refresh_oauth_token(session=db_session, ctx=eave_state.log_context)
+                await eave_account.verify_oauth_or_exception(session=db_session, ctx=eave_state.log_context)
 
         eave_state.eave_account_id = str(eave_account.id)
         eave_state.eave_team_id = str(eave_account.team_id)

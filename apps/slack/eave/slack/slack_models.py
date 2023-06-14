@@ -1,7 +1,7 @@
 import asyncio
 import enum
 import re
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, List, Optional, TypeVar, cast
 
 import eave.pubsub_schemas
 import eave.stdlib.core_api.enums
@@ -9,6 +9,7 @@ from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, S
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from eave.stdlib.exceptions import SlackDataError
 from eave.stdlib.logging import LogContext, eaveLogger
+from eave.stdlib.typing import JsonObject, JsonValue
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
 import slack_sdk.models.blocks
@@ -116,15 +117,16 @@ class SlackProfile:
 
 class SlackConversationTopic:
     data: eave.stdlib.typing.JsonObject
-    value: str
-    creator: str
-    last_set: int
+    value: str | None = None
+    creator: str | None = None
+    last_set: int | None = None
 
     def __init__(self, json: eave.stdlib.typing.JsonObject) -> None:
         self.data = json
-        self.value = json["value"]
-        self.creator = json["creator"]
-        self.last_set = json["last_set"]
+
+        self.value = eave_util.erasetype(json, "value")
+        self.creator = eave_util.erasetype(json, "creator")
+        self.last_set = eave_util.erasetype(json, "last_set")
 
 
 class SlackConversation:
@@ -225,14 +227,14 @@ class SlackMessageLinkType(enum.Enum):
 
 
 class SlackReaction:
-    name: Optional[str]
-    users: Optional[list[str]]
-    count: Optional[int]
+    name: Optional[str] = None
+    users: Optional[list[str]] = None
+    count: Optional[int] = None
 
     def __init__(self, data: eave.stdlib.typing.JsonObject) -> None:
-        self.name = data.get("name")
-        self.users = data.get("users")
-        self.count = data.get("count")
+        self.name = eave_util.erasetype(data, "name")
+        self.users = eave_util.erasetype(data, "users")
+        self.count = eave_util.erasetype(data, "count")
 
 
 class SlackPermalink(BaseModel):
@@ -299,26 +301,26 @@ class SlackMessage:
         self._slack_ctx = _SlackContext(context=slack_ctx)
         self._eave_ctx = eave_ctx
         self.event = data
-        self.subtype = data.get("subtype")
-        self.client_message_id = data.get("client_message_id")
-        self.bot_id = data.get("bot_id")
-        self.app_id = data.get("app_id")
-        self.bot_profile = data.get("bot_profile")
-        self.text = data.get("text")
-        self.user = data.get("user")
-        self.ts = data["ts"]
-        self.edited = data.get("edited")
-        self.channel = channel if channel is not None else data.get("channel")
-        self.blocks = data.get("blocks")
-        self.team = data.get("team")
-        self.thread_ts = data.get("thread_ts")
-        self.reply_count = data.get("reply_count")
-        self.reply_users_count = data.get("reply_users_count")
-        self.latest_reply = data.get("latest_reply")
-        self.reply_users = data.get("reply_users")
-        self.is_locked = data.get("is_locked")
-        self.subscribed = data.get("subscribed")
-        self.reactions = data.get("reactions")
+        self.subtype = eave_util.erasetype(data, "subtype")
+        self.client_message_id = eave_util.erasetype(data, "client_message_id")
+        self.bot_id = eave_util.erasetype(data, "bot_id")
+        self.app_id = eave_util.erasetype(data, "app_id")
+        self.bot_profile = eave_util.erasetype(data, "bot_profile")
+        self.text = eave_util.erasetype(data, "text")
+        self.user = eave_util.erasetype(data, "user")
+        self.ts = cast(str, data["ts"])
+        self.channel = channel if channel is not None else eave_util.erasetype(data, "channel")
+        self.edited = eave_util.erasetype(data, "edited")
+        self.blocks = eave_util.erasetype(data, "blocks")
+        self.team = eave_util.erasetype(data, "team")
+        self.thread_ts = eave_util.erasetype(data, "thread_ts")
+        self.reply_count = eave_util.erasetype(data, "reply_count")
+        self.reply_users_count = eave_util.erasetype(data, "reply_users_count")
+        self.latest_reply = eave_util.erasetype(data, "latest_reply")
+        self.reply_users = eave_util.erasetype(data, "reply_users")
+        self.is_locked = eave_util.erasetype(data, "is_locked")
+        self.subscribed = eave_util.erasetype(data, "subscribed")
+        self.reactions = eave_util.erasetype(data, "reactions")
 
     @property
     def is_bot_message(self) -> bool:
