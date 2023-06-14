@@ -30,7 +30,7 @@ class DocumentationType(enum.StrEnum):
 
 def prompt_prefix() -> LiteralString:
     return (
-        "You are Eave, an AI documentation expert. "
+        "You are Eave, a documentation expert. "
         "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
         "You are responsible for the quality and integrity of this organization's documentation.\n\n"
     )
@@ -125,21 +125,31 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
 
     eave_ctx = LogContext.wrap(ctx)
     openai_request_id = str(uuid.uuid4())
-    eave_ctx.set({"openai_request_id": openai_request_id})
-    eaveLogger.debug("OpenAI Request", extra=eave_ctx.set({"openai_request_params": params.__dict__}))
+    compiled_params = params.compile()
+    eave_ctx.set(
+        {
+            "openai_request_id": openai_request_id,
+            "openai_request_params": compiled_params,
+        }
+    )
+
+    eaveLogger.debug("OpenAI Request", extra=eave_ctx)
 
     max_attempts = 3
     for i in range(max_attempts):
         try:
-            response = await openai_sdk.ChatCompletion.acreate(**params.compile())
+            response = await openai_sdk.ChatCompletion.acreate(**compiled_params)
             try:
-                eaveLogger.debug("OpenAI Response", extra=eave_ctx.set({"openai_response": response}))
+                eaveLogger.debug(
+                    f"OpenAI Response: {openai_request_id}",
+                    extra=eave_ctx.set({"openai_response": cast(JsonObject, response)}),
+                )
             except Exception:
                 # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
-                eaveLogger.exception("error during logging", extra=eave_ctx)
+                eaveLogger.exception(f"error during logging: {openai_request_id}", extra=eave_ctx)
             break
         except openai.error.OpenAIError as e:
-            eaveLogger.warning("OpenAI Error", exc_info=e, extra=eave_ctx)
+            eaveLogger.warning(f"OpenAI Error: {openai_request_id}", exc_info=e, extra=eave_ctx)
             if i + 1 < max_attempts:
                 time.sleep(i + 1)
     else:
@@ -151,7 +161,7 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     if len(candidates) > 0:
         choice = candidates[0]
     else:
-        eaveLogger.warning("No valid choices from openAI; using the first result.", extra=eave_ctx)
+        eaveLogger.warning(f"No valid choices from openAI; using the first result. {openai_request_id}", extra=eave_ctx)
         if len(response.choices) > 0:
             choice = response.choices[0]
         else:
