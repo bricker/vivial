@@ -40,7 +40,10 @@ def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
     app.get(f"{path_prefix}/status")(status_endpoint_flask)
 
 
-StatusRoute = Route("/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
+StatusRoute = Route(
+    "/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"]
+)
+
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
