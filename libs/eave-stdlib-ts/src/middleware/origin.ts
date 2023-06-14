@@ -9,15 +9,15 @@ export function originMiddleware(req: Request, res: Response, next: NextFunction
   const originHeader = req.header(eaveHeaders.EAVE_ORIGIN_HEADER);
 
   if (originHeader === undefined) {
-    eaveLogger.warn('missing origin header', eaveState);
-    res.status(400).end();
+    eaveLogger.warning({ message: 'missing origin header', eaveState });
+    res.sendStatus(400);
     return;
   }
 
   const originValue = EaveOrigin[originHeader as keyof typeof EaveOrigin];
   if (originValue === undefined) {
-    eaveLogger.warn(`invalid origin header ${originHeader}`, eaveState);
-    res.status(400).end();
+    eaveLogger.warning({ message: `invalid origin header ${originHeader}`, eaveState });
+    res.sendStatus(400);
     return;
   }
   eaveState.eave_origin = originValue;

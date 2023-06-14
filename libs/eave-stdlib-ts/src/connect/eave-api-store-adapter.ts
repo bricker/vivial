@@ -25,8 +25,8 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
       eaveLogger.debug({ message: `[store adapter] writing cache entry: ${cacheKey}`, clientInfo });
       const cacheClient = await getCacheClient();
       await cacheClient.set(cacheKey, JSON.stringify(clientInfo));
-    } catch (e: unknown) {
-      eaveLogger.error(e);
+    } catch (e: any) {
+      eaveLogger.error({ message: e.stack });
     }
   }
 
@@ -41,7 +41,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   // So, this class is completely broken with OAuth, but we don't currently use OAuth in this context.
 
   async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
-    eaveLogger.debug(`[store adapter] getting credentials: ${key}, ${clientKey}`);
+    eaveLogger.debug({ message: `[store adapter] getting credentials: ${key}, ${clientKey}` });
     if (key !== 'clientInfo') {
       throw new Error(`key not supported: ${key}`);
     }
@@ -50,8 +50,8 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     let cacheClient: Cache | undefined;
     try {
       cacheClient = await getCacheClient();
-    } catch (e: unknown) {
-      eaveLogger.error(e);
+    } catch (e: any) {
+      eaveLogger.error({ message: e.stack });
     }
 
     if (cacheClient !== undefined) {
@@ -70,14 +70,14 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
           ) {
             return clientInfo;
           } else {
-            eaveLogger.warn({ message: `[store adapter] Bad cache data: ${cacheKey}` });
+            eaveLogger.warning({ message: `[store adapter] Bad cache data: ${cacheKey}` });
             await cacheClient.del(cacheKey);
           }
         } else {
           eaveLogger.debug({ message: `[store adapter] cache miss: ${cacheKey}` });
         }
-      } catch (e: unknown) {
-        eaveLogger.error({ message: '[store adapter] error getting cached data', exc: e });
+      } catch (e: any) {
+        eaveLogger.error({ message: e.stack });
         await cacheClient.del(cacheKey);
       }
     }
@@ -98,13 +98,13 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
       return clientInfo;
     } catch (e: any) {
       // HTTP error. Not Found is common, if the registration doesn't already exist.
-      eaveLogger.debug(`[store adapter] no connect install exists (this is normal): ${key}, ${clientKey}`);
+      eaveLogger.debug({ message: `[store adapter] no connect install exists (this is normal): ${key}, ${clientKey}` });
       return null;
     }
   }
 
   async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
-    eaveLogger.debug(`[store adapter] setting client credentials: ${key}, ${value}, ${clientKey}`);
+    eaveLogger.debug({ message: `[store adapter] setting client credentials: ${key}, ${value}, ${clientKey}` });
     if (key !== 'clientInfo') {
       throw new Error(`key not supported: ${key}`);
     }
@@ -119,13 +119,13 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   }
 
   async del(/* key: string, clientKey: string */): Promise<void> {
-    eaveLogger.debug('[store adapter] del called');
+    eaveLogger.debug({ message: '[store adapter] del called' });
     // TODO: Fill in the delete function for Connect client info
     // throw new Error('not implemented');
   }
 
   async getAllClientInfos(): Promise<AddOnFactory.ClientInfo[]> {
-    eaveLogger.debug('[store adapter] getAllClientInfos called');
+    eaveLogger.debug({ message: '[store adapter] getAllClientInfos called' });
     return [];
     // TODO: Fill in the getAllClientInfos function
     // throw new Error('not implemented');

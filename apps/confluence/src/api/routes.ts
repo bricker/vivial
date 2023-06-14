@@ -30,7 +30,7 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
   router.post('/content/create', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await createContent(req, res, addon);
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }
@@ -39,7 +39,7 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
   router.post('/content/update', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await updateContent(req, res, addon);
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }
@@ -48,7 +48,7 @@ export function InternalApiRouter({ addon }: {addon: AddOn}): Router {
   router.post('/content/delete', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await deleteContent(req, res, addon);
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }

@@ -357,7 +357,6 @@ export default class ConfluenceClient {
 
     eaveLogger.debug({
       message,
-      body: response.body,
       statusCode: response.statusCode,
       requestBody: response.request.body,
       requestUri: response.request.uri,

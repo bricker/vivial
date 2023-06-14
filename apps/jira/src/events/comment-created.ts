@@ -7,23 +7,25 @@ import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import appConfig from '../config.js';
 import { CommentCreatedEventPayload, ContentType, User } from '../types.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 
 export default async function commentCreatedEventHandler({ req, res, addon }: { req: Request, res: Response, addon: AddOn }) {
+  const eaveState = getEaveState(res);
   // FIXME: Redact auth header
-  eaveLogger.debug('received webhook event', { body: req.body, headers: req.headers });
+  eaveLogger.debug({ message: 'received comment created webhook event', eaveState });
   const openaiClient = await OpenAIClient.getAuthedClient();
   const payload = <CommentCreatedEventPayload>req.body;
   const client = addon.httpClient(req);
 
   if (payload.comment.author.accountType === 'app') {
-    eaveLogger.info('Ignoring app comment');
+    eaveLogger.info({ message: 'Ignoring app comment', eaveState });
     return;
   }
 
   // [~accountid:712020:d50089b8-586c-4f54-a3ad-db70381e4cae]
   const mentionAccountIds = payload.comment.body.match(/\[~accountid:(.+?)\]/i);
   if (!mentionAccountIds) {
-    eaveLogger.info('No mentions in this message, ignoring');
+    eaveLogger.info({ message: 'No mentions in this message, ignoring', eaveState });
     return;
   }
 
@@ -52,7 +54,7 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
   }));
 
   if (!eaveMentioned) {
-    eaveLogger.info('Eave not mentioned, ignoring');
+    eaveLogger.info({ message: 'Eave not mentioned, ignoring', eaveState });
     return;
   }
 
@@ -64,14 +66,15 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
     '###',
   ].join('\n');
 
+  eaveLogger.debug({ message: 'openai prompt', prompt, eaveState });
   const openaiResponse = await openaiClient.createChatCompletion({
     messages: [
       { role: 'user', content: prompt },
     ],
     model: OpenAIModel.GPT4,
-  });
+  }, eaveState);
 
-  eaveLogger.debug('OpenAI response', { openaiResponse });
+  eaveLogger.debug({ message: 'openai response', prompt, openaiResponse, eaveState });
 
   if (!openaiResponse.match(/yes/i)) {
     eaveLogger.debug('Comment ignored');
@@ -90,7 +93,7 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
 
   const teamId = connectInstallation.team?.id;
   if (!teamId) {
-    eaveLogger.warn({ message: 'No teamId available', clientKey: client.clientKey });
+    eaveLogger.warning({ message: 'No teamId available', clientKey: client.clientKey, eaveState });
     return;
   }
 

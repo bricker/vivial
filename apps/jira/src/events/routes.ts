@@ -6,6 +6,7 @@ import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import appConfig from '../config.js';
 import { WebhookEvent } from '../types.js';
 import commentCreatedEventHandler from './comment-created.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 
 export function applyWebhookMiddlewares({ app, addon, path }: {app: Express, addon: AddOn, path: string}) {
   app.use(path, express.json());
@@ -20,7 +21,8 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   router.use(lifecycleRouter);
 
   router.post('/', addon.authenticate(), async (req: Request, res: Response) => {
-    eaveLogger.info('received webhook event', { body: req.body, headers: req.headers });
+    const eaveState = getEaveState(res);
+    eaveLogger.info({ message: 'received webhook event', eaveState });
     const payload = <WebhookEvent>req.body;
     switch (payload.webhookEvent) {
       case 'comment_created':
@@ -28,9 +30,11 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
         break;
 
       default:
-        eaveLogger.warn(`unhandled webhook event: ${payload.webhookEvent}`);
-        res.sendStatus(200);
+        eaveLogger.warning({ message: `unhandled webhook event: ${payload.webhookEvent}`, eaveState });
+        res.status(200);
     }
+
+    res.end(); // safety
   });
 
   return router;

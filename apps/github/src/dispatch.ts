@@ -26,19 +26,20 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   } = JSON.parse(requestBody);
 
   if (!eventName || !id || !signature || !payload) {
-    eaveLogger.error('missing header data from GitHub', { eaveState });
-    res.status(400).end();
+    eaveLogger.error({ message: 'missing header data from GitHub', eaveState });
+    res.sendStatus(400);
     return;
   }
 
   const { action } = payload;
-  eaveLogger.info('Webhook request', { id, eventName, action, installationId, eaveState });
+  const webhookInfo = { id, eventName, action, installationId }
+  eaveLogger.info({ message: 'Webhook request', eaveState, webhookInfo });
   const event = [eventName, action].filter((n) => n).join('.');
 
   const handler = Registry.getHandler(event);
   if (handler === undefined) {
-    eaveLogger.warn(`Event not supported: ${event}`, { eaveState });
-    res.status(200).end();
+    eaveLogger.warning({ message: `Event not supported: ${event}`, eaveState, webhookInfo });
+    res.sendStatus(200);
     return;
   }
 
@@ -47,15 +48,15 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   const verified = await app.webhooks.verify(requestBody, signature);
 
   if (!verified) {
-    eaveLogger.error('signature verification failed', { eaveState });
+    eaveLogger.error({ message: 'signature verification failed', eaveState });
 
     if (!appConfig.isDevelopment && !appConfig.devMode) {
-      res.status(400).end();
+      res.sendStatus(400);
       return;
     }
   }
 
   const octokit = await app.getInstallationOctokit(payload.installation.id);
-  await handler(payload, { octokit });
-  res.status(200).end();
+  await handler(payload, { octokit, eaveState });
+  res.sendStatus(200);
 }

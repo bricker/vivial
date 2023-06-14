@@ -5,23 +5,25 @@ import { CreateContentRequestBody, CreateContentResponseBody } from '@eave-fyi/e
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { ConfluencePage, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
+import { EaveRequestState, getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import ConfluenceClient from '../confluence-client.js';
 
 export default async function createContent(req: Request, res: Response, addon: AddOn) {
   const { document, confluence_destination } = <CreateContentRequestBody>req.body;
+  const eaveState = await getEaveState(res);
   const client = await ConfluenceClient.getAuthedConnectClient(req, addon);
 
   // Get the space
   const space = await client.getSpaceByKey({ spaceKey: confluence_destination.space_key });
   if (space === null) {
-    eaveLogger.warn({ message: `Space not found for key ${confluence_destination.space_key}`, body: req.body });
-    res.status(400);
+    eaveLogger.warning({ message: `Space not found for key ${confluence_destination.space_key}`, eaveState });
+    res.sendStatus(400);
     return;
   }
 
   if (!space.homepage) {
-    eaveLogger.warn(`Homepage not found for space ${confluence_destination.space_key}`);
-    res.status(400);
+    eaveLogger.warning({ message: `Homepage not found for space ${confluence_destination.space_key}`, eaveState });
+    res.sendStatus(400);
     return;
   }
 
@@ -33,6 +35,7 @@ export default async function createContent(req: Request, res: Response, addon: 
       client,
       title: document.title,
       space,
+      eaveState,
     });
 
     const page = await client.createPage({
@@ -40,7 +43,7 @@ export default async function createContent(req: Request, res: Response, addon: 
       body: document.content,
       title: resolvedDocumentTitle,
     });
-    res.send(page);
+    res.json(page);
     return;
   }
 
@@ -82,6 +85,7 @@ export default async function createContent(req: Request, res: Response, addon: 
         client,
         title: dir.title,
         space,
+        eaveState,
       });
       const newFolderAtThisLevel = await client.createPage({
         space,
@@ -116,6 +120,7 @@ export default async function createContent(req: Request, res: Response, addon: 
     client,
     title: document.title,
     space,
+    eaveState,
   });
 
   const newDocument = await client.createPage({
@@ -131,7 +136,7 @@ export default async function createContent(req: Request, res: Response, addon: 
   res.json(responseBody);
 }
 
-async function resolveTitleConflict({ client, title, space }: { client: ConfluenceClient, title: string, space: ConfluenceSpace }): Promise<string> {
+async function resolveTitleConflict({ client, title, space, eaveState }: { client: ConfluenceClient, title: string, space: ConfluenceSpace, eaveState: EaveRequestState }): Promise<string> {
   // TODO: This can be done "passively", i.e. handle an API response error and then run this function to get a unique title.
   let resolvedTitle = title;
   const limit = 20;
@@ -141,6 +146,7 @@ async function resolveTitleConflict({ client, title, space }: { client: Confluen
 
   while (page) {
     if (n > limit) {
+      eaveLogger.warning({ message: 'title conflict failsafe condition reached', eaveState });
       // failsafe to avoid forever loop. I don't know why this would happen, but it would be a big problem if it did.
       const giveup = uuidv4();
       resolvedTitle = `${title} (${giveup})`;

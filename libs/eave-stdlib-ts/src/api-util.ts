@@ -17,7 +17,7 @@ export function StatusRouter(): Router {
   const router = Router();
   router.get('/status', (_req: Request, res: Response) => {
     const payload = statusPayload();
-    res.json(payload).status(200);
+    res.status(200).json(payload);
   });
 
   return router;
@@ -43,11 +43,11 @@ export function gracefulShutdownHandler({ server }: { server: Server }): () => v
     if (cacheInitialized()) {
       cacheClient()
         .then((client) => client.quit())
-        .then(() => { eaveLogger.info('redis connection closed.'); })
-        .catch((e) => { eaveLogger.error(e); })
+        .then(() => { eaveLogger.info({ message: 'redis connection closed.' }); })
+        .catch((e) => { eaveLogger.error({ message: e.stack }); })
         .finally(() => {
           server.close(() => {
-            eaveLogger.info('HTTP server closed');
+            eaveLogger.info({ message: 'HTTP server closed' });
           });
         });
     }

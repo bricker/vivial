@@ -111,7 +111,6 @@ export default class Signing {
   async signBase64(
     data: string | Buffer,
   ): Promise<string> {
-    eaveLogger.debug({ message: 'signBase64', data });
     const kmsClient = new KeyManagementServiceClient();
     const keyVersionName = kmsClient.cryptoKeyVersionPath(
       sharedConfig.googleCloudProject,
@@ -188,7 +187,6 @@ export default class Signing {
     message: string | Buffer,
     signature: string | Buffer,
   ): Promise<boolean> {
-    eaveLogger.debug({ message: 'verifySignatureOrException', sigMessage: message, signature });
     let signatureString: string;
     if (typeof signature === 'string') {
       signatureString = signature;

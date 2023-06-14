@@ -13,18 +13,16 @@ import eaveLogger from '../logging.js';
  */
 export function signatureVerification(baseUrl: string): ((req: Request, res: Response, next: NextFunction) => void) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    const eaveState = getEaveState(res);
     try {
       await doSignatureVerification(req, res, baseUrl);
       next();
     } catch (e: any) {
       if (developmentBypassAllowed(req)) {
-        eaveLogger.warn('Bypassing signature verification in dev environment');
+        eaveLogger.warning({ message: 'Bypassing signature verification in dev environment', eaveState });
         next();
       } else {
-        const eaveState = getEaveState(res);
-        eaveLogger.warn('signature validation failed', eaveState);
-        res.status(400).end();
-        return;
+        next(e);
       }
     }
   };
@@ -35,8 +33,8 @@ async function doSignatureVerification(req: Request, res: Response, baseUrl: str
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    eaveLogger.warn('Missing Eave signature header', eaveState);
-    res.status(400).end();
+    eaveLogger.warning({ message: 'Missing Eave signature header', eaveState });
+    res.sendStatus(400);
     return false;
   }
 

@@ -12,7 +12,7 @@ export async function logEvent(event: EaveEvent) {
   const topicSchemaMetadata = topicMetadata.schemaSettings;
 
   if (!topicSchemaMetadata) {
-    eaveLogger.error(`schema missing for ${EVENT_TOPIC_ID}`);
+    eaveLogger.error({ message: `schema missing for ${EVENT_TOPIC_ID}` });
     return;
   }
   const schemaEncoding = topicSchemaMetadata.encoding;
@@ -23,5 +23,5 @@ export async function logEvent(event: EaveEvent) {
 
   const protoMessage = EaveEvent.encode(event).finish();
   const messageId = await topic.publishMessage({ data: protoMessage });
-  eaveLogger.debug(`published message to pubsub ${messageId}`);
+  eaveLogger.debug({ message: `published message to pubsub ${messageId}` });
 }

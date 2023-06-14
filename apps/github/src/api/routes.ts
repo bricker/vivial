@@ -8,7 +8,7 @@ export function InternalApiRouter(): Router {
   router.post('/content', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getSummary(req, res);
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }
@@ -17,7 +17,7 @@ export function InternalApiRouter(): Router {
   router.post('/subscribe', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await subscribe(req, res);
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }

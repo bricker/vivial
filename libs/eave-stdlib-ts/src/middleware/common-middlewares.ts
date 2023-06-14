@@ -1,7 +1,7 @@
 import { Express, raw } from 'express';
 import helmet from 'helmet';
-import { requestIntegrity } from './request-integrity.js';
-import { requestLoggingMiddleware, responseLoggingMiddleware } from './logging.js';
+import { requestLoggingMiddleware } from './logging.js';
+import { requestIntegrityMiddleware } from './request-integrity.js';
 import { exceptionHandlingMiddleware } from './exception-handling.js';
 import { requireHeaders } from './require-headers.js';
 import { originMiddleware } from './origin.js';
@@ -14,12 +14,11 @@ import { bodyParser } from './body-parser.js';
 export const helmetMiddleware = helmet;
 
 export function applyCommonRequestMiddlewares({ app }: { app: Express }) {
-  app.use(requestIntegrity);
+  app.use(requestIntegrityMiddleware);
   app.use(requestLoggingMiddleware);
 }
 
 export function applyCommonResponseMiddlewares({ app }: { app: Express }) {
-  app.use(responseLoggingMiddleware);
   app.use(exceptionHandlingMiddleware);
 }
 

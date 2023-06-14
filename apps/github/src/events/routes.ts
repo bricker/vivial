@@ -15,7 +15,7 @@ export function WebhookRouter(): Router {
   router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await dispatch(req, res);
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }

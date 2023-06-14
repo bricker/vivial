@@ -14,26 +14,22 @@ import { appConfig } from '../config.js';
 export async function subscribe(req: Request, res: Response): Promise<void> {
   const eaveState = getEaveState(res);
 
-  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER);
-  if (!eaveTeamId) {
-    eaveLogger.error('Missing eave-team-id header', eaveState);
-    res.status(400).end();
-    return;
-  }
+  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
 
   const input = <CreateGithubResourceSubscriptionRequestBody>req.body;
   if (!input.url) {
-    eaveLogger.error('Missing input.url', eaveState);
-    res.status(400).end();
+    eaveLogger.error({ message: 'Missing input.url', eaveState });
+    res.sendStatus(400);
     return;
   }
 
   let output: CreateGithubResourceSubscriptionResponseBody;
 
+  // TODO: Move this into API dispatch (it is duplicated across api handlers)
   const instllationId = await getInstallationId(eaveTeamId);
   if (instllationId === null) {
-    eaveLogger.error('installation ID not found', eaveState);
-    res.status(500).end();
+    eaveLogger.error({ message: 'installation ID not found', eaveState });
+    res.sendStatus(500);
     return;
   }
 

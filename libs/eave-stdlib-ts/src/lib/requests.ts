@@ -88,7 +88,6 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     accountId,
   });
 
-  eaveLogger.debug({ message: 'sig message', sigMessage: message });
   const signing = Signing.new(origin);
   const signature = await signing.signBase64(message);
 
@@ -117,7 +116,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     url,
   };
 
-  eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, requestContext);
+  eaveLogger.info({ message: `Eave Client Request: ${requestId}: ${method} ${url}`, eaveState: requestContext });
 
   const abortController = new AbortController();
   setTimeout(() => abortController.abort(), 1000 * 10); // Abort after 10 seconds
@@ -129,9 +128,12 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     signal: abortController.signal,
   });
 
-  eaveLogger.info(`Eave Client Response: ${requestId}: ${method} ${url}`, {
-    ...requestContext,
-    status: response.status,
+  eaveLogger.info({
+    message: `Eave Client Response: ${requestId}: ${method} ${url}`,
+    eaveState: {
+      ...requestContext,
+      status: response.status,
+    }
   });
 
   if (response.status >= 400) {

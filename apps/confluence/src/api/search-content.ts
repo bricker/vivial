@@ -3,8 +3,10 @@ import { AddOn } from 'atlassian-connect-express';
 import { SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import ConfluenceClient from '../confluence-client.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 
 export default async function searchContent(req: Request, res: Response, addon: AddOn) {
+  const eaveState = getEaveState(res);
   const client = await ConfluenceClient.getAuthedConnectClient(req, addon);
   const requestBody = <SearchContentRequestBody>req.body;
 
@@ -24,8 +26,8 @@ export default async function searchContent(req: Request, res: Response, addon: 
   const cql = cqlConditions.join(' AND ');
 
   if (cql.length === 0) {
-    eaveLogger.error({ message: 'Invalid CQL', cql, cqlcontext });
-    res.status(500);
+    eaveLogger.error({ message: 'Invalid CQL', cql, cqlcontext, eaveState });
+    res.sendStatus(500);
     return;
   }
 

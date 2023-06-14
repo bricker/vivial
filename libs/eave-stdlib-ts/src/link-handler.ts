@@ -44,7 +44,7 @@ export async function mapUrlContent({ origin, teamId, urls }: RequestArgsOriginA
         return contentResponse.content;
       }
       default:
-        eaveLogger.warn(`unsupported link type: ${type}`);
+        eaveLogger.warning({ message: `unsupported link type: ${type}` });
         return null;
     }
   }));
@@ -116,7 +116,7 @@ async function createSubscription({ origin, teamId, url, linkType }: RequestArgs
       return subscriptionResponse.subscription;
     }
     default:
-      eaveLogger.warn(`unsupported link type: ${linkType}`);
+      eaveLogger.warning({ message: `unsupported link type: ${linkType}` });
       return null;
   }
 }

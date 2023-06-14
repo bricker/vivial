@@ -120,10 +120,10 @@ async function loadCacheImpl(): Promise<Cache> {
     pingInterval: 1000 * 60 * 5,
   });
 
-  impl.on('error', (e) => { eaveLogger.error(e); });
-  impl.on('connect', () => { eaveLogger.debug('redis client connected'); });
-  impl.on('reconnecting', () => { eaveLogger.debug('redis client reconnecting'); });
-  impl.on('ready', () => { eaveLogger.debug('redis client ready'); });
+  impl.on('error', (e) => { eaveLogger.error({ message: e.stack }); });
+  impl.on('connect', () => { eaveLogger.debug({ message: 'redis client connected' }); });
+  impl.on('reconnecting', () => { eaveLogger.debug({ message: 'redis client reconnecting' }); });
+  impl.on('ready', () => { eaveLogger.debug({ message: 'redis client ready' }); });
 
   await impl.connect();
   return impl;
