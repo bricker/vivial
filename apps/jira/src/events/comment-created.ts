@@ -4,10 +4,12 @@ import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.j
 import { AddOn } from 'atlassian-connect-express';
 import { IncomingMessage } from 'http';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
+import { searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import appConfig from '../config.js';
-import { CommentCreatedEventPayload, ContentType, User } from '../types.js';
+import { AtlassianDoc, CommentCreatedEventPayload, Content, ContentType, User } from '../types.js';
+import JiraClient from '../jira-client.js';
 
 export default async function commentCreatedEventHandler({ req, res, addon }: { req: Request, res: Response, addon: AddOn }) {
   const eaveState = getEaveState(res);
@@ -15,7 +17,7 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
   eaveLogger.debug({ message: 'received comment created webhook event', eaveState });
   const openaiClient = await OpenAIClient.getAuthedClient();
   const payload = <CommentCreatedEventPayload>req.body;
-  const client = addon.httpClient(req);
+  const jiraClient = await JiraClient.getAuthedJiraClient(req, addon);
 
   if (payload.comment.author.accountType === 'app') {
     eaveLogger.info({ message: 'Ignoring app comment', eaveState });
@@ -31,26 +33,12 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
 
   // We have to use an old-fashioned Promise chain this way because the atlassian express library
   // uses the request library directly and uses the callback function interface.
-  const eaveMentioned = await Promise.any(mentionAccountIds.map((accountId) => {
-    return new Promise<boolean>((resolve, reject) => {
-      client.get({
-        url: '/rest/api/3/user',
-        qs: { accountId },
-      }, (err: any, response: IncomingMessage, body: string) => {
-        if (err) {
-          reject();
-          return;
-        }
-        if (response.statusCode === 200) {
-          const user = <User>JSON.parse(body);
-          if (user.accountType === 'app' && user.displayName === 'Eave for Jira') {
-            resolve(true);
-          } else {
-            reject();
-          }
-        }
-      }).catch(reject);
-    });
+  const eaveMentioned = await Promise.any(mentionAccountIds.map(async (accountId) => {
+    const user = await jiraClient.getUser({ accountId });
+    if (user?.accountType === 'app' && user?.displayName === 'Eave for Jira') {
+      return true;
+    }
+    return false;
   }));
 
   if (!eaveMentioned) {
@@ -77,23 +65,24 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
   eaveLogger.debug({ message: 'openai response', prompt, openaiResponse, eaveState });
 
   if (!openaiResponse.match(/yes/i)) {
-    eaveLogger.debug('Comment ignored');
+    eaveLogger.debug({ message: 'Comment ignored', eaveState });
     return;
   }
 
+  // TODO: Get this from cache
   const connectInstallation = await queryConnectInstallation({
     origin: appConfig.eaveOrigin,
     input: {
       connect_integration: {
         product: AtlassianProduct.jira,
-        client_key: client.clientKey,
+        client_key: jiraClient.client.clientKey,
       },
     },
   });
 
   const teamId = connectInstallation.team?.id;
   if (!teamId) {
-    eaveLogger.warning({ message: 'No teamId available', clientKey: client.clientKey, eaveState });
+    eaveLogger.warning({ message: 'No teamId available', clientKey: jiraClient.client.clientKey, eaveState });
     return;
   }
 
@@ -106,35 +95,31 @@ export default async function commentCreatedEventHandler({ req, res, addon }: { 
   });
 
   if (payload.issue !== undefined) {
-    await client.post({
-      url: `/rest/api/3/issue/${payload.issue.id}/comment`,
-      json: true,
-      body: {
-        body: {
-          type: ContentType.doc,
-          version: 1,
-          content: [
+    const commentBody: AtlassianDoc = {
+      type: ContentType.doc,
+      version: 1,
+      content: [
+        {
+          type: 'paragraph',
+          content: searchResults.documents.map((document) => (
             {
-              type: 'paragraph',
-              content: searchResults.documents.map((document) => (
+              type: ContentType.text,
+              text: document.title,
+              marks: [
                 {
-                  type: ContentType.text,
-                  text: document.title,
-                  marks: [
-                    {
-                      type: ContentType.link,
-                      attrs: {
-                        href: document.url,
-                        title: document.title,
-                      },
-                    },
-                  ],
-                }
-              )),
-            },
-          ],
+                  type: ContentType.link,
+                  attrs: {
+                    href: document.url,
+                    title: document.title,
+                  },
+                },
+              ],
+            }
+          )),
         },
-      },
-    });
+      ],
+    };
+
+    await jiraClient.postComment({ issueId: payload.issue.id, commentBody });
   }
 }

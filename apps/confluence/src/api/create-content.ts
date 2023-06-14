@@ -11,7 +11,7 @@ import ConfluenceClient from '../confluence-client.js';
 export default async function createContent(req: Request, res: Response, addon: AddOn) {
   const { document, confluence_destination } = <CreateContentRequestBody>req.body;
   const eaveState = await getEaveState(res);
-  const client = await ConfluenceClient.getAuthedConnectClient(req, addon);
+  const client = await ConfluenceClient.getAuthedConfluenceClient(req, addon);
 
   // Get the space
   const space = await client.getSpaceByKey({ spaceKey: confluence_destination.space_key });

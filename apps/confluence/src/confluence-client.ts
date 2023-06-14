@@ -6,45 +6,21 @@ import { Request } from 'express';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
+import ConnectClient, { RequestOpts } from '@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js';
 import { promisify } from 'util';
 import appConfig from './config.js';
 import { cleanDocument } from './api/util.js';
 
-type RequestOpts = CoreOptions & UrlOptions;
-
-export default class ConfluenceClient {
-  static async getAuthedConnectClient(req: Request, addon: AddOn): Promise<ConfluenceClient> {
-    const teamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
-
-    const connectIntegrationResponse = await queryConnectInstallation({
+export default class ConfluenceClient extends ConnectClient {
+  static async getAuthedConfluenceClient(req: Request, addon: AddOn): Promise<ConfluenceClient> {
+    const connectClient = await ConnectClient.getAuthedConnectClient({
+      req,
+      addon,
+      product: AtlassianProduct.confluence,
       origin: appConfig.eaveOrigin,
-      input: {
-        connect_integration: {
-          product: AtlassianProduct.confluence,
-          team_id: teamId,
-        },
-      },
     });
 
-    return this.getAuthedConnectClientForClientKey(connectIntegrationResponse.connect_integration.client_key, addon);
-  }
-
-  private static getAuthedConnectClientForClientKey(clientKey: string, addon: AddOn): ConfluenceClient {
-    const client = addon.httpClient({ clientKey });
-    client.get = promisify<any, any>(client.get);
-    client.post = promisify<any, any>(client.post);
-    client.put = promisify<any, any>(client.put);
-    client.del = promisify<any, any>(client.del);
-    client.head = promisify<any, any>(client.head);
-    client.patch = promisify<any, any>(client.patch);
-
-    return new ConfluenceClient(client);
-  }
-
-  client: HostClient;
-
-  constructor(client: HostClient) {
-    this.client = client;
+    return new ConfluenceClient(connectClient);
   }
 
   /*
@@ -57,10 +33,8 @@ export default class ConfluenceClient {
         expand: 'homepage',
       },
     };
-    this.logRequest('getSpaceByKey', request);
 
     const response = await this.request('get', request);
-    this.logResponse('getSpaceByKey', response);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -82,10 +56,8 @@ export default class ConfluenceClient {
         title,
       },
     };
-    this.logRequest('getPageByTitle', request);
 
     const response = await this.request('get', request);
-    this.logResponse('getPageByTitle', response);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -105,10 +77,8 @@ export default class ConfluenceClient {
         expand: 'body.storage,version',
       },
     };
-    this.logRequest('getPageById', request);
 
     const response = await this.request('get', request);
-    this.logResponse('getPageById', response);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -128,10 +98,8 @@ export default class ConfluenceClient {
         limit: 100, // TODO: Pagination
       },
     };
-    this.logRequest('getPageChildren', request);
 
     const response = await this.request('get', request);
-    this.logResponse('getPageChildren', response);
     if (response.statusCode >= 400) {
       return [];
     }
@@ -151,10 +119,8 @@ export default class ConfluenceClient {
         depth: ConfluenceSpaceContentDepth.root,
       },
     };
-    this.logRequest('getSpaceRootPage', request);
 
     const response = await this.request('get', request);
-    this.logResponse('getSpaceRootPage', response);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -198,10 +164,7 @@ export default class ConfluenceClient {
       },
     };
 
-    this.logRequest('createPage', request);
-
     const response = await this.request('post', request);
-    this.logResponse('createPage', response);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -223,9 +186,7 @@ export default class ConfluenceClient {
         ],
       },
     };
-    this.logRequest('archivePage', request);
     const response = await this.request('post', request);
-    this.logResponse('archivePage', response);
   }
 
   /*
@@ -239,10 +200,8 @@ export default class ConfluenceClient {
         type: ConfluenceSpaceType.global,
       },
     };
-    this.logRequest('getSpaces', request);
 
     const response = await this.request('get', request);
-    this.logResponse('getSpaces', response);
     if (response.statusCode >= 400) {
       return [];
     }
@@ -264,10 +223,8 @@ export default class ConfluenceClient {
         expand: 'body.storage,version',
       },
     };
-    this.logRequest('search', request);
 
     const response = await this.request('get', request);
-    this.logResponse('search', response);
     if (response.statusCode >= 400) {
       return [];
     }
@@ -307,10 +264,8 @@ export default class ConfluenceClient {
         },
       },
     };
-    this.logRequest('updatePage', request);
 
     const response = await this.request('put', request);
-    this.logResponse('updatePage', response);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -325,49 +280,13 @@ export default class ConfluenceClient {
     const request: RequestOpts = {
       url: '/rest/api/settings/systemInfo',
     };
-    this.logRequest('getSystemInfo', request);
 
     const response = await this.request('put', request);
-    this.logResponse('getSystemInfo', response);
     if (response.statusCode >= 400) {
       return null;
     }
 
     const body = JSON.parse(response.body);
     return <SystemInfoEntity>body;
-  }
-
-  private async request(method: 'get' | 'post' | 'put' | 'del' | 'patch' | 'head', payload: {[key:string]: any}): Promise<RequestResponse> {
-    const finalPayload = {
-      timeout: 1000 * 10, // 10 seconds,
-      ...payload,
-    };
-
-    const response: RequestResponse = await this.client[method](finalPayload);
-    return response;
-  }
-
-  private logRequest(name: string, request: any) {
-    eaveLogger.debug({ message: `${name}: request`, request });
-  }
-
-  private logResponse(name: string, response: RequestResponse) {
-    let message: string;
-    let level: 'info' | 'warning';
-
-    if (response.statusCode < 400) {
-      level = 'info';
-      message = `${name}: response`;
-    } else {
-      level = 'warning';
-      const { statusCode, message: errorMessage } = response.body || {};
-      message = `${name}: API error (${statusCode}): ${errorMessage}`;
-    }
-
-    eaveLogger[level]({
-      message,
-      statusCode: response.statusCode,
-      requestUri: response.request.uri,
-    });
   }
 }

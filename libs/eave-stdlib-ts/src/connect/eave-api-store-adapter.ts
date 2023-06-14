@@ -8,6 +8,10 @@ import eaveLogger from '../logging.js';
 type AppKey = 'eave-confluence' | 'eave-jira'
 type AdapterParams = { appKey: AppKey, eaveOrigin: EaveOrigin, productType: AtlassianProduct }
 
+export type EaveClientInfo = AddOnFactory.ClientInfo & {
+  eaveTeamId?: string;
+}
+
 export class EaveApiAdapter /* implements StoreAdapter */ {
   appKey: AppKey;
 
@@ -19,7 +23,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     return `confluence:${clientKey}:installation`;
   }
 
-  async cacheClientInfo(clientKey: string, clientInfo: AddOnFactory.ClientInfo) {
+  async cacheClientInfo(clientKey: string, clientInfo: EaveClientInfo) {
     const cacheKey = this.cacheKey(clientInfo.clientKey);
     try {
       eaveLogger.debug({ message: `[store adapter] writing cache entry: ${cacheKey}`, clientInfo });
@@ -58,7 +62,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
       try {
         const cachedData = await cacheClient.get(cacheKey);
         if (cachedData) {
-          const clientInfo = <AddOnFactory.ClientInfo>JSON.parse(cachedData.toString());
+          const clientInfo = <EaveClientInfo>JSON.parse(cachedData.toString());
           eaveLogger.debug({ message: `[store adapter] cache hit: ${cacheKey}`, clientInfo });
           // Do some basic validation to make sure the cached data is valid.
           if (
@@ -135,10 +139,11 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     return false;
   }
 
-  private buildClientInfo(response: QueryConnectInstallationResponseBody | RegisterConnectInstallationResponseBody): AddOnFactory.ClientInfo {
+  private buildClientInfo(response: QueryConnectInstallationResponseBody | RegisterConnectInstallationResponseBody): EaveClientInfo {
     // The ClientInfo interface contains several properties which are non-nullable, but aren't needed for our purpose.
     // For those properties, we'll fill in with dummy values.
     return {
+      eaveTeamId: response.team?.id,
       key: this.appKey,
       productType: this.productType,
       clientKey: response.connect_integration.client_key,

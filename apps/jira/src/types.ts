@@ -41,6 +41,12 @@ export interface Content {
   attrs?: unknown;
 }
 
+export interface AtlassianDoc {
+  type: ContentType;
+  version: number;
+  content: Content[];
+}
+
 export interface Project extends ApiResource {
   id: string;
   key: string;

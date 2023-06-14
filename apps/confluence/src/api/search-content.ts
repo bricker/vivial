@@ -7,7 +7,7 @@ import ConfluenceClient from '../confluence-client.js';
 
 export default async function searchContent(req: Request, res: Response, addon: AddOn) {
   const eaveState = getEaveState(res);
-  const client = await ConfluenceClient.getAuthedConnectClient(req, addon);
+  const client = await ConfluenceClient.getAuthedConfluenceClient(req, addon);
   const requestBody = <SearchContentRequestBody>req.body;
 
   const { space_key, text } = requestBody.search_params;
