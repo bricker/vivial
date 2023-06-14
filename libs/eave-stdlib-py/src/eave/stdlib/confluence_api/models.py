@@ -241,7 +241,7 @@ class Breadcrumb(BaseModel):
 
 class ConfluenceSearchResultWithBody(BaseModel):
     id: Optional[str | int]
-    type: Optional[ConfluenceContentType]
+    type: Optional[str]
     status: Optional[ConfluenceContentStatus]
     title: Optional[str]
     body: ConfluencePageBody
