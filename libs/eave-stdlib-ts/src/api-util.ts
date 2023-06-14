@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import { Server } from 'http';
 import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
-import cacheClient, { cacheInitialized } from './cache.js';
+import getCacheClient, { cacheInitialized } from './cache.js';
 import eaveLogger from './logging.js';
 
 export function statusPayload(): StatusResponseBody {
@@ -15,8 +15,14 @@ export function statusPayload(): StatusResponseBody {
 
 export function StatusRouter(): Router {
   const router = Router();
-  router.get('/status', (_req: Request, res: Response) => {
+  router.get('/status', async (_req: Request, res: Response) => {
     const payload = statusPayload();
+
+    if (cacheInitialized()) {
+      const cacheClient = await getCacheClient();
+      await cacheClient.ping();
+    }
+
     res.status(200).json(payload);
   });
 
@@ -31,7 +37,8 @@ export function GAELifecycleRouter(): Router {
   });
 
   router.get('/_ah/warmup', async (_req: Request, res: Response) => {
-    await cacheClient(); // Initializes a client and connects to Redis
+    const cacheClient = await getCacheClient(); // Initializes a client and connects to Redis
+    await cacheClient.ping();
     res.sendStatus(200);
   });
 
@@ -41,7 +48,7 @@ export function GAELifecycleRouter(): Router {
 export function gracefulShutdownHandler({ server }: { server: Server }): () => void {
   return () => {
     if (cacheInitialized()) {
-      cacheClient()
+      getCacheClient()
         .then((client) => client.quit())
         .then(() => { eaveLogger.info({ message: 'redis connection closed.' }); })
         .catch((e) => { eaveLogger.error({ message: e.stack }); })

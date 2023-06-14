@@ -7,6 +7,7 @@ from eave.stdlib.headers import AUTHORIZATION_HEADER
 
 from eave.stdlib.util import redact
 import eave.stdlib.core_api.operations.status as status
+from eave.stdlib import cache
 
 from .config import shared_config
 from starlette.routing import Route
@@ -23,8 +24,10 @@ def status_payload() -> status.Status.ResponseBody:
     )
 
 
-def status_endpoint_starlette(request: Request) -> Response:
+async def status_endpoint_starlette(request: Request) -> Response:
     model = status_payload()
+    if cache.initialized():
+        await cache.client().ping()
     return json_response(model=model)
 
 
@@ -37,10 +40,7 @@ def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
     app.get(f"{path_prefix}/status")(status_endpoint_flask)
 
 
-standard_endpoints_starlette = [
-    Route("/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
-]
-
+StatusRoute = Route("/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
