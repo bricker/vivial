@@ -1,17 +1,3 @@
-export type JsonScalar =
-  string |
-  number |
-  null
-
-export type JsonObject = {[key: string]: JsonScalar | JsonScalar[] | JsonObject | JsonObject[] };
-
-// export declare type JsonValue =
-//   JsonScalar |
-//   JsonScalar[] |
-//   JsonObject |
-//   JsonObject[];
-
-// Copied from https://developer.atlassian.com/platform/forge/events-reference/jira/
 // As of this writing, Atlassian does not publicly provide these type definitions.
 
 // Objects
@@ -19,35 +5,7 @@ interface ApiResource {
   self: string;
 }
 
-// This enum definition is incomplete
-// https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/
-export enum ContentType {
-  doc = 'doc',
-  paragraph = 'paragraph',
-  text = 'text',
-  mention = 'mention',
-  link = 'link',
-}
-
-// LinkAttrs: https://developer.atlassian.com/cloud/jira/platform/apis/document/marks/link/#attributes
-
-// This object definition is incomplete
-// https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/
-export interface Content {
-  type: string;
-  text?: string;
-  content?: Content[];
-  marks?: Content[];
-  attrs?: unknown;
-}
-
-export interface AtlassianDoc {
-  type: ContentType;
-  version: number;
-  content: Content[];
-}
-
-export interface Project extends ApiResource {
+export interface JiraProject extends ApiResource {
   id: string;
   key: string;
   name: string;
@@ -56,7 +14,7 @@ export interface Project extends ApiResource {
   avatarUrls: {[key: string]: string };
 }
 
-export interface IssueType extends ApiResource {
+export interface JiraIssueType extends ApiResource {
   id: string;
   description: string;
   iconUrl: string;
@@ -65,22 +23,22 @@ export interface IssueType extends ApiResource {
   avatarId: number;
 }
 
-export interface StatusCategory extends ApiResource {
+export interface JiraStatusCategory extends ApiResource {
   id: number;
   key: string;
   colorName: string;
   name: string;
 }
 
-export interface Status extends ApiResource {
+export interface JiraStatus extends ApiResource {
   description: string;
   iconUrl: string;
   name: string;
   id: string;
-  statusCategory: StatusCategory;
+  statusCategory: JiraStatusCategory;
 }
 
-export interface User extends ApiResource {
+export interface JiraUser extends ApiResource {
   accountId: string;
   avatarUrls?: any;
   displayName?: string;
@@ -89,34 +47,34 @@ export interface User extends ApiResource {
   accountType?: string;
 }
 
-export interface Issue extends ApiResource {
+export interface JiraIssue extends ApiResource {
   id: string;
   key: string;
   fields: {
     summary?: string;
-    issueType?: IssueType;
-    creator?: User;
+    issueType?: JiraIssueType;
+    creator?: JiraUser;
     created?: string;
-    project?: Project;
-    reporter?: User;
-    assignee?: User | null;
+    project?: JiraProject;
+    reporter?: JiraUser;
+    assignee?: JiraUser | null;
     updated?: string;
-    status?: Status;
+    status?: JiraStatus;
   };
 }
 
-export interface AssociatedUsers {
-  associatedUsers: User[];
+export interface JiraAssociatedUsers {
+  associatedUsers: JiraUser[];
 }
 
-export interface IssueLinkType {
+export interface JiraIssueLinkType {
   id: string;
   name: string;
   inward: string;
   outward: string;
 }
 
-export interface Change {
+export interface JiraChange {
   field: string;
   fieldId: string;
   from: string | null;
@@ -125,48 +83,48 @@ export interface Change {
   toString: string | null;
 }
 
-export interface Changelog {
-  items: Change[];
+export interface JiraChangelog {
+  items: JiraChange[];
 }
 
-export interface Comment extends ApiResource {
+export interface JiraComment extends ApiResource {
   id: string;
-  author: User;
+  author: JiraUser;
   body: string;
-  updateAuthor: User;
+  updateAuthor: JiraUser;
   created: string;
   updated: string;
   jsdPublic: boolean;
 }
 
-export interface IdKey {
+export interface JiraIdKey {
   id: string;
   key: string;
 }
 
-export interface StatusId {
+export interface JiraStatusId {
   id: string;
 }
 
-export interface Transition {
+export interface JiraTransition {
   id: string;
   name: string;
-  from: StatusId;
-  to: StatusId;
+  from: JiraStatusId;
+  to: JiraStatusId;
 }
 
-export interface Context {
-  issue: IdKey;
-  project: IdKey;
-  user: User;
-  transition: Transition;
+export interface JiraContext {
+  issue: JiraIdKey;
+  project: JiraIdKey;
+  user: JiraUser;
+  transition: JiraTransition;
 }
 
 // Incoming Event Payloads
 // The names of these payloads are based on the event name
 // Example: "avi:jira:commented:issue" -> CommentedIssueEventPayload"
 // Forge only:
-// export interface EventPayload {
+// export interface JiraEventPayload {
 //   eventType: string;
 //   environment?: { id: string };
 //   contextToken?: string;
@@ -182,13 +140,13 @@ export interface Context {
 //   };
 // }
 
-export interface WebhookEvent {
+export interface JiraWebhookEvent {
   timestamp: number;
-  webhookEvent: string; // Name of the event
-  eventType: string;
+  webhookEvent: string; // Name of the event, eg 'comment_created'. https://developer.atlassian.com/cloud/jira/platform/modules/webhook/
+  eventType: string; // 'primaryAction', for example (I'm not sure how many others there are)
 }
 
-export interface CommentCreatedEventPayload extends WebhookEvent {
-  issue?: Issue;
-  comment: Comment;
+export interface JiraCommentCreatedEventPayload extends JiraWebhookEvent {
+  issue?: JiraIssue;
+  comment: JiraComment;
 }

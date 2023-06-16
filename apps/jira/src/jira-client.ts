@@ -2,8 +2,9 @@ import { AddOn } from 'atlassian-connect-express';
 import { Request } from 'express';
 import ConnectClient, { RequestOpts } from '@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
+import { ADFRootNode } from '@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js';
 import appConfig from './config.js';
-import { AtlassianDoc, Comment, User } from './types.js';
+import { JiraComment, JiraUser } from './types.js';
 
 export default class JiraClient extends ConnectClient {
   static async getAuthedJiraClient({
@@ -29,7 +30,7 @@ export default class JiraClient extends ConnectClient {
     return new JiraClient(connectClient);
   }
 
-  async getUser({ accountId }: { accountId: string }): Promise<User | undefined> {
+  async getUser({ accountId }: { accountId: string }): Promise<JiraUser | undefined> {
     const request: RequestOpts = {
       url: '/rest/api/3/user',
       qs: {
@@ -42,18 +43,16 @@ export default class JiraClient extends ConnectClient {
       return undefined;
     }
 
-    const body = JSON.parse(response.body);
-    const user = <User>body;
+    const user = <JiraUser>JSON.parse(response.body);
     return user;
   }
 
-  async postComment({ issueId, commentBody }: { issueId: string, commentBody: AtlassianDoc }): Promise<Comment | undefined> {
+  /* https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-comments/#api-rest-api-3-issue-issueidorkey-comment-post */
+  async postComment({ issueId, commentBody }: { issueId: string, commentBody: ADFRootNode }): Promise<JiraComment | undefined> {
     const request: RequestOpts = {
       url: `/rest/api/3/issue/${issueId}/comment`,
       json: true,
-      body: {
-        body: commentBody,
-      },
+      body: { body: commentBody },
     };
 
     const response = await this.request('post', request);
@@ -61,8 +60,7 @@ export default class JiraClient extends ConnectClient {
       return undefined;
     }
 
-    const body = JSON.parse(response.body);
-    const comment = <Comment>body;
+    const comment = <JiraComment>response.body;
     return comment;
   }
 }
