@@ -119,7 +119,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   eaveLogger.info({ message: `Eave Client Request: ${requestId}: ${method} ${url}`, eaveState: requestContext });
 
   const abortController = new AbortController();
-  setTimeout(() => abortController.abort(), 1000 * 10); // Abort after 10 seconds
+  setTimeout(() => abortController.abort(), 1000 * 120);
 
   const response = await fetch(url, {
     method,

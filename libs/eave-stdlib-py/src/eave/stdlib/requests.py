@@ -82,7 +82,7 @@ async def make_request(
         ),
     )
 
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
         response = await session.request(
             method=method,
             url=url,
