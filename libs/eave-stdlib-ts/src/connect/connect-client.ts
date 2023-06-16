@@ -63,7 +63,7 @@ export default class ConnectClient {
 
   async request(method: 'get' | 'post' | 'put' | 'del' | 'patch' | 'head', payload: RequestOpts): Promise<RequestResponse> {
     const finalPayload = {
-      timeout: 1000 * 10, // 10 seconds,
+      timeout: 1000 * 120,
       ...payload,
     };
 
@@ -75,28 +75,31 @@ export default class ConnectClient {
 
   private logRequest(request: RequestOpts) {
     const url = request.url;
-    eaveLogger.debug({ message: `Request: ${url}`, request });
+    eaveLogger.debug({ message: `[connect client] Request: ${url}`, request });
   }
 
   private logResponse(response: RequestResponse) {
-    let message: string;
-    let level: 'info' | 'warn';
-
     const url = response.request.uri.href;
 
     if (response.statusCode < 400) {
-      level = 'info';
-      message = `Response: ${url}`;
+      eaveLogger.info({
+        message: `[connect client] Response: ${url}`,
+        statusCode: response.statusCode,
+        requestUri: response.request.uri.href,
+      });
     } else {
-      level = 'warn';
-      const { statusCode, message: errorMessage } = response.body || {};
-      message = `API error: ${url} (${statusCode}) ${errorMessage}`;
+      const { errors: validationErrors, errorMessages } = response.body || {};
+      const errors = { validationErrors, errorMessages };
+      const messages = JSON.stringify(errors);
+
+      eaveLogger.warn({
+        message: `[connect client] API error: ${url} (${response.statusCode}) ${messages}`,
+        statusCode: response.statusCode,
+        requestUri: response.request.uri.href,
+        errors,
+      });
     }
 
-    eaveLogger[level]({
-      message,
-      statusCode: response.statusCode,
-      requestUri: response.request.uri.href,
-    });
+    eaveLogger.debug({ message: '[connect client] response body', body: response.body });
   }
 }
