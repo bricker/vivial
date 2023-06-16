@@ -1,7 +1,7 @@
 import asyncio
 import enum
 import re
-from typing import Any, AsyncGenerator, List, Optional, TypeVar, cast
+from typing import Any, AsyncGenerator, List, Optional, cast
 
 import eave.pubsub_schemas
 import eave.stdlib.core_api.enums
@@ -9,7 +9,6 @@ from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, S
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from eave.stdlib.exceptions import SlackDataError
 from eave.stdlib.logging import LogContext, eaveLogger
-from eave.stdlib.typing import JsonObject, JsonValue
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
 import slack_sdk.models.blocks
