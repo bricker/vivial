@@ -15,7 +15,7 @@ export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
     try {
       const confluenceClient = await getConfluenceClient(req, res, addon);
       await getAvailableSpaces({ req, res, confluenceClient });
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }
@@ -25,7 +25,7 @@ export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
     try {
       const confluenceClient = await getConfluenceClient(req, res, addon);
       await searchContent({ req, res, confluenceClient });
-      next();
+      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }

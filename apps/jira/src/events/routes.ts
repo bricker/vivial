@@ -1,11 +1,11 @@
 import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-router.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { AddOn } from 'atlassian-connect-express';
-import express, { Request, Response, Router, Express } from 'express';
+import express, { Request, Response, Router, Express, NextFunction } from 'express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import appConfig from '../config.js';
-import { WebhookEvent } from '../types.js';
+import { JiraWebhookEvent } from '../types.js';
 import commentCreatedEventHandler from './comment-created.js';
 import JiraClient from '../jira-client.js';
 
@@ -21,27 +21,31 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   const lifecycleRouter = LifecycleRouter({ addon, product: AtlassianProduct.jira, eaveOrigin: appConfig.eaveOrigin });
   router.use(lifecycleRouter);
 
-  router.post('/', addon.authenticate(), async (req: Request, res: Response) => {
-    const eaveState = getEaveState(res);
-    eaveLogger.info({ message: 'received webhook event', eaveState });
-    const jiraClient = await JiraClient.getAuthedJiraClient({
-      req,
-      addon,
-      clientKey: (<any>res.locals).clientKey, // TODO: make this typed
-    });
+  router.post('/', addon.authenticate(), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const eaveState = getEaveState(res);
+      eaveLogger.info({ message: 'received webhook event', eaveState });
+      const jiraClient = await JiraClient.getAuthedJiraClient({
+        req,
+        addon,
+        clientKey: (<any>res.locals).clientKey, // TODO: make this typed
+      });
 
-    const payload = <WebhookEvent>req.body;
-    switch (payload.webhookEvent) {
-      case 'comment_created':
-        await commentCreatedEventHandler({ req, res, jiraClient });
-        break;
+      const payload = <JiraWebhookEvent>req.body;
+      switch (payload.webhookEvent) {
+        case 'comment_created':
+          await commentCreatedEventHandler({ req, res, jiraClient });
+          break;
 
-      default:
-        eaveLogger.warn({ message: `unhandled webhook event: ${payload.webhookEvent}`, eaveState });
-        res.status(200);
+        default:
+          eaveLogger.warn({ message: `unhandled webhook event: ${payload.webhookEvent}`, eaveState });
+          res.sendStatus(200);
+      }
+
+      res.end(); // safety
+    } catch (e: unknown) {
+      next(e);
     }
-
-    res.end(); // safety
   });
 
   return router;
