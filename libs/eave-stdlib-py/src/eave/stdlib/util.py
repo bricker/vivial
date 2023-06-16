@@ -182,6 +182,7 @@ def redact(string: str | None) -> str:
         return "(redacted)"
     return f"{string[:4]}..(redacted)..{string[-4:]}"
 
+
 def erasetype(data: JsonObject, key: str, default: Optional[Any] = None) -> Any:
     if v := data.get(key, default):
         return v
