@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+
+set -eum
+
+source $EAVE_HOME/develop/functions.bash
+
+# TODO: This is very brittle and janky.
+# We have to push the first command into a background job because it runs forever and prevents the following command from running.
+# We need that second command to programmatically get the tunnel URL for use in the apps.
+mkdir -p .tmp
+
+configurl="none"
+activeurl=""
+
+if test -f .tmp/ngrokurl
+then
+	configurl=$(cat .tmp/ngrokurl)
+fi
+
+function getTunnelUrl () (
+	newurl=""
+	while test -z "$newurl"
+	do
+		# TODO: We can use the 'metadata' config here to help identify which tunnel is this machine
+		sleep 2
+		newurl=$(ngrok api endpoints list 2>/dev/null | jq -r '.endpoints[0].public_url // empty')
+	done
+	echo -n "$newurl" > .tmp/ngrokurl
+)
+
+getTunnelUrl &
+
+statusmsg -i "Starting ngrok..."
+ngrok --config "$XDG_CONFIG_HOME/ngrok/ngrok.yml" --config "$EAVE_HOME/ngrok.yml" start apps
+
+# Because ngrok runs forever, the next line will run only when ngrok is killed
+rm .tmp/ngrokurl

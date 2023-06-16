@@ -27,6 +27,7 @@
       "env": {
         "GAE_SERVICE": "api",
         "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       }
     },
     {
@@ -70,6 +71,7 @@
         "SLACK_SOCKETMODE": "1",
         "GAE_SERVICE": "slack (socketmode)",
         "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       }
     },
     {
@@ -92,6 +94,7 @@
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
         "GAE_SERVICE": "github",
         "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       },
     },
     {
@@ -106,9 +109,10 @@
       "program": "${workspaceFolder}/apps/confluence/server.ts",
       "restart": true,
       "args": [
-        "--exec", "pkill -n ngrok || true && ts-node",
+        "--exec", "ts-node",
         "--watch", "${workspaceFolder}/apps/confluence/src",
         "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
+        "--delay", "5",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
       "consoleTitle": "Confluence App",
@@ -118,6 +122,7 @@
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
         "GAE_SERVICE": "confluence",
         "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       },
     },
     {
@@ -139,6 +144,7 @@
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
         "GAE_SERVICE": "confluence",
         "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       },
     },
     {
@@ -153,7 +159,10 @@
       "program": "${workspaceFolder}/apps/jira/server.ts",
       "restart": true,
       "args": [
-        "--exec", "pkill -n ngrok || true && ts-node"
+        "--exec", "ts-node",
+        "--watch", "${workspaceFolder}/apps/jira/src",
+        "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
+        "--delay", "5",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/jira/node_modules/.bin/nodemon",
       "consoleTitle": "Jira App",
@@ -163,6 +172,7 @@
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
         "GAE_SERVICE": "jira",
         "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       },
     },
     {
@@ -186,6 +196,7 @@
       "env": {
         "GAE_SERVICE": "www",
         "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       }
     },
     {
