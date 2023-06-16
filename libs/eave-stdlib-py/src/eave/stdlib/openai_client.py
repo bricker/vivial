@@ -42,6 +42,7 @@ STOP_SEQUENCE = "STOP_SEQUENCE"
 class OpenAIModel(enum.StrEnum):
     # ADA_EMBEDDING = "text-embedding-ada-002"
     GPT_35_TURBO = "gpt-3.5-turbo"
+    GPT_35_TURBO_16K = "gpt-3.5-turbo-16k"
     GPT4 = "gpt-4"
     GPT4_32K = "gpt-4-32k"
 
@@ -107,7 +108,6 @@ class ChatCompletionParameters:
         else:
             params["stop"] = [STOP_SEQUENCE]
 
-        params["timeout"] = 10  # seconds
         return params
 
 
@@ -137,6 +137,9 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
 
     max_attempts = 3
     for i in range(max_attempts):
+        backoffSecs = (i + 1) * 10
+        compiled_params["timeout"] = backoffSecs
+        backoffSecs = i
         try:
             response = await openai_sdk.ChatCompletion.acreate(**compiled_params)
             try:
@@ -151,7 +154,7 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
         except openai.error.OpenAIError as e:
             eaveLogger.warning(f"OpenAI Error: {openai_request_id}", exc_info=e, extra=eave_ctx)
             if i + 1 < max_attempts:
-                time.sleep(i + 1)
+                time.sleep(backoffSecs)
     else:
         raise MaxRetryAttemptsReachedError("OpenAI")
 

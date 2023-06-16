@@ -11,12 +11,14 @@ export const PROMPT_PREFIX =
 
 export enum OpenAIModel {
   GPT_35_TURBO = 'gpt-3.5-turbo',
+  GPT_35_TURBO_16K = 'gpt-3.5-turbo-16k',
   GPT4 = 'gpt-4',
   GPT4_32K = 'gpt-4-32k',
 }
 
 export const MAX_TOKENS: {[key:string]: number} = {
   [OpenAIModel.GPT_35_TURBO]: 4096,
+  [OpenAIModel.GPT_35_TURBO_16K]: 16384,
   [OpenAIModel.GPT4]: 8192,
   [OpenAIModel.GPT4_32K]: 32768,
 };
@@ -55,16 +57,18 @@ export default class OpenAIClient {
 
     const maxAttempts = 3;
     for (let i = 0; i < maxAttempts; i += 1) {
+      const backoffMs = (i + 1) * 10 * 1000;
       try {
-        eaveLogger.debug({ message: 'openai request', eaveState });
-        const completion = await this.client.createChatCompletion(parameters, { timeout: 1000 * 10 }); // timeout in ms
-        eaveLogger.debug({ message: 'openai response', eaveState });
+        eaveLogger.debug({ message: 'openai request', parameters, eaveState });
+        const completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
+        eaveLogger.debug({ message: 'openai response', data: completion.data, eaveState });
         text = completion.data.choices[0]?.message?.content;
+        break;
       } catch (e: any) {
         // Network error?
-        if (i < maxAttempts - 1) {
+        if (i + 1 < maxAttempts) {
           eaveLogger.warn({ message: e.stack, eaveState });
-          await new Promise((r) => { setTimeout(r, (i + 1) * 1000); });
+          await new Promise((r) => { setTimeout(r, backoffMs); });
         } else {
           throw e;
         }
