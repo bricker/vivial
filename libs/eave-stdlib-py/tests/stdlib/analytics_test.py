@@ -5,6 +5,7 @@ from typing_extensions import override
 import unittest.mock
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
+from eave.stdlib.config import EaveEnvironment
 from eave.stdlib.logging import LogContext
 from eave.stdlib.test_util import UtilityBaseTestCase
 
@@ -48,6 +49,7 @@ class AnalyticsTest(UtilityBaseTestCase):
             eave_team_id=self.getstr("eave_team_id"),
             opaque_params=json.dumps(self.getdict("opaque_params")),
             event_ts=fakenow,
+            eave_env=EaveEnvironment.development,
         )
 
         mock = self.get_mock("publisher")
@@ -77,6 +79,7 @@ class AnalyticsTest(UtilityBaseTestCase):
             eave_team_id=str(self.getuuid("eave_team_id")),
             opaque_params=json.dumps(self.getdict("opaque_params")),
             event_ts=self.get_mock("now").return_value,
+            eave_env=EaveEnvironment.development,
         )
 
         mock = self.get_mock("publisher")
@@ -102,6 +105,7 @@ class AnalyticsTest(UtilityBaseTestCase):
             eave_team_id=None,
             opaque_params=None,
             event_ts=self.get_mock("now").return_value,
+            eave_env=EaveEnvironment.development,
         )
 
         mock = self.get_mock("publisher")
@@ -132,6 +136,7 @@ class AnalyticsTest(UtilityBaseTestCase):
             eave_team_id=None,
             opaque_params=str(bad_params),
             event_ts=self.get_mock("now").return_value,
+            eave_env=EaveEnvironment.development,
         )
 
         mock = self.get_mock("publisher")

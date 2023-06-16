@@ -44,6 +44,7 @@ def log_event(
         eave_account_id=str(eave_account_id) if eave_account_id else None,
         eave_visitor_id=str(eave_visitor_id) if eave_visitor_id else None,
         eave_team_id=str(eave_team_id) if eave_team_id else None,
+        eave_env=shared_config.eave_env.value,
         opaque_params=serialized_params,
         event_ts=event_ts if event_ts else time.time(),
     )

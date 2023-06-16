@@ -13,7 +13,7 @@ import google.cloud.client
 from . import checksum
 
 
-class EaveEnvironment(enum.Enum):
+class EaveEnvironment(enum.StrEnum):
     development = "development"
     production = "production"
 
