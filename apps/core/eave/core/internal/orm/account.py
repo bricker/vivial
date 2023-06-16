@@ -1,7 +1,7 @@
 import typing
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Any, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib
@@ -46,7 +46,7 @@ class AccountOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     visitor_id: Mapped[Optional[UUID]] = mapped_column()
-    opaque_utm_params: Mapped[Optional[eave.stdlib.typing.JsonObject]] = mapped_column(JSONB)
+    opaque_utm_params: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     """Opaque, JSON-encoded utm params."""
     auth_provider: Mapped[AuthProvider] = mapped_column()
     """3rd party login provider"""

@@ -1,5 +1,5 @@
 import enum
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 from eave.stdlib.core_api.models import BaseInputModel
@@ -211,10 +211,10 @@ class ConfluencePage(BaseModel):
     status: str
     title: str
     type: Optional[str]
-    macroRenderedOutput: Optional[JsonObject]
-    extensions: Optional[JsonObject]
-    ancestors: Optional[list[JsonObject]]
-    container: Optional[JsonObject]
+    macroRenderedOutput: Optional[Any]
+    extensions: Optional[Any]
+    ancestors: Optional[list[Any]]
+    container: Optional[Any]
     body: Optional[ConfluencePageBody]
     space: Optional[ConfluenceSpace]
     history: Optional[ConfluencePageHistory]
