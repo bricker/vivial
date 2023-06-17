@@ -28,33 +28,27 @@ export type DeleteSubscriptionRequestBody = {
   subscription: SubscriptionInput;
 }
 
-export async function createSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: CreateSubscriptionRequestBody}): Promise<CreateSubscriptionResponseBody> {
+export async function createSubscription(args: RequestArgsOriginAndTeamId & {input: CreateSubscriptionRequestBody}): Promise<CreateSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/create`,
-    origin,
-    input,
-    teamId,
+    ...args,
   });
   const responseData = <CreateSubscriptionResponseBody>(await resp.json());
   return responseData;
 }
 
-export async function deleteSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: DeleteSubscriptionRequestBody}): Promise<null> {
+export async function deleteSubscription(args: RequestArgsOriginAndTeamId & {input: DeleteSubscriptionRequestBody}): Promise<null> {
   await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/delete`,
-    origin,
-    input,
-    teamId,
+    ...args,
   });
   return null;
 }
 
-export async function getSubscription({ origin, teamId, input }: RequestArgsOriginAndTeamId & {input: GetSubscriptionRequestBody}): Promise<GetSubscriptionResponseBody> {
+export async function getSubscription(args: RequestArgsOriginAndTeamId & {input: GetSubscriptionRequestBody}): Promise<GetSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/subscriptions/query`,
-    origin,
-    input,
-    teamId,
+    ...args,
   });
   const responseData = <GetSubscriptionResponseBody>(await resp.json());
   return responseData;

@@ -12,11 +12,10 @@ export type GetSlackInstallationResponseBody = {
   slack_integration: SlackInstallation;
 }
 
-export async function getSlackInstallation({ origin, input }: RequestArgsOrigin & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
+export async function getSlackInstallation(args: RequestArgsOrigin & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/integrations/slack/query`,
-    origin,
-    input,
+    ...args,
   });
   const responseData = <GetSlackInstallationResponseBody>(await resp.json());
   return responseData;

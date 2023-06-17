@@ -11,11 +11,10 @@ export type RegisterConnectInstallationResponseBody = {
   connect_integration: ConnectInstallation;
 }
 
-export async function registerConnectInstallation({ origin, input }: RequestArgsOrigin & {input: RegisterConnectInstallationRequestBody}): Promise<RegisterConnectInstallationResponseBody> {
+export async function registerConnectInstallation(args: RequestArgsOrigin & {input: RegisterConnectInstallationRequestBody}): Promise<RegisterConnectInstallationResponseBody> {
   const resp = await makeRequest({
-    origin,
     url: `${sharedConfig.eaveApiBase}/integrations/connect/register`,
-    input,
+    ...args,
   });
   const responseData = <RegisterConnectInstallationResponseBody>(await resp.json());
   return responseData;
@@ -29,11 +28,10 @@ export type QueryConnectInstallationResponseBody = {
   connect_integration: ConnectInstallation;
 }
 
-export async function queryConnectInstallation({ origin, input }: RequestArgsOrigin & {input: QueryConnectInstallationRequestBody}): Promise<QueryConnectInstallationResponseBody> {
+export async function queryConnectInstallation(args: RequestArgsOrigin & {input: QueryConnectInstallationRequestBody}): Promise<QueryConnectInstallationResponseBody> {
   const resp = await makeRequest({
-    origin,
     url: `${sharedConfig.eaveApiBase}/integrations/connect/query`,
-    input,
+    ...args,
   });
   const responseData = <QueryConnectInstallationResponseBody>(await resp.json());
   return responseData;
