@@ -98,7 +98,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             url="https://api.atlassian.com/oauth/token/accessible-resources",
         )
         available_resources_data: list[eave.stdlib.typing.JsonObject] = available_resources_response.json()
-        available_resources = [eave.stdlib.atlassian.AtlassianAvailableResource(**j) for j in available_resources_data]
+        available_resources = [eave.stdlib.atlassian.AtlassianAvailableResource(j) for j in available_resources_data]
         return available_resources
 
     def get_userinfo(self) -> ConfluenceUser:

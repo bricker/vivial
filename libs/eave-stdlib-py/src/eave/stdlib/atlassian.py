@@ -4,6 +4,8 @@ DEPRECATED: This module has been replaced by eave.stdlib.confluence_api.models
 from dataclasses import dataclass
 from typing import Optional, cast
 
+from eave.stdlib.util import erasetype
+
 from .typing import JsonObject
 
 
@@ -19,6 +21,13 @@ class AtlassianAvailableResource:
     scopes: Optional[list[str]] = None
     avatarUrl: Optional[str] = None
 
+    def __init__(self, data: JsonObject) -> None:
+        self.id = erasetype(data, "id")
+        self.name = erasetype(data, "name")
+        self.url = erasetype(data, "url")
+        self.scopes = erasetype(data, "scopes")
+        self.avatarUrl = erasetype(data, "avatarUrl")
+
 
 class ConfluenceUser:
     account_id: Optional[str] = None
@@ -27,7 +36,7 @@ class ConfluenceUser:
     display_name: Optional[str] = None
 
     def __init__(self, data: JsonObject) -> None:
-        self.account_id = cast(str | None, data.get("accountId"))
-        self.email = cast(str | None, data.get("email"))
-        self.public_name = cast(str | None, data.get("publicName"))
-        self.display_name = cast(str | None, data.get("displayName"))
+        self.account_id = erasetype(data, "accountId")
+        self.email = erasetype(data, "email")
+        self.public_name = erasetype(data, "publicName")
+        self.display_name = erasetype(data, "displayName")

@@ -294,11 +294,13 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(
-                id=self.anystring("atlassian_cloud_id"),
-                url=self.anystring("confluence_document_response._links.base"),
-                avatarUrl=self.anystring("atlassian.resource.avatar"),
-                name=self.anystring("atlassian.resource.name"),
-                scopes=[],
+                data={
+                    "id": self.anystring("atlassian_cloud_id"),
+                    "url": self.anystring("confluence_document_response._links.base"),
+                    "avatarUrl": self.anystring("atlassian.resource.avatar"),
+                    "name": self.anystring("atlassian.resource.name"),
+                    "scopes": [],
+                },
             )
         ]
 
