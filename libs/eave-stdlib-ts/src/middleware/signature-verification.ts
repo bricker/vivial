@@ -19,7 +19,7 @@ export function signatureVerification(baseUrl: string): ((req: Request, res: Res
       next();
     } catch (e: any) {
       if (developmentBypassAllowed(req)) {
-        eaveLogger.warn({ message: 'Bypassing signature verification in dev environment', eaveState });
+        eaveLogger.warning('Bypassing signature verification in dev environment', eaveState);
         next();
       } else {
         next(e);
@@ -33,7 +33,7 @@ async function doSignatureVerification(req: Request, res: Response, baseUrl: str
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    eaveLogger.warn({ message: 'Missing Eave signature header', eaveState });
+    eaveLogger.error('Missing Eave signature header', eaveState);
     res.sendStatus(400);
     return false;
   }
