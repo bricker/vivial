@@ -5,6 +5,7 @@ import Signing from '../signing.js';
 import eaveHeaders from '../headers.js';
 import { redact } from '../util.js';
 import { EaveRequestState } from './request-state.js';
+import { JsonObject } from '../types.js';
 
 const LOG_TAG = 'requests.ts';
 
@@ -66,9 +67,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     method = 'post',
   } = args;
 
-  const ctx = args.ctx || new LogContext();
-  ctx.tag = LOG_TAG;
-
+  const ctx = LogContext.wrap(args.ctx);
   const requestId = ctx.request_id;
   const payload = input === undefined ? '{}' : JSON.stringify(input);
 
@@ -105,7 +104,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     headers[eaveHeaders.EAVE_ACCOUNT_ID_HEADER] = accountId;
   }
 
-  const requestContext = {
+  const requestContext: JsonObject = {
     origin,
     signature: redact(signature),
     access_token: redact(accessToken),
@@ -116,11 +115,11 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     url,
   };
 
-  eaveLogger.info({
-    message: `Request: ${requestId}: ${method} ${url}`,
-    ...ctx,
-    ...requestContext,
-  });
+  eaveLogger.info(
+    `Request: ${requestId}: ${method} ${url}`,
+    ctx,
+    requestContext,
+  );
 
   const abortController = new AbortController();
   setTimeout(() => abortController.abort(), 1000 * 120);
@@ -132,18 +131,19 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     signal: abortController.signal,
   });
 
-  eaveLogger.info({
-    message: `Response: ${requestId}: ${method} ${url}`,
-    ...ctx,
-    ...requestContext,
-    status: response.status,
-  });
+  eaveLogger.info(
+    `Response: ${requestId}: ${method} ${url}`,
+    ctx,
+    requestContext,
+    { status: response.status },
+  );
 
   if (response.status >= 400) {
-    eaveLogger.error({
-      ...ctx,
-      message: `Request Error (${response.status}): ${url}`,
-    });
+    eaveLogger.error(
+      `Request Error (${response.status}): ${url}`,
+      ctx,
+      requestContext,
+    );
   }
 
   return response;

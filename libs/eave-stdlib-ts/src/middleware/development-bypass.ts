@@ -17,14 +17,14 @@ export function developmentBypassAllowed(req: Request): boolean {
 
   const expectedDevHeader = createDevHeaderValue();
   if (devHeader === expectedDevHeader) {
-    eaveLogger.warn({ message: 'Development bypass request accepted; some checks will be bypassed.' });
+    eaveLogger.warning('Development bypass request accepted; some checks will be bypassed.');
     return true;
   }
   throw new Error(`Provided dev bypass header was not accepted. Expected: ${expectedDevHeader}`);
 }
 
 export function developmentBypassAuth(req: Request, eaveState: EaveRequestState): void {
-  eaveLogger.warn({ message: 'Bypassing auth verification in dev env' });
+  eaveLogger.warning('Bypassing auth verification in dev env');
 
   const accountId = req.header(eaveHeaders.EAVE_AUTHORIZATION_HEADER);
   if (accountId === undefined || typeof accountId !== 'string') {

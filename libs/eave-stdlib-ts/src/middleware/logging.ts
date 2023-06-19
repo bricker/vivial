@@ -5,16 +5,16 @@ import eaveLogger from '../logging.js';
 
 export function requestLoggingMiddleware(_req: Request, res: Response, next: NextFunction) {
   const eaveState = getEaveState(res);
-  eaveLogger.info({
-    message: `Eave Server Request Start: ${eaveState.request_id}: ${eaveState.request_method} ${eaveState.request_path}`,
+  eaveLogger.info(
+    `Eave Server Request Start: ${eaveState.request_id}: ${eaveState.request_method} ${eaveState.request_path}`,
     eaveState,
-  });
+  );
 
   onFinished(res, () => {
-    eaveLogger.info({
-      message: `Eave Server Request End: ${eaveState.request_id}: ${eaveState.request_method} ${eaveState.request_path}`,
+    eaveLogger.info(
+      `Eave Server Request End: ${eaveState.request_id}: ${eaveState.request_method} ${eaveState.request_path}`,
       eaveState,
-    });
+    );
   });
 
   next();

@@ -1,7 +1,37 @@
+import { v4 as uuidv4 } from 'uuid';
 import winston from 'winston';
 import lf from 'logform';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 import { sharedConfig } from './config.js';
+import { JsonObject, JsonValue } from './types.js';
+import { Request } from 'express';
+import headers from './headers.js';
+
+export class LogContext {
+  attributes: JsonObject = {};
+
+  static wrap(ctx?: LogContext): LogContext {
+    if (ctx) {
+      return ctx;
+    } else {
+      return new LogContext();
+    }
+  }
+
+  constructor(req?: Request) {
+    const requestId = req?.header(headers.EAVE_REQUEST_ID_HEADER) || uuidv4();
+    this.set({ request_id: requestId });
+  }
+
+  get request_id(): string {
+    return <string> this.attributes['request_id'];
+  }
+
+  set(attributes: JsonObject): LogContext {
+    Object.assign(this.attributes, attributes);
+    return this;
+  }
+}
 
 const customErrorFormatter = winston.format((info: lf.TransformableInfo, _opts?: any): lf.TransformableInfo | boolean => {
   if (info instanceof Error) {
@@ -61,4 +91,76 @@ function createLogger(): winston.Logger {
   return logger;
 }
 
-export default createLogger();
+class EaveLogger {
+  rawLogger: winston.Logger;
+
+  constructor() {
+    this.rawLogger = createLogger();
+  }
+
+  debug(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.debug({
+      message,
+      ...this.makeExtra(...rest),
+    });
+  }
+
+  info(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.info({
+      message,
+      ...this.makeExtra(...rest),
+    });
+  }
+
+  warning(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.warning({
+      message,
+      ...this.makeExtra(...rest),
+    });
+  }
+
+  error(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.error({
+      message,
+      ...this.makeExtra(...rest),
+    });
+  }
+
+  exception(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.error({
+      message,
+      ...this.makeExtra(...rest),
+    });
+  }
+
+  critical(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.error({
+      message,
+      ...this.makeExtra(...rest),
+    });
+  }
+
+  private makeExtra(...rest: (JsonObject | LogContext | undefined)[]): { eave: JsonObject } {
+    return {
+      eave: <JsonObject>rest.reduce((cur, acc) => {
+        if (!cur) {
+          return acc;
+        }
+
+        let attrs: JsonObject;
+        if (cur instanceof LogContext) {
+          attrs = cur.attributes;
+        } else {
+          attrs = cur;
+        }
+
+        return {
+          ...acc,
+          ...attrs,
+        };
+      }, {}),
+    };
+  }
+}
+
+export default new EaveLogger();

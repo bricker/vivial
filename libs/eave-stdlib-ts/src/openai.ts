@@ -2,6 +2,7 @@ import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRe
 import { sharedConfig } from './config.js';
 import eaveLogger from './logging.js';
 import { EaveRequestState } from './lib/request-state.js';
+import { JsonObject } from './types.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -59,15 +60,15 @@ export default class OpenAIClient {
     for (let i = 0; i < maxAttempts; i += 1) {
       const backoffMs = (i + 1) * 10 * 1000;
       try {
-        eaveLogger.debug({ message: 'openai request', parameters, eaveState });
+        eaveLogger.debug('openai request', <any>parameters, eaveState);
         const completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
-        eaveLogger.debug({ message: 'openai response', data: completion.data, eaveState });
+        eaveLogger.debug('openai response', { data: <any>completion.data }, eaveState);
         text = completion.data.choices[0]?.message?.content;
         break;
       } catch (e: any) {
         // Network error?
         if (i + 1 < maxAttempts) {
-          eaveLogger.warn({ message: e.stack, eaveState });
+          eaveLogger.warning(e, eaveState);
           await new Promise((r) => { setTimeout(r, backoffMs); });
         } else {
           throw e;

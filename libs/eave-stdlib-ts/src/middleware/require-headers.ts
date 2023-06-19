@@ -8,7 +8,7 @@ export function requireHeaders(...headers: string[]): ((req: Request, res: Respo
     for (const header of headers) {
       const value = req.header(header);
       if (!value) {
-        eaveLogger.error({ message: `Missing required header ${header}`, eaveState });
+        eaveLogger.error(`Missing required header ${header}`, eaveState);
         res.sendStatus(400);
         return;
       }

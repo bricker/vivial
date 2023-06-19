@@ -154,7 +154,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
 
                 else:
                     # TODO: This probably means they didn't complete the connect install, how should we handle this case?
-                    eaveLogger.warn("connect install not found", extra=self.eave_state.log_context)
+                    eaveLogger.warning("connect install not found", self.eave_state.log_context)
 
             # TODO: The transaction needs to be closed, because the team ID needs to be saved to the database before we
             # call out to the Confluence API to get the available spaces.

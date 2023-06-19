@@ -87,7 +87,7 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[Lo
     """
     Signs the data with GCP KMS, and returns the base64-encoded signature
     """
-    eaveLogger.debug("sign_b64", extra=ctx)
+    eaveLogger.debug("sign_b64", ctx)
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
@@ -125,7 +125,7 @@ def verify_signature_or_exception(
     The return value is to help you, the developer, understand that if this function doesn't throw,
     then the signature is verified.
     """
-    eaveLogger.debug("verify_signature_or_exception", extra=ctx)
+    eaveLogger.debug("verify_signature_or_exception", ctx)
     message_bytes = eave_util.ensure_bytes(message)
     signature_bytes = base64.b64decode(signature)
     kms_client = kms.KeyManagementServiceClient()

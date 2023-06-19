@@ -191,7 +191,7 @@ class AccountOrm(Base):
                 if (access_token := new_tokens.get("access_token")) and (
                     refresh_token := new_tokens.get("refresh_token")
                 ):
-                    eaveLogger.debug("Refreshing Slack auth tokens.", extra=ctx)
+                    eaveLogger.debug("Refreshing Slack auth tokens.", ctx)
                     self.access_token = access_token
                     self.refresh_token = refresh_token
                     return True

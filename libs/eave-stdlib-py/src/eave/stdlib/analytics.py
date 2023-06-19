@@ -28,14 +28,14 @@ def log_event(
     ctx: typing.Optional[LogContext] = None,
 ) -> None:
     eave_context = LogContext.wrap(ctx)
-    if opaque_params:
-        try:
-            serialized_params = json.dumps(opaque_params)
-        except Exception:
-            eaveLogger.exception("Error while serializing opaque params for analytics", extra=eave_context)
-            serialized_params = str(opaque_params)
-    else:
-        serialized_params = None
+    opaque_params = opaque_params if opaque_params else JsonObject()
+    opaque_params.setdefault("eave_ctx", eave_context)
+
+    try:
+        serialized_params = json.dumps(opaque_params)
+    except Exception:
+        eaveLogger.exception("Error while serializing opaque params for analytics", extra=eave_context)
+        serialized_params = str(opaque_params)
 
     event = eave.pubsub_schemas.EaveEvent(
         event_name=event_name,

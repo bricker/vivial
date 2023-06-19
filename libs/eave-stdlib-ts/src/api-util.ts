@@ -50,11 +50,11 @@ export function gracefulShutdownHandler({ server }: { server: Server }): () => v
     if (cacheInitialized()) {
       getCacheClient()
         .then((client) => client.quit())
-        .then(() => { eaveLogger.info({ message: 'redis connection closed.' }); })
-        .catch((e) => { eaveLogger.error({ message: e.stack }); })
+        .then(() => { eaveLogger.info('redis connection closed.'); })
+        .catch((e) => { eaveLogger.error(e); })
         .finally(() => {
           server.close(() => {
-            eaveLogger.info({ message: 'HTTP server closed' });
+            eaveLogger.info('HTTP server closed');
           });
         });
     }

@@ -2,7 +2,7 @@ import { AddOn, HostClient } from 'atlassian-connect-express';
 import { CoreOptions, RequestResponse, UrlOptions } from 'request';
 import { promisify } from 'util';
 import { Request } from 'express';
-import eaveLogger from '../logging.js';
+import eaveLogger, { LogContext } from '../logging.js';
 import { queryConnectInstallation } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveOrigin } from '../eave-origins.js';
@@ -61,45 +61,55 @@ export default class ConnectClient {
     this.client = client;
   }
 
-  async request(method: 'get' | 'post' | 'put' | 'del' | 'patch' | 'head', payload: RequestOpts): Promise<RequestResponse> {
+  async request(method: 'get' | 'post' | 'put' | 'del' | 'patch' | 'head', payload: RequestOpts, ctx?: LogContext): Promise<RequestResponse> {
     const finalPayload = {
       timeout: 1000 * 120,
       ...payload,
     };
 
-    this.logRequest(payload);
+    this.logRequest(payload, ctx);
     const response: RequestResponse = await this.client[method](finalPayload);
-    this.logResponse(response);
+    this.logResponse(response, ctx);
     return response;
   }
 
-  private logRequest(request: RequestOpts) {
+  private logRequest(request: RequestOpts, ctx?: LogContext) {
     const url = request.url;
-    eaveLogger.debug({ message: `[connect client] Request: ${url}`, request });
+    eaveLogger.debug(`[connect client] Request: ${url}`, ctx);
   }
 
-  private logResponse(response: RequestResponse) {
+  private logResponse(response: RequestResponse, ctx?: LogContext) {
     const url = response.request.uri.href;
 
     if (response.statusCode < 400) {
-      eaveLogger.info({
-        message: `[connect client] Response: ${url}`,
-        statusCode: response.statusCode,
-        requestUri: response.request.uri.href,
-      });
+      eaveLogger.info(
+        `[connect client] Response: ${url}`,
+        {
+          statusCode: response.statusCode,
+          requestUri: response.request.uri.href,
+        },
+        ctx,
+      );
     } else {
       const { errors: validationErrors, errorMessages } = response.body || {};
       const errors = { validationErrors, errorMessages };
       const messages = JSON.stringify(errors);
 
-      eaveLogger.warn({
-        message: `[connect client] API error: ${url} (${response.statusCode}) ${messages}`,
-        statusCode: response.statusCode,
-        requestUri: response.request.uri.href,
-        errors,
-      });
+      eaveLogger.warning(
+        `[connect client] API error: ${url} (${response.statusCode}) ${messages}`,
+        {
+          statusCode: response.statusCode,
+          requestUri: response.request.uri.href,
+          errors,
+        },
+        ctx,
+      );
     }
 
-    eaveLogger.debug({ message: '[connect client] response body', body: response.body });
+    eaveLogger.debug(
+      '[connect client] response body',
+      { body: response.body },
+      ctx,
+    );
   }
 }

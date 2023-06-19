@@ -30,7 +30,7 @@ export function filterSupportedLinks(urls: Array<string>): Array<Pair<string, Li
  * If an error is encountered while attempting to access the info at a link, the value at
  * the position of the link in the returned list is None.
  */
-export async function mapUrlContent({ origin, teamId, urls }: RequestArgsOriginAndTeamId & { urls: Array<Pair<string, LinkType>> }): Promise<Array<string | null>> {
+export async function mapUrlContent({ origin, teamId, urls, ctx }: RequestArgsOriginAndTeamId & { urls: Array<Pair<string, LinkType>> }): Promise<Array<string | null>> {
   const contentResponses = await Promise.all(urls.map(async (linkContext: Pair<string, LinkType>) => {
     const { first: url, second: type } = linkContext;
 
@@ -44,7 +44,7 @@ export async function mapUrlContent({ origin, teamId, urls }: RequestArgsOriginA
         return contentResponse.content;
       }
       default:
-        eaveLogger.warn({ message: `unsupported link type: ${type}` });
+        eaveLogger.warning(`unsupported link type: ${type}`, ctx);
         return null;
     }
   }));
@@ -58,12 +58,12 @@ export async function mapUrlContent({ origin, teamId, urls }: RequestArgsOriginA
  * @param eaveTeamId -- TeamOrm ID to create the subscription for
  * @param urls -- links paired with their platform type [(url, url platform)]
  */
-export async function subscribeToFileChanges({ origin, teamId, urls }: RequestArgsOriginAndTeamId & { urls: Array<Pair<string, LinkType>> }): Promise<Array<Subscription>> {
+export async function subscribeToFileChanges({ origin, teamId, urls, ctx }: RequestArgsOriginAndTeamId & { urls: Array<Pair<string, LinkType>> }): Promise<Array<Subscription>> {
   // string key is a LinkType case, but ts won't let me define it that way
   const subscriptions: Array<Subscription> = [];
   urls.forEach(async (linkContext) => {
     const { first: url, second: linkType } = linkContext;
-    const maybeSubscription = await createSubscription({ origin, teamId, url, linkType });
+    const maybeSubscription = await createSubscription({ origin, teamId, url, linkType, ctx });
 
     if (maybeSubscription !== null) {
       subscriptions.push(maybeSubscription);
@@ -105,7 +105,7 @@ function getLinkType(link: string): LinkType | null {
  * @param linkType -- resource platform to subscribe on
  * @param eaveTeamId -- ID of team to associate subscription with
  */
-async function createSubscription({ origin, teamId, url, linkType }: RequestArgsOriginAndTeamId & { url: string, linkType: LinkType }): Promise<Subscription | null> {
+async function createSubscription({ origin, teamId, url, linkType, ctx }: RequestArgsOriginAndTeamId & { url: string, linkType: LinkType }): Promise<Subscription | null> {
   switch (linkType) {
     case LinkType.github: {
       const subscriptionResponse = await githubClient.createSubscription({ origin,
@@ -116,7 +116,7 @@ async function createSubscription({ origin, teamId, url, linkType }: RequestArgs
       return subscriptionResponse.subscription;
     }
     default:
-      eaveLogger.warn({ message: `unsupported link type: ${linkType}` });
+      eaveLogger.warning(`unsupported link type: ${linkType}`, ctx);
       return null;
   }
 }

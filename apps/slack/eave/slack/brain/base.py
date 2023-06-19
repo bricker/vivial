@@ -52,9 +52,9 @@ class Base:
                 "message_user_id": self.message.user,
                 "message_team": self.message.team,
                 "message_channel": self.message.channel,
-                "eave_ctx": self.eave_ctx,
                 **opaque_params,
             },
+            ctx=self.eave_ctx,
         )
 
     @property
