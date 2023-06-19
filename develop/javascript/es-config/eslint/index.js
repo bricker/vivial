@@ -27,13 +27,13 @@ const config = {
       message: 'If you intend to iterate over an array, use for...of',
     }],
     camelcase: 'off', // Our API request bodies use snake case
-    'no-param-reassign': 'warn', // This rule is weird, sometimes it's good and sometimes it's bad.
-    'import/prefer-default-export': 'off', // I refuse to refactor code when I want to add a second export
-    'class-methods-use-this': 'off', // I refuse to refactor code if I remove references to `this` in a function
-    'max-classes-per-file': 'off', // I refuse to refactor code to make a file shorter
-    'max-len': 'off', // I refuse to refactor code to make a line shorter
+    'no-param-reassign': 'off', // I understand that this may indicate a bug, but it is so common that it makes sense to completely disable it.
+    'import/prefer-default-export': 'off', // Preference
+    'class-methods-use-this': 'off', // Preference
+    'max-classes-per-file': 'off', // Preference
+    'max-len': 'off', // Preference
     'no-else-return': 'off', // else after return can be good for readability
-    'no-useless-return': 'off', // useless returns are good for readability and don't cause bugs
+    'no-useless-return': 'off', // useless returns are good for readability and don't necessarily indicate bugs
     'no-continue': 'off', // continues are a valid and useful language feature
     'no-await-in-loop': 'off', // awaiting in a loop is a valid and useful language feature
     'no-console': 'off', // Appengine reads stdout and stderr for app logs
