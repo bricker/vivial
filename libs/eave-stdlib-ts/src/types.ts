@@ -2,7 +2,8 @@ export type JsonScalar =
   string |
   number |
   boolean |
-  null;
+  null |
+  undefined;
 
 export type JsonValue =
   JsonScalar |
