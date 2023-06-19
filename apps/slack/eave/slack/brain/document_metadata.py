@@ -40,15 +40,40 @@ async def get_topic(conversation: str) -> str:
 
 
 async def get_hierarchy(conversation: str) -> list[str]:
+    # prompt = eave_openai.formatprompt(
+    #     f"""
+    #     Create up to two cascading parent folder names for this conversation, from least specific to most specific. These folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
+
+    #     Examples:
+    #     - The parent folders for a conversation about Python might be: Engineering, Python.
+    #     - The parent folders for a conversation about a new project for the Marketing team might be: Marketing, Projects
+
+    #     Give the answer as a comma-separated list of category names, sorted from least specific to most specific.
+
+    #     {CONVO_STRUCTURE}
+
+    #     Conversation:
+    #     ###
+    #     {conversation}
+    #     ###
+    #     """
+    # )
     prompt = eave_openai.formatprompt(
         f"""
-        Create up to two cascading parent folder names for this conversation, from least specific to most specific. These folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
+        Create a parent folder name for this conversation. This folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
 
-        Examples:
-        - The parent folders for a conversation about Python might be: Engineering, Python.
-        - The parent folders for a conversation about a new project for the Marketing team might be: Marketing, Projects
+        Examples of potential parent folder names for a conversation topic:
+        - Conversation Topic: Python programming; Possible Parent Folder: "Engineering"
+        - Conversation Topic: bugs or features for a beta version of a product; Possible Parent Folder: "Beta".
+        - Conversation Topic: new product features; Possible Parent Folder: "Product Development" or "Product One-Pagers".
+        - Conversation Topic: growth KPIs for a product; Possible Parent Folder: "Analytics" or "Growth".
+        - Conversation Topic: go to market strategy; Possible Parent Folder: "Business" or "Go to Market".
+        - Conversation Topic: designs for the marketing website; Possible Parent Folder: "Design" or "Marketing Website".
+        - Conversation Topic: onboarding experience for new users; Possible Parent Folder: "Product Development" or "Onboarding".
+        - Conversation Topic: onboarding team members; Possible Parent Folder: "Employee Resources" or "Team Onboarding".
+        - Conversation Topic: how to expense travel; Possible Parent Folder: "Employee Resources" or "Expenses".
 
-        Give the answer as a comma-separated list of category names, sorted from least specific to most specific.
+        Respond with only the Parent Folder name and nothing else.
 
         {CONVO_STRUCTURE}
 

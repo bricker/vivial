@@ -4,7 +4,6 @@ import crc32c from 'fast-crc32c';
 import { sharedConfig } from './config.js';
 import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
 import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
-import eaveLogger from './logging.js';
 
 const { RSA_PKCS1_PADDING } = cryptoConstants;
 
@@ -67,166 +66,180 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
   },
 };
 
-export function getKey(signer: string): SigningKeyDetails {
-  const keyDetails = SIGNING_KEYS[signer];
-  if (keyDetails === undefined) {
-    throw Error(`No signing key details found for ${signer}`);
-  }
-  return keyDetails;
-}
-
-// FIXME: This is a hack because the key versions are different between dev and prod.
-function getVersion(key: SigningKeyDetails): string {
-  let { version } = key;
-  if (key.id === 'eave-github-app-signing-key-01') {
-    version = sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1';
-  }
-  return version;
-}
-
-/**
- * Signs the data with GCP KMS and returns base64-encoded signature.
- * Throws InvalidChecksumError if any data is missing from the signing result.
- *
- * @param signingKey key to sign the data payload with
- * @param data payload to sign using the `signingKey`
- */
-export async function signBase64(
-  signingKey: SigningKeyDetails,
-  data: string | Buffer,
-): Promise<string> {
-  eaveLogger.debug({ message: 'signBase64', data });
-  const kmsClient = new KeyManagementServiceClient();
-  const keyVersionName = kmsClient.cryptoKeyVersionPath(
-    sharedConfig.googleCloudProject,
-    KMS_KEYRING_LOCATION,
-    KMS_KEYRING_NAME,
-    signingKey.id,
-    getVersion(signingKey),
-  );
-
-  let messageBytes: Buffer;
-  if (typeof data === 'string') {
-    // this byte encoding must match the python `bytes` type in order
-    // to not break signing validation in the python core_api middleware
-    messageBytes = Buffer.from(data, 'utf8');
-  } else {
-    messageBytes = data;
+export default class Signing {
+  /**
+   * proxy constructor for easier stubbing in tests.
+   * */
+  static new(signer: string): Signing {
+    return new Signing(signer);
   }
 
-  const digest = createHash('sha256').update(messageBytes).digest();
-  const digestCrc32c = generateChecksum(digest);
+  signingKey: SigningKeyDetails;
 
-  const [signedResponse] = await kmsClient.asymmetricSign({
-    name: keyVersionName,
-    digest: { sha256: digest },
-    digestCrc32c: {
-      value: digestCrc32c.toString(10), // convert to base 10 just in case
-    },
-  });
+  signingKeyVersion: string;
 
-  if (!signedResponse.signature) {
-    throw new InvalidChecksumError('No signature from server');
+  constructor(signer: string) {
+    this.signingKey = this.getKey(signer);
+    this.signingKeyVersion = this.getVersion(this.signingKey);
   }
 
-  if (!signedResponse.signatureCrc32c?.value) {
-    throw new InvalidChecksumError('No signature checksum from server');
-  }
-
-  if (!signedResponse.verifiedDigestCrc32c) {
-    throw new InvalidChecksumError('Server could not verify client checksum');
-  }
-
-  if (signedResponse.name !== keyVersionName) {
-    throw new InvalidChecksumError('Name mismatch');
-  }
-
-  const crc32value = signedResponse.signatureCrc32c.value;
-  let crc32cint: number;
-  if (typeof crc32value === 'string') {
-    crc32cint = parseInt(crc32value, 10);
-  } else {
-    // crc32value can be a Long, which is covered by number
-    crc32cint = <number>crc32value;
-  }
-
-  validateChecksumOrException(
-    Buffer.from(signedResponse.signature),
-    crc32cint,
-  );
-
-  return Buffer.from(signedResponse.signature.valueOf()).toString('base64');
-}
-
-function generateChecksum(data: Buffer): number {
-  return crc32c.calculate(data);
-}
-
-function validateChecksumOrException(data: Buffer, checksum: number): void {
-  if (generateChecksum(data) !== checksum) {
-    throw new InvalidChecksumError('CRC32C checksums did not match');
-  }
-}
-
-export async function verifySignatureOrException(
-  signingKey: SigningKeyDetails,
-  message: string | Buffer,
-  signature: string | Buffer,
-): Promise<boolean> {
-  eaveLogger.debug({ message: 'verifySignatureOrException', sigMessage: message, signature });
-  let signatureString: string;
-  if (typeof signature === 'string') {
-    signatureString = signature;
-  } else {
-    // convert from buffer to b64 string
-    signatureString = Buffer.from(signature).toString('base64');
-  }
-  const kmsClient = new KeyManagementServiceClient();
-
-  const keyVersionName = kmsClient.cryptoKeyVersionPath(
-    sharedConfig.googleCloudProject,
-    KMS_KEYRING_LOCATION,
-    KMS_KEYRING_NAME,
-    signingKey.id,
-    getVersion(signingKey),
-  );
-
-  const [kmsPublicKey] = await kmsClient.getPublicKey({
-    name: keyVersionName,
-  });
-
-  if (!kmsPublicKey.pem) {
-    throw new InvalidSignatureError('KMS public key was unexpectedly null');
-  }
-
-  let isVerified = false;
-
-  switch (signingKey.algorithm) {
-    case SigningAlgorithm.RS256: {
-      const verify = createVerify('RSA-SHA256');
-      verify.update(message);
-      verify.end();
-      isVerified = verify.verify(
-        { key: kmsPublicKey.pem, padding: RSA_PKCS1_PADDING },
-        signatureString,
-        'base64',
-      );
-      break;
+  private getKey(signer: string): SigningKeyDetails {
+    const keyDetails = SIGNING_KEYS[signer];
+    if (keyDetails === undefined) {
+      throw Error(`No signing key details found for ${signer}`);
     }
-    case SigningAlgorithm.ES256: {
-      // Algorithm for our keys is EC_SIGN_P256_SHA256
-      const verify = createVerify('sha256');
-      verify.update(message);
-      verify.end();
-      isVerified = verify.verify(kmsPublicKey.pem, signatureString, 'base64');
-      break;
-    }
-    default:
-      throw new InvalidSignatureError(`Unsupported algorithm: ${signingKey.algorithm}`);
+    return keyDetails;
   }
 
-  if (!isVerified) {
-    throw new InvalidSignatureError('Signature failed verification');
+  // FIXME: This is a hack because the key versions are different between dev and prod.
+  private getVersion(key: SigningKeyDetails): string {
+    let { version } = key;
+    if (key.id === 'eave-github-app-signing-key-01') {
+      version = sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1';
+    }
+    return version;
   }
-  return isVerified;
+
+  /**
+   * Signs the data with GCP KMS and returns base64-encoded signature.
+   * Throws InvalidChecksumError if any data is missing from the signing result.
+   *
+   * @param signingKey key to sign the data payload with
+   * @param data payload to sign using the `signingKey`
+   */
+  async signBase64(
+    data: string | Buffer,
+  ): Promise<string> {
+    const kmsClient = new KeyManagementServiceClient();
+    const keyVersionName = kmsClient.cryptoKeyVersionPath(
+      sharedConfig.googleCloudProject,
+      KMS_KEYRING_LOCATION,
+      KMS_KEYRING_NAME,
+      this.signingKey.id,
+      this.signingKeyVersion,
+    );
+
+    let messageBytes: Buffer;
+    if (typeof data === 'string') {
+      // this byte encoding must match the python `bytes` type in order
+      // to not break signing validation in the python core_api middleware
+      messageBytes = Buffer.from(data, 'utf8');
+    } else {
+      messageBytes = data;
+    }
+
+    const digest = createHash('sha256').update(messageBytes).digest();
+    const digestCrc32c = this.generateChecksum(digest);
+
+    const [signedResponse] = await kmsClient.asymmetricSign({
+      name: keyVersionName,
+      digest: { sha256: digest },
+      digestCrc32c: {
+        value: digestCrc32c.toString(10), // convert to base 10 just in case
+      },
+    });
+
+    if (!signedResponse.signature) {
+      throw new InvalidChecksumError('No signature from server');
+    }
+
+    if (!signedResponse.signatureCrc32c?.value) {
+      throw new InvalidChecksumError('No signature checksum from server');
+    }
+
+    if (!signedResponse.verifiedDigestCrc32c) {
+      throw new InvalidChecksumError('Server could not verify client checksum');
+    }
+
+    if (signedResponse.name !== keyVersionName) {
+      throw new InvalidChecksumError('Name mismatch');
+    }
+
+    const crc32value = signedResponse.signatureCrc32c.value;
+    let crc32cint: number;
+    if (typeof crc32value === 'string') {
+      crc32cint = parseInt(crc32value, 10);
+    } else {
+      // crc32value can be a Long, which is covered by number
+      crc32cint = <number>crc32value;
+    }
+
+    this.validateChecksumOrException(
+      Buffer.from(signedResponse.signature),
+      crc32cint,
+    );
+
+    return Buffer.from(signedResponse.signature.valueOf()).toString('base64');
+  }
+
+  private generateChecksum(data: Buffer): number {
+    return crc32c.calculate(data);
+  }
+
+  private validateChecksumOrException(data: Buffer, checksum: number): void {
+    if (this.generateChecksum(data) !== checksum) {
+      throw new InvalidChecksumError('CRC32C checksums did not match');
+    }
+  }
+
+  async verifySignatureOrException(
+    message: string | Buffer,
+    signature: string | Buffer,
+  ): Promise<boolean> {
+    let signatureString: string;
+    if (typeof signature === 'string') {
+      signatureString = signature;
+    } else {
+      // convert from buffer to b64 string
+      signatureString = Buffer.from(signature).toString('base64');
+    }
+    const kmsClient = new KeyManagementServiceClient();
+
+    const keyVersionName = kmsClient.cryptoKeyVersionPath(
+      sharedConfig.googleCloudProject,
+      KMS_KEYRING_LOCATION,
+      KMS_KEYRING_NAME,
+      this.signingKey.id,
+      this.signingKeyVersion,
+    );
+
+    const [kmsPublicKey] = await kmsClient.getPublicKey({
+      name: keyVersionName,
+    });
+
+    if (!kmsPublicKey.pem) {
+      throw new InvalidSignatureError('KMS public key was unexpectedly null');
+    }
+
+    let isVerified = false;
+
+    switch (this.signingKey.algorithm) {
+      case SigningAlgorithm.RS256: {
+        const verify = createVerify('RSA-SHA256');
+        verify.update(message);
+        verify.end();
+        isVerified = verify.verify(
+          { key: kmsPublicKey.pem, padding: RSA_PKCS1_PADDING },
+          signatureString,
+          'base64',
+        );
+        break;
+      }
+      case SigningAlgorithm.ES256: {
+        // Algorithm for our keys is EC_SIGN_P256_SHA256
+        const verify = createVerify('sha256');
+        verify.update(message);
+        verify.end();
+        isVerified = verify.verify(kmsPublicKey.pem, signatureString, 'base64');
+        break;
+      }
+      default:
+        throw new InvalidSignatureError(`Unsupported algorithm: ${this.signingKey.algorithm}`);
+    }
+
+    if (!isVerified) {
+      throw new InvalidSignatureError('Signature failed verification');
+    }
+    return isVerified;
+  }
 }

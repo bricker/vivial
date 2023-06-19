@@ -1,23 +1,27 @@
 import { v4 as uuidv4 } from 'uuid';
-import { RequestResponse } from 'request';
 import { Request, Response } from 'express';
-import { AddOn, HostClient } from 'atlassian-connect-express';
-import { CreateContentRequestBody, CreateContentResponseBody, SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
+import { CreateContentRequestBody, CreateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
+import { ConfluencePage, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
-import { getAuthedConnectClient } from './util.js';
-import { createPage, getPageByTitle, getPageChildren, getSpaceByKey, getSpaceRootPages } from '../confluence-client.js';
+import { EaveRequestState, getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import ConfluenceClient from '../confluence-client.js';
 
-export default async function createContent(req: Request, res: Response, addon: AddOn) {
-  const client = await getAuthedConnectClient(req, addon);
+export default async function createContent({ req, res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
   const { document, confluence_destination } = <CreateContentRequestBody>req.body;
+  const eaveState = await getEaveState(res);
 
   // Get the space
-  const space = await getSpaceByKey({ client, spaceKey: confluence_destination.space_key });
+  const space = await confluenceClient.getSpaceByKey({ spaceKey: confluence_destination.space_key });
   if (space === null) {
-    eaveLogger.warning({ message: `Space not found for key ${confluence_destination.space_key}`, body: req.body });
-    res.status(400);
+    eaveLogger.warn({ message: `Space not found for key ${confluence_destination.space_key}`, eaveState });
+    res.sendStatus(400);
+    return;
+  }
+
+  if (!space.homepage) {
+    eaveLogger.warn({ message: `Homepage not found for space ${confluence_destination.space_key}`, eaveState });
+    res.sendStatus(400);
     return;
   }
 
@@ -26,18 +30,18 @@ export default async function createContent(req: Request, res: Response, addon: 
   if (document.parent === undefined) {
     // Get a unique name for the document.
     const resolvedDocumentTitle = await resolveTitleConflict({
-      client,
+      confluenceClient,
       title: document.title,
       space,
+      eaveState,
     });
 
-    const page = await createPage({
-      client,
+    const page = await confluenceClient.createPage({
       space,
       body: document.content,
       title: resolvedDocumentTitle,
     });
-    res.send(page);
+    res.json(page);
     return;
   }
 
@@ -53,7 +57,7 @@ export default async function createContent(req: Request, res: Response, addon: 
   // Get the pages at the root of the space.
   let currentDir: ConfluencePage | undefined; // undefined is root
   let currentDirId: string | undefined; // We have to track this separately because of hoisting, I think
-  let currentDirContent = await getSpaceRootPages({ client, space });
+  let currentDirContent = await confluenceClient.getPageChildren({ pageId: space.homepage?.id });
 
   // Figure out where the document goes in the Space hierarchy.
   // For each level in the given hierarchy, check if a page (i.e. folder, same thing) already exists with the given name.
@@ -76,12 +80,12 @@ export default async function createContent(req: Request, res: Response, addon: 
       // 1. If yes, use another, unique name
       // resolveTitleConflict does all of these things and returns the title to use (which may be the given title)
       const resolvedFolderTitle = await resolveTitleConflict({
-        client,
+        confluenceClient,
         title: dir.title,
         space,
+        eaveState,
       });
-      const newFolderAtThisLevel = await createPage({
-        client,
+      const newFolderAtThisLevel = await confluenceClient.createPage({
         space,
         title: resolvedFolderTitle,
         body: '', // A "folder" is just an empty page.
@@ -97,7 +101,7 @@ export default async function createContent(req: Request, res: Response, addon: 
 
     if (currentDir) {
       // TODO: What happens if currentDir is null?
-      currentDirContent = await getPageChildren({ client, pageId: String(currentDir.id) });
+      currentDirContent = await confluenceClient.getPageChildren({ pageId: String(currentDir.id) });
     }
   }
 
@@ -111,13 +115,13 @@ export default async function createContent(req: Request, res: Response, addon: 
   // since the hierarchy traversal algorithm above can take a long time to perform.
   // TODO: The race condition still exists; this operation should handle an API error when the page title already exists, and try again with a new title.
   const resolvedDocumentTitle = await resolveTitleConflict({
-    client,
+    confluenceClient,
     title: document.title,
     space,
+    eaveState,
   });
 
-  const newDocument = await createPage({
-    client,
+  const newDocument = await confluenceClient.createPage({
     space,
     title: resolvedDocumentTitle,
     body: document.content,
@@ -130,16 +134,17 @@ export default async function createContent(req: Request, res: Response, addon: 
   res.json(responseBody);
 }
 
-async function resolveTitleConflict({ client, title, space }: { client: HostClient, title: string, space: ConfluenceSpace }): Promise<string> {
+async function resolveTitleConflict({ confluenceClient, title, space, eaveState }: { confluenceClient: ConfluenceClient, title: string, space: ConfluenceSpace, eaveState: EaveRequestState }): Promise<string> {
   // TODO: This can be done "passively", i.e. handle an API response error and then run this function to get a unique title.
   let resolvedTitle = title;
   const limit = 20;
   let n = 0;
 
-  let page = await getPageByTitle({ client, title: resolvedTitle, space });
+  let page = await confluenceClient.getPageByTitle({ title: resolvedTitle, space });
 
   while (page) {
     if (n > limit) {
+      eaveLogger.warn({ message: 'title conflict failsafe condition reached', eaveState });
       // failsafe to avoid forever loop. I don't know why this would happen, but it would be a big problem if it did.
       const giveup = uuidv4();
       resolvedTitle = `${title} (${giveup})`;
@@ -147,7 +152,7 @@ async function resolveTitleConflict({ client, title, space }: { client: HostClie
     } else {
       n += 1;
       resolvedTitle = `${title} (${n})`;
-      page = await getPageByTitle({ client, title: resolvedTitle, space });
+      page = await confluenceClient.getPageByTitle({ title: resolvedTitle, space });
     }
   }
 

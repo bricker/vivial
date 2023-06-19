@@ -1,25 +1,24 @@
 import { Request, Response } from 'express';
-import { AddOn } from 'atlassian-connect-express';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import { getAuthedConnectClient } from './util.js';
-import { getPageById, updatePage } from '../confluence-client.js';
+import OpenAIClient, * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import ConfluenceClient from '../confluence-client.js';
 
-export default async function updateContent(req: Request, res: Response, addon: AddOn) {
-  const client = await getAuthedConnectClient(req, addon);
+export default async function updateContent({ req, res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
+  const eaveState = getEaveState(res);
   const { content } = <UpdateContentRequestBody>req.body;
-  const page = await getPageById({ client, pageId: content.id });
+  const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {
-    eaveLogger.error(`Confluence page not found for ID ${content.id}`);
-    res.status(500);
+    eaveLogger.error({ message: `Confluence page not found for ID ${content.id}`, eaveState });
+    res.sendStatus(500);
     return;
   }
 
   const existingBody = page.body?.storage?.value;
-  if (existingBody === null) {
-    eaveLogger.error(`Confluence page body is empty for ID ${content.id}`);
-    res.status(500); // TODO: is 500 appropriate here?
+  if (!existingBody) {
+    eaveLogger.error({ message: `Confluence page body is empty for ID ${content.id}`, eaveState });
+    res.sendStatus(500); // TODO: is 500 appropriate here?
     return;
   }
 
@@ -27,7 +26,8 @@ export default async function updateContent(req: Request, res: Response, addon: 
     'Merge the two HTML documents so that the unique information is retained, but duplicate information is removed.',
     'The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>',
     'Maintain the overall document layout and style from the first document.',
-    'Return only the merged document.\n',
+    'Respond with only the merged document.',
+    "If you can't perform this task because of insuffient information or any other reason, respond with the word \"UNABLE\" and nothing else.\n",
     '=========================',
     'First Document:',
     '=========================',
@@ -42,16 +42,24 @@ export default async function updateContent(req: Request, res: Response, addon: 
   ].join('\n');
 
   // TODO: Token counting
-  const openaiResponse = await openai.createChatCompletion({
+  const openaiClient = await OpenAIClient.getAuthedClient();
+  const openaiResponse = await openaiClient.createChatCompletion({
     messages: [
       { role: 'user', content: prompt },
     ],
     model: openai.OpenAIModel.GPT4,
-  });
+  }, eaveState);
 
-  eaveLogger.debug({ message: 'OpenAI response', openaiResponse });
+  let newBody: string;
 
-  const response = await updatePage({ client, page, body: openaiResponse });
+  if (openaiResponse.match(/UNABLE/i)) {
+    eaveLogger.warn({ message: 'openai was unable to merge the documents. The new content will be used.', eaveState });
+    newBody = content.body;
+  } else {
+    newBody = openaiResponse;
+  }
+
+  const response = await confluenceClient.updatePage({ page, body: newBody });
   const responseBody: UpdateContentResponseBody = {
     content: response,
   };

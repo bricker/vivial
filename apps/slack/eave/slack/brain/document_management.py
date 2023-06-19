@@ -23,9 +23,10 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         existing_subscription_response = await self.get_subscription()
 
         if existing_subscription_response.subscription is None:
-            await self.send_response(
-                text="On it!", eave_message_purpose="confirmation that documentation is being worked on"
-            )
+            if self.execution_count == 0:
+                await self.send_response(
+                    text="On it!", eave_message_purpose="confirmation that documentation is being worked on"
+                )
             subscription_response = await self.create_subscription()
             self.subscriptions.append(subscription_response.subscription)
             await self.create_documentation()
@@ -86,7 +87,9 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
         current = api_document
-        for category in document_hierarchy:
+        # The hierarchy comes sorted from least specific to most specific, so we reverse it because we're applying the
+        # parent pages from the inside out.
+        for category in reversed(document_hierarchy):
             p = eave.stdlib.core_api.models.documents.DocumentInput(
                 title=category,
                 content="",
@@ -137,9 +140,11 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         return resources_doc
 
     async def search_documentation(self) -> None:
-        await self.send_response(
-            text="On it!", eave_message_purpose="confirmation that documentation is being searched"
-        )
+        if self.execution_count == 0:
+            await self.send_response(
+                text="On it!", eave_message_purpose="confirmation that documentation is being searched"
+            )
+
         search_results = await self.search_documents()
 
         eaveLogger.debug(
@@ -204,6 +209,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 return
 
             await documents.DeleteDocument.perform(
+                ctx=self.eave_ctx,
                 origin=app_config.eave_origin,
                 team_id=self.eave_team.id,
                 input=documents.DeleteDocument.RequestBody(
@@ -217,6 +223,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         self, document: eave.stdlib.core_api.models.documents.DocumentInput
     ) -> documents.UpsertDocument.ResponseBody:
         response = await documents.UpsertDocument.perform(
+            ctx=self.eave_ctx,
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=documents.UpsertDocument.RequestBody(
@@ -266,6 +273,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             raise OpenAIDataError()
 
         response = await documents.SearchDocuments.perform(
+            ctx=self.eave_ctx,
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=documents.SearchDocuments.RequestBody(query=answer),

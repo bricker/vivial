@@ -1,6 +1,8 @@
+from typing import Optional
 import uuid
 
 from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.logging import LogContext
 from . import operations
 from .. import requests
 from ..config import shared_config
@@ -10,6 +12,7 @@ async def get_file_content(
     origin: EaveOrigin,
     eave_team_id: uuid.UUID,
     input: operations.GetGithubUrlContent.RequestBody,
+    ctx: Optional[LogContext] = None,
 ) -> operations.GetGithubUrlContent.ResponseBody:
     """
     POST /github/api/content
@@ -19,6 +22,7 @@ async def get_file_content(
         origin=origin,
         input=input,
         team_id=eave_team_id,
+        ctx=ctx,
     )
 
     response_json = await response.json()
@@ -29,6 +33,7 @@ async def create_subscription(
     origin: EaveOrigin,
     eave_team_id: uuid.UUID,
     input: operations.CreateGithubResourceSubscription.RequestBody,
+    ctx: Optional[LogContext] = None,
 ) -> operations.CreateGithubResourceSubscription.ResponseBody:
     """
     POST /github/api/subscribe
@@ -38,6 +43,7 @@ async def create_subscription(
         origin=origin,
         input=input,
         team_id=eave_team_id,
+        ctx=ctx,
     )
 
     response_json = await response.json()

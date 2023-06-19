@@ -6,7 +6,7 @@ import eaveHeaders from '../headers.js';
 /**
  * Makes sure the eaveState is set on `req.extensions.SCOPE` for signature verification.
  */
-export function requestIntegrity(req: Request, res: Response, next: NextFunction): void {
+export function requestIntegrityMiddleware(req: Request, res: Response, next: NextFunction): void {
   const eaveState: EaveRequestState = {};
 
   const reqIdHeaderValue = req.header(eaveHeaders.EAVE_REQUEST_ID_HEADER);

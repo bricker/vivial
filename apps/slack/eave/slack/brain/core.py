@@ -30,7 +30,9 @@ class Brain(IntentProcessingMixin):
             self.log_event(
                 event_name="eave_mentioned",
                 event_description="Eave was mentioned somewhere",
-                opaque_params={},
+                opaque_params={
+                    "action": self.message_action,
+                },
             )
 
         else:
@@ -45,6 +47,14 @@ class Brain(IntentProcessingMixin):
                 return
 
             self.message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
+
+        self.log_event(
+            event_name="slack_eave_action",
+            event_description="Eave is taking an action based on a Slack message",
+            opaque_params={
+                "action": self.message_action,
+            },
+        )
 
         await self.handle_action(message_action=self.message_action)
 

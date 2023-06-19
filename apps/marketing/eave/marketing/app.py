@@ -48,6 +48,8 @@ def _render_spa(**kwargs: Any) -> str:
 @app.route("/authcheck", methods=["GET"])
 async def get_auth_state() -> Response:
     auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+
+    response_body: JsonObject
     if not auth_cookies.access_token or not auth_cookies.account_id:
         response_body = {"authenticated": False}
     else:

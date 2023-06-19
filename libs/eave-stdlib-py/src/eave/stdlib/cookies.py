@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal, Mapping, Protocol
 
+from eave.stdlib.typing import JsonObject
+
 from .config import shared_config
 
 EAVE_COOKIE_PREFIX_UTM = "ev_utm_"
@@ -37,13 +39,13 @@ class ResponseCookieMutator(Protocol):
 
 @dataclass
 class TrackingCookies:
-    utm_params: typing.Optional[typing.Dict[str, str]]
+    utm_params: typing.Optional[JsonObject]
     visitor_id: typing.Optional[uuid.UUID]
 
 
 def get_tracking_cookies(cookies: Mapping[str, str]) -> TrackingCookies:
     visitor_id = cookies.get(EAVE_VISITOR_ID_COOKIE)
-    utm_params: typing.Dict[str, str] = {}
+    utm_params: JsonObject = {}
 
     for key, value in cookies.items():
         if re.match(EAVE_COOKIE_PREFIX_UTM, key):

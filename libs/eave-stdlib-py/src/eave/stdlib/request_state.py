@@ -1,4 +1,3 @@
-import logging
 from typing import Optional, cast
 
 import starlette.applications
@@ -6,7 +5,7 @@ import starlette.requests
 from asgiref.typing import HTTPScope
 
 from .util import xor
-from .logging import LogContext, eaveLogger
+from .logging import LogContext
 from .typing import JsonObject
 
 SCOPE_KEY = "eave_state"
@@ -42,9 +41,6 @@ class EaveRequestState:
             "request_headers": self.request_headers,
         }
 
-        if eaveLogger.level == logging.DEBUG:
-            payload["request_body"] = self.parsed_request_body
-
         return LogContext().set(payload)
 
     @property
@@ -55,7 +51,7 @@ class EaveRequestState:
         internal information.
         """
 
-        payload = {
+        payload: JsonObject = {
             "request_id": str(self.request_id),
         }
         return payload

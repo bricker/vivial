@@ -4,7 +4,6 @@
     "npm": "9"
   },
   "devDependencies": {
-    "@eave-fyi/es-config": "file:./es-config",
     "eslint": "8.x",
     "eslint-config-airbnb-base": "15.x",
     "eslint-plugin-import": "2.x"

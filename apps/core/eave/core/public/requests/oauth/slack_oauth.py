@@ -11,10 +11,11 @@ import eave.core.internal.orm
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.integrations import Integration
+from eave.core.internal.config import app_config
 from eave.stdlib.logging import eaveLogger
 
 from ...http_endpoint import HTTPEndpoint
-from . import base, shared
+from . import EaveOnboardingErrorCode, base, shared
 
 _AUTH_PROVIDER = AuthProvider.slack
 
@@ -39,10 +40,15 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
     async def get(self, request: Request) -> Response:
         await super().get(request=request)
 
+        # The self.code check here is mostly for the typechecker, as the _check_invalid_callback function also checks the value
+        if not self.code or not self._check_valid_callback():
+            return self.response
+
         self.slack_oauth_data = slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token_or_exception(
             code=self.code
         )
         slack_team_name = slack_oauth_data["team"]["name"]
+        slack_team_id = self.slack_oauth_data["team"]["id"]
         slack_user_id = slack_oauth_data["authed_user"]["id"]
         slack_user_access_token = slack_oauth_data["authed_user"]["access_token"]
         slack_user_refresh_token = slack_oauth_data["authed_user"]["refresh_token"]
@@ -72,6 +78,11 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         )
 
         await self._update_or_create_slack_installation()
+
+        slack_redirect_location = (
+            f"https://slack.com/app_redirect?app={app_config.eave_slack_app_id}&team={slack_team_id}"
+        )
+        shared.set_redirect(response=self.response, location=slack_redirect_location)
 
         return self.response
 
@@ -103,13 +114,14 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     f"A Slack integration already exists with slack team id {slack_team_id}",
                     extra=log_context,
                 )
+                eave.stdlib.analytics.log_event(
+                    event_name="duplicate_integration_attempt",
+                    eave_account_id=self.eave_account.id,
+                    eave_team_id=self.eave_account.team_id,
+                    opaque_params={"integration": Integration.slack},
+                )
 
-                # TODO: Probably don't want to change the account's team like this, it feels like it could cause problems.
-                # The reason we're doing this is because otherwise, connecting a Slack team silently fails if the Slack
-                # team was already connected. Eventually we could perhaps display an error to the customer, but we don't
-                # current have that.
-                db_session.add(self.eave_account)
-                self.eave_account.team_id = self.slack_installation.team_id
+                shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 return
 
             if self.slack_installation:
@@ -134,13 +146,6 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 )
 
                 await self._run_post_install_procedures(log_context=log_context)
-
-                # shared.set_redirect(response=self.response, location=(
-                #     f"slack://app"
-                #     f"?team={slack_team_id}"
-                #     f"&id={app_config.eave_slack_app_id}"
-                #     "&tab=messages"
-                # ))
 
     async def _run_post_install_procedures(
         self,

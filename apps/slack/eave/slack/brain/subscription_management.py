@@ -8,6 +8,7 @@ from ..config import app_config
 class SubscriptionManagementMixin(CommunicationMixin):
     async def get_subscription(self) -> eave_subscriptions.GetSubscriptionRequest.ResponseBody:
         subscription = await eave_subscriptions.GetSubscriptionRequest.perform(
+            ctx=self.eave_ctx,
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.GetSubscriptionRequest.RequestBody(
@@ -23,6 +24,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
         Gets and returns the subscription if it already exists, otherwise creates and returns a new subscription.
         """
         subscription = await eave_subscriptions.CreateSubscriptionRequest.perform(
+            ctx=self.eave_ctx,
             origin=app_config.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.CreateSubscriptionRequest.RequestBody(

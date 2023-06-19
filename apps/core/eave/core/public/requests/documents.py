@@ -28,14 +28,14 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
         input = UpsertDocumentOp.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            team = await TeamOrm.one_or_exception(
+            eave_team = await TeamOrm.one_or_exception(
                 session=db_session,
                 team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id),
             )
             # get all subscriptions we wish to associate the new document with
             subscriptions = [
                 await SubscriptionOrm.one_or_exception(
-                    team_id=team.id,
+                    team_id=eave_team.id,
                     source=subscription.source,
                     session=db_session,
                 )
@@ -46,7 +46,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             if len(subscriptions) < 1:
                 raise UnexpectedMissingValue("Expected to have at least 1 subscription input")
 
-            destination = await team.get_document_client(session=db_session)
+            destination = await eave_team.get_document_client(session=db_session)
             if destination is None:
                 # TODO: Error message: "You have not setup a document destination"
                 raise UnexpectedMissingValue("document destination")
@@ -55,15 +55,17 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             existing_document_reference = await subscriptions[0].get_document_reference(session=db_session)
 
             if existing_document_reference is None:
-                document_metadata = await destination.create_document(input=input.document)
+                document_metadata = await destination.create_document(input=input.document, ctx=eave_state.log_context)
 
                 eave.stdlib.analytics.log_event(
                     event_name="eave_created_documentation",
                     event_description="Eave created some documentation",
                     event_source="core api",
-                    eave_team_id=team.id,
+                    eave_team_id=str(eave_team.id),
                     opaque_params={
-                        "destination_platform": team.document_platform.value if team.document_platform else None,
+                        "destination_platform": eave_team.document_platform.value
+                        if eave_team.document_platform
+                        else None,
                         "subscription_sources": [
                             {
                                 "platform": subscription.source.platform.value,
@@ -77,7 +79,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
 
                 document_reference = await eave.core.internal.orm.DocumentReferenceOrm.create(
                     session=db_session,
-                    team_id=team.id,
+                    team_id=eave_team.id,
                     document_id=document_metadata.id,
                     document_url=document_metadata.url,
                 )
@@ -85,15 +87,18 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 await destination.update_document(
                     input=input.document,
                     document_id=existing_document_reference.document_id,
+                    ctx=eave_state.log_context,
                 )
 
                 eave.stdlib.analytics.log_event(
                     event_name="eave_updated_documentation",
                     event_description="Eave updated some existing documentation",
                     event_source="core api",
-                    eave_team_id=team.id,
+                    eave_team_id=eave_team.id,
                     opaque_params={
-                        "destination_platform": team.document_platform.value if team.document_platform else None,
+                        "destination_platform": eave_team.document_platform.value
+                        if eave_team.document_platform
+                        else None,
                         "subscription_sources": [
                             {
                                 "platform": subscription.source.platform.value,
@@ -103,6 +108,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                             for subscription in input.subscriptions
                         ],
                     },
+                    ctx=eave_state.log_context,
                 )
 
                 document_reference = existing_document_reference
@@ -113,7 +119,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     subscription.document_reference_id = document_reference.id
 
         model = UpsertDocumentOp.ResponseBody(
-            team=team.api_model,
+            team=eave_team.api_model,
             subscriptions=[subscription.api_model for subscription in subscriptions],
             document_reference=document_reference.api_model,
         )
@@ -136,7 +142,20 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
             if destination is None:
                 raise UnexpectedMissingValue("document destination")
 
-        search_results = await destination.search_documents(query=input.query)
+        search_results = await destination.search_documents(query=input.query, ctx=eave_state.log_context)
+
+        eave.stdlib.analytics.log_event(
+            event_name="eave_searched_documentation",
+            event_description="Eave searched for documentation",
+            event_source="core api",
+            eave_team_id=eave_team.id,
+            opaque_params={
+                "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
+                "search_query": input.query,
+            },
+            ctx=eave_state.log_context,
+        )
+
         model = SearchDocumentsOp.ResponseBody(
             team=eave_team.api_model,
             documents=search_results,
@@ -165,7 +184,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 team_id=eave_team.id,
                 id=input.document_reference.id,
             )
-            await destination.delete_document(document_id=document_reference.document_id)
+            await destination.delete_document(document_id=document_reference.document_id, ctx=eave_state.log_context)
 
             subscriptions = await eave.core.internal.orm.SubscriptionOrm.query(
                 session=db_session,
@@ -177,5 +196,17 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 await db_session.delete(subscription)
             await db_session.flush()
             await db_session.delete(document_reference)
+
+        eave.stdlib.analytics.log_event(
+            event_name="eave_delete_documentation",
+            event_description="Eave deleted for documentation",
+            event_source="core api",
+            eave_team_id=eave_team.id,
+            opaque_params={
+                "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
+                "document_id": str(document_reference.id),
+            },
+            ctx=eave_state.log_context,
+        )
 
         return Response(status_code=http.HTTPStatus.OK)

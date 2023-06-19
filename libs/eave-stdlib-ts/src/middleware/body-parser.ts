@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveLogger from '../logging.js';
 
 /*
 Simple JSON body parser. Similar to body-parser's json parser, but different in two ways:
@@ -18,7 +17,6 @@ export function bodyParser(req: Request, res: Response, next: NextFunction) {
     req.body = parsedBody;
     next();
   } catch (e: unknown) {
-    eaveLogger.error({ message: 'Error during JSON parsing', exc: e });
-    res.status(500).end();
+    next(e);
   }
 }

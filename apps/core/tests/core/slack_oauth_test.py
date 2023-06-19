@@ -20,6 +20,8 @@ class TestSlackOAuthHandler(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
+        self.patch_env({"EAVE_SLACK_APP_ID": self.anystr("EAVE_SLACK_APP_ID")})
+
         self.oauth_val: eave.core.internal.oauth.slack.SlackOAuthResponse = {
             "access_token": self.anystring("access_token"),
             "refresh_token": self.anystring("refresh_token"),
@@ -107,8 +109,9 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert not response.cookies.get("ev_oauth_state_slack")  # Test the cookie was deleted
             assert response.headers["Location"]
             assert (
-                response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/thanks"
-            )  # Default for non-whitelisted teams
+                response.headers["Location"]
+                == f"https://slack.com/app_redirect?app={self.getstr('EAVE_SLACK_APP_ID')}&team={self.getstr('team.id')}"
+            )
 
             account_id = response.cookies.get("ev_account_id")
             assert account_id
@@ -225,8 +228,10 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_team.beta_whitelisted is True
 
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-            assert response.headers["Location"]
-            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            assert (
+                response.headers["Location"]
+                == f"https://slack.com/app_redirect?app={self.getstr('EAVE_SLACK_APP_ID')}&team={self.getstr('team.id')}"
+            )
 
     async def test_slack_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:

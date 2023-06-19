@@ -7,6 +7,7 @@ from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
 import eave.stdlib.atlassian
 import eave.stdlib.signing
+from eave.stdlib.typing import JsonObject
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -83,31 +84,59 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self._increment += 1
         return self._increment
 
-    def anystring(self, name: Optional[str] = None, only_if_exists: bool = False) -> str:
+    def anyurl(self, name: Optional[str] = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            if only_if_exists:
-                raise KeyError(f"testdata {name} not set")
+            data = f"https://{uuid.uuid4()}.example.com/{uuid.uuid4()}"
+            self.testdata[name] = data
 
+        value: str = self.testdata[name]
+        return value
+
+    def geturl(self, name: str) -> str:
+        return self.testdata[name]
+
+    def anypath(self, name: Optional[str] = None) -> str:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
+            data = "/" + str(uuid.uuid4())
+            self.testdata[name] = data
+
+        value: str = self.testdata[name]
+        return value
+
+    def getpath(self, name: str) -> str:
+        return self.testdata[name]
+
+    def anystr(self, name: Optional[str] = None) -> str:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
             data = str(uuid.uuid4())
             self.testdata[name] = data
 
         value: str = self.testdata[name]
         return value
 
-    def getstr(self, name: str) -> str:
-        return self.anystring(name=name, only_if_exists=True)
+    def anystring(self, name: Optional[str] = None) -> str:
+        """
+        DEPRECATED, use anystr
+        """
+        return self.anystr(name=name)
 
-    def anyjson(self, name: Optional[str] = None, only_if_exists: bool = False) -> str:
+    def getstr(self, name: str) -> str:
+        return self.testdata[name]
+
+    def anyjson(self, name: Optional[str] = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            if only_if_exists:
-                raise KeyError(f"testdata {name} not set")
-
             data = json.dumps(
                 {
                     str(uuid.uuid4()): str(uuid.uuid4()),
@@ -121,37 +150,31 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     def getjson(self, name: str) -> str:
-        return self.anyjson(name=name, only_if_exists=True)
+        return self.testdata[name]
 
-    def anydict(self, name: Optional[str] = None, only_if_exists: bool = False) -> dict[str, str]:
+    def anydict(self, name: Optional[str] = None) -> JsonObject:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            if only_if_exists:
-                raise KeyError(f"testdata {name} not set")
-
-            data = {
+            data: JsonObject = {
                 str(uuid.uuid4()): str(uuid.uuid4()),
                 str(uuid.uuid4()): str(uuid.uuid4()),
                 str(uuid.uuid4()): str(uuid.uuid4()),
             }
             self.testdata[name] = data
 
-        value: dict[str, str] = self.testdata[name]
+        value: JsonObject = self.testdata[name]
         return value
 
-    def getdict(self, name: str) -> dict[str, str]:
-        return self.anydict(name=name, only_if_exists=True)
+    def getdict(self, name: str) -> JsonObject:
+        return self.testdata[name]
 
-    def anyuuid(self, name: Optional[str] = None, only_if_exists: bool = False) -> uuid.UUID:
+    def anyuuid(self, name: Optional[str] = None) -> uuid.UUID:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            if only_if_exists:
-                raise KeyError(f"testdata {name} not set")
-
             data = uuid.uuid4()
             self.testdata[name] = data
 
@@ -159,16 +182,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     def getuuid(self, name: str) -> uuid.UUID:
-        return self.anyuuid(name=name, only_if_exists=True)
+        return self.testdata[name]
 
-    def anyint(self, name: Optional[str] = None, only_if_exists: bool = False) -> int:
+    def anyint(self, name: Optional[str] = None) -> int:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            if only_if_exists:
-                raise KeyError(f"testdata {name} not set")
-
             data = random.randint(0, 9999)
             self.testdata[name] = data
 
@@ -176,7 +196,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     def getint(self, name: str) -> int:
-        return self.anyint(name=name, only_if_exists=True)
+        return self.testdata[name]
 
     @staticmethod
     def all_same(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
@@ -225,14 +245,14 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             v: str = os.getenv(name, f"not mocked: {name}")
             return v
 
-        def _get_runtimeconfig(name: str) -> str:
-            v: str = os.getenv(name, f"not mocked: {name}")
-            return v
+        # def _get_runtimeconfig(name: str) -> str:
+        #     v: str = os.getenv(name, f"not mocked: {name}")
+        #     return v
 
         self.patch(unittest.mock.patch("eave.stdlib.config.EaveConfig.get_secret", side_effect=_get_secret))
-        self.patch(
-            unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
-        )
+        # self.patch(
+        #     unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
+        # )
 
     def mock_slack_client(self) -> None:
         self.patch(

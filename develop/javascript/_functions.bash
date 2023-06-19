@@ -62,7 +62,11 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-validate-version
 		node-activate-venv
 
-		npx ava --config ${EAVE_HOME}/develop/javascript/configs/ava.config.mjs
+		local target=${1:-tests}
+
+		npx ava \
+			--config=${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs \
+			$target
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

@@ -1,11 +1,12 @@
 import enum
 import re
+from typing import Optional
 
 from eave.stdlib.exceptions import OpenAIDataError
 
 import eave.stdlib.openai_client as eave_openai
 
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LogContext, eaveLogger
 
 # I originally had instructions that "Newer messages are more relevant than older messages.", but I don't actually know if that's
 # true. Context matters I guess. Something to consider.
@@ -22,7 +23,7 @@ CONVO_STRUCTURE = eave_openai.formatprompt(
 #     UNKNOWN = "UNKNOWN"
 
 
-class MessageAction(enum.Enum):
+class MessageAction(enum.StrEnum):
     CREATE_DOCUMENTATION = "CREATE_DOCUMENTATION"
     SEARCH_DOCUMENTATION = "SEARCH_DOCUMENTATION"
     UPDATE_DOCUMENTATION = "UPDATE_DOCUMENTATION"
@@ -64,7 +65,7 @@ class MessageAction(enum.Enum):
 #     return purpose
 
 
-async def message_action(context: str) -> MessageAction:
+async def message_action(context: str, ctx: Optional[LogContext] = None) -> MessageAction:
     prompt = eave_openai.formatprompt(
         """
         What action should you take based on the following message? Select one of these choices:
@@ -82,9 +83,9 @@ async def message_action(context: str) -> MessageAction:
         context,
     )
 
-    eaveLogger.debug(f"prompt:\n{prompt}")
+    eaveLogger.debug(f"prompt:\n{prompt}", extra=ctx)
     response = await _get_openai_response(messages=[prompt], temperature=0)
-    eaveLogger.debug(f"response: {response}")
+    eaveLogger.debug(f"response: {response}", extra=ctx)
 
     response = response.lower()
 
@@ -109,7 +110,7 @@ async def message_action(context: str) -> MessageAction:
         eaveLogger.warning(f"Unexpected message action response: {response}")
         action = MessageAction.UNKNOWN
 
-    eaveLogger.debug(f"message action: {action}")
+    eaveLogger.debug(f"message action: {action}", extra=ctx)
     return action
 
 

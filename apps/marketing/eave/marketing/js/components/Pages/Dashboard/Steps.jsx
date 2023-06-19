@@ -157,6 +157,7 @@ const Steps = () => {
   const [editingSpace, setEditingSpace] = useState(false);
   const [didClickForgeButton, setDidClickForgeButton] = useState(false);
   const [didClickJiraButton, setDidClickJiraButton] = useState(false);
+  const [didClickSlackButton, setDidClickSlackButton] = useState(false);
 
   useEffect(() => {
     if (!teamInfo?.integrations.confluence_integration && !didClickForgeButton) {
@@ -186,6 +187,10 @@ const Steps = () => {
 
   const handleJiraButtonClick = () => {
     setDidClickJiraButton(true);
+  };
+
+  const handleSlackButtonClick = () => {
+    setDidClickSlackButton(true);
   };
 
   const handleSpaceUpdate = () => {
@@ -321,13 +326,15 @@ const Steps = () => {
             <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={teamInfo?.integrations.slack_integration && <PurpleCheckIcon className={classes.connected} />}
+              startIcon={(teamInfo?.integrations.slack_integration || didClickSlackButton) && <PurpleCheckIcon className={classes.connected} />}
               disabled={!!teamInfo?.integrations.slack_integration}
               to={`${window.eave.apiBase}/oauth/slack/authorize`}
+              target="_blank"
+              onClick={() => handleSlackButtonClick()}
               lg
             >
               <img
-                className={classNames(classes.slackButtonLogo, { [classes.completed]: teamInfo?.integrations.slack_integration })}
+                className={classNames(classes.slackButtonLogo, { [classes.completed]: teamInfo?.integrations.slack_integration || didClickSlackButton })}
                 src={INTEGRATION_LOGOS.slack.src}
                 alt={INTEGRATION_LOGOS.slack.alt}
               />

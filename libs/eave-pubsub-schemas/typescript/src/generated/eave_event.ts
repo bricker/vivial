@@ -10,6 +10,7 @@ export interface EaveEvent {
   eave_account_id: string;
   eave_visitor_id: string;
   eave_team_id: string;
+  eave_env: string;
 }
 
 function createBaseEaveEvent(): EaveEvent {
@@ -22,6 +23,7 @@ function createBaseEaveEvent(): EaveEvent {
     eave_account_id: "",
     eave_visitor_id: "",
     eave_team_id: "",
+    eave_env: "",
   };
 }
 
@@ -50,6 +52,9 @@ export const EaveEvent = {
     }
     if (message.eave_team_id !== "") {
       writer.uint32(66).string(message.eave_team_id);
+    }
+    if (message.eave_env !== "") {
+      writer.uint32(74).string(message.eave_env);
     }
     return writer;
   },
@@ -117,6 +122,13 @@ export const EaveEvent = {
 
           message.eave_team_id = reader.string();
           continue;
+        case 9:
+          if (tag != 74) {
+            break;
+          }
+
+          message.eave_env = reader.string();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -136,6 +148,7 @@ export const EaveEvent = {
       eave_account_id: isSet(object.eave_account_id) ? String(object.eave_account_id) : "",
       eave_visitor_id: isSet(object.eave_visitor_id) ? String(object.eave_visitor_id) : "",
       eave_team_id: isSet(object.eave_team_id) ? String(object.eave_team_id) : "",
+      eave_env: isSet(object.eave_env) ? String(object.eave_env) : "",
     };
   },
 
@@ -149,6 +162,7 @@ export const EaveEvent = {
     message.eave_account_id !== undefined && (obj.eave_account_id = message.eave_account_id);
     message.eave_visitor_id !== undefined && (obj.eave_visitor_id = message.eave_visitor_id);
     message.eave_team_id !== undefined && (obj.eave_team_id = message.eave_team_id);
+    message.eave_env !== undefined && (obj.eave_env = message.eave_env);
     return obj;
   },
 };

@@ -7,6 +7,7 @@ import eave.stdlib
 import eave.stdlib.atlassian
 import requests_oauthlib
 from oauthlib.oauth2 import OAuth2Token
+from eave.stdlib.atlassian import ConfluenceUser
 
 from eave.stdlib.exceptions import ConfluenceDataError
 
@@ -100,14 +101,13 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
         available_resources = [eave.stdlib.atlassian.AtlassianAvailableResource(**j) for j in available_resources_data]
         return available_resources
 
-    def get_userinfo(self) -> eave.stdlib.atlassian.ConfluenceUser:
+    def get_userinfo(self) -> ConfluenceUser:
         response = self.request(
             method="GET",
             url=f"{self.api_base_url}/rest/api/user/current",
         )
 
-        response_json: eave.stdlib.typing.JsonObject = response.json()
-        userinfo = eave.stdlib.atlassian.ConfluenceUser(data=response_json)
+        userinfo = ConfluenceUser(**response.json())
         return userinfo
 
     @property
@@ -125,14 +125,6 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     @property
     def api_base_url(self) -> str:
         return f"https://api.atlassian.com/ex/confluence/{self.atlassian_cloud_id}"
-
-    @property
-    def confluence_context(self) -> eave.stdlib.atlassian.ConfluenceContext:
-        resources = self.get_available_resources()
-        if len(resources) == 0 or (url := resources[0].url) is None:
-            url = self.api_base_url
-
-        return eave.stdlib.atlassian.ConfluenceContext(base_url=url)
 
     def get_token(self) -> OAuth2Token:
         """This is mostly for tests"""

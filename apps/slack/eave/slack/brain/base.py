@@ -27,11 +27,13 @@ class Base:
     message_action: Optional[MessageAction] = None
     eave_ctx: LogContext
 
-    def __init__(self, message: SlackMessage, eave_team: team.Team, ctx: LogContext) -> None:
+    def __init__(
+        self, message: SlackMessage, eave_team: team.Team, slack_ctx: AsyncBoltContext, eave_ctx: LogContext
+    ) -> None:
         self.message = message
         self.eave_team = eave_team
-        self.slack_context = message._ctx._context  # FIXME: Make the AsyncBoltContext public
-        self.eave_ctx = ctx
+        self.slack_context = slack_ctx
+        self.eave_ctx = eave_ctx
         self.subscriptions = []
 
     def log_event(self, event_name: str, event_description: str, opaque_params: Optional[JsonObject] = None) -> None:
@@ -55,6 +57,7 @@ class Base:
             },
         )
 
+    @property
     def execution_count(self) -> int:
         count = self.slack_context.get(TASK_EXECUTION_COUNT_CONTEXT_KEY, 0)
         return int(count)

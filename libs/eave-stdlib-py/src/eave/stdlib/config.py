@@ -13,7 +13,7 @@ import google.cloud.client
 from . import checksum
 
 
-class EaveEnvironment(enum.Enum):
+class EaveEnvironment(enum.StrEnum):
     development = "development"
     production = "production"
 
@@ -53,6 +53,15 @@ class EaveConfig:
     @property
     def is_development(self) -> bool:
         return self.eave_env is EaveEnvironment.development
+
+    @property
+    def raise_app_exceptions(self) -> bool:
+        """
+        This is intended for using during development.
+        When set to True, unhandled exceptions raised during the request won't be handled.
+        In production (i.e. when this flag is False), unhandled exceptions are caught, logged, and return a 500.
+        """
+        return self.is_development
 
     @property
     def monitoring_enabled(self) -> bool:

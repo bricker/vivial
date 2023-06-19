@@ -23,16 +23,13 @@ function deploy () (
 
 	echo ""
 
-	statusmsg -i "Diff since last release:"
-	git describe
-	git --no-pager diff --name-only $(git describe)
-
-	echo ""
-
 	statusmsg -i "Deployment details:"
 	gcloud app deploy --version=$version
-	git tag -am $version $version
-	git push origin $version
+
+	local service=$(cat app.yaml | yq '.service')
+	local tagname="$service-$version"
+	git tag -am $tagname $tagname
+	git push origin $tagname
 )
 
 deploy

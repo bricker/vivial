@@ -8,6 +8,7 @@ export interface Cache {
   get: (key: RedisCommandArgument) => Promise<RedisCommandArgument | null>;
   set: (key: RedisCommandArgument, value: RedisCommandArgument | number, options?: SetOptions) => Promise<RedisCommandArgument | null>;
   del: (keys: RedisCommandArgument | RedisCommandArgument[]) => Promise<number>;
+  ping: () => Promise<string>;
   quit: () => Promise<string>;
 }
 
@@ -84,6 +85,10 @@ export class EphemeralCache implements Cache {
     return count;
   }
 
+  async ping(): Promise<string> {
+    return '1';
+  }
+
   async quit(): Promise<string> {
     return '1';
   }
@@ -112,10 +117,27 @@ async function loadCacheImpl(): Promise<Cache> {
     },
     database: db,
     password: redisAuth,
+    pingInterval: 1000 * 60 * 5,
   });
+
+  impl.on('error', (e) => { eaveLogger.error({ message: e.stack }); });
+  impl.on('connect', () => { eaveLogger.debug({ message: 'redis client connected' }); });
+  impl.on('reconnecting', () => { eaveLogger.debug({ message: 'redis client reconnecting' }); });
+  impl.on('ready', () => { eaveLogger.debug({ message: 'redis client ready' }); });
 
   await impl.connect();
   return impl;
 }
 
-export default loadCacheImpl();
+let _PROCESS_CACHE_CLIENT: Cache | undefined;
+
+export default async function client(): Promise<Cache> {
+  if (_PROCESS_CACHE_CLIENT === undefined) {
+    _PROCESS_CACHE_CLIENT = await loadCacheImpl();
+  }
+  return _PROCESS_CACHE_CLIENT;
+}
+
+export function cacheInitialized(): boolean {
+  return _PROCESS_CACHE_CLIENT !== undefined;
+}

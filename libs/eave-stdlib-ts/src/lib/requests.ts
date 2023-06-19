@@ -1,7 +1,7 @@
 import { v4 as uuid4 } from 'uuid';
 import eaveLogger from '../logging.js';
 import { EaveOrigin } from '../eave-origins.js';
-import { getKey, signBase64 } from '../signing.js';
+import Signing from '../signing.js';
 import eaveHeaders from '../headers.js';
 import {
   NotFoundError,
@@ -70,7 +70,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   } = args;
 
   const requestId = uuid4();
-  const payload = JSON.stringify(input);
+  const payload = input === undefined ? '{}' : JSON.stringify(input);
 
   const headers: { [key: string]: string } = {
     'content-type': 'application/json',
@@ -83,15 +83,13 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     url,
     requestId,
     origin,
-    payload: input === undefined ? '{}' : JSON.stringify(input),
+    payload,
     teamId,
     accountId,
   });
 
-  const signature = await signBase64(
-    getKey(origin),
-    message,
-  );
+  const signing = Signing.new(origin);
+  const signature = await signing.signBase64(message);
 
   headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 
@@ -107,12 +105,6 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     headers[eaveHeaders.EAVE_ACCOUNT_ID_HEADER] = accountId;
   }
 
-  const requestInit = {
-    method,
-    body: payload,
-    headers,
-  };
-
   const requestContext = {
     origin,
     signature: redact(signature),
@@ -124,14 +116,24 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     url,
   };
 
-  eaveLogger.info(`Eave Client Request: ${requestId}: ${method} ${url}`, requestContext);
-  eaveLogger.debug({ message: `request body: ${requestId}`, body: requestInit });
+  eaveLogger.info({ message: `Eave Client Request: ${requestId}: ${method} ${url}`, eaveState: requestContext });
 
-  const response = await fetch(url, requestInit);
+  const abortController = new AbortController();
+  setTimeout(() => abortController.abort(), 1000 * 120);
 
-  eaveLogger.info(`Eave Client Response: ${requestId}: ${method} ${url}`, {
-    ...requestContext,
-    status: response.status,
+  const response = await fetch(url, {
+    method,
+    body: payload,
+    headers,
+    signal: abortController.signal,
+  });
+
+  eaveLogger.info({
+    message: `Eave Client Response: ${requestId}: ${method} ${url}`,
+    eaveState: {
+      ...requestContext,
+      status: response.status,
+    },
   });
 
   if (response.status >= 400) {

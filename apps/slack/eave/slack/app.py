@@ -21,7 +21,7 @@ routes = [
     Mount(
         "/slack",
         routes=[
-            *eave_api_util.standard_endpoints_starlette,
+            eave_api_util.StatusRoute,
             Route("/events", SlackEventCallbackHandler, methods=["POST"]),
         ],
         # TODO: Add mounts for API with signature & origin verification
@@ -30,7 +30,8 @@ routes = [
 
 
 async def graceful_shutdown() -> None:
-    await cache.quit()
+    if cache.initialized():
+        await cache.client().close()
 
 
 api = Starlette(

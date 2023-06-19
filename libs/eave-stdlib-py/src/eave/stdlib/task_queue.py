@@ -1,7 +1,6 @@
 import asyncio
 import json
 from typing import Any, Coroutine, Optional, TypeVar
-import uuid
 from google.cloud import tasks
 from starlette.requests import Request
 import eave.stdlib
@@ -102,7 +101,7 @@ async def create_task(
     # Slack already sets this for the incoming event request, but setting it here too to be explicit.
     headers["content-type"] = "application/json"
 
-    request_id = ctx.getset("request_id", str(uuid.uuid4()))
+    request_id = ctx.request_id
     signature_message = eave.stdlib.requests.build_message_to_sign(
         method="POST",
         origin=origin.value,
@@ -154,7 +153,7 @@ async def create_task(
             {
                 "task_name": task_name,
                 "queue_name": parent,
-                "eave_headers": headers,
+                "eave_headers": JsonObject(headers),
             }
         ),
     )

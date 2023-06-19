@@ -5,7 +5,7 @@ import starlette.types
 from ..api_util import json_response
 
 from ..logging import eaveLogger
-
+from ..config import shared_config
 from .base import EaveASGIMiddleware
 from ..core_api.models.error import ErrorResponse
 
@@ -33,6 +33,9 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
         try:
             await self.app(scope, receive, _send)
         except Exception as e:
+            if shared_config.raise_app_exceptions:
+                raise
+
             eave_state = self.eave_state(scope=scope)
             eaveLogger.exception(str(e), extra=eave_state.log_context)
 

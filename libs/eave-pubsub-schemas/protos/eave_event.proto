@@ -9,4 +9,5 @@ message EaveEvent {
   string eave_account_id = 4;
   string eave_visitor_id = 7;
   string eave_team_id = 8;
+  string eave_env = 9;
 }

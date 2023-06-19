@@ -6,7 +6,7 @@ from .config import shared_config
 from .logging import eaveLogger
 
 
-class _Cache(Protocol):
+class CacheInterface(Protocol):
     @abc.abstractmethod
     async def get(self, name: str) -> str | None:
         ...
@@ -20,7 +20,11 @@ class _Cache(Protocol):
         ...
 
     @abc.abstractmethod
-    async def quit(self) -> str:
+    async def close(self, close_connection_pool: Optional[bool] = None) -> None:
+        ...
+
+    @abc.abstractmethod
+    async def ping(self) -> bool:
         ...
 
 
@@ -39,7 +43,7 @@ class _CacheEntry:
         return self.ex is not None and (self.ts + self.ex < time.time())
 
 
-class EphemeralCache(_Cache):
+class EphemeralCache(CacheInterface):
     _store: dict[str, _CacheEntry] = {}
 
     async def get(self, name: str) -> str | None:
@@ -72,52 +76,48 @@ class EphemeralCache(_Cache):
 
         return num
 
-    async def quit(self) -> str:
-        return "1"
-
-
-impl: _Cache
-
-if redis_cfg := shared_config.redis_connection:
-    host, port, db = redis_cfg
-    auth = shared_config.redis_auth
-    logauth = auth[:4] if auth else "(none)"
-    eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
-
-    redis_tls_ca = shared_config.redis_tls_ca
-    impl = redis.Redis(
-        host=host,
-        port=port,
-        db=db,
-        password=auth,
-        decode_responses=True,
-        ssl=redis_tls_ca is not None,
-        ssl_ca_data=redis_tls_ca,
-    )
-else:
-    impl = EphemeralCache()
-
-
-async def set(name: str, value: str, ex: Optional[int] = None) -> bool | None:
-    eaveLogger.debug(f"setting cache key {name} ex:{ex}")
-    success = await impl.set(name, value, ex=ex)
-    return success
-
-
-async def get(name: str) -> str | None:
-    eaveLogger.debug(f"fetching cache key {name}")
-    value = await impl.get(name)
-    if value is not None:
-        return str(value)
-    else:
+    async def close(self, close_connection_pool: Optional[bool] = None) -> None:
         return None
 
-
-async def delete(*names: str) -> int:
-    eaveLogger.debug(f"deleting cache keys {names}")
-    num = await impl.delete(*names)
-    return num
+    async def ping(self) -> bool:
+        return True
 
 
-async def quit() -> None:
-    await impl.quit()
+_PROCESS_CACHE_CLIENT: Optional[CacheInterface] = None
+
+
+def client() -> CacheInterface:
+    global _PROCESS_CACHE_CLIENT
+
+    if not _PROCESS_CACHE_CLIENT:
+        if redis_cfg := shared_config.redis_connection:
+            host, port, db = redis_cfg
+            auth = shared_config.redis_auth
+            logauth = auth[:4] if auth else "(none)"
+            eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
+
+            redis_tls_ca = shared_config.redis_tls_ca
+            _PROCESS_CACHE_CLIENT = redis.Redis(
+                host=host,
+                port=port,
+                db=db,
+                password=auth,
+                decode_responses=True,
+                ssl=redis_tls_ca is not None,
+                ssl_ca_data=redis_tls_ca,
+                health_check_interval=60 * 5,
+                socket_keepalive=True,
+            )
+        else:
+            _PROCESS_CACHE_CLIENT = EphemeralCache()
+
+    return _PROCESS_CACHE_CLIENT
+
+
+def initialized() -> bool:
+    """
+    Before closing a connection, check this property.
+    Otherwise, if a connection wasn't previously established, you'd have to create a connection just to immediately close it.
+    Because the client() function lazily creates a connection.
+    """
+    return _PROCESS_CACHE_CLIENT is not None

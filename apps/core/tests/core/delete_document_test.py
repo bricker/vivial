@@ -5,7 +5,7 @@ from eave.core.internal.orm.confluence_destination import ConfluenceDestinationO
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.document_reference import DocumentReferenceOrm
 from eave.core.internal.orm.subscription import SubscriptionOrm
-from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, SubscriptionSourcePlatform
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from .base import BaseTestCase
@@ -19,14 +19,10 @@ class TestDeleteDocument(BaseTestCase):
             connect = await ConnectInstallationOrm.create(
                 session=s,
                 team_id=self.testdata["eave_team"].id,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": AtlassianProduct.confluence,
-                        "client_key": self.anystring("client_key"),
-                        "base_url": self.anystring("base_url"),
-                        "shared_secret": self.anystring("shared_secret"),
-                    }
-                ),
+                product=AtlassianProduct.confluence,
+                client_key=self.anystring("client_key"),
+                shared_secret=self.anystring("shared_secret"),
+                base_url=self.anystring("base_url"),
             )
 
             await ConfluenceDestinationOrm.create(

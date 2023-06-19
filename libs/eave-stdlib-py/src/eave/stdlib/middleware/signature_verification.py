@@ -9,7 +9,7 @@ from ..exceptions import MissingRequiredHeaderError
 from ..request_state import EaveRequestState
 from ..requests import build_message_to_sign, makeurl
 from ..util import unwrap
-from ..signing import get_key, verify_signature_or_exception
+from .. import signing
 
 
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
@@ -57,9 +57,9 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             payload=payload,
         )
 
-        signing_key = get_key(signer=unwrap(eave_state.eave_origin))
+        signing_key = signing.get_key(signer=unwrap(eave_state.eave_origin))
 
-        verify_signature_or_exception(
+        signing.verify_signature_or_exception(
             signing_key=signing_key,
             message=message,
             signature=signature,

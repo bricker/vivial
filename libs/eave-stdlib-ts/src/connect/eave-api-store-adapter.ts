@@ -1,5 +1,5 @@
 import AddOnFactory from 'atlassian-connect-express';
-import { queryConnectInstallation, registerConnectInstallation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from '../core-api/operations/connect.js';
+import { queryConnectInstallation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveOrigin } from '../eave-origins.js';
 import getCacheClient, { Cache } from '../cache.js';
@@ -7,6 +7,10 @@ import eaveLogger from '../logging.js';
 
 type AppKey = 'eave-confluence' | 'eave-jira'
 type AdapterParams = { appKey: AppKey, eaveOrigin: EaveOrigin, productType: AtlassianProduct }
+
+export type EaveClientInfo = AddOnFactory.ClientInfo & {
+  eaveTeamId?: string;
+}
 
 export class EaveApiAdapter /* implements StoreAdapter */ {
   appKey: AppKey;
@@ -19,14 +23,14 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     return `confluence:${clientKey}:installation`;
   }
 
-  async cacheClientInfo(clientKey: string, clientInfo: AddOnFactory.ClientInfo) {
+  async cacheClientInfo(clientKey: string, clientInfo: EaveClientInfo) {
     const cacheKey = this.cacheKey(clientInfo.clientKey);
     try {
-      eaveLogger.debug({ message: `writing cache entry: ${cacheKey}`, clientInfo });
-      const cacheClient = await getCacheClient;
+      eaveLogger.debug({ message: `[store adapter] writing cache entry: ${cacheKey}`, clientInfo });
+      const cacheClient = await getCacheClient();
       await cacheClient.set(cacheKey, JSON.stringify(clientInfo));
-    } catch (e: unknown) {
-      eaveLogger.error({ message: `error writing to cache ${cacheKey}`, exc: e });
+    } catch (e: any) {
+      eaveLogger.error({ message: e.stack });
     }
   }
 
@@ -41,6 +45,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   // So, this class is completely broken with OAuth, but we don't currently use OAuth in this context.
 
   async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
+    eaveLogger.debug({ message: `[store adapter] getting credentials: ${key}, ${clientKey}` });
     if (key !== 'clientInfo') {
       throw new Error(`key not supported: ${key}`);
     }
@@ -48,17 +53,17 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     const cacheKey = this.cacheKey(clientKey);
     let cacheClient: Cache | undefined;
     try {
-      cacheClient = await getCacheClient;
-    } catch (e: unknown) {
-      eaveLogger.error({ message: 'error initializing cache client', exc: e });
+      cacheClient = await getCacheClient();
+    } catch (e: any) {
+      eaveLogger.error({ message: e.stack });
     }
 
     if (cacheClient !== undefined) {
       try {
         const cachedData = await cacheClient.get(cacheKey);
         if (cachedData) {
-          const clientInfo = <AddOnFactory.ClientInfo>JSON.parse(cachedData.toString());
-          eaveLogger.debug({ message: `cache hit: ${cacheKey}`, clientInfo });
+          const clientInfo = <EaveClientInfo>JSON.parse(cachedData.toString());
+          eaveLogger.debug({ message: `[store adapter] cache hit: ${cacheKey}`, clientInfo });
           // Do some basic validation to make sure the cached data is valid.
           if (
             clientInfo.key
@@ -69,14 +74,14 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
           ) {
             return clientInfo;
           } else {
-            eaveLogger.warning({ message: `Bad cache data: ${cacheKey}` });
+            eaveLogger.warn({ message: `[store adapter] Bad cache data: ${cacheKey}` });
             await cacheClient.del(cacheKey);
           }
         } else {
-          eaveLogger.debug({ message: `cache miss: ${cacheKey}` });
+          eaveLogger.debug({ message: `[store adapter] cache miss: ${cacheKey}` });
         }
-      } catch (e: unknown) {
-        eaveLogger.error({ message: 'error getting cached data', exc: e });
+      } catch (e: any) {
+        eaveLogger.error({ message: e.stack });
         await cacheClient.del(cacheKey);
       }
     }
@@ -97,11 +102,13 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
       return clientInfo;
     } catch (e: any) {
       // HTTP error. Not Found is common, if the registration doesn't already exist.
+      eaveLogger.debug({ message: `[store adapter] no connect install exists (this is normal): ${key}, ${clientKey}` });
       return null;
     }
   }
 
   async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
+    eaveLogger.debug({ message: `[store adapter] setting client credentials: ${key}, ${value}, ${clientKey}` });
     if (key !== 'clientInfo') {
       throw new Error(`key not supported: ${key}`);
     }
@@ -116,23 +123,27 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   }
 
   async del(/* key: string, clientKey: string */): Promise<void> {
+    eaveLogger.debug({ message: '[store adapter] del called' });
     // TODO: Fill in the delete function for Connect client info
-    throw new Error('not implemented');
+    // throw new Error('not implemented');
   }
 
   async getAllClientInfos(): Promise<AddOnFactory.ClientInfo[]> {
+    eaveLogger.debug({ message: '[store adapter] getAllClientInfos called' });
+    return [];
     // TODO: Fill in the getAllClientInfos function
-    throw new Error('not implemented');
+    // throw new Error('not implemented');
   }
 
   isMemoryStore() {
     return false;
   }
 
-  private buildClientInfo(response: QueryConnectInstallationResponseBody | RegisterConnectInstallationResponseBody): AddOnFactory.ClientInfo {
+  private buildClientInfo(response: QueryConnectInstallationResponseBody | RegisterConnectInstallationResponseBody): EaveClientInfo {
     // The ClientInfo interface contains several properties which are non-nullable, but aren't needed for our purpose.
     // For those properties, we'll fill in with dummy values.
     return {
+      eaveTeamId: response.team?.id,
       key: this.appKey,
       productType: this.productType,
       clientKey: response.connect_integration.client_key,

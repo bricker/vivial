@@ -123,7 +123,6 @@ class TestInstallationsRequests(BaseTestCase):
                 team_id=team.id,
                 atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
                 oauth_token_encoded=self.anyjson("oauth_token_encoded"),
-                confluence_space_key=self.anystring("confluence_space"),
             )
 
         response = await self.make_request(
@@ -139,7 +138,6 @@ class TestInstallationsRequests(BaseTestCase):
         response_obj = GetAtlassianInstallation.ResponseBody(**response.json())
 
         assert response_obj.atlassian_integration.atlassian_cloud_id == self.anystring("atlassian_cloud_id")
-        assert response_obj.atlassian_integration.confluence_space_key == self.anystring("confluence_space")
 
     async def test_get_atlassian_installation_not_found(self) -> None:
         response = await self.make_request(

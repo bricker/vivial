@@ -14,6 +14,7 @@ class AtlassianInstallation(BaseResponseModel):
     """eave TeamOrm model id"""
     atlassian_cloud_id: str
     confluence_space_key: Optional[str]
+    "DEPRECATED: Always None"
     available_confluence_spaces: Optional[List[ConfluenceSpace]]
 
 

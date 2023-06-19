@@ -86,10 +86,14 @@ class CommunicationMixinTest(BaseTestCase):
 
         await self.sut.acknowledge_receipt()
 
-        assert mock.call_count == 1
-        assert mock.call_args.kwargs["name"] == "eave"
-        assert mock.call_args.kwargs["channel"] == self.getstr("message.channel")
-        assert mock.call_args.kwargs["timestamp"] == self.getstr("message.ts")
+        assert mock.call_count == 2  # Once for message, once for parent
+        assert mock.call_args_list[0].kwargs["name"] == "eave"
+        assert mock.call_args_list[0].kwargs["channel"] == self.getstr("message.channel")
+        assert mock.call_args_list[0].kwargs["timestamp"] == self.getstr("message.ts")
+
+        assert mock.call_args_list[1].kwargs["name"] == "eave"
+        assert mock.call_args_list[1].kwargs["channel"] == self.getstr("message.channel")
+        assert mock.call_args_list[1].kwargs["timestamp"] == self.getstr("message.thread_ts")
 
         assert self.logged_event(
             event_name="eave_acknowledged_receipt",
@@ -101,12 +105,12 @@ class CommunicationMixinTest(BaseTestCase):
     async def test_acknowledge_receipt_with_no_eave_emoji(self) -> None:
         mock = self._data_slack_context.client.reactions_add
         mock_response = {"error": "invalid_name"}
-        mock.side_effect = [SlackApiError(message=self.anystring(), response=mock_response), None]
+        mock.side_effect = [SlackApiError(message=self.anystring(), response=mock_response), None, None]
         assert mock.call_count == 0
 
         await self.sut.acknowledge_receipt()
 
-        assert mock.call_count == 2
+        assert mock.call_count == 3  # Once for message, second for message re-try, third for parent.
         assert mock.call_args_list[0].kwargs["name"] == "eave"
         assert mock.call_args_list[1].kwargs["name"] == "large_purple_circle"
 

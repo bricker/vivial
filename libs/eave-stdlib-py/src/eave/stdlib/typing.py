@@ -1,5 +1,3 @@
-from typing import Any
-
-
 JsonScalar = str | int | bool | None
-JsonObject = dict[str, Any]
+JsonValue = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
+JsonObject = dict[str, JsonValue]

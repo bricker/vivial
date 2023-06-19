@@ -1,11 +1,12 @@
 import logging
 from logging import LogRecord
 import sys
-from typing import Any, Optional, Self, TypeVar, cast
+from typing import Optional, Self
+import uuid
 
 import google.cloud.logging
 
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import JsonObject, JsonValue
 
 from .config import shared_config
 
@@ -92,34 +93,46 @@ eaveLogger = logging.getLogger("eave")
 # This format is for Google Cloud Logging
 # LogContext = dict[Literal["json_fields"], JsonObject]
 
-T = TypeVar("T")
 
-
-class LogContext(dict[str, object]):
+class LogContext(JsonObject):
     @classmethod
     def wrap(cls, ctx: Optional["LogContext"]) -> "LogContext":
         return ctx if ctx else cls()
 
-    def getset(self, key: str, default: T) -> T:
+    def getset(self, key: str, default: JsonValue) -> JsonValue:
         """
         Gets the value at the given key. If the key doesn't exist, sets it to the default value.
         Returns the value.
         """
-        f = self.setdefault("json_fields", JsonObject())
-        fc = cast(JsonObject, f)
-        if key in fc:
-            return fc[key]
+        f = self._ensure_initialized()
+        if key in f:
+            return f[key]
         else:
             self.set({key: default})
             return default
 
     def set(self, attributes: JsonObject) -> Self:
-        f = self.setdefault("json_fields", dict[str, JsonObject]())
-        fc = cast(JsonObject, f)
-        fc.update(attributes)
+        f = self._ensure_initialized()
+        f.update(attributes)
         return self
 
-    def get(self, key: str, default: Optional[Any | T] = None) -> Any | T | None:
-        f = self.setdefault("json_fields", dict[str, JsonObject]())
-        fc = cast(JsonObject, f)
-        return fc.get(key, default)
+    def get(self, key: str, default: Optional[JsonValue] = None) -> Optional[JsonValue]:
+        f = self._ensure_initialized()
+        return f.get(key, default)
+
+    def _ensure_initialized(self) -> JsonObject:
+        default = JsonObject()
+        self.setdefault("json_fields", default)
+        return default
+
+    @property
+    def request_id(self) -> str:
+        v = self.get(key="request_id")
+        if v is None:
+            v = str(uuid.uuid4())
+            self.request_id = v
+        return str(v)
+
+    @request_id.setter
+    def request_id(self, value: str) -> None:
+        self.set({"request_id": value})

@@ -1,6 +1,7 @@
 import http
 import re
 import typing
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import eave.pubsub_schemas
 from eave.stdlib.core_api.models.account import AuthProvider
@@ -13,6 +14,9 @@ import eave.core.internal
 import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
 import eave.stdlib.request_state
+from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
+
+DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
 
 
 def verify_oauth_state_or_exception(
@@ -35,6 +39,16 @@ def set_redirect(response: Response, location: str) -> Response:
     response.headers["Location"] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
+
+
+def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> Response:
+    location_header = response.headers["Location"]
+    location = urlparse(location_header)
+    qs = parse_qs(location.query)
+    qs.update({EAVE_ERROR_CODE_QP: [error_code]})
+    qs_updated = urlencode(qs)
+    location = location._replace(query=qs_updated)
+    return set_redirect(response=response, location=urlunparse(location))
 
 
 def cancel_flow(response: Response) -> Response:
@@ -236,7 +250,5 @@ async def get_or_create_eave_account(
         access_token=eave_account.access_token,
     )
 
-    location = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
-
-    set_redirect(response=response, location=location)
+    set_redirect(response=response, location=DEFAULT_REDIRECT_LOCATION)
     return eave_account

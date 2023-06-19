@@ -1,3 +1,5 @@
+const path = require('node:path');
+
 const config = {
   extends: [
     './node_modules/@eave-fyi/es-config/eslint',
@@ -5,6 +7,9 @@ const config = {
     './node_modules/@eave-fyi/es-config/eslint/graphql',
     './node_modules/@eave-fyi/es-config/eslint/yaml',
   ],
+  parserOptions: {
+    project: path.join(__dirname, 'tsconfig.json'),
+  },
   rules: {
     'no-console': 'off',
   },

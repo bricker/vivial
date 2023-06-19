@@ -18,8 +18,8 @@ _EVENT_TOPIC_ID = "eave_event_topic"
 
 def log_event(
     event_name: str,
-    event_description: str,
-    event_source: str,
+    event_description: typing.Optional[str] = None,
+    event_source: typing.Optional[str] = None,
     opaque_params: typing.Optional[JsonObject] = None,
     eave_account_id: typing.Optional[uuid.UUID | str] = None,
     eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
@@ -32,7 +32,7 @@ def log_event(
         try:
             serialized_params = json.dumps(opaque_params)
         except Exception:
-            eaveLogger.exception("Error while serialized opaque params for analytics", extra=eave_context)
+            eaveLogger.exception("Error while serializing opaque params for analytics", extra=eave_context)
             serialized_params = str(opaque_params)
     else:
         serialized_params = None
@@ -44,6 +44,7 @@ def log_event(
         eave_account_id=str(eave_account_id) if eave_account_id else None,
         eave_visitor_id=str(eave_visitor_id) if eave_visitor_id else None,
         eave_team_id=str(eave_team_id) if eave_team_id else None,
+        eave_env=shared_config.eave_env.value,
         opaque_params=serialized_params,
         event_ts=event_ts if event_ts else time.time(),
     )

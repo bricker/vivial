@@ -30,15 +30,19 @@ eave_ctx = eave.stdlib.logging.LogContext()
 
 async def test_slack_message_processing(fixture: dict[str, Any]) -> None:
     logger.info("test_slack_message_processing")
-    message = eave.slack.slack_models.SlackMessage(fixture, slack_context=slack_context)
-    brain = eave.slack.brain.core.Brain(message=message, eave_team=eave_team, ctx=eave_ctx)
+    message = eave.slack.slack_models.SlackMessage(fixture, slack_ctx=slack_context, eave_ctx=eave_ctx)
+    brain = eave.slack.brain.core.Brain(
+        message=message, eave_team=eave_team, slack_ctx=slack_context, eave_ctx=eave_ctx
+    )
     await brain.process_message()
 
 
 async def test_action_prompt(fixture: dict[str, Any]) -> None:
     logger.info("test_action_prompt")
-    message = eave.slack.slack_models.SlackMessage(fixture, slack_context=slack_context)
-    brain = eave.slack.brain.core.Brain(message=message, eave_team=eave_team, ctx=eave_ctx)
+    message = eave.slack.slack_models.SlackMessage(fixture, slack_ctx=slack_context, eave_ctx=eave_ctx)
+    brain = eave.slack.brain.core.Brain(
+        message=message, eave_team=eave_team, slack_ctx=slack_context, eave_ctx=eave_ctx
+    )
     await brain.load_data()
     message_action = await eave.slack.brain.message_prompts.message_action(context=brain.message_context)
     logger.info(message_action)
@@ -46,8 +50,10 @@ async def test_action_prompt(fixture: dict[str, Any]) -> None:
 
 async def test_document_builder(fixture: dict[str, Any]) -> None:
     logger.info("test_document_builder")
-    message = eave.slack.slack_models.SlackMessage(fixture, slack_context=slack_context)
-    brain = eave.slack.brain.core.Brain(message=message, eave_team=eave_team, ctx=eave_ctx)
+    message = eave.slack.slack_models.SlackMessage(fixture, slack_ctx=slack_context, eave_ctx=eave_ctx)
+    brain = eave.slack.brain.core.Brain(
+        message=message, eave_team=eave_team, slack_ctx=slack_context, eave_ctx=eave_ctx
+    )
     await brain.load_data()
     doc = await brain.build_documentation()
 

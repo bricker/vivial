@@ -4,6 +4,8 @@ from functools import wraps
 import traceback
 from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar
 import uuid
+
+from eave.stdlib.typing import JsonObject
 from .logging import eaveLogger
 
 from eave.stdlib.exceptions import UnexpectedMissingValue
@@ -179,3 +181,10 @@ def redact(string: str | None) -> str:
     if len(string) <= 8:
         return "(redacted)"
     return f"{string[:4]}..(redacted)..{string[-4:]}"
+
+
+def erasetype(data: JsonObject, key: str, default: Optional[Any] = None) -> Any:
+    if v := data.get(key, default):
+        return v
+    else:
+        return None

@@ -3,38 +3,30 @@ import { Octokit } from 'octokit';
 import { Blob, Query, Ref, Repository, Scalars } from '@octokit/graphql-schema';
 import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import { EaveRequestState, getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 import { loadQuery } from '../lib/graphql-util.js';
 
 export async function getSummary(req: Request, res: Response): Promise<void> {
   const eaveState = getEaveState(res);
+  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
 
-  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER);
-  if (!eaveTeamId) {
-    eaveLogger.error('Missing eave-team-id header', eaveState);
-    res.status(400).end();
-    return;
-  }
-
-  const requestBody = (<Buffer>req.body).toString();
-  const input = <GetGithubUrlContentRequestBody>JSON.parse(requestBody);
+  const input = <GetGithubUrlContentRequestBody>req.body;
   if (!input.url) {
-    eaveLogger.error('Invalid input', eaveState);
-    res.status(400).end();
+    eaveLogger.error({ message: 'Invalid input', eaveState });
+    res.sendStatus(400);
     return;
   }
 
   const installationId = await getInstallationId(eaveTeamId);
   if (installationId === null) {
-    eaveLogger.error('missing github installation id', eaveState);
-    res.status(500).end();
+    eaveLogger.error({ message: 'missing github installation id', eaveState });
+    res.sendStatus(500);
     return;
   }
   const client = await createOctokitClient(installationId);
-
-  const content = await getFileContent(client, input.url);
+  const content = await getFileContent(client, input.url, eaveState);
   const output: GetGithubUrlContentResponseBody = { content };
   res.json(output);
 }
@@ -43,16 +35,16 @@ export async function getSummary(req: Request, res: Response): Promise<void> {
  * Fetch content of the file located at the URL `url`.
  * @returns null on GitHub API request failure
  */
-async function getFileContent(client: Octokit, url: string): Promise<string | null> {
+async function getFileContent(client: Octokit, url: string, eaveState: EaveRequestState): Promise<string | null> {
   try {
-    return getRawContent(client, url);
-  } catch (error) {
-    eaveLogger.error(error);
+    return getRawContent(client, url, eaveState);
+  } catch (e: any) {
+    eaveLogger.error({ message: e.stack, eaveState });
     return null;
   }
 }
 
-async function getRepositoryByUrl(client: Octokit, url: string): Promise<Repository | null> {
+async function getRepositoryByUrl(client: Octokit, url: string, eaveState: EaveRequestState): Promise<Repository | null> {
   const query = await loadQuery('getResource');
   const variables: {
     resourceUrl: Scalars['URI'],
@@ -62,7 +54,7 @@ async function getRepositoryByUrl(client: Octokit, url: string): Promise<Reposit
 
   const response = await client.graphql<{ resource: Query['resource'] }>(query, variables);
   if (!response.resource) {
-    eaveLogger.warning(`Invalid url: ${url}`, response);
+    eaveLogger.warn({ message: `Invalid url: ${url}`, eaveState });
     // Invalid URL
     return null;
   }
@@ -70,7 +62,7 @@ async function getRepositoryByUrl(client: Octokit, url: string): Promise<Reposit
   // FIXME: This is not guaranteed to be a Repository
   const repository = <Repository>response.resource;
   if (!repository.owner?.login || !repository.name) {
-    eaveLogger.warning(`Resource not a repository: ${url}`, response);
+    eaveLogger.warn({ message: `Resource not a repository: ${url}`, eaveState });
     // Invalid response
     return null;
   }
@@ -78,7 +70,7 @@ async function getRepositoryByUrl(client: Octokit, url: string): Promise<Reposit
   return repository;
 }
 
-async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: URL): Promise<{ refName: string, treePath: string } | null> {
+async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: URL, eaveState: EaveRequestState): Promise<{ refName: string, treePath: string } | null> {
   // Given a path: /owner/repo/tree/...
   // The path segments 4+ (index 3+) are what we're interested in.
   // We'll start with just the first path segment. In many cases, this will be the branch name.
@@ -106,7 +98,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
   // '/owner/repo/tree/some/branch' -> ['', 'owner', 'repo', tree', 'some', 'branch']
   const rest = url.pathname.split('/').slice(4);
   if (rest.length === 0) {
-    eaveLogger.error('invalid url', { url: url.toString() });
+    eaveLogger.error({ message: `invalid url: ${url.toString()}`, eaveState });
     return null;
   }
 
@@ -133,7 +125,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
     /* eslint-disable-next-line */
     const response = await client.graphql<{ repository: Query['repository'] }>(refsQuery, variables);
     if (!response.repository || !response.repository.refs) {
-      eaveLogger.warning(`Invalid url: ${url}`, response);
+      eaveLogger.warn({ message: `Invalid url: ${url}`, eaveState });
       // Invalid URL
       return null;
     }
@@ -141,7 +133,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
     const refRepo = <Repository>response.repository;
     const refs = <Array<Ref>>refRepo.refs?.nodes;
     if (refs.length === 0) {
-      eaveLogger.error('no branches found', response);
+      eaveLogger.error({ message: 'no branches found', eaveState });
       return null;
     }
 
@@ -161,7 +153,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
     }
   }
 
-  eaveLogger.warning('No branches matched', { url: url.toString() });
+  eaveLogger.warn({ message: `No branches matched ${url.toString()}`, eaveState });
   return null;
 }
 
@@ -172,7 +164,7 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
  * NOTE: raw.githubusercontent.com is ratelimitted by IP, not requesting user, so this wont scale far
  * https://github.com/github/docs/issues/8031#issuecomment-881427112
  */
-async function getRawContent(client: Octokit, url: string): Promise<string | null> {
+async function getRawContent(client: Octokit, url: string, eaveState: EaveRequestState): Promise<string | null> {
   const urlComponents = new URL(url);
 
   // Replace /blob/ with /tree/ because the `resource` query doesn't recognize blob URLs.
@@ -180,15 +172,15 @@ async function getRawContent(client: Octokit, url: string): Promise<string | nul
   urlComponents.pathname = urlComponents.pathname.replace(/^\/([^/]+)\/([^/]+)\/blob\//, '/$1/$2/tree/');
   const normalizedUrl = urlComponents.toString();
 
-  const repository = await getRepositoryByUrl(client, normalizedUrl);
+  const repository = await getRepositoryByUrl(client, normalizedUrl, eaveState);
   if (!repository) {
-    eaveLogger.warning(`Repository not found for ${url}`);
+    eaveLogger.warn({ message: `Repository not found for ${url}`, eaveState });
     return null;
   }
 
-  const fileInfo = await getFileInfoFromUrl(client, repository, urlComponents);
+  const fileInfo = await getFileInfoFromUrl(client, repository, urlComponents, eaveState);
   if (!fileInfo) {
-    eaveLogger.warning(`couldn't get file info for ${url}`);
+    eaveLogger.warn({ message: `couldn't get file info for ${url}`, eaveState });
     return null;
   }
 
@@ -208,19 +200,19 @@ async function getRawContent(client: Octokit, url: string): Promise<string | nul
   const response = await client.graphql<{ repository: Query['repository'] }>(contentsQuery, variables);
   const objectRepository = <Repository>response.repository;
   if (!objectRepository) {
-    eaveLogger.warning(`Repository not found for ${url}`);
+    eaveLogger.warn({ message: `Repository not found for ${url}`, eaveState });
     return null;
   }
 
   const gitObject = <Blob>objectRepository.object;
   if (!gitObject) {
-    eaveLogger.warning(`invalid git object for ${url}`);
+    eaveLogger.warn({ message: `invalid git object for ${url}`, eaveState });
     return null;
   }
 
   const fileContent = gitObject.text;
   if (!fileContent) {
-    eaveLogger.warning(`invalid git object for ${url}`);
+    eaveLogger.warn({ message: `invalid git object for ${url}`, eaveState });
     return null;
   }
 

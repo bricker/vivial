@@ -25,6 +25,7 @@ class BaseTestCase(UtilityBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
+        self.eave_ctx = LogContext()
         self.httpclient = AsyncClient(
             app=eave.slack.app.api,
             base_url=app_config.eave_apps_base,
@@ -40,7 +41,8 @@ class BaseTestCase(UtilityBaseTestCase):
                 "thread_ts": self.anystring("message.thread_ts"),
                 "user": self.anystring("message.user"),
             },
-            slack_context=self._data_slack_context,
+            slack_ctx=self._data_slack_context,
+            eave_ctx=self.eave_ctx,
         )
 
         self._data_eave_team = Team(
@@ -86,8 +88,12 @@ class BaseTestCase(UtilityBaseTestCase):
             ),
         )
 
-        self.eave_ctx = LogContext()
-        self.sut = Brain(message=self._data_message, eave_team=self._data_eave_team, ctx=self.eave_ctx)
+        self.sut = Brain(
+            message=self._data_message,
+            eave_team=self._data_eave_team,
+            slack_ctx=self._data_slack_context,
+            eave_ctx=self.eave_ctx,
+        )
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()

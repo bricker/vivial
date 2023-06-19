@@ -20,7 +20,6 @@ exclude = [
   "__pycache__",
   "build",
   "^\\.",
-  "tests",
 ]
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -68,3 +67,11 @@ extend-exclude = [
   ".*",
 ]
 ignore-init-module-imports = true
+
+[tool.coverage.run]
+branch = true
+data_file = ".coverage/data"
+
+[tool.coverage.lcov]
+output = ".coverage/report.lcov"
+

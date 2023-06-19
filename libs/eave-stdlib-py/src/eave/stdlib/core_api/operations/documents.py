@@ -1,7 +1,9 @@
+from typing import Optional
 import uuid
 
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
 from eave.stdlib.core_api.models.documents import DocumentInput
+from eave.stdlib.logging import LogContext
 from . import BaseRequestBody, BaseResponseBody, EndpointConfiguration
 
 from ..models.subscriptions import DocumentReference, DocumentReferenceInput, Subscription
@@ -34,12 +36,14 @@ class UpsertDocument(Endpoint):
         origin: EaveOrigin,
         input: RequestBody,
         team_id: uuid.UUID,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
             input=input,
             team_id=team_id,
+            ctx=ctx,
         )
 
         response_json = await response.json()
@@ -65,12 +69,14 @@ class SearchDocuments(Endpoint):
         origin: EaveOrigin,
         input: RequestBody,
         team_id: uuid.UUID,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
             input=input,
             team_id=team_id,
+            ctx=ctx,
         )
 
         response_json = await response.json()
@@ -95,12 +101,14 @@ class DeleteDocument(Endpoint):
         origin: EaveOrigin,
         input: RequestBody,
         team_id: uuid.UUID,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
             origin=origin,
             input=input,
             team_id=team_id,
+            ctx=ctx,
         )
 
         return cls.ResponseBody(_raw_response=response)

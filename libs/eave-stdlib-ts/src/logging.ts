@@ -1,129 +1,61 @@
-import { Logging, SeverityNames } from '@google-cloud/logging';
+import winston from 'winston';
+import lf from 'logform';
+import { LoggingWinston } from '@google-cloud/logging-winston';
 import { sharedConfig } from './config.js';
 
-// This module defines some basic functionality for switching between console and Cloud Logger, depending on environment.
-// Winston is a more robust solution, but has too many dependencies.
-
-enum LogLevel {
-  debug = 0,
-  info = 1,
-  warn = 2,
-  error = 3,
-}
-
-type LogLevelNames = 'debug' | 'info' | 'warn' | 'error';
-
-const LOG_LEVEL_TO_NAME: {[key:number]: LogLevelNames} = {
-  [LogLevel.debug]: 'debug',
-  [LogLevel.info]: 'info',
-  [LogLevel.warn]: 'warn',
-  [LogLevel.error]: 'error',
-};
-
-const LOG_LEVEL_TO_GCP_SEVERITY_NAME: {[key:number]: SeverityNames} = {
-  [LogLevel.debug]: 'debug',
-  [LogLevel.info]: 'info',
-  [LogLevel.warn]: 'warning',
-  [LogLevel.error]: 'error',
-};
-
-const NAME_TO_LOG_LEVEL: {[key:string]: LogLevel} = {
-  debug: LogLevel.debug,
-  info: LogLevel.info,
-  warn: LogLevel.warn,
-  error: LogLevel.error,
-};
-
-interface Transport {
-  log: (level: LogLevel, data: any, metadata?: {[key:string]: any}) => void;
-}
-
-class ConsoleTransport implements Transport {
-  log(level: LogLevel, data: any, metadata?: {[key:string]: any}) {
-    const severity: LogLevelNames = LOG_LEVEL_TO_NAME[level] || 'info';
-
-    if (typeof data === 'string') {
-      console[severity](data, metadata);
-    } else if (data['message'] !== undefined) {
-      console[severity](data['message'], metadata);
-      console.dir(data, { depth: null });
-    } else {
-      console.dir(data, { depth: null });
-    }
-  }
-}
-
-class CloudLoggingTransport implements Transport {
-  cloudLogger: Logging;
-
-  constructor() {
-    this.cloudLogger = new Logging();
+const customErrorFormatter = winston.format((info: lf.TransformableInfo, _opts?: any): lf.TransformableInfo | boolean => {
+  if (info instanceof Error) {
+    // Example: logger.error(e)
+    // eslint-disable-next-line no-param-reassign
+    info.message = info['stack'];
+  } else if (info.message instanceof Error) {
+    // Example: logger.error(e, { additionalContext: '123' })
+    // eslint-disable-next-line no-param-reassign
+    info.message = info.message['stack'];
   }
 
-  log(level: LogLevel, data: any, metadata?: {[key:string]: any}) {
-    const log = this.cloudLogger.log('eave');
-    const severity: SeverityNames = LOG_LEVEL_TO_GCP_SEVERITY_NAME[level] || 'info';
+  return info;
+});
 
-    const metadataNormalized = metadata || {};
-    metadataNormalized['severity'] = severity.toUpperCase();
-    const entry = log.entry(metadataNormalized, data);
-    // This is an async function, intentionally not being awaited
-    log.write(entry);
-  }
-}
+function createLogger(): winston.Logger {
+  const level = sharedConfig.logLevel.toLowerCase();
+  let logger: winston.Logger;
 
-class EaveLogger {
-  level: LogLevel;
-
-  transport: Transport;
-
-  constructor(level: LogLevel = LogLevel.info) {
-    this.level = level;
-    this.transport = new ConsoleTransport();
-  }
-
-  debug(data: any, metadata?: {[key:string]: any}) {
-    if (this.level > LogLevel.debug) {
-      return;
-    }
-
-    this.transport.log(LogLevel.debug, data, metadata);
-  }
-
-  info(data: any, metadata?: {[key:string]: any}) {
-    if (this.level > LogLevel.info) {
-      return;
-    }
-    this.transport.log(LogLevel.info, data, metadata);
-  }
-
-  warning(data: any, metadata?: {[key:string]: any}) {
-    if (this.level > LogLevel.warn) {
-      return;
-    }
-    this.transport.log(LogLevel.warn, data, metadata);
-  }
-
-  error(data: any, metadata?: {[key:string]: any}) {
-    if (this.level > LogLevel.error) {
-      return;
-    }
-    this.transport.log(LogLevel.error, data, metadata);
-  }
-}
-
-function createLogger() {
-  let logLevel = NAME_TO_LOG_LEVEL[sharedConfig.logLevel.toLowerCase()];
-  if (logLevel === undefined) {
-    logLevel = LogLevel.info;
-  }
-
-  const logger = new EaveLogger(logLevel);
-
+  /*
+  There an issue logging errors that the winston maintainers seemingly have no interest in merging proposed fixes,
+  so that leads us to needing two separate loggers for dev and production.
+  GCP's Winston plugin does its own error formatting.
+  https://github.com/winstonjs/logform/issues/100
+  */
   if (sharedConfig.monitoringEnabled) {
-    // prod
-    // Overwrite the default console logger
-    logger.transport = new CloudLoggingTransport();
+    const loggingWinston = new LoggingWinston({ logName: 'eave' });
+
+    // LoggingWinston does its own formatting
+    logger = winston.createLogger({
+      level,
+      transports: loggingWinston,
+    });
+  } else {
+    const consoleTransport = new winston.transports.Console();
+
+    logger = winston.createLogger({
+      level,
+      format: winston.format.combine(
+        customErrorFormatter(),
+        winston.format.simple(),
+        winston.format.colorize({
+          all: true,
+          colors: {
+            debug: 'grey',
+            info: 'blue',
+            warn: 'yellow',
+            warning: 'yellow',
+            error: 'red',
+          },
+        }),
+      ),
+      transports: consoleTransport,
+    });
   }
 
   return logger;

@@ -84,7 +84,7 @@ class ConnectInstallationOrm(Base):
             lookup = lookup.where(cls.client_key == client_key)
 
         if org_url:
-            lookup = lookup.where(cls.base_url == cls.org_url)
+            lookup = lookup.where(cls.org_url == org_url)
 
         assert lookup.whereclause is not None
         return lookup
@@ -121,9 +121,9 @@ class ConnectInstallationOrm(Base):
         product: AtlassianProduct,
         base_url: str,
         shared_secret: str,
-        atlassian_actor_account_id: Optional[str],
-        display_url: Optional[str],
-        description: Optional[str],
+        atlassian_actor_account_id: Optional[str] = None,
+        display_url: Optional[str] = None,
+        description: Optional[str] = None,
         team_id: Optional[uuid.UUID | str] = None,
     ) -> Self:
         obj = cls(

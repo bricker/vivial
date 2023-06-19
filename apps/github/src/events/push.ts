@@ -1,6 +1,6 @@
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
-import * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, { OpenAIModel, MAX_TOKENS } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
@@ -12,13 +12,30 @@ import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
-  eaveLogger.debug('Processing push', { event, context });
+  const { eaveState, octokit } = context;
+  eaveLogger.debug({ message: 'Processing push', eaveState });
+  const openaiClient = await OpenAIClient.getAuthedClient();
 
   // only handling branch push events for now; ignore tag pushes
   if (!event.ref.startsWith('refs/heads/')) {
-    eaveLogger.debug(`Ignoring event with ref ${event.ref}`);
+    eaveLogger.debug({ message: `Ignoring event with ref ${event.ref}`, eaveState });
     return;
   }
+
+  // fetch eave team id required for core_api requests
+  const installationId = event.installation!.id;
+  const teamResponse = await getGithubInstallation({
+    origin: appConfig.eaveOrigin,
+    input: {
+      github_integration: {
+        github_install_id: `${installationId}`,
+      },
+    },
+  });
+  const eaveTeamId = teamResponse.team.id;
+
+  // get file content so we can document the changes
+  const query = await GraphQLUtil.loadQuery('getFileContents');
 
   // TODO: This event only contains a maximum of 20 commits. Additional commits need to be fetched from the API.
   // Also, this event is not triggered when more than 3 tags are pushed.
@@ -36,18 +53,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         resourceId,
       ].join('#');
 
-      // fetch eave team id required for core_api requests
-      const installationId = event.installation!.id;
-      const teamResponse = await getGithubInstallation({
-        origin: appConfig.eaveOrigin,
-        input: {
-          github_integration: {
-            github_install_id: `${installationId}`,
-          },
-        },
-      });
-      const eaveTeamId = teamResponse.team.id;
-
       // check if we are subscribed to this file
       let subscriptionResponse: GetSubscriptionResponseBody | null = null;
       try {
@@ -64,18 +69,15 @@ export default async function handler(event: PushEvent, context: GitHubOperation
             },
           },
         });
-      } catch (error) {
+      } catch (e: any) {
         // TODO: only catch 404?
-        eaveLogger.error(error);
+        eaveLogger.error({ message: e.stack, eaveState });
         // return;
       }
 
       if (subscriptionResponse === null) {
         return;
       }
-
-      // get file content so we can document the changes
-      const query = await GraphQLUtil.loadQuery('getFileContents');
 
       const variables: {
         repoOwner: Scalars['String'],
@@ -89,7 +91,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         filePath: eventCommitTouchedFilename,
       };
 
-      const fileContentsResponse = await context.octokit.graphql<{ repository: Query['repository'] }>(query, variables);
+      const fileContentsResponse = await octokit.graphql<{ repository: Query['repository'] }>(query, variables);
       const fileContentsRepository = <Repository>fileContentsResponse.repository!;
       const fileContentsCommit = <Commit>fileContentsRepository.object!;
       const fileContentsTreeEntry = <TreeEntry>fileContentsCommit.file!;
@@ -127,20 +129,20 @@ export default async function handler(event: PushEvent, context: GitHubOperation
 
       // NOTE: According to the OpenAI docs, model gpt-3.5-turbo-0301 doesn't pay attention to the system messages,
       // but it seems it's specific to that model, and neither gpt-3.5-turbo or gpt-4 are affected, so watch out
-      const openaiResponse = await openai.createChatCompletion({
+      const openaiResponse = await openaiClient.createChatCompletion({
         messages: [
           { role: 'user', content: prompt },
         ],
-        model: openai.OpenAIModel.GPT4,
-        max_tokens: openai.MAX_TOKENS[openai.OpenAIModel.GPT4],
-      });
+        model: OpenAIModel.GPT4,
+        max_tokens: MAX_TOKENS[OpenAIModel.GPT4],
+      }, eaveState);
 
       const document: DocumentInput = {
         title: `Description of code in ${repositoryName} ${filePath}`,
         content: openaiResponse,
       };
 
-      const upsertDocumentResponse = await upsertDocument({
+      await upsertDocument({
         origin: appConfig.eaveOrigin,
         teamId: eaveTeamId,
         input: {
@@ -148,8 +150,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           subscriptions: [subscriptionResponse.subscription],
         },
       });
-
-      eaveLogger.debug(upsertDocumentResponse);
     }));
   }));
 }

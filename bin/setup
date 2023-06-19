@@ -173,6 +173,25 @@ if ! cmd-exists "jq"; then
 	echo ""
 fi
 
+
+function install-yq() (
+	if cmd-exists "brew"; then
+		brew install yq
+	else
+		statusmsg -e "yq is installed via Homebrew, but it wasn't found in your PATH."
+	fi
+)
+
+if ! cmd-exists "yq"; then
+	statusmsg -pi "The yq program is used (and assumed to be installed) in many utility scripts in this repository."
+	echo -n "Do you want me to install it? [y/n] "
+	read proceed
+	if test "$proceed" = "y"; then
+		install-yq
+	fi
+	echo ""
+fi
+
 function setupapps() (
 	cd ${EAVE_HOME}
 	statusmsg -pi "Setting up shared dev dependencies"

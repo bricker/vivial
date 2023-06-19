@@ -24,6 +24,11 @@
       ],
       "justMyCode": false,
       "consoleTitle": "Core API",
+      "env": {
+        "GAE_SERVICE": "api",
+        "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
+      }
     },
     {
       "name": "Slack App API",
@@ -41,6 +46,10 @@
       ],
       "justMyCode": false,
       "consoleTitle": "Slack App API",
+      "env": {
+        "GAE_SERVICE": "slack",
+        "GAE_VERSION": "dev",
+      }
     },
     {
       "name": "Slack Socket Mode",
@@ -59,7 +68,10 @@
       "justMyCode": true,
       "consoleTitle": "Slack Socket Mode",
       "env": {
-        "SLACK_SOCKETMODE": "1"
+        "SLACK_SOCKETMODE": "1",
+        "GAE_SERVICE": "slack (socketmode)",
+        "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       }
     },
     {
@@ -71,7 +83,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/apps/github/src/app.ts",
+      "program": "${workspaceFolder}/apps/github/server.ts",
       "restart": true,
       "args": [],
       "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
@@ -80,6 +92,9 @@
       "env": {
         "PORT": "5300",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "github",
+        "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       },
     },
     {
@@ -91,12 +106,13 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/apps/confluence/src/app.ts",
+      "program": "${workspaceFolder}/apps/confluence/server.ts",
       "restart": true,
       "args": [
-        "--exec", "pkill -n ngrok || true && ts-node",
+        "--exec", "ts-node",
         "--watch", "${workspaceFolder}/apps/confluence/src",
         "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
+        "--delay", "5",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
       "consoleTitle": "Confluence App",
@@ -104,6 +120,31 @@
       "env": {
         "PORT": "5400",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "confluence",
+        "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
+      },
+    },
+    {
+      "name": "Confluence Tests",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/apps/confluence",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "test",
+      "restart": true,
+      "runtimeExecutable": "npm",
+      "consoleTitle": "Confluence App",
+      "console": "integratedTerminal",
+      "env": {
+        "PORT": "5400",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "confluence",
+        "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       },
     },
     {
@@ -115,10 +156,13 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/apps/jira/src/app.ts",
+      "program": "${workspaceFolder}/apps/jira/server.ts",
       "restart": true,
       "args": [
-        "--exec", "pkill -n ngrok || true && ts-node"
+        "--exec", "ts-node",
+        "--watch", "${workspaceFolder}/apps/jira/src",
+        "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
+        "--delay", "5",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/jira/node_modules/.bin/nodemon",
       "consoleTitle": "Jira App",
@@ -126,6 +170,9 @@
       "env": {
         "PORT": "5500",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GAE_SERVICE": "jira",
+        "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
       },
     },
     {
@@ -146,6 +193,11 @@
       "jinja": true,
       "justMyCode": true,
       "consoleTitle": "Marketing Website (Server)",
+      "env": {
+        "GAE_SERVICE": "www",
+        "GAE_VERSION": "dev",
+        "EAVE_ENV": "development",
+      }
     },
     {
       "name": "Marketing Website (Client)",

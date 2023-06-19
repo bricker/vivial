@@ -17,8 +17,8 @@ class BrainTest(BaseTestCase):
             document_platform=eave.stdlib.core_api.models.team.DocumentPlatform.confluence,
         )
         slack_context = AsyncBoltContext()
-        slack_message = SlackMessage(data={"ts": "123"}, slack_context=slack_context)
-        brain = Brain(message=slack_message, eave_team=eave_team, ctx=self.eave_ctx)
+        slack_message = SlackMessage(data={"ts": "123"}, slack_ctx=slack_context, eave_ctx=self.eave_ctx)
+        brain = Brain(message=slack_message, eave_team=eave_team, slack_ctx=slack_context, eave_ctx=self.eave_ctx)
         assert brain.slack_context == slack_context
         assert brain.message == slack_message
         assert brain.eave_team == eave_team

@@ -3,8 +3,7 @@ import eaveHeaders from '../headers.js';
 import { getEaveState } from '../lib/request-state.js';
 import { developmentBypassAllowed } from './development-bypass.js';
 import { buildMessageToSign } from '../lib/requests.js';
-import { getKey, verifySignatureOrException } from '../signing.js';
-import { HTTPException } from '../exceptions.js';
+import Signing from '../signing.js';
 import eaveLogger from '../logging.js';
 
 /**
@@ -13,31 +12,29 @@ import eaveLogger from '../logging.js';
  * so that it can calculate the expected signature and compare it to the provided signature.
  */
 export function signatureVerification(baseUrl: string): ((req: Request, res: Response, next: NextFunction) => void) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (developmentBypassAllowed(req)) {
-      eaveLogger.warning('Bypassing signature verification in dev environment');
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const eaveState = getEaveState(res);
+    try {
+      await doSignatureVerification(req, res, baseUrl);
       next();
-      return;
-    }
-
-    if (doSignatureVerification(req, res, baseUrl)) {
-      next();
-    } else {
-      const eaveState = getEaveState(res);
-      eaveLogger.warning('signature validation failed', eaveState);
-      res.status(400).end();
-      return;
+    } catch (e: any) {
+      if (developmentBypassAllowed(req)) {
+        eaveLogger.warn({ message: 'Bypassing signature verification in dev environment', eaveState });
+        next();
+      } else {
+        next(e);
+      }
     }
   };
 }
 
-function doSignatureVerification(req: Request, res: Response, baseUrl: string): boolean {
+async function doSignatureVerification(req: Request, res: Response, baseUrl: string): Promise<boolean> {
   const eaveState = getEaveState(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    eaveLogger.warning('Missing Eave signature header', eaveState);
-    res.status(400).end();
+    eaveLogger.warn({ message: 'Missing Eave signature header', eaveState });
+    res.sendStatus(400);
     return false;
   }
 
@@ -64,15 +61,7 @@ function doSignatureVerification(req: Request, res: Response, baseUrl: string): 
     accountId,
   });
 
-  const signingKey = getKey(origin);
-
-  try {
-    verifySignatureOrException(signingKey, message, signature);
-  } catch (error) {
-    const eaveError = <HTTPException>error;
-    eaveLogger.error(eaveError);
-    res.status(eaveError.statusCode).end();
-    return false;
-  }
+  const signing = Signing.new(origin);
+  await signing.verifySignatureOrException(message, signature);
   return true;
 }

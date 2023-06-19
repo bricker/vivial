@@ -1,5 +1,5 @@
 import enum
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 from eave.stdlib.core_api.models import BaseInputModel
@@ -47,6 +47,7 @@ class ConfluenceContentType(enum.StrEnum):
     page = "page"
     blogpost = "blogpost"
     custom = "custom"
+    attachment = "attachment"
 
 
 class ConfluenceContentStatus(enum.StrEnum):
@@ -210,10 +211,10 @@ class ConfluencePage(BaseModel):
     status: str
     title: str
     type: Optional[str]
-    macroRenderedOutput: Optional[JsonObject]
-    extensions: Optional[JsonObject]
-    ancestors: Optional[list[JsonObject]]
-    container: Optional[JsonObject]
+    macroRenderedOutput: Optional[Any]
+    extensions: Optional[Any]
+    ancestors: Optional[list[Any]]
+    container: Optional[Any]
     body: Optional[ConfluencePageBody]
     space: Optional[ConfluenceSpace]
     history: Optional[ConfluencePageHistory]
@@ -241,7 +242,7 @@ class Breadcrumb(BaseModel):
 
 class ConfluenceSearchResultWithBody(BaseModel):
     id: Optional[str | int]
-    type: Optional[ConfluenceContentType]
+    type: Optional[str]
     status: Optional[ConfluenceContentStatus]
     title: Optional[str]
     body: ConfluencePageBody

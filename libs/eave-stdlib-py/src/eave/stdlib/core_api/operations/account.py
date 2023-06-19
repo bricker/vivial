@@ -1,6 +1,8 @@
+from typing import Optional
 import uuid
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Destination, Team
+from eave.stdlib.logging import LogContext
 from . import BaseResponseBody, EndpointConfiguration
 
 from eave.stdlib.eave_origins import EaveOrigin
@@ -25,6 +27,7 @@ class GetAuthenticatedAccount(Endpoint):
         origin: EaveOrigin,
         access_token: str,
         account_id: uuid.UUID,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
@@ -32,6 +35,7 @@ class GetAuthenticatedAccount(Endpoint):
             input=None,
             access_token=access_token,
             account_id=account_id,
+            ctx=ctx,
         )
 
         response_json = await response.json()
@@ -56,6 +60,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
         origin: EaveOrigin,
         access_token: str,
         account_id: uuid.UUID,
+        ctx: Optional[LogContext] = None,
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
@@ -63,6 +68,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
             input=None,
             access_token=access_token,
             account_id=account_id,
+            ctx=ctx,
         )
 
         response_json = await response.json()

@@ -1,3 +1,3 @@
-import { Cache } from '@eave-fyi/eave-stdlib-ts/src/cache.js';
+import { EphemeralCache } from '@eave-fyi/eave-stdlib-ts/src/cache.js';
 
-export default new Cache();
+export default new EphemeralCache();

@@ -3,6 +3,7 @@ import textwrap
 import time
 from dataclasses import asdict, dataclass
 from typing import Any, List, LiteralString, Optional, cast
+import uuid
 
 import openai as openai_sdk
 import openai.error
@@ -19,7 +20,7 @@ from .exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
 tokencoding = tiktoken.get_encoding("gpt2")
 
 
-class DocumentationType(enum.Enum):
+class DocumentationType(enum.StrEnum):
     TECHNICAL = "TECHNICAL"
     PROJECT = "PROJECT"
     TEAM_ONBOARDING = "TEAM_ONBOARDING"
@@ -29,7 +30,7 @@ class DocumentationType(enum.Enum):
 
 def prompt_prefix() -> LiteralString:
     return (
-        "You are Eave, an AI documentation expert. "
+        "You are Eave, a documentation expert. "
         "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
         "You are responsible for the quality and integrity of this organization's documentation.\n\n"
     )
@@ -38,9 +39,10 @@ def prompt_prefix() -> LiteralString:
 STOP_SEQUENCE = "STOP_SEQUENCE"
 
 
-class OpenAIModel(str, enum.Enum):
+class OpenAIModel(enum.StrEnum):
     # ADA_EMBEDDING = "text-embedding-ada-002"
     GPT_35_TURBO = "gpt-3.5-turbo"
+    GPT_35_TURBO_16K = "gpt-3.5-turbo-16k"
     GPT4 = "gpt-4"
     GPT4_32K = "gpt-4-32k"
 
@@ -52,7 +54,7 @@ MAX_TOKENS = {
 }
 
 
-class ChatRole(str, enum.Enum):
+class ChatRole(enum.StrEnum):
     SYSTEM = "system"
     ASSISTANT = "assistant"
     USER = "user"
@@ -122,22 +124,37 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     ensure_api_key()
 
     eave_ctx = LogContext.wrap(ctx)
-    eaveLogger.debug("OpenAI Request", extra=eave_ctx.set({"openai_request_params": params.__dict__}))
+    openai_request_id = str(uuid.uuid4())
+    compiled_params = params.compile()
+    eave_ctx.set(
+        {
+            "openai_request_id": openai_request_id,
+            "openai_request_params": compiled_params,
+        }
+    )
+
+    eaveLogger.debug("OpenAI Request", extra=eave_ctx)
 
     max_attempts = 3
     for i in range(max_attempts):
+        backoffSecs = (i + 1) * 10
+        compiled_params["timeout"] = backoffSecs
+        backoffSecs = i
         try:
-            response = await openai_sdk.ChatCompletion.acreate(**params.compile())
+            response = await openai_sdk.ChatCompletion.acreate(**compiled_params)
             try:
-                eaveLogger.debug("OpenAI Response", extra=eave_ctx.set({"openai_response": response}))
+                eaveLogger.debug(
+                    f"OpenAI Response: {openai_request_id}",
+                    extra=eave_ctx.set({"openai_response": cast(JsonObject, response)}),
+                )
             except Exception:
                 # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
-                eaveLogger.exception("error during logging", extra=eave_ctx)
+                eaveLogger.exception(f"error during logging: {openai_request_id}", extra=eave_ctx)
             break
-        except openai.error.RateLimitError as e:
-            eaveLogger.warning("OpenAI RateLimitError", exc_info=e, extra=eave_ctx)
+        except openai.error.OpenAIError as e:
+            eaveLogger.warning(f"OpenAI Error: {openai_request_id}", exc_info=e, extra=eave_ctx)
             if i + 1 < max_attempts:
-                time.sleep(i + 1)
+                time.sleep(backoffSecs)
     else:
         raise MaxRetryAttemptsReachedError("OpenAI")
 
@@ -147,7 +164,7 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     if len(candidates) > 0:
         choice = candidates[0]
     else:
-        eaveLogger.warning("No valid choices from openAI; using the first result.", extra=eave_ctx)
+        eaveLogger.warning(f"No valid choices from openAI; using the first result. {openai_request_id}", extra=eave_ctx)
         if len(response.choices) > 0:
             choice = response.choices[0]
         else:

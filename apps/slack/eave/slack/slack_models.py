@@ -1,14 +1,14 @@
 import asyncio
 import enum
 import re
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, List, Optional, cast
 
 import eave.pubsub_schemas
 import eave.stdlib.core_api.enums
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, SubscriptionSourcePlatform
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from eave.stdlib.exceptions import SlackDataError
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LogContext, eaveLogger
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
 import slack_sdk.models.blocks
@@ -39,7 +39,8 @@ class _SlackContext:
 
 
 class SlackProfile:
-    _ctx: _SlackContext
+    _eave_ctx: LogContext
+    _slack_ctx: _SlackContext
     title: str
     first_name: str
     last_name: str
@@ -71,8 +72,9 @@ class SlackProfile:
     bot_id: Optional[str]
     """Bot only"""
 
-    def __init__(self, json: dict[str, Any], ctx: _SlackContext, **kwargs: Any) -> None:
-        self._ctx = ctx
+    def __init__(self, json: dict[str, Any], slack_ctx: _SlackContext, eave_ctx: LogContext, **kwargs: Any) -> None:
+        self._slack_ctx = slack_ctx
+        self._eave_ctx = eave_ctx
         self.title = json["title"]
         self.first_name = json["first_name"]
         self.last_name = json["last_name"]
@@ -102,31 +104,33 @@ class SlackProfile:
         self.bot_id = json.get("bot_id")
 
     @classmethod
-    async def get(cls, user_id: str, ctx: _SlackContext) -> Optional["SlackProfile"]:
-        response = await ctx.client.users_profile_get(user=user_id)
+    async def get(cls, user_id: str, slack_ctx: _SlackContext, eave_ctx: LogContext) -> Optional["SlackProfile"]:
+        response = await slack_ctx.client.users_profile_get(user=user_id)
         json = response.get("profile")
         if json is None:
             return None
 
-        profile = cls(json=json, ctx=ctx)
+        profile = cls(json=json, slack_ctx=slack_ctx, eave_ctx=eave_ctx)
         return profile
 
 
 class SlackConversationTopic:
     data: eave.stdlib.typing.JsonObject
-    value: str
-    creator: str
-    last_set: int
+    value: str | None = None
+    creator: str | None = None
+    last_set: int | None = None
 
     def __init__(self, json: eave.stdlib.typing.JsonObject) -> None:
         self.data = json
-        self.value = json["value"]
-        self.creator = json["creator"]
-        self.last_set = json["last_set"]
+
+        self.value = eave_util.erasetype(json, "value")
+        self.creator = eave_util.erasetype(json, "creator")
+        self.last_set = eave_util.erasetype(json, "last_set")
 
 
 class SlackConversation:
-    _ctx: _SlackContext
+    _slack_ctx: _SlackContext
+    _eave_ctx: LogContext
     data: dict[str, Any]
     id: str
     name: str
@@ -158,17 +162,20 @@ class SlackConversation:
     previous_names: list[str]
 
     @classmethod
-    async def get(cls, channel_id: str, ctx: _SlackContext) -> Optional["SlackConversation"]:
-        response = await ctx.client.conversations_info(channel=channel_id)
+    async def get(
+        cls, channel_id: str, slack_ctx: _SlackContext, eave_ctx: LogContext
+    ) -> Optional["SlackConversation"]:
+        response = await slack_ctx.client.conversations_info(channel=channel_id)
         json = response.get("channel")
         if json is None:
             return None
 
-        channel = cls(json=json, ctx=ctx)
+        channel = cls(json=json, slack_ctx=slack_ctx, eave_ctx=eave_ctx)
         return channel
 
-    def __init__(self, json: dict[str, Any], ctx: _SlackContext) -> None:
-        self._ctx = ctx
+    def __init__(self, json: dict[str, Any], slack_ctx: _SlackContext, eave_ctx: LogContext) -> None:
+        self._slack_ctx = slack_ctx
+        self._eave_ctx = eave_ctx
         self.data = json
         self.id = json["id"]
         self.name = json["name"]
@@ -219,14 +226,14 @@ class SlackMessageLinkType(enum.Enum):
 
 
 class SlackReaction:
-    name: Optional[str]
-    users: Optional[list[str]]
-    count: Optional[int]
+    name: Optional[str] = None
+    users: Optional[list[str]] = None
+    count: Optional[int] = None
 
     def __init__(self, data: eave.stdlib.typing.JsonObject) -> None:
-        self.name = data.get("name")
-        self.users = data.get("users")
-        self.count = data.get("count")
+        self.name = eave_util.erasetype(data, "name")
+        self.users = eave_util.erasetype(data, "users")
+        self.count = eave_util.erasetype(data, "count")
 
 
 class SlackPermalink(BaseModel):
@@ -240,7 +247,8 @@ class SlackMessage:
     https://api.slack.com/reference/messaging/payload
     """
 
-    _ctx: _SlackContext
+    _slack_ctx: _SlackContext
+    _eave_ctx: LogContext
 
     event: eave.stdlib.typing.JsonObject
     subtype: Optional[str] = None
@@ -283,30 +291,35 @@ class SlackMessage:
     urls: list[str]
 
     def __init__(
-        self, data: eave.stdlib.typing.JsonObject, slack_context: AsyncBoltContext, channel: Optional[str] = None
+        self,
+        data: eave.stdlib.typing.JsonObject,
+        slack_ctx: AsyncBoltContext,
+        eave_ctx: LogContext,
+        channel: Optional[str] = None,
     ) -> None:
-        self._ctx = _SlackContext(context=slack_context)
+        self._slack_ctx = _SlackContext(context=slack_ctx)
+        self._eave_ctx = eave_ctx
         self.event = data
-        self.subtype = data.get("subtype")
-        self.client_message_id = data.get("client_message_id")
-        self.bot_id = data.get("bot_id")
-        self.app_id = data.get("app_id")
-        self.bot_profile = data.get("bot_profile")
-        self.text = data.get("text")
-        self.user = data.get("user")
-        self.ts = data["ts"]
-        self.edited = data.get("edited")
-        self.channel = channel if channel is not None else data.get("channel")
-        self.blocks = data.get("blocks")
-        self.team = data.get("team")
-        self.thread_ts = data.get("thread_ts")
-        self.reply_count = data.get("reply_count")
-        self.reply_users_count = data.get("reply_users_count")
-        self.latest_reply = data.get("latest_reply")
-        self.reply_users = data.get("reply_users")
-        self.is_locked = data.get("is_locked")
-        self.subscribed = data.get("subscribed")
-        self.reactions = data.get("reactions")
+        self.subtype = eave_util.erasetype(data, "subtype")
+        self.client_message_id = eave_util.erasetype(data, "client_message_id")
+        self.bot_id = eave_util.erasetype(data, "bot_id")
+        self.app_id = eave_util.erasetype(data, "app_id")
+        self.bot_profile = eave_util.erasetype(data, "bot_profile")
+        self.text = eave_util.erasetype(data, "text")
+        self.user = eave_util.erasetype(data, "user")
+        self.ts = cast(str, data["ts"])
+        self.channel = channel if channel is not None else eave_util.erasetype(data, "channel")
+        self.edited = eave_util.erasetype(data, "edited")
+        self.blocks = eave_util.erasetype(data, "blocks")
+        self.team = eave_util.erasetype(data, "team")
+        self.thread_ts = eave_util.erasetype(data, "thread_ts")
+        self.reply_count = eave_util.erasetype(data, "reply_count")
+        self.reply_users_count = eave_util.erasetype(data, "reply_users_count")
+        self.latest_reply = eave_util.erasetype(data, "latest_reply")
+        self.reply_users = eave_util.erasetype(data, "reply_users")
+        self.is_locked = eave_util.erasetype(data, "is_locked")
+        self.subscribed = eave_util.erasetype(data, "subscribed")
+        self.reactions = eave_util.erasetype(data, "reactions")
 
     @property
     def is_bot_message(self) -> bool:
@@ -389,7 +402,7 @@ class SlackMessage:
         if text is not None:
             msg = f"<@{self.user}> {text}"
 
-            await self._ctx.client.chat_postMessage(
+            await self._slack_ctx.client.chat_postMessage(
                 channel=self.channel,
                 text=msg,
                 thread_ts=self.parent_ts,
@@ -398,7 +411,7 @@ class SlackMessage:
             return
 
         if blocks is not None:
-            await self._ctx.client.chat_postMessage(
+            await self._slack_ctx.client.chat_postMessage(
                 channel=self.channel,
                 blocks=blocks,
                 thread_ts=self.parent_ts,
@@ -411,7 +424,7 @@ class SlackMessage:
         if self.ts is None:
             raise SlackDataError("message ts")
 
-        await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
+        await self._slack_ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
 
     async def add_reaction_to_parent(self, name: str) -> None:
         if self.channel is None:
@@ -419,7 +432,7 @@ class SlackMessage:
         if self.ts is None:
             raise SlackDataError("message ts")
 
-        await self._ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.parent_ts)
+        await self._slack_ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.parent_ts)
 
     @eave_util.memoized
     async def check_eave_is_mentioned(self) -> bool:
@@ -434,7 +447,7 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        response = await self._ctx.client.chat_getPermalink(
+        response = await self._slack_ctx.client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.parent_ts,
         )
@@ -452,7 +465,7 @@ class SlackMessage:
         if self.channel is None:
             return None
 
-        response = await self._ctx.client.chat_getPermalink(
+        response = await self._slack_ctx.client.chat_getPermalink(
             channel=self.channel,
             message_ts=self.ts,
         )
@@ -470,7 +483,7 @@ class SlackMessage:
         if self.channel is None:
             raise SlackDataError("channel")
 
-        response = await self._ctx.client.conversations_replies(
+        response = await self._slack_ctx.client.conversations_replies(
             channel=self.channel,
             ts=self.parent_ts,
         )
@@ -480,7 +493,7 @@ class SlackMessage:
             raise SlackDataError("conversation messages")
 
         # FIXME: This seems janky
-        messages_list = [SlackMessage(m, slack_context=self._ctx._context) for m in messages]
+        messages_list = [SlackMessage(m, slack_ctx=self._slack_ctx._context, eave_ctx=self._eave_ctx) for m in messages]
         return messages_list
 
     async def formatted_messages(self) -> AsyncGenerator[str, None]:
@@ -510,7 +523,7 @@ class SlackMessage:
     @eave_util.memoized
     async def get_formatted_message(self) -> str | None:
         if self.is_bot_message:
-            eaveLogger.debug("skipping bot message")
+            eaveLogger.debug("skipping bot message", extra=self._eave_ctx)
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -519,7 +532,7 @@ class SlackMessage:
         )
 
         if expanded_text is None or user_profile is None:
-            eaveLogger.warning("expanded_text or user_profile were None")
+            eaveLogger.warning("expanded_text or user_profile were None", extra=self._eave_ctx)
             return None
 
         formatted_message = f"- Message from {user_profile.real_name}: {expanded_text}\n"
@@ -530,7 +543,7 @@ class SlackMessage:
         if self.user is None:
             return None
 
-        profile = await SlackProfile.get(self.user, ctx=self._ctx)
+        profile = await SlackProfile.get(self.user, slack_ctx=self._slack_ctx, eave_ctx=self._eave_ctx)
         return profile
 
     @eave_util.memoized
@@ -540,7 +553,7 @@ class SlackMessage:
         """
 
         if self.text is None:
-            eaveLogger.warning("slack message text unexpectedly None")
+            eaveLogger.warning("slack message text unexpectedly None", extra=self._eave_ctx)
             return None
 
         await asyncio.gather(
@@ -636,7 +649,7 @@ class SlackMessage:
         user_mentions_dict = dict[str, SlackProfile]()
 
         for user_id in users:
-            profile = await SlackProfile.get(user_id, ctx=self._ctx)
+            profile = await SlackProfile.get(user_id, slack_ctx=self._slack_ctx, eave_ctx=self._eave_ctx)
             if profile is not None:
                 user_mentions.append(profile)
                 user_mentions_dict[user_id] = profile
@@ -653,7 +666,7 @@ class SlackMessage:
         channel_mentions_dict = dict[str, SlackConversation]()
 
         for channel_id in channels:
-            channel = await SlackConversation.get(channel_id, ctx=self._ctx)
+            channel = await SlackConversation.get(channel_id, slack_ctx=self._slack_ctx, eave_ctx=self._eave_ctx)
             if channel is not None:
                 channel_mentions.append(channel)
                 channel_mentions_dict[channel_id] = channel
@@ -737,7 +750,7 @@ class SlackMessage:
     @eave_util.memoized
     async def simple_format(self) -> str | None:
         if self.is_bot_message:
-            eaveLogger.debug("skipping bot message")
+            eaveLogger.debug("skipping bot message", extra=self._eave_ctx)
             return None
 
         expanded_text, user_profile = await asyncio.gather(

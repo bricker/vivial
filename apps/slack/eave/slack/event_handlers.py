@@ -11,7 +11,7 @@ from eave.stdlib import task_queue
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
-from .config import SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
+from .config import EAVE_CTX_KEY, SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
 
 from eave.stdlib.logging import LogContext, eaveLogger
 
@@ -32,7 +32,7 @@ async def error_handler(error: Exception, context: AsyncBoltContext) -> None:
     """
     Called by slack bolt when an exception occurs when running the event handler.
     """
-    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eave_ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
     eaveLogger.error(str(error), exc_info=error, extra=eave_ctx)
 
 
@@ -40,7 +40,7 @@ async def shortcut_eave_watch_request_handler(
     shortcut: Optional[eave.stdlib.typing.JsonObject],
     context: AsyncBoltContext,
 ) -> None:
-    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eave_ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
     eaveLogger.debug("Received event: eave_watch_request (shortcut)", extra=eave_ctx)
 
     if shortcut is None:
@@ -63,7 +63,7 @@ async def shortcut_eave_watch_request_handler(
 
 
 async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext) -> None:
-    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eave_ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
     eaveLogger.debug("Received event: message", extra=eave_ctx)
     if event is None:
         raise SlackDataError("event parameter is missing")
@@ -72,7 +72,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
     if not eave_team:
         raise UnexpectedMissingValue("eave_team")
 
-    message = eave.slack.slack_models.SlackMessage(data=event, slack_context=context)
+    message = eave.slack.slack_models.SlackMessage(data=event, slack_ctx=context, eave_ctx=eave_ctx)
 
     if message.subtype in ["bot_message", "bot_remove", "bot_add"] or message.bot_id is not None:
         # Ignore messages from bots.
@@ -80,7 +80,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
         eaveLogger.debug("ignoring bot message", extra=eave_ctx)
         return
 
-    b = Brain(message=message, eave_team=eave_team, ctx=eave_ctx)
+    b = Brain(message=message, eave_team=eave_team, slack_ctx=context, eave_ctx=eave_ctx)
 
     try:
         await b.process_message()
@@ -126,7 +126,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
 async def event_member_joined_channel_handler(
     event: Optional[eave.stdlib.typing.JsonObject], context: AsyncBoltContext
 ) -> None:
-    eave_ctx = LogContext.wrap(context.get("eave_ctx"))
+    eave_ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
     eaveLogger.debug("Received event: member_joined_channel", extra=eave_ctx)
 
     eave_team = context.get("eave_team")
@@ -149,7 +149,7 @@ async def event_member_joined_channel_handler(
         )
 
         await context.client.chat_postMessage(
-            channel=event["channel"],
+            channel=str(event["channel"]),
             text=message,
         )
 
@@ -164,6 +164,7 @@ async def event_member_joined_channel_handler(
                 "message_purpose": "introduction after joining a channel",
                 "eave_ctx": eave_ctx,
             },
+            ctx=eave_ctx,
         )
     else:
         eaveLogger.warning("No Slack client available in the Slack context.", extra=eave_ctx)
@@ -176,6 +177,7 @@ async def event_member_joined_channel_handler(
         opaque_params={
             "eave_ctx": eave_ctx,
         },
+        ctx=eave_ctx,
     )
 
 

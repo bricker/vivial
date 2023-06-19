@@ -1,7 +1,7 @@
 import typing
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Any, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 import eave.stdlib
@@ -15,7 +15,8 @@ from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.account import AuthProvider
 
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LogContext, eaveLogger
+from eave.stdlib.typing import JsonObject
 
 from .base import Base
 from .team import TeamOrm
@@ -45,7 +46,7 @@ class AccountOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     visitor_id: Mapped[Optional[UUID]] = mapped_column()
-    opaque_utm_params: Mapped[Optional[eave.stdlib.typing.JsonObject]] = mapped_column(JSONB)
+    opaque_utm_params: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     """Opaque, JSON-encoded utm params."""
     auth_provider: Mapped[AuthProvider] = mapped_column()
     """3rd party login provider"""
@@ -67,7 +68,7 @@ class AccountOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         visitor_id: Optional[UUID],
-        opaque_utm_params: Optional[eave.stdlib.typing.JsonObject],
+        opaque_utm_params: Optional[JsonObject],
         auth_provider: AuthProvider,
         auth_id: str,
         access_token: str,
@@ -135,7 +136,7 @@ class AccountOrm(Base):
         return result
 
     async def verify_oauth_or_exception(
-        self, session: AsyncSession, log_context: Optional[eave.stdlib.typing.JsonObject] = None
+        self, session: AsyncSession, ctx: Optional[LogContext] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
@@ -172,7 +173,7 @@ class AccountOrm(Base):
                 raise
 
     async def refresh_oauth_token(
-        self, session: AsyncSession, log_context: Optional[eave.stdlib.typing.JsonObject] = None
+        self, session: AsyncSession, ctx: Optional[LogContext] = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
@@ -188,7 +189,7 @@ class AccountOrm(Base):
                 if (access_token := new_tokens.get("access_token")) and (
                     refresh_token := new_tokens.get("refresh_token")
                 ):
-                    eaveLogger.debug("Refreshing Slack auth tokens.", extra=log_context)
+                    eaveLogger.debug("Refreshing Slack auth tokens.", extra=ctx)
                     self.access_token = access_token
                     self.refresh_token = refresh_token
                     return True
@@ -198,7 +199,7 @@ class AccountOrm(Base):
             case AuthProvider.google:
                 # The google client automatically refreshes the access token and updates the Credentials object,
                 # So we always update the token values in the database any time the Credentials are used.
-                await self.verify_oauth_or_exception(session=session, log_context=log_context)
+                await self.verify_oauth_or_exception(session=session, ctx=ctx)
                 return True
             case AuthProvider.atlassian:
                 return True

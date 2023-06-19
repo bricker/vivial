@@ -17,7 +17,7 @@ from starlette.endpoints import HTTPEndpoint
 
 from eave.stdlib.logging import LogContext
 from .. import slack_app
-from ..config import TASK_EXECUTION_COUNT_CONTEXT_KEY
+from ..config import EAVE_CTX_KEY, TASK_EXECUTION_COUNT_CONTEXT_KEY
 
 
 # https://cloud.google.com/tasks/docs/creating-appengine-handlers
@@ -56,7 +56,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
             request,
             addition_context_properties={
                 TASK_EXECUTION_COUNT_CONTEXT_KEY: task_execution_count,
-                "eave_ctx": self._ctx,
+                EAVE_CTX_KEY: self._ctx,
             },
         )
 
