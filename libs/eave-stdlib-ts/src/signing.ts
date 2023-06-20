@@ -21,6 +21,9 @@ type SigningKeyDetails = {
   algorithm: SigningAlgorithm;
 }
 
+// map from a SigningKeyDetails "hash" to a PEM string
+const PUBLIC_KEYS_CACHE: { [key: string]: string } = {};
+
 const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
   [EaveOrigin.eave_api]: {
     id: 'eave-api-signing-key',
@@ -193,6 +196,48 @@ export default class Signing {
       // convert from buffer to b64 string
       signatureString = Buffer.from(signature).toString('base64');
     }
+
+    const pem = await this.getPublicKey(this.signingKey);
+
+    let isVerified = false;
+
+    switch (this.signingKey.algorithm) {
+      case SigningAlgorithm.RS256: {
+        const verify = createVerify('RSA-SHA256');
+        verify.update(message);
+        verify.end();
+        isVerified = verify.verify(
+          { key: pem, padding: RSA_PKCS1_PADDING },
+          signatureString,
+          'base64',
+        );
+        break;
+      }
+      case SigningAlgorithm.ES256: {
+        // Algorithm for our keys is EC_SIGN_P256_SHA256
+        const verify = createVerify('sha256');
+        verify.update(message);
+        verify.end();
+        isVerified = verify.verify(pem, signatureString, 'base64');
+        break;
+      }
+      default:
+        throw new InvalidSignatureError(`Unsupported algorithm: ${this.signingKey.algorithm}`);
+    }
+
+    if (!isVerified) {
+      throw new InvalidSignatureError('Signature failed verification');
+    }
+    return isVerified;
+  }
+
+  /**
+   * Makes a network request to Google KMS to fetch the
+   * public key associated with `sigining_key`.
+   * @param signingKey 
+   * @returns a public key PEM file content
+   */
+  private async fetchPublicKey(signingKey: SigningKeyDetails): Promise<string> {
     const kmsClient = new KeyManagementServiceClient();
 
     const keyVersionName = kmsClient.cryptoKeyVersionPath(
@@ -211,35 +256,24 @@ export default class Signing {
       throw new InvalidSignatureError('KMS public key was unexpectedly null');
     }
 
-    let isVerified = false;
+    return kmsPublicKey.pem;
+  }
 
-    switch (this.signingKey.algorithm) {
-      case SigningAlgorithm.RS256: {
-        const verify = createVerify('RSA-SHA256');
-        verify.update(message);
-        verify.end();
-        isVerified = verify.verify(
-          { key: kmsPublicKey.pem, padding: RSA_PKCS1_PADDING },
-          signatureString,
-          'base64',
-        );
-        break;
-      }
-      case SigningAlgorithm.ES256: {
-        // Algorithm for our keys is EC_SIGN_P256_SHA256
-        const verify = createVerify('sha256');
-        verify.update(message);
-        verify.end();
-        isVerified = verify.verify(kmsPublicKey.pem, signatureString, 'base64');
-        break;
-      }
-      default:
-        throw new InvalidSignatureError(`Unsupported algorithm: ${this.signingKey.algorithm}`);
+  /**
+   * Get the public key PEM associated with `signing_key`,
+   * or from an in-memory cache if previously computed.
+   * 
+   * @param signingKey 
+   * @returns a public key PEM file content
+   */
+  private async getPublicKey(signingKey: SigningKeyDetails): Promise<string> {
+    const cacheKey = `${signingKey.id}${signingKey.version}${signingKey.algorithm.toString()}`;
+    if (PUBLIC_KEYS_CACHE[cacheKey] !== undefined) {
+      return PUBLIC_KEYS_CACHE[cacheKey]!;
     }
-
-    if (!isVerified) {
-      throw new InvalidSignatureError('Signature failed verification');
-    }
-    return isVerified;
+    const result = await this.fetchPublicKey(signingKey);
+    PUBLIC_KEYS_CACHE[cacheKey] = result;
+    return result;
   }
 }
+
