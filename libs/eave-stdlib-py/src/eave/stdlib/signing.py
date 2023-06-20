@@ -36,6 +36,8 @@ class SigningKeyDetails:
         return hash(id(self))
 
 
+_PUBLIC_KEYS_CACHE: dict[SigningKeyDetails, PUBLIC_KEY_TYPES] = {}
+
 _SIGNING_KEYS = {
     EaveOrigin.eave_api.value: SigningKeyDetails(
         id="eave-api-signing-key",
@@ -186,10 +188,11 @@ def _fetch_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
 
 def get_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
     """
-    Get the public key PEM associated with `signing_key`
-    from an in-memory cache.
+    Get the public key PEM associated with `signing_key`,
+    or from an in-memory cache if previously computed.
     """
-    return _PUBLIC_KEYS[signing_key]
-
-
-_PUBLIC_KEYS = {signing_key: _fetch_public_key(signing_key) for signing_key in _SIGNING_KEYS.values()}
+    if signing_key in _PUBLIC_KEYS_CACHE:
+        return _PUBLIC_KEYS_CACHE[signing_key]
+    result = _fetch_public_key(signing_key)
+    _PUBLIC_KEYS_CACHE[signing_key] = result
+    return result
