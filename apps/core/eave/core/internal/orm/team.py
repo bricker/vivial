@@ -120,7 +120,7 @@ class TeamOrm(Base):
             .filter(TeamOrm.id == self.id)
         )
 
-        # contains up to 2 rows:
+        # should contain up to 2 rows:
         # 1 w/ jira connectinstall and other w/ confluence connectinstall (other column data is same)
         query_res: Sequence[
             Row[
@@ -133,7 +133,13 @@ class TeamOrm(Base):
                 ]
             ]
         ] = (await session.execute(query)).all()
-        assert len(query_res) <= 2, "Expected 2 or fewer rows of results from joined installations table"
+
+        if len(query_res) > 2:
+            # getting more than 2 results means our db structure has changed meaningfully,
+            # without this code being updated
+            eaveLogger.warning(
+                "Expected 2 or fewer rows of results from joined installations table, got %s", len(query_res)
+            )
 
         slack_install: Optional[SlackInstallationOrm] = None
         github_install: Optional[GithubInstallationOrm] = None
@@ -145,10 +151,10 @@ class TeamOrm(Base):
             """
             Helper function to validate data consistency assumptions
             """
-            if curr:
-                assert (
-                    curr == next
-                ), "Violation of assumption that integrations join table columns have the same values across rows"
+            if curr and not (curr == next):
+                eaveLogger.error(
+                    "Violation of assumption that integrations join table columns have the same values across rows"
+                )
 
         for results_row in query_res:
             # we dont care about TeamOrm that is first in unpacking, so we ignore with _
