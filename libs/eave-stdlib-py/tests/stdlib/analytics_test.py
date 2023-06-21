@@ -13,7 +13,6 @@ mut = analytics.__name__
 
 
 class AnalyticsTest(UtilityBaseTestCase):
-    @override
     def mock_analytics(self) -> None:
         # The base class mocks out analytics because we want it mocked out for every other test, except these ones.
         pass
