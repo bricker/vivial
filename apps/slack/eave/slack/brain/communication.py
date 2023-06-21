@@ -32,7 +32,7 @@ class CommunicationMixin(Base):
             text="I wasn't able to complete the request because of a technical issue. I've let my developers know about it. I can try again if you want, just repeat the request!",
             eave_message_purpose="inform the user of a failure while processing a request",
             opaque_params={
-                "request_id": e.request_id if isinstance(e, HTTPException) else None,
+                "eave_request_id": e.request_id if isinstance(e, HTTPException) else None,
             },
         )
 
@@ -50,7 +50,7 @@ class CommunicationMixin(Base):
                     await self._add_reaction(name=reaction)
                 except SlackApiError as e:
                     # Failed twice; give up
-                    eaveLogger.warning("unable to react to message, giving up", exc_info=e, extra=self.eave_ctx)
+                    eaveLogger.warning(e, self.eave_ctx)
                     return
             else:
                 # Error was something else; do nothing.
@@ -76,8 +76,8 @@ class CommunicationMixin(Base):
                 # this is expected sometimes, not a problem.
                 return
             elif error_code == "invalid_name":
-                eaveLogger.warning(f"reaction {name} doesn't exist in workspace", exc_info=e, extra=self.eave_ctx)
+                eaveLogger.warning(e, self.eave_ctx)
                 raise
             else:
-                eaveLogger.exception(f"Error reacting to message: {e}", exc_info=e, extra=self.eave_ctx)
+                eaveLogger.exception(e, self.eave_ctx)
                 raise

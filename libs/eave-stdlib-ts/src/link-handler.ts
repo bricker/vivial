@@ -2,7 +2,7 @@ import * as githubClient from './github-api/client.js';
 import { LinkType } from './core-api/enums.js';
 import { Pair } from './types.js';
 import eaveLogger from './logging.js';
-import { RequestArgsOriginAndTeamId } from './lib/requests.js';
+import { RequestArgsOriginAndTeamId } from './requests.js';
 import { Subscription } from './core-api/models/subscriptions.js';
 
 // mapping from link type to regex for matching raw links against

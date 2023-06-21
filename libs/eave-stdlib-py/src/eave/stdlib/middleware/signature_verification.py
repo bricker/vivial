@@ -30,14 +30,14 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             return
 
         body = await self.read_body(scope=scope, receive=receive)
-
-        with self.auto_eave_state(scope=scope) as eave_state:
-            self._do_signature_verification(scope=scope, body=body, eave_state=eave_state)
+        self._do_signature_verification(scope=scope, body=body)
 
         await self.app(scope, receive, send)
 
     @staticmethod
-    def _do_signature_verification(scope: HTTPScope, body: bytes, eave_state: EaveRequestState) -> None:
+    def _do_signature_verification(scope: HTTPScope, body: bytes) -> None:
+        eave_state = EaveRequestState.load(scope=scope)
+
         signature = get_header_value(scope=scope, name=EAVE_SIGNATURE_HEADER)
         if not signature:
             # reject None or empty strings
@@ -50,14 +50,14 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
         message = build_message_to_sign(
             method=scope["method"],
             url=makeurl(scope["path"]),
-            request_id=unwrap(eave_state.request_id),
-            origin=unwrap(eave_state.eave_origin),
+            request_id=eave_state.ctx.eave_request_id,
+            origin=unwrap(eave_state.ctx.eave_origin),
             team_id=team_id_header,
             account_id=account_id_header,
             payload=payload,
         )
 
-        signing_key = signing.get_key(signer=unwrap(eave_state.eave_origin))
+        signing_key = signing.get_key(signer=unwrap(eave_state.ctx.eave_origin))
 
         signing.verify_signature_or_exception(
             signing_key=signing_key,

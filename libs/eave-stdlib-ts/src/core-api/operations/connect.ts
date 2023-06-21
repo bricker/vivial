@@ -1,6 +1,6 @@
 import { Team } from '../models/team.js';
 import { ConnectInstallation, QueryConnectInstallationInput, RegisterConnectInstallationInput } from '../models/connect.js';
-import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
+import { RequestArgsOrigin, makeRequest } from '../../requests.js';
 import { sharedConfig } from '../../config.js';
 
 export type RegisterConnectInstallationRequestBody = {

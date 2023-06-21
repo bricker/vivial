@@ -60,7 +60,7 @@ class CommunicationMixinTest(BaseTestCase):
         assert self.logged_event(
             event_name="eave_sent_message",
             opaque_params={
-                "request_id": self.getstr("request id"),
+                "eave_request_id": self.getstr("request id"),
             },
         )
 
@@ -76,7 +76,7 @@ class CommunicationMixinTest(BaseTestCase):
         assert self.logged_event(
             event_name="eave_sent_message",
             opaque_params={
-                "request_id": None,
+                "eave_request_id": None,
             },
         )
 

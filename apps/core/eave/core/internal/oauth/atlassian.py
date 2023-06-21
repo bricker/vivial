@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import cache
 from typing import cast
 
-import eave.stdlib
+import eave.stdlib.typing
 import eave.stdlib.atlassian
 import requests_oauthlib
 from oauthlib.oauth2 import OAuth2Token
@@ -107,7 +107,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             url=f"{self.api_base_url}/rest/api/user/current",
         )
 
-        userinfo = ConfluenceUser(**response.json())
+        userinfo = ConfluenceUser(response.json())
         return userinfo
 
     @property

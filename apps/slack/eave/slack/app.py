@@ -1,4 +1,4 @@
-import eave.stdlib.api_util as eave_api_util
+from eave.stdlib.endpoints import StatusRoute
 import eave.stdlib.requests
 import eave.stdlib.time
 from starlette.applications import Starlette
@@ -21,7 +21,7 @@ routes = [
     Mount(
         "/slack",
         routes=[
-            eave_api_util.StatusRoute,
+            StatusRoute,
             Route("/events", SlackEventCallbackHandler, methods=["POST"]),
         ],
         # TODO: Add mounts for API with signature & origin verification

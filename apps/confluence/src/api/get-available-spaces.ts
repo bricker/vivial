@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
 import { GetAvailableSpacesResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
-import ConfluenceClient from '../confluence-client.js';
+import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
+import { ConfluenceClientArg } from './util.js';
 
-export default async function getAvailableSpaces({ res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
+export default async function getAvailableSpaces({ res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
   const spaces = await confluenceClient.getSpaces();
 
   const responseBody: GetAvailableSpacesResponseBody = {

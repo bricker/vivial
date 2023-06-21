@@ -13,12 +13,12 @@ import eave.stdlib.api_util as eave_api_util
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.stdlib.request_state import get_eave_state
+from eave.stdlib.request_state import EaveRequestState
 
 
 class QueryConnectIntegrationEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = get_eave_state(request=request)
+        eave_state = EaveRequestState.load(request=request)
         body = await request.json()
         input = QueryConnectIntegrationRequest.RequestBody.parse_obj(body)
 
@@ -33,7 +33,7 @@ class QueryConnectIntegrationEndpoint(HTTPEndpoint):
             if not installation:
                 eaveLogger.warning(
                     f"{input.connect_integration.product} Integration not found",
-                    extra=eave_state.log_context,
+                    eave_state.ctx,
                 )
                 return Response(status_code=http.HTTPStatus.NOT_FOUND)
 
@@ -63,6 +63,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
     """
 
     async def post(self, request: Request) -> Response:
+        eave_state = EaveRequestState.load(request=request)
         body = await request.json()
         input = RegisterConnectIntegrationRequest.RequestBody.parse_obj(body)
 
@@ -119,6 +120,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                             "atlassian_site_description": integration.description,
                             "atlassian_actor_account_id": integration.atlassian_actor_account_id,
                         },
+                        ctx=eave_state.ctx,
                     )
                 else:
                     analytics.log_event(
@@ -132,6 +134,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                             "atlassian_site_description": integration.description,
                             "atlassian_actor_account_id": integration.atlassian_actor_account_id,
                         },
+                        ctx=eave_state.ctx,
                     )
 
             else:
@@ -153,6 +156,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                         "atlassian_site_description": integration.description,
                         "atlassian_actor_account_id": integration.atlassian_actor_account_id,
                     },
+                    ctx=eave_state.ctx,
                 )
 
             if eave_team_id:

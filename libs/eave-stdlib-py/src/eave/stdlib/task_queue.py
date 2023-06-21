@@ -3,7 +3,7 @@ import json
 from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request
-import eave.stdlib
+import eave.stdlib.signing as signing
 import eave.stdlib.requests
 from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.headers import (
@@ -101,7 +101,7 @@ async def create_task(
     # Slack already sets this for the incoming event request, but setting it here too to be explicit.
     headers["content-type"] = "application/json"
 
-    request_id = ctx.request_id
+    request_id = ctx.eave_request_id
     signature_message = eave.stdlib.requests.build_message_to_sign(
         method="POST",
         origin=origin.value,
@@ -112,7 +112,7 @@ async def create_task(
         account_id=None,
     )
 
-    signature = eave.stdlib.signing.sign_b64(signing_key=eave.stdlib.signing.get_key(origin), data=signature_message)
+    signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_REQUEST_ID_HEADER] = request_id
@@ -149,13 +149,11 @@ async def create_task(
 
     eaveLogger.debug(
         f"Creating task on queue {queue_name}",
-        extra=ctx.set(
-            {
-                "task_name": task_name,
-                "queue_name": parent,
-                "eave_headers": JsonObject(headers),
-            }
-        ),
+        ctx,
+        {
+            "task_name": task_name,
+            "queue_name": parent,
+        }
     )
 
     t = await client.create_task(parent=parent, task=task)

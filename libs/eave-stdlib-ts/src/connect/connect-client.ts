@@ -6,6 +6,7 @@ import eaveLogger, { LogContext } from '../logging.js';
 import { queryConnectInstallation } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveOrigin } from '../eave-origins.js';
+import { CtxArg } from '../requests.js';
 
 export type RequestOpts = CoreOptions & UrlOptions;
 
@@ -16,7 +17,8 @@ export default class ConnectClient {
     origin,
     teamId,
     clientKey,
-  }: {
+    ctx,
+  }: CtxArg & {
     req: Request,
     addon: AddOn,
     product: AtlassianProduct,
@@ -27,6 +29,7 @@ export default class ConnectClient {
     if (!clientKey) {
       const connectIntegrationResponse = await queryConnectInstallation({
         origin,
+        ctx,
         input: {
           connect_integration: {
             product,

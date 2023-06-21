@@ -2,9 +2,10 @@ import http
 from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
-from eave.stdlib import cache, shared_config
+from eave.stdlib.config import shared_config
+import eave.stdlib.cache as cache
 from ..config import app_config
-from eave.stdlib import eaveLogger
+from eave.stdlib.logging import eaveLogger
 
 
 class WarmupRequest(HTTPEndpoint):

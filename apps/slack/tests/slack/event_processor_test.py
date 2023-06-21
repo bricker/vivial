@@ -4,7 +4,7 @@ import unittest.mock
 
 from starlette.responses import Response
 import eave.stdlib.requests
-import eave.stdlib
+import eave.stdlib.signing
 from eave.stdlib.eave_origins import EaveOrigin
 from .base import BaseTestCase
 

@@ -2,7 +2,7 @@
 DEPRECATED: This module has been replaced by eave.stdlib.confluence_api.models
 """
 from dataclasses import dataclass
-from typing import Optional, cast
+from typing import Optional
 
 from eave.stdlib.util import erasetype
 

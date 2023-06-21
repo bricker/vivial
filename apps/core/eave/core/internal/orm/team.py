@@ -5,7 +5,7 @@ from eave.core.internal.document_client import DocumentClient
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-import eave.stdlib
+import eave.stdlib.util
 from sqlalchemy import Select, false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship

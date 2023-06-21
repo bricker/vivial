@@ -1,63 +1,64 @@
 import http
 from typing import Any, Callable, Mapping
 
-import eave.stdlib
+import eave.stdlib.api_util
+import eave.stdlib.cookies
 import pydantic
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.stdlib import request_state
 from eave.stdlib.core_api.models.error import ErrorResponse
 from eave.stdlib.logging import eaveLogger
+from eave.stdlib.request_state import EaveRequestState
 
 
 def internal_server_error(request: Request, exc: Exception) -> Response:
-    eave_state = request_state.get_eave_state(request=request)
-    eaveLogger.error(exc, eave_state.log_context)
+    eave_state = EaveRequestState.load(request=request)
+    eaveLogger.error(exc, eave_state.ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-        context=eave_state.public_request_context,
+        context=eave_state.ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def not_found(request: Request, exc: Exception) -> Response:
-    eave_state = request_state.get_eave_state(request=request)
-    eaveLogger.warning(exc, eave_state.log_context)
+    eave_state = EaveRequestState.load(request=request)
+    eaveLogger.warning(exc, eave_state.ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.NOT_FOUND,
         error_message=http.HTTPStatus.NOT_FOUND.phrase,
-        context=eave_state.public_request_context,
+        context=eave_state.ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def bad_request(request: Request, exc: Exception) -> Response:
-    eave_state = request_state.get_eave_state(request=request)
-    eaveLogger.warning(exc, eave_state.log_context)
+    eave_state = EaveRequestState.load(request=request)
+    eaveLogger.warning(exc, eave_state.ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.BAD_REQUEST,
         error_message=http.HTTPStatus.BAD_REQUEST.phrase,
-        context=eave_state.public_request_context,
+        context=eave_state.ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def unauthorized(request: Request, exc: Exception) -> Response:
-    eave_state = request_state.get_eave_state(request=request)
-    eaveLogger.warning(exc, eave_state.log_context)
+    eave_state = EaveRequestState.load(request=request)
+    eaveLogger.warning(exc, eave_state.ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.UNAUTHORIZED,
         error_message=http.HTTPStatus.UNAUTHORIZED.phrase,
-        context=eave_state.public_request_context,
+        context=eave_state.ctx.public,
     )
     response = eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
     eave.stdlib.cookies.delete_auth_cookies(response=response)
@@ -65,16 +66,16 @@ def unauthorized(request: Request, exc: Exception) -> Response:
 
 
 def validation_error(request: Request, exc: Exception) -> Response:
-    eave_state = request_state.get_eave_state(request=request)
-    eaveLogger.warning(exc, eave_state.log_context)
+    eave_state = EaveRequestState.load(request=request)
+    eaveLogger.warning(exc, eave_state.ctx)
 
     if isinstance(exc, pydantic.ValidationError):
-        eave_state.public_request_context["validation_errors"] = exc.json()
+        eave_state.ctx.public["validation_errors"] = exc.json()
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY,
         error_message="validation errors",
-        context=eave_state.public_request_context,
+        context=eave_state.ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)

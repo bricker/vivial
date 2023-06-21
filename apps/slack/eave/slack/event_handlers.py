@@ -6,7 +6,8 @@ from google.cloud.tasks import Queue
 import eave.pubsub_schemas
 from eave.slack.brain.core import Brain
 import eave.slack.slack_models
-import eave.stdlib
+import eave.stdlib.typing
+import eave.stdlib.analytics
 from eave.stdlib import task_queue
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue

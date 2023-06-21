@@ -1,11 +1,9 @@
 import http
-import uuid
 from slack_bolt.async_app import AsyncBoltRequest
 from slack_bolt.response import BoltResponse
 from slack_sdk.signature import SignatureVerifier
-from eave.stdlib import eaveLogger
 import eave.stdlib.eave_origins as eave_origins
-from eave.stdlib.logging import LogContext
+from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.task_queue import create_task_from_request
 from slack_bolt.adapter.starlette.async_handler import to_async_bolt_request
 from starlette.requests import Request
@@ -25,10 +23,9 @@ class SlackEventCallbackHandler(HTTPEndpoint):
     _ctx: LogContext
 
     async def post(self, request: Request) -> Response:
-        request_id = str(uuid.uuid4())
-        self._ctx = LogContext().set({"request_id": request_id, "slack_headers": dict(request.headers)})
+        self._ctx = LogContext(request.scope)
 
-        eaveLogger.info("Request: POST /slack/events", extra=self._ctx)
+        eaveLogger.info("Request: POST /slack/events", self._ctx)
 
         default_success_response = Response(status_code=http.HTTPStatus.OK)
         self._request = request
@@ -45,7 +42,7 @@ class SlackEventCallbackHandler(HTTPEndpoint):
 
         # Replacement for RequestVerification Middleware
         if not self._is_signature_valid():
-            eaveLogger.warning("Invalid Slack signature", extra=self._ctx)
+            eaveLogger.warning("Invalid Slack signature", self._ctx)
             # Returning success response for two reasons:
             # 1. So Slack doesn't retry the request
             # 2. So bad actors don't know if/why the request failed.
@@ -56,7 +53,7 @@ class SlackEventCallbackHandler(HTTPEndpoint):
         # The AsyncSlackRequestHandler does this, but doing it here avoids queueing any tasks that we know will be
         # rejected.
         if not await self._is_watched_event():
-            eaveLogger.debug("Ignoring unmatched Slack event", extra=self._ctx)
+            eaveLogger.debug("Ignoring unmatched Slack event", self._ctx)
             return default_success_response
 
         self._bolt_request = to_async_bolt_request(req=self._request, body=self._raw_body)

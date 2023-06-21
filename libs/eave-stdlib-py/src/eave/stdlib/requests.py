@@ -13,6 +13,7 @@ from . import signing
 from .logging import LogContext, eaveLogger
 from .config import shared_config
 
+
 async def make_request(
     url: str,
     origin: EaveOrigin,
@@ -25,7 +26,7 @@ async def make_request(
     ctx: Optional[LogContext] = None,
 ) -> aiohttp.ClientResponse:
     ctx = LogContext.wrap(ctx)
-    request_id = ctx.request_id
+    request_id = ctx.eave_request_id
 
     headers: dict[str, str] = {
         eave_headers.CONTENT_TYPE: "application/json",
@@ -98,7 +99,7 @@ async def make_request(
         f"Eave Client Response: {request_id}: {method} {url}",
         ctx,
         request_params,
-        { "status": response.status },
+        {"status": response.status},
     )
 
     response.raise_for_status()
