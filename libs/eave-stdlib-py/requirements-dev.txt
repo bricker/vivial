@@ -1,4 +1,4 @@
 -e ${EAVE_HOME}/libs/eave-pubsub-schemas/python
--e .
+-e ${EAVE_HOME}/libs/eave-stdlib-py
 pytest
 types-redis
