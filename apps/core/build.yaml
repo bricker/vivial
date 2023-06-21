@@ -2,7 +2,22 @@ steps:
 - name: python:3.11.2
   dir: apps/core
   entrypoint: python
-  args: ['-m', 'pip', 'install', '--user', '-r', 'requirements.txt', '-r', 'requirements-dev.txt', '-r', '$_EAVE_HOME/develop/python/requirements-dev.txt']
+  args:
+  - '-m'
+  - 'pip'
+  - 'install'
+  - '--user'
+  - '-r'
+  - 'requirements.txt'
+  - '-r'
+  - 'requirements-dev.txt'
+  - '-r'
+  - '$_EAVE_HOME/develop/python/requirements-dev.txt'
+  - '-r'
+  - '$_EAVE_HOME/libs/eave-stdlib-py/requirements-dev.txt'
+  - '-r'
+  - '$_EAVE_HOME/libs/eave-pubsub-schemas/requirements-dev.txt'
+
   env:
   - EAVE_HOME=$_EAVE_HOME
   - CI=1
