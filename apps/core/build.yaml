@@ -22,29 +22,29 @@ steps:
   args: ['-m', 'alembic', 'upgrade', 'head']
   env:
   - EAVE_HOME=$_EAVE_HOME
-
-- name: ubuntu
-  dir: apps/core
-  entrypoint: $EAVE_HOME/develop/shared/bin/setup-deployment-workspace
-  env:
-  - EAVE_HOME=$_EAVE_HOME
-
-- name: python
-  dir: $EAVE_HOME/.build/core
-  entrypoint: python
-  args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
-
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  dir: $EAVE_HOME/.build/core
-  entrypoint: 'bash'
-  args: ['-c', 'gcloud', 'app', 'deploy', '--version=${REF_NAME}', '--appyaml=app.${PROJECT_ID}.yaml']
-  env:
-  - "GOOGLE_CLOUD_PROJECT='$PROJECT_ID'"
   secretEnv:
   - EAVE_DB_HOST
   - EAVE_DB_USER
   - EAVE_DB_PASS
   - EAVE_DB_NAME
+
+- name: ubuntu
+  dir: apps/core
+  entrypoint: $_EAVE_HOME/develop/shared/bin/setup-deployment-workspace
+  env:
+  - EAVE_HOME=$_EAVE_HOME
+
+- name: python
+  dir: $_EAVE_HOME/.build/core
+  entrypoint: python
+  args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
+
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  dir: $_EAVE_HOME/.build/core
+  entrypoint: 'bash'
+  args: ['-c', 'gcloud', 'app', 'deploy', '--version=${REF_NAME}', '--appyaml=app.${PROJECT_ID}.yaml']
+  env:
+  - "GOOGLE_CLOUD_PROJECT='$PROJECT_ID'"
 
 availableSecrets:
   secretManager:
