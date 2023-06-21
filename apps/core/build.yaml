@@ -1,24 +1,24 @@
 steps:
-- name: python
+- name: python:3.11.2
   dir: apps/core
   entrypoint: python
   args: ['-m', 'pip', 'install', '-r', 'requirements.txt', '-r', 'requirements-dev.txt']
   env:
   - EAVE_HOME=$_EAVE_HOME
 
-- name: python
+- name: python:3.11.2
   dir: apps/core
   entrypoint: 'bin/lint'
   env:
   - EAVE_HOME=$_EAVE_HOME
 
-- name: python
+- name: python:3.11.2
   dir: apps/core
   entrypoint: 'bin/test'
   env:
   - EAVE_HOME=$_EAVE_HOME
 
-- name: python
+- name: python:3.11.2
   dir: apps/core
   entrypoint: python
   args: ['-m', 'alembic', 'upgrade', 'head']
@@ -36,7 +36,7 @@ steps:
   env:
   - EAVE_HOME=$_EAVE_HOME
 
-- name: python
+- name: python:3.11.2
   dir: $_EAVE_HOME/.build/core
   entrypoint: python
   args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
