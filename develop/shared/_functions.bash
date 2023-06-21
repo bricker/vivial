@@ -64,7 +64,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		if command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
+		if test -z "${CI:-}" && command -v tput >/dev/null; then
 			case $msgtype in
 			off) ;;
 
