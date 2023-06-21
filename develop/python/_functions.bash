@@ -10,14 +10,17 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function python-activate-venv () {
-		ved=${EAVE_HOME}/.venv
-		if ! test -d $ved
+		if test -z "${CI:-}"
 		then
-			statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
-			exit 1
-		fi
+			ved=${EAVE_HOME}/.venv
+			if ! test -d $ved
+			then
+				statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
+				exit 1
+			fi
 
-		source $ved/bin/activate
+			source $ved/bin/activate
+		fi
 	}
 
 	function python-lint () (
