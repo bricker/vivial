@@ -1,5 +1,12 @@
 steps:
 - name: python:3.11.2
+  entrypoint: python
+  args: ['-m', 'venv', '--clear', '.venv']
+  env:
+  - EAVE_HOME=$_EAVE_HOME
+  - CI=1
+
+- name: python:3.11.2
   dir: apps/core
   entrypoint: python
   args: ['-m', 'pip', 'install', '-r', 'requirements.txt', '-r', 'requirements-dev.txt']
@@ -42,12 +49,12 @@ steps:
   - CI=1
 
 - name: python:3.11.2
-  dir: $_EAVE_HOME/.build/core
+  dir: .build/core
   entrypoint: python
   args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
 
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  dir: $_EAVE_HOME/.build/core
+  dir: .build/core
   entrypoint: 'bash'
   args: ['-c', 'gcloud', 'app', 'deploy', '--version=${REF_NAME}', '--appyaml=app.${PROJECT_ID}.yaml']
   env:
