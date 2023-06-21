@@ -27,10 +27,6 @@ steps:
   args: ['-m', 'alembic', 'upgrade', 'head']
   env:
   - EAVE_HOME=$_EAVE_HOME
-  - EAVE_DB_HOST=$$EAVE_DB_HOST
-  - EAVE_DB_USER=$$EAVE_DB_USER
-  - EAVE_DB_PASS=$$EAVE_DB_PASS
-  - EAVE_DB_NAME=$$EAVE_DB_NAME
   - CI=1
   secretEnv:
   - EAVE_DB_HOST
