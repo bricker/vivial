@@ -2,16 +2,7 @@ steps:
 - name: python
   dir: apps/core
   entrypoint: python
-  args: ['-m', 'pip', 'install', '-r', 'requirements.txt']
-  env:
-  - EAVE_HOME=/workspace
-
-- name: python
-  dir: apps/core
-  entrypoint: python
-  args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
-  env:
-  - EAVE_HOME=/workspace
+  args: ['-m', 'pip', 'install', '-r', 'requirements.txt', '-r', 'requirements-dev.txt']
 
 - name: python
   dir: apps/core
@@ -32,10 +23,21 @@ steps:
   env:
   - EAVE_HOME=/workspace
 
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+- name: ubuntu
   dir: apps/core
+  entrypoint: $EAVE_HOME/develop/shared/bin/setup-deployment-workspace
+  env:
+  - EAVE_HOME=/workspace
+
+- name: python
+  dir: $EAVE_HOME/.build/core
+  entrypoint: python
+  args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
+
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  dir: $EAVE_HOME/.build/core
   entrypoint: 'bash'
-  args: ['-c', 'gcloud', 'app', 'deploy', '--version=${REF_NAME}']
+  args: ['-c', 'gcloud', 'app', 'deploy', '--version=${REF_NAME}', '--appyaml=app.${PROJECT_ID}.yaml']
   env:
   - "GOOGLE_CLOUD_PROJECT='$PROJECT_ID'"
   secretEnv:
