@@ -9,7 +9,7 @@ steps:
 - name: python:3.11.2
   dir: apps/core
   entrypoint: python
-  args: ['-m', 'pip', 'install', '-r', 'requirements.txt', '-r', 'requirements-dev.txt']
+  args: ['-m', 'pip', 'install', '-r', 'requirements.txt', '-r', 'requirements-dev.txt', '-r', '$_EAVE_HOME/develop/python/requirements-dev.txt']
   env:
   - EAVE_HOME=$_EAVE_HOME
   - CI=1
