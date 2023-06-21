@@ -54,6 +54,8 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
+		local _cc_reset=""
+
 		if test -z "$CI" && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
 			local _cc_black=0
 			local _cc_red=1
@@ -63,7 +65,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			local _cc_magenta=5
 			local _cc_cyan=6
 			local _cc_white=7
-			local _cc_reset=$(tput sgr0)
+			_cc_reset=$(tput sgr0)
 
 			case $msgtype in
 			off) ;;
