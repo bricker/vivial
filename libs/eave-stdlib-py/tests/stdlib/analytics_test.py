@@ -1,7 +1,6 @@
 import json
 import time
 from typing import Any
-from typing_extensions import override
 import unittest.mock
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
