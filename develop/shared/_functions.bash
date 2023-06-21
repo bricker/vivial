@@ -15,16 +15,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			EOS
 		"
 
-		local _cc_black=0
-		local _cc_red=1
-		local _cc_green=2
-		local _cc_yellow=3
-		local _cc_blue=4
-		local _cc_magenta=5
-		local _cc_cyan=6
-		local _cc_white=7
-		local _cc_reset=$(tput sgr0)
-
 		local msgtype="info"
 		local noprefix=""
 		local nonewline=""
@@ -64,7 +54,18 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		if test -z "${CI:-}" && command -v tput >/dev/null; then
+		if command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
+
+			local _cc_black=0
+			local _cc_red=1
+			local _cc_green=2
+			local _cc_yellow=3
+			local _cc_blue=4
+			local _cc_magenta=5
+			local _cc_cyan=6
+			local _cc_white=7
+			local _cc_reset=$(tput sgr0)
+
 			case $msgtype in
 			off) ;;
 
