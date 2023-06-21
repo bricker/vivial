@@ -1,7 +1,41 @@
 steps:
+- name: python
+  dir: apps/core
+  entrypoint: python
+  args: ['-m', 'pip', 'install', '-r', 'requirements.txt']
+  env:
+  - EAVE_HOME=/workspace
+
+- name: python
+  dir: apps/core
+  entrypoint: python
+  args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
+  env:
+  - EAVE_HOME=/workspace
+
+- name: python
+  dir: apps/core
+  entrypoint: 'bin/lint'
+  env:
+  - EAVE_HOME=/workspace
+
+- name: python
+  dir: apps/core
+  entrypoint: 'bin/test'
+  env:
+  - EAVE_HOME=/workspace
+
+- name: python
+  dir: apps/core
+  entrypoint: python
+  args: ['-m', 'alembic', 'upgrade', 'head']
+  env:
+  - EAVE_HOME=/workspace
+
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   dir: apps/core
-  entrypoint: 'bin/deploy -p $PROJECT_ID'
+  entrypoint: 'bash'
+  args: ['-c', 'gcloud', 'app', 'deploy', '--version=${REF_NAME}']
   env:
   - "GOOGLE_CLOUD_PROJECT='$PROJECT_ID'"
   secretEnv:
@@ -9,6 +43,7 @@ steps:
   - EAVE_DB_USER
   - EAVE_DB_PASS
   - EAVE_DB_NAME
+
 availableSecrets:
   secretManager:
   - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_HOST/versions/latest
@@ -19,4 +54,5 @@ availableSecrets:
     env: 'EAVE_DB_PASS'
   - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_NAME/versions/latest
     env: 'EAVE_DB_NAME'
+
 timeout: '1600s'
