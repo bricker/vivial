@@ -8,26 +8,26 @@ steps:
   dir: apps/core
   entrypoint: 'bin/lint'
   env:
-  - EAVE_HOME=/workspace
+  - EAVE_HOME=$_EAVE_HOME
 
 - name: python
   dir: apps/core
   entrypoint: 'bin/test'
   env:
-  - EAVE_HOME=/workspace
+  - EAVE_HOME=$_EAVE_HOME
 
 - name: python
   dir: apps/core
   entrypoint: python
   args: ['-m', 'alembic', 'upgrade', 'head']
   env:
-  - EAVE_HOME=/workspace
+  - EAVE_HOME=$_EAVE_HOME
 
 - name: ubuntu
   dir: apps/core
   entrypoint: $EAVE_HOME/develop/shared/bin/setup-deployment-workspace
   env:
-  - EAVE_HOME=/workspace
+  - EAVE_HOME=$_EAVE_HOME
 
 - name: python
   dir: $EAVE_HOME/.build/core
