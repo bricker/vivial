@@ -1,5 +1,5 @@
 if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
-	function statusmsg() {
+	function statusmsg() (
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE
 			Options:
@@ -64,7 +64,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		if command -v tput >/dev/null; then
+		if command -v tput >/dev/null && test -v TERM; then
 			case $msgtype in
 			off) ;;
 
@@ -120,7 +120,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			echo -en "$prefix$msg$_cc_reset"
 		fi
 		return 0
-	}
+	)
 
 	function shellname() {
 		echo -n "$(basename $SHELL)"
@@ -324,42 +324,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 	function verbose () {
 		test -n "${VERBOSE:-}"
-	}
-
-	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
-	function setup-deployment-workspace () {
-		local builddir=$EAVE_HOME/.build
-		local appname=$(basename $PWD)
-		mkdir -p $builddir
-		rm -rf $builddir/$appname
-
-		local vflag=""
-		if verbose; then
-			vflag="-v"
-		fi
-
-		rsync -a $vflag \
-			--exclude='.git' \
-			--exclude 'node_modules' \
-			--exclude '.yalc' \
-			--exclude 'vendor' \
-			--exclude 'dist' \
-			--exclude '.venv' \
-			--exclude '.ruff_cache' \
-			--exclude '.mypy_cache' \
-			--exclude '__pycache__' \
-			--exclude '*.pyc' \
-			$PWD $builddir
-
-		cd $builddir/$appname && \
-		cp $EAVE_HOME/.gitignore . && \
-		cp $EAVE_HOME/.gcloudignore .
-	}
-
-	function clean-deployment-workspace () {
-		local builddir=$EAVE_HOME/.build
-		local appname=$(basename $PWD)
-		rm -r $builddir/$appname
 	}
 
 	_SHARED_FUNCTIONS_LOADED=1
