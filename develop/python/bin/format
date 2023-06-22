@@ -3,6 +3,12 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-format $(~parentpath)
-${EAVE_HOME}/libs/eave-stdlib-py/bin/format
-${EAVE_HOME}/libs/eave-pubsub-schemas/python/bin/format
+
+function run() (
+	python-format $(~parentpath)
+	python-format .
+	${EAVE_HOME}/libs/eave-stdlib-py/bin/format
+	${EAVE_HOME}/libs/eave-pubsub-schemas/python/bin/format
+)
+
+run

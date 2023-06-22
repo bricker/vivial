@@ -2,4 +2,11 @@
 
 set -eu
 
-${EAVE_HOME}/develop/javascript/bin/lint
+source ${EAVE_HOME}/develop/functions.bash
+
+function run () (
+	cd $(~parentpath)
+	${EAVE_HOME}/develop/javascript/bin/lint
+)
+
+run

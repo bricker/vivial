@@ -3,6 +3,12 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-lint $(~parentpath)
-${EAVE_HOME}/libs/eave-stdlib-py/bin/lint
-${EAVE_HOME}/libs/eave-pubsub-schemas/python/bin/lint
+
+function run() (
+	python-lint $(~parentpath)
+	python-lint .
+	${EAVE_HOME}/libs/eave-stdlib-py/bin/lint
+	${EAVE_HOME}/libs/eave-pubsub-schemas/python/bin/lint
+)
+
+run

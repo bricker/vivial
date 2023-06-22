@@ -33,7 +33,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		cd $target
-		local logtarget=$(~eave-pwd)
+		local logtarget=$(~eavepwd)
 
 		statusmsg -in "Linting $logtarget (js/ts)"
 		npx eslint --max-warnings=0 .
@@ -52,7 +52,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		cd $target
-		local logtarget=$(~eave-pwd)
+		local logtarget=$(~eavepwd)
 
 		statusmsg -in "Formatting $logtarget (js/ts)"
 		npx eslint . --fix

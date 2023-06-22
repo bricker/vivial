@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
 
+bashversion=$BASH_VERSINFO
+
+if test $BASH_VERSINFO -lt 5; then
+	echo "ERROR: Bash version 5 or higher is required to run Eave development scripts."
+	echo "Your version is $bashversion"
+	echo "On macOS, you can use Homebrew to install a more recent version of bash. Try 'brew install bash'."
+	echo "On other operating systems, use your standard package management, eg 'sudo apt install bash'."
+	exit 1
+fi
+
 if test -z "${EAVE_HOME}"; then
 	export EAVE_HOME=$(pwd)
 fi
 
 source ${EAVE_HOME}/develop/functions.bash
 
-statusmsg -ps "Hi! Welcome to Eave. I will help you setup this repository."
-statusmsg -i "Before getting started, it is recommended to install the "nvm" and "pyenv" version management tools into your environment."
-
-echo ""
+function ~ask () (
+	statusmsg -wpn "Should I proceed? [y/n] "
+	read proceed
+	test "$proceed" = "y"
+)
 
 usershell=$(shellname)
 kernel=$(get-kernel-name)
@@ -17,198 +28,225 @@ opsys=$(get-os)
 tmpdir=/tmp/eave-setup
 mkdir -p $tmpdir
 
-case $usershell in
-"bash" | "zsh")
-	loginfile=$(shloginfile)
-	varcmd="export EAVE_HOME=\"$(pwd)\""
-	statusmsg -pi "First, I'll add the following line to $loginfile:"
-	echo ""
-	statusmsg -o "\t$varcmd"
-	echo ""
-
-	echo -n "Should I proceed? [y/n] "
-	read proceed
-	if test "$proceed" = "y"; then
-		echo -e "\n$varcmd" >>"$loginfile"
+function setenvvars () (
+	if test -n "$XDG_CONFIG_HOME"; then
+		statusmsg -i "XDG_CONFIG_HOME already set."
+	else
+		local value="\$HOME/.config"
+		statusmsg -pa "Adding XDG_CONFIG_HOME to your environment."
+		statusmsg -i "XDG_CONFIG_HOME is a standard environment variable that many programs use to store configuration."
+		echo "\t$value"
+		if ~ask; then
+			~add-shell-variable XDG_CONFIG_HOME "$value"
+		fi
 	fi
 
-	statusmsg "Updating current shell to set EAVE_HOME"
-	source "$loginfile"
-	;;
-"fish")
-	varcmd="set -Ux EAVE_HOME $(pwd)"
-	statusmsg -pi "First, I'll add a Universal variable to your Fish environment with the following command:"
-	echo ""
-	echo -e "\t$varcmd"
-	echo ""
-
-	echo -n "Should I proceed? [y/n] "
-	read proceed
-	if test "$proceed" = "y"; then
-		fish -c "$varcmd"
+	if test -n "$XDG_DATA_HOME"; then
+		statusmsg -i "XDG_DATA_HOME already set."
+	else
+		local value="\$HOME/.local/share"
+		statusmsg -pa "Adding XDG_DATA_HOME to your environment."
+		statusmsg -i "XDG_DATA_HOME is a standard environment variable that many programs use to store data."
+		echo "\t$value"
+		if ~ask; then
+			~add-shell-variable XDG_DATA_HOME "$value"
+		fi
 	fi
-	;;
-*)
-	statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
-	;;
-esac
 
-echo ""
+	if test -n "$XDG_RUNTIME_DIR"; then
+		statusmsg -i "XDG_RUNTIME_DIR already set."
+	else
+		local value="/run/user/1000"
+		statusmsg -pa "Adding XDG_RUNTIME_DIR to your environment."
+		statusmsg -i "XDG_RUNTIME_DIR is a standard environment variable that many programs use to store Unix sockets."
+		echo "\t$value"
+		if ~ask; then
+			~add-shell-variable XDG_RUNTIME_DIR "$value"
+		fi
+	fi
+
+	if test -n "$EAVE_HOME"; then
+		statusmsg -i "EAVE_HOME already set."
+	else
+		local value="$(pwd)"
+		statusmsg -pa "Adding EAVE_HOME to your environment."
+		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
+		echo "\t$value"
+		if ~ask; then
+			~add-shell-variable EAVE_HOME "$value"
+		fi
+	fi
+)
 
 function setuppython() (
-	if ! cmd-exists pyenv; then
-		pythonversion="$(python --version)"
-		pythonpath="$(which python)"
-		statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
-		statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
-		statusmsg -w "I did not find pyenv, so I will proceed with the available python executable ($pythonpath)."
-	else
-		pyenv install -s
-		pyenv version
+	statusmsg -pa "Setting up Python virtual environment"
+	if ~ask; then
+		if ! cmd-exists pyenv; then
+			pythonversion="$(python --version)"
+			pythonpath="$(which python)"
+			statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
+			statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
+			statusmsg -w "I did not find pyenv, so I will proceed with the available python executable ($pythonpath)."
+		else
+			pyenv install -s
+			pyenv version
+		fi
+
+		python -m venv --clear --upgrade-deps $EAVE_HOME/.venv
+		python-activate-venv
 	fi
-
-	python -m venv --clear --upgrade-deps .venv
-	python-activate-venv
 )
-
-statusmsg -pi "Next, I will setup the python virtual environment."
-echo -n "Should I proceed? [y/n] "
-read proceed
-if test "$proceed" = "y"; then
-	setuppython
-fi
-echo ""
 
 function setupgcloud() (
-	cd $tmpdir
-
-	local gcloudversion="426.0.0"
-	local arch=$(get-cpu-arch-normalized)
-	local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
-	curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename
-	tar -xf $filename
-	mv google-cloud-sdk $HOME
-	cd $HOME
-	./google-cloud-sdk/install.sh
-	gcloud auth application-default login
+	if cmd-exists "gcloud"; then
+		statusmsg -i "gcloud CLI already installed."
+	else
+		statusmsg -pa "Downloading and installing the gcloud CLI into $HOME/google-cloud-sdk."
+		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
+		if ~ask; then
+			cd $tmpdir
+			local gcloudversion="426.0.0"
+			local arch=$(get-cpu-arch-normalized)
+			local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
+			curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename
+			tar -xf $filename
+			mv google-cloud-sdk $HOME
+			cd $HOME
+			./google-cloud-sdk/install.sh
+			gcloud auth application-default login
+		fi
+	fi
 )
-
-statusmsg -pi "OK! Now I'm going to download and install the gcloud CLI into $HOME/google-cloud-sdk."
-echo -n "Should I proceed? [y/n] "
-read proceed
-if test "$proceed" = "y"; then
-	setupgcloud
-fi
-echo ""
 
 function setupcloudsqlproxy() (
-	cd $tmpdir
-
-	if cmd-exists "gcloud"; then
-		cloudsqlproxypath=$(dirname $(which gcloud))
+	if cmd-exists "cloud-sql-proxy"; then
+		statusmsg -i "CloudSQL Proxy already installed."
 	else
-		cloudsqlproxypath="/usr/local/bin"
-	fi
+		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
+		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
+		if ~ask; then
+			cd $tmpdir
+			if cmd-exists "gcloud"; then
+				cloudsqlproxypath=$(dirname $(which gcloud))
+			else
+				cloudsqlproxypath="/usr/local/bin"
+			fi
 
-	local proxyversion="2.2.0"
-	local arch=$(get-cpu-arch-normalized-alt)
+			local proxyversion="2.2.0"
+			local arch=$(get-cpu-arch-normalized-alt)
 
-	curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch
-	# see if we got an error back instead of binary content
-	if test "$(head -n1 cloud-sql-proxy | cut -c 3-5)" = "xml"; then
-		statusmsg -e "Error downloading cloud-sql-proxy:"
-		cat cloud-sql-proxy
-		rm cloud-sql-proxy
-		return
-	fi
-	chmod +x cloud-sql-proxy
+			curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch
+			# see if we got an error back instead of binary content
+			if test "$(head -n1 cloud-sql-proxy | cut -c 3-5)" = "xml"; then
+				statusmsg -e "Error downloading cloud-sql-proxy:"
+				cat cloud-sql-proxy
+				rm cloud-sql-proxy
+				return 1
+			fi
+			chmod +x cloud-sql-proxy
 
-	statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
-	sudo mv cloud-sql-proxy $cloudsqlproxypath
-)
-
-statusmsg -pi "Now I'll download and install the Cloud SQL Proxy for your system."
-echo -n "Should I proceed? [y/n] "
-read proceed
-if test "$proceed" = "y"; then
-	setupcloudsqlproxy
-fi
-echo ""
-
-function install-jq() (
-	case "$kernel" in
-	"linux")
-		case "$opsys" in
-		"ubuntu")
-			statusmsg -w "sudo privileges are needed to install jq via apt"
-			sudo apt install jq
-			;;
-		"manjarolinux")
-			statusmsg -w "sudo privileges are needed to install jq via pacman"
-			sudo pacman -S jq
-			;;
-		*)
-			statusmsg -e "Your operating system isn't supported. Please add support to this script!"
-			;;
-		esac
-		;;
-
-	"darwin")
-		if cmd-exists "brew"; then
-			brew install jq
-		else
-			statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
+			statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
+			sudo mv cloud-sql-proxy $cloudsqlproxypath
 		fi
-		;;
-	esac
+	fi
 )
 
-if ! cmd-exists "jq"; then
-	statusmsg -pi "The jq program is used (and assumed to be installed) in many utility scripts in this repository."
-	echo -n "Do you want me to install it? [y/n] "
-	read proceed
-	if test "$proceed" = "y"; then
-		install-jq
-	fi
-	echo ""
-fi
-
-
-function install-yq() (
-	if cmd-exists "brew"; then
-		brew install yq
+function installjq() (
+	if cmd-exists "jq"; then
+		statusmsg -i "jq already installed."
 	else
-		statusmsg -e "yq is installed via Homebrew, but it wasn't found in your PATH."
+		statusmsg -pa "Installing the 'jq' command line utility."
+		statusmsg -i "The jq program is used in many utility scripts in this repository."
+
+		if ~ask; then
+			case "$kernel" in
+			"linux")
+				case "$opsys" in
+				"ubuntu")
+					statusmsg -w "sudo privileges are needed to install jq via apt"
+					sudo apt install jq
+					;;
+				"manjarolinux")
+					statusmsg -w "sudo privileges are needed to install jq via pacman"
+					sudo pacman -S jq
+					;;
+				*)
+					statusmsg -e "Your operating system $opsys isn't supported. Please add support to this script!"
+					;;
+				esac
+				;;
+
+			"darwin")
+				if cmd-exists "brew"; then
+					brew install jq
+				else
+					statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
+				fi
+				;;
+			esac
+		fi
 	fi
 )
 
-if ! cmd-exists "yq"; then
-	statusmsg -pi "The yq program is used (and assumed to be installed) in many utility scripts in this repository."
-	echo -n "Do you want me to install it? [y/n] "
-	read proceed
-	if test "$proceed" = "y"; then
-		install-yq
+function installyq() (
+	if cmd-exists "yq"; then
+		statusmsg -i "yq already installed."
+	else
+		statusmsg -pa "Installing the 'yq' command line utility."
+		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
+
+		if ~ask; then
+			if cmd-exists "brew"; then
+				brew install yq
+			else
+				statusmsg -e "yq is installed via Homebrew, but it wasn't found in your PATH."
+				statusmsg -e "Install homebrew and re-run this script, or install 'yq' manually (it may be available in your operating system's package repositories)."
+			fi
+		fi
 	fi
-	echo ""
-fi
+)
 
 function setupapps() (
-	cd ${EAVE_HOME}
-	statusmsg -pi "Setting up shared dev dependencies"
-	(cd ${EAVE_HOME}/develop/javascript/es-config/ && bin/setup)
+	statusmsg -pa "Running setup scripts in develop, libs, and apps."
 
-	python-activate-venv
-	python -m pip install --quiet -r develop/requirements-dev.txt
-	run-in-all-projects bin/setup
+	if ~ask; then
+		cd ${EAVE_HOME}
+		python-activate-venv
+		node-activate-venv
+
+		for ss in $(find develop -type f -name setup); do
+			statusmsg -i "Running $ss"
+			$ss
+		done
+
+		for ss in $(find libs -type f -name setup); do
+			statusmsg -i "Running $ss"
+			$ss
+		done
+
+		for ss in $(find apps -type f -name setup); do
+			statusmsg -i "Running $ss"
+			$ss
+		done
+	fi
 )
 
-statusmsg -pi "Next, I'm going to visit each of the app and lib directories and run the setup script for each one."
-echo -n "Should I proceed? [y/n] "
-read proceed
-if test "$proceed" = "y"; then
-	setupapps
-fi
+
+statusmsg -ps "Hi! Welcome to Eave. I will help you setup this repository."
+statusmsg -i "Before getting started, it is recommended to manually install a few things if you haven't already:"
+statusmsg -i "* homebrew - https://brew.sh/"
+statusmsg -i "* nvm - https://github.com/nvm-sh/nvm (sh) or https://github.com/jorgebucaran/nvm.fish (fish)"
+statusmsg -i "* pyenv - https://github.com/pyenv/pyenv node version management.  and "pyenv" version management tools into your environment."
+
 echo ""
+
+setenvvars
+setuppython
+setupgcloud
+setupcloudsqlproxy
+installjq
+installyq
+setupapps
 
 statusmsg -s "Done!"
 statusmsg -i "Now, open EAVE_HOME (this directory) in VSCode and you're ready to go. (Hint: try \`code .\`)"

@@ -7,6 +7,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				-n : no [n]ewline - Do not emit a newline after the message (same as echo -n)
 				-d : [d]ebug
 				-i : [i]nfo (default)
+				-a : [a]ttention (aka notice)
 				-w : [w]arn
 				-e : [e]rror
 				-s : [s]uccess
@@ -20,12 +21,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		local nonewline=""
 		local OPTIND OPTARG argname
 
-		while getopts "odiwesnph" argname
+		while getopts "odiawesnph" argname
 		do
 			case "$argname" in
 				o) msgtype="off";;
 				d) msgtype="debug";;
 				i) msgtype="info";;
+				a) msgtype="notice";;
 				w) msgtype="warn";;
 				e) msgtype="error";;
 				s) msgtype="success";;
@@ -85,6 +87,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				EOC
 				;;
 
+			notice)
+				tput -S <<-EOC
+					setaf $_cc_magenta
+					rev
+				EOC
+				;;
+
 			warn)
 				tput -S <<-EOC
 					setaf $_cc_yellow
@@ -137,8 +146,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			echo -n ~/.zshrc
 			;;
 		*)
-			statusmsg -e "Shell $usershell not supported. Please add support!"
-			return 1
+			return 0
 			;;
 		esac
 	}
@@ -257,10 +265,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function add-shell-variable() {
+	function ~add-shell-variable() {
 		local varname=$1
 		local value=$2
 		local usershell=$(shellname)
+		local varcmd="export $varname=\"$value\""
 
 		case $usershell in
 		"bash" | "zsh")
@@ -271,22 +280,21 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				return 0
 			fi
 
-			local varcmd="export $varname=\"$value\""
 			echo -e "\n$varcmd" >>"$loginfile"
-			source "$loginfile"
 			;;
 		"fish")
-			varcmd="set -Ux $varname $value"
 			if fish -c "set -q $varname"; then
 				statusmsg -w "variable $varname already set in fish environment."
 				return 0
 			fi
-			fish -c "$varcmd"
+			fish -c "set -Ux $varname $value"
 			;;
 		*)
 			statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
 			;;
 		esac
+
+		$varcmd
 	}
 
 	function run-with-dotenv() (
@@ -328,6 +336,43 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		test -n "${VERBOSE:-}"
 	)
 
+
+	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
+	function setup-deployment-workspace () {
+		local builddir=$EAVE_HOME/.build
+		local appname=$(basename $PWD)
+		mkdir -p $builddir
+		rm -rf $builddir/$appname
+
+		local vflag=""
+		if verbose; then
+			vflag="-v"
+		fi
+
+		rsync -a $vflag \
+			--exclude='.git' \
+			--exclude 'node_modules' \
+			--exclude '.yalc' \
+			--exclude 'vendor' \
+			--exclude 'dist' \
+			--exclude '.venv' \
+			--exclude '.ruff_cache' \
+			--exclude '.mypy_cache' \
+			--exclude '__pycache__' \
+			--exclude '*.pyc' \
+			$PWD $builddir
+
+		cd $builddir/$appname && \
+		cp $EAVE_HOME/.gitignore . && \
+		cp $EAVE_HOME/.gcloudignore .
+	}
+
+	function clean-deployment-workspace () {
+		local builddir=$EAVE_HOME/.build
+		local appname=$(basename $PWD)
+		rm -r $builddir/$appname
+	}
+
 	# Returns the absolute path to the dir of the program currently running
 	function ~abspath () (
 		cd $(dirname $0) && pwd -P
@@ -337,8 +382,8 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		cd $(dirname $0)/.. && pwd -P
 	)
 
-	function ~eave-pwd () (
-		echo -n ${PWD#"$EAVE_HOME"}
+	function ~eavepwd () (
+		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
 	)
 
 	_SHARED_FUNCTIONS_LOADED=1

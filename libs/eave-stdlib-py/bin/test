@@ -3,4 +3,9 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-test $(~parentpath)
+
+function run () (
+	python-test $(~parentpath)
+)
+
+run

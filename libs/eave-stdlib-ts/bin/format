@@ -3,4 +3,9 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-node-format $(~parentpath)
+
+function run () (
+	node-format $(~parentpath)
+)
+
+run

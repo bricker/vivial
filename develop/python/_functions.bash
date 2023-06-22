@@ -38,7 +38,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		cd $target
-		local logtarget=$(~eave-pwd)
+		local logtarget=$(~eavepwd)
 
 		statusmsg -in "Linting $logtarget (py)"
 		python -m ruff $qflag --config=$configfile .
@@ -60,7 +60,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		cd $target
-		local logtarget=$(~eave-pwd)
+		local logtarget=$(~eavepwd)
 
 		statusmsg -in "Formatting $logtarget (py)"
 		python -m ruff $qflag --fix --config=$configfile .

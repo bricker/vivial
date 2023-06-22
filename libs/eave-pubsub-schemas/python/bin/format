@@ -3,4 +3,9 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-format $(~parentpath)
+
+function run () (
+	python-format $(~parentpath)
+)
+
+run

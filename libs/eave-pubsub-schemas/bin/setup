@@ -2,9 +2,16 @@
 
 set -eu
 
-${EAVE_HOME}/develop/python/bin/setup "$@"
-python -m pip install -e ./python
+source ${EAVE_HOME}/develop/functions.bash
 
-${EAVE_HOME}/develop/javascript/bin/setup "$@"
+function run () (
+	cd $(~parentpath)
+	${EAVE_HOME}/develop/python/bin/setup
+	python -m pip install -e ./python
 
-bin/lint
+	${EAVE_HOME}/develop/javascript/bin/setup
+
+	bin/lint
+)
+
+run
