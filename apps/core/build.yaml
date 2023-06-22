@@ -1,7 +1,7 @@
 steps:
 - name: python:3.11.2
   dir: apps/core
-  entrypoint: $_EAVE_HOME/develop/python/bin/setup
+  entrypoint: bin/setup
   env:
   - EAVE_HOME=$_EAVE_HOME
   - CI=1
@@ -17,7 +17,7 @@ steps:
 
 - name: python:3.11.2
   dir: apps/core
-  entrypoint: 'bin/test'
+  entrypoint: bin/test
   env:
   - EAVE_HOME=$_EAVE_HOME
   - CI=1
@@ -25,37 +25,25 @@ steps:
 
 - name: python:3.11.2
   dir: apps/core
-  entrypoint: python
-  args: ['-m', 'alembic', 'upgrade', 'head']
+  entrypoint: bin/deploy
   env:
   - EAVE_HOME=$_EAVE_HOME
   - CI=1
   - VERBOSE=1
-  secretEnv:
-  - EAVE_DB_HOST
-  - EAVE_DB_USER
-  - EAVE_DB_PASS
-  - EAVE_DB_NAME
+  - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
 
-- name: ubuntu
-  dir: apps/core
-  entrypoint: $_EAVE_HOME/develop/shared/bin/setup-deployment-workspace
-  env:
-  - EAVE_HOME=$_EAVE_HOME
-  - CI=1
-  - VERBOSE=1
-
-- name: python:3.11.2
-  dir: .build/core
-  entrypoint: python
-  args: ['-m', 'pip', 'install', '-t', 'vendor', '-r', 'requirements-vendor.txt']
-
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  dir: .build/core
-  entrypoint: 'bash'
-  args: ['-c', 'gcloud', 'app', 'deploy', '--version=${REF_NAME}', '--appyaml=app.${PROJECT_ID}.yaml']
-  env:
-  - "GOOGLE_CLOUD_PROJECT='$PROJECT_ID'"
+# - name: python:3.11.2
+#   dir: apps/core
+#   entrypoint: bin/run-db-migration
+#   env:
+#   - EAVE_HOME=$_EAVE_HOME
+#   - CI=1
+#   - VERBOSE=1
+#   secretEnv:
+#   - EAVE_DB_HOST
+#   - EAVE_DB_USER
+#   - EAVE_DB_PASS
+#   - EAVE_DB_NAME
 
 availableSecrets:
   secretManager:
