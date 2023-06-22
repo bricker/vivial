@@ -4,11 +4,8 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function run () (
-	python-test $(~parentpath)
+(
 	python-test .
 	${EAVE_HOME}/libs/eave-stdlib-py/bin/test
 	${EAVE_HOME}/libs/eave-pubsub-schemas/python/bin/test
 )
-
-run
