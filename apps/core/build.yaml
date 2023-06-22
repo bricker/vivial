@@ -3,31 +3,34 @@ steps:
   dir: apps/core
   entrypoint: bin/setup
   env:
-  - EAVE_HOME=$_EAVE_HOME
+  - EAVE_HOME=/workspace
   - CI=1
   - VERBOSE=1
+  - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
 
 - name: python:3.11.2
   dir: apps/core
   entrypoint: bin/lint
   env:
-  - EAVE_HOME=$_EAVE_HOME
+  - EAVE_HOME=/workspace
   - CI=1
   - VERBOSE=1
+  - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
 
 - name: python:3.11.2
   dir: apps/core
   entrypoint: bin/test
   env:
-  - EAVE_HOME=$_EAVE_HOME
+  - EAVE_HOME=/workspace
   - CI=1
   - VERBOSE=1
+  - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
 
 - name: python:3.11.2
   dir: apps/core
   entrypoint: bin/deploy
   env:
-  - EAVE_HOME=$_EAVE_HOME
+  - EAVE_HOME=/workspace
   - CI=1
   - VERBOSE=1
   - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
@@ -55,8 +58,5 @@ steps:
 #     env: 'EAVE_DB_PASS'
 #   - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_NAME/versions/latest
 #     env: 'EAVE_DB_NAME'
-
-substitutions:
-  _EAVE_HOME: /workspace
 
 timeout: '1600s'

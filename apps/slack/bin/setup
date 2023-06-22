@@ -4,12 +4,11 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function run () (
+(
 	cd $(~parentpath)
 	${EAVE_HOME}/develop/python/bin/setup
-	${EAVE_HOME}/develop/shared/bin/build-dotenv eave/slack/config.py
 
-	bin/lint
+	if ! ~ci; then
+		${EAVE_HOME}/develop/shared/bin/build-dotenv eave/slack/config.py
+	fi
 )
-
-run
