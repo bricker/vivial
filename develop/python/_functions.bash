@@ -74,11 +74,15 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local exitfirst=""
+		if ~ci; then
+			exitfirst="--exitfirst"
+		fi
 
 		cd $target
 		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
-		run-with-dotenv python -m pytest -c=$configfile .
+		run-with-dotenv python -m pytest -c=$configfile --rootdir=. $exitfirst .
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

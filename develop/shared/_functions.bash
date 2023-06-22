@@ -337,7 +337,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	)
 
 	function ~ci () (
-		test -z "${CI:-}"
+		test -n "${CI:-}"
 	)
 
 	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.

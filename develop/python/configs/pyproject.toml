@@ -74,4 +74,3 @@ data_file = ".coverage/data"
 
 [tool.coverage.lcov]
 output = ".coverage/report.lcov"
-
