@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10\x65\x61ve_event.proto\"\xd3\x01\n\tEaveEvent\x12\x12\n\nevent_name\x18\x01 \x01(\t\x12\x19\n\x11\x65vent_description\x18\x02 \x01(\t\x12\x10\n\x08\x65vent_ts\x18\x05 \x01(\x02\x12\x14\n\x0c\x65vent_source\x18\x06 \x01(\t\x12\x15\n\ropaque_params\x18\x03 \x01(\t\x12\x17\n\x0f\x65\x61ve_account_id\x18\x04 \x01(\t\x12\x17\n\x0f\x65\x61ve_visitor_id\x18\x07 \x01(\t\x12\x14\n\x0c\x65\x61ve_team_id\x18\x08 \x01(\t\x12\x10\n\x08\x65\x61ve_env\x18\t \x01(\tb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10\x65\x61ve_event.proto\"\xec\x01\n\tEaveEvent\x12\x12\n\nevent_name\x18\x01 \x01(\t\x12\x19\n\x11\x65vent_description\x18\x02 \x01(\t\x12\x10\n\x08\x65vent_ts\x18\x05 \x01(\x02\x12\x14\n\x0c\x65vent_source\x18\x06 \x01(\t\x12\x15\n\ropaque_params\x18\x03 \x01(\t\x12\x17\n\x0f\x65\x61ve_account_id\x18\x04 \x01(\t\x12\x17\n\x0f\x65\x61ve_visitor_id\x18\x07 \x01(\t\x12\x14\n\x0c\x65\x61ve_team_id\x18\x08 \x01(\t\x12\x10\n\x08\x65\x61ve_env\x18\t \x01(\t\x12\x17\n\x0fopaque_eave_ctx\x18\n \x01(\tb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'eave_event_pb2', globals())
@@ -21,5 +21,5 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _EAVEEVENT._serialized_start=21
-  _EAVEEVENT._serialized_end=232
+  _EAVEEVENT._serialized_end=257
 # @@protoc_insertion_point(module_scope)
