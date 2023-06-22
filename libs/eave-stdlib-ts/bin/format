@@ -3,4 +3,4 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-node-format .
+node-format $(~parentpath)

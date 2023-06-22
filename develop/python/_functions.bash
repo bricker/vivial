@@ -36,12 +36,14 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
-		local thisdir=$(basename $PWD)
 
-		statusmsg -in "Linting $thisdir/$target (py)"
-		python -m ruff $qflag --config=$configfile $target
-		python -m black $qflag --config=$configfile --check $target
-		python -m mypy --config-file=$configfile $target > $mypyout
+		cd $target
+		local logtarget=$(~eave-pwd)
+
+		statusmsg -in "Linting $logtarget (py)"
+		python -m ruff $qflag --config=$configfile .
+		python -m black $qflag --config=$configfile --check .
+		python -m mypy --config-file=$configfile . > $mypyout
 		statusmsg -sp " ✔ "
 	)
 
@@ -56,11 +58,13 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
-		local thisdir=$(basename $PWD)
 
-		statusmsg -in "Formatting $thisdir/$target (py)"
-		python -m ruff $qflag --fix --config=$configfile $target
-		python -m black $qflag --config=$configfile $target
+		cd $target
+		local logtarget=$(~eave-pwd)
+
+		statusmsg -in "Formatting $logtarget (py)"
+		python -m ruff $qflag --fix --config=$configfile .
+		python -m black $qflag --config=$configfile .
 		statusmsg -sp " ✔ "
 	)
 
@@ -70,9 +74,11 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+
+		cd $target
 		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
-		run-with-dotenv python -m pytest -c=$configfile $target
+		run-with-dotenv python -m pytest -c=$configfile .
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

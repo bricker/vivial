@@ -3,6 +3,6 @@
 set -eu
 
 ${EAVE_HOME}/develop/python/bin/setup "$@"
-python -m pip install -e .
+python -m pip install -e $(~parentpath)
 
-bin/lint
+$(~abspath)/lint

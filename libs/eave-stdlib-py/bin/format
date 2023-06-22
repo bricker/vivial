@@ -3,4 +3,4 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-format .
+python-format $(~parentpath)

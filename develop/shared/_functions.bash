@@ -324,9 +324,22 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			app.yaml
 	)
 
-	function verbose () {
+	function verbose () (
 		test -n "${VERBOSE:-}"
-	}
+	)
+
+	# Returns the absolute path to the dir of the program currently running
+	function ~abspath () (
+		cd $(dirname $0) && pwd -P
+	)
+
+	function ~parentpath () (
+		cd $(dirname $0)/.. && pwd -P
+	)
+
+	function ~eave-pwd () (
+		echo -n ${PWD#"$EAVE_HOME"}
+	)
 
 	_SHARED_FUNCTIONS_LOADED=1
 fi

@@ -3,6 +3,6 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-node-lint .
-run-in-path "${EAVE_HOME}/libs/eave-stdlib-ts" "bin/lint"
-run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/lint"
+node-lint $(~parentpath)
+${EAVE_HOME}/libs/eave-stdlib-ts/bin/lint
+${EAVE_HOME}/libs/eave-pubsub-schemas/typescript/bin/lint

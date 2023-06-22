@@ -3,21 +3,38 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-validate-version
-python-activate-venv
 
-statusmsg -i "Setting up python..."
+function setup () (
+	python-validate-version
+	python-activate-venv
 
-if test -f requirements.txt
-then
-	python -m pip install -q -r requirements.txt
-fi
+	local piploc=""
+	if -n "${CI:-}"; then
+		piploc="--user"
+	fi
 
-if test -f requirements-dev.txt
-then
-	python -m pip install -q -r requirements-dev.txt
-fi
+	local qflag="-q"
+	if verbose; then
+		qflag=""
+	fi
+	statusmsg -i "Setting up python..."
 
-python -m pip install -q -r ${EAVE_HOME}/develop/python/requirements-dev.txt
+	if test -f requirements.txt
+	then
+		python -m pip install $qflag $piploc -r requirements.txt
+	fi
 
-statusmsg -s "Python setup completed ✔"
+	if test -f requirements-dev.txt
+	then
+		python -m pip install $qflag $piploc -r requirements-dev.txt
+	fi
+
+	python -m pip install $qflag $piploc \
+		-r ${EAVE_HOME}/develop/python/requirements-dev.txt \
+		-r ${EAVE_HOME}/libs/eave-stdlib-py/requirements-dev.txt \
+		-r ${EAVE_HOME}/libs/eave-pubsub-schemas/requirements-dev.txt
+
+	statusmsg -s "Python setup completed ✔"
+)
+
+setup

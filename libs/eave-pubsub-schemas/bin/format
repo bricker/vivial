@@ -2,5 +2,7 @@
 
 set -eu
 
-python/bin/format
-typescript/bin/format
+source ${EAVE_HOME}/develop/functions.bash
+
+$(~parentpath)/python/bin/format
+$(~parentpath)/typescript/bin/format

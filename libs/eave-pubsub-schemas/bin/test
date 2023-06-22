@@ -4,12 +4,5 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function run-python-tests() (
-	statusmsg -i "Running python tests..."
-	cd ./python
-	python test.py
-	statusmsg -s "Done!"
-)
-
-run-python-tests
-statusmsg -w "No typescript tests"
+$(~parentpath)/python/bin/test
+$(~parentpath)/typescript/bin/test

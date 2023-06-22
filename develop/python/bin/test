@@ -3,6 +3,6 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-test .
-run-in-path "${EAVE_HOME}/libs/eave-stdlib-py" "bin/test"
-run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/test"
+python-test $(~parentpath)
+${EAVE_HOME}/libs/eave-stdlib-py/bin/test
+${EAVE_HOME}/libs/eave-pubsub-schemas/python/bin/test

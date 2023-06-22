@@ -3,5 +3,4 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-lint python
-node-lint typescript
+python-lint $(~parentpath)

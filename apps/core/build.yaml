@@ -1,23 +1,7 @@
 steps:
 - name: python:3.11.2
   dir: apps/core
-  entrypoint: python
-  args:
-  - '-m'
-  - 'pip'
-  - 'install'
-  - '--user'
-  - '-r'
-  - 'requirements.txt'
-  - '-r'
-  - 'requirements-dev.txt'
-  - '-r'
-  - '$_EAVE_HOME/develop/python/requirements-dev.txt'
-  - '-r'
-  - '$_EAVE_HOME/libs/eave-stdlib-py/requirements-dev.txt'
-  - '-r'
-  - '$_EAVE_HOME/libs/eave-pubsub-schemas/requirements-dev.txt'
-
+  entrypoint: $_EAVE_HOME/develop/python/bin/setup
   env:
   - EAVE_HOME=$_EAVE_HOME
   - CI=1
@@ -25,7 +9,7 @@ steps:
 
 - name: python:3.11.2
   dir: apps/core
-  entrypoint: 'bin/lint'
+  entrypoint: bin/lint
   env:
   - EAVE_HOME=$_EAVE_HOME
   - CI=1
