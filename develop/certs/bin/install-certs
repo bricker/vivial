@@ -4,7 +4,7 @@ set -eu
 
 source $EAVE_HOME/develop/functions.bash
 
-function install-certs() {
+function install-certs() (
 	local certPath=$1
 	local certFileName=$(basename $certPath)
 	local certFileTemp=/tmp/$certFileName
@@ -56,8 +56,8 @@ function install-certs() {
 	esac
 
 	# TODO: Does this work on macOS?
-	add-shell-variable REQUESTS_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
-}
+	~add-shell-variable REQUESTS_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
+)
 
 for cert in ${EAVE_HOME}/develop/certs/**/*.crt; do
 	install-certs $cert
