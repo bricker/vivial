@@ -39,7 +39,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		cd $target
 		local logtarget=$(~eavepwd)
 
-		statusmsg -in "Linting $logtarget (py)"
+		statusmsg -on "Linting $logtarget (py)..."
 		python -m ruff $qflag --config=$configfile .
 		python -m black $qflag --config=$configfile --check .
 		python -m mypy --config-file=$configfile . > $mypyout
@@ -61,7 +61,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		cd $target
 		local logtarget=$(~eavepwd)
 
-		statusmsg -in "Formatting $logtarget (py)"
+		statusmsg -on "Formatting $logtarget (py)..."
 		python -m ruff $qflag --fix --config=$configfile .
 		python -m black $qflag --config=$configfile .
 		statusmsg -sp " ✔ "

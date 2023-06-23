@@ -95,6 +95,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				tput -S <<-EOC
 					setaf $_cc_magenta
 					rev
+					bold
 				EOC
 				;;
 
@@ -188,24 +189,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		else
 			statusmsg -w "File $ex is not executable."
 		fi
-	)
-
-	function run-in-all-projects() (
-		if test -z "$1"; then
-			statusmsg -e "Usage: run-in-all-projects bin/lint"
-			exit 1
-		fi
-
-		local cmd=$1
-
-		for dir in $(ls -d ./apps/* ./libs/*); do
-			if test "$dir" = "__pycache__"; then
-				continue
-			fi
-			statusmsg -i "$dir"
-			run-in-path "$dir" "$cmd"
-			echo -e "\n"
-		done
 	)
 
 	function get-os() {

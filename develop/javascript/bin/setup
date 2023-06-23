@@ -5,11 +5,13 @@ set -eu
 source ${EAVE_HOME}/develop/functions.bash
 
 function setup () (
+	local eavepwd=$(~eavepwd)
+
 	if test -f "package.json"; then
 		node-validate-version
 		node-activate-venv
 
-		statusmsg -i "Setting up javascript..."
+		statusmsg -on "Setting up javascript in $eavepwd..."
 
 		rm -rf node_modules
 
@@ -18,16 +20,16 @@ function setup () (
 		usershell=$(shellname)
 		case $usershell in
 			"fish")
-				fish --no-config -c "npm install --force"
+				fish --no-config -c "npm install --silent --no-progress --force"
 				;;
 			*)
-				npm install --force
+				npm install --silent --no-progress --force
 				;;
 		esac
 
-		statusmsg -s "Javascript setup completed ✔"
+		statusmsg -sp " ✔ "
 	else
-		statusmsg -w "No package.json found in $(~eavepwd)"
+		statusmsg -wp " x (No package.json found in $eavepwd)"
 	fi
 )
 

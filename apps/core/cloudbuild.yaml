@@ -61,6 +61,11 @@ steps:
   dir: apps/core
   script: |-
     #!/usr/bin/env -S bash -eu
+    gcloud meta list-files-for-upload | grep -v "^vendor/"
+    if test -d "vendor"; then
+      echo "vendor/..."
+    fi
+
     version=$(cat .buildinfo/version)
     gcloud app deploy \
       --version=$version \

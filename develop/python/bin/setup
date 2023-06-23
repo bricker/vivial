@@ -19,7 +19,7 @@ function setup () (
 	fi
 
 	local eavepwd=$(~eavepwd)
-	statusmsg -in "Setting up python in $eavepwd..."
+	statusmsg -on "Setting up python in $eavepwd..."
 
 	python -m pip install $qflag $piploc \
 		-r ${EAVE_HOME}/develop/requirements-dev.txt \

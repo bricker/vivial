@@ -7,5 +7,7 @@ source ${EAVE_HOME}/develop/functions.bash
 (
 	cd $(~parentpath)
 	${EAVE_HOME}/develop/python/bin/setup
-	python -m pip install -e .
+
+	qflag=$(verbose || echo -n "-q -q")
+	python -m pip install $qflag -e .
 )

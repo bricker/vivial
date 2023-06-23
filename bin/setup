@@ -22,6 +22,10 @@ function ~ask () (
 	test "$proceed" = "y"
 )
 
+function ~force () (
+	test -n "$FORCE"
+)
+
 usershell=$(shellname)
 kernel=$(get-kernel-name)
 opsys=$(get-os)
@@ -29,49 +33,45 @@ tmpdir=/tmp/eave-setup
 mkdir -p $tmpdir
 
 function setenvvars () (
-	if test -n "$XDG_CONFIG_HOME"; then
-		statusmsg -i "XDG_CONFIG_HOME already set."
+	if ! ~force && test -n "$XDG_CONFIG_HOME"; then
+		statusmsg -o "XDG_CONFIG_HOME already set."
 	else
 		local value="\$HOME/.config"
-		statusmsg -pa "Adding XDG_CONFIG_HOME to your environment."
+		statusmsg -pa "Adding XDG_CONFIG_HOME=$value to your environment."
 		statusmsg -i "XDG_CONFIG_HOME is a standard environment variable that many programs use to store configuration."
-		echo "\t$value"
 		if ~ask; then
 			~add-shell-variable XDG_CONFIG_HOME "$value"
 		fi
 	fi
 
-	if test -n "$XDG_DATA_HOME"; then
-		statusmsg -i "XDG_DATA_HOME already set."
+	if ! ~force && test -n "$XDG_DATA_HOME"; then
+		statusmsg -o "XDG_DATA_HOME already set."
 	else
 		local value="\$HOME/.local/share"
-		statusmsg -pa "Adding XDG_DATA_HOME to your environment."
+		statusmsg -pa "Adding XDG_DATA_HOME=$value to your environment."
 		statusmsg -i "XDG_DATA_HOME is a standard environment variable that many programs use to store data."
-		echo "\t$value"
 		if ~ask; then
 			~add-shell-variable XDG_DATA_HOME "$value"
 		fi
 	fi
 
-	if test -n "$XDG_RUNTIME_DIR"; then
-		statusmsg -i "XDG_RUNTIME_DIR already set."
+	if ! ~force && test -n "$XDG_RUNTIME_DIR"; then
+		statusmsg -o "XDG_RUNTIME_DIR already set."
 	else
 		local value="/run/user/1000"
-		statusmsg -pa "Adding XDG_RUNTIME_DIR to your environment."
+		statusmsg -pa "Adding XDG_RUNTIME_DIR=$value to your environment."
 		statusmsg -i "XDG_RUNTIME_DIR is a standard environment variable that many programs use to store Unix sockets."
-		echo "\t$value"
 		if ~ask; then
 			~add-shell-variable XDG_RUNTIME_DIR "$value"
 		fi
 	fi
 
-	if test -n "$EAVE_HOME"; then
-		statusmsg -i "EAVE_HOME already set."
+	if ! ~force && test -n "$EAVE_HOME"; then
+		statusmsg -o "EAVE_HOME already set."
 	else
 		local value="$(pwd)"
-		statusmsg -pa "Adding EAVE_HOME to your environment."
+		statusmsg -pa "Adding EAVE_HOME=$value to your environment."
 		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
-		echo "\t$value"
 		if ~ask; then
 			~add-shell-variable EAVE_HOME "$value"
 		fi
@@ -98,8 +98,8 @@ function setuppython() (
 )
 
 function setupgcloud() (
-	if cmd-exists "gcloud"; then
-		statusmsg -i "gcloud CLI already installed."
+	if ! ~force && cmd-exists "gcloud"; then
+		statusmsg -o "gcloud CLI already installed."
 	else
 		statusmsg -pa "Downloading and installing the gcloud CLI into $HOME/google-cloud-sdk."
 		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
@@ -119,8 +119,8 @@ function setupgcloud() (
 )
 
 function setupcloudsqlproxy() (
-	if cmd-exists "cloud-sql-proxy"; then
-		statusmsg -i "CloudSQL Proxy already installed."
+	if ! ~force && cmd-exists "cloud-sql-proxy"; then
+		statusmsg -o "CloudSQL Proxy already installed."
 	else
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
 		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
@@ -152,8 +152,8 @@ function setupcloudsqlproxy() (
 )
 
 function installjq() (
-	if cmd-exists "jq"; then
-		statusmsg -i "jq already installed."
+	if ! ~force && cmd-exists "jq"; then
+		statusmsg -o "jq already installed."
 	else
 		statusmsg -pa "Installing the 'jq' command line utility."
 		statusmsg -i "The jq program is used in many utility scripts in this repository."
@@ -189,8 +189,8 @@ function installjq() (
 )
 
 function installyq() (
-	if cmd-exists "yq"; then
-		statusmsg -i "yq already installed."
+	if ! ~force && cmd-exists "yq"; then
+		statusmsg -o "yq already installed."
 	else
 		statusmsg -pa "Installing the 'yq' command line utility."
 		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
@@ -214,18 +214,8 @@ function setupapps() (
 		python-activate-venv
 		node-activate-venv
 
-		for ss in $(find develop -type f -name setup); do
-			statusmsg -i "Running $ss"
-			$ss
-		done
-
-		for ss in $(find libs -type f -name setup); do
-			statusmsg -i "Running $ss"
-			$ss
-		done
-
-		for ss in $(find apps -type f -name setup); do
-			statusmsg -i "Running $ss"
+		for ss in $(find {develop,libs,apps} -type f -name setup); do
+			statusmsg -d "Running $ss"
 			$ss
 		done
 	fi
