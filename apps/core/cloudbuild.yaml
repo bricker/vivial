@@ -48,38 +48,29 @@ steps:
   env:
   - EAVE_HOME=/workspace
 
-- name: gcr.io/cloud-builders/git
+- name: gcr.io/$PROJECT_ID/eave-builder-gcloudsdk
   dir: apps/core
-  script: |-
-    #!/usr/bin/env -S bash -eu
-    mkdir .buildinfo
-    timestamp=$(date --utc "+%Y%m%dt%H%Mz")
-    gitrev=$(git rev-parse --short HEAD)
-    echo -n "$timestamp-$gitrev" >> .buildinfo/version
+  entrypoint: /workspace/develop/shared/bin/deploy-appengine
+  # script: |-
+  #   #!/usr/bin/env -S bash -eu
+  #   gcloud meta list-files-for-upload
+  #   if test -d "vendor"; then
+  #     echo "vendor/..."
+  #   fi
 
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  dir: apps/core
-  script: |-
-    #!/usr/bin/env -S bash -eu
-    gcloud meta list-files-for-upload | grep -v "^vendor/"
-    if test -d "vendor"; then
-      echo "vendor/..."
-    fi
-
-    version=$(cat .buildinfo/version)
-    gcloud app deploy \
-      --version=$version \
-      --appyaml=app.$GOOGLE_CLOUD_PROJECT.yaml
+  #   version=$(cat .buildinfo/version)
+  #   gcloud app deploy \
+  #     --version=$version \
+  #     --appyaml=app.$GOOGLE_CLOUD_PROJECT.yaml
   env:
   - EAVE_HOME=/workspace
   - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
-
 
 # - name: python:3.11.2
 #   dir: apps/core
 #   entrypoint: bin/run-db-migration
 #   env:
-#   - EAVE_HOME=$_EAVE_HOME
+#   - EAVE_HOME=/workspace
 #   - CI=1
 #   - VERBOSE=1
 #   secretEnv:

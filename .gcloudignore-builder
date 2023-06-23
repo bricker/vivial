@@ -1,0 +1,16 @@
+#!include:.gitignore
+
+.env*
+
+# Cache, build, dependencies
+__pycache__
+.mypy_cache
+.ruff_cache
+.venv
+node_modules
+*.egg-info
+build
+# .build
+.cloudsqlproxy
+yalc.lock
+.DS_Store

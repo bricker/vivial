@@ -350,7 +350,8 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		cd $builddir/$appname && \
 		cp $EAVE_HOME/.gitignore . && \
-		cp $EAVE_HOME/.gcloudignore .
+		cp $EAVE_HOME/.gcloudignore . && \
+		cp $EAVE_HOME/.gcloudignore-builder .
 	}
 
 	function clean-deployment-workspace () {
@@ -370,6 +371,14 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 	function ~eavepwd () (
 		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
+	)
+
+	function ~gcloudproject() (
+		if test -n "${GOOGLE_CLOUD_PROJECT:-}"; then
+			echo -n "$GOOGLE_CLOUD_PROJECT"
+		else
+			gcloud --format=json info | jq -r .config.project
+		fi
 	)
 
 	_SHARED_FUNCTIONS_LOADED=1
