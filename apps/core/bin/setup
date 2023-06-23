@@ -2,7 +2,13 @@
 
 set -eu
 
-${EAVE_HOME}/develop/python/bin/setup "$@"
-${EAVE_HOME}/develop/shared/bin/build-dotenv eave/core/internal/config.py
+source ${EAVE_HOME}/develop/functions.bash
 
-bin/lint
+(
+	cd $(~parentpath)
+	${EAVE_HOME}/develop/python/bin/setup
+
+	if ! ~ci; then
+		${EAVE_HOME}/develop/shared/bin/build-dotenv eave/core/internal/config.py
+	fi
+)

@@ -2,7 +2,12 @@
 
 set -eu
 
-${EAVE_HOME}/develop/python/bin/setup "$@"
-python -m pip install -e .
+source ${EAVE_HOME}/develop/functions.bash
 
-bin/lint
+(
+	cd $(~parentpath)
+	${EAVE_HOME}/develop/python/bin/setup
+
+	qflag=$(verbose || echo -n "-q -q")
+	python -m pip install $qflag -e .
+)

@@ -4,7 +4,7 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function deploy () (
+function deploy() (
 	python-validate-version
 	python-activate-venv
 

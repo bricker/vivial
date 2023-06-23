@@ -4,4 +4,9 @@ set -eu
 
 source $EAVE_HOME/develop/functions.bash
 
-run-in-all-projects bin/test
+(
+	for ss in $(find {apps,libs,develop} -type f -name test); do
+		statusmsg -d "Running $ss"
+		$ss
+	done
+)

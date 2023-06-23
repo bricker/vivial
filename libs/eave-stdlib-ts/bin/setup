@@ -2,6 +2,9 @@
 
 set -eu
 
-${EAVE_HOME}/develop/javascript/bin/setup
+source ${EAVE_HOME}/develop/functions.bash
 
-bin/lint
+(
+	cd $(~parentpath)
+	${EAVE_HOME}/develop/javascript/bin/setup
+)

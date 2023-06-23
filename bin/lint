@@ -4,4 +4,9 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-run-in-all-projects bin/lint
+(
+	for ss in $(find {apps,libs,develop} -type f -name lint); do
+		statusmsg -d "Running $ss"
+		$ss
+	done
+)

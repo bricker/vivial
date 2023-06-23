@@ -1,5 +1,9 @@
 if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
-	function statusmsg() {
+	function ~ci () (
+		test -n "${CI:-}"
+	)
+
+	function statusmsg() (
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE
 			Options:
@@ -7,6 +11,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				-n : no [n]ewline - Do not emit a newline after the message (same as echo -n)
 				-d : [d]ebug
 				-i : [i]nfo (default)
+				-a : [a]ttention (aka notice)
 				-w : [w]arn
 				-e : [e]rror
 				-s : [s]uccess
@@ -15,27 +20,18 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			EOS
 		"
 
-		local _cc_black=0
-		local _cc_red=1
-		local _cc_green=2
-		local _cc_yellow=3
-		local _cc_blue=4
-		local _cc_magenta=5
-		local _cc_cyan=6
-		local _cc_white=7
-		local _cc_reset=$(tput sgr0)
-
 		local msgtype="info"
 		local noprefix=""
 		local nonewline=""
 		local OPTIND OPTARG argname
 
-		while getopts "odiwesnph" argname
+		while getopts "odiawesnph" argname
 		do
 			case "$argname" in
 				o) msgtype="off";;
 				d) msgtype="debug";;
 				i) msgtype="info";;
+				a) msgtype="notice";;
 				w) msgtype="warn";;
 				e) msgtype="error";;
 				s) msgtype="success";;
@@ -64,7 +60,19 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		if command -v tput >/dev/null; then
+		local _cc_reset=""
+
+		if ! ~ci && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
+			local _cc_black=0
+			local _cc_red=1
+			local _cc_green=2
+			local _cc_yellow=3
+			local _cc_blue=4
+			local _cc_magenta=5
+			local _cc_cyan=6
+			local _cc_white=7
+			_cc_reset=$(tput sgr0)
+
 			case $msgtype in
 			off) ;;
 
@@ -80,6 +88,14 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				tput -S <<-EOC
 					setaf $_cc_cyan
 					rev
+				EOC
+				;;
+
+			notice)
+				tput -S <<-EOC
+					setaf $_cc_magenta
+					rev
+					bold
 				EOC
 				;;
 
@@ -120,7 +136,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			echo -en "$prefix$msg$_cc_reset"
 		fi
 		return 0
-	}
+	)
 
 	function shellname() {
 		echo -n "$(basename $SHELL)"
@@ -135,8 +151,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			echo -n ~/.zshrc
 			;;
 		*)
-			statusmsg -e "Shell $usershell not supported. Please add support!"
-			return 1
+			return 0
 			;;
 		esac
 	}
@@ -174,24 +189,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		else
 			statusmsg -w "File $ex is not executable."
 		fi
-	)
-
-	function run-in-all-projects() (
-		if test -z "$1"; then
-			statusmsg -e "Usage: run-in-all-projects bin/lint"
-			exit 1
-		fi
-
-		local cmd=$1
-
-		for dir in $(ls -d ./apps/* ./libs/*); do
-			if test "$dir" = "__pycache__"; then
-				continue
-			fi
-			statusmsg -i "$dir"
-			run-in-path "$dir" "$cmd"
-			echo -e "\n"
-		done
 	)
 
 	function get-os() {
@@ -255,10 +252,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function add-shell-variable() {
+	function ~add-shell-variable() {
 		local varname=$1
 		local value=$2
 		local usershell=$(shellname)
+		local varcmd="export $varname=\"$value\""
 
 		case $usershell in
 		"bash" | "zsh")
@@ -269,22 +267,21 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				return 0
 			fi
 
-			local varcmd="export $varname=\"$value\""
 			echo -e "\n$varcmd" >>"$loginfile"
-			source "$loginfile"
 			;;
 		"fish")
-			varcmd="set -Ux $varname $value"
 			if fish -c "set -q $varname"; then
 				statusmsg -w "variable $varname already set in fish environment."
 				return 0
 			fi
-			fish -c "$varcmd"
+			fish -c "set -Ux $varname $value"
 			;;
 		*)
 			statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
 			;;
 		esac
+
+		$varcmd
 	}
 
 	function run-with-dotenv() (
@@ -322,9 +319,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			app.yaml
 	)
 
-	function verbose () {
+	function verbose () (
 		test -n "${VERBOSE:-}"
-	}
+	)
 
 	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
 	function setup-deployment-workspace () {
@@ -353,7 +350,8 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		cd $builddir/$appname && \
 		cp $EAVE_HOME/.gitignore . && \
-		cp $EAVE_HOME/.gcloudignore .
+		cp $EAVE_HOME/.gcloudignore . && \
+		cp $EAVE_HOME/.gcloudignore-builder .
 	}
 
 	function clean-deployment-workspace () {
@@ -361,6 +359,27 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		local appname=$(basename $PWD)
 		rm -r $builddir/$appname
 	}
+
+	# Returns the absolute path to the dir of the program currently running
+	function ~abspath () (
+		cd $(dirname $0) && pwd -P
+	)
+
+	function ~parentpath () (
+		cd $(dirname $0)/.. && pwd -P
+	)
+
+	function ~eavepwd () (
+		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
+	)
+
+	function ~gcloudproject() (
+		if test -n "${GOOGLE_CLOUD_PROJECT:-}"; then
+			echo -n "$GOOGLE_CLOUD_PROJECT"
+		else
+			gcloud --format=json info | jq -r .config.project
+		fi
+	)
 
 	_SHARED_FUNCTIONS_LOADED=1
 fi

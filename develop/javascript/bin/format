@@ -3,6 +3,10 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-node-format .
-run-in-path "${EAVE_HOME}/libs/eave-stdlib-ts" "bin/format"
-run-in-path "${EAVE_HOME}/libs/eave-pubsub-schemas" "bin/format"
+
+(
+	node-format $(~parentpath)
+	node-format .
+	${EAVE_HOME}/libs/eave-stdlib-ts/bin/format
+	${EAVE_HOME}/libs/eave-pubsub-schemas/typescript/bin/format
+)

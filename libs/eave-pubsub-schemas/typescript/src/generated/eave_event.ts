@@ -11,6 +11,7 @@ export interface EaveEvent {
   eave_visitor_id: string;
   eave_team_id: string;
   eave_env: string;
+  opaque_eave_ctx: string;
 }
 
 function createBaseEaveEvent(): EaveEvent {
@@ -24,6 +25,7 @@ function createBaseEaveEvent(): EaveEvent {
     eave_visitor_id: "",
     eave_team_id: "",
     eave_env: "",
+    opaque_eave_ctx: "",
   };
 }
 
@@ -55,6 +57,9 @@ export const EaveEvent = {
     }
     if (message.eave_env !== "") {
       writer.uint32(74).string(message.eave_env);
+    }
+    if (message.opaque_eave_ctx !== "") {
+      writer.uint32(82).string(message.opaque_eave_ctx);
     }
     return writer;
   },
@@ -129,6 +134,13 @@ export const EaveEvent = {
 
           message.eave_env = reader.string();
           continue;
+        case 10:
+          if (tag != 82) {
+            break;
+          }
+
+          message.opaque_eave_ctx = reader.string();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -149,6 +161,7 @@ export const EaveEvent = {
       eave_visitor_id: isSet(object.eave_visitor_id) ? String(object.eave_visitor_id) : "",
       eave_team_id: isSet(object.eave_team_id) ? String(object.eave_team_id) : "",
       eave_env: isSet(object.eave_env) ? String(object.eave_env) : "",
+      opaque_eave_ctx: isSet(object.opaque_eave_ctx) ? String(object.opaque_eave_ctx) : "",
     };
   },
 
@@ -163,6 +176,7 @@ export const EaveEvent = {
     message.eave_visitor_id !== undefined && (obj.eave_visitor_id = message.eave_visitor_id);
     message.eave_team_id !== undefined && (obj.eave_team_id = message.eave_team_id);
     message.eave_env !== undefined && (obj.eave_env = message.eave_env);
+    message.opaque_eave_ctx !== undefined && (obj.opaque_eave_ctx = message.opaque_eave_ctx);
     return obj;
   },
 

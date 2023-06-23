@@ -2,4 +2,10 @@
 
 set -eu
 
-${EAVE_HOME}/develop/javascript/bin/deploy-appengine
+source ${EAVE_HOME}/develop/functions.bash
+
+(
+	cd $(~parentpath)
+	setup-deployment-workspace
+	${EAVE_HOME}/develop/javascript/bin/deploy-appengine
+)

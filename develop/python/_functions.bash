@@ -10,14 +10,16 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function python-activate-venv () {
-		ved=${EAVE_HOME}/.venv
-		if ! test -d $ved
-		then
-			statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
-			exit 1
-		fi
+		if ! ~ci; then
+			ved=${EAVE_HOME}/.venv
+			if ! test -d $ved
+			then
+				statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
+				exit 1
+			fi
 
-		source $ved/bin/activate
+			source $ved/bin/activate
+		fi
 	}
 
 	function python-lint () (
@@ -33,12 +35,14 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
-		local thisdir=$(basename $PWD)
 
-		statusmsg -in "Linting $thisdir/$target (py)"
-		python -m ruff $qflag --config=$configfile $target
-		python -m black $qflag --config=$configfile --check $target
-		python -m mypy --config-file=$configfile $target > $mypyout
+		cd $target
+		local logtarget=$(~eavepwd)
+
+		statusmsg -on "Linting $logtarget (py)..."
+		python -m ruff $qflag --config=$configfile .
+		python -m black $qflag --config=$configfile --check .
+		python -m mypy --config-file=$configfile . > $mypyout
 		statusmsg -sp " ✔ "
 	)
 
@@ -53,11 +57,13 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
-		local thisdir=$(basename $PWD)
 
-		statusmsg -in "Formatting $thisdir/$target (py)"
-		python -m ruff $qflag --fix --config=$configfile $target
-		python -m black $qflag --config=$configfile $target
+		cd $target
+		local logtarget=$(~eavepwd)
+
+		statusmsg -on "Formatting $logtarget (py)..."
+		python -m ruff $qflag --fix --config=$configfile .
+		python -m black $qflag --config=$configfile .
 		statusmsg -sp " ✔ "
 	)
 
@@ -67,9 +73,15 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
+		local exitfirst=""
+		if ~ci; then
+			exitfirst="--exitfirst"
+		fi
+
+		cd $target
 		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
-		run-with-dotenv python -m pytest -c=$configfile $target
+		run-with-dotenv python -m pytest -c=$configfile --rootdir=. $exitfirst .
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source ${EAVE_HOME}/develop/functions.bash
+
+function deploy() (
+	local appdir=""
+	local revision=""
+
+	while getopts "a:r:" argname
+	do
+		case "$argname" in
+			a) appdir=$OPTARG ;;
+			r) revision=$OPTARG ;;
+		esac
+	done
+
+	cd $(mktemp -d)
+	git init .
+	git remote add origin git@github.com:eave-fyi/eave-monorepo.git
+	git fetch --depth=1 origin $revision
+	git checkout origin/$revision
+	gcloud builds submit --ignore-file=.gcloudignore-builder --config=$appdir/cloudbuild.yaml
+	# ${EAVE_HOME}/develop/python/bin/deploy-appengine
+)
+
+deploy "$@"

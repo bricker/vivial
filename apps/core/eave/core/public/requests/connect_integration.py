@@ -113,7 +113,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                         event_name="eave_application_integration",
                         event_description="An integration was added for a team",
                         eave_team_id=eave_team_id,
-                        event_source="core api",
+                        event_source="register connect integration endpoint",
                         opaque_params={
                             "integration_name": integration.product,
                             "atlassian_org_url": integration.org_url,
@@ -127,7 +127,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                         event_name="eave_connect_app_registered",
                         event_description="A connect app was registered, but has no linked team",
                         eave_team_id=None,
-                        event_source="core api",
+                        event_source="register connect integration endpoint",
                         opaque_params={
                             "integration_name": integration.product,
                             "atlassian_org_url": integration.org_url,
@@ -149,7 +149,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     event_name="eave_application_integration_updated",
                     event_description="An integration was updated for a team",
                     eave_team_id=eave_team_id,
-                    event_source="core api",
+                    event_source="register connect integration endpoint",
                     opaque_params={
                         "integration_name": integration.product,
                         "atlassian_org_url": integration.org_url,

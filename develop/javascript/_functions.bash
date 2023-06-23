@@ -32,11 +32,12 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-activate-venv
 
 		local target=$1
-		local thisdir=$(basename $PWD)
-		statusmsg -in "Linting $thisdir/$target (js/ts)"
-
 		cd $target
+		local logtarget=$(~eavepwd)
+
+		statusmsg -in "Linting $logtarget (js/ts)"
 		npx eslint --max-warnings=0 .
+
 		if test -f "tsconfig.json"; then
 			npx tsc --project . --noEmit
 		else
@@ -50,10 +51,10 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-activate-venv
 
 		local target=$1
-		local thisdir=$(basename $PWD)
-		statusmsg -in "Formatting $thisdir/$target (js/ts)"
-
 		cd $target
+		local logtarget=$(~eavepwd)
+
+		statusmsg -in "Formatting $logtarget (js/ts)"
 		npx eslint . --fix
 		statusmsg -sp " ✔ "
 	)
@@ -63,10 +64,10 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-activate-venv
 
 		local target=${1:-tests}
+		cd $target
 
 		npx ava \
-			--config=${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs \
-			$target
+			--config=${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs .
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

@@ -28,14 +28,18 @@ def log_event(
     ctx: typing.Optional[_l.LogContext] = None,
 ) -> None:
     eave_context = _l.LogContext.wrap(ctx)
-    opaque_params = opaque_params if opaque_params else JsonObject()
-    opaque_params.setdefault("eave_ctx", eave_context)
 
     try:
         serialized_params = json.dumps(opaque_params)
     except Exception as e:
         _l.eaveLogger.exception(e, eave_context)
         serialized_params = str(opaque_params)
+
+    try:
+        serialized_context = json.dumps(eave_context)
+    except Exception as e:
+        _l.eaveLogger.exception(e, eave_context)
+        serialized_context = str(eave_context)
 
     event = eave.pubsub_schemas.EaveEvent(
         event_name=event_name,
@@ -47,6 +51,7 @@ def log_event(
         eave_env=shared_config.eave_env.value,
         opaque_params=serialized_params,
         event_ts=event_ts if event_ts else time.time(),
+        opaque_eave_ctx=serialized_context,
     )
 
     client = PublisherClient()

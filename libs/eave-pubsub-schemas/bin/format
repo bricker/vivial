@@ -3,5 +3,13 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-python-format python
-node-format typescript
+
+(
+	cd $(~parentpath)
+
+	python-format .
+	node-format .
+
+	python/bin/format
+	typescript/bin/format
+)

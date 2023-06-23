@@ -1,37 +1,38 @@
 runtime: python311
-service: www
+service: slack
 
-instance_class: F2
-automatic_scaling:
-  min_idle_instances: 1
-
-inbound_services:
-- warmup
-
-vpc_access_connector:
-  name: projects/eave-production/locations/us-central1/connectors/appengine
-
+# Don't use --preload, it breaks Google Cloud Logging and AppEngine
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
     --pythonpath vendor \
     --workers 3 \
-    eave.marketing.app:app
+    --worker-class uvicorn.workers.UvicornWorker \
+    eave.slack.app:api
 
 handlers:
-- url: /static
-  static_dir: eave/marketing/static
-
-- url: /_ah/.*
-  login: admin
+- url: /_.*
   script: auto
+  login: admin
+  auth_fail_action: unauthorized
 
 - url: .*
   script: auto
 
+inbound_services:
+- warmup
+
+instance_class: F2
+automatic_scaling:
+  min_idle_instances: 1
+
+vpc_access_connector:
+  name: projects/eave-production/locations/us-central1/connectors/appengine
+
 env_variables:
-  EAVE_ANALYTICS_ENABLED: "1"
   EAVE_MONITORING_ENABLED: "1"
+  EAVE_ANALYTICS_ENABLED: "1"
+  LOG_LEVEL: "DEBUG"
   REDIS_CONNECTION: "10.81.236.179:6378:0"
   REDIS_TLS_CA: |-
     -----BEGIN CERTIFICATE-----

@@ -3,23 +3,34 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-node-validate-version
-node-activate-venv
 
-statusmsg -i "Setting up javascript..."
+function setup () (
+	local eavepwd=$(~eavepwd)
 
-rm -rf node_modules
+	if test -f "package.json"; then
+		node-validate-version
+		node-activate-venv
 
-# We have to do this because fish-nvm stores its current version info in a universal variable,
-# which is inaccessible to other shells.
-usershell=$(shellname)
-case $usershell in
-	"fish")
-		fish --no-config -c "npm install --force"
-		;;
-	*)
-		npm install --force
-		;;
-esac
+		statusmsg -on "Setting up javascript in $eavepwd..."
 
-statusmsg -s "Javascript setup completed ✔"
+		rm -rf node_modules
+
+		# We have to do this because fish-nvm stores its current version info in a universal variable,
+		# which is inaccessible to other shells.
+		usershell=$(shellname)
+		case $usershell in
+			"fish")
+				fish --no-config -c "npm install --silent --no-progress --force"
+				;;
+			*)
+				npm install --silent --no-progress --force
+				;;
+		esac
+
+		statusmsg -sp " ✔ "
+	else
+		statusmsg -wp " x (No package.json found in $eavepwd)"
+	fi
+)
+
+setup

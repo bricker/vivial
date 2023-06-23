@@ -1,7 +1,6 @@
 import json
 import time
 from typing import Any
-from typing_extensions import override
 import unittest.mock
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
@@ -13,7 +12,6 @@ mut = analytics.__name__
 
 
 class AnalyticsTest(UtilityBaseTestCase):
-    @override
     def mock_analytics(self) -> None:
         # The base class mocks out analytics because we want it mocked out for every other test, except these ones.
         pass

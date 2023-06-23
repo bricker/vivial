@@ -4,8 +4,9 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function deploy () (
-	setup-deployment-workspace
+(
+	node-validate-version
+	node-activate-venv
 
 	local qflag="--quiet"
 	if verbose; then
@@ -25,9 +26,4 @@ function deploy () (
 	npm prune
 
 	${EAVE_HOME}/develop/shared/bin/deploy-appengine
-	clean-deployment-workspace
 )
-
-bin/lint
-bin/test
-deploy
