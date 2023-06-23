@@ -20,7 +20,6 @@ python -m grpc_tools.protoc \
 	--proto_path=protos \
 	--plugin=node_modules/.bin/protoc-gen-ts_proto \
 	--ts_proto_out=typescript/src/generated \
-	--ts_proto_opt=outputPartialMethods=false \
 	--ts_proto_opt=stringEnums=true \
 	--ts_proto_opt=snakeToCamel=false \
 	--ts_proto_opt=unrecognizedEnum=false \

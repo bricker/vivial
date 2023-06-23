@@ -24,6 +24,7 @@ export async function logEvent(event: EaveEvent, ctx?: LogContext) {
 
   // eslint-disable-next-line no-param-reassign
   event.eave_env = sharedConfig.eaveEnv;
+  event.event_ts = new Date().getTime();
 
   const protoMessage = EaveEvent.encode(event).finish();
   const messageId = await topic.publishMessage({ data: protoMessage });

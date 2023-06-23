@@ -29,7 +29,7 @@ class Brain(IntentProcessingMixin):
 
             self.log_event(
                 event_name="eave_mentioned",
-                event_description="Eave was mentioned somewhere",
+                event_description="Eave was mentioned in Slack",
                 opaque_params={
                     "action": self.message_action,
                 },

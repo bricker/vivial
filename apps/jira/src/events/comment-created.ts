@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { SearchDocumentsResponseBody, searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
-import { EaveRequestState, getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
+import { EaveEvent } from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event.js';
 import { ADFLinkMark, ADFMentionNode, ADFNode, ADFRootNode, ADFTextNode, ADFBlockNodeType, ADFInlineNodeType, ADFParagraphNode, ADFMarkType, ADFListItemNode, ADFChildBlockNodeType, ADFBulletListNode } from '@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js';
 import appConfig from '../config.js';
 import JiraClient from '../jira-client.js';
@@ -17,19 +18,20 @@ enum MessageIntent {
 }
 
 export default async function commentCreatedEventHandler({ req, res, jiraClient }: { req: Request, res: Response, jiraClient: JiraClient }) {
-  const eaveState = getEaveState(res);
-  eaveLogger.debug({ message: 'received comment created webhook event', eaveState });
+  const ctx = LogContext.load(res);
+
+  eaveLogger.debug('received comment created webhook event', ctx);
   const openaiClient = await OpenAIClient.getAuthedClient();
   const payload = <JiraCommentCreatedEventPayload>req.body;
 
   if (!payload.issue) {
-    eaveLogger.warn({ message: 'Missing payload.issue' });
+    eaveLogger.warning('Missing payload.issue', ctx);
     res.sendStatus(400);
     return;
   }
 
   if (payload.comment.author.accountType === 'app') {
-    eaveLogger.info({ message: 'Ignoring app comment', eaveState });
+    eaveLogger.info('Ignoring app comment', ctx);
     res.sendStatus(200);
     return;
   }
@@ -46,7 +48,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
   }));
 
   if (!eaveMentioned) {
-    eaveLogger.info({ message: 'Eave not mentioned, ignoring', eaveState });
+    eaveLogger.info('Eave not mentioned, ignoring', ctx);
     res.sendStatus(200);
     return;
   }
@@ -64,23 +66,37 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
 
   const teamId = connectInstallation.team?.id;
   if (!teamId) {
-    eaveLogger.warn({ message: 'No teamId available', clientKey: jiraClient.client.clientKey, eaveState });
+    eaveLogger.warning('No teamId available', { clientKey: jiraClient.client.clientKey }, ctx);
     res.sendStatus(400);
     return;
   }
 
+  try {
+    await logEvent(EaveEvent.create({
+      eave_team_id: teamId,
+      event_description: 'Eave was mentioned in a Jira comment',
+      event_name: 'eave_mentioned',
+      event_source: 'jira comment-created event handler',
+      opaque_params: JSON.stringify({
+        message: payload.comment.body,
+      }),
+    }), ctx);
+  } catch (e: any) {
+    eaveLogger.error(e, ctx);
+  }
+
   const cleanedBody = cleanCommentBody(payload.comment.body);
-  const intent = await getIntent({ comment: cleanedBody, openaiClient, eaveState });
+  const intent = await getIntent({ comment: cleanedBody, openaiClient, ctx });
 
   if (intent !== MessageIntent.search) {
     // No handling for this scenario yet.
-    eaveLogger.warn({ message: 'Unknown intent', eaveState });
-    eaveLogger.debug({ message: 'comment body', cleanedBody });
+    eaveLogger.warning('Unknown intent', ctx);
+    eaveLogger.debug('comment body', { cleanedBody }, ctx);
     res.sendStatus(200);
     return;
   }
 
-  const searchQuery = await getSearchQuery({ comment: cleanedBody, openaiClient, eaveState });
+  const searchQuery = await getSearchQuery({ comment: cleanedBody, openaiClient, ctx });
 
   const searchResults = await searchDocuments({
     origin: appConfig.eaveOrigin,
@@ -100,7 +116,7 @@ function cleanCommentBody(comment: string): string {
   return comment.replace(ACCOUNT_ID_RE, '');
 }
 
-async function getSearchQuery({ comment, openaiClient, eaveState }: { comment: string, openaiClient: OpenAIClient, eaveState: EaveRequestState }): Promise<string> {
+async function getSearchQuery({ comment, openaiClient, ctx }: { comment: string, openaiClient: OpenAIClient, ctx: LogContext }): Promise<string> {
   const prompt = [
     'Extract a key term or phrase from this message that can be used as a full-text search query to find relevant documentation.',
     'Do not include any quotes or other punctuation.',
@@ -115,14 +131,14 @@ async function getSearchQuery({ comment, openaiClient, eaveState }: { comment: s
       { role: 'user', content: prompt },
     ],
     model: OpenAIModel.GPT_35_TURBO_16K,
-  }, eaveState);
+  }, ctx);
 
   return response;
 }
 
-async function getIntent({ comment, openaiClient, eaveState }: { comment: string, openaiClient: OpenAIClient, eaveState: EaveRequestState }): Promise<MessageIntent | null> {
+async function getIntent({ comment, openaiClient, ctx }: { comment: string, openaiClient: OpenAIClient, ctx: LogContext }): Promise<MessageIntent | null> {
   const prompt = [
-    'Is the following message asking you to look up some existing documentation? Say either Yes or No.',
+    'Is the following message asking you to find some existing documentation, recall some information you may have, or look something up? Say either Yes or No.',
     'Message:',
     '###',
     comment,
@@ -134,7 +150,7 @@ async function getIntent({ comment, openaiClient, eaveState }: { comment: string
       { role: 'user', content: prompt },
     ],
     model: OpenAIModel.GPT_35_TURBO_16K,
-  }, eaveState);
+  }, ctx);
 
   if (response.match(/yes/i)) {
     return MessageIntent.search;
