@@ -2,9 +2,11 @@ import http
 from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
-from eave.stdlib import cache, shared_config
+from eave.stdlib.config import shared_config
+import eave.stdlib.cache as cache
+from eave.stdlib.signing import preload_public_keys
 from ..config import app_config
-from eave.stdlib import eaveLogger
+from eave.stdlib.logging import eaveLogger
 
 
 class WarmupRequest(HTTPEndpoint):
@@ -15,6 +17,7 @@ class WarmupRequest(HTTPEndpoint):
 
         shared_config.preload()
         app_config.preload()
+        preload_public_keys()
 
         try:
             # Lazily creates a Redis connection

@@ -1,10 +1,14 @@
 import logging
 from logging import LogRecord
 import sys
-from typing import Optional, Self
+from typing import Any, Mapping, Optional, Self, cast
 import uuid
+from asgiref.typing import HTTPScope
+from starlette.types import Scope
 
 import google.cloud.logging
+from eave.stdlib.api_util import get_header_value, get_headers
+from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 
 from eave.stdlib.typing import JsonObject, JsonValue
 
@@ -87,52 +91,127 @@ if shared_config.monitoring_enabled:
     client = google.cloud.logging.Client()
     client.setup_logging(log_level=level)
 
-eaveLogger = logging.getLogger("eave")
-
-
-# This format is for Google Cloud Logging
-# LogContext = dict[Literal["json_fields"], JsonObject]
-
-
 class LogContext(JsonObject):
     @classmethod
-    def wrap(cls, ctx: Optional["LogContext"]) -> "LogContext":
-        return ctx if ctx else cls()
+    def wrap(cls, ctx: Optional["LogContext"] = None, scope: Optional[HTTPScope | Scope] = None) -> "LogContext":
+        return ctx if ctx else cls(scope)
 
-    def getset(self, key: str, default: JsonValue) -> JsonValue:
-        """
-        Gets the value at the given key. If the key doesn't exist, sets it to the default value.
-        Returns the value.
-        """
-        f = self._ensure_initialized()
-        if key in f:
-            return f[key]
+    def __init__(self, scope: Optional[HTTPScope | Scope] = None) -> None:
+        if scope:
+            scope = cast(HTTPScope, scope)
+            headers = cast(JsonObject, get_headers(scope))
+            self.set({"headers": headers})
+
+            self.set({"eave_request_id": get_header_value(scope, EAVE_REQUEST_ID_HEADER) or str(uuid.uuid4())})
+            self.set({"eave_team_id": get_header_value(scope, EAVE_TEAM_ID_HEADER)})
+            self.set({"eave_account_id": get_header_value(scope, EAVE_ACCOUNT_ID_HEADER)})
+            self.set({"eave_origin": get_header_value(scope, EAVE_ORIGIN_HEADER)})
         else:
-            self.set({key: default})
-            return default
+            self.set({"eave_request_id": str(uuid.uuid4())})
+            self.set({"eave_team_id": None})
+            self.set({"eave_account_id": None})
+            self.set({"eave_origin": None})
 
     def set(self, attributes: JsonObject) -> Self:
-        f = self._ensure_initialized()
-        f.update(attributes)
+        self.update(attributes)
         return self
 
-    def get(self, key: str, default: Optional[JsonValue] = None) -> Optional[JsonValue]:
-        f = self._ensure_initialized()
-        return f.get(key, default)
-
-    def _ensure_initialized(self) -> JsonObject:
-        default = JsonObject()
-        self.setdefault("json_fields", default)
-        return default
+    @property
+    def public(self) -> JsonObject:
+        return JsonObject(
+            {
+                "eave_request_id": self.eave_request_id,
+            }
+        )
 
     @property
-    def request_id(self) -> str:
-        v = self.get(key="request_id")
-        if v is None:
-            v = str(uuid.uuid4())
-            self.request_id = v
+    def eave_account_id(self) -> Optional[str]:
+        if v := self.get("eave_account_id"):
+            return str(v)
+        else:
+            return None
+
+    @eave_account_id.setter
+    def eave_account_id(self, value: Optional[str]) -> None:
+        self.set({"eave_account_id": value})
+
+    @property
+    def eave_team_id(self) -> Optional[str]:
+        if v := self.get("eave_team_id"):
+            return str(v)
+        else:
+            return None
+
+    @eave_team_id.setter
+    def eave_team_id(self, value: Optional[str]) -> None:
+        self.set({"eave_team_id": value})
+
+    @property
+    def eave_origin(self) -> Optional[str]:
+        if v := self.get("eave_origin"):
+            return str(v)
+        else:
+            return None
+
+    @eave_origin.setter
+    def eave_origin(self, value: str) -> None:
+        self.set({"eave_origin": value})
+
+    @property
+    def eave_request_id(self) -> str:
+        v = self["eave_request_id"]
         return str(v)
 
-    @request_id.setter
-    def request_id(self, value: str) -> None:
-        self.set({"request_id": value})
+class EaveLogger:
+    _raw_logger = logging.getLogger("eave")
+
+    def __init__(self) -> None:
+        pass
+
+    def debug(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+        self._raw_logger.debug(**self._preparekwargs(msg, *args, **kwargs))
+
+    def info(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+        self._raw_logger.info(**self._preparekwargs(msg, *args, **kwargs))
+
+    def warning(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+        kwargs.setdefault("exc_info", True)
+        self._raw_logger.warning(**self._preparekwargs(msg, *args, **kwargs))
+
+    def error(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+        kwargs.setdefault("exc_info", True)
+        self._raw_logger.error(**self._preparekwargs(msg, *args, **kwargs))
+
+    def exception(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+        kwargs.setdefault("exc_info", True)
+        self._raw_logger.exception(**self._preparekwargs(msg, *args, **kwargs))
+
+    def critical(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+        kwargs.setdefault("exc_info", True)
+        self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
+
+    def _preparekwargs(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> dict[str, Any]:
+        if isinstance(msg, Exception):
+            kwargs["exc_info"] = msg
+
+        kwargs.setdefault("stacklevel", 2)
+        extra = kwargs.pop("extra", {})
+
+        return {
+            "msg": str(msg),
+            "extra": JsonObject(
+                {
+                    "json_fields": {
+                        "metadata": {
+                            "eave": {
+                                **extra,
+                                **{k: v for a in args if a for k, v in a.items()},
+                            },
+                        },
+                    },
+                },
+            ),
+            **kwargs,
+        }
+
+eaveLogger = EaveLogger()

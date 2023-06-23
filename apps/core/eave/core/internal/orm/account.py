@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-import eave.stdlib
+import eave.stdlib.exceptions
 import eave.core.internal
 import slack_sdk.errors
 from sqlalchemy import Index, Select, func, select
@@ -169,8 +169,6 @@ class AccountOrm(Base):
                 self.access_token = credentials.token
                 self.refresh_token = credentials.refresh_token
                 return True
-            case AuthProvider.atlassian:
-                return True
             case _:
                 raise
 
@@ -191,7 +189,7 @@ class AccountOrm(Base):
                 if (access_token := new_tokens.get("access_token")) and (
                     refresh_token := new_tokens.get("refresh_token")
                 ):
-                    eaveLogger.debug("Refreshing Slack auth tokens.", extra=ctx)
+                    eaveLogger.debug("Refreshing Slack auth tokens.", ctx)
                     self.access_token = access_token
                     self.refresh_token = refresh_token
                     return True

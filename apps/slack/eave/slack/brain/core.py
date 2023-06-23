@@ -7,7 +7,7 @@ from .intent_processing import IntentProcessingMixin
 
 class Brain(IntentProcessingMixin):
     async def process_message(self) -> None:
-        eaveLogger.debug("Brain.process_message", extra=self.eave_ctx)
+        eaveLogger.debug("Brain.process_message", self.eave_ctx)
 
         await self.load_data()
 
@@ -29,7 +29,7 @@ class Brain(IntentProcessingMixin):
 
             self.log_event(
                 event_name="eave_mentioned",
-                event_description="Eave was mentioned somewhere",
+                event_description="Eave was mentioned in Slack",
                 opaque_params={
                     "action": self.message_action,
                 },
@@ -43,7 +43,7 @@ class Brain(IntentProcessingMixin):
             1. Otherwise, continue processing.
             """
             if len(self.subscriptions) == 0:
-                eaveLogger.debug("Eave is not subscribed to this thread; ignoring.", extra=self.eave_ctx)
+                eaveLogger.debug("Eave is not subscribed to this thread; ignoring.", self.eave_ctx)
                 return
 
             self.message_action = message_prompts.MessageAction.REFINE_DOCUMENTATION
@@ -78,11 +78,8 @@ class Brain(IntentProcessingMixin):
         if expanded_text is None:
             eaveLogger.warning(
                 "slack message expanded_text is unexpectedly None",
-                extra=self.eave_ctx.set(
-                    {
-                        "message_text": self.message.text,
-                    }
-                ),
+                self.eave_ctx,
+                { "message_text": self.message.text },
             )
 
             # FIXME: Brain should allow None expanded_text so it can retry.

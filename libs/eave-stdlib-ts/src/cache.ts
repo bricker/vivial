@@ -105,7 +105,7 @@ async function loadCacheImpl(): Promise<Cache> {
   const redisAuth = await sharedConfig.redisAuth();
 
   const logAuth = redisAuth ? redisAuth.slice(0, 4) : '(none)';
-  eaveLogger.debug({ message: `Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...` });
+  eaveLogger.debug(`Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...`);
 
   const redisTlsCA = sharedConfig.redisTlsCA;
   const impl = createClient({
@@ -120,10 +120,10 @@ async function loadCacheImpl(): Promise<Cache> {
     pingInterval: 1000 * 60 * 5,
   });
 
-  impl.on('error', (e) => { eaveLogger.error({ message: e.stack }); });
-  impl.on('connect', () => { eaveLogger.debug({ message: 'redis client connected' }); });
-  impl.on('reconnecting', () => { eaveLogger.debug({ message: 'redis client reconnecting' }); });
-  impl.on('ready', () => { eaveLogger.debug({ message: 'redis client ready' }); });
+  impl.on('error', (e) => { eaveLogger.error(e); });
+  impl.on('connect', () => { eaveLogger.debug('redis client connected'); });
+  impl.on('reconnecting', () => { eaveLogger.debug('redis client reconnecting'); });
+  impl.on('ready', () => { eaveLogger.debug('redis client ready'); });
 
   await impl.connect();
   return impl;

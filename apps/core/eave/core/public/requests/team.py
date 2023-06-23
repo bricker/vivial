@@ -5,25 +5,28 @@ from eave.core.internal.orm.confluence_destination import ConfluenceDestinationO
 from eave.core.public.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.models.connect import AtlassianProduct
-import eave.stdlib.request_state
 from eave.stdlib.core_api.operations.team import (
     UpsertConfluenceDestinationAuthedRequest,
     GetTeamRequest,
 )
+from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap
 
 
 class GetTeamEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        eave_state = EaveRequestState.load(request=request)
 
         async with database.async_session.begin() as db_session:
-            eave_team_orm = await TeamOrm.one_or_exception(session=db_session, team_id=unwrap(eave_state.eave_team_id))
+            eave_team_orm = await TeamOrm.one_or_exception(
+                session=db_session, team_id=unwrap(eave_state.ctx.eave_team_id)
+            )
 
             integrations = await eave_team_orm.get_integrations(session=db_session)
 
-        return eave.stdlib.api_util.json_response(
+        return json_response(
             GetTeamRequest.ResponseBody(
                 team=eave_team_orm.api_model,
                 integrations=integrations,
@@ -33,12 +36,12 @@ class GetTeamEndpoint(HTTPEndpoint):
 
 class UpsertConfluenceDestinationAuthedEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        eave_state = EaveRequestState.load(request=request)
         body = await request.json()
         input = UpsertConfluenceDestinationAuthedRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            team = await TeamOrm.one_or_exception(session=db_session, team_id=unwrap(eave_state.eave_team_id))
+            team = await TeamOrm.one_or_exception(session=db_session, team_id=unwrap(eave_state.ctx.eave_team_id))
 
             connect_installation = await ConnectInstallationOrm.one_or_exception(
                 session=db_session,
@@ -53,7 +56,7 @@ class UpsertConfluenceDestinationAuthedEndpoint(HTTPEndpoint):
                 space_key=input.confluence_destination.space_key,
             )
 
-        return eave.stdlib.api_util.json_response(
+        return json_response(
             UpsertConfluenceDestinationAuthedRequest.ResponseBody(
                 team=team.api_model,
                 confluence_destination=dest.api_model,

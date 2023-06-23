@@ -1,16 +1,10 @@
-import { v4 as uuid4 } from 'uuid';
-import eaveLogger from '../logging.js';
-import { EaveOrigin } from '../eave-origins.js';
-import Signing from '../signing.js';
-import eaveHeaders from '../headers.js';
-import {
-  NotFoundError,
-  UnauthorizedError,
-  BadRequestError,
-  InternalServerError,
-  HTTPException,
-} from '../exceptions.js';
-import { redact } from '../util.js';
+import { NextFunction, Request, Response } from 'express';
+import eaveLogger, { LogContext } from './logging.js';
+import { EaveOrigin } from './eave-origins.js';
+import Signing from './signing.js';
+import eaveHeaders from './headers.js';
+import { redact } from './util.js';
+import { JsonObject } from './types.js';
 
 export function buildMessageToSign({
   method,
@@ -47,7 +41,25 @@ export function buildMessageToSign({
   return signatureElements.join(':');
 }
 
-interface RequestArgs {
+export type ExpressHandlerArgs = {
+  req: Request;
+  res: Response;
+  next?: NextFunction;
+}
+
+export type CtxArg = {
+  ctx?: LogContext;
+}
+
+export type RequestArgsOrigin = CtxArg & {
+  origin: EaveOrigin | string;
+}
+
+export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
+  teamId: string;
+}
+
+type RequestArgs = CtxArg & {
   url: string;
   origin: EaveOrigin | string;
   sign?: boolean;
@@ -56,9 +68,10 @@ interface RequestArgs {
   teamId?: string;
   accountId?: string;
   method?: string;
+  ctx?: LogContext;
 }
 
-export async function makeRequest(args: RequestArgs): Promise<Response> {
+export async function makeRequest(args: RequestArgs): Promise<globalThis.Response> {
   const {
     url,
     origin,
@@ -69,7 +82,8 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     method = 'post',
   } = args;
 
-  const requestId = uuid4();
+  const ctx = LogContext.wrap(args.ctx);
+  const requestId = ctx.eave_request_id;
   const payload = input === undefined ? '{}' : JSON.stringify(input);
 
   const headers: { [key: string]: string } = {
@@ -94,7 +108,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 
   if (accessToken !== undefined) {
-    headers[eaveHeaders.EAVE_AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;
+    headers[eaveHeaders.AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;
   }
 
   if (teamId !== undefined) {
@@ -105,7 +119,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     headers[eaveHeaders.EAVE_ACCOUNT_ID_HEADER] = accountId;
   }
 
-  const requestContext = {
+  const requestContext: JsonObject = {
     origin,
     signature: redact(signature),
     access_token: redact(accessToken),
@@ -116,7 +130,11 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     url,
   };
 
-  eaveLogger.info({ message: `Eave Client Request: ${requestId}: ${method} ${url}`, eaveState: requestContext });
+  eaveLogger.info(
+    `Request: ${requestId}: ${method} ${url}`,
+    ctx,
+    requestContext,
+  );
 
   const abortController = new AbortController();
   setTimeout(() => abortController.abort(), 1000 * 120);
@@ -128,31 +146,20 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
     signal: abortController.signal,
   });
 
-  eaveLogger.info({
-    message: `Eave Client Response: ${requestId}: ${method} ${url}`,
-    eaveState: {
-      ...requestContext,
-      status: response.status,
-    },
-  });
+  eaveLogger.info(
+    `Response: ${requestId}: ${method} ${url}`,
+    ctx,
+    requestContext,
+    { status: response.status },
+  );
 
   if (response.status >= 400) {
-    switch (response.status) {
-      case 404: throw new NotFoundError(JSON.stringify(requestContext));
-      case 401: throw new UnauthorizedError(JSON.stringify(requestContext));
-      case 400: throw new BadRequestError(JSON.stringify(requestContext));
-      case 500: throw new InternalServerError(JSON.stringify(requestContext));
-      default: throw new HTTPException(response.status, JSON.stringify(requestContext));
-    }
+    eaveLogger.error(
+      `Request Error (${response.status}): ${url}`,
+      ctx,
+      requestContext,
+    );
   }
 
   return response;
-}
-
-export type RequestArgsOrigin = {
-  origin: EaveOrigin | string;
-}
-
-export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
-  teamId: string;
 }

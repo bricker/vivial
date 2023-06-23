@@ -2,7 +2,9 @@ import json
 import urllib.parse
 
 import eave.pubsub_schemas
-import eave.stdlib
+import eave.stdlib.cookies
+import eave.stdlib.util
+import eave.stdlib.analytics
 import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
@@ -11,8 +13,8 @@ import eave.core.internal
 import eave.core.internal.orm
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.integrations import Integration
-import eave.stdlib.request_state
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from eave.stdlib.request_state import EaveRequestState
 
 from ...http_endpoint import HTTPEndpoint
 from . import EaveOnboardingErrorCode, shared
@@ -76,17 +78,17 @@ class GithubOAuthCallback(HTTPEndpoint):
         # error = request.query_params.get("error")
         # error_description = request.query_params.get("error_description")
 
-        self.eave_state = eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        self.eave_state = eave_state = EaveRequestState.load(request=request)
 
         setup_action = request.query_params.get("setup_action")
         if setup_action != "install":
-            eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", extra=eave_state.log_context)
+            eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", eave_state.ctx)
 
         installation_id = request.query_params.get("installation_id")
         if not installation_id:
             eaveLogger.warning(
                 f"github installation_id not provided for action {setup_action}. Cannot proceed.",
-                extra=eave_state.log_context,
+                eave_state.ctx,
             )
             return shared.cancel_flow(response=self.response)
 
@@ -98,7 +100,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
         # arrive here then they're expect to be already logged in.
         if not auth_cookies.access_token or not auth_cookies.account_id:
-            eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", extra=eave_state.log_context)
+            eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", eave_state.ctx)
             return shared.cancel_flow(response=self.response)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
@@ -126,7 +128,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             if github_installation and github_installation.team_id != self.eave_account.team_id:
                 eaveLogger.warning(
                     f"A Github integration already exists with github install id {self.installation_id}",
-                    extra=self.eave_state.log_context,
+                    self.eave_state.ctx,
                 )
                 eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",

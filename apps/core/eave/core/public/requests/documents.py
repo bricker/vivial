@@ -1,10 +1,10 @@
 import http
 
 import eave.pubsub_schemas
-import eave.stdlib
+import eave.stdlib.analytics
+import eave.stdlib.util
 import eave.core.internal
 import eave.core.public
-import eave.stdlib.request_state
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.core.internal.orm.team import TeamOrm
@@ -15,22 +15,21 @@ from eave.stdlib.core_api.operations.documents import (
 )
 import eave.core.internal.database as eave_db
 from eave.stdlib.exceptions import UnexpectedMissingValue
-import eave.stdlib.request_state as request_state
 from eave.core.internal.orm.subscription import SubscriptionOrm
 import eave.stdlib.api_util
+from eave.stdlib.request_state import EaveRequestState
 
 
 class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = request_state.get_eave_state(request=request)
-        # FIXME: Use the parsed body already at `eave_state.parsed_request_body`
+        eave_state = EaveRequestState.load(request=request)
         body = await request.json()
         input = UpsertDocumentOp.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
             eave_team = await TeamOrm.one_or_exception(
                 session=db_session,
-                team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id),
+                team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id),
             )
             # get all subscriptions we wish to associate the new document with
             subscriptions = [
@@ -55,7 +54,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             existing_document_reference = await subscriptions[0].get_document_reference(session=db_session)
 
             if existing_document_reference is None:
-                document_metadata = await destination.create_document(input=input.document, ctx=eave_state.log_context)
+                document_metadata = await destination.create_document(input=input.document, ctx=eave_state.ctx)
 
                 eave.stdlib.analytics.log_event(
                     event_name="eave_created_documentation",
@@ -75,6 +74,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                             for subscription in input.subscriptions
                         ],
                     },
+                    ctx=eave_state.ctx,
                 )
 
                 document_reference = await eave.core.internal.orm.DocumentReferenceOrm.create(
@@ -87,7 +87,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 await destination.update_document(
                     input=input.document,
                     document_id=existing_document_reference.document_id,
-                    ctx=eave_state.log_context,
+                    ctx=eave_state.ctx,
                 )
 
                 eave.stdlib.analytics.log_event(
@@ -108,7 +108,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                             for subscription in input.subscriptions
                         ],
                     },
-                    ctx=eave_state.log_context,
+                    ctx=eave_state.ctx,
                 )
 
                 document_reference = existing_document_reference
@@ -129,20 +129,20 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
 
 class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        eave_state = EaveRequestState.load(request=request)
         body = await request.json()
         input = SearchDocumentsOp.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
-                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
+                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id)
             )
 
             destination = await eave_team.get_document_client(session=db_session)
             if destination is None:
                 raise UnexpectedMissingValue("document destination")
 
-        search_results = await destination.search_documents(query=input.query, ctx=eave_state.log_context)
+        search_results = await destination.search_documents(query=input.query, ctx=eave_state.ctx)
 
         eave.stdlib.analytics.log_event(
             event_name="eave_searched_documentation",
@@ -153,7 +153,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
                 "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
                 "search_query": input.query,
             },
-            ctx=eave_state.log_context,
+            ctx=eave_state.ctx,
         )
 
         model = SearchDocumentsOp.ResponseBody(
@@ -166,13 +166,13 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
 
 class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
     async def post(self, request: Request) -> Response:
-        eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+        eave_state = EaveRequestState.load(request=request)
         body = await request.json()
         input = DeleteDocumentOp.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
-                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.eave_team_id)
+                session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id)
             )
 
             destination = await eave_team.get_document_client(session=db_session)
@@ -184,7 +184,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 team_id=eave_team.id,
                 id=input.document_reference.id,
             )
-            await destination.delete_document(document_id=document_reference.document_id, ctx=eave_state.log_context)
+            await destination.delete_document(document_id=document_reference.document_id, ctx=eave_state.ctx)
 
             subscriptions = await eave.core.internal.orm.SubscriptionOrm.query(
                 session=db_session,
@@ -206,7 +206,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                 "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
                 "document_id": str(document_reference.id),
             },
-            ctx=eave_state.log_context,
+            ctx=eave_state.ctx,
         )
 
         return Response(status_code=http.HTTPStatus.OK)

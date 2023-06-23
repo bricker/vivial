@@ -15,10 +15,10 @@ class TestDeleteDocument(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         async with self.db_session.begin() as s:
-            self.testdata["eave_team"] = await self.make_team(s)
+            self._eave_team = await self.make_team(s)
             connect = await ConnectInstallationOrm.create(
                 session=s,
-                team_id=self.testdata["eave_team"].id,
+                team_id=self._eave_team.id,
                 product=AtlassianProduct.confluence,
                 client_key=self.anystring("client_key"),
                 shared_secret=self.anystring("shared_secret"),
@@ -28,7 +28,7 @@ class TestDeleteDocument(BaseTestCase):
             await ConfluenceDestinationOrm.create(
                 session=s,
                 connect_installation_id=connect.id,
-                team_id=self.testdata["eave_team"].id,
+                team_id=self._eave_team.id,
                 space_key=self.anystring("space_key"),
             )
 
@@ -41,14 +41,14 @@ class TestDeleteDocument(BaseTestCase):
         async with self.db_session.begin() as s:
             document_reference = await DocumentReferenceOrm.create(
                 session=s,
-                team_id=self.testdata["eave_team"].id,
+                team_id=self._eave_team.id,
                 document_id=str(self.anyint("document id")),
                 document_url=self.anystring("document url"),
             )
 
             await SubscriptionOrm.create(
                 session=s,
-                team_id=self.testdata["eave_team"].id,
+                team_id=self._eave_team.id,
                 source=SubscriptionSource(
                     platform=SubscriptionSourcePlatform.slack,
                     event=SubscriptionSourceEvent.slack_message,
@@ -59,7 +59,7 @@ class TestDeleteDocument(BaseTestCase):
 
             await SubscriptionOrm.create(
                 session=s,
-                team_id=self.testdata["eave_team"].id,
+                team_id=self._eave_team.id,
                 source=SubscriptionSource(
                     platform=SubscriptionSourcePlatform.slack,
                     event=SubscriptionSourceEvent.slack_message,
@@ -69,7 +69,7 @@ class TestDeleteDocument(BaseTestCase):
             )
 
             subs = await SubscriptionOrm.query(
-                session=s, team_id=self.testdata["eave_team"].id, document_reference_id=document_reference.id
+                session=s, team_id=self._eave_team.id, document_reference_id=document_reference.id
             )
             assert len(subs) == 2
 
@@ -80,7 +80,7 @@ class TestDeleteDocument(BaseTestCase):
                     "id": str(document_reference.id),
                 }
             },
-            team_id=self.testdata["eave_team"].id,
+            team_id=self._eave_team.id,
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -88,11 +88,11 @@ class TestDeleteDocument(BaseTestCase):
 
         async with self.db_session.begin() as s:
             after = await DocumentReferenceOrm.one_or_none(
-                session=s, team_id=self.testdata["eave_team"].id, id=document_reference.id
+                session=s, team_id=self._eave_team.id, id=document_reference.id
             )
             assert after is None
 
             subs = await SubscriptionOrm.query(
-                session=s, team_id=self.testdata["eave_team"].id, document_reference_id=document_reference.id
+                session=s, team_id=self._eave_team.id, document_reference_id=document_reference.id
             )
             assert len(subs) == 0

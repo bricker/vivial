@@ -4,6 +4,7 @@ import uuid
 
 import dotenv
 import eave.stdlib.time
+import eave.stdlib.util
 
 eave.stdlib.time.set_utc()
 

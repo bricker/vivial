@@ -1,5 +1,7 @@
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
 
+from eave.stdlib.request_state import EaveRequestState
+
 from ..logging import eaveLogger
 
 from .base import EaveASGIMiddleware
@@ -11,13 +13,13 @@ class LoggingASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        eave_state = self.eave_state(scope=scope)
+        eave_state = EaveRequestState.load(scope=scope)
         eaveLogger.info(
-            f"Request Start: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}",
-            extra=eave_state.log_context,
+            f"Request Start: {eave_state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
+            eave_state.ctx,
         )
         await self.app(scope, receive, send)
         eaveLogger.info(
-            f"Request End: {eave_state.request_id}: {eave_state.request_method} {eave_state.request_path}",
-            extra=eave_state.log_context,
+            f"Request End: {eave_state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
+            eave_state.ctx,
         )

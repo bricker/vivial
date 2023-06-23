@@ -4,6 +4,7 @@ import uuid
 import aiohttp
 import urllib.parse
 from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.typing import JsonObject
 
 from eave.stdlib.util import redact
 
@@ -11,7 +12,6 @@ from . import headers as eave_headers
 from . import signing
 from .logging import LogContext, eaveLogger
 from .config import shared_config
-
 
 async def make_request(
     url: str,
@@ -25,12 +25,12 @@ async def make_request(
     ctx: Optional[LogContext] = None,
 ) -> aiohttp.ClientResponse:
     ctx = LogContext.wrap(ctx)
-    request_id = ctx.request_id
+    request_id = ctx.eave_request_id
 
     headers: dict[str, str] = {
         eave_headers.CONTENT_TYPE: "application/json",
         eave_headers.EAVE_ORIGIN_HEADER: origin.value,
-        eave_headers.EAVE_REQUEST_ID_HEADER: str(request_id),
+        eave_headers.EAVE_REQUEST_ID_HEADER: request_id,
     }
 
     # The indent and separators params here ensure that the payload is as compact as possible.
@@ -67,19 +67,20 @@ async def make_request(
     if addl_headers:
         headers.update(addl_headers)
 
+    request_params: JsonObject = {
+        "signature": redact(signature),
+        "access_token": redact(access_token),
+        "origin": origin.value,
+        "team_id": str(team_id),
+        "account_id": str(account_id),
+        "method": method,
+        "url": url,
+    }
+
     eaveLogger.info(
         f"Eave Client Request: {request_id}: {method} {url}",
-        extra=ctx.set(
-            {
-                "signature": redact(signature),
-                "access_token": redact(access_token),
-                "origin": origin.value,
-                "team_id": str(team_id),
-                "account_id": str(account_id),
-                "method": method,
-                "url": url,
-            }
-        ),
+        ctx,
+        request_params,
     )
 
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
@@ -95,11 +96,9 @@ async def make_request(
 
     eaveLogger.info(
         f"Eave Client Response: {request_id}: {method} {url}",
-        extra=ctx.set(
-            {
-                "status": response.status,
-            }
-        ),
+        ctx,
+        request_params,
+        { "status": response.status },
     )
 
     response.raise_for_status()

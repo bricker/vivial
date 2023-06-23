@@ -1,5 +1,5 @@
 import { sharedConfig } from '../../config.js';
-import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
+import { RequestArgsOrigin, makeRequest } from '../../requests.js';
 import { GithubInstallation, GithubInstallationInput } from '../models/github.js';
 import { Team } from '../models/team.js';
 
@@ -12,11 +12,10 @@ export type GetGithubInstallationResponseBody = {
   github_integration: GithubInstallation;
 }
 
-export async function getGithubInstallation({ origin, input }: RequestArgsOrigin & {input: GetGithubInstallationRequestBody}): Promise<GetGithubInstallationResponseBody> {
+export async function getGithubInstallation(args: RequestArgsOrigin & {input: GetGithubInstallationRequestBody}): Promise<GetGithubInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/integrations/github/query`,
-    origin,
-    input,
+    ...args,
   });
   const responseData = <GetGithubInstallationResponseBody>(await resp.json());
   return responseData;

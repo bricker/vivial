@@ -179,7 +179,36 @@ export const EaveEvent = {
     message.opaque_eave_ctx !== undefined && (obj.opaque_eave_ctx = message.opaque_eave_ctx);
     return obj;
   },
+
+  create<I extends Exact<DeepPartial<EaveEvent>, I>>(base?: I): EaveEvent {
+    return EaveEvent.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EaveEvent>, I>>(object: I): EaveEvent {
+    const message = createBaseEaveEvent();
+    message.event_name = object.event_name ?? "";
+    message.event_description = object.event_description ?? "";
+    message.event_ts = object.event_ts ?? 0;
+    message.event_source = object.event_source ?? "";
+    message.opaque_params = object.opaque_params ?? "";
+    message.eave_account_id = object.eave_account_id ?? "";
+    message.eave_visitor_id = object.eave_visitor_id ?? "";
+    message.eave_team_id = object.eave_team_id ?? "";
+    message.eave_env = object.eave_env ?? "";
+    return message;
+  },
 };
+
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

@@ -1,3 +1,7 @@
+from typing import Union
+
+
 JsonScalar = str | int | bool | None
-JsonValue = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
+JsonValue = Union[JsonScalar, "JsonObject", "JsonArray"]
 JsonObject = dict[str, JsonValue]
+JsonArray = list[JsonValue]
