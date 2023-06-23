@@ -169,8 +169,6 @@ class AccountOrm(Base):
                 self.access_token = credentials.token
                 self.refresh_token = credentials.refresh_token
                 return True
-            case AuthProvider.atlassian:
-                return True
             case _:
                 raise
 

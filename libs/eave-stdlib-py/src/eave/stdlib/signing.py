@@ -7,6 +7,7 @@ from typing import Literal, Optional, cast
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
+from cryptography.hazmat.primitives.asymmetric.types import PUBLIC_KEY_TYPES
 from eave.stdlib.config import shared_config
 from eave.stdlib.eave_origins import EaveOrigin, ExternalOrigin
 from google.cloud import kms
@@ -31,6 +32,11 @@ class SigningKeyDetails:
     version: str
     algorithm: SigningAlgorithm
 
+    def __hash__(self) -> int:
+        return hash(id(self))
+
+
+_PUBLIC_KEYS_CACHE: dict[SigningKeyDetails, PUBLIC_KEY_TYPES] = {}
 
 _SIGNING_KEYS = {
     EaveOrigin.eave_api.value: SigningKeyDetails(
@@ -128,22 +134,11 @@ def verify_signature_or_exception(
     eaveLogger.debug("verify_signature_or_exception", ctx)
     message_bytes = eave_util.ensure_bytes(message)
     signature_bytes = base64.b64decode(signature)
-    kms_client = kms.KeyManagementServiceClient()
 
-    key_version_name = kms_client.crypto_key_version_path(
-        project=shared_config.google_cloud_project,
-        location=KMS_KEYRING_LOCATION,
-        key_ring=KMS_KEYRING_NAME,
-        crypto_key=signing_key.id,
-        crypto_key_version=signing_key.version,
-    )
+    public_key_from_pem = get_public_key(signing_key)
 
     digest = hashlib.sha256(message_bytes).digest()
 
-    public_key_from_kms = kms_client.get_public_key(request={"name": key_version_name})
-    public_key_from_pem = serialization.load_pem_public_key(
-        data=public_key_from_kms.pem.encode(), backend=default_backend()
-    )
     sha256 = hashes.SHA256()
 
     match signing_key.algorithm:
@@ -167,3 +162,45 @@ def verify_signature_or_exception(
             return True
         case _:
             raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
+
+
+def _fetch_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
+    """
+    Makes a network request to Google KMS to fetch the
+    public key associated with `sigining_key`.
+    """
+    kms_client = kms.KeyManagementServiceClient()
+
+    key_version_name = kms_client.crypto_key_version_path(
+        project=shared_config.google_cloud_project,
+        location=KMS_KEYRING_LOCATION,
+        key_ring=KMS_KEYRING_NAME,
+        crypto_key=signing_key.id,
+        crypto_key_version=signing_key.version,
+    )
+    public_key_from_kms = kms_client.get_public_key(request={"name": key_version_name})
+    public_key_from_pem = serialization.load_pem_public_key(
+        data=public_key_from_kms.pem.encode(), backend=default_backend()
+    )
+
+    return public_key_from_pem
+
+
+def get_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
+    """
+    Get the public key PEM associated with `signing_key`,
+    or from an in-memory cache if previously computed.
+    """
+    if signing_key in _PUBLIC_KEYS_CACHE:
+        return _PUBLIC_KEYS_CACHE[signing_key]
+    result = _fetch_public_key(signing_key)
+    _PUBLIC_KEYS_CACHE[signing_key] = result
+    return result
+
+def preload_public_keys() -> None:
+    """
+    Preloads all PEM public keys for all registered signing keys
+    to accelerate signature verification middleware.
+    """
+    for signing_key in _SIGNING_KEYS.values():
+        _PUBLIC_KEYS_CACHE[signing_key] = _fetch_public_key(signing_key) 
