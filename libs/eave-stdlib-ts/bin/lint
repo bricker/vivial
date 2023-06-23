@@ -4,8 +4,6 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function run () (
+(
 	node-lint $(~parentpath)
 )
-
-run

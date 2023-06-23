@@ -4,7 +4,7 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function run () (
+function setup () (
 	python-validate-version
 	python-activate-venv
 
@@ -40,4 +40,4 @@ function run () (
 	statusmsg -sp " ✔ "
 )
 
-run
+setup

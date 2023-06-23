@@ -4,9 +4,7 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function run () (
+(
 	cd $(~parentpath)
 	${EAVE_HOME}/develop/python/bin/lint
 )
-
-run
