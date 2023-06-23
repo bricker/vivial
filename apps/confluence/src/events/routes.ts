@@ -2,8 +2,7 @@ import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { AddOn } from 'atlassian-connect-express';
 import express, { Request, Response, Router, Express } from 'express';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import appConfig from '../config.js';
 
 export function applyWebhookMiddlewares({ app, addon, path }: {app: Express, addon: AddOn, path: string}) {
@@ -19,8 +18,8 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   router.use(lifecycleRouter);
 
   router.post('/', addon.authenticate(), async (_req: Request, res: Response) => {
-    const eaveState = getEaveState(res);
-    eaveLogger.info({ message: 'received webhook event', eaveState });
+    const ctx = LogContext.load(res);
+    eaveLogger.info('received webhook event', ctx);
   });
 
   return router;

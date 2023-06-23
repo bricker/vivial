@@ -10,7 +10,7 @@ from google.pubsub_v1.types import Encoding
 
 from .typing import JsonObject
 from .config import shared_config
-from .logging import LogContext, eaveLogger
+from . import logging as _l
 
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event_topic"
@@ -25,17 +25,17 @@ def log_event(
     eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
     eave_team_id: typing.Optional[uuid.UUID | str] = None,
     event_ts: typing.Optional[float] = None,
-    ctx: typing.Optional[LogContext] = None,
+    ctx: typing.Optional[_l.LogContext] = None,
 ) -> None:
-    eave_context = LogContext.wrap(ctx)
-    if opaque_params:
-        try:
-            serialized_params = json.dumps(opaque_params)
-        except Exception:
-            eaveLogger.exception("Error while serializing opaque params for analytics", extra=eave_context)
-            serialized_params = str(opaque_params)
-    else:
-        serialized_params = None
+    eave_context = _l.LogContext.wrap(ctx)
+    opaque_params = opaque_params if opaque_params else JsonObject()
+    opaque_params.setdefault("eave_ctx", eave_context)
+
+    try:
+        serialized_params = json.dumps(opaque_params)
+    except Exception as e:
+        _l.eaveLogger.exception(e, eave_context)
+        serialized_params = str(opaque_params)
 
     event = eave.pubsub_schemas.EaveEvent(
         event_name=event_name,
@@ -60,6 +60,10 @@ def log_event(
     data = event.SerializeToString()
 
     if not shared_config.analytics_enabled:
-        eaveLogger.warning("Analytics disabled.", extra=eave_context.set({"pubsub": {"event": str(data)}}))
+        _l.eaveLogger.warning(
+            "Analytics disabled.",
+            eave_context,
+            {"pubsub": {"event": str(data)}},
+        )
     else:
         client.publish(topic_path, data)

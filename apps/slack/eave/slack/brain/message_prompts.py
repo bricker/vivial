@@ -73,7 +73,7 @@ async def message_action(context: str, ctx: Optional[LogContext] = None) -> Mess
         - Update existing documentation
         - Follow this conversation
         - Stop following this conversation
-        - Search for documentation
+        - Search, find, or recall some existing documentation or information that you may know
         - Delete or archive existing documentation
         - No action is needed
         - I don't know
@@ -83,9 +83,9 @@ async def message_action(context: str, ctx: Optional[LogContext] = None) -> Mess
         context,
     )
 
-    eaveLogger.debug(f"prompt:\n{prompt}", extra=ctx)
+    eaveLogger.debug(f"prompt:\n{prompt}", ctx)
     response = await _get_openai_response(messages=[prompt], temperature=0)
-    eaveLogger.debug(f"response: {response}", extra=ctx)
+    eaveLogger.debug(f"response: {response}", ctx)
 
     response = response.lower()
 
@@ -110,7 +110,7 @@ async def message_action(context: str, ctx: Optional[LogContext] = None) -> Mess
         eaveLogger.warning(f"Unexpected message action response: {response}")
         action = MessageAction.UNKNOWN
 
-    eaveLogger.debug(f"message action: {action}", extra=ctx)
+    eaveLogger.debug(f"message action: {action}", ctx)
     return action
 
 

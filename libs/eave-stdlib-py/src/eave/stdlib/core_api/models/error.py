@@ -1,10 +1,10 @@
 from typing import Optional
 
 from . import BaseResponseModel
-from ...typing import JsonObject
+from ... import typing
 
 
 class ErrorResponse(BaseResponseModel):
     status_code: int
     error_message: str
-    context: Optional[JsonObject]
+    context: Optional[typing.JsonObject]

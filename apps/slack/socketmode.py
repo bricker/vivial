@@ -1,5 +1,6 @@
 import asyncio
 import http
+import json
 import time
 from slack_bolt import BoltResponse
 from slack_bolt.adapter.socket_mode.async_internals import send_async_response
@@ -25,7 +26,7 @@ class AsyncSocketModeWithImmediateAckHandler(AsyncSocketModeHandler):
 
     async def handle(self, client: SocketModeClient, req: SocketModeRequest) -> None:  # type: ignore[override]
         start = time.time()
-        eaveLogger.debug(req.payload)
+        eaveLogger.debug(json.dumps(req.payload))
         immediate_ack = BoltResponse(status=http.HTTPStatus.OK)
         await send_async_response(client, req, immediate_ack, start)
         await super().handle(client, req)

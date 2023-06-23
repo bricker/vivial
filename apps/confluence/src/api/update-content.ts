@@ -1,23 +1,22 @@
-import { Request, Response } from 'express';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import OpenAIClient, * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
-import ConfluenceClient from '../confluence-client.js';
+import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
+import { ConfluenceClientArg } from './util.js';
 
-export default async function updateContent({ req, res, confluenceClient }: { req: Request, res: Response, confluenceClient: ConfluenceClient }) {
-  const eaveState = getEaveState(res);
+export default async function updateContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
+  const ctx = LogContext.load(res);
   const { content } = <UpdateContentRequestBody>req.body;
   const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {
-    eaveLogger.error({ message: `Confluence page not found for ID ${content.id}`, eaveState });
+    eaveLogger.error(`Confluence page not found for ID ${content.id}`, ctx);
     res.sendStatus(500);
     return;
   }
 
   const existingBody = page.body?.storage?.value;
   if (!existingBody) {
-    eaveLogger.error({ message: `Confluence page body is empty for ID ${content.id}`, eaveState });
+    eaveLogger.error(`Confluence page body is empty for ID ${content.id}`, ctx);
     res.sendStatus(500); // TODO: is 500 appropriate here?
     return;
   }
@@ -48,12 +47,12 @@ export default async function updateContent({ req, res, confluenceClient }: { re
       { role: 'user', content: prompt },
     ],
     model: openai.OpenAIModel.GPT4,
-  }, eaveState);
+  }, ctx);
 
   let newBody: string;
 
   if (openaiResponse.match(/UNABLE/i)) {
-    eaveLogger.warn({ message: 'openai was unable to merge the documents. The new content will be used.', eaveState });
+    eaveLogger.warning('openai was unable to merge the documents. The new content will be used.', ctx);
     newBody = content.body;
   } else {
     newBody = openaiResponse;

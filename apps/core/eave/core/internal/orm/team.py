@@ -6,7 +6,7 @@ from eave.core.internal.document_client import DocumentClient
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-import eave.stdlib
+import eave.stdlib.util
 from sqlalchemy import Row, Select, false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -138,7 +138,7 @@ class TeamOrm(Base):
             # getting more than 2 results means our db structure has changed meaningfully,
             # without this code being updated
             eaveLogger.warning(
-                "Expected 2 or fewer rows of results from joined installations table, got %s", len(query_res)
+                f"Expected 2 or fewer rows of results from joined installations table, got {len(query_res)}",
             )
 
         slack_install: Optional[SlackInstallationOrm] = None

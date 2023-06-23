@@ -9,6 +9,7 @@ from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, S
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from eave.stdlib.exceptions import SlackDataError
 from eave.stdlib.logging import LogContext, eaveLogger
+from eave.stdlib.typing import JsonObject
 import eave.stdlib.util as eave_util
 import slack_sdk.errors
 import slack_sdk.models.blocks
@@ -115,12 +116,12 @@ class SlackProfile:
 
 
 class SlackConversationTopic:
-    data: eave.stdlib.typing.JsonObject
+    data: JsonObject
     value: str | None = None
     creator: str | None = None
     last_set: int | None = None
 
-    def __init__(self, json: eave.stdlib.typing.JsonObject) -> None:
+    def __init__(self, json: JsonObject) -> None:
         self.data = json
 
         self.value = eave_util.erasetype(json, "value")
@@ -230,7 +231,7 @@ class SlackReaction:
     users: Optional[list[str]] = None
     count: Optional[int] = None
 
-    def __init__(self, data: eave.stdlib.typing.JsonObject) -> None:
+    def __init__(self, data: JsonObject) -> None:
         self.name = eave_util.erasetype(data, "name")
         self.users = eave_util.erasetype(data, "users")
         self.count = eave_util.erasetype(data, "count")
@@ -250,18 +251,18 @@ class SlackMessage:
     _slack_ctx: _SlackContext
     _eave_ctx: LogContext
 
-    event: eave.stdlib.typing.JsonObject
+    event: JsonObject
     subtype: Optional[str] = None
     """https://api.slack.com/events/message#subtypes"""
 
     client_message_id: Optional[str] = None
     bot_id: Optional[str] = None
     app_id: Optional[str] = None
-    bot_profile: Optional[eave.stdlib.typing.JsonObject] = None
+    bot_profile: Optional[JsonObject] = None
     text: Optional[str] = None
     user: Optional[str] = None
     ts: str
-    edited: Optional[eave.stdlib.typing.JsonObject] = None
+    edited: Optional[JsonObject] = None
     channel: Optional[str] = None
     blocks: Optional[list[Any]] = None
     team: Optional[str] = None
@@ -292,7 +293,7 @@ class SlackMessage:
 
     def __init__(
         self,
-        data: eave.stdlib.typing.JsonObject,
+        data: JsonObject,
         slack_ctx: AsyncBoltContext,
         eave_ctx: LogContext,
         channel: Optional[str] = None,
@@ -523,7 +524,7 @@ class SlackMessage:
     @eave_util.memoized
     async def get_formatted_message(self) -> str | None:
         if self.is_bot_message:
-            eaveLogger.debug("skipping bot message", extra=self._eave_ctx)
+            eaveLogger.debug("skipping bot message", self._eave_ctx)
             return None
 
         expanded_text, user_profile = await asyncio.gather(
@@ -532,7 +533,7 @@ class SlackMessage:
         )
 
         if expanded_text is None or user_profile is None:
-            eaveLogger.warning("expanded_text or user_profile were None", extra=self._eave_ctx)
+            eaveLogger.warning("expanded_text or user_profile were None", self._eave_ctx)
             return None
 
         formatted_message = f"- Message from {user_profile.real_name}: {expanded_text}\n"
@@ -553,7 +554,7 @@ class SlackMessage:
         """
 
         if self.text is None:
-            eaveLogger.warning("slack message text unexpectedly None", extra=self._eave_ctx)
+            eaveLogger.warning("slack message text unexpectedly None", self._eave_ctx)
             return None
 
         await asyncio.gather(
@@ -750,7 +751,7 @@ class SlackMessage:
     @eave_util.memoized
     async def simple_format(self) -> str | None:
         if self.is_bot_message:
-            eaveLogger.debug("skipping bot message", extra=self._eave_ctx)
+            eaveLogger.debug("skipping bot message", self._eave_ctx)
             return None
 
         expanded_text, user_profile = await asyncio.gather(

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import cache
 from typing import cast
 
-import eave.stdlib
+import eave.stdlib.typing
 import eave.stdlib.atlassian
 import requests_oauthlib
 from oauthlib.oauth2 import OAuth2Token
@@ -98,7 +98,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             url="https://api.atlassian.com/oauth/token/accessible-resources",
         )
         available_resources_data: list[eave.stdlib.typing.JsonObject] = available_resources_response.json()
-        available_resources = [eave.stdlib.atlassian.AtlassianAvailableResource(**j) for j in available_resources_data]
+        available_resources = [eave.stdlib.atlassian.AtlassianAvailableResource(j) for j in available_resources_data]
         return available_resources
 
     def get_userinfo(self) -> ConfluenceUser:
@@ -107,7 +107,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             url=f"{self.api_base_url}/rest/api/user/current",
         )
 
-        userinfo = ConfluenceUser(**response.json())
+        userinfo = ConfluenceUser(response.json())
         return userinfo
 
     @property

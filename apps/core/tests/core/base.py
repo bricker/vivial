@@ -7,7 +7,10 @@ from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
 from eave.core.internal.oauth.slack import SlackIdentity
 
-import eave.stdlib
+import eave.stdlib.signing
+import eave.stdlib.eave_origins
+import eave.stdlib.typing
+
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.team import DocumentPlatform
 import eave.stdlib.test_util
@@ -157,7 +160,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             headers["eave-origin"] = origin.value
         else:
             if "eave-origin" not in headers:
-                origin = eave.stdlib.EaveOrigin.eave_www
+                origin = eave.stdlib.eave_origins.EaveOrigin.eave_www
                 headers["eave-origin"] = origin
 
         if request_id:
@@ -179,7 +182,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             request_args["content"] = encoded_payload
 
         if "eave-signature" not in headers:
-            origin = origin or eave.stdlib.EaveOrigin.eave_www
+            origin = origin or eave.stdlib.eave_origins.EaveOrigin.eave_www
             signature_message = eave.stdlib.requests.build_message_to_sign(
                 method=method,
                 url=eave.stdlib.requests.makeurl(path),
@@ -294,11 +297,13 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(
-                id=self.anystring("atlassian_cloud_id"),
-                url=self.anystring("confluence_document_response._links.base"),
-                avatarUrl=self.anystring("atlassian.resource.avatar"),
-                name=self.anystring("atlassian.resource.name"),
-                scopes=[],
+                data={
+                    "id": self.anystring("atlassian_cloud_id"),
+                    "url": self.anystring("confluence_document_response._links.base"),
+                    "avatarUrl": self.anystring("atlassian.resource.avatar"),
+                    "name": self.anystring("atlassian.resource.name"),
+                    "scopes": [],
+                },
             )
         ]
 

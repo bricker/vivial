@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import eaveHeaders from '../headers.js';
-import { getEaveState } from '../lib/request-state.js';
 import { developmentBypassAllowed } from './development-bypass.js';
-import { buildMessageToSign } from '../lib/requests.js';
+import { buildMessageToSign } from '../requests.js';
 import Signing from '../signing.js';
-import eaveLogger from '../logging.js';
+import eaveLogger, { LogContext } from '../logging.js';
 
 /**
  * Reads the body and headers and verifies the signature.
@@ -13,13 +12,11 @@ import eaveLogger from '../logging.js';
  */
 export function signatureVerification(baseUrl: string): ((req: Request, res: Response, next: NextFunction) => void) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const eaveState = getEaveState(res);
     try {
       await doSignatureVerification(req, res, baseUrl);
       next();
     } catch (e: any) {
-      if (developmentBypassAllowed(req)) {
-        eaveLogger.warn({ message: 'Bypassing signature verification in dev environment', eaveState });
+      if (developmentBypassAllowed(req, res)) {
         next();
       } else {
         next(e);
@@ -29,18 +26,18 @@ export function signatureVerification(baseUrl: string): ((req: Request, res: Res
 }
 
 async function doSignatureVerification(req: Request, res: Response, baseUrl: string): Promise<boolean> {
-  const eaveState = getEaveState(res);
+  const ctx = LogContext.load(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    eaveLogger.warn({ message: 'Missing Eave signature header', eaveState });
+    eaveLogger.error('Missing Eave signature header', ctx);
     res.sendStatus(400);
     return false;
   }
 
   const teamId = req.header(eaveHeaders.EAVE_TEAM_ID_HEADER);
   const accountId = req.header(eaveHeaders.EAVE_ACCOUNT_ID_HEADER);
-  const origin = eaveState.eave_origin!;
+  const origin = ctx.eave_origin!;
 
   // let serializedBody;
   // if (typeof req.body === 'string' || req.body instanceof Buffer) {
@@ -54,7 +51,7 @@ async function doSignatureVerification(req: Request, res: Response, baseUrl: str
   const message = buildMessageToSign({
     method: req.method,
     url: `${baseUrl}${req.originalUrl}`,
-    requestId: eaveState.request_id!,
+    requestId: ctx.eave_request_id,
     origin,
     payload,
     teamId,

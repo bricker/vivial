@@ -1,5 +1,5 @@
 import { sharedConfig } from '../../config.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../../lib/requests.js';
+import { RequestArgsOriginAndTeamId, makeRequest } from '../../requests.js';
 import { Integrations } from '../models/integrations.js';
 import { Team } from '../models/team.js';
 
@@ -8,11 +8,10 @@ export type GetTeamResponseBody = {
   integrations: Integrations;
 }
 
-export async function getTeam({ origin, teamId }: RequestArgsOriginAndTeamId): Promise<GetTeamResponseBody> {
+export async function getTeam(args: RequestArgsOriginAndTeamId): Promise<GetTeamResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveApiBase}/team/query`,
-    origin,
-    teamId,
+    ...args,
   });
   const responseData = <GetTeamResponseBody>(await resp.json());
   return responseData;

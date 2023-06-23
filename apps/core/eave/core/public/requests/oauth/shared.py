@@ -6,14 +6,17 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 import eave.pubsub_schemas
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import eaveLogger
+from eave.stdlib.request_state import EaveRequestState
 import eave.stdlib.slack
+import eave.stdlib.cookies
+import eave.stdlib.analytics
+import eave.stdlib.exceptions
 from starlette.requests import Request
 from starlette.responses import Response
 
 import eave.core.internal
 import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
-import eave.stdlib.request_state
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
 
 DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
@@ -131,7 +134,7 @@ async def create_new_account_and_team(
     access_token: str,
     refresh_token: typing.Optional[str],
 ) -> eave.core.internal.orm.AccountOrm:
-    eave_state = eave.stdlib.request_state.get_eave_state(request=request)
+    eave_state = EaveRequestState.load(request=request)
     tracking_cookies = eave.stdlib.cookies.get_tracking_cookies(request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -165,6 +168,7 @@ async def create_new_account_and_team(
             "auth_provider": auth_provider.value,
             "user_email": user_email,
         },
+        ctx=eave_state.ctx,
     )
 
     try:
@@ -195,8 +199,8 @@ async def create_new_account_and_team(
                 f"```{eave_account.opaque_utm_params}```"
             ),
         )
-    except Exception:
-        eaveLogger.exception("Error while sending message to #sign-ups slack channel", extra=eave_state.log_context)
+    except Exception as e:
+        eaveLogger.exception(e, eave_state.ctx)
 
     return eave_account
 
