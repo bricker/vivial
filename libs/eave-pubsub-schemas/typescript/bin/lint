@@ -3,4 +3,7 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
-node-lint $(~parentpath)
+
+(
+	node-lint $(~parentpath)
+)

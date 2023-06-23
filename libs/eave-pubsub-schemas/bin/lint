@@ -3,9 +3,12 @@
 set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
+(
+	cd $(~parentpath)
 
-$(~parentpath)/python/bin/lint
-$(~parentpath)/typescript/bin/lint
+	python-lint .
+	node-lint .
 
-python-lint $(~parentpath)
-node-lint $(~parentpath)
+	python/bin/lint
+	typescript/bin/lint
+)

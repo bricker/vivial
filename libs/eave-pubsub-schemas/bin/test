@@ -4,5 +4,8 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-$(~parentpath)/python/bin/test
-$(~parentpath)/typescript/bin/test
+(
+	cd $(~parentpath)
+	python/bin/test
+	typescript/bin/test
+)

@@ -10,8 +10,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function python-activate-venv () {
-		if test -z "${CI:-}"
-		then
+		if ! ~ci; then
 			ved=${EAVE_HOME}/.venv
 			if ! test -d $ved
 			then

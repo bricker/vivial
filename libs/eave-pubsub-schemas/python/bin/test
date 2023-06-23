@@ -4,10 +4,8 @@ set -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-function run-python-tests() (
+(
 	statusmsg -i "Running python tests..."
 	python $(~parentpath)/test.py
 	statusmsg -s "Done!"
 )
-
-run-python-tests

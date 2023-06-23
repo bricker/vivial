@@ -9,7 +9,7 @@ function setup () (
 	python-activate-venv
 
 	local piploc=""
-	if test -n "${CI:-}"; then
+	if ~ci; then
 		piploc="--user"
 	fi
 

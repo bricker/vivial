@@ -1,4 +1,8 @@
 if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
+	function ~ci () (
+		test -n "${CI:-}"
+	)
+
 	function statusmsg() (
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE
@@ -58,7 +62,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		local _cc_reset=""
 
-		if test -z "${CI:-}" && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
+		if ! ~ci && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
 			local _cc_black=0
 			local _cc_red=1
 			local _cc_green=2
@@ -334,10 +338,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 	function verbose () (
 		test -n "${VERBOSE:-}"
-	)
-
-	function ~ci () (
-		test -n "${CI:-}"
 	)
 
 	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
