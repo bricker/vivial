@@ -48,7 +48,7 @@ steps:
   env:
   - EAVE_HOME=/workspace
 
-- name: git
+- name: gcr.io/cloud-builders/git
   dir: apps/core
   script: |-
     #!/usr/bin/env bash
