@@ -51,7 +51,7 @@ steps:
 - name: gcr.io/cloud-builders/git
   dir: apps/core
   script: |-
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env -S bash -eu
     mkdir .buildinfo
     timestamp=$(date --utc "+%Y%m%dt%H%Mz")
     gitrev=$(git rev-parse --short HEAD)
@@ -60,7 +60,7 @@ steps:
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   dir: apps/core
   script: |-
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env -S bash -eu
     version=$(cat .buildinfo/version)
     gcloud app deploy \
       --version=$version \
