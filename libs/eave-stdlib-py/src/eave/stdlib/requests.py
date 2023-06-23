@@ -25,7 +25,7 @@ async def make_request(
     ctx: Optional[LogContext] = None,
 ) -> aiohttp.ClientResponse:
     ctx = LogContext.wrap(ctx)
-    request_id = ctx.request_id
+    request_id = ctx.eave_request_id
 
     headers: dict[str, str] = {
         eave_headers.CONTENT_TYPE: "application/json",

@@ -6,7 +6,7 @@ import unittest.mock
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
-from eave.stdlib.logging import LogContext
+import eave.stdlib.logging as _l
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 mut = analytics.__name__
@@ -37,7 +37,7 @@ class AnalyticsTest(UtilityBaseTestCase):
             eave_visitor_id=self.anystring("eave_visitor_id"),
             eave_team_id=self.anystring("eave_team_id"),
             event_ts=fakenow,
-            ctx=LogContext(),
+            ctx=_l.LogContext(),
         )
 
         expected_event = EaveEvent(
@@ -90,6 +90,39 @@ class AnalyticsTest(UtilityBaseTestCase):
         self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
         self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
 
+        eave_ctx = _l.LogContext()
+        analytics.log_event(
+            event_name=self.anystring("event_name"),
+            event_description=self.anystring("event_description"),
+            event_source=self.anystring("event_source"),
+            ctx=eave_ctx,
+        )
+
+        expected_event = EaveEvent(
+            event_name=self.getstr("event_name"),
+            event_description=self.getstr("event_description"),
+            event_source=self.getstr("event_source"),
+            eave_account_id=None,
+            eave_visitor_id=None,
+            eave_team_id=None,
+            opaque_params=json.dumps({
+                "eave_ctx": eave_ctx,
+            }),
+            event_ts=self.get_mock("now").return_value,
+            eave_env=EaveEnvironment.development,
+        )
+
+        mock = self.get_mock("publisher")
+        assert mock.call_count == 1
+        mock.assert_called_with(self._expected_topic_path, expected_event.SerializeToString())
+
+    async def test_No_Context_Given(self) -> None:
+        self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
+        self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
+
+        self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
+        mock_ctx = _l.LogContext()
+
         analytics.log_event(
             event_name=self.anystring("event_name"),
             event_description=self.anystring("event_description"),
@@ -103,7 +136,9 @@ class AnalyticsTest(UtilityBaseTestCase):
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
-            opaque_params=None,
+            opaque_params=json.dumps({
+                "eave_ctx": mock_ctx,
+            }),
             event_ts=self.get_mock("now").return_value,
             eave_env=EaveEnvironment.development,
         )

@@ -3,8 +3,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.core_api.models.account import AuthProvider
 
-import eave.stdlib.request_state as eave_request_util
 from eave.stdlib.logging import eaveLogger
+from eave.stdlib.request_state import EaveRequestState
 
 from ...http_endpoint import HTTPEndpoint
 from . import shared
@@ -18,7 +18,7 @@ class BaseOAuthCallback(HTTPEndpoint):
     error: Optional[str]
     error_description: Optional[str]
     auth_provider: AuthProvider
-    eave_state: eave_request_util.EaveRequestState
+    eave_state: EaveRequestState
 
     async def get(self, request: Request) -> Response:
         request = request
@@ -28,7 +28,7 @@ class BaseOAuthCallback(HTTPEndpoint):
             state=state, auth_provider=self.auth_provider, request=request, response=response
         )
 
-        eave_state = eave_request_util.get_eave_state(request=request)
+        eave_state = EaveRequestState.load(request=request)
 
         self.code = request.query_params.get("code")
         self.error = request.query_params.get("error")
@@ -45,7 +45,7 @@ class BaseOAuthCallback(HTTPEndpoint):
         if self.error or not self.code:
             eaveLogger.warning(
                 f"Error response from {self.auth_provider} oauth flow, or code missing. {self.error}: {self.error_description}",
-                extra=self.eave_state.log_context,
+                self.eave_state.ctx,
             )
             shared.cancel_flow(response=self.response)
             return False

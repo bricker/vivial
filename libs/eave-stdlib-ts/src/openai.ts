@@ -1,8 +1,6 @@
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 import { sharedConfig } from './config.js';
-import eaveLogger from './logging.js';
-import { EaveRequestState } from './lib/request-state.js';
-import { JsonObject } from './types.js';
+import eaveLogger, { LogContext } from './logging.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -38,7 +36,7 @@ export default class OpenAIClient {
     this.client = client;
   }
 
-  async createChatCompletion(parameters: CreateChatCompletionRequest, eaveState: EaveRequestState): Promise<string> {
+  async createChatCompletion(parameters: CreateChatCompletionRequest, ctx: LogContext): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
     const promptLength = parameters.messages.reduce((acc, v) => {
@@ -60,15 +58,15 @@ export default class OpenAIClient {
     for (let i = 0; i < maxAttempts; i += 1) {
       const backoffMs = (i + 1) * 10 * 1000;
       try {
-        eaveLogger.debug('openai request', <any>parameters, eaveState);
+        eaveLogger.debug('openai request', <any>parameters, ctx);
         const completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
-        eaveLogger.debug('openai response', { data: <any>completion.data }, eaveState);
+        eaveLogger.debug('openai response', { data: <any>completion.data }, ctx);
         text = completion.data.choices[0]?.message?.content;
         break;
       } catch (e: any) {
         // Network error?
         if (i + 1 < maxAttempts) {
-          eaveLogger.warning(e, eaveState);
+          eaveLogger.warning(e, ctx);
           await new Promise((r) => { setTimeout(r, backoffMs); });
         } else {
           throw e;

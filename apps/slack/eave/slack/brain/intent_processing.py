@@ -50,7 +50,8 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
 
         eaveLogger.warning(
             "Unknown request to Eave in Slack",
-            extra=self.eave_ctx.set({"message": self.message.text}),
+            self.eave_ctx,
+            {"message": self.message.text},
         )
         self.log_event(
             event_name="eave_received_unknown_request",

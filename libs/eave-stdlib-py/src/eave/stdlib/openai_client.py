@@ -126,14 +126,12 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     eave_ctx = LogContext.wrap(ctx)
     openai_request_id = str(uuid.uuid4())
     compiled_params = params.compile()
-    eave_ctx.set(
-        {
-            "openai_request_id": openai_request_id,
-            "openai_request_params": compiled_params,
-        }
-    )
+    log_params = {
+        "openai_request_id": openai_request_id,
+        "openai_request_params": compiled_params,
+    }
 
-    eaveLogger.debug("OpenAI Request", extra=eave_ctx)
+    eaveLogger.debug(f"OpenAI Request: {openai_request_id}", eave_ctx, log_params)
 
     max_attempts = 3
     for i in range(max_attempts):
@@ -145,14 +143,16 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
             try:
                 eaveLogger.debug(
                     f"OpenAI Response: {openai_request_id}",
-                    extra=eave_ctx.set({"openai_response": cast(JsonObject, response)}),
+                    {"openai_response": cast(JsonObject, response)},
+                    eave_ctx,
+                    log_params,
                 )
-            except Exception:
+            except Exception as e:
                 # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
-                eaveLogger.exception(f"error during logging: {openai_request_id}", extra=eave_ctx)
+                eaveLogger.exception(e, eave_ctx, log_params)
             break
         except openai.error.OpenAIError as e:
-            eaveLogger.warning(f"OpenAI Error: {openai_request_id}", exc_info=e, extra=eave_ctx)
+            eaveLogger.warning(e, eave_ctx, log_params)
             if i + 1 < max_attempts:
                 time.sleep(backoffSecs)
     else:
@@ -164,7 +164,7 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     if len(candidates) > 0:
         choice = candidates[0]
     else:
-        eaveLogger.warning(f"No valid choices from openAI; using the first result. {openai_request_id}", extra=eave_ctx)
+        eaveLogger.warning(f"No valid choices from openAI; using the first result. {openai_request_id}", eave_ctx, log_params)
         if len(response.choices) > 0:
             choice = response.choices[0]
         else:

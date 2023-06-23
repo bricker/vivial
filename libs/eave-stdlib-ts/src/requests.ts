@@ -1,13 +1,10 @@
-import { v4 as uuid4 } from 'uuid';
-import eaveLogger, { LogContext } from '../logging.js';
-import { EaveOrigin } from '../eave-origins.js';
-import Signing from '../signing.js';
-import eaveHeaders from '../headers.js';
-import { redact } from '../util.js';
-import { EaveRequestState } from './request-state.js';
-import { JsonObject } from '../types.js';
-
-const LOG_TAG = 'requests.ts';
+import { NextFunction, Request, Response } from 'express';
+import eaveLogger, { LogContext } from './logging.js';
+import { EaveOrigin } from './eave-origins.js';
+import Signing from './signing.js';
+import eaveHeaders from './headers.js';
+import { redact } from './util.js';
+import { JsonObject } from './types.js';
 
 export function buildMessageToSign({
   method,
@@ -44,7 +41,25 @@ export function buildMessageToSign({
   return signatureElements.join(':');
 }
 
-interface RequestArgs {
+export type ExpressHandlerArgs = {
+  req: Request;
+  res: Response;
+  next?: NextFunction;
+}
+
+export type CtxArg = {
+  ctx?: LogContext;
+}
+
+export type RequestArgsOrigin = CtxArg & {
+  origin: EaveOrigin | string;
+}
+
+export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
+  teamId: string;
+}
+
+type RequestArgs = CtxArg & {
   url: string;
   origin: EaveOrigin | string;
   sign?: boolean;
@@ -56,7 +71,7 @@ interface RequestArgs {
   ctx?: LogContext;
 }
 
-export async function makeRequest(args: RequestArgs): Promise<Response> {
+export async function makeRequest(args: RequestArgs): Promise<globalThis.Response> {
   const {
     url,
     origin,
@@ -68,7 +83,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   } = args;
 
   const ctx = LogContext.wrap(args.ctx);
-  const requestId = ctx.request_id;
+  const requestId = ctx.eave_request_id;
   const payload = input === undefined ? '{}' : JSON.stringify(input);
 
   const headers: { [key: string]: string } = {
@@ -93,7 +108,7 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 
   if (accessToken !== undefined) {
-    headers[eaveHeaders.EAVE_AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;
+    headers[eaveHeaders.AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;
   }
 
   if (teamId !== undefined) {
@@ -147,13 +162,4 @@ export async function makeRequest(args: RequestArgs): Promise<Response> {
   }
 
   return response;
-}
-
-export type RequestArgsOrigin = {
-  ctx?: LogContext;
-  origin: EaveOrigin | string;
-}
-
-export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
-  teamId: string;
 }

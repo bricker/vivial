@@ -9,7 +9,8 @@ from eave.core.internal.orm.atlassian_installation import AtlassianInstallationO
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.pubsub_schemas
-import eave.stdlib
+import eave.stdlib.analytics
+import eave.stdlib.exceptions
 import eave.stdlib.atlassian
 import eave.stdlib.core_api
 from starlette.requests import Request
@@ -68,9 +69,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
 
         userinfo = oauth_session.get_userinfo()
         if not userinfo.account_id:
-            eaveLogger.warning(
-                msg := "atlassian account_id missing; can't create account.", extra=self.eave_state.log_context
-            )
+            eaveLogger.warning(msg := "atlassian account_id missing; can't create account.", self.eave_state.ctx)
             raise eave.stdlib.exceptions.InvalidAuthError(msg)
 
         self.atlassian_resources = oauth_session.get_available_resources()
@@ -119,13 +118,14 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                         if connect_install.team_id and connect_install.team_id != self.eave_account.team_id:
                             eaveLogger.warning(
                                 f"A {connect_install.product} connect integration for org {connect_install.org_url} already exists for a different team",
-                                extra=self.eave_state.log_context,
+                                self.eave_state.ctx,
                             )
                             eave.stdlib.analytics.log_event(
                                 event_name="duplicate_integration_attempt",
                                 eave_account_id=self.eave_account.id,
                                 eave_team_id=self.eave_account.team_id,
                                 opaque_params={"integration": connect_install.product},
+                                ctx=self.eave_state.ctx,
                             )
                             shared.set_error_code(
                                 response=self.response, error_code=EaveOnboardingErrorCode.already_linked
@@ -150,11 +150,12 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                                     if self.atlassian_resource
                                     else None,
                                 },
+                                ctx=self.eave_state.ctx,
                             )
 
                 else:
                     # TODO: This probably means they didn't complete the connect install, how should we handle this case?
-                    eaveLogger.warning("connect install not found", self.eave_state.log_context)
+                    eaveLogger.warning("connect install not found", self.eave_state.ctx)
 
             # TODO: The transaction needs to be closed, because the team ID needs to be saved to the database before we
             # call out to the Confluence API to get the available spaces.
@@ -188,7 +189,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     return
 
                 response = await GetAvailableSpacesRequest.perform(
-                    ctx=self.eave_state.log_context,
+                    ctx=self.eave_state.ctx,
                     origin=app_config.eave_origin,
                     team_id=self.eave_account.team_id,
                 )
@@ -216,10 +217,11 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                             "atlassian_site_name": self.atlassian_resource.name if self.atlassian_resource else None,
                             "confluence_space_key": space_key,
                         },
+                        ctx=self.eave_state.ctx,
                     )
-        except Exception:
+        except Exception as e:
             # Aggressively rescue any type of error, as this is a non-essential procedure.
-            eaveLogger.exception("Error while getting confluence spaces", extra=self.eave_state.log_context)
+            eaveLogger.exception(e, self.eave_state.ctx)
 
     async def _update_or_create_atlassian_install(self) -> None:
         oauth_token_encoded = json.dumps(self.oauth_session.get_token())

@@ -1,5 +1,5 @@
 import { sharedConfig } from '../../config.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../../lib/requests.js';
+import { RequestArgsOriginAndTeamId, makeRequest } from '../../requests.js';
 import { Integrations } from '../models/integrations.js';
 import { Team } from '../models/team.js';
 

@@ -2,29 +2,71 @@ import { v4 as uuidv4 } from 'uuid';
 import winston from 'winston';
 import lf from 'logform';
 import { LoggingWinston } from '@google-cloud/logging-winston';
+import { Request, Response } from 'express';
 import { sharedConfig } from './config.js';
-import { JsonObject, JsonValue } from './types.js';
-import { Request } from 'express';
 import headers from './headers.js';
+import { JsonObject } from './types.js';
+import { getHeaders } from './api-util.js';
 
 export class LogContext {
   attributes: JsonObject = {};
 
-  static wrap(ctx?: LogContext): LogContext {
+  static load(res: Response): LogContext {
+    const existing = res.locals[headers.EAVE_CTX_KEY];
+    return LogContext.wrap(existing, res.req);
+  }
+
+  static wrap(ctx?: LogContext, req?: Request): LogContext {
     if (ctx) {
       return ctx;
     } else {
-      return new LogContext();
+      return new LogContext(req);
     }
   }
 
   constructor(req?: Request) {
-    const requestId = req?.header(headers.EAVE_REQUEST_ID_HEADER) || uuidv4();
-    this.set({ request_id: requestId });
+    if (req) {
+      this.set({
+        headers: getHeaders(req),
+        eave_request_id: req.header(headers.EAVE_REQUEST_ID_HEADER) || uuidv4(),
+        eave_team_id: req.header(headers.EAVE_TEAM_ID_HEADER),
+        eave_account_id: req.header(headers.EAVE_ACCOUNT_ID_HEADER),
+        eave_origin: req.header(headers.EAVE_ORIGIN_HEADER),
+        request_path: req.originalUrl,
+      });
+    }
   }
 
-  get request_id(): string {
-    return <string> this.attributes['request_id'];
+  get eave_request_id(): string {
+    return <string> this.attributes['eave_request_id'];
+  }
+
+  set eave_request_id(value: string) {
+    this.set({ eave_request_id: value });
+  }
+
+  get eave_account_id(): string {
+    return <string> this.attributes['eave_account_id'];
+  }
+
+  set eave_account_id(value: string) {
+    this.set({ eave_account_id: value });
+  }
+
+  get eave_team_id(): string {
+    return <string> this.attributes['eave_team_id'];
+  }
+
+  set eave_team_id(value: string) {
+    this.set({ eave_team_id: value });
+  }
+
+  get eave_origin(): string {
+    return <string> this.attributes['eave_origin'];
+  }
+
+  set eave_origin(value: string) {
+    this.set({ eave_origin: value });
   }
 
   set(attributes: JsonObject): LogContext {

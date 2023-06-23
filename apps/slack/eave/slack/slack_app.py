@@ -34,7 +34,7 @@ async def authorize(
     eave_ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
     eave_ctx.set(
         {
-            "request_id": context.get("request_id"),
+            "eave_request_id": context.get("eave_request_id"),
             "slack_team_id": context.team_id,
             "slack_user_id": context.user_id,
             "slack_channel_id": context.channel_id,
@@ -44,7 +44,7 @@ async def authorize(
             "slack_user_token": f"{context.user_token[0:5]}..." if context.user_token else None,
         }
     )
-    eaveLogger.debug("slack authorize request", extra=eave_ctx)
+    eaveLogger.debug("slack authorize request", eave_ctx)
 
     # TODO: team_id can be None for org-wide installed apps
     # https://slack.dev/bolt-python/api-docs/slack_bolt/authorization/async_authorize.html
@@ -58,9 +58,9 @@ async def authorize(
     cached_data: str | None = None
     try:
         cached_data = await cache.client().get(cachekey)
-        eaveLogger.debug(f"cache hit: {cachekey}", extra=eave_ctx)
-    except Exception:
-        eaveLogger.exception("Exception loading cached slack installation details", extra=eave_ctx)
+        eaveLogger.debug(f"cache hit: {cachekey}", eave_ctx)
+    except Exception as e:
+        eaveLogger.exception(e, eave_ctx)
         # fall back to making the API requests
 
     # Notes:
@@ -77,8 +77,8 @@ async def authorize(
             # If there is cached data, inflate the object and do an auth test.
             installation_data = eave_slack.GetSlackInstallation.ResponseBody.parse_raw(cached_data)
             auth_response = (await client.auth_test(token=installation_data.slack_integration.bot_token)).validate()
-        except Exception:
-            eaveLogger.warning("Cached auth token was not valid", extra=eave_ctx)
+        except Exception as e:
+            eaveLogger.warning(e, eave_ctx)
             await cache.client().delete(cachekey)
             cached_data = None
             installation_data = None
@@ -106,8 +106,8 @@ async def authorize(
             # expires cache entries in 12 hours since that is the valid lifetime of a slack auth token
             ttl_12_hours = 12 * 60 * 60
             await cache.client().set(name=cachekey, value=installation_data.json(), ex=ttl_12_hours)
-        except Exception:
-            eaveLogger.exception("Exception saving cached slack installation details", extra=eave_ctx)
+        except Exception as e:
+            eaveLogger.exception(e, eave_ctx)
 
     context["eave_team"] = installation_data.team
 

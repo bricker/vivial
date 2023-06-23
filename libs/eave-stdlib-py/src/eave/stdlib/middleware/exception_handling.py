@@ -2,6 +2,8 @@ import http
 from typing import cast
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, Scope
 import starlette.types
+
+from eave.stdlib.request_state import EaveRequestState
 from ..api_util import json_response
 
 from ..logging import eaveLogger
@@ -36,14 +38,14 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
             if shared_config.raise_app_exceptions:
                 raise
 
-            eave_state = self.eave_state(scope=scope)
-            eaveLogger.exception(str(e), extra=eave_state.log_context)
+            eave_state = EaveRequestState.load(scope=scope)
+            eaveLogger.exception(e, eave_state.ctx)
 
             if not response_started:
                 model = ErrorResponse(
                     status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
                     error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-                    context=eave_state.public_request_context,
+                    context=eave_state.ctx.public,
                 )
 
                 response = json_response(model=model, status_code=model.status_code)

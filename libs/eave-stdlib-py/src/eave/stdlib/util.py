@@ -1,12 +1,10 @@
 import base64
 import hashlib
 from functools import wraps
-import traceback
 from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar
 import uuid
 
 from eave.stdlib.typing import JsonObject
-from .logging import eaveLogger
 
 from eave.stdlib.exceptions import UnexpectedMissingValue
 
@@ -166,10 +164,6 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
         if default is None:
             raise UnexpectedMissingValue("force-unwrapped a None value")
         else:
-            caller = "".join(traceback.format_stack()[-1:])
-            eaveLogger.warning(
-                "unwrapped an unexpected None value; default will be used.", extra={"json_fields": {"caller": caller}}
-            )
             return default
     else:
         return value

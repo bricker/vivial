@@ -1,48 +1,13 @@
 import http
 import re
-from typing import Any, Optional
+from typing import Optional
 
 import pydantic
-from eave.stdlib.headers import AUTHORIZATION_HEADER
+from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER
 
-from eave.stdlib.util import redact
-import eave.stdlib.core_api.operations.status as status
-from eave.stdlib import cache
-
-from .config import shared_config
-from starlette.routing import Route
-from starlette.requests import Request
+import eave.stdlib.util as util
 from starlette.responses import Response
 from asgiref.typing import HTTPScope
-
-
-def status_payload() -> status.Status.ResponseBody:
-    return status.Status.ResponseBody(
-        service=shared_config.app_service,
-        version=shared_config.app_version,
-        status="OK",
-    )
-
-
-async def status_endpoint_starlette(request: Request) -> Response:
-    model = status_payload()
-    if cache.initialized():
-        await cache.client().ping()
-    return json_response(model=model)
-
-
-def status_endpoint_flask() -> str:
-    model = status_payload()
-    return model.json()
-
-
-def add_standard_endpoints(app: Any, path_prefix: str = "") -> None:
-    app.get(f"{path_prefix}/status")(status_endpoint_flask)
-
-
-StatusRoute = Route(
-    "/status", status_endpoint_starlette, methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"]
-)
 
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
@@ -56,7 +21,7 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
 
 
 def get_headers(
-    scope: HTTPScope, excluded: Optional[list[str]] = None, redacted: Optional[list[str]] = None
+    scope: HTTPScope, excluded: Optional[set[str]] = None, redacted: Optional[set[str]] = None
 ) -> dict[str, str]:
     """
     This function doesn't support multiple headers with the same name.
@@ -65,12 +30,20 @@ def get_headers(
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
     if excluded is None:
-        excluded = []
+        excluded = set[str]()
     if redacted is None:
-        redacted = []
+        redacted = set[str]()
+
+    augmented_redacted = redacted.union(
+        [
+            EAVE_SIGNATURE_HEADER,
+            AUTHORIZATION_HEADER,
+            COOKIE_HEADER,
+        ]
+    )
 
     return {
-        n.decode(): (v.decode() if n.decode().lower() not in redacted else redact(v.decode()))
+        n.decode(): (v.decode() if n.decode().lower() not in augmented_redacted else util.redact(v.decode()))
         for [n, v] in scope["headers"]
         if n.decode().lower() not in excluded
     }

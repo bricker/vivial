@@ -5,6 +5,8 @@ import uuid
 import random
 from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
+import eave.stdlib.util
+import eave.stdlib.exceptions
 import eave.stdlib.atlassian
 import eave.stdlib.signing
 from eave.stdlib.typing import JsonObject

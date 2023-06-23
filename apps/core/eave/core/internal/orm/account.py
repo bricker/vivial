@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-import eave.stdlib
+import eave.stdlib.exceptions
 import eave.core.internal
 import slack_sdk.errors
 from sqlalchemy import Index, Select, func, select

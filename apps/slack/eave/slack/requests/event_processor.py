@@ -1,5 +1,6 @@
 import http
-from eave.stdlib import signing, eaveLogger
+import eave.stdlib.signing
+from eave.stdlib.logging import eaveLogger
 import eave.stdlib.requests
 import eave.stdlib.eave_origins as eave_origins
 from eave.stdlib.exceptions import InvalidSignatureError
@@ -26,19 +27,13 @@ class SlackEventProcessorTask(HTTPEndpoint):
     _request: Request
 
     async def post(self, request: Request) -> Response:
-        request_id = request.headers.get(EAVE_REQUEST_ID_HEADER)
-        self._ctx = LogContext().set(
-            {
-                "task_headers": dict(request.headers),
-                "request_id": request_id,
-            }
-        )
+        self._ctx = LogContext(request.scope)
 
         self._request = request
 
         eaveLogger.info(
             "Request: POST /_tasks/slack-events",
-            extra=self._ctx,
+            self._ctx,
         )
 
         default_success_response = Response(status_code=http.HTTPStatus.OK)
@@ -70,14 +65,14 @@ class SlackEventProcessorTask(HTTPEndpoint):
         origin_header = self._request.headers.get(EAVE_ORIGIN_HEADER)
 
         if not request_id or not origin_header or not signature:
-            eaveLogger.warning("Missing required Eave header", extra=self._ctx)
+            eaveLogger.warning("Missing required Eave header", self._ctx)
             return False
 
         try:
             origin = eave_origins.EaveOrigin(value=origin_header)
-            signing_key = signing.get_key(origin)
-        except (ValueError, KeyError):
-            eaveLogger.warning(f"Invalid Eave origin: {origin_header}", extra=self._ctx)
+            signing_key = eave.stdlib.signing.get_key(origin)
+        except (ValueError, KeyError) as e:
+            eaveLogger.warning(e, self._ctx)
             return False
 
         signature_message = eave.stdlib.requests.build_message_to_sign(
@@ -96,6 +91,6 @@ class SlackEventProcessorTask(HTTPEndpoint):
                 signature=signature,
             )
             return True
-        except InvalidSignatureError:
-            eaveLogger.warning("Invalid Eave signature", extra=self._ctx)
+        except InvalidSignatureError as e:
+            eaveLogger.warning(e, self._ctx)
             return False

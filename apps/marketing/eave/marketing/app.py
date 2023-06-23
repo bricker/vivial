@@ -1,12 +1,12 @@
 import json
 from typing import Any
 
-import eave.stdlib.api_util as eave_api_util
 from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
 import eave.stdlib.cookies
 from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 import eave.stdlib.core_api.operations.account as account
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest
+from eave.stdlib.endpoints import status_payload
 import eave.stdlib.requests
 import eave.stdlib.logging
 import eave.stdlib.time
@@ -15,18 +15,21 @@ from flask import Flask, Response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
 from eave.stdlib.typing import JsonObject
 from .config import app_config
+from eave.stdlib.config import shared_config
 
 eave.stdlib.time.set_utc()
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
 
-eave_api_util.add_standard_endpoints(app=app)
-
+@app.get("/status")
+def status() -> str:
+    model = status_payload()
+    return model.json()
 
 @app.route("/_ah/warmup", methods=["GET"])
 async def warmup() -> str:
-    eave.stdlib.shared_config.preload()
+    shared_config.preload()
     app_config.preload()
     return "OK"
 

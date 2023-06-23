@@ -1,5 +1,5 @@
 import { sharedConfig } from '../../config.js';
-import { RequestArgsOrigin, makeRequest } from '../../lib/requests.js';
+import { RequestArgsOrigin, makeRequest } from '../../requests.js';
 import { SlackInstallation, SlackInstallationInput } from '../models/slack.js';
 import { Team } from '../models/team.js';
 

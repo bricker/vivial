@@ -1,5 +1,5 @@
 import * as ops from './operations.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../lib/requests.js';
+import { RequestArgsOriginAndTeamId, makeRequest } from '../requests.js';
 import { sharedConfig } from '../config.js';
 
 export async function createSubscription(args: RequestArgsOriginAndTeamId & {
