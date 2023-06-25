@@ -1,3 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env -S bash -eu
 
-curl -is https://apps.eave.fyi/github/status
+source ${EAVE_HOME}/develop/functions.bash
+
+(
+	${EAVE_HOME}/develop/shared/bin/status https://apps.eave.${1:-fyi}/github/status
+)

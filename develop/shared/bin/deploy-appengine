@@ -11,7 +11,7 @@ function deploy() (
 	local gitrev=$(git rev-parse --short HEAD)
 	local version="$timestamp-$gitrev"
 
-	gcloud --project=$project meta list-files-for-upload
+	gcloud --project=$project meta list-files-for-upload | grep -v "^vendor"
 	gcloud --project=$project app deploy --version=$version --appyaml=$appyaml
 
 	# local service=$(cat $appyaml | yq '.service')

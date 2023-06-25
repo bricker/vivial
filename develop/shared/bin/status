@@ -3,5 +3,6 @@
 source ${EAVE_HOME}/develop/functions.bash
 
 (
-	${EAVE_HOME}/develop/shared/bin/status https://api.eave.${1:-fyi}/status
+	statusmsg -i "Status check for $1"
+	curl -is "$1"
 )

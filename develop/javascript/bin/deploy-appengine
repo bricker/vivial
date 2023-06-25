@@ -1,10 +1,8 @@
-#!/usr/bin/env bash
-
-set -eu
+#!/usr/bin/env -S bash -eu
 
 source ${EAVE_HOME}/develop/functions.bash
 
-(
+function deploy() (
 	node-validate-version
 	node-activate-venv
 
@@ -19,6 +17,9 @@ source ${EAVE_HOME}/develop/functions.bash
 	yalc publish ../../libs/eave-stdlib-ts --replace $qflag
 	yalc add @eave-fyi/eave-stdlib-ts $qflag
 
+	yalc publish ../../libs/eave-pubsub-schemas/typescript --replace $qflag
+	yalc add @eave-fyi/eave-pubsub-schemas $qflag
+
 	yalc publish ../../develop/javascript/es-config --replace $qflag
 	yalc add @eave-fyi/es-config $qflag
 
@@ -27,3 +28,5 @@ source ${EAVE_HOME}/develop/functions.bash
 
 	${EAVE_HOME}/develop/shared/bin/deploy-appengine
 )
+
+deploy
