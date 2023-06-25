@@ -1,5 +1,5 @@
 /* eslint-disable */
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 
 export interface EaveEvent {
   event_name: string;
@@ -195,6 +195,7 @@ export const EaveEvent = {
     message.eave_visitor_id = object.eave_visitor_id ?? "";
     message.eave_team_id = object.eave_team_id ?? "";
     message.eave_env = object.eave_env ?? "";
+    message.opaque_eave_ctx = object.opaque_eave_ctx ?? "";
     return message;
   },
 };

@@ -15,6 +15,7 @@ python -m grpc_tools.protoc \
 	--pyi_out=python/src/eave/pubsub_schemas/generated \
 	protos/*
 
+# https://github.com/stephenh/ts-proto
 python -m grpc_tools.protoc \
 	--fatal_warnings \
 	--proto_path=protos \
