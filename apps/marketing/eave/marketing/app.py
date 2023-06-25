@@ -33,6 +33,10 @@ async def warmup() -> str:
     app_config.preload()
     return "OK"
 
+@app.route("/_ah/start", methods=["GET"])
+async def start() -> str:
+    return "OK"
+
 
 def _render_spa(**kwargs: Any) -> str:
     return render_template(

@@ -152,6 +152,7 @@ def make_route(
 routes = [
     Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
     Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
+    Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(

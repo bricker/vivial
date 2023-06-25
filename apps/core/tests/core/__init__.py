@@ -15,18 +15,16 @@ os.environ["EAVE_APPS_BASE"] = "https://apps.eave.tests"
 os.environ["EAVE_WWW_BASE"] = "https://www.eave.tests"
 os.environ["EAVE_COOKIE_DOMAIN"] = ".eave.tests"
 
-os.environ["EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64"] = eave.stdlib.util.b64encode(
-    json.dumps(
-        {
-            "web": {
-                "client_id": str(uuid.uuid4()),
-                "project_id": "eavefyi-tests",
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                "client_secret": str(uuid.uuid4()),
-                "redirect_uris": ["https://api.eave.tests/oauth/google/callback"],
-            }
+os.environ["EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON"] = json.dumps(
+    {
+        "web": {
+            "client_id": str(uuid.uuid4()),
+            "project_id": "eavefyi-tests",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_secret": str(uuid.uuid4()),
+            "redirect_uris": ["https://api.eave.tests/oauth/google/callback"],
         }
-    )
+    }
 )

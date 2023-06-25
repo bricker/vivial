@@ -28,3 +28,11 @@ class WarmupRequest(HTTPEndpoint):
             eaveLogger.exception("Error connecting to redis")
 
         return Response(status_code=http.HTTPStatus.OK, content="OK")
+
+class StartRequest(HTTPEndpoint):
+    async def get(self, request: Request) -> Response:
+        eaveLogger.info(
+            "Received start request",
+        )
+
+        return Response(status_code=http.HTTPStatus.OK, content="OK")
