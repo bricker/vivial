@@ -77,7 +77,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         // return;
       }
 
-      if (subscriptionResponse === null) {
+      if (!subscriptionResponse || !subscriptionResponse.subscription) {
         return;
       }
 

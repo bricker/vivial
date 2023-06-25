@@ -56,7 +56,7 @@ class StdlibUtilTest(UtilityBaseTestCase):
         assert mut.unwrap(v) == v
 
     async def test_redact(self):
-        assert mut.redact(None) == "(none)"
+        assert mut.redact(None) is None
         assert mut.redact(self.anystring()[:8]) == "(redacted)"
         assert mut.redact(self.anystring()[:2]) == "(redacted)"
         assert mut.redact(f"123456-{self.anystring()}-654321") == "1234..(redacted)..4321"

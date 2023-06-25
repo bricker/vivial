@@ -9,7 +9,7 @@ export type GetSubscriptionRequestBody = {
 
 export type GetSubscriptionResponseBody = {
   team: Team;
-  subscription: Subscription;
+  subscription?: Subscription;
   document_reference?: DocumentReference;
 }
 
