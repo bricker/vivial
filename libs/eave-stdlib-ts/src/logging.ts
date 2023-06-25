@@ -184,7 +184,7 @@ class EaveLogger {
 
   private makeExtra(...rest: (JsonObject | LogContext | undefined)[]): { eave: JsonObject } {
     return {
-      eave: <JsonObject>rest.reduce((cur, acc) => {
+      eave: <JsonObject>rest.reduce((acc, cur) => {
         if (!cur) {
           return acc;
         }

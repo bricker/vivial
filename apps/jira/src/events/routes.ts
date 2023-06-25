@@ -2,8 +2,7 @@ import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { AddOn } from 'atlassian-connect-express';
 import express, { Request, Response, Router, Express, NextFunction } from 'express';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import appConfig from '../config.js';
 import { JiraWebhookEvent } from '../types.js';
 import commentCreatedEventHandler from './comment-created.js';
@@ -23,8 +22,8 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
 
   router.post('/', addon.authenticate(), async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const eaveState = getEaveState(res);
-      eaveLogger.info({ message: 'received webhook event', eaveState });
+      const ctx = LogContext.load(res);
+      eaveLogger.info('received webhook event', ctx);
       const jiraClient = await JiraClient.getAuthedJiraClient({
         req,
         addon,
@@ -38,7 +37,7 @@ export function WebhookRouter({ addon }: { addon: AddOn }): Router {
           break;
 
         default:
-          eaveLogger.warn({ message: `unhandled webhook event: ${payload.webhookEvent}`, eaveState });
+          eaveLogger.warning(`unhandled webhook event: ${payload.webhookEvent}`, ctx);
           res.sendStatus(200);
       }
 
