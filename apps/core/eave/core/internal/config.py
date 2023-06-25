@@ -55,11 +55,11 @@ class AppConfig(eave.stdlib.config.EaveConfig):
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
-        encoded = self.get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
+        encoded = self.get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
         if not encoded:
-            raise UnexpectedMissingValue("secret: EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_B64")
-        bytes = base64.b64decode(encoded)
-        credentials: dict[str, Any] = json.loads(bytes)
+            raise UnexpectedMissingValue("secret: EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
+
+        credentials: dict[str, Any] = json.loads(encoded)
         return credentials
 
     @cached_property
