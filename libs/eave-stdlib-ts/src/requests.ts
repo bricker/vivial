@@ -120,18 +120,18 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   }
 
   const requestContext: JsonObject = {
-    origin,
+    eave_origin: origin,
     signature: redact(signature),
     access_token: redact(accessToken),
-    request_id: requestId,
-    team_id: teamId,
-    account_id: accountId,
+    eave_request_id: requestId,
+    eave_team_id: teamId,
+    eave_account_id: accountId,
     method,
     url,
   };
 
   eaveLogger.info(
-    `Request: ${requestId}: ${method} ${url}`,
+    `Client Request: ${requestId}: ${method} ${url}`,
     ctx,
     requestContext,
   );
@@ -147,7 +147,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   });
 
   eaveLogger.info(
-    `Response: ${requestId}: ${method} ${url}`,
+    `Client Response: ${requestId}: ${method} ${url}`,
     ctx,
     requestContext,
     { status: response.status },

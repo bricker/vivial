@@ -101,6 +101,12 @@ def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
     elif isinstance(data, str):
         return uuid.UUID(hex=data)
 
+def ensure_str_or_none(data: str | bytes | int | uuid.UUID | None) -> str | None:
+    if data is None:
+        return None
+    else:
+        return str(data)
+
 
 def nand(a: Any, b: Any) -> bool:
     """Neither or one"""
@@ -169,9 +175,9 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
         return value
 
 
-def redact(string: str | None) -> str:
+def redact(string: str | None) -> str | None:
     if string is None:
-        return "(none)"
+        return None
     if len(string) <= 8:
         return "(redacted)"
     return f"{string[:4]}..(redacted)..{string[-4:]}"

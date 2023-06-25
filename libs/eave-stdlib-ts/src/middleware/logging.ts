@@ -5,7 +5,7 @@ import eaveLogger, { LogContext } from '../logging.js';
 export function requestLoggingMiddleware(req: Request, res: Response, next: NextFunction) {
   const ctx = LogContext.load(res);
   eaveLogger.info(
-    `Eave Server Request Start: ${ctx.eave_request_id}: ${req.method} ${req.originalUrl}`,
+    `Server Request Start: ${ctx.eave_request_id}: ${req.method} ${req.originalUrl}`,
     ctx,
   );
 
@@ -15,7 +15,7 @@ export function requestLoggingMiddleware(req: Request, res: Response, next: Next
       eaveLogger.error(err, ctx2);
     }
     eaveLogger.info(
-      `Eave Server Request End: ${ctx2.eave_request_id}: ${req.method} ${req.originalUrl}`,
+      `Server Request End: ${ctx2.eave_request_id}: ${req.method} ${req.originalUrl}`,
       ctx,
     );
   });

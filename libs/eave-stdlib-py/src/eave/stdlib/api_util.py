@@ -22,7 +22,7 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
 
 def get_headers(
     scope: HTTPScope, excluded: Optional[set[str]] = None, redacted: Optional[set[str]] = None
-) -> dict[str, str]:
+) -> dict[str, str | None]:
     """
     This function doesn't support multiple headers with the same name.
     It will always choose the "first" one (from whatever order the ASGI server sent).

@@ -14,7 +14,7 @@ This is recommended for development.
 1. Update your `.env` file to use your local PG credentials.
   It may look similar to this:
 
-```
+```sh
 EAVE_DB_HOST=localhost
 EAVE_DB_NAME=eave
 EAVE_DB_DRIVER=postgresql+asyncpg
@@ -24,7 +24,7 @@ EAVE_DB_PASS=your_password
 EAVE_DB_CONNECTION_STRING=postgresql+asyncpg://your_user:your_password@localhost:5432/eave
 ```
 
-7. From the `apps/core/` directory (with venv active) run `PYTHONPATH=. python eave_alembic/init_database.py`
+1. From the `apps/core/` directory (with venv active) run `PYTHONPATH=. python eave_alembic/init_database.py`
 
 ### Cloud SQL Proxy
 

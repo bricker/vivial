@@ -6,7 +6,7 @@ import urllib.parse
 from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.typing import JsonObject
 
-from eave.stdlib.util import redact
+from eave.stdlib.util import ensure_str_or_none, redact
 
 from . import headers as eave_headers
 from . import signing
@@ -71,15 +71,16 @@ async def make_request(
     request_params: JsonObject = {
         "signature": redact(signature),
         "access_token": redact(access_token),
-        "origin": origin.value,
-        "team_id": str(team_id),
-        "account_id": str(account_id),
+        "eave_request_id": request_id,
+        "eave_origin": origin.value,
+        "eave_team_id": ensure_str_or_none(team_id),
+        "eave_account_id": ensure_str_or_none(account_id),
         "method": method,
         "url": url,
     }
 
     eaveLogger.info(
-        f"Eave Client Request: {request_id}: {method} {url}",
+        f"Client Request: {request_id}: {method} {url}",
         ctx,
         request_params,
     )
@@ -96,7 +97,7 @@ async def make_request(
         await response.read()
 
     eaveLogger.info(
-        f"Eave Client Response: {request_id}: {method} {url}",
+        f"Client Response: {request_id}: {method} {url}",
         ctx,
         request_params,
         {"status": response.status},
