@@ -36,7 +36,9 @@ export async function mapUrlContent({ origin, teamId, urls, ctx }: RequestArgsOr
 
     switch (type) {
       case LinkType.github: {
-        const contentResponse = await githubClient.getFileContent({ origin,
+        const contentResponse = await githubClient.getFileContent({
+          ctx,
+          origin,
           teamId,
           input: {
             url,
@@ -108,7 +110,9 @@ function getLinkType(link: string): LinkType | null {
 async function createSubscription({ origin, teamId, url, linkType, ctx }: RequestArgsOriginAndTeamId & { url: string, linkType: LinkType }): Promise<Subscription | null> {
   switch (linkType) {
     case LinkType.github: {
-      const subscriptionResponse = await githubClient.createSubscription({ origin,
+      const subscriptionResponse = await githubClient.createSubscription({
+        ctx,
+        origin,
         teamId,
         input: {
           url,

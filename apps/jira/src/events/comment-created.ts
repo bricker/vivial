@@ -55,6 +55,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
 
   // TODO: Get this from cache
   const connectInstallation = await queryConnectInstallation({
+    ctx,
     origin: appConfig.eaveOrigin,
     input: {
       connect_integration: {
@@ -99,6 +100,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
   const searchQuery = await getSearchQuery({ comment: cleanedBody, openaiClient, ctx });
 
   const searchResults = await searchDocuments({
+    ctx,
     origin: appConfig.eaveOrigin,
     teamId,
     input: {
