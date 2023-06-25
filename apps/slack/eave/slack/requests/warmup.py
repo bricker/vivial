@@ -29,6 +29,7 @@ class WarmupRequest(HTTPEndpoint):
 
         return Response(status_code=http.HTTPStatus.OK, content="OK")
 
+
 class StartRequest(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         eaveLogger.info(
