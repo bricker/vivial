@@ -18,6 +18,7 @@ yalc.lock
 credentials.json
 .coverage
 .tmp
+.terraform*
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist

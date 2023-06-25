@@ -19,8 +19,8 @@ EAVE_DB_HOST=localhost
 EAVE_DB_NAME=eave
 EAVE_DB_DRIVER=postgresql+asyncpg
 EAVE_DB_PORT=5432
-DB_USER=your_user
-DB_PASS=your_password
+EAVE_DB_USER=your_user
+EAVE_DB_PASS=your_password
 EAVE_DB_CONNECTION_STRING=postgresql+asyncpg://your_user:your_password@localhost:5432/eave
 ```
 
