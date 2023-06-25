@@ -1,7 +1,7 @@
 import logging
 from logging import LogRecord
 import sys
-from typing import Any, Mapping, Optional, Self, cast
+from typing import Any, Optional, Self, cast
 import uuid
 from asgiref.typing import HTTPScope
 from starlette.types import Scope
@@ -10,7 +10,7 @@ import google.cloud.logging
 from eave.stdlib.api_util import get_header_value, get_headers
 from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 
-from eave.stdlib.typing import JsonObject, JsonValue
+from eave.stdlib.typing import JsonObject
 
 from .config import shared_config
 
@@ -91,6 +91,7 @@ if shared_config.monitoring_enabled:
     client = google.cloud.logging.Client()
     client.setup_logging(log_level=level)
 
+
 class LogContext(JsonObject):
     @classmethod
     def wrap(cls, ctx: Optional["LogContext"] = None, scope: Optional[HTTPScope | Scope] = None) -> "LogContext":
@@ -162,6 +163,7 @@ class LogContext(JsonObject):
         v = self["eave_request_id"]
         return str(v)
 
+
 class EaveLogger:
     _raw_logger = logging.getLogger("eave")
 
@@ -190,7 +192,9 @@ class EaveLogger:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
 
-    def _preparekwargs(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> dict[str, Any]:
+    def _preparekwargs(
+        self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any
+    ) -> dict[str, Any]:
         if isinstance(msg, Exception):
             kwargs["exc_info"] = msg
 
@@ -213,5 +217,6 @@ class EaveLogger:
             ),
             **kwargs,
         }
+
 
 eaveLogger = EaveLogger()

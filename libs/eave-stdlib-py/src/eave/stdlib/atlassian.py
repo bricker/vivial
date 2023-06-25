@@ -6,8 +6,6 @@ from typing import Optional
 
 from eave.stdlib.util import erasetype
 
-from eave.stdlib.util import erasetype
-
 from .typing import JsonObject
 
 

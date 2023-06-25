@@ -197,10 +197,11 @@ def get_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
     _PUBLIC_KEYS_CACHE[signing_key] = result
     return result
 
+
 def preload_public_keys() -> None:
     """
     Preloads all PEM public keys for all registered signing keys
     to accelerate signature verification middleware.
     """
     for signing_key in _SIGNING_KEYS.values():
-        _PUBLIC_KEYS_CACHE[signing_key] = _fetch_public_key(signing_key) 
+        _PUBLIC_KEYS_CACHE[signing_key] = _fetch_public_key(signing_key)

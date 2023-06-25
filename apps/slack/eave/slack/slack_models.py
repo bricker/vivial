@@ -3,8 +3,6 @@ import enum
 import re
 from typing import Any, AsyncGenerator, List, Optional, cast
 
-import eave.pubsub_schemas
-import eave.stdlib.core_api.enums
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent, SubscriptionSourcePlatform
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSource
 from eave.stdlib.exceptions import SlackDataError

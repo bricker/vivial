@@ -153,7 +153,7 @@ async def create_task(
         {
             "task_name": task_name,
             "queue_name": parent,
-        }
+        },
     )
 
     t = await client.create_task(parent=parent, task=task)

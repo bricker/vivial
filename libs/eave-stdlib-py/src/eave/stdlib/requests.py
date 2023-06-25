@@ -13,6 +13,7 @@ from . import signing
 from .logging import LogContext, eaveLogger
 from .config import shared_config
 
+
 async def make_request(
     url: str,
     origin: EaveOrigin,
@@ -98,7 +99,7 @@ async def make_request(
         f"Eave Client Response: {request_id}: {method} {url}",
         ctx,
         request_params,
-        { "status": response.status },
+        {"status": response.status},
     )
 
     response.raise_for_status()

@@ -29,11 +29,14 @@ def log_event(
 ) -> None:
     eave_context = _l.LogContext.wrap(ctx)
 
-    try:
-        serialized_params = json.dumps(opaque_params)
-    except Exception as e:
-        _l.eaveLogger.exception(e, eave_context)
-        serialized_params = str(opaque_params)
+    if opaque_params:
+        try:
+            serialized_params = json.dumps(opaque_params)
+        except Exception as e:
+            _l.eaveLogger.exception(e, eave_context)
+            serialized_params = str(opaque_params)
+    else:
+        serialized_params = None
 
     try:
         serialized_context = json.dumps(eave_context)

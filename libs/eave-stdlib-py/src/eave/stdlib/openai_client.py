@@ -165,7 +165,9 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     if len(candidates) > 0:
         choice = candidates[0]
     else:
-        eaveLogger.warning(f"No valid choices from openAI; using the first result. {openai_request_id}", eave_ctx, log_params)
+        eaveLogger.warning(
+            f"No valid choices from openAI; using the first result. {openai_request_id}", eave_ctx, log_params
+        )
         if len(response.choices) > 0:
             choice = response.choices[0]
         else:
