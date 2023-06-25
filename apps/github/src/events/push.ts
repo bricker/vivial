@@ -12,19 +12,20 @@ import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
-  const { eaveState, octokit } = context;
-  eaveLogger.debug({ message: 'Processing push', eaveState });
+  const { ctx, octokit } = context;
+  eaveLogger.debug('Processing push', ctx);
   const openaiClient = await OpenAIClient.getAuthedClient();
 
   // only handling branch push events for now; ignore tag pushes
   if (!event.ref.startsWith('refs/heads/')) {
-    eaveLogger.debug({ message: `Ignoring event with ref ${event.ref}`, eaveState });
+    eaveLogger.debug(`Ignoring event with ref ${event.ref}`, ctx);
     return;
   }
 
   // fetch eave team id required for core_api requests
   const installationId = event.installation!.id;
   const teamResponse = await getGithubInstallation({
+    ctx,
     origin: appConfig.eaveOrigin,
     input: {
       github_integration: {
@@ -57,6 +58,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       let subscriptionResponse: GetSubscriptionResponseBody | null = null;
       try {
         subscriptionResponse = await getSubscription({
+          ctx,
           origin: appConfig.eaveOrigin,
           teamId: eaveTeamId,
           input: {
@@ -71,7 +73,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         });
       } catch (e: any) {
         // TODO: only catch 404?
-        eaveLogger.error({ message: e.stack, eaveState });
+        eaveLogger.error(e, ctx);
         // return;
       }
 
@@ -135,7 +137,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         ],
         model: OpenAIModel.GPT_35_TURBO_16K,
         max_tokens: MAX_TOKENS[OpenAIModel.GPT_35_TURBO_16K],
-      }, eaveState);
+      }, ctx);
 
       const document: DocumentInput = {
         title: `Description of code in ${repositoryName} ${filePath}`,
@@ -143,6 +145,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       };
 
       await upsertDocument({
+        ctx,
         origin: appConfig.eaveOrigin,
         teamId: eaveTeamId,
         input: {

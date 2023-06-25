@@ -1,6 +1,5 @@
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
-import OpenAIClient, * as openai from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
 import { ConfluenceClientArg } from './util.js';
 

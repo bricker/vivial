@@ -34,6 +34,10 @@ export class LogContext {
         eave_origin: req.header(headers.EAVE_ORIGIN_HEADER),
         request_path: req.originalUrl,
       });
+    } else {
+      this.set({
+        eave_request_id: uuidv4(),
+      });
     }
   }
 

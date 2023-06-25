@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import * as Registry from './registry.js';
 import { appConfig } from './config.js';
 import pushHandler from './events/push.js';
@@ -11,12 +10,11 @@ import { createAppClient } from './lib/octokit-util.js';
 Registry.registerHandler('push', pushHandler);
 
 export default async function dispatch(req: Request, res: Response): Promise<void> {
+  const ctx = LogContext.load(res);
   const id = req.header('x-github-delivery');
   const eventName = req.header('x-github-event') as EmitterWebhookEventName | undefined;
   const signature = req.header('x-hub-signature-256');
   const installationId = req.header('x-github-hook-installation-target-id');
-
-  const eaveState = getEaveState(res);
 
   const requestBody = (<Buffer>req.body).toString();
 
@@ -26,19 +24,19 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   } = JSON.parse(requestBody);
 
   if (!eventName || !id || !signature || !payload) {
-    eaveLogger.error({ message: 'missing header data from GitHub', eaveState });
+    eaveLogger.error('missing header data from GitHub', ctx);
     res.sendStatus(400);
     return;
   }
 
   const { action } = payload;
   const webhookInfo = { id, eventName, action, installationId };
-  eaveLogger.info({ message: 'Webhook request', eaveState, webhookInfo });
+  eaveLogger.info('Webhook request', ctx, webhookInfo);
   const event = [eventName, action].filter((n) => n).join('.');
 
   const handler = Registry.getHandler(event);
   if (handler === undefined) {
-    eaveLogger.warn({ message: `Event not supported: ${event}`, eaveState, webhookInfo });
+    eaveLogger.warning(`Event not supported: ${event}`, ctx, webhookInfo);
     res.sendStatus(200);
     return;
   }
@@ -48,7 +46,7 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   const verified = await app.webhooks.verify(requestBody, signature);
 
   if (!verified) {
-    eaveLogger.error({ message: 'signature verification failed', eaveState });
+    eaveLogger.error('signature verification failed', ctx);
 
     if (!appConfig.isDevelopment && !appConfig.devMode) {
       res.sendStatus(400);
@@ -57,6 +55,6 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   }
 
   const octokit = await app.getInstallationOctokit(payload.installation.id);
-  await handler(payload, { octokit, eaveState });
+  await handler(payload, { octokit, ctx });
   res.sendStatus(200);
 }

@@ -4,21 +4,20 @@ import { Octokit } from 'octokit';
 import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types.js';
 import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getEaveState } from '@eave-fyi/eave-stdlib-ts/src/lib/request-state.js';
+import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
 import { createSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
 import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 import { appConfig } from '../config.js';
 
 export async function subscribe(req: Request, res: Response): Promise<void> {
-  const eaveState = getEaveState(res);
+  const ctx = LogContext.load(res);
 
   const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
 
   const input = <CreateGithubResourceSubscriptionRequestBody>req.body;
   if (!input.url) {
-    eaveLogger.error({ message: 'Missing input.url', eaveState });
+    eaveLogger.error('Missing input.url', ctx);
     res.sendStatus(400);
     return;
   }
@@ -26,9 +25,9 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
   let output: CreateGithubResourceSubscriptionResponseBody;
 
   // TODO: Move this into API dispatch (it is duplicated across api handlers)
-  const instllationId = await getInstallationId(eaveTeamId);
+  const instllationId = await getInstallationId(eaveTeamId, ctx);
   if (instllationId === null) {
-    eaveLogger.error({ message: 'installation ID not found', eaveState });
+    eaveLogger.error('installation ID not found', ctx);
     res.sendStatus(500);
     return;
   }
@@ -49,6 +48,7 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
   const event = SubscriptionSourceEvent.github_file_change;
 
   const subResponse = await createSubscription({
+    ctx,
     origin: appConfig.eaveOrigin,
     teamId: eaveTeamId,
     input: {
