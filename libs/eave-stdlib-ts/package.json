@@ -14,12 +14,13 @@
     "yalc": "yalc publish --push"
   },
   "dependencies": {
-    "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript",
     "@google-cloud/kms": "3.x",
     "@google-cloud/logging": "10.x",
     "@google-cloud/logging-winston": "5.x",
     "@google-cloud/pubsub": "3.x",
     "@google-cloud/secret-manager": "4.x",
+    "@google-cloud/redis": "3.x",
+    "@google-cloud/compute": "3.x",
     "@redis/client": "1.x",
     "express": "4.x",
     "fast-crc32c": "2.x",
@@ -34,7 +35,8 @@
     "winston": "3.x"
   },
   "peerDependencies": {
-    "atlassian-connect-express": "8.x"
+    "atlassian-connect-express": "8.x",
+    "@eave-fyi/eave-pubsub-schemas": "x"
   },
   "devDependencies": {
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
