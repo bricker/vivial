@@ -55,13 +55,29 @@ function install-certs() (
 		;;
 	esac
 
-	# TODO: Does this work on macOS?
-	~add-shell-variable REQUESTS_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 )
 
 for cert in ${EAVE_HOME}/develop/certs/**/*.crt; do
 	install-certs $cert
 done
+
+function setenv() (
+	local bundleOut=/etc/ssl/certs/ca-certificates.crt
+
+	case "$(get-kernel-name)" in
+		"linux")
+			;;
+		"darwin")
+			security export -t certs -f pemseq -k /System/Library/Keychains/SystemRootCertificates.keychain -o /tmp/rootcabundle.pem
+			security export -t certs -f pemseq -k /Library/Keychains/System.keychain -o /tmp/sscabundle.pem
+			sudo cat /tmp/rootcabundle.pem /tmp/sscabundle.pem > $bundleOut
+			;;
+	esac
+
+	~add-shell-variable REQUESTS_CA_BUNDLE $bundleOut
+	~add-shell-variable SSL_CERT_FILE $bundleOut
+)
+setenv
 
 statusmsg -i "You may have to manually add certificates to Chrome. You can also enable the Chrome flag chrome://flags/#allow-insecure-localhost"
 

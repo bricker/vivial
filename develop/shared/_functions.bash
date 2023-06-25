@@ -145,10 +145,18 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	function shloginfile() {
 		case $usershell in
 		"bash")
-			echo -n ~/.bashrc
+			if test -f "$HOME/.bash_profile"; then
+				echo -n "$HOME/.bash_profile"
+			else
+				echo -n "$HOME/.bashrc"
+			fi
 			;;
 		"zsh")
-			echo -n ~/.zshrc
+			if test -f "$HOME/.zsh_profile"; then
+				echo -n "$HOME/.zsh_profile"
+			else
+				echo -n "$HOME/.zshrc"
+			fi
 			;;
 		*)
 			return 0
@@ -212,7 +220,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function get-cpu-arch() {
-		local arch=$(uname -p)
+		local arch=$(uname -m)
 		if test "$arch" = "unknown"; then
 			# `uname -p` isnt portible/POSIX, so it's often unknown
 			# on linux systems. use `uname -m` instead in that case
@@ -229,6 +237,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			echo -n "arm"
 			;;
 		"amd64")
+			echo -n "x86_64"
+			;;
+		"i386")
 			echo -n "x86_64"
 			;;
 		*)
