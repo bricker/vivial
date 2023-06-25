@@ -197,7 +197,7 @@ export default class Signing {
       signatureString = Buffer.from(signature).toString('base64');
     }
 
-    const pem = await this.getPublicKey(this.signingKey);
+    const pem = await this.getPublicKey();
 
     let isVerified = false;
 
@@ -234,10 +234,10 @@ export default class Signing {
   /**
    * Makes a network request to Google KMS to fetch the
    * public key associated with `sigining_key`.
-   * @param signingKey 
+   * @param signingKey
    * @returns a public key PEM file content
    */
-  private async fetchPublicKey(signingKey: SigningKeyDetails): Promise<string> {
+  private async fetchPublicKey(): Promise<string> {
     const kmsClient = new KeyManagementServiceClient();
 
     const keyVersionName = kmsClient.cryptoKeyVersionPath(
@@ -262,18 +262,17 @@ export default class Signing {
   /**
    * Get the public key PEM associated with `signing_key`,
    * or from an in-memory cache if previously computed.
-   * 
-   * @param signingKey 
+   *
+   * @param signingKey
    * @returns a public key PEM file content
    */
-  private async getPublicKey(signingKey: SigningKeyDetails): Promise<string> {
-    const cacheKey = `${signingKey.id}${signingKey.version}${signingKey.algorithm.toString()}`;
+  private async getPublicKey(): Promise<string> {
+    const cacheKey = `${this.signingKey.id}${this.signingKey.version}${this.signingKey.algorithm.toString()}`;
     if (PUBLIC_KEYS_CACHE[cacheKey] !== undefined) {
       return PUBLIC_KEYS_CACHE[cacheKey]!;
     }
-    const result = await this.fetchPublicKey(signingKey);
+    const result = await this.fetchPublicKey();
     PUBLIC_KEYS_CACHE[cacheKey] = result;
     return result;
   }
 }
-
