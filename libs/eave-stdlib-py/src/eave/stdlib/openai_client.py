@@ -49,6 +49,7 @@ class OpenAIModel(enum.StrEnum):
 
 MAX_TOKENS = {
     OpenAIModel.GPT_35_TURBO: 4096,
+    OpenAIModel.GPT_35_TURBO_16K: 16384,
     OpenAIModel.GPT4: 8192,
     OpenAIModel.GPT4_32K: 32768,
 }
@@ -69,7 +70,7 @@ class ChatMessage:
 @dataclass
 class ChatCompletionParameters:
     messages: List[str]
-    model: OpenAIModel = OpenAIModel.GPT4
+    model: OpenAIModel = OpenAIModel.GPT_35_TURBO_16K
     best_of: Optional[int] = None
     n: Optional[int] = None
     frequency_penalty: Optional[float] = None

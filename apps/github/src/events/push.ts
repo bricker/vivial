@@ -133,8 +133,8 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         messages: [
           { role: 'user', content: prompt },
         ],
-        model: OpenAIModel.GPT4,
-        max_tokens: MAX_TOKENS[OpenAIModel.GPT4],
+        model: OpenAIModel.GPT_35_TURBO_16K,
+        max_tokens: MAX_TOKENS[OpenAIModel.GPT_35_TURBO_16K],
       }, eaveState);
 
       const document: DocumentInput = {
