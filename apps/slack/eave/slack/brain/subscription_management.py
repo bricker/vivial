@@ -1,4 +1,5 @@
 import json
+from eave.slack.brain.base import SubscriptionInfo
 import eave.stdlib.core_api.models.subscriptions
 import eave.stdlib.core_api.operations.subscriptions as eave_subscriptions
 from .communication import CommunicationMixin
@@ -45,7 +46,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
         return subscription
 
     async def notify_existing_subscription(
-        self, subscription: eave_subscriptions.GetSubscriptionRequest.ResponseBody
+        self, subscription: SubscriptionInfo
     ) -> None:
         if subscription.document_reference is not None:
             await self.send_response(

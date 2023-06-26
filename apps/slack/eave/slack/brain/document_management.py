@@ -1,9 +1,10 @@
 import json
+from eave.slack.brain.base import SubscriptionInfo
 from eave.slack.brain.subscription_management import SubscriptionManagementMixin
 import eave.stdlib.analytics
 import eave.stdlib.core_api.operations.documents as documents
 import eave.stdlib.core_api.models.documents
-from eave.stdlib.core_api.models.subscriptions import DocumentReferenceInput, SubscriptionSource
+from eave.stdlib.core_api.models.subscriptions import DocumentReferenceInput, SubscriptionSource, SubscriptionSourcePlatform
 from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
 from eave.stdlib.exceptions import OpenAIDataError, SlackDataError
 import eave.stdlib.openai_client
@@ -20,6 +21,10 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         Subscribes to the thread and creates initial documentation if not already subscribed,
         otherwise notifies the user that I'm already watching this conversation.
         """
+        if existing_sub := next((i for i in self.subscriptions if i.subscription and i.subscription.source.platform == SubscriptionSourcePlatform.slack), None):
+            await self.notify_existing_subscription(subscription=existing_sub)
+            return
+
         existing_subscription_response = await self.get_subscription()
 
         if existing_subscription_response.subscription is None:
@@ -28,12 +33,21 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                     text="On it!", eave_message_purpose="confirmation that documentation is being worked on"
                 )
             subscription_response = await self.create_subscription()
-            self.subscriptions.append(subscription_response.subscription)
+            self.subscriptions.append(
+                SubscriptionInfo(
+                    subscription=subscription_response.subscription,
+                    document_reference=subscription_response.document_reference,
+                )
+            )
             await self.create_documentation()
             return
         else:
-            self.subscriptions.append(existing_subscription_response.subscription)
-            await self.notify_existing_subscription(subscription=existing_subscription_response)
+            subinfo = SubscriptionInfo(
+                subscription=existing_subscription_response.subscription,
+                document_reference=existing_subscription_response.document_reference,
+            )
+            self.subscriptions.append(subinfo)
+            await self.notify_existing_subscription(subscription=subinfo)
             return
 
     async def create_documentation(self) -> None:
@@ -183,7 +197,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         await self.upsert_document(document=api_document)
 
     async def archive_documentation(self) -> None:
-        if len(self.subscriptions) == 0:
+        if len(self.subscriptions) == 0 or self.subscriptions[0].subscription is None:
             await self.send_response(
                 text="I haven't created any documentation from this conversation.",
                 eave_message_purpose="notify can't delete documentation",
@@ -197,7 +211,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             )
 
         else:
-            document_reference_id = self.subscriptions[0].document_reference_id
+            document_reference_id = self.subscriptions[0].subscription.document_reference_id
             if not document_reference_id:
                 await self.send_response(
                     text="I haven't created any documentation from this conversation.",
@@ -227,12 +241,13 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 subscriptions=[
                     SubscriptionInput(
                         source=SubscriptionSource(
-                            platform=s.source.platform,
-                            event=s.source.event,
-                            id=s.source.id,
+                            platform=s.subscription.source.platform,
+                            event=s.subscription.source.event,
+                            id=s.subscription.source.id,
                         )
                     )
                     for s in self.subscriptions
+                    if s.subscription
                 ],
                 document=document,
             ),

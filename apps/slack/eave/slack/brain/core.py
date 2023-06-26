@@ -1,3 +1,4 @@
+from eave.stdlib.core_api.models.subscriptions import SubscriptionInfo
 from . import message_prompts
 
 
@@ -13,7 +14,12 @@ class Brain(IntentProcessingMixin):
 
         subscription_response = await self.get_subscription()
         if subscription_response.subscription:
-            self.subscriptions.append(subscription_response.subscription)
+            self.subscriptions.append(
+                SubscriptionInfo(
+                    subscription=subscription_response.subscription,
+                    document_reference=subscription_response.document_reference,
+                )
+            )
 
         i_am_mentioned = await self.message.check_eave_is_mentioned()
         if i_am_mentioned is True:

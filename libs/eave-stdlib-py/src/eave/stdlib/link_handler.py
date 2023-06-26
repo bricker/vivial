@@ -4,7 +4,7 @@ from typing import Optional
 from urllib.parse import urlparse
 from pydantic import UUID4
 
-from .core_api.models.subscriptions import Subscription
+from .core_api.models.subscriptions import Subscription, SubscriptionInfo
 from .core_api.enums import LinkType
 
 from .eave_origins import EaveOrigin
@@ -62,7 +62,7 @@ async def map_url_content(
 
 async def subscribe_to_file_changes(
     origin: EaveOrigin, eave_team_id: UUID4, urls: list[tuple[str, LinkType]]
-) -> list[Subscription]:
+) -> list[SubscriptionInfo]:
     """
     Create Eave Subscriptions to watch for changes in all of the URL resources in `urls`
 
@@ -70,7 +70,7 @@ async def subscribe_to_file_changes(
     urls -- links paired with their platform type [(url, url platform)]
     returns -- list of subscriptions that got created
     """
-    tasks: list[asyncio.Task[Subscription | None]] = []
+    tasks: list[asyncio.Task[SubscriptionInfo | None]] = []
     for link, link_type in urls:
         tasks.append(
             asyncio.ensure_future(
@@ -79,9 +79,9 @@ async def subscribe_to_file_changes(
         )
 
     # have asyncio.gather eat any network exceptions and return them as part of result
-    completed_tasks: list[Optional[Subscription]] = await asyncio.gather(*tasks, return_exceptions=True)
+    completed_tasks: list[Optional[SubscriptionInfo]] = await asyncio.gather(*tasks, return_exceptions=True)
     # only return the successful results
-    subscription_sources = [src for src in completed_tasks if isinstance(src, Subscription)]
+    subscription_sources = [src for src in completed_tasks if src]
     return subscription_sources
 
 
@@ -99,7 +99,7 @@ def _get_link_type(link: str) -> Optional[LinkType]:
 
 async def _create_subscription_source(
     origin: EaveOrigin, url: str, link_type: LinkType, eave_team_id: UUID4
-) -> Optional[Subscription]:
+) -> Optional[SubscriptionInfo]:
     """
     Insert a subcription into the Eave database to watch the resource at `url`.
 
@@ -117,6 +117,9 @@ async def _create_subscription_source(
                     url=url,
                 ),
             )
-            return subscription_response.subscription
+            return SubscriptionInfo(
+                subscription=subscription_response.subscription,
+                document_reference=subscription_response.document_reference,
+            )
 
     return None

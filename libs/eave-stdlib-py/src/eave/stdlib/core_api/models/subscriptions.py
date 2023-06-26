@@ -1,10 +1,11 @@
 import enum
 from typing import Optional
 import uuid
+
+from pydantic import BaseModel
 from eave.stdlib.core_api.models import BaseResponseModel
 
 from eave.stdlib.core_api.models import BaseInputModel
-
 
 class SubscriptionSourcePlatform(enum.StrEnum):
     slack = "slack"
@@ -42,3 +43,11 @@ class DocumentReferenceInput(BaseInputModel):
 
 class SubscriptionInput(BaseInputModel):
     source: SubscriptionSource
+
+class SubscriptionInfo(BaseModel):
+    """
+    A simple wrapper around Subscription and DocumentReference that can be used in place of
+    GetSubscriptionRequest or CreateSubscriptionRequest (which are incompatible with each other)
+    """
+    subscription: Optional[Subscription]
+    document_reference: Optional[DocumentReference]
