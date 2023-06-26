@@ -1,15 +1,16 @@
 import * as ops from './operations.js';
 import { RequestArgsOriginAndTeamId, makeRequest } from '../requests.js';
 import { sharedConfig } from '../config.js';
+import { CreateSubscriptionResponseBody } from '../core-api/operations/subscriptions.js';
 
 export async function createSubscription(args: RequestArgsOriginAndTeamId & {
   input: ops.CreateGithubResourceSubscriptionRequestBody,
-}): Promise<ops.CreateGithubResourceSubscriptionResponseBody> {
+}): Promise<CreateSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${sharedConfig.eaveAppsBase}/github/api/subscribe`,
     ...args,
   });
-  const responseData = <ops.CreateGithubResourceSubscriptionResponseBody>(await resp.json());
+  const responseData = <CreateSubscriptionResponseBody>(await resp.json());
   return responseData;
 }
 

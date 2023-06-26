@@ -1,5 +1,6 @@
 from typing import Optional
 import uuid
+from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
 
 from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.logging import LogContext
@@ -34,7 +35,7 @@ async def create_subscription(
     eave_team_id: uuid.UUID,
     input: operations.CreateGithubResourceSubscription.RequestBody,
     ctx: Optional[LogContext] = None,
-) -> operations.CreateGithubResourceSubscription.ResponseBody:
+) -> CreateSubscriptionRequest.ResponseBody:
     """
     POST /github/api/subscribe
     """
@@ -47,4 +48,4 @@ async def create_subscription(
     )
 
     response_json = await response.json()
-    return operations.CreateGithubResourceSubscription.ResponseBody(**response_json)
+    return CreateSubscriptionRequest.ResponseBody(**response_json)

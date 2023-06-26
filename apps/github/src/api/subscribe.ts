@@ -22,8 +22,6 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  let output: CreateGithubResourceSubscriptionResponseBody;
-
   // TODO: Move this into API dispatch (it is duplicated across api handlers)
   const instllationId = await getInstallationId(eaveTeamId, ctx);
   if (instllationId === null) {
@@ -38,8 +36,8 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
   const pathChunks = input.url.split(`${repoInfo.full_name}/blob/`);
   // we need the 2nd element, which is branch name + resource path
   if (pathChunks.length < 2) {
-    output = { subscription: null };
-    res.json(output); // TODO: should we be 400ing or somthing instead of returning null?
+    res.sendStatus(400);
+    return;
   }
 
   const blobPath = pathChunks[1];
@@ -61,8 +59,7 @@ export async function subscribe(req: Request, res: Response): Promise<void> {
       },
     },
   });
-  output = { subscription: subResponse.subscription };
-  res.json(output);
+  res.json(subResponse);
 }
 
 /**

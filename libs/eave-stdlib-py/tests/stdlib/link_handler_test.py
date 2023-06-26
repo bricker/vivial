@@ -7,6 +7,8 @@ from eave.stdlib.core_api.models.subscriptions import (
 from eave.stdlib.core_api.models.subscriptions import (
     Subscription,
 )
+from eave.stdlib.core_api.models.team import DocumentPlatform, Team
+from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
 from eave.stdlib.eave_origins import EaveOrigin
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.github_api.operations as gh_ops
@@ -20,7 +22,12 @@ class TestLinkHandler(UtilityBaseTestCase):
         self.patch(
             patch=unittest.mock.patch(
                 "eave.stdlib.link_handler.github_api_client.create_subscription",
-                return_value=gh_ops.CreateGithubResourceSubscription.ResponseBody(
+                return_value=CreateSubscriptionRequest.ResponseBody(
+                    team=Team(
+                        id=self.anyuuid(),
+                        name=self.anystr(),
+                        document_platform=DocumentPlatform.confluence,
+                    ),
                     subscription=Subscription(
                         id=self.anyuuid(),
                         document_reference_id=self.anyuuid(),
@@ -88,8 +95,8 @@ class TestLinkHandler(UtilityBaseTestCase):
             urls=input_links,
         )
         assert len(subscriptions) == 2
-        assert subscriptions[0].source.platform == SubscriptionSourcePlatform.github
-        assert subscriptions[1].source.platform == SubscriptionSourcePlatform.github
+        assert subscriptions[0].subscription and subscriptions[0].subscription.source.platform == SubscriptionSourcePlatform.github
+        assert subscriptions[1].subscription and subscriptions[1].subscription.source.platform == SubscriptionSourcePlatform.github
 
     async def test_subscribe_skip_subscription(self) -> None:
         self.skipTest("I'm not sure this test is asserting the right thing, please check")
