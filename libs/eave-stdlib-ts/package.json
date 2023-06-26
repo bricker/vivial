@@ -32,7 +32,8 @@
     "redis": "4.x",
     "request": "2.x",
     "uuid": "9.x",
-    "winston": "3.x"
+    "winston": "3.x",
+    "tiktoken": "1.x"
   },
   "peerDependencies": {
     "atlassian-connect-express": "8.x",

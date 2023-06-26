@@ -1,6 +1,6 @@
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
-import OpenAIClient, { OpenAIModel, MAX_TOKENS } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
@@ -136,7 +136,6 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           { role: 'user', content: prompt },
         ],
         model: OpenAIModel.GPT_35_TURBO_16K,
-        max_tokens: MAX_TOKENS[OpenAIModel.GPT_35_TURBO_16K],
       }, ctx);
 
       const document: DocumentInput = {

@@ -1,7 +1,6 @@
 import asyncio
 from typing import Optional
 import eave.stdlib.openai_client as openai
-import tiktoken
 from eave.stdlib.util import memoized
 from eave.stdlib import link_handler
 from eave.stdlib.exceptions import SlackDataError, OpenAIDataError
@@ -9,7 +8,6 @@ from .base import Base
 from . import message_prompts
 from ..config import app_config
 
-tokencoding = tiktoken.get_encoding("gpt2")
 context_building_model = openai.OpenAIModel.GPT_35_TURBO_16K
 
 class ContextBuildingMixin(Base):
@@ -42,7 +40,7 @@ class ContextBuildingMixin(Base):
     @memoized
     async def build_context(self) -> str:
         context = await self.build_concatenated_context()
-        if len(tokencoding.encode(context)) > (openai.MAX_TOKENS[context_building_model] / 2):
+        if openai.token_count(data=context, model=context_building_model) > (openai.MAX_TOKENS[context_building_model] / 2):
             context = await self.build_rolling_context()
 
         return context
@@ -81,8 +79,7 @@ class ContextBuildingMixin(Base):
             if formatted_text is None:
                 continue
 
-            tokens = tokencoding.encode(formatted_text)
-            total_tokens += len(tokens)
+            total_tokens += openai.token_count(data=formatted_text, model=context_building_model)
 
             if total_tokens > (openai.MAX_TOKENS[context_building_model] / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
@@ -125,7 +122,7 @@ class ContextBuildingMixin(Base):
         """
         Given some content (from a URL) return a summary of it.
         """
-        if len(tokencoding.encode(content)) > openai.MAX_TOKENS[context_building_model]:
+        if openai.token_count(data=content, model=context_building_model) > openai.MAX_TOKENS[context_building_model]:
             # build rolling summary of long content
             threshold = int(openai.MAX_TOKENS[context_building_model] / 2)
             return await self._rolling_summarize_content(content, threshold)
@@ -163,7 +160,7 @@ class ContextBuildingMixin(Base):
         """
         summary = content
 
-        while len(tokencoding.encode(summary)) > threshold:
+        while openai.token_count(data=summary, model=context_building_model) > threshold:
             new_summary = ""
             chunk_size = threshold
             current_position = 0

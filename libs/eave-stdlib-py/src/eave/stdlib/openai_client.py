@@ -35,7 +35,6 @@ def prompt_prefix() -> LiteralString:
         "You are responsible for the quality and integrity of this organization's documentation.\n\n"
     )
 
-
 STOP_SEQUENCE = "STOP_SEQUENCE"
 
 
@@ -44,16 +43,19 @@ class OpenAIModel(enum.StrEnum):
     GPT_35_TURBO = "gpt-3.5-turbo"
     GPT_35_TURBO_16K = "gpt-3.5-turbo-16k"
     GPT4 = "gpt-4"
-    GPT4_32K = "gpt-4-32k"
+    # GPT4_32K = "gpt-4-32k"
 
 
 MAX_TOKENS = {
     OpenAIModel.GPT_35_TURBO: 4096,
     OpenAIModel.GPT_35_TURBO_16K: 16384,
     OpenAIModel.GPT4: 8192,
-    OpenAIModel.GPT4_32K: 32768,
+    # OpenAIModel.GPT4_32K: 32768,
 }
 
+def token_count(data: str, model: OpenAIModel) -> int:
+    encoder = tiktoken.encoding_for_model(model)
+    return len(encoder.encode(data))
 
 class ChatRole(enum.StrEnum):
     SYSTEM = "system"
@@ -89,7 +91,6 @@ class ChatCompletionParameters:
         ]
 
         params["messages"] = [asdict(m) for m in messages]
-        # params["max_tokens"] = MAX_TOKENS[self.model] - sum([len(tokencoding.encode(m.content)) for m in messages])
 
         if self.best_of is not None:
             params["best_of"] = self.best_of
