@@ -19,7 +19,7 @@ function deploy() (
 		python -m pip $qflag install -t vendor -r requirements-vendor.txt
 	fi
 
-	${EAVE_HOME}/develop/shared/bin/deploy-appengine
+	${EAVE_HOME}/develop/shared/bin/deploy-appengine "$@"
 )
 
-deploy
+deploy "$@"

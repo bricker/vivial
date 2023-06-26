@@ -20,4 +20,4 @@ function deploy() (
 	# git push origin $tagname
 )
 
-deploy
+deploy "$@"

@@ -11,5 +11,5 @@ source ${EAVE_HOME}/develop/functions.bash
 	rm -rf eave/marketing/static/dist
 	npx webpack build --mode=production --no-devtool
 
-	${EAVE_HOME}/develop/python/bin/deploy-appengine
+	${EAVE_HOME}/develop/python/bin/deploy-appengine "$@"
 )

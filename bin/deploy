@@ -22,7 +22,7 @@ function deploy() (
 	git fetch --depth=1 origin $revision
 	git checkout origin/$revision
 	gcloud builds submit --ignore-file=.gcloudignore-builder --config=$appdir/cloudbuild.yaml
-	# ${EAVE_HOME}/develop/python/bin/deploy-appengine
+	# ${EAVE_HOME}/develop/python/bin/deploy-appengine "$@"
 )
 
 deploy "$@"
