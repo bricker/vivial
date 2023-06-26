@@ -70,7 +70,7 @@ class ChatMessage:
 @dataclass
 class ChatCompletionParameters:
     messages: List[str]
-    model: OpenAIModel = OpenAIModel.GPT_35_TURBO_16K
+    model: OpenAIModel
     best_of: Optional[int] = None
     n: Optional[int] = None
     frequency_penalty: Optional[float] = None

@@ -10,6 +10,7 @@ from . import message_prompts
 from ..config import app_config
 
 tokencoding = tiktoken.get_encoding("gpt2")
+context_building_model = openai.OpenAIModel.GPT_35_TURBO_16K
 
 class ContextBuildingMixin(Base):
     async def build_message_context(self) -> None:
@@ -41,7 +42,7 @@ class ContextBuildingMixin(Base):
     @memoized
     async def build_context(self) -> str:
         context = await self.build_concatenated_context()
-        if len(tokencoding.encode(context)) > (openai.MAX_TOKENS[openai.OpenAIModel.GPT_35_TURBO_16K] / 2):
+        if len(tokencoding.encode(context)) > (openai.MAX_TOKENS[context_building_model] / 2):
             context = await self.build_rolling_context()
 
         return context
@@ -83,7 +84,7 @@ class ContextBuildingMixin(Base):
             tokens = tokencoding.encode(formatted_text)
             total_tokens += len(tokens)
 
-            if total_tokens > (openai.MAX_TOKENS[openai.OpenAIModel.GPT_35_TURBO_16K] / 2):
+            if total_tokens > (openai.MAX_TOKENS[context_building_model] / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
                 prompt = openai.formatprompt(
                     f"""
@@ -100,7 +101,7 @@ class ContextBuildingMixin(Base):
                     """
                 )
                 openai_params = openai.ChatCompletionParameters(
-                    model=openai.OpenAIModel.GPT_35_TURBO_16K,
+                    model=context_building_model,
                     messages=[prompt],
                     temperature=0.9,
                     frequency_penalty=1.0,
@@ -124,9 +125,9 @@ class ContextBuildingMixin(Base):
         """
         Given some content (from a URL) return a summary of it.
         """
-        if len(tokencoding.encode(content)) > openai.MAX_TOKENS[openai.OpenAIModel.GPT_35_TURBO_16K]:
+        if len(tokencoding.encode(content)) > openai.MAX_TOKENS[context_building_model]:
             # build rolling summary of long content
-            threshold = int(openai.MAX_TOKENS[openai.OpenAIModel.GPT_35_TURBO_16K] / 2)
+            threshold = int(openai.MAX_TOKENS[context_building_model] / 2)
             return await self._rolling_summarize_content(content, threshold)
         else:
             prompt = openai.formatprompt(
@@ -141,7 +142,7 @@ class ContextBuildingMixin(Base):
                 """
             )
             openai_params = openai.ChatCompletionParameters(
-                model=openai.OpenAIModel.GPT_35_TURBO_16K,
+                model=context_building_model,
                 messages=[prompt],
                 temperature=0.9,
                 frequency_penalty=1.0,
@@ -188,7 +189,7 @@ class ContextBuildingMixin(Base):
                         """
                     )
                     openai_params = openai.ChatCompletionParameters(
-                        model=openai.OpenAIModel.GPT_35_TURBO_16K,
+                        model=context_building_model,
                         messages=[prompt],
                         temperature=0.9,
                         frequency_penalty=1.0,
@@ -210,7 +211,7 @@ class ContextBuildingMixin(Base):
                         """
                     )
                     openai_params = openai.ChatCompletionParameters(
-                        model=openai.OpenAIModel.GPT_35_TURBO_16K,
+                        model=context_building_model,
                         messages=[prompt],
                         temperature=0.9,
                         frequency_penalty=1.0,

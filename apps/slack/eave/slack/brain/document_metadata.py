@@ -23,6 +23,7 @@ async def get_topic(conversation: str) -> str:
     )
 
     openai_params = eave_openai.ChatCompletionParameters(
+        model=eave_openai.OpenAIModel.GPT_35_TURBO_16K,
         messages=[prompt],
         n=1,
         frequency_penalty=0,
@@ -85,6 +86,7 @@ async def get_hierarchy(conversation: str) -> list[str]:
     )
 
     openai_params = eave_openai.ChatCompletionParameters(
+        model=eave_openai.OpenAIModel.GPT_35_TURBO_16K,
         messages=[prompt],
         n=1,
         frequency_penalty=0.9,
@@ -98,34 +100,6 @@ async def get_hierarchy(conversation: str) -> list[str]:
 
     parents = list(map(lambda x: x.strip(STRIPPED_CHARS), answer.split(",")))
     return parents
-
-
-async def get_project_title(conversation: str) -> str:
-    prompt = eave_openai.formatprompt(
-        f"""
-        Is the following conversation about a specific project? If so, what is the name of the project? If not, say: {eave_openai.STOP_SEQUENCE}
-
-        {CONVO_STRUCTURE}
-
-        Conversation:
-        ###
-        {conversation}
-        ###
-        """
-    )
-
-    openai_params = eave_openai.ChatCompletionParameters(
-        messages=[prompt],
-        n=1,
-        frequency_penalty=0.9,
-        presence_penalty=0.9,
-        temperature=0,
-    )
-
-    openai_response: str | None = await eave_openai.chat_completion(openai_params)
-    if openai_response is None:
-        raise OpenAIDataError()
-    return openai_response
 
 
 class DocumentationType(enum.Enum):
@@ -159,6 +133,7 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
     )
 
     openai_params = eave_openai.ChatCompletionParameters(
+        model=eave_openai.OpenAIModel.GPT_35_TURBO_16K,
         messages=[prompt],
         n=1,
         frequency_penalty=0,
@@ -244,6 +219,7 @@ async def get_documentation(
     prompt = eave_openai.formatprompt(*prompt_segments)
 
     openai_params = eave_openai.ChatCompletionParameters(
+        model=eave_openai.OpenAIModel.GPT4,
         messages=[prompt],
         n=1,
         frequency_penalty=0.2,
