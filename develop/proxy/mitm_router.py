@@ -2,8 +2,10 @@ import logging
 import re
 import mitmproxy.http
 
+
 class NoUpstreamDefinedError(Exception):
     pass
+
 
 def request(flow: mitmproxy.http.HTTPFlow) -> None:
     if re.search(r"\.eave\.(localhost|run|dev)$", flow.request.host) is None:
