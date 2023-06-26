@@ -23,6 +23,8 @@ vpc_access_connector:
   name: projects/eavefyi-dev/locations/us-central1/connectors/appengine
 
 env_variables:
+  EAVE_JIRA_APP_KEY: "eave-jira-beta"
+  EAVE_JIRA_APP_NAME: "Eave for Jira (Beta)"
   EAVE_APPS_BASE: https://apps.eave.dev
   EAVE_API_BASE: https://api.eave.dev
   EAVE_WWW_BASE: https://www.eave.dev

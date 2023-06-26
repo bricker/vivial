@@ -6,6 +6,7 @@ import EaveApiAdapter from '@eave-fyi/eave-stdlib-ts/src/connect/eave-api-store-
 import { helmetMiddleware, applyCommonRequestMiddlewares, applyCommonResponseMiddlewares, applyInternalApiMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
 import { InternalApiRouter } from './api/routes.js';
 import { WebhookRouter, applyWebhookMiddlewares } from './events/routes.js';
+import eaveConfig from './config.js';
 
 // This <any> case is necessary to tell Typescript to effectively ignore this expression.
 // ace.store is exported in the javascript implementation, but not in the typescript type definitions,
@@ -13,7 +14,16 @@ import { WebhookRouter, applyWebhookMiddlewares } from './events/routes.js';
 (<any>ace).store.register('eave-api-store', EaveApiAdapter);
 
 export const app = express();
-export const addon = ace(app);
+export const addon = ace(app, {
+  config: {
+    descriptorTransformer: (descriptor /* , config */): any => {
+      descriptor.key = eaveConfig.eaveConfluenceAppKey;
+      descriptor.name = eaveConfig.eaveConfluenceAppName;
+      return descriptor;
+    },
+  },
+});
+
 app.use(helmetMiddleware());
 applyAtlassianSecurityPolicyMiddlewares({ app });
 applyCommonRequestMiddlewares({ app });

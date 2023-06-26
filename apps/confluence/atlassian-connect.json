@@ -24,7 +24,7 @@
     "modules": {
     },
     "links": {
-        "self": "https://apps.eave.fyi/confluence/atlassian-connect.json",
+        "self": "{{localBaseUrl}}/confluence/atlassian-connect.json",
         "website": "https://www.eave.fyi"
     }
 }

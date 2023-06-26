@@ -25,6 +25,8 @@ vpc_access_connector:
 
 
 env_variables:
+  EAVE_CONFLUENCE_APP_KEY: "eave-confluence"
+  EAVE_CONFLUENCE_APP_NAME: "Eave for Confluence"
   EAVE_MONITORING_ENABLED: "1"
   EAVE_ANALYTICS_ENABLED: "1"
   LOG_LEVEL: "DEBUG"
