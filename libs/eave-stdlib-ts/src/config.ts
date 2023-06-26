@@ -1,4 +1,7 @@
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { ProjectsClient } from '@google-cloud/compute';
+import { CloudRedisClient } from '@google-cloud/redis';
+import { google } from '@google-cloud/redis/build/protos/protos.js';
 
 export enum EaveEnvironment {
   development = 'development',
@@ -58,55 +61,107 @@ export class EaveConfig {
     return process.env['GAE_VERSION'] || 'unknown';
   }
 
-  get eaveApiBase(): string {
-    return process.env['EAVE_API_BASE'] || 'https://api.eave.fyi';
-  }
-
-  get eaveWwwBase(): string {
-    return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
-  }
-
-  get eaveAppsBase(): string {
-    return process.env['EAVE_APPS_BASE'] || 'https://apps.eave.fyi';
-  }
-
-  get eaveCookieDomain(): string {
-    return process.env['EAVE_COOKIE_DOMAIN'] || '.eave.fyi';
-  }
-
-  get redisConnection(): {host: string, port: number, db: number} | undefined {
-    const connection = process.env['REDIS_CONNECTION'];
-
-    if (connection === undefined) {
-      return undefined;
+  async eaveApiBase(): Promise<string> {
+    const k = 'EAVE_API_BASE';
+    const v = process.env[k];
+    if (v) {
+      return v;
+    } else {
+      const metadata = await this.gcpMetadata();
+      return metadata[k] || 'https://api.eave.fyi';
     }
+  }
 
-    const parts = connection.split(':');
+  async eaveWwwBase(): Promise<string> {
+    const k = 'EAVE_WWW_BASE';
+    const v = process.env[k];
+    if (v) {
+      return v;
+    } else {
+      const metadata = await this.gcpMetadata();
+      return metadata[k] || 'https://www.eave.fyi';
+    }
+  }
 
-    const host = parts[0] || 'localhost';
-    const port = parseInt(parts[1] || '6379', 10);
-    const db = parseInt(parts[2] || '0', 10);
-    return { host, port, db };
+  async eaveAppsBase(): Promise<string> {
+    const k = 'EAVE_APPS_BASE';
+    const v = process.env[k];
+    if (v) {
+      return v;
+    } else {
+      const metadata = await this.gcpMetadata();
+      return metadata[k] || 'https://apps.eave.fyi';
+    }
+  }
+
+  async eaveApexDomain(): Promise<string> {
+    const www = await this.eaveWwwBase();
+    const host = new URL(www).hostname;
+    return host.replace(/^www\./, '');
+  }
+
+  async eaveCookieDomain(): Promise<string> {
+    const v = await this.eaveApexDomain();
+    return `.${v}`;
+  }
+
+
+  async redisInstance(): Promise<google.cloud.redis.v1.IInstance | undefined> {
+    if (this.isDevelopment) {
+      const host = process.env['REDIS_HOST'];
+      if (host) {
+        return {
+          name: 'development',
+          host,
+          port: parseInt(process.env['REDIS_PORT'] || '6378', 10),
+          transitEncryptionMode: google.cloud.redis.v1.Instance.TransitEncryptionMode.TRANSIT_ENCRYPTION_MODE_UNSPECIFIED,
+          serverCaCerts: [],
+        };
+      } else {
+        return undefined;
+      }
+    } else {
+      const client = new CloudRedisClient();
+      const instanceName = await this.redisInstanceName(client);
+      const [instance] = await client.getInstance({
+        name: instanceName,
+      });
+      return instance;
+    }
   }
 
   async redisAuth(): Promise<string | undefined> {
-    const key = 'REDIS_AUTH';
     if (this.isDevelopment) {
-      // Doing it this way because it would never make sense to use the gcloud secret in local dev.
-      const value = process.env[key];
-      return value;
+      return process.env['REDIS_AUTH'];
     } else {
-      try {
-        const value = await this.getSecret(key);
-        return value;
-      } catch (e: unknown) {
-        return undefined;
-      }
+      const client = new CloudRedisClient();
+      const instanceName = await this.redisInstanceName(client);
+      const [authString] = await client.getInstanceAuthString({
+        name: instanceName,
+      });
+
+      return authString.authString ? authString.authString : undefined;
     }
   }
 
-  get redisTlsCA(): string | undefined {
-    return process.env['REDIS_TLS_CA'];
+  private async redisInstanceName(client: CloudRedisClient): Promise<string> {
+    const instanceName = (await this.gcpMetadata())['REDIS_INSTANCE_ID'] || 'redis-core';
+    return client.instancePath(
+      this.googleCloudProject,
+      'us-central1', // FIXME: hardcoded location value
+      instanceName,
+    );
+  }
+
+  async redisCacheDb(): Promise<string> {
+    const k = 'REDIS_CACHE_DB';
+    const v = process.env[k];
+    if (v) {
+      return v;
+    } else {
+      const metadata = await this.gcpMetadata();
+      return metadata[k] || '0';
+    }
   }
 
   get openaiApiKey(): Promise<string> {
@@ -117,7 +172,36 @@ export class EaveConfig {
     return this.getSecret('OPENAI_API_ORG');
   }
 
-  private cache: { [key: string]: string } = {};
+  async gcpMetadata(): Promise<{[key:string]: string}> {
+    const cacheKey = 'func_gcpMetadata';
+    const cachedData = this.cache[cacheKey];
+    if (cachedData) {
+      return cachedData;
+    }
+
+    const client = new ProjectsClient();
+    const [project] = await client.get({
+      project: this.googleCloudProject,
+    });
+
+    const metadata = project.commonInstanceMetadata;
+    if (!metadata || !metadata.items) {
+      return {};
+    }
+
+    const table: {[key:string]: string} = {};
+    metadata.items.forEach((item) => {
+      const k = item.key;
+      if (k) {
+        table[k] = item.value;
+      }
+    });
+
+    this.cache[cacheKey] = table;
+    return table;
+  }
+
+  private cache: { [key: string]: any } = {};
 
   async getSecret(name: string): Promise<string> {
     const envValue = process.env[name];

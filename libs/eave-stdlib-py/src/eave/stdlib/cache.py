@@ -4,7 +4,7 @@ from typing import Optional, Protocol
 import redis.asyncio as redis
 from .config import shared_config
 from .logging import eaveLogger
-
+from .util import redact
 
 class CacheInterface(Protocol):
     @abc.abstractmethod
@@ -90,21 +90,26 @@ def client() -> CacheInterface:
     global _PROCESS_CACHE_CLIENT
 
     if not _PROCESS_CACHE_CLIENT:
-        if redis_cfg := shared_config.redis_connection:
-            host, port, db = redis_cfg
-            auth = shared_config.redis_auth
-            logauth = auth[:4] if auth else "(none)"
-            eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
+            # host, port, db = redis_cfg
+            # auth = shared_config.redis_auth
+            # logauth = auth[:4] if auth else "(none)"
 
-            redis_tls_ca = shared_config.redis_tls_ca
+        if redis_instance := shared_config.redis_instance:
+            eaveLogger.debug((
+                f"Redis connection: host={redis_instance.host}, "
+                f"port={redis_instance.port}, "
+                f"db={shared_config.redis_cache_db}, "
+                f"auth={redact(shared_config.redis_auth)}"
+            ))
+
             _PROCESS_CACHE_CLIENT = redis.Redis(
-                host=host,
-                port=port,
-                db=db,
-                password=auth,
+                host=redis_instance.host,
+                port=redis_instance.port,
+                db=shared_config.redis_cache_db,
+                password=shared_config.redis_auth,
                 decode_responses=True,
-                ssl=redis_tls_ca is not None,
-                ssl_ca_data=redis_tls_ca,
+                ssl=redis_instance.transit_encryption_mode == redis_instance.TransitEncryptionMode.SERVER_AUTHENTICATION,
+                ssl_ca_data=redis_instance.server_ca_certs[0].cert if len(redis_instance.server_ca_certs) > 0 else None,
                 health_check_interval=60 * 5,
                 socket_keepalive=True,
             )

@@ -1,8 +1,10 @@
 import { createClient } from 'redis';
 import { RedisCommandArgument } from '@redis/client/dist/lib/commands/index.js';
 import { SetOptions } from '@redis/client/dist/lib/commands/SET.js';
+import { google } from '@google-cloud/redis/build/protos/protos.js';
 import { sharedConfig } from './config.js';
 import eaveLogger from './logging.js';
+import { redact } from './util.js';
 
 export interface Cache {
   get: (key: RedisCommandArgument) => Promise<RedisCommandArgument | null>;
@@ -95,27 +97,24 @@ export class EphemeralCache implements Cache {
 }
 
 async function loadCacheImpl(): Promise<Cache> {
-  const redisConnection = sharedConfig.redisConnection;
-  if (redisConnection === undefined) {
+  const redisInstance = await sharedConfig.redisInstance();
+  if (!redisInstance) {
     const impl = new EphemeralCache();
     return impl;
   }
 
-  const { host, port, db } = redisConnection;
   const redisAuth = await sharedConfig.redisAuth();
+  const redisDb = await sharedConfig.redisCacheDb();
+  eaveLogger.debug(`Redis connection: host=${redisInstance.host}, port=${redisInstance.port}, db=${redisDb}, auth=${redact(redisAuth)}...`);
 
-  const logAuth = redisAuth ? redisAuth.slice(0, 4) : '(none)';
-  eaveLogger.debug(`Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...`);
-
-  const redisTlsCA = sharedConfig.redisTlsCA;
   const impl = createClient({
     socket: {
-      host,
-      port,
-      tls: redisTlsCA !== undefined,
-      ca: redisTlsCA,
+      host: redisInstance.host || undefined,
+      port: redisInstance.port || undefined,
+      tls: redisInstance.transitEncryptionMode === google.cloud.redis.v1.Instance.TransitEncryptionMode.SERVER_AUTHENTICATION,
+      ca: redisInstance.serverCaCerts ? redisInstance.serverCaCerts[0]?.cert || undefined : undefined,
     },
-    database: db,
+    database: parseInt(redisDb, 10),
     password: redisAuth,
     pingInterval: 1000 * 60 * 5,
   });

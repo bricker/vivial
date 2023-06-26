@@ -1,14 +1,17 @@
 import enum
 import logging
 import os
+import re
 import sys
 from functools import cached_property
-from typing import Optional, Self
+from typing import Self
+from urllib.parse import urlparse
 
 import google.cloud.secretmanager
 import google.cloud.runtimeconfig
 import google.cloud.client
-
+import google.cloud.redis as _gredis
+import google.cloud.compute as _gcompute
 
 from . import checksum
 
@@ -89,67 +92,94 @@ class EaveConfig:
 
     @property
     def eave_apps_base(self) -> str:
-        return os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"
+        k = "EAVE_APPS_BASE"
+        if v := os.getenv(k):
+            return v
+        else:
+            return self.gcp_metadata.get(k, "https://apps.eave.fyi")
 
     @property
     def eave_api_base(self) -> str:
-        return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"
+        k = "EAVE_API_BASE"
+        if v := os.getenv(k):
+            return v
+        else:
+            return self.gcp_metadata.get(k, "https://api.eave.fyi")
 
     @property
     def eave_www_base(self) -> str:
-        return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"
+        k = "EAVE_WWW_BASE"
+        if v := os.getenv(k):
+            return v
+        else:
+            return self.gcp_metadata.get(k, "https://www.eave.fyi")
+
+    @property
+    def eave_apex_domain(self) -> str:
+        parsed = urlparse(self.eave_www_base)
+        host = parsed.hostname or "www.eave.fyi"
+        return re.sub("^www.", "", host)
 
     @property
     def eave_cookie_domain(self) -> str:
-        return os.getenv("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
-
-    @property
-    def redis_connection(self) -> Optional[tuple[str, int, str]]:
-        connection = os.getenv("REDIS_CONNECTION")
-
-        if not connection:
-            return None
-
-        parts = connection.split(":")
-        if len(parts) == 3:
-            host, port_, db = parts
-            port = int(port_)
-        elif len(parts) == 2:
-            host, port_ = parts
-            port = int(port_)
-            db = "0"
-        else:
-            host = parts[0]
-            port = 6379
-            db = "0"
-
-        return (host, port, db)
+        return f".{self.eave_apex_domain}"
 
     @cached_property
-    def redis_auth(self) -> Optional[str]:
-        key = "REDIS_AUTH"
+    def redis_instance(self) -> _gredis.Instance | None:
+        """
+        To use redis in local development, set REDIS_HOST in your environment, and optionally REDIS_PORT.
+        """
         if self.is_development:
-            value = os.getenv(key)
-            return value
-        else:
-            try:
-                value = self.get_secret(key)
-                return value
-            except Exception:
+            if host := os.getenv("REDIS_HOST"):
+                return _gredis.Instance(
+                    name="development",
+                    host=host,
+                    port=int(os.getenv("REDIS_PORT", "6378")),
+                    transit_encryption_mode=_gredis.Instance.TransitEncryptionMode.TRANSIT_ENCRYPTION_MODE_UNSPECIFIED,
+                    server_ca_certs=[],
+                )
+            else:
                 return None
+        else:
+            client = _gredis.CloudRedisClient()
+            return client.get_instance(
+                name=client.instance_path(
+                    project=self.google_cloud_project,
+                    location="us-central1",
+                    instance=self.gcp_metadata.get("REDIS_INSTANCE_ID", "redis-core"),
+                )
+            )
+
+    @cached_property
+    def redis_auth(self) -> str | None:
+        if self.is_development:
+            return os.getenv("REDIS_AUTH")
+
+        elif instance := self.redis_instance:
+            client = _gredis.CloudRedisClient()
+            auth = client.get_instance_auth_string(
+                name=instance.name,
+            )
+            return auth.auth_string
+
+        else:
+            return None
 
     @property
-    def redis_tls_ca(self) -> Optional[str]:
-        return os.getenv("REDIS_TLS_CA")
+    def redis_cache_db(self) -> str:
+        k = "REDIS_CACHE_DB"
+        if v := os.getenv(k):
+            return v
+        else:
+            return self.gcp_metadata.get(k, "0")
 
     @property
     def eave_beta_whitelist_disabled(self) -> bool:
-        try:
-            value = self.get_secret("EAVE_BETA_WHITELIST_DISABLED")
-            return value == "1"
-        except Exception:
-            # Beta whitelist secret doesn't exist
-            return False
+        k = "EAVE_BETA_WHITELIST_DISABLED"
+        if v := os.getenv(k):
+            return v == "1"
+        else:
+            return self.gcp_metadata.get(k) == "1"
 
     @cached_property
     def eave_openai_api_key(self) -> str:
@@ -168,8 +198,11 @@ class EaveConfig:
 
     @property
     def eave_slack_app_id(self) -> str:
-        # TODO: Change this secret or metadata
-        return os.getenv("EAVE_SLACK_APP_ID", "A04HD948UHE")  # This is the production ID, and won't change.
+        k = "EAVE_SLACK_APP_ID"
+        if v:= os.getenv(k):
+            return v
+        else:
+            return self.gcp_metadata.get(k, "A04HD948UHE") # Fallback to production ID
 
     @cached_property
     def eave_slack_client_id(self) -> str:
@@ -180,16 +213,27 @@ class EaveConfig:
         return self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
 
     @cached_property
-    def eave_atlassian_app_client_id(self) -> str:
-        return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_ID")
-
-    @cached_property
-    def eave_atlassian_app_client_secret(self) -> str:
-        return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
-
-    @cached_property
     def eave_github_app_public_url(self) -> str:
-        return self.get_secret("EAVE_GITHUB_APP_PUBLIC_URL")
+        k = "EAVE_GITHUB_APP_PUBLIC_URL"
+        if v:= os.getenv(k):
+            return v
+        else:
+            return self.gcp_metadata.get(k, "https://github.com/apps/eave-fyi")
+
+    @cached_property
+    def gcp_metadata(self) -> dict[str,str]:
+        project = _gcompute.ProjectsClient().get(
+            _gcompute.GetProjectRequest(
+                project=self.google_cloud_project,
+                fields="commonInstanceMetadata",
+            )
+        )
+        metadata = project.common_instance_metadata
+        table: dict[str,str] = {}
+        for item in metadata.items:
+            table[item.key] = item.value
+
+        return table
 
     def get_required_env(self, name: str) -> str:
         if name not in os.environ:
