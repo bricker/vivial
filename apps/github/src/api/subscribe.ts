@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { CreateGithubResourceSubscriptionRequestBody, CreateGithubResourceSubscriptionResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
+import { CreateGithubResourceSubscriptionRequestBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
 import { Octokit } from 'octokit';
 import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types.js';
 import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';

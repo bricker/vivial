@@ -4,7 +4,7 @@ from typing import Optional
 from urllib.parse import urlparse
 from pydantic import UUID4
 
-from .core_api.models.subscriptions import Subscription, SubscriptionInfo
+from .core_api.models.subscriptions import SubscriptionInfo
 from .core_api.enums import LinkType
 
 from .eave_origins import EaveOrigin

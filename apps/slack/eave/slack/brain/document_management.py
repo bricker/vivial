@@ -4,7 +4,11 @@ from eave.slack.brain.subscription_management import SubscriptionManagementMixin
 import eave.stdlib.analytics
 import eave.stdlib.core_api.operations.documents as documents
 import eave.stdlib.core_api.models.documents
-from eave.stdlib.core_api.models.subscriptions import DocumentReferenceInput, SubscriptionSource, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import (
+    DocumentReferenceInput,
+    SubscriptionSource,
+    SubscriptionSourcePlatform,
+)
 from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
 from eave.stdlib.exceptions import OpenAIDataError, SlackDataError
 import eave.stdlib.openai_client
@@ -21,7 +25,14 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         Subscribes to the thread and creates initial documentation if not already subscribed,
         otherwise notifies the user that I'm already watching this conversation.
         """
-        if existing_sub := next((i for i in self.subscriptions if i.subscription and i.subscription.source.platform == SubscriptionSourcePlatform.slack), None):
+        if existing_sub := next(
+            (
+                i
+                for i in self.subscriptions
+                if i.subscription and i.subscription.source.platform == SubscriptionSourcePlatform.slack
+            ),
+            None,
+        ):
             await self.notify_existing_subscription(subscription=existing_sub)
             return
 

@@ -22,16 +22,19 @@ eave.stdlib.time.set_utc()
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
 
+
 @app.get("/status")
 def status() -> str:
     model = status_payload()
     return model.json()
+
 
 @app.route("/_ah/warmup", methods=["GET"])
 async def warmup() -> str:
     shared_config.preload()
     app_config.preload()
     return "OK"
+
 
 @app.route("/_ah/start", methods=["GET"])
 async def start() -> str:

@@ -33,7 +33,7 @@ async def authorize(
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
     """
     ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
-    context[EAVE_CTX_KEY] = ctx # set this in case it wasn't previously set
+    context[EAVE_CTX_KEY] = ctx  # set this in case it wasn't previously set
     ctx.set(
         {
             "slack_team_id": context.team_id,

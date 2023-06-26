@@ -6,11 +6,11 @@ from eave.slack.config import TASK_EXECUTION_COUNT_CONTEXT_KEY
 from eave.slack.slack_models import SlackMessage, SlackProfile
 from eave.stdlib import analytics
 from eave.stdlib.core_api.models.integrations import Integration
-from eave.stdlib.core_api.models.subscriptions import DocumentReference, Subscription, SubscriptionInfo
+from eave.stdlib.core_api.models.subscriptions import SubscriptionInfo
 import eave.stdlib.core_api.models.team as team
-from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest, GetSubscriptionRequest
 from eave.stdlib.logging import LogContext
 from eave.stdlib.typing import JsonObject
+
 
 class Base:
     """

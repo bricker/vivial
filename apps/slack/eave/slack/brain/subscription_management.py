@@ -45,9 +45,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
 
         return subscription
 
-    async def notify_existing_subscription(
-        self, subscription: SubscriptionInfo
-    ) -> None:
+    async def notify_existing_subscription(self, subscription: SubscriptionInfo) -> None:
         if subscription.document_reference is not None:
             await self.send_response(
                 text=(

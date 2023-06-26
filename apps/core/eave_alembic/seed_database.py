@@ -5,7 +5,7 @@ import time
 import socket
 from dotenv import load_dotenv
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.internal
 import eave.core.internal.orm as orm
@@ -57,7 +57,7 @@ async def seed_database() -> None:
         )
         session.add(team)
         await session.commit()
-        await session.refresh(team) # necessary to populate team.id
+        await session.refresh(team)  # necessary to populate team.id
 
         # NOTE: not seeding any Subscription objects rn
 
@@ -114,9 +114,9 @@ async def seed_database() -> None:
         elapsed = end - start
 
         # update the progress tracker
-        sys.stdout.write("\r") # return to start of line
-        sys.stdout.write(" " * len(curr_progress)) # clear old chars from buffer
-        sys.stdout.write("\r") # re-return to start of line
+        sys.stdout.write("\r")  # return to start of line
+        sys.stdout.write(" " * len(curr_progress))  # clear old chars from buffer
+        sys.stdout.write("\r")  # re-return to start of line
         curr_progress = f"[{row+1}/{num_rows}] :: Seconds remaining: ~{elapsed * (num_rows - row):.1f}"
         sys.stdout.write(curr_progress)
         sys.stdout.flush()

@@ -36,7 +36,7 @@ class TestLinkHandler(UtilityBaseTestCase):
                             event=SubscriptionSourceEvent.github_file_change,
                             id=self.anystring(),
                         ),
-                    )
+                    ),
                 ),
             ),
         )
@@ -95,8 +95,14 @@ class TestLinkHandler(UtilityBaseTestCase):
             urls=input_links,
         )
         assert len(subscriptions) == 2
-        assert subscriptions[0].subscription and subscriptions[0].subscription.source.platform == SubscriptionSourcePlatform.github
-        assert subscriptions[1].subscription and subscriptions[1].subscription.source.platform == SubscriptionSourcePlatform.github
+        assert (
+            subscriptions[0].subscription
+            and subscriptions[0].subscription.source.platform == SubscriptionSourcePlatform.github
+        )
+        assert (
+            subscriptions[1].subscription
+            and subscriptions[1].subscription.source.platform == SubscriptionSourcePlatform.github
+        )
 
     async def test_subscribe_skip_subscription(self) -> None:
         self.skipTest("I'm not sure this test is asserting the right thing, please check")

@@ -1,4 +1,3 @@
-import base64
 import json
 from functools import cached_property
 import os
