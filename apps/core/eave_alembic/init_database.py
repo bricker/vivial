@@ -28,12 +28,6 @@ async def init_database() -> None:
     """
     https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
     """
-
-    await create_database()
-    await seed_database()
-
-
-async def create_database() -> None:
     # We can't connect to the database being created because, well, it doesn't exist.
     # Instead, connect to the postgres database on the host.
     postgres_uri = eave.core.internal.database.async_engine.url._replace(database="postgres")
@@ -46,21 +40,6 @@ async def create_database() -> None:
         await connection.execute(sqlalchemy.text(stmt))
 
     await postgres_engine.dispose()
-
-
-async def seed_database() -> None:
-    async with eave.core.internal.database.async_engine.begin() as connection:
-        await connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
-
-    session = AsyncSession(eave.core.internal.database.async_engine)
-
-    team = eave.core.internal.orm.TeamOrm(name=f"{socket.gethostname()}", document_platform=DocumentPlatform.confluence)
-    session.add(team)
-    await session.commit()
-
-    await session.close()
-    await eave.core.internal.database.async_engine.dispose()
-
 
 if __name__ == "__main__":
     asyncio.run(init_database())
