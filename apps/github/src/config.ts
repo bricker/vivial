@@ -13,6 +13,14 @@ class AppConfig extends EaveConfig {
   get eaveGithubAppPrivateKey(): Promise<string> {
     return this.getSecret('EAVE_GITHUB_APP_PRIVATE_KEY');
   }
+
+  get eaveGithubAppClientId(): Promise<string> {
+    return this.getSecret('EAVE_GITHUB_APP_CLIENT_ID');
+  }
+
+  get eaveGithubAppClientSecret(): Promise<string> {
+    return this.getSecret('EAVE_GITHUB_APP_CLIENT_SECRET');
+  }
 }
 
 export const appConfig = new AppConfig();

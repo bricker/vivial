@@ -62,9 +62,10 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
     algorithm: SigningAlgorithm.ES256,
   },
   // This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
+  // This is not currently used
   [ExternalOrigin.github_api_client]: {
     id: 'eave-github-app-signing-key-01',
-    version: '2', // Warning! This version is only valid for prod. See the getVersion function.
+    version: '2',
     algorithm: SigningAlgorithm.RS256,
   },
 };
@@ -94,12 +95,8 @@ export default class Signing {
     return keyDetails;
   }
 
-  // FIXME: This is a hack because the key versions are different between dev and prod.
   private getVersion(key: SigningKeyDetails): string {
-    let { version } = key;
-    if (key.id === 'eave-github-app-signing-key-01') {
-      version = sharedConfig.googleCloudProject === 'eave-production' ? '2' : '1';
-    }
+    const { version } = key;
     return version;
   }
 

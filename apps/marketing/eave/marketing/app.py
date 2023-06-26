@@ -81,6 +81,9 @@ async def authed_account_team() -> Response:
         access_token=auth_cookies.access_token,
     )
 
+    if shared_config.eave_beta_whitelist_disabled:
+        eave_response.team.beta_whitelisted = True
+
     return _clean_response(eave_response)
 
 

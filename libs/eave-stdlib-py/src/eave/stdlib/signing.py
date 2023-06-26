@@ -38,6 +38,8 @@ class SigningKeyDetails:
 
 _PUBLIC_KEYS_CACHE: dict[SigningKeyDetails, PUBLIC_KEY_TYPES] = {}
 
+# FIXME: These versions shouldn't be hardcoded as they may be different between envs
+
 _SIGNING_KEYS = {
     EaveOrigin.eave_api.value: SigningKeyDetails(
         id="eave-api-signing-key",
@@ -76,10 +78,10 @@ _SIGNING_KEYS = {
         algorithm=SigningAlgorithm.ES256,
     ),
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
+    # This is not currently used
     ExternalOrigin.github_api_client.value: SigningKeyDetails(
         id="eave-github-app-signing-key-01",
-        # TODO: clean up this hack to change versions in prod/dev
-        version="2" if shared_config.google_cloud_project == "eave-production" else "1",
+        version="2",
         algorithm=SigningAlgorithm.RS256,
     ),
 }

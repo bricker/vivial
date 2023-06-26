@@ -37,7 +37,7 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         state_json = json.dumps({"token": token, "redirect_uri": redirect_uri})
         state = eave.stdlib.util.b64encode(state_json, urlsafe=True)
 
-        authorization_url = f"https://github.com/apps/eave-fyi/installations/new?state={state}"
+        authorization_url = f"{eave.core.internal.app_config.eave_github_app_public_url}/installations/new?state={state}"
         # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
         response = RedirectResponse(url=authorization_url)
         oauth_cookies.save_state_cookie(

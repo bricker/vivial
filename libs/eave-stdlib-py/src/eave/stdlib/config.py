@@ -142,6 +142,15 @@ class EaveConfig:
     def redis_tls_ca(self) -> Optional[str]:
         return os.getenv("REDIS_TLS_CA")
 
+    @property
+    def eave_beta_whitelist_disabled(self) -> bool:
+        try:
+            value = self.get_secret("EAVE_BETA_WHITELIST_DISABLED")
+            return value == "1"
+        except Exception:
+            # Beta whitelist secret doesn't exist
+            return False
+
     @cached_property
     def eave_openai_api_key(self) -> str:
         value = self.get_secret("OPENAI_API_KEY")
@@ -154,6 +163,7 @@ class EaveConfig:
 
     @property
     def eave_slack_app_id(self) -> str:
+        # TODO: Change this secret or metadata
         return os.getenv("EAVE_SLACK_APP_ID", "A04HD948UHE")  # This is the production ID, and won't change.
 
     @cached_property
@@ -171,6 +181,10 @@ class EaveConfig:
     @cached_property
     def eave_atlassian_app_client_secret(self) -> str:
         return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
+
+    @cached_property
+    def eave_github_app_public_url(self) -> str:
+        return self.get_secret("EAVE_GITHUB_APP_PUBLIC_URL")
 
     def get_required_env(self, name: str) -> str:
         if name not in os.environ:
