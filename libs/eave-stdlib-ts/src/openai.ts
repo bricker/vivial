@@ -56,7 +56,8 @@ export default class OpenAIClient {
 
   static async getAuthedClient(): Promise<OpenAIClient> {
     const apiKey = await sharedConfig.openaiApiKey;
-    const configuration = new Configuration({ apiKey });
+    const apiOrg = await sharedConfig.openaiApiOrg;
+    const configuration = new Configuration({ apiKey, organization: apiOrg });
     const openaiClient = new OpenAIApi(configuration);
     return new OpenAIClient(openaiClient);
   }

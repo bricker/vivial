@@ -113,6 +113,10 @@ export class EaveConfig {
     return this.getSecret('OPENAI_API_KEY');
   }
 
+  get openaiApiOrg(): Promise<string> {
+    return this.getSecret('OPENAI_API_ORG');
+  }
+
   private cache: { [key: string]: string } = {};
 
   async getSecret(name: string): Promise<string> {

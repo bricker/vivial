@@ -157,6 +157,11 @@ class EaveConfig:
         return value
 
     @cached_property
+    def eave_openai_api_org(self) -> str:
+        value = self.get_secret("OPENAI_API_ORG")
+        return value
+
+    @cached_property
     def eave_slack_system_bot_token(self) -> str:
         value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value

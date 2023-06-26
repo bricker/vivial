@@ -116,6 +116,7 @@ class ChatCompletionParameters:
 def ensure_api_key() -> None:
     if openai_sdk.api_key is None:
         openai_sdk.api_key = shared_config.eave_openai_api_key
+        openai_sdk.organization = shared_config.eave_openai_api_org
 
 
 async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogContext] = None) -> Optional[str]:
