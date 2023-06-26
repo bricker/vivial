@@ -167,6 +167,7 @@ async def create_new_account_and_team(
         opaque_params={
             "auth_provider": auth_provider.value,
             "user_email": user_email,
+            "utm_params": eave_account.opaque_utm_params,
         },
         ctx=eave_state.ctx,
     )
