@@ -33,6 +33,7 @@ async def authorize(
     https://github.com/slackapi/bolt-python/blob/f8c1b86a81690eb5b12cca40339102d23de1f7de/slack_bolt/middleware/authorization/async_multi_teams_authorization.py#L72-L77
     """
     ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
+    context[EAVE_CTX_KEY] = ctx # set this in case it wasn't previously set
     ctx.set(
         {
             "slack_team_id": context.team_id,
@@ -110,6 +111,7 @@ async def authorize(
             eaveLogger.exception(e, ctx)
 
     context["eave_team"] = installation_data.team
+    ctx.set({"eave_team_id": str(installation_data.team.id)})
 
     # The following block of code is copied from
     # https://github.com/slackapi/bolt-python/blob/076efb5b0b6db849b074752cec0d406d3c747627/slack_bolt/authorization/authorize_result.py#L62-L93

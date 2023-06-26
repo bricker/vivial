@@ -552,7 +552,6 @@ class SlackMessage:
         """
 
         if self.text is None:
-            eaveLogger.warning("slack message text unexpectedly None", self._eave_ctx)
             return None
 
         await asyncio.gather(

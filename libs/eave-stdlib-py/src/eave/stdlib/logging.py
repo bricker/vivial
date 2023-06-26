@@ -177,7 +177,6 @@ class EaveLogger:
         self._raw_logger.info(**self._preparekwargs(msg, *args, **kwargs))
 
     def warning(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
-        kwargs.setdefault("exc_info", True)
         self._raw_logger.warning(**self._preparekwargs(msg, *args, **kwargs))
 
     def error(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:

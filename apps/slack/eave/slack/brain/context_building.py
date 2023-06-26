@@ -251,7 +251,7 @@ class ContextBuildingMixin(Base):
                     ]
                 )
 
-                # subscribe Eave to any changes at the links we wer able to read content from
+                # subscribe Eave to any changes at the links we were able to read content from
                 link_subscriptions = await link_handler.subscribe_to_file_changes(
                     origin=app_config.eave_origin,
                     eave_team_id=self.eave_team.id,
