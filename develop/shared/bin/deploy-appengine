@@ -4,6 +4,20 @@ source $EAVE_HOME/develop/functions.bash
 
 function deploy() (
 	local project=$(~gcloudproject)
+
+	while getopts "p:" argname
+	do
+		case "$argname" in
+			p)
+				if test "$OPTARG" = "prod"; then
+					project="eave-production"
+				else
+					project="eavefyi-dev"
+				fi
+				;;
+		esac
+	done
+
 	local appyaml="app.$project.yaml"
 	test -f $appyaml
 
