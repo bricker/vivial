@@ -123,6 +123,8 @@
         "GAE_SERVICE": "confluence",
         "GAE_VERSION": "dev",
         "EAVE_ENV": "development",
+        "EAVE_CONFLUENCE_APP_KEY": "eave-confluence-dev",
+        "EAVE_CONFLUENCE_APP_NAME": "Eave for Confluence (Dev)",
       },
     },
     {
@@ -173,6 +175,8 @@
         "GAE_SERVICE": "jira",
         "GAE_VERSION": "dev",
         "EAVE_ENV": "development",
+        "EAVE_JIRA_APP_KEY": "eave-jira-dev",
+        "EAVE_JIRA_APP_NAME": "Eave for Jira (Dev)",
       },
     },
     {
