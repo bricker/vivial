@@ -16,9 +16,13 @@ import eaveConfig from './config.js';
 export const app = express();
 export const addon = ace(app, {
   config: {
-    descriptorTransformer: (descriptor /* , config */): any => {
+    descriptorTransformer: (descriptor, config): any => {
       descriptor.key = eaveConfig.eaveConfluenceAppKey;
       descriptor.name = eaveConfig.eaveConfluenceAppName;
+
+      if (config.environment() === 'production') {
+        descriptor.baseUrl = `${eaveConfig.eaveApiBase}/confluence`;
+      }
       return descriptor;
     },
   },

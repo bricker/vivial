@@ -1,5 +1,5 @@
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
-import { encoding_for_model } from "tiktoken";
+import { encoding_for_model } from 'tiktoken';
 import { sharedConfig } from './config.js';
 import eaveLogger, { LogContext } from './logging.js';
 
