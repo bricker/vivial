@@ -81,9 +81,6 @@ async def authed_account_team() -> Response:
         access_token=auth_cookies.access_token,
     )
 
-    if shared_config.eave_beta_whitelist_disabled:
-        eave_response.team.beta_whitelisted = True
-
     return _clean_response(eave_response)
 
 
@@ -163,6 +160,9 @@ def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegratio
         response=response,
         access_token=access_token,  # In case the access token was refreshed
     )
+
+    if shared_config.eave_beta_whitelist_disabled:
+        eave_response.team.beta_whitelisted = True
 
     # TODO: Forward cookies from server to client
     return response
