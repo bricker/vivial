@@ -21,7 +21,7 @@ export const addon = ace(app, {
       descriptor.name = eaveConfig.eaveJiraAppName;
 
       if (config.environment() === 'production') {
-        descriptor.baseUrl = `${eaveConfig.eaveApiBase}/jira`;
+        descriptor.baseUrl = `${eaveConfig.eaveAppsBase}/jira`;
       }
       return descriptor;
     },
