@@ -24,7 +24,7 @@ vpc_access_connector:
 
 env_variables:
   EAVE_JIRA_APP_KEY: "eave-jira"
-  EAVE_JIRA_APP_NAME: "Eave for Jira"
+  EAVE_JIRA_APP_NAME: "Eave"
   EAVE_MONITORING_ENABLED: "1"
   EAVE_ANALYTICS_ENABLED: "1"
   LOG_LEVEL: "DEBUG"

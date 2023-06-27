@@ -24,7 +24,7 @@ vpc_access_connector:
 
 env_variables:
   EAVE_JIRA_APP_KEY: "eave-jira-stg"
-  EAVE_JIRA_APP_NAME: "Eave for Jira (Staging)"
+  EAVE_JIRA_APP_NAME: "Eave (Staging)"
   EAVE_COOKIE_DOMAIN: .eave.dev
   EAVE_APPS_BASE: https://apps.eave.dev
   EAVE_API_BASE: https://api.eave.dev
