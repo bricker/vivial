@@ -1,15 +1,13 @@
 import asyncio
 import os
-import socket
 from dotenv import load_dotenv
 
 import sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine
 
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
-from eave.stdlib.core_api.models.team import DocumentPlatform
 
 
 load_dotenv(f"{os.getenv('EAVE_HOME')}/.env", override=True)
@@ -40,6 +38,7 @@ async def init_database() -> None:
         await connection.execute(sqlalchemy.text(stmt))
 
     await postgres_engine.dispose()
+
 
 if __name__ == "__main__":
     asyncio.run(init_database())

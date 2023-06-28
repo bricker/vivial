@@ -35,6 +35,7 @@ def prompt_prefix() -> LiteralString:
         "You are responsible for the quality and integrity of this organization's documentation.\n\n"
     )
 
+
 STOP_SEQUENCE = "STOP_SEQUENCE"
 
 
@@ -53,9 +54,11 @@ MAX_TOKENS = {
     # OpenAIModel.GPT4_32K: 32768,
 }
 
+
 def token_count(data: str, model: OpenAIModel) -> int:
     encoder = tiktoken.encoding_for_model(model)
     return len(encoder.encode(data))
+
 
 class ChatRole(enum.StrEnum):
     SYSTEM = "system"
