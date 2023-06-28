@@ -1,7 +1,6 @@
 import json
 import time
 import typing
-import uuid
 
 import eave.stdlib
 import eave.pubsub_schemas
@@ -9,7 +8,7 @@ from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
 from eave.stdlib.core_api.models.account import AnalyticsAccount
 
-from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
+from eave.stdlib.core_api.models.team import AnalyticsTeam
 
 from .typing import JsonObject
 from .config import shared_config
@@ -69,6 +68,7 @@ def log_event(
         )
     else:
         client.publish(topic_path, data)
+
 
 def _safe_serialize(data: JsonObject | None, ctx: _l.LogContext) -> str | None:
     if not data:

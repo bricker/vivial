@@ -11,6 +11,7 @@ class AuthProvider(enum.StrEnum):
     atlassian = "atlassian"
     github = "github"
 
+
 class AuthenticatedAccount(BaseResponseModel):
     id: uuid.UUID
     auth_provider: AuthProvider
@@ -19,6 +20,7 @@ class AuthenticatedAccount(BaseResponseModel):
     opaque_utm_params: Mapping[str, Any]
     email: str
     access_token: str
+
 
 class AnalyticsAccount(BaseResponseModel):
     id: uuid.UUID

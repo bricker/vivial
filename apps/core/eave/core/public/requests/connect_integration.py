@@ -94,7 +94,9 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                 )
 
                 if other_connect_integration and other_connect_integration.team_id:
-                    eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=other_connect_integration.team_id)
+                    eave_team = await TeamOrm.one_or_exception(
+                        session=db_session, team_id=other_connect_integration.team_id
+                    )
 
                 integration = await ConnectInstallationOrm.create(
                     session=db_session,

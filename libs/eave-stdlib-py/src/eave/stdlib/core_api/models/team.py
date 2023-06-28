@@ -36,6 +36,7 @@ class AnalyticsTeam(BaseResponseModel):
     name: str
     document_platform: Optional[DocumentPlatform]
 
+
 class Team(BaseResponseModel):
     id: uuid.UUID
     name: str
