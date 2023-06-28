@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Unpack
 import uuid
 from eave.stdlib import requests
 from eave.stdlib.confluence_api.models import (
@@ -28,16 +28,14 @@ class GetAvailableSpacesRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         team_id: uuid.UUID,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=None,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -59,17 +57,15 @@ class SearchContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         team_id: uuid.UUID,
         input: RequestBody,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -92,17 +88,15 @@ class CreateContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         team_id: uuid.UUID,
         input: RequestBody,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -124,17 +118,15 @@ class UpdateContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         team_id: uuid.UUID,
         input: RequestBody,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -156,17 +148,15 @@ class DeleteContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         team_id: uuid.UUID,
         input: RequestBody,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         return cls.ResponseBody(_raw_response=response)

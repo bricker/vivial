@@ -1,29 +1,26 @@
-from typing import Optional
+from typing import Unpack
 import uuid
 from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
 
-from eave.stdlib.eave_origins import EaveOrigin
-from eave.stdlib.logging import LogContext
+from eave.stdlib.eave_origins import EaveService
 from . import operations
 from .. import requests
-from ..config import shared_config
 
+_base_url = requests.appengine_base_url(EaveService.github)
 
 async def get_file_content(
-    origin: EaveOrigin,
     eave_team_id: uuid.UUID,
     input: operations.GetGithubUrlContent.RequestBody,
-    ctx: Optional[LogContext] = None,
+    **kwargs: Unpack[requests.CommonRequestArgs],
 ) -> operations.GetGithubUrlContent.ResponseBody:
     """
     POST /github/api/content
     """
     response = await requests.make_request(
-        url=f"{shared_config.eave_apps_base}/github/api/content",
-        origin=origin,
+        url=f"{_base_url}/github/api/content",
         input=input,
         team_id=eave_team_id,
-        ctx=ctx,
+        **kwargs,
     )
 
     response_json = await response.json()
@@ -31,20 +28,18 @@ async def get_file_content(
 
 
 async def create_subscription(
-    origin: EaveOrigin,
     eave_team_id: uuid.UUID,
     input: operations.CreateGithubResourceSubscription.RequestBody,
-    ctx: Optional[LogContext] = None,
+    **kwargs: Unpack[requests.CommonRequestArgs],
 ) -> CreateSubscriptionRequest.ResponseBody:
     """
     POST /github/api/subscribe
     """
     response = await requests.make_request(
-        url=f"{shared_config.eave_apps_base}/github/api/subscribe",
-        origin=origin,
+        url=f"{_base_url}/github/api/subscribe",
         input=input,
         team_id=eave_team_id,
-        ctx=ctx,
+        **kwargs,
     )
 
     response_json = await response.json()

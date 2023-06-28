@@ -1,8 +1,11 @@
 import { sharedConfig } from '../../config.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../../requests.js';
+import { EaveService } from '../../eave-origins.js';
+import { RequestArgsOriginAndTeamId, appengineBaseUrl, makeRequest } from '../../requests.js';
 import { DocumentInput, DocumentSearchResult } from '../models/documents.js';
 import { DocumentReference, Subscription } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
+
+const baseUrl = appengineBaseUrl(EaveService.api);
 
 export type UpsertDocumentRequestBody = {
   document: DocumentInput;
@@ -16,7 +19,7 @@ export type UpsertDocumentResponseBody = {
 
 export async function upsertDocument(args: RequestArgsOriginAndTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
   const resp = await makeRequest({
-    url: `${sharedConfig.eaveApiBase}/documents/upsert`,
+    url: `${baseUrl}/documents/upsert`,
     ...args,
   });
   const responseData = <UpsertDocumentResponseBody>(await resp.json());
@@ -34,7 +37,7 @@ export type SearchDocumentsResponseBody = {
 
 export async function searchDocuments(args: RequestArgsOriginAndTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
   const resp = await makeRequest({
-    url: `${sharedConfig.eaveApiBase}/documents/search`,
+    url: `${baseUrl}/documents/search`,
     ...args,
   });
   const responseData = <SearchDocumentsResponseBody>(await resp.json());

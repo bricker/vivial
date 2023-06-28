@@ -7,7 +7,7 @@ from slack_sdk.oauth import AuthorizeUrlGenerator
 from eave.core.internal.config import app_config
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
-redirect_uri = f"{app_config.eave_api_base}/oauth/slack/callback"
+redirect_uri = f"{app_config.eave_public_api_base}/oauth/slack/callback"
 authorize_url_generator = AuthorizeUrlGenerator(
     client_id=app_config.eave_slack_client_id,
     scopes=[

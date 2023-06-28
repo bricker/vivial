@@ -8,6 +8,15 @@ export enum EaveOrigin {
   eave_confluence_app = 'eave_confluence_app',
 }
 
+export enum EaveService {
+  api = 'api',
+  www = 'www',
+  github = 'github',
+  slack = 'slack',
+  jira = 'jira',
+  confluence = 'confluence',
+}
+
 export enum ExternalOrigin {
   github_api_client = 'github_api_client',
 }

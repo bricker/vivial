@@ -19,7 +19,7 @@ import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
 
-DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
 
 
 def verify_oauth_state_or_exception(
@@ -48,14 +48,14 @@ def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> R
     location_header = response.headers["Location"]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
-    qs.update({EAVE_ERROR_CODE_QP: [error_code]})
-    qs_updated = urlencode(qs)
+    qs.update({EAVE_ERROR_CODE_QP: [error_code.value]})
+    qs_updated = urlencode(qs, doseq=True)
     location = location._replace(query=qs_updated)
     return set_redirect(response=response, location=urlunparse(location))
 
 
 def cancel_flow(response: Response) -> Response:
-    return set_redirect(response=response, location=eave.core.internal.app_config.eave_www_base)
+    return set_redirect(response=response, location=eave.core.internal.app_config.eave_public_www_base)
 
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:

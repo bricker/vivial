@@ -45,7 +45,7 @@ def _render_spa(**kwargs: Any) -> str:
     return render_template(
         "index.html.jinja",
         cookie_domain=app_config.eave_cookie_domain,
-        api_base=app_config.eave_api_base,
+        api_base=app_config.eave_public_api_base,
         asset_base=app_config.asset_base,
         analytics_enabled=app_config.analytics_enabled,
         monitoring_enabled=app_config.monitoring_enabled,
@@ -138,7 +138,7 @@ async def upsert_confluence_destination() -> Response:
 
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
-    response = redirect(location=app_config.eave_www_base, code=302)
+    response = redirect(location=app_config.eave_public_www_base, code=302)
     eave.stdlib.cookies.delete_auth_cookies(response=response)
     return response
 

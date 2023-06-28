@@ -160,5 +160,19 @@
     }
   ],
   "typescript.validate.enable": true,
-  "eslint.run": "onSave"
+  "eslint.run": "onSave",
+  "ruff.importStrategy": "useBundled",
+  "ruff.run": "onSave",
+  "ruff.interpreter": [
+    "${workspaceFolder}/.venv/bin/python"
+  ],
+  "todo-tree.filtering.excludeGlobs": [
+    "**/node_modules/*/**",
+    "**/.venv",
+    "**/__pycache__",
+    "**/.ruff_cache",
+    "**/.mypy_cache",
+    "**/.pytest_cache"
+  ],
+  "todo-tree.tree.autoRefresh": false
 }

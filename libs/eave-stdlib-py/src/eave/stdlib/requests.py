@@ -1,9 +1,9 @@
 import pydantic
-from typing import Optional
+from typing import Generic, NotRequired, Optional, Required, TypeVar, TypedDict
 import uuid
 import aiohttp
 import urllib.parse
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveOrigin, EaveService
 from eave.stdlib.typing import JsonObject
 
 from eave.stdlib.util import ensure_str_or_none, redact
@@ -13,17 +13,26 @@ from . import signing
 from .logging import LogContext, eaveLogger
 from .config import shared_config
 
+IT = TypeVar("IT", bound=pydantic.BaseModel)
+
+class CommonRequestArgs(TypedDict):
+    origin: Required[EaveOrigin]
+    method: NotRequired[str]
+    addl_headers: NotRequired[Optional[dict[str, str]]]
+    ctx: NotRequired[Optional[LogContext]]
+    base_timeout_seconds: NotRequired[int]
 
 async def make_request(
     url: str,
     origin: EaveOrigin,
     input: Optional[pydantic.BaseModel],
     method: str = "POST",
-    team_id: Optional[uuid.UUID] = None,
+    team_id: Optional[uuid.UUID | str] = None,
     access_token: Optional[str] = None,
-    account_id: Optional[uuid.UUID] = None,
+    account_id: Optional[uuid.UUID | str] = None,
     addl_headers: Optional[dict[str, str]] = None,
     ctx: Optional[LogContext] = None,
+    base_timeout_seconds: int = 600, # system-imposed AppEngine request timeout
 ) -> aiohttp.ClientResponse:
     ctx = LogContext.wrap(ctx)
     request_id = ctx.eave_request_id
@@ -85,7 +94,7 @@ async def make_request(
         request_params,
     )
 
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=base_timeout_seconds)) as session:
         response = await session.request(
             method=method,
             url=url,
@@ -109,7 +118,7 @@ async def make_request(
 
 def makeurl(path: str, base: Optional[str] = None) -> str:
     if not base:
-        base = shared_config.eave_api_base
+        base = shared_config.eave_public_api_base
     return urllib.parse.urljoin(base, path)
 
 

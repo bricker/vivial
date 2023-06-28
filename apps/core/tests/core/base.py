@@ -85,7 +85,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         # )
         self.httpclient = AsyncClient(
             app=eave.core.app.app,
-            base_url=eave.core.internal.app_config.eave_api_base,
+            base_url=eave.core.internal.app_config.eave_public_api_base,
         )
 
         self.mock_atlassian_client()

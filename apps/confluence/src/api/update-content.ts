@@ -50,11 +50,15 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
     if (model) {
       const openaiClient = await OpenAIClient.getAuthedClient();
       const openaiResponse = await openaiClient.createChatCompletion({
-        messages: [
-          { role: 'user', content: prompt },
-        ],
-        model: OpenAIModel.GPT4,
-      }, ctx);
+        parameters: {
+          messages: [
+            { role: 'user', content: prompt },
+          ],
+          model: OpenAIModel.GPT4,
+        },
+        baseTimeoutSeconds: 120,
+        ctx,
+      });
 
       if (openaiResponse.match(/UNABLE/i)) {
         eaveLogger.warning('openai was unable to merge the documents. The new content will be used.', ctx);

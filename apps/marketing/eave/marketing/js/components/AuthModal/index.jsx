@@ -42,8 +42,8 @@ const makeClasses = makeStyles((theme) => ({
     width: '100%',
     color: theme.typography.color.dark,
     marginTop: 12,
-    justifyContent: 'flex-start',
-    paddingLeft: 30,
+    justifyContent: 'flex-center',
+    // paddingLeft: 30,
     border: `1px solid ${theme.typography.color.dark}`,
   },
   icon: {

@@ -79,20 +79,6 @@ export class LogContext {
   }
 }
 
-const customErrorFormatter = winston.format((info: lf.TransformableInfo, _opts?: any): lf.TransformableInfo | boolean => {
-  if (info instanceof Error) {
-    // Example: logger.error(e)
-    // eslint-disable-next-line no-param-reassign
-    info.message = info['stack'];
-  } else if (info.message instanceof Error) {
-    // Example: logger.error(e, { additionalContext: '123' })
-    // eslint-disable-next-line no-param-reassign
-    info.message = info.message['stack'];
-  }
-
-  return info;
-});
-
 function createLogger(): winston.Logger {
   const level = sharedConfig.logLevel.toLowerCase();
   let logger: winston.Logger;
@@ -117,7 +103,6 @@ function createLogger(): winston.Logger {
     logger = winston.createLogger({
       level,
       format: winston.format.combine(
-        customErrorFormatter(),
         winston.format.simple(),
         winston.format.colorize({
           all: true,
@@ -144,46 +129,42 @@ class EaveLogger {
     this.rawLogger = createLogger();
   }
 
-  debug(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.debug({
-      message,
-      ...this.makeExtra(...rest),
-    });
+  debug(message: string, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.debug(message, this.makeExtra(...rest));
   }
 
-  info(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.info({
-      message,
-      ...this.makeExtra(...rest),
-    });
+  info(message: string, ...rest: (JsonObject | LogContext | undefined)[]) {
+    this.rawLogger.info(message, this.makeExtra(...rest));
   }
 
   warning(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.warning({
-      message,
-      ...this.makeExtra(...rest),
-    });
+    let msg: string;
+    if (message instanceof Error) {
+      msg = message.stack || message.message;
+    } else {
+      msg = message;
+    }
+
+    this.rawLogger.warn(msg, this.makeExtra(...rest));
   }
 
   error(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.error({
-      message,
-      ...this.makeExtra(...rest),
-    });
+    let msg: string;
+    if (message instanceof Error) {
+      msg = message.stack || message.message;
+    } else {
+      msg = message;
+    }
+
+    this.rawLogger.error(msg, this.makeExtra(...rest));
   }
 
   exception(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.error({
-      message,
-      ...this.makeExtra(...rest),
-    });
+    this.error(message, ...rest);
   }
 
   critical(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.error({
-      message,
-      ...this.makeExtra(...rest),
-    });
+    this.error(message, ...rest);
   }
 
   private makeExtra(...rest: (JsonObject | LogContext | undefined)[]): { eave: JsonObject } {

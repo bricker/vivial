@@ -10,10 +10,10 @@ import eaveLogger, { LogContext } from '../logging.js';
  * Note that this middleware necessarily blocks the request until the full body is received,
  * so that it can calculate the expected signature and compare it to the provided signature.
  */
-export function signatureVerification(baseUrl: string): ((req: Request, res: Response, next: NextFunction) => void) {
+export function signatureVerification(): ((req: Request, res: Response, next: NextFunction) => void) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await doSignatureVerification(req, res, baseUrl);
+      await doSignatureVerification(req, res);
       next();
     } catch (e: any) {
       if (developmentBypassAllowed(req, res)) {
@@ -25,7 +25,7 @@ export function signatureVerification(baseUrl: string): ((req: Request, res: Res
   };
 }
 
-async function doSignatureVerification(req: Request, res: Response, baseUrl: string): Promise<boolean> {
+async function doSignatureVerification(req: Request, res: Response): Promise<boolean> {
   const ctx = LogContext.load(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
@@ -38,6 +38,7 @@ async function doSignatureVerification(req: Request, res: Response, baseUrl: str
   const teamId = req.header(eaveHeaders.EAVE_TEAM_ID_HEADER);
   const accountId = req.header(eaveHeaders.EAVE_ACCOUNT_ID_HEADER);
   const origin = ctx.eave_origin!;
+  const audience = req.header(eaveHeaders.HOST);
 
   // let serializedBody;
   // if (typeof req.body === 'string' || req.body instanceof Buffer) {
@@ -50,7 +51,7 @@ async function doSignatureVerification(req: Request, res: Response, baseUrl: str
 
   const message = buildMessageToSign({
     method: req.method,
-    url: `${baseUrl}${req.originalUrl}`,
+    url: `${audience}${req.originalUrl}`,
     requestId: ctx.eave_request_id,
     origin,
     payload,

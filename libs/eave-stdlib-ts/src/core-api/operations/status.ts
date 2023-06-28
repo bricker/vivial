@@ -1,4 +1,8 @@
 import { sharedConfig } from '../../config.js';
+import { EaveService } from '../../eave-origins.js';
+import { appengineBaseUrl } from '../../requests.js';
+
+const baseUrl = appengineBaseUrl(EaveService.api);
 
 export type StatusResponseBody = {
   service: string;
@@ -7,7 +11,7 @@ export type StatusResponseBody = {
 }
 
 export async function status(): Promise<StatusResponseBody> {
-  const resp = await fetch(`${sharedConfig.eaveApiBase}/status`, {
+  const resp = await fetch(`${baseUrl}/status`, {
     method: 'get',
   });
 

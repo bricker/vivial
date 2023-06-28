@@ -58,6 +58,10 @@ export class EaveConfig {
     return process.env['GAE_VERSION'] || 'unknown';
   }
 
+  get eaveAppsBase(): string {
+    return process.env['EAVE_APPS_BASE'] || 'https://apps.eave.fyi';
+  }
+
   get eaveApiBase(): string {
     return process.env['EAVE_API_BASE'] || 'https://api.eave.fyi';
   }
@@ -66,12 +70,14 @@ export class EaveConfig {
     return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
   }
 
-  get eaveAppsBase(): string {
-    return process.env['EAVE_APPS_BASE'] || 'https://apps.eave.fyi';
-  }
-
   get eaveCookieDomain(): string {
-    return process.env['EAVE_COOKIE_DOMAIN'] || '.eave.fyi';
+    const envv = process.env['EAVE_COOKIE_DOMAIN'];
+    if (envv) {
+      return envv;
+    }
+
+    const url = new URL(this.eaveWwwBase);
+    return url.hostname.replace(/^www/, '');
   }
 
   get redisConnection(): {host: string, port: number, db: number} | undefined {

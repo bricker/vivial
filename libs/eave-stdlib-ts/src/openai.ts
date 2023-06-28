@@ -1,7 +1,9 @@
+import { v4 as uuidv4 } from 'uuid';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 import { encoding_for_model } from 'tiktoken';
 import { sharedConfig } from './config.js';
-import eaveLogger, { LogContext } from './logging.js';
+import eaveLogger from './logging.js';
+import { CtxArg } from './requests.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -66,7 +68,11 @@ export default class OpenAIClient {
     this.client = client;
   }
 
-  async createChatCompletion(parameters: CreateChatCompletionRequest, ctx: LogContext): Promise<string> {
+  /*
+    https://beta.openai.com/docs/api-reference/completions/create
+    baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+  */
+  async createChatCompletion({ parameters, ctx, baseTimeoutSeconds = 30 }: CtxArg & {parameters: CreateChatCompletionRequest, baseTimeoutSeconds?: number}): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
     const model = modelFromString(parameters.model);
@@ -74,21 +80,26 @@ export default class OpenAIClient {
       throw new Error(`Unexpected model value ${parameters.model}`);
     }
 
+    const logParams = {
+      openai: <any>parameters,
+      openaiRequestId: uuidv4(),
+    };
+
     let text: string | undefined;
 
     const maxAttempts = 3;
     for (let i = 0; i < maxAttempts; i += 1) {
-      const backoffMs = (i + 1) * 10 * 1000;
+      const backoffMs = baseTimeoutSeconds * (2 ** i) * 1000;
       try {
-        eaveLogger.debug('openai request', <any>parameters, ctx);
+        eaveLogger.debug('openai request', ctx, logParams);
         const completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
-        eaveLogger.debug('openai response', { data: <any>completion.data }, ctx);
+        eaveLogger.debug('openai response', logParams, { openaiResponse: <any>completion.data }, ctx);
         text = completion.data.choices[0]?.message?.content;
         break;
       } catch (e: any) {
         // Network error?
         if (i + 1 < maxAttempts) {
-          eaveLogger.warning(e, ctx);
+          eaveLogger.warning(e, logParams, ctx);
           await new Promise((r) => { setTimeout(r, backoffMs); });
         } else {
           throw e;

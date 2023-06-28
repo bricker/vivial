@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import eaveLogger, { LogContext } from './logging.js';
-import { EaveOrigin } from './eave-origins.js';
+import { EaveOrigin, EaveService } from './eave-origins.js';
 import Signing from './signing.js';
 import eaveHeaders from './headers.js';
 import { redact } from './util.js';
 import { JsonObject } from './types.js';
+import { sharedConfig } from './config.js';
 
 export function buildMessageToSign({
   method,
@@ -162,4 +163,12 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   }
 
   return response;
+}
+
+export function appengineBaseUrl(service: EaveService): string {
+  // FIXME: Hardcoded region ID (uc)
+  return `${service}`
+    + '-dot-'
+    + `${sharedConfig.googleCloudProject}`
+    + '.uc.r.appspot.com';
 }

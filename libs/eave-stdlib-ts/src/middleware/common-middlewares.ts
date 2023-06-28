@@ -30,7 +30,7 @@ export function applyInternalApiMiddlewares({ app, path }: {app: Express, path: 
   app.use(path, raw({ type: 'application/json' }));
   app.use(path, requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER));
   app.use(path, originMiddleware);
-  app.use(path, signatureVerification(sharedConfig.eaveAppsBase));
+  app.use(path, signatureVerification());
 
   // This goes _after_ signature verification, so that signature verification has access to the raw body.
   app.use(path, bodyParser);

@@ -227,7 +227,7 @@ async def get_documentation(
         temperature=0.2,
     )
 
-    openai_response: str | None = await eave_openai.chat_completion(openai_params)
+    openai_response: str | None = await eave_openai.chat_completion(openai_params, baseTimeoutSeconds=120)
     if openai_response is None:
         raise OpenAIDataError()
 

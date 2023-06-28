@@ -132,11 +132,15 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       // NOTE: According to the OpenAI docs, model gpt-3.5-turbo-0301 doesn't pay attention to the system messages,
       // but it seems it's specific to that model, and neither gpt-3.5-turbo or gpt-4 are affected, so watch out
       const openaiResponse = await openaiClient.createChatCompletion({
-        messages: [
-          { role: 'user', content: prompt },
-        ],
-        model: OpenAIModel.GPT_35_TURBO_16K,
-      }, ctx);
+        parameters: {
+          messages: [
+            { role: 'user', content: prompt },
+          ],
+          model: OpenAIModel.GPT_35_TURBO_16K,
+        },
+        baseTimeoutSeconds: 120,
+        ctx,
+      });
 
       const document: DocumentInput = {
         title: `Description of code in ${repositoryName} ${filePath}`,

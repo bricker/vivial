@@ -1,8 +1,10 @@
 import aiohttp
 from typing import Optional
 import pydantic
-from eave.stdlib.config import shared_config
+from eave.stdlib.eave_origins import EaveService
+from eave.stdlib.requests import appengine_base_url
 
+_base_url = appengine_base_url(EaveService.api)
 
 class EndpointConfiguration:
     path: str
@@ -27,7 +29,7 @@ class EndpointConfiguration:
 
     @property
     def url(self) -> str:
-        return f"{shared_config.eave_api_base}{self.path}"
+        return f"{_base_url}{self.path}"
 
 
 class BaseRequestBody(pydantic.BaseModel):
