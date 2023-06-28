@@ -93,6 +93,8 @@ class EaveConfig:
 
     @property
     def eave_public_apps_base(self) -> str:
+        return self.eave_public_service_base(EaveService.)
+
         return os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"
 
     @property
