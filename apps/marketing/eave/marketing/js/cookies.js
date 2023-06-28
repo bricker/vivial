@@ -15,6 +15,7 @@ const availableTrackingParams = [
   'utm_medium',
 ];
 
+// DON'T RENAME THESE, they are referenced in GTM by name.
 export const cookiePrefixUtm = 'ev_utm_';
 export const EAVE_VISITOR_ID_COOKIE = 'ev_visitor_id';
 export const EAVE_ONBOARDING_STATE_COOKIE = 'ev_onboarding_state';

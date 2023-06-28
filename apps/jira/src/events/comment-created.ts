@@ -65,8 +65,8 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
     },
   });
 
-  const teamId = connectInstallation.team?.id;
-  if (!teamId) {
+  const team = connectInstallation.team;
+  if (!team) {
     eaveLogger.warning('No teamId available', { clientKey: jiraClient.client.clientKey }, ctx);
     res.sendStatus(400);
     return;
@@ -74,10 +74,10 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
 
   try {
     await logEvent(schemas.EaveEvent.create({
-      eave_team_id: teamId,
       event_description: 'Eave was mentioned in a Jira comment',
       event_name: 'eave_mentioned',
       event_source: 'jira comment-created event handler',
+      eave_team: JSON.stringify(team),
       opaque_params: JSON.stringify({
         message: payload.comment.body,
       }),
@@ -102,7 +102,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
   const searchResults = await searchDocuments({
     ctx,
     origin: appConfig.eaveOrigin,
-    teamId,
+    teamId: team.id,
     input: {
       query: searchQuery,
     },

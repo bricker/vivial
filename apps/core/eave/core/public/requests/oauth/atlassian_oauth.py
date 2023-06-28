@@ -92,6 +92,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             refresh_token=refresh_token,
         )
 
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            self.eave_team = await self.eave_account.get_team(session=db_session)
+
         await self._link_connect_installation()
         await self._update_or_create_atlassian_install()
 
@@ -122,8 +125,8 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                             )
                             eave.stdlib.analytics.log_event(
                                 event_name="duplicate_integration_attempt",
-                                eave_account_id=self.eave_account.id,
-                                eave_team_id=self.eave_account.team_id,
+                                eave_account=self.eave_account.analytics_model,
+                                eave_team=self.eave_team.analytics_model,
                                 opaque_params={"integration": connect_install.product},
                                 ctx=self.eave_state.ctx,
                             )
@@ -140,10 +143,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                             eave.stdlib.analytics.log_event(
                                 event_name="eave_application_integration",
                                 event_description="An integration was added for a team",
-                                eave_account_id=self.eave_account.id,
-                                eave_team_id=self.eave_account.team_id,
-                                eave_visitor_id=self.eave_account.visitor_id,
-                                event_source="core api oauth",
+                                event_source="core api atlassian oauth",
+                                eave_account=self.eave_account.analytics_model,
+                                eave_team=self.eave_team.analytics_model,
                                 opaque_params={
                                     "integration_name": Integration.confluence.value,
                                     "atlassian_site_name": self.atlassian_resource.name
@@ -208,10 +210,9 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                     eave.stdlib.analytics.log_event(
                         event_name="default_confluence_space_used",
                         event_description="A team's confluence space was set automatically",
-                        eave_account_id=self.eave_account.id,
-                        eave_team_id=self.eave_account.team_id,
-                        eave_visitor_id=self.eave_account.visitor_id,
-                        event_source="core api oauth",
+                        event_source="core api atlassian oauth",
+                        eave_account=self.eave_account.analytics_model,
+                        eave_team=self.eave_team.analytics_model,
                         opaque_params={
                             "integration_name": Integration.confluence.value,
                             "atlassian_site_name": self.atlassian_resource.name if self.atlassian_resource else None,

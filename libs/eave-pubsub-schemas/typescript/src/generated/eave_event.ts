@@ -1,5 +1,5 @@
 /* eslint-disable */
-import _m0 from "protobufjs/minimal.js";
+import * as _m0 from "protobufjs/minimal";
 
 export interface EaveEvent {
   event_name: string;
@@ -12,6 +12,8 @@ export interface EaveEvent {
   eave_team_id: string;
   eave_env: string;
   opaque_eave_ctx: string;
+  eave_account: string;
+  eave_team: string;
 }
 
 function createBaseEaveEvent(): EaveEvent {
@@ -26,6 +28,8 @@ function createBaseEaveEvent(): EaveEvent {
     eave_team_id: "",
     eave_env: "",
     opaque_eave_ctx: "",
+    eave_account: "",
+    eave_team: "",
   };
 }
 
@@ -60,6 +64,12 @@ export const EaveEvent = {
     }
     if (message.opaque_eave_ctx !== "") {
       writer.uint32(82).string(message.opaque_eave_ctx);
+    }
+    if (message.eave_account !== "") {
+      writer.uint32(90).string(message.eave_account);
+    }
+    if (message.eave_team !== "") {
+      writer.uint32(98).string(message.eave_team);
     }
     return writer;
   },
@@ -141,6 +151,20 @@ export const EaveEvent = {
 
           message.opaque_eave_ctx = reader.string();
           continue;
+        case 11:
+          if (tag != 90) {
+            break;
+          }
+
+          message.eave_account = reader.string();
+          continue;
+        case 12:
+          if (tag != 98) {
+            break;
+          }
+
+          message.eave_team = reader.string();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -162,6 +186,8 @@ export const EaveEvent = {
       eave_team_id: isSet(object.eave_team_id) ? String(object.eave_team_id) : "",
       eave_env: isSet(object.eave_env) ? String(object.eave_env) : "",
       opaque_eave_ctx: isSet(object.opaque_eave_ctx) ? String(object.opaque_eave_ctx) : "",
+      eave_account: isSet(object.eave_account) ? String(object.eave_account) : "",
+      eave_team: isSet(object.eave_team) ? String(object.eave_team) : "",
     };
   },
 
@@ -177,6 +203,8 @@ export const EaveEvent = {
     message.eave_team_id !== undefined && (obj.eave_team_id = message.eave_team_id);
     message.eave_env !== undefined && (obj.eave_env = message.eave_env);
     message.opaque_eave_ctx !== undefined && (obj.opaque_eave_ctx = message.opaque_eave_ctx);
+    message.eave_account !== undefined && (obj.eave_account = message.eave_account);
+    message.eave_team !== undefined && (obj.eave_team = message.eave_team);
     return obj;
   },
 
@@ -196,6 +224,8 @@ export const EaveEvent = {
     message.eave_team_id = object.eave_team_id ?? "";
     message.eave_env = object.eave_env ?? "";
     message.opaque_eave_ctx = object.opaque_eave_ctx ?? "";
+    message.eave_account = object.eave_account ?? "";
+    message.eave_team = object.eave_team ?? "";
     return message;
   },
 };

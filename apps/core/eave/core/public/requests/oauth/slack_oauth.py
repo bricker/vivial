@@ -77,6 +77,9 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
             refresh_token=slack_user_refresh_token,
         )
 
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            self.eave_team = await self.eave_account.get_team(session=db_session)
+
         await self._update_or_create_slack_installation()
 
         slack_redirect_location = (
@@ -116,8 +119,9 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 )
                 eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",
-                    eave_account_id=self.eave_account.id,
-                    eave_team_id=self.eave_account.team_id,
+                    event_source="core api slack oauth",
+                    eave_account=self.eave_account.analytics_model,
+                    eave_team=self.eave_team.analytics_model,
                     opaque_params={"integration": Integration.slack},
                     ctx=log_context,
                 )
@@ -195,10 +199,9 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         eave.stdlib.analytics.log_event(
             event_name="eave_application_integration",
             event_description="An integration was added for a team",
-            eave_account_id=self.eave_account.id,
-            eave_team_id=self.eave_account.team_id,
-            eave_visitor_id=self.eave_account.visitor_id,
-            event_source="core api oauth",
+            event_source="core api slack oauth",
+            eave_account=self.eave_account.analytics_model,
+            eave_team=self.eave_team.analytics_model,
             opaque_params={
                 "integration_name": Integration.slack.value,
                 "approximate_num_members": approximate_num_members,

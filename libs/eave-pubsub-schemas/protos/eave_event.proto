@@ -11,4 +11,6 @@ message EaveEvent {
   string eave_team_id = 8;
   string eave_env = 9;
   string opaque_eave_ctx = 10;
+  string eave_account = 11;
+  string eave_team = 12;
 }

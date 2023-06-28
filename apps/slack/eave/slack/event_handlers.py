@@ -6,6 +6,7 @@ from google.cloud.tasks import Queue
 import eave.pubsub_schemas
 from eave.slack.brain.core import Brain
 import eave.slack.slack_models
+from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
 import eave.stdlib.typing
 import eave.stdlib.analytics
 from eave.stdlib import task_queue
@@ -130,7 +131,7 @@ async def event_member_joined_channel_handler(
     eave_ctx = LogContext.wrap(context.get(EAVE_CTX_KEY))
     eaveLogger.debug("Received event: member_joined_channel", eave_ctx)
 
-    eave_team = context.get("eave_team")
+    eave_team: Team | None = context.get("eave_team")
 
     if not event or not (event.get("channel")) or not (user_id := event.get("user")):
         raise SlackDataError("event channel or user")
@@ -158,7 +159,7 @@ async def event_member_joined_channel_handler(
             event_name="eave_sent_message",
             event_description="Eave sent a message",
             event_source="slack app",
-            eave_team_id=eave_team.id if eave_team else None,
+            eave_team=AnalyticsTeam.from_orm(eave_team) if eave_team else None,
             opaque_params={
                 "integration": Integration.slack.value,
                 "message_content": message,
@@ -173,7 +174,7 @@ async def event_member_joined_channel_handler(
         event_name="eave_joined_slack_channel",
         event_description="Eave joined a slack channel",
         event_source="slack app",
-        eave_team_id=eave_team.id if eave_team else None,
+        eave_team=AnalyticsTeam.from_orm(eave_team) if eave_team else None,
         ctx=eave_ctx,
     )
 

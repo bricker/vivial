@@ -31,6 +31,11 @@ class DocumentPlatform(enum.StrEnum):
     google_drive = "google_drive"
 
 
+class AnalyticsTeam(BaseResponseModel):
+    id: uuid.UUID
+    name: str
+    document_platform: Optional[DocumentPlatform]
+
 class Team(BaseResponseModel):
     id: uuid.UUID
     name: str

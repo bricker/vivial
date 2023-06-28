@@ -44,7 +44,7 @@ class Base:
             event_name=event_name,
             event_description=event_description,
             event_source="slack app",
-            eave_team_id=self.eave_team.id,
+            eave_team=team.AnalyticsTeam.from_orm(self.eave_team),
             opaque_params={
                 "integration": Integration.slack.value,
                 "request_type": self.message_action.value if self.message_action else None,

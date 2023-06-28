@@ -160,15 +160,9 @@ async def create_new_account_and_team(
     eave.stdlib.analytics.log_event(
         event_name="eave_account_registration",
         event_description="A new account was created",
-        eave_account_id=eave_account.id,
-        eave_team_id=eave_account.team_id,
-        eave_visitor_id=eave_account.visitor_id,
         event_source="core api oauth",
-        opaque_params={
-            "auth_provider": auth_provider.value,
-            "user_email": user_email,
-            "utm_params": eave_account.opaque_utm_params,
-        },
+        eave_account=eave_account.analytics_model,
+        eave_team=eave_team.analytics_model,
         ctx=eave_state.ctx,
     )
 

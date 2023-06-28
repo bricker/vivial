@@ -110,6 +110,8 @@ class GithubOAuthCallback(HTTPEndpoint):
                 session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
             )
 
+            self.eave_team = await self.eave_account.get_team(session=db_session)
+
         shared.set_redirect(
             response=self.response,
             location=shared.DEFAULT_REDIRECT_LOCATION,
@@ -134,9 +136,11 @@ class GithubOAuthCallback(HTTPEndpoint):
                 )
                 eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",
-                    eave_account_id=self.eave_account.id,
-                    eave_team_id=self.eave_account.team_id,
+                    event_source="core api github oauth",
+                    eave_account=self.eave_account.analytics_model,
+                    eave_team=self.eave_team.analytics_model,
                     opaque_params={"integration": Integration.github},
+                    ctx=self.eave_state.ctx,
                 )
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 return
@@ -152,10 +156,9 @@ class GithubOAuthCallback(HTTPEndpoint):
         eave.stdlib.analytics.log_event(
             event_name="eave_application_integration",
             event_description="An integration was added for a team",
-            eave_account_id=self.eave_account.id,
-            eave_team_id=self.eave_account.team_id,
-            eave_visitor_id=self.eave_account.visitor_id,
-            event_source="core api oauth",
+            event_source="core api github oauth",
+            eave_account=self.eave_account.analytics_model,
+            eave_team=self.eave_team.analytics_model,
             opaque_params={
                 "integration_name": Integration.github.value,
             },

@@ -67,7 +67,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
         body = await request.json()
         input = RegisterConnectIntegrationRequest.RequestBody.parse_obj(body)
 
-        eave_team_id = None
+        eave_team = None
 
         async with eave_db.async_session.begin() as db_session:
             integration = await ConnectInstallationOrm.one_or_none(
@@ -93,8 +93,8 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     org_url=ConnectInstallationOrm.make_org_url(input.connect_integration.base_url),
                 )
 
-                if other_connect_integration:
-                    eave_team_id = other_connect_integration.team_id
+                if other_connect_integration and other_connect_integration.team_id:
+                    eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=other_connect_integration.team_id)
 
                 integration = await ConnectInstallationOrm.create(
                     session=db_session,
@@ -105,15 +105,15 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     atlassian_actor_account_id=input.connect_integration.atlassian_actor_account_id,
                     display_url=input.connect_integration.display_url,
                     description=input.connect_integration.description,
-                    team_id=eave_team_id,
+                    team_id=eave_team.id if eave_team else None,
                 )
 
-                if eave_team_id:
+                if eave_team:
                     analytics.log_event(
                         event_name="eave_application_integration",
                         event_description="An integration was added for a team",
-                        eave_team_id=eave_team_id,
                         event_source="register connect integration endpoint",
+                        eave_team=eave_team.analytics_model,
                         opaque_params={
                             "integration_name": integration.product,
                             "atlassian_org_url": integration.org_url,
@@ -126,7 +126,6 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     analytics.log_event(
                         event_name="eave_connect_app_registered",
                         event_description="A connect app was registered, but has no linked team",
-                        eave_team_id=None,
                         event_source="register connect integration endpoint",
                         opaque_params={
                             "integration_name": integration.product,
@@ -143,13 +142,14 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     input=input.connect_integration,
                 )
 
-                eave_team_id = integration.team_id
+                if integration.team_id:
+                    eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=integration.team_id)
 
                 analytics.log_event(
                     event_name="eave_application_integration_updated",
                     event_description="An integration was updated for a team",
-                    eave_team_id=eave_team_id,
                     event_source="register connect integration endpoint",
+                    eave_team=eave_team.analytics_model if eave_team else None,
                     opaque_params={
                         "integration_name": integration.product,
                         "atlassian_org_url": integration.org_url,
@@ -158,11 +158,6 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     },
                     ctx=eave_state.ctx,
                 )
-
-            if eave_team_id:
-                eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=eave_team_id)
-            else:
-                eave_team = None
 
         return eave_api_util.json_response(
             RegisterConnectIntegrationRequest.ResponseBody(

@@ -7,6 +7,9 @@ import eave.stdlib
 import eave.pubsub_schemas
 from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
+from eave.stdlib.core_api.models.account import AnalyticsAccount
+
+from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
 
 from .typing import JsonObject
 from .config import shared_config
@@ -21,40 +24,31 @@ def log_event(
     event_description: typing.Optional[str] = None,
     event_source: typing.Optional[str] = None,
     opaque_params: typing.Optional[JsonObject] = None,
-    eave_account_id: typing.Optional[uuid.UUID | str] = None,
-    eave_visitor_id: typing.Optional[uuid.UUID | str] = None,
-    eave_team_id: typing.Optional[uuid.UUID | str] = None,
+    eave_account: typing.Optional[AnalyticsAccount] = None,
+    eave_team: typing.Optional[AnalyticsTeam] = None,
     event_ts: typing.Optional[float] = None,
     ctx: typing.Optional[_l.LogContext] = None,
 ) -> None:
-    eave_context = _l.LogContext.wrap(ctx)
+    ctx = _l.LogContext.wrap(ctx)
 
-    if opaque_params:
-        try:
-            serialized_params = json.dumps(opaque_params)
-        except Exception as e:
-            _l.eaveLogger.exception(e, eave_context)
-            serialized_params = str(opaque_params)
-    else:
-        serialized_params = None
-
-    try:
-        serialized_context = json.dumps(eave_context)
-    except Exception as e:
-        _l.eaveLogger.exception(e, eave_context)
-        serialized_context = str(eave_context)
+    serialized_account = eave_account.json() if eave_account else None
+    serialized_team = eave_team.json() if eave_team else None
+    serialized_params = _safe_serialize(opaque_params, ctx)
+    serialized_context = _safe_serialize(ctx, ctx)
 
     event = eave.pubsub_schemas.EaveEvent(
         event_name=event_name,
         event_description=event_description,
         event_source=event_source,
-        eave_account_id=str(eave_account_id) if eave_account_id else None,
-        eave_visitor_id=str(eave_visitor_id) if eave_visitor_id else None,
-        eave_team_id=str(eave_team_id) if eave_team_id else None,
+        eave_account_id=str(eave_account.id) if eave_account else None,
+        eave_visitor_id=str(eave_account.visitor_id) if eave_account else None,
+        eave_team_id=str(eave_team.id) if eave_team else None,
         eave_env=shared_config.eave_env.value,
         opaque_params=serialized_params,
         event_ts=event_ts if event_ts else time.time(),
         opaque_eave_ctx=serialized_context,
+        eave_account=serialized_account,
+        eave_team=serialized_team,
     )
 
     client = PublisherClient()
@@ -70,8 +64,20 @@ def log_event(
     if not shared_config.analytics_enabled:
         _l.eaveLogger.warning(
             "Analytics disabled.",
-            eave_context,
+            ctx,
             {"pubsub": {"event": str(data)}},
         )
     else:
         client.publish(topic_path, data)
+
+def _safe_serialize(data: JsonObject | None, ctx: _l.LogContext) -> str | None:
+    if not data:
+        return None
+
+    try:
+        serialized_params = json.dumps(data)
+    except Exception as e:
+        _l.eaveLogger.exception(e, ctx)
+        serialized_params = str(data)
+
+    return serialized_params

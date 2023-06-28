@@ -60,7 +60,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     event_name="eave_created_documentation",
                     event_description="Eave created some documentation",
                     event_source="upsert document endpoint",
-                    eave_team_id=str(eave_team.id),
+                    eave_team=eave_team.analytics_model,
                     opaque_params={
                         "destination_platform": eave_team.document_platform.value
                         if eave_team.document_platform
@@ -94,7 +94,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     event_name="eave_updated_documentation",
                     event_description="Eave updated some existing documentation",
                     event_source="upsert document endpoint",
-                    eave_team_id=eave_team.id,
+                    eave_team=eave_team.analytics_model,
                     opaque_params={
                         "destination_platform": eave_team.document_platform.value
                         if eave_team.document_platform
@@ -148,7 +148,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
             event_name="eave_searched_documentation",
             event_description="Eave searched for documentation",
             event_source="search documents endpoint",
-            eave_team_id=eave_team.id,
+            eave_team=eave_team.analytics_model,
             opaque_params={
                 "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
                 "search_query": input.query,
@@ -201,7 +201,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             event_name="eave_delete_documentation",
             event_description="Eave deleted for documentation",
             event_source="delete document endpoint",
-            eave_team_id=eave_team.id,
+            eave_team=eave_team.analytics_model,
             opaque_params={
                 "destination_platform": eave_team.document_platform.value if eave_team.document_platform else None,
                 "document_id": str(document_reference.id),

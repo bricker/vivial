@@ -11,7 +11,7 @@ from sqlalchemy import Row, Select, false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from eave.stdlib.core_api.models.connect import AtlassianProduct
-from eave.stdlib.core_api.models.team import Destination, DocumentPlatform
+from eave.stdlib.core_api.models.team import AnalyticsTeam, Destination, DocumentPlatform
 
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.core_api.models.integrations import Integrations
@@ -55,6 +55,10 @@ class TeamOrm(Base):
     @property
     def api_model(self) -> Team:
         return Team.from_orm(self)
+
+    @property
+    def analytics_model(self) -> AnalyticsTeam:
+        return AnalyticsTeam.from_orm(self)
 
     async def get_document_client(self, session: AsyncSession) -> Optional[DocumentClient]:
         match self.document_platform:

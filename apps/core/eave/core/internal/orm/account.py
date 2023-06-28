@@ -11,7 +11,7 @@ from sqlalchemy import Index, Select, func, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib.core_api.models.account import AuthenticatedAccount
+from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthenticatedAccount, UnauthenticatedAccount
 from eave.stdlib.core_api.models.account import AuthProvider
 
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
@@ -213,3 +213,7 @@ class AccountOrm(Base):
     @property
     def api_model(self) -> AuthenticatedAccount:
         return AuthenticatedAccount.from_orm(self)
+
+    @property
+    def analytics_model(self) -> AnalyticsAccount:
+        return AnalyticsAccount.from_orm(self)
