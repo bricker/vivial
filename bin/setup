@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+shopt -s globstar
+
 bashversion="${BASH_VERSINFO:0}"
 
 if test "$bashversion" -lt 5; then
