@@ -4,8 +4,9 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-function setup () (
-	local eavepwd; eavepwd=$(^eavepwd)
+function setup() (
+	local eavepwd
+	eavepwd=$(^eavepwd)
 
 	if test -f "package.json"; then
 		node-validate-version
@@ -19,12 +20,12 @@ function setup () (
 		# which is inaccessible to other shells.
 		usershell=$(shellname)
 		case $usershell in
-			"fish")
-				fish --no-config -c "npm install --silent --no-progress --force"
-				;;
-			*)
-				npm install --silent --no-progress --force
-				;;
+		"fish")
+			fish --no-config -c "npm install --silent --no-progress --force"
+			;;
+		*)
+			npm install --silent --no-progress --force
+			;;
 		esac
 
 		statusmsg -sp " ✔ "

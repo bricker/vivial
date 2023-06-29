@@ -5,7 +5,8 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 function setup() (
 	local builddir=$EAVE_HOME/.build
-	local appname; appname=$(basename "$PWD")
+	local appname
+	appname=$(basename "$PWD")
 	mkdir -p "$builddir"
 	rm -rf "${builddir:?}/${appname:?}"
 
@@ -22,9 +23,9 @@ function setup() (
 		--exclude '*.pyc' \
 		"$PWD" "$builddir"
 
-	cd "$builddir/$appname" && \
-	cp "$EAVE_HOME"/.gitignore . && \
-	cp "$EAVE_HOME"/.gcloudignore .
+	cd "$builddir/$appname" &&
+		cp "$EAVE_HOME"/.gitignore . &&
+		cp "$EAVE_HOME"/.gcloudignore .
 )
 
 setup

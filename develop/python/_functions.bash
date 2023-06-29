@@ -2,18 +2,18 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 	EAVE_PYTHON_VERSION=$(cat "${EAVE_HOME}/.python-version")
 
 	function python-validate-version() {
-		local current_version; current_version=$(python --version)
+		local current_version
+		current_version=$(python --version)
 		if ! echo -n "$current_version" | grep -q "Python $EAVE_PYTHON_VERSION"; then
 			echo "ERROR: The 'python' executable in your path must be version $EAVE_PYTHON_VERSION. Your current version: $current_version"
 			exit 1
 		fi
 	}
 
-	function python-activate-venv () {
+	function python-activate-venv() {
 		if ! ^ci; then
 			ved="${EAVE_HOME}/.venv"
-			if ! test -d "$ved"
-			then
+			if ! test -d "$ved"; then
 				statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
 				exit 1
 			fi
@@ -23,7 +23,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		fi
 	}
 
-	function python-lint () (
+	function python-lint() (
 		python-validate-version
 		python-activate-venv
 
@@ -38,12 +38,13 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		cd "$target" || exit 1
-		local logtarget; logtarget=$(^eavepwd)
+		local logtarget
+		logtarget=$(^eavepwd)
 
 		statusmsg -on "Linting $logtarget (py)..."
 		python -m ruff $qflag --config="$configfile" .
 		python -m black $qflag --config="$configfile" --check .
-		python -m mypy --config-file="$configfile" . > $mypyout
+		python -m mypy --config-file="$configfile" . >$mypyout
 		statusmsg -sp " ✔ "
 	)
 
@@ -60,7 +61,8 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		cd "$target" || exit 1
-		local logtarget; logtarget=$(^eavepwd)
+		local logtarget
+		logtarget=$(^eavepwd)
 
 		statusmsg -on "Formatting $logtarget (py)..."
 		python -m ruff $qflag --fix --config="$configfile" .

@@ -6,16 +6,19 @@ source "$EAVE_HOME"/develop/functions.bash
 
 function install-certs() (
 	local certPath=$1
-	local certFileName; certFileName=$(basename "$certPath")
+	local certFileName
+	certFileName=$(basename "$certPath")
 	local certFileTemp=/tmp/$certFileName
-	local certName; certName=$(basename "$certPath" .crt)
+	local certName
+	certName=$(basename "$certPath" .crt)
 	rm -f "$certFileTemp"
 	cat "$certPath" >"$certFileTemp"
 
 	statusmsg -w "sudo privileges are needed to install the development certificate on your system"
 
 	# https://docs.mitmproxy.org/stable/concepts-certificates/
-	local kernel; kernel=$(get-kernel-name)
+	local kernel
+	kernel=$(get-kernel-name)
 	case "$kernel" in
 	"linux")
 		case "$(get-os)" in
@@ -65,13 +68,12 @@ function setenv() (
 	local bundleOut=/etc/ssl/certs/ca-certificates.crt
 
 	case "$(get-kernel-name)" in
-		"linux")
-			;;
-		"darwin")
-			security export -t certs -f pemseq -k /System/Library/Keychains/SystemRootCertificates.keychain -o /tmp/rootcabundle.pem
-			security export -t certs -f pemseq -k /Library/Keychains/System.keychain -o /tmp/sscabundle.pem
-			sudo cat /tmp/rootcabundle.pem /tmp/sscabundle.pem | sudo tee $bundleOut
-			;;
+	"linux") ;;
+	"darwin")
+		security export -t certs -f pemseq -k /System/Library/Keychains/SystemRootCertificates.keychain -o /tmp/rootcabundle.pem
+		security export -t certs -f pemseq -k /Library/Keychains/System.keychain -o /tmp/sscabundle.pem
+		sudo cat /tmp/rootcabundle.pem /tmp/sscabundle.pem | sudo tee $bundleOut
+		;;
 	esac
 
 	^add-shell-variable REQUESTS_CA_BUNDLE $bundleOut

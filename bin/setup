@@ -11,18 +11,19 @@ if test "$bashversion" -lt 5; then
 fi
 
 if test -z "${EAVE_HOME}"; then
-	export EAVE_HOME; EAVE_HOME=$(pwd)
+	export EAVE_HOME
+	EAVE_HOME=$(pwd)
 fi
 
 source "${EAVE_HOME}/develop/functions.bash"
 
-function ^ask () (
+function ^ask() (
 	statusmsg -wpn "Should I proceed? [y/n] "
 	read -r proceed
 	test "$proceed" = "y"
 )
 
-function ^force () {
+function ^force() {
 	test -n "$FORCE"
 }
 
@@ -32,7 +33,7 @@ opsys=$(get-os)
 tmpdir=/tmp/eave-setup
 mkdir -p $tmpdir
 
-function setenvvars () (
+function setenvvars() (
 	if ! ^force && test -n "$XDG_CONFIG_HOME"; then
 		statusmsg -o "XDG_CONFIG_HOME already set."
 	else
@@ -69,7 +70,8 @@ function setenvvars () (
 	if ! ^force && test -n "$EAVE_HOME"; then
 		statusmsg -o "EAVE_HOME already set."
 	else
-		local value; value=$(pwd)
+		local value
+		value=$(pwd)
 		statusmsg -pa "Adding EAVE_HOME=$value to your environment."
 		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
 		if ^ask; then
@@ -105,7 +107,8 @@ function setupgcloud() (
 		if ^ask; then
 			cd "$tmpdir" || exit 1
 			local gcloudversion="426.0.0"
-			local arch; arch=$(get-cpu-arch-normalized)
+			local arch
+			arch=$(get-cpu-arch-normalized)
 			local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
 			curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename"
 			tar -xf "$filename"
@@ -132,7 +135,8 @@ function setupcloudsqlproxy() (
 			fi
 
 			local proxyversion="2.2.0"
-			local arch; arch=$(get-cpu-arch-normalized-alt)
+			local arch
+			arch=$(get-cpu-arch-normalized-alt)
 
 			curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
 			# see if we got an error back instead of binary content
@@ -198,8 +202,26 @@ function installyq() (
 			if cmd-exists "brew"; then
 				brew install yq
 			else
-				statusmsg -e "yq is installed via Homebrew, but it wasn't found in your PATH."
+				statusmsg -e "yq is installed via Homebrew, which wasn't found in your PATH."
 				statusmsg -e "Install homebrew and re-run this script, or install 'yq' manually (it may be available in your operating system's package repositories)."
+			fi
+		fi
+	fi
+)
+
+function installshfmt() (
+	if ! ^force && cmd-exists "shfmt"; then
+		statusmsg -o "shfmt already installed."
+	else
+		statusmsg -pa "Installing the 'shfmt' command line utility."
+		statusmsg -i "The shfmt program is used to format auto-shell scripts"
+
+		if ^ask; then
+			if cmd-exists "brew"; then
+				brew install shfmt
+			else
+				statusmsg -e "shfmt is installed via Homebrew, which wasn't found in your PATH."
+				statusmsg -e "Install homebrew and re-run this script, or install 'shfmt' manually (it may be available in your operating system's package repositories)."
 			fi
 		fi
 	fi
@@ -220,7 +242,6 @@ function setupapps() (
 	fi
 )
 
-
 statusmsg -ps "Hi! Welcome to Eave. I will help you setup this repository."
 statusmsg -i "Before getting started, it is recommended to manually install a few things if you haven't already:"
 statusmsg -i "* homebrew - https://brew.sh/"
@@ -235,6 +256,7 @@ setupgcloud
 setupcloudsqlproxy
 installjq
 installyq
+installshfmt
 setupapps
 
 statusmsg -s "Done!"

@@ -2,8 +2,8 @@
 
 set -eu
 
-source $EAVE_HOME/develop/functions.bash
+source "$EAVE_HOME"/develop/functions.bash
 
 statusmsg -w "This script has been renamed to 'http-proxy'. Please use that script instead."
 
-$EAVE_HOME/bin/http-proxy
+"$EAVE_HOME"/bin/http-proxy

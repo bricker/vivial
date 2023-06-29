@@ -2,11 +2,10 @@
 
 set -eu
 
-source $EAVE_HOME/develop/functions.bash
+source "$EAVE_HOME"/develop/functions.bash
 
 function run-cloud-sql-proxy() {
-	if ! cmd-exists "cloud-sql-proxy"
-	then
+	if ! cmd-exists "cloud-sql-proxy"; then
 		statusmsg -e "cloud-sql-proxy is not installed in your PATH."
 		statusmsg -e "Re-run the repository's setup script, otherwise visit https://cloud.google.com/sql/docs/postgres/sql-proxy for installation instructions."
 		exit 1
@@ -15,14 +14,17 @@ function run-cloud-sql-proxy() {
 	local usage="Usage: cloud-sql-proxy [-u username]"
 	local username=""
 
-	while getopts "u:" argname
-	do
+	while getopts "u:h" argname; do
 		case "$argname" in
-			u) username=$OPTARG ;;
-			h)
-				echo $usage
-				exit 0
-				;;
+		u) username=$OPTARG ;;
+		h)
+			echo "$usage"
+			exit 0
+			;;
+		*)
+			echo "$usage"
+			exit 1
+			;;
 		esac
 	done
 
@@ -30,9 +32,10 @@ function run-cloud-sql-proxy() {
 	# https://github.com/GoogleCloudPlatform/cloud-sql-proxy/issues/970
 	# so we'll put our socketdir close to root to keep the path short
 	local socketdir="${XDG_RUNTIME_DIR:-/tmp}/.cloudsqlproxy"
-	mkdir -p $socketdir
+	mkdir -p "$socketdir"
 
-	local connectionName=$(gcloud --format json sql instances list --filter="state=RUNNABLE" | jq -r .[0].connectionName)
+	local connectionName
+	connectionName=$(gcloud --format json sql instances list --filter="state=RUNNABLE" | jq -r .[0].connectionName)
 
 	if test -z "$username"; then
 		username=$(gcloud --format json info | jq -r .config.account)
@@ -44,7 +47,7 @@ function run-cloud-sql-proxy() {
 	fi
 
 	statusmsg -s "Connecting to CloudSQL as $username via $connectionName"
-	cloud-sql-proxy "$connectionName" --auto-iam-authn --unix-socket $socketdir
+	cloud-sql-proxy "$connectionName" --auto-iam-authn --unix-socket "$socketdir"
 }
 
 run-cloud-sql-proxy

@@ -8,14 +8,13 @@ function deploy() (
 	local appdir=""
 	local revision=""
 
-	while getopts "a:r:" argname
-	do
+	while getopts "a:r:" argname; do
 		case "$argname" in
-			a) appdir=$OPTARG ;;
-			r) revision=$OPTARG ;;
-			*)
-				statusmsg -e "unknown option: $argname"
-				;;
+		a) appdir=$OPTARG ;;
+		r) revision=$OPTARG ;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			;;
 		esac
 	done
 

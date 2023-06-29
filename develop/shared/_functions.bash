@@ -1,5 +1,4 @@
-if test -z "${_SHARED_FUNCTIONS_LOADED:-}"
-then
+if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 	function ^ci() {
 		test -n "${CI:-}"
@@ -27,26 +26,25 @@ then
 		local nonewline=""
 		local OPTIND OPTARG argname
 
-		while getopts "odiawesnph" argname
-		do
+		while getopts "odiawesnph" argname; do
 			case "$argname" in
-				o) msgtype="off";;
-				d) msgtype="debug";;
-				i) msgtype="info";;
-				a) msgtype="notice";;
-				w) msgtype="warn";;
-				e) msgtype="error";;
-				s) msgtype="success";;
-				n) nonewline="1";;
-				p) noprefix="1";;
-				h)
-					echo "$usage"
-					exit 0
-					;;
-				*)
-					echo "$usage"
-					exit 1
-					;;
+			o) msgtype="off" ;;
+			d) msgtype="debug" ;;
+			i) msgtype="info" ;;
+			a) msgtype="notice" ;;
+			w) msgtype="warn" ;;
+			e) msgtype="error" ;;
+			s) msgtype="success" ;;
+			n) nonewline="1" ;;
+			p) noprefix="1" ;;
+			h)
+				echo "$usage"
+				exit 0
+				;;
+			*)
+				echo "$usage"
+				exit 1
+				;;
 			esac
 		done
 
@@ -56,8 +54,7 @@ then
 			exit 1
 		fi
 
-		if test "$msgtype" = "off"
-		then
+		if test "$msgtype" = "off"; then
 			if test -z "$nonewline"; then
 				echo -e "$msg"
 			else
@@ -175,7 +172,8 @@ then
 			return 0
 		fi
 
-		local usershell; usershell=$(shellname)
+		local usershell
+		usershell=$(shellname)
 		case $usershell in
 		"fish")
 			if fish -c "functions -q $1"; then
@@ -206,7 +204,8 @@ then
 	)
 
 	function get-os() {
-		local kernel; kernel=$(get-kernel-name)
+		local kernel
+		kernel=$(get-kernel-name)
 		case "$kernel" in
 		"linux")
 			lsb_release -is | tr '[:upper:]' '[:lower:]'
@@ -226,7 +225,8 @@ then
 	}
 
 	function get-cpu-arch() {
-		local arch; arch=$(uname -m)
+		local arch
+		arch=$(uname -m)
 		if test "$arch" = "unknown"; then
 			# `uname -p` isnt portible/POSIX, so it's often unknown
 			# on linux systems. use `uname -m` instead in that case
@@ -237,7 +237,8 @@ then
 	}
 
 	function get-cpu-arch-normalized() {
-		local arch; arch=$(get-cpu-arch)
+		local arch
+		arch=$(get-cpu-arch)
 		case $arch in
 		"arm64")
 			echo -n "arm"
@@ -255,7 +256,8 @@ then
 	}
 
 	function get-cpu-arch-normalized-alt() {
-		local arch; arch=$(get-cpu-arch)
+		local arch
+		arch=$(get-cpu-arch)
 		case $arch in
 		"arm")
 			echo -n "arm64"
@@ -272,19 +274,21 @@ then
 	function ^add-shell-variable() {
 		local varname=$1
 		local value=$2
-		local usershell; usershell=$(shellname)
+		local usershell
+		usershell=$(shellname)
 		local varcmd=("export $varname=\"$value\"")
 
 		case $usershell in
 		"bash" | "zsh")
-			local loginfile; loginfile=$(shloginfile)
+			local loginfile
+			loginfile=$(shloginfile)
 
 			if grep "export $varname" "$loginfile"; then
 				statusmsg -w "variable $varname already set in $loginfile."
 				return 0
 			fi
 
-			echo -e "\n${*varcmd}" >>"$loginfile"
+			echo -e "\n${varcmd[*]}" >>"$loginfile"
 			;;
 		"fish")
 			if fish -c "set -q $varname"; then
@@ -340,14 +344,15 @@ then
 			app.yaml
 	)
 
-	function verbose () {
+	function verbose() {
 		test -n "${VERBOSE:-}"
 	}
 
 	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
-	function setup-deployment-workspace () {
+	function setup-deployment-workspace() {
 		local builddir="$EAVE_HOME/.build"
-		local appname; appname=$(basename "$PWD")
+		local appname
+		appname=$(basename "$PWD")
 		mkdir -p "$builddir"
 		rm -rf "${builddir:?}/${appname:?}"
 
@@ -369,28 +374,29 @@ then
 			--exclude '*.pyc' \
 			"$PWD" "$builddir"
 
-		cd "${builddir:?}/${appname:?}" && \
-		cp "$EAVE_HOME/.gitignore" . && \
-		cp "$EAVE_HOME/.gcloudignore" . && \
-		cp "$EAVE_HOME/.gcloudignore-builder" .
+		cd "${builddir:?}/${appname:?}" &&
+			cp "$EAVE_HOME/.gitignore" . &&
+			cp "$EAVE_HOME/.gcloudignore" . &&
+			cp "$EAVE_HOME/.gcloudignore-builder" .
 	}
 
-	function clean-deployment-workspace () {
+	function clean-deployment-workspace() {
 		local builddir=$EAVE_HOME/.build
-		local appname; appname=$(basename "$PWD")
+		local appname
+		appname=$(basename "$PWD")
 		rm -r "${builddir:?}/${appname:?}"
 	}
 
 	# Returns the absolute path to the dir of the program currently running
-	function ^abspath () (
+	function ^abspath() (
 		cd "$(dirname "$0")" && pwd -P
 	)
 
-	function ^parentpath () (
+	function ^parentpath() (
 		cd "$(dirname "$0")/.." && pwd -P
 	)
 
-	function ^eavepwd () (
+	function ^eavepwd() (
 		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
 	)
 

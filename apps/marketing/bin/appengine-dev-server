@@ -9,6 +9,6 @@ source .env
 set +o allexport
 
 dev_appserver.py \
-    --host localhost \
-    --port 5000 \
-    app.yaml
+	--host localhost \
+	--port 5000 \
+	app.yaml

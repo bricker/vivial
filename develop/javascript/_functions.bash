@@ -2,7 +2,8 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 	EAVE_NODE_VERSION=$(cat "${EAVE_HOME}/.node-version")
 
 	function node-validate-version() {
-		local current_version; current_version=$(node --version)
+		local current_version
+		current_version=$(node --version)
 		if ! echo -n "$current_version" | grep -q "v$EAVE_NODE_VERSION"; then
 			echo "ERROR: The 'node' executable in your path must be version $EAVE_NODE_VERSION. Your current version: $current_version"
 			exit 1
@@ -15,7 +16,8 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		local usershell; usershell=$(shellname)
+		local usershell
+		usershell=$(shellname)
 		case $usershell in
 		"fish")
 			# This is necessary because `nvm` in Fish might be a function, which can't be used from Bash.
@@ -33,7 +35,8 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		cd "$target" || exit 1
-		local logtarget; logtarget=$(^eavepwd)
+		local logtarget
+		logtarget=$(^eavepwd)
 
 		statusmsg -in "Linting $logtarget (js/ts)"
 		npx eslint --max-warnings=0 .
@@ -52,7 +55,8 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		cd "$target" || exit 1
-		local logtarget; logtarget=$(^eavepwd)
+		local logtarget
+		logtarget=$(^eavepwd)
 
 		statusmsg -in "Formatting $logtarget (js/ts)"
 		npx eslint . --fix
