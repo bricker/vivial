@@ -17,7 +17,8 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any] = {}
-    active_patches: dict[str, unittest.mock.Mock] = {}
+    active_mocks: dict[str, Any] = {}
+    active_patches: dict[str, Any] = {}
 
     def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
         super().__init__(methodName)
@@ -37,6 +38,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.stop_all_patches()
         self.testdata.clear()
         self.active_patches.clear()
+        self.active_mocks.clear()
 
     @staticmethod
     async def mock_coroutine(value: T) -> T:
@@ -91,7 +93,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            data = f"https://{uuid.uuid4()}.example.com/{uuid.uuid4()}"
+            data = f"https://{name}.{uuid.uuid4()}.com/{uuid.uuid4()}"
             self.testdata[name] = data
 
         value: str = self.testdata[name]
@@ -105,7 +107,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            data = "/" + str(uuid.uuid4())
+            data = f"/{name}/{uuid.uuid4()}"
             self.testdata[name] = data
 
         value: str = self.testdata[name]
@@ -120,7 +122,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         if name not in self.testdata:
             data = str(uuid.uuid4())
-            self.testdata[name] = data
+            self.testdata[name] = f"{name}:{data}"
 
         value: str = self.testdata[name]
         return value
@@ -141,9 +143,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name not in self.testdata:
             data = json.dumps(
                 {
-                    str(uuid.uuid4()): str(uuid.uuid4()),
-                    str(uuid.uuid4()): str(uuid.uuid4()),
-                    str(uuid.uuid4()): str(uuid.uuid4()),
+                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
+                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
+                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
                 }
             )
             self.testdata[name] = data
@@ -160,9 +162,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         if name not in self.testdata:
             data: JsonObject = {
-                str(uuid.uuid4()): str(uuid.uuid4()),
-                str(uuid.uuid4()): str(uuid.uuid4()),
-                str(uuid.uuid4()): str(uuid.uuid4()),
+                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
+                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
+                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
             }
             self.testdata[name] = data
 
@@ -314,7 +316,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             else:
                 name = f"{patch.target}.{patch.attribute}"
 
-        self.active_patches[name] = m
+        self.active_patches[name or self.anystr()] = patch
+        self.active_mocks[name] = m
         return m
 
     def patch_env(self, values: dict[str, Optional[str]]) -> unittest.mock.Mock:
@@ -324,10 +327,15 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def patch_dict(self, patch: unittest.mock._patch_dict, name: Optional[str] = None) -> unittest.mock.Mock:
         name = name or str(patch.in_dict)
         mock = patch.start()
-        self.active_patches[name] = mock
+        self.active_patches[name] = patch
+        self.active_mocks[name] = mock
         return mock
 
     def get_mock(self, name: str) -> unittest.mock.Mock:
+        assert name in self.active_mocks, f"{name} is not patched!"
+        return self.active_mocks[name]
+
+    def get_patch(self, name: str) -> Any:
         assert name in self.active_patches, f"{name} is not patched!"
         return self.active_patches[name]
 

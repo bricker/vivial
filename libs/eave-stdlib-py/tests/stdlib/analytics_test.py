@@ -5,193 +5,199 @@ import unittest.mock
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
+from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthProvider
+from eave.stdlib.core_api.models.team import AnalyticsTeam, DocumentPlatform
 import eave.stdlib.logging as _l
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 mut = analytics.__name__
 
+class unserializable:
+    pass
 
-class AnalyticsTest(UtilityBaseTestCase):
+class AnalyticsTestBase(UtilityBaseTestCase):
     def mock_analytics(self) -> None:
         # The base class mocks out analytics because we want it mocked out for every other test, except these ones.
         pass
 
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        self.patch(name="publisher", patch=unittest.mock.patch(f"{mut}.PublisherClient.publish"))
+        self.mocks_publisher = self.patch(name="publisher", patch=unittest.mock.patch(f"{mut}.PublisherClient.publish"))
+        self.mocks_now = self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
+        self.mocks_analytics_enabled = self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
 
-        self._expected_topic_path = "projects/eavefyi-dev/topics/eave_event_topic"
+        self.data_now = float(self.anyint("fakenow"))
+        self.data_expected_topic_path = "projects/eavefyi-dev/topics/eave_event_topic"
+        self.data_team = AnalyticsTeam(
+            id=self.anyuuid(),
+            document_platform=DocumentPlatform.confluence,
+            name=self.anystr(),
+        )
+
+        self.data_account = AnalyticsAccount(
+            id=self.anyuuid(),
+            auth_provider=AuthProvider.google,
+            visitor_id=self.anyuuid(),
+            team_id=self.data_team.id,
+            opaque_utm_params=self.anydict(),
+        )
+
+        self.data_ctx = _l.LogContext()
+        self.data_bad_params: Any =  {self.anystr("paramkey"): unserializable()}
+
+
+class AnalyticsTest(AnalyticsTestBase):
+    def run_common_assertions(self):
+        assert self.mocks_publisher.call_count == 1
+        self.mocks_publisher.assert_called_with(self.data_expected_topic_path, self.data_expected_event.SerializeToString())
 
     async def test_basic_publish_with_all_parameters(self):
-        self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
-        fakenow = float(self.anyint("fakenow"))
-        mock_ctx = _l.LogContext()
-
         analytics.log_event(
-            event_name=self.anystring("event_name"),
-            event_description=self.anystring("event_description"),
-            event_source=self.anystring("event_source"),
+            event_name=self.anystr("event_name"),
+            event_description=self.anystr("event_description"),
+            event_source=self.anystr("event_source"),
             opaque_params=self.anydict("opaque_params"),
-            eave_account_id=self.anystring("eave_account_id"),
-            eave_visitor_id=self.anystring("eave_visitor_id"),
-            eave_team_id=self.anystring("eave_team_id"),
-            event_ts=fakenow,
-            ctx=mock_ctx,
+            eave_account=self.data_account,
+            eave_team=self.data_team,
+            event_ts=self.data_now,
+            ctx=self.data_ctx,
         )
 
-        expected_event = EaveEvent(
+        self.data_expected_event = EaveEvent(
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
-            eave_account_id=self.getstr("eave_account_id"),
-            eave_visitor_id=self.getstr("eave_visitor_id"),
-            eave_team_id=self.getstr("eave_team_id"),
+            eave_account_id=str(self.data_account.id),
+            eave_visitor_id=str(self.data_account.visitor_id),
+            eave_team_id=str(self.data_team.id),
+            eave_account=self.data_account.json(),
+            eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
-            event_ts=fakenow,
+            event_ts=self.data_now,
             eave_env=EaveEnvironment.development,
-            opaque_eave_ctx=json.dumps(mock_ctx),
+            opaque_eave_ctx=json.dumps(self.data_ctx),
         )
 
-        mock = self.get_mock("publisher")
-        assert mock.call_count == 1
-        mock.assert_called_with(self._expected_topic_path, expected_event.SerializeToString())
+        self.run_common_assertions()
 
     async def test_basic_publish_with_uuid_parameters(self):
-        self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
-        self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
-        self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
-
-        mock_ctx = _l.LogContext()
-
         analytics.log_event(
-            event_name=self.anystring("event_name"),
-            event_description=self.anystring("event_description"),
-            event_source=self.anystring("event_source"),
+            event_name=self.anystr("event_name"),
+            event_description=self.anystr("event_description"),
+            event_source=self.anystr("event_source"),
             opaque_params=self.anydict("opaque_params"),
-            eave_account_id=self.anyuuid("eave_account_id"),
-            eave_visitor_id=self.anyuuid("eave_visitor_id"),
-            eave_team_id=self.anyuuid("eave_team_id"),
+            eave_account=self.data_account,
+            eave_team=self.data_team,
+            ctx=self.data_ctx,
         )
 
-        expected_event = EaveEvent(
+        self.data_expected_event = EaveEvent(
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
-            eave_account_id=str(self.getuuid("eave_account_id")),
-            eave_visitor_id=str(self.getuuid("eave_visitor_id")),
-            eave_team_id=str(self.getuuid("eave_team_id")),
+            eave_account_id=str(self.data_account.id),
+            eave_visitor_id=str(self.data_account.visitor_id),
+            eave_team_id=str(self.data_team.id),
+            eave_account=self.data_account.json(),
+            eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
-            event_ts=self.get_mock("now").return_value,
+            event_ts=self.mocks_now.return_value,
             eave_env=EaveEnvironment.development,
-            opaque_eave_ctx=json.dumps(mock_ctx),
+            opaque_eave_ctx=json.dumps(self.data_ctx),
         )
 
-        mock = self.get_mock("publisher")
-        assert mock.call_count == 1
-        mock.assert_called_with(self._expected_topic_path, expected_event.SerializeToString())
+        self.run_common_assertions()
 
     async def test_publish_with_minimal_params(self):
-        self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
-        self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
-        self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
-
-        eave_ctx = _l.LogContext()
         analytics.log_event(
-            event_name=self.anystring("event_name"),
-            event_description=self.anystring("event_description"),
-            event_source=self.anystring("event_source"),
-            ctx=eave_ctx,
+            event_name=self.anystr("event_name"),
+            event_description=self.anystr("event_description"),
+            event_source=self.anystr("event_source"),
+            ctx=self.data_ctx,
         )
 
-        expected_event = EaveEvent(
+        self.data_expected_event = EaveEvent(
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
+            eave_account=None,
+            eave_team=None,
             opaque_params=None,
-            event_ts=self.get_mock("now").return_value,
+            event_ts=self.mocks_now.return_value,
             eave_env=EaveEnvironment.development,
-            opaque_eave_ctx=json.dumps(eave_ctx),
+            opaque_eave_ctx=json.dumps(self.data_ctx),
         )
 
-        mock = self.get_mock("publisher")
-        assert mock.call_count == 1
-        mock.assert_called_with(self._expected_topic_path, expected_event.SerializeToString())
+        self.run_common_assertions()
 
-    async def test_No_Context_Given(self) -> None:
-        self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
-        self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
+    async def test_no_context_given(self) -> None:
+        event_name=self.anystr("event_name")
+        event_description=self.anystr("event_description")
+        event_source=self.anystr("event_source")
+
         self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
-        mock_ctx = _l.LogContext()
+        ctx = _l.LogContext()
 
         analytics.log_event(
-            event_name=self.anystring("event_name"),
-            event_description=self.anystring("event_description"),
-            event_source=self.anystring("event_source"),
+            event_name=event_name,
+            event_description=event_description,
+            event_source=event_source,
         )
 
-        expected_event = EaveEvent(
+        self.data_expected_event = EaveEvent(
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
+            eave_account=None,
+            eave_team=None,
             opaque_params=None,
-            event_ts=self.get_mock("now").return_value,
+            event_ts=self.mocks_now.return_value,
             eave_env=EaveEnvironment.development,
-            opaque_eave_ctx=json.dumps(mock_ctx),
+            opaque_eave_ctx=json.dumps(ctx),
         )
 
-        mock = self.get_mock("publisher")
-        assert mock.call_count == 1
-        mock.assert_called_with(self._expected_topic_path, expected_event.SerializeToString())
+        self.run_common_assertions()
 
     async def test_publish_with_malformed_opaque_params(self) -> None:
-        class unserializable:
-            pass
-
-        self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
-        self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
-        self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
-        mock_ctx = _l.LogContext()
-
-        bad_params: Any = {self.anystring("paramkey"): unserializable()}
         analytics.log_event(
-            event_name=self.anystring("event_name"),
-            event_description=self.anystring("event_description"),
-            event_source=self.anystring("event_source"),
-            opaque_params=bad_params,
+            event_name=self.anystr("event_name"),
+            event_description=self.anystr("event_description"),
+            event_source=self.anystr("event_source"),
+            opaque_params=self.data_bad_params,
+            ctx=self.data_ctx,
         )
 
-        expected_event = EaveEvent(
+        self.data_expected_event = EaveEvent(
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
-            opaque_params=str(bad_params),
-            event_ts=self.get_mock("now").return_value,
+            eave_account=None,
+            eave_team=None,
+            opaque_params=str(self.data_bad_params),
+            event_ts=self.mocks_now.return_value,
             eave_env=EaveEnvironment.development,
-            opaque_eave_ctx=json.dumps(mock_ctx),
+            opaque_eave_ctx=json.dumps(self.data_ctx),
         )
 
-        mock = self.get_mock("publisher")
-        assert mock.call_count == 1
-        mock.assert_called_with(self._expected_topic_path, expected_event.SerializeToString())
+        self.run_common_assertions()
+
 
     async def test_publish_in_dev(self):
-        # "EAVE_ANALYTICS_ENABLED" is not set (None) by default
-        self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
+        self.get_patch("env").stop()
 
         analytics.log_event(
-            event_name=self.anystring("event_name"),
-            event_description=self.anystring("event_description"),
-            event_source=self.anystring("event_source"),
+            event_name=self.anystr("event_name"),
+            event_description=self.anystr("event_description"),
+            event_source=self.anystr("event_source"),
         )
 
-        mock = self.get_mock("publisher")
-        assert mock.call_count == 0
+        assert self.mocks_publisher.call_count == 0

@@ -33,14 +33,14 @@ class TestSlackInstallation(BaseTestCase):
             name="ResourceMutexOrm", patch=unittest.mock.patch(f"{mut}.ResourceMutexOrm", wraps=ResourceMutexOrm)
         )
         async with self.db_session.begin() as s:
-            self.testdata["team"] = await self.make_team(s)
+            self.data_team = await self.make_team(s)
 
     async def test_refresh_token_with_far_expiry_does_not_refresh(self) -> None:
         async with self.db_session.begin() as s:
             expiry = self.anydatetime("bot_token_exp", offset=60 * 120)
             installation_before = await SlackInstallationOrm.create(
                 session=s,
-                team_id=self.testdata["team"].id,
+                team_id=self.data_team.id,
                 slack_team_id=self.anystring("slack_team_id"),
                 bot_token=self.anystring("bot_token"),
                 bot_refresh_token=self.anystring("bot_refresh_token"),
@@ -64,7 +64,7 @@ class TestSlackInstallation(BaseTestCase):
             expiry = self.anydatetime("bot_token_exp", offset=10)
             installation_before = await SlackInstallationOrm.create(
                 session=s,
-                team_id=self.testdata["team"].id,
+                team_id=self.data_team.id,
                 slack_team_id=self.anystring("slack_team_id"),
                 bot_token=self.anystring("bot_token"),
                 bot_refresh_token=self.anystring("bot_refresh_token"),
@@ -89,7 +89,7 @@ class TestSlackInstallation(BaseTestCase):
             expiry = self.anydatetime("bot_token_exp", offset=10)
             installation_before = await SlackInstallationOrm.create(
                 session=s,
-                team_id=self.testdata["team"].id,
+                team_id=self.data_team.id,
                 slack_team_id=self.anystring("slack_team_id"),
                 bot_token=self.anystring("bot_token"),
                 bot_refresh_token=self.anystring("bot_refresh_token"),
@@ -118,7 +118,7 @@ class TestSlackInstallation(BaseTestCase):
             expiry = self.anydatetime("bot_token_exp", offset=10)
             installation_before = await SlackInstallationOrm.create(
                 session=s,
-                team_id=self.testdata["team"].id,
+                team_id=self.data_team.id,
                 slack_team_id=self.anystring("slack_team_id"),
                 bot_token=self.anystring("bot_token"),
                 bot_refresh_token=self.anystring("bot_refresh_token"),

@@ -17,8 +17,8 @@ class AuthenticatedAccount(BaseResponseModel):
     auth_provider: AuthProvider
     visitor_id: Optional[uuid.UUID]
     team_id: uuid.UUID
-    opaque_utm_params: Mapping[str, Any]
-    email: str
+    opaque_utm_params: Optional[Mapping[str, Any]]
+    email: Optional[str]
     access_token: str
 
 
@@ -27,4 +27,4 @@ class AnalyticsAccount(BaseResponseModel):
     auth_provider: AuthProvider
     visitor_id: Optional[uuid.UUID]
     team_id: uuid.UUID
-    opaque_utm_params: Mapping[str, Any]
+    opaque_utm_params: Optional[Mapping[str, Any]]

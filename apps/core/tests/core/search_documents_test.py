@@ -22,10 +22,10 @@ class TestSearchDocuments(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         async with self.db_session.begin() as s:
-            self.testdata["eave_team"] = await self.make_team(s)
+            self.data_team = await self.make_team(s)
             connect = await ConnectInstallationOrm.create(
                 session=s,
-                team_id=self.testdata["eave_team"].id,
+                team_id=self.data_team.id,
                 product=AtlassianProduct.confluence,
                 client_key=self.anystring("client_key"),
                 base_url=self.anystring("base_url"),
@@ -35,7 +35,7 @@ class TestSearchDocuments(BaseTestCase):
             await ConfluenceDestinationOrm.create(
                 session=s,
                 connect_installation_id=connect.id,
-                team_id=self.testdata["eave_team"].id,
+                team_id=self.data_team.id,
                 space_key=self.anystring("space_key"),
             )
 
@@ -79,7 +79,7 @@ class TestSearchDocuments(BaseTestCase):
             payload={
                 "query": self.anystring("search query"),
             },
-            team_id=self.testdata["eave_team"].id,
+            team_id=self.data_team.id,
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -97,7 +97,7 @@ class TestSearchDocuments(BaseTestCase):
             payload={
                 "query": self.anystring("search query"),
             },
-            team_id=self.testdata["eave_team"].id,
+            team_id=self.data_team.id,
         )
 
         assert response.status_code == http.HTTPStatus.OK

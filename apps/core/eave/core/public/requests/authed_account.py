@@ -8,8 +8,6 @@ from eave.stdlib.core_api.operations.account import (
     GetAuthenticatedAccount,
     GetAuthenticatedAccountTeamIntegrations,
 )
-from eave.stdlib.core_api.models.account import AuthenticatedAccount
-from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.request_state import EaveRequestState
 
 
@@ -25,13 +23,10 @@ class GetAuthedAccount(eave.core.public.http_endpoint.HTTPEndpoint):
                 session=db_session, id=eave.stdlib.util.unwrap(eave_state.ctx.eave_account_id)
             )
 
-        eave_team = Team.from_orm(eave_team_orm)
-        eave_account = AuthenticatedAccount.from_orm(eave_account_orm)
-
         return eave.stdlib.api_util.json_response(
             GetAuthenticatedAccount.ResponseBody(
-                account=eave_account,
-                team=eave_team,
+                account=eave_account_orm.api_model,
+                team=eave_team_orm.api_model,
             )
         )
 

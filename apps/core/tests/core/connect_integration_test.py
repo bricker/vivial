@@ -201,7 +201,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
 
         assert self.logged_event(
             event_name="eave_application_integration_updated",
-            eave_team_id=team.id,
+            eave_team=team.analytics_model,
         )
 
     async def test_Register_With_Matching_Connect_App(self) -> None:
@@ -242,7 +242,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
 
         assert self.logged_event(
             event_name="eave_application_integration",
-            eave_team_id=team.id,
+            eave_team=team.analytics_model,
             opaque_params={
                 "integration_name": AtlassianProduct.jira,
             },
