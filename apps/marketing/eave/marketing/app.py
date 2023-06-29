@@ -48,7 +48,6 @@ def _render_spa(**kwargs: Any) -> str:
         api_base=app_config.eave_public_api_base,
         asset_base=app_config.asset_base,
         analytics_enabled=app_config.analytics_enabled,
-        monitoring_enabled=app_config.monitoring_enabled,
         app_env=app_config.eave_env,
         app_version=app_config.app_version,
         **kwargs,

@@ -29,8 +29,6 @@ handlers:
   script: auto
 
 env_variables:
-  EAVE_MONITORING_ENABLED: "1"
-  EAVE_ANALYTICS_ENABLED: "1"
   LOG_LEVEL: "DEBUG"
   REDIS_CONNECTION: "10.81.236.179:6378:0"
   REDIS_TLS_CA: |-

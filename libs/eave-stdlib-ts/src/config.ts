@@ -40,11 +40,11 @@ export class EaveConfig {
   }
 
   get monitoringEnabled(): boolean {
-    return process.env['EAVE_MONITORING_ENABLED'] !== undefined;
+    return process.env['EAVE_MONITORING_DISABLED'] === undefined;
   }
 
   get analyticsEnabled(): boolean {
-    return process.env['EAVE_ANALYTICS_ENABLED'] !== undefined;
+    return process.env['EAVE_ANALYTICS_DISABLED'] === undefined;
   }
 
   get logLevel(): string {
