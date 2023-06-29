@@ -214,7 +214,7 @@ function installshfmt() (
 		statusmsg -o "shfmt already installed."
 	else
 		statusmsg -pa "Installing the 'shfmt' command line utility."
-		statusmsg -i "The shfmt program is used to format auto-shell scripts"
+		statusmsg -i "The shfmt program is used to auto-format shell scripts"
 
 		if ^ask; then
 			if cmd-exists "brew"; then
@@ -222,6 +222,24 @@ function installshfmt() (
 			else
 				statusmsg -e "shfmt is installed via Homebrew, which wasn't found in your PATH."
 				statusmsg -e "Install homebrew and re-run this script, or install 'shfmt' manually (it may be available in your operating system's package repositories)."
+			fi
+		fi
+	fi
+)
+
+function installshellcheck() (
+	if ! ^force && cmd-exists "shellcheck"; then
+		statusmsg -o "shellcheckalready installed."
+	else
+		statusmsg -pa "Installing the 'shellcheck' command line utility."
+		statusmsg -i "The shellcheckprogram is used to lint shell scripts"
+
+		if ^ask; then
+			if cmd-exists "brew"; then
+				brew install shellcheck
+			else
+				statusmsg -e "shellcheck is installed via Homebrew, which wasn't found in your PATH."
+				statusmsg -e "Install homebrew and re-run this script, or install 'shellcheck' manually (it may be available in your operating system's package repositories)."
 			fi
 		fi
 	fi
@@ -257,6 +275,7 @@ setupcloudsqlproxy
 installjq
 installyq
 installshfmt
+installshellcheck
 setupapps
 
 statusmsg -s "Done!"
