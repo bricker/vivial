@@ -1,10 +1,10 @@
 import { sharedConfig } from '../../config.js';
 import { EaveService } from '../../eave-origins.js';
-import { RequestArgsOriginAndTeamId, appengineBaseUrl, makeRequest } from '../../requests.js';
+import { RequestArgsOriginAndTeamId,  makeRequest } from '../../requests.js';
 import { DocumentReference, DocumentReferenceInput, Subscription, SubscriptionInput } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
 
-const baseUrl = appengineBaseUrl(EaveService.api);
+const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
 
 export type GetSubscriptionRequestBody = {
   subscription: SubscriptionInput;

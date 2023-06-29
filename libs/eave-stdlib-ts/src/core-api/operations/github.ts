@@ -1,10 +1,10 @@
 import { sharedConfig } from '../../config.js';
 import { EaveService } from '../../eave-origins.js';
-import { RequestArgsOrigin, appengineBaseUrl, makeRequest } from '../../requests.js';
+import { RequestArgsOrigin, makeRequest } from '../../requests.js';
 import { GithubInstallation, GithubInstallationInput } from '../models/github.js';
 import { Team } from '../models/team.js';
 
-const baseUrl = appengineBaseUrl(EaveService.api);
+const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
 
 export type GetGithubInstallationRequestBody = {
   github_integration: GithubInstallationInput;

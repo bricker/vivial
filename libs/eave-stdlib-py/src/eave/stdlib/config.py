@@ -93,9 +93,11 @@ class EaveConfig:
 
     @property
     def eave_public_apps_base(self) -> str:
-        return self.eave_public_service_base(EaveService.)
-
-        return os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"
+        return (
+            os.getenv("EAVE_PUBLIC_APPS_BASE")
+            or os.getenv("EAVE_APPS_BASE") # deprecated
+            or "https://apps.eave.fyi"
+        )
 
     @property
     def eave_public_api_base(self) -> str:
@@ -103,7 +105,7 @@ class EaveConfig:
 
     @property
     def eave_public_www_base(self) -> str:
-        return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"
+        return self.eave_public_service_base(EaveService.www)
 
     def eave_public_service_base(self, service: EaveService) -> str:
         sname = service.value.upper()
@@ -126,11 +128,7 @@ class EaveConfig:
                     or "https://www.eave.fyi"
                 )
             case _:
-                return (
-                    os.getenv("EAVE_PUBLIC_APPS_BASE")
-                    or os.getenv("EAVE_APPS_BASE") # deprecated
-                    or "https://apps.eave.fyi"
-                )
+                return self.eave_public_apps_base
 
     def eave_internal_service_base(self, service: EaveService) -> str:
         """

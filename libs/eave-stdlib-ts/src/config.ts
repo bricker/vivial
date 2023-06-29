@@ -1,4 +1,5 @@
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { EaveService } from './eave-origins.js';
 
 export enum EaveEnvironment {
   development = 'development',
@@ -58,16 +59,56 @@ export class EaveConfig {
     return process.env['GAE_VERSION'] || 'unknown';
   }
 
-  get eaveAppsBase(): string {
-    return process.env['EAVE_APPS_BASE'] || 'https://apps.eave.fyi';
+  get eavePublicAppsBase(): string {
+    return process.env['EAVE_PUBLIC_APPS_BASE']
+      || process.env['EAVE_APPS_BASE']
+      || 'https://apps.eave.fyi';
   }
 
-  get eaveApiBase(): string {
-    return process.env['EAVE_API_BASE'] || 'https://api.eave.fyi';
+  get eavePublicApiBase(): string {
+    return this.eavePublicServiceBase(EaveService.api);
   }
 
-  get eaveWwwBase(): string {
-    return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
+  get eavePublicWwwBase(): string {
+    return this.eavePublicServiceBase(EaveService.www);
+  }
+
+  eavePublicServiceBase(service: EaveService): string {
+    const envv = process.env[`EAVE_PUBLIC_${service.toUpperCase()}_BASE`];
+    if (envv) {
+      return envv;
+    }
+
+    switch (service) {
+      case EaveService.api:
+        return process.env['EAVE_API_BASE'] || 'https://api.eave.fyi';
+      case EaveService.www:
+        return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
+      default:
+        return this.eavePublicAppsBase;
+    }
+  }
+
+  eaveInternalServiceBase(service: EaveService): string {
+    const envv = process.env[`EAVE_INTERNAL_${service.toUpperCase()}_BASE`];
+    if (envv) {
+      return envv;
+    }
+
+    if (this.isDevelopment) {
+      switch (service) {
+        case EaveService.api:
+          return this.eavePublicApiBase;
+        case EaveService.www:
+          return this.eavePublicWwwBase;
+        default:
+          return this.eavePublicAppsBase;
+      }
+    } else {
+      // FIXME: Hardcoded region id (uc)
+      return `${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
+    }
+
   }
 
   get eaveCookieDomain(): string {
@@ -76,7 +117,7 @@ export class EaveConfig {
       return envv;
     }
 
-    const url = new URL(this.eaveWwwBase);
+    const url = new URL(this.eavePublicWwwBase);
     return url.hostname.replace(/^www/, '');
   }
 

@@ -164,11 +164,3 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
 
   return response;
 }
-
-export function appengineBaseUrl(service: EaveService): string {
-  // FIXME: Hardcoded region ID (uc)
-  return `${service}`
-    + '-dot-'
-    + `${sharedConfig.googleCloudProject}`
-    + '.uc.r.appspot.com';
-}

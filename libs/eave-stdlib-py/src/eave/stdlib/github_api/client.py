@@ -5,8 +5,9 @@ from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequ
 from eave.stdlib.eave_origins import EaveService
 from . import operations
 from .. import requests
+from ..config import shared_config
 
-_base_url = requests.appengine_base_url(EaveService.github)
+_base_url = shared_config.eave_internal_service_base(EaveService.github)
 
 async def get_file_content(
     eave_team_id: uuid.UUID,

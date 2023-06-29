@@ -21,7 +21,7 @@ export const addon = ace(app, {
       descriptor.name = eaveConfig.eaveConfluenceAppName;
 
       if (config.environment() === 'production') {
-        descriptor.baseUrl = `${eaveConfig.eaveAppsBase}/confluence`;
+        descriptor.baseUrl = `${eaveConfig.eavePublicAppsBase}/confluence`;
       }
       return descriptor;
     },

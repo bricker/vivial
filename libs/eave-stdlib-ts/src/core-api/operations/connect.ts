@@ -1,10 +1,10 @@
 import { Team } from '../models/team.js';
 import { ConnectInstallation, QueryConnectInstallationInput, RegisterConnectInstallationInput } from '../models/connect.js';
-import { RequestArgsOrigin, appengineBaseUrl, makeRequest } from '../../requests.js';
+import { RequestArgsOrigin, makeRequest } from '../../requests.js';
 import { sharedConfig } from '../../config.js';
 import { EaveService } from '../../eave-origins.js';
 
-const baseUrl = appengineBaseUrl(EaveService.api);
+const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
 
 export type RegisterConnectInstallationRequestBody = {
   connect_integration: RegisterConnectInstallationInput;

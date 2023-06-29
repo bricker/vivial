@@ -1,9 +1,8 @@
 from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.eave_origins import EaveService
-from eave.stdlib.requests import appengine_base_url
+from ..config import shared_config
 
-
-_base_url = appengine_base_url(EaveService.confluence)
+_base_url = shared_config.eave_internal_service_base(EaveService.confluence)
 
 class ConfluenceEndpointConfiguration(EndpointConfiguration):
     @property
