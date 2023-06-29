@@ -10,6 +10,9 @@ export default {
   /* well-known headers */
   COOKIE_HEADER: 'cookie',
   AUTHORIZATION_HEADER: 'authorization',
+  HOST: 'host',
+  CONTENT_TYPE: 'content-type',
+  CONTENT_LENGTH: 'content-length',
 
   /*
   This header can be used to bypass certain checks in development, like payload signing.

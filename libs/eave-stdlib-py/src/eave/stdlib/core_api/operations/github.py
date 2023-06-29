@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Unpack
 from eave.stdlib.core_api.models.github import GithubInstallation
 from eave.stdlib.core_api.models.github import GithubInstallationInput
 from eave.stdlib.logging import LogContext
@@ -26,15 +26,13 @@ class GetGithubInstallation(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         input: RequestBody,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()

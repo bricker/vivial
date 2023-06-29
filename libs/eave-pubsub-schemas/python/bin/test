@@ -2,10 +2,10 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	statusmsg -i "Running python tests..."
-	python $(~parentpath)/test.py
+	python "$(^parentpath)"/test.py
 	statusmsg -s "Done!"
 )

@@ -2,8 +2,8 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-format $(~parentpath)
+	python-format "$(^parentpath)"
 )

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Unpack
 import uuid
 
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
@@ -33,17 +33,15 @@ class UpsertDocument(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         input: RequestBody,
         team_id: uuid.UUID,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -66,17 +64,15 @@ class SearchDocuments(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         input: RequestBody,
         team_id: uuid.UUID,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -98,17 +94,15 @@ class DeleteDocument(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         input: RequestBody,
         team_id: uuid.UUID,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
             team_id=team_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         return cls.ResponseBody(_raw_response=response)

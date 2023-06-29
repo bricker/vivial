@@ -62,7 +62,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.headers["Location"]
         assert re.search(r"^https://accounts\.google\.com/o/oauth2/auth", response.headers["Location"])
         redirect_uri = urllib.parse.quote(
-            f"{eave.core.internal.app_config.eave_api_base}/oauth/google/callback", safe=""
+            f"{eave.core.internal.app_config.eave_public_api_base}/oauth/google/callback", safe=""
         )
         assert re.search(redirect_uri, response.headers["Location"])
 
@@ -86,7 +86,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
             assert not response.cookies.get("ev_oauth_state_google")  # Test the cookie was deleted
             assert response.headers["Location"]
-            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
 
             account_id = response.cookies.get("ev_account_id")
             assert account_id
@@ -161,7 +161,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
             assert response.headers["Location"]
-            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
 
     async def test_google_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:

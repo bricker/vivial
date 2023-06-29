@@ -2,10 +2,10 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	cd $(~parentpath)
-	${EAVE_HOME}/develop/python/bin/lint
-	${EAVE_HOME}/develop/javascript/bin/lint
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/python/bin/lint
+	"${EAVE_HOME}"/develop/javascript/bin/lint
 )

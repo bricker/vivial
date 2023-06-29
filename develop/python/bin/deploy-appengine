@@ -2,7 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 function deploy() (
 	python-validate-version
@@ -13,13 +13,12 @@ function deploy() (
 		qflag=""
 	fi
 
-	if test -f requirements-vendor.txt
-	then
+	if test -f requirements-vendor.txt; then
 		rm -rf vendor
 		python -m pip $qflag install -t vendor -r requirements-vendor.txt
 	fi
 
-	${EAVE_HOME}/develop/shared/bin/deploy-appengine "$@"
+	"${EAVE_HOME}"/develop/shared/bin/deploy-appengine "$@"
 )
 
 deploy "$@"

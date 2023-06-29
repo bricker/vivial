@@ -1,13 +1,17 @@
 import enum
 import logging
 import os
+import re
 import sys
 from functools import cached_property
 from typing import Optional, Self
+from urllib.parse import urlparse
 
 import google.cloud.secretmanager
 import google.cloud.runtimeconfig
 import google.cloud.client
+
+from eave.stdlib.eave_origins import EaveService
 
 
 from . import checksum
@@ -65,11 +69,11 @@ class EaveConfig:
 
     @property
     def monitoring_enabled(self) -> bool:
-        return os.getenv("EAVE_MONITORING_ENABLED") is not None
+        return os.getenv("EAVE_MONITORING_DISABLED") is None
 
     @property
     def analytics_enabled(self) -> bool:
-        return os.getenv("EAVE_ANALYTICS_ENABLED") is not None
+        return os.getenv("EAVE_ANALYTICS_DISABLED") is None
 
     @property
     def google_cloud_project(self) -> str:
@@ -88,20 +92,84 @@ class EaveConfig:
         return os.getenv("GAE_LOCATION") or "us-central1"
 
     @property
-    def eave_apps_base(self) -> str:
-        return os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"
+    def eave_public_apps_base(self) -> str:
+        return (
+            os.getenv("EAVE_PUBLIC_APPS_BASE")
+            or os.getenv("EAVE_APPS_BASE") # deprecated
+            or "https://apps.eave.fyi"
+        )
 
     @property
-    def eave_api_base(self) -> str:
-        return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"
+    def eave_public_api_base(self) -> str:
+        return self.eave_public_service_base(EaveService.api)
 
     @property
-    def eave_www_base(self) -> str:
-        return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"
+    def eave_public_www_base(self) -> str:
+        return self.eave_public_service_base(EaveService.www)
+
+    def eave_public_service_base(self, service: EaveService) -> str:
+        sname = service.value.upper()
+        if v := os.getenv(f"EAVE_PUBLIC_{sname}_BASE"):
+            return v
+
+        # EAVE_API_BASE, EAVE_WWW_BASE, and EAVE_APPS_BASE are deprecated.
+        # Use EAVE_PUBLIC_*_BASE instead.
+        # The `match` block here is mostly for the apps domain. The api and www cases shouldn't be reached
+        # normally, but are here as fallbacks.
+        match service:
+            case EaveService.api:
+                return (
+                    os.getenv("EAVE_API_BASE") # deprecated
+                    or "https://api.eave.fyi"
+                )
+            case EaveService.www:
+                return (
+                    os.getenv("EAVE_WWW_BASE") # deprecated
+                    or "https://www.eave.fyi"
+                )
+            case _:
+                return self.eave_public_apps_base
+
+    def eave_internal_service_base(self, service: EaveService) -> str:
+        """
+        This method gets the internal URL for the given service.
+        It is a little messy because of the following:
+        1. In development, the Public and Internal URLs are expected to be the same
+        2. When running in AppEngine, the internal URLs have a different convention than the public URLs
+        """
+
+        sname = service.value.upper()
+        if v := os.getenv(f"EAVE_INTERNAL_{sname}_BASE"):
+            return v
+
+        if self.is_development:
+            # In development, Internal and Public URLs are expected to be the same.
+            match service:
+                case EaveService.api:
+                    return self.eave_public_api_base
+                case EaveService.www:
+                    return self.eave_public_www_base
+                case _:
+                    return self.eave_public_apps_base
+        else:
+            # In production (AppEngine), Internal and Public urls are expected to be different.
+            # Internal AppEngine services eave have a specific base URL.
+            # FIXME: Hardcoded region ID (uc)
+            return (
+                f"{service.value}"
+                "-dot-"
+                f"{self.google_cloud_project}"
+                ".uc.r.appspot.com"
+            )
 
     @property
     def eave_cookie_domain(self) -> str:
-        return os.getenv("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
+        if (v := os.getenv("EAVE_COOKIE_DOMAIN")):
+            return v
+
+        parsed = urlparse(self.eave_public_www_base)
+        host = parsed.hostname or "www.eave.fyi"
+        return re.sub("www", "", host)
 
     @property
     def redis_connection(self) -> Optional[tuple[str, int, str]]:

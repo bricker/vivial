@@ -28,7 +28,7 @@ class BaseTestCase(UtilityBaseTestCase):
         self.eave_ctx = LogContext()
         self.httpclient = AsyncClient(
             app=eave.slack.app.api,
-            base_url=app_config.eave_apps_base,
+            base_url="https://apps.eave.tests",
         )
 
         self._data_slack_context = AsyncMock(spec=AsyncBoltContext)

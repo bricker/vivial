@@ -129,11 +129,14 @@ async function getSearchQuery({ comment, openaiClient, ctx }: { comment: string,
   ].join('\n');
 
   const response = await openaiClient.createChatCompletion({
-    messages: [
-      { role: 'user', content: prompt },
-    ],
-    model: OpenAIModel.GPT_35_TURBO_16K,
-  }, ctx);
+    parameters: {
+      messages: [
+        { role: 'user', content: prompt },
+      ],
+      model: OpenAIModel.GPT_35_TURBO_16K,
+    },
+    ctx,
+  });
 
   return response;
 }
@@ -148,11 +151,14 @@ async function getIntent({ comment, openaiClient, ctx }: { comment: string, open
   ].join('\n');
 
   const response = await openaiClient.createChatCompletion({
-    messages: [
-      { role: 'user', content: prompt },
-    ],
-    model: OpenAIModel.GPT_35_TURBO_16K,
-  }, ctx);
+    parameters: {
+      messages: [
+        { role: 'user', content: prompt },
+      ],
+      model: OpenAIModel.GPT_35_TURBO_16K,
+    },
+    ctx,
+  });
 
   if (response.match(/yes/i)) {
     return MessageIntent.search;

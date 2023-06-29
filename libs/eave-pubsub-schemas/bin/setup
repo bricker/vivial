@@ -2,13 +2,13 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	cd $(~parentpath)
-	${EAVE_HOME}/develop/python/bin/setup
-	${EAVE_HOME}/develop/javascript/bin/setup
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/python/bin/setup
+	"${EAVE_HOME}"/develop/javascript/bin/setup
 
 	qflag=$(verbose || echo -n "-q -q")
-	python -m pip install $qflag -e ./python
+	python -m pip install "$qflag" -e ./python
 )

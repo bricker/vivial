@@ -25,12 +25,9 @@ vpc_access_connector:
 env_variables:
   EAVE_CONFLUENCE_APP_KEY: "eave-confluence-stg"
   EAVE_CONFLUENCE_APP_NAME: "Eave (Staging)"
-  EAVE_COOKIE_DOMAIN: .eave.dev
-  EAVE_APPS_BASE: https://apps.eave.dev
-  EAVE_API_BASE: https://api.eave.dev
-  EAVE_WWW_BASE: https://www.eave.dev
-  EAVE_ANALYTICS_ENABLED: "1"
-  EAVE_MONITORING_ENABLED: "1"
+  EAVE_PUBLIC_APPS_BASE: https://apps.eave.dev
+  EAVE_PUBLIC_API_BASE: https://api.eave.dev
+  EAVE_PUBLIC_WWW_BASE: https://www.eave.dev
   LOG_LEVEL: "DEBUG"
   REDIS_CONNECTION: "10.223.96.43:6378:0"
   REDIS_TLS_CA: |-

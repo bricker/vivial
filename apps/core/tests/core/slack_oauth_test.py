@@ -84,7 +84,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.headers["Location"]
         assert re.search(r"^https://slack\.com/oauth/v2/authorize", response.headers["Location"])
         assert re.search(
-            f"redirect_uri={eave.core.internal.app_config.eave_api_base}/oauth/slack/callback",
+            f"redirect_uri={eave.core.internal.app_config.eave_public_api_base}/oauth/slack/callback",
             response.headers["Location"],
         )
 

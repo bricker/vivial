@@ -2,6 +2,6 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 statusmsg -w "No typescript tests"

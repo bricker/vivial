@@ -47,7 +47,7 @@ You can access your local apps over HTTPS, although it is not necessary in most 
 
 This repository provides a self-signed certificate, which mitmproxy is configured to use for HTTPS requests. Additionally, this repository provides a script to install (trust) the certificate on your system, which is technically optional, but recommended. If you do not install and trust the certificate, the proxy can still serve HTTPS requests, but you'll have to always bypass the certificate security warnings (eg via `curl --insecure` or Chrome's "Proceed to ..." button).
 
-To install and trust the self-signed certificate on your system, run the provided script at `${EAVE_HOME}/develop/certs/bin/install-certs` (*Note: This is so far only tested on Ubuntu. Please fix any issues you encounter.*). If necessary, you can update your `.env` file to change the base URLs to "https://..." (eg `EAVE_WWW_BASE=https://www.eave.localhost`).
+To install and trust the self-signed certificate on your system, run the provided script at `${EAVE_HOME}/develop/certs/bin/install-certs` (*Note: This is so far only tested on Ubuntu. Please fix any issues you encounter.*). If necessary, you can update your `.env` file to change the base URLs to "https://..." (eg `EAVE_PUBLIC_WWW_BASE=https://www.eave.localhost`).
 
 Alternatively, if you can't or don't want to use the provided self-signed certificate, you can install mitmproxy's self-signed certificate instead. See the [mitmproxy documentation](https://docs.mitmproxy.org/stable/concepts-certificates/) for details. (*Note: The `bin/proxy` script is configured to use the Eave self-signed certificate; changes to that script may be necessary to support mitmproxy's certificate)*
 

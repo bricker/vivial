@@ -19,7 +19,7 @@ _OAUTH_SCOPES = [
     "openid",
 ]
 
-_REDIRECT_URI = f"{app_config.eave_api_base}/oauth/google/callback"
+_REDIRECT_URI = f"{app_config.eave_public_api_base}/oauth/google/callback"
 
 
 class GoogleIdToken:

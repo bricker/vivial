@@ -24,7 +24,6 @@ import AtlassianIcon from '../../Icons/AtlassianIcon.jsx';
 import DownIcon from '../../Icons/DownIcon.js';
 import Footnote from './Footnote.jsx';
 import StepIcon from './StepIcon.jsx';
-import { EAVE_ONBOARDING_STATE_COOKIE, getCookie, saveCookie, saveSessionCookie } from '../../../cookies.js';
 
 const makeClasses = makeStyles((theme) => ({
   main: {

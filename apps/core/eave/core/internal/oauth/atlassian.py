@@ -37,7 +37,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
 
         super().__init__(
             client_id=client_id,
-            redirect_uri=f"{app_config.eave_api_base}/oauth/atlassian/callback",
+            redirect_uri=f"{app_config.eave_public_api_base}/oauth/atlassian/callback",
             scope=" ".join(ATLASSIAN_OAUTH_SCOPES),
             client=client,
             auto_refresh_url="https://auth.atlassian.com/oauth/token",

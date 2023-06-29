@@ -53,7 +53,7 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.headers["Location"]
         assert re.search(r"https://auth\.atlassian\.com/authorize", response.headers["Location"])
         redirect_uri = urllib.parse.quote(
-            f"{eave.core.internal.app_config.eave_api_base}/oauth/atlassian/callback", safe=""
+            f"{eave.core.internal.app_config.eave_public_api_base}/oauth/atlassian/callback", safe=""
         )
         assert re.search(f"redirect_uri={redirect_uri}", response.headers["Location"])
 
@@ -78,7 +78,7 @@ class TestAtlassianOAuth(BaseTestCase):
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
             assert not response.cookies.get("ev_oauth_state_atlassian")  # Test the cookie was deleted
             assert response.headers["Location"]
-            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
 
             account_id = response.cookies.get("ev_account_id")
             assert account_id
@@ -196,7 +196,7 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_team.beta_whitelisted is True
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
             assert response.headers["Location"]
-            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_www_base}/dashboard"
+            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
 
     async def test_atlassian_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:

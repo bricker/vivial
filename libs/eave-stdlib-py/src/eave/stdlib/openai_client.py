@@ -122,9 +122,10 @@ def ensure_api_key() -> None:
         openai_sdk.organization = shared_config.eave_openai_api_org
 
 
-async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogContext] = None) -> Optional[str]:
+async def chat_completion(params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None) -> Optional[str]:
     """
     https://beta.openai.com/docs/api-reference/completions/create
+    baseTimeoutSeconds is multiplied by (2^n) for each attempt n
     """
 
     ensure_api_key()
@@ -133,15 +134,15 @@ async def chat_completion(params: ChatCompletionParameters, ctx: Optional[LogCon
     openai_request_id = str(uuid.uuid4())
     compiled_params = params.compile()
     log_params = {
+        "openai_params": compiled_params,
         "openai_request_id": openai_request_id,
-        "openai_request_params": compiled_params,
     }
 
     eaveLogger.debug(f"OpenAI Request: {openai_request_id}", eave_ctx, log_params)
 
     max_attempts = 3
     for i in range(max_attempts):
-        backoffSecs = (i + 1) * 10
+        backoffSecs = baseTimeoutSeconds * pow(2, i)
         compiled_params["timeout"] = backoffSecs
         backoffSecs = i
         try:

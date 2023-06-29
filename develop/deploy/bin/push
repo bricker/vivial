@@ -1,15 +1,15 @@
 #!/usr/bin/env -S bash -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 function push() (
 	local dirarg="$1"
-	cd $(~parentpath)/$dirarg
+	cd "$(^parentpath)/$dirarg"
 
-	local imagename=$(basename $PWD)
-	local project=$(~gcloudproject)
+	local imagename; imagename=$(basename "$PWD")
+	local project; project=$(^gcloudproject)
 
-	gcloud --project=$project builds submit --tag=gcr.io/$project/$imagename
+	gcloud --project="$project" builds submit --tag="gcr.io/$project/$imagename"
 )
 
 push "$@"

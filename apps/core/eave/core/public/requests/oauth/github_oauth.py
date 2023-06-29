@@ -33,7 +33,7 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         # which makes it practically impossible to test in development (without some proxy configuration).
         # So instead, we're going to set a special cookie and read it on the other side (callback), and redirect if necessary.
         # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
-        redirect_uri = f"{eave.core.internal.app_config.eave_api_base}/oauth/github/callback"
+        redirect_uri = f"{eave.core.internal.app_config.eave_public_api_base}/oauth/github/callback"
         state_json = json.dumps({"token": token, "redirect_uri": redirect_uri})
         state = eave.stdlib.util.b64encode(state_json, urlsafe=True)
 

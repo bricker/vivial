@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Unpack
 from eave.stdlib.core_api.models import team
 from eave.stdlib.core_api.models.connect import (
     ConnectInstallation,
@@ -33,15 +33,13 @@ class RegisterConnectIntegrationRequest(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         input: RequestBody,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -67,15 +65,13 @@ class QueryConnectIntegrationRequest(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         input: RequestBody,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=input,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()

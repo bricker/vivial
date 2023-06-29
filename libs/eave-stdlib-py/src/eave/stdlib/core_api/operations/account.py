@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional, Unpack
 import uuid
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Destination, Team
@@ -24,18 +24,16 @@ class GetAuthenticatedAccount(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         access_token: str,
         account_id: uuid.UUID,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=None,
             access_token=access_token,
             account_id=account_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
@@ -57,18 +55,16 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
     @classmethod
     async def perform(
         cls,
-        origin: EaveOrigin,
         access_token: str,
         account_id: uuid.UUID,
-        ctx: Optional[LogContext] = None,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            origin=origin,
             input=None,
             access_token=access_token,
             account_id=account_id,
-            ctx=ctx,
+            **kwargs,
         )
 
         response_json = await response.json()
