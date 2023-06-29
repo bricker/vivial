@@ -2,14 +2,14 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	cd $(~parentpath)
-	${EAVE_HOME}/develop/python/bin/setup
-	${EAVE_HOME}/develop/javascript/bin/setup
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/python/bin/setup
+	"${EAVE_HOME}"/develop/javascript/bin/setup
 
-	if ! ~ci; then
-		${EAVE_HOME}/develop/shared/bin/build-dotenv eave/marketing/config.py
+	if ! ^ci; then
+		"${EAVE_HOME}"/develop/shared/bin/build-dotenv eave/marketing/config.py
 	fi
 )

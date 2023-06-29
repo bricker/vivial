@@ -2,13 +2,13 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	cd $(~parentpath)
-	${EAVE_HOME}/develop/python/bin/setup
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/python/bin/setup
 
-	if ! ~ci; then
-		${EAVE_HOME}/develop/shared/bin/build-dotenv eave/slack/config.py
+	if ! ^ci; then
+		"${EAVE_HOME}"/develop/shared/bin/build-dotenv eave/slack/config.py
 	fi
 )

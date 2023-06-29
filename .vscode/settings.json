@@ -174,5 +174,18 @@
     "**/.mypy_cache",
     "**/.pytest_cache"
   ],
-  "todo-tree.tree.autoRefresh": false
+  "todo-tree.tree.autoRefresh": false,
+  "shellcheck.run": "onSave",
+  "shellcheck.ignorePatterns": {
+    "**/.venv": true,
+    "**/node_modules": true,
+    "**/.ruff_cache": true,
+    "**/.mypy_cache": true,
+    "**/.pytest_cache": true,
+    "**/__pycache__": true
+  },
+  "shellcheck.useWorkspaceRootAsCwd": true,
+  "shellcheck.customArgs": [
+    "-x"
+  ]
 }

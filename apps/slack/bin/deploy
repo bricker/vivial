@@ -2,10 +2,10 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	cd $(~parentpath)
+	cd "$(^parentpath)"
 	setup-deployment-workspace
-	${EAVE_HOME}/develop/python/bin/deploy-appengine "$@"
+	"${EAVE_HOME}"/develop/python/bin/deploy-appengine "$@"
 )

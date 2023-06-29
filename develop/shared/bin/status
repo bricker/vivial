@@ -1,6 +1,6 @@
 #!/usr/bin/env -S bash -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	statusmsg -i "Status check for $1"

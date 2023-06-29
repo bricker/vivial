@@ -2,12 +2,12 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 python-activate-venv
 
 mitmproxy \
 	--listen-port 8080 \
-	--scripts ${EAVE_HOME}/develop/proxy/mitm_router.py \
-	--certs "*.eave.localhost"=${EAVE_HOME}/develop/certs/eave-localhost/eave-localhost.pem \
-	--certs "*.eave.run"=${EAVE_HOME}/develop/certs/eave-run/eave-run.pem \
-	--certs "*.eave.dev"=${EAVE_HOME}/develop/certs/eave-dev/eave-dev.pem
+	--scripts "${EAVE_HOME}"/develop/proxy/mitm_router.py \
+	--certs "*.eave.localhost"="${EAVE_HOME}"/develop/certs/eave-localhost/eave-localhost.pem \
+	--certs "*.eave.run"="${EAVE_HOME}"/develop/certs/eave-run/eave-run.pem \
+	--certs "*.eave.dev"="${EAVE_HOME}"/develop/certs/eave-dev/eave-dev.pem

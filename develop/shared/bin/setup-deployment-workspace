@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 set -eu
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 function setup() (
 	local builddir=$EAVE_HOME/.build
-	local appname=$(basename $PWD)
-	mkdir -p $builddir
-	rm -rf $builddir/$appname
+	local appname; appname=$(basename "$PWD")
+	mkdir -p "$builddir"
+	rm -rf "${builddir:?}/${appname:?}"
 
 	rsync -a -v \
 		--exclude='.git' \
@@ -20,11 +20,11 @@ function setup() (
 		--exclude '.mypy_cache' \
 		--exclude '__pycache__' \
 		--exclude '*.pyc' \
-		$PWD $builddir
+		"$PWD" "$builddir"
 
-	cd $builddir/$appname && \
-	cp $EAVE_HOME/.gitignore . && \
-	cp $EAVE_HOME/.gcloudignore .
+	cd "$builddir/$appname" && \
+	cp "$EAVE_HOME"/.gitignore . && \
+	cp "$EAVE_HOME"/.gcloudignore .
 )
 
 setup

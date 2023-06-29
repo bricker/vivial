@@ -2,14 +2,14 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 function setup () (
 	python-validate-version
 	python-activate-venv
 
 	local piploc=""
-	if ~ci; then
+	if ^ci; then
 		piploc="--user"
 	fi
 
@@ -18,23 +18,23 @@ function setup () (
 		qflag=""
 	fi
 
-	local eavepwd=$(~eavepwd)
+	local eavepwd; eavepwd=$(^eavepwd)
 	statusmsg -on "Setting up python in $eavepwd..."
 
-	python -m pip install $qflag $piploc \
-		-r ${EAVE_HOME}/develop/requirements-dev.txt \
-		-r ${EAVE_HOME}/develop/python/requirements-dev.txt \
-		-r ${EAVE_HOME}/libs/eave-stdlib-py/requirements-dev.txt \
-		-r ${EAVE_HOME}/libs/eave-pubsub-schemas/requirements-dev.txt
+	python -m pip install "$qflag" "$piploc" \
+		-r "${EAVE_HOME}"/develop/requirements-dev.txt \
+		-r "${EAVE_HOME}"/develop/python/requirements-dev.txt \
+		-r "${EAVE_HOME}"/libs/eave-stdlib-py/requirements-dev.txt \
+		-r "${EAVE_HOME}"/libs/eave-pubsub-schemas/requirements-dev.txt
 
 	if test -f requirements.txt
 	then
-		python -m pip install $qflag $piploc -r requirements.txt
+		python -m pip install "$qflag" "$piploc" -r requirements.txt
 	fi
 
 	if test -f requirements-dev.txt
 	then
-		python -m pip install $qflag $piploc -r requirements-dev.txt
+		python -m pip install "$qflag" "$piploc" -r requirements-dev.txt
 	fi
 
 	statusmsg -sp " ✔ "

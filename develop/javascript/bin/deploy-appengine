@@ -1,6 +1,6 @@
 #!/usr/bin/env -S bash -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 function deploy() (
 	node-validate-version
@@ -26,7 +26,7 @@ function deploy() (
 	# Remove references to the monorepo packages
 	npm prune
 
-	${EAVE_HOME}/develop/shared/bin/deploy-appengine "$@"
+	"${EAVE_HOME}"/develop/shared/bin/deploy-appengine "$@"
 )
 
 deploy "$@"

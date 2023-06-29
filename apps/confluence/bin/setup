@@ -2,14 +2,14 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	cd $(~parentpath)
-	${EAVE_HOME}/libs/eave-stdlib-ts/bin/setup
-	${EAVE_HOME}/develop/javascript/bin/setup
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/setup
+	"${EAVE_HOME}"/develop/javascript/bin/setup
 
-	if ! ~ci; then
-		${EAVE_HOME}/develop/shared/bin/build-dotenv src/config.ts
+	if ! ^ci; then
+		"${EAVE_HOME}"/develop/shared/bin/build-dotenv src/config.ts
 	fi
 )

@@ -1,7 +1,9 @@
-if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
-	function ~ci () (
+if test -z "${_SHARED_FUNCTIONS_LOADED:-}"
+then
+
+	function ^ci() {
 		test -n "${CI:-}"
-	)
+	}
 
 	function statusmsg() (
 		local usage="
@@ -38,31 +40,35 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				n) nonewline="1";;
 				p) noprefix="1";;
 				h)
-					echo $usage
+					echo "$usage"
 					exit 0
+					;;
+				*)
+					echo "$usage"
+					exit 1
 					;;
 			esac
 		done
 
-		local msg="${@:${OPTIND:-1}}"
+		local msg="${*:${OPTIND:-1}}"
 		if test -z "$msg"; then
-			echo $usage
+			echo "$usage"
 			exit 1
 		fi
 
 		if test "$msgtype" = "off"
 		then
 			if test -z "$nonewline"; then
-				echo -e $msg
+				echo -e "$msg"
 			else
-				echo -en $msg
+				echo -en "$msg"
 			fi
 			return 0
 		fi
 
 		local _cc_reset=""
 
-		if ! ~ci && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
+		if ! ^ci && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
 			local _cc_black=0
 			local _cc_red=1
 			local _cc_green=2
@@ -139,7 +145,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	)
 
 	function shellname() {
-		echo -n "$(basename $SHELL)"
+		echo -n "$(basename "$SHELL")"
 	}
 
 	function shloginfile() {
@@ -169,7 +175,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		local usershell=$(shellname)
+		local usershell; usershell=$(shellname)
 		case $usershell in
 		"fish")
 			if fish -c "functions -q $1"; then
@@ -193,14 +199,14 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		local ex="$path/$cmd"
 		if test -x "$ex"; then
-			(cd $path && $cmd)
+			(cd "$path" && $cmd)
 		else
 			statusmsg -w "File $ex is not executable."
 		fi
 	)
 
 	function get-os() {
-		local kernel=$(get-kernel-name)
+		local kernel; kernel=$(get-kernel-name)
 		case "$kernel" in
 		"linux")
 			lsb_release -is | tr '[:upper:]' '[:lower:]'
@@ -220,7 +226,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function get-cpu-arch() {
-		local arch=$(uname -m)
+		local arch; arch=$(uname -m)
 		if test "$arch" = "unknown"; then
 			# `uname -p` isnt portible/POSIX, so it's often unknown
 			# on linux systems. use `uname -m` instead in that case
@@ -231,7 +237,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function get-cpu-arch-normalized() {
-		local arch=$(get-cpu-arch)
+		local arch; arch=$(get-cpu-arch)
 		case $arch in
 		"arm64")
 			echo -n "arm"
@@ -249,7 +255,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function get-cpu-arch-normalized-alt() {
-		local arch=$(get-cpu-arch)
+		local arch; arch=$(get-cpu-arch)
 		case $arch in
 		"arm")
 			echo -n "arm64"
@@ -263,22 +269,22 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function ~add-shell-variable() {
+	function ^add-shell-variable() {
 		local varname=$1
 		local value=$2
-		local usershell=$(shellname)
-		local varcmd="export $varname=\"$value\""
+		local usershell; usershell=$(shellname)
+		local varcmd=("export $varname=\"$value\"")
 
 		case $usershell in
 		"bash" | "zsh")
-			local loginfile=$(shloginfile)
+			local loginfile; loginfile=$(shloginfile)
 
-			if cat $loginfile | grep "export $varname"; then
+			if grep "export $varname" "$loginfile"; then
 				statusmsg -w "variable $varname already set in $loginfile."
 				return 0
 			fi
 
-			echo -e "\n$varcmd" >>"$loginfile"
+			echo -e "\n${*varcmd}" >>"$loginfile"
 			;;
 		"fish")
 			if fish -c "set -q $varname"; then
@@ -292,13 +298,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			;;
 		esac
 
-		$varcmd
+		"${varcmd[*]}"
 	}
 
 	function run-with-dotenv() (
 		python-validate-version
 		python-activate-venv
-		PYTHONPATH=. python -m dotenv --file $EAVE_HOME/.env run --no-override -- "$@"
+		PYTHONPATH=. python -m dotenv --file "$EAVE_HOME/.env" run --no-override -- "$@"
 	)
 
 	function run-appengine-dev-server() (
@@ -308,12 +314,16 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		local usage="Usage: run-appengine-dev-server -p PORT"
 		local port=""
-		while getopts "p:" argname; do
+		while getopts "p:h" argname; do
 			case "$argname" in
 			p) port=$OPTARG ;;
 			h)
 				statusmsg -i "$usage"
 				exit 0
+				;;
+			*)
+				statusmsg -i "$usage"
+				exit 1
 				;;
 			esac
 		done
@@ -330,16 +340,16 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			app.yaml
 	)
 
-	function verbose () (
+	function verbose () {
 		test -n "${VERBOSE:-}"
-	)
+	}
 
 	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
 	function setup-deployment-workspace () {
-		local builddir=$EAVE_HOME/.build
-		local appname=$(basename $PWD)
-		mkdir -p $builddir
-		rm -rf $builddir/$appname
+		local builddir="$EAVE_HOME/.build"
+		local appname; appname=$(basename "$PWD")
+		mkdir -p "$builddir"
+		rm -rf "${builddir:?}/${appname:?}"
 
 		local vflag=""
 		if verbose; then
@@ -357,34 +367,34 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			--exclude '.mypy_cache' \
 			--exclude '__pycache__' \
 			--exclude '*.pyc' \
-			$PWD $builddir
+			"$PWD" "$builddir"
 
-		cd $builddir/$appname && \
-		cp $EAVE_HOME/.gitignore . && \
-		cp $EAVE_HOME/.gcloudignore . && \
-		cp $EAVE_HOME/.gcloudignore-builder .
+		cd "${builddir:?}/${appname:?}" && \
+		cp "$EAVE_HOME/.gitignore" . && \
+		cp "$EAVE_HOME/.gcloudignore" . && \
+		cp "$EAVE_HOME/.gcloudignore-builder" .
 	}
 
 	function clean-deployment-workspace () {
 		local builddir=$EAVE_HOME/.build
-		local appname=$(basename $PWD)
-		rm -r $builddir/$appname
+		local appname; appname=$(basename "$PWD")
+		rm -r "${builddir:?}/${appname:?}"
 	}
 
 	# Returns the absolute path to the dir of the program currently running
-	function ~abspath () (
-		cd $(dirname $0) && pwd -P
+	function ^abspath () (
+		cd "$(dirname "$0")" && pwd -P
 	)
 
-	function ~parentpath () (
-		cd $(dirname $0)/.. && pwd -P
+	function ^parentpath () (
+		cd "$(dirname "$0")/.." && pwd -P
 	)
 
-	function ~eavepwd () (
+	function ^eavepwd () (
 		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
 	)
 
-	function ~gcloudproject() (
+	function ^gcloudproject() (
 		if test -n "${GOOGLE_CLOUD_PROJECT:-}"; then
 			echo -n "$GOOGLE_CLOUD_PROJECT"
 		else

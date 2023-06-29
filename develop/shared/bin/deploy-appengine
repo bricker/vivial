@@ -1,9 +1,9 @@
 #!/usr/bin/env -S bash -eu
 
-source $EAVE_HOME/develop/functions.bash
+source "$EAVE_HOME"/develop/functions.bash
 
 function deploy() (
-	local project=$(~gcloudproject)
+	local project; project=$(^gcloudproject)
 
 	while getopts "p:" argname
 	do
@@ -15,18 +15,22 @@ function deploy() (
 					project="eavefyi-dev"
 				fi
 				;;
+			*)
+				statusmsg -e "unknown option: $argname"
+				exit 1
+				;;
 		esac
 	done
 
 	local appyaml="app.$project.yaml"
-	test -f $appyaml
+	test -f "$appyaml"
 
-	local timestamp=$(date --utc "+%Y%m%dt%H%Mz")
-	local gitrev=$(git rev-parse --short HEAD)
+	local timestamp; timestamp=$(date --utc "+%Y%m%dt%H%Mz")
+	local gitrev; gitrev=$(git rev-parse --short HEAD)
 	local version="$timestamp-$gitrev"
 
-	gcloud --project=$project meta list-files-for-upload | grep -v "^vendor"
-	gcloud --project=$project app deploy --version=$version --appyaml=$appyaml
+	gcloud --project="$project" meta list-files-for-upload | grep -v "^vendor"
+	gcloud --project="$project" app deploy --version="$version" --appyaml="$appyaml"
 
 	# local service=$(cat $appyaml | yq '.service')
 	# local tagname="$service-$version"
