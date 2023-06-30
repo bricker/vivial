@@ -81,6 +81,7 @@ class ChatCompletionParameters:
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
     temperature: Optional[float] = None
+    top_p: Optional[float] = None
     stop: Optional[List[str]] = None
     max_tokens: Optional[int] = None
 
@@ -89,7 +90,7 @@ class ChatCompletionParameters:
         params["model"] = self.model
 
         messages = [
-            ChatMessage(role=ChatRole.SYSTEM, content=prompt_prefix()),
+            # ChatMessage(role=ChatRole.SYSTEM, content=prompt_prefix()),
             *[ChatMessage(role=ChatRole.USER, content=m) for m in self.messages],
         ]
 
@@ -105,6 +106,8 @@ class ChatCompletionParameters:
             params["presence_penalty"] = self.presence_penalty
         if self.temperature is not None:
             params["temperature"] = self.temperature
+        if self.top_p is not None:
+            params["top_p"] = self.top_p
         if self.max_tokens is not None:
             params["max_tokens"] = self.max_tokens
 
