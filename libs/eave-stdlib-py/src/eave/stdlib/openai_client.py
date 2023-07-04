@@ -46,6 +46,9 @@ class OpenAIModel(enum.StrEnum):
     GPT4 = "gpt-4"
     # GPT4_32K = "gpt-4-32k"
 
+    @property
+    def max_tokens(self) -> int:
+        return MAX_TOKENS[self]
 
 MAX_TOKENS = {
     OpenAIModel.GPT_35_TURBO: 4096,
@@ -74,7 +77,7 @@ class ChatMessage:
 
 @dataclass
 class ChatCompletionParameters:
-    messages: List[str]
+    messages: list[str | ChatMessage]
     model: OpenAIModel
     best_of: Optional[int] = None
     n: Optional[int] = None
@@ -90,9 +93,10 @@ class ChatCompletionParameters:
         params["model"] = self.model
 
         messages = [
-            # ChatMessage(role=ChatRole.SYSTEM, content=prompt_prefix()),
-            *[ChatMessage(role=ChatRole.USER, content=m) for m in self.messages],
+            m if isinstance(m, ChatMessage) else ChatMessage(role=ChatRole.USER, content=m)
+            for m in self.messages
         ]
+        # ChatMessage(role=ChatRole.SYSTEM, content=prompt_prefix()),
 
         params["messages"] = [asdict(m) for m in messages]
 

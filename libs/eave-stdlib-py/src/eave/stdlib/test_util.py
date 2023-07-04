@@ -40,6 +40,15 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.active_patches.clear()
         self.active_mocks.clear()
 
+    def relative_file_path(self, relfpath: str, base: str) -> str:
+        return os.path.join(os.path.dirname(base), relfpath)
+
+    def load_relative_file(self, relfpath: str, base: str) -> str:
+        fpath = self.relative_file_path(relfpath, base)
+        with open(fpath) as file:
+            data = file.read()
+        return data
+
     @staticmethod
     async def mock_coroutine(value: T) -> T:
         return value

@@ -13,6 +13,8 @@ dotenv.load_dotenv(dotenv_path=os.path.join(os.environ["EAVE_HOME"], ".env.test"
 os.environ["EAVE_PUBLIC_API_BASE"] = "https://api.eave.tests"
 os.environ["EAVE_PUBLIC_APPS_BASE"] = "https://apps.eave.tests"
 os.environ["EAVE_PUBLIC_WWW_BASE"] = "https://www.eave.tests"
+os.environ["EAVE_MONITORING_DISABLED"] = "1"
+os.environ["EAVE_ANALYTICS_DISABLED"] = "1"
 
 os.environ["EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON"] = json.dumps(
     {

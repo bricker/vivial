@@ -47,7 +47,8 @@ pythonpath = [
   "../../../apps/core",
   "../../../apps/slack",
   "../../../apps/marketing",
-  "../../../libs/eave-stdlib-py"
+  "../../../apps/archer",
+  "../../../libs/eave-stdlib-py",
 ]
 norecursedirs = [
   "vendor",
