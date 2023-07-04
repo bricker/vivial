@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 import os
+import re
 import tiktoken
 import eave.stdlib.openai_client as _o
 
@@ -8,12 +10,22 @@ _ext_to_lang_map = {
     "js": "javascript",
 }
 
+PromptStore: dict[str, _o.ChatCompletionParameters] = {}
+
+@dataclass
+class GithubContext:
+    org_name: str
+    repo_name: str
+
 def get_lang(filename: str) -> str | None:
     [root, ext] = os.path.splitext(filename)
     return _ext_to_lang_map.get(ext)
 
 def get_filename(filepath: str) -> str:
     return os.path.basename(filepath)
+
+def clean_fpath(path: str) -> str:
+    return re.sub(os.environ["EAVE_HOME"], "", path)
 
 def get_file_contents(filepath: str) -> str:
     with open(filepath) as file:

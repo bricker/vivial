@@ -1,14 +1,15 @@
 import json
 import re
 import textwrap
+from typing import Tuple
 from eave.archer.config import OPENAI_MODEL
-from .service_graph import Service, ServiceGraph
-from .service_registry import ServiceRegistry
+from .service_graph import OpenAIResponseService, Service, ServiceGraph, parse_service_response
+from .service_registry import REGISTRY, ServiceRegistry
 from eave.stdlib.exceptions import MaxRetryAttemptsReachedError
 import eave.stdlib.openai_client as _o
-from eave.archer.util import get_lang
+from eave.archer.util import GithubContext, PromptStore, get_lang
 
-OUTPUT_INSTRUCTIONS = _o.formatprompt(
+_OUTPUT_INSTRUCTIONS = _o.formatprompt(
     """
     Output your answer as a JSON array of objects, with each object containing the following keys:
 
@@ -19,29 +20,7 @@ OUTPUT_INSTRUCTIONS = _o.formatprompt(
     """
 )
 
-SYSTEM_PROMPT = _o.formatprompt(
-    f"""
-    You will be given a GitHub organization name, a repository name, and some code from that repository. The code will be delimited by three exclamation marks. Your task is to find the APIs and services that the code depends on, which will then be used to create a high-level system architecture diagram.
-
-    To perform this task, follow these steps:
-
-    1. Find references to well-known, common third-party services in the code. For example, there may be references to Google Cloud, AWS, Redis, Postgres, Slack API, SendGrid.
-
-    2. Find references to internal services. For example: Analytics, Core API, Authentication, Users API, GraphQL, Logging, Storage, Database.
-
-    3. Once you've gone through the code and have a better understanding of its purpose and context, go through it a few more times and adjust your list if necessary based on what you've learned.
-
-    4. For each service, either use one of the provided known service names if it makes sense to do so, otherwise create a short, human-readable name for the service.
-
-    5. Write a 1-paragraph explanation of what the service does and how it fits into the system architecture.
-
-    The code might not have any references to other systems. If you don't think there are any, don't force it.
-
-    {OUTPUT_INSTRUCTIONS}
-    """
-)
-
-async def get_dependencies(filepath: str, contents: str, registry: ServiceRegistry) -> ServiceGraph | None:
+async def get_dependencies(filepath: str, contents: str, github_ctx: GithubContext) -> ServiceGraph | None:
     if len(contents.strip()) == 0:
         return None
 
@@ -72,29 +51,48 @@ async def get_dependencies(filepath: str, contents: str, registry: ServiceRegist
     #     "Respond with only the list and nothing else."
     # ),
 
-    known_service_names = ", ".join([s.name for s in registry.services.values()])
-    org_name = "eave-fyi"
-    repo_name = "eave-monorepo"
-    prompt = _o.formatprompt(
-        f"""
-        GitHub organization: {org_name}
+    known_service_names = ", ".join([s.name for s in REGISTRY.services.values()])
 
-        Repository: {repo_name}
+    messages: list[str|_o.ChatMessage] = [
+        _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=_o.formatprompt(
+            f"""
+            You will be given a GitHub organization name, a repository name, and some code from that repository. The code will be delimited by three exclamation marks. Your task is to find the APIs and services that the code depends on, which will then be used to create a high-level system architecture diagram.
 
-        Known service names: {known_service_names}
+            To perform this task, follow these steps:
 
-        {lang} Code:
-        !!!
-        {contents}
-        !!!
-        """
-    )
+            1. Find references to well-known, common third-party services in the code. For example, there may be references to Google Cloud, AWS, Redis, Postgres, Slack API, SendGrid.
+
+            2. Find references to internal services. For example: Analytics, Core API, Authentication, Users API, GraphQL, Logging, Storage, Database.
+
+            3. Once you've gone through the code and have a better understanding of its purpose and context, go through it a few more times and adjust your list if necessary based on what you've learned.
+
+            4. For each service, either use one of the provided known service names if it makes sense to do so, otherwise create a short, human-readable name for the service.
+
+            5. Write a 1-paragraph explanation of what the service does and how it fits into the system architecture.
+
+            The code might not have any references to other systems. If you don't think there are any, don't force it.
+
+            {_OUTPUT_INSTRUCTIONS}
+            """
+        )),
+        _o.ChatMessage(role=_o.ChatRole.USER, content=_o.formatprompt(
+            f"""
+            GitHub organization: {github_ctx.org_name}
+
+            Repository: {github_ctx.repo_name}
+
+            Known service names: {known_service_names}
+
+            {lang} Code:
+            !!!
+            {contents}
+            !!!
+            """
+        )),
+    ]
 
     params = _o.ChatCompletionParameters(
-        messages=[
-            _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=SYSTEM_PROMPT),
-            prompt,
-        ],
+        messages=messages,
         model=OPENAI_MODEL,
         temperature=0,
         # frequency_penalty: Optional[float] = None
@@ -102,13 +100,15 @@ async def get_dependencies(filepath: str, contents: str, registry: ServiceRegist
         # temperature: Optional[float] = None
     )
 
+    PromptStore["get_dependencies"] = params
+
     # print(prompt)
 
     try:
         response = await _o.chat_completion(params)
         assert response
         print(response)
-        found_services = parse_response(response)
+        found_services = parse_service_response(response)
     except MaxRetryAttemptsReachedError:
         print("WARNING: Max retry attempts reached")
         return None
@@ -118,13 +118,10 @@ async def get_dependencies(filepath: str, contents: str, registry: ServiceRegist
 
     for found_service in found_services:
         service = Service(**found_service)
-        service = registry.register(service)
+        service = REGISTRY.register(service)
         subgraph.add(service)
 
     return subgraph
-
-def parse_response(response: str) -> list[OpenAIResponseService]:
-    return json.loads(response)
 
 async def normalize_services(services: list[OpenAIResponseService]) -> list[OpenAIResponseService]:
     services_list = "\n".join([f"- {s['service_name']}: {s['service_description']}" for s in services])
@@ -144,7 +141,7 @@ async def normalize_services(services: list[OpenAIResponseService]) -> list[Open
                 - <service_name>: <service_description>
                 - ...
 
-                {OUTPUT_INSTRUCTIONS}
+                {_OUTPUT_INSTRUCTIONS}
                 """
             )),
             _o.formatprompt(
@@ -160,11 +157,13 @@ async def normalize_services(services: list[OpenAIResponseService]) -> list[Open
         # temperature: Optional[float] = None
     )
 
+    PromptStore["normalize_services"] = params
+
     try:
         response = await _o.chat_completion(params)
         assert response
         print(response)
-        reduced_services = parse_response(response)
+        reduced_services = parse_service_response(response)
         return reduced_services
     except MaxRetryAttemptsReachedError:
         print("WARNING: Max retry attempts reached")

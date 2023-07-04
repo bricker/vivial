@@ -3,8 +3,13 @@
 # https://mermaid.live/edit
 
 
+from datetime import datetime
 import os
 import re
+import eave.stdlib.openai_client as _o
+from .config import OPENAI_MODEL
+
+from .util import clean_fpath
 
 from .fs_hierarchy import FSHierarchy
 
@@ -90,5 +95,27 @@ def render_fs_hierarchy(hierarchy: FSHierarchy, ilevel: int = 0) -> str:
     out = "\n".join(lines)
     return out
 
-def clean_fpath(path: str) -> str:
-    return re.sub(os.environ["EAVE_HOME"], "", path)
+def fileout(fname: str, timestamp: datetime, messages: list[str|_o.ChatMessage], rendered_graph: str) -> None:
+    dateformat = timestamp.strftime("%Y-%m-%d--%H:%M:%S")
+    pdir = f".out/{dateformat}"
+    os.makedirs(pdir)
+
+    outfile=f"{pdir}/{timestamp}/{fname}"
+    with open(outfile, mode="a") as f:
+        f.write(f"Timestamp: {dateformat}\n\n")
+        f.write(f"Model: {OPENAI_MODEL}")
+
+        f.write("\n\n### Prompt:\n")
+        f.write("```")
+
+        for message in messages:
+            role = message.role if isinstance(message, _o.ChatMessage) else _o.ChatRole.USER
+            text = message.content if isinstance(message, _o.ChatMessage) else message
+            f.write(f"{role}: {text}\n\n")
+
+        f.write("```\n\n")
+
+        f.write("### Result\n")
+        f.write("```mermaid\n")
+        f.write(rendered_graph)
+        f.write("\n```")

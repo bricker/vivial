@@ -1,4 +1,3 @@
-# FIXME: thread safety
 from .service_graph import Service
 
 
@@ -15,4 +14,5 @@ class ServiceRegistry:
     def get(self, id: str) -> Service | None:
         return self.services.get(id)
 
+# FIXME: thread safety
 REGISTRY = ServiceRegistry()
