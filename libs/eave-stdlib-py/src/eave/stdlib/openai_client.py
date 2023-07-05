@@ -88,14 +88,17 @@ class ChatCompletionParameters:
     stop: Optional[List[str]] = None
     max_tokens: Optional[int] = None
 
+    def build_messages(self) -> list[ChatMessage]:
+        return [
+            m if isinstance(m, ChatMessage) else ChatMessage(role=ChatRole.USER, content=m)
+            for m in self.messages
+        ]
+
     def compile(self) -> JsonObject:
         params = dict[str, Any]()
         params["model"] = self.model
 
-        messages = [
-            m if isinstance(m, ChatMessage) else ChatMessage(role=ChatRole.USER, content=m)
-            for m in self.messages
-        ]
+        messages = self.build_messages()
         # ChatMessage(role=ChatRole.SYSTEM, content=prompt_prefix()),
 
         params["messages"] = [asdict(m) for m in messages]

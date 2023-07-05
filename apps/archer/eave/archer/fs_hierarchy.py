@@ -2,7 +2,7 @@
 import os
 import re
 
-from .config import DIR_EXCLUDES, FILE_INCLUDES
+from eave.archer.config import DIR_EXCLUDES, FILE_INCLUDES
 
 
 class FSHierarchy:

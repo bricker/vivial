@@ -1,16 +1,13 @@
 import json
-import re
-import textwrap
-from typing import Tuple
+import sys
 from eave.archer.config import OPENAI_MODEL
-from .service_graph import OpenAIResponseService, Service, ServiceGraph, parse_service_response
-from .service_registry import REGISTRY, ServiceRegistry
+from eave.archer.service_graph import OpenAIResponseService, Service, ServiceGraph, parse_service_response
+from eave.archer.service_registry import REGISTRY
 from eave.stdlib.exceptions import MaxRetryAttemptsReachedError
 import eave.stdlib.openai_client as _o
-from eave.archer.util import GithubContext, PromptStore, get_lang
+from eave.archer.util import GithubContext, PROMPT_STORE, get_lang
 
-_OUTPUT_INSTRUCTIONS = _o.formatprompt(
-    """
+_OUTPUT_INSTRUCTIONS = """
     Output your answer as a JSON array of objects, with each object containing the following keys:
 
     - "service_name": the name that you created for the service
@@ -18,7 +15,6 @@ _OUTPUT_INSTRUCTIONS = _o.formatprompt(
 
     Your full response should be JSON-parseable, so don't respond with something that can't be parsed by a JSON parser.
     """
-)
 
 async def get_dependencies(filepath: str, contents: str, github_ctx: GithubContext) -> ServiceGraph | None:
     if len(contents.strip()) == 0:
@@ -51,7 +47,10 @@ async def get_dependencies(filepath: str, contents: str, github_ctx: GithubConte
     #     "Respond with only the list and nothing else."
     # ),
 
-    known_service_names = ", ".join([s.name for s in REGISTRY.services.values()])
+    if len(REGISTRY.services) > 0:
+        known_service_names = ", ".join([s.name for s in REGISTRY.services.values()])
+    else:
+        known_service_names = "none"
 
     messages: list[str|_o.ChatMessage] = [
         _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=_o.formatprompt(
@@ -85,12 +84,80 @@ async def get_dependencies(filepath: str, contents: str, github_ctx: GithubConte
 
             {lang} Code:
             !!!
-            {contents}
-            !!!
-            """
+            """,
+            contents,
+            "!!!",
         )),
     ]
 
+    subgraph = await _run_openai(messages)
+    return subgraph
+
+async def get_dependencies_core_services(filepath: str, contents: str, github_ctx: GithubContext) -> ServiceGraph | None:
+    if len(contents.strip()) == 0:
+        return None
+
+    lang = get_lang(filepath) or ""
+
+    if len(REGISTRY.services) == 0:
+        print("WARNING: No services available.", file=sys.stderr)
+        return None
+
+    known_service_names = ", ".join([s.name for s in REGISTRY.services.values()])
+
+    messages: list[str|_o.ChatMessage] = [
+        _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=_o.formatprompt(
+            """
+            You will be given a GitHub organization name, a repository name, some code from that repository (delimited by three exclamation marks), and a comma-separated list of service names. Your task is to find which (if any) of the provided APIs/services the code references, uses, calls, or depends on. Your answer will be used to create a high-level system architecture diagram.
+
+            Output your answer as a JSON array of strings, where each string is the name of the service referenced in the code. This should exactly match the provided service name.
+
+            Your full response should be JSON-parseable, so don't respond with something that can't be parsed by a JSON parser.
+            """
+        )),
+        _o.ChatMessage(role=_o.ChatRole.USER, content=_o.formatprompt(
+            f"""
+            GitHub organization: {github_ctx.org_name}
+
+            Repository: {github_ctx.repo_name}
+
+            Service names: {known_service_names}
+
+            {lang} Code:
+            !!!
+            """,
+            contents,
+            "!!!",
+        )),
+    ]
+
+    params = _o.ChatCompletionParameters(
+        messages=messages,
+        model=OPENAI_MODEL,
+        temperature=0,
+    )
+
+    PROMPT_STORE["get_dependencies"] = params
+
+    try:
+        response = await _o.chat_completion(params)
+        assert response
+        print(response)
+        found_services = json.loads(response)
+    except MaxRetryAttemptsReachedError:
+        print("WARNING: Max retry attempts reached")
+        return None
+
+    subgraph = ServiceGraph()
+
+    for found_service in found_services:
+        service = Service(service_name=found_service)
+        service = REGISTRY.get(service.id)
+        subgraph.add(service)
+
+    return subgraph
+
+async def _run_openai(messages: list[str|_o.ChatMessage]) -> ServiceGraph | None:
     params = _o.ChatCompletionParameters(
         messages=messages,
         model=OPENAI_MODEL,
@@ -100,7 +167,7 @@ async def get_dependencies(filepath: str, contents: str, github_ctx: GithubConte
         # temperature: Optional[float] = None
     )
 
-    PromptStore["get_dependencies"] = params
+    PROMPT_STORE["get_dependencies"] = params
 
     # print(prompt)
 
@@ -112,7 +179,6 @@ async def get_dependencies(filepath: str, contents: str, github_ctx: GithubConte
     except MaxRetryAttemptsReachedError:
         print("WARNING: Max retry attempts reached")
         return None
-
 
     subgraph = ServiceGraph()
 
@@ -157,7 +223,7 @@ async def normalize_services(services: list[OpenAIResponseService]) -> list[Open
         # temperature: Optional[float] = None
     )
 
-    PromptStore["normalize_services"] = params
+    PROMPT_STORE["normalize_services"] = params
 
     try:
         response = await _o.chat_completion(params)

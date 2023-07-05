@@ -1,5 +1,8 @@
+import os
 import eave.stdlib.openai_client as _o
+
 OPENAI_MODEL = _o.OpenAIModel.GPT4
+PROJECT_ROOT = os.environ["EAVE_HOME"]
 
 DIR_EXCLUDES = set([
     r"node_modules",

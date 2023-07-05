@@ -1,58 +1,52 @@
+import argparse
 import asyncio
-from collections import namedtuple
-from dataclasses import dataclass
+import os
 from datetime import datetime
-import textwrap
-import time
-from typing import NamedTuple
+from eave.archer.config import PROJECT_ROOT
+from eave.archer.graph_builder import build_graph
 
-from asyncio.tasks import sleep
-
-from .util import GithubContext
-from .fs_hierarchy import build_hierarchy
-
-from eave.archer.render import clean_fpath, fileout, render_fs_hierarchy, render_root_graph
-from eave.archer.config import OPENAI_MODEL, DIR_EXCLUDES, FILE_INCLUDES
-
-from eave.archer.service_graph import Service, ServiceGraph, build_graph
-from eave.archer.service_dependencies import get_dependencies
+from eave.archer.render import render_fs_hierarchy, render_root_graph, write_graph, write_params
+from eave.archer.service_graph import ServiceGraph
 from eave.archer.service_info import get_services_from_repo
 
-import re
-import os
+from eave.archer.fs_hierarchy import build_hierarchy
+from eave.archer.util import PROMPT_STORE, GithubContext
 
-from eave.stdlib.openai_client import OpenAIModel
 
-async def run(root_dir: str):
-    timestamp = datetime.now()
+async def run():
+    start_timestamp = datetime.now()
 
-    root_hierarchy = build_hierarchy(root=root_dir)
-    print(render_fs_hierarchy(root_hierarchy))
+    root_hierarchy = build_hierarchy(root=PROJECT_ROOT)
+    print(render_fs_hierarchy(hierarchy=root_hierarchy))
 
-    github_ctx = GithubContext(
-        org_name="eave-fyi",
-        repo_name="eave-monorepo"
-    )
+    github_ctx = GithubContext(org_name="eave-fyi", repo_name="eave-monorepo")
 
-    services, messages = await get_services_from_repo(
-        hierarchy=root_hierarchy,
-        github_ctx=github_ctx
-    )
+    services = await get_services_from_repo(hierarchy=root_hierarchy, github_ctx=github_ctx)
 
-    if services:
-        root_graph = ServiceGraph()
-        for service in services:
-            root_graph.add(service)
-            hierarchy = build_hierarchy(root=service.root or root_dir)
-            await build_graph(hierarchy=hierarchy, service=service)
-        rendered_graph = render_root_graph(graph=root_graph)
-        fileout(fname="service_info.md", timestamp=timestamp, messages=messages, rendered_graph=rendered_graph)
-
-    for service in services:
-        await build_graph(hierarchy=root_hierarchy, graph=service.subgraph)
+    root_graph = ServiceGraph()
+    for service in [s for s in services if s.root == "apps/slack"]:
+        root_graph.add(service)
+        # TODO: No need to build the hierarchy twice, share this with the previously built hierarchy
+        hierarchy = build_hierarchy(root=service.full_root or root_hierarchy.root)
+        subgraph = await build_graph(hierarchy=hierarchy, github_ctx=github_ctx)
+        service.subgraph.merge(subgraph)
 
     rendered_graph = render_root_graph(graph=root_graph)
-    fileout(name="service_dependencies.md", messages=messages, rendered_graph=rendered_graph)
+
+    try:
+        write_graph(timestamp=start_timestamp, rendered_graph=rendered_graph)
+        write_params(timestamp=start_timestamp, params=PROMPT_STORE)
+    except Exception:
+        print(rendered_graph)
+        raise
+
+    end_timestamp = datetime.now()
+    duration = end_timestamp - start_timestamp
+    print(f"Duration: {duration.total_seconds()}")
 
 if __name__ == "__main__":
-    asyncio.run(run(os.path.join(os.environ["EAVE_HOME"], "apps", "slack")))
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--start-dir', type=str)
+    # args = parser.parse_args()
+    # print(args)
+    asyncio.run(run())

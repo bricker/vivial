@@ -4,16 +4,17 @@
 
 
 from datetime import datetime
+import json
 import os
-import re
+import sys
+from textwrap import dedent
 import eave.stdlib.openai_client as _o
-from .config import OPENAI_MODEL
 
-from .util import clean_fpath
+from eave.archer.util import clean_fpath
 
-from .fs_hierarchy import FSHierarchy
+from eave.archer.fs_hierarchy import FSHierarchy
 
-from .service_graph import Service, ServiceGraph
+from eave.archer.service_graph import Service, ServiceGraph
 
 _TAB = "    "
 _ARROW = "-->"
@@ -86,7 +87,7 @@ def render_fs_hierarchy(hierarchy: FSHierarchy, ilevel: int = 0) -> str:
     lines.append(f"{_TAB * ilevel}- {fname}")
 
     for dirh in hierarchy.dirs:
-        lines.append(render_fs_hierarchy(dirh, ilevel + 1))
+        lines.append(render_fs_hierarchy(hierarchy=dirh, ilevel=ilevel + 1))
 
     for filename in hierarchy.files:
         fname = clean_fpath(filename)
@@ -95,27 +96,70 @@ def render_fs_hierarchy(hierarchy: FSHierarchy, ilevel: int = 0) -> str:
     out = "\n".join(lines)
     return out
 
-def fileout(fname: str, timestamp: datetime, messages: list[str|_o.ChatMessage], rendered_graph: str) -> None:
-    dateformat = timestamp.strftime("%Y-%m-%d--%H:%M:%S")
+_ts_format = "%Y-%m-%d--%H:%M:%S"
+
+def write_params(timestamp: datetime, params: dict[str, _o.ChatCompletionParameters]) -> None:
+    pdir = _pdir(timestamp)
+    with open(f"{pdir}/params.md", mode="w") as file:
+        for name, p in params.items():
+            file.write(f"### {name}\n\n")
+
+            for m in p.build_messages():
+                file.write(f"#### {m.role}\n\n")
+                file.write("```\n")
+                file.write(m.content)
+                file.write("\n```\n\n")
+
+
+def write_graph(timestamp: datetime, rendered_graph: str) -> None:
+    pdir = _pdir(timestamp)
+
+    with open(f"{pdir}/graph.md", mode="w") as file:
+        file.write("```mermaid\n")
+        file.write(rendered_graph)
+        file.write("\n```")
+
+def _pdir(timestamp: datetime) -> str:
+    dateformat = timestamp.strftime(_ts_format)
     pdir = f".out/{dateformat}"
-    os.makedirs(pdir)
+    os.makedirs(pdir, exist_ok=True)
+    return pdir
 
-    outfile=f"{pdir}/{timestamp}/{fname}"
-    with open(outfile, mode="a") as f:
-        f.write(f"Timestamp: {dateformat}\n\n")
-        f.write(f"Model: {OPENAI_MODEL}")
+"""
+Example Mermaid C4 Content diagram
+https://mermaid.js.org/syntax/c4c.html
+https://github.com/plantuml-stdlib/C4-PlantUML/blob/master/README.md#system-context-system-landscape-diagrams
 
-        f.write("\n\n### Prompt:\n")
-        f.write("```")
+As of July 2023, C4 diagrams in Mermaid are experimental and not viable for this use-case, mostly because of the relationship lines overlapping other shapes.
 
-        for message in messages:
-            role = message.role if isinstance(message, _o.ChatMessage) else _o.ChatRole.USER
-            text = message.content if isinstance(message, _o.ChatMessage) else message
-            f.write(f"{role}: {text}\n\n")
+C4Context
+    title Eave System Architecture
+    System_Boundary(BoundaryGCP, "Google Cloud") {
+        System(SystemCoreAPI, "Eave Core API", "description")
+        System(SystemSlackApp, "Eave Slack App", "description")
+        System(SystemGithubApp, "Eave Github App", "description")
+        System(SystemJiraApp, "Eave Jira App", "description")
+        System(SystemConfluenceApp, "Eave Confluence App", "description")
+        System(SystemWWW, "Eave Website", "description")
+    }
 
-        f.write("```\n\n")
+    System_Boundary(BoundaryExternal, "Third-Party") {
+        System(SystemSlack, "Slack API", "description")
+        System(SystemGithub, "Github API", "description")
+        System(SystemAtlassian, "Atlassian APIs", "description")
+    }
 
-        f.write("### Result\n")
-        f.write("```mermaid\n")
-        f.write(rendered_graph)
-        f.write("\n```")
+
+    BiRel(SystemWWW, SystemCoreAPI, "Reads and writes data")
+    BiRel(SystemSlackApp, SystemCoreAPI, "Reads and writes data")
+    BiRel(SystemGithubApp, SystemCoreAPI, "Reads and writes data")
+    BiRel(SystemJiraApp, SystemCoreAPI, "Reads and writes data")
+    BiRel(SystemConfluenceApp, SystemCoreAPI, "Reads and writes data")
+    BiRel(SystemSlackApp, SystemGithubApp, "Reads and writes data")
+
+    BiRel(SystemCoreAPI, SystemSlack, "Reads and writes data")
+    BiRel(SystemSlackApp, SystemSlack, "Reads and writes data")
+
+    BiRel(SystemConfluenceApp, SystemAtlassian, "Reads and writes data")
+    BiRel(SystemJiraApp, SystemAtlassian, "Reads and writes data")
+"""

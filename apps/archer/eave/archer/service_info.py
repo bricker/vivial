@@ -1,10 +1,11 @@
-import json
-from typing import Tuple
 
-from .render import render_fs_hierarchy
-from .config import OPENAI_MODEL
-from eave.archer.util import GithubContext, PromptStore, get_filename, get_lang
-from eave.archer.service_graph import FSHierarchy, Service, parse_service_response
+import sys
+from eave.archer.fs_hierarchy import FSHierarchy
+from eave.archer.render import render_fs_hierarchy
+from eave.archer.config import OPENAI_MODEL
+from .service_registry import REGISTRY
+from eave.archer.util import GithubContext, PROMPT_STORE
+from eave.archer.service_graph import Service, parse_service_response
 from eave.stdlib.exceptions import MaxRetryAttemptsReachedError
 import eave.stdlib.openai_client as _o
 
@@ -33,7 +34,7 @@ import eave.stdlib.openai_client as _o
 #     print(response)
 #     return response
 
-async def get_services_from_repo(hierarchy: FSHierarchy, github_ctx: GithubContext) -> Tuple[list[Service] | None, list[str|_o.ChatMessage]]:
+async def get_services_from_repo(hierarchy: FSHierarchy, github_ctx: GithubContext) -> list[Service]:
     rendered_hierarchy = render_fs_hierarchy(hierarchy=hierarchy)
 
     messages: list[str | _o.ChatMessage] = [
@@ -57,7 +58,7 @@ async def get_services_from_repo(hierarchy: FSHierarchy, github_ctx: GithubConte
 
             - "service_name": the name that you created for the service
             - "service_description": the description that you wrote for the service
-            - "service_root": The full path to the directory in the provided hierarchy that can be considered the root directory of the service.
+            - "service_root": The path to the directory in the provided hierarchy that can be considered the root directory of the service.
 
             Your full response should be JSON-parseable, so don't respond with something that can't be parsed by a JSON parser.
             """
@@ -70,9 +71,9 @@ async def get_services_from_repo(hierarchy: FSHierarchy, github_ctx: GithubConte
 
             Directory Hierarchy:
             !!!
-            {rendered_hierarchy}
-            !!!
-            """
+            """,
+            rendered_hierarchy,
+            "!!!",
         )),
     ]
 
@@ -80,12 +81,9 @@ async def get_services_from_repo(hierarchy: FSHierarchy, github_ctx: GithubConte
         messages=messages,
         model=OPENAI_MODEL,
         temperature=0,
-        # frequency_penalty: Optional[float] = None
-        # presence_penalty: Optional[float] = None
-        # temperature: Optional[float] = None
     )
 
-    PromptStore["get_services_from_repo"] = params
+    PROMPT_STORE["get_services_from_repo"] = params
 
     try:
         response = await _o.chat_completion(params)
@@ -93,8 +91,11 @@ async def get_services_from_repo(hierarchy: FSHierarchy, github_ctx: GithubConte
         print(response)
         parsed_response = parse_service_response(response)
     except MaxRetryAttemptsReachedError:
-        print("WARNING: Max retry attempts reached")
-        return (None, messages)
+        print("WARNING: Max retry attempts reached", file=sys.stderr)
+        return []
 
 
-    return ([Service(**data) for data in parsed_response], messages)
+    services = [Service(**data) for data in parsed_response]
+    for service in services:
+        REGISTRY.register(service)
+    return services

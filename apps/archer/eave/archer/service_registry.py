@@ -1,4 +1,4 @@
-from .service_graph import Service
+from eave.archer.service_graph import Service
 
 
 class ServiceRegistry:
