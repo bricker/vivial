@@ -106,7 +106,7 @@ export class EaveConfig {
       }
     } else {
       // FIXME: Hardcoded region id (uc)
-      return `${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
+      return `https://${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
     }
 
   }

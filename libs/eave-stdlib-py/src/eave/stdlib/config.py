@@ -156,6 +156,7 @@ class EaveConfig:
             # Internal AppEngine services eave have a specific base URL.
             # FIXME: Hardcoded region ID (uc)
             return (
+                "https://"
                 f"{service.value}"
                 "-dot-"
                 f"{self.google_cloud_project}"
