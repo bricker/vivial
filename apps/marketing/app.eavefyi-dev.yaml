@@ -29,7 +29,6 @@ basic_scaling:
 
 vpc_access_connector:
   name: projects/eavefyi-dev/locations/us-central1/connectors/appengine
-  egress_setting: all-traffic
 
 env_variables:
   EAVE_PUBLIC_APPS_BASE: https://apps.eave.dev
