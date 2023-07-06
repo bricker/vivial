@@ -1,17 +1,21 @@
 from dataclasses import dataclass
 import os
 import re
+from typing import Any, Tuple
 import tiktoken
-from eave.archer.config import PROJECT_ROOT
 import eave.stdlib.openai_client as _o
 
+# TODO: Use https://github.com/github-linguist/linguist/blob/master/lib/linguist/languages.yml
 _ext_to_lang_map = {
-    "py": "python",
-    "ts": "typescript",
-    "js": "javascript",
+    ".py": "python",
+    ".ts": "typescript",
+    ".js": "javascript",
 }
 
-PROMPT_STORE: dict[str, _o.ChatCompletionParameters] = {}
+PROMPT_STORE: dict[str, Tuple[Any, Any]] = {}
+TOTAL_TOKENS = { "value": 0 }
+
+SHARED_JSON_OUTPUT_INSTRUCTIONS = "Your full response should be JSON-parseable, with no indentation or newlines between objects."
 
 @dataclass
 class GithubContext:
@@ -25,8 +29,8 @@ def get_lang(filename: str) -> str | None:
 def get_filename(filepath: str) -> str:
     return os.path.basename(filepath)
 
-def clean_fpath(path: str) -> str:
-    return re.sub(f"^{PROJECT_ROOT}/?", "", path)
+def clean_fpath(path: str, prefix: str = "") -> str:
+    return re.sub(f"^{prefix}/?", "", path)
 
 def get_file_contents(filepath: str) -> str:
     with open(filepath) as file:
@@ -34,10 +38,16 @@ def get_file_contents(filepath: str) -> str:
 
     return contents
 
-def truncate_file_contents_for_model(contents: str, model: _o.OpenAIModel, step: int = 100) -> str:
+def get_tokens(content: str, model: _o.OpenAIModel) -> list[int]:
     encoding = tiktoken.encoding_for_model(model)
+    return encoding.encode(content)
 
-    while len(encoding.encode(contents)) > model.max_tokens:
-        contents = contents[:-step]
+def truncate_file_contents_for_model(file_contents: str, prompt: str, model: _o.OpenAIModel, step: int = 100) -> str:
+    while len(get_tokens(prompt + file_contents, model=model)) > model.max_tokens:
+        file_contents = file_contents[:-step]
 
-    return contents
+    return file_contents
+
+def make_prompt_content(messages: list[str]) -> str:
+    stripped = [m for m in messages if m]
+    return "\n".join(stripped)

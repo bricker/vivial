@@ -8,27 +8,33 @@ import json
 import os
 import sys
 from textwrap import dedent
+from .config import PROJECT_ROOT
 import eave.stdlib.openai_client as _o
 
-from eave.archer.util import clean_fpath
+from eave.archer.util import PROMPT_STORE, TOTAL_TOKENS, clean_fpath, get_tokens
 
 from eave.archer.fs_hierarchy import FSHierarchy
 
 from eave.archer.service_graph import Service, ServiceGraph
 
 _TAB = "    "
+_STAB = "  "
 _ARROW = "-->"
 
 def _gather_services(graph: ServiceGraph, deps: dict[str, Service]) -> None:
     for service in graph.services.values():
-        deps.setdefault(service.id, service)
-        _gather_services(graph=service.subgraph, deps=deps)
+        if service.id not in deps:
+            deps[service.id] = service
+            _gather_services(graph=service.subgraph, deps=deps)
 
 def _render_subgraph(service: Service, ilevel: int) -> str:
     lines = list[str]()
 
     for dep in service.subgraph.services.values():
-        lines.append(_render_subgraph(dep, ilevel))
+        if not dep.visited:
+            dep.visited = True
+            lines.append(_render_subgraph(dep, ilevel))
+
         lines.append(f"{_TAB * ilevel}{service.id}{_ARROW}{dep.id}")
 
     out = "\n".join(lines)
@@ -80,35 +86,50 @@ def render_root_graph(graph: ServiceGraph) -> str:
     out = "\n".join(lines)
     return out
 
-def render_fs_hierarchy(hierarchy: FSHierarchy, ilevel: int = 0) -> str:
+def render_fs_hierarchy(hierarchy: FSHierarchy, parent: FSHierarchy | None = None, ilevel: int = 0) -> str:
     lines = list[str]()
 
-    fname = clean_fpath(hierarchy.root)
-    lines.append(f"{_TAB * ilevel}- {fname}")
+    fname = clean_fpath(hierarchy.root, prefix=parent.root if parent else PROJECT_ROOT) or "(root)"
+    lines.append(f"{_STAB * ilevel}- {fname}")
 
     for dirh in hierarchy.dirs:
-        lines.append(render_fs_hierarchy(hierarchy=dirh, ilevel=ilevel + 1))
+        lines.append(render_fs_hierarchy(hierarchy=dirh, parent=hierarchy, ilevel=ilevel + 1))
 
     for filename in hierarchy.files:
-        fname = clean_fpath(filename)
-        lines.append(f"{_TAB * (ilevel + 1)}- {fname}")
+        fname = clean_fpath(filename, prefix=hierarchy.root)
+        lines.append(f"{_STAB * (ilevel + 1)}- {fname}")
 
     out = "\n".join(lines)
     return out
 
 _ts_format = "%Y-%m-%d--%H:%M:%S"
 
-def write_params(timestamp: datetime, params: dict[str, _o.ChatCompletionParameters]) -> None:
+def write_openai_request(timestamp: datetime, filename: str, key: str) -> None:
+    values = PROMPT_STORE[key]
     pdir = _pdir(timestamp)
-    with open(f"{pdir}/params.md", mode="w") as file:
-        for name, p in params.items():
-            file.write(f"### {name}\n\n")
 
-            for m in p.build_messages():
-                file.write(f"#### {m.role}\n\n")
-                file.write("```\n")
-                file.write(m.content)
-                file.write("\n```\n\n")
+    with open(f"{pdir}/{filename}", mode="w") as file:
+        file.write("\n\n### Request\n\n")
+        file.write("```json\n")
+        file.write(json.dumps(values[0].compile(), indent=2))
+        file.write("\n```\n\n")
+
+        file.write("#### Response\n\n")
+        file.write("```json\n")
+        file.write(json.dumps(values[1], indent=2))
+        file.write("\n```\n\n")
+        file.write("---\n\n")
+
+def write_hierarchy(timestamp: datetime, hierarchy: FSHierarchy, model: _o.OpenAIModel) -> None:
+    pdir = _pdir(timestamp)
+    rendered_hierarchy = render_fs_hierarchy(hierarchy=hierarchy).strip()
+    tokenlen = len(get_tokens(rendered_hierarchy, model))
+
+    with open(f"{pdir}/hierarchy.md", mode="w") as file:
+        file.write("```\n")
+        file.write(rendered_hierarchy)
+        file.write("\n```")
+        file.write(f"\nTokens: {tokenlen}")
 
 
 def write_graph(timestamp: datetime, rendered_graph: str) -> None:
@@ -116,8 +137,19 @@ def write_graph(timestamp: datetime, rendered_graph: str) -> None:
 
     with open(f"{pdir}/graph.md", mode="w") as file:
         file.write("```mermaid\n")
-        file.write(rendered_graph)
+        file.write(rendered_graph.strip())
         file.write("\n```")
+
+def write_run_info(timestamp: datetime) -> None:
+    delta = datetime.now() - timestamp
+    duration = delta.total_seconds()
+    pdir = _pdir(timestamp)
+
+    with open(f"{pdir}/run_info.md", mode="w") as file:
+        file.write(f"Total tokens: {TOTAL_TOKENS}\n\n")
+        file.write(f"Duration: {duration}\n\n")
+
+    print("duration=", duration, "tokens=", TOTAL_TOKENS["value"])
 
 def _pdir(timestamp: datetime) -> str:
     dateformat = timestamp.strftime(_ts_format)

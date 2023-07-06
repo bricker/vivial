@@ -6,8 +6,8 @@ from .config import DIR_EXCLUDES, FILE_INCLUDES, OPENAI_MODEL
 
 from eave.archer.file_contents import get_file_contents, truncate_file_contents_for_model
 from eave.archer.service_graph import Service, ServiceGraph, ServiceRegistry
-from eave.archer.service_dependencies import get_dependencies
-from eave.archer.service_info import get_service_info_from_code
+from eave.archer.prompts.service_dependencies import get_dependencies
+from eave.archer.prompts.service_info import get_service_info_from_code
 
 import re
 import os

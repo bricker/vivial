@@ -2,7 +2,7 @@
 import os
 import re
 
-from eave.archer.config import DIR_EXCLUDES, FILE_INCLUDES
+from eave.archer.config import EXCLUDES
 
 
 class FSHierarchy:
@@ -20,10 +20,11 @@ def build_hierarchy(root: str) -> FSHierarchy:
 
     for dirent in os.scandir(path=root):
         path = os.path.join(root, dirent.name)
-        if dirent.is_dir(follow_symlinks=False) and not any([re.search(e, path) for e in DIR_EXCLUDES]):
-            child_hierarchy = build_hierarchy(root=path)
-            hierarchy.dirs.append(child_hierarchy)
-        elif dirent.is_file() and any([re.search(e, path) for e in FILE_INCLUDES]):
-            hierarchy.files.append(path)
+        if not any([re.search(e, path) for e in EXCLUDES]):
+            if dirent.is_dir(follow_symlinks=False):
+                child_hierarchy = build_hierarchy(root=path)
+                hierarchy.dirs.append(child_hierarchy)
+            elif dirent.is_file():
+                hierarchy.files.append(path)
 
     return hierarchy

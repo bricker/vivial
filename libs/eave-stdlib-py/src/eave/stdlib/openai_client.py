@@ -132,12 +132,7 @@ def ensure_api_key() -> None:
         openai_sdk.organization = shared_config.eave_openai_api_org
 
 
-async def chat_completion(params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None) -> Optional[str]:
-    """
-    https://beta.openai.com/docs/api-reference/completions/create
-    baseTimeoutSeconds is multiplied by (2^n) for each attempt n
-    """
-
+async def chat_completion_full_response(params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None) -> Optional[openai.openai_object.OpenAIObject]:
     ensure_api_key()
 
     eave_ctx = LogContext.wrap(ctx)
@@ -176,13 +171,33 @@ async def chat_completion(params: ChatCompletionParameters, baseTimeoutSeconds: 
         raise MaxRetryAttemptsReachedError("OpenAI")
 
     response = cast(openai.openai_object.OpenAIObject, response)
+    return response
+
+async def chat_completion(params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None) -> Optional[str]:
+    """
+    https://beta.openai.com/docs/api-reference/completions/create
+    baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+    """
+
+    response = await chat_completion_full_response(params=params, baseTimeoutSeconds=baseTimeoutSeconds, ctx=ctx)
+    if response is None:
+        return None
+
+    answer = get_choice_content(response=response, ctx=ctx)
+    return answer
+
+def get_choice_content(response: openai.openai_object.OpenAIObject, ctx: Optional[LogContext] = None) -> Optional[str]:
+    eave_ctx = LogContext.wrap(ctx)
+
     candidates = [c for c in response.choices if c["finish_reason"] == "stop"]
 
     if len(candidates) > 0:
         choice = candidates[0]
     else:
         eaveLogger.warning(
-            f"No valid choices from openAI; using the first result. {openai_request_id}", eave_ctx, log_params
+            "No valid choices from openAI; using the first result.",
+            {"openai_response": cast(JsonObject, response)},
+            eave_ctx,
         )
         if len(response.choices) > 0:
             choice = response.choices[0]
@@ -191,7 +206,6 @@ async def chat_completion(params: ChatCompletionParameters, baseTimeoutSeconds: 
 
     answer = str(choice.message.content).strip()
     return answer
-
 
 # def get_embedding(text, model=OpenAIModel.ADA_EMBEDDING):
 #     text = text.replace("\n", " ")
@@ -205,4 +219,4 @@ async def chat_completion(params: ChatCompletionParameters, baseTimeoutSeconds: 
 
 
 def formatprompt(*strings: str) -> str:
-    return "\n\n".join([textwrap.dedent(string) for string in strings])
+    return "\n\n".join([textwrap.dedent(string).strip() for string in strings])

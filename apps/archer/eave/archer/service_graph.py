@@ -48,7 +48,7 @@ class ServiceGraph:
     def __init__(self) -> None:
         self.services = {}
 
-    def add(self, service) -> None:
+    def add(self, service: Service) -> None:
         self.services.setdefault(service.id, service)
 
     def merge(self, other: "ServiceGraph") -> None:
