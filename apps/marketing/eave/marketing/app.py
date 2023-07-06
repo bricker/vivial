@@ -153,9 +153,6 @@ def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegratio
     access_token = eave_response.account.access_token
     del eave_response.account.access_token
 
-    if shared_config.eave_beta_whitelist_disabled:
-        eave_response.team.beta_whitelisted = True
-
     response = _json_response(body=eave_response.json())
 
     eave.stdlib.cookies.set_auth_cookies(

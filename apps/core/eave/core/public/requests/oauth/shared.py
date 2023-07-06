@@ -11,6 +11,7 @@ import eave.stdlib.slack
 import eave.stdlib.cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
+import eave.stdlib.config
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -59,6 +60,9 @@ def cancel_flow(response: Response) -> Response:
 
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
+    if eave.stdlib.config.shared_config.eave_beta_whitelist_disabled:
+        return True
+
     if email:
         beta_prewhitelist = eave.core.internal.app_config.eave_beta_prewhitelisted_emails
         return email in beta_prewhitelist
