@@ -108,7 +108,6 @@ export class EaveConfig {
       // FIXME: Hardcoded region id (uc)
       return `https://${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
     }
-
   }
 
   get eaveCookieDomain(): string {
