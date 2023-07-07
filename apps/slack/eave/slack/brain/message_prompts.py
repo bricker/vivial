@@ -116,7 +116,7 @@ async def message_action(context: str, ctx: Optional[LogContext] = None) -> Mess
 
 async def _get_openai_response(messages: list[str], temperature: int) -> str:
     params = eave_openai.ChatCompletionParameters(
-        model=eave_openai.OpenAIModel.GPT_35_TURBO_16K,
+        model=eave_openai.OpenAIModel.GPT4,
         messages=messages,
         temperature=temperature,
     )

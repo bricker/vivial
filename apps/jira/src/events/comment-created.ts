@@ -133,7 +133,7 @@ async function getSearchQuery({ comment, openaiClient, ctx }: { comment: string,
       messages: [
         { role: 'user', content: prompt },
       ],
-      model: OpenAIModel.GPT_35_TURBO_16K,
+      model: OpenAIModel.GPT4,
     },
     ctx,
   });
@@ -155,7 +155,7 @@ async function getIntent({ comment, openaiClient, ctx }: { comment: string, open
       messages: [
         { role: 'user', content: prompt },
       ],
-      model: OpenAIModel.GPT_35_TURBO_16K,
+      model: OpenAIModel.GPT4,
     },
     ctx,
   });
