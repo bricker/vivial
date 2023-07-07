@@ -17,9 +17,6 @@ export const app = express();
 export const addon = ace(app, {
   config: {
     descriptorTransformer: (descriptor, config): any => {
-      descriptor.key = eaveConfig.eaveJiraAppKey;
-      descriptor.name = eaveConfig.eaveJiraAppName;
-
       if (config.environment() === 'production') {
         descriptor.baseUrl = `${eaveConfig.eavePublicAppsBase}/jira`;
       }

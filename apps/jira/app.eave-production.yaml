@@ -23,8 +23,6 @@ vpc_access_connector:
   name: projects/eave-production/locations/us-central1/connectors/appengine
 
 env_variables:
-  EAVE_JIRA_APP_KEY: "eave-jira"
-  EAVE_JIRA_APP_NAME: "Eave"
   LOG_LEVEL: "DEBUG"
   REDIS_CONNECTION: "10.81.236.179:6378:0"
   REDIS_TLS_CA: |-
