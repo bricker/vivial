@@ -56,7 +56,7 @@ async def make_request(
     if account_id:
         headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
 
-    signature_message = build_message_to_sign(
+    signature_message = signing.build_message_to_sign(
         method=method,
         url=url,
         request_id=request_id,
@@ -114,37 +114,3 @@ async def make_request(
 
     response.raise_for_status()
     return response
-
-
-def makeurl(path: str, base: Optional[str] = None) -> str:
-    if not base:
-        base = shared_config.eave_public_api_base
-    return urllib.parse.urljoin(base, path)
-
-
-def build_message_to_sign(
-    method: str,
-    url: str,
-    request_id: uuid.UUID | str,
-    origin: EaveOrigin | str,
-    payload: str,
-    team_id: Optional[uuid.UUID | str],
-    account_id: Optional[uuid.UUID | str],
-) -> str:
-    signature_elements: list[str] = [
-        origin,
-        method,
-        url,
-        str(request_id),
-        payload,
-    ]
-
-    if team_id:
-        signature_elements.append(str(team_id))
-
-    if account_id:
-        signature_elements.append(str(account_id))
-
-    signature_message = ":".join(signature_elements)
-
-    return signature_message

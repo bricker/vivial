@@ -48,7 +48,7 @@ class EventsEndpointTest(BaseTestCase):
         request_body = self.anydict()
         eave_request_id = self.anystring("eave request id")
         origin = EaveOrigin.eave_slack_app
-        signature_message = eave.stdlib.requests.build_message_to_sign(
+        signature_message = eave.stdlib.signing.build_message_to_sign(
             method="POST",
             origin=origin,
             request_id=eave_request_id,

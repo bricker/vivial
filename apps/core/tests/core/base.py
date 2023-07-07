@@ -183,9 +183,9 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         if "eave-signature" not in headers:
             origin = origin or eave.stdlib.eave_origins.EaveOrigin.eave_www
-            signature_message = eave.stdlib.requests.build_message_to_sign(
+            signature_message = eave.stdlib.signing.build_message_to_sign(
                 method=method,
-                url=eave.stdlib.requests.makeurl(path),
+                url=f"{eave.core.internal.app_config.eave_public_api_base}{path}",
                 origin=origin,
                 payload=encoded_payload,
                 request_id=request_id,

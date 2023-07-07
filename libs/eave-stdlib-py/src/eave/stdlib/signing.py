@@ -3,6 +3,7 @@ import enum
 import hashlib
 from dataclasses import dataclass
 from typing import Literal, Optional, cast
+import uuid
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
@@ -207,3 +208,30 @@ def preload_public_keys() -> None:
     """
     for signing_key in _SIGNING_KEYS.values():
         _PUBLIC_KEYS_CACHE[signing_key] = _fetch_public_key(signing_key)
+
+def build_message_to_sign(
+    method: str,
+    url: str,
+    request_id: uuid.UUID | str,
+    origin: EaveOrigin | str,
+    payload: str,
+    team_id: Optional[uuid.UUID | str],
+    account_id: Optional[uuid.UUID | str],
+) -> str:
+    signature_elements: list[str] = [
+        origin,
+        method,
+        url,
+        str(request_id),
+        payload,
+    ]
+
+    if team_id:
+        signature_elements.append(str(team_id))
+
+    if account_id:
+        signature_elements.append(str(account_id))
+
+    signature_message = ":".join(signature_elements)
+
+    return signature_message

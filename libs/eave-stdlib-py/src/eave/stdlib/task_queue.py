@@ -102,7 +102,7 @@ async def create_task(
     headers["content-type"] = "application/json"
 
     request_id = ctx.eave_request_id
-    signature_message = eave.stdlib.requests.build_message_to_sign(
+    signature_message = signing.build_message_to_sign(
         method="POST",
         origin=origin.value,
         request_id=request_id,

@@ -273,3 +273,38 @@ export default class Signing {
     return result;
   }
 }
+
+export function buildMessageToSign({
+  method,
+  url,
+  requestId,
+  origin,
+  payload,
+  teamId,
+  accountId,
+}: {
+  method: string,
+  url: string,
+  requestId: string,
+  origin: EaveOrigin | string,
+  payload: string,
+  teamId?: string,
+  accountId?: string,
+}): string {
+  const signatureElements = [
+    origin,
+    method.toUpperCase(),
+    url,
+    requestId,
+    payload,
+  ];
+
+  if (teamId !== undefined) {
+    signatureElements.push(teamId);
+  }
+  if (accountId !== undefined) {
+    signatureElements.push(accountId);
+  }
+
+  return signatureElements.join(':');
+}

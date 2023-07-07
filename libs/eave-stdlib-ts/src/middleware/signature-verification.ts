@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import eaveHeaders from '../headers.js';
 import { developmentBypassAllowed } from './development-bypass.js';
-import { buildMessageToSign } from '../requests.js';
-import Signing from '../signing.js';
+import Signing, { buildMessageToSign } from '../signing.js';
 import eaveLogger, { LogContext } from '../logging.js';
 
 /**
