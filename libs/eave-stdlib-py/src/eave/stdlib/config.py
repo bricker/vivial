@@ -237,8 +237,11 @@ class EaveConfig:
 
     @property
     def eave_slack_app_id(self) -> str:
-        # TODO: Change this secret or metadata
-        return os.getenv("EAVE_SLACK_APP_ID", "A04HD948UHE")  # This is the production ID, and won't change.
+        try:
+            return self.get_secret("EAVE_SLACK_APP_ID")
+        except Exception:
+            # Fallback to the production ID, which won't change.
+            return "A04HD948UHE"
 
     @cached_property
     def eave_slack_client_id(self) -> str:
