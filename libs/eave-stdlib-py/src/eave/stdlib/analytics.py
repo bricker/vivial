@@ -30,8 +30,8 @@ def log_event(
 ) -> None:
     ctx = _l.LogContext.wrap(ctx)
 
-    serialized_account = eave_account.json() if eave_account else None
-    serialized_team = eave_team.json() if eave_team else None
+    # serialized_account = eave_account.json() if eave_account else None
+    # serialized_team = eave_team.json() if eave_team else None
     serialized_params = _safe_serialize(opaque_params, ctx)
     serialized_context = _safe_serialize(ctx, ctx)
 
@@ -46,8 +46,8 @@ def log_event(
         opaque_params=serialized_params,
         event_ts=event_ts if event_ts else time.time(),
         opaque_eave_ctx=serialized_context,
-        eave_account=serialized_account,
-        eave_team=serialized_team,
+        # eave_account=serialized_account,
+        # eave_team=serialized_team,
     )
 
     client = PublisherClient()
