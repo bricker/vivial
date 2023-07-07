@@ -65,6 +65,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
     payload,
     teamId,
     accountId,
+    ctx,
   });
 
   const signing = Signing.new(origin);

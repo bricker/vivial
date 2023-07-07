@@ -54,6 +54,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             team_id=team_id_header,
             account_id=account_id_header,
             payload=payload,
+            ctx=eave_state.ctx,
         )
 
         signing_key = signing.get_key(signer=unwrap(eave_state.ctx.eave_origin))

@@ -56,6 +56,7 @@ async function doSignatureVerification(req: Request, res: Response): Promise<boo
     payload,
     teamId,
     accountId,
+    ctx,
   });
 
   const signing = Signing.new(origin);

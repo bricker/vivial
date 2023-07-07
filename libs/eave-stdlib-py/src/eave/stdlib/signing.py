@@ -217,6 +217,7 @@ def build_message_to_sign(
     payload: str,
     team_id: Optional[uuid.UUID | str],
     account_id: Optional[uuid.UUID | str],
+    ctx: Optional[LogContext] = None,
 ) -> str:
     signature_elements: list[str] = [
         origin,
@@ -234,4 +235,5 @@ def build_message_to_sign(
 
     signature_message = ":".join(signature_elements)
 
+    eaveLogger.debug("signature message", ctx, { "signature_message": signature_message })
     return signature_message

@@ -64,6 +64,7 @@ async def make_request(
         team_id=team_id,
         account_id=account_id,
         payload=payload,
+        ctx=ctx,
     )
 
     signature = signing.sign_b64(
