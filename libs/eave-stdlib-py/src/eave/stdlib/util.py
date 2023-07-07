@@ -179,9 +179,11 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
 def redact(string: str | None) -> str | None:
     if string is None:
         return None
-    if len(string) <= 8:
-        return "(redacted)"
-    return f"{string[:4]}..(redacted)..{string[-4:]}"
+
+    strlen = len(string)
+    if strlen <= 8:
+        return f"[redacted {strlen} chars]"
+    return f"{string[:4]}[redacted {strlen - 8} chars]{string[-4:]}"
 
 
 def erasetype(data: JsonObject, key: str, default: Optional[Any] = None) -> Any:
