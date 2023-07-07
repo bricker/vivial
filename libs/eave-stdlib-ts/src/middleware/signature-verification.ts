@@ -3,6 +3,7 @@ import eaveHeaders from '../headers.js';
 import { developmentBypassAllowed } from './development-bypass.js';
 import Signing, { buildMessageToSign } from '../signing.js';
 import eaveLogger, { LogContext } from '../logging.js';
+import { constructUrl } from '../api-util.js';
 
 /**
  * Reads the body and headers and verifies the signature.
@@ -37,7 +38,6 @@ async function doSignatureVerification(req: Request, res: Response): Promise<boo
   const teamId = req.header(eaveHeaders.EAVE_TEAM_ID_HEADER);
   const accountId = req.header(eaveHeaders.EAVE_ACCOUNT_ID_HEADER);
   const origin = ctx.eave_origin!;
-  const audience = req.header(eaveHeaders.HOST);
 
   // let serializedBody;
   // if (typeof req.body === 'string' || req.body instanceof Buffer) {
@@ -50,7 +50,7 @@ async function doSignatureVerification(req: Request, res: Response): Promise<boo
 
   const message = buildMessageToSign({
     method: req.method,
-    url: `${audience}${req.originalUrl}`,
+    url: constructUrl(req),
     requestId: ctx.eave_request_id,
     origin,
     payload,

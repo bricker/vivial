@@ -90,22 +90,10 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
   return logHeaders;
 }
 
-// def get_headers(
-//   scope: HTTPScope, excluded: Optional[list[str]] = None, redacted: Optional[list[str]] = None
-// ) -> dict[str, str]:
-//   """
-//   This function doesn't support multiple headers with the same name.
-//   It will always choose the "first" one (from whatever order the ASGI server sent).
-//   See here for details about the scope["headers"] object:
-//   https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
-//   """
-//   if excluded is None:
-//       excluded = []
-//   if redacted is None:
-//       redacted = []
+export function constructUrl(req: Request): string {
+  const protocol = req.protocol;
+  const audience = req.header(headers.HOST);
+  const path = req.originalUrl;
 
-//   return {
-//       n.decode(): (v.decode() if n.decode().lower() not in redacted else redact(v.decode()))
-//       for [n, v] in scope["headers"]
-//       if n.decode().lower() not in excluded
-//   }
+  return `${protocol}://${audience}${path}`;
+}
