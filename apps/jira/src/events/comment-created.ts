@@ -9,7 +9,7 @@ import * as schemas from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event
 import { ADFLinkMark, ADFMentionNode, ADFNode, ADFRootNode, ADFTextNode, ADFBlockNodeType, ADFInlineNodeType, ADFParagraphNode, ADFMarkType, ADFListItemNode, ADFChildBlockNodeType, ADFBulletListNode } from '@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js';
 import appConfig from '../config.js';
 import JiraClient from '../jira-client.js';
-import { JiraCommentCreatedEventPayload } from '../types.js';
+import { JiraCommentCreatedEventPayload, JiraUser } from '../types.js';
 
 const ACCOUNT_ID_RE = /\[~accountid:(.+?)\]/ig;
 
@@ -41,7 +41,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
 
   const eaveMentioned = await Promise.any(mentionAccountIds.map(async (match) => {
     const user = await jiraClient.getUser({ accountId: match[1]! });
-    if (user?.accountType === 'app' && user?.displayName === 'Eave for Jira') {
+    if (isEave(user)) {
       return true;
     }
     return false;
@@ -244,4 +244,9 @@ function buildEaveResponse({ searchResults, payload }: { searchResults: SearchDo
   };
 
   return commentDoc;
+}
+
+function isEave(user?: JiraUser) {
+  // HACK: Use account ID instead of matching on displayName
+  return user && user.accountType === 'app' && user.displayName?.match('Eave');
 }
