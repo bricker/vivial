@@ -276,13 +276,15 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             Newer messages are more relevant and should be weighted higher.
             If the newest message is asking about a specific topic, that is very important and should be your main focus.
 
+            Do not include any quotes or other punctuation in your response.
+
             Examples:
             ###
-            Message: "We have to talk about jelly beans!"
-            Response: "jelly beans"
+            Message: We have to talk about jelly beans!
+            Response: jelly beans
 
-            Message: "The international space station is so close to earth. I wonder if that is documented anywhere."
-            Response: "international space station"
+            Message: The international space station is so close to earth. I wonder if that is documented anywhere.
+            Response: international space station
             ###
 
             Conversation:
