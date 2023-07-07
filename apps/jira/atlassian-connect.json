@@ -30,7 +30,7 @@
         ]
     },
     "links": {
-        "self": "{{localBaseUrl}}/jira/atlassian-connect.json",
+        "self": "{{localBaseUrl}}/atlassian-connect.json",
         "website": "https://www.eave.fyi"
     }
 

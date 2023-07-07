@@ -247,6 +247,5 @@ function buildEaveResponse({ searchResults, payload }: { searchResults: SearchDo
 }
 
 function isEave(user?: JiraUser) {
-  // HACK: Use account ID instead of matching on displayName
-  return user && user.accountType === 'app' && user.displayName?.match('Eave');
+  return user && user.accountId === appConfig.eaveJiraAppAccountId;
 }
