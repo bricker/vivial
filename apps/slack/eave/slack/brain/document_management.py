@@ -270,11 +270,20 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
         prompt = eave.stdlib.openai_client.formatprompt(
             f"""
-            Extract a key term or phrase from this conversation that can be used as a full-text search query to find relevant documentation.
+            Extract a key term (1-3 words) from this conversation that can be used as a full-text search query to find relevant documentation.
 
             {message_prompts.CONVO_STRUCTURE}
             Newer messages are more relevant and should be weighted higher.
             If the newest message is asking about a specific topic, that is very important and should be your main focus.
+
+            Examples:
+            ###
+            Message: "We have to talk about jelly beans!"
+            Response: "jelly beans"
+
+            Message: "The international space station is so close to earth. I wonder if that is documented anywhere."
+            Response: "international space station"
+            ###
 
             Conversation:
             ###
