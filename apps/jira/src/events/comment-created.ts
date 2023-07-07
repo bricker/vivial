@@ -120,8 +120,15 @@ function cleanCommentBody(comment: string): string {
 
 async function getSearchQuery({ comment, openaiClient, ctx }: { comment: string, openaiClient: OpenAIClient, ctx: LogContext }): Promise<string> {
   const prompt = [
-    'Extract a key term or phrase from this message that can be used as a full-text search query to find relevant documentation.',
+    'Extract a key term (1-3 words) from this message that can be used as a full-text search query to find relevant documentation.',
     'Do not include any quotes or other punctuation.',
+    'Examples:',
+    '###',
+    'Message: "Is there any documentation about jelly beans?"',
+    'Response: "jelly beans"',
+    'Message: "do you have information about the space station or space ships?"',
+    'Response: "space ships"',
+    '###',
     'Message:',
     '###',
     comment,
