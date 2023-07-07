@@ -69,13 +69,12 @@ def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.
 def construct_url(scope: HTTPScope) -> str:
     """
     Constructs the request URL from these components:
-    - scheme
+    - scheme (hardcoded to https)
     - host header (may include port)
     - path
     """
 
-    scheme = scope["scheme"]
     path = scope["path"]
     host = get_header_value(scope=scope, name=HOST)
 
-    return f"{scheme}://{host}{path}"
+    return f"https://{host}{path}"

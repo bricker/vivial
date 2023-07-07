@@ -91,9 +91,8 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
 }
 
 export function constructUrl(req: Request): string {
-  const protocol = req.protocol;
   const audience = req.header(headers.HOST);
   const path = req.originalUrl;
 
-  return `${protocol}://${audience}${path}`;
+  return `https://${audience}${path}`;
 }
