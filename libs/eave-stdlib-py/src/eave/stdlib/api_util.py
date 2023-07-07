@@ -78,4 +78,4 @@ def construct_url(scope: HTTPScope) -> str:
     path = scope["path"]
     host = get_header_value(scope=scope, name=HOST)
 
-    return f"{scheme}{host}{path}"
+    return f"{scheme}://{host}{path}"
