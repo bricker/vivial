@@ -67,6 +67,12 @@ def log_event(
             {"pubsub": {"event": str(data)}},
         )
     else:
+        _l.eaveLogger.debug(
+            "Publishing analytics event",
+            ctx,
+            {"pubsub": {"event": str(data)}},
+        )
+
         client.publish(topic_path, data)
 
 
