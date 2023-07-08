@@ -17,7 +17,7 @@ class CommunicationMixin(Base):
         if opaque_params is None:
             opaque_params = {}
 
-        self.log_event(
+        await self.log_event(
             event_name="eave_sent_message",
             event_description="Eave sent a message",
             opaque_params={
@@ -57,7 +57,7 @@ class CommunicationMixin(Base):
                 # Exception already logged.
                 return
 
-        self.log_event(
+        await self.log_event(
             event_name="eave_acknowledged_receipt",
             event_description="Eave acknowledged that she received a message",
             opaque_params={

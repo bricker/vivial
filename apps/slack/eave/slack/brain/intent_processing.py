@@ -53,7 +53,7 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
             self.eave_ctx,
             {"message": self.message.text},
         )
-        self.log_event(
+        await self.log_event(
             event_name="eave_received_unknown_request",
             event_description="Eave received a request that she didn't know how to handle.",
         )
@@ -103,7 +103,7 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
             ),
         )
 
-        self.log_event(
+        await self.log_event(
             event_name="eave_unwatched_conversation",
             event_description="Eave stopped watching a conversation",
         )

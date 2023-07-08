@@ -123,7 +123,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                                 f"A {connect_install.product} connect integration for org {connect_install.org_url} already exists for a different team",
                                 self.eave_state.ctx,
                             )
-                            eave.stdlib.analytics.log_event(
+                            await eave.stdlib.analytics.log_event(
                                 event_name="duplicate_integration_attempt",
                                 eave_account=self.eave_account.analytics_model,
                                 eave_team=self.eave_team.analytics_model,
@@ -140,7 +140,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                             connect_install.team_id = self.eave_account.team_id
                             await self._update_eave_team_document_platform(session=db_session)
 
-                            eave.stdlib.analytics.log_event(
+                            await eave.stdlib.analytics.log_event(
                                 event_name="eave_application_integration",
                                 event_description="An integration was added for a team",
                                 event_source="core api atlassian oauth",
@@ -207,7 +207,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                         space_key=space_key,
                     )
 
-                    eave.stdlib.analytics.log_event(
+                    await eave.stdlib.analytics.log_event(
                         event_name="default_confluence_space_used",
                         event_description="A team's confluence space was set automatically",
                         event_source="core api atlassian oauth",

@@ -2,9 +2,10 @@ import json
 import time
 import typing
 
+from google.pubsub_v1 import PublisherAsyncClient, PubsubMessage
+
 import eave.stdlib
 import eave.pubsub_schemas
-from google.cloud.pubsub import PublisherClient
 from google.pubsub_v1.types import Encoding
 from eave.stdlib.core_api.models.account import AnalyticsAccount
 
@@ -17,8 +18,9 @@ from . import logging as _l
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event_topic"
 
+client = PublisherAsyncClient()
 
-def log_event(
+async def log_event(
     event_name: str,
     event_description: typing.Optional[str] = None,
     event_source: typing.Optional[str] = None,
@@ -30,8 +32,8 @@ def log_event(
 ) -> None:
     ctx = _l.LogContext.wrap(ctx)
 
-    # serialized_account = eave_account.json() if eave_account else None
-    # serialized_team = eave_team.json() if eave_team else None
+    serialized_account = eave_account.json() if eave_account else None
+    serialized_team = eave_team.json() if eave_team else None
     serialized_params = _safe_serialize(opaque_params, ctx)
     serialized_context = _safe_serialize(ctx, ctx)
 
@@ -46,15 +48,12 @@ def log_event(
         opaque_params=serialized_params,
         event_ts=event_ts if event_ts else time.time(),
         opaque_eave_ctx=serialized_context,
-        # eave_account=serialized_account,
-        # eave_team=serialized_team,
+        eave_account=serialized_account,
+        eave_team=serialized_team,
     )
 
-    client = PublisherClient()
-
     topic_path = client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
-
-    topic = client.get_topic(request={"topic": topic_path})
+    topic = await client.get_topic(request={"topic": topic_path})
     encoding = topic.schema_settings.encoding
     assert encoding == Encoding.BINARY, "schema encoding misconfigured"
 
@@ -73,7 +72,18 @@ def log_event(
             {"pubsub": {"event": str(data)}},
         )
 
-        client.publish(topic_path, data)
+        result = await client.publish(topic=topic_path, messages=[PubsubMessage(data=data)])
+
+        _l.eaveLogger.debug(
+            "Analytics event published",
+            ctx,
+            {"pubsub":
+                {
+                    "event": str(data),
+                    "result": list(result.message_ids),
+                }
+            },
+        )
 
 
 def _safe_serialize(data: JsonObject | None, ctx: _l.LogContext) -> str | None:

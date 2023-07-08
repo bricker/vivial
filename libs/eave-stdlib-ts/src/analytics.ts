@@ -27,13 +27,14 @@ export async function logEvent(event: schemas.EaveEvent, ctx?: LogContext) {
   event.eave_env = sharedConfig.eaveEnv;
   event.event_ts = new Date().getTime();
 
+  const jsonEvent = <JsonObject>schemas.EaveEvent.toJSON(event);
   const protoMessage = schemas.EaveEvent.encode(event).finish();
 
   if (sharedConfig.analyticsEnabled) {
+    eaveLogger.debug('Publishing analytics event', ctx, { pubsub: { event: jsonEvent } });
     const messageId = await topic.publishMessage({ data: protoMessage });
-    eaveLogger.debug(`published message to pubsub ${messageId}`, ctx);
+    eaveLogger.debug('Analytics event published', ctx, { pubsub: { event: jsonEvent, result: [messageId] } });
   } else {
-    const serializedEvent = <JsonObject>schemas.EaveEvent.toJSON(event);
-    eaveLogger.warning('Analytics disabled', { event: serializedEvent }, ctx);
+    eaveLogger.warning('Analytics disabled', { event: jsonEvent }, ctx);
   }
 }

@@ -56,7 +56,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             if existing_document_reference is None:
                 document_metadata = await destination.create_document(input=input.document, ctx=eave_state.ctx)
 
-                eave.stdlib.analytics.log_event(
+                await eave.stdlib.analytics.log_event(
                     event_name="eave_created_documentation",
                     event_description="Eave created some documentation",
                     event_source="upsert document endpoint",
@@ -90,7 +90,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
                     ctx=eave_state.ctx,
                 )
 
-                eave.stdlib.analytics.log_event(
+                await eave.stdlib.analytics.log_event(
                     event_name="eave_updated_documentation",
                     event_description="Eave updated some existing documentation",
                     event_source="upsert document endpoint",
@@ -144,7 +144,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
 
         search_results = await destination.search_documents(query=input.query, ctx=eave_state.ctx)
 
-        eave.stdlib.analytics.log_event(
+        await eave.stdlib.analytics.log_event(
             event_name="eave_searched_documentation",
             event_description="Eave searched for documentation",
             event_source="search documents endpoint",
@@ -197,7 +197,7 @@ class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
             await db_session.flush()
             await db_session.delete(document_reference)
 
-        eave.stdlib.analytics.log_event(
+        await eave.stdlib.analytics.log_event(
             event_name="eave_delete_documentation",
             event_description="Eave deleted for documentation",
             event_source="delete document endpoint",

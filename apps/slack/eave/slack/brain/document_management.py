@@ -80,7 +80,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             eave_message_purpose="link to initial documentation",
         )
 
-        self.log_event(
+        await self.log_event(
             event_name="eave_created_documentation",
             event_description="Eave created a new document",
             opaque_params={
@@ -315,7 +315,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
         if len(response.documents) == 0:
-            self.log_event(
+            await self.log_event(
                 event_name="no_search_results",
                 event_description="Eave returned no search results",
                 opaque_params={
@@ -323,7 +323,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 },
             )
         else:
-            self.log_event(
+            await self.log_event(
                 event_name="search_results",
                 event_description="Eave returned search results",
                 opaque_params={

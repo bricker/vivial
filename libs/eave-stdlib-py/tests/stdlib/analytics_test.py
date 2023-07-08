@@ -52,7 +52,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.mocks_publisher.assert_called_with(self.data_expected_topic_path, self.data_expected_event.SerializeToString())
 
     async def test_basic_publish_with_all_parameters(self):
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
@@ -81,7 +81,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_basic_publish_with_uuid_parameters(self):
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
@@ -109,7 +109,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_publish_with_minimal_params(self):
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
@@ -141,7 +141,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
         ctx = _l.LogContext()
 
-        analytics.log_event(
+        await analytics.log_event(
             event_name=event_name,
             event_description=event_description,
             event_source=event_source,
@@ -165,7 +165,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_publish_with_malformed_opaque_params(self) -> None:
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
@@ -194,7 +194,7 @@ class AnalyticsTest(AnalyticsTestBase):
     async def test_publish_in_dev(self):
         self.get_patch("env").stop()
 
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),

@@ -134,7 +134,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     f"A Github integration already exists with github install id {self.installation_id}",
                     self.eave_state.ctx,
                 )
-                eave.stdlib.analytics.log_event(
+                await eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",
                     event_source="core api github oauth",
                     eave_account=self.eave_account.analytics_model,
@@ -153,7 +153,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     github_install_id=self.installation_id,
                 )
 
-        eave.stdlib.analytics.log_event(
+        await eave.stdlib.analytics.log_event(
             event_name="eave_application_integration",
             event_description="An integration was added for a team",
             event_source="core api github oauth",

@@ -117,7 +117,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     f"A Slack integration already exists with slack team id {slack_team_id}",
                     log_context,
                 )
-                eave.stdlib.analytics.log_event(
+                await eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",
                     event_source="core api slack oauth",
                     eave_account=self.eave_account.analytics_model,
@@ -196,7 +196,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         except Exception as e:
             eaveLogger.exception(e, log_context)
 
-        eave.stdlib.analytics.log_event(
+        await eave.stdlib.analytics.log_event(
             event_name="eave_application_integration",
             event_description="An integration was added for a team",
             event_source="core api slack oauth",
