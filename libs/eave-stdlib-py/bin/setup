@@ -9,5 +9,6 @@ source "${EAVE_HOME}"/develop/functions.bash
 	"${EAVE_HOME}"/develop/python/bin/setup
 
 	qflag="$(verbose || echo -n "-q -q")"
-	python -m pip install "$qflag" -e .
+	# shellcheck disable=SC2086
+	python -m pip install $qflag -e .
 )
