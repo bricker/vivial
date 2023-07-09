@@ -18,8 +18,6 @@ from . import logging as _l
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event_topic"
 
-client = PublisherAsyncClient()
-
 async def log_event(
     event_name: str,
     event_description: typing.Optional[str] = None,
@@ -51,6 +49,9 @@ async def log_event(
         eave_account=serialized_account,
         eave_team=serialized_team,
     )
+
+    # This must be initialized _per message_ when using asyncio (as opposed to once per process at the top of the module), otherwise errors due to futures attached to separate loops.
+    client = PublisherAsyncClient()
 
     topic_path = client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
     topic = await client.get_topic(request={"topic": topic_path})
