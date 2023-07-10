@@ -52,11 +52,8 @@ async def log_event(
     # This must be initialized _per message_ when using asyncio (as opposed to once per process at the top of the module), otherwise errors due to futures attached to separate loops.
     client = PublisherAsyncClient()
     topic_path = client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
-    topic = await client.get_topic(topic=topic_path)
-    print(topic)
-
     data = event.SerializeToString()
-    print(data)
+
     if not shared_config.analytics_enabled:
         _l.eaveLogger.warning(
             "Analytics disabled.",
