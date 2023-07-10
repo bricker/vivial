@@ -1,5 +1,5 @@
 /* eslint-disable */
-import _m0 from "protobufjs/minimal.js";
+import * as _m0 from "protobufjs/minimal";
 
 export interface EaveEvent {
   event_name: string;
@@ -42,16 +42,16 @@ export const EaveEvent = {
       writer.uint32(18).string(message.event_description);
     }
     if (message.event_ts !== 0) {
-      writer.uint32(45).float(message.event_ts);
+      writer.uint32(29).float(message.event_ts);
     }
     if (message.event_source !== "") {
-      writer.uint32(50).string(message.event_source);
+      writer.uint32(34).string(message.event_source);
     }
     if (message.opaque_params !== "") {
-      writer.uint32(26).string(message.opaque_params);
+      writer.uint32(42).string(message.opaque_params);
     }
     if (message.eave_account_id !== "") {
-      writer.uint32(34).string(message.eave_account_id);
+      writer.uint32(50).string(message.eave_account_id);
     }
     if (message.eave_visitor_id !== "") {
       writer.uint32(58).string(message.eave_visitor_id);
@@ -95,29 +95,29 @@ export const EaveEvent = {
 
           message.event_description = reader.string();
           continue;
-        case 5:
-          if (tag != 45) {
+        case 3:
+          if (tag != 29) {
             break;
           }
 
           message.event_ts = reader.float();
           continue;
-        case 6:
-          if (tag != 50) {
+        case 4:
+          if (tag != 34) {
             break;
           }
 
           message.event_source = reader.string();
           continue;
-        case 3:
-          if (tag != 26) {
+        case 5:
+          if (tag != 42) {
             break;
           }
 
           message.opaque_params = reader.string();
           continue;
-        case 4:
-          if (tag != 34) {
+        case 6:
+          if (tag != 50) {
             break;
           }
 

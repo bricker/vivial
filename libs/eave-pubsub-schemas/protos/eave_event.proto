@@ -3,10 +3,10 @@ syntax = "proto3";
 message EaveEvent {
   string event_name = 1;
   string event_description = 2;
-  float event_ts = 5;
-  string event_source = 6;
-  string opaque_params = 3;
-  string eave_account_id = 4;
+  float event_ts = 3;
+  string event_source = 4;
+  string opaque_params = 5;
+  string eave_account_id = 6;
   string eave_visitor_id = 7;
   string eave_team_id = 8;
   string eave_env = 9;
