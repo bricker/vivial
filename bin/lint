@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 set -eu
+shopt -s globstar
 
-source "${EAVE_HOME}"/develop/functions.bash
+source "${EAVE_HOME}/develop/functions.bash"
 
 (
 	for ss in {apps,libs,develop}/**/lint; do

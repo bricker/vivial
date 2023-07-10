@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 set -eu
+shopt -s globstar
 
-source $EAVE_HOME/develop/functions.bash
+source "$EAVE_HOME/develop/functions.bash"
 
 (
-	for ss in $(find {apps,libs,develop} -type f -name format); do
+	for ss in {apps,libs,develop}/**/format; do
 		statusmsg -d "Running $ss"
 		$ss
 	done
