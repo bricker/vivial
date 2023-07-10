@@ -8,7 +8,7 @@ import uuid
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
-from cryptography.hazmat.primitives.asymmetric.types import PUBLIC_KEY_TYPES
+from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from eave.stdlib.config import shared_config
 from eave.stdlib.eave_origins import EaveOrigin, ExternalOrigin
 from google.cloud import kms
@@ -37,7 +37,7 @@ class SigningKeyDetails:
         return hash(id(self))
 
 
-_PUBLIC_KEYS_CACHE: dict[SigningKeyDetails, PUBLIC_KEY_TYPES] = {}
+_PUBLIC_KEYS_CACHE: dict[SigningKeyDetails, PublicKeyTypes] = {}
 
 # FIXME: These versions shouldn't be hardcoded as they may be different between envs
 
@@ -167,7 +167,7 @@ def verify_signature_or_exception(
             raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
 
 
-def _fetch_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
+def _fetch_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
     """
     Makes a network request to Google KMS to fetch the
     public key associated with `sigining_key`.
@@ -189,7 +189,7 @@ def _fetch_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
     return public_key_from_pem
 
 
-def get_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
+def get_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
     """
     Get the public key PEM associated with `signing_key`,
     or from an in-memory cache if previously computed.
