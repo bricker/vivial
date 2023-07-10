@@ -1,4 +1,4 @@
-import { PubSub, Encodings } from '@google-cloud/pubsub';
+import { PubSub } from '@google-cloud/pubsub';
 import * as schemas from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event.js';
 import eaveLogger, { LogContext } from './logging.js';
 import { sharedConfig } from './config.js';

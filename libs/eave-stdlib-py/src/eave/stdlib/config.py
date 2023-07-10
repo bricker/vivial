@@ -94,9 +94,7 @@ class EaveConfig:
     @property
     def eave_public_apps_base(self) -> str:
         return (
-            os.getenv("EAVE_PUBLIC_APPS_BASE")
-            or os.getenv("EAVE_APPS_BASE") # deprecated
-            or "https://apps.eave.fyi"
+            os.getenv("EAVE_PUBLIC_APPS_BASE") or os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"  # deprecated
         )
 
     @property
@@ -118,15 +116,9 @@ class EaveConfig:
         # normally, but are here as fallbacks.
         match service:
             case EaveService.api:
-                return (
-                    os.getenv("EAVE_API_BASE") # deprecated
-                    or "https://api.eave.fyi"
-                )
+                return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"  # deprecated
             case EaveService.www:
-                return (
-                    os.getenv("EAVE_WWW_BASE") # deprecated
-                    or "https://www.eave.fyi"
-                )
+                return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"  # deprecated
             case _:
                 return self.eave_public_apps_base
 
@@ -155,17 +147,11 @@ class EaveConfig:
             # In production (AppEngine), Internal and Public urls are expected to be different.
             # Internal AppEngine services eave have a specific base URL.
             # FIXME: Hardcoded region ID (uc)
-            return (
-                "https://"
-                f"{service.value}"
-                "-dot-"
-                f"{self.google_cloud_project}"
-                ".uc.r.appspot.com"
-            )
+            return "https://" f"{service.value}" "-dot-" f"{self.google_cloud_project}" ".uc.r.appspot.com"
 
     @property
     def eave_cookie_domain(self) -> str:
-        if (v := os.getenv("EAVE_COOKIE_DOMAIN")):
+        if v := os.getenv("EAVE_COOKIE_DOMAIN"):
             return v
 
         parsed = urlparse(self.eave_public_www_base)

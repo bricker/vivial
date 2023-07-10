@@ -6,6 +6,7 @@ from ...config import shared_config
 
 _base_url = shared_config.eave_internal_service_base(EaveService.api)
 
+
 class EndpointConfiguration:
     path: str
     auth_required: bool

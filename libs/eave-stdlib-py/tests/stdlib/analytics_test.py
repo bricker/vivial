@@ -12,8 +12,10 @@ from eave.stdlib.test_util import UtilityBaseTestCase
 
 mut = analytics.__name__
 
+
 class unserializable:
     pass
+
 
 class AnalyticsTestBase(UtilityBaseTestCase):
     def mock_analytics(self) -> None:
@@ -43,13 +45,15 @@ class AnalyticsTestBase(UtilityBaseTestCase):
         )
 
         self.data_ctx = _l.LogContext()
-        self.data_bad_params: Any =  {self.anystr("paramkey"): unserializable()}
+        self.data_bad_params: Any = {self.anystr("paramkey"): unserializable()}
 
 
 class AnalyticsTest(AnalyticsTestBase):
     def run_common_assertions(self):
         assert self.mocks_publisher.call_count == 1
-        self.mocks_publisher.assert_called_with(self.data_expected_topic_path, self.data_expected_event.SerializeToString())
+        self.mocks_publisher.assert_called_with(
+            self.data_expected_topic_path, self.data_expected_event.SerializeToString()
+        )
 
     async def test_basic_publish_with_all_parameters(self):
         await analytics.log_event(
@@ -134,9 +138,9 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_no_context_given(self) -> None:
-        event_name=self.anystr("event_name")
-        event_description=self.anystr("event_description")
-        event_source=self.anystr("event_source")
+        event_name = self.anystr("event_name")
+        event_description = self.anystr("event_description")
+        event_source = self.anystr("event_source")
 
         self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
         ctx = _l.LogContext()
@@ -189,7 +193,6 @@ class AnalyticsTest(AnalyticsTestBase):
         )
 
         self.run_common_assertions()
-
 
     async def test_publish_in_dev(self):
         self.get_patch("env").stop()

@@ -9,6 +9,7 @@ from ..config import shared_config
 
 _base_url = shared_config.eave_internal_service_base(EaveService.github)
 
+
 async def get_file_content(
     eave_team_id: uuid.UUID,
     input: operations.GetGithubUrlContent.RequestBody,

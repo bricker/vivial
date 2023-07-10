@@ -4,10 +4,8 @@ from eave.stdlib.core_api.models.subscriptions import DocumentReference
 from eave.stdlib.core_api.models.subscriptions import Subscription
 from eave.stdlib.core_api.models.subscriptions import DocumentReferenceInput
 from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
-from eave.stdlib.logging import LogContext
 from . import BaseRequestBody, BaseResponseBody, EndpointConfiguration
 
-from eave.stdlib.eave_origins import EaveOrigin
 from . import Endpoint
 from ..models import team
 from ... import requests

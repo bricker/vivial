@@ -209,6 +209,7 @@ def preload_public_keys() -> None:
     for signing_key in _SIGNING_KEYS.values():
         _PUBLIC_KEYS_CACHE[signing_key] = _fetch_public_key(signing_key)
 
+
 def build_message_to_sign(
     method: str,
     url: str,
@@ -235,5 +236,5 @@ def build_message_to_sign(
 
     signature_message = ":".join(signature_elements)
 
-    eaveLogger.debug("signature message", ctx, { "signature_message": signature_message })
+    eaveLogger.debug("signature message", ctx, {"signature_message": signature_message})
     return signature_message

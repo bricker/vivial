@@ -10,6 +10,7 @@ class EaveOrigin(enum.StrEnum):
     eave_jira_app = "eave_jira_app"
     eave_confluence_app = "eave_confluence_app"
 
+
 class EaveService(enum.StrEnum):
     api = "api"
     www = "www"
@@ -17,6 +18,7 @@ class EaveService(enum.StrEnum):
     slack = "slack"
     jira = "jira"
     confluence = "confluence"
+
 
 class ExternalOrigin(enum.StrEnum):
     github_api_client = "github_api_client"

@@ -1,15 +1,13 @@
-from typing import Optional, Unpack
+from typing import Unpack
 import uuid
 
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
 from eave.stdlib.core_api.models.documents import DocumentInput
-from eave.stdlib.logging import LogContext
 from . import BaseRequestBody, BaseResponseBody, EndpointConfiguration
 
 from ..models.subscriptions import DocumentReference, DocumentReferenceInput, Subscription
 from ..models.subscriptions import SubscriptionInput
 
-from ...eave_origins import EaveOrigin
 from . import Endpoint
 from ..models import team
 from ... import requests
@@ -63,10 +61,7 @@ class SearchDocuments(Endpoint):
 
     @classmethod
     async def perform(
-        cls,
-        input: RequestBody,
-        team_id: uuid.UUID,
-        **kwargs: Unpack[requests.CommonRequestArgs]
+        cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
