@@ -2,15 +2,15 @@ syntax = "proto3";
 
 message EaveEvent {
   string event_name = 1;
-  string event_description = 2;
-  float event_ts = 3;
-  string event_source = 4;
-  string opaque_params = 5;
-  string eave_account_id = 6;
-  string eave_visitor_id = 7;
-  string eave_team_id = 8;
-  string eave_env = 9;
-  string opaque_eave_ctx = 10;
-  string eave_account = 11;
-  string eave_team = 12;
+  string event_time = 3;
+  optional string event_description = 2;
+  optional string event_source = 4;
+  optional string opaque_params = 5;
+  optional string eave_account_id = 6;
+  optional string eave_visitor_id = 7;
+  optional string eave_team_id = 8;
+  optional string eave_env = 9;
+  optional string opaque_eave_ctx = 10;
+  optional string eave_account = 11;
+  optional string eave_team = 12;
 }

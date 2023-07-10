@@ -1,4 +1,6 @@
+from datetime import datetime
 import json
+from math import trunc
 import time
 import typing
 
@@ -17,7 +19,7 @@ from .config import shared_config
 from . import logging as _l
 
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
-_EVENT_TOPIC_ID = "eave_event_test"
+_EVENT_TOPIC_ID = "eave_event"
 
 async def log_event(
     event_name: str,
@@ -26,20 +28,19 @@ async def log_event(
     opaque_params: typing.Optional[JsonObject] = None,
     eave_account: typing.Optional[AnalyticsAccount] = None,
     eave_team: typing.Optional[AnalyticsTeam] = None,
-    event_ts: typing.Optional[float] = None,
     ctx: typing.Optional[_l.LogContext] = None,
 ) -> None:
-    # ctx = _l.LogContext.wrap(ctx)
-
     serialized_account = eave_account.json() if eave_account else None
     serialized_team = eave_team.json() if eave_team else None
     serialized_params = _safe_serialize(opaque_params, ctx)
     serialized_context = _safe_serialize(ctx, ctx)
 
+    event_time = datetime.utcnow().isoformat()
+
     event = EaveEvent(
         event_name=event_name,
         event_description=event_description,
-        event_ts=event_ts if event_ts else time.time(),
+        event_time=event_time,
         event_source=event_source,
         eave_account_id=str(eave_account.id) if eave_account else None,
         eave_visitor_id=str(eave_account.visitor_id) if eave_account else None,
@@ -63,13 +64,13 @@ async def log_event(
         _l.eaveLogger.warning(
             "Analytics disabled.",
             ctx,
-            {"pubsub": {"event": str(data)}},
+            {"pubsub": {"event": str(event)}},
         )
     else:
         _l.eaveLogger.debug(
             "Publishing analytics event",
             ctx,
-            {"pubsub": {"event": str(data)}},
+            {"pubsub": {"event": str(event)}},
         )
 
         result = await client.publish(topic=topic_path, messages=[PubsubMessage(data=data)])
@@ -79,7 +80,7 @@ async def log_event(
             ctx,
             {"pubsub":
                 {
-                    "event": str(data),
+                    "event": str(event),
                     "result": list(result.message_ids),
                 }
             },
