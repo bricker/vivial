@@ -11,6 +11,14 @@ import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
 
+/**
+ * Receives github webhook push events.
+ * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+ * 
+ * Features:
+ * Checks if push event touched any files that Eave has subscriptions for;
+ * any file subscriptions found will perform updates on connected documents.
+ */
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   const { ctx, octokit } = context;
   eaveLogger.debug('Processing push', ctx);

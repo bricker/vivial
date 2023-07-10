@@ -5,9 +5,11 @@ import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js'
 import * as Registry from './registry.js';
 import { appConfig } from './config.js';
 import pushHandler from './events/push.js';
+import pullRequestHandler from './events/pull-request.js';
 import { createAppClient } from './lib/octokit-util.js';
 
 Registry.registerHandler('push', pushHandler);
+Registry.registerHandler('pull_request', pullRequestHandler);
 
 export default async function dispatch(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
