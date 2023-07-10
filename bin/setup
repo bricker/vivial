@@ -255,7 +255,7 @@ function setupapps() (
 		python-activate-venv
 		node-activate-venv
 
-		for ss in {develop,libs,apps}/**/setup; do
+		for ss in {apps,libs,develop}/**/setup; do
 			statusmsg -d "Running $ss"
 			$ss
 		done
