@@ -4,6 +4,7 @@ from ..config import shared_config
 
 _base_url = shared_config.eave_internal_service_base(EaveService.confluence)
 
+
 class ConfluenceEndpointConfiguration(EndpointConfiguration):
     @property
     def url(self) -> str:

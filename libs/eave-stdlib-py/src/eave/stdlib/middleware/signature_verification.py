@@ -4,7 +4,7 @@ from .base import EaveASGIMiddleware
 from .development_bypass import development_bypass_allowed
 from ..logging import eaveLogger
 from ..api_util import construct_url, get_header_value
-from ..headers import EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER, EAVE_ACCOUNT_ID_HEADER, HOST
+from ..headers import EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER, EAVE_ACCOUNT_ID_HEADER
 from ..exceptions import MissingRequiredHeaderError
 from ..request_state import EaveRequestState
 from ..util import unwrap

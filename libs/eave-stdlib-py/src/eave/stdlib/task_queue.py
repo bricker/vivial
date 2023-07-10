@@ -4,7 +4,6 @@ from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request
 import eave.stdlib.signing as signing
-import eave.stdlib.requests
 from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,

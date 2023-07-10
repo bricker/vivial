@@ -1,9 +1,7 @@
-from typing import Optional, Unpack
+from typing import Unpack
 from eave.stdlib.core_api.models.github import GithubInstallation
 from eave.stdlib.core_api.models.github import GithubInstallationInput
-from eave.stdlib.logging import LogContext
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
-from eave.stdlib.eave_origins import EaveOrigin
 
 from ..models import team
 from ... import requests

@@ -7,7 +7,6 @@ import { requireHeaders } from './require-headers.js';
 import { originMiddleware } from './origin.js';
 import { signatureVerification } from './signature-verification.js';
 import headers from '../headers.js';
-import { sharedConfig } from '../config.js';
 import { bodyParser } from './body-parser.js';
 
 // This isn't included in the common middlewares so individual apps can configure it as needed.

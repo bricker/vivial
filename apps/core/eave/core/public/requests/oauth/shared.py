@@ -161,7 +161,11 @@ async def create_new_account_and_team(
             email=user_email,
         )
 
-    eaveLogger.debug("created new account", eave_state.ctx, { "eave_account_id": str(eave_account.id), "eave_team_id": str(eave_team.id) })
+    eaveLogger.debug(
+        "created new account",
+        eave_state.ctx,
+        {"eave_account_id": str(eave_account.id), "eave_team_id": str(eave_team.id)},
+    )
 
     await eave.stdlib.analytics.log_event(
         event_name="eave_account_registration",

@@ -1,10 +1,8 @@
-from typing import Optional, Unpack
+from typing import Unpack
 from eave.stdlib.core_api.models.slack import SlackInstallation
 from eave.stdlib.core_api.models.slack import SlackInstallationInput
-from eave.stdlib.logging import LogContext
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
-from eave.stdlib.eave_origins import EaveOrigin
 from ..models import team
 from ... import requests
 

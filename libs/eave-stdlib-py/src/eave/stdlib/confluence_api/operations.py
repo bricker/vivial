@@ -1,6 +1,6 @@
-from typing import Optional, Unpack
+from typing import Unpack
 import uuid
-from eave.stdlib import requests
+from .. import requests
 from eave.stdlib.confluence_api.models import (
     ConfluenceSearchParamsInput,
     ConfluenceSearchResultWithBody,
@@ -11,8 +11,6 @@ from eave.stdlib.confluence_api.models import ConfluencePage, ConfluenceSpace
 from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 from eave.stdlib.core_api.models.documents import DocumentInput
 from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
-from eave.stdlib.eave_origins import EaveOrigin
-from eave.stdlib.logging import LogContext
 from . import ConfluenceEndpoint, ConfluenceEndpointConfiguration
 
 

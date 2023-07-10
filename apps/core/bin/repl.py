@@ -13,6 +13,7 @@ import eave.core.internal.orm.base  # noqa
 from eave.core.internal import app_config  # noqa
 from eave.stdlib.config import shared_config  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
+import eave.stdlib.analytics as analytics  # noqa
 
 eave.core.internal.orm.base._load_all()
 

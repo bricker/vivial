@@ -1,12 +1,10 @@
 import json
 import time
 import typing
-
-from google.pubsub_v1 import PublisherAsyncClient, PubsubMessage
-
-import eave.stdlib
 import eave.pubsub_schemas
-from google.pubsub_v1.types import Encoding
+
+from google.pubsub_v1 import Encoding, PublisherAsyncClient, PubsubMessage
+
 from eave.stdlib.core_api.models.account import AnalyticsAccount
 
 from eave.stdlib.core_api.models.team import AnalyticsTeam
@@ -17,6 +15,7 @@ from . import logging as _l
 
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event_topic"
+
 
 async def log_event(
     event_name: str,
@@ -78,9 +77,9 @@ async def log_event(
         _l.eaveLogger.debug(
             "Analytics event published",
             ctx,
-            {"pubsub":
-                {
-                    "event": str(data),
+            {
+                "pubsub": {
+                    "event": str(event),
                     "result": list(result.message_ids),
                 }
             },

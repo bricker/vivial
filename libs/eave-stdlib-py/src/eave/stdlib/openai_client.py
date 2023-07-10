@@ -122,7 +122,9 @@ def ensure_api_key() -> None:
         openai_sdk.organization = shared_config.eave_openai_api_org
 
 
-async def chat_completion(params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None) -> Optional[str]:
+async def chat_completion(
+    params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None
+) -> Optional[str]:
     """
     https://beta.openai.com/docs/api-reference/completions/create
     baseTimeoutSeconds is multiplied by (2^n) for each attempt n

@@ -36,7 +36,9 @@ class Base:
         self.eave_ctx = eave_ctx
         self.subscriptions = []
 
-    async def log_event(self, event_name: str, event_description: str, opaque_params: Optional[JsonObject] = None) -> None:
+    async def log_event(
+        self, event_name: str, event_description: str, opaque_params: Optional[JsonObject] = None
+    ) -> None:
         if opaque_params is None:
             opaque_params = {}
 

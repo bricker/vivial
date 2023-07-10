@@ -5,11 +5,9 @@ from eave.stdlib.core_api.models.connect import (
     QueryConnectInstallationInput,
     RegisterConnectInstallationInput,
 )
-from eave.stdlib.logging import LogContext
 
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
-from eave.stdlib.eave_origins import EaveOrigin
 
 from ... import requests
 
