@@ -26,7 +26,9 @@ class AnalyticsTestBase(UtilityBaseTestCase):
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-        self.mocks_publisher = self.patch(name="publisher", patch=unittest.mock.patch(f"{mut}.PublisherAsyncClient.publish"))
+        self.mocks_publisher = self.patch(
+            name="publisher", patch=unittest.mock.patch(f"{mut}.PublisherAsyncClient.publish")
+        )
 
         self.data_now = datetime.utcnow()
         self.mocks_now = self.patch(name="now", patch=unittest.mock.patch(f"{mut}.datetime", autospec=True))
@@ -58,7 +60,7 @@ class AnalyticsTest(AnalyticsTestBase):
         assert self.mocks_publisher.call_count == 1
         self.mocks_publisher.assert_called_with(
             topic=self.data_expected_topic_path,
-            messages=[PubsubMessage(data=self.data_expected_event.SerializeToString())]
+            messages=[PubsubMessage(data=self.data_expected_event.SerializeToString())],
         )
 
     async def test_basic_publish_with_all_parameters(self):

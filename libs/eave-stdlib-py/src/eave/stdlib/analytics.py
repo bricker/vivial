@@ -17,7 +17,6 @@ from . import logging as _l
 _EVENT_TOPIC_ID = "eave_event"
 
 
-
 async def log_event(
     event_name: str,
     event_description: typing.Optional[str] = None,

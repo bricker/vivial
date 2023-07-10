@@ -6,6 +6,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
+	bin/lint
 	setup-deployment-workspace
 	npm install --force
 	rm -rf eave/marketing/static/dist
