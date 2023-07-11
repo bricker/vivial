@@ -57,6 +57,21 @@ class TestAtlassianOAuth(BaseTestCase):
         )
         assert re.search(f"redirect_uri={redirect_uri}", response.headers["Location"])
 
+    async def test_slack_authorize_with_utm_params(self) -> None:
+        response = await self.make_request(
+            path="/oauth/atlassian/authorize",
+            method="GET",
+            payload={
+                "utm_campaign": self.anystr("utm_campaign"),
+                "gclid": self.anystr("gclid"),
+                "ignored_param": self.anystr(),
+            },
+        )
+
+        assert response.cookies.get("ev_utm_utm_campaign") == self.getstr("utm_campaign")
+        assert response.cookies.get("ev_utm_gclid") == self.getstr("gclid")
+        assert response.cookies.get("ev_utm_ignored_param") is None
+
     async def test_atlassian_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
@@ -71,6 +86,8 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
+                "ev_utm_utm_campaign": self.anystr("utm_campaign"),
+                "ev_utm_gclid": self.anystr("gclid"),
             },
         )
 
@@ -96,6 +113,10 @@ class TestAtlassianOAuth(BaseTestCase):
                 session=s, atlassian_cloud_id=self.anystring("atlassian_cloud_id")
             )
             assert atlassian_installation
+
+            assert eave_account.opaque_utm_params is not None
+            assert eave_account.opaque_utm_params.get("utm_campaign") == self.getstr("utm_campaign")
+            assert eave_account.opaque_utm_params.get("gclid") == self.getstr("gclid")
 
             assert eave_account.access_token == self.getstr("atlassian.access_token")
             assert eave_account.refresh_token == self.getstr("atlassian.refresh_token")

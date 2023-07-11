@@ -1,9 +1,7 @@
-from typing import Optional, Unpack
+from typing import Unpack
 import uuid
-from eave.stdlib import requests
+from ... import requests
 from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
-from eave.stdlib.eave_origins import EaveOrigin
-from eave.stdlib.logging import LogContext
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 from ..models import integrations
 
@@ -21,7 +19,7 @@ class GetTeamRequest(Endpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -53,7 +51,7 @@ class UpsertConfluenceDestinationAuthedRequest(Endpoint):
         cls,
         input: RequestBody,
         access_token: str,
-        account_id: uuid.UUID,
+        account_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(

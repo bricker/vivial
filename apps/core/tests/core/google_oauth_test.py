@@ -26,9 +26,9 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
         def id_token() -> dict[str, str]:
             return {
-                "sub": self.anystring("google.sub"),
-                "given_name": self.anystring("google.given_name"),
-                "email": self.anystring("google.email"),
+                "sub": self.anystr("google.sub"),
+                "given_name": self.anystr("google.given_name"),
+                "email": self.anystr("google.email"),
             }
 
         def _verify_oauth2_token(*args: Any, **kwargs: Any) -> dict[str, str]:
@@ -38,8 +38,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
         def _credentials_from_session(*args: Any, **kwargs: Any) -> google.oauth2.credentials.Credentials:
             return google.oauth2.credentials.Credentials(
-                token=self.anystring("google.token"),
-                refresh_token=self.anystring("google.refresh_token"),
+                token=self.anystr("google.token"),
+                refresh_token=self.anystr("google.refresh_token"),
                 id_token=id_token(),
             )
 
@@ -66,6 +66,21 @@ class TestGoogleOAuthHandler(BaseTestCase):
         )
         assert re.search(redirect_uri, response.headers["Location"])
 
+    async def test_google_authorize_with_utm_params(self) -> None:
+        response = await self.make_request(
+            path="/oauth/google/authorize",
+            method="GET",
+            payload={
+                "utm_campaign": self.anystr("utm_campaign"),
+                "gclid": self.anystr("gclid"),
+                "ignored_param": self.anystr(),
+            },
+        )
+
+        assert response.cookies.get("ev_utm_utm_campaign") == self.getstr("utm_campaign")
+        assert response.cookies.get("ev_utm_gclid") == self.getstr("gclid")
+        assert response.cookies.get("ev_utm_ignored_param") is None
+
     async def test_google_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
@@ -74,11 +89,13 @@ class TestGoogleOAuthHandler(BaseTestCase):
             path="/oauth/google/callback",
             method="GET",
             payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("state"),
+                "ev_oauth_state_google": self.anystr("state"),
+                "ev_utm_utm_campaign": self.anystr("utm_campaign"),
+                "ev_utm_gclid": self.anystr("gclid"),
             },
         )
 
@@ -98,11 +115,15 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
 
-            assert eave_account.access_token == self.anystring("google.token")
-            assert eave_account.refresh_token == self.anystring("google.refresh_token")
-            assert eave_account.auth_id == self.anystring("google.sub")
+            assert eave_account.opaque_utm_params is not None
+            assert eave_account.opaque_utm_params.get("utm_campaign") == self.getstr("utm_campaign")
+            assert eave_account.opaque_utm_params.get("gclid") == self.getstr("gclid")
+
+            assert eave_account.access_token == self.anystr("google.token")
+            assert eave_account.refresh_token == self.anystr("google.refresh_token")
+            assert eave_account.auth_id == self.anystr("google.sub")
             assert eave_account.auth_provider == AuthProvider.google
-            assert eave_team.name == f"{self.anystring('google.given_name')}'s Team"
+            assert eave_team.name == f"{self.anystr('google.given_name')}'s Team"
 
     async def test_google_callback_new_account_without_name_from_google(self) -> None:
         self.testdata["google.given_name"] = None
@@ -111,11 +132,11 @@ class TestGoogleOAuthHandler(BaseTestCase):
             path="/oauth/google/callback",
             method="GET",
             payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("state"),
+                "ev_oauth_state_google": self.anystr("state"),
             },
         )
 
@@ -132,7 +153,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             unittest.mock.patch.dict(
                 "os.environ",
                 {
-                    "EAVE_BETA_PREWHITELISTED_EMAILS_CSV": self.anystring("google.email"),
+                    "EAVE_BETA_PREWHITELISTED_EMAILS_CSV": self.anystr("google.email"),
                 },
             )
         )
@@ -141,11 +162,11 @@ class TestGoogleOAuthHandler(BaseTestCase):
             path="/oauth/google/callback",
             method="GET",
             payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("state"),
+                "ev_oauth_state_google": self.anystr("state"),
             },
         )
 
@@ -170,20 +191,20 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 s,
                 team_id=eave_team.id,
                 auth_provider=AuthProvider.google,
-                auth_id=self.anystring("google.sub"),
-                access_token=self.anystring("old_access_token"),
-                refresh_token=self.anystring("old_refresh_token"),
+                auth_id=self.anystr("google.sub"),
+                access_token=self.anystr("old_access_token"),
+                refresh_token=self.anystr("old_refresh_token"),
             )
 
         response = await self.make_request(
             path="/oauth/google/callback",
             method="GET",
             payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("state"),
+                "ev_oauth_state_google": self.anystr("state"),
             },
         )
 
@@ -192,8 +213,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
-            assert eave_account_after.access_token == self.anystring("google.token")
-            assert eave_account_after.refresh_token == self.anystring("google.refresh_token")
+            assert eave_account_after.access_token == self.anystr("google.token")
+            assert eave_account_after.refresh_token == self.anystr("google.refresh_token")
 
             # Test that the cookies were updated
             assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
@@ -206,20 +227,20 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 s,
                 team_id=eave_team.id,
                 auth_provider=AuthProvider.google,
-                auth_id=self.anystring("google.sub"),
-                access_token=self.anystring("old_access_token"),
-                refresh_token=self.anystring("old_refresh_token"),
+                auth_id=self.anystr("google.sub"),
+                access_token=self.anystr("old_access_token"),
+                refresh_token=self.anystr("old_refresh_token"),
             )
 
         response = await self.make_request(
             path="/oauth/google/callback",
             method="GET",
             payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("state"),
+                "ev_oauth_state_google": self.anystr("state"),
                 "ev_account_id": str(eave_account_before.id),
                 "ev_access_token": eave_account_before.access_token,
             },
@@ -230,8 +251,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
-            assert eave_account_after.access_token == self.anystring("google.token")
-            assert eave_account_after.refresh_token == self.anystring("google.refresh_token")
+            assert eave_account_after.access_token == self.anystr("google.token")
+            assert eave_account_after.refresh_token == self.anystr("google.refresh_token")
 
             # Test that the cookies were updated
             assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
@@ -244,20 +265,20 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 s,
                 team_id=eave_team.id,
                 auth_provider=AuthProvider.slack,
-                auth_id=self.anystring("slack.user_id"),
-                access_token=self.anystring("old_access_token"),
-                refresh_token=self.anystring("old_refresh_token"),
+                auth_id=self.anystr("slack.user_id"),
+                access_token=self.anystr("old_access_token"),
+                refresh_token=self.anystr("old_refresh_token"),
             )
 
         response = await self.make_request(
             path="/oauth/google/callback",
             method="GET",
             payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("state"),
+                "ev_oauth_state_google": self.anystr("state"),
                 "ev_account_id": str(eave_account_before.id),
                 "ev_access_token": eave_account_before.access_token,
             },
@@ -267,8 +288,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were NOT updated
-            assert eave_account_after.access_token == self.anystring("old_access_token")
-            assert eave_account_after.refresh_token == self.anystring("old_refresh_token")
+            assert eave_account_after.access_token == self.anystr("old_access_token")
+            assert eave_account_after.refresh_token == self.anystr("old_refresh_token")
 
             # Test that the cookies were NOT updated
             assert response.cookies.get("ev_account_id") == str(eave_account_before.id)
@@ -279,11 +300,11 @@ class TestGoogleOAuthHandler(BaseTestCase):
             path="/oauth/google/callback",
             method="GET",
             payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("invalid_state"),
+                "ev_oauth_state_google": self.anystr("invalid_state"),
             },
         )
 

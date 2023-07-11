@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock
 from httpx import AsyncClient
 from slack_bolt.async_app import AsyncBoltContext
 from slack_sdk.web.async_client import AsyncWebClient
-from eave.slack.config import app_config
 import eave.slack.app
 from eave.slack.slack_models import SlackMessage
 from eave.slack.brain.core import Brain

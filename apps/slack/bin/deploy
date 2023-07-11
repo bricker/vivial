@@ -6,6 +6,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
+	bin/lint
 	setup-deployment-workspace
 	"${EAVE_HOME}"/develop/python/bin/deploy-appengine "$@"
 )

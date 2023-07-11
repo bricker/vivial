@@ -111,7 +111,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                 )
 
                 if eave_team:
-                    analytics.log_event(
+                    await analytics.log_event(
                         event_name="eave_application_integration",
                         event_description="An integration was added for a team",
                         event_source="register connect integration endpoint",
@@ -125,7 +125,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                         ctx=eave_state.ctx,
                     )
                 else:
-                    analytics.log_event(
+                    await analytics.log_event(
                         event_name="eave_connect_app_registered",
                         event_description="A connect app was registered, but has no linked team",
                         event_source="register connect integration endpoint",
@@ -147,7 +147,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                 if integration.team_id:
                     eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=integration.team_id)
 
-                analytics.log_event(
+                await analytics.log_event(
                     event_name="eave_application_integration_updated",
                     event_description="An integration was updated for a team",
                     event_source="register connect integration endpoint",

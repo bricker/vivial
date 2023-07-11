@@ -133,6 +133,11 @@ def ensure_api_key() -> None:
 
 
 async def chat_completion_full_response(params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None) -> Optional[openai.openai_object.OpenAIObject]:
+    """
+    https://beta.openai.com/docs/api-reference/completions/create
+    baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+    """
+
     ensure_api_key()
 
     eave_ctx = LogContext.wrap(ctx)

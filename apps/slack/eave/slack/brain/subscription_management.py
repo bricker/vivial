@@ -35,7 +35,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
             ),
         )
 
-        self.log_event(
+        await self.log_event(
             event_name="eave_subscribed",
             event_description="Eave subscribed to a slack message",
             opaque_params={

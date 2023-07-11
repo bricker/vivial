@@ -4,6 +4,8 @@ import crc32c from 'fast-crc32c';
 import { sharedConfig } from './config.js';
 import { EaveOrigin, ExternalOrigin } from './eave-origins.js';
 import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
+import { CtxArg } from './requests.js';
+import eaveLogger from './logging.js';
 
 const { RSA_PKCS1_PADDING } = cryptoConstants;
 
@@ -272,4 +274,42 @@ export default class Signing {
     PUBLIC_KEYS_CACHE[cacheKey] = result;
     return result;
   }
+}
+
+export function buildMessageToSign({
+  method,
+  url,
+  requestId,
+  origin,
+  payload,
+  teamId,
+  accountId,
+  ctx,
+}: CtxArg & {
+  method: string,
+  url: string,
+  requestId: string,
+  origin: EaveOrigin | string,
+  payload: string,
+  teamId?: string,
+  accountId?: string,
+}): string {
+  const signatureElements = [
+    origin,
+    method.toUpperCase(),
+    url,
+    requestId,
+    payload,
+  ];
+
+  if (teamId !== undefined) {
+    signatureElements.push(teamId);
+  }
+  if (accountId !== undefined) {
+    signatureElements.push(accountId);
+  }
+
+  const signature_message = signatureElements.join(':');
+  eaveLogger.debug('signature message', ctx, { signature_message });
+  return signature_message;
 }

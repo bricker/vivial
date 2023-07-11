@@ -75,7 +75,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
             eaveLogger.warning(e, self._ctx)
             return False
 
-        signature_message = eave.stdlib.requests.build_message_to_sign(
+        signature_message = eave.stdlib.signing.build_message_to_sign(
             method=self._request.scope["method"],
             origin=origin.value,
             request_id=request_id,
@@ -83,6 +83,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
             payload=body.decode(),
             team_id=None,
             account_id=None,
+            ctx=self._ctx,
         )
         try:
             eave.stdlib.signing.verify_signature_or_exception(

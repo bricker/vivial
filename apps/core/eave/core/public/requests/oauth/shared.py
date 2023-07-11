@@ -4,6 +4,7 @@ import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import eave.pubsub_schemas
+from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import eaveLogger
 from eave.stdlib.request_state import EaveRequestState
@@ -11,6 +12,7 @@ import eave.stdlib.slack
 import eave.stdlib.cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
+import eave.stdlib.config
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -59,6 +61,9 @@ def cancel_flow(response: Response) -> Response:
 
 
 def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
+    if eave.stdlib.config.shared_config.eave_beta_whitelist_disabled:
+        return True
+
     if email:
         beta_prewhitelist = eave.core.internal.app_config.eave_beta_prewhitelisted_emails
         return email in beta_prewhitelist
@@ -75,12 +80,12 @@ async def get_logged_in_eave_account(
     """
     Check if the user is logged in, and if so, get the account associated with the provided access token and account ID.
     """
-    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies_ = auth_cookies.get_auth_cookies(cookies=request.cookies)
 
-    if auth_cookies.access_token and auth_cookies.account_id:
+    if auth_cookies_.access_token and auth_cookies_.account_id:
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
-                session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
+                session=db_session, id=auth_cookies_.account_id, access_token=auth_cookies_.access_token
             )
 
             if eave_account.auth_provider == auth_provider:
@@ -135,7 +140,7 @@ async def create_new_account_and_team(
     refresh_token: typing.Optional[str],
 ) -> eave.core.internal.orm.AccountOrm:
     eave_state = EaveRequestState.load(request=request)
-    tracking_cookies = eave.stdlib.cookies.get_tracking_cookies(request.cookies)
+    tracking_cookies = utm_cookies.get_tracking_cookies(cookies=request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
         eave_team = await eave.core.internal.orm.TeamOrm.create(
@@ -157,7 +162,13 @@ async def create_new_account_and_team(
             email=user_email,
         )
 
-    eave.stdlib.analytics.log_event(
+    eaveLogger.debug(
+        "created new account",
+        eave_state.ctx,
+        {"eave_account_id": str(eave_account.id), "eave_team_id": str(eave_team.id)},
+    )
+
+    await eave.stdlib.analytics.log_event(
         event_name="eave_account_registration",
         event_description="A new account was created",
         event_source="core api oauth",
@@ -243,7 +254,7 @@ async def get_or_create_eave_account(
     # Set the cookie in the response headers.
     # This logs the user into their Eave account,
     # or updates the cookies if they were already logged in.
-    eave.stdlib.cookies.set_auth_cookies(
+    auth_cookies.set_auth_cookies(
         response=response,
         account_id=eave_account.id,
         access_token=eave_account.access_token,

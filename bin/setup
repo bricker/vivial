@@ -231,10 +231,10 @@ function installshfmt() (
 
 function installshellcheck() (
 	if ! ^force && cmd-exists "shellcheck"; then
-		statusmsg -o "shellcheckalready installed."
+		statusmsg -o "shellcheck already installed."
 	else
 		statusmsg -pa "Installing the 'shellcheck' command line utility."
-		statusmsg -i "The shellcheckprogram is used to lint shell scripts"
+		statusmsg -i "The shellcheck program is used to lint shell scripts"
 
 		if ^ask; then
 			if cmd-exists "brew"; then
@@ -255,7 +255,7 @@ function setupapps() (
 		python-activate-venv
 		node-activate-venv
 
-		for ss in {develop,libs,apps}/**/setup; do
+		for ss in {apps,libs,develop}/**/setup; do
 			statusmsg -d "Running $ss"
 			$ss
 		done

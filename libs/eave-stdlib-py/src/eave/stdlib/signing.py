@@ -3,11 +3,12 @@ import enum
 import hashlib
 from dataclasses import dataclass
 from typing import Literal, Optional, cast
+import uuid
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
-from cryptography.hazmat.primitives.asymmetric.types import PUBLIC_KEY_TYPES
+from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from eave.stdlib.config import shared_config
 from eave.stdlib.eave_origins import EaveOrigin, ExternalOrigin
 from google.cloud import kms
@@ -36,7 +37,7 @@ class SigningKeyDetails:
         return hash(id(self))
 
 
-_PUBLIC_KEYS_CACHE: dict[SigningKeyDetails, PUBLIC_KEY_TYPES] = {}
+_PUBLIC_KEYS_CACHE: dict[SigningKeyDetails, PublicKeyTypes] = {}
 
 # FIXME: These versions shouldn't be hardcoded as they may be different between envs
 
@@ -166,7 +167,7 @@ def verify_signature_or_exception(
             raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
 
 
-def _fetch_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
+def _fetch_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
     """
     Makes a network request to Google KMS to fetch the
     public key associated with `sigining_key`.
@@ -188,7 +189,7 @@ def _fetch_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
     return public_key_from_pem
 
 
-def get_public_key(signing_key: SigningKeyDetails) -> PUBLIC_KEY_TYPES:
+def get_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
     """
     Get the public key PEM associated with `signing_key`,
     or from an in-memory cache if previously computed.
@@ -207,3 +208,33 @@ def preload_public_keys() -> None:
     """
     for signing_key in _SIGNING_KEYS.values():
         _PUBLIC_KEYS_CACHE[signing_key] = _fetch_public_key(signing_key)
+
+
+def build_message_to_sign(
+    method: str,
+    url: str,
+    request_id: uuid.UUID | str,
+    origin: EaveOrigin | str,
+    payload: str,
+    team_id: Optional[uuid.UUID | str],
+    account_id: Optional[uuid.UUID | str],
+    ctx: Optional[LogContext] = None,
+) -> str:
+    signature_elements: list[str] = [
+        origin,
+        method,
+        url,
+        str(request_id),
+        payload,
+    ]
+
+    if team_id:
+        signature_elements.append(str(team_id))
+
+    if account_id:
+        signature_elements.append(str(account_id))
+
+    signature_message = ":".join(signature_elements)
+
+    eaveLogger.debug("signature message", ctx, {"signature_message": signature_message})
+    return signature_message

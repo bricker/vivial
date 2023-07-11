@@ -1,6 +1,6 @@
 {
     "key": "eave-jira",
-    "name": "Eave for Jira",
+    "name": "Eave",
     "description": "eave.fyi",
     "enableLicensing": false,
     "vendor": {
@@ -30,7 +30,7 @@
         ]
     },
     "links": {
-        "self": "{{localBaseUrl}}/jira/atlassian-connect.json",
+        "self": "{{localBaseUrl}}/atlassian-connect.json",
         "website": "https://www.eave.fyi"
     }
 

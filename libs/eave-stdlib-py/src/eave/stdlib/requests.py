@@ -1,9 +1,8 @@
 import pydantic
-from typing import Generic, NotRequired, Optional, Required, TypeVar, TypedDict
+from typing import NotRequired, Optional, Required, TypedDict, Unpack
 import uuid
 import aiohttp
-import urllib.parse
-from eave.stdlib.eave_origins import EaveOrigin, EaveService
+from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.typing import JsonObject
 
 from eave.stdlib.util import ensure_str_or_none, redact
@@ -11,9 +10,7 @@ from eave.stdlib.util import ensure_str_or_none, redact
 from . import headers as eave_headers
 from . import signing
 from .logging import LogContext, eaveLogger
-from .config import shared_config
 
-IT = TypeVar("IT", bound=pydantic.BaseModel)
 
 class CommonRequestArgs(TypedDict):
     origin: Required[EaveOrigin]
@@ -22,18 +19,21 @@ class CommonRequestArgs(TypedDict):
     ctx: NotRequired[Optional[LogContext]]
     base_timeout_seconds: NotRequired[int]
 
+
 async def make_request(
     url: str,
-    origin: EaveOrigin,
     input: Optional[pydantic.BaseModel],
-    method: str = "POST",
     team_id: Optional[uuid.UUID | str] = None,
     access_token: Optional[str] = None,
     account_id: Optional[uuid.UUID | str] = None,
-    addl_headers: Optional[dict[str, str]] = None,
-    ctx: Optional[LogContext] = None,
-    base_timeout_seconds: int = 600, # system-imposed AppEngine request timeout
+    **kwargs: Unpack[CommonRequestArgs],
 ) -> aiohttp.ClientResponse:
+    origin = kwargs["origin"]
+    ctx = kwargs.get("ctx")
+    method = kwargs.get("method", "POST")
+    addl_headers = kwargs.get("addl_headers", {})
+    base_timeout_seconds = kwargs.get("base_timeout_seconds", 600)
+
     ctx = LogContext.wrap(ctx)
     request_id = ctx.eave_request_id
 
@@ -56,7 +56,7 @@ async def make_request(
     if account_id:
         headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
 
-    signature_message = build_message_to_sign(
+    signature_message = signing.build_message_to_sign(
         method=method,
         url=url,
         request_id=request_id,
@@ -64,6 +64,7 @@ async def make_request(
         team_id=team_id,
         account_id=account_id,
         payload=payload,
+        ctx=ctx,
     )
 
     signature = signing.sign_b64(
@@ -114,37 +115,3 @@ async def make_request(
 
     response.raise_for_status()
     return response
-
-
-def makeurl(path: str, base: Optional[str] = None) -> str:
-    if not base:
-        base = shared_config.eave_public_api_base
-    return urllib.parse.urljoin(base, path)
-
-
-def build_message_to_sign(
-    method: str,
-    url: str,
-    request_id: uuid.UUID | str,
-    origin: EaveOrigin | str,
-    payload: str,
-    team_id: Optional[uuid.UUID | str],
-    account_id: Optional[uuid.UUID | str],
-) -> str:
-    signature_elements: list[str] = [
-        origin,
-        method,
-        url,
-        str(request_id),
-        payload,
-    ]
-
-    if team_id:
-        signature_elements.append(str(team_id))
-
-    if account_id:
-        signature_elements.append(str(account_id))
-
-    signature_message = ":".join(signature_elements)
-
-    return signature_message

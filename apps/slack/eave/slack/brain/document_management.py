@@ -80,7 +80,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             eave_message_purpose="link to initial documentation",
         )
 
-        self.log_event(
+        await self.log_event(
             event_name="eave_created_documentation",
             event_description="Eave created a new document",
             opaque_params={
@@ -270,11 +270,22 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
         prompt = eave.stdlib.openai_client.formatprompt(
             f"""
-            Extract a key term or phrase from this conversation that can be used as a full-text search query to find relevant documentation.
+            Extract a key term (1-3 words) from this conversation that can be used as a full-text search query to find relevant documentation.
 
             {message_prompts.CONVO_STRUCTURE}
             Newer messages are more relevant and should be weighted higher.
             If the newest message is asking about a specific topic, that is very important and should be your main focus.
+
+            Do not include any quotes or other punctuation in your response.
+
+            Examples:
+            ###
+            Message: We have to talk about jelly beans!
+            Response: jelly beans
+
+            Message: The international space station is so close to earth. I wonder if that is documented anywhere.
+            Response: international space station
+            ###
 
             Conversation:
             ###
@@ -284,7 +295,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
         openai_params = eave.stdlib.openai_client.ChatCompletionParameters(
-            model=eave.stdlib.openai_client.OpenAIModel.GPT_35_TURBO_16K,
+            model=eave.stdlib.openai_client.OpenAIModel.GPT4,
             messages=[prompt],
             n=1,
             frequency_penalty=0.9,
@@ -304,7 +315,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         )
 
         if len(response.documents) == 0:
-            self.log_event(
+            await self.log_event(
                 event_name="no_search_results",
                 event_description="Eave returned no search results",
                 opaque_params={
@@ -312,7 +323,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                 },
             )
         else:
-            self.log_event(
+            await self.log_event(
                 event_name="search_results",
                 event_description="Eave returned search results",
                 opaque_params={

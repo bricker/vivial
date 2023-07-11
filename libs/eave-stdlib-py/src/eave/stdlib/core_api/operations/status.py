@@ -1,12 +1,19 @@
 import aiohttp
 
-from . import BaseResponseBody
+from . import BaseResponseBody, EndpointConfiguration
 
 from . import Endpoint
-from ... import requests
 
 
 class Status(Endpoint):
+    config = EndpointConfiguration(
+        path="/status",
+        auth_required=False,
+        team_id_required=False,
+        signature_required=False,
+        origin_required=False,
+    )
+
     class ResponseBody(BaseResponseBody):
         service: str
         version: str
@@ -17,7 +24,7 @@ class Status(Endpoint):
         async with aiohttp.ClientSession() as session:
             response = await session.request(
                 "GET",
-                requests.makeurl("/status"),
+                cls.config.url,
             )
 
             response_json = await response.json()

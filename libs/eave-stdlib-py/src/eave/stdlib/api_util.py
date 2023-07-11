@@ -3,7 +3,7 @@ import re
 from typing import Optional
 
 import pydantic
-from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER
+from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER, HOST
 
 import eave.stdlib.util as util
 from starlette.responses import Response
@@ -64,3 +64,17 @@ def get_bearer_token(scope: HTTPScope) -> str | None:
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
     response = Response(status_code=status_code, content=model.json(), media_type="application/json")
     return response
+
+
+def construct_url(scope: HTTPScope) -> str:
+    """
+    Constructs the request URL from these components:
+    - scheme (hardcoded to https)
+    - host header (may include port)
+    - path
+    """
+
+    path = scope["path"]
+    host = get_header_value(scope=scope, name=HOST)
+
+    return f"https://{host}{path}"

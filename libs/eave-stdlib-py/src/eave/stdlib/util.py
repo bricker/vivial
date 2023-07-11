@@ -102,6 +102,13 @@ def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
         return uuid.UUID(hex=data)
 
 
+def ensure_uuid_or_none(data: str | bytes | int | uuid.UUID | None) -> uuid.UUID | None:
+    if data is None:
+        return None
+    else:
+        return ensure_uuid(data)
+
+
 def ensure_str_or_none(data: str | bytes | int | uuid.UUID | None) -> str | None:
     if data is None:
         return None
@@ -179,9 +186,11 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
 def redact(string: str | None) -> str | None:
     if string is None:
         return None
-    if len(string) <= 8:
-        return "(redacted)"
-    return f"{string[:4]}..(redacted)..{string[-4:]}"
+
+    strlen = len(string)
+    if strlen <= 8:
+        return f"[redacted {strlen} chars]"
+    return f"{string[:4]}[redacted {strlen - 8} chars]{string[-4:]}"
 
 
 def erasetype(data: JsonObject, key: str, default: Optional[Any] = None) -> Any:

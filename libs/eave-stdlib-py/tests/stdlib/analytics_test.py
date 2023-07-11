@@ -1,7 +1,9 @@
+from datetime import datetime
 import json
-import time
 from typing import Any
 import unittest.mock
+
+from google.pubsub_v1 import PubsubMessage
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
@@ -12,22 +14,29 @@ from eave.stdlib.test_util import UtilityBaseTestCase
 
 mut = analytics.__name__
 
+
 class unserializable:
     pass
+
 
 class AnalyticsTestBase(UtilityBaseTestCase):
     def mock_analytics(self) -> None:
         # The base class mocks out analytics because we want it mocked out for every other test, except these ones.
         pass
 
-    async def asyncSetUp(self):
+    async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-        self.mocks_publisher = self.patch(name="publisher", patch=unittest.mock.patch(f"{mut}.PublisherClient.publish"))
-        self.mocks_now = self.patch(name="now", patch=unittest.mock.patch("time.time", return_value=time.time()))
-        self.mocks_analytics_enabled = self.patch_env({"EAVE_ANALYTICS_ENABLED": "1"})
+        self.mocks_publisher = self.patch(
+            name="publisher", patch=unittest.mock.patch(f"{mut}.PublisherAsyncClient.publish")
+        )
 
-        self.data_now = float(self.anyint("fakenow"))
-        self.data_expected_topic_path = "projects/eavefyi-dev/topics/eave_event_topic"
+        self.data_now = datetime.utcnow()
+        self.mocks_now = self.patch(name="now", patch=unittest.mock.patch(f"{mut}.datetime", autospec=True))
+        self.mocks_now.utcnow.return_value = self.data_now
+
+        self.mocks_analytics_enabled = self.patch_env({"EAVE_ANALYTICS_DISABLED": "0"})
+
+        self.data_expected_topic_path = "projects/eavefyi-dev/topics/eave_event"
         self.data_team = AnalyticsTeam(
             id=self.anyuuid(),
             document_platform=DocumentPlatform.confluence,
@@ -43,23 +52,25 @@ class AnalyticsTestBase(UtilityBaseTestCase):
         )
 
         self.data_ctx = _l.LogContext()
-        self.data_bad_params: Any =  {self.anystr("paramkey"): unserializable()}
+        self.data_bad_params: Any = {self.anystr("paramkey"): unserializable()}
 
 
 class AnalyticsTest(AnalyticsTestBase):
     def run_common_assertions(self):
         assert self.mocks_publisher.call_count == 1
-        self.mocks_publisher.assert_called_with(self.data_expected_topic_path, self.data_expected_event.SerializeToString())
+        self.mocks_publisher.assert_called_with(
+            topic=self.data_expected_topic_path,
+            messages=[PubsubMessage(data=self.data_expected_event.SerializeToString())],
+        )
 
     async def test_basic_publish_with_all_parameters(self):
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
             opaque_params=self.anydict("opaque_params"),
             eave_account=self.data_account,
             eave_team=self.data_team,
-            event_ts=self.data_now,
             ctx=self.data_ctx,
         )
 
@@ -73,7 +84,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_account=self.data_account.json(),
             eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
-            event_ts=self.data_now,
+            event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
         )
@@ -81,7 +92,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_basic_publish_with_uuid_parameters(self):
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
@@ -101,7 +112,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_account=self.data_account.json(),
             eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
-            event_ts=self.mocks_now.return_value,
+            event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
         )
@@ -109,7 +120,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_publish_with_minimal_params(self):
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
@@ -126,7 +137,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_account=None,
             eave_team=None,
             opaque_params=None,
-            event_ts=self.mocks_now.return_value,
+            event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
         )
@@ -134,14 +145,14 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_no_context_given(self) -> None:
-        event_name=self.anystr("event_name")
-        event_description=self.anystr("event_description")
-        event_source=self.anystr("event_source")
+        # These need to be defined before uuid is patched
+        event_name = self.anystr("event_name")
+        event_description = self.anystr("event_description")
+        event_source = self.anystr("event_source")
 
         self.patch(patch=unittest.mock.patch("uuid.uuid4", return_value=self.anyuuid("uuid")))
-        ctx = _l.LogContext()
 
-        analytics.log_event(
+        await analytics.log_event(
             event_name=event_name,
             event_description=event_description,
             event_source=event_source,
@@ -157,15 +168,15 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_account=None,
             eave_team=None,
             opaque_params=None,
-            event_ts=self.mocks_now.return_value,
+            event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
-            opaque_eave_ctx=json.dumps(ctx),
+            opaque_eave_ctx=None,
         )
 
         self.run_common_assertions()
 
     async def test_publish_with_malformed_opaque_params(self) -> None:
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
@@ -183,18 +194,17 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_account=None,
             eave_team=None,
             opaque_params=str(self.data_bad_params),
-            event_ts=self.mocks_now.return_value,
+            event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
         )
 
         self.run_common_assertions()
 
-
     async def test_publish_in_dev(self):
         self.get_patch("env").stop()
 
-        analytics.log_event(
+        await analytics.log_event(
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),

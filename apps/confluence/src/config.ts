@@ -4,9 +4,8 @@ import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 class AppConfig extends EaveConfig {
   eaveOrigin = EaveOrigin.eave_confluence_app;
 
-  eaveConfluenceAppKey = process.env['EAVE_CONFLUENCE_APP_KEY'] || 'eave-confluence';
-
-  eaveConfluenceAppName = process.env['EAVE_CONFLUENCE_APP_NAME'] || 'Eave for Confluence';
+  // This is the same across all installations for the "eave-confluence" app key
+  eaveConfluenceAppAccountId = '712020:09cf9e48-97bd-4d65-b970-3538514d1358';
 }
 
 const appConfig = new AppConfig();

@@ -9,6 +9,7 @@ from eave.core.internal.orm.atlassian_installation import AtlassianInstallationO
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.pubsub_schemas
+from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.atlassian
@@ -38,6 +39,8 @@ class AtlassianOAuthAuthorize(HTTPEndpoint):
         oauth_session = oauth_atlassian.AtlassianOAuthSession()
         flow_info = oauth_session.oauth_flow_info()
         response = RedirectResponse(url=flow_info.authorization_url)
+
+        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
 
         oauth_cookies.save_state_cookie(
             response=response,
@@ -123,7 +126,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                                 f"A {connect_install.product} connect integration for org {connect_install.org_url} already exists for a different team",
                                 self.eave_state.ctx,
                             )
-                            eave.stdlib.analytics.log_event(
+                            await eave.stdlib.analytics.log_event(
                                 event_name="duplicate_integration_attempt",
                                 eave_account=self.eave_account.analytics_model,
                                 eave_team=self.eave_team.analytics_model,
@@ -140,7 +143,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                             connect_install.team_id = self.eave_account.team_id
                             await self._update_eave_team_document_platform(session=db_session)
 
-                            eave.stdlib.analytics.log_event(
+                            await eave.stdlib.analytics.log_event(
                                 event_name="eave_application_integration",
                                 event_description="An integration was added for a team",
                                 event_source="core api atlassian oauth",
@@ -207,7 +210,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
                         space_key=space_key,
                     )
 
-                    eave.stdlib.analytics.log_event(
+                    await eave.stdlib.analytics.log_event(
                         event_name="default_confluence_space_used",
                         event_description="A team's confluence space was set automatically",
                         event_source="core api atlassian oauth",

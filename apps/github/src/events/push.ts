@@ -136,7 +136,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           messages: [
             { role: 'user', content: prompt },
           ],
-          model: OpenAIModel.GPT_35_TURBO_16K,
+          model: OpenAIModel.GPT4,
         },
         baseTimeoutSeconds: 120,
         ctx,

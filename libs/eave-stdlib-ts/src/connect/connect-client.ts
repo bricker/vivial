@@ -78,7 +78,7 @@ export default class ConnectClient {
 
   private logRequest(request: RequestOpts, ctx?: LogContext) {
     const url = request.url;
-    eaveLogger.debug(`[connect client] Request: ${url}`, ctx);
+    eaveLogger.debug(`[connect client] Request: ${url}`, { body: request.body }, ctx);
   }
 
   private logResponse(response: RequestResponse, ctx?: LogContext) {

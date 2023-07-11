@@ -4,7 +4,6 @@ from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request
 import eave.stdlib.signing as signing
-import eave.stdlib.requests
 from eave.stdlib.eave_origins import EaveOrigin
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
@@ -102,7 +101,7 @@ async def create_task(
     headers["content-type"] = "application/json"
 
     request_id = ctx.eave_request_id
-    signature_message = eave.stdlib.requests.build_message_to_sign(
+    signature_message = signing.build_message_to_sign(
         method="POST",
         origin=origin.value,
         request_id=request_id,
@@ -110,6 +109,7 @@ async def create_task(
         payload=body.decode(),
         team_id=None,
         account_id=None,
+        ctx=ctx,
     )
 
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)

@@ -1,5 +1,6 @@
 import json
 from typing import Any
+from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
 import eave.stdlib.cookies
@@ -11,9 +12,10 @@ import eave.stdlib.requests
 import eave.stdlib.logging
 import eave.stdlib.time
 import werkzeug.exceptions
-from flask import Flask, Response, redirect, render_template, request
+from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
 from eave.stdlib.typing import JsonObject
+from eave.stdlib.utm_cookies import set_tracking_cookies
 from .config import app_config
 from eave.stdlib.config import shared_config
 
@@ -41,6 +43,11 @@ async def start() -> str:
     return "OK"
 
 
+@app.route("/_ah/stop", methods=["GET"])
+async def stop() -> str:
+    return "OK"
+
+
 def _render_spa(**kwargs: Any) -> str:
     return render_template(
         "index.html.jinja",
@@ -56,7 +63,7 @@ def _render_spa(**kwargs: Any) -> str:
 
 @app.route("/authcheck", methods=["GET"])
 async def get_auth_state() -> Response:
-    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
 
     response_body: JsonObject
     if not auth_cookies.access_token or not auth_cookies.account_id:
@@ -69,7 +76,7 @@ async def get_auth_state() -> Response:
 
 @app.route("/dashboard/me/team", methods=["GET"])
 async def authed_account_team() -> Response:
-    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
@@ -85,7 +92,7 @@ async def authed_account_team() -> Response:
 
 @app.route("/dashboard/me/team/destinations/confluence/spaces/query", methods=["GET"])
 async def get_available_spaces() -> Response:
-    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
@@ -107,7 +114,7 @@ async def get_available_spaces() -> Response:
 
 @app.route("/dashboard/me/team/destinations/confluence/upsert", methods=["POST"])
 async def upsert_confluence_destination() -> Response:
-    auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
@@ -138,14 +145,17 @@ async def upsert_confluence_destination() -> Response:
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
     response = redirect(location=app_config.eave_public_www_base, code=302)
-    eave.stdlib.cookies.delete_auth_cookies(response=response)
+    delete_auth_cookies(response=response)
     return response
 
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
-def catch_all(path: str) -> str:
-    return _render_spa()
+def catch_all(path: str) -> Response:
+    spa = _render_spa()
+    response = make_response(spa)
+    set_tracking_cookies(cookies=request.cookies, query_params=request.args, response=response)
+    return response
 
 
 def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegrations.ResponseBody) -> Response:
@@ -153,12 +163,9 @@ def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegratio
     access_token = eave_response.account.access_token
     del eave_response.account.access_token
 
-    if shared_config.eave_beta_whitelist_disabled:
-        eave_response.team.beta_whitelisted = True
-
     response = _json_response(body=eave_response.json())
 
-    eave.stdlib.cookies.set_auth_cookies(
+    set_auth_cookies(
         response=response,
         access_token=access_token,  # In case the access token was refreshed
     )

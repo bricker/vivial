@@ -69,11 +69,11 @@ class EaveConfig:
 
     @property
     def monitoring_enabled(self) -> bool:
-        return os.getenv("EAVE_MONITORING_DISABLED") is None
+        return os.getenv("EAVE_MONITORING_DISABLED") != "1"
 
     @property
     def analytics_enabled(self) -> bool:
-        return os.getenv("EAVE_ANALYTICS_DISABLED") is None
+        return os.getenv("EAVE_ANALYTICS_DISABLED") != "1"
 
     @property
     def google_cloud_project(self) -> str:
@@ -94,9 +94,7 @@ class EaveConfig:
     @property
     def eave_public_apps_base(self) -> str:
         return (
-            os.getenv("EAVE_PUBLIC_APPS_BASE")
-            or os.getenv("EAVE_APPS_BASE") # deprecated
-            or "https://apps.eave.fyi"
+            os.getenv("EAVE_PUBLIC_APPS_BASE") or os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"  # deprecated
         )
 
     @property
@@ -118,15 +116,9 @@ class EaveConfig:
         # normally, but are here as fallbacks.
         match service:
             case EaveService.api:
-                return (
-                    os.getenv("EAVE_API_BASE") # deprecated
-                    or "https://api.eave.fyi"
-                )
+                return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"  # deprecated
             case EaveService.www:
-                return (
-                    os.getenv("EAVE_WWW_BASE") # deprecated
-                    or "https://www.eave.fyi"
-                )
+                return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"  # deprecated
             case _:
                 return self.eave_public_apps_base
 
@@ -155,16 +147,11 @@ class EaveConfig:
             # In production (AppEngine), Internal and Public urls are expected to be different.
             # Internal AppEngine services eave have a specific base URL.
             # FIXME: Hardcoded region ID (uc)
-            return (
-                f"{service.value}"
-                "-dot-"
-                f"{self.google_cloud_project}"
-                ".uc.r.appspot.com"
-            )
+            return "https://" f"{service.value}" "-dot-" f"{self.google_cloud_project}" ".uc.r.appspot.com"
 
     @property
     def eave_cookie_domain(self) -> str:
-        if (v := os.getenv("EAVE_COOKIE_DOMAIN")):
+        if v := os.getenv("EAVE_COOKIE_DOMAIN"):
             return v
 
         parsed = urlparse(self.eave_public_www_base)
@@ -236,8 +223,11 @@ class EaveConfig:
 
     @property
     def eave_slack_app_id(self) -> str:
-        # TODO: Change this secret or metadata
-        return os.getenv("EAVE_SLACK_APP_ID", "A04HD948UHE")  # This is the production ID, and won't change.
+        try:
+            return self.get_secret("EAVE_SLACK_APP_ID")
+        except Exception:
+            # Fallback to the production ID, which won't change.
+            return "A04HD948UHE"
 
     @cached_property
     def eave_slack_client_id(self) -> str:

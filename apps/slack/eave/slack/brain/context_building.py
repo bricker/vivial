@@ -8,7 +8,7 @@ from .base import Base
 from . import message_prompts
 from ..config import app_config
 
-context_building_model = openai.OpenAIModel.GPT_35_TURBO_16K
+context_building_model = openai.OpenAIModel.GPT4
 
 class ContextBuildingMixin(Base):
     async def build_message_context(self) -> None:

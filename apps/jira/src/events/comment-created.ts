@@ -9,7 +9,7 @@ import * as schemas from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event
 import { ADFLinkMark, ADFMentionNode, ADFNode, ADFRootNode, ADFTextNode, ADFBlockNodeType, ADFInlineNodeType, ADFParagraphNode, ADFMarkType, ADFListItemNode, ADFChildBlockNodeType, ADFBulletListNode } from '@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js';
 import appConfig from '../config.js';
 import JiraClient from '../jira-client.js';
-import { JiraCommentCreatedEventPayload } from '../types.js';
+import { JiraCommentCreatedEventPayload, JiraUser } from '../types.js';
 
 const ACCOUNT_ID_RE = /\[~accountid:(.+?)\]/ig;
 
@@ -41,7 +41,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
 
   const eaveMentioned = await Promise.any(mentionAccountIds.map(async (match) => {
     const user = await jiraClient.getUser({ accountId: match[1]! });
-    if (user?.accountType === 'app' && user?.displayName === 'Eave for Jira') {
+    if (isEave(user)) {
       return true;
     }
     return false;
@@ -120,8 +120,14 @@ function cleanCommentBody(comment: string): string {
 
 async function getSearchQuery({ comment, openaiClient, ctx }: { comment: string, openaiClient: OpenAIClient, ctx: LogContext }): Promise<string> {
   const prompt = [
-    'Extract a key term or phrase from this message that can be used as a full-text search query to find relevant documentation.',
-    'Do not include any quotes or other punctuation.',
+    'Extract a key term (1-3 words) from this message that can be used as a full-text search query to find relevant documentation. Do not include any quotes or other punctuation in your response.',
+    'Examples:',
+    '###',
+    'Message: Is there any documentation about jelly beans?',
+    'Response: jelly beans',
+    'Message: do you have information about the space station or space ships?',
+    'Response: space ships',
+    '###',
     'Message:',
     '###',
     comment,
@@ -133,7 +139,7 @@ async function getSearchQuery({ comment, openaiClient, ctx }: { comment: string,
       messages: [
         { role: 'user', content: prompt },
       ],
-      model: OpenAIModel.GPT_35_TURBO_16K,
+      model: OpenAIModel.GPT4,
     },
     ctx,
   });
@@ -155,7 +161,7 @@ async function getIntent({ comment, openaiClient, ctx }: { comment: string, open
       messages: [
         { role: 'user', content: prompt },
       ],
-      model: OpenAIModel.GPT_35_TURBO_16K,
+      model: OpenAIModel.GPT4,
     },
     ctx,
   });
@@ -244,4 +250,8 @@ function buildEaveResponse({ searchResults, payload }: { searchResults: SearchDo
   };
 
   return commentDoc;
+}
+
+function isEave(user?: JiraUser) {
+  return user && user.accountId === appConfig.eaveJiraAppAccountId;
 }

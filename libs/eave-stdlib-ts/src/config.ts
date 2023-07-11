@@ -40,11 +40,11 @@ export class EaveConfig {
   }
 
   get monitoringEnabled(): boolean {
-    return process.env['EAVE_MONITORING_DISABLED'] === undefined;
+    return process.env['EAVE_MONITORING_DISABLED'] !== '1';
   }
 
   get analyticsEnabled(): boolean {
-    return process.env['EAVE_ANALYTICS_DISABLED'] === undefined;
+    return process.env['EAVE_ANALYTICS_DISABLED'] !== '1';
   }
 
   get logLevel(): string {
@@ -106,9 +106,8 @@ export class EaveConfig {
       }
     } else {
       // FIXME: Hardcoded region id (uc)
-      return `${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
+      return `https://${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
     }
-
   }
 
   get eaveCookieDomain(): string {

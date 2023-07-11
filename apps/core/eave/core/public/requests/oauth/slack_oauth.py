@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import eave.pubsub_schemas
+from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
 import oauthlib.common
 from starlette.requests import Request
@@ -26,6 +27,9 @@ class SlackOAuthAuthorize(HTTPEndpoint):
         state: str = oauthlib.common.generate_token()
         authorization_url = eave.core.internal.oauth.slack.authorize_url_generator.generate(state)
         response = RedirectResponse(url=authorization_url)
+
+        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
+
         oauth_cookies.save_state_cookie(
             response=response,
             state=state,
@@ -117,7 +121,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     f"A Slack integration already exists with slack team id {slack_team_id}",
                     log_context,
                 )
-                eave.stdlib.analytics.log_event(
+                await eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",
                     event_source="core api slack oauth",
                     eave_account=self.eave_account.analytics_model,
@@ -196,7 +200,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         except Exception as e:
             eaveLogger.exception(e, log_context)
 
-        eave.stdlib.analytics.log_event(
+        await eave.stdlib.analytics.log_event(
             event_name="eave_application_integration",
             event_description="An integration was added for a team",
             event_source="core api slack oauth",

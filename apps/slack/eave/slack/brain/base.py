@@ -36,11 +36,13 @@ class Base:
         self.eave_ctx = eave_ctx
         self.subscriptions = []
 
-    def log_event(self, event_name: str, event_description: str, opaque_params: Optional[JsonObject] = None) -> None:
+    async def log_event(
+        self, event_name: str, event_description: str, opaque_params: Optional[JsonObject] = None
+    ) -> None:
         if opaque_params is None:
             opaque_params = {}
 
-        analytics.log_event(
+        await analytics.log_event(
             event_name=event_name,
             event_description=event_description,
             event_source="slack app",

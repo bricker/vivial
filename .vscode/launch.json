@@ -167,8 +167,6 @@
         "EAVE_ANALYTICS_DISABLED": "1",
         "NODE_ENV": "development",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
-        "EAVE_CONFLUENCE_APP_KEY": "eave-confluence-dev",
-        "EAVE_CONFLUENCE_APP_NAME": "Eave for Confluence (Dev)",
       },
     },
     {
@@ -205,8 +203,6 @@
         "EAVE_ANALYTICS_DISABLED": "1",
         "NODE_ENV": "development",
         "NODE_TLS_REJECT_UNAUTHORIZED": "0",
-        "EAVE_JIRA_APP_KEY": "eave-jira-dev",
-        "EAVE_JIRA_APP_NAME": "Eave for Jira (Dev)",
       },
     },
     {

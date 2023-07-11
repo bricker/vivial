@@ -51,3 +51,8 @@ class WarmupRequest(HTTPEndpoint):
 class StartRequest(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         return Response(status_code=http.HTTPStatus.OK, content="OK")
+
+
+class StopRequest(HTTPEndpoint):
+    async def get(self, request: Request) -> Response:
+        return Response(status_code=http.HTTPStatus.OK, content="OK")

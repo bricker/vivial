@@ -155,7 +155,7 @@ async def event_member_joined_channel_handler(
             text=message,
         )
 
-        eave.stdlib.analytics.log_event(
+        await eave.stdlib.analytics.log_event(
             event_name="eave_sent_message",
             event_description="Eave sent a message",
             event_source="slack app",
@@ -170,7 +170,7 @@ async def event_member_joined_channel_handler(
     else:
         eaveLogger.warning("No Slack client available in the Slack context.", eave_ctx)
 
-    eave.stdlib.analytics.log_event(
+    await eave.stdlib.analytics.log_event(
         event_name="eave_joined_slack_channel",
         event_description="Eave joined a slack channel",
         event_source="slack app",

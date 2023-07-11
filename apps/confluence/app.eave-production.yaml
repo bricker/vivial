@@ -15,9 +15,9 @@ handlers:
 inbound_services:
 - warmup
 
-instance_class: F2
-automatic_scaling:
-  min_idle_instances: 1
+instance_class: B2
+basic_scaling:
+  max_instances: 3
 
 
 vpc_access_connector:
@@ -25,8 +25,6 @@ vpc_access_connector:
 
 
 env_variables:
-  EAVE_CONFLUENCE_APP_KEY: "eave-confluence"
-  EAVE_CONFLUENCE_APP_NAME: "Eave"
   LOG_LEVEL: "DEBUG"
   REDIS_CONNECTION: "10.81.236.179:6378:0"
   REDIS_TLS_CA: |-

@@ -2,9 +2,11 @@ export function redact(str: string | undefined): string | undefined {
   if (str === undefined) {
     return undefined;
   }
-  if (str.length <= 8) {
-    return '(redacted)';
+
+  const strlen = str.length;
+  if (strlen <= 8) {
+    return `[redacted ${strlen} chars]`;
   }
 
-  return `${str.slice(0, 4)}..(redacted)..${str.slice(-4)}`;
+  return `${str.slice(0, 4)}[redacted ${strlen - 8} chars]${str.slice(-4)}`;
 }

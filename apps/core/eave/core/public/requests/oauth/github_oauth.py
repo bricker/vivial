@@ -2,6 +2,8 @@ import json
 import urllib.parse
 
 import eave.pubsub_schemas
+from eave.stdlib import utm_cookies
+from eave.stdlib.auth_cookies import get_auth_cookies
 import eave.stdlib.cookies
 import eave.stdlib.util
 import eave.stdlib.analytics
@@ -42,6 +44,9 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         )
         # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
         response = RedirectResponse(url=authorization_url)
+
+        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
+
         oauth_cookies.save_state_cookie(
             response=response,
             state=state,
@@ -96,7 +101,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
         self.installation_id = installation_id
 
-        auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+        auth_cookies = get_auth_cookies(cookies=request.cookies)
 
         # TODO: Allow GitHub as real auth provider.
         # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
@@ -134,7 +139,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     f"A Github integration already exists with github install id {self.installation_id}",
                     self.eave_state.ctx,
                 )
-                eave.stdlib.analytics.log_event(
+                await eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",
                     event_source="core api github oauth",
                     eave_account=self.eave_account.analytics_model,
@@ -153,7 +158,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     github_install_id=self.installation_id,
                 )
 
-        eave.stdlib.analytics.log_event(
+        await eave.stdlib.analytics.log_event(
             event_name="eave_application_integration",
             event_description="An integration was added for a team",
             event_source="core api github oauth",
