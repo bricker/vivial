@@ -24,7 +24,7 @@ async def get_topic(conversation: str) -> str:
 
     openai_params = eave_openai.ChatCompletionParameters(
         model=eave_openai.OpenAIModel.GPT4,
-        messages=[prompt],
+        messages=[eave_openai.ChatMessage(content=prompt)],
         n=1,
         frequency_penalty=0,
         presence_penalty=0,
@@ -87,7 +87,7 @@ async def get_hierarchy(conversation: str) -> list[str]:
 
     openai_params = eave_openai.ChatCompletionParameters(
         model=eave_openai.OpenAIModel.GPT4,
-        messages=[prompt],
+        messages=[eave_openai.ChatMessage(content=prompt)],
         n=1,
         frequency_penalty=0.9,
         presence_penalty=0.9,
@@ -134,7 +134,7 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
 
     openai_params = eave_openai.ChatCompletionParameters(
         model=eave_openai.OpenAIModel.GPT4,
-        messages=[prompt],
+        messages=[eave_openai.ChatMessage(content=prompt)],
         n=1,
         frequency_penalty=0,
         presence_penalty=0,
@@ -220,7 +220,7 @@ async def get_documentation(
 
     openai_params = eave_openai.ChatCompletionParameters(
         model=eave_openai.OpenAIModel.GPT4,
-        messages=[prompt],
+        messages=[eave_openai.ChatMessage(content=prompt)],
         n=1,
         frequency_penalty=0.2,
         presence_penalty=0.2,

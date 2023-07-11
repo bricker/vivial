@@ -296,7 +296,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
         openai_params = eave.stdlib.openai_client.ChatCompletionParameters(
             model=eave.stdlib.openai_client.OpenAIModel.GPT4,
-            messages=[prompt],
+            messages=[eave.stdlib.openai_client.ChatMessage(content=prompt)],
             n=1,
             frequency_penalty=0.9,
             presence_penalty=0.9,

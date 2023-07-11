@@ -71,13 +71,13 @@ class ChatRole(enum.StrEnum):
 
 @dataclass
 class ChatMessage:
-    role: ChatRole
     content: str
+    role: ChatRole = ChatRole.USER
 
 
 @dataclass
 class ChatCompletionParameters:
-    messages: list[str | ChatMessage]
+    messages: list[ChatMessage]
     model: OpenAIModel
     best_of: Optional[int] = None
     n: Optional[int] = None
@@ -88,20 +88,13 @@ class ChatCompletionParameters:
     stop: Optional[List[str]] = None
     max_tokens: Optional[int] = None
 
-    def build_messages(self) -> list[ChatMessage]:
-        return [
-            m if isinstance(m, ChatMessage) else ChatMessage(role=ChatRole.USER, content=m)
-            for m in self.messages
-        ]
-
     def compile(self) -> JsonObject:
         params = dict[str, Any]()
         params["model"] = self.model
 
-        messages = self.build_messages()
         # ChatMessage(role=ChatRole.SYSTEM, content=prompt_prefix()),
 
-        params["messages"] = [asdict(m) for m in messages]
+        params["messages"] = [asdict(m) for m in self.messages]
 
         if self.best_of is not None:
             params["best_of"] = self.best_of

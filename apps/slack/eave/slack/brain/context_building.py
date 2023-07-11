@@ -1,4 +1,5 @@
 import asyncio
+from math import trunc
 from typing import Optional
 import eave.stdlib.openai_client as openai
 from eave.stdlib.util import memoized
@@ -81,7 +82,7 @@ class ContextBuildingMixin(Base):
 
             total_tokens += openai.token_count(data=formatted_text, model=context_building_model)
 
-            if total_tokens > (openai.MAX_TOKENS[context_building_model] / 2):
+            if total_tokens > trunc(openai.MAX_TOKENS[context_building_model] / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
                 prompt = openai.formatprompt(
                     f"""
@@ -99,7 +100,7 @@ class ContextBuildingMixin(Base):
                 )
                 openai_params = openai.ChatCompletionParameters(
                     model=context_building_model,
-                    messages=[prompt],
+                    messages=[openai.ChatMessage(content=prompt)],
                     temperature=0.9,
                     frequency_penalty=1.0,
                     presence_penalty=1.0,
@@ -140,7 +141,7 @@ class ContextBuildingMixin(Base):
             )
             openai_params = openai.ChatCompletionParameters(
                 model=context_building_model,
-                messages=[prompt],
+                messages=[openai.ChatMessage(content=prompt)],
                 temperature=0.9,
                 frequency_penalty=1.0,
                 presence_penalty=1.0,
@@ -187,7 +188,7 @@ class ContextBuildingMixin(Base):
                     )
                     openai_params = openai.ChatCompletionParameters(
                         model=context_building_model,
-                        messages=[prompt],
+                        messages=[openai.ChatMessage(content=prompt)],
                         temperature=0.9,
                         frequency_penalty=1.0,
                         presence_penalty=1.0,
@@ -209,7 +210,7 @@ class ContextBuildingMixin(Base):
                     )
                     openai_params = openai.ChatCompletionParameters(
                         model=context_building_model,
-                        messages=[prompt],
+                        messages=[openai.ChatMessage(content=prompt)],
                         temperature=0.9,
                         frequency_penalty=1.0,
                         presence_penalty=1.0,
