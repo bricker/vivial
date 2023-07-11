@@ -101,6 +101,12 @@ def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
     elif isinstance(data, str):
         return uuid.UUID(hex=data)
 
+def ensure_uuid_or_none(data: str | bytes | int | uuid.UUID | None) -> uuid.UUID | None:
+    if data is None:
+        return None
+    else:
+        return ensure_uuid(data)
+
 
 def ensure_str_or_none(data: str | bytes | int | uuid.UUID | None) -> str | None:
     if data is None:

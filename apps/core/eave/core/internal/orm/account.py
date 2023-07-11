@@ -17,6 +17,7 @@ from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.typing import JsonObject
+from eave.stdlib.util import ensure_uuid, ensure_uuid_or_none
 
 from .base import Base
 from .team import TeamOrm
@@ -67,7 +68,7 @@ class AccountOrm(Base):
         cls,
         session: AsyncSession,
         team_id: UUID,
-        visitor_id: Optional[UUID],
+        visitor_id: Optional[UUID | str],
         opaque_utm_params: Optional[JsonObject],
         auth_provider: AuthProvider,
         auth_id: str,
@@ -77,7 +78,7 @@ class AccountOrm(Base):
     ) -> Self:
         obj = cls(
             team_id=team_id,
-            visitor_id=visitor_id,
+            visitor_id=ensure_uuid_or_none(visitor_id),
             opaque_utm_params=opaque_utm_params,
             auth_provider=auth_provider,
             auth_id=auth_id,
