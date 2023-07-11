@@ -13,7 +13,7 @@ import eave.stdlib.openai_client as _o
 async def get_services_from_hierarchy(hierarchy: FSHierarchy, model: _o.OpenAIModel, github_ctx: GithubContext) -> list[Service]:
     rendered_hierarchy = render_fs_hierarchy(hierarchy=hierarchy).strip()
 
-    messages: list[str | _o.ChatMessage] = [
+    messages: list[_o.ChatMessage] = [
         _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=_o.formatprompt(
             f"""
             You will be provided a GitHub organization name, a repository name, and the directory hierarchy for that repository (starting from the root of the repository). Your task is to create a short, human-readable name and a description for any public HTTP services hosted in this repository. It's likely that there is exactly one service in the repository, however there may be more than one in the case of a monorepo hosting multiple applications, and there may be none in the case of a repository hosting only shared library code, developer tools, configuration, etc.

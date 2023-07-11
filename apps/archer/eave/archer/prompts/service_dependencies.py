@@ -70,7 +70,7 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
 
     print(filepath, f"finalpromptlen={len(final_prompt)}", f"finalprompttokenlen={len(get_tokens(final_prompt, model=model))}")
 
-    messages: list[str|_o.ChatMessage] = [
+    messages = [
         _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=make_prompt_content(system_prompt_lines)),
         _o.ChatMessage(role=_o.ChatRole.USER, content=make_prompt_content(user_prompt_lines))
     ]
