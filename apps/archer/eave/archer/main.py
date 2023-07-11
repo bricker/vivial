@@ -1,58 +1,52 @@
+import argparse
 import asyncio
-from time import sleep
-
-from .render import render_root_graph
-from .config import DIR_EXCLUDES, FILE_INCLUDES, OPENAI_MODEL
-
-from eave.archer.file_contents import get_file_contents, truncate_file_contents_for_model
-from eave.archer.service_graph import Service, ServiceGraph, ServiceRegistry
-from eave.archer.prompts.service_dependencies import get_dependencies
-from eave.archer.prompts.service_info import get_service_info_from_code
-
+from datetime import datetime
 import re
-import os
+from eave.archer.config import PROJECT_ROOT
+from eave.archer.graph_builder import build_graph
 
-async def run(root_path: str):
-    service_registry = ServiceRegistry()
-    service = Service(name="Eave")
+from eave.archer.render import render_root_graph, write_graph, write_hierarchy, write_openai_request, write_run_info
+from eave.archer.service_graph import ServiceGraph
+from eave.archer.prompts.service_info import get_services_from_hierarchy
 
-    for root, dirs, files in os.walk(top=os.path.join(os.environ["EAVE_HOME"])):
-        dirs[:] = [d for d in dirs if not any([re.search(e, d) for e in DIR_EXCLUDES])]
-        files[:] = [f for f in files if any([re.search(i, f) for i in FILE_INCLUDES])]
+from eave.archer.fs_hierarchy import build_hierarchy
+from eave.archer.util import GithubContext
+from eave.stdlib.openai_client import OpenAIModel
 
-        for fname in files:
-            sleep(2)
+async def run(model: OpenAIModel) -> None:
+    start_timestamp = datetime.now()
 
-            fpath = os.path.join(root, fname)
-            print(fpath)
-            file_contents = get_file_contents(fpath)
-            file_contents = truncate_file_contents_for_model(file_contents, OPENAI_MODEL)
+    root_hierarchy = build_hierarchy(root=PROJECT_ROOT)
 
-            if len(file_contents.strip()) == 0:
-                print("empty file, skipping")
-            else:
-                service = await get_service_info_from_code(fpath, file_contents)
-                if service:
-                    service_registry.register(service)
-                    subgraph = await get_dependencies(
-                        filepath=fpath,
-                        contents=file_contents,
-                        registry=service_registry,
-                    )
-                    if subgraph:
-                        service.subgraph.merge(subgraph)
+    github_ctx = GithubContext(org_name="eave-fyi", repo_name="eave-monorepo")
 
-                    graph = service.subgraph
+    services = await get_services_from_hierarchy(hierarchy=root_hierarchy, model=model, github_ctx=github_ctx)
 
-            print("\n\n")
+    root_graph = ServiceGraph()
+    for service in [s for s in services if s.root and re.search(r"^apps/slack", s.root)]:
+        root_graph.add(service)
+        # TODO: No need to build the hierarchy twice, share this with the previously built hierarchy
+        hierarchy = build_hierarchy(root=service.full_root or root_hierarchy.root)
+        subgraph = await build_graph(hierarchy=hierarchy, model=model, github_ctx=github_ctx)
+        service.subgraph.merge(subgraph)
 
-    out = render_root_graph(root_graph)
-    print(out)
+    rendered_graph = render_root_graph(graph=root_graph)
 
-    with open("graph.mermaid", mode="w+") as f:
-        f.write(out)
-
-    print("wrote output to graph.mermaid")
+    try:
+        write_hierarchy(timestamp=start_timestamp, hierarchy=root_hierarchy, model=model)
+        write_openai_request(timestamp=start_timestamp, filename="services.md", key="get_services")
+        write_openai_request(timestamp=start_timestamp, filename="dependencies.md", key="get_dependencies")
+        write_graph(timestamp=start_timestamp, rendered_graph=rendered_graph)
+        write_run_info(timestamp=start_timestamp)
+    except Exception:
+        print(rendered_graph)
+        raise
 
 if __name__ == "__main__":
-    asyncio.run(run())
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, default=OpenAIModel.GPT4.value)
+    args = parser.parse_args()
+    print(args)
+
+    model = OpenAIModel(value=args.model)
+    asyncio.run(run(model))
