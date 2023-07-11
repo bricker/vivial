@@ -66,6 +66,21 @@ class TestGoogleOAuthHandler(BaseTestCase):
         )
         assert re.search(redirect_uri, response.headers["Location"])
 
+    async def test_google_authorize_with_utm_params(self) -> None:
+        response = await self.make_request(
+            path="/oauth/google/authorize",
+            method="GET",
+            payload={
+                "utm_campaign": self.anystr("utm_campaign"),
+                "gclid": self.anystr("gclid"),
+                "ignored_param": self.anystr(),
+            },
+        )
+
+        assert response.cookies.get("ev_utm_utm_campaign") == self.getstr("utm_campaign")
+        assert response.cookies.get("ev_utm_gclid") == self.getstr("gclid")
+        assert response.cookies.get("ev_utm_ignored_param") is None
+
     async def test_google_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
@@ -78,7 +93,9 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 "state": self.anystr("state"),
             },
             cookies={
-                "ev_oauth_state_google": self.anystring("state"),
+                "ev_oauth_state_google": self.anystr("state"),
+                "ev_utm_utm_campaign": self.anystr("utm_campaign"),
+                "ev_utm_gclid": self.anystr("gclid"),
             },
         )
 
@@ -98,11 +115,15 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
 
-            assert eave_account.access_token == self.anystring("google.token")
-            assert eave_account.refresh_token == self.anystring("google.refresh_token")
-            assert eave_account.auth_id == self.anystring("google.sub")
+            assert eave_account.opaque_utm_params is not None
+            assert eave_account.opaque_utm_params.get("utm_campaign") == self.getstr("utm_campaign")
+            assert eave_account.opaque_utm_params.get("gclid") == self.getstr("gclid")
+
+            assert eave_account.access_token == self.anystr("google.token")
+            assert eave_account.refresh_token == self.anystr("google.refresh_token")
+            assert eave_account.auth_id == self.anystr("google.sub")
             assert eave_account.auth_provider == AuthProvider.google
-            assert eave_team.name == f"{self.anystring('google.given_name')}'s Team"
+            assert eave_team.name == f"{self.anystr('google.given_name')}'s Team"
 
     async def test_google_callback_new_account_without_name_from_google(self) -> None:
         self.testdata["google.given_name"] = None

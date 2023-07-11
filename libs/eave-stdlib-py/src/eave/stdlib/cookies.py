@@ -9,12 +9,6 @@ from eave.stdlib.typing import JsonObject
 
 from .config import shared_config
 
-EAVE_COOKIE_PREFIX_UTM = "ev_utm_"
-EAVE_VISITOR_ID_COOKIE = "ev_visitor_id"
-EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
-EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token"
-
-
 class ResponseCookieMutator(Protocol):
     """
     This protocol is necessary because we pass in both Flask and Starlette response objects, which both
@@ -36,57 +30,7 @@ class ResponseCookieMutator(Protocol):
     ) -> Any:
         ...
 
-
-@dataclass
-class TrackingCookies:
-    utm_params: typing.Optional[JsonObject]
-    visitor_id: typing.Optional[uuid.UUID]
-
-
-def get_tracking_cookies(cookies: Mapping[str, str]) -> TrackingCookies:
-    visitor_id = cookies.get(EAVE_VISITOR_ID_COOKIE)
-    utm_params: JsonObject = {}
-
-    for key, value in cookies.items():
-        if re.match(EAVE_COOKIE_PREFIX_UTM, key):
-            utm_param_name = re.sub(f"^{EAVE_COOKIE_PREFIX_UTM}", "", key)
-            utm_params[utm_param_name] = value
-
-    return TrackingCookies(
-        utm_params=utm_params,
-        visitor_id=uuid.UUID(visitor_id) if visitor_id else None,
-    )
-
-
-@dataclass
-class AuthCookies:
-    account_id: typing.Optional[uuid.UUID]
-    access_token: typing.Optional[str]
-
-
-def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
-    account_id = cookies.get(EAVE_ACCOUNT_ID_COOKIE)
-    access_token = cookies.get(EAVE_ACCESS_TOKEN_COOKIE)
-
-    return AuthCookies(
-        account_id=uuid.UUID(account_id) if account_id else None,
-        access_token=access_token,
-    )
-
-
-def set_auth_cookies(
-    response: ResponseCookieMutator,
-    account_id: typing.Optional[uuid.UUID] = None,
-    access_token: typing.Optional[str] = None,
-) -> None:
-    if account_id:
-        _set_auth_cookie(key=EAVE_ACCOUNT_ID_COOKIE, value=str(account_id), response=response)
-
-    if access_token:
-        _set_auth_cookie(key=EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
-
-
-def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> None:
+def set_http_cookie(key: str, value: str, response: ResponseCookieMutator) -> None:
     response.set_cookie(
         key=key,
         value=value,
@@ -97,12 +41,7 @@ def _set_auth_cookie(key: str, value: str, response: ResponseCookieMutator) -> N
     )
 
 
-def delete_auth_cookies(response: ResponseCookieMutator) -> None:
-    _delete_auth_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE)
-    _delete_auth_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE)
-
-
-def _delete_auth_cookie(response: ResponseCookieMutator, key: str) -> None:
+def delete_http_cookie(response: ResponseCookieMutator, key: str) -> None:
     response.set_cookie(
         key=key,
         value="",

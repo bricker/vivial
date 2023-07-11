@@ -2,6 +2,7 @@ import http
 from typing import Any, Callable, Mapping
 
 import eave.stdlib.api_util
+from eave.stdlib.auth_cookies import delete_auth_cookies
 import eave.stdlib.cookies
 import pydantic
 from starlette.requests import Request
@@ -61,7 +62,7 @@ def unauthorized(request: Request, exc: Exception) -> Response:
         context=eave_state.ctx.public,
     )
     response = eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
-    eave.stdlib.cookies.delete_auth_cookies(response=response)
+    delete_auth_cookies(response=response)
     return response
 
 

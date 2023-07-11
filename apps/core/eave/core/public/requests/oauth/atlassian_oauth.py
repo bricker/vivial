@@ -9,6 +9,7 @@ from eave.core.internal.orm.atlassian_installation import AtlassianInstallationO
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.pubsub_schemas
+from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.atlassian
@@ -38,6 +39,8 @@ class AtlassianOAuthAuthorize(HTTPEndpoint):
         oauth_session = oauth_atlassian.AtlassianOAuthSession()
         flow_info = oauth_session.oauth_flow_info()
         response = RedirectResponse(url=flow_info.authorization_url)
+
+        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
 
         oauth_cookies.save_state_cookie(
             response=response,

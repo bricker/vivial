@@ -88,6 +88,22 @@ class TestSlackOAuthHandler(BaseTestCase):
             response.headers["Location"],
         )
 
+
+    async def test_slack_authorize_with_utm_params(self) -> None:
+        response = await self.make_request(
+            path="/oauth/slack/authorize",
+            method="GET",
+            payload={
+                "utm_campaign": self.anystr("utm_campaign"),
+                "gclid": self.anystr("gclid"),
+                "ignored_param": self.anystr(),
+            },
+        )
+
+        assert response.cookies.get("ev_utm_utm_campaign") == self.getstr("utm_campaign")
+        assert response.cookies.get("ev_utm_gclid") == self.getstr("gclid")
+        assert response.cookies.get("ev_utm_ignored_param") is None
+
     async def test_slack_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
@@ -102,6 +118,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_slack": self.anystring("state"),
+                "ev_utm_utm_campaign": self.anystr("utm_campaign"),
+                "ev_utm_gclid": self.anystr("gclid"),
             },
         )
         async with self.db_session.begin() as s:
@@ -136,6 +154,10 @@ class TestSlackOAuthHandler(BaseTestCase):
                 session=s, slack_team_id=self.anystring("team.id")
             )
             assert slack_installation
+
+            assert eave_account.opaque_utm_params is not None
+            assert eave_account.opaque_utm_params.get("utm_campaign") == self.getstr("utm_campaign")
+            assert eave_account.opaque_utm_params.get("gclid") == self.getstr("gclid")
 
             assert eave_account.access_token == self.anystring("authed_user.access_token")
             assert eave_account.refresh_token == self.anystring("authed_user.refresh_token")

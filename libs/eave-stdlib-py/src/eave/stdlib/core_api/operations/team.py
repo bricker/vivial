@@ -19,7 +19,7 @@ class GetTeamRequest(Endpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -51,7 +51,7 @@ class UpsertConfluenceDestinationAuthedRequest(Endpoint):
         cls,
         input: RequestBody,
         access_token: str,
-        account_id: uuid.UUID,
+        account_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
