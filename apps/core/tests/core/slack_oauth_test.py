@@ -88,7 +88,6 @@ class TestSlackOAuthHandler(BaseTestCase):
             response.headers["Location"],
         )
 
-
     async def test_slack_authorize_with_utm_params(self) -> None:
         response = await self.make_request(
             path="/oauth/slack/authorize",

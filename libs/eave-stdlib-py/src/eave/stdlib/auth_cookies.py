@@ -7,10 +7,12 @@ from eave.stdlib.cookies import ResponseCookieMutator, delete_http_cookie, set_h
 _EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
 _EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token"
 
+
 @dataclass
 class AuthCookies:
     account_id: Optional[str]
     access_token: Optional[str]
+
 
 def set_auth_cookies(
     response: ResponseCookieMutator,
@@ -22,6 +24,7 @@ def set_auth_cookies(
 
     if access_token:
         set_http_cookie(key=_EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
+
 
 def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
     account_id = cookies.get(_EAVE_ACCOUNT_ID_COOKIE)

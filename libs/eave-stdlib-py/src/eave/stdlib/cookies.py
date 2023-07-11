@@ -1,13 +1,10 @@
-import re
 import typing
-import uuid
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Literal, Mapping, Protocol
+from typing import Any, Literal, Protocol
 
-from eave.stdlib.typing import JsonObject
 
 from .config import shared_config
+
 
 class ResponseCookieMutator(Protocol):
     """
@@ -29,6 +26,7 @@ class ResponseCookieMutator(Protocol):
         samesite: typing.Optional[Literal["lax", "strict", "none"]] = "lax",
     ) -> Any:
         ...
+
 
 def set_http_cookie(key: str, value: str, response: ResponseCookieMutator) -> None:
     response.set_cookie(

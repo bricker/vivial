@@ -6,6 +6,7 @@ from starlette.responses import Response
 from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.test_util import UtilityBaseTestCase
 
+
 class AuthCookiesTestBase(UtilityBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
@@ -24,9 +25,12 @@ class AuthCookiesTestBase(UtilityBaseTestCase):
         self.data_account_id = self.anystr("account_id")
         self.data_access_token = self.anystr("access_token")
 
+
 class AuthCookiesTest(AuthCookiesTestBase):
     async def test_set_auth_cookies_with_all_data(self):
-        set_auth_cookies(response=self.mock_response, account_id=self.data_account_id, access_token=self.data_access_token)
+        set_auth_cookies(
+            response=self.mock_response, account_id=self.data_account_id, access_token=self.data_access_token
+        )
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 
         assert len(cookies) == 2
@@ -55,26 +59,32 @@ class AuthCookiesTest(AuthCookiesTestBase):
         assert len(cookies) == 0
 
     async def test_get_auth_cookies_with_all_data(self):
-        cookies = get_auth_cookies({
-            "ev_account_id": self.data_account_id,
-            "ev_access_token": self.data_access_token,
-        })
+        cookies = get_auth_cookies(
+            {
+                "ev_account_id": self.data_account_id,
+                "ev_access_token": self.data_access_token,
+            }
+        )
 
         assert cookies.account_id == self.data_account_id
         assert cookies.access_token == self.data_access_token
 
     async def test_get_auth_cookies_with_account_id_only(self):
-        cookies = get_auth_cookies({
-            "ev_account_id": self.data_account_id,
-        })
+        cookies = get_auth_cookies(
+            {
+                "ev_account_id": self.data_account_id,
+            }
+        )
 
         assert cookies.account_id == self.data_account_id
         assert cookies.access_token is None
 
     async def test_get_auth_cookies_with_access_token_only(self):
-        cookies = get_auth_cookies({
-            "ev_access_token": self.data_access_token,
-        })
+        cookies = get_auth_cookies(
+            {
+                "ev_access_token": self.data_access_token,
+            }
+        )
 
         assert cookies.account_id is None
         assert cookies.access_token == self.data_access_token

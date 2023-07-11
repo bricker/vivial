@@ -17,7 +17,7 @@ from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.typing import JsonObject
-from eave.stdlib.util import ensure_uuid, ensure_uuid_or_none
+from eave.stdlib.util import ensure_uuid_or_none
 
 from .base import Base
 from .team import TeamOrm

@@ -3,10 +3,9 @@ from typing import Any
 from starlette.requests import Request
 
 from starlette.responses import Response
-from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.test_util import UtilityBaseTestCase
-from eave.stdlib.utm_cookies import EAVE_COOKIE_PREFIX_UTM, EAVE_VISITOR_ID_COOKIE, get_tracking_cookies, set_tracking_cookies
+
 
 class CookiesTestBase(UtilityBaseTestCase):
     async def asyncSetUp(self) -> None:
@@ -22,6 +21,7 @@ class CookiesTestBase(UtilityBaseTestCase):
         }
         self.mock_request = Request(scope=self.mock_scope)
         self.mock_response = Response()
+
 
 class CookiesTest(CookiesTestBase):
     async def test_set_http_cookie(self):
@@ -48,4 +48,3 @@ class CookiesTest(CookiesTestBase):
         assert cookie
         assert re.search("Domain=.eave.tests;", cookie)
         assert re.search("HttpOnly;", cookie)
-

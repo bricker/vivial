@@ -31,7 +31,6 @@ class GoogleOAuthAuthorize(HTTPEndpoint):
             provider=_AUTH_PROVIDER,
         )
 
-
         return response
 
 
