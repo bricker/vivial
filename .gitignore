@@ -19,7 +19,6 @@ credentials.json
 .coverage
 .tmp
 .terraform*
-.out
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist
