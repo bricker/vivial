@@ -21,7 +21,7 @@ class GetAuthenticatedAccount(Endpoint):
 
     @classmethod
     async def perform(
-        cls, access_token: str, account_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
+        cls, access_token: str, account_id: uuid.UUID | str, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
@@ -51,7 +51,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
     async def perform(
         cls,
         access_token: str,
-        account_id: uuid.UUID,
+        account_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
