@@ -5,9 +5,12 @@
 
 from datetime import datetime
 import json
+from math import trunc
 import os
 import sys
 from textwrap import dedent
+
+from .service_registry import REGISTRY
 from .config import PROJECT_ROOT
 import eave.stdlib.openai_client as _o
 
@@ -104,52 +107,106 @@ def render_fs_hierarchy(hierarchy: FSHierarchy, parent: FSHierarchy | None = Non
 
 _ts_format = "%Y-%m-%d--%H:%M:%S"
 
-def write_openai_request(timestamp: datetime, filename: str, key: str) -> None:
-    values = PROMPT_STORE[key]
+def write_services(timestamp: datetime) -> None:
     pdir = _pdir(timestamp)
+    filename = f"{pdir}/services.md"
+    key = "get_services"
+    values = PROMPT_STORE.get(key)
+    if not values:
+        return
 
-    with open(f"{pdir}/{filename}", mode="w") as file:
-        file.write("\n\n### Request\n\n")
+    with open(filename, mode="a") as file:
+        file.write("### Services\n\n")
+        for service in REGISTRY.services.values():
+            file.write(f"- **{service.name}** ({service.id}): {service.description}\n")
+            for dep in service.subgraph.services:
+                file.write(f"  - {dep}\n")
+        file.write("\n\n")
+
+    write_prompt(filename=filename, key=key)
+    write_openai_request(filename=filename, key=key)
+
+def write_dependencies(timestamp: datetime) -> None:
+    pdir = _pdir(timestamp)
+    filename = f"{pdir}/dependencies.md"
+    key = "get_dependencies"
+    values = PROMPT_STORE.get(key)
+    if not values:
+        return
+
+    write_prompt(filename=filename, key=key)
+    write_openai_request(filename=filename, key=key)
+
+def write_prompt(filename: str, key: str) -> None:
+    values = PROMPT_STORE.get(key)
+    if not values:
+        return
+
+    with open(filename, mode="a") as file:
+        file.write("### Prompt\n\n")
+        for message in values[0].messages:
+            file.write("```\n")
+            file.write(f"{message.role.upper()}:\n{message.content}\n")
+            file.write("```\n\n")
+
+def write_openai_request(filename: str, key: str) -> None:
+    values = PROMPT_STORE.get(key)
+    if not values:
+        return None
+
+    with open(filename, mode="a") as file:
+        file.write("### Request\n\n")
         file.write("```json\n")
         file.write(json.dumps(values[0].compile(), indent=2))
         file.write("\n```\n\n")
 
-        file.write("#### Response\n\n")
+        file.write("### Response\n\n")
         file.write("```json\n")
         file.write(json.dumps(values[1], indent=2))
         file.write("\n```\n\n")
-        file.write("---\n\n")
 
 def write_hierarchy(timestamp: datetime, hierarchy: FSHierarchy, model: _o.OpenAIModel) -> None:
     pdir = _pdir(timestamp)
     rendered_hierarchy = render_fs_hierarchy(hierarchy=hierarchy).strip()
     tokenlen = len(get_tokens(rendered_hierarchy, model))
 
-    with open(f"{pdir}/hierarchy.md", mode="w") as file:
+    with open(f"{pdir}/hierarchy.md", mode="a") as file:
+        file.write(f"Tokens: {tokenlen}\n\n")
         file.write("```\n")
         file.write(rendered_hierarchy)
-        file.write("\n```")
-        file.write(f"\nTokens: {tokenlen}")
+        file.write("\n```\n\n")
 
 
 def write_graph(timestamp: datetime, rendered_graph: str) -> None:
     pdir = _pdir(timestamp)
 
-    with open(f"{pdir}/graph.md", mode="w") as file:
+    with open(f"{pdir}/graph.md", mode="a") as file:
         file.write("```mermaid\n")
         file.write(rendered_graph.strip())
-        file.write("\n```")
+        file.write("\n```\n\n")
 
 def write_run_info(timestamp: datetime) -> None:
     delta = datetime.now() - timestamp
     duration = delta.total_seconds()
     pdir = _pdir(timestamp)
 
-    with open(f"{pdir}/run_info.md", mode="w") as file:
-        file.write(f"Total tokens: {TOTAL_TOKENS}\n\n")
-        file.write(f"Duration: {duration}\n\n")
+    # https://openai.com/pricing
+    # GPT4 8k: prompt=$0.03/1K tokens, completion=$0.06/1K tokens
+    cost = round(
+        (
+            ((TOTAL_TOKENS['prompt'] / 10e3) * 0.03) +
+            ((TOTAL_TOKENS['completion'] / 10e3) * 0.06)
+        ), 2
+    )
 
-    print("duration=", duration, "tokens=", TOTAL_TOKENS["value"])
+    with open(f"{pdir}/run_info.md", mode="a") as file:
+        file.write(f"- Prompt tokens: {TOTAL_TOKENS['prompt']}\n")
+        file.write(f"- Completion tokens: {TOTAL_TOKENS['completion']}\n")
+        file.write(f"- Total tokens: {TOTAL_TOKENS['total']}\n")
+        file.write(f"- Cost: ${cost}\n")
+        file.write(f"- Duration: {trunc(duration)}\n")
+
+    print("duration=", duration, "tokens=", TOTAL_TOKENS["total"], "cost=", f"${cost}")
 
 def _pdir(timestamp: datetime) -> str:
     dateformat = timestamp.strftime(_ts_format)

@@ -12,7 +12,7 @@ from eave.archer.config import PROJECT_ROOT
 class OpenAIResponseService(TypedDict):
     service_name: str
     service_description: str
-    service_root: NotRequired[str|None]
+    service_root: str | None
 
 def parse_service_response(response: str) -> list[OpenAIResponseService]:
     return json.loads(response)
@@ -21,16 +21,20 @@ class Service:
     id: str
     name: str
     description: str
-    root: str | None
     subgraph: "ServiceGraph"
+    root: str | None
     visited: bool
 
-    def __init__(self, service_name: str = "", service_description: str = "", service_root: str|None = None) -> None:
+    def __init__(self, service_name: str = "", service_description: str = "", service_root: str | None = None) -> None:
         self.name = service_name
-        self.description = service_description
-        self.root = service_root
-
         self.id = re.sub(r"[^a-z]", "", self.name.lower())
+        self.description = service_description
+        if service_root is not None:
+            self.root = re.sub(r"^\(root\)/", "", service_root)
+            self.root = re.sub(r"^/", "", service_root)
+        else:
+            self.root = None
+
         self.subgraph = ServiceGraph()
         self.visited = False
 

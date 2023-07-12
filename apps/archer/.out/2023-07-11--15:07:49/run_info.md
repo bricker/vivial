@@ -1,0 +1,5 @@
+- Prompt tokens: 4042
+- Completion tokens: 517
+- Total tokens: 4559
+- Cost: $0.02
+- Duration: 38

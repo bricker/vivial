@@ -7,7 +7,12 @@ from eave.archer.service_graph import OpenAIResponseService, Service, ServiceGra
 from eave.archer.service_registry import REGISTRY
 from eave.stdlib.exceptions import MaxRetryAttemptsReachedError
 import eave.stdlib.openai_client as _o
-from eave.archer.util import SHARED_JSON_OUTPUT_INSTRUCTIONS, TOTAL_TOKENS, GithubContext, PROMPT_STORE, get_file_contents, get_lang, get_tokens, make_prompt_content, truncate_file_contents_for_model
+from eave.archer.util import SHARED_JSON_OUTPUT_INSTRUCTIONS, TOTAL_TOKENS, GithubContext, PROMPT_STORE, get_file_contents, get_lang, get_tokens, make_prompt_content, remove_imports, truncate_file_contents_for_model
+
+_IGNORES_PROMPT = _o.formatprompt(
+    """
+    Only consider services that are likely to be external to this application. For example, you should not include dependencies on the language's standard libraries, utility functions, things like that. For each dependency that
+    """)
 
 async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ctx: GithubContext) -> ServiceGraph | None:
     print("\n\n")
@@ -21,6 +26,7 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
         await sleep(2)
 
     file_contents = get_file_contents(filepath=filepath)
+    file_contents = remove_imports(filepath=filepath, contents=file_contents)
     filelen = len(file_contents)
     print(filepath, f"filelen={filelen}", f"tokenlen={len(get_tokens(file_contents, model=model))}")
 
@@ -36,16 +42,18 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
     user_prompt_lines.append(f"Repository: {github_ctx.repo_name}\n")
 
     if len(REGISTRY.services) > 0:
-        system_prompt_lines.append("You will be given a GitHub organization name, a repository name, a file path to some code in that repository, the code in that file (delimited by three exclamation marks), and a list of internal APIs. Your task is to find which (if any) of the provided APIs are referenced in the code. Your answer will be used to create a high-level system architecture diagram.\n")
+        system_prompt_lines.append("You will be given a GitHub organization name, a repository name, a file path to some code in that repository, the code in that file (delimited by three exclamation marks), and a list of known services. Your task is to find which (if any) services are referenced in the code. If a similar service is in the list of known services, use that. Otherwise, create a human-readable name for the service. Your answer will be used to create a high-level system architecture diagram.\n")
 
-        system_prompt_lines.append(f"Output your answer as a JSON array of strings, where each string is the name of the service referenced in the code. This should exactly match the provided service name. {SHARED_JSON_OUTPUT_INSTRUCTIONS}")
+        system_prompt_lines.append(f"{_IGNORES_PROMPT}\n")
+        system_prompt_lines.append(f"Output your answer as a JSON array of strings, where each string is the name of the service referenced in the code. Each one should exactly match the provided service name. {SHARED_JSON_OUTPUT_INSTRUCTIONS}")
 
-        user_prompt_lines.append("APIs:")
+        user_prompt_lines.append("Known services:")
         user_prompt_lines.extend([f"- {s.name}" for s in REGISTRY.services.values()])
         user_prompt_lines.append("") # double newline
     else:
-        system_prompt_lines.append("You will be given a GitHub organization name, a repository name, a file path to some code in that repository, and the code in that file (delimited by three exclamation marks). Your task is to find which (if any) APIs are referenced in the code. Your answer will be used to create a high-level system architecture diagram.\n")
+        system_prompt_lines.append("You will be given a GitHub organization name, a repository name, a file path to some code in that repository, and the code in that file (delimited by three exclamation marks). Your task is to find which (if any) services are referenced in the code. Give each service a human-readable name. Your answer will be used to create a high-level system architecture diagram.\n")
 
+        system_prompt_lines.append(f"{_IGNORES_PROMPT}\n")
         system_prompt_lines.append(f"Output your answer as a JSON array of strings, where each string is the name of the service referenced in the code. {SHARED_JSON_OUTPUT_INSTRUCTIONS}")
 
     user_prompt_lines.append(f"File path: {filepath}\n")
@@ -79,15 +87,22 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
         messages=messages,
         model=model,
         temperature=0,
+        presence_penalty=-1,
+        frequency_penalty=-1,
     )
 
     try:
-        response = await _o.chat_completion_full_response(params)
+        response = await _o.chat_completion_full_response(params, baseTimeoutSeconds=10)
         assert response
         print(filepath, "response=", response)
-        TOTAL_TOKENS["value"] += response["usage"]["total_tokens"]
+        TOTAL_TOKENS["prompt"] += response["usage"]["prompt_tokens"]
+        TOTAL_TOKENS["completion"] += response["usage"]["completion_tokens"]
+        TOTAL_TOKENS["total"] += response["usage"]["total_tokens"]
     except MaxRetryAttemptsReachedError:
         print(filepath, "WARNING: Max retry attempts reached")
+        return None
+    except TimeoutError:
+        print(filepath, "WARNING: Timeout")
         return None
 
     PROMPT_STORE["get_dependencies"] = (params, response)

@@ -5,7 +5,7 @@ PROJECT_ROOT = os.environ["EAVE_HOME"]
 
 # TODO: Automatically exclude files in gitignore
 
-# Files that are excluded from hierarchy
+# Files and directories that are excluded from hierarchy
 EXCLUDES = set([
     r"node_modules",
     r"__pycache__",
@@ -23,9 +23,11 @@ EXCLUDES = set([
     r"/bin$",
 ])
 
-# Files that are excluded from dependency collection, but still show in the hierarchy. The entries in EXCLUDES are implicity included here, because dependency collection only checks files in the produced hierarchy.
+# Files that are excluded from dependency collection, but still show in the hierarchy.
+# The entries in EXCLUDES are implicity included here, because dependency collection only checks files in the produced hierarchy.
 CONTENT_EXCLUDES = set([
     r"\.ya?ml",
-    r"\.(png|jpg|jpeg|svg)"
+    r"\.(png|jpg|jpeg|svg)",
     r"package-lock\.json",
 ])
+
