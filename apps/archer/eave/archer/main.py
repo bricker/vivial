@@ -5,6 +5,7 @@ import os
 import re
 from eave.archer.config import PROJECT_ROOT
 from eave.archer.graph_builder import build_graph
+from eave.archer.prompts.service_dependencies import get_service_references
 
 from eave.archer.render import render_root_graph, write_dependencies, write_graph, write_hierarchy, write_openai_request, write_run_info, write_services
 from eave.archer.service_graph import ServiceGraph

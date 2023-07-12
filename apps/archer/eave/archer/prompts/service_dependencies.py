@@ -11,7 +11,7 @@ from eave.archer.util import SHARED_JSON_OUTPUT_INSTRUCTIONS, TOTAL_TOKENS, Gith
 
 _IGNORES_PROMPT = _o.formatprompt(
     """
-    Only consider services that are likely to be external to this application. For example, you should not include dependencies on the language's standard libraries, utility functions, things like that. For each dependency that
+    Only consider services that are likely to be external to this application. For example, you should not include dependencies on the language's standard libraries, utility functions, things like that.
     """)
 
 async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ctx: GithubContext) -> ServiceGraph | None:
@@ -26,7 +26,7 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
         await sleep(2)
 
     file_contents = get_file_contents(filepath=filepath)
-    file_contents = remove_imports(filepath=filepath, contents=file_contents)
+    # file_contents = remove_imports(filepath=filepath, contents=file_contents)
     filelen = len(file_contents)
     print(filepath, f"filelen={filelen}", f"tokenlen={len(get_tokens(file_contents, model=model))}")
 
@@ -86,9 +86,9 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
     params = _o.ChatCompletionParameters(
         messages=messages,
         model=model,
-        temperature=0,
-        presence_penalty=-1,
-        frequency_penalty=-1,
+        top_p=0.1,
+        presence_penalty=-0.1,
+        frequency_penalty=-0.1,
     )
 
     try:

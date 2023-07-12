@@ -187,7 +187,7 @@ def write_graph(timestamp: datetime, rendered_graph: str) -> None:
 
 def write_run_info(timestamp: datetime) -> None:
     delta = datetime.now() - timestamp
-    duration = delta.total_seconds()
+    duration = trunc(delta.total_seconds())
     pdir = _pdir(timestamp)
 
     # https://openai.com/pricing
@@ -204,7 +204,7 @@ def write_run_info(timestamp: datetime) -> None:
         file.write(f"- Completion tokens: {TOTAL_TOKENS['completion']}\n")
         file.write(f"- Total tokens: {TOTAL_TOKENS['total']}\n")
         file.write(f"- Cost: ${cost}\n")
-        file.write(f"- Duration: {trunc(duration)}\n")
+        file.write(f"- Duration: {duration}\n")
 
     print("duration=", duration, "tokens=", TOTAL_TOKENS["total"], "cost=", f"${cost}")
 

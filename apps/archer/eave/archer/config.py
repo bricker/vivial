@@ -29,5 +29,8 @@ CONTENT_EXCLUDES = set([
     r"\.ya?ml",
     r"\.(png|jpg|jpeg|svg)",
     r"package-lock\.json",
+    r"\.crt",
+    r"\.key",
+    r"\.env",
 ])
 
