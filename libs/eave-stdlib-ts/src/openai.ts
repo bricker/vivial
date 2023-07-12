@@ -18,6 +18,12 @@ export enum OpenAIModel {
   // GPT4_32K = 'gpt-4-32k',
 }
 
+export function dedent(s: string): string {
+  let chunks = s.split('\n');
+  chunks = chunks.map(line => line.trim());
+  return chunks.join('\n');
+}
+
 function modelFromString(v: string): OpenAIModel | undefined {
   switch (v) {
     case OpenAIModel.GPT_35_TURBO: return OpenAIModel.GPT_35_TURBO;
