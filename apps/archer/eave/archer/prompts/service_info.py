@@ -56,7 +56,7 @@ async def get_services_from_hierarchy(hierarchy: FSHierarchy, model: _o.OpenAIMo
     params = _o.ChatCompletionParameters(
         messages=messages,
         model=model,
-        top_p=0.1,
+        temperature=0,
         presence_penalty=0,
         frequency_penalty=0,
     )

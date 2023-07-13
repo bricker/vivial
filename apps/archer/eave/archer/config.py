@@ -21,6 +21,8 @@ EXCLUDES = set([
     r"/tests$",
     r"/bin/",
     r"/bin$",
+    r"/terraform",
+    r"\.bash",
 ])
 
 # Files that are excluded from dependency collection, but still show in the hierarchy.
@@ -31,6 +33,7 @@ CONTENT_EXCLUDES = set([
     r"package-lock\.json",
     r"\.crt",
     r"\.key",
+    r"\.pem",
     r"\.env",
 ])
 

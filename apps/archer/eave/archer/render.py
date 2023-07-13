@@ -119,8 +119,8 @@ def write_services(timestamp: datetime) -> None:
         file.write("### Services\n\n")
         for service in REGISTRY.services.values():
             file.write(f"- **{service.name}** ({service.id}): {service.description}\n")
-            for dep in service.subgraph.services:
-                file.write(f"  - {dep}\n")
+            for service in service.subgraph.services.values():
+                file.write(f"  - {service.name}\n")
         file.write("\n\n")
 
     write_prompt(filename=filename, key=key)
