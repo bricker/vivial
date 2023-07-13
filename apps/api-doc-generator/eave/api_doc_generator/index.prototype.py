@@ -109,7 +109,7 @@ def extract_local_imports(dir_name: str, file_name: str) -> List[dict]:
 
 # TODO: Determine best way to guess API name.
 def extract_express_api_name(dir_name: str) -> str:
-  cleaned_dir_name = dir_name.replace("-", " ").replace("_", " ")
+  cleaned_dir_name = dir_name.replace("api", "").replace("-", " ").replace("_", " ")
   return f"{cleaned_dir_name.title()} API Documentation"
 
 
@@ -231,7 +231,7 @@ async def generate_express_api_docs(api_endpoints: List[str]) -> str:
 
   for api_endpoint in api_endpoints:
   # for api_endpoint in sample(api_endpoints, 3):
-    print("About to document endpoint...")
+    print("Generating API endpoint documentation...")
 
     openai_params = openai.ChatCompletionParameters(
       messages=[
@@ -243,7 +243,7 @@ async def generate_express_api_docs(api_endpoints: List[str]) -> str:
 
           Use the following template to format your response:
 
-          ## {description of the API endpoint in at most 4 words}
+          ## {description of the API endpoint in 3 words or less}
 
           ```
           {HTTP Method} {Path}
@@ -271,8 +271,6 @@ async def generate_express_api_docs(api_endpoints: List[str]) -> str:
 
           **{response code}**: {explanation of when this response code will be returned}
 
-          <br />
-
           """
         )),
         openai.ChatMessage(role=openai.ChatRole.USER, content=openai.formatprompt(
@@ -287,9 +285,7 @@ async def generate_express_api_docs(api_endpoints: List[str]) -> str:
     response = await openai.chat_completion(params=openai_params)
     if response is not None:
       api_docs += response
-      api_docs += "\n\n"
-
-    print("Finished documenting endpoint...")
+      api_docs += "\n\n<br />\n\n"
 
   return api_docs
 
@@ -327,9 +323,13 @@ async def main():
   # wiki = "https://github.com/eave-fyi/eave-monorepo.wiki.git"
   # repo_name = "eave-monorepo"
 
-  repo = "https://github.com/eave-fyi/test-photo-share-app.git"
-  wiki = "https://github.com/eave-fyi/test-photo-share-app.wiki.git"
-  repo_name = "test-photo-share-app"
+  # repo = "https://github.com/eave-fyi/test-photo-share-app.git"
+  # wiki = "https://github.com/eave-fyi/test-photo-share-app.wiki.git"
+  # repo_name = "test-photo-share-app"
+
+  repo = "https://github.com/eave-fyi/photo-share-api.git"
+  wiki = "https://github.com/eave-fyi/photo-share-api.wiki.git"
+  repo_name = "photo-share-api"
 
   run(f"git clone {repo}")
   run(f"git clone {wiki}")
@@ -339,6 +339,8 @@ async def main():
   run(f"cd {repo_name}.wiki && git add . && git commit -m 'Update API Docs.' && git push")
   run(f"rm -rf {repo_name}")
   run(f"rm -rf {repo_name}.wiki")
+
+  print("✅ Successfully Generated API Documentation")
 
 if __name__ == "__main__":
   asyncio.run(main())
