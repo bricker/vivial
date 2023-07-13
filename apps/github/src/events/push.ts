@@ -14,7 +14,7 @@ import { appConfig } from '../config.js';
 /**
  * Receives github webhook push events.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads#push
- * 
+ *
  * Features:
  * Checks if push event touched any files that Eave has subscriptions for;
  * any file subscriptions found will perform updates on connected documents.

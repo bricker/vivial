@@ -1,0 +1,7 @@
+mutation ($branch: CommittableBranch!, $headOid: GitObjectID!, $message: CommitMessage!, $fileChanges: FileChanges!) {
+  createCommitOnBranch(branch: $branch, expectedHeadOid: $headOid, message: $message, fileChanges: $fileChanges) {
+    commit {
+      oid
+    }
+  }
+}

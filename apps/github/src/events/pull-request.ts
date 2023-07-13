@@ -3,7 +3,7 @@ import { GitHubOperationsContext } from '../types.js';
 import Promise from 'bluebird';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import { Query, Scalars, Blob, Repository, PullRequest, PullRequestChangedFileConnection, PullRequestChangedFile, PatchStatus } from '@octokit/graphql-schema';
+import { Query, Scalars, Blob, Repository, PullRequest, PullRequestChangedFileConnection, PullRequestChangedFile, PatchStatus, Mutation, FileChanges, CommitMessage, CommittableBranch } from '@octokit/graphql-schema';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
 import { appConfig } from '../config.js';
@@ -33,7 +33,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
   let keepPaginating = true;
   let filePaths: Array<string> = [];
-  const filesQuery = await GraphQLUtil.loadQuery('listFilesInPullRequest');
+  const filesQuery = await GraphQLUtil.loadQuery('getFilesInPullRequest');
   const filesQueryVariables: {
     repoOwner: Scalars['String'],
     repoName: Scalars['String'],
@@ -102,7 +102,6 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
   // update docs in each file
   const contentsQuery = await GraphQLUtil.loadQuery('getFileContentsByPath');
-
   await Promise.all(filePaths.map(async (fpath) => {
     const contentsQueryVariables: {
       repoOwner: Scalars['String'],
@@ -129,18 +128,78 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
     // write new docs
 
+    // encode as b64 bcus thats how github likes it
   }));
 
-
-  // branch off event.pull_request.base.ref 
-  // https://stackoverflow.com/a/9513594/9718199
+  // branch off branch that PR was merged into (event.pull_request.base)
+  // https://docs.github.com/en/graphql/reference/mutations#createref
+  const createBranchMutation = await GraphQLUtil.loadQuery('createBranch');
+  const commitHeadId = event.pull_request.base.sha; // TODO: can this be used as commit oid?
+  const createBranchParameters: {
+    repoId: Scalars['ID'],
+    branchName: Scalars['String'],
+    commitHeadId: Scalars['GitObjectID'],
+  } = {
+    commitHeadId,
+    branchName: `refs/heads/eave/function-docs/${event.pull_request.number}`,
+    repoId: event.repository.id.toString(),
+  };
+  const branchResp = await octokit.graphql<{ branch: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
+  const docsBranch = branchResp.branch?.ref;
+  if (!docsBranch) {
+    eaveLogger.error(`Failed to create branch in ${repoOwner}/${repoName}`);
+    return;
+  }
 
   // commit changes
-  // https://stackoverflow.com/a/46760154/9718199
-  // https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#create-or-update-file-contents
+  // https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch
+  const createCommitMutation = await GraphQLUtil.loadQuery('createCommitOnBranch');
+  const createCommitParameters: {
+    branch: CommittableBranch,
+    headOid: Scalars['GitObjectID'],
+    message: CommitMessage,
+    fileChanges: FileChanges,
+  } = {
+    branch: { branchName: docsBranch.name, repositoryNameWithOwner: `${repoOwner}/${repoName}` },
+    headOid: docsBranch.target!.oid,
+    message: { headline: 'docs: automated update [ci skip]' },
+    fileChanges: {
+      additions: [ // TODO: map/zip
+        {
+          path: fpath,
+          contents: b64Content,
+        },
+      ],
+    },
+  };
+  const commitResp = await octokit.graphql<{ commit: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
+  if (!commitResp.commit?.commit?.oid) {
+    eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`);
+    // TODO: cleanup branch?
+    return;
+  }
 
   // open PR against event.pull_request.base.ref
-  // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#create-a-pull-request
-
-
+  // TODO: veirfy all optional params i didnt include in gql have sensible/expected default values
+  // https://docs.github.com/en/graphql/reference/mutations#createpullrequest
+  const createPrMutation = await GraphQLUtil.loadQuery('createPullRequest');
+  const createPrParameters: {
+    baseRefName: Scalars['String'],
+    body: Scalars['String'],
+    headRefName: Scalars['String'],
+    repoId: Scalars['ID'],
+    title: Scalars['String'],
+  } = {
+    repoId: event.repository.id.toString(),
+    baseRefName: event.pull_request.base.ref, // TODO: verify value of base.ref is the ref name, not something else.. (probs does require refs/heads/ prefix)
+    headRefName: docsBranch.name,
+    title: 'docs: Eave auto code documentation update', // TODO: worksoho
+    body: `Your new Eave docs based on changes from PR #${event.pull_request.number}`, // TODO: workshop
+  };
+  const prResp = await octokit.graphql<{ pr: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
+  if (!prResp.pr?.pullRequest?.number) {
+    eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`);
+    // TODO: cleanup branch?
+    return;
+  }
 }

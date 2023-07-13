@@ -1,0 +1,10 @@
+mutation ($branchName: String!, $commitHeadId: GitObjectID!, $repoId: String!) {
+  createRef(name: $branchName, oid: $commitHeadId, repositoryId: $repoId) {
+    ref {
+      name
+      target {
+        oid
+      }
+    }
+  }
+}
