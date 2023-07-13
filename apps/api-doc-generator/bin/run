@@ -1,0 +1,3 @@
+#!/usr/bin/env -S bash -eu
+
+PYTHONPATH=. dotenv -f ../../.env run python3 eave/api_doc_generator/index.py "$@"
