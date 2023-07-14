@@ -1,22 +1,18 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
 import { GitHubOperationsContext } from '../types.js';
-import Promise from 'bluebird';
+import bluebird from 'bluebird';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { Query, Scalars, Blob, Repository, PullRequest, PullRequestChangedFileConnection, PullRequestChangedFile, PatchStatus, Mutation, FileChanges, CommitMessage, CommittableBranch } from '@octokit/graphql-schema';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
-import { appConfig } from '../config.js';
-import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
-
-
 /**
  * Receives github webhook pull_request events.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
- * 
+ *
  * Features:
  * Checks if closed PR was merged. If so, update inline file docs
- * for each file with code changes. 
+ * for each file with code changes.
  */
 export default async function handler(event: PullRequestEvent, context: GitHubOperationsContext) {
   // proceed only if event was PR being closed and merged
@@ -30,6 +26,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const { ctx, octokit } = context;
   const openaiClient = await OpenAIClient.getAuthedClient();
   eaveLogger.debug('Processing github pull_request event', ctx);
+  // TODO: gather analytics on how many eave PRs are merged vs closed?
 
   let keepPaginating = true;
   let filePaths: Array<string> = [];
@@ -56,18 +53,18 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     const prFileNodes = <Array<PullRequestChangedFile>>prFilesConnection?.nodes;
 
     if (!prFileNodes) {
-      eaveLogger.error('Failed to acquire file list from PR while processing PR merge event');
+      eaveLogger.error('Failed to acquire file list from PR while processing PR merge event', ctx);
       return;
     }
 
-    const documentableFiles = await Promise.filter(prFileNodes, async (f) => {
+    const documentableFiles = await bluebird.filter(prFileNodes, async (f) => {
       // dont document files that aren't new or modified
       if (!(f.changeType === 'ADDED' || f.changeType === 'MODIFIED')) {
         return false;
       }
 
       // TODO: would we get ratelimited if we tried to do all gpt prompts in parallel after all file paths obtained?
-      // TODO: test prompt allowing test files to be documented
+      // TODO: test feature behavior allowing test files to be documented
       const prompt = dedent(
         `Given a file path, determine whether that file typically needs function-level code comments.
         Respond with only YES, or NO. Config, generated and test files do not need documentation.
@@ -102,7 +99,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
   // update docs in each file
   const contentsQuery = await GraphQLUtil.loadQuery('getFileContentsByPath');
-  await Promise.all(filePaths.map(async (fpath) => {
+  let b64UpdatedContent = await bluebird.all(filePaths.map(async (fpath): Promise<string | null> => {
     const contentsQueryVariables: {
       repoOwner: Scalars['String'],
       repoName: Scalars['String'],
@@ -121,15 +118,18 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       // TODO: this error probs expected for images etc, but those should be filtered out by earlier step? 
       //       or maybe files that shouldnt get commetns will have to be filtered out in this step?
       eaveLogger.error(`Error fetching file content for ${fpath}`, ctx); // TODO: is it ok to log file name/path? is that too sensitive?
-      return; // exits just this iteration of map
+      return null; // exits just this iteration of map
     }
 
     // see if existing docs
 
     // write new docs
 
-    // encode as b64 bcus thats how github likes it
+    // encode new content as b64 bcus thats how github likes it
+
+    return Buffer.from(fileContent).toString('base64'); // TODO: use updated file content
   }));
+  b64UpdatedContent = b64UpdatedContent.filter((content) => content !== null);
 
   // branch off branch that PR was merged into (event.pull_request.base)
   // https://docs.github.com/en/graphql/reference/mutations#createref
@@ -147,7 +147,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const branchResp = await octokit.graphql<{ branch: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
   const docsBranch = branchResp.branch?.ref;
   if (!docsBranch) {
-    eaveLogger.error(`Failed to create branch in ${repoOwner}/${repoName}`);
+    eaveLogger.error(`Failed to create branch in ${repoOwner}/${repoName}`, ctx);
     return;
   }
 
@@ -162,19 +162,20 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   } = {
     branch: { branchName: docsBranch.name, repositoryNameWithOwner: `${repoOwner}/${repoName}` },
     headOid: docsBranch.target!.oid,
-    message: { headline: 'docs: automated update [ci skip]' },
+    message: { headline: 'docs: automated update [ci skip]' }, // TODO: should skip?
     fileChanges: {
-      additions: [ // TODO: map/zip
-        {
+      additions: filePaths.map((fpath, i) => {
+        // TODO: what if not same len becus api req failed during content updates? filter where contents === undefined?
+        return {
           path: fpath,
-          contents: b64Content,
-        },
-      ],
+          contents: b64UpdatedContent[i],
+        };
+      }),
     },
   };
   const commitResp = await octokit.graphql<{ commit: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
   if (!commitResp.commit?.commit?.oid) {
-    eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`);
+    eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`, ctx);
     // TODO: cleanup branch?
     return;
   }
@@ -194,12 +195,17 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     baseRefName: event.pull_request.base.ref, // TODO: verify value of base.ref is the ref name, not something else.. (probs does require refs/heads/ prefix)
     headRefName: docsBranch.name,
     title: 'docs: Eave auto code documentation update', // TODO: worksoho
-    body: `Your new Eave docs based on changes from PR #${event.pull_request.number}`, // TODO: workshop
+    body: `Your new code docs based on changes from PR #${event.pull_request.number}`, // TODO: workshop
   };
   const prResp = await octokit.graphql<{ pr: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
   if (!prResp.pr?.pullRequest?.number) {
-    eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`);
+    eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`, ctx);
     // TODO: cleanup branch?
     return;
   }
+}
+
+// https://docs.github.com/en/graphql/reference/mutations#deleteref
+async function deleteBranch() {
+
 }
