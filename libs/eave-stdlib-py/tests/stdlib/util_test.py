@@ -57,6 +57,8 @@ class StdlibUtilTest(UtilityBaseTestCase):
 
     async def test_redact(self):
         assert mut.redact(None) is None
-        assert mut.redact(self.anystring()[:8]) == "(redacted)"
-        assert mut.redact(self.anystring()[:2]) == "(redacted)"
-        assert mut.redact(f"123456-{self.anystring()}-654321") == "1234..(redacted)..4321"
+        assert mut.redact(self.anystring()[:8]) == "[redacted 8 chars]"
+        assert mut.redact(self.anystring()[:2]) == "[redacted 2 chars]"
+
+        test_string = self.anystring()
+        assert mut.redact(f"1234{test_string}4321") == f"1234[redacted {len(test_string)} chars]4321"

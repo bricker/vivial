@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import eave.pubsub_schemas
+from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
 import oauthlib.common
 from starlette.requests import Request
@@ -26,6 +27,9 @@ class SlackOAuthAuthorize(HTTPEndpoint):
         state: str = oauthlib.common.generate_token()
         authorization_url = eave.core.internal.oauth.slack.authorize_url_generator.generate(state)
         response = RedirectResponse(url=authorization_url)
+
+        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
+
         oauth_cookies.save_state_cookie(
             response=response,
             state=state,

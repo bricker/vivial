@@ -69,11 +69,11 @@ class EaveConfig:
 
     @property
     def monitoring_enabled(self) -> bool:
-        return os.getenv("EAVE_MONITORING_DISABLED") is None
+        return os.getenv("EAVE_MONITORING_DISABLED") != "1"
 
     @property
     def analytics_enabled(self) -> bool:
-        return os.getenv("EAVE_ANALYTICS_DISABLED") is None
+        return os.getenv("EAVE_ANALYTICS_DISABLED") != "1"
 
     @property
     def google_cloud_project(self) -> str:

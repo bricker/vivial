@@ -6,7 +6,7 @@ export function applyWebhookMiddlewares({ app, path }:{ app: Express, path: stri
   Using raw parsing rather than express.json() parser because of GitHub signature verification.
   If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
   */
-  app.use(path, raw({ type: 'application/json' }));
+  app.use(path, raw({ type: 'application/json', limit: '5mb' }));
 }
 
 export function WebhookRouter(): Router {

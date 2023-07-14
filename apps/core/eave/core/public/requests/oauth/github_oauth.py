@@ -2,6 +2,8 @@ import json
 import urllib.parse
 
 import eave.pubsub_schemas
+from eave.stdlib import utm_cookies
+from eave.stdlib.auth_cookies import get_auth_cookies
 import eave.stdlib.cookies
 import eave.stdlib.util
 import eave.stdlib.analytics
@@ -42,6 +44,9 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         )
         # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
         response = RedirectResponse(url=authorization_url)
+
+        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
+
         oauth_cookies.save_state_cookie(
             response=response,
             state=state,
@@ -96,7 +101,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
         self.installation_id = installation_id
 
-        auth_cookies = eave.stdlib.cookies.get_auth_cookies(cookies=request.cookies)
+        auth_cookies = get_auth_cookies(cookies=request.cookies)
 
         # TODO: Allow GitHub as real auth provider.
         # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
