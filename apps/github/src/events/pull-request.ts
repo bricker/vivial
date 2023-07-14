@@ -2,7 +2,20 @@ import { PullRequestEvent } from '@octokit/webhooks-types';
 import bluebird from 'bluebird';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
-import { Query, Scalars, Blob, Repository, PullRequest, PullRequestChangedFileConnection, PullRequestChangedFile, PatchStatus, Mutation, FileChanges, CommitMessage, CommittableBranch } from '@octokit/graphql-schema';
+import {
+  Query,
+  Scalars,
+  Blob,
+  Repository,
+  PullRequest,
+  PullRequestChangedFileConnection,
+  PullRequestChangedFile,
+  Mutation,
+  FileChanges,
+  CommitMessage,
+  CommittableBranch,
+} from '@octokit/graphql-schema';
+import { Octokit } from 'octokit';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
@@ -115,7 +128,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     const gitObject = <Blob>objectRepository?.object;
     const fileContent = gitObject?.text;
     if (!fileContent) {
-      // TODO: this error probs expected for images etc, but those should be filtered out by earlier step? 
+      // TODO: this error probs expected for images etc, but those should be filtered out by earlier step?
       //       or maybe files that shouldnt get commetns will have to be filtered out in this step?
       eaveLogger.error(`Error fetching file content for ${fpath}`, ctx); // TODO: is it ok to log file name/path? is that too sensitive?
       return null; // exits just this iteration of map
@@ -173,7 +186,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const commitResp = await octokit.graphql<{ commit: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
   if (!commitResp.commit?.commit?.oid) {
     eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`, ctx);
-    // TODO: cleanup branch?
+    await deleteBranch(octokit, docsBranch.id);
     return;
   }
 
@@ -191,20 +204,26 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     repoId: event.repository.id.toString(),
     baseRefName: event.pull_request.base.ref, // TODO: verify value of base.ref is the ref name, not something else.. (probs does require refs/heads/ prefix)
     headRefName: docsBranch.name,
-    title: 'docs: Eave auto code documentation update', // TODO: worksoho
+    title: 'docs: Eave auto code documentation update', // TODO: workshop
     body: `Your new code docs based on changes from PR #${event.pull_request.number}`, // TODO: workshop
   };
   const prResp = await octokit.graphql<{ pr: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
   if (!prResp.pr?.pullRequest?.number) {
     eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`, ctx);
-    // TODO: cleanup branch?
+    await deleteBranch(octokit, docsBranch.id);
     return;
   }
 }
 
 // https://docs.github.com/en/graphql/reference/mutations#deleteref
-async function deleteBranch() {
-
+async function deleteBranch(octokit: Octokit, branchNodeId: string) {
+  const query = await GraphQLUtil.loadQuery('deleteBranch');
+  const params: {
+    refNodeId: Scalars['ID'],
+  } = {
+    refNodeId: branchNodeId,
+  };
+  await octokit.graphql<{ resp: Mutation['deleteRef'] }>(query, params);
 }
 
 /**
