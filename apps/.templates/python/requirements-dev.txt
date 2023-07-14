@@ -1,0 +1,3 @@
+# Requirements that are only installed and used during local development or in CI.
+-e ../../libs/eave-stdlib-py
+-e ../../libs/eave-pubsub-schemas/python

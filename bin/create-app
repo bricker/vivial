@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+import os
+import re
+import shutil
+import click
+
+_APPS_ROOT = os.path.join(os.environ["EAVE_HOME"], "apps")
+
+@click.command()
+@click.option("--module-name", required=True, help="Name of the module. This will be used in imports, for example. It should be code-safe and filesystem-safe.")
+@click.option("--app-dir", required=True, help="Name of a new directory in the apps folder to put the app.")
+@click.option("--service-name", required=True, help="Name of the appengine service. This should be URL-friendly.")
+@click.option("--lang", required=True, type=click.Choice(["python", "typescript"]), help="Which template to use")
+def create_app(module_name: str, app_dir: str, service_name: str, lang: str) -> None:
+    shutil.copytree(f"{_APPS_ROOT}/.templates/{lang}", f"{_APPS_ROOT}/{app_dir}")
+    origin_name = re.sub("-", "_", service_name)
+    origin_name = f"eave_{origin_name}"
+
+    for root, dirs, files in os.walk(f"{_APPS_ROOT}/{app_dir}"):
+        print(root, dirs, files)
+
+        if os.path.basename(root) == "MODULE_NAME":
+            newroot = f"{os.path.dirname(root)}/{module_name}"
+            os.rename(root, newroot)
+            root = newroot
+
+        for file in files:
+            fpath = f"{root}/{file}"
+            with open(fpath, "r") as f:
+                c = f.read()
+
+            c = re.sub(r"{{origin_name}}", origin_name, c)
+            c = re.sub(r"{{service_name}}", service_name, c)
+            c = re.sub(r"{{module_name}}", module_name, c)
+
+            with open(fpath, "w") as f:
+                f.write(c)
+
+if __name__ == "__main__":
+    create_app() # type: ignore
