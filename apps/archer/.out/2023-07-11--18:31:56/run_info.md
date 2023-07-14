@@ -1,5 +1,0 @@
-- Prompt tokens: 0
-- Completion tokens: 0
-- Total tokens: 0
-- Cost: $0.0
-- Duration: 32
