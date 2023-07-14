@@ -1,9 +1,9 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
-import { GitHubOperationsContext } from '../types.js';
 import bluebird from 'bluebird';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import { Query, Scalars, Blob, Repository, PullRequest, PullRequestChangedFileConnection, PullRequestChangedFile, PatchStatus, Mutation, FileChanges, CommitMessage, CommittableBranch } from '@octokit/graphql-schema';
+import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
 /**
@@ -121,13 +121,10 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       return null; // exits just this iteration of map
     }
 
-    // see if existing docs
-
-    // write new docs
+    const updatedFileContent = await updateDocumentation(fileContent, fpath, openaiClient, ctx);
 
     // encode new content as b64 bcus thats how github likes it
-
-    return Buffer.from(fileContent).toString('base64'); // TODO: use updated file content
+    return Buffer.from(updatedFileContent).toString('base64');
   }));
   b64UpdatedContent = b64UpdatedContent.filter((content) => content !== null);
 
@@ -208,4 +205,104 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 // https://docs.github.com/en/graphql/reference/mutations#deleteref
 async function deleteBranch() {
 
+}
+
+/**
+ * Given the current content of a file, returns the same file
+ * content but with the documentation updated to reflect any code changes.
+ *
+ * @param currContent a file's content in plaintext
+ * @param filePath
+ * @returns the same code content as `currContent` but with doc strings updated
+ */
+async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string> {
+  /*
+    Extract existing docs; if there are any.
+    Assumes that top-of-file docs will begin on line 1 of the file,
+    and will continue until the first empty line, at which point
+    we can separate the top-of-file docs from the rest of the code file.
+  */
+  // TODO: gpt doesnt always obey the part about responding only w/ lang name
+  const langPrompt = dedent(
+    `Judging from the file extension, what is the programming language of the file at ${filePath}? 
+    Respond with only the name of the programming language and nothing else.`,
+  );
+  const langResponse = await openaiClient.createChatCompletion({
+    parameters: {
+      messages: [
+        { role: 'user', content: langPrompt },
+      ],
+      model: OpenAIModel.GPT4,
+      max_tokens: 10,
+      temperature: 0.1,
+    },
+    ctx,
+  });
+
+  const fileLines = currContent.split('\n');
+  const commentPrompt = dedent(
+    `Is the first line of this code file a comment in the programming language ${langResponse}? Respond only with YES or NO.
+
+    \`\`\`
+    ${fileLines[0]}
+    \`\`\``,
+  );
+  const commentResponse = await openaiClient.createChatCompletion({
+    parameters: {
+      messages: [
+        { role: 'user', content: commentPrompt },
+      ],
+      model: OpenAIModel.GPT4,
+      max_tokens: 10,
+      temperature: 0.1,
+    },
+  });
+
+  let currDocs = '';
+  let isolatedContent: string;
+  if (commentResponse === 'YES') {
+    // seek to find where header comment ends and split file there
+    let emptyLineIndex = fileLines.findIndex((line) => line.trim() === '');
+    if (emptyLineIndex === -1) {
+      // no empty lines found, fall back to pretending there's no header comment
+      emptyLineIndex = 0;
+    }
+    currDocs = fileLines.slice(0, emptyLineIndex).join('\n');
+    isolatedContent = fileLines.slice(emptyLineIndex).join('\n');
+  } else {
+    // no current docs to update; whole file is code content
+    isolatedContent = fileLines.join('\n');
+  }
+
+  // update docs, or write new ones if currDocs is empty/undefined
+  // TODO: make sure new docs have newline separating from main content
+  // TODO: verify that old inaccurate docs dont influence new docs
+  // TODO: experiment w/ dif types of file header comments:
+  //      (1. update own comment 2. write from scratch 3. update existing generic informational header 4. fix slightly incorrect header 5. shebang)
+
+  // TODO: what to do about file/function too long for conetxt?
+  const docsPrompt = dedent( // TODO: improve this prompt and account for no currDocs
+    `Please update the existing docs using the file content provided below:
+    
+    Existing docs
+    ###
+    ${currDocs}
+    ###
+    
+    File content
+    ###
+    ${isolatedContent}
+    ###`,
+  );
+  const docsResponse = await openaiClient.createChatCompletion({
+    parameters: {
+      messages: [
+        { role: 'user', content: docsPrompt },
+      ],
+      model: OpenAIModel.GPT4,
+    },
+    ctx,
+  });
+
+  return docsResponse;
 }
