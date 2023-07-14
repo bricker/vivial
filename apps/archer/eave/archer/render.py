@@ -9,8 +9,9 @@ from math import trunc
 import os
 import sys
 from textwrap import dedent
+from typing import Any, Tuple
 
-from .service_registry import REGISTRY
+from .service_registry import SERVICE_REGISTRY
 from .config import PROJECT_ROOT
 import eave.stdlib.openai_client as _o
 
@@ -107,7 +108,7 @@ def render_fs_hierarchy(hierarchy: FSHierarchy, parent: FSHierarchy | None = Non
 
 _ts_format = "%Y-%m-%d--%H:%M:%S"
 
-def write_services(timestamp: datetime) -> None:
+def write_services(timestamp: datetime, services: list[Service]) -> None:
     pdir = _pdir(timestamp)
     filename = f"{pdir}/services.md"
     key = "get_services"
@@ -117,14 +118,32 @@ def write_services(timestamp: datetime) -> None:
 
     with open(filename, mode="a") as file:
         file.write("### Services\n\n")
-        for service in REGISTRY.services.values():
-            file.write(f"- **{service.name}** ({service.id}): {service.description}\n")
+        for service in services:
+            file.write(f"- **{service.name}**: {service.description}\n")
             for service in service.subgraph.services.values():
                 file.write(f"  - {service.name}\n")
         file.write("\n\n")
 
-    write_prompt(filename=filename, key=key)
-    write_openai_request(filename=filename, key=key)
+    write_prompt(filename=filename, rtuple=values)
+    write_openai_request(filename=filename, rtuple=values)
+
+def write_file_queries(timestamp: datetime) -> None:
+    pdir = _pdir(timestamp)
+    filename = f"{pdir}/queries.md"
+    key = "file_queries"
+    values = PROMPT_STORE.get(key)
+    if not values:
+        return
+
+    with open(filename, mode="a") as file:
+        file.write("### Queries\n\n")
+        for query in values:
+            file.write(f"#### {query[2]}\n\n")
+            file.write(f"```json\n{json.dumps(json.loads(query[1]), indent=2)}\n```\n\n")
+        file.write("\n\n")
+
+    write_prompt(filename=filename, rtuple=values[0])
+    write_openai_request(filename=filename, rtuple=values[0])
 
 def write_dependencies(timestamp: datetime) -> None:
     pdir = _pdir(timestamp)
@@ -134,35 +153,27 @@ def write_dependencies(timestamp: datetime) -> None:
     if not values:
         return
 
-    write_prompt(filename=filename, key=key)
-    write_openai_request(filename=filename, key=key)
+    write_prompt(filename=filename, rtuple=values)
+    write_openai_request(filename=filename, rtuple=values)
 
-def write_prompt(filename: str, key: str) -> None:
-    values = PROMPT_STORE.get(key)
-    if not values:
-        return
-
+def write_prompt(filename: str, rtuple: Tuple[Any, ...]) -> None:
     with open(filename, mode="a") as file:
         file.write("### Prompt\n\n")
-        for message in values[0].messages:
+        for message in rtuple[0].messages:
             file.write("```\n")
             file.write(f"{message.role.upper()}:\n{message.content}\n")
             file.write("```\n\n")
 
-def write_openai_request(filename: str, key: str) -> None:
-    values = PROMPT_STORE.get(key)
-    if not values:
-        return None
-
+def write_openai_request(filename: str, rtuple: Tuple[Any, ...]) -> None:
     with open(filename, mode="a") as file:
         file.write("### Request\n\n")
         file.write("```json\n")
-        file.write(json.dumps(values[0].compile(), indent=2))
+        file.write(json.dumps(rtuple[0].compile(), indent=2))
         file.write("\n```\n\n")
 
         file.write("### Response\n\n")
         file.write("```json\n")
-        file.write(json.dumps(values[1], indent=2))
+        file.write(json.dumps(rtuple[1], indent=2))
         file.write("\n```\n\n")
 
 def write_hierarchy(timestamp: datetime, hierarchy: FSHierarchy, model: _o.OpenAIModel) -> None:
@@ -187,7 +198,7 @@ def write_graph(timestamp: datetime, rendered_graph: str) -> None:
 
 def write_run_info(timestamp: datetime) -> None:
     delta = datetime.now() - timestamp
-    duration = trunc(delta.total_seconds())
+    duration = round(delta.total_seconds() / 60, 2)
     pdir = _pdir(timestamp)
 
     # https://openai.com/pricing

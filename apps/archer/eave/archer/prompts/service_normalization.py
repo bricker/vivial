@@ -1,45 +1,85 @@
-# async def normalize_services(services: list[OpenAIResponseService], model: _o.OpenAIModel) -> list[OpenAIResponseService]:
-#     services_list = "\n".join([f"- {s['service_name']}: {s['service_description']}" for s in services])
-#     print(services_list)
+import json
+import re
 
-#     params = _o.ChatCompletionParameters(
-#         messages=[
-#             _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=_o.formatprompt(
-#                 f"""
-#                 You will be provided with an ordered list of API service names and descriptions, which will be used for a system architecture diagram. Some items in the list refer to the same service but were given slightly different names and descriptions.
+from eave.stdlib.logging import eaveLogger
+from ..service_graph import Service, parse_service_response
+from ..util import PROMPT_STORE, SHARED_JSON_OUTPUT_INSTRUCTIONS
+import eave.stdlib.openai_client as _o
 
-#                 Go through the list a few times and reduce it to a list of distinct services by removing services that are duplicates of a service earlier in the list. Two or more services are considered duplicates if their names and descriptions describe the same service, even if the names and descriptions don't perfectly match. When a duplicate is found, keep the one that is more detailed and discard the other one. You may combine the descriptions of the two services to get as much detail as possible, but do not change the name of any service. The names should be considered immutable.
+async def normalize_services(services: list[Service], model: _o.OpenAIModel) -> dict[str, Service]:
+    # services_list = "\n".join([f"- {s['service_name']}: {s['service_description']}" for s in services])
+    # print(services_list)
 
-#                 The provided list will be formatted like this:
-#                 - <service_name>: <service_description>
-#                 - <service_name>: <service_description>
-#                 - <service_name>: <service_description>
-#                 - ...
+    prepared_services = [
+        {
+            "service_name": s.name,
+            "service_description": s.description,
+            "dependencies": [d.name for d in s.subgraph.services.values()]
+        }
+        for s in services
+    ]
 
-#                 {_OUTPUT_INSTRUCTIONS}
-#                 """
-#             )),
-#             _o.formatprompt(
-#                 f"""
-#                 {services_list}
-#                 """,
-#             )
-#         ],
-#         model=model,
-#         temperature=0,
-#         # frequency_penalty: Optional[float] = None
-#         # presence_penalty: Optional[float] = None
-#         # temperature: Optional[float] = None
-#     )
+    prepared_services_json = json.dumps(prepared_services, indent=None)
 
-#     PROMPT_STORE["normalize_services"] = params
+    params = _o.ChatCompletionParameters(
+        messages=[
+            _o.ChatMessage(role=_o.ChatRole.SYSTEM, content=_o.formatprompt(
+                f"""
+                You will be provided with a JSON array of API service names, descriptions, and dependencies.
 
-#     try:
-#         response = await _o.chat_completion(params)
-#         assert response
-#         print(response)
-#         reduced_services = parse_service_response(response)
-#         return reduced_services
-#     except MaxRetryAttemptsReachedError:
-#         print("WARNING: Max retry attempts reached")
-#         return services
+                Your job is to reduce the list to distinct services by combining similar services. Two or more services are considered duplicates if their names and descriptions describe the same service, even if the names and descriptions don't perfectly match. When duplicates are found, choose an appropriate service name and description, and combine the list of dependencies. If no duplicates are found, the response should be the same as the input.
+
+                The provided JSON array will be formatted like this:
+
+                !!!
+                {{"service_name": "...", "service_description": "...", "dependencies": ["...", "..."]}}
+                !!!
+
+                The response should be in the same format as the input: A JSON array of objects with the same keys.
+
+                {SHARED_JSON_OUTPUT_INSTRUCTIONS}
+                """
+            )),
+            _o.ChatMessage(role=_o.ChatRole.USER, content=_o.formatprompt(
+                f"""
+                {prepared_services_json}
+                """,
+            )),
+        ],
+        model=model,
+        temperature=0,
+        # frequency_penalty: Optional[float] = None
+        # presence_penalty: Optional[float] = None
+        # temperature: Optional[float] = None
+    )
+
+    response = await _o.chat_completion(params)
+    assert response
+    print(response)
+    PROMPT_STORE["normalize_services"] = (params, response)
+    try:
+        parsed = json.loads(response)
+    except Exception as e:
+        eaveLogger.exception(e)
+        parsed = prepared_services
+
+    reduced_services: dict[str, Service] = {}
+
+    for jsvc in parsed:
+        service = Service(
+            service_name=_normalize_service_name(name=jsvc["service_name"]),
+            service_description=jsvc["service_description"]
+        )
+
+        for dep in jsvc["dependencies"]:
+            depsvc = Service(service_name=dep)
+            service.subgraph.add(depsvc)
+
+        reduced_services[service.id] = service
+
+    return reduced_services
+
+def _normalize_service_name(name: str) -> str:
+    name = re.sub(r"\(", "", name)
+    name = re.sub(r"\)", "", name)
+    return name

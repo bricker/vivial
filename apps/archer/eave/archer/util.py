@@ -3,7 +3,9 @@ from dataclasses import dataclass
 import os
 import re
 from typing import Any, Tuple
+from openai.openai_object import OpenAIObject
 import tiktoken
+from .config import CONTENT_EXCLUDES
 import eave.stdlib.openai_client as _o
 
 # TODO: Use https://github.com/github-linguist/linguist/blob/master/lib/linguist/languages.yml
@@ -13,14 +15,15 @@ _ext_to_lang_map = {
     ".js": "javascript",
 }
 
-PROMPT_STORE: dict[str, Tuple[Any, Any]] = {}
+PROMPT_STORE: dict[str, Any] = {}
+
 TOTAL_TOKENS = {
     "prompt": 0,
     "completion": 0,
     "total": 0,
 }
 
-SHARED_JSON_OUTPUT_INSTRUCTIONS = "Your full response should be JSON-parseable, with no indentation or newlines between objects."
+SHARED_JSON_OUTPUT_INSTRUCTIONS = "Your response will be passed unmodified into a JSON parser, so your full response should be a valid, parseable, compact JSON document."
 
 @dataclass
 class GithubContext:
@@ -37,9 +40,20 @@ def get_filename(filepath: str) -> str:
 def clean_fpath(path: str, prefix: str = "") -> str:
     return re.sub(f"^{prefix}/?", "", path)
 
-def get_file_contents(filepath: str, strip_imports: bool = True) -> str:
+def get_file_contents(filepath: str, model: _o.OpenAIModel, strip_imports: bool = True) -> str | None:
+    if any([re.search(e, filepath) for e in CONTENT_EXCLUDES]):
+        print(filepath, "Skipping file due to content exclude.")
+        return None
+
     with open(filepath) as file:
         contents = file.read()
+
+    # file_contents = remove_imports(filepath=filepath, contents=file_contents)
+    filelen = len(contents)
+    print(filepath, f"filelen={filelen}", f"tokenlen={len(get_tokens(contents, model=model))}")
+
+    if len(contents.strip()) == 0:
+        return None
 
     return contents
 
@@ -66,3 +80,19 @@ def truncate_file_contents_for_model(file_contents: str, prompt: str, model: _o.
 def make_prompt_content(messages: list[str]) -> str:
     stripped = [m for m in messages if m]
     return "\n".join(stripped)
+
+async def make_openai_request(filepath: str, params: _o.ChatCompletionParameters) -> OpenAIObject | None:
+    try:
+        response = await _o.chat_completion_full_response(params, baseTimeoutSeconds=10)
+        assert response
+        print(filepath, "response=", response)
+        TOTAL_TOKENS["prompt"] += response["usage"]["prompt_tokens"]
+        TOTAL_TOKENS["completion"] += response["usage"]["completion_tokens"]
+        TOTAL_TOKENS["total"] += response["usage"]["total_tokens"]
+        return response
+    except _o.MaxRetryAttemptsReachedError:
+        print(filepath, "WARNING: Max retry attempts reached")
+        return None
+    except TimeoutError:
+        print(filepath, "WARNING: Timeout")
+        return None

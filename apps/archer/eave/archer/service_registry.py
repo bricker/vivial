@@ -15,4 +15,4 @@ class ServiceRegistry:
         return self.services.get(id)
 
 # FIXME: thread safety
-REGISTRY = ServiceRegistry()
+SERVICE_REGISTRY = ServiceRegistry()

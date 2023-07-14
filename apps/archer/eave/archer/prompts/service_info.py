@@ -3,7 +3,7 @@ import json
 import sys
 from eave.archer.fs_hierarchy import FSHierarchy
 from eave.archer.render import render_fs_hierarchy
-from ..service_registry import REGISTRY
+from ..service_registry import SERVICE_REGISTRY
 from eave.archer.util import SHARED_JSON_OUTPUT_INSTRUCTIONS, TOTAL_TOKENS, GithubContext, PROMPT_STORE
 from eave.archer.service_graph import Service, parse_service_response
 from eave.stdlib.exceptions import MaxRetryAttemptsReachedError
@@ -73,13 +73,14 @@ async def get_services_from_hierarchy(hierarchy: FSHierarchy, model: _o.OpenAIMo
         print("WARNING: Max retry attempts reached", file=sys.stderr)
         return []
 
-    PROMPT_STORE["get_services"] = (params, response)
-
     answer = _o.get_choice_content(response)
     assert answer
+
+    PROMPT_STORE["get_services"] = (params, answer)
+
 
     parsed_response = parse_service_response(answer)
     services = [Service(**data) for data in parsed_response]
     for service in services:
-        REGISTRY.register(service)
+        SERVICE_REGISTRY.register(service)
     return services

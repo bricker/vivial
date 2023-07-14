@@ -1,5 +1,6 @@
 
-from .service_registry import REGISTRY
+from .prompts.chained_queries import query_file_contents_chained
+from .service_registry import SERVICE_REGISTRY
 from .prompts.file_queries import query_file_contents
 from eave.archer.prompts.service_dependencies import get_service_references
 
@@ -13,15 +14,14 @@ async def build_graph(hierarchy: FSHierarchy, model: OpenAIModel, github_ctx: Gi
     service = parent_service
 
     for file in hierarchy.files:
-        file_query_response = await query_file_contents(filepath=file, model=model, github_ctx=github_ctx)
+        file_query_response = await query_file_contents_chained(filepath=file, model=model, github_ctx=github_ctx, parent_service=service)
         if file_query_response:
             if file_query_response.service_name:
-                service = Service(service_name=file_query_response.service_name)
-                service = REGISTRY.register(service)
+                service = Service(service_name=file_query_response.service_name, service_description=file_query_response.service_description or "")
+                service = SERVICE_REGISTRY.register(service)
 
-            for ref in file_query_response.third_party_references:
+            for ref in file_query_response.api_references:
                 s = Service(service_name=ref)
-                s = REGISTRY.register(s)
                 service.subgraph.add(s)
 
 

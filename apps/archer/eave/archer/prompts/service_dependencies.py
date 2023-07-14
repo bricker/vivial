@@ -4,7 +4,7 @@ import re
 import sys
 from eave.archer.config import CONTENT_EXCLUDES
 from eave.archer.service_graph import OpenAIResponseService, Service, ServiceGraph, parse_service_response
-from eave.archer.service_registry import REGISTRY
+from eave.archer.service_registry import SERVICE_REGISTRY
 from eave.stdlib.exceptions import MaxRetryAttemptsReachedError
 import eave.stdlib.openai_client as _o
 from eave.archer.util import SHARED_JSON_OUTPUT_INSTRUCTIONS, TOTAL_TOKENS, GithubContext, PROMPT_STORE, get_file_contents, get_lang, get_tokens, make_prompt_content, remove_imports, truncate_file_contents_for_model
@@ -41,14 +41,14 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
     user_prompt_lines.append(f"GitHub organization: {github_ctx.org_name}\n")
     user_prompt_lines.append(f"Repository: {github_ctx.repo_name}\n")
 
-    if len(REGISTRY.services) > 0:
+    if len(SERVICE_REGISTRY.services) > 0:
         system_prompt_lines.append("You will be given a GitHub organization name, a repository name, a file path to some code in that repository, the code in that file (delimited by three exclamation marks), and a list of known services. Your task is to find which (if any) services are referenced in the code. If a similar service is in the list of known services, use that. Otherwise, create a human-readable name for the service. Your answer will be used to create a high-level system architecture diagram.\n")
 
         system_prompt_lines.append(f"{_IGNORES_PROMPT}\n")
         system_prompt_lines.append(f"Output your answer as a JSON array of strings, where each string is the name of the service referenced in the code. Each one should exactly match the provided service name. {SHARED_JSON_OUTPUT_INSTRUCTIONS}")
 
         user_prompt_lines.append("Known services:")
-        user_prompt_lines.extend([f"- {s.name}" for s in REGISTRY.services.values()])
+        user_prompt_lines.extend([f"- {s.name}" for s in SERVICE_REGISTRY.services.values()])
         user_prompt_lines.append("") # double newline
     else:
         system_prompt_lines.append("You will be given a GitHub organization name, a repository name, a file path to some code in that repository, and the code in that file (delimited by three exclamation marks). Your task is to find which (if any) services are referenced in the code. Give each service a human-readable name. Your answer will be used to create a high-level system architecture diagram.\n")
@@ -105,16 +105,17 @@ async def get_service_references(filepath: str, model: _o.OpenAIModel, github_ct
         print(filepath, "WARNING: Timeout")
         return None
 
-    PROMPT_STORE["get_dependencies"] = (params, response)
     answer = _o.get_choice_content(response)
     assert answer
+
+    PROMPT_STORE["get_dependencies"] = (params, answer)
 
     found_services = json.loads(answer)
     subgraph = ServiceGraph()
 
     for found_service in found_services:
         service = Service(service_name=found_service)
-        service = REGISTRY.register(service)
+        service = SERVICE_REGISTRY.register(service)
         subgraph.add(service)
 
     return subgraph
