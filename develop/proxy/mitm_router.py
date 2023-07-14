@@ -28,6 +28,8 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
             port = 5400
         elif re.match("/jira", flow.request.path):
             port = 5500
+        elif re.match("/ast-ts", flow.request.path):
+            port = 5600
 
     if not port:
         flow.kill()

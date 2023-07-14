@@ -6,6 +6,10 @@ import eaveHeaders from './headers.js';
 import { redact } from './util.js';
 import { JsonObject } from './types.js';
 
+export type GenericRequestBody = {
+  data: string
+}
+
 export type ExpressHandlerArgs = {
   req: Request;
   res: Response;

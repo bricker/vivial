@@ -1,5 +1,5 @@
 runtime: nodejs18
-service: confluence
+service: ast-ts
 
 handlers:
 - url: /_ah/.*

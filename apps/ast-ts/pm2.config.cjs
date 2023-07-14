@@ -1,9 +1,8 @@
 const path = require('node:path');
 
-// TODO: Share this config across apps
 module.exports = {
   apps: [{
-    name: 'confluence',
+    name: 'ast-ts',
     script: './server.ts',
     out_file: '/dev/stdout',
     error_file: '/dev/stderr',
