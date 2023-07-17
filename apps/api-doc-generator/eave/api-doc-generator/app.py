@@ -1,9 +1,33 @@
+from tree_sitter import Language, Parser
 from typing import List
 import asyncio
 import os
 import re
 import subprocess
 import eave.stdlib.openai_client as openai
+
+
+# TODO: move parser logic into shared library.
+Language.build_library(
+    # Store the library in the /build directory.
+    '/Users/leilenah/Repos/eave/eave-monorepo/apps/api-doc-generator/eave/api-doc-generator/build/languages.so',
+
+    # Include one or more languages.
+    [
+        '/Users/leilenah/Repos/eave/eave-monorepo/apps/api-doc-generator/eave/api-doc-generator/vendor/tree-sitter-javascript',
+        '/Users/leilenah/Repos/eave/eave-monorepo/apps/api-doc-generator/eave/api-doc-generator/vendor/tree-sitter-typescript/typescript',
+    ]
+)
+
+JS_LANGUAGE = Language('/Users/leilenah/Repos/eave/eave-monorepo/apps/api-doc-generator/eave/api-doc-generator/build/languages.so', 'javascript')
+TS_LANGUAGE = Language('/Users/leilenah/Repos/eave/eave-monorepo/apps/api-doc-generator/eave/api-doc-generator/build/languages.so', 'typescript')
+
+jsParser = Parser()
+jsParser.set_language(JS_LANGUAGE)
+
+tsParser = Parser()
+tsParser.set_language(TS_LANGUAGE)
+
 
 
 # TODO: use Eave GitHub App to interact with GitHub.
@@ -25,18 +49,33 @@ def run(command: str) -> str:
 
 # TODO: add YAML support.
 async def document_express_apis(repo_name: str, repo_dir: str, wiki_dir: str) -> None:
-    for root, dirs, files in os.walk(repo_dir):
-        for name in files:
-            if name == "package.json":
-                requirements = open(f"{root}/{name}", mode="r").read()
-                requires_express = re.search(r"[\"\']express[\"\']", requirements)
-                if requires_express:
+    # for root, dirs, files in os.walk(repo_dir):
+    #     for name in files:
+    #         if name == "package.json":
+    #             requirements = open(f"{root}/{name}", mode="r").read()
+    #             requires_express = re.search(r"[\"\']express[\"\']", requirements)
+    #             if requires_express:
 
 
 
 
+    code = """
+        export const app = express();
+        export const addon = ace(app, {
+        config: {
+            descriptorTransformer: (descriptor, config): any => {
+            if (config.environment() === 'production') {
+                descriptor.baseUrl = `${eaveConfig.eavePublicAppsBase}/confluence`;
+            }
+            return descriptor;
+            },
+        },
+        });
+    """
 
-
+    tree = tsParser.parse(bytes(code, "utf8"))
+    for child in tree.root_node.children:
+        print(child)
 
 
 
