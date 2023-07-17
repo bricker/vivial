@@ -1,5 +1,7 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
 import bluebird from 'bluebird';
+import fs from 'fs';
+import path from 'path';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
 import {
@@ -232,6 +234,8 @@ async function deleteBranch(octokit: Octokit, branchNodeId: string) {
  *
  * @param currContent a file's content in plaintext
  * @param filePath
+ * @param openaiClient
+ * @param ctx extra context for more detailed logs
  * @returns the same code content as `currContent` but with doc strings updated
  */
 async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string> {
@@ -241,26 +245,15 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     and will continue until the first empty line, at which point
     we can separate the top-of-file docs from the rest of the code file.
   */
-  // TODO: gpt doesnt always obey the part about responding only w/ lang name
-  const langPrompt = dedent(
-    `Judging from the file extension, what is the programming language of the file at ${filePath}? 
-    Respond with only the name of the programming language and nothing else.`,
-  );
-  const langResponse = await openaiClient.createChatCompletion({
-    parameters: {
-      messages: [
-        { role: 'user', content: langPrompt },
-      ],
-      model: OpenAIModel.GPT4,
-      max_tokens: 10,
-      temperature: 0.1,
-    },
-    ctx,
-  });
+  // load language from file extension map file
+  const extensionMapString = await fs.promises.readFile('../../languages.json', { encoding: 'utf8' }); // TODO: this is nasty
+  const extensionMap = JSON.parse(extensionMapString);
+  // TODO: sometimes shell scripts dont have file extensions, so we'll default to that...? but what about Makefile and other stuff...?
+  const flang: string = extensionMap[`.${path.extname(filePath)}`] || 'shell';
 
   const fileLines = currContent.split('\n');
   const commentPrompt = dedent(
-    `Is the first line of this code file a comment in the programming language ${langResponse}? Respond only with YES or NO.
+    `Is the first line of this code file a comment in the programming language ${flang}? Respond only with YES or NO.
 
     \`\`\`
     ${fileLines[0]}
