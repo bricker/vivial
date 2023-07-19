@@ -1,3 +1,16 @@
+/**
+ * This code file is primarily responsible for setting up and managing webhooks in an Express application.
+ * It exports two main functions: applyWebhookMiddlewares and WebhookRouter.
+ *
+ * The applyWebhookMiddlewares function is used to apply middleware to the Express application, specifically
+ * for handling raw JSON data. This is necessary for correctly processing GitHub signature verifications.
+ *
+ * The WebhookRouter function creates and returns a new Express Router. This router is configured to handle
+ * POST requests at its root path. Upon receiving a request, it dispatches the request and response objects
+ * to a separate function for further processing.
+ *
+ * Overall, this file is crucial for enabling the application to receive and correctly process incoming webhook events.
+ */
 import { NextFunction, Request, Response, Router, raw, Express } from 'express';
 import dispatch from '../dispatch.js';
 
