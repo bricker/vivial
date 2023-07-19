@@ -251,6 +251,7 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
   const extensionMap = JSON.parse(extensionMapString);
   // TODO: sometimes shell scripts dont have file extensions, so we'll default to that...? but what about Makefile and other stuff...?
+  //       (ask about whole file basename instead of extname if no ext? just never docuemtn any file w/o an ext?)
   const flang: string = extensionMap[`.${path.extname(filePath)}`] || 'shell';
 
   const fileLines = currContent.split('\n');
@@ -275,10 +276,10 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   let currDocs = '';
   let isolatedContent: string;
   if (commentResponse === 'YES') {
-    // seek to find where header comment ends and split file there
+    // seek to find where header comment block ends and split file there
     let emptyLineIndex = fileLines.findIndex((line) => line.trim() === '');
     if (emptyLineIndex === -1) {
-      // no empty lines found, fall back to pretending there's no header comment
+      // no empty lines found, fall back to assuming there's no header comment
       emptyLineIndex = 0;
     }
     currDocs = fileLines.slice(0, emptyLineIndex).join('\n');
@@ -289,34 +290,70 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   }
 
   // update docs, or write new ones if currDocs is empty/undefined
-  // TODO: make sure new docs have newline separating from main content
   // TODO: verify that old inaccurate docs dont influence new docs
-  // TODO: experiment w/ dif types of file header comments:
+  // TODO: experiment performance qulaity on dif types of file header comments:
   //      (1. update own comment 2. write from scratch 3. update existing generic informational header 4. fix slightly incorrect header 5. shebang)
-
   // TODO: what to do about file/function too long for conetxt?
-  const docsPrompt = dedent( // TODO: improve this prompt and account for no currDocs
-    `Please update the existing docs using the file content provided below:
-    
-    Existing docs
-    ###
-    ${currDocs}
-    ###
-    
-    File content
-    ###
-    ${isolatedContent}
-    ###`,
-  );
+
+  // `any` type to avoid direct dependency on openai ChatCompletionMessage type
+  let docsPrompts: Array<any>;
+  if (!currDocs) {
+    docsPrompts = [
+      {
+        role: 'user',
+        content: dedent(
+          `###
+          ${isolatedContent}
+          ###
+          
+          Write a brief overview of the general purpose of the preceding code file; refrain from documenting specific functions, focus on the greater purpose of the file.
+          Your output must be in the form of a multi-line doc comment in the programming language ${flang}.`,
+        ),
+      },
+    ];
+  } else {
+    // TODO: improve this prompt
+    // TODO: take into account exactly what/where git diff changes are?
+    docsPrompts = [
+      {
+        role: 'user',
+        content: dedent(
+          `Take this file content as context
+          ###
+          ${isolatedContent}
+          ###`,
+        ),
+      },
+      {
+        role: 'assistant',
+        content: 'Understood!',
+      },
+      {
+        role: 'user',
+        content: dedent(
+          `###
+          ${currDocs}
+          ###
+          
+          Using the earlier file content as context, write an updated version of this documentation for the file. 
+          Be sure to add any new important details, and remove any documented details that are no longer correct. 
+          Re-write only the above documentation with a brief overview of the general purpose of the preceding code file; 
+          refrain from documenting specific functions, focus on the greater purpose of the file.
+          Your output must be in the form of a multi-line doc comment in the programming language ${flang}`,
+        ),
+      },
+    ];
+  }
   const docsResponse = await openaiClient.createChatCompletion({
     parameters: {
-      messages: [
-        { role: 'user', content: docsPrompt },
-      ],
+      messages: docsPrompts,
       model: OpenAIModel.GPT4,
+      temperature: 0.2,
     },
     ctx,
   });
 
-  return docsResponse;
+  // separate new docs from content w/ an empty line to make sure we
+  // maintain our assumption about the header comment ending on empty line
+  return `${docsResponse}\n\n${isolatedContent}`;
 }
