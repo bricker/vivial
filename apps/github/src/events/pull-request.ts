@@ -35,13 +35,14 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     return;
   }
 
-  const repoOwner = event.repository.owner.name!;
+  const repoOwner = event.repository.owner.login;
   const repoName = event.repository.name;
+  const repoId = event.repository.node_id.toString();
 
   const { ctx, octokit } = context;
   const openaiClient = await OpenAIClient.getAuthedClient();
   eaveLogger.debug('Processing github pull_request event', ctx);
-  // TODO: gather analytics on how many eave PRs are merged vs closed?
+  // TODO: gather analytics on how many eave PRs are merged vs closed w/o merge? (since we'll get events for our own PRs that we open)
 
   let keepPaginating = true;
   let filePaths: Array<string> = [];
@@ -97,6 +98,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
             { role: 'user', content: prompt },
           ],
           model: OpenAIModel.GPT4,
+          max_tokens: 10,
         },
         ctx,
       });
@@ -146,7 +148,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   // branch off branch that PR was merged into (event.pull_request.base)
   // https://docs.github.com/en/graphql/reference/mutations#createref
   const createBranchMutation = await GraphQLUtil.loadQuery('createBranch');
-  const commitHeadId = event.pull_request.base.sha; // TODO: can this be used as commit oid?
+  const commitHeadId = event.pull_request.base.sha;
   const createBranchParameters: {
     repoId: Scalars['ID'],
     branchName: Scalars['String'],
@@ -154,10 +156,10 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   } = {
     commitHeadId,
     branchName: `refs/heads/eave/function-docs/${event.pull_request.number}`,
-    repoId: event.repository.id.toString(),
+    repoId,
   };
-  const branchResp = await octokit.graphql<{ branch: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
-  const docsBranch = branchResp.branch?.ref;
+  const branchResp = await octokit.graphql<{ createRef: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
+  const docsBranch = branchResp.createRef?.ref;
   if (!docsBranch) {
     eaveLogger.error(`Failed to create branch in ${repoOwner}/${repoName}`, ctx);
     return;
@@ -185,10 +187,10 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       }),
     },
   };
-  const commitResp = await octokit.graphql<{ commit: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
-  if (!commitResp.commit?.commit?.oid) {
+  const commitResp = await octokit.graphql<{ createCommitOnBranch: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
+  if (!commitResp.createCommitOnBranch?.commit?.oid) {
     eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`, ctx);
-    await deleteBranch(octokit, docsBranch.id);
+    await deleteBranch(octokit, docsBranch!.id);
     return;
   }
 
@@ -203,16 +205,16 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     repoId: Scalars['ID'],
     title: Scalars['String'],
   } = {
-    repoId: event.repository.id.toString(),
-    baseRefName: event.pull_request.base.ref, // TODO: verify value of base.ref is the ref name, not something else.. (probs does require refs/heads/ prefix)
-    headRefName: docsBranch.name,
+    repoId,
+    baseRefName: event.pull_request.base.ref,
+    headRefName: docsBranch!.name,
     title: 'docs: Eave auto code documentation update', // TODO: workshop
     body: `Your new code docs based on changes from PR #${event.pull_request.number}`, // TODO: workshop
   };
-  const prResp = await octokit.graphql<{ pr: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
-  if (!prResp.pr?.pullRequest?.number) {
+  const prResp = await octokit.graphql<{ createPullRequest: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
+  if (!prResp.createPullRequest?.pullRequest?.number) {
     eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`, ctx);
-    await deleteBranch(octokit, docsBranch.id);
+    await deleteBranch(octokit, docsBranch!.id);
     return;
   }
 }
@@ -246,7 +248,7 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     we can separate the top-of-file docs from the rest of the code file.
   */
   // load language from file extension map file
-  const extensionMapString = await fs.promises.readFile('../../languages.json', { encoding: 'utf8' }); // TODO: this is nasty
+  const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
   const extensionMap = JSON.parse(extensionMapString);
   // TODO: sometimes shell scripts dont have file extensions, so we'll default to that...? but what about Makefile and other stuff...?
   const flang: string = extensionMap[`.${path.extname(filePath)}`] || 'shell';

@@ -1,5 +1,5 @@
 mutation ($refNodeId: ID!) {
-  deleteRef(refId: $refNodeId) {
+  deleteRef(input: { refId: $refNodeId }) {
     clientMutationId
   }
 }

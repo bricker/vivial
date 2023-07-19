@@ -20,7 +20,7 @@ export enum OpenAIModel {
 
 export function dedent(s: string): string {
   let chunks = s.split('\n');
-  chunks = chunks.map(line => line.trim());
+  chunks = chunks.map((line) => line.trim());
   return chunks.join('\n');
 }
 
