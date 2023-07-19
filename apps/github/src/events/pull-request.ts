@@ -145,16 +145,15 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   }));
   b64UpdatedContent = b64UpdatedContent.filter((content) => content !== null);
 
-  // branch off branch that PR was merged into (event.pull_request.base)
+  // branch off the PR merge commit (should be base branch HEAD commit since PR just merged)
   // https://docs.github.com/en/graphql/reference/mutations#createref
   const createBranchMutation = await GraphQLUtil.loadQuery('createBranch');
-  const commitHeadId = event.pull_request.base.sha;
   const createBranchParameters: {
     repoId: Scalars['ID'],
     branchName: Scalars['String'],
     commitHeadId: Scalars['GitObjectID'],
   } = {
-    commitHeadId,
+    commitHeadId: event.pull_request.merge_commit_sha,
     branchName: `refs/heads/eave/function-docs/${event.pull_request.number}`,
     repoId,
   };
@@ -194,8 +193,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     return;
   }
 
-  // open PR against event.pull_request.base.ref
-  // TODO: veirfy all optional params i didnt include in gql have sensible/expected default values
+  // open new PR against event.pull_request.base.ref (same base as PR that triggered this event)
   // https://docs.github.com/en/graphql/reference/mutations#createpullrequest
   const createPrMutation = await GraphQLUtil.loadQuery('createPullRequest');
   const createPrParameters: {
@@ -235,7 +233,7 @@ async function deleteBranch(octokit: Octokit, branchNodeId: string) {
  * content but with the documentation updated to reflect any code changes.
  *
  * @param currContent a file's content in plaintext
- * @param filePath
+ * @param filePath file path correlated with `currContent` file content
  * @param openaiClient
  * @param ctx extra context for more detailed logs
  * @returns the same code content as `currContent` but with doc strings updated
@@ -355,5 +353,5 @@ async function updateDocumentation(currContent: string, filePath: string, openai
 
   // separate new docs from content w/ an empty line to make sure we
   // maintain our assumption about the header comment ending on empty line
-  return `${docsResponse}\n\n${isolatedContent}`;
+  return `${docsResponse}\n${isolatedContent}`;
 }
