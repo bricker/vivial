@@ -311,7 +311,7 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   // TODO: what to do about file/function too long for conetxt? (rolling summarize first before asking for docs??)
   // TODO: try limiting to 2-3 sentences? max tokens?
   const docsPrompt = dedent(
-    `Write a brief overview of the general purpose of this code file; refrain from documenting specifics, focus on the greater purpose of the file.
+    `Write a 2-3 sentence overview of the general purpose of this code file; refrain from documenting specifics, focus on the greater purpose of the file.
 
     ===
     ${isolatedContent}
@@ -327,9 +327,6 @@ async function updateDocumentation(currContent: string, filePath: string, openai
       ],
       model: OpenAIModel.GPT4,
       temperature: 0.2,
-      // limit output to ~3 sentences
-      // https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
-      max_tokens: 50,
     },
     ctx,
   });
