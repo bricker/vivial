@@ -20,6 +20,7 @@ import {
 import { Octokit } from 'octokit';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
+import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 
 const eavePrTitle = 'docs: Eave auto code documentation update'; // TODO: workshop
 
@@ -288,19 +289,20 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   if (commentResponse === 'YES') {
     // find empty line where header comment block probably ends and split file there
     let emptyLineIndex = fileLines.findIndex((line) => line.trim() === '');
-    if (emptyLineIndex === -1) {
-      // no empty lines found, fall back to assuming there's no header comment
-      emptyLineIndex = 0;
-    } else {
-      // account for the empty line we found to cut it out of the content string
-      emptyLineIndex += 1;
-    }
+    // +1 accounts for the empty line, cutting it out of the isolatedContent string
+    // (this also increments the "failure index", -1, to 0, causing currDocs slice to be empty,
+    //  essentially simulating commentResponse == NO)
+    emptyLineIndex += 1;
+
     currDocs = fileLines.slice(0, emptyLineIndex).join('\n');
     isolatedContent = fileLines.slice(emptyLineIndex).join('\n');
   } else {
-    // no current docs to update; whole file is code content
     isolatedContent = fileLines.join('\n');
   }
+
+  // convert isolatedContent to a summary to prevent AI from getting distracted by
+  // implementation details in raw code file (and to account for long files)
+  isolatedContent = await AIUtil.rollingSummary(openaiClient, isolatedContent);
 
   // update docs, or write new ones if currDocs is empty/undefined
   // TODO: verify that old inaccurate docs dont influence new docs
@@ -308,7 +310,6 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   //      (1. update own comment 2. write from scratch 3. update existing generic informational header 4. fix slightly incorrect header 5. shebang)
   // TODO: what to do about file/function too long for conetxt? (rolling summarize first before asking for docs??)
   // TODO: try limiting to 2-3 sentences? max tokens?
-
   const docsPrompt = dedent(
     `Write a brief overview of the general purpose of this code file; refrain from documenting specifics, focus on the greater purpose of the file.
 
