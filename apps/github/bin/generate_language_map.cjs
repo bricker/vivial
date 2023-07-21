@@ -18,13 +18,19 @@ async function main() {
       // it is possible that some langauges will share some extensions (e.g. C/C++)
       // but for simplicity I'll assume if that happens, they're similar enough not
       // to matter much if we correlate the ext with only one of the languages
+
+      // TODO: this is a bad assumption. Typescript gets overwritten my XML :(
       transformedFileObject[ext] = langName;
     }
   });
 
+  // ensure common file types have correct mapping
+  transformedFileObject['.tsx'] = 'TypeScript';
+  transformedFileObject['.ts'] = 'TypeScript';
+
   // write to local file as json for easier access by prod TS code
   const jsonString = JSON.stringify(transformedFileObject);
-  await fs.writeFile('../languages.json', jsonString, 'utf8');
+  await fs.writeFile(`${process.env['EAVE_HOME']}/apps/github/languages.json`, jsonString, 'utf8');
 }
 
 main();
