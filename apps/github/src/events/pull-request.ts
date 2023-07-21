@@ -18,9 +18,9 @@ import {
   CommittableBranch,
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
+import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
-import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 
 const eavePrTitle = 'docs: Eave auto code documentation update'; // TODO: workshop
 
@@ -33,9 +33,10 @@ const eavePrTitle = 'docs: Eave auto code documentation update'; // TODO: worksh
  * for each file with code changes.
  */
 export default async function handler(event: PullRequestEvent, context: GitHubOperationsContext) {
-  // TODO: gather analytics on how many eave PRs are merged vs closed w/o merge?
   // don't open more docs PRs from other Eave PRs
+  // TODO: perform this check using event.sender.id instead for broader metric capture. compare to app id??
   if (event.pull_request.title === eavePrTitle) {
+    // TODO: gather analytics on how many eave PRs are merged vs closed w/o merge?
     return;
   }
 
@@ -300,21 +301,19 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     isolatedContent = fileLines.join('\n');
   }
 
-  // convert isolatedContent to a summary to prevent AI from getting distracted by
+  // convert isolatedContent to a summary for docs writing to prevent AI from getting distracted by
   // implementation details in raw code file (and to account for long files)
-  isolatedContent = await AIUtil.rollingSummary(openaiClient, isolatedContent);
+  const summarizedContent = await AIUtil.rollingSummary(openaiClient, isolatedContent);
 
   // update docs, or write new ones if currDocs is empty/undefined
   // TODO: verify that old inaccurate docs dont influence new docs
   // TODO: experiment performance qulaity on dif types of file header comments:
   //      (1. update own comment 2. write from scratch 3. update existing generic informational header 4. fix slightly incorrect header 5. shebang)
-  // TODO: what to do about file/function too long for conetxt? (rolling summarize first before asking for docs??)
-  // TODO: try limiting to 2-3 sentences? max tokens?
   const docsPrompt = dedent(
     `Write a 2-3 sentence overview of the general purpose of this code file; refrain from documenting specifics, focus on the greater purpose of the file.
 
     ===
-    ${isolatedContent}
+    ${summarizedContent}
     ===`,
   );
   const newDocsResponse = await openaiClient.createChatCompletion({
