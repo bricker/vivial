@@ -1,3 +1,10 @@
+/**
+ * This code file primarily serves to set up and manage webhooks for an application using the Express.js framework. 
+ * It includes functions to apply middleware for handling webhook requests and to create a router for processing 
+ * POST requests to the webhook. The file ensures that incoming webhook data is correctly parsed and dispatched, 
+ * while also providing error handling capabilities.
+ */
+
 import { NextFunction, Request, Response, Router, raw, Express } from 'express';
 import dispatch from '../dispatch.js';
 
