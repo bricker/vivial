@@ -1,6 +1,6 @@
 import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
-import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';

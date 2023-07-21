@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
 import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js';
 import { SearchDocumentsResponseBody, searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';

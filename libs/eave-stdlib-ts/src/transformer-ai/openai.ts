@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 import { encoding_for_model } from 'tiktoken';
-import { sharedConfig } from './config.js';
-import eaveLogger from './logging.js';
-import { CtxArg } from './requests.js';
+import { sharedConfig } from '../config.js';
+import eaveLogger from '../logging.js';
+import { CtxArg } from '../requests.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =

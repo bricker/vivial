@@ -3,7 +3,7 @@ import bluebird from 'bluebird';
 import fs from 'fs';
 import path from 'path';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
 import {
   Query,
   Scalars,
@@ -245,13 +245,13 @@ async function deleteBranch(octokit: Octokit, branchNodeId: string) {
  * @param filePath file path correlated with `currContent` file content
  * @param openaiClient
  * @param ctx extra context for more detailed logs
- * @returns the same code content as `currContent` but with doc strings updated. null if unable to create updated document
+ * @returns the same code content as `currContent` but with doc strings updated, or null if unable to create updated document
  */
 async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string | null> {
   // load language from file extension map file
   const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
   const extensionMap = JSON.parse(extensionMapString);
-  const flang: string = extensionMap[`${path.extname(filePath)}`];
+  const flang: string = extensionMap[`${path.extname(filePath).toLowerCase()}`];
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early
@@ -314,8 +314,7 @@ async function updateDocumentation(currContent: string, filePath: string, openai
 
     ===
     ${isolatedContent}
-    ===
-    `,
+    ===`,
   );
   const newDocsResponse = await openaiClient.createChatCompletion({
     parameters: {
@@ -327,6 +326,9 @@ async function updateDocumentation(currContent: string, filePath: string, openai
       ],
       model: OpenAIModel.GPT4,
       temperature: 0.2,
+      // limit output to ~3 sentences
+      // https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
+      max_tokens: 50,
     },
     ctx,
   });
@@ -362,7 +364,6 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     });
   }
 
-  // convert to comment in the file's language
   const updatedDocsComment = await openaiClient.createChatCompletion({
     parameters: {
       messages: [
