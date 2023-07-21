@@ -19,7 +19,7 @@ async function main() {
       // but for simplicity I'll assume if that happens, they're similar enough not
       // to matter much if we correlate the ext with only one of the languages
 
-      // TODO: this is a bad assumption. Typescript gets overwritten my XML :(
+      // TODO: this is a bad assumption. Typescript (and others) gets overwritten my XML :(
       transformedFileObject[ext] = langName;
     }
   });
@@ -27,6 +27,9 @@ async function main() {
   // ensure common file types have correct mapping
   transformedFileObject['.tsx'] = 'TypeScript';
   transformedFileObject['.ts'] = 'TypeScript';
+  transformedFileObject['.ex'] = 'Elixir';
+  transformedFileObject['.rs'] = 'Rust';
+  transformedFileObject['.r'] = 'R';
 
   // write to local file as json for easier access by prod TS code
   const jsonString = JSON.stringify(transformedFileObject);
