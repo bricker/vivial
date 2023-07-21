@@ -1,3 +1,10 @@
+/**
+ * This code file is primarily responsible for setting up and managing webhooks in an Express application. 
+ * The file exports two main functions: `applyWebhookMiddlewares` and `WebhookRouter`.
+ *
+ * The `applyWebhookMiddlewares` function is used
+ */
+
 import { NextFunction, Request, Response, Router, raw, Express } from 'express';
 import dispatch from '../dispatch.js';
 
