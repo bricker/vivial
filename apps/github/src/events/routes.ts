@@ -1,3 +1,10 @@
+/**
+ * This code file is primarily designed to handle webhooks in an Express.js application. 
+ * It sets up middleware for processing incoming webhook requests and defines a router to dispatch these requests. 
+ * The file ensures the integrity of the data received by using raw parsing, 
+ * which is crucial for successful signature verification.
+ */
+
 import { NextFunction, Request, Response, Router, raw, Express } from 'express';
 import dispatch from '../dispatch.js';
 
