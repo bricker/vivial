@@ -21,6 +21,8 @@ import { Octokit } from 'octokit';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
+const eavePrTitle = 'docs: Eave auto code documentation update'; // TODO: workshop
+
 /**
  * Receives github webhook pull_request events.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
@@ -30,6 +32,12 @@ import * as GraphQLUtil from '../lib/graphql-util.js';
  * for each file with code changes.
  */
 export default async function handler(event: PullRequestEvent, context: GitHubOperationsContext) {
+  // TODO: gather analytics on how many eave PRs are merged vs closed w/o merge?
+  // don't open more docs PRs from other Eave PRs
+  if (event.pull_request.title === eavePrTitle) {
+    return;
+  }
+
   // proceed only if event was PR being closed and merged
   if (event.action !== 'closed' || !event.pull_request.merged) {
     return;
@@ -42,7 +50,6 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const { ctx, octokit } = context;
   const openaiClient = await OpenAIClient.getAuthedClient();
   eaveLogger.debug('Processing github pull_request event', ctx);
-  // TODO: gather analytics on how many eave PRs are merged vs closed w/o merge? (since we'll get events for our own PRs that we open)
 
   let keepPaginating = true;
   let filePaths: Array<string> = [];
@@ -132,18 +139,18 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     const gitObject = <Blob>objectRepository?.object;
     const fileContent = gitObject?.text;
     if (!fileContent) {
-      // TODO: this error probs expected for images etc, but those should be filtered out by earlier step?
-      //       or maybe files that shouldnt get commetns will have to be filtered out in this step?
-      eaveLogger.error(`Error fetching file content for ${fpath}`, ctx); // TODO: is it ok to log file name/path? is that too sensitive?
+      eaveLogger.error(`Error fetching file content in ${repoOwner}/${repoName}`, ctx); // TODO: is it ok to log this? is that too sensitive? is it even helpful to us?
       return null; // exits just this iteration of map
     }
 
     const updatedFileContent = await updateDocumentation(fileContent, fpath, openaiClient, ctx);
+    if (!updateDocumentation) {
+      return null;
+    }
 
     // encode new content as b64 bcus thats how github likes it
-    return Buffer.from(updatedFileContent).toString('base64');
+    return Buffer.from(updatedFileContent!).toString('base64');
   }));
-  b64UpdatedContent = b64UpdatedContent.filter((content) => content !== null);
 
   // branch off the PR merge commit (should be base branch HEAD commit since PR just merged)
   // https://docs.github.com/en/graphql/reference/mutations#createref
@@ -154,7 +161,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     commitHeadId: Scalars['GitObjectID'],
   } = {
     commitHeadId: event.pull_request.merge_commit_sha,
-    branchName: `refs/heads/eave/function-docs/${event.pull_request.number}`,
+    branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
     repoId,
   };
   const branchResp = await octokit.graphql<{ createRef: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
@@ -178,11 +185,13 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     message: { headline: 'docs: automated update [ci skip]' }, // TODO: should skip?
     fileChanges: {
       additions: filePaths.map((fpath, i) => {
-        // TODO: what if not same len becus api req failed during content updates? filter where contents === undefined?
         return {
           path: fpath,
           contents: b64UpdatedContent[i],
         };
+      }).filter((adds) => {
+        // remove entries w/ null content from content fetch failures
+        return adds.contents !== null;
       }),
     },
   };
@@ -206,7 +215,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     repoId,
     baseRefName: event.pull_request.base.ref,
     headRefName: docsBranch!.name,
-    title: 'docs: Eave auto code documentation update', // TODO: workshop
+    title: eavePrTitle,
     body: `Your new code docs based on changes from PR #${event.pull_request.number}`, // TODO: workshop
   };
   const prResp = await octokit.graphql<{ createPullRequest: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
@@ -236,22 +245,25 @@ async function deleteBranch(octokit: Octokit, branchNodeId: string) {
  * @param filePath file path correlated with `currContent` file content
  * @param openaiClient
  * @param ctx extra context for more detailed logs
- * @returns the same code content as `currContent` but with doc strings updated
+ * @returns the same code content as `currContent` but with doc strings updated. null if unable to create updated document
  */
-async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string> {
+async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string | null> {
+  // load language from file extension map file
+  const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
+  const extensionMap = JSON.parse(extensionMapString);
+  const flang: string = extensionMap[`${path.extname(filePath)}`];
+  if (!flang) {
+    // file extension not found in the map file, which makes it impossible for us to
+    // put docs in a syntactially valid comment; exit early
+    return null;
+  }
+
   /*
     Extract existing docs; if there are any.
     Assumes that top-of-file docs will begin on line 1 of the file,
     and will continue until the first empty line, at which point
     we can separate the top-of-file docs from the rest of the code file.
   */
-  // load language from file extension map file
-  const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
-  const extensionMap = JSON.parse(extensionMapString);
-  // TODO: sometimes shell scripts dont have file extensions, so we'll default to that...? but what about Makefile and other stuff...?
-  //       (ask about whole file basename instead of extname if no ext? just never docuemtn any file w/o an ext (i think this)?)
-  const flang: string = extensionMap[`${path.extname(filePath)}`] || 'shell';
-
   const fileLines = currContent.split('\n');
   const commentPrompt = dedent(
     `Is the first line of this code file a comment in the programming language ${flang}? Respond only with YES or NO.
@@ -274,11 +286,14 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   let currDocs = '';
   let isolatedContent: string;
   if (commentResponse === 'YES') {
-    // seek to find where header comment block ends and split file there
+    // find empty line where header comment block probably ends and split file there
     let emptyLineIndex = fileLines.findIndex((line) => line.trim() === '');
     if (emptyLineIndex === -1) {
       // no empty lines found, fall back to assuming there's no header comment
       emptyLineIndex = 0;
+    } else {
+      // account for the empty line we found to cut it out of the content string
+      emptyLineIndex += 1;
     }
     currDocs = fileLines.slice(0, emptyLineIndex).join('\n');
     isolatedContent = fileLines.slice(emptyLineIndex).join('\n');
@@ -319,7 +334,6 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   // if there were already existing docs, update them using newly written docs
   let updatedDocs = newDocsResponse;
   if (currDocs) {
-    // TODO: take into account exactly what/where git diff changes are?
     updatedDocs = await openaiClient.createChatCompletion({
       parameters: {
         messages: [
