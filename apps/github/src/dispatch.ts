@@ -7,7 +7,6 @@ import { appConfig } from './config.js';
 import pushHandler from './events/push.js';
 import pullRequestClosedHandler from './events/pull-request.js';
 import { createAppClient } from './lib/octokit-util.js';
-import { Octokit } from 'octokit';
 
 Registry.registerHandler('push', pushHandler);
 Registry.registerHandler('pull_request.closed', pullRequestClosedHandler);
