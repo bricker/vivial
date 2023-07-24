@@ -22,7 +22,7 @@ import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
-const eavePrTitle = 'docs: Eave auto code documentation update'; // TODO: workshop
+const eavePrTitle = 'docs: Eave inline code documentation update'; // TODO: workshop
 
 /**
  * Receives github webhook pull_request events.
@@ -125,7 +125,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
   // update docs in each file
   const contentsQuery = await GraphQLUtil.loadQuery('getFileContentsByPath');
-  let b64UpdatedContent = await bluebird.all(filePaths.map(async (fpath): Promise<string | null> => {
+  const b64UpdatedContent = await bluebird.all(filePaths.map(async (fpath): Promise<string | null> => {
     const contentsQueryVariables: {
       repoOwner: Scalars['String'],
       repoName: Scalars['String'],
