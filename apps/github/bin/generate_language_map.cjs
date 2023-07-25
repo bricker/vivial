@@ -1,5 +1,5 @@
 const fs = require('fs').promises;
-const yaml = require('js-yaml');
+const yaml = require('js-yaml'); // eslint-disable-line
 
 async function main() {
   // download latest lang file from https://github.com/github-linguist

@@ -15,6 +15,7 @@
     "octokit": "2.x",
     "pm2": "5.x",
     "tiktoken": "1.x",
+    "tree-sitter": "^0.20.5",
     "ts-node": "10.x"
   },
   "devDependencies": {
