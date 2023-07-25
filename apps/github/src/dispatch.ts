@@ -42,7 +42,6 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   }
 
   const app = await createAppClient();
-
   const verified = await app.webhooks.verify(requestBody, signature);
 
   if (!verified) {
