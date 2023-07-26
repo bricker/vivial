@@ -5,7 +5,7 @@ import re
 from typing import Any, Tuple
 from openai.openai_object import OpenAIObject
 import tiktoken
-from .config import CONTENT_EXCLUDES
+from eave.archer.config import CONTENT_EXCLUDES, MODEL
 import eave.stdlib.openai_client as _o
 
 # TODO: Use https://github.com/github-linguist/linguist/blob/master/lib/linguist/languages.yml
@@ -40,7 +40,7 @@ def get_filename(filepath: str) -> str:
 def clean_fpath(path: str, prefix: str = "") -> str:
     return re.sub(f"^{prefix}/?", "", path)
 
-def get_file_contents(filepath: str, model: _o.OpenAIModel, strip_imports: bool = True) -> str | None:
+def get_file_contents(filepath: str, strip_imports: bool = True) -> str | None:
     if any([re.search(e, filepath) for e in CONTENT_EXCLUDES]):
         print(filepath, "Skipping file due to content exclude.")
         return None
@@ -50,7 +50,7 @@ def get_file_contents(filepath: str, model: _o.OpenAIModel, strip_imports: bool 
 
     # file_contents = remove_imports(filepath=filepath, contents=file_contents)
     filelen = len(contents)
-    print(filepath, f"filelen={filelen}", f"tokenlen={len(get_tokens(contents, model=model))}")
+    print(filepath, f"filelen={filelen}", f"tokenlen={len(get_tokens(contents, model=MODEL))}")
 
     if len(contents.strip()) == 0:
         return None
@@ -81,18 +81,18 @@ def make_prompt_content(messages: list[str]) -> str:
     stripped = [m for m in messages if m]
     return "\n".join(stripped)
 
-async def make_openai_request(filepath: str, params: _o.ChatCompletionParameters) -> OpenAIObject | None:
+async def make_openai_request(params: _o.ChatCompletionParameters) -> OpenAIObject | None:
     try:
         response = await _o.chat_completion_full_response(params, baseTimeoutSeconds=10)
         assert response
-        print(filepath, "response=", response)
+        print("response=", response)
         TOTAL_TOKENS["prompt"] += response["usage"]["prompt_tokens"]
         TOTAL_TOKENS["completion"] += response["usage"]["completion_tokens"]
         TOTAL_TOKENS["total"] += response["usage"]["total_tokens"]
         return response
     except _o.MaxRetryAttemptsReachedError:
-        print(filepath, "WARNING: Max retry attempts reached")
+        print("WARNING: Max retry attempts reached")
         return None
     except TimeoutError:
-        print(filepath, "WARNING: Timeout")
+        print("WARNING: Timeout")
         return None

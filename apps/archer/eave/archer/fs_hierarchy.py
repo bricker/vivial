@@ -1,19 +1,48 @@
 
+from dataclasses import dataclass
 import os
 import re
+from typing import Optional, Tuple
 
-from eave.archer.config import EXCLUDES
+from eave.archer.config import EXCLUDES, PROJECT_ROOT
+from eave.archer.util import clean_fpath, get_file_contents
 
+class FileReference:
+    path: str
+    basename: str
+    ext: str
+    summary: Optional[str] = None
+    service_references: list[str]
+
+    def __init__(self, path: str) -> None:
+        self.path = path
+        self.basename = os.path.basename(path)
+        self.ext = os.path.splitext(self.basename)[1]
+        self.service_references = []
+
+    def read_file(self) -> str | None:
+        c = get_file_contents(self.path)
+        return c
+
+    @property
+    def clean_path(self) -> str:
+        return clean_fpath(self.path, PROJECT_ROOT)
 
 class FSHierarchy:
     root: str
     dirs: list["FSHierarchy"]
-    files: list[str]
+    files: list[FileReference]
+    summary: Optional[str] = None
+    service_name: Optional[str] = None
 
     def __init__(self, root: str) -> None:
         self.root = root
         self.dirs = []
         self.files = []
+
+    @property
+    def clean_path(self) -> str:
+        return clean_fpath(self.root, PROJECT_ROOT)
 
 def build_hierarchy(root: str) -> FSHierarchy:
     hierarchy = FSHierarchy(root=root)
@@ -25,6 +54,6 @@ def build_hierarchy(root: str) -> FSHierarchy:
                 child_hierarchy = build_hierarchy(root=path)
                 hierarchy.dirs.append(child_hierarchy)
             elif dirent.is_file():
-                hierarchy.files.append(path)
+                hierarchy.files.append(FileReference(path=path))
 
     return hierarchy

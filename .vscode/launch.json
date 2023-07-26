@@ -4,7 +4,6 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
     {
       "name": "Core API",
       "envFile": "${workspaceFolder}/.env",
@@ -145,10 +144,14 @@
       "program": "${workspaceFolder}/apps/confluence/server.ts",
       "restart": true,
       "args": [
-        "--exec", "ts-node",
-        "--watch", "${workspaceFolder}/apps/confluence/src",
-        "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
-        "--delay", "5",
+        "--exec",
+        "ts-node",
+        "--watch",
+        "${workspaceFolder}/apps/confluence/src",
+        "--watch",
+        "${workspaceFolder}/libs/eave-stdlib-ts",
+        "--delay",
+        "5",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
       "consoleTitle": "Confluence App",
@@ -181,10 +184,14 @@
       "program": "${workspaceFolder}/apps/jira/server.ts",
       "restart": true,
       "args": [
-        "--exec", "ts-node",
-        "--watch", "${workspaceFolder}/apps/jira/src",
-        "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
-        "--delay", "5",
+        "--exec",
+        "ts-node",
+        "--watch",
+        "${workspaceFolder}/apps/jira/src",
+        "--watch",
+        "${workspaceFolder}/libs/eave-stdlib-ts",
+        "--delay",
+        "5",
       ],
       "runtimeExecutable": "${workspaceFolder}/apps/jira/node_modules/.bin/nodemon",
       "consoleTitle": "Jira App",
@@ -258,6 +265,20 @@
       "request": "test",
       "justMyCode": false,
     },
+    {
+      "name": "Python: Current File",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "PYTHONPATH": ".",
+      },
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/archer",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+
   ],
   "compounds": [
     {

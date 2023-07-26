@@ -3,15 +3,16 @@ import os
 import eave.stdlib.openai_client as _o
 
 PROJECT_ROOT = os.environ["EAVE_HOME"]
-
+MODEL = _o.OpenAIModel.GPT4
 TIMESTAMP = datetime.now()
 TIMESTAMPF = TIMESTAMP.strftime("%Y-%m-%d--%H:%M:%S")
 OUTDIR = f".out/{TIMESTAMPF}"
-os.makedirs(OUTDIR, exist_ok=True)
+# os.makedirs(OUTDIR, exist_ok=True)
 
 # TODO: Automatically exclude files in gitignore
 # https://pypi.org/project/pathspec/
 
+# TODO: Parse HTML files and exclude SVG docs
 # Files and directories that are excluded from hierarchy
 EXCLUDES = set([
     r"node_modules",

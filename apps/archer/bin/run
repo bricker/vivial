@@ -1,3 +1,19 @@
 #!/usr/bin/env -S bash -eu
 
-PYTHONPATH=. dotenv -f ../../.env run python eave/archer/main.py "$@"
+function run() (
+	local strategy;
+	strategy=""
+
+	while getopts "s:" argname; do
+		case "$argname" in
+		s) strategy=$OPTARG ;;
+		*)
+			exit 1
+			;;
+		esac
+	done
+
+	PYTHONPATH=. dotenv -f ../../.env run python eave/archer/strategies/"$strategy".py
+)
+
+run "$@"
