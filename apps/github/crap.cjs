@@ -118,7 +118,16 @@ function insertDocs(content, docs, after, before = undefined) {
   const postcontent = content.slice(before);
 
   // add a newline if one not already present directly following docs
-  if (postcontent[0] === postcontent.trimStart()[0]) {
+  let i = 0;
+  let needsNewline = true;
+  while (i < postcontent.length && /\s/.test(postcontent[i])) {
+    if (postcontent[i] === '\n') {
+      needsNewline = false;
+      break;
+    }
+    i += 1;
+  }
+  if (needsNewline) {
     docs += '\n';
   }
 
@@ -148,7 +157,7 @@ function runQuery(query, rootNode, content, fmap, funcMatcher, commentMatcher) {
           // console.log(`from ix ${cap.node.startIndex}`)
           // track `start` back to closest newline to account for export, or other pre-signature gunk
           start = cap.node.startIndex;
-          while (content[start] !== '\n' && start !== 0) { // TODO: this is eating a prev newline?
+          while (start > 1 && content[start - 1] !== '\n') {
             start -= 1;
           }
 
@@ -216,16 +225,27 @@ function runQuery(query, rootNode, content, fmap, funcMatcher, commentMatcher) {
 }
 
 // dummy stub
-// TODO: real impl must account for indentation
 function updateDocs(funcString, currDocs = undefined) {
   if (currDocs) {
     return currDocs;
   }
-  return `/**
+  // trim?
+  let docs = `/**
  * Very real docstring
  * such documented, veryu wow
  * @returns somethign
  */`;
+
+  // console.log(funcString);
+  // extract indentation from first line of function
+  let i = 0;
+  while (i < funcString.length && /\s/.test(funcString[i])) {
+    i += 1;
+  }
+  const indent = funcString.slice(0, i);
+  docs = `${indent}${docs.split('\n').join(`\n${indent}`)}`;
+
+  return docs;
 }
 
 // helper

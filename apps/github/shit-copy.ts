@@ -2,6 +2,7 @@ import { App, Octokit } from 'octokit';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getTeam } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
 import { appConfig } from './src/config.js';
+
 /**
  * Very real docstring
  * such documented, veryu wow
@@ -28,6 +29,7 @@ export async function createAppClient(): Promise<App> {
   });
   return app;
 }
+
 /**
  * Very real docstring
  * such documented, veryu wow
@@ -51,6 +53,7 @@ export async function getInstallationId(eaveTeamId: string, ctx: LogContext): Pr
 function someShit(): string {
   return "balls"
 }
+
 /**
  * Very real docstring
  * such documented, veryu wow
@@ -60,11 +63,12 @@ function wahoo() {
   console.log('wagoo');
 }
 
-class BestClassIntTheWoooorld {/**
- * Very real docstring
- * such documented, veryu wow
- * @returns somethign
- */
+class BestClassIntTheWoooorld {
+  /**
+   * Very real docstring
+   * such documented, veryu wow
+   * @returns somethign
+   */
   howGood(): string {
     return "reeeeel goodo";
   }
@@ -80,11 +84,12 @@ class BestClassIntTheWoooorld {/**
   }
 }
 
-export class WorstClassIntTheWoooorld {/**
- * Very real docstring
- * such documented, veryu wow
- * @returns somethign
- */
+export class WorstClassIntTheWoooorld {
+  /**
+   * Very real docstring
+   * such documented, veryu wow
+   * @returns somethign
+   */
   howGood(): string {
     return "pooopoo bad :(";
   }
