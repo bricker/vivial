@@ -19,6 +19,7 @@ import {
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
 import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
+import { writeDocsIntoFileString, parseFunctionsAndComments } from '../parsing.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
@@ -253,104 +254,90 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   // load language from file extension map file
   const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
   const extensionMap = JSON.parse(extensionMapString);
-  const flang: string = extensionMap[`${path.extname(filePath).toLowerCase()}`];
+  const extName = `${path.extname(filePath).toLowerCase()}`;
+  const flang: string = extensionMap[extName];
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early
+    eaveLogger.error(`No matching language found for file extension: "${extName}"`);
     return null;
   }
 
-  /*
-    Extract existing docs; if there are any.
-    Assumes that top-of-file docs will begin on line 1 of the file,
-    and will continue until the first empty line, at which point
-    we can separate the top-of-file docs from the rest of the code file.
-  */
-  const fileLines = currContent.split('\n');
-  const commentPrompt = dedent(
-    `Is the first line of this code file a comment in the programming language ${flang}? Respond only with YES or NO.
+  const parsedData = parseFunctionsAndComments(currContent, extName);
 
-    \`\`\`
-    ${fileLines[0]}
-    \`\`\``,
-  );
-  const commentResponse = await openaiClient.createChatCompletion({
-    parameters: {
-      messages: [
-        { role: 'user', content: commentPrompt },
-      ],
-      model: OpenAIModel.GPT4,
-      max_tokens: 10,
-      temperature: 0.1,
-    },
-  });
+  // update parsedData objects in place w/ updatedCommentStrings
+  await bluebird.all(parsedData.map(async (funcData) => {
+    // convert long function strings to a summary for docs writing to prevent AI from getting overwhelmed by
+    // implementation details in raw code file (and to account for functions longer than model context)
+    const summarizedFunction = await AIUtil.rollingSummary(openaiClient, funcData.func);
 
-  let currDocs = '';
-  let isolatedContent: string;
-  if (commentResponse === 'YES') {
-    // find empty line where header comment block probably ends and split file there
-    let emptyLineIndex = fileLines.findIndex((line) => line.trim() === '');
-    // +1 accounts for the empty line, cutting it out of the isolatedContent string
-    // (this also increments the "failure index", -1, to 0, causing currDocs slice to be empty,
-    //  essentially simulating commentResponse == NO)
-    emptyLineIndex += 1;
+    // update docs, or write new ones if currDocs is empty/undefined
+    // TODO: refine prompt
+    // TODO: account for summarized function
+    // TODO: add typical params etc boilerplate?
+    // TODO: experiment performance qulaity on dif types of comments:
+    //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
+    const docsPrompt = dedent(
+      `Write a 2-3 sentence overview of the purpose of this function.
 
-    currDocs = fileLines.slice(0, emptyLineIndex).join('\n');
-    isolatedContent = fileLines.slice(emptyLineIndex).join('\n');
-  } else {
-    isolatedContent = fileLines.join('\n');
-  }
+      ===
+      ${summarizedFunction}
+      ===`,
+    );
+    const newDocsResponse = await openaiClient.createChatCompletion({
+      parameters: {
+        messages: [
+          {
+            role: 'user',
+            content: docsPrompt,
+          },
+        ],
+        model: OpenAIModel.GPT4,
+        temperature: 0.2,
+      },
+      ctx,
+    });
 
-  // convert isolatedContent to a summary for docs writing to prevent AI from getting distracted by
-  // implementation details in raw code file (and to account for long files)
-  const summarizedContent = await AIUtil.rollingSummary(openaiClient, isolatedContent);
-
-  // update docs, or write new ones if currDocs is empty/undefined
-  // TODO: verify that old inaccurate docs dont influence new docs
-  // TODO: experiment performance qulaity on dif types of file header comments:
-  //      (1. update own comment 2. write from scratch 3. update existing generic informational header 4. fix slightly incorrect header 5. shebang)
-  const docsPrompt = dedent(
-    `Write a 2-3 sentence overview of the general purpose of this code file; refrain from documenting specifics, focus on the greater purpose of the file.
-
-    ===
-    ${summarizedContent}
-    ===`,
-  );
-  const newDocsResponse = await openaiClient.createChatCompletion({
-    parameters: {
-      messages: [
-        {
-          role: 'user',
-          content: docsPrompt,
+    // if there were already existing docs, update them using newly written docs
+    let updatedDocs = newDocsResponse;
+    if (funcData.comment) {
+      updatedDocs = await openaiClient.createChatCompletion({
+        parameters: {
+          messages: [
+            {
+              role: 'user',
+              content: dedent(
+                `Merge these two chunks of documentation together into a paragraph, maintaining the important information. 
+                If there are any conflicts of content, prefer the new documentation.
+                
+                Old documentation:
+                ===
+                ${funcData.comment}
+                ===
+                
+                New documentation:
+                ===
+                ${newDocsResponse}
+                ===`,
+              ),
+            },
+          ],
+          model: OpenAIModel.GPT4,
+          temperature: 0.2,
         },
-      ],
-      model: OpenAIModel.GPT4,
-      temperature: 0.2,
-    },
-    ctx,
-  });
+        ctx,
+      });
+    }
 
-  // if there were already existing docs, update them using newly written docs
-  let updatedDocs = newDocsResponse;
-  if (currDocs) {
-    updatedDocs = await openaiClient.createChatCompletion({
+    const updatedDocsComment = await openaiClient.createChatCompletion({
       parameters: {
         messages: [
           {
             role: 'user',
             content: dedent(
-              `Merge these two chunks of documentation together into a paragraph, maintaining the important information. 
-              If there are any conflicts of content, prefer the new documentation.
+              `Convert the following text to a multi-line doc comment valid in the programming language ${flang}. Respond with only the doc comment.
               
-              Old documentation:
-              ===
-              ${currDocs}
-              ===
-              
-              New documentation:
-              ===
-              ${newDocsResponse}
-              ===`,
+              ${updatedDocs}`,
             ),
           },
         ],
@@ -359,27 +346,10 @@ async function updateDocumentation(currContent: string, filePath: string, openai
       },
       ctx,
     });
-  }
 
-  const updatedDocsComment = await openaiClient.createChatCompletion({
-    parameters: {
-      messages: [
-        {
-          role: 'user',
-          content: dedent(
-            `Convert the following text to a multi-line doc comment valid in the programming language ${flang}. Respond with only the doc comment.
-            
-            ${updatedDocs}`,
-          ),
-        },
-      ],
-      model: OpenAIModel.GPT4,
-      temperature: 0.2,
-    },
-    ctx,
-  });
+    funcData.updatedComment = updatedDocsComment;
+  }));
 
-  // separate new docs from content w/ an empty line to make sure we
-  // maintain our assumption about the header comment ending on empty line
-  return `${updatedDocsComment.trim()}\n\n${isolatedContent}`;
+  // write `updatedComment` data back into currContent string
+  return writeDocsIntoFileString(currContent, parsedData);
 }
