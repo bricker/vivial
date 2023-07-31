@@ -1,5 +1,6 @@
 import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
+import { grammarFromExtension } from './grammars.js';
 
 // const Parser = require("tree-sitter");
 // const languageGrammar = require('tree-sitter-languageGrammar').languageGrammar;
@@ -30,12 +31,13 @@ export type ParsedFunction = {
  * Use tree-sitter to extract functions and their doc comments from
  * the provided file `content`.
  * @param content string content of a source code file
- * @param extName file extension of the source code file. Used to determine file language.
+ * @param extName file extension of the source code file. Expected to contain . prefix (e.g. ".js").
+ *                Used to determine file language.
  * @returns array of function data parsed from `content`
  */
 export function parseFunctionsAndComments(content: string, extName: string): ParsedFunction[] {
   const parser = new Parser();
-  const languageGrammar = getLanguage(extName);
+  const languageGrammar = grammarFromExtension(extName);
   parser.setLanguage(languageGrammar);
   const ptree = parser.parse(content);
 
@@ -105,11 +107,6 @@ export function writeDocsIntoFileString(content: string, parsedFunctions: Parsed
   });
 
   return newContent;
-}
-
-function getLanguage(extName: string): any {
-  // TODO: map ext name to a grammer dep 
-  return 'aaaa';
 }
 
 /**

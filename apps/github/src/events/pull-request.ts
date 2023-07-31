@@ -19,7 +19,7 @@ import {
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
 import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
-import { writeDocsIntoFileString, parseFunctionsAndComments } from '../parsing.js';
+import { writeDocsIntoFileString, parseFunctionsAndComments } from '../parsing/function-parsing.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
@@ -252,6 +252,7 @@ async function deleteBranch(octokit: Octokit, branchNodeId: string) {
  */
 async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string | null> {
   // load language from file extension map file
+  // TODO: add to warmup
   const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
   const extensionMap = JSON.parse(extensionMapString);
   const extName = `${path.extname(filePath).toLowerCase()}`;

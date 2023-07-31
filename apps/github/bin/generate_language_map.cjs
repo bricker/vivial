@@ -30,6 +30,7 @@ async function main() {
   transformedFileObject['.ex'] = 'Elixir';
   transformedFileObject['.rs'] = 'Rust';
   transformedFileObject['.r'] = 'R';
+  transformedFileObject['.cs'] = 'C#';
 
   // write to local file as json for easier access by prod TS code
   const jsonString = JSON.stringify(transformedFileObject);
