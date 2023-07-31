@@ -116,14 +116,16 @@ export function writeDocsIntoFileString(content: string, parsedFunctions: Parsed
  *
  * @param content string to have docs inserted into
  * @param docs string to insert into content
- * @param after int put docs after this index in content
- * @param before int? put docs before this index in content. (set to after if undefined)
+ * @param after index in content to put docs after
+ * @param before index in content to put docs before. (set to after if undefined)
  * @returns content with `docs` inserted
  */
 function insertDocs(content: string, docs: string, after: number, before?: number) {
   if (before === undefined) {
     before = after;
   }
+
+  docs = docs.trim();
 
   const precontent = content.slice(0, after);
   const postcontent = content.slice(before);

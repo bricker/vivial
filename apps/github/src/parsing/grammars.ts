@@ -40,7 +40,7 @@ export function grammarFromExtension(extName: string): any {
     case '.cpp': return Cpp;
     case '.kt': return Kotlin;
     case '.php': return PHP;
-    case '.py': return Python;
+    // case '.py': return Python; // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
     case '.rb': return Ruby;
     case '.swift': return Swift;
     case '.cs': return Csharp;
