@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
-import { encoding_for_model } from 'tiktoken';
-import { sharedConfig } from './config.js';
-import eaveLogger from './logging.js';
-import { CtxArg } from './requests.js';
+import { sharedConfig } from '../config.js';
+import eaveLogger from '../logging.js';
+import { CtxArg } from '../requests.js';
+import { modelFromString } from './models.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -11,50 +11,8 @@ export const PROMPT_PREFIX =
   + "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
   + "You are responsible for the quality and integrity of this organization's documentation.";
 
-export enum OpenAIModel {
-  GPT_35_TURBO = 'gpt-3.5-turbo',
-  GPT_35_TURBO_16K = 'gpt-3.5-turbo-16k',
-  GPT4 = 'gpt-4',
-  // GPT4_32K = 'gpt-4-32k',
-}
-
-function modelFromString(v: string): OpenAIModel | undefined {
-  switch (v) {
-    case OpenAIModel.GPT_35_TURBO: return OpenAIModel.GPT_35_TURBO;
-    case OpenAIModel.GPT_35_TURBO_16K: return OpenAIModel.GPT_35_TURBO_16K;
-    case OpenAIModel.GPT4: return OpenAIModel.GPT4;
-    default: return undefined;
-    // case OpenAIModel.GPT4_32K: return OpenAIModel.GPT4_32K;
-  }
-}
-
-type MaxTokens = {
-  [OpenAIModel.GPT_35_TURBO]: number;
-  [OpenAIModel.GPT_35_TURBO_16K]: number;
-  [OpenAIModel.GPT4]: number;
-  // [OpenAIModel.GPT4_32K]: number;
-}
-
-const MAX_TOKENS: MaxTokens = {
-  [OpenAIModel.GPT_35_TURBO]: 4096,
-  [OpenAIModel.GPT_35_TURBO_16K]: 16384,
-  [OpenAIModel.GPT4]: 8192,
-  // [OpenAIModel.GPT4_32K]: 32768,
-};
-
 export default class OpenAIClient {
   client: OpenAIApi;
-
-  static tokenCount(data: string, model: OpenAIModel): number {
-    const encoder = encoding_for_model(model);
-    const count = encoder.encode(data).length;
-    encoder.free();
-    return count;
-  }
-
-  static maxTokens(model: OpenAIModel): number {
-    return MAX_TOKENS[model];
-  }
 
   static async getAuthedClient(): Promise<OpenAIClient> {
     const apiKey = await sharedConfig.openaiApiKey;

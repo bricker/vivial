@@ -1,7 +1,9 @@
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
-import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/openai.js';
+import OpenAIClient from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import { OpenAIModel, maxTokens } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
+import { tokenCount } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/token-counter.js';
 import { ConfluenceClientArg } from './util.js';
 
 export default async function updateContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
@@ -41,9 +43,9 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
     // The idea with dividing by 1.5 is that the prompt contains roughly 2/3 of the full token usage,
     // because the prompt + response contains three total documents.
     let model: OpenAIModel | undefined;
-    if (OpenAIClient.tokenCount(prompt, OpenAIModel.GPT4) < OpenAIClient.maxTokens(OpenAIModel.GPT4) / 1.5) {
+    if (tokenCount(prompt, OpenAIModel.GPT4) < maxTokens(OpenAIModel.GPT4) / 1.5) {
       model = OpenAIModel.GPT4;
-    } else if (OpenAIClient.tokenCount(prompt, OpenAIModel.GPT_35_TURBO_16K) < OpenAIClient.maxTokens(OpenAIModel.GPT_35_TURBO_16K) / 1.5) {
+    } else if (tokenCount(prompt, OpenAIModel.GPT_35_TURBO_16K) < maxTokens(OpenAIModel.GPT_35_TURBO_16K) / 1.5) {
       model = OpenAIModel.GPT_35_TURBO_16K;
     }
 
