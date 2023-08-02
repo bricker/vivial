@@ -2,13 +2,14 @@ import enum
 import re
 from typing import Optional
 from eave.stdlib.exceptions import OpenAIDataError
+from eave.stdlib.logging import LogContext
 from .message_prompts import CONVO_STRUCTURE
-import eave.stdlib.openai_client as eave_openai
+import eave.stdlib.transformer_ai.openai_client as eave_openai
 
 STRIPPED_CHARS = "\"' "
 
 
-async def get_topic(conversation: str) -> str:
+async def get_topic(conversation: str, ctx: Optional[LogContext] = None) -> str:
     prompt = eave_openai.formatprompt(
         f"""
         Create a short title for the following conversation. Respond with only the title and nothing else.
@@ -31,7 +32,7 @@ async def get_topic(conversation: str) -> str:
         temperature=0.5,
     )
 
-    title: str | None = await eave_openai.chat_completion(openai_params)
+    title: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx)
     if title is None:
         raise OpenAIDataError()
 
@@ -40,7 +41,7 @@ async def get_topic(conversation: str) -> str:
     return title
 
 
-async def get_hierarchy(conversation: str) -> list[str]:
+async def get_hierarchy(conversation: str, ctx: Optional[LogContext] = None) -> list[str]:
     # prompt = eave_openai.formatprompt(
     #     f"""
     #     Create up to two cascading parent folder names for this conversation, from least specific to most specific. These folder names will be used to organize the conversation into a directory hierarchy for easier navigation.
@@ -94,7 +95,7 @@ async def get_hierarchy(conversation: str) -> list[str]:
         temperature=0,
     )
 
-    answer: str | None = await eave_openai.chat_completion(openai_params)
+    answer: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx)
     if answer is None:
         raise OpenAIDataError()
 
@@ -110,7 +111,7 @@ class DocumentationType(enum.Enum):
     UNKNOWN = "Other"
 
 
-async def get_documentation_type(conversation: str) -> DocumentationType:
+async def get_documentation_type(conversation: str, ctx: Optional[LogContext] = None) -> DocumentationType:
     prompt = eave_openai.formatprompt(
         f"""
         You know how to write the following types of documentation:
@@ -141,7 +142,7 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
         temperature=0,
     )
 
-    openai_response: str | None = await eave_openai.chat_completion(openai_params)
+    openai_response: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx)
     if openai_response is None:
         raise OpenAIDataError()
 
@@ -158,7 +159,10 @@ async def get_documentation_type(conversation: str) -> DocumentationType:
 
 
 async def get_documentation(
-    conversation: str, documentation_type: DocumentationType, link_context: Optional[str]
+    conversation: str,
+    documentation_type: DocumentationType,
+    link_context: Optional[str],
+    ctx: Optional[LogContext] = None,
 ) -> str:
     # TODO: Try getting headers first, then fill in the sections with separate prompts
     prompt_segments = []
@@ -227,7 +231,7 @@ async def get_documentation(
         temperature=0.2,
     )
 
-    openai_response: str | None = await eave_openai.chat_completion(openai_params, baseTimeoutSeconds=120)
+    openai_response: str | None = await eave_openai.chat_completion(openai_params, baseTimeoutSeconds=120, ctx=ctx)
     if openai_response is None:
         raise OpenAIDataError()
 

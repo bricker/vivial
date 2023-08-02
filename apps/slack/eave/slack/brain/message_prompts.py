@@ -4,7 +4,7 @@ from typing import Optional
 
 from eave.stdlib.exceptions import OpenAIDataError
 
-import eave.stdlib.openai_client as eave_openai
+import eave.stdlib.transformer_ai.openai_client as eave_openai
 
 from eave.stdlib.logging import LogContext, eaveLogger
 
@@ -84,7 +84,7 @@ async def message_action(context: str, ctx: Optional[LogContext] = None) -> Mess
     )
 
     eaveLogger.debug(f"prompt:\n{prompt}", ctx)
-    response = await _get_openai_response(messages=[prompt], temperature=0)
+    response = await _get_openai_response(messages=[prompt], temperature=0, ctx=ctx)
     eaveLogger.debug(f"response: {response}", ctx)
 
     response = response.lower()
@@ -114,14 +114,12 @@ async def message_action(context: str, ctx: Optional[LogContext] = None) -> Mess
     return action
 
 
-async def _get_openai_response(messages: list[str], temperature: int) -> str:
+async def _get_openai_response(messages: list[str], temperature: int, ctx: Optional[LogContext] = None) -> str:
     params = eave_openai.ChatCompletionParameters(
         model=eave_openai.OpenAIModel.GPT4,
         messages=messages,
         temperature=temperature,
     )
 
-    openai_completion: str | None = await eave_openai.chat_completion(params)
-    if openai_completion is None:
-        raise OpenAIDataError()
+    openai_completion = await eave_openai.chat_completion(params, ctx=ctx)
     return openai_completion

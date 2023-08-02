@@ -11,7 +11,7 @@ import eave.slack.brain.core
 import eave.slack.brain.message_prompts
 import eave.slack.slack_models
 import eave.stdlib.core_api.models.team
-import eave.stdlib.openai_client
+import eave.stdlib.transformer_ai.openai_client
 from slack_bolt.async_app import AsyncBoltContext
 from slack_sdk.web.async_client import AsyncWebClient
 

@@ -10,8 +10,8 @@ from eave.stdlib.core_api.models.subscriptions import (
     SubscriptionSourcePlatform,
 )
 from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
-from eave.stdlib.exceptions import OpenAIDataError, SlackDataError
-import eave.stdlib.openai_client
+from eave.stdlib.exceptions import SlackDataError
+import eave.stdlib.transformer_ai.openai_client
 from eave.stdlib.logging import eaveLogger
 from . import message_prompts
 from . import document_metadata
@@ -95,14 +95,15 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         conversation = await self.build_context()
         link_context = await self.build_link_context_and_subscribe()
 
-        document_topic = await document_metadata.get_topic(conversation)
-        document_hierarchy = await document_metadata.get_hierarchy(conversation)
+        document_topic = await document_metadata.get_topic(conversation, ctx=self.eave_ctx)
+        document_hierarchy = await document_metadata.get_hierarchy(conversation, ctx=self.eave_ctx)
         # project_title = await document_metadata.get_project_title(conversation)
-        documentation_type = await document_metadata.get_documentation_type(conversation)
+        documentation_type = await document_metadata.get_documentation_type(conversation, ctx=self.eave_ctx)
         documentation = await document_metadata.get_documentation(
             conversation=conversation,
             documentation_type=documentation_type,
             link_context=link_context,
+            ctx=self.eave_ctx,
         )
         document_resources = await self.build_resources()
 
@@ -268,7 +269,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
     async def search_documents(self) -> documents.SearchDocuments.ResponseBody:
         conversation = await self.build_context()
 
-        prompt = eave.stdlib.openai_client.formatprompt(
+        prompt = eave.stdlib.transformer_ai.openai_client.formatprompt(
             f"""
             Extract a key term (1-3 words) from this conversation that can be used as a full-text search query to find relevant documentation.
 
@@ -294,8 +295,8 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             """
         )
 
-        openai_params = eave.stdlib.openai_client.ChatCompletionParameters(
-            model=eave.stdlib.openai_client.OpenAIModel.GPT4,
+        openai_params = eave.stdlib.transformer_ai.openai_client.ChatCompletionParameters(
+            model=eave.stdlib.transformer_ai.openai_client.OpenAIModel.GPT4,
             messages=[prompt],
             n=1,
             frequency_penalty=0.9,
@@ -303,9 +304,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             temperature=0.2,
         )
 
-        answer: str | None = await eave.stdlib.openai_client.chat_completion(openai_params)
-        if answer is None:
-            raise OpenAIDataError()
+        answer = await eave.stdlib.transformer_ai.openai_client.chat_completion(openai_params, ctx=self.eave_ctx)
 
         response = await documents.SearchDocuments.perform(
             ctx=self.eave_ctx,

@@ -1,3 +1,4 @@
+import asyncio
 import enum
 import textwrap
 import time
@@ -8,16 +9,16 @@ import uuid
 import openai as openai_sdk
 import openai.error
 import openai.openai_object
-import tiktoken
 
 from eave.stdlib.logging import LogContext
+from eave.stdlib.analytics import log_gpt_request
 
-from .typing import JsonObject
-from .config import shared_config
-from .logging import eaveLogger
-from .exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
-
-tokencoding = tiktoken.get_encoding("gpt2")
+from ..typing import JsonObject
+from ..config import shared_config
+from ..logging import eaveLogger
+from ..exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
+from .model import OpenAIModel
+from .token_counter import calculate_prompt_cost, calculate_response_cost, token_count
 
 
 class DocumentationType(enum.StrEnum):
@@ -37,27 +38,6 @@ def prompt_prefix() -> LiteralString:
 
 
 STOP_SEQUENCE = "STOP_SEQUENCE"
-
-
-class OpenAIModel(enum.StrEnum):
-    # ADA_EMBEDDING = "text-embedding-ada-002"
-    GPT_35_TURBO = "gpt-3.5-turbo"
-    GPT_35_TURBO_16K = "gpt-3.5-turbo-16k"
-    GPT4 = "gpt-4"
-    # GPT4_32K = "gpt-4-32k"
-
-
-MAX_TOKENS = {
-    OpenAIModel.GPT_35_TURBO: 4096,
-    OpenAIModel.GPT_35_TURBO_16K: 16384,
-    OpenAIModel.GPT4: 8192,
-    # OpenAIModel.GPT4_32K: 32768,
-}
-
-
-def token_count(data: str, model: OpenAIModel) -> int:
-    encoder = tiktoken.encoding_for_model(model)
-    return len(encoder.encode(data))
 
 
 class ChatRole(enum.StrEnum):
@@ -123,11 +103,22 @@ def ensure_api_key() -> None:
 
 
 async def chat_completion(
-    params: ChatCompletionParameters, baseTimeoutSeconds: int = 30, ctx: Optional[LogContext] = None
-) -> Optional[str]:
+    params: ChatCompletionParameters,
+    baseTimeoutSeconds: int = 30,
+    file_log_id: Optional[str] = None,
+    ctx: Optional[LogContext] = None,
+) -> str:
     """
+    Makes a request to OpenAI chat completion API, return string response.
     https://beta.openai.com/docs/api-reference/completions/create
     baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+
+    params - main OpenAI API request params
+    baseTimeoutSeconds - OpenAI API request timeout
+    file_log_id - used by analytics to identifiy OpenAI requests related to updating specific files in github.
+                  Should be in form 'owner/repo/file-path'
+    ctx - log context (also used to populate important analytics fields)
+    returns - API chat completion response string (throws on timeout or other error)
     """
 
     ensure_api_key()
@@ -141,6 +132,7 @@ async def chat_completion(
     }
 
     eaveLogger.debug(f"OpenAI Request: {openai_request_id}", eave_ctx, log_params)
+    timestamp_start = time.perf_counter()
 
     max_attempts = 3
     for i in range(max_attempts):
@@ -182,18 +174,44 @@ async def chat_completion(
             raise OpenAIDataError("no choices given")
 
     answer = str(choice.message.content).strip()
+    timestamp_end = time.perf_counter()
+    duration_seconds = round(timestamp_end - timestamp_start)
+    asyncio.ensure_future(_log_gpt_request(params, answer, duration_seconds, file_log_id, ctx))
     return answer
 
 
-# def get_embedding(text, model=OpenAIModel.ADA_EMBEDDING):
-#     text = text.replace("\n", " ")
-#     return openai.Embedding.create(input=[text], model=model)["data"][0]["embedding"]
+async def _log_gpt_request(
+    params: ChatCompletionParameters,
+    response: str,
+    duration_seconds: int,
+    file_log_id: Optional[str] = None,
+    ctx: Optional[LogContext] = None,
+) -> None:
+    full_prompt = "\n".join(params.messages)
+    prompt_cost = calculate_prompt_cost(full_prompt, params.model)
+    response_cost = calculate_response_cost(response, params.model)
+    input_tokens = token_count(full_prompt, params.model)
+    output_tokens = token_count(response, params.model)
 
+    # openai python client allows for "best_of" parameter, which will generate that many responses,
+    # consuming/costing a multiple more response tokens in a single request
+    # https://platform.openai.com/docs/api-reference/completions
+    if params.best_of:
+        response_cost *= params.best_of
+        output_tokens *= params.best_of
 
-# df = pandas.read_csv("output/embedded_1k_reviews.csv")
-# df["ada_embedding"] = df.ada_embedding.apply(eval).apply(numpy.array)
-# df["ada_embedding"] = df.combined.apply(lambda x: get_embedding(x, model=OpenAIModel.ADA_EMBEDDING))
-# df.to_csv("output/embedded_1k_reviews.csv", index=False)
+    await log_gpt_request(
+        duration_seconds=duration_seconds,
+        input_cost_usd=prompt_cost,
+        output_cost_usd=response_cost,
+        input_prompt=full_prompt,
+        output_response=response,
+        input_token_count=input_tokens,
+        output_token_count=output_tokens,
+        model=params.model,
+        file_identifier=file_log_id,
+        ctx=ctx,
+    )
 
 
 def formatprompt(*strings: str) -> str:

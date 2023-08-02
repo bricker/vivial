@@ -1,11 +1,10 @@
 import { encoding_for_model } from 'tiktoken';
 import { OpenAIModel } from './models.js';
-import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 
 /**
  * Cost per 1k prompt tokens by model.
  * https://openai.com/pricing
- * @param model 
+ * @param model
  * @returns float price in USD
  */
 function inputTokenCost(model: OpenAIModel): number {
@@ -16,13 +15,14 @@ function inputTokenCost(model: OpenAIModel): number {
       return 0.003;
     case OpenAIModel.GPT4:
       return 0.03;
+      // TODO: default case return value???? 0, but eavelogger error? will that get surfaced quickly to devs?
   }
 }
 
 /**
  * Cost per 1k response tokens by model.
  * https://openai.com/pricing
- * @param model 
+ * @param model
  * @returns float price in USD
  */
 function outputTokenCost(model: OpenAIModel): number {
@@ -45,8 +45,8 @@ export function tokenCount(data: string, model: OpenAIModel): number {
 
 /**
  * Cost of an input prompt to the OpenAI api
- * @param prompt 
- * @param model 
+ * @param prompt
+ * @param model
  * @returns float price in USD (rounded to 1e-4 since that is the greatest precision of OpenAI API prices)
  */
 export function calculatePromptCost(prompt: string, model: OpenAIModel): number {
@@ -57,8 +57,8 @@ export function calculatePromptCost(prompt: string, model: OpenAIModel): number 
 
 /**
  * Cost of an output response from the OpenAI api
- * @param prompt 
- * @param model 
+ * @param prompt
+ * @param model
  * @returns float price in USD (rounded to 1e-4 since that is the greatest precision of OpenAI API prices)
  */
 export function calculateResponseCost(response: string, model: OpenAIModel): number {

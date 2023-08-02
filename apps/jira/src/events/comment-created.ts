@@ -20,7 +20,6 @@ enum MessageIntent {
 
 export default async function commentCreatedEventHandler({ req, res, jiraClient }: { req: Request, res: Response, jiraClient: JiraClient }) {
   const ctx = LogContext.load(res);
-  ctx.feature_name = 'jira_comment_eave_mention';
 
   eaveLogger.debug('received comment created webhook event', ctx);
   const openaiClient = await OpenAIClient.getAuthedClient();
@@ -98,6 +97,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
     res.sendStatus(200);
     return;
   }
+  ctx.feature_name = 'jira_document_search';
 
   const searchQuery = await getSearchQuery({ comment: cleanedBody, openaiClient, ctx });
 

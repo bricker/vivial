@@ -11,26 +11,32 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
     async def handle_action(self, message_action: message_prompts.MessageAction) -> None:
         match message_action:
             case message_prompts.MessageAction.CREATE_DOCUMENTATION | message_prompts.MessageAction.WATCH:
+                self.eave_ctx.feature_name = "slack_document_create"
                 await self.create_documentation_and_subscribe()
                 return
 
             case message_prompts.MessageAction.UNWATCH:
+                self.eave_ctx.feature_name = "slack_unwatch_thread"
                 await self.unwatch_conversation()
                 return
 
             case message_prompts.MessageAction.SEARCH_DOCUMENTATION:
+                self.eave_ctx.feature_name = "slack_document_search"
                 await self.search_documentation()
                 return
 
             case message_prompts.MessageAction.UPDATE_DOCUMENTATION:
+                self.eave_ctx.feature_name = "slack_document_update"
                 await self.update_documentation()
                 return
 
             case message_prompts.MessageAction.REFINE_DOCUMENTATION:
+                self.eave_ctx.feature_name = "slack_document_refine"
                 await self.refine_documentation()
                 return
 
             case message_prompts.MessageAction.DELETE_DOCUMENTATION:
+                self.eave_ctx.feature_name = "slack_document_delete"
                 await self.archive_documentation()
                 return
 

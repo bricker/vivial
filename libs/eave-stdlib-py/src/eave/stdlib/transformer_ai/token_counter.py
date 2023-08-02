@@ -1,0 +1,62 @@
+import tiktoken
+
+from .model import OpenAIModel
+
+
+def token_count(data: str, model: OpenAIModel) -> int:
+    encoder = tiktoken.encoding_for_model(model)
+    return len(encoder.encode(data))
+
+
+def _input_token_cost(model: OpenAIModel) -> float:
+    """
+    Cost per 1k prompt tokens by model.
+    https://openai.com/pricing
+
+    returns float price in USD
+    """
+    match (model):
+        case OpenAIModel.GPT_35_TURBO:
+            return 0.0015
+        case OpenAIModel.GPT_35_TURBO_16K:
+            return 0.003
+        case OpenAIModel.GPT4:
+            return 0.03
+        # TODO: default return value? 0? log critical error to get dev attention?
+
+
+def _output_token_cost(model: OpenAIModel) -> float:
+    """
+    Cost per 1k prompt tokens by model.
+    https://openai.com/pricing
+
+    returns float price in USD
+    """
+    match (model):
+        case OpenAIModel.GPT_35_TURBO:
+            return 0.002
+        case OpenAIModel.GPT_35_TURBO_16K:
+            return 0.004
+        case OpenAIModel.GPT4:
+            return 0.06
+        # TODO: default return value? 0? log critical error to get dev attention?
+
+
+def calculate_prompt_cost(prompt: str, model: OpenAIModel) -> float:
+    """
+    Cost of an input prompt to the OpenAI api
+    returns float price in USD (rounded to 1e-4 since that is the greatest precision of OpenAI API prices)
+    """
+    rawCost = (token_count(prompt, model) / 1000) * _input_token_cost(model)
+    precision = 1e4
+    return round(rawCost * precision) / precision
+
+
+def calculate_response_cost(response: str, model: OpenAIModel) -> float:
+    """
+    Cost of an output response to the OpenAI api
+    returns float price in USD (rounded to 1e-4 since that is the greatest precision of OpenAI API prices)
+    """
+    rawCost = (token_count(response, model) / 1000) * _output_token_cost(model)
+    precision = 1e4
+    return round(rawCost * precision) / precision

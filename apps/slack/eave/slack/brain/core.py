@@ -31,7 +31,7 @@ class Brain(IntentProcessingMixin):
             """
             await self.acknowledge_receipt()
 
-            self.message_action = await message_prompts.message_action(context=self.message_context)
+            self.message_action = await message_prompts.message_action(context=self.message_context, ctx=self.eave_ctx)
 
             await self.log_event(
                 event_name="eave_mentioned",

@@ -3,7 +3,7 @@ import json
 import typing
 
 from google.pubsub_v1 import PublisherAsyncClient, PubsubMessage
-from eave.pubsub_schemas import EaveEvent
+from eave.pubsub_schemas import EaveEvent, GPTRequestEvent
 
 from eave.stdlib.core_api.models.account import AnalyticsAccount
 
@@ -15,6 +15,7 @@ from . import logging as _l
 
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event"
+_GPT_EVENT_TOPIC_ID = "gpt_request_event"
 
 
 async def log_event(
@@ -48,9 +49,50 @@ async def log_event(
         eave_team=serialized_team,
     )
 
-    # This must be initialized _per message_ when using asyncio (as opposed to once per process at the top of the module), otherwise errors due to futures attached to separate loops.
+    await _send_event(event, _EVENT_TOPIC_ID, ctx)
+
+
+async def log_gpt_request(
+    duration_seconds: int,
+    input_cost_usd: float,
+    output_cost_usd: float,
+    input_prompt: str,
+    output_response: str,
+    input_token_count: int,
+    output_token_count: int,
+    model: str,
+    # file_identifier should be in format "owner/repo/file-path" if provided
+    file_identifier: typing.Optional[str] = None,
+    ctx: typing.Optional[_l.LogContext] = None,
+) -> None:
+    event_time = datetime.utcnow().isoformat()
+
+    event = GPTRequestEvent(
+        feature_name=ctx.feature_name if ctx else None,
+        event_time=event_time,
+        duration_seconds=duration_seconds,
+        eave_request_id=ctx.eave_request_id if ctx else None,
+        input_cost_usd=input_cost_usd,
+        output_cost_usd=output_cost_usd,
+        input_prompt=input_prompt,
+        output_response=output_response,
+        input_token_count=input_token_count,
+        output_token_count=output_token_count,
+        model=model,
+        file_identifier=file_identifier,
+        eave_team_id=ctx.eave_team_id if ctx else "null",  # for consistency with TS code
+    )
+
+    await _send_event(event, _GPT_EVENT_TOPIC_ID, ctx)
+
+
+async def _send_event(event: typing.Any, topic_id: str, ctx: typing.Optional[_l.LogContext] = None) -> None:
+    """
+    This must be initialized _per message_ when using asyncio (as opposed to once per process at the top of the module),
+    otherwise errors due to futures attached to separate loops.
+    """
     client = PublisherAsyncClient()
-    topic_path = client.topic_path(shared_config.google_cloud_project, _EVENT_TOPIC_ID)
+    topic_path = client.topic_path(shared_config.google_cloud_project, topic_id)
     data = event.SerializeToString()
 
     if not shared_config.analytics_enabled:

@@ -163,6 +163,15 @@ class LogContext(JsonObject):
         v = self["eave_request_id"]
         return str(v)
 
+    @property
+    def feature_name(self) -> str:
+        v = self["feature_name"]
+        return str(v)
+
+    @feature_name.setter
+    def feature_name(self, value: str) -> None:
+        self.set({"feature_name": value})
+
 
 class EaveLogger:
     _raw_logger = logging.getLogger("eave")
