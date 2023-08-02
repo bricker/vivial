@@ -1,6 +1,6 @@
 import tiktoken
 
-from .model import OpenAIModel
+from .models import OpenAIModel
 
 
 def token_count(data: str, model: OpenAIModel) -> int:

@@ -17,7 +17,7 @@ from ..typing import JsonObject
 from ..config import shared_config
 from ..logging import eaveLogger
 from ..exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
-from .model import OpenAIModel
+from .models import OpenAIModel
 from .token_counter import calculate_prompt_cost, calculate_response_cost, token_count
 
 

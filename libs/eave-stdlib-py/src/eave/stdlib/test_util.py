@@ -144,6 +144,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             data = json.dumps(
                 {
                     f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
+                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
+                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
                 }
             )
             self.testdata[name] = data
@@ -160,6 +162,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         if name not in self.testdata:
             data: JsonObject = {
+                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
+                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
                 f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
             }
             self.testdata[name] = data

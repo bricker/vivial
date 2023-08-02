@@ -2,7 +2,7 @@ import asyncio
 from typing import Optional
 from eave.stdlib.transformer_ai import token_counter
 import eave.stdlib.transformer_ai.openai_client as openai
-import eave.stdlib.transformer_ai.model as ai_model
+import eave.stdlib.transformer_ai.models as ai_model
 from eave.stdlib.util import memoized
 from eave.stdlib import link_handler
 from eave.stdlib.exceptions import SlackDataError
@@ -189,8 +189,7 @@ class ContextBuildingMixin(Base):
                         frequency_penalty=1.0,
                         presence_penalty=1.0,
                     )
-                    response = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
-                    new_summary = response
+                    new_summary = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
                 else:
                     prompt = openai.formatprompt(
                         f"""
@@ -210,8 +209,7 @@ class ContextBuildingMixin(Base):
                         frequency_penalty=1.0,
                         presence_penalty=1.0,
                     )
-                    response = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
-                    new_summary = response
+                    new_summary = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
             summary = new_summary
 
         return summary
