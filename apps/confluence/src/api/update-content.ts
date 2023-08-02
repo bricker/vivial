@@ -8,6 +8,7 @@ import { ConfluenceClientArg } from './util.js';
 
 export default async function updateContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
+  ctx.feature_name = 'confluence_update_content';
   const { content } = <UpdateContentRequestBody>req.body;
   const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {

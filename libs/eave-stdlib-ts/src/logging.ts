@@ -72,6 +72,14 @@ export class LogContext {
     this.set({ eave_origin: value });
   }
 
+  get feature_name(): string {
+    return <string> this.attributes['feature_name'];
+  }
+
+  set feature_name(value: string) {
+    this.set({ feature_name: value });
+  }
+
   set(attributes: JsonObject): LogContext {
     Object.assign(this.attributes, attributes);
     return this;

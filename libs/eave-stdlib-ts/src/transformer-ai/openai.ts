@@ -1,9 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 import { sharedConfig } from '../config.js';
-import eaveLogger from '../logging.js';
+import eaveLogger, { LogContext } from '../logging.js';
 import { CtxArg } from '../requests.js';
 import { modelFromString } from './models.js';
+import { logGptRequest } from '../analytics.js';
+import * as costCounter from './token-counter.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -26,11 +28,28 @@ export default class OpenAIClient {
     this.client = client;
   }
 
-  /*
-    https://beta.openai.com/docs/api-reference/completions/create
-    baseTimeoutSeconds is multiplied by (2^n) for each attempt n
-  */
-  async createChatCompletion({ parameters, ctx, baseTimeoutSeconds = 30 }: CtxArg & {parameters: CreateChatCompletionRequest, baseTimeoutSeconds?: number}): Promise<string> {
+  /**
+   * Makes a request to OpenAI chat completion API.
+   * https://beta.openai.com/docs/api-reference/completions/create
+   * baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+   *
+   * @param parameters the main openAI API request params
+   * @param ctx log context (also used to populate important analytics fields)
+   * @param baseTimeoutSeconds API request timeout
+   * @param file_log_id used by analytics to identifiy OpenAI requests related to updating specific files in github.
+   *                    Should be in form 'owner/repo/file-path'
+   * @returns API chat completion response string
+   */
+  async createChatCompletion({
+    parameters,
+    ctx,
+    baseTimeoutSeconds = 30,
+    file_log_id,
+  }: CtxArg & {
+    parameters: CreateChatCompletionRequest,
+    baseTimeoutSeconds?: number,
+    file_log_id?: string | undefined,
+  }): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
     const model = modelFromString(parameters.model);
@@ -44,6 +63,7 @@ export default class OpenAIClient {
     };
 
     let text: string | undefined;
+    const timestampStart = Date.now();
 
     const maxAttempts = 3;
     for (let i = 0; i < maxAttempts; i += 1) {
@@ -68,6 +88,39 @@ export default class OpenAIClient {
     if (text === undefined) {
       throw new Error('openai text response is undefined');
     }
+
+    const timestampEnd = Date.now();
+    const duration_seconds = (timestampEnd - timestampStart) * 1000;
+    // eslint-disable-next-line no-void
+    void logGptRequestData(parameters, text, duration_seconds, ctx, file_log_id);
+
     return text;
   }
+}
+
+async function logGptRequestData(
+  parameters: CreateChatCompletionRequest,
+  response: string,
+  duration_seconds: number,
+  ctx?: LogContext | undefined,
+  file_identifier?: string | undefined,
+) {
+  const fullPrompt = Object.values(parameters.messages).join('\n');
+  const modelEnum = modelFromString(parameters.model)!;
+
+  // eslint-disable-next-line no-void
+  void logGptRequest({
+    feature_name: ctx?.feature_name,
+    event_time: new Date().toISOString(),
+    eave_request_id: ctx?.eave_request_id || 'null', // TODO: ???
+    duration_seconds,
+    input_cost_usd: costCounter.calculatePromptCost(fullPrompt, modelEnum),
+    output_cost_usd: costCounter.calculateResponseCost(response, modelEnum),
+    input_prompt: fullPrompt,
+    output_response: response,
+    input_token_count: costCounter.tokenCount(fullPrompt, modelEnum),
+    output_token_count: costCounter.tokenCount(response, modelEnum),
+    model: parameters.model,
+    file_identifier,
+  }, ctx);
 }

@@ -14,6 +14,7 @@ import { appConfig } from '../config.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   const { ctx, octokit } = context;
+  ctx.feature_name = 'github_push_subscription_updates';
   eaveLogger.debug('Processing push', ctx);
   const openaiClient = await OpenAIClient.getAuthedClient();
 
@@ -141,6 +142,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         },
         baseTimeoutSeconds: 120,
         ctx,
+        file_log_id: `${event.repository.owner.name!}/${event.repository.name}/${eventCommitTouchedFilename}`,
       });
 
       const document: DocumentInput = {

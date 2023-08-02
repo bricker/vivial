@@ -20,6 +20,7 @@ enum MessageIntent {
 
 export default async function commentCreatedEventHandler({ req, res, jiraClient }: { req: Request, res: Response, jiraClient: JiraClient }) {
   const ctx = LogContext.load(res);
+  ctx.feature_name = 'jira_comment_eave_mention';
 
   eaveLogger.debug('received comment created webhook event', ctx);
   const openaiClient = await OpenAIClient.getAuthedClient();
