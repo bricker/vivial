@@ -6,7 +6,7 @@ shopt -s globstar
 source "$EAVE_HOME/develop/functions.bash"
 
 (
-	for ss in {apps,libs,develop}/**/format; do
+	for ss in {apps,libs,develop}/**/bin/format; do
 		statusmsg -d "Running $ss"
 		$ss
 	done
