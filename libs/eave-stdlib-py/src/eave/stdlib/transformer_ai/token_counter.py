@@ -22,7 +22,6 @@ def _input_token_cost(model: OpenAIModel) -> float:
             return 0.003
         case OpenAIModel.GPT4:
             return 0.03
-        # TODO: default return value? 0? log critical error to get dev attention?
 
 
 def _output_token_cost(model: OpenAIModel) -> float:
@@ -39,7 +38,6 @@ def _output_token_cost(model: OpenAIModel) -> float:
             return 0.004
         case OpenAIModel.GPT4:
             return 0.06
-        # TODO: default return value? 0? log critical error to get dev attention?
 
 
 def calculate_prompt_cost(prompt: str, model: OpenAIModel) -> float:

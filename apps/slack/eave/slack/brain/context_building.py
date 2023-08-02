@@ -5,7 +5,7 @@ import eave.stdlib.transformer_ai.openai_client as openai
 import eave.stdlib.transformer_ai.model as ai_model
 from eave.stdlib.util import memoized
 from eave.stdlib import link_handler
-from eave.stdlib.exceptions import SlackDataError, OpenAIDataError
+from eave.stdlib.exceptions import SlackDataError
 from .base import Base
 from . import message_prompts
 from ..config import app_config

@@ -2,7 +2,6 @@ import enum
 import re
 from typing import Optional
 
-from eave.stdlib.exceptions import OpenAIDataError
 
 import eave.stdlib.transformer_ai.openai_client as eave_openai
 

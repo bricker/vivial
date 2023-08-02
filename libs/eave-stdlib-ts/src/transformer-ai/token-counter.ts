@@ -1,5 +1,6 @@
 import { encoding_for_model } from 'tiktoken';
 import { OpenAIModel } from './models.js';
+import eaveLogger from '../logging.js';
 
 /**
  * Cost per 1k prompt tokens by model.
@@ -15,7 +16,10 @@ function inputTokenCost(model: OpenAIModel): number {
       return 0.003;
     case OpenAIModel.GPT4:
       return 0.03;
-      // TODO: default case return value???? 0, but eavelogger error? will that get surfaced quickly to devs?
+    default:
+      eaveLogger.critical(`Model ${model} not found! Cost calculations in BigQuery at risk!`);
+      // TODO: is 0 ok?? will logged err get surfaced quickly to devs?
+      return 0;
   }
 }
 
@@ -33,6 +37,10 @@ function outputTokenCost(model: OpenAIModel): number {
       return 0.004;
     case OpenAIModel.GPT4:
       return 0.06;
+    default:
+      eaveLogger.critical(`Model ${model} not found! Cost calculations in BigQuery at risk!`);
+      // TODO: is 0 ok?? will logged err get surfaced quickly to devs?
+      return 0;
   }
 }
 
