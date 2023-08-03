@@ -55,22 +55,18 @@ export function tokenCount(data: string, model: OpenAIModel): number {
  * Cost of an input prompt to the OpenAI api
  * @param prompt
  * @param model
- * @returns float price in USD (rounded to 1e-4 since that is the greatest precision of OpenAI API prices)
+ * @returns float price in USD
  */
 export function calculatePromptCost(prompt: string, model: OpenAIModel): number {
-  const rawCost = (tokenCount(prompt, model) / 1000) * inputTokenCost(model);
-  const precision = 1e4;
-  return Math.round(rawCost * precision) / precision;
+  return (tokenCount(prompt, model) / 1000) * inputTokenCost(model);
 }
 
 /**
  * Cost of an output response from the OpenAI api
  * @param prompt
  * @param model
- * @returns float price in USD (rounded to 1e-4 since that is the greatest precision of OpenAI API prices)
+ * @returns float price in USD
  */
 export function calculateResponseCost(response: string, model: OpenAIModel): number {
-  const rawCost = (tokenCount(response, model) / 1000) * outputTokenCost(model);
-  const precision = 1e4;
-  return Math.round(rawCost * precision) / precision;
+  return (tokenCount(response, model) / 1000) * outputTokenCost(model);
 }
