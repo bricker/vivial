@@ -43,7 +43,7 @@ def _output_token_cost(model: OpenAIModel) -> float:
 def calculate_prompt_cost(prompt: str, model: OpenAIModel) -> float:
     """
     Cost of an input prompt to the OpenAI api
-    returns float price in USD (rounded to 1e-4 since that is the greatest precision of OpenAI API prices)
+    returns float price in USD
     """
     return (token_count(prompt, model) / 1000) * _input_token_cost(model)
 
