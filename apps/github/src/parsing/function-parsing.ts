@@ -7,7 +7,7 @@ TODO
 handling python will require a separate implementation altogether
 
 detects multiple single-line comments in a row as separate comments. no differenctiation whether separated by newlines or not.
-  How will this affect langs like swift where docs are typically in multiple single line comments?
+  this affects langs like swift+go where docs are typically in multiple single line comments
   will require manual parsing of comment nodes to see if start/end idx all line up or not and stitching strings together
 */
 

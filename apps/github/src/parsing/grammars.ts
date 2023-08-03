@@ -48,6 +48,7 @@ export function grammarFromExtension(extName: string): any {
   }
 }
 
+// TODO: write tests for this one; make sure these queries actually work
 /**
  * Different tree-sitter language grammars have different names for function nodes.
  * They may also follow different syntax structures, necesitating more or fewer queries.
@@ -57,9 +58,8 @@ export function grammarFromExtension(extName: string): any {
  */
 export function getFunctionDocumentationQueries(language: string, funcMatcher: string, commentMatcher: string): string[] {
   switch (language.toLowerCase()) {
-    case 'javascript':
+    case 'javascript': // js and ts grammar similar enough to share queries
     case 'typescript':
-      // js and ts syntax is similar enough to use the same queries
       return [
         // captures root level functions + comments
         `(
@@ -87,16 +87,79 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
         )`,
       ];
     case 'rust':
-    case 'c':
+      return [
+        `(
+          (block_comment) @${commentMatcher}* 
+          (function_item) @${funcMatcher}
+        )`,
+      ];
     case 'go':
-    case 'java':
-    case 'c++':
+      return [
+        // functions
+        `(
+          (comment) @${commentMatcher}* 
+          (function_declaration) @${funcMatcher}
+        )`,
+
+        // struct receiver methods
+        `(
+          (comment) @${commentMatcher}* 
+          (method_declaration) @${funcMatcher}
+        )`,
+      ];
+    case 'c++': // c/c++ grammar similar enough to share query
+    case 'c':
+      return [
+        `(
+          (comment) @${commentMatcher}* 
+          (function_definition) @${funcMatcher}
+        )`,
+      ];
     case 'kotlin':
+      // TODO: kotlin grammar may be out of date. It doesnt seem to parse class extensions correctly
+      return [
+        `(
+          (comment) @${commentMatcher}* 
+          (function_declaration) @${funcMatcher}
+        )`,
+      ];
     case 'php':
+      return [
+        // root level functions
+        `(
+          (comment) @${commentMatcher}* 
+          (function_definition) @${funcMatcher}
+        )`,
+
+        // class methods
+        `(
+          (comment) @${commentMatcher}* 
+          (method_declaration) @${funcMatcher}
+        )`,
+      ];
     case 'ruby':
+      return [
+        `(
+          (comment) @${commentMatcher}* 
+          (method) @${funcMatcher}
+        )`,
+      ];
     case 'swift':
+      return [ // comment only covers single line. would need (multiline_comment) to capture /* */ comments
+        `(
+          (comment) @${commentMatcher}* 
+          (function_declaration) @${funcMatcher}
+        )`,
+      ];
+    case 'java': // java and microsoft java grammar similar enough to share query
     case 'c#':
-    // case 'python': // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
+      return [
+        `(
+          (comment) @${commentMatcher}* 
+          (method_declaration) @${funcMatcher}
+        )`,
+      ];
+    // case 'python': // TODO: skipped for now for being special snowflake
     default:
       return [];
   }
