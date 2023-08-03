@@ -91,8 +91,7 @@ export default class OpenAIClient {
 
     const timestampEnd = Date.now();
     const duration_seconds = (timestampEnd - timestampStart) * 1000;
-    // eslint-disable-next-line no-void
-    void logGptRequestData(parameters, text, duration_seconds, ctx, file_log_id);
+    await logGptRequestData(parameters, text, duration_seconds, ctx, file_log_id);
 
     return text;
   }
@@ -111,7 +110,7 @@ async function logGptRequestData(
   await logGptRequest({
     feature_name: ctx?.feature_name,
     event_time: new Date().toISOString(),
-    eave_request_id: ctx?.eave_request_id || 'null', // TODO: ???
+    eave_request_id: ctx?.eave_request_id || 'unknown',
     eave_team_id: ctx?.eave_team_id,
     duration_seconds,
     input_cost_usd: costCounter.calculatePromptCost(fullPrompt, modelEnum),

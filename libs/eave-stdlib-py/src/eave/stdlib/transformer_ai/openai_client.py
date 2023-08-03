@@ -176,7 +176,7 @@ async def chat_completion(
     answer = str(choice.message.content).strip()
     timestamp_end = time.perf_counter()
     duration_seconds = round(timestamp_end - timestamp_start)
-    asyncio.ensure_future(_log_gpt_request(params, answer, duration_seconds, file_log_id, ctx))
+    await _log_gpt_request(params, answer, duration_seconds, file_log_id, ctx)
     return answer
 
 
