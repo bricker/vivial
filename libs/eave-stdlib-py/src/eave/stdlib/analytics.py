@@ -108,6 +108,7 @@ async def _send_event(event: typing.Any, topic_id: str, ctx: typing.Optional[_l.
             {"pubsub": {"event": str(event)}},
         )
 
+        # TODO: should this be fire and forget?
         result = await client.publish(topic=topic_path, messages=[PubsubMessage(data=data)])
 
         _l.eaveLogger.debug(

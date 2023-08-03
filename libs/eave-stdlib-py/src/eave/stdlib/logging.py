@@ -98,6 +98,7 @@ class LogContext(JsonObject):
         return ctx if ctx else cls(scope)
 
     def __init__(self, scope: Optional[HTTPScope | Scope] = None) -> None:
+        self.set({"feature_name": None})
         if scope:
             scope = cast(HTTPScope, scope)
             headers = cast(JsonObject, get_headers(scope))
