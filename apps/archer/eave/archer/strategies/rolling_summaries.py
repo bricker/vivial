@@ -1,14 +1,14 @@
 import asyncio
+import datetime
 from io import TextIOWrapper
 import json
+import jsonpickle
 import os
 import re
 from textwrap import dedent
 from typing import Any, Tuple
 from eave.archer.config import MODEL, OUTDIR, PROJECT_ROOT, TIMESTAMPF
 from eave.archer.fs_hierarchy import FSHierarchy, build_hierarchy
-import jsonpickle
-import datetime
 
 from eave.archer.util import clean_fpath, get_file_contents, make_openai_request, truncate_file_contents_for_model
 from eave.stdlib.logging import eaveLogger
