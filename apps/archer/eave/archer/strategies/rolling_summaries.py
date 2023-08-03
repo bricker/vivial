@@ -7,6 +7,8 @@ from textwrap import dedent
 from typing import Any, Tuple
 from eave.archer.config import MODEL, OUTDIR, PROJECT_ROOT, TIMESTAMPF
 from eave.archer.fs_hierarchy import FSHierarchy, build_hierarchy
+import jsonpickle
+import datetime
 
 from eave.archer.util import clean_fpath, get_file_contents, make_openai_request, truncate_file_contents_for_model
 from eave.stdlib.logging import eaveLogger
@@ -20,6 +22,7 @@ async def _do_request(messages: list[ChatMessage], **kwargs: Any) -> str | None:
     )
 
     await asyncio.sleep(2)
+    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
     response = await make_openai_request(params=params)
     if not response:
@@ -34,10 +37,23 @@ async def _do_request(messages: list[ChatMessage], **kwargs: Any) -> str | None:
 
 async def run() -> None:
     print("Strategy: rolling_summaries")
-    hierarchy = build_hierarchy(f"{PROJECT_ROOT}/apps")
-    fp = open(".out/rolling_summaries.md", "w")
-    await gather_summaries(hierarchy, fp)
-    fp.close()
+
+    hierarchy_path = ".out/hierarchy.json"
+    
+    if os.path.isfile(hierarchy_path):
+        with open(hierarchy_path, "r") as file:
+            serialized_hierarchy = file.read()
+        hierarchy = jsonpickle.decode(serialized_hierarchy)
+    else:
+        hierarchy = build_hierarchy(f"{PROJECT_ROOT}/apps")
+        fp = open(".out/rolling_summaries.md", "w")
+        await gather_summaries(hierarchy, fp)
+        fp.close()
+
+        # Save the hierarchy object to a file
+        serialized_hierarchy = jsonpickle.encode(hierarchy)
+        with open(hierarchy_path, "w") as file:
+            file.write(serialized_hierarchy) # type: ignore
 
     fp = open(".out/graph-gen.dot", "w")
     fp.write(dedent("""
