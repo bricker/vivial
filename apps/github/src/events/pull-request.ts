@@ -264,7 +264,8 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     return null;
   }
 
-  const parsedData = parseFunctionsAndComments(currContent, extName);
+  // TODO: what to do if gives back empty list? Throw?
+  const parsedData = parseFunctionsAndComments(currContent, extName, flang);
 
   // update parsedData objects in place w/ updatedCommentStrings
   await bluebird.all(parsedData.map(async (funcData) => {
@@ -275,7 +276,7 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     // update docs, or write new ones if currDocs is empty/undefined
     // TODO: refine prompt
     // TODO: account for summarized function
-    // TODO: add typical params etc boilerplate?
+    // TODO: add/generate typical doc comment params etc boilerplate?
     // TODO: experiment performance qulaity on dif types of comments:
     //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
     const docsPrompt = dedent(

@@ -47,3 +47,57 @@ export function grammarFromExtension(extName: string): any {
     default: return null;
   }
 }
+
+/**
+ * Different tree-sitter language grammars have different names for function nodes.
+ * They may also follow different syntax structures, necesitating more or fewer queries.
+ *
+ * @param language name of programming language to get queries for
+ * @return array of queries for gathering all functions and their doc comments for the `language` grammar
+ */
+export function getFunctionDocumentationQueries(language: string, funcMatcher: string, commentMatcher: string): string[] {
+  switch (language.toLowerCase()) {
+    case 'javascript':
+    case 'typescript':
+      // js and ts syntax is similar enough to use the same queries
+      return [
+        // captures root level functions + comments
+        `(
+          (comment) @${commentMatcher}* 
+          (function_declaration) @${funcMatcher}
+        )`,
+
+        // captures comments on functions that are exported on the same line (mostly for JS?)
+        // NOTE: this must run after the normal func level query in order to rewrite its bad entries of exported funcs from previous query
+        //       w/ the corrected ones containing comment string
+        `(
+          (comment) @${commentMatcher}* 
+          (export_statement declaration:
+            (function_declaration) @${funcMatcher}
+          )
+        )`,
+
+        // captures class level methods
+        `(
+          class_declaration
+            body: (class_body
+              (comment) @${commentMatcher}*
+              (method_definition) @${funcMatcher}
+            )
+        )`,
+      ];
+    case 'rust':
+    case 'c':
+    case 'go':
+    case 'java':
+    case 'c++':
+    case 'kotlin':
+    case 'php':
+    case 'ruby':
+    case 'swift':
+    case 'c#':
+    // case 'python': // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
+    default:
+      return [];
+  }
+}

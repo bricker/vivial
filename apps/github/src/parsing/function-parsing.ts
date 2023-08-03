@@ -1,11 +1,6 @@
 import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
-import { grammarFromExtension } from './grammars.js';
-
-// const Parser = require("tree-sitter");
-// const languageGrammar = require('tree-sitter-languageGrammar').languageGrammar;
-// const fs = require('fs').promises;
-// const crypto = require('crypto');
+import { getFunctionDocumentationQueries, grammarFromExtension } from './grammars.js';
 
 /*
 TODO 
@@ -32,10 +27,11 @@ export type ParsedFunction = {
  * the provided file `content`.
  * @param content string content of a source code file
  * @param extName file extension of the source code file. Expected to contain . prefix (e.g. ".js").
- *                Used to determine file language.
+ *                Used to determine the correct language grammar.
+ * @param language programming language of `content`. Used for constructing grammar queries.
  * @returns array of function data parsed from `content`
  */
-export function parseFunctionsAndComments(content: string, extName: string): ParsedFunction[] {
+export function parseFunctionsAndComments(content: string, extName: string, language: string): ParsedFunction[] {
   const parser = new Parser();
   const languageGrammar = grammarFromExtension(extName);
   parser.setLanguage(languageGrammar);
@@ -47,32 +43,7 @@ export function parseFunctionsAndComments(content: string, extName: string): Par
   const funcMatcher = '_function';
   const commentMatcher = '_doc_comment';
 
-  const queries = [
-    // captures root level functions + comments
-    `(
-      (comment) @${commentMatcher}* 
-      (function_declaration) @${funcMatcher}
-    )`,
-
-    // captures comments on functions that are exported on the same line (mostly for JS?)
-    // NOTE: this must run after the normal func level query in order to rewrite its bad entries of exported funcs from previous query
-    //       w/ the corrected ones containing comment string
-    `(
-      (comment) @${commentMatcher}* 
-      (export_statement declaration:
-        (function_declaration) @${funcMatcher}
-      )
-    )`,
-
-    // captures class level methods
-    `(
-      class_declaration
-        body: (class_body
-          (comment) @${commentMatcher}*
-          (method_definition) @${funcMatcher}
-        )
-    )`,
-  ];
+  const queries = getFunctionDocumentationQueries(language, funcMatcher, commentMatcher);
 
   queries.forEach((queryString) => {
     const query = new Parser.Query(languageGrammar, queryString);
