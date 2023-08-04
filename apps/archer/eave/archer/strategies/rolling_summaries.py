@@ -34,7 +34,7 @@ async def _do_request(messages: list[ChatMessage], **kwargs: Any) -> str | None:
 
 async def run() -> None:
     print("Strategy: rolling_summaries")
-    hierarchy = build_hierarchy(f"{PROJECT_ROOT}/apps")
+    hierarchy = build_hierarchy(f"{PROJECT_ROOT}/apps/slack")
     fp = open(".out/rolling_summaries.md", "w")
     await gather_summaries(hierarchy, fp)
     fp.close()
@@ -50,17 +50,20 @@ async def run() -> None:
     fp.write("}\n")
     fp.close()
 
-def gather_connections(hierarchy: FSHierarchy) -> set[str]:
-    connections: set[str] = set()
+def gather_connections(hierarchy: FSHierarchy) -> Tuple[set[str], set[str]]:
+    external_connections: set[str] = set()
+    internal_connections: set[str] = set()
 
     for file in hierarchy.files:
-        connections.update(file.service_references)
+        external_connections.update(file.external_service_references)
+        internal_connections.update(file.internal_service_references)
 
     for dir in hierarchy.dirs:
-        c = gather_connections(dir)
-        connections.update(c)
+        cext, cint = gather_connections(dir)
+        external_connections.update(cext)
+        internal_connections.update(cint)
 
-    return connections
+    return external_connections, internal_connections
 
 def write_connections(hierarchy: FSHierarchy, fp: TextIOWrapper) -> set[str]:
     lines = set[str]()
@@ -70,9 +73,14 @@ def write_connections(hierarchy: FSHierarchy, fp: TextIOWrapper) -> set[str]:
 
     lines.add(f"\"{hierarchy.service_name}\"")
 
-    connections = gather_connections(hierarchy)
+    cext, cint = gather_connections(hierarchy)
 
-    for conn in connections:
+    for conn in cext:
+        if hierarchy.service_name != conn:
+            # fp.write(f"  {conn}\n")
+            lines.add(f"\"{hierarchy.service_name}\" -> \"{conn}\"")
+
+    for conn in cint:
         if hierarchy.service_name != conn:
             # fp.write(f"  {conn}\n")
             lines.add(f"\"{hierarchy.service_name}\" -> \"{conn}\"")
@@ -124,12 +132,12 @@ async def gather_summaries(hierarchy: FSHierarchy, fp: TextIOWrapper) -> None:
         messages = [
             ChatMessage(role=ChatRole.USER, content=formatprompt(
                 """
-                Does this file summary reference any external services or APIs? If so, which ones? Exclude things like built-in libraries or API frameworks. For API client libraries, only include the name of the API, not the name of the library. For example:
+                Does this file summary reference any external services or APIs? If so, which ones? Exclude things like built-in libraries or API frameworks. Exclude APIs or services that are likely to be internal to the Eave organization. For API client libraries, only include the name of the API, not the name of the library. For example:
 
                 - Include "GitHub" but not "Octokit"
                 - Include "Slack" but not "Slack SDK" or "Slack Bolt"
 
-                Then, simplify and normalize the names of the APIs. For example:
+                Then, simplify and normalize the names of the services. For example:
 
                 - "GitHub" instead of "GitHub API"
                 - "OpenAI" instead of "OpenAI API"
@@ -149,9 +157,37 @@ async def gather_summaries(hierarchy: FSHierarchy, fp: TextIOWrapper) -> None:
         l1 = await _do_request(messages)
         assert l1
 
-        fileref.service_references = [_normalize(s) for s in json.loads(l1)]
-        fp.write(f"```json\n{json.dumps(fileref.service_references, indent=2)}\n```\n\n")
+        fileref.external_service_references.extend([_normalize(s) for s in json.loads(l1)])
+        fp.write(f"```json\n{json.dumps(fileref.external_service_references, indent=2)}\n```\n\n")
         fp.flush()
+
+        messages = [
+            ChatMessage(role=ChatRole.USER, content=formatprompt(
+                """
+                Does this file summary reference any internal services or APIs? If so, which ones? Exclude things like built-in libraries or API frameworks. Exclude APIs or services that are likely to be external to the Eave organization. Create a name for each service. The names should exclude mentions of HTTP libraries or API frameworks like Starlette, Express, Gin, or Rack.
+
+                Then, simplify and normalize the names of the services. For example:
+
+                - "Confluence App" instead of "Eave Confluence Server"
+                - "Slack App" instead of "Eave Slack App" or "Starlette Slack App"
+
+                Output your response as a JSON array of strings. If there are no references, return an empty JSON array. Your full response should be valid, parseable JSON.
+                ===
+                """,
+                fileref.summary,
+                """
+                ===
+                """,
+            )),
+        ]
+
+        l1 = await _do_request(messages)
+        assert l1
+
+        fileref.internal_service_references.extend([_normalize(s) for s in json.loads(l1)])
+        fp.write(f"```json\n{json.dumps(fileref.internal_service_references, indent=2)}\n```\n\n")
+        fp.flush()
+
 
     for hdir in hierarchy.dirs:
         await gather_summaries(hierarchy=hdir, fp=fp)

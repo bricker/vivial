@@ -12,13 +12,15 @@ class FileReference:
     basename: str
     ext: str
     summary: Optional[str] = None
-    service_references: list[str]
+    external_service_references: list[str]
+    internal_service_references: list[str]
 
     def __init__(self, path: str) -> None:
         self.path = path
         self.basename = os.path.basename(path)
         self.ext = os.path.splitext(self.basename)[1]
-        self.service_references = []
+        self.external_service_references = []
+        self.internal_service_references = []
 
     def read_file(self) -> str | None:
         c = get_file_contents(self.path)

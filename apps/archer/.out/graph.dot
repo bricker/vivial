@@ -1,0 +1,50 @@
+digraph {
+  layout="twopi"
+  normalize="true"
+  overlap="scale"
+  sep="+50"
+
+  "Core API" [shape=circle, root=true, style="filled", fillcolor="orange"]
+  "OpenAI" [shape=none, image="cloud.svg"]
+
+  subgraph cluster_integrations {
+    label="Integrations"
+    node [style="filled", fillcolor="pink"]
+    "GitHub App" [shape=box]
+    "Jira App" [shape=box]
+    "Slack App" [shape=box]
+    "Confluence App" [shape=box]
+  }
+
+  subgraph cluster_3p {
+    label="Third Party"
+    node[shape="none", image="cloud.svg"]
+
+    "GitHub API"
+    "Confluence API"
+    "Jira API"
+    "Slack API"
+  }
+
+  "Core API" -> "Confluence App"
+
+  "GitHub App" -> "Core API"
+  "GitHub App" -> "GitHub API"
+  "GitHub App" -> "OpenAI" [samehead="OpenAI"]
+  "GitHub API" -> "GitHub App" [label="Webhook", headport="e"]
+
+  "Confluence App" -> "Core API"
+  "Confluence App" -> "Confluence API"
+  "Confluence App" -> "OpenAI" [samehead="OpenAI"]
+  "Confluence API" -> "Confluence App" [label="Webhook"]
+
+  "Jira App" -> "Core API"
+  "Jira App" -> "Jira API"
+  "Jira App" -> "OpenAI" [samehead="OpenAI"]
+  "Jira API" -> "Jira App" [label="Webhook"]
+
+  "Slack App" -> "Core API"
+  "Slack App" -> "Slack API"
+  "Slack App" -> "OpenAI" [samehead="OpenAI"]
+  "Slack API" -> "Slack App" [label="Webhook"]
+}
