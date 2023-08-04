@@ -281,8 +281,11 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     return null;
   }
 
-  // TODO: what to do if gives back empty list? Throw?
   const parsedData = parseFunctionsAndComments(currContent, extName, flang);
+  if (parsedData.length === 0) {
+    eaveLogger.error(`Unable to parse ${flang} from ${extName} file`);
+    return null;
+  }
 
   // update parsedData objects in place w/ updatedCommentStrings
   await bluebird.all(parsedData.map(async (funcData) => {

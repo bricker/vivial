@@ -25,6 +25,7 @@ export type ParsedFunction = {
 /**
  * Use tree-sitter to extract functions and their doc comments from
  * the provided file `content`.
+ *
  * @param content string content of a source code file
  * @param extName file extension of the source code file. Expected to contain . prefix (e.g. ".js").
  *                Used to determine the correct language grammar.
@@ -95,8 +96,6 @@ function insertDocs(content: string, docs: string, after: number, before?: numbe
   if (before === undefined) {
     before = after;
   }
-
-  docs = docs.trim();
 
   const precontent = content.slice(0, after);
   const postcontent = content.slice(before);
@@ -228,6 +227,9 @@ function runQuery(
 /**
  * Adds indentation (matching the level of `funcString`) to docs.
  * `funcString` must not be trimmed; expected to have indentation leading whitespace.
+ * This function only works for languages where doc comments should be at the same
+ * indentation level as the function signature they document (i.e. not Python)
+ *
  * @param funcString string to copy indentation level from
  * @param docs string to add indentation to
  * @returns Indented `docs` string
@@ -239,5 +241,5 @@ function indentDocs(funcString: string, docs: string) {
     i += 1;
   }
   const indent = funcString.slice(0, i);
-  return `${indent}${docs.split('\n').join(`\n${indent}`)}`;
+  return `${indent}${docs.trim().split('\n').join(`\n${indent}`)}`;
 }
