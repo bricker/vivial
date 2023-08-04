@@ -105,7 +105,6 @@ def ensure_api_key() -> None:
 async def chat_completion(
     params: ChatCompletionParameters,
     baseTimeoutSeconds: int = 30,
-    file_log_id: Optional[str] = None,
     ctx: Optional[LogContext] = None,
 ) -> str:
     """
@@ -176,7 +175,7 @@ async def chat_completion(
     answer = str(choice.message.content).strip()
     timestamp_end = time.perf_counter()
     duration_seconds = round(timestamp_end - timestamp_start)
-    await _log_gpt_request(params, answer, duration_seconds, file_log_id, ctx)
+    await _log_gpt_request(params, answer, duration_seconds, ctx)
     return answer
 
 
@@ -184,7 +183,6 @@ async def _log_gpt_request(
     params: ChatCompletionParameters,
     response: str,
     duration_seconds: int,
-    file_log_id: Optional[str] = None,
     ctx: Optional[LogContext] = None,
 ) -> None:
     full_prompt = "\n".join(params.messages)
@@ -209,7 +207,6 @@ async def _log_gpt_request(
         input_token_count=input_tokens,
         output_token_count=output_tokens,
         model=params.model,
-        file_identifier=file_log_id,
         ctx=ctx,
     )
 

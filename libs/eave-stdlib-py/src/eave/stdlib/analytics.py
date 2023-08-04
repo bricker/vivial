@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import typing
+from uuid import UUID
 
 from google.pubsub_v1 import PublisherAsyncClient, PubsubMessage
 from eave.pubsub_schemas import EaveEvent, GPTRequestEvent
@@ -20,12 +21,12 @@ _GPT_EVENT_TOPIC_ID = "gpt_request_event"
 
 async def log_event(
     event_name: str,
+    ctx: typing.Optional[_l.LogContext],
     event_description: typing.Optional[str] = None,
     event_source: typing.Optional[str] = None,
     opaque_params: typing.Optional[JsonObject] = None,
     eave_account: typing.Optional[AnalyticsAccount] = None,
     eave_team: typing.Optional[AnalyticsTeam] = None,
-    ctx: typing.Optional[_l.LogContext] = None,
 ) -> None:
     serialized_account = eave_account.json() if eave_account else None
     serialized_team = eave_team.json() if eave_team else None
@@ -34,19 +35,32 @@ async def log_event(
 
     event_time = datetime.utcnow().isoformat()
 
+    eave_account_id: str | UUID | None = None
+    if eave_account:
+        eave_account_id = eave_account.id
+    elif ctx:
+        eave_account_id = ctx.eave_account_id
+    
+    eave_team_id: str | UUID | None = None
+    if eave_team:
+        eave_team_id = eave_team.id
+    elif ctx:
+        eave_team_id = ctx.eave_team_id
+
     event = EaveEvent(
         event_name=event_name,
         event_description=event_description,
         event_time=event_time,
         event_source=event_source,
-        eave_account_id=str(eave_account.id) if eave_account else None,
+        eave_account_id=str(eave_account_id) if eave_account_id else None,
         eave_visitor_id=str(eave_account.visitor_id) if eave_account else None,
-        eave_team_id=str(eave_team.id) if eave_team else None,
+        eave_team_id=str(eave_team_id) if eave_team_id else None,
         eave_env=shared_config.eave_env.value,
         opaque_params=serialized_params,
         opaque_eave_ctx=serialized_context,
         eave_account=serialized_account,
         eave_team=serialized_team,
+        eave_request_id=ctx.eave_request_id if ctx else None,
     )
 
     await _send_event(event, _EVENT_TOPIC_ID, ctx)
@@ -61,8 +75,6 @@ async def log_gpt_request(
     input_token_count: int,
     output_token_count: int,
     model: str,
-    # file_identifier should be in format "owner/repo/file-path" if provided
-    file_identifier: typing.Optional[str] = None,
     ctx: typing.Optional[_l.LogContext] = None,
 ) -> None:
     event_time = datetime.utcnow().isoformat()
@@ -79,7 +91,6 @@ async def log_gpt_request(
         input_token_count=input_token_count,
         output_token_count=output_token_count,
         model=model,
-        file_identifier=file_identifier,
         eave_team_id=ctx.eave_team_id if ctx else "null",  # for consistency with TS code
     )
 
@@ -108,7 +119,6 @@ async def _send_event(event: typing.Any, topic_id: str, ctx: typing.Optional[_l.
             {"pubsub": {"event": str(event)}},
         )
 
-        # TODO: should this be fire and forget?
         result = await client.publish(topic=topic_path, messages=[PubsubMessage(data=data)])
 
         _l.eaveLogger.debug(

@@ -8,10 +8,10 @@ import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/e
 import { GetSubscriptionResponseBody, getSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
 import { upsertDocument } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
-import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   const { ctx, octokit } = context;
