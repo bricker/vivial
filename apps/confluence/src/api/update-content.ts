@@ -4,7 +4,9 @@ import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
 import OpenAIClient from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
 import { OpenAIModel, maxTokens } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
 import { tokenCount } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/token-counter.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { ConfluenceClientArg } from './util.js';
+import appConfig from '../config.js';
 
 export default async function updateContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
@@ -16,6 +18,18 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
     res.sendStatus(500);
     return;
   }
+
+  await logEvent({
+    event_name: ctx.feature_name,
+    event_description: 'updating confluence document content',
+    event_time: new Date().toISOString(),
+    event_source: ctx.eave_origin,
+    opaque_params: JSON.stringify({ pageId: content.id }),
+    eave_account_id: ctx.eave_account_id,
+    eave_team_id: ctx.eave_team_id,
+    eave_env: appConfig.eaveEnv,
+    eave_request_id: ctx.eave_request_id,
+  }, ctx);
 
   const existingBody = page.body?.storage?.value;
   let newBody = content.body;

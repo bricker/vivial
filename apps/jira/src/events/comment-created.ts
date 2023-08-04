@@ -79,6 +79,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
       event_name: 'eave_mentioned',
       event_source: 'jira comment-created event handler',
       eave_team: JSON.stringify(team),
+      eave_request_id: ctx.eave_request_id,
       opaque_params: JSON.stringify({
         message: payload.comment.body,
       }),

@@ -36,15 +36,12 @@ export default class OpenAIClient {
    * @param parameters the main openAI API request params
    * @param ctx log context (also used to populate important analytics fields)
    * @param baseTimeoutSeconds API request timeout
-   * @param file_log_id used by analytics to identifiy OpenAI requests related to updating specific files in github.
-   *                    Should be in form 'owner/repo/file-path'
    * @returns API chat completion response string
    */
   async createChatCompletion({
     parameters,
     ctx,
     baseTimeoutSeconds = 30,
-    file_log_id,
   }: CtxArg & {
     parameters: CreateChatCompletionRequest,
     baseTimeoutSeconds?: number,
@@ -91,7 +88,7 @@ export default class OpenAIClient {
 
     const timestampEnd = Date.now();
     const duration_seconds = (timestampEnd - timestampStart) * 1000;
-    await logGptRequestData(parameters, text, duration_seconds, ctx, file_log_id);
+    await logGptRequestData(parameters, text, duration_seconds, ctx);
 
     return text;
   }
@@ -102,7 +99,6 @@ async function logGptRequestData(
   response: string,
   duration_seconds: number,
   ctx?: LogContext | undefined,
-  file_identifier?: string | undefined,
 ) {
   const fullPrompt = Object.values(parameters.messages).join('\n');
   const modelEnum = modelFromString(parameters.model)!;
@@ -120,6 +116,5 @@ async function logGptRequestData(
     input_token_count: costCounter.tokenCount(fullPrompt, modelEnum),
     output_token_count: costCounter.tokenCount(response, modelEnum),
     model: parameters.model,
-    file_identifier,
   }, ctx);
 }

@@ -11,6 +11,7 @@ import { upsertDocument } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   const { ctx, octokit } = context;
@@ -76,7 +77,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       } catch (e: any) {
         // TODO: only catch 404?
         eaveLogger.error(e, ctx);
-        // return;
+        return;
       }
 
       if (!subscriptionResponse || !subscriptionResponse.subscription) {
@@ -142,13 +143,31 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         },
         baseTimeoutSeconds: 120,
         ctx,
-        file_log_id: `${event.repository.owner.name!}/${event.repository.name}/${eventCommitTouchedFilename}`,
       });
 
       const document: DocumentInput = {
         title: `Description of code in ${repositoryName} ${filePath}`,
         content: openaiResponse,
       };
+
+      await logEvent({
+        event_name: ctx.feature_name,
+        event_description: 'updating a document subscribed to github file changes',
+        event_time: new Date().toISOString(),
+        event_source: 'github webhook push event',
+        opaque_params: JSON.stringify({
+          repoOwner: event.repository.owner.name,
+          repoName: event.repository.name,
+          filePath: eventCommitTouchedFilename,
+          fileLanguage: languageName,
+          eventId,
+        }),
+        eave_account_id: ctx.eave_account_id,
+        eave_team_id: eaveTeamId,
+        eave_env: appConfig.eaveEnv,
+        eave_team: JSON.stringify(teamResponse.team),
+        eave_request_id: ctx.eave_request_id,
+      }, ctx);
 
       await upsertDocument({
         ctx,
