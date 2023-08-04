@@ -19,9 +19,11 @@ import {
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
 import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { writeDocsIntoFileString, parseFunctionsAndComments } from '../parsing/function-parsing.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
+import { appConfig } from '../config.js';
 
 const eavePrTitle = 'docs: Eave inline code documentation update'; // TODO: workshop
 
@@ -34,15 +36,31 @@ const eavePrTitle = 'docs: Eave inline code documentation update'; // TODO: work
  * for each file with code changes.
  */
 export default async function handler(event: PullRequestEvent, context: GitHubOperationsContext) {
-  // don't open more docs PRs from other Eave PRs
+  if (event.action !== 'closed') {
+    return;
+  }
+  const { ctx, octokit } = context;
+
+  // don't open more docs PRs from other Eave PRs getting merged
   // TODO: perform this check using event.sender.id instead for broader metric capture. compare to app id??
   if (event.pull_request.title === eavePrTitle) {
-    // TODO: gather analytics on how many eave PRs are merged vs closed w/o merge?
+    const interaction = event.pull_request.merged ? 'merged' : 'closed';
+    await logEvent({
+      event_name: 'github_eave_pr_interaction',
+      event_time: new Date().toISOString(),
+      event_description: `A GitHub PR opened by Eave was ${interaction}`,
+      event_source: 'github webhook pull_request event',
+      opaque_params: JSON.stringify({ interaction }),
+      eave_account_id: ctx?.eave_account_id,
+      eave_team_id: ctx?.eave_team_id,
+      eave_env: appConfig.eaveEnv,
+      opaque_eave_ctx: JSON.stringify(ctx),
+    }, ctx);
     return;
   }
 
-  // proceed only if event was PR being closed and merged
-  if (event.action !== 'closed' || !event.pull_request.merged) {
+  // proceed only if PR commits were merged
+  if (!event.pull_request.merged) {
     return;
   }
 
@@ -50,7 +68,6 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const repoName = event.repository.name;
   const repoId = event.repository.node_id.toString();
 
-  const { ctx, octokit } = context;
   const openaiClient = await OpenAIClient.getAuthedClient();
   eaveLogger.debug('Processing github pull_request event', ctx);
 
@@ -90,10 +107,10 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       }
 
       // TODO: would we get ratelimited if we tried to do all gpt prompts in parallel after all file paths obtained?
-      // TODO: test feature behavior allowing test files to be documented
+      // TODO: test feature behavior allowing test files to be documented. Should we allow that?
       const prompt = dedent(
         `Given a file path, determine whether that file typically needs function-level code comments.
-        Respond with only YES, or NO. Config, generated and test files do not need documentation.
+        Respond with only YES, or NO. Config, generated, and test files do not need documentation.
 
         src/main.c: YES
         README.md: NO
@@ -142,7 +159,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     const gitObject = <Blob>objectRepository?.object;
     const fileContent = gitObject?.text;
     if (!fileContent) {
-      eaveLogger.error(`Error fetching file content in ${repoOwner}/${repoName}`, ctx); // TODO: is it ok to log this? is that too sensitive? is it even helpful to us?
+      eaveLogger.error(`Error fetching file content in ${repoOwner}/${repoName}`, ctx);
       return null; // exits just this iteration of map
     }
 
@@ -253,7 +270,7 @@ async function deleteBranch(octokit: Octokit, branchNodeId: string) {
 async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string | null> {
   // load language from file extension map file
   // TODO: add to warmup
-  const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' }); // TODO: is there a better way to do this?
+  const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' });
   const extensionMap = JSON.parse(extensionMapString);
   const extName = `${path.extname(filePath).toLowerCase()}`;
   const flang: string = extensionMap[extName];
