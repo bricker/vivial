@@ -114,8 +114,6 @@ async def chat_completion(
 
     params - main OpenAI API request params
     baseTimeoutSeconds - OpenAI API request timeout
-    file_log_id - used by analytics to identifiy OpenAI requests related to updating specific files in github.
-                  Should be in form 'owner/repo/file-path'
     ctx - log context (also used to populate important analytics fields)
     returns - API chat completion response string (throws on timeout or other error)
     """
