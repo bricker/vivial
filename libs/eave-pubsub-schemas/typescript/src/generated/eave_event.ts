@@ -3,8 +3,8 @@ import * as _m0 from "protobufjs/minimal";
 
 export interface EaveEvent {
   event_name: string;
-  event_time: string;
   event_description?: string | undefined;
+  event_time: string;
   event_source?: string | undefined;
   opaque_params?: string | undefined;
   eave_account_id?: string | undefined;
@@ -14,13 +14,14 @@ export interface EaveEvent {
   opaque_eave_ctx?: string | undefined;
   eave_account?: string | undefined;
   eave_team?: string | undefined;
+  eave_request_id: string;
 }
 
 function createBaseEaveEvent(): EaveEvent {
   return {
     event_name: "",
-    event_time: "",
     event_description: undefined,
+    event_time: "",
     event_source: undefined,
     opaque_params: undefined,
     eave_account_id: undefined,
@@ -30,6 +31,7 @@ function createBaseEaveEvent(): EaveEvent {
     opaque_eave_ctx: undefined,
     eave_account: undefined,
     eave_team: undefined,
+    eave_request_id: "",
   };
 }
 
@@ -38,11 +40,11 @@ export const EaveEvent = {
     if (message.event_name !== "") {
       writer.uint32(10).string(message.event_name);
     }
-    if (message.event_time !== "") {
-      writer.uint32(26).string(message.event_time);
-    }
     if (message.event_description !== undefined) {
       writer.uint32(18).string(message.event_description);
+    }
+    if (message.event_time !== "") {
+      writer.uint32(26).string(message.event_time);
     }
     if (message.event_source !== undefined) {
       writer.uint32(34).string(message.event_source);
@@ -71,6 +73,9 @@ export const EaveEvent = {
     if (message.eave_team !== undefined) {
       writer.uint32(98).string(message.eave_team);
     }
+    if (message.eave_request_id !== "") {
+      writer.uint32(106).string(message.eave_request_id);
+    }
     return writer;
   },
 
@@ -88,19 +93,19 @@ export const EaveEvent = {
 
           message.event_name = reader.string();
           continue;
-        case 3:
-          if (tag != 26) {
-            break;
-          }
-
-          message.event_time = reader.string();
-          continue;
         case 2:
           if (tag != 18) {
             break;
           }
 
           message.event_description = reader.string();
+          continue;
+        case 3:
+          if (tag != 26) {
+            break;
+          }
+
+          message.event_time = reader.string();
           continue;
         case 4:
           if (tag != 34) {
@@ -165,6 +170,13 @@ export const EaveEvent = {
 
           message.eave_team = reader.string();
           continue;
+        case 13:
+          if (tag != 106) {
+            break;
+          }
+
+          message.eave_request_id = reader.string();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -177,8 +189,8 @@ export const EaveEvent = {
   fromJSON(object: any): EaveEvent {
     return {
       event_name: isSet(object.event_name) ? String(object.event_name) : "",
-      event_time: isSet(object.event_time) ? String(object.event_time) : "",
       event_description: isSet(object.event_description) ? String(object.event_description) : undefined,
+      event_time: isSet(object.event_time) ? String(object.event_time) : "",
       event_source: isSet(object.event_source) ? String(object.event_source) : undefined,
       opaque_params: isSet(object.opaque_params) ? String(object.opaque_params) : undefined,
       eave_account_id: isSet(object.eave_account_id) ? String(object.eave_account_id) : undefined,
@@ -188,14 +200,15 @@ export const EaveEvent = {
       opaque_eave_ctx: isSet(object.opaque_eave_ctx) ? String(object.opaque_eave_ctx) : undefined,
       eave_account: isSet(object.eave_account) ? String(object.eave_account) : undefined,
       eave_team: isSet(object.eave_team) ? String(object.eave_team) : undefined,
+      eave_request_id: isSet(object.eave_request_id) ? String(object.eave_request_id) : "",
     };
   },
 
   toJSON(message: EaveEvent): unknown {
     const obj: any = {};
     message.event_name !== undefined && (obj.event_name = message.event_name);
-    message.event_time !== undefined && (obj.event_time = message.event_time);
     message.event_description !== undefined && (obj.event_description = message.event_description);
+    message.event_time !== undefined && (obj.event_time = message.event_time);
     message.event_source !== undefined && (obj.event_source = message.event_source);
     message.opaque_params !== undefined && (obj.opaque_params = message.opaque_params);
     message.eave_account_id !== undefined && (obj.eave_account_id = message.eave_account_id);
@@ -205,6 +218,7 @@ export const EaveEvent = {
     message.opaque_eave_ctx !== undefined && (obj.opaque_eave_ctx = message.opaque_eave_ctx);
     message.eave_account !== undefined && (obj.eave_account = message.eave_account);
     message.eave_team !== undefined && (obj.eave_team = message.eave_team);
+    message.eave_request_id !== undefined && (obj.eave_request_id = message.eave_request_id);
     return obj;
   },
 
@@ -215,8 +229,8 @@ export const EaveEvent = {
   fromPartial<I extends Exact<DeepPartial<EaveEvent>, I>>(object: I): EaveEvent {
     const message = createBaseEaveEvent();
     message.event_name = object.event_name ?? "";
-    message.event_time = object.event_time ?? "";
     message.event_description = object.event_description ?? undefined;
+    message.event_time = object.event_time ?? "";
     message.event_source = object.event_source ?? undefined;
     message.opaque_params = object.opaque_params ?? undefined;
     message.eave_account_id = object.eave_account_id ?? undefined;
@@ -226,6 +240,7 @@ export const EaveEvent = {
     message.opaque_eave_ctx = object.opaque_eave_ctx ?? undefined;
     message.eave_account = object.eave_account ?? undefined;
     message.eave_team = object.eave_team ?? undefined;
+    message.eave_request_id = object.eave_request_id ?? "";
     return message;
   },
 };

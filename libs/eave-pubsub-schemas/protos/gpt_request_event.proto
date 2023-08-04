@@ -1,6 +1,10 @@
 syntax = "proto3";
 
 message GPTRequestEvent {
+  // reserve removed fields
+  reserved 12;
+  reserved "file_identifier";
+
   optional string feature_name = 1;
   string event_time = 2;
   int64 duration_seconds = 3;
@@ -12,8 +16,5 @@ message GPTRequestEvent {
   int64 input_token_count = 9;
   int64 output_token_count = 10;
   string model = 11;
-  // "owner/repo/filepath" uniquely identifies a github file
-  // that the request event correlates to (if any)
-  optional string file_identifier = 12;
   optional string eave_team_id = 13;
 }

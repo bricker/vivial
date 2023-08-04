@@ -14,11 +14,6 @@ export interface GPTRequestEvent {
   input_token_count: number;
   output_token_count: number;
   model: string;
-  /**
-   * "owner/repo/filepath" uniquely identifies a github file
-   * that the request event correlates to (if any)
-   */
-  file_identifier?: string | undefined;
   eave_team_id?: string | undefined;
 }
 
@@ -35,7 +30,6 @@ function createBaseGPTRequestEvent(): GPTRequestEvent {
     input_token_count: 0,
     output_token_count: 0,
     model: "",
-    file_identifier: undefined,
     eave_team_id: undefined,
   };
 }
@@ -74,9 +68,6 @@ export const GPTRequestEvent = {
     }
     if (message.model !== "") {
       writer.uint32(90).string(message.model);
-    }
-    if (message.file_identifier !== undefined) {
-      writer.uint32(98).string(message.file_identifier);
     }
     if (message.eave_team_id !== undefined) {
       writer.uint32(106).string(message.eave_team_id);
@@ -168,13 +159,6 @@ export const GPTRequestEvent = {
 
           message.model = reader.string();
           continue;
-        case 12:
-          if (tag != 98) {
-            break;
-          }
-
-          message.file_identifier = reader.string();
-          continue;
         case 13:
           if (tag != 106) {
             break;
@@ -204,7 +188,6 @@ export const GPTRequestEvent = {
       input_token_count: isSet(object.input_token_count) ? Number(object.input_token_count) : 0,
       output_token_count: isSet(object.output_token_count) ? Number(object.output_token_count) : 0,
       model: isSet(object.model) ? String(object.model) : "",
-      file_identifier: isSet(object.file_identifier) ? String(object.file_identifier) : undefined,
       eave_team_id: isSet(object.eave_team_id) ? String(object.eave_team_id) : undefined,
     };
   },
@@ -222,7 +205,6 @@ export const GPTRequestEvent = {
     message.input_token_count !== undefined && (obj.input_token_count = Math.round(message.input_token_count));
     message.output_token_count !== undefined && (obj.output_token_count = Math.round(message.output_token_count));
     message.model !== undefined && (obj.model = message.model);
-    message.file_identifier !== undefined && (obj.file_identifier = message.file_identifier);
     message.eave_team_id !== undefined && (obj.eave_team_id = message.eave_team_id);
     return obj;
   },
@@ -244,7 +226,6 @@ export const GPTRequestEvent = {
     message.input_token_count = object.input_token_count ?? 0;
     message.output_token_count = object.output_token_count ?? 0;
     message.model = object.model ?? "";
-    message.file_identifier = object.file_identifier ?? undefined;
     message.eave_team_id = object.eave_team_id ?? undefined;
     return message;
   },
