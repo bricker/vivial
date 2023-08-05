@@ -37,6 +37,7 @@ export function parseFunctionsAndComments(content: string, extName: string, lang
   const languageGrammar = grammarFromExtension(extName);
   parser.setLanguage(languageGrammar);
   const ptree = parser.parse(content);
+  // console.log(ptree.rootNode.toString()) // DEBGUY
 
   // map from str hash of func body to ParsedFunction data.
   // func body hash used to prevent duplicate entries of the same exact function
