@@ -9,6 +9,7 @@ app.use(helmetMiddleware());
 applyCommonRequestMiddlewares({ app });
 applyInternalApiMiddlewares({ app, path: '/github/api' });
 applyWebhookMiddlewares({ app, path: '/github/events' });
+applyWebhookMiddlewares({ app, path: '/github/_tasks/events' });
 
 app.use(GAELifecycleRouter());
 
@@ -17,5 +18,6 @@ app.use('/github', rootRouter);
 rootRouter.use(StatusRouter());
 rootRouter.use('/events', WebhookRouter());
 rootRouter.use('/api', InternalApiRouter());
+rootRouter.use('/_tasks', ());
 
 applyCommonResponseMiddlewares({ app });
