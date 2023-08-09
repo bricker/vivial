@@ -18,6 +18,6 @@ app.use('/github', rootRouter);
 rootRouter.use(StatusRouter());
 rootRouter.use('/events', WebhookRouter());
 rootRouter.use('/api', InternalApiRouter());
-rootRouter.use('/_tasks', ());
+rootRouter.use('/_tasks', TaskRouter());
 
 applyCommonResponseMiddlewares({ app });

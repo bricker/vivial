@@ -4,7 +4,7 @@ import { inlineCodeDocs } from './inline-code-docs.js';
 export function InternalApiRouter(): Router {
   const router = Router();
 
-  router.post('/inline-code-docs', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/events', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await inlineCodeDocs(req, res);
       res.end(); // safety

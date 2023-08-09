@@ -24,6 +24,7 @@ export function WebhookRouter(): Router {
 
   router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
+
       const octokit = await app.getInstallationOctokit(payload.installation.id);
       await handler(payload, { octokit, ctx });
 
