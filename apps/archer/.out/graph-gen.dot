@@ -1,8 +1,11 @@
 
 digraph {
-    "Eave Slack App"
-    "Eave Slack App" -> "openai"
-    "Eave Slack App" -> "google_cloud_platform"
-    "Eave Slack App" -> "google"
-    "Eave Slack App" -> "slack"
+    "starlette_app" -> "core_api"
+    "starlette_app" -> "contextbuildingmixin"
+    "starlette_app" -> "slack"
+    "starlette_app" -> "slack_app"
+    "starlette_app" -> "openai"
+    "starlette_app"
+    "starlette_app" -> "subscriptionmanagementmixin"
+    "starlette_app" -> "slackeventcallbackhandler"
 }
