@@ -135,7 +135,7 @@
       },
     },
     {
-      "name": "AST TS App",
+      "name": "AST TypeScript App",
       "envFile": "${workspaceFolder}/.env",
       "cwd": "${workspaceFolder}/apps/ast-ts",
       "type": "node",
