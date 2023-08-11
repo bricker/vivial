@@ -1,14 +1,11 @@
-import { Request } from "express";
-import { CloudTasksClient } from '@google-cloud/tasks';
-import { protos } from '@google-cloud/tasks';
-import { EaveOrigin } from "./eave-origins.js";
-import { CtxArg } from "./requests.js";
-import headersImport from "./headers.js";
-import eaveLogger, { LogContext } from "./logging.js";
-import { JsonObject } from "./types.js";
-import { IncomingHttpHeaders } from "http";
-import Signing, { buildMessageToSign } from "./signing.js";
-import { sharedConfig } from "./config.js";
+import { Request } from 'express';
+import { CloudTasksClient, protos } from '@google-cloud/tasks';
+import { EaveOrigin } from './eave-origins.js';
+import { CtxArg } from './requests.js';
+import headersImport from './headers.js';
+import eaveLogger, { LogContext } from './logging.js';
+import Signing, { buildMessageToSign } from './signing.js';
+import { sharedConfig } from './config.js';
 
 type CreateTaskSharedArgs = CtxArg & {
   queueName: string,
@@ -43,7 +40,7 @@ export async function createTaskFromRequest({
     const logId = req.header(headersImport.GCP_GAE_REQUEST_LOG_ID);
 
     if (traceId) {
-      uniqueTaskId = traceId.split("/")[0];
+      uniqueTaskId = traceId.split('/')[0];
     } else if (logId) {
       uniqueTaskId = logId;
     }
@@ -61,7 +58,7 @@ export async function createTaskFromRequest({
           headers[key] = value;
         }
       }
-    };
+    }
   }
 
   // The "user agent" is Slack Bot when coming from Slack, but for the task processor that's not the case.
@@ -137,7 +134,7 @@ export async function createTask({
   const parent = client.queuePath(
     sharedConfig.googleCloudProject,
     sharedConfig.appLocation,
-    queueName
+    queueName,
   );
 
   const task: protos.google.cloud.tasks.v2.ITask = {

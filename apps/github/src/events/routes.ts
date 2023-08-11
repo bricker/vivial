@@ -1,9 +1,4 @@
 import { NextFunction, Request, Response, Router, raw, Express } from 'express';
-import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
-import { InstallationLite } from '@octokit/webhooks-types';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { createAppClient } from '../lib/octokit-util.js';
-import { appConfig } from '../config.js';
 import * as Registry from './registry.js';
 import pushHandler from './push.js';
 import verifyWebhookPayload from './verify.js';
@@ -24,7 +19,6 @@ export function WebhookRouter(): Router {
 
   router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-
       const octokit = await app.getInstallationOctokit(payload.installation.id);
       await handler(payload, { octokit, ctx });
 

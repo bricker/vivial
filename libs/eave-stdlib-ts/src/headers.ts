@@ -26,8 +26,8 @@ export default {
   EAVE_CTX_KEY: 'eave-ctx',
 
   // Request headers added by Google
-  GCP_CLOUD_TRACE_CONTEXT: "x-cloud-trace-context",
-  GCP_GAE_REQUEST_LOG_ID: "x-appengine-request-log-id",
-  GCP_GAE_TASK_EXECUTION_COUNT: "x-appengine-taskexecutioncount",
+  GCP_CLOUD_TRACE_CONTEXT: 'x-cloud-trace-context',
+  GCP_GAE_REQUEST_LOG_ID: 'x-appengine-request-log-id',
+  GCP_GAE_TASK_EXECUTION_COUNT: 'x-appengine-taskexecutioncount',
 
 };

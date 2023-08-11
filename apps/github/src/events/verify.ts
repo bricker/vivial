@@ -4,7 +4,6 @@ import { InstallationLite } from '@octokit/webhooks-types';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import * as Registry from './registry.js';
 import { appConfig } from '../config.js';
-import pushHandler from './push.js';
 import { createAppClient } from '../lib/octokit-util.js';
 
 export default async function verifyWebhookPayload(req: Request, res: Response): Promise<void> {
@@ -50,7 +49,6 @@ export default async function verifyWebhookPayload(req: Request, res: Response):
       return;
     }
   }
-
 
   // TODO: Handoff to background
   res.sendStatus(200);
