@@ -13,6 +13,7 @@ export default {
   HOST: 'host',
   CONTENT_TYPE: 'content-type',
   CONTENT_LENGTH: 'content-length',
+  USER_AGENT: 'user-agent',
 
   /*
   This header can be used to bypass certain checks in development, like payload signing.
@@ -23,4 +24,10 @@ export default {
 
   // For express Response.locals[EAVE_CTX_KEY]
   EAVE_CTX_KEY: 'eave-ctx',
+
+  // Request headers added by Google
+  GCP_CLOUD_TRACE_CONTEXT: "x-cloud-trace-context",
+  GCP_GAE_REQUEST_LOG_ID: "x-appengine-request-log-id",
+  GCP_GAE_TASK_EXECUTION_COUNT: "x-appengine-taskexecutioncount",
+
 };
