@@ -1,4 +1,5 @@
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
+from starlette.requests import Request
 
 from eave.stdlib.request_state import EaveRequestState
 
