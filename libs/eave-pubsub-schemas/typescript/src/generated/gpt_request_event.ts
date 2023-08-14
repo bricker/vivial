@@ -1,6 +1,6 @@
 /* eslint-disable */
-import * as Long from "long";
-import * as _m0 from "protobufjs/minimal";
+import Long from "long";
+import _m0 from "protobufjs/minimal.js";
 
 export interface GPTRequestEvent {
   feature_name?: string | undefined;
