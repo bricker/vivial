@@ -187,29 +187,29 @@ test('rust grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.rs';
   const langauge = 'rust';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `mod app_config;
 
-function foo() {
-  console.log('foo');
+fn foo() {
+  println!("foo");
 }
 
-class MyClass {
-  bar(): string {
-    return "bar";
+pub struct MyClass;
+
+impl MyClass {
+  pub fn bar(&self) -> &str {
+    "bar"
   }
 }
 
-export function baz(): string {
-  return "baz";
+pub fn baz(): -> &str {
+  "baz"
 }
 
-/**
- * Doc comment
- * @param to be replaced
- * @returns by parse code
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+/// Doc comment
+/// @param to be replaced
+/// @returns by parse code
+async fn fizzbuzz() -> Result<&str> {
+  "fizzbuzz"
 }
 `;
 
@@ -221,53 +221,45 @@ async function fizzbuzz(): Promise<string> {
 
   // WHEN new doc comments are written into file content
   for (let i = 0; i < funcDocsArray.length; i += 1) {
-    funcDocsArray[i]!.updatedComment = `/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */`;
+    funcDocsArray[i]!.updatedComment = `/// Great new docs
+/// @param Eave wrote
+/// @return very well`;
   }
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `mod app_config;
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-function foo() {
-  console.log('foo');
+/// Great new docs
+/// @param Eave wrote
+/// @return very well
+fn foo() {
+  println!("foo");
 }
 
-class MyClass {
-  /**
-   * Great new docs
-   * @param Eave wrote
-   * @return very well
-   */
-  bar(): string {
-    return "bar";
+pub struct MyClass;
+
+impl MyClass {
+  /// Great new docs
+  /// @param Eave wrote
+  /// @return very well
+  pub fn bar(&self) -> &str {
+    "bar"
   }
 }
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-export function baz(): string {
-  return "baz";
+/// Great new docs
+/// @param Eave wrote
+/// @return very well
+pub fn baz(): -> &str {
+  "baz"
 }
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+/// Great new docs
+/// @param Eave wrote
+/// @return very well
+async fn fizzbuzz() -> Result<&str> {
+  "fizzbuzz"
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
@@ -278,19 +270,20 @@ test('C grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.c';
   const langauge = 'c';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `#include "./src/config.h";
+#include <stdio.h>;
 
-function foo() {
-  console.log('foo');
+void foo() {
+  printf("foo");
 }
 
-class MyClass {
-  bar(): string {
-    return "bar";
-  }
+typedef struct {} MyClass;
+
+char* bar(MyClass* cls) {
+  return "bar";
 }
 
-export function baz(): string {
+char* baz() {
   return "baz";
 }
 
@@ -299,8 +292,8 @@ export function baz(): string {
  * @param to be replaced
  * @returns by parse code
  */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+char* fizzbuzz() {
+  return "fizzbuzz";
 }
 `;
 
@@ -321,26 +314,27 @@ async function fizzbuzz(): Promise<string> {
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `#include "./src/config.h";
+#include <stdio.h>;
 
 /**
  * Great new docs
  * @param Eave wrote
  * @return very well
  */
-function foo() {
-  console.log('foo');
+void foo() {
+  printf("foo");
 }
 
-class MyClass {
-  /**
-   * Great new docs
-   * @param Eave wrote
-   * @return very well
-   */
-  bar(): string {
-    return "bar";
-  }
+typedef struct {} MyClass;
+
+/**
+ * Great new docs
+ * @param Eave wrote
+ * @return very well
+ */
+char* bar(MyClass* cls) {
+  return "bar";
 }
 
 /**
@@ -348,7 +342,7 @@ class MyClass {
  * @param Eave wrote
  * @return very well
  */
-export function baz(): string {
+char* baz() {
   return "baz";
 }
 
@@ -357,8 +351,8 @@ export function baz(): string {
  * @param Eave wrote
  * @return very well
  */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+char* fizzbuzz() {
+  return "fizzbuzz";
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
@@ -369,19 +363,20 @@ test('C++ grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.cpp';
   const langauge = 'c++';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `#include "./src/config.h";
+#include <stdio.h>;
 
-function foo() {
-  console.log('foo');
+void foo() {
+  cout << "foo";
 }
 
-class MyClass {
-  bar(): string {
-    return "bar";
-  }
+typedef struct {} MyClass;
+
+char* bar(MyClass* cls) {
+  return "bar";
 }
 
-export function baz(): string {
+char* baz() {
   return "baz";
 }
 
@@ -390,8 +385,8 @@ export function baz(): string {
  * @param to be replaced
  * @returns by parse code
  */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+char* fizzbuzz() {
+  return "fizzbuzz";
 }
 `;
 
@@ -412,26 +407,27 @@ async function fizzbuzz(): Promise<string> {
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `#include "./src/config.h";
+#include <stdio.h>;
 
 /**
  * Great new docs
  * @param Eave wrote
  * @return very well
  */
-function foo() {
-  console.log('foo');
+void foo() {
+  cout << "foo";
 }
 
-class MyClass {
-  /**
-   * Great new docs
-   * @param Eave wrote
-   * @return very well
-   */
-  bar(): string {
-    return "bar";
-  }
+typedef struct {} MyClass;
+
+/**
+ * Great new docs
+ * @param Eave wrote
+ * @return very well
+ */
+char* bar(MyClass* cls) {
+  return "bar";
 }
 
 /**
@@ -439,7 +435,7 @@ class MyClass {
  * @param Eave wrote
  * @return very well
  */
-export function baz(): string {
+char* baz() {
   return "baz";
 }
 
@@ -448,8 +444,8 @@ export function baz(): string {
  * @param Eave wrote
  * @return very well
  */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+char* fizzbuzz() {
+  return "fizzbuzz";
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
@@ -460,29 +456,29 @@ test('Go grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.go';
   const langauge = 'go';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `package main
 
-function foo() {
-  console.log('foo');
+import "fmt"
+
+func foo() {
+  fmt.Println("foo")
 }
 
-class MyClass {
-  bar(): string {
-    return "bar";
-  }
+type MyClass struct{}
+
+func (mc *MyClass) Bar() string {
+  return "bar"
 }
 
-export function baz(): string {
-  return "baz";
+func Baz() string {
+  return "baz"
 }
 
-/**
- * Doc comment
- * @param to be replaced
- * @returns by parse code
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+// Doc comment
+// @param to be replaced
+// @returns by parse code
+func fizzbuzz() string {
+  return "fizzbuzz"
 }
 `;
 
@@ -494,53 +490,45 @@ async function fizzbuzz(): Promise<string> {
 
   // WHEN new doc comments are written into file content
   for (let i = 0; i < funcDocsArray.length; i += 1) {
-    funcDocsArray[i]!.updatedComment = `/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */`;
+    funcDocsArray[i]!.updatedComment = `// Great new docs
+// @param Eave wrote
+// @return very well`;
   }
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `package main
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-function foo() {
-  console.log('foo');
+import "fmt"
+
+// Great new docs
+// @param Eave wrote
+// @return very well
+func foo() {
+  fmt.Println("foo")
 }
 
-class MyClass {
-  /**
-   * Great new docs
-   * @param Eave wrote
-   * @return very well
-   */
-  bar(): string {
-    return "bar";
-  }
+type MyClass struct{}
+
+// Great new docs
+// @param Eave wrote
+// @return very well
+func (mc *MyClass) Bar() string {
+  return "bar"
 }
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-export function baz(): string {
-  return "baz";
+// Great new docs
+// @param Eave wrote
+// @return very well
+func Baz() string {
+  return "baz"
 }
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+// Great new docs
+// @param Eave wrote
+// @return very well
+func fizzbuzz() string {
+  return "fizzbuzz"
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
@@ -551,29 +539,31 @@ test('Java grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.java';
   const langauge = 'java';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `import com.src.config;
 
-function foo() {
-  console.log('foo');
-}
-
-class MyClass {
-  bar(): string {
-    return "bar";
+public class Main {
+  static void foo() {
+    System.out.println("foo");
   }
-}
 
-export function baz(): string {
-  return "baz";
-}
+  static class MyClass {
+    public String bar() {
+      return "bar";
+    }
+  }
 
-/**
- * Doc comment
- * @param to be replaced
- * @returns by parse code
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+  public String baz() {
+    return "baz";
+  }
+
+  /**
+   * Doc comment
+   * @param to be replaced
+   * @returns by parse code
+   */
+  public string fizzbuzz() {
+    return "fizzbuzz";
+  }
 }
 `;
 
@@ -594,44 +584,46 @@ async function fizzbuzz(): Promise<string> {
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `import com.src.config;
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-function foo() {
-  console.log('foo');
-}
-
-class MyClass {
+public class Main {
   /**
    * Great new docs
    * @param Eave wrote
    * @return very well
    */
-  bar(): string {
-    return "bar";
+  static void foo() {
+    System.out.println("foo");
   }
-}
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-export function baz(): string {
-  return "baz";
-}
+  static class MyClass {
+    /**
+     * Great new docs
+     * @param Eave wrote
+     * @return very well
+     */
+    public String bar() {
+      return "bar";
+    }
+  }
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+  /**
+   * Great new docs
+   * @param Eave wrote
+   * @return very well
+   */
+  public String baz() {
+    return "baz";
+  }
+
+  /**
+   * Great new docs
+   * @param Eave wrote
+   * @return very well
+   */
+  public string fizzbuzz() {
+    return "fizzbuzz";
+  }
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
@@ -642,20 +634,20 @@ test('Kotlin grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.kt';
   const langauge = 'kotlin';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `import com.src.config;
 
-function foo() {
-  console.log('foo');
+fun foo() {
+  println("foo")
 }
 
 class MyClass {
-  bar(): string {
-    return "bar";
+  public fun bar(): String {
+    return "bar"
   }
 }
 
-export function baz(): string {
-  return "baz";
+public fun MyClass.baz(): String {
+  return "baz"
 }
 
 /**
@@ -663,7 +655,7 @@ export function baz(): string {
  * @param to be replaced
  * @returns by parse code
  */
-async function fizzbuzz(): Promise<string> {
+suspend fun fizzbuzz(): Deferred<String> {
   return 'fizzbuzz';
 }
 `;
@@ -685,15 +677,15 @@ async function fizzbuzz(): Promise<string> {
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `import com.src.config;
 
 /**
  * Great new docs
  * @param Eave wrote
  * @return very well
  */
-function foo() {
-  console.log('foo');
+fun foo() {
+  println("foo")
 }
 
 class MyClass {
@@ -702,8 +694,8 @@ class MyClass {
    * @param Eave wrote
    * @return very well
    */
-  bar(): string {
-    return "bar";
+  public fun bar(): String {
+    return "bar"
   }
 }
 
@@ -712,8 +704,8 @@ class MyClass {
  * @param Eave wrote
  * @return very well
  */
-export function baz(): string {
-  return "baz";
+public fun MyClass.baz(): String {
+  return "baz"
 }
 
 /**
@@ -721,7 +713,7 @@ export function baz(): string {
  * @param Eave wrote
  * @return very well
  */
-async function fizzbuzz(): Promise<string> {
+suspend fun fizzbuzz(): Deferred<String> {
   return 'fizzbuzz';
 }
 `;
@@ -733,19 +725,21 @@ test('PHP grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.php';
   const langauge = 'php';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `<?php
+
+namespace Main/NameSpace;
 
 function foo() {
-  console.log('foo');
+  echo "foo";
 }
 
 class MyClass {
-  bar(): string {
+  public function bar() {
     return "bar";
   }
 }
 
-export function baz(): string {
+public function baz() {
   return "baz";
 }
 
@@ -754,8 +748,8 @@ export function baz(): string {
  * @param to be replaced
  * @returns by parse code
  */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+function fizzbuzz() {
+  return "fizzbuzz";
 }
 `;
 
@@ -776,7 +770,9 @@ async function fizzbuzz(): Promise<string> {
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `<?php
+
+namespace Main/NameSpace;
 
 /**
  * Great new docs
@@ -784,7 +780,7 @@ async function fizzbuzz(): Promise<string> {
  * @return very well
  */
 function foo() {
-  console.log('foo');
+  echo "foo";
 }
 
 class MyClass {
@@ -793,7 +789,7 @@ class MyClass {
    * @param Eave wrote
    * @return very well
    */
-  bar(): string {
+  public function bar() {
     return "bar";
   }
 }
@@ -803,7 +799,7 @@ class MyClass {
  * @param Eave wrote
  * @return very well
  */
-export function baz(): string {
+public function baz() {
   return "baz";
 }
 
@@ -812,8 +808,8 @@ export function baz(): string {
  * @param Eave wrote
  * @return very well
  */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+function fizzbuzz() {
+  return "fizzbuzz";
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
@@ -824,30 +820,28 @@ test('Ruby grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.rb';
   const langauge = 'ruby';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `require "./src/config.js";
 
-function foo() {
-  console.log('foo');
-}
+def foo
+  puts "foo"
+end
 
-class MyClass {
-  bar(): string {
-    return "bar";
-  }
-}
+class MyClass
+  def bar
+    "bar"
+  end
+end
 
-export function baz(): string {
-  return "baz";
-}
+def baz
+  "baz"
+end
 
-/**
- * Doc comment
- * @param to be replaced
- * @returns by parse code
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
-}
+# Doc comment
+# @param to be replaced
+# @returns by parse code
+def fizzbuzz
+  "fizzbuzz"
+end
 `;
 
   // WHEN content parsed by tree-sitter grammars
@@ -858,54 +852,44 @@ async function fizzbuzz(): Promise<string> {
 
   // WHEN new doc comments are written into file content
   for (let i = 0; i < funcDocsArray.length; i += 1) {
-    funcDocsArray[i]!.updatedComment = `/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */`;
+    funcDocsArray[i]!.updatedComment = `# Great new docs
+# @param Eave wrote
+# @return very well`;
   }
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `require "./src/config.js";
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-function foo() {
-  console.log('foo');
-}
+# Great new docs
+# @param Eave wrote
+# @return very well
+def foo
+  puts "foo"
+end
 
-class MyClass {
-  /**
-   * Great new docs
-   * @param Eave wrote
-   * @return very well
-   */
-  bar(): string {
-    return "bar";
-  }
-}
+class MyClass
+  # Great new docs
+  # @param Eave wrote
+  # @return very well
+  def bar
+    "bar"
+  end
+end
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-export function baz(): string {
-  return "baz";
-}
+# Great new docs
+# @param Eave wrote
+# @return very well
+def baz
+  "baz"
+end
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
-}
+# Great new docs
+# @param Eave wrote
+# @return very well
+def fizzbuzz
+  "fizzbuzz"
+end
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
@@ -915,29 +899,29 @@ test('Swift grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.swift';
   const langauge = 'swift';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `import Config
 
-function foo() {
-  console.log('foo');
+func foo() {
+  print("foo")
 }
 
 class MyClass {
-  bar(): string {
-    return "bar";
+  public func bar() -> String {
+    return "bar"
   }
 }
 
-export function baz(): string {
-  return "baz";
+public extension MyClass {
+  func baz() -> String {
+    return "baz"
+  }
 }
 
-/**
- * Doc comment
- * @param to be replaced
- * @returns by parse code
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+/// Doc comment
+/// @param to be replaced
+/// @returns by parse code
+func fizzbuzz() -> String {
+  return "fizzbuzz"
 }
 `;
 
@@ -949,53 +933,45 @@ async function fizzbuzz(): Promise<string> {
 
   // WHEN new doc comments are written into file content
   for (let i = 0; i < funcDocsArray.length; i += 1) {
-    funcDocsArray[i]!.updatedComment = `/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */`;
+    funcDocsArray[i]!.updatedComment = `/// Great new docs
+/// @param Eave wrote
+/// @return very well`;
   }
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `import Config
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-function foo() {
-  console.log('foo');
+/// Great new docs
+/// @param Eave wrote
+/// @return very well
+func foo() {
+  print("foo")
 }
 
 class MyClass {
-  /**
-   * Great new docs
-   * @param Eave wrote
-   * @return very well
-   */
-  bar(): string {
-    return "bar";
+  /// Great new docs
+  /// @param Eave wrote
+  /// @return very well
+  public func bar() -> String {
+    return "bar"
   }
 }
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-export function baz(): string {
-  return "baz";
+public extension MyClass {
+  /// Great new docs
+  /// @param Eave wrote
+  /// @return very well
+  func baz() -> String {
+    return "baz"
+  }
 }
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
+/// Great new docs
+/// @param Eave wrote
+/// @return very well
+func fizzbuzz() -> String {
+  return "fizzbuzz"
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
@@ -1006,29 +982,40 @@ test('C# grammar queries adds/replaces all doc comments correctly', (t) => {
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.cs';
   const langauge = 'c#';
-  const content = `import { appConfig } from './src/config.js';
+  const content = `using System;
 
-function foo() {
-  console.log('foo');
-}
+namespace MyNamespace
+{
+  class Main
+  {
+    static void foo()
+    {
+      Console.WriteLine("foo");
+    }
 
-class MyClass {
-  bar(): string {
-    return "bar";
+    class MyClass
+    {
+      public string bar()
+      {
+        return "bar";
+      }
+    }
+
+    public string baz()
+    {
+      return "baz";
+    }
+
+    /// <summary>
+    /// Doc comment
+    /// @param to be replaced
+    /// @returns by parse code
+    /// </summary>
+    public async Task<string> fizzbuzz()
+    {
+      return "fizzbuzz";
+    }
   }
-}
-
-export function baz(): string {
-  return "baz";
-}
-
-/**
- * Doc comment
- * @param to be replaced
- * @returns by parse code
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
 }
 `;
 
@@ -1040,53 +1027,64 @@ async function fizzbuzz(): Promise<string> {
 
   // WHEN new doc comments are written into file content
   for (let i = 0; i < funcDocsArray.length; i += 1) {
-    funcDocsArray[i]!.updatedComment = `/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */`;
+    funcDocsArray[i]!.updatedComment = `/// <summary>
+/// Great new docs
+/// @param Eave wrote
+/// @return very well
+/// </summary>`;
   }
   const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
-  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+  const expectedUpdatedContent = `using System;
 
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-function foo() {
-  console.log('foo');
-}
+namespace MyNamespace
+{
+  class Main
+  {
+    /// <summary>
+    /// Great new docs
+    /// @param Eave wrote
+    /// @return very well
+    /// </summary>
+    static void foo()
+    {
+      Console.WriteLine("foo");
+    }
 
-class MyClass {
-  /**
-   * Great new docs
-   * @param Eave wrote
-   * @return very well
-   */
-  bar(): string {
-    return "bar";
+    class MyClass
+    {
+      /// <summary>
+      /// Great new docs
+      /// @param Eave wrote
+      /// @return very well
+      /// </summary>
+      public string bar()
+      {
+        return "bar";
+      }
+    }
+
+    /// <summary>
+    /// Great new docs
+    /// @param Eave wrote
+    /// @return very well
+    /// </summary>
+    public string baz()
+    {
+      return "baz";
+    }
+
+    /// <summary>
+    /// Great new docs
+    /// @param Eave wrote
+    /// @return very well
+    /// </summary>
+    public async Task<string> fizzbuzz()
+    {
+      return "fizzbuzz";
+    }
   }
-}
-
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-export function baz(): string {
-  return "baz";
-}
-
-/**
- * Great new docs
- * @param Eave wrote
- * @return very well
- */
-async function fizzbuzz(): Promise<string> {
-  return 'fizzbuzz';
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
