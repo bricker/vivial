@@ -1,5 +1,4 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
-import bluebird from 'bluebird';
 import fs from 'fs';
 import path from 'path';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
@@ -25,7 +24,7 @@ import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
 
-const eavePrTitle = 'docs: Eave inline code documentation update'; // TODO: workshop
+const eavePrTitle = 'docs: Eave inline code documentation update';
 
 /**
  * Receives github webhook pull_request events.
@@ -42,7 +41,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const { ctx, octokit } = context;
 
   // don't open more docs PRs from other Eave PRs getting merged
-  // TODO: perform this check using event.sender.id instead for broader metric capture. compare to app id??
+  // TODO: perform this check using event.sender.id instead for broader metric capture. compare to app id?? (app_id diff for prod vs stage)
   if (event.pull_request.title === eavePrTitle) {
     const interaction = event.pull_request.merged ? 'merged' : 'closed';
     await logEvent({
@@ -100,10 +99,11 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       return;
     }
 
-    const documentableFiles = await bluebird.filter(prFileNodes, async (f) => {
+    const documentableFiles: Array<PullRequestChangedFile> = [];
+    for (const f of prFileNodes) {
       // dont document files that aren't new or modified
       if (!(f.changeType === 'ADDED' || f.changeType === 'MODIFIED')) {
-        return false;
+        continue;
       }
 
       // TODO: would we get ratelimited if we tried to do all gpt prompts in parallel after all file paths obtained?
@@ -130,8 +130,10 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
         ctx,
       });
 
-      return openaiResponse === 'YES';
-    });
+      if (openaiResponse === 'YES') {
+        documentableFiles.push(f);
+      }
+    }
 
     filePaths = filePaths.concat(documentableFiles.map((f) => f.path));
 
@@ -143,7 +145,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
   // update docs in each file
   const contentsQuery = await GraphQLUtil.loadQuery('getFileContentsByPath');
-  const b64UpdatedContent = await bluebird.all(filePaths.map(async (fpath): Promise<string | null> => {
+  const b64UpdatedContent = await Promise.all(filePaths.map(async (fpath): Promise<string | null> => {
     const contentsQueryVariables: {
       repoOwner: Scalars['String'],
       repoName: Scalars['String'],
@@ -236,7 +238,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     baseRefName: event.pull_request.base.ref,
     headRefName: docsBranch!.name,
     title: eavePrTitle,
-    body: `Your new code docs based on changes from PR #${event.pull_request.number}`, // TODO: workshop
+    body: `Your new code docs based on changes from PR #${event.pull_request.number}`,
   };
   const prResp = await octokit.graphql<{ createPullRequest: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
   if (!prResp.createPullRequest?.pullRequest?.number) {
@@ -288,7 +290,7 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   }
 
   // update parsedData objects in place w/ updatedCommentStrings
-  await bluebird.all(parsedData.map(async (funcData) => {
+  await Promise.all(parsedData.map(async (funcData) => {
     // convert long function strings to a summary for docs writing to prevent AI from getting overwhelmed by
     // implementation details in raw code file (and to account for functions longer than model context)
     const summarizedFunction = await AIUtil.rollingSummary(openaiClient, funcData.func);
