@@ -1,4 +1,4 @@
-import OpenAIClient, { dedent, OpenAIModel } from './openai.js';
+import OpenAIClient, { formatprompt, OpenAIModel } from './openai.js';
 
 /**
  * Given a `content` string to summarize that is (assumed) longer than `threshold`
@@ -38,16 +38,16 @@ export async function rollingSummary(client: OpenAIClient, content: string, thre
     for (const chunk of chunks.filter((chnk) => chnk.length > 0)) {
       let prompt: string;
       if (newSummary.length === 0) {
-        prompt = dedent(
-          `Condense the following information. Maintain the important information.
+        prompt = formatprompt(`
+          Condense the following information. Maintain the important information.
 
           ###
           ${chunk}
           ###`,
         );
       } else {
-        prompt = dedent(
-          `Amend and expand on the following information. Maintain the important information.
+        prompt = formatprompt(`
+          Amend and expand on the following information. Maintain the important information.
 
           ###
           ${newSummary}

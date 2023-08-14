@@ -2,7 +2,7 @@ import { PullRequestEvent } from '@octokit/webhooks-types';
 import fs from 'fs';
 import path from 'path';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import OpenAIClient, { OpenAIModel, dedent } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import OpenAIClient, { OpenAIModel, formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
 import {
   Query,
   Scalars,
@@ -108,7 +108,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
       // TODO: would we get ratelimited if we tried to do all gpt prompts in parallel after all file paths obtained?
       // TODO: test feature behavior allowing test files to be documented. Should we allow that?
-      const prompt = dedent(
+      const prompt = formatprompt(
         `Given a file path, determine whether that file typically needs function-level code comments.
         Respond with only YES, or NO. Config, generated, and test files do not need documentation.
 
@@ -301,8 +301,8 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     // TODO: add/generate typical doc comment params etc boilerplate?
     // TODO: experiment performance qulaity on dif types of comments:
     //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
-    const docsPrompt = dedent(
-      `Write a 2-3 sentence overview of the purpose of this function.
+    const docsPrompt = formatprompt(`
+      Write a 2-3 sentence overview of the purpose of this function.
 
       ===
       ${summarizedFunction}
@@ -330,8 +330,8 @@ async function updateDocumentation(currContent: string, filePath: string, openai
           messages: [
             {
               role: 'user',
-              content: dedent(
-                `Merge these two chunks of documentation together into a paragraph, maintaining the important information. 
+              content: formatprompt(`
+                Merge these two chunks of documentation together into a paragraph, maintaining the important information. 
                 If there are any conflicts of content, prefer the new documentation.
                 
                 Old documentation:
@@ -358,8 +358,8 @@ async function updateDocumentation(currContent: string, filePath: string, openai
         messages: [
           {
             role: 'user',
-            content: dedent(
-              `Convert the following text to a multi-line doc comment valid in the programming language ${flang}. Respond with only the doc comment.
+            content: formatprompt(`
+              Convert the following text to a multi-line doc comment valid in the programming language ${flang}. Respond with only the doc comment.
               
               ${updatedDocs}`,
             ),

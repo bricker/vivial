@@ -18,9 +18,32 @@ export enum OpenAIModel {
   // GPT4_32K = 'gpt-4-32k',
 }
 
-export function dedent(s: string): string {
+export function formatprompt(s: string): string {
   let chunks = s.split('\n');
-  chunks = chunks.map((line) => line.trim());
+  if (chunks.length === 1) {
+    // not a multiline string; nothing to dedent
+    return s;
+  }
+
+  const commonLeadingWhitespaceLength = chunks.reduce((len, line, idx, arr) => {
+    // Ignore empty first and last lines
+    if ((idx === 0 || idx === arr.length - 1) && line === '') {
+      return len;
+    }
+
+    const m = line.match(/^\s*/);
+    // 'm' will never be null, because every string will match the regex. This check is for the typechecker.
+    if (m && m[0].length < len) {
+      len = m[0].length;
+    }
+    return len;
+  }, Infinity);
+
+  if (commonLeadingWhitespaceLength === Infinity) {
+    return s;
+  }
+
+  chunks = chunks.map((line) => line.slice(commonLeadingWhitespaceLength, line.length));
   return chunks.join('\n');
 }
 
@@ -78,7 +101,7 @@ export default class OpenAIClient {
     https://beta.openai.com/docs/api-reference/completions/create
     baseTimeoutSeconds is multiplied by (2^n) for each attempt n
   */
-  async createChatCompletion({ parameters, ctx, baseTimeoutSeconds = 30 }: CtxArg & {parameters: CreateChatCompletionRequest, baseTimeoutSeconds?: number}): Promise<string> {
+  async createChatCompletion({ parameters, ctx, baseTimeoutSeconds = 30 }: CtxArg & { parameters: CreateChatCompletionRequest, baseTimeoutSeconds?: number }): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
     const model = modelFromString(parameters.model);
