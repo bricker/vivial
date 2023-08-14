@@ -17,9 +17,7 @@ function inputTokenCost(model: OpenAIModel): number {
     case OpenAIModel.GPT4:
       return 0.03;
     default:
-      eaveLogger.critical(`Model ${model} not found! Cost calculations in BigQuery at risk!`);
-      // TODO: is 0 ok?? will logged err get surfaced quickly to devs?
-      return 0;
+      throw new Error(`Model ${model} not found to compute token cost!`);
   }
 }
 
@@ -38,9 +36,7 @@ function outputTokenCost(model: OpenAIModel): number {
     case OpenAIModel.GPT4:
       return 0.06;
     default:
-      eaveLogger.critical(`Model ${model} not found! Cost calculations in BigQuery at risk!`);
-      // TODO: is 0 ok?? will logged err get surfaced quickly to devs?
-      return 0;
+      throw new Error(`Model ${model} not found to compute token cost!`);
   }
 }
 
