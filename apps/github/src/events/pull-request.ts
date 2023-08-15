@@ -19,7 +19,7 @@ import {
 import { Octokit } from 'octokit';
 import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
-import { writeDocsIntoFileString, parseFunctionsAndComments } from '../parsing/function-parsing.js';
+import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from '../parsing/function-parsing.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
@@ -375,5 +375,5 @@ async function updateDocumentation(currContent: string, filePath: string, openai
   }));
 
   // write `updatedComment` data back into currContent string
-  return writeDocsIntoFileString(currContent, parsedData);
+  return writeUpdatedCommentsIntoFileString(currContent, parsedData);
 }

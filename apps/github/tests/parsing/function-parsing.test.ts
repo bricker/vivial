@@ -1,7 +1,7 @@
 import test from 'ava';
-import { parseFunctionsAndComments, writeDocsIntoFileString } from '../../src/parsing/function-parsing.js';
+import { parseFunctionsAndComments, writeUpdatedCommentsIntoFileString } from '../../src/parsing/function-parsing.js';
 
-test('typescript grammar queries adds/replaces all doc comments correctly', (t) => {
+test('Typescript grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and langauge/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.ts';
@@ -46,7 +46,7 @@ async function fizzbuzz(): Promise<string> {
  * @return very well
  */`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import { appConfig } from './src/config.js';
@@ -92,7 +92,7 @@ async function fizzbuzz(): Promise<string> {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('javascript grammar queries adds/replaces all doc comments correctly', (t) => {
+test('Javascript grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and langauge/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.js';
@@ -141,7 +141,7 @@ async function fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `const appConfig = require('./src/config.js');
@@ -182,7 +182,7 @@ async function fizzbuzz() {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('rust grammar queries adds/replaces all doc comments correctly', (t) => {
+test('Rust grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and langauge/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extname = '.rs';
@@ -225,7 +225,7 @@ async fn fizzbuzz() -> Result<&str> {
 /// @param Eave wrote
 /// @return very well`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `mod app_config;
@@ -311,7 +311,7 @@ char* fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `#include "./src/config.h";
@@ -404,7 +404,7 @@ char* fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `#include "./src/config.h";
@@ -494,7 +494,7 @@ func fizzbuzz() string {
 // @param Eave wrote
 // @return very well`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `package main
@@ -581,7 +581,7 @@ public class Main {
  * @return very well
  */`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import com.src.config;
@@ -674,7 +674,7 @@ suspend fun fizzbuzz(): Deferred<String> {
  * @return very well
  */`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import com.src.config;
@@ -767,7 +767,7 @@ function fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `<?php
@@ -856,7 +856,7 @@ end
 # @param Eave wrote
 # @return very well`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `require "./src/config.js";
@@ -937,7 +937,7 @@ func fizzbuzz() -> String {
 /// @param Eave wrote
 /// @return very well`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import Config
@@ -1033,7 +1033,7 @@ namespace MyNamespace
 /// @return very well
 /// </summary>`;
   }
-  const updatedContent = writeDocsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `using System;

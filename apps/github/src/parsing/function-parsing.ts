@@ -2,14 +2,7 @@ import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
 import { getFunctionDocumentationQueries, grammarFromExtension } from './grammars.js';
 
-/*
-TODO 
-handling python will require a separate implementation altogether
-
-detects multiple single-line comments in a row as separate comments. no differenctiation whether separated by newlines or not.
-  this affects langs like swift+go where docs are typically in multiple single line comments
-  will require manual parsing of comment nodes to see if start/end idx all line up or not and stitching strings together
-*/
+// TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
 export type ParsedFunction = {
   // string index where function (or comment, if defined) begins
@@ -37,7 +30,6 @@ export function parseFunctionsAndComments(content: string, extName: string, lang
   const languageGrammar = grammarFromExtension(extName);
   parser.setLanguage(languageGrammar);
   const ptree = parser.parse(content);
-  // console.log(ptree.rootNode.toString()) // DEBGUY
 
   // map from str hash of func body to ParsedFunction data.
   // func body hash used to prevent duplicate entries of the same exact function
@@ -62,12 +54,12 @@ export function parseFunctionsAndComments(content: string, extName: string, lang
  * @param parsedFunctions array of functions+comments data from `content`
  * @returns updated file content string
  */
-export function writeDocsIntoFileString(content: string, parsedFunctions: ParsedFunction[]): string {
+export function writeUpdatedCommentsIntoFileString(content: string, parsedFunctions: ParsedFunction[]): string {
   // sort high to low so we can insert into content string without invalidating other indices
   let newContent = content;
   parsedFunctions.sort((a, b) => b.start - a.start).forEach((f) => {
     if (f.updatedComment) {
-      const newDocs = indentDocs(f.func, f.updatedComment);
+      indentUpdatedComment(f, content);
 
       // include comment length (if present) to find beginning of function signature
       // that we must insert the comment before
@@ -75,7 +67,7 @@ export function writeDocsIntoFileString(content: string, parsedFunctions: Parsed
       if (f.comment) {
         before = f.start + f.comment.length;
       }
-      newContent = insertDocs(newContent, newDocs, f.start, before);
+      newContent = insertDocsComment(newContent, f.updatedComment, f.start, before);
     }
   });
 
@@ -93,7 +85,7 @@ export function writeDocsIntoFileString(content: string, parsedFunctions: Parsed
  * @param before index in content to put docs before. (set to after if undefined)
  * @returns content with `docs` inserted
  */
-function insertDocs(content: string, docs: string, after: number, before?: number) {
+function insertDocsComment(content: string, docs: string, after: number, before?: number) {
   if (before === undefined) {
     before = after;
   }
@@ -140,9 +132,10 @@ function runQuery(
   const matches = query.matches(rootNode);
 
   matches?.forEach((qmatch) => {
-    let start;
-    let end;
-    let commentEnd;
+    let functionStart;
+    let functionEnd;
+    let commentStart: number | undefined;
+    let commentEnd: number | undefined;
     let minStart = Infinity;
     // stuffed w/ placeholder values that will always be overwritten
     const funcData: ParsedFunction = {
@@ -156,28 +149,33 @@ function runQuery(
       switch (cap.name) {
         case funcMatcher:
           // track `start` back to closest newline to account for export, or other pre-function-signature gunk
-          start = cap.node.startIndex;
-          while (start > 1 && content[start - 1] !== '\n') {
-            start -= 1;
+          functionStart = cap.node.startIndex;
+          while (functionStart > 0 && content[functionStart - 1] !== '\n') {
+            functionStart -= 1;
           }
 
-          end = cap.node.endIndex;
-          minStart = Math.min(start, minStart);
+          functionEnd = cap.node.endIndex;
+          minStart = Math.min(functionStart, minStart);
           break;
 
         case commentMatcher:
+          // this matcher may be found multiple times per function, due to use of * in query.
+          if (commentEnd === undefined || !content.slice(commentEnd, cap.node.startIndex).match(/\s*\n\s*/)) {
+            // begin new comment chunk (block or series of 1-line)
+            commentStart = cap.node.startIndex;
+            minStart = Math.min(commentStart, minStart);
+          }
           commentEnd = cap.node.endIndex;
-          funcData.comment = content.slice(cap.node.startIndex, cap.node.endIndex);
-          // No need to min since we know doc comment will come before func name start (due to query structure).
-          // Also prevents the comment star match from pulling in any previous comments
-          // (those are currently un-accounted for when extracting docs, only closest comment currently)
-          minStart = cap.node.startIndex;
           break;
 
         default:
           break;
       }
     });
+
+    if (commentStart && commentEnd) {
+      funcData.comment = content.slice(commentStart, commentEnd);
+    }
 
     /*
     Tree-sitter builds a tree (shocking revelation) to represent the parsed syntax of the file.
@@ -208,16 +206,17 @@ function runQuery(
     beginning contain only white-space, or else we don't consider the comment and function a
     valid pairing. (This assumption may also be rife with its own issues. TBD)
     */
-    // ensure comment-function pairing are really next to each other (not just sibling nodes)
-    if (commentEnd && start && content.slice(commentEnd, start).trim() !== '') {
+    // ensure comment-function pairing are really next to each other (not just sibling nodes).
+    // There should be nothing between the end of the doc comment and the function signature.
+    if (commentEnd && functionStart && content.slice(commentEnd, functionStart).trim() !== '') {
       // reset funcData as if comment was not set in it
       funcData.comment = undefined;
-      minStart = start;
+      minStart = functionStart;
     }
 
     // guard against possible empty captures list
-    if (start) {
-      funcData.func = content.slice(start, end);
+    if (functionStart) {
+      funcData.func = content.slice(functionStart, functionEnd);
       funcData.start = minStart;
       const funcHash = crypto.createHash('md5').update(funcData.func).digest('hex');
       fmap[funcHash] = funcData;
@@ -226,21 +225,27 @@ function runQuery(
 }
 
 /**
- * Adds indentation (matching the level of `funcString`) to docs.
- * `funcString` must not be trimmed; expected to have indentation leading whitespace.
+ * Adds indentation (matching the level of `funcData.func`) to `funcData.updatedComment`.
+ * Updates `funcData` in-place rather than returning a value.
  * This function only works for languages where doc comments should be at the same
- * indentation level as the function signature they document (i.e. not Python)
+ * indentation level as the function signature they document (i.e. not Python).
  *
- * @param funcString string to copy indentation level from
- * @param docs string to add indentation to
- * @returns Indented `docs` string
+ * @param funcData function and comment + meta data
+ * @param content file content function + comment is contained in. Used for indent calculations
  */
-function indentDocs(funcString: string, docs: string) {
-  // extract a matching indentation level from function signature
+function indentUpdatedComment(funcData: ParsedFunction, content: string) {
+  if (!funcData.updatedComment) {
+    return;
+  }
+
+  // extract the indentation level from function signature
   let i = 0;
-  while (i < funcString.length && /\s/.test(funcString[i]!)) {
+  while (i < funcData.func.length && /\s/.test(funcData.func[i]!)) {
     i += 1;
   }
-  const indent = funcString.slice(0, i);
-  return `${indent}${docs.trim().split('\n').join(`\n${indent}`)}`;
+  const indent = funcData.func.slice(0, i);
+
+  // only add leading indent on first line if indent doesnt already match
+  const needsLeadingIndent = content.slice(Math.max(funcData.start - (indent.length + 1), 0), funcData.start) !== `\n${indent}`;
+  funcData.updatedComment = `${needsLeadingIndent ? indent : ''}${funcData.updatedComment.trim().split('\n').join(`\n${indent}`)}`;
 }

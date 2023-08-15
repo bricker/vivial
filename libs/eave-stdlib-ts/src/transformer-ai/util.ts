@@ -24,7 +24,7 @@ export async function rollingSummary(client: OpenAIClient, content: string, thre
     let currChunk = summary.slice(currPosition, currPosition + chunkSize);
     const chunks = [currChunk];
 
-    // Break `summary` into strings of `chunkSize` tokens. 
+    // Break `summary` into strings of `chunkSize` tokens.
     // There are generally 0.75 words per token, so approximating 1 character per token may
     // be overly generous in some contexts, but it's a safe minimum.
     // cite: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them

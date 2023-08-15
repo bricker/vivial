@@ -79,23 +79,27 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
 
         // captures class level methods
         `(
-          class_declaration
-            body: (class_body
-              (comment) @${commentMatcher}*
-              (method_definition) @${funcMatcher}
-            )
+          (comment) @${commentMatcher}*
+          (method_definition) @${funcMatcher}
         )`,
       ];
     case 'rust':
       return [
+        // block comment
         `(
-          (block_comment) @${commentMatcher}* 
+          (block_comment) @${commentMatcher}
+          (function_item) @${funcMatcher}
+        )`,
+
+        // multiple 1-line comments
+        `(
+          (line_comment) @${commentMatcher}*
           (function_item) @${funcMatcher}
         )`,
       ];
     case 'go':
       return [
-        // functions
+        // plain functions
         `(
           (comment) @${commentMatcher}* 
           (function_declaration) @${funcMatcher}
