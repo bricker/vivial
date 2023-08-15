@@ -204,7 +204,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   } = {
     branch: { branchName: docsBranch.name, repositoryNameWithOwner: `${repoOwner}/${repoName}` },
     headOid: docsBranch.target!.oid,
-    message: { headline: 'docs: automated update [ci skip]' }, // TODO: should skip?
+    message: { headline: 'docs: automated update' },
     fileChanges: {
       additions: filePaths.map((fpath, i) => {
         return {
