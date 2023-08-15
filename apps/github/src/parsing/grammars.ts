@@ -38,10 +38,11 @@ function logExhaustiveCaseError(c: never) {
 
 // converter necessary to translate "c++" to cpp enum case
 function stringToLanguage(lang: string): ProgrammingLanguage | undefined {
-  if (lang === 'c++') {
+  const language = lang.toLowerCase();
+  if (language === 'c++') {
     return ProgrammingLanguage.cpp;
   }
-  return ProgrammingLanguage[lang as keyof typeof ProgrammingLanguage];
+  return ProgrammingLanguage[language as keyof typeof ProgrammingLanguage];
 }
 
 /**
@@ -56,7 +57,7 @@ function stringToLanguage(lang: string): ProgrammingLanguage | undefined {
  * @return a tree-sitter grammar (or null)
  */
 export function grammarFromExtension(language: string, extName: string): any {
-  const pl = stringToLanguage(language.toLowerCase());
+  const pl = stringToLanguage(language);
   if (pl === undefined) {
     return null;
   }
@@ -95,7 +96,7 @@ export function grammarFromExtension(language: string, extName: string): any {
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
 export function getFunctionDocumentationQueries(language: string, funcMatcher: string, commentMatcher: string): string[] {
-  const pl = stringToLanguage(language.toLowerCase());
+  const pl = stringToLanguage(language);
   if (pl === undefined) {
     return [];
   }
@@ -191,9 +192,16 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
         )`,
       ];
     case ProgrammingLanguage.swift:
-      return [ // comment only covers single line. would need (multiline_comment) to capture /* */ comments
+      return [
+        // single line doc comments (swift standard)
         `(
           (comment) @${commentMatcher}* 
+          (function_declaration) @${funcMatcher}
+        )`,
+
+        // /**/ block comment docs (non-conventional in swift)
+        `(
+          (multiline_comment) @${commentMatcher}
           (function_declaration) @${funcMatcher}
         )`,
       ];
