@@ -105,9 +105,6 @@ async function logGptRequestData(
 
   await logGptRequest({
     feature_name: ctx?.feature_name,
-    event_time: new Date().toISOString(),
-    eave_request_id: ctx?.eave_request_id || 'unknown',
-    eave_team_id: ctx?.eave_team_id,
     duration_seconds,
     input_cost_usd: costCounter.calculatePromptCost(fullPrompt, modelEnum),
     output_cost_usd: costCounter.calculateResponseCost(response, modelEnum),

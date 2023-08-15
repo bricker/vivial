@@ -6,7 +6,6 @@ import { queryConnectInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/
 import { SearchDocumentsResponseBody, searchDocuments } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
-import * as schemas from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event.js';
 import { ADFLinkMark, ADFMentionNode, ADFNode, ADFRootNode, ADFTextNode, ADFBlockNodeType, ADFInlineNodeType, ADFParagraphNode, ADFMarkType, ADFListItemNode, ADFChildBlockNodeType, ADFBulletListNode } from '@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js';
 import appConfig from '../config.js';
 import JiraClient from '../jira-client.js';
@@ -74,16 +73,15 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
   }
 
   try {
-    await logEvent(schemas.EaveEvent.create({
+    await logEvent({
       event_description: 'Eave was mentioned in a Jira comment',
       event_name: 'eave_mentioned',
       event_source: 'jira comment-created event handler',
       eave_team: JSON.stringify(team),
-      eave_request_id: ctx.eave_request_id,
       opaque_params: JSON.stringify({
         message: payload.comment.body,
       }),
-    }), ctx);
+    }, ctx);
   } catch (e: any) {
     eaveLogger.error(e, ctx);
   }
