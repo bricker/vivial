@@ -43,7 +43,7 @@ export function formatprompt(s: string): string {
     return s;
   }
 
-  chunks = chunks.map((line) => line.slice(commonLeadingWhitespaceLength, line.length));
+  chunks = chunks.map((line) => line.slice(commonLeadingWhitespaceLength));
   return chunks.join('\n');
 }
 
