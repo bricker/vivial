@@ -27,7 +27,7 @@ export type ParsedFunction = {
  */
 export function parseFunctionsAndComments(content: string, extName: string, language: string): ParsedFunction[] {
   const parser = new Parser();
-  const languageGrammar = grammarFromExtension(extName);
+  const languageGrammar = grammarFromExtension(language, extName);
   parser.setLanguage(languageGrammar);
   const ptree = parser.parse(content);
 

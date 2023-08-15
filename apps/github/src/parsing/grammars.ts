@@ -16,34 +16,36 @@ const { typescript, tsx } = tsPkg;
 
 /**
  * Return a tree-sitter grammar corresponding to the programming language
- * of a file with the extension `extName`.
- * Returns null if there is no grammar found corresponding to `extName`.
+ * `language`.
+ * Returns null if there is no grammar found corresponding to `language`, or
+ * if the specific `extName` is explicitely unsupported.
  *
+ * @param language programming language of source code file.
  * @param extName file extension of the source code file. Expected to contain . prefix (e.g. ".js").
- *                Used to determine file language.
+ *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarFromExtension(extName: string): any {
-  switch (extName) {
-    case '.js': return JavaScript;
-    case '.ts': return typescript;
-    case '.tsx': return tsx;
-    case '.rs': return Rust;
-    case '.h': // TODO: header files won't really have a function body... will be very hard for eave to tell what function does just from signature...
-    case '.c': return C;
-    case '.go': return Go;
-    case '.java': return Java;
-    case '.hh': // TODO: document header file??
-    case '.cc':
-    case '.c++':
-    case '.cxx':
-    case '.cpp': return Cpp;
-    case '.kt': return Kotlin;
-    case '.php': return PHP;
-    // case '.py': return Python; // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
-    case '.rb': return Ruby;
-    case '.swift': return Swift;
-    case '.cs': return Csharp;
+export function grammarFromExtension(language: string, extName: string): any {
+  switch (language.toLowerCase()) {
+    case 'javascript': return JavaScript;
+    case 'typescript':
+      if (extName === '.tsx') {
+        return tsx;
+      }
+      return typescript;
+    case 'rust': return Rust;
+    // case '.h': // TODO: header files won't really have a function body... will be very hard for eave to tell what function does just from signature...
+    case 'c': return C;
+    case 'go': return Go;
+    case 'java': return Java;
+    // case '.hh': // TODO: document header file??
+    case 'c++': return Cpp;
+    case 'kotlin': return Kotlin;
+    case 'php': return PHP;
+    // case 'python': return Python; // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
+    case 'ruby': return Ruby;
+    case 'swift': return Swift;
+    case 'c#': return Csharp;
     default: return null;
   }
 }
