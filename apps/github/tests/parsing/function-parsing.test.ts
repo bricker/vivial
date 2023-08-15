@@ -127,7 +127,7 @@ async function fizzbuzz() {
   const funcDocsArray = parseFunctionsAndComments(content, extname, langauge);
 
   // THEN all functions should be detected/parsed by queries
-  // TODO: 3 instead of 4 bcus cjs module export function on same line is not detected by current
+  // NOTE: 3 instead of 4 bcus cjs module export function on same line is not detected by current
   // queries and is probably better that way? Without some custom logic to see if assignment
   // is to module.exports, we would end up generating docs for lambda functions etc as well,
   // which we probably don't want.

@@ -50,7 +50,6 @@ export function grammarFromExtension(language: string, extName: string): any {
   }
 }
 
-// TODO: write tests for this one; make sure these queries actually work
 /**
  * Different tree-sitter language grammars have different names for function nodes.
  * They may also follow different syntax structures, necesitating more or fewer queries.
@@ -122,7 +121,6 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
         )`,
       ];
     case 'kotlin':
-      // TODO: kotlin grammar may be out of date. It doesnt seem to parse class extensions correctly
       return [
         `(
           (comment) @${commentMatcher}* 
