@@ -94,16 +94,7 @@ function insertDocsComment(content: string, docs: string, after: number, before?
   const postcontent = content.slice(before);
 
   // add a newline if one not already present directly following docs
-  let i = 0;
-  let needsNewline = true;
-  while (i < postcontent.length && /\s/.test(postcontent[i]!)) {
-    if (postcontent[i] === '\n') {
-      needsNewline = false;
-      break;
-    }
-    i += 1;
-  }
-  if (needsNewline) {
+  if (postcontent[0] !== '\n') {
     docs += '\n';
   }
 
