@@ -108,8 +108,8 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
       // TODO: would we get ratelimited if we tried to do all gpt prompts in parallel after all file paths obtained?
       // TODO: test feature behavior allowing test files to be documented. Should we allow that?
-      const prompt = formatprompt(
-        `Given a file path, determine whether that file typically needs function-level code comments.
+      const prompt = formatprompt(`
+        Given a file path, determine whether that file typically needs function-level code comments.
         Respond with only YES, or NO. Config, generated, and test files do not need documentation.
 
         src/main.c: YES
@@ -166,7 +166,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     }
 
     const updatedFileContent = await updateDocumentation(fileContent, fpath, openaiClient, ctx);
-    if (!updateDocumentation) {
+    if (!updatedFileContent) {
       return null;
     }
 
