@@ -17,7 +17,7 @@ import {
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
 import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
-import { getExtensionMap } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
+import { getExtensionMap, isSupportedProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from '../parsing/function-parsing.js';
 import { GitHubOperationsContext } from '../types.js';
@@ -106,11 +106,16 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
         continue;
       }
 
+      // filter file types that arent source files we support writing docs for
+      if (!(await isSupportedProgrammingLanguage(path.extname(f.path)))) {
+        continue;
+      }
+
       // TODO: would we get ratelimited if we tried to do all gpt prompts in parallel after all file paths obtained?
       // TODO: test feature behavior allowing test files to be documented. Should we allow that?
       const prompt = formatprompt(`
         Given a file path, determine whether that file typically needs function-level code comments.
-        Respond with only YES, or NO. Config, generated, and test files do not need documentation.
+        Respond with only YES, or NO. Generated and test files do not need documentation.
 
         src/main.c: YES
         README.md: NO

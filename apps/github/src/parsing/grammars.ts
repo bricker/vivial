@@ -12,37 +12,14 @@ import Ruby from 'tree-sitter-ruby';
 import Swift from 'tree-sitter-swift';
 import Csharp from 'tree-sitter-c-sharp';
 import logging from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { ProgrammingLanguage, stringToProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
 
 const { typescript: Typescript, tsx } = tsPkg;
-
-enum ProgrammingLanguage {
-  javascript,
-  typescript,
-  rust,
-  c,
-  go,
-  java,
-  kotlin,
-  ruby,
-  cpp,
-  php,
-  swift,
-  csharp,
-}
 
 // used to typecheck our enum cases as exhuastive
 // https://stackoverflow.com/questions/39419170/how-do-i-check-that-a-switch-block-is-exhaustive-in-typescript
 function logExhaustiveCaseError(c: never) {
   logging.error(`Unhandled ProgrammingLanguage case: ${c}`);
-}
-
-// converter necessary to translate "c++" to cpp enum case
-function stringToLanguage(lang: string): ProgrammingLanguage | undefined {
-  const language = lang.toLowerCase();
-  if (language === 'c++') {
-    return ProgrammingLanguage.cpp;
-  }
-  return ProgrammingLanguage[language as keyof typeof ProgrammingLanguage];
 }
 
 /**
@@ -56,8 +33,8 @@ function stringToLanguage(lang: string): ProgrammingLanguage | undefined {
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarFromExtension(language: string, extName: string): any {
-  const pl = stringToLanguage(language);
+export function grammarForLanguage(language: string, extName: string): any {
+  const pl = stringToProgrammingLanguage(language);
   if (pl === undefined) {
     return null;
   }
@@ -96,7 +73,7 @@ export function grammarFromExtension(language: string, extName: string): any {
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
 export function getFunctionDocumentationQueries(language: string, funcMatcher: string, commentMatcher: string): string[] {
-  const pl = stringToLanguage(language);
+  const pl = stringToProgrammingLanguage(language);
   if (pl === undefined) {
     return [];
   }

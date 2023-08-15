@@ -1,6 +1,6 @@
 import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
-import { getFunctionDocumentationQueries, grammarFromExtension } from './grammars.js';
+import { getFunctionDocumentationQueries, grammarForLanguage } from './grammars.js';
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
@@ -27,7 +27,7 @@ export type ParsedFunction = {
  */
 export function parseFunctionsAndComments(content: string, extName: string, language: string): ParsedFunction[] {
   const parser = new Parser();
-  const languageGrammar = grammarFromExtension(language, extName);
+  const languageGrammar = grammarForLanguage(language, extName);
   parser.setLanguage(languageGrammar);
   const ptree = parser.parse(content);
 
