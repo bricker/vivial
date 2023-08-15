@@ -20,7 +20,7 @@ export enum OpenAIModel {
 
 export function formatprompt(s: string): string {
   let chunks = s.split('\n');
-  if (chunks.length === 1) {
+  if (chunks.length <= 1) {
     // not a multiline string; nothing to dedent
     return s;
   }

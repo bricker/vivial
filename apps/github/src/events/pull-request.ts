@@ -1,5 +1,4 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
-import fs from 'fs';
 import path from 'path';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { OpenAIModel, formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
@@ -18,6 +17,7 @@ import {
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
 import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
+import { getExtensionMap } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from '../parsing/function-parsing.js';
 import { GitHubOperationsContext } from '../types.js';
@@ -271,11 +271,8 @@ async function deleteBranch(octokit: Octokit, branchNodeId: string) {
  */
 async function updateDocumentation(currContent: string, filePath: string, openaiClient: OpenAIClient, ctx: LogContext): Promise<string | null> {
   // load language from file extension map file
-  // TODO: add to warmup
-  const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' });
-  const extensionMap = JSON.parse(extensionMapString);
   const extName = `${path.extname(filePath).toLowerCase()}`;
-  const flang: string = extensionMap[extName];
+  const flang = (await getExtensionMap())[extName];
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early
