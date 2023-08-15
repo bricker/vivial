@@ -11,8 +11,38 @@ import Python from 'tree-sitter-python';
 import Ruby from 'tree-sitter-ruby';
 import Swift from 'tree-sitter-swift';
 import Csharp from 'tree-sitter-c-sharp';
+import logging from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 
-const { typescript, tsx } = tsPkg;
+const { typescript: Typescript, tsx } = tsPkg;
+
+enum ProgrammingLanguage {
+  javascript,
+  typescript,
+  rust,
+  c,
+  go,
+  java,
+  kotlin,
+  ruby,
+  cpp,
+  php,
+  swift,
+  csharp,
+}
+
+// used to typecheck our enum cases as exhuastive
+// https://stackoverflow.com/questions/39419170/how-do-i-check-that-a-switch-block-is-exhaustive-in-typescript
+function logExhaustiveCaseError(c: never) {
+  logging.error(`Unhandled ProgrammingLanguage case: ${c}`);
+}
+
+// converter necessary to translate "c++" to cpp enum case
+function stringToLanguage(lang: string): ProgrammingLanguage | undefined {
+  if (lang === 'c++') {
+    return ProgrammingLanguage.cpp;
+  }
+  return ProgrammingLanguage[lang as keyof typeof ProgrammingLanguage];
+}
 
 /**
  * Return a tree-sitter grammar corresponding to the programming language
@@ -26,27 +56,34 @@ const { typescript, tsx } = tsPkg;
  * @return a tree-sitter grammar (or null)
  */
 export function grammarFromExtension(language: string, extName: string): any {
-  switch (language.toLowerCase()) {
-    case 'javascript': return JavaScript;
-    case 'typescript':
+  const pl = stringToLanguage(language.toLowerCase());
+  if (pl === undefined) {
+    return null;
+  }
+
+  switch (pl) {
+    case ProgrammingLanguage.javascript: return JavaScript;
+    case ProgrammingLanguage.typescript:
       if (extName === '.tsx') {
         return tsx;
       }
-      return typescript;
-    case 'rust': return Rust;
+      return Typescript;
+    case ProgrammingLanguage.rust: return Rust;
     // case '.h': // TODO: header files won't really have a function body... will be very hard for eave to tell what function does just from signature...
-    case 'c': return C;
-    case 'go': return Go;
-    case 'java': return Java;
+    case ProgrammingLanguage.c: return C;
+    case ProgrammingLanguage.go: return Go;
+    case ProgrammingLanguage.java: return Java;
     // case '.hh': // TODO: document header file??
-    case 'c++': return Cpp;
-    case 'kotlin': return Kotlin;
-    case 'php': return PHP;
+    case ProgrammingLanguage.cpp: return Cpp;
+    case ProgrammingLanguage.kotlin: return Kotlin;
+    case ProgrammingLanguage.php: return PHP;
     // case 'python': return Python; // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
-    case 'ruby': return Ruby;
-    case 'swift': return Swift;
-    case 'c#': return Csharp;
-    default: return null;
+    case ProgrammingLanguage.ruby: return Ruby;
+    case ProgrammingLanguage.swift: return Swift;
+    case ProgrammingLanguage.csharp: return Csharp;
+    default:
+      logExhaustiveCaseError(pl);
+      return null;
   }
 }
 
@@ -58,9 +95,14 @@ export function grammarFromExtension(language: string, extName: string): any {
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
 export function getFunctionDocumentationQueries(language: string, funcMatcher: string, commentMatcher: string): string[] {
-  switch (language.toLowerCase()) {
-    case 'javascript': // js and ts grammar similar enough to share queries
-    case 'typescript':
+  const pl = stringToLanguage(language.toLowerCase());
+  if (pl === undefined) {
+    return [];
+  }
+
+  switch (pl) {
+    case ProgrammingLanguage.javascript: // js and ts grammar similar enough to share queries
+    case ProgrammingLanguage.typescript:
       return [
         // captures root level functions + comments
         `(
@@ -84,7 +126,7 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
           (method_definition) @${funcMatcher}
         )`,
       ];
-    case 'rust':
+    case ProgrammingLanguage.rust:
       return [
         // block comment
         `(
@@ -98,7 +140,7 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
           (function_item) @${funcMatcher}
         )`,
       ];
-    case 'go':
+    case ProgrammingLanguage.go:
       return [
         // plain functions
         `(
@@ -112,22 +154,22 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
           (method_declaration) @${funcMatcher}
         )`,
       ];
-    case 'c++': // c/c++ grammar similar enough to share query
-    case 'c':
+    case ProgrammingLanguage.cpp: // c/c++ grammar similar enough to share query
+    case ProgrammingLanguage.c:
       return [
         `(
           (comment) @${commentMatcher}* 
           (function_definition) @${funcMatcher}
         )`,
       ];
-    case 'kotlin':
+    case ProgrammingLanguage.kotlin:
       return [
         `(
           (comment) @${commentMatcher}* 
           (function_declaration) @${funcMatcher}
         )`,
       ];
-    case 'php':
+    case ProgrammingLanguage.php:
       return [
         // root level functions
         `(
@@ -141,22 +183,22 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
           (method_declaration) @${funcMatcher}
         )`,
       ];
-    case 'ruby':
+    case ProgrammingLanguage.ruby:
       return [
         `(
           (comment) @${commentMatcher}* 
           (method) @${funcMatcher}
         )`,
       ];
-    case 'swift':
+    case ProgrammingLanguage.swift:
       return [ // comment only covers single line. would need (multiline_comment) to capture /* */ comments
         `(
           (comment) @${commentMatcher}* 
           (function_declaration) @${funcMatcher}
         )`,
       ];
-    case 'java': // java and microsoft java grammar similar enough to share query
-    case 'c#':
+    case ProgrammingLanguage.java: // java and microsoft java grammar similar enough to share query
+    case ProgrammingLanguage.csharp:
       return [
         `(
           (comment) @${commentMatcher}* 
@@ -165,6 +207,7 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
       ];
     // case 'python': // TODO: skipped for now for being special snowflake
     default:
+      logExhaustiveCaseError(pl);
       return [];
   }
 }
