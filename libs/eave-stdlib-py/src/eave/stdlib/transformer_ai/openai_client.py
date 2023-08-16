@@ -104,8 +104,8 @@ def ensure_api_key() -> None:
 
 async def chat_completion(
     params: ChatCompletionParameters,
+    ctx: Optional[LogContext],
     baseTimeoutSeconds: int = 30,
-    ctx: Optional[LogContext] = None,
 ) -> str:
     """
     Makes a request to OpenAI chat completion API, return string response.
@@ -173,7 +173,9 @@ async def chat_completion(
     answer = str(choice.message.content).strip()
     timestamp_end = time.perf_counter()
     duration_seconds = round(timestamp_end - timestamp_start)
-    await _log_gpt_request(params, answer, duration_seconds, ctx)
+    input_tokens =  usage["prompt_tokens"] if (usage := response["usage"]) else None
+    output_tokens =  usage["completion_tokens"] if (usage := response["usage"]) else None
+    await _log_gpt_request(params, answer, duration_seconds, input_tokens, output_tokens, ctx)
     return answer
 
 
@@ -181,20 +183,26 @@ async def _log_gpt_request(
     params: ChatCompletionParameters,
     response: str,
     duration_seconds: int,
-    ctx: Optional[LogContext] = None,
+    input_tokens: Optional[int],
+    output_tokens: Optional[int],
+    ctx: Optional[LogContext],
 ) -> None:
     full_prompt = "\n".join(params.messages)
     prompt_cost = calculate_prompt_cost_usd(full_prompt, params.model)
     response_cost = calculate_response_cost_usd(response, params.model)
-    input_tokens = token_count(full_prompt, params.model)
-    output_tokens = token_count(response, params.model)
 
-    # openai python client allows for "best_of" parameter, which will generate that many responses,
-    # consuming/costing a multiple more response tokens in a single request
-    # https://platform.openai.com/docs/api-reference/completions
-    if params.best_of:
-        response_cost *= params.best_of
-        output_tokens *= params.best_of
+    if input_tokens == None:
+        input_tokens = token_count(full_prompt, params.model)
+    
+    if output_tokens == None:
+        output_tokens = token_count(response, params.model)
+
+    # # openai python client allows for "best_of" parameter, which will generate that many responses,
+    # # consuming/costing a multiple more response tokens in a single request
+    # # https://platform.openai.com/docs/api-reference/completions
+    # if params.best_of:
+    #     response_cost *= params.best_of
+    #     output_tokens *= params.best_of
 
     await log_gpt_request(
         duration_seconds=duration_seconds,
