@@ -18,16 +18,19 @@ export enum ProgrammingLanguage {
 }
 
 /**
- * Converts string to enum case. Necessary to translate "c++" to cpp enum case.
+ * Converts string to enum case. Necessary to translate language name strings
+ * with special characters to the correct enum case.
  * @param lang string to convert, if possible
  * @return ProgrammingLanguage enum case, or undefined if `lang` is not a case
  */
 export function stringToProgrammingLanguage(lang: string): ProgrammingLanguage | undefined {
   const language = lang.toLowerCase();
-  if (language === 'c++') {
-    return ProgrammingLanguage.cpp;
+  // handle languages w/ special characters in name separately
+  switch (language) {
+    case 'c++': return ProgrammingLanguage.cpp;
+    case 'c#': return ProgrammingLanguage.csharp;
+    default: return ProgrammingLanguage[language as keyof typeof ProgrammingLanguage];
   }
-  return ProgrammingLanguage[language as keyof typeof ProgrammingLanguage];
 }
 
 export async function isSupportedProgrammingLanguage(extName: string): Promise<boolean> {
@@ -38,7 +41,8 @@ export async function isSupportedProgrammingLanguage(extName: string): Promise<b
 }
 
 export async function loadExtensionMap() {
-  const extensionMapString = await fs.promises.readFile('./languages.json', { encoding: 'utf8' });
+  // TODO: host this on CDN or something instead to avoid gross path assumptions???
+  const extensionMapString = await fs.promises.readFile('../../libs/eave-stdlib-ts/languages.json', { encoding: 'utf8' });
   extensionMap = JSON.parse(extensionMapString);
 }
 
