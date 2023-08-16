@@ -299,81 +299,68 @@ async function updateDocumentation(currContent: string, filePath: string, openai
 
     // update docs, or write new ones if currDocs is empty/undefined
     // TODO: refine prompt
-    // TODO: account for summarized function
-    // TODO: add/generate typical doc comment params etc boilerplate?
+    // TODO: retest w/ summarized function
     // TODO: experiment performance qulaity on dif types of comments:
     //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
-    const docsPrompt = formatprompt(`
-      Write a 2-3 sentence overview of the purpose of this function.
-
-      ===
-      ${summarizedFunction}
-      ===`,
+    const docsPrompt = formatprompt(
+      `Write a ${flang} doc comment for the following function.\n`,
+      '===',
+      summarizedFunction,
+      '===',
     );
     const newDocsResponse = await openaiClient.createChatCompletion({
       parameters: {
         messages: [
+          {
+            role: 'system',
+            content: `You must respond with only a valid ${flang} doc comment.`,
+          },
           {
             role: 'user',
             content: docsPrompt,
           },
         ],
         model: OpenAIModel.GPT4,
-        temperature: 0.2,
+        temperature: 0,
       },
       ctx,
     });
 
     // if there were already existing docs, update them using newly written docs
+    // TODO: how to handle comment merging...
     let updatedDocs = newDocsResponse;
     if (funcData.comment) {
       updatedDocs = await openaiClient.createChatCompletion({
         parameters: {
           messages: [
             {
+              role: 'system',
+              content: `You must respond with only a valid ${flang} doc comment.`,
+            },
+            {
               role: 'user',
-              content: formatprompt(`
-                Merge these two chunks of documentation together into a paragraph, maintaining the important information. 
-                If there are any conflicts of content, prefer the new documentation.
-                
-                Old documentation:
-                ===
-                ${funcData.comment}
-                ===
-                
-                New documentation:
-                ===
-                ${newDocsResponse}
-                ===`,
+              content: formatprompt(
+                `Merge these two ${flang} doc comments, maintaining the important information.`,
+                `If there are any conflicts of content, prefer the new documentation. Return only the ${flang} doc comment.\n`,
+                'Old documentation:',
+                '===',
+                funcData.comment,
+                '===\n',
+                'New documentation:',
+                '===',
+                newDocsResponse,
+                '===',
               ),
             },
           ],
           model: OpenAIModel.GPT4,
-          temperature: 0.2,
+          temperature: 0,
         },
         ctx,
       });
     }
 
-    const updatedDocsComment = await openaiClient.createChatCompletion({
-      parameters: {
-        messages: [
-          {
-            role: 'user',
-            content: formatprompt(`
-              Convert the following text to a multi-line doc comment valid in the programming language ${flang}. Respond with only the doc comment.
-              
-              ${updatedDocs}`,
-            ),
-          },
-        ],
-        model: OpenAIModel.GPT4,
-        temperature: 0.2,
-      },
-      ctx,
-    });
-
-    funcData.updatedComment = updatedDocsComment;
+    funcData.updatedComment = updatedDocs;
   }));
 
   // write `updatedComment` data back into currContent string

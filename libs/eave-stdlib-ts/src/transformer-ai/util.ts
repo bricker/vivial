@@ -38,22 +38,20 @@ export async function rollingSummary(client: OpenAIClient, content: string, thre
     for (const chunk of chunks.filter((chnk) => chnk.length > 0)) {
       let prompt: string;
       if (newSummary.length === 0) {
-        prompt = formatprompt(`
-          Condense the following information. Maintain the important information.
-
-          ###
-          ${chunk}
-          ###`,
+        prompt = formatprompt(
+          'Condense the following information. Maintain the important information.\n',
+          '###',
+          chunk,
+          '###',
         );
       } else {
-        prompt = formatprompt(`
-          Amend and expand on the following information. Maintain the important information.
-
-          ###
-          ${newSummary}
-
-          ${chunk}
-          ###`,
+        prompt = formatprompt(
+          'Amend and expand on the following information. Maintain the important information.\n\n',
+          '###',
+          newSummary,
+          '\n',
+          chunk,
+          '###',
         );
       }
 

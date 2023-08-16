@@ -18,33 +18,39 @@ export enum OpenAIModel {
   // GPT4_32K = 'gpt-4-32k',
 }
 
-export function formatprompt(s: string): string {
-  let chunks = s.split('\n');
-  if (chunks.length <= 1) {
-    // not a multiline string; nothing to dedent
-    return s;
-  }
+export function formatprompt(...prompts: string[]): string {
+  const prompt = [];
+  for (const s of prompts) {
+    let chunks = s.split('\n');
+    if (chunks.length <= 1) {
+      // not a multiline string; nothing to dedent
+      prompt.push(s);
+      continue;
+    }
 
-  const commonLeadingWhitespaceLength = chunks.reduce((len, line, idx, arr) => {
-    // Ignore empty first and last lines
-    if ((idx === 0 || idx === arr.length - 1) && line === '') {
+    const commonLeadingWhitespaceLength = chunks.reduce((len, line) => {
+      // Ignore empty lines
+      if (line.trim() === '') {
+        return len;
+      }
+
+      const m = line.match(/^\s*/);
+      // 'm' will never be null, because every string will match the regex. This check is for the typechecker.
+      if (m && m[0].length < len) {
+        len = m[0].length;
+      }
       return len;
+    }, Infinity);
+
+    if (commonLeadingWhitespaceLength === Infinity) {
+      prompt.push(s);
+      continue;
     }
 
-    const m = line.match(/^\s*/);
-    // 'm' will never be null, because every string will match the regex. This check is for the typechecker.
-    if (m && m[0].length < len) {
-      len = m[0].length;
-    }
-    return len;
-  }, Infinity);
-
-  if (commonLeadingWhitespaceLength === Infinity) {
-    return s;
+    chunks = chunks.map((line) => line.slice(commonLeadingWhitespaceLength));
+    prompt.push(chunks.join('\n'));
   }
-
-  chunks = chunks.map((line) => line.slice(commonLeadingWhitespaceLength));
-  return chunks.join('\n');
+  return prompt.join('\n');
 }
 
 function modelFromString(v: string): OpenAIModel | undefined {
