@@ -106,8 +106,8 @@ async function logGptRequestData(
   await logGptRequest({
     feature_name: ctx?.feature_name,
     duration_seconds,
-    input_cost_usd: costCounter.calculatePromptCost(fullPrompt, modelEnum),
-    output_cost_usd: costCounter.calculateResponseCost(response, modelEnum),
+    input_cost_usd: costCounter.calculatePromptCostUSD(fullPrompt, modelEnum),
+    output_cost_usd: costCounter.calculateResponseCostUSD(response, modelEnum),
     input_prompt: fullPrompt,
     output_response: response,
     input_token_count: costCounter.tokenCount(fullPrompt, modelEnum),

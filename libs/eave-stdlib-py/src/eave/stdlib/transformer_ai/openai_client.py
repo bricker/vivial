@@ -18,7 +18,7 @@ from ..config import shared_config
 from ..logging import eaveLogger
 from ..exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
 from .models import OpenAIModel
-from .token_counter import calculate_prompt_cost, calculate_response_cost, token_count
+from .token_counter import calculate_prompt_cost_usd, calculate_response_cost_usd, token_count
 
 
 class DocumentationType(enum.StrEnum):
@@ -184,8 +184,8 @@ async def _log_gpt_request(
     ctx: Optional[LogContext] = None,
 ) -> None:
     full_prompt = "\n".join(params.messages)
-    prompt_cost = calculate_prompt_cost(full_prompt, params.model)
-    response_cost = calculate_response_cost(response, params.model)
+    prompt_cost = calculate_prompt_cost_usd(full_prompt, params.model)
+    response_cost = calculate_response_cost_usd(response, params.model)
     input_tokens = token_count(full_prompt, params.model)
     output_tokens = token_count(response, params.model)
 
