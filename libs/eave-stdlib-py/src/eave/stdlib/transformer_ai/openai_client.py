@@ -188,21 +188,12 @@ async def _log_gpt_request(
     ctx: Optional[LogContext],
 ) -> None:
     full_prompt = "\n".join(params.messages)
-    prompt_cost = calculate_prompt_cost_usd(full_prompt, params.model)
-    response_cost = calculate_response_cost_usd(response, params.model)
 
-    if input_tokens == None:
-        input_tokens = token_count(full_prompt, params.model)
-    
-    if output_tokens == None:
-        output_tokens = token_count(response, params.model)
+    input_tokens = token_count(full_prompt, params.model) if input_tokens == None else cast(int, input_tokens)
+    output_tokens = token_count(response, params.model) if output_tokens == None else cast(int, output_tokens)
 
-    # # openai python client allows for "best_of" parameter, which will generate that many responses,
-    # # consuming/costing a multiple more response tokens in a single request
-    # # https://platform.openai.com/docs/api-reference/completions
-    # if params.best_of:
-    #     response_cost *= params.best_of
-    #     output_tokens *= params.best_of
+    prompt_cost = calculate_prompt_cost_usd(input_tokens, params.model)
+    response_cost = calculate_response_cost_usd(output_tokens, params.model)
 
     await log_gpt_request(
         duration_seconds=duration_seconds,

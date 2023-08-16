@@ -40,17 +40,17 @@ def _output_token_cost(model: OpenAIModel) -> float:
             return 0.06
 
 
-def calculate_prompt_cost_usd(prompt: str, model: OpenAIModel) -> float:
+def calculate_prompt_cost_usd(input_token_count: int, model: OpenAIModel) -> float:
     """
     Cost of an input prompt to the OpenAI api
     returns float price in USD
     """
-    return (token_count(prompt, model) / 1000) * _input_token_cost(model)
+    return (input_token_count / 1000) * _input_token_cost(model)
 
 
-def calculate_response_cost_usd(response: str, model: OpenAIModel) -> float:
+def calculate_response_cost_usd(output_token_count: int, model: OpenAIModel) -> float:
     """
     Cost of an output response to the OpenAI api
     returns float price in USD
     """
-    return (token_count(response, model) / 1000) * _output_token_cost(model)
+    return (output_token_count / 1000) * _output_token_cost(model)
