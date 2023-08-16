@@ -10,16 +10,16 @@ const GPT_EVENT_TOPIC_ID = 'gpt_request_event';
 
 export interface EaveEventFields {
   event_name: string;
-  event_description?: string | undefined;
-  event_source?: string | undefined;
-  opaque_params?: string | undefined;
-  eave_visitor_id?: string | undefined;
-  eave_account?: string | undefined;
-  eave_team?: string | undefined;
+  event_description?: string;
+  event_source?: string;
+  opaque_params?: string;
+  eave_visitor_id?: string;
+  eave_account?: string;
+  eave_team?: string;
 }
 
 export interface GPTRequestEventFields {
-  feature_name?: string | undefined;
+  feature_name?: string;
   duration_seconds: number;
   input_cost_usd: number;
   output_cost_usd: number;
