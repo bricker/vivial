@@ -45,7 +45,6 @@ export default class OpenAIClient {
   }: CtxArg & {
     parameters: CreateChatCompletionRequest,
     baseTimeoutSeconds?: number,
-    file_log_id?: string | undefined,
   }): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
@@ -98,7 +97,7 @@ async function logGptRequestData(
   parameters: CreateChatCompletionRequest,
   response: string,
   duration_seconds: number,
-  ctx?: LogContext | undefined,
+  ctx?: LogContext,
 ) {
   const fullPrompt = Object.values(parameters.messages).join('\n');
   const modelEnum = modelFromString(parameters.model)!;
