@@ -10,6 +10,7 @@ import { upsertDocument } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
+import { rollingSummary } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 
 /**
  * Receives github webhook push events.
@@ -129,11 +130,12 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         : '';
 
       // have AI explain the code change
-      // TODO: implement rolling content summary
+      const summarizedContent = rollingSummary(openaiClient, fileContents);
+
       // FIXME: Add this eslint exception to eslint config
       // eslint-disable-next-line operator-linebreak
       const prompt =
-        `${fileContents}\n\n`
+        `${summarizedContent}\n\n`
         + `${codeDescriptionString}. `
         + 'Explain what the above code does: ';
 
