@@ -75,7 +75,7 @@ async def log_gpt_request(
     input_token_count: int,
     output_token_count: int,
     model: str,
-    ctx: typing.Optional[_l.LogContext] = None,
+    ctx: typing.Optional[_l.LogContext],
 ) -> None:
     event_time = datetime.utcnow().isoformat()
 

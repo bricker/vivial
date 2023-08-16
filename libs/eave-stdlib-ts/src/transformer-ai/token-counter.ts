@@ -1,6 +1,5 @@
 import { encoding_for_model } from 'tiktoken';
 import { OpenAIModel } from './models.js';
-import eaveLogger from '../logging.js';
 
 /**
  * Cost per 1k prompt tokens by model.
