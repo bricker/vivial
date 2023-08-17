@@ -127,7 +127,7 @@ function runQuery(
 ): void {
   const matches = query.matches(rootNode);
 
-  matches?.forEach((qmatch) => {
+  matches?.forEach((qmatch: Parser.QueryMatch) => {
     let functionStart;
     let functionEnd;
     let commentStart: number | undefined;
@@ -141,7 +141,7 @@ function runQuery(
       updatedComment: undefined,
     };
 
-    qmatch.captures.forEach((cap) => {
+    qmatch.captures.forEach((cap: Parser.QueryCapture) => {
       switch (cap.name) {
         case funcMatcher:
           // track `start` back to closest newline to account for export, or other pre-function-signature gunk
