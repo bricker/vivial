@@ -19,7 +19,7 @@ import { Octokit } from 'octokit';
 import * as AIUtil from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 import { getExtensionMap, isSupportedProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
-import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from '../parsing/function-parsing.js';
+import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from '@eave-fyi/eave-stdlib-ts/src/parsing/function-parsing.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
@@ -298,7 +298,6 @@ async function updateDocumentation(currContent: string, filePath: string, openai
     const summarizedFunction = await AIUtil.rollingSummary(openaiClient, funcData.func);
 
     // update docs, or write new ones if currDocs is empty/undefined
-    // TODO: refine prompt
     // TODO: retest w/ summarized function
     // TODO: experiment performance qulaity on dif types of comments:
     //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)

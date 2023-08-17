@@ -7,12 +7,12 @@ import Java from 'tree-sitter-java';
 import Cpp from 'tree-sitter-cpp';
 import Kotlin from 'tree-sitter-kotlin';
 import PHP from 'tree-sitter-php';
-import Python from 'tree-sitter-python';
+// import Python from 'tree-sitter-python';
 import Ruby from 'tree-sitter-ruby';
 import Swift from 'tree-sitter-swift';
 import Csharp from 'tree-sitter-c-sharp';
-import logging from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { ProgrammingLanguage, stringToProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
+import logging from '../logging.js';
+import { ProgrammingLanguage, stringToProgrammingLanguage } from '../language-mapping.js';
 
 const { typescript: Typescript, tsx } = tsPkg;
 

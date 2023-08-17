@@ -13,8 +13,12 @@ import OpenAIClient, { formatprompt, OpenAIModel } from './openai.js';
  *                  (Recommended to be less than MAX_TOKENS allowed by API)
  * @return a summary of the content in `content`
  */
-export async function rollingSummary(client: OpenAIClient, content: string, threshold: number | undefined = undefined): Promise<string> {
-  const model = OpenAIModel.GPT4;
+export async function rollingSummary(
+  client: OpenAIClient,
+  content: string,
+  threshold: number | undefined = undefined,
+  model: OpenAIModel = OpenAIModel.GPT4,
+): Promise<string> {
   const chunkSize = threshold === undefined ? Math.floor(OpenAIClient.maxTokens(model) / 2) : threshold;
   let summary = content;
 

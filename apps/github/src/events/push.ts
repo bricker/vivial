@@ -7,10 +7,10 @@ import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/e
 import { GetSubscriptionResponseBody, getSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
 import { upsertDocument } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
+import { rollingSummary } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
-import { rollingSummary } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 
 /**
  * Receives github webhook push events.

@@ -4,6 +4,6 @@
     "**/*.ts"
   ],
   "compilerOptions": {
-    "typeRoots": ["src/@types", "node_modules/@types"]
+    "typeRoots": ["node_modules/@types", "../../libs/eave-stdlib-ts/src/@types"]
   }
 }

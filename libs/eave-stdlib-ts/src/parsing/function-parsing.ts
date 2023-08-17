@@ -1,7 +1,7 @@
 import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
 import { getFunctionDocumentationQueries, grammarForLanguage } from './grammars.js';
-import logging from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import logging from '../logging.js';
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
