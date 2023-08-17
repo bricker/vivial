@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response, Router, raw, Express } from 'express';
-import dispatch from '../dispatch.js';
+import verifyWebhookPayload from './verify-payload.js';
 
 export function applyWebhookMiddlewares({ app, path }:{ app: Express, path: string }) {
   /*
@@ -7,13 +7,18 @@ export function applyWebhookMiddlewares({ app, path }:{ app: Express, path: stri
   If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
   */
   app.use(path, raw({ type: 'application/json', limit: '5mb' }));
+  app.use(path, verifyWebhookPayload);
 }
 
 export function WebhookRouter(): Router {
   const router = Router();
+  router.use(verifyWebhookPayload);
 
   router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const octokit = await app.getInstallationOctokit(payload.installation.id);
+      await handler(payload, { octokit, ctx });
+
       await dispatch(req, res);
       res.end(); // safety
     } catch (e: unknown) {

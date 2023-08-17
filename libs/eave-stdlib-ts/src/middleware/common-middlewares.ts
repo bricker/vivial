@@ -26,7 +26,7 @@ export function applyInternalApiMiddlewares({ app, path }: {app: Express, path: 
   Using raw parsing rather than express.json() parser because of GitHub signature verification.
   If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
   */
-  app.use(path, raw({ type: 'application/json' }));
+  app.use(path, raw({ type: 'application/json', limit: '5mb' }));
   app.use(path, requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER));
   app.use(path, originMiddleware);
   app.use(path, signatureVerification());

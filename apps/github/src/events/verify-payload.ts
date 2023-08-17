@@ -1,18 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite } from '@octokit/webhooks-types';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import * as Registry from './registry.js';
-import { appConfig } from './config.js';
-import pushHandler from './events/push.js';
-import pullRequestClosedHandler from './events/pull-request.js';
-import { createAppClient } from './lib/octokit-util.js';
-import { Octokit } from 'octokit';
+import Registry from './registry.js';
+import { appConfig } from '../config.js';
+import { createAppClient } from '../lib/octokit-util.js';
 
-Registry.registerHandler('push', pushHandler);
-Registry.registerHandler('pull_request.closed', pullRequestClosedHandler);
-
-export default async function dispatch(req: Request, res: Response): Promise<void> {
+export default async function verifyWebhookPayload(req: Request, res: Response, next: NextFunction): Promise<void> {
   const ctx = LogContext.load(res);
   const id = req.header('x-github-delivery');
   const eventName = req.header('x-github-event') as EmitterWebhookEventName | undefined;
@@ -37,7 +31,7 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
   eaveLogger.info('Webhook request', ctx, webhookInfo);
   const event = [eventName, action].filter((n) => n).join('.');
 
-  const handler = Registry.getHandler(event);
+  const handler = Registry[event];
   if (handler === undefined) {
     eaveLogger.warning(`Event not supported: ${event}`, ctx, webhookInfo);
     res.sendStatus(200);
@@ -51,12 +45,12 @@ export default async function dispatch(req: Request, res: Response): Promise<voi
     eaveLogger.error('signature verification failed', ctx);
 
     if (!appConfig.isDevelopment && !appConfig.devMode) {
+      // TODO: Add more development safety checks
       res.sendStatus(400);
       return;
     }
   }
 
-  const octokit = await app.getInstallationOctokit(payload.installation.id);
-  await handler(payload, { octokit, ctx });
+  // TODO: Handoff to background
   res.sendStatus(200);
 }

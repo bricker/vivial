@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import eaveHeaders from '../headers.js';
 import { developmentBypassAllowed } from './development-bypass.js';
 import Signing, { buildMessageToSign } from '../signing.js';
-import eaveLogger, { LogContext } from '../logging.js';
+import { LogContext } from '../logging.js';
 import { constructUrl } from '../api-util.js';
 
 /**
@@ -25,14 +25,12 @@ export function signatureVerification(): ((req: Request, res: Response, next: Ne
   };
 }
 
-async function doSignatureVerification(req: Request, res: Response): Promise<boolean> {
+async function doSignatureVerification(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
 
   if (signature === undefined) {
-    eaveLogger.error('Missing Eave signature header', ctx);
-    res.sendStatus(400);
-    return false;
+    throw new Error('Missing Eave signature header');
   }
 
   const teamId = req.header(eaveHeaders.EAVE_TEAM_ID_HEADER);
@@ -61,5 +59,4 @@ async function doSignatureVerification(req: Request, res: Response): Promise<boo
 
   const signing = Signing.new(origin);
   await signing.verifySignatureOrException(message, signature);
-  return true;
 }
