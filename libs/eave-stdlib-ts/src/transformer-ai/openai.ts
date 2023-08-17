@@ -104,7 +104,7 @@ async function logGptRequestData(
   ctx?: LogContext,
 ) {
   const fullPrompt = parameters.messages.map((m) => m.content).join('\n');
-  const modelEnum = modelFromString(parameters.model)!;
+  const modelEnum = modelFromString(parameters.model);
 
   // should never be undefined, but who knows anythings possible :rainbow:
   const output_response = response || '';

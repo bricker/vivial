@@ -5,13 +5,13 @@ export enum OpenAIModel {
   // GPT4_32K = 'gpt-4-32k',
 }
 
-export function modelFromString(v: string): OpenAIModel | undefined {
+export function modelFromString(v: string): OpenAIModel {
   switch (v) {
     case OpenAIModel.GPT_35_TURBO: return OpenAIModel.GPT_35_TURBO;
     case OpenAIModel.GPT_35_TURBO_16K: return OpenAIModel.GPT_35_TURBO_16K;
     case OpenAIModel.GPT4: return OpenAIModel.GPT4;
-    default: return undefined;
     // case OpenAIModel.GPT4_32K: return OpenAIModel.GPT4_32K;
+    default: throw new Error(`No OpenAIModel found correlating to ${v}`);
   }
 }
 
