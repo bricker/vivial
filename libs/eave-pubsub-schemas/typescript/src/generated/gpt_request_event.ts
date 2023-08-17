@@ -15,6 +15,7 @@ export interface GPTRequestEvent {
   output_token_count: number;
   model: string;
   eave_team_id?: string | undefined;
+  document_id: string;
 }
 
 function createBaseGPTRequestEvent(): GPTRequestEvent {
@@ -31,6 +32,7 @@ function createBaseGPTRequestEvent(): GPTRequestEvent {
     output_token_count: 0,
     model: "",
     eave_team_id: undefined,
+    document_id: "",
   };
 }
 
@@ -71,6 +73,9 @@ export const GPTRequestEvent = {
     }
     if (message.eave_team_id !== undefined) {
       writer.uint32(106).string(message.eave_team_id);
+    }
+    if (message.document_id !== "") {
+      writer.uint32(114).string(message.document_id);
     }
     return writer;
   },
@@ -166,6 +171,13 @@ export const GPTRequestEvent = {
 
           message.eave_team_id = reader.string();
           continue;
+        case 14:
+          if (tag != 114) {
+            break;
+          }
+
+          message.document_id = reader.string();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -189,6 +201,7 @@ export const GPTRequestEvent = {
       output_token_count: isSet(object.output_token_count) ? Number(object.output_token_count) : 0,
       model: isSet(object.model) ? String(object.model) : "",
       eave_team_id: isSet(object.eave_team_id) ? String(object.eave_team_id) : undefined,
+      document_id: isSet(object.document_id) ? String(object.document_id) : "",
     };
   },
 
@@ -206,6 +219,7 @@ export const GPTRequestEvent = {
     message.output_token_count !== undefined && (obj.output_token_count = Math.round(message.output_token_count));
     message.model !== undefined && (obj.model = message.model);
     message.eave_team_id !== undefined && (obj.eave_team_id = message.eave_team_id);
+    message.document_id !== undefined && (obj.document_id = message.document_id);
     return obj;
   },
 
@@ -227,6 +241,7 @@ export const GPTRequestEvent = {
     message.output_token_count = object.output_token_count ?? 0;
     message.model = object.model ?? "";
     message.eave_team_id = object.eave_team_id ?? undefined;
+    message.document_id = object.document_id ?? "";
     return message;
   },
 };

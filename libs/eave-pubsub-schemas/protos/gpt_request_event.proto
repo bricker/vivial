@@ -17,4 +17,5 @@ message GPTRequestEvent {
   int64 output_token_count = 10;
   string model = 11;
   optional string eave_team_id = 13;
+  string document_id = 14;
 }
