@@ -15,7 +15,7 @@ export interface GPTRequestEvent {
   output_token_count: number;
   model: string;
   eave_team_id?: string | undefined;
-  document_id: string;
+  document_id?: string | undefined;
 }
 
 function createBaseGPTRequestEvent(): GPTRequestEvent {
@@ -32,7 +32,7 @@ function createBaseGPTRequestEvent(): GPTRequestEvent {
     output_token_count: 0,
     model: "",
     eave_team_id: undefined,
-    document_id: "",
+    document_id: undefined,
   };
 }
 
@@ -74,7 +74,7 @@ export const GPTRequestEvent = {
     if (message.eave_team_id !== undefined) {
       writer.uint32(106).string(message.eave_team_id);
     }
-    if (message.document_id !== "") {
+    if (message.document_id !== undefined) {
       writer.uint32(114).string(message.document_id);
     }
     return writer;
@@ -201,7 +201,7 @@ export const GPTRequestEvent = {
       output_token_count: isSet(object.output_token_count) ? Number(object.output_token_count) : 0,
       model: isSet(object.model) ? String(object.model) : "",
       eave_team_id: isSet(object.eave_team_id) ? String(object.eave_team_id) : undefined,
-      document_id: isSet(object.document_id) ? String(object.document_id) : "",
+      document_id: isSet(object.document_id) ? String(object.document_id) : undefined,
     };
   },
 
@@ -241,7 +241,7 @@ export const GPTRequestEvent = {
     message.output_token_count = object.output_token_count ?? 0;
     message.model = object.model ?? "";
     message.eave_team_id = object.eave_team_id ?? undefined;
-    message.document_id = object.document_id ?? "";
+    message.document_id = object.document_id ?? undefined;
     return message;
   },
 };
