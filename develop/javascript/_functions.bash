@@ -11,6 +11,11 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function node-activate-venv() {
+		# nvm is a pesky collection of functions that needs to be imported every time we
+		# want to use it in a new shell process. Assuming the caller has nvm at all,
+		# it should be setup by their shell loginfile
+		import-loginfile
+
 		if ! cmd-exists "nvm"; then
 			statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
 			return 0
