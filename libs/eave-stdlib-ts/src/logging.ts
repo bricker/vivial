@@ -72,11 +72,11 @@ export class LogContext {
     this.set({ eave_origin: value });
   }
 
-  get feature_name(): string {
-    return <string> this.attributes['feature_name'];
+  get feature_name(): string | undefined {
+    return <string | undefined> this.attributes['feature_name'];
   }
 
-  set feature_name(value: string) {
+  set feature_name(value: string | undefined) {
     this.set({ feature_name: value });
   }
 

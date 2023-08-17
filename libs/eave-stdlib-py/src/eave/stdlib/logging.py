@@ -174,12 +174,12 @@ class LogContext(JsonObject):
         return str(v)
 
     @property
-    def feature_name(self) -> str:
+    def feature_name(self) -> Optional[str]:
         v = self["feature_name"]
         return str(v)
 
     @feature_name.setter
-    def feature_name(self, value: str) -> None:
+    def feature_name(self, value: Optional[str]) -> None:
         self.set({"feature_name": value})
 
 
