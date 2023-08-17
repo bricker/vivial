@@ -146,6 +146,8 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function shloginfile() {
+		local usershell
+		usershell=$(shellname)
 		case $usershell in
 		"bash")
 			if test -f "$HOME/.bash_profile"; then
@@ -165,6 +167,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 			;;
 		esac
+	}
+
+	function import-loginfile() {
+		local loginfile=$(shloginfile)
+		source $loginfile
 	}
 
 	function cmd-exists() {
