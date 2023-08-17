@@ -32,6 +32,7 @@ async def get_topic(conversation: str, ctx: Optional[LogContext] = None) -> str:
         temperature=0.5,
     )
 
+    # TODO: include document_id when possible
     title: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
     if title is None:
         raise OpenAIDataError()
@@ -95,6 +96,7 @@ async def get_hierarchy(conversation: str, ctx: Optional[LogContext] = None) -> 
         temperature=0,
     )
 
+    # TODO: include document_id when possible
     answer: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
     if answer is None:
         raise OpenAIDataError()
@@ -142,6 +144,7 @@ async def get_documentation_type(conversation: str, ctx: Optional[LogContext] = 
         temperature=0,
     )
 
+    # TODO: include document_id when possible
     openai_response: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
     if openai_response is None:
         raise OpenAIDataError()
@@ -231,6 +234,7 @@ async def get_documentation(
         temperature=0.2,
     )
 
+    # TODO: include document_id when possible
     openai_response: str | None = await eave_openai.chat_completion(
         openai_params,
         baseTimeoutSeconds=120,
