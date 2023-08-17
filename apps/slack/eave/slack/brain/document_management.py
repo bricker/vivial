@@ -86,6 +86,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             opaque_params={
                 "document_platform": upsert_document_response.team.document_platform,
                 "document_reference": json.loads(upsert_document_response.document_reference.json()),
+                "document_id": str(upsert_document_response.document_reference.id),
                 "document.title": api_document.title,
                 "document.parent": api_document.parent.title if api_document.parent else None,
             },
