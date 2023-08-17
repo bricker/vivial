@@ -76,6 +76,7 @@ async def log_gpt_request(
     output_token_count: int,
     model: str,
     ctx: typing.Optional[_l.LogContext],
+    document_id: typing.Optional[str],
 ) -> None:
     event_time = datetime.utcnow().isoformat()
 
@@ -92,6 +93,7 @@ async def log_gpt_request(
         output_token_count=output_token_count,
         model=model,
         eave_team_id=ctx.eave_team_id if ctx else "null",  # for consistency with TS code
+        document_id=document_id,
     )
 
     await _send_event(event, _GPT_EVENT_TOPIC_ID, ctx)

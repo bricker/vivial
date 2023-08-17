@@ -106,6 +106,7 @@ async def chat_completion(
     params: ChatCompletionParameters,
     ctx: Optional[LogContext],
     baseTimeoutSeconds: int = 30,
+    document_id: Optional[str] = None
 ) -> str:
     """
     Makes a request to OpenAI chat completion API, return string response.
@@ -115,6 +116,7 @@ async def chat_completion(
     params - main OpenAI API request params
     baseTimeoutSeconds - OpenAI API request timeout
     ctx - log context (also used to populate important analytics fields)
+    document_id - some unique ID for the file/document this OpenAI request is for (for analytics)
     returns - API chat completion response string (throws on timeout or other error)
     """
 
@@ -175,7 +177,7 @@ async def chat_completion(
     duration_seconds = round(timestamp_end - timestamp_start)
     input_tokens =  usage["prompt_tokens"] if (usage := response["usage"]) else None
     output_tokens =  usage["completion_tokens"] if (usage := response["usage"]) else None
-    await _log_gpt_request(params, answer, duration_seconds, input_tokens, output_tokens, ctx)
+    await _log_gpt_request(params, answer, duration_seconds, input_tokens, output_tokens, ctx, document_id)
     return answer
 
 
@@ -186,6 +188,7 @@ async def _log_gpt_request(
     input_tokens: Optional[int],
     output_tokens: Optional[int],
     ctx: Optional[LogContext],
+    document_id: Optional[str],
 ) -> None:
     full_prompt = "\n".join(params.messages)
 
@@ -205,6 +208,7 @@ async def _log_gpt_request(
         output_token_count=output_tokens,
         model=params.model,
         ctx=ctx,
+        document_id=document_id,
     )
 
 

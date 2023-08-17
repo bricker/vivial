@@ -28,6 +28,7 @@ export interface GPTRequestEventFields {
   input_token_count: number;
   output_token_count: number;
   model: string;
+  document_id?: string;
 }
 
 export async function logEvent(fields: EaveEventFields, ctx?: LogContext) {

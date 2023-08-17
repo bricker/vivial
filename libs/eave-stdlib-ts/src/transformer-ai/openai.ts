@@ -36,15 +36,18 @@ export default class OpenAIClient {
    * @param parameters the main openAI API request params
    * @param ctx log context (also used to populate important analytics fields)
    * @param baseTimeoutSeconds API request timeout
+   * @param documentId some unique ID for the file/document this OpenAI request is for (for analytics)
    * @returns API chat completion response string
    */
   async createChatCompletion({
     parameters,
     ctx,
     baseTimeoutSeconds = 30,
+    documentId = undefined,
   }: CtxArg & {
     parameters: CreateChatCompletionRequest,
     baseTimeoutSeconds?: number,
+    documentId?: string,
   }): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
@@ -89,7 +92,7 @@ export default class OpenAIClient {
 
     const timestampEnd = Date.now();
     const duration_seconds = (timestampEnd - timestampStart) * 1000;
-    await logGptRequestData(parameters, duration_seconds, text, completion?.request?.usage?.prompt_tokens, completion?.request?.usage?.completion_tokens, ctx);
+    await logGptRequestData(parameters, duration_seconds, text, completion?.request?.usage?.prompt_tokens, completion?.request?.usage?.completion_tokens, documentId, ctx);
 
     return text;
   }
@@ -98,22 +101,20 @@ export default class OpenAIClient {
 async function logGptRequestData(
   parameters: CreateChatCompletionRequest,
   duration_seconds: number,
-  response?: string,
+  response: string,
   input_token_count?: number,
   output_token_count?: number,
+  document_id?: string,
   ctx?: LogContext,
 ) {
   const fullPrompt = parameters.messages.map((m) => m.content).join('\n');
   const modelEnum = modelFromString(parameters.model);
 
-  // should never be undefined, but who knows anythings possible :rainbow:
-  const output_response = response || '';
-
   if (input_token_count === undefined) {
     input_token_count = costCounter.tokenCount(fullPrompt, modelEnum);
   }
   if (output_token_count === undefined) {
-    output_token_count = costCounter.tokenCount(output_response, modelEnum);
+    output_token_count = costCounter.tokenCount(response, modelEnum);
   }
 
   await logGptRequest({
@@ -122,9 +123,10 @@ async function logGptRequestData(
     input_cost_usd: costCounter.calculatePromptCostUSD(input_token_count, modelEnum),
     output_cost_usd: costCounter.calculateResponseCostUSD(output_token_count, modelEnum),
     input_prompt: fullPrompt,
-    output_response,
+    output_response: response,
     input_token_count,
     output_token_count,
     model: parameters.model,
+    document_id,
   }, ctx);
 }

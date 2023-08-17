@@ -15,7 +15,8 @@ import { appConfig } from '../config.js';
 
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   const { ctx, octokit } = context;
-  ctx.feature_name = 'github_push_subscription_updates';
+  const event_name = 'github_push_subscription_updates';
+  ctx.feature_name = event_name;
   eaveLogger.debug('Processing push', ctx);
   const openaiClient = await OpenAIClient.getAuthedClient();
 
@@ -142,6 +143,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           model: OpenAIModel.GPT4,
         },
         baseTimeoutSeconds: 120,
+        documentId: subscriptionResponse.document_reference?.document_id,
         ctx,
       });
 
@@ -151,7 +153,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       };
 
       await logEvent({
-        event_name: ctx.feature_name,
+        event_name,
         event_description: 'updating a document subscribed to github file changes',
         event_source: 'github webhook push event',
         opaque_params: JSON.stringify({
@@ -159,6 +161,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           repoName: event.repository.name,
           filePath: eventCommitTouchedFilename,
           fileLanguage: languageName,
+          document_id: subscriptionResponse.document_reference?.document_id,
           eventId,
         }),
         eave_team: JSON.stringify(teamResponse.team),
