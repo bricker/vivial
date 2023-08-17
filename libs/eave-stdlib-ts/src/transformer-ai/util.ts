@@ -25,18 +25,18 @@ export async function rollingSummary(
   while (OpenAIClient.tokenCount(summary, model) > chunkSize) {
     let newSummary = summary;
     let currPosition = 0;
-    let currChunk = summary.slice(currPosition, currPosition + chunkSize);
-    const chunks = [currChunk];
+    let currChunk: string;
+    const chunks = [];
 
     // Break `summary` into strings of `chunkSize` tokens.
     // There are generally 0.75 words per token, so approximating 1 character per token may
     // be overly generous in some contexts, but it's a safe minimum.
     // cite: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
-    while (currChunk.length === chunkSize) {
+    do {
       currPosition += chunkSize;
       currChunk = summary.slice(currPosition, currPosition + chunkSize);
       chunks.push(currChunk);
-    }
+    } while (currChunk.length === chunkSize);
 
     // summarize each chunk, combining it into existing summary
     for (const chunk of chunks.filter((chnk) => chnk.length > 0)) {
