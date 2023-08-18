@@ -1,14 +1,16 @@
 import asyncio
 from typing import Optional
-import eave.stdlib.openai_client as openai
+from eave.stdlib.transformer_ai import token_counter
+import eave.stdlib.transformer_ai.openai_client as openai
+import eave.stdlib.transformer_ai.models as ai_model
 from eave.stdlib.util import memoized
 from eave.stdlib import link_handler
-from eave.stdlib.exceptions import SlackDataError, OpenAIDataError
+from eave.stdlib.exceptions import SlackDataError
 from .base import Base
 from . import message_prompts
 from ..config import app_config
 
-context_building_model = openai.OpenAIModel.GPT4
+context_building_model = ai_model.OpenAIModel.GPT4
 
 class ContextBuildingMixin(Base):
     async def build_message_context(self) -> None:
@@ -40,7 +42,7 @@ class ContextBuildingMixin(Base):
     @memoized
     async def build_context(self) -> str:
         context = await self.build_concatenated_context()
-        if openai.token_count(data=context, model=context_building_model) > (openai.MAX_TOKENS[context_building_model] / 2):
+        if openai.token_count(data=context, model=context_building_model) > (ai_model.MAX_TOKENS[context_building_model] / 2):
             context = await self.build_rolling_context()
 
         return context
@@ -81,7 +83,7 @@ class ContextBuildingMixin(Base):
 
             total_tokens += openai.token_count(data=formatted_text, model=context_building_model)
 
-            if total_tokens > (openai.MAX_TOKENS[context_building_model] / 2):
+            if total_tokens > (ai_model.MAX_TOKENS[context_building_model] / 2):
                 joined_messages = "\n\n".join(messages_for_prompt)
                 prompt = openai.formatprompt(
                     f"""
@@ -104,11 +106,7 @@ class ContextBuildingMixin(Base):
                     frequency_penalty=1.0,
                     presence_penalty=1.0,
                 )
-                response = await openai.chat_completion(params=openai_params)
-                if response is None:
-                    raise OpenAIDataError()
-
-                condensed_context = response
+                condensed_context = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
                 total_tokens = 0
                 messages_for_prompt.clear()
 
@@ -122,9 +120,9 @@ class ContextBuildingMixin(Base):
         """
         Given some content (from a URL) return a summary of it.
         """
-        if openai.token_count(data=content, model=context_building_model) > openai.MAX_TOKENS[context_building_model]:
+        if token_counter.token_count(data=content, model=context_building_model) > ai_model.MAX_TOKENS[context_building_model]:
             # build rolling summary of long content
-            threshold = int(openai.MAX_TOKENS[context_building_model] / 2)
+            threshold = int(ai_model.MAX_TOKENS[context_building_model] / 2)
             return await self._rolling_summarize_content(content, threshold)
         else:
             prompt = openai.formatprompt(
@@ -145,8 +143,7 @@ class ContextBuildingMixin(Base):
                 frequency_penalty=1.0,
                 presence_penalty=1.0,
             )
-            summary_resp: str | None = await openai.chat_completion(params=openai_params)
-            assert summary_resp is not None
+            summary_resp = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
             return summary_resp
 
     async def _rolling_summarize_content(self, content: str, threshold: int) -> str:
@@ -192,9 +189,7 @@ class ContextBuildingMixin(Base):
                         frequency_penalty=1.0,
                         presence_penalty=1.0,
                     )
-                    response = await openai.chat_completion(params=openai_params)
-                    assert response is not None
-                    new_summary = response
+                    new_summary = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
                 else:
                     prompt = openai.formatprompt(
                         f"""
@@ -214,9 +209,7 @@ class ContextBuildingMixin(Base):
                         frequency_penalty=1.0,
                         presence_penalty=1.0,
                     )
-                    response = await openai.chat_completion(params=openai_params)
-                    assert response is not None
-                    new_summary = response
+                    new_summary = await openai.chat_completion(params=openai_params, ctx=self.eave_ctx)
             summary = new_summary
 
         return summary

@@ -167,4 +167,5 @@ class GithubOAuthCallback(HTTPEndpoint):
             opaque_params={
                 "integration_name": Integration.github.value,
             },
+            ctx=self.eave_state.ctx,
         )

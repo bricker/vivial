@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+message GPTRequestEvent {
+  // reserve removed fields
+  reserved 12;
+  reserved "file_identifier";
+
+  optional string feature_name = 1;
+  string event_time = 2;
+  int64 duration_seconds = 3;
+  string eave_request_id = 4;
+  float input_cost_usd = 5;
+  float output_cost_usd = 6;
+  string input_prompt = 7;
+  string output_response = 8;
+  int64 input_token_count = 9;
+  int64 output_token_count = 10;
+  string model = 11;
+  optional string eave_team_id = 13;
+  optional string document_id = 14;
+}

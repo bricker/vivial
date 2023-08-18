@@ -156,6 +156,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_name=event_name,
             event_description=event_description,
             event_source=event_source,
+            ctx=None,
         )
 
         self.data_expected_event = EaveEvent(
@@ -208,6 +209,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_name=self.anystr("event_name"),
             event_description=self.anystr("event_description"),
             event_source=self.anystr("event_source"),
+            ctx=None,
         )
 
         assert self.mocks_publisher.call_count == 0
