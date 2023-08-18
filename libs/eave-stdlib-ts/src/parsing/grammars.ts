@@ -11,16 +11,9 @@ import PHP from 'tree-sitter-php';
 import Ruby from 'tree-sitter-ruby';
 import Swift from 'tree-sitter-swift';
 import Csharp from 'tree-sitter-c-sharp';
-import logging from '../logging.js';
 import { ProgrammingLanguage, stringToProgrammingLanguage } from '../language-mapping.js';
 
 const { typescript: Typescript, tsx } = tsPkg;
-
-// used to typecheck our enum cases as exhuastive
-// https://stackoverflow.com/questions/39419170/how-do-i-check-that-a-switch-block-is-exhaustive-in-typescript
-function logExhaustiveCaseError(c: never) {
-  logging.error(`Unhandled ProgrammingLanguage case: ${c}`);
-}
 
 /**
  * Return a tree-sitter grammar corresponding to the programming language
@@ -60,8 +53,10 @@ export function grammarForLanguage(language: string, extName: string): any {
     case ProgrammingLanguage.swift: return Swift;
     case ProgrammingLanguage.csharp: return Csharp;
     default:
-      logExhaustiveCaseError(pl);
-      return null;
+      // used to typecheck our enum cases as exhuastive
+      // eslint-disable-next-line no-case-declarations
+      const unhandledCase: never = pl;
+      throw new Error(`Unhandled ProgrammingLanguage case: ${unhandledCase}`);
   }
 }
 
@@ -192,7 +187,9 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
       ];
     // case 'python': // TODO: skipped for now for being special snowflake
     default:
-      logExhaustiveCaseError(pl);
-      return [];
+      // used to typecheck our enum cases as exhuastive
+      // eslint-disable-next-line no-case-declarations
+      const unhandledCase: never = pl;
+      throw new Error(`Unhandled ProgrammingLanguage case: ${unhandledCase}`);
   }
 }
