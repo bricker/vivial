@@ -14,6 +14,7 @@ import { OpenAIModel } from './transformer-ai/models.js';
  * @param filePath file path correlated with `currContent` file content
  * @param openaiClient
  * @param ctx extra context for more detailed logs
+ * @param fileNodeId GitHub graphql node ID https://docs.github.com/en/graphql/reference/interfaces#node
  * @param model the AI model to use to generate new documentation (Default: OpenAIModel.GPT4)
  * @returns the same code content as `currContent` but with doc strings updated, or null if unable to create updated document
  */
@@ -22,6 +23,7 @@ export async function updateDocumentation(
   filePath: string,
   openaiClient: OpenAIClient,
   ctx: LogContext,
+  fileNodeId: string,
   model: OpenAIModel = OpenAIModel.GPT4,
 ): Promise<string | null> {
   // load language from file extension map file
@@ -71,6 +73,7 @@ export async function updateDocumentation(
         model,
         temperature: 0,
       },
+      documentId: fileNodeId,
       ctx,
     });
 
@@ -104,6 +107,7 @@ export async function updateDocumentation(
           model,
           temperature: 0,
         },
+        documentId: fileNodeId,
         ctx,
       });
     }
