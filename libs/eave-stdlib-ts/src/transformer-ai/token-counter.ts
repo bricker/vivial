@@ -16,7 +16,10 @@ function inputTokenCost(model: OpenAIModel): number {
     case OpenAIModel.GPT4:
       return 0.03;
     default:
-      throw new Error(`Model ${model} not found to compute token cost!`);
+      // using 'never' typed constant here to typecheck that a case hasnt been missed
+      // eslint-disable-next-line no-case-declarations
+      const missedCase: never = model;
+      throw new Error(`Model ${missedCase} not found to compute token cost!`);
   }
 }
 
@@ -35,7 +38,10 @@ function outputTokenCost(model: OpenAIModel): number {
     case OpenAIModel.GPT4:
       return 0.06;
     default:
-      throw new Error(`Model ${model} not found to compute token cost!`);
+      // using 'never' typed constant here to typecheck that a case hasnt been missed
+      // eslint-disable-next-line no-case-declarations
+      const missedCase: never = model;
+      throw new Error(`Model ${missedCase} not found to compute token cost!`);
   }
 }
 
