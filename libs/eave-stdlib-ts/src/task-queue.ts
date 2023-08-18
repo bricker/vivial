@@ -61,7 +61,7 @@ export async function createTaskFromRequest({
     }
   }
 
-  // The "user agent" is Slack Bot when coming from Slack, but for the task processor that's not the case.
+  // The "user agent" is the GitHub webhook deliverer, but when passing off to the task processor, that's not true.
   // GCP Task Queue merges the user agents.
   delete headers[headersImport.USER_AGENT];
 
