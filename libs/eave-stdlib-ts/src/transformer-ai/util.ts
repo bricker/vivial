@@ -1,4 +1,6 @@
-import OpenAIClient, { formatprompt, OpenAIModel } from './openai.js';
+import OpenAIClient, { formatprompt } from './openai.js';
+import { OpenAIModel, maxTokens } from './models.js';
+import { tokenCount } from './token-counter.js';
 
 /**
  * Given a `content` string to summarize that is (assumed) longer than `threshold`
@@ -19,10 +21,10 @@ export async function rollingSummary(
   threshold: number | undefined = undefined,
   model: OpenAIModel = OpenAIModel.GPT4,
 ): Promise<string> {
-  const chunkSize = threshold === undefined ? Math.floor(OpenAIClient.maxTokens(model) / 2) : threshold;
+  const chunkSize = threshold === undefined ? Math.floor(maxTokens(model) / 2) : threshold;
   let summary = content;
 
-  while (OpenAIClient.tokenCount(summary, model) > chunkSize) {
+  while (tokenCount(summary, model) > chunkSize) {
     let newSummary = summary;
     let currPosition = 0;
     let currChunk: string;

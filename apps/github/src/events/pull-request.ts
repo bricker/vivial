@@ -1,7 +1,8 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
 import path from 'path';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import OpenAIClient, { OpenAIModel, formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import OpenAIClient, { formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
 import {
   Query,
   Scalars,
@@ -21,7 +22,6 @@ import { updateDocumentation } from '@eave-fyi/eave-stdlib-ts/src/function-docum
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
-import { appConfig } from '../config.js';
 
 const eavePrTitle = 'docs: Eave inline code documentation update';
 
@@ -45,14 +45,9 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     const interaction = event.pull_request.merged ? 'merged' : 'closed';
     await logEvent({
       event_name: 'github_eave_pr_interaction',
-      event_time: new Date().toISOString(),
       event_description: `A GitHub PR opened by Eave was ${interaction}`,
       event_source: 'github webhook pull_request event',
       opaque_params: JSON.stringify({ interaction }),
-      eave_account_id: ctx?.eave_account_id,
-      eave_team_id: ctx?.eave_team_id,
-      eave_env: appConfig.eaveEnv,
-      opaque_eave_ctx: JSON.stringify(ctx),
     }, ctx);
     return;
   }
