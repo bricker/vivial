@@ -33,9 +33,7 @@ async def get_topic(conversation: str, ctx: Optional[LogContext] = None) -> str:
     )
 
     # TODO: include document_id when possible
-    title: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
-    if title is None:
-        raise OpenAIDataError()
+    title = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
 
     # Remove quotes and spaces at the beginning or end
     title = title.strip(STRIPPED_CHARS)
@@ -97,9 +95,7 @@ async def get_hierarchy(conversation: str, ctx: Optional[LogContext] = None) -> 
     )
 
     # TODO: include document_id when possible
-    answer: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
-    if answer is None:
-        raise OpenAIDataError()
+    answer = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
 
     parents = list(map(lambda x: x.strip(STRIPPED_CHARS), answer.split(",")))
     return parents
@@ -145,9 +141,7 @@ async def get_documentation_type(conversation: str, ctx: Optional[LogContext] = 
     )
 
     # TODO: include document_id when possible
-    openai_response: str | None = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
-    if openai_response is None:
-        raise OpenAIDataError()
+    openai_response = await eave_openai.chat_completion(openai_params, ctx=ctx, document_id=None)
 
     if re.search(DocumentationType.TECHNICAL.value, openai_response, flags=re.IGNORECASE):
         return DocumentationType.TECHNICAL
@@ -235,13 +229,11 @@ async def get_documentation(
     )
 
     # TODO: include document_id when possible
-    openai_response: str | None = await eave_openai.chat_completion(
+    openai_response = await eave_openai.chat_completion(
         openai_params,
         baseTimeoutSeconds=120,
         ctx=ctx,
         document_id=None,
     )
-    if openai_response is None:
-        raise OpenAIDataError()
 
     return openai_response
