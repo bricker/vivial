@@ -1,7 +1,7 @@
 import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
 import { getFunctionDocumentationQueries, grammarForLanguage } from './grammars.js';
-import logging from '../logging.js';
+import logging, { LogContext } from '../logging.js';
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
@@ -26,11 +26,21 @@ export type ParsedFunction = {
  * @param language programming language of `content`. Used for constructing grammar queries.
  * @returns array of function data parsed from `content`
  */
-export function parseFunctionsAndComments(content: string, extName: string, language: string): ParsedFunction[] {
+export function parseFunctionsAndComments({
+  content,
+  extName,
+  language,
+  ctx = undefined,
+}: {
+  content: string,
+  extName: string,
+  language: string,
+  ctx?: LogContext,
+}): ParsedFunction[] {
   const parser = new Parser();
-  const languageGrammar = grammarForLanguage(language, extName);
+  const languageGrammar = grammarForLanguage({ language, extName });
   if (!languageGrammar) {
-    logging.debug(`No grammar found for ${language}`);
+    logging.debug(`No grammar found for ${language}`, ctx);
     return [];
   }
   parser.setLanguage(languageGrammar);
@@ -42,11 +52,11 @@ export function parseFunctionsAndComments(content: string, extName: string, lang
   const funcMatcher = '_function';
   const commentMatcher = '_doc_comment';
 
-  const queries = getFunctionDocumentationQueries(language, funcMatcher, commentMatcher);
+  const queries = getFunctionDocumentationQueries({ language, funcMatcher, commentMatcher });
 
   queries.forEach((queryString) => {
     const query = new Parser.Query(languageGrammar, queryString);
-    runQuery(query, ptree.rootNode, content, fmap, funcMatcher, commentMatcher);
+    runQuery({ query, rootNode: ptree.rootNode, content, fmap, funcMatcher, commentMatcher });
   });
 
   return Object.values(fmap);
@@ -72,7 +82,7 @@ export function writeUpdatedCommentsIntoFileString(content: string, parsedFuncti
       if (f.comment) {
         before = f.start + f.comment.length;
       }
-      newContent = insertDocsComment(newContent, f.updatedComment, f.start, before);
+      newContent = insertDocsComment({ content: newContent, docs: f.updatedComment, after: f.start, before });
     }
   });
 
@@ -90,7 +100,17 @@ export function writeUpdatedCommentsIntoFileString(content: string, parsedFuncti
  * @param before index in content to put docs before. (set to after if undefined)
  * @returns content with `docs` inserted
  */
-function insertDocsComment(content: string, docs: string, after: number, before?: number) {
+function insertDocsComment({
+  content,
+  docs,
+  after,
+  before,
+}: {
+  content: string,
+  docs: string,
+  after: number,
+  before?: number,
+}) {
   if (before === undefined) {
     before = after;
   }
@@ -117,14 +137,21 @@ function insertDocsComment(content: string, docs: string, after: number, before?
  * @param funcMatcher name used by `query` to capture function_declaration (or equivilant) nodes from `rootNode` tree
  * @param commentMatcher name used by `query` to capture comment nodes from `rootNode` tree
  */
-function runQuery(
+function runQuery({
+  query,
+  rootNode,
+  content,
+  fmap,
+  funcMatcher,
+  commentMatcher,
+}: {
   query: Parser.Query,
   rootNode: Parser.SyntaxNode,
   content: string,
   fmap: { [key: string]: ParsedFunction },
   funcMatcher: string,
   commentMatcher: string,
-): void {
+}): void {
   const matches = query.matches(rootNode);
 
   matches?.forEach((qmatch: Parser.QueryMatch) => {
@@ -155,7 +182,10 @@ function runQuery(
           break;
 
         case commentMatcher:
-          // this matcher may be found multiple times per function, due to use of * in query.
+          // NOTE: this matcher may be found multiple times per function, due to use of * in query.
+          // Check if this matched comment is a continuation (1-line comment on next line)
+          // of the previous matched comment. Characters between the end of the prev comment and start of
+          // this one should only contain whitespace, but MUST contain a newline.
           if (commentEnd === undefined || !content.slice(commentEnd, cap.node.startIndex).match(/\s*\n\s*/)) {
             // begin new comment chunk (block or series of 1-line)
             commentStart = cap.node.startIndex;

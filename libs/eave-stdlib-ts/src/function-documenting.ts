@@ -18,27 +18,34 @@ import { OpenAIModel } from './transformer-ai/models.js';
  * @param model the AI model to use to generate new documentation (Default: OpenAIModel.GPT4)
  * @returns the same code content as `currContent` but with doc strings updated, or null if unable to create updated document
  */
-export async function updateDocumentation(
+export async function updateDocumentation({
+  currContent,
+  filePath,
+  openaiClient,
+  ctx,
+  fileNodeId,
+  model = OpenAIModel.GPT4,
+}: {
   currContent: string,
   filePath: string,
   openaiClient: OpenAIClient,
   ctx: LogContext,
   fileNodeId: string,
-  model: OpenAIModel = OpenAIModel.GPT4,
-): Promise<string | null> {
+  model?: OpenAIModel,
+}): Promise<string | null> {
   // load language from file extension map file
   const extName = `${path.extname(filePath).toLowerCase()}`;
   const flang = (await getExtensionMap())[extName];
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early
-    eaveLogger.error(`No matching language found for file extension: "${extName}"`);
+    eaveLogger.error(`No matching language found for file extension: "${extName}"`, ctx);
     return null;
   }
 
-  const parsedData = parseFunctionsAndComments(currContent, extName, flang);
+  const parsedData = parseFunctionsAndComments({ content: currContent, extName, language: flang, ctx });
   if (parsedData.length === 0) {
-    eaveLogger.error(`Unable to parse ${flang} from ${extName} file`);
+    eaveLogger.error(`Unable to parse ${flang} from ${extName} file`, ctx);
     return null;
   }
 
@@ -46,7 +53,7 @@ export async function updateDocumentation(
   await Promise.all(parsedData.map(async (funcData) => {
     // convert long function strings to a summary for docs writing to prevent AI from getting overwhelmed by
     // implementation details in raw code file (and to account for functions longer than model context)
-    const summarizedFunction = await AIUtil.rollingSummary(openaiClient, funcData.func);
+    const summarizedFunction = await AIUtil.rollingSummary({ client: openaiClient, content: funcData.func });
 
     // update docs, or write new ones if currDocs is empty/undefined
     // TODO: retest w/ summarized function

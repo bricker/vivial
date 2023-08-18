@@ -1,5 +1,6 @@
 const fs = require('fs').promises;
-const yaml = require('js-yaml'); // eslint-disable-line
+// eslint-disable-next-line import/no-extraneous-dependencies
+const yaml = require('js-yaml');
 
 async function main() {
   // download latest lang file from https://github.com/github-linguist
@@ -33,7 +34,7 @@ async function main() {
   transformedFileObject['.cs'] = 'C#';
 
   // write to local file as json for easier access by prod TS code
-  const jsonString = JSON.stringify(transformedFileObject);
+  const jsonString = JSON.stringify(transformedFileObject, null, 2);
   await fs.writeFile(`${process.env['EAVE_HOME']}/apps/github/languages.json`, jsonString, 'utf8');
 }
 

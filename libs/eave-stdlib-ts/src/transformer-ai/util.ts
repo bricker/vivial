@@ -15,12 +15,17 @@ import { tokenCount } from './token-counter.js';
  *                  (Recommended to be less than MAX_TOKENS allowed by API)
  * @return a summary of the content in `content`
  */
-export async function rollingSummary(
+export async function rollingSummary({
+  client,
+  content,
+  threshold = undefined,
+  model = OpenAIModel.GPT4,
+}: {
   client: OpenAIClient,
   content: string,
-  threshold: number | undefined = undefined,
-  model: OpenAIModel = OpenAIModel.GPT4,
-): Promise<string> {
+  threshold?: number,
+  model?: OpenAIModel,
+}): Promise<string> {
   const chunkSize = threshold === undefined ? Math.floor(maxTokens(model) / 2) : threshold;
   let summary = content;
 

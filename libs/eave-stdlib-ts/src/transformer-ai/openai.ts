@@ -14,7 +14,7 @@ export const PROMPT_PREFIX =
   + "You are responsible for the quality and integrity of this organization's documentation.";
 
 export function formatprompt(...prompts: string[]): string {
-  const prompt = [];
+  const prompt: string[] = [];
   for (const s of prompts) {
     let chunks = s.split('\n');
     if (chunks.length <= 1) {

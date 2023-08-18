@@ -26,7 +26,7 @@ const { typescript: Typescript, tsx } = tsPkg;
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarForLanguage(language: string, extName: string): any {
+export function grammarForLanguage({ language, extName }: { language: string, extName: string }): any {
   const pl = stringToProgrammingLanguage(language);
   if (pl === undefined) {
     return null;
@@ -67,7 +67,11 @@ export function grammarForLanguage(language: string, extName: string): any {
  * @param language name of programming language to get queries for
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
-export function getFunctionDocumentationQueries(language: string, funcMatcher: string, commentMatcher: string): string[] {
+export function getFunctionDocumentationQueries({
+  language,
+  funcMatcher,
+  commentMatcher,
+}: { language: string, funcMatcher: string, commentMatcher: string }): string[] {
   const pl = stringToProgrammingLanguage(language);
   if (pl === undefined) {
     return [];

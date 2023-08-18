@@ -134,7 +134,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         : '';
 
       // have AI explain the code change
-      const summarizedContent = rollingSummary(openaiClient, fileContents);
+      const summarizedContent = rollingSummary({ client: openaiClient, content: fileContents });
 
       // FIXME: Add this eslint exception to eslint config
       // eslint-disable-next-line operator-linebreak

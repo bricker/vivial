@@ -164,7 +164,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       return null; // exits just this iteration of map
     }
 
-    const updatedFileContent = await updateDocumentation(fileContent, fpath, openaiClient, ctx, gitObject.id);
+    const updatedFileContent = await updateDocumentation({ currContent: fileContent, filePath: fpath, openaiClient, ctx, fileNodeId: gitObject.id });
     if (!updatedFileContent) {
       return null;
     }
