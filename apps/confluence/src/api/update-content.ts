@@ -1,11 +1,15 @@
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
 import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
-import OpenAIClient, { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import OpenAIClient from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import { OpenAIModel, maxTokens } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
+import { tokenCount } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/token-counter.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { ConfluenceClientArg } from './util.js';
 
 export default async function updateContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
+  ctx.feature_name = 'confluence_update_content';
   const { content } = <UpdateContentRequestBody>req.body;
   const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {
@@ -13,6 +17,13 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
     res.sendStatus(500);
     return;
   }
+
+  await logEvent({
+    event_name: ctx.feature_name,
+    event_description: 'updating confluence document content',
+    event_source: ctx.eave_origin,
+    opaque_params: JSON.stringify({ pageId: content.id }),
+  }, ctx);
 
   const existingBody = page.body?.storage?.value;
   let newBody = content.body;
@@ -41,9 +52,9 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
     // The idea with dividing by 1.5 is that the prompt contains roughly 2/3 of the full token usage,
     // because the prompt + response contains three total documents.
     let model: OpenAIModel | undefined;
-    if (OpenAIClient.tokenCount(prompt, OpenAIModel.GPT4) < OpenAIClient.maxTokens(OpenAIModel.GPT4) / 1.5) {
+    if (tokenCount(prompt, OpenAIModel.GPT4) < maxTokens(OpenAIModel.GPT4) / 1.5) {
       model = OpenAIModel.GPT4;
-    } else if (OpenAIClient.tokenCount(prompt, OpenAIModel.GPT_35_TURBO_16K) < OpenAIClient.maxTokens(OpenAIModel.GPT_35_TURBO_16K) / 1.5) {
+    } else if (tokenCount(prompt, OpenAIModel.GPT_35_TURBO_16K) < maxTokens(OpenAIModel.GPT_35_TURBO_16K) / 1.5) {
       model = OpenAIModel.GPT_35_TURBO_16K;
     }
 

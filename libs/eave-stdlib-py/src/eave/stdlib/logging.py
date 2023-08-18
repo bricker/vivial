@@ -100,6 +100,7 @@ class LogContext(JsonObject):
         return ctx if ctx else cls(scope)
 
     def __init__(self, scope: Optional[HTTPScope | Scope] = None) -> None:
+        self.set({"feature_name": None})
         if scope:
             cscope = cast(HTTPScope, scope)
             headers = cast(JsonObject, get_headers(cscope))
@@ -171,6 +172,15 @@ class LogContext(JsonObject):
     def eave_request_id(self) -> str:
         v = self["eave_request_id"]
         return str(v)
+
+    @property
+    def feature_name(self) -> Optional[str]:
+        v = self["feature_name"]
+        return str(v)
+
+    @feature_name.setter
+    def feature_name(self, value: Optional[str]) -> None:
+        self.set({"feature_name": value})
 
 
 class EaveLogger:

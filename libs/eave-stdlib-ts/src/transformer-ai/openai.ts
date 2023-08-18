@@ -1,9 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
-import { encoding_for_model } from 'tiktoken';
 import { sharedConfig } from '../config.js';
-import eaveLogger from '../logging.js';
+import eaveLogger, { LogContext } from '../logging.js';
 import { CtxArg } from '../requests.js';
+import { modelFromString } from './models.js';
+import { logGptRequest } from '../analytics.js';
+import * as costCounter from './token-counter.js';
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -11,85 +13,8 @@ export const PROMPT_PREFIX =
   + "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
   + "You are responsible for the quality and integrity of this organization's documentation.";
 
-export enum OpenAIModel {
-  GPT_35_TURBO = 'gpt-3.5-turbo',
-  GPT_35_TURBO_16K = 'gpt-3.5-turbo-16k',
-  GPT4 = 'gpt-4',
-  // GPT4_32K = 'gpt-4-32k',
-}
-
-export function formatprompt(...prompts: string[]): string {
-  const prompt = [];
-  for (const s of prompts) {
-    let chunks = s.split('\n');
-    if (chunks.length <= 1) {
-      // not a multiline string; nothing to dedent
-      prompt.push(s);
-      continue;
-    }
-
-    const commonLeadingWhitespaceLength = chunks.reduce((len, line) => {
-      // Ignore empty lines
-      if (line.trim() === '') {
-        return len;
-      }
-
-      const m = line.match(/^\s*/);
-      // 'm' will never be null, because every string will match the regex. This check is for the typechecker.
-      if (m && m[0].length < len) {
-        len = m[0].length;
-      }
-      return len;
-    }, Infinity);
-
-    if (commonLeadingWhitespaceLength === Infinity) {
-      prompt.push(s);
-      continue;
-    }
-
-    chunks = chunks.map((line) => line.slice(commonLeadingWhitespaceLength));
-    prompt.push(chunks.join('\n'));
-  }
-  return prompt.join('\n');
-}
-
-function modelFromString(v: string): OpenAIModel | undefined {
-  switch (v) {
-    case OpenAIModel.GPT_35_TURBO: return OpenAIModel.GPT_35_TURBO;
-    case OpenAIModel.GPT_35_TURBO_16K: return OpenAIModel.GPT_35_TURBO_16K;
-    case OpenAIModel.GPT4: return OpenAIModel.GPT4;
-    default: return undefined;
-    // case OpenAIModel.GPT4_32K: return OpenAIModel.GPT4_32K;
-  }
-}
-
-type MaxTokens = {
-  [OpenAIModel.GPT_35_TURBO]: number;
-  [OpenAIModel.GPT_35_TURBO_16K]: number;
-  [OpenAIModel.GPT4]: number;
-  // [OpenAIModel.GPT4_32K]: number;
-}
-
-const MAX_TOKENS: MaxTokens = {
-  [OpenAIModel.GPT_35_TURBO]: 4096,
-  [OpenAIModel.GPT_35_TURBO_16K]: 16384,
-  [OpenAIModel.GPT4]: 8192,
-  // [OpenAIModel.GPT4_32K]: 32768,
-};
-
 export default class OpenAIClient {
   client: OpenAIApi;
-
-  static tokenCount(data: string, model: OpenAIModel): number {
-    const encoder = encoding_for_model(model);
-    const count = encoder.encode(data).length;
-    encoder.free();
-    return count;
-  }
-
-  static maxTokens(model: OpenAIModel): number {
-    return MAX_TOKENS[model];
-  }
 
   static async getAuthedClient(): Promise<OpenAIClient> {
     const apiKey = await sharedConfig.openaiApiKey;
@@ -103,11 +28,27 @@ export default class OpenAIClient {
     this.client = client;
   }
 
-  /*
-    https://beta.openai.com/docs/api-reference/completions/create
-    baseTimeoutSeconds is multiplied by (2^n) for each attempt n
-  */
-  async createChatCompletion({ parameters, ctx, baseTimeoutSeconds = 30 }: CtxArg & { parameters: CreateChatCompletionRequest, baseTimeoutSeconds?: number }): Promise<string> {
+  /**
+   * Makes a request to OpenAI chat completion API.
+   * https://beta.openai.com/docs/api-reference/completions/create
+   * baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+   *
+   * @param parameters the main openAI API request params
+   * @param ctx log context (also used to populate important analytics fields)
+   * @param baseTimeoutSeconds API request timeout
+   * @param documentId some unique ID for the file/document this OpenAI request is for (for analytics)
+   * @returns API chat completion response string
+   */
+  async createChatCompletion({
+    parameters,
+    ctx,
+    baseTimeoutSeconds = 30,
+    documentId = undefined,
+  }: CtxArg & {
+    parameters: CreateChatCompletionRequest,
+    baseTimeoutSeconds?: number,
+    documentId?: string,
+  }): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
     const model = modelFromString(parameters.model);
@@ -121,13 +62,16 @@ export default class OpenAIClient {
     };
 
     let text: string | undefined;
+    const timestampStart = Date.now();
+    let completion;
 
     const maxAttempts = 3;
     for (let i = 0; i < maxAttempts; i += 1) {
       const backoffMs = baseTimeoutSeconds * (2 ** i) * 1000;
+
       try {
         eaveLogger.debug('openai request', ctx, logParams);
-        const completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
+        completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
         eaveLogger.debug('openai response', logParams, { openaiResponse: <any>completion.data }, ctx);
         text = completion.data.choices[0]?.message?.content;
         break;
@@ -145,6 +89,44 @@ export default class OpenAIClient {
     if (text === undefined) {
       throw new Error('openai text response is undefined');
     }
+
+    const timestampEnd = Date.now();
+    const duration_seconds = (timestampEnd - timestampStart) * 1000;
+    await logGptRequestData(parameters, duration_seconds, text, completion?.request?.usage?.prompt_tokens, completion?.request?.usage?.completion_tokens, documentId, ctx);
+
     return text;
   }
+}
+
+async function logGptRequestData(
+  parameters: CreateChatCompletionRequest,
+  duration_seconds: number,
+  response: string,
+  input_token_count?: number,
+  output_token_count?: number,
+  document_id?: string,
+  ctx?: LogContext,
+) {
+  const fullPrompt = parameters.messages.map((m) => m.content).join('\n');
+  const modelEnum = modelFromString(parameters.model);
+
+  if (input_token_count === undefined) {
+    input_token_count = costCounter.tokenCount(fullPrompt, modelEnum);
+  }
+  if (output_token_count === undefined) {
+    output_token_count = costCounter.tokenCount(response, modelEnum);
+  }
+
+  await logGptRequest({
+    feature_name: ctx?.feature_name,
+    duration_seconds,
+    input_cost_usd: costCounter.calculatePromptCostUSD(input_token_count, modelEnum),
+    output_cost_usd: costCounter.calculateResponseCostUSD(output_token_count, modelEnum),
+    input_prompt: fullPrompt,
+    output_response: response,
+    input_token_count,
+    output_token_count,
+    model: parameters.model,
+    document_id,
+  }, ctx);
 }

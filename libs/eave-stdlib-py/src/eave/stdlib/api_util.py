@@ -6,6 +6,7 @@ import pydantic
 from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER, HOST
 
 import eave.stdlib.util as util
+from eave.stdlib.config import shared_config
 from starlette.responses import Response
 from asgiref.typing import HTTPScope
 
@@ -76,5 +77,9 @@ def construct_url(scope: HTTPScope) -> str:
 
     path = scope["path"]
     host = get_header_value(scope=scope, name=HOST)
+    assert host
+
+    if shared_config.is_development:
+        host = re.sub(r":[0-9]+", ":8080", host)
 
     return f"https://{host}{path}"
