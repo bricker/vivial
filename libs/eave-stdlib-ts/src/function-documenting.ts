@@ -57,7 +57,7 @@ export async function updateDocumentation({
 
     // update docs, or write new ones if currDocs is empty/undefined
     // TODO: retest w/ summarized function
-    // TODO: experiment performance qulaity on dif types of comments:
+    // TODO: experiment performance quality on dif types of comments:
     //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
     const docsPrompt = formatprompt(
       `Write a ${flang} doc comment for the following function.\n`,

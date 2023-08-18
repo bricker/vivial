@@ -9,11 +9,11 @@ export type ParsedFunction = {
   // string index where function (or comment, if defined) begins
   start: number
   // full extracted doc comment preceding function (if any present)
-  comment: string | undefined
+  comment?: string
   // full extracted function, from signature to end brace (or equivalent)
   func: string
   // [for external use] updated version of `comment`
-  updatedComment: string | undefined
+  updatedComment?: string
 }
 
 /**
