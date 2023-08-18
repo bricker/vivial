@@ -1,4 +1,4 @@
-import { Express, raw } from 'express';
+import { Express, IRouter, raw } from 'express';
 import helmet from 'helmet';
 import { requestLoggingMiddleware } from './logging.js';
 import { requestIntegrityMiddleware } from './request-integrity.js';
@@ -12,25 +12,49 @@ import { bodyParser } from './body-parser.js';
 // This isn't included in the common middlewares so individual apps can configure it as needed.
 export const helmetMiddleware = helmet;
 
-export function applyCommonRequestMiddlewares({ app }: { app: Express }) {
-  app.use(requestIntegrityMiddleware);
-  app.use(requestLoggingMiddleware);
-}
+export const commonRequestMiddlewares = [
+  requestIntegrityMiddleware,
+  requestLoggingMiddleware,
+];
 
-export function applyCommonResponseMiddlewares({ app }: { app: Express }) {
-  app.use(exceptionHandlingMiddleware);
-}
+// export function applyCommonRequestMiddlewares({ router }: { router: IRouter }) {
+//   router.use(requestIntegrityMiddleware);
+//   router.use(requestLoggingMiddleware);
+// }
 
-export function applyInternalApiMiddlewares({ app, path }: {app: Express, path: string}) {
+export const commonResponseMiddlewares = [
+  exceptionHandlingMiddleware,
+];
+
+// export function applyCommonResponseMiddlewares({ router }: { router: IRouter }) {
+//   router.use(exceptionHandlingMiddleware);
+// }
+
+export const commonInternalApiMiddlewares = [
   /*
-  Using raw parsing rather than express.json() parser because of GitHub signature verification.
-  If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
+  It's important that the body isn't parsed (eg with `express.json()`) before signature verification.
+  For example, running the body through JSON.parse(), and then through JSON.stringify(), will yield different bytes
+  than the original body, causing signature verification to fail.
   */
-  app.use(path, raw({ type: 'application/json' }));
-  app.use(path, requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER));
-  app.use(path, originMiddleware);
-  app.use(path, signatureVerification());
+  raw({ type: 'application/json', limit: '5mb' }),
+  requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER),
+  originMiddleware,
+  signatureVerification(),
 
   // This goes _after_ signature verification, so that signature verification has access to the raw body.
-  app.use(path, bodyParser);
-}
+  bodyParser,
+];
+
+// export function applyInternalApiMiddlewares({ router }: { router: IRouter }) {
+//   /*
+//   Using raw parsing rather than express.json() parser because of GitHub signature verification.
+//   If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
+//   */
+//   router.use(raw({ type: 'application/json', limit: '5mb' }));
+//   router.use(requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER));
+//   router.use(originMiddleware);
+//   router.use(signatureVerification());
+
+//   // This goes _after_ signature verification, so that signature verification has access to the raw body.
+//   router.use(bodyParser);
+// }

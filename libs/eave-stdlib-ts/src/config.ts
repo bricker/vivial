@@ -59,6 +59,10 @@ export class EaveConfig {
     return process.env['GAE_VERSION'] || 'unknown';
   }
 
+  get appLocation(): string {
+    return process.env['GAE_LOCATION'] || 'us-central1';
+  }
+
   get eavePublicAppsBase(): string {
     return process.env['EAVE_PUBLIC_APPS_BASE']
       || process.env['EAVE_APPS_BASE']
