@@ -265,11 +265,8 @@ function indentUpdatedComment(funcData: ParsedFunction, content: string) {
   }
 
   // extract the indentation level from function signature
-  let i = 0;
-  while (i < funcData.func.length && /\s/.test(funcData.func[i]!)) {
-    i += 1;
-  }
-  const indent = funcData.func.slice(0, i);
+  const m = funcData.func.match(/^\s*/);
+  const indent = m![0];
 
   // only add leading indent on first line if indent doesnt already match
   const needsLeadingIndent = content.slice(Math.max(funcData.start - (indent.length + 1), 0), funcData.start) !== `\n${indent}`;
