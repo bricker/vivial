@@ -84,9 +84,9 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   while (keepPaginating) {
     const queryResp = await octokit.graphql<{ repository: Query['repository'] }>(filesQuery, filesQueryVariables);
     const prRepo = <Repository>queryResp.repository;
-    const pr = <PullRequest>prRepo?.pullRequest;
-    const prFilesConnection = <PullRequestChangedFileConnection>pr?.files;
-    const prFileNodes = <Array<PullRequestChangedFile>>prFilesConnection?.nodes;
+    const pr = <PullRequest>prRepo.pullRequest;
+    const prFilesConnection = <PullRequestChangedFileConnection>pr.files;
+    const prFileNodes = <Array<PullRequestChangedFile>>prFilesConnection.nodes;
 
     if (!prFileNodes) {
       eaveLogger.error('Failed to acquire file list from PR while processing PR merge event', ctx);
@@ -129,7 +129,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
         ctx,
       });
 
-      if (openaiResponse === 'YES') {
+      if (openaiResponse.trim() === 'YES') {
         documentableFiles.push(f);
       }
     }
