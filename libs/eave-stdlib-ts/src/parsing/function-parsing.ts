@@ -48,7 +48,7 @@ export function parseFunctionsAndComments({
 
   // map from str hash of func body to ParsedFunction data.
   // func body hash used to prevent duplicate entries of the same exact function
-  const fmap: { [key: string]: ParsedFunction } = {};
+  let fmap: { [key: string]: ParsedFunction } = {};
   const funcMatcher = '_function';
   const commentMatcher = '_doc_comment';
 
@@ -56,7 +56,11 @@ export function parseFunctionsAndComments({
 
   queries.forEach((queryString) => {
     const query = new Parser.Query(languageGrammar, queryString);
-    runQuery({ query, rootNode: ptree.rootNode, content, fmap, funcMatcher, commentMatcher });
+    const newMapEntries = runQuery({ query, rootNode: ptree.rootNode, content, funcMatcher, commentMatcher });
+    fmap = {
+      ...fmap,
+      ...newMapEntries,
+    };
   });
 
   return Object.values(fmap);
@@ -127,31 +131,32 @@ function insertDocsComment({
 }
 
 /**
- * Runs `query` on `content`, creating ParsedFunction objects to add to `fmap`.
- * Mutates `fmap` in-place, rather than returning results.
+ * Runs `query` on `content`, creating a mapping from hashes of function strings to
+ * function data extracted from `content` by `query`.
+ * (Hash key value allows future queries to replace parsed values for a function if
+ * multiple queries match the same function; query order matters!)
  *
  * @param query match query to run on `content`. Expected to have used `funcMatcher` and `commentMatcher` for capture names.
  * @param rootNode parse tree node
  * @param content file content used to create `rootNode`. Used for extracting string content located by `query`
- * @param fmap map object to store `query` results in
  * @param funcMatcher name used by `query` to capture function_declaration (or equivilant) nodes from `rootNode` tree
  * @param commentMatcher name used by `query` to capture comment nodes from `rootNode` tree
+ * @return hash map object storing `query` results
  */
 function runQuery({
   query,
   rootNode,
   content,
-  fmap,
   funcMatcher,
   commentMatcher,
 }: {
   query: Parser.Query,
   rootNode: Parser.SyntaxNode,
   content: string,
-  fmap: { [key: string]: ParsedFunction },
   funcMatcher: string,
   commentMatcher: string,
-}): void {
+}): { [key: string]: ParsedFunction } {
+  const fmap: { [key: string]: ParsedFunction } = {};
   const matches = query.matches(rootNode);
 
   matches?.forEach((qmatch: Parser.QueryMatch) => {
@@ -248,6 +253,7 @@ function runQuery({
       fmap[funcHash] = funcData;
     }
   });
+  return fmap;
 }
 
 /**
