@@ -157,11 +157,8 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
 }
 
 /**
- * Fetch github file content from `url` using the raw.githubusercontent.com feature
+ * Fetch github file content from a github `url` to a file.
  * Returns null if `url` is not a path to a file (or if some other error was encountered).
- *
- * NOTE: raw.githubusercontent.com is ratelimitted by IP, not requesting user, so this wont scale far
- * https://github.com/github/docs/issues/8031#issuecomment-881427112
  */
 async function getRawContent(client: Octokit, url: string, ctx: LogContext): Promise<string | null> {
   const urlComponents = new URL(url);

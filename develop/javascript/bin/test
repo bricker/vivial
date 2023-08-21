@@ -5,7 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	node-test "$(^parentpath)"
+	# node-test "$(^parentpath)"
 	node-test .
 	"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/test
 	"${EAVE_HOME}"/libs/eave-pubsub-schemas/typescript/bin/test

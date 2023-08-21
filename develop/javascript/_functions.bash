@@ -76,7 +76,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		cd "$target" || exit 1
 
 		npx ava \
-			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs" .
+			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs"
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

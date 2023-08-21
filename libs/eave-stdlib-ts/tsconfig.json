@@ -1,6 +1,10 @@
 {
   "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
   "include": [
-    "src/**/*"
-  ]
+    "src/**/*",
+    "tests/**/*"
+  ],
+  "compilerOptions": {
+    "typeRoots": ["src/@types", "node_modules/@types"]
+  }
 }
