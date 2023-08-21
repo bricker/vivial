@@ -1,5 +1,5 @@
-from eave.core.public.middlewares.authentication import AuthASGIMiddleware
-from eave.core.public.middlewares.team_lookup import TeamLookupASGIMiddleware
+from eave.core.public.middleware.authentication import AuthASGIMiddleware
+from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.stdlib import cache

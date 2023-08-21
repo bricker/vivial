@@ -2,7 +2,7 @@ import path from 'path';
 import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from './parsing/function-parsing.js';
 import eaveLogger, { LogContext } from './logging.js';
 import * as AIUtil from './transformer-ai/util.js';
-import { getExtensionMap } from './language-mapping.js';
+import { getExtensionMap } from './programming-langs/language-mapping.js';
 import OpenAIClient, { formatprompt } from './transformer-ai/openai.js';
 import { OpenAIModel } from './transformer-ai/models.js';
 

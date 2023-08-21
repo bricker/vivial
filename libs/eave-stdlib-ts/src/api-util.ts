@@ -6,7 +6,7 @@ import getCacheClient, { cacheInitialized } from './cache.js';
 import eaveLogger from './logging.js';
 import headers from './headers.js';
 import { redact } from './util.js';
-import { loadExtensionMap } from './language-mapping.js';
+import { loadExtensionMap } from './programming-langs/language-mapping.js';
 
 export function statusPayload(): StatusResponseBody {
   return {

@@ -41,8 +41,7 @@ export async function isSupportedProgrammingLanguage(extName: string): Promise<b
 }
 
 export async function loadExtensionMap() {
-  // TODO: host this on CDN or something instead to avoid gross path assumptions???
-  const extensionMapString = await fs.promises.readFile('../../libs/eave-stdlib-ts/languages.json', { encoding: 'utf8' });
+  const extensionMapString = await fs.promises.readFile('languages.json', { encoding: 'utf8' });
   extensionMap = JSON.parse(extensionMapString);
 }
 

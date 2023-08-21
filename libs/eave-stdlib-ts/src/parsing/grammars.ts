@@ -11,7 +11,7 @@ import PHP from 'tree-sitter-php';
 import Ruby from 'tree-sitter-ruby';
 import Swift from 'tree-sitter-swift';
 import Csharp from 'tree-sitter-c-sharp';
-import { ProgrammingLanguage, stringToProgrammingLanguage } from '../language-mapping.js';
+import { ProgrammingLanguage, stringToProgrammingLanguage } from '../programming-langs/language-mapping.js';
 
 const { typescript: Typescript, tsx } = tsPkg;
 
@@ -83,7 +83,7 @@ export function getFunctionDocumentationQueries({
       return [
         // captures root level functions + comments
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
 
@@ -91,7 +91,7 @@ export function getFunctionDocumentationQueries({
         // NOTE: this must run after the normal func level query in order to rewrite its bad entries of exported funcs from previous query
         //       w/ the corrected ones containing comment string
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (export_statement declaration:
             (function_declaration) @${funcMatcher}
           )
@@ -121,13 +121,13 @@ export function getFunctionDocumentationQueries({
       return [
         // plain functions
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
 
         // struct receiver methods
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method_declaration) @${funcMatcher}
         )`,
       ];
@@ -135,14 +135,14 @@ export function getFunctionDocumentationQueries({
     case ProgrammingLanguage.c:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_definition) @${funcMatcher}
         )`,
       ];
     case ProgrammingLanguage.kotlin:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
       ];
@@ -150,20 +150,20 @@ export function getFunctionDocumentationQueries({
       return [
         // root level functions
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_definition) @${funcMatcher}
         )`,
 
         // class methods
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method_declaration) @${funcMatcher}
         )`,
       ];
     case ProgrammingLanguage.ruby:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method) @${funcMatcher}
         )`,
       ];
@@ -171,7 +171,7 @@ export function getFunctionDocumentationQueries({
       return [
         // single line doc comments (swift standard)
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
 
@@ -185,7 +185,7 @@ export function getFunctionDocumentationQueries({
     case ProgrammingLanguage.csharp:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method_declaration) @${funcMatcher}
         )`,
       ];
