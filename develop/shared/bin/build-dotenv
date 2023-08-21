@@ -55,6 +55,8 @@ def parse_typescript_config(filepath: str) -> list[str]:
     for line in lines:
         if (m := re.search("process\\.env\\[[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
+        if (m := re.search("this\\.getSecret\\([\"']([^\"']+)[\"']", line)) is not None:
+            varnames.append(m.group(1))
         else:
             pass
 

@@ -2,7 +2,7 @@
 export default ({ projectDir }) => {
   return {
     files: [
-      'tests/**',
+      'tests/**/*.test.ts',
     ],
     extensions: {
       ts: 'module',

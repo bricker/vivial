@@ -8,11 +8,20 @@ import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/e
 import { GetSubscriptionResponseBody, getSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
 import { upsertDocument } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
+import { rollingSummary } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 import { appConfig } from '../config.js';
 
+/**
+ * Receives github webhook push events.
+ * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+ *
+ * Features:
+ * Checks if push event touched any files that Eave has subscriptions for;
+ * any file subscriptions found will perform updates on connected documents.
+ */
 export default async function handler(event: PushEvent, context: GitHubOperationsContext) {
   const { ctx, octokit } = context;
   const event_name = 'github_push_subscription_updates';
@@ -125,11 +134,12 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         : '';
 
       // have AI explain the code change
-      // TODO: implement rolling content summary
+      const summarizedContent = rollingSummary({ client: openaiClient, content: fileContents });
+
       // FIXME: Add this eslint exception to eslint config
       // eslint-disable-next-line operator-linebreak
       const prompt =
-        `${fileContents}\n\n`
+        `${summarizedContent}\n\n`
         + `${codeDescriptionString}. `
         + 'Explain what the above code does: ';
 

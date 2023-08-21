@@ -6,6 +6,7 @@ import getCacheClient, { cacheInitialized } from './cache.js';
 import eaveLogger from './logging.js';
 import headers from './headers.js';
 import { redact } from './util.js';
+import { loadExtensionMap } from './language-mapping.js';
 
 export function statusPayload(): StatusResponseBody {
   return {
@@ -43,8 +44,11 @@ export function GAELifecycleRouter(): Router {
   });
 
   router.get('/_ah/warmup', async (_req: Request, res: Response) => {
-    const cacheClient = await getCacheClient(); // Initializes a client and connects to Redis
+    // Initializes a client and connects to Redis
+    const cacheClient = await getCacheClient();
     await cacheClient.ping();
+
+    await loadExtensionMap();
     res.sendStatus(200);
   });
 
@@ -73,12 +77,12 @@ export function applyShutdownHandlers({ server }: { server: Server }) {
   process.on('SIGINT', handler);
 }
 
-export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<string>): {[key:string]: string | undefined} {
+export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<string>): { [key: string]: string | undefined } {
   const redactedcp = new Set<string>(redacted);
   redactedcp.add(headers.AUTHORIZATION_HEADER);
   redactedcp.add(headers.COOKIE_HEADER);
 
-  const logHeaders: {[key:string]: string | undefined} = {};
+  const logHeaders: { [key: string]: string | undefined } = {};
 
   Object.entries(req.headers).forEach(([k, v]) => {
     if (!excluded?.has(k)) {

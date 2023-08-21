@@ -2,4 +2,5 @@
 
 set -eu
 
+echo "WARNING: no tests"
 # "${EAVE_HOME}"/develop/javascript/bin/test

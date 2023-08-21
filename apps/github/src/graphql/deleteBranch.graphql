@@ -1,0 +1,5 @@
+mutation ($refNodeId: ID!) {
+  deleteRef(input: { refId: $refNodeId }) {
+    clientMutationId
+  }
+}
