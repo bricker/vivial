@@ -11,16 +11,9 @@ import PHP from 'tree-sitter-php';
 import Ruby from 'tree-sitter-ruby';
 import Swift from 'tree-sitter-swift';
 import Csharp from 'tree-sitter-c-sharp';
-import logging from '../logging.js';
 import { ProgrammingLanguage, stringToProgrammingLanguage } from '../language-mapping.js';
 
 const { typescript: Typescript, tsx } = tsPkg;
-
-// used to typecheck our enum cases as exhuastive
-// https://stackoverflow.com/questions/39419170/how-do-i-check-that-a-switch-block-is-exhaustive-in-typescript
-function logExhaustiveCaseError(c: never) {
-  logging.error(`Unhandled ProgrammingLanguage case: ${c}`);
-}
 
 /**
  * Return a tree-sitter grammar corresponding to the programming language
@@ -33,7 +26,7 @@ function logExhaustiveCaseError(c: never) {
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarForLanguage(language: string, extName: string): any {
+export function grammarForLanguage({ language, extName }: { language: string, extName: string }): any {
   const pl = stringToProgrammingLanguage(language);
   if (pl === undefined) {
     return null;
@@ -60,8 +53,10 @@ export function grammarForLanguage(language: string, extName: string): any {
     case ProgrammingLanguage.swift: return Swift;
     case ProgrammingLanguage.csharp: return Csharp;
     default:
-      logExhaustiveCaseError(pl);
-      return null;
+      // used to typecheck our enum cases as exhuastive
+      // eslint-disable-next-line no-case-declarations
+      const unhandledCase: never = pl;
+      throw new Error(`Unhandled ProgrammingLanguage case: ${unhandledCase}`);
   }
 }
 
@@ -72,7 +67,11 @@ export function grammarForLanguage(language: string, extName: string): any {
  * @param language name of programming language to get queries for
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
-export function getFunctionDocumentationQueries(language: string, funcMatcher: string, commentMatcher: string): string[] {
+export function getFunctionDocumentationQueries({
+  language,
+  funcMatcher,
+  commentMatcher,
+}: { language: string, funcMatcher: string, commentMatcher: string }): string[] {
   const pl = stringToProgrammingLanguage(language);
   if (pl === undefined) {
     return [];
@@ -192,7 +191,9 @@ export function getFunctionDocumentationQueries(language: string, funcMatcher: s
       ];
     // case 'python': // TODO: skipped for now for being special snowflake
     default:
-      logExhaustiveCaseError(pl);
-      return [];
+      // used to typecheck our enum cases as exhuastive
+      // eslint-disable-next-line no-case-declarations
+      const unhandledCase: never = pl;
+      throw new Error(`Unhandled ProgrammingLanguage case: ${unhandledCase}`);
   }
 }

@@ -1,7 +1,8 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
 import path from 'path';
 import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import OpenAIClient, { OpenAIModel, formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import OpenAIClient, { formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
+import { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
 import {
   Query,
   Scalars,
@@ -21,7 +22,6 @@ import { updateDocumentation } from '@eave-fyi/eave-stdlib-ts/src/function-docum
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { GitHubOperationsContext } from '../types.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
-import { appConfig } from '../config.js';
 
 const eavePrTitle = 'docs: Eave inline code documentation update';
 
@@ -45,14 +45,9 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     const interaction = event.pull_request.merged ? 'merged' : 'closed';
     await logEvent({
       event_name: 'github_eave_pr_interaction',
-      event_time: new Date().toISOString(),
       event_description: `A GitHub PR opened by Eave was ${interaction}`,
       event_source: 'github webhook pull_request event',
       opaque_params: JSON.stringify({ interaction }),
-      eave_account_id: ctx?.eave_account_id,
-      eave_team_id: ctx?.eave_team_id,
-      eave_env: appConfig.eaveEnv,
-      opaque_eave_ctx: JSON.stringify(ctx),
     }, ctx);
     return;
   }
@@ -89,9 +84,9 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   while (keepPaginating) {
     const queryResp = await octokit.graphql<{ repository: Query['repository'] }>(filesQuery, filesQueryVariables);
     const prRepo = <Repository>queryResp.repository;
-    const pr = <PullRequest>prRepo?.pullRequest;
-    const prFilesConnection = <PullRequestChangedFileConnection>pr?.files;
-    const prFileNodes = <Array<PullRequestChangedFile>>prFilesConnection?.nodes;
+    const pr = <PullRequest>prRepo.pullRequest;
+    const prFilesConnection = <PullRequestChangedFileConnection>pr.files;
+    const prFileNodes = <Array<PullRequestChangedFile>>prFilesConnection.nodes;
 
     if (!prFileNodes) {
       eaveLogger.error('Failed to acquire file list from PR while processing PR merge event', ctx);
@@ -134,7 +129,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
         ctx,
       });
 
-      if (openaiResponse === 'YES') {
+      if (openaiResponse.trim() === 'YES') {
         documentableFiles.push(f);
       }
     }
@@ -169,7 +164,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       return null; // exits just this iteration of map
     }
 
-    const updatedFileContent = await updateDocumentation(fileContent, fpath, openaiClient, ctx);
+    const updatedFileContent = await updateDocumentation({ currContent: fileContent, filePath: fpath, openaiClient, ctx, fileNodeId: gitObject.id });
     if (!updatedFileContent) {
       return null;
     }

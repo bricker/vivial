@@ -3,7 +3,8 @@ import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from '.
 import eaveLogger, { LogContext } from './logging.js';
 import * as AIUtil from './transformer-ai/util.js';
 import { getExtensionMap } from './language-mapping.js';
-import OpenAIClient, { formatprompt, OpenAIModel } from './transformer-ai/openai.js';
+import OpenAIClient, { formatprompt } from './transformer-ai/openai.js';
+import { OpenAIModel } from './transformer-ai/models.js';
 
 /**
  * Given the current content of a file, returns the same file
@@ -13,29 +14,38 @@ import OpenAIClient, { formatprompt, OpenAIModel } from './transformer-ai/openai
  * @param filePath file path correlated with `currContent` file content
  * @param openaiClient
  * @param ctx extra context for more detailed logs
+ * @param fileNodeId GitHub graphql node ID https://docs.github.com/en/graphql/reference/interfaces#node
  * @param model the AI model to use to generate new documentation (Default: OpenAIModel.GPT4)
  * @returns the same code content as `currContent` but with doc strings updated, or null if unable to create updated document
  */
-export async function updateDocumentation(
+export async function updateDocumentation({
+  currContent,
+  filePath,
+  openaiClient,
+  ctx,
+  fileNodeId,
+  model = OpenAIModel.GPT4,
+}: {
   currContent: string,
   filePath: string,
   openaiClient: OpenAIClient,
   ctx: LogContext,
-  model: OpenAIModel = OpenAIModel.GPT4,
-): Promise<string | null> {
+  fileNodeId: string,
+  model?: OpenAIModel,
+}): Promise<string | null> {
   // load language from file extension map file
   const extName = `${path.extname(filePath).toLowerCase()}`;
   const flang = (await getExtensionMap())[extName];
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early
-    eaveLogger.error(`No matching language found for file extension: "${extName}"`);
+    eaveLogger.error(`No matching language found for file extension: "${extName}"`, ctx);
     return null;
   }
 
-  const parsedData = parseFunctionsAndComments(currContent, extName, flang);
+  const parsedData = parseFunctionsAndComments({ content: currContent, extName, language: flang, ctx });
   if (parsedData.length === 0) {
-    eaveLogger.error(`Unable to parse ${flang} from ${extName} file`);
+    eaveLogger.error(`Unable to parse ${flang} from ${extName} file`, ctx);
     return null;
   }
 
@@ -43,11 +53,11 @@ export async function updateDocumentation(
   await Promise.all(parsedData.map(async (funcData) => {
     // convert long function strings to a summary for docs writing to prevent AI from getting overwhelmed by
     // implementation details in raw code file (and to account for functions longer than model context)
-    const summarizedFunction = await AIUtil.rollingSummary(openaiClient, funcData.func);
+    const summarizedFunction = await AIUtil.rollingSummary({ client: openaiClient, content: funcData.func });
 
     // update docs, or write new ones if currDocs is empty/undefined
     // TODO: retest w/ summarized function
-    // TODO: experiment performance qulaity on dif types of comments:
+    // TODO: experiment performance quality on dif types of comments:
     //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
     const docsPrompt = formatprompt(
       `Write a ${flang} doc comment for the following function.\n`,
@@ -70,6 +80,7 @@ export async function updateDocumentation(
         model,
         temperature: 0,
       },
+      documentId: fileNodeId,
       ctx,
     });
 
@@ -103,6 +114,7 @@ export async function updateDocumentation(
           model,
           temperature: 0,
         },
+        documentId: fileNodeId,
         ctx,
       });
     }

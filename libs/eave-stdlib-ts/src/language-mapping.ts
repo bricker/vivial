@@ -49,7 +49,6 @@ export async function loadExtensionMap() {
 export async function getExtensionMap(): Promise<{ [key: string]: string }> {
   if (!extensionMap) {
     await loadExtensionMap();
-    return extensionMap!;
   }
-  return extensionMap;
+  return extensionMap!;
 }
