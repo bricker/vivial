@@ -1,0 +1,12 @@
+query($repoOwner: String!, $repoName: String!, $branchName: String!) {
+  repository(owner: $repoOwner, name: $repoName) {
+    ref(qualifiedName: $branchName) {
+      target {
+        ... on Commit {
+          oid
+          message
+        }
+      }
+    }
+  }
+}
