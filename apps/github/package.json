@@ -4,8 +4,8 @@
     "start": "pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion start pm2.config.cjs"
   },
   "dependencies": {
-    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
+    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@octokit/graphql-schema": "12.x",
     "@octokit/webhooks": "10.x",
@@ -13,7 +13,11 @@
     "express": "4.x",
     "octokit": "2.x",
     "pm2": "5.x",
-    "ts-node": "10.x"
+    "tree-sitter": "^0.20.5",
+    "tree-sitter-javascript": "^0.19.0",
+    "tree-sitter-typescript": "^0.20.1",
+    "ts-node": "10.x",
+    "walkdir": "^0.4.1"
   },
   "devDependencies": {
     "@graphql-eslint/eslint-plugin": "3.x",
