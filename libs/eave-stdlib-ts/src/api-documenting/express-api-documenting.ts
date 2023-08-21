@@ -341,6 +341,67 @@ export class ExpressAPIDocumentor {
   }
 
 
+  // TODO: dynamically determine language (ts vs js)
+  async #generateExpressAPIDoc(apiEndpoints: Array<string>): Promise<string> {
+    let apiDoc = "";
+    for (const apiEndpoint of apiEndpoints) {
+      const openaiClient = await OpenAIClient.getAuthedClient();
+      const systemPrompt = formatprompt(`
+        You will be given a block of TypeScript code, delimited by three exclamation marks, containing definitions for API endpoints using the Express API framework.
+
+        Your task is to generate API documentation for the provided Express REST API endpoint.
+
+        Use the following template to format your response:
+
+        ## {description of the API endpoint in 3 words or less}
+
+        \`\`\`
+        {HTTP Method} {Path}
+        \`\`\`
+
+        {high-level description of what the API endpoint does}
+
+        ### Path Parameters
+
+        **{name}** ({type}) *{optional or required}* - {description}
+
+        ### Example Request
+
+        \`\`\`
+        {example request}
+        \`\`\`
+
+        ### Example Response
+
+        \`\`\`
+        {example response}
+        \`\`\`
+
+        ### Response Codes
+
+        **{response code}**: {explanation of when this response code will be returned}
+
+      `);
+      const userPrompt = formatprompt(`
+        !!!
+        ${apiEndpoint}
+      `);
+      const openaiResponse = await openaiClient.createChatCompletion({
+        parameters: {
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          model: OpenAIModel.GPT4,
+        },
+      });
+      if (openaiResponse) {
+        apiDoc += `${openaiResponse}\n\n<br />\n\n`;
+      }
+    }
+    return apiDoc;
+  }
+
 
   // TODO: optimize directory walk.
   // TODO: ignore certain directories / files (e.g. node_modules and dot files)
@@ -376,7 +437,7 @@ export class ExpressAPIDocumentor {
     });
 
     // for (const [apiName, apiEndpoints] of apis) {
-      // const apiDoc = await generateExpressAPIDoc(apiEndpoints);
+      // const apiDoc = await this.#generateExpressAPIDoc(apiEndpoints);
       // console.log(apiDoc);
     // }
 
