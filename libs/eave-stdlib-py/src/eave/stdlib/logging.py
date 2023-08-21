@@ -4,6 +4,7 @@ import sys
 from typing import Any, Optional, Self, cast
 import uuid
 from asgiref.typing import HTTPScope
+from starlette.requests import Request
 from starlette.types import Scope
 
 import google.cloud.logging
@@ -11,6 +12,7 @@ from eave.stdlib.api_util import get_header_value, get_headers
 from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 
 from eave.stdlib.typing import JsonObject
+from .utm_cookies import get_tracking_cookies
 
 from .config import shared_config
 
@@ -98,20 +100,28 @@ class LogContext(JsonObject):
         return ctx if ctx else cls(scope)
 
     def __init__(self, scope: Optional[HTTPScope | Scope] = None) -> None:
+        self.set({"feature_name": None})
         if scope:
-            scope = cast(HTTPScope, scope)
-            headers = cast(JsonObject, get_headers(scope))
+            cscope = cast(HTTPScope, scope)
+            headers = cast(JsonObject, get_headers(cscope))
             self.set({"headers": headers})
 
-            self.set({"eave_request_id": get_header_value(scope, EAVE_REQUEST_ID_HEADER) or str(uuid.uuid4())})
-            self.set({"eave_team_id": get_header_value(scope, EAVE_TEAM_ID_HEADER)})
-            self.set({"eave_account_id": get_header_value(scope, EAVE_ACCOUNT_ID_HEADER)})
-            self.set({"eave_origin": get_header_value(scope, EAVE_ORIGIN_HEADER)})
+            self.set({"eave_request_id": get_header_value(cscope, EAVE_REQUEST_ID_HEADER) or str(uuid.uuid4())})
+            self.set({"eave_team_id": get_header_value(cscope, EAVE_TEAM_ID_HEADER)})
+            self.set({"eave_account_id": get_header_value(cscope, EAVE_ACCOUNT_ID_HEADER)})
+            self.set({"eave_origin": get_header_value(cscope, EAVE_ORIGIN_HEADER)})
+
+            r = Request(scope)
+            tracking_cookies = get_tracking_cookies(r.cookies)
+            self.set({"eave_visitor_id": tracking_cookies.visitor_id })
+            self.set({"eave_utm_params": tracking_cookies.utm_params })
         else:
             self.set({"eave_request_id": str(uuid.uuid4())})
             self.set({"eave_team_id": None})
             self.set({"eave_account_id": None})
             self.set({"eave_origin": None})
+            self.set({"eave_visitor_id": None })
+            self.set({"eave_utm_params": None })
 
     def set(self, attributes: JsonObject) -> Self:
         self.update(attributes)
@@ -162,6 +172,15 @@ class LogContext(JsonObject):
     def eave_request_id(self) -> str:
         v = self["eave_request_id"]
         return str(v)
+
+    @property
+    def feature_name(self) -> Optional[str]:
+        v = self["feature_name"]
+        return str(v)
+
+    @feature_name.setter
+    def feature_name(self, value: Optional[str]) -> None:
+        self.set({"feature_name": value})
 
 
 class EaveLogger:

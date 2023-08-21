@@ -30,6 +30,7 @@ python -m grpc_tools.protoc \
 	protos/*
 
 statusmsg -s "Done!"
+statusmsg -w "Please adjust the Typescript imports to use the default import and import files as .js files to prevent production crashes."
 
 # TODO: Can we use this for anything?
 # https://proto-plus-python.readthedocs.io/en/stable/index.html
