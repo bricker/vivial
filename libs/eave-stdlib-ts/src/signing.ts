@@ -187,7 +187,7 @@ export default class Signing {
   async verifySignatureOrException(
     message: string | Buffer,
     signature: string | Buffer,
-  ): Promise<boolean> {
+  ): Promise<void> {
     let signatureString: string;
     if (typeof signature === 'string') {
       signatureString = signature;
@@ -227,7 +227,6 @@ export default class Signing {
     if (!isVerified) {
       throw new InvalidSignatureError('Signature failed verification');
     }
-    return isVerified;
   }
 
   /**

@@ -1,6 +1,9 @@
 import { EaveConfig } from '@eave-fyi/eave-stdlib-ts/src/config.js';
 import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 
+export const GITHUB_EVENT_QUEUE_NAME = 'github-events-processor';
+export const GITHUB_EVENT_QUEUE_TARGET_PATH = '/_tasks/events';
+
 class AppConfig extends EaveConfig {
   eaveOrigin = EaveOrigin.eave_github_app;
 
