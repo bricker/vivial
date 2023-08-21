@@ -173,7 +173,25 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     return Buffer.from(updatedFileContent!).toString('base64');
   }));
 
-  // branch off the PR merge commit (should be base branch HEAD commit since PR just merged)
+  // get base branch head commit
+  const getHeadCommitQuery = await GraphQLUtil.loadQuery('getBranchHeadCommit');
+  const getHeadCommitParams: {
+    repoName: Scalars['String'],
+    repoOwner: Scalars['String'],
+    branchName: Scalars['String'],
+  } = {
+    repoName,
+    repoOwner,
+    branchName: event.pull_request.base.ref,
+  };
+  const headResp = await octokit.graphql<{ repository: Query['repository'] }>(getHeadCommitQuery, getHeadCommitParams);
+  const commitHead = headResp.repository?.ref?.target;
+  if (!commitHead) {
+    eaveLogger.error(`Failed to fetch ${event.pull_request.base.ref} head commit from ${repoOwner}/${repoName}`, ctx);
+    return;
+  }
+
+  // branch off the head commit (should usually be PR merge commit)
   // https://docs.github.com/en/graphql/reference/mutations#createref
   const createBranchMutation = await GraphQLUtil.loadQuery('createBranch');
   const createBranchParameters: {
@@ -181,7 +199,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     branchName: Scalars['String'],
     commitHeadId: Scalars['GitObjectID'],
   } = {
-    commitHeadId: event.pull_request.merge_commit_sha,
+    commitHeadId: commitHead.oid,
     branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
     repoId,
   };
