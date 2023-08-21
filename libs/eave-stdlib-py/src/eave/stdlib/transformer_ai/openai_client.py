@@ -29,6 +29,14 @@ class DocumentationType(enum.StrEnum):
     OTHER = "OTHER"
 
 
+def prompt_prefix() -> LiteralString:
+    return (
+        "You are Eave, a documentation expert. "
+        "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
+        "You are responsible for the quality and integrity of this organization's documentation.\n\n"
+    )
+
+
 STOP_SEQUENCE = "STOP_SEQUENCE"
 
 
@@ -46,7 +54,7 @@ class ChatMessage:
 
 @dataclass
 class ChatCompletionParameters:
-    messages: List[ChatMessage]
+    messages: List[str]
     model: OpenAIModel
     best_of: Optional[int] = None
     n: Optional[int] = None
@@ -59,7 +67,13 @@ class ChatCompletionParameters:
     def compile(self) -> JsonObject:
         params = dict[str, Any]()
         params["model"] = self.model
-        params["messages"] = [asdict(m) for m in self.messages]
+
+        messages = [
+            ChatMessage(role=ChatRole.SYSTEM, content=prompt_prefix()),
+            *[ChatMessage(role=ChatRole.USER, content=m) for m in self.messages],
+        ]
+
+        params["messages"] = [asdict(m) for m in messages]
 
         if self.best_of is not None:
             params["best_of"] = self.best_of
