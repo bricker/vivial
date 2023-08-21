@@ -1,9 +1,9 @@
-
-
 import child_process from "child_process";
 import path from "path";
 import fs, { stat } from "fs";
 import walk from "walkdir";
+import OpenAIClient, { formatprompt } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
+import { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
 
 // TODO: use Liam's helpers (pending PR merge)
 // Open PR: https://github.com/eave-fyi/eave-monorepo/pull/118/files
@@ -316,8 +316,70 @@ function guessExpressAPIName(rootDir: string): string {
 }
 
 
-async function generateExpressAPIDoc(apiEndpoints: Array<string>) {
 
+
+
+
+
+// TODO: dynamically determine language (ts vs js)
+async function generateExpressAPIDoc(apiEndpoints: Array<string>): Promise<string> {
+  let apiDoc = "";
+  for (const apiEndpoint of apiEndpoints) {
+    const openaiClient = await OpenAIClient.getAuthedClient();
+    const systemPrompt = formatprompt(`
+      You will be given a block of TypeScript code, delimited by three exclamation marks, containing definitions for API endpoints using the Express API framework.
+
+      Your task is to generate API documentation for the provided Express REST API endpoint.
+
+      Use the following template to format your response:
+
+      ## {description of the API endpoint in 3 words or less}
+
+      \`\`\`
+      {HTTP Method} {Path}
+      \`\`\`
+
+      {high-level description of what the API endpoint does}
+
+      ### Path Parameters
+
+      **{name}** ({type}) *{optional or required}* - {description}
+
+      ### Example Request
+
+      \`\`\`
+      {example request}
+      \`\`\`
+
+      ### Example Response
+
+      \`\`\`
+      {example response}
+      \`\`\`
+
+      ### Response Codes
+
+      **{response code}**: {explanation of when this response code will be returned}
+
+    `);
+    const userPrompt = formatprompt(`
+      !!!
+      {apiEndpoint}
+    `);
+    const openaiResponse = await openaiClient.createChatCompletion({
+      parameters: {
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: OpenAIModel.GPT4,
+      },
+    });
+    if (openaiResponse) {
+      apiDoc += `${openaiResponse}\n\n<br />\n\n`;
+    }
+  }
+  return apiDoc;
 }
 
 
@@ -380,17 +442,16 @@ async function main() {
   const wiki = `https://github.com/eave-fyi/${repoName}.wiki.git`;
   const repo = `https://github.com/eave-fyi/${repoName}.git`;
 
-  const tempDir = `TEMP-${repoName}`;
-  const repoPath = `${tempDir}/${repoName}`;
-  const wikiPath = `${tempDir}/${repoName}.wiki`;
+  const repoPath = `temp/${repoName}`;
+  const wikiPath = `temp/${repoName}.wiki`;
 
   // TODO: we will likely end up cloning repos some other way.
-  // run(`mkdir ${tempDir} && cd ${tempDir} && git clone ${repo} && git clone ${wiki}`);
+  // run(`mkdir temp && cd temp && git clone ${repo} && git clone ${wiki}`);
 
   await documentExpressAPIs(repoPath, wikiPath);
 
   // run(`cd ${wikiPath} && git add . && git commit -m 'Document APIs' && git push`);
-  // run(`rm -rf ${tempDir}`);
+  // run(`rm -rf temp`);
 
   // console.log("✅ Successfully Documented APIs");
 }
