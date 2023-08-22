@@ -2,10 +2,9 @@ import process from 'node:process';
 import { URL } from 'node:url';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { AddOn } from 'atlassian-connect-express';
 import { sharedConfig } from '../config.js';
 
-export async function registerDevApp({ addon }: { addon: AddOn }) {
+export async function registerDevApp({ addon }: { addon: any }) {
   if (!sharedConfig.isDevelopment || !process.env['EAVE_HOME']) {
     return;
   }

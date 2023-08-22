@@ -1,5 +1,4 @@
 import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
-import { AddOn } from 'atlassian-connect-express';
 import { Request } from 'express';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import ConnectClient, { RequestOpts } from '@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js';
@@ -14,7 +13,7 @@ export default class ConfluenceClient extends ConnectClient {
     clientKey,
   }: {
     req: Request,
-    addon: AddOn,
+    addon: any,
     teamId?: string,
     clientKey?: string,
   }): Promise<ConfluenceClient> {
