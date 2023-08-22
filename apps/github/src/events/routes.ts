@@ -45,26 +45,6 @@ export function WebhookRouter(): Router {
     }
   });
 
-
-  router.post('/_bg', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const ctx = LogContext.load(res);
-      const {
-        parsedBody,
-        fullEventName,
-      } = parseWebhookPayload(req);
-
-      const handler = registry[fullEventName];
-      assert(handler);
-
-      const app = await createAppClient();
-      const octokit = await app.getInstallationOctokit(parsedBody.installation.id);
-      await handler(parsedBody, { octokit, ctx });
-      res.end(); // safety
-    } catch (e: unknown) {
-      next(e);
-    }
-  });
   return router;
 }
 
