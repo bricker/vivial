@@ -5,6 +5,7 @@ export function run(command: string) {
     child_process.exec(command);
   } catch (e) {
     console.error(`Unable to run command '${command}' due to error ${e}`);
+    throw e;
   }
 }
 
@@ -13,6 +14,7 @@ export function runSync(command: string) {
     child_process.execSync(command);
   } catch (e) {
     console.error(`Unable to run command '${command}' due to error ${e}`);
+    throw e;
   }
 }
 
