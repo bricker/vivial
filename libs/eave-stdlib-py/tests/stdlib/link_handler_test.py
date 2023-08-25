@@ -105,15 +105,22 @@ class TestLinkHandler(UtilityBaseTestCase):
         )
 
     async def test_subscribe_skip_subscription(self) -> None:
-        self.skipTest("I'm not sure this test is asserting the right thing, please check")
-        # when links don't point to actual files in repo,
-        # subscription parsing fails, causing subscription to exit early
+        self.patch(
+            patch=unittest.mock.patch(
+                "eave.stdlib.link_handler.github_api_client.create_subscription",
+                return_value=Exception("oops subscription failure"),
+            )
+        )
+
+        # WHEN subscribe request fails (for whatever reason)
         input_links = [
-            ("https://github.com/eave-fyi/", LinkType.github),
-            ("http://github.enterprise.com/the-org/repo-name/", LinkType.github),
+            ("https://github.com/eave-fyi/mono-repo/README.md", LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
+            origin=EaveOrigin.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )
-        assert len(subscriptions) == 2
+
+        # THEN failed responses are filtered out
+        assert len(subscriptions) == 0
