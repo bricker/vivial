@@ -17,7 +17,7 @@ import {
   CommittableBranch,
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
-import { isSupportedProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
+import { isSupportedProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js';
 import { updateDocumentation } from '@eave-fyi/eave-stdlib-ts/src/function-documenting.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { GitHubOperationsContext } from '../types.js';

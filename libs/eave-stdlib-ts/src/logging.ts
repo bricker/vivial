@@ -12,7 +12,15 @@ export class LogContext {
 
   static load(res: Response): LogContext {
     const existing = res.locals[headers.EAVE_CTX_KEY];
-    return LogContext.wrap(existing, res.req);
+
+    // Attach this context to the response object, if one wasn't already.
+    if (existing) {
+      return existing;
+    }
+
+    const ctx = new LogContext(res.req);
+    res.locals[headers.EAVE_CTX_KEY] = ctx;
+    return ctx;
   }
 
   static wrap(ctx?: LogContext, req?: Request): LogContext {

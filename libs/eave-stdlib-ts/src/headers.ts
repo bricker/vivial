@@ -1,4 +1,4 @@
-// Express lowercases all header names, so these should all be lowercased.
+import http2 from 'node:http2';
 
 export default {
   EAVE_TEAM_ID_HEADER: 'eave-team-id',
@@ -6,14 +6,6 @@ export default {
   EAVE_SIGNATURE_HEADER: 'eave-signature',
   EAVE_ORIGIN_HEADER: 'eave-origin',
   EAVE_REQUEST_ID_HEADER: 'eave-request-id',
-
-  /* well-known headers */
-  COOKIE_HEADER: 'cookie',
-  AUTHORIZATION_HEADER: 'authorization',
-  HOST: 'host',
-  CONTENT_TYPE: 'content-type',
-  CONTENT_LENGTH: 'content-length',
-  USER_AGENT: 'user-agent',
 
   /*
   This header can be used to bypass certain checks in development, like payload signing.
@@ -30,4 +22,5 @@ export default {
   GCP_GAE_REQUEST_LOG_ID: 'x-appengine-request-log-id',
   GCP_GAE_TASK_EXECUTION_COUNT: 'x-appengine-taskexecutioncount',
 
+  MIME_TYPE_JSON: 'application/json',
 };

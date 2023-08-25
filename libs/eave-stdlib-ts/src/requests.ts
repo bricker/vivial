@@ -1,3 +1,4 @@
+import { constants as httpConstants } from 'node:http2';
 import { NextFunction, Request, Response } from 'express';
 import eaveLogger, { LogContext } from './logging.js';
 import { EaveOrigin } from './eave-origins.js';
@@ -44,7 +45,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
     accessToken,
     teamId,
     accountId,
-    method = 'post',
+    method = httpConstants.HTTP2_METHOD_POST,
   } = args;
 
   const ctx = LogContext.wrap(args.ctx);
@@ -52,7 +53,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   const payload = input === undefined ? '{}' : JSON.stringify(input);
 
   const headers: { [key: string]: string } = {
-    'content-type': 'application/json',
+    [httpConstants.HTTP2_HEADER_CONTENT_TYPE]: eaveHeaders.MIME_TYPE_JSON,
     [eaveHeaders.EAVE_ORIGIN_HEADER]: origin,
     [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
   };
@@ -74,7 +75,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 
   if (accessToken !== undefined) {
-    headers[eaveHeaders.AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;
+    headers[httpConstants.HTTP2_HEADER_AUTHORIZATION] = `Bearer ${accessToken}`;
   }
 
   if (teamId !== undefined) {

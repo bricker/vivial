@@ -17,43 +17,19 @@ export const commonRequestMiddlewares = [
   requestLoggingMiddleware,
 ];
 
-// export function applyCommonRequestMiddlewares({ router }: { router: IRouter }) {
-//   router.use(requestIntegrityMiddleware);
-//   router.use(requestLoggingMiddleware);
-// }
-
 export const commonResponseMiddlewares = [
   exceptionHandlingMiddleware,
 ];
-
-// export function applyCommonResponseMiddlewares({ router }: { router: IRouter }) {
-//   router.use(exceptionHandlingMiddleware);
-// }
 
 export const rawJsonBody = raw({ type: 'application/json', limit: '5mb' });
 
 export const commonInternalApiMiddlewares = [
   /*
-  It's important that the body isn't parsed (eg with `express.json()`) before signature verification.
-  For example, running the body through JSON.parse(), and then through JSON.stringify(), will yield different bytes
-  than the original body, causing signature verification to fail.
+  It's important that the body isn't parsed (eg with `express.json()`) before signature verification. For example, running the body through JSON.parse(), and then through JSON.stringify(), will yield different bytes than the original body (probably differences in spacing/indentation), causing signature verification to fail.
+  Apps should apply their own body parsers (ideally using the `body-parser` middleware).
   */
   rawJsonBody,
   requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER),
   originMiddleware,
   signatureVerification(),
 ];
-
-// export function applyInternalApiMiddlewares({ router }: { router: IRouter }) {
-//   /*
-//   Using raw parsing rather than express.json() parser because of GitHub signature verification.
-//   If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
-//   */
-//   router.use(raw({ type: 'application/json', limit: '5mb' }));
-//   router.use(requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER));
-//   router.use(originMiddleware);
-//   router.use(signatureVerification());
-
-//   // This goes _after_ signature verification, so that signature verification has access to the raw body.
-//   router.use(bodyParser);
-// }

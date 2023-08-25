@@ -1,4 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import Express from 'express';
+
+// `req._body` is used by https://github.com/expressjs/body-parser to flag the request body as having already been parsed, so we'll use that convention here too, even though it's not a property in the Typescript definition for express.Request.
+interface MemoRequest extends Express.Request {
+  _body?: boolean;
+}
 
 /*
 Simple JSON body parser. Similar to body-parser's json parser, but different in these ways:
@@ -11,11 +16,18 @@ and downstream parsers won't do any further processing.
 See here: https://github.com/expressjs/body-parser/blob/ee91374eae1555af679550b1d2fb5697d9924109/lib/types/raw.js#L56
 and here: https://github.com/expressjs/body-parser/blob/ee91374eae1555af679550b1d2fb5697d9924109/lib/read.js#L46
 */
-export function jsonParser(req: Request, _res: Response, next: NextFunction) {
+export function jsonParser(req: Express.Request, _res: Express.Response, next: Express.NextFunction) {
+  if ((<MemoRequest>req)._body) {
+    // body already parsed
+    next();
+    return;
+  }
+
   try {
     const rawBody = <Buffer>req.body;
     const parsedBody = JSON.parse(rawBody.toString());
     req.body = parsedBody;
+    (<MemoRequest>req)._body = true;
     next();
   } catch (e: unknown) {
     next(e);

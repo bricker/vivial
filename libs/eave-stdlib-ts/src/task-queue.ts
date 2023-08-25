@@ -1,3 +1,4 @@
+import { constants as httpConstants } from 'node:http2';
 import { Request } from 'express';
 import { CloudTasksClient, protos } from '@google-cloud/tasks';
 import { EaveOrigin } from './eave-origins.js';
@@ -48,22 +49,18 @@ export async function createTaskFromRequest({
 
   const payload = req.body;
   const headers: {[key:string]: string} = {};
-  if (req.headers) {
-    // FIXME: Is there a cleaner way to do this? req.headers is a NodeJS.Dict typescript object.
-    for (const key in req.headers) { // eslint-disable-line no-restricted-syntax
-      if (Object.hasOwn(req.headers, key)) {
-        // express joins array values into string values for headers
-        const value = req.header(key);
-        if (value) {
-          headers[key] = value;
-        }
-      }
+  // FIXME: Is there a cleaner way to do this? req.headers is a NodeJS.Dict typescript object.
+  for (const key in req.headers) { // eslint-disable-line no-restricted-syntax
+    if (Object.hasOwn(req.headers, key)) {
+      // express joins array values into string values for headers
+      const value = req.header(key)!;
+      headers[key] = value;
     }
   }
 
   // The "user agent" is the GitHub webhook deliverer, but when passing off to the task processor, that's not true.
   // GCP Task Queue merges the user agents.
-  delete headers[headersImport.USER_AGENT];
+  delete headers[httpConstants.HTTP2_HEADER_USER_AGENT];
 
   await createTask({
     queueName,
@@ -93,7 +90,7 @@ export async function createTask({
     headers = {};
   }
 
-  headers[headersImport.CONTENT_TYPE] = 'application/json';
+  headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = headersImport.MIME_TYPE_JSON;
 
   let body: string;
   if (payload instanceof Buffer) {
@@ -105,7 +102,7 @@ export async function createTask({
   }
 
   const signatureMessage = buildMessageToSign({
-    method: 'POST',
+    method: httpConstants.HTTP2_METHOD_POST,
     url: targetPath,
     requestId: ctx.eave_request_id,
     origin,
