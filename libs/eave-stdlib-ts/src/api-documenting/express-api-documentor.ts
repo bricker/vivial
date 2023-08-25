@@ -3,7 +3,7 @@ import fs from 'fs';
 import walk from 'walkdir';
 import Parser from 'tree-sitter';
 
-import { run } from '../util.js';
+import { runSync } from '../util.js';
 import { grammarForLanguage } from '../parsing/grammars.js';
 import OpenAIClient, { formatprompt } from '../transformer-ai/openai.js';
 import { OpenAIModel } from '../transformer-ai/models.js';
@@ -424,9 +424,9 @@ export class ExpressAPIDocumentor {
     this.repoDir = `temp/${this.repo.name}`;
     if (this.repo.wiki) {
       this.wikiDir = `temp/${this.repo.wiki.name}`;
-      run(`mkdir temp && cd temp && git clone ${this.repo.url} && git clone ${this.repo.wiki.url}`);
+      runSync(`mkdir temp && cd temp && git clone ${this.repo.url} && git clone ${this.repo.wiki.url}`);
     } else {
-      run(`mkdir temp && cd temp && git clone ${this.repo.url}`);
+      runSync(`mkdir temp && cd temp && git clone ${this.repo.url}`);
     }
   }
 
@@ -622,7 +622,7 @@ export class ExpressAPIDocumentor {
       fs.unlinkSync(filePath);
     }
     fs.appendFileSync(filePath, apiDoc);
-    run(`cd ${this.wikiDir} && git add . && git commit -m 'Update ${apiName} document.' && git push`);
+    runSync(`cd ${this.wikiDir} && git add . && git commit -m 'Update ${apiName} document.' && git push`);
     console.log(`✅ Successfully documented ${apiName}.`);
   }
 
@@ -639,6 +639,6 @@ export class ExpressAPIDocumentor {
         this.#pushToWiki(apiName, apiDoc);
       }
     }
-    run('rm -rf temp');
+    runSync('rm -rf temp');
   }
 }
