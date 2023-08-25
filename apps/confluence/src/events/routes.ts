@@ -1,10 +1,10 @@
-import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-router.js';
-import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import { AddOn } from 'atlassian-connect-express';
 import { Request, Response, Router } from 'express';
+import { LifecycleRouter } from '@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-router.js';
+import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import appConfig from '../config.js';
 import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
+import appConfig from '../config.js';
 
 export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   // webhooks
