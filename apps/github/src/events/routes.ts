@@ -3,6 +3,7 @@ import Express from 'express';
 import { createTaskFromRequest } from '@eave-fyi/eave-stdlib-ts/src/task-queue.js';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
+import getCacheClient, { Cache } from '@eave-fyi/eave-stdlib-ts/src/cache.js';
 import { commonInternalApiMiddlewares, rawJsonBody } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
 import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
 import { getTeamForInstallation, githubAppClient } from '../lib/octokit-util.js';
@@ -50,15 +51,38 @@ export function WebhookRouter(): Express.Router {
 
       const eventBody = <GithubWebhookBody>req.body;
       const installationId = eventBody.installation.id;
-      const eaveTeam = await getTeamForInstallation({ installationId, ctx });
+      const cacheKey = `github_installation:${installationId}:eave_team_id`;
 
-      if (!eaveTeam) {
+      let eaveTeamId: string | undefined;
+      let cacheClient: Cache | undefined;
+
+      try {
+        cacheClient = await getCacheClient();
+        const cachedTeamId = await cacheClient.get(cacheKey);
+        if (cachedTeamId) {
+          eaveTeamId = cachedTeamId.toString();
+        }
+      } catch (e: any) {
+        eaveLogger.warning('Error connecting to cache', ctx, e);
+      }
+
+      if (!eaveTeamId) {
+        const eaveTeam = await getTeamForInstallation({ installationId, ctx });
+        if (eaveTeam) {
+          eaveTeamId = eaveTeam.id;
+          if (cacheClient) {
+            await cacheClient.set(cacheKey, eaveTeamId);
+          }
+        }
+      }
+
+      if (!eaveTeamId) {
         eaveLogger.warning(`No Eave Team found for installation ID ${installationId}`, ctx, { installationId });
         res.sendStatus(httpConstants.HTTP_STATUS_FORBIDDEN);
         return;
       }
 
-      ctx.eave_team_id = eaveTeam.id;
+      ctx.eave_team_id = eaveTeamId;
 
       await createTaskFromRequest({
         queueName: GITHUB_EVENT_QUEUE_NAME,
