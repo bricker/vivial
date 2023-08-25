@@ -34,7 +34,7 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search("Domain=.eave.run;", cookie)
         assert re.search("HttpOnly;", cookie)
 
     async def test_delete_http_cookie(self):
@@ -46,7 +46,7 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f'^{key}=""', v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search("Domain=.eave.run;", cookie)
         assert re.search("HttpOnly;", cookie)
 
     async def test_set_analytics_cookie(self):
@@ -59,7 +59,7 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search("Domain=.eave.run;", cookie)
 
     async def test_delete_analytics_cookie(self):
         key = self.anystr("cookie_key")
@@ -70,4 +70,4 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f'^{key}=""', v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search("Domain=.eave.run;", cookie)
