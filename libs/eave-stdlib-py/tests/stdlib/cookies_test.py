@@ -3,7 +3,7 @@ from typing import Any
 from starlette.requests import Request
 
 from starlette.responses import Response
-from eave.stdlib.cookies import delete_analytics_cookie, delete_http_cookie, set_http_cookie, set_analytics_cookie
+from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 
@@ -52,7 +52,7 @@ class CookiesTest(CookiesTestBase):
     async def test_set_analytics_cookie(self):
         key = self.anystr("cookie_key")
         value = self.anystr("cookie_value")
-        set_analytics_cookie(key=key, value=value, response=self.mock_response)
+        set_http_cookie(key=key, value=value, response=self.mock_response, httponly=False)
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 
         assert len(cookies) == 1
@@ -63,7 +63,7 @@ class CookiesTest(CookiesTestBase):
 
     async def test_delete_analytics_cookie(self):
         key = self.anystr("cookie_key")
-        delete_analytics_cookie(key=key, response=self.mock_response)
+        delete_http_cookie(key=key, response=self.mock_response, httponly=False)
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 
         assert len(cookies) == 1

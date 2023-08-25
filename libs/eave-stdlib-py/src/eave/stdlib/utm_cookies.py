@@ -4,7 +4,7 @@ from typing import Mapping, Optional
 import uuid
 
 
-from eave.stdlib.cookies import ResponseCookieMutator, set_analytics_cookie
+from eave.stdlib.cookies import ResponseCookieMutator, set_http_cookie
 from .typing import JsonObject
 
 _KNOWN_TRACKING_PARAMS = set(
@@ -39,13 +39,17 @@ class TrackingCookies:
 def set_tracking_cookies(
     cookies: Mapping[str, str], query_params: Mapping[str, str], response: ResponseCookieMutator
 ) -> None:
+    """
+    GTM gtag.js needs to be able to read these cookies in the browser,
+    so we must set httponly to False when setting analytics cookies.
+    """
     if (cookie_value := cookies.get(EAVE_VISITOR_ID_COOKIE)) is None or len(cookie_value) == 0:
-        set_analytics_cookie(key=EAVE_VISITOR_ID_COOKIE, value=str(uuid.uuid4()), response=response)
+        set_http_cookie(key=EAVE_VISITOR_ID_COOKIE, value=str(uuid.uuid4()), response=response, httponly=False)
 
     for key, value in query_params.items():
         lkey = key.lower()
         if lkey in _KNOWN_TRACKING_PARAMS or re.match("^utm_", lkey):
-            set_analytics_cookie(key=f"{EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, response=response)
+            set_http_cookie(key=f"{EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, response=response, httponly=False)
 
 
 def get_tracking_cookies(cookies: Mapping[str, str]) -> TrackingCookies:
