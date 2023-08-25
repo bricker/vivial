@@ -1,11 +1,11 @@
 import { App, Octokit } from 'octokit';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { getTeam } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
-import { appConfig } from '../config.js';
 import { CtxArg } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
 import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { Team } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js';
+import { appConfig } from '../config.js';
 
 export async function createOctokitClient(installationId: number): Promise<Octokit> {
   const app = await githubAppClient();
@@ -56,7 +56,7 @@ export async function getTeamForInstallation({ installationId, ctx }: CtxArg & {
   });
 
   if (!response.team) {
-    eaveLogger.error(`github_install_id not found`, response, ctx);
+    eaveLogger.error('github_install_id not found', response, ctx);
     return null;
   }
 

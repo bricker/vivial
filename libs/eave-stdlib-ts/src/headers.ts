@@ -1,5 +1,3 @@
-import http2 from 'node:http2';
-
 export default {
   EAVE_TEAM_ID_HEADER: 'eave-team-id',
   EAVE_ACCOUNT_ID_HEADER: 'eave-account-id',

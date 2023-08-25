@@ -5,7 +5,6 @@ import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
 import getCacheClient, { cacheInitialized } from './cache.js';
 import eaveLogger from './logging.js';
-import headers from './headers.js';
 import { redact } from './util.js';
 import { loadExtensionMap } from './programming-langs/language-mapping.js';
 
