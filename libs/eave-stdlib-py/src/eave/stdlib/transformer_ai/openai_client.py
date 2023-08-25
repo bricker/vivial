@@ -191,8 +191,8 @@ async def _log_gpt_request(
 ) -> None:
     full_prompt = "\n".join(params.messages)
 
-    input_tokens = token_count(full_prompt, params.model) if input_tokens is None else cast(int, input_tokens)
-    output_tokens = token_count(response, params.model) if output_tokens is None else cast(int, output_tokens)
+    input_tokens = token_count(full_prompt, params.model) if input_tokens is None else input_tokens
+    output_tokens = token_count(response, params.model) if output_tokens is None else output_tokens
 
     prompt_cost = calculate_prompt_cost_usd(input_tokens, params.model)
     response_cost = calculate_response_cost_usd(output_tokens, params.model)

@@ -111,7 +111,7 @@ class LogContext(JsonObject):
             self.set({"eave_account_id": get_header_value(cscope, EAVE_ACCOUNT_ID_HEADER)})
             self.set({"eave_origin": get_header_value(cscope, EAVE_ORIGIN_HEADER)})
 
-            r = Request(scope)
+            r = Request(cast(Scope, scope))
             tracking_cookies = get_tracking_cookies(r.cookies)
             self.set({"eave_visitor_id": tracking_cookies.visitor_id})
             self.set({"eave_utm_params": tracking_cookies.utm_params})

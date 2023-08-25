@@ -5,8 +5,8 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-lint "$(^parentpath)"
-	python-lint .
+	python-lint "$(^parentpath)" # lint self
+	python-lint . # lint caller
 	"${EAVE_HOME}"/libs/eave-stdlib-py/bin/lint
 	"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/lint
 )
