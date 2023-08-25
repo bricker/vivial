@@ -4,7 +4,7 @@ from typing import Mapping, Optional
 import uuid
 
 
-from eave.stdlib.cookies import ResponseCookieMutator, set_http_cookie
+from eave.stdlib.cookies import ResponseCookieMutator, set_analytics_cookie
 from .typing import JsonObject
 
 _KNOWN_TRACKING_PARAMS = set(
@@ -40,12 +40,12 @@ def set_tracking_cookies(
     cookies: Mapping[str, str], query_params: Mapping[str, str], response: ResponseCookieMutator
 ) -> None:
     if cookies.get(EAVE_VISITOR_ID_COOKIE) is None:
-        set_http_cookie(key=EAVE_VISITOR_ID_COOKIE, value=str(uuid.uuid4()), response=response)
+        set_analytics_cookie(key=EAVE_VISITOR_ID_COOKIE, value=str(uuid.uuid4()), response=response)
 
     for key, value in query_params.items():
         lkey = key.lower()
         if lkey in _KNOWN_TRACKING_PARAMS or re.match("^utm_", lkey):
-            set_http_cookie(key=f"{EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, response=response)
+            set_analytics_cookie(key=f"{EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, response=response)
 
 def get_tracking_cookies(cookies: Mapping[str, str]) -> TrackingCookies:
     visitor_id = cookies.get(EAVE_VISITOR_ID_COOKIE)
