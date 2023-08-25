@@ -7,9 +7,13 @@ import createContent from './create-content.js';
 import updateContent from './update-content.js';
 import deleteContent from './delete-content.js';
 import ConfluenceClient from '../confluence-client.js';
+import { commonInternalApiMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
+import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
 
 export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
   const router = Router();
+  router.use(commonInternalApiMiddlewares);
+  router.use(jsonParser);
 
   router.post('/spaces/query', async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -7,15 +7,13 @@ import appConfig from '../config.js';
 import { JiraWebhookEvent } from '../types.js';
 import commentCreatedEventHandler from './comment-created.js';
 import JiraClient from '../jira-client.js';
-
-export function applyWebhookMiddlewares({ app, addon, path }: {app: Express, addon: AddOn, path: string}) {
-  app.use(path, express.json());
-  app.use(path, addon.middleware());
-}
+import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
 
 export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   // webhooks
   const router = Router();
+  router.use(jsonParser);
+  router.use(addon.middleware());
 
   const lifecycleRouter = LifecycleRouter({ addon, product: AtlassianProduct.jira, eaveOrigin: appConfig.eaveOrigin });
   router.use(lifecycleRouter);
