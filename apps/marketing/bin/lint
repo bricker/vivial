@@ -6,6 +6,6 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
-	"${EAVE_HOME}"/develop/python/bin/lint
+	"${EAVE_HOME}"/develop/python/_lint_base
 	"${EAVE_HOME}"/develop/javascript/bin/lint
 )
