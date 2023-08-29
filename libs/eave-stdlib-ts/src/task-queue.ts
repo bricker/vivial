@@ -167,6 +167,15 @@ export async function createTask({
     },
   );
 
+  // if (sharedConfig.isDevelopment) {
+  //   // FIXME: This is a hack
+  //   await fetch(`http://localhost:${process.env['PORT']}/${targetPath}`, {
+  //     method: httpConstants.HTTP2_METHOD_POST,
+  //     body,
+  //     headers,
+  //   });
+  // }
+
   const [responseTask] = await client.createTask({ parent, task });
   return responseTask;
 }
