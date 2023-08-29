@@ -53,8 +53,7 @@ export async function validateGithubWebhookHeaders(req: Express.Request, res: Ex
       installationId,
     } = getGithubWebhookHeaders(req);
 
-    // FIXME: Should we check `installationId` header here? I'm not sure if it's always present.
-    if (!eventName || !id || !signature) {
+    if (!eventName || !id || !signature || !installationId) {
       eaveLogger.error('missing header data from GitHub', ctx, { id, eventName, installationId });
       res.sendStatus(httpConstants.HTTP_STATUS_BAD_REQUEST);
       return;

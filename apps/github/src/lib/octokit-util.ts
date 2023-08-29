@@ -44,12 +44,12 @@ export async function getInstallationId(eaveTeamId: string, ctx: LogContext): Pr
   return parseInt(ghIntegration.github_install_id, 10);
 }
 
-export async function getTeamForInstallation({ installationId, ctx }: CtxArg & { installationId: number }): Promise<Team | null> {
+export async function getTeamForInstallation({ installationId, ctx }: CtxArg & { installationId: string }): Promise<Team | null> {
   const response = await getGithubInstallation({
     origin: EaveOrigin.eave_github_app,
     input: {
       github_integration: {
-        github_install_id: installationId.toString(),
+        github_install_id: installationId,
       },
     },
     ctx,

@@ -1,3 +1,4 @@
+import assert from 'node:assert';
 import { constants as httpConstants } from 'node:http2';
 import Express from 'express';
 import { createTaskFromRequest } from '@eave-fyi/eave-stdlib-ts/src/task-queue.js';
@@ -49,8 +50,11 @@ export function WebhookRouter(): Express.Router {
         return;
       }
 
-      const eventBody = <GithubWebhookBody>req.body;
-      const installationId = eventBody.installation.id;
+      // event.installation not available when using local webhook forwarding, so we pull it from headers.
+      const { installationId } = getGithubWebhookHeaders(req);
+      // This was already validated present in the validateGithubWebhookHeaders middleware. This check is for the type checker, plus adds additional safety so the cache key isn't malformed and returns incorrect data.
+      assert(installationId);
+
       const cacheKey = `github_installation:${installationId}:eave_team_id`;
 
       let eaveTeamId: string | undefined;
@@ -116,9 +120,12 @@ export function TaskQueueRouter(): Express.Router {
         return;
       }
 
+      const { installationId } = getGithubWebhookHeaders(req);
+      assert(installationId);
+
       const eventBody = <GithubWebhookBody>req.body;
       const app = await githubAppClient();
-      const octokit = await app.getInstallationOctokit(eventBody.installation.id);
+      const octokit = await app.getInstallationOctokit(parseInt(installationId, 10));
       await handler(eventBody, { octokit, ctx });
       res.end(); // safety
     } catch (e: unknown) {
