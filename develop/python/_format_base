@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	python-format .
+	# "${EAVE_HOME}"/libs/eave-stdlib-py/bin/format
+	# "${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/format
+)

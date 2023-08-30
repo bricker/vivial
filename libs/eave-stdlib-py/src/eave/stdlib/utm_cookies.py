@@ -52,7 +52,6 @@ def set_tracking_cookies(
             set_http_cookie(key=f"{EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, response=response, httponly=False)
 
 
-
 def get_tracking_cookies(cookies: Mapping[str, str]) -> TrackingCookies:
     visitor_id = cookies.get(EAVE_VISITOR_ID_COOKIE)
     utm_params: JsonObject = {}

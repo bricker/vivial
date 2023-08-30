@@ -101,7 +101,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         assert self.get_cookie_value("ev_utm_utm_campaign", response) == self.getstr("utm_campaign")
         assert self.get_cookie_value("ev_utm_gclid", response) == self.getstr("gclid")
-        assert self.get_cookie_value("ev_utm_ignored_param", response) == None
+        assert self.get_cookie_value("ev_utm_ignored_param", response) is None
 
     async def test_slack_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
@@ -123,7 +123,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
         async with self.db_session.begin() as s:
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-            assert self.get_cookie_value("ev_oauth_state_slack", response) == None  # Test the cookie was deleted
+            assert self.get_cookie_value("ev_oauth_state_slack", response) is None  # Test the cookie was deleted
             assert response.headers["Location"]
             assert (
                 response.headers["Location"]
