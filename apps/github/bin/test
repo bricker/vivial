@@ -2,5 +2,10 @@
 
 set -eu
 
+source "${EAVE_HOME}"/develop/functions.bash
+
 echo "WARNING: no tests"
-# "${EAVE_HOME}"/develop/javascript/bin/test
+# (
+# 	cd "$(^parentpath)"
+# 	"${EAVE_HOME}"/develop/javascript/bin/test
+# )

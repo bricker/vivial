@@ -1,5 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -e
+set -eu
 
-npm test
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/javascript/bin/test
+)
