@@ -1,3 +1,4 @@
+import re
 import json
 import unittest
 import unittest.mock
@@ -340,3 +341,21 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
                 side_effect=lambda *args, **kwargs: self.testdata["fake_confluence_user"],
             ),
         )
+
+    def get_cookie_value(self, name: str, response: Response) -> str | None:
+        """
+        Fetches a cookie value by name from the response object "set-cookie" header.
+
+        We are checking the "set-cookie" header rather than the built-in
+        response.cookies attribute, because it doesnt appear to get set
+        properly (aka at all) in the test environment.
+        """
+        cookies: list[str] = response.headers.get("set-cookie").split("; ")
+
+        for cookie_pair in cookies:
+            if re.search(f"{name}=", cookie_pair):
+                value = cookie_pair.split("=")[-1]
+                if value == '""':
+                    return None
+                return value
+        return None
