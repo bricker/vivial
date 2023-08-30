@@ -24,7 +24,6 @@ export function WebhookRouter({ addon }: { addon: any }): Router {
       const ctx = LogContext.load(res);
       eaveLogger.info('received webhook event', ctx);
       const jiraClient = await JiraClient.getAuthedJiraClient({
-        req,
         addon,
         clientKey: (<any>res.locals).clientKey, // TODO: make this typed
       });

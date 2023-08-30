@@ -5,6 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
+	# node-format "$(^parentpath)"
 	node-format .
 	# "${EAVE_HOME}"/libs/eave-stdlib-ts/bin/format
 	# "${EAVE_HOME}"/libs/eave-pubsub-schemas/typescript/bin/format
