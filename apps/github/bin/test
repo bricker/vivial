@@ -4,7 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-echo "WARNING: no tests"
+statusmsg -w "no tests"
 # (
 # 	cd "$(^parentpath)"
 # 	"${EAVE_HOME}"/develop/javascript/_test_base

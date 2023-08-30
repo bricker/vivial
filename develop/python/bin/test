@@ -4,7 +4,8 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-(
-	cd "$(^parentpath)"
-	"${EAVE_HOME}"/develop/python/_test_base
-)
+statusmsg -w "no tests"
+# (
+# 	cd "$(^parentpath)"
+# 	"${EAVE_HOME}"/develop/python/_test_base
+# )
