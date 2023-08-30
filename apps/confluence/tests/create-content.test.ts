@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import anyTest, { TestFn } from 'ava';
 import sinon from 'sinon';
 import request from 'supertest';
-import * as signing from '@eave-fyi/eave-stdlib-ts/src/signing.js';
+import Signing, * as signing from '@eave-fyi/eave-stdlib-ts/src/signing.js';
 import { createHash } from 'crypto';
 import { app } from '../src/app.js';
 import ConfluenceClient from '../src/confluence-client.js';
@@ -26,7 +26,7 @@ class TestUtil {
 interface TestContext {
   sandbox: sinon.SinonSandbox;
   confluenceClient: sinon.SinonStubbedInstance<ConfluenceClient>;
-  signing: sinon.SinonStubbedInstance<Signing>;
+  // signing: sinon.SinonStubbedInstance<Signing>;
   u: TestUtil;
 }
 
@@ -36,26 +36,26 @@ test.beforeEach((t) => {
   const sandbox = sinon.createSandbox();
   const mockConfluenceClient = new ConfluenceClient(<any>null); // client doesn't matter
   const confluenceClient = sandbox.stub(mockConfluenceClient);
-  sandbox.stub(ConfluenceClient, 'getAuthedConnectClient').returns(Promise.resolve(confluenceClient));
+  sandbox.stub(ConfluenceClient, 'getAuthedConfluenceClient').returns(Promise.resolve(confluenceClient));
 
-  const mockSigning = new signing.default('eave_www');
-  const s = sandbox.stub(signing, 'default').returns(mockSigning);
-  s.signBase64.callsFake(async (data: string | Buffer): Promise<string> => {
+  const mockSigning = new Signing('eave_www');
+  sandbox.stub(Signing, 'new').returns(mockSigning);
+  sandbox.stub(signing.default.prototype, 'signBase64').callsFake(async (data: string | Buffer): Promise<string> => {
     return createHash('sha256')
       .update(data)
       .digest().toString();
   });
-  signing.verifySignatureOrException.callsFake(async (message: string | Buffer, signature: string | Buffer): Promise<boolean> => {
-    return true;
-    // return signature === createHash('sha256')
-    //   .update(message)
-    //   .digest().toString();
+  sandbox.stub(signing.default.prototype, 'verifySignatureOrException').callsFake(async (message: string | Buffer, signature: string | Buffer): Promise<boolean> => {
+    // return true;
+    return signature === createHash('sha256')
+      .update(message)
+      .digest().toString();
   });
 
   t.context = {
     sandbox,
     confluenceClient,
-    signing,
+    // signing: s,
     u: new TestUtil(),
   };
 });
