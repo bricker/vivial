@@ -26,7 +26,6 @@ class TestUtil {
 interface TestContext {
   sandbox: sinon.SinonSandbox;
   confluenceClient: sinon.SinonStubbedInstance<ConfluenceClient>;
-  // signing: sinon.SinonStubbedInstance<Signing>;
   u: TestUtil;
 }
 
@@ -46,7 +45,6 @@ test.beforeEach((t) => {
       .digest().toString();
   });
   sandbox.stub(signing.default.prototype, 'verifySignatureOrException').callsFake(async (message: string | Buffer, signature: string | Buffer): Promise<boolean> => {
-    // return true;
     return signature === createHash('sha256')
       .update(message)
       .digest().toString();
@@ -55,7 +53,6 @@ test.beforeEach((t) => {
   t.context = {
     sandbox,
     confluenceClient,
-    // signing: s,
     u: new TestUtil(),
   };
 });

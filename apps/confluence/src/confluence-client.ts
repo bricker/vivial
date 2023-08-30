@@ -1,5 +1,4 @@
 import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
-import { Request } from 'express';
 import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
 import ConnectClient, { RequestOpts } from '@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js';
 import appConfig from './config.js';
@@ -7,18 +6,15 @@ import { cleanDocument } from './api/util.js';
 
 export default class ConfluenceClient extends ConnectClient {
   static async getAuthedConfluenceClient({
-    req,
     addon,
     teamId,
     clientKey,
   }: {
-    req: Request,
     addon: any,
     teamId?: string,
     clientKey?: string,
   }): Promise<ConfluenceClient> {
     const connectClient = await ConnectClient.getAuthedConnectClient({
-      req,
       addon,
       product: AtlassianProduct.confluence,
       origin: appConfig.eaveOrigin,
