@@ -7,5 +7,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 echo "WARNING: no tests"
 # (
 # 	cd "$(^parentpath)"
-# 	"${EAVE_HOME}"/develop/javascript/bin/test
+# 	"${EAVE_HOME}"/develop/javascript/_test_base
 # )
