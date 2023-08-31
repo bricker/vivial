@@ -30,7 +30,7 @@ class GithubRepoOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    external_repo_id: Mapped[str] = mapped_column()
+    external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     api_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=Status.DISABLED.value)
     """Activation status of the API documentation feature for this repo. options: null (disabled), enabled, paused"""
