@@ -1,17 +1,16 @@
 from datetime import datetime
-from enum import StrEnum
-from typing import Optional, Self
+from typing import Optional, Self, Sequence
 from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint, Index
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.repos import GithubRepo, State
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk
+from .util import make_team_fk
 
 
 class GithubRepoOrm(Base):
@@ -52,20 +51,27 @@ class GithubRepoOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         external_repo_id: str,
-        api_documentation_state: State,
-        inline_code_documentation_state: State,
-        architecture_documentation_state: State,
+        api_documentation_state: State = State.DISABLED,
+        inline_code_documentation_state: State = State.DISABLED,
+        architecture_documentation_state: State = State.DISABLED,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
-            api_documentation_state=api_documentation_state,
-            inline_code_documentation_state=inline_code_documentation_state,
-            architecture_documentation_state=architecture_documentation_state,
+            api_documentation_state=api_documentation_state.value,
+            inline_code_documentation_state=inline_code_documentation_state.value,
+            architecture_documentation_state=architecture_documentation_state.value,
         )
         session.add(obj)
         await session.flush()
         return obj
+    
+
+    @classmethod
+    async def list_all(cls, team_id: UUID, session: AsyncSession) -> Sequence[Self]:
+        stmt = select(cls).where(cls.team_id == team_id)
+        result = (await session.scalars(stmt)).all()
+        return result
 
     @classmethod
     async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
@@ -78,3 +84,16 @@ class GithubRepoOrm(Base):
         stmt = select(cls).where(cls.team_id == team_id).where(cls.external_repo_id == external_repo_id).limit(1)
         result = await session.scalar(stmt)
         return result
+    
+    @classmethod
+    async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
+        stmt = delete(cls).where(cls.team_id == team_id)
+
+        if len(external_repo_ids) < 1:
+            # no work to be done (also dont delete ALL entries for team_id)
+            return
+        
+        for external_repo_id in external_repo_ids:
+            stmt.where(cls.external_repo_id == external_repo_id)
+
+        await session.execute(stmt)
