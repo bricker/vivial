@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
 from uuid import UUID
 
+<<<<<<< HEAD
 from sqlalchemy import PrimaryKeyConstraint, Index, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +10,14 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
 from eave.stdlib.core_api.models.repos import GithubRepo, State, Feature
+=======
+from sqlalchemy import PrimaryKeyConstraint, Index
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.stdlib.core_api.models.repos import GithubRepo, Status
+>>>>>>> f2af8a3b (feat: add composite index to gh repos table)
 
 from .base import Base
 from .util import make_team_fk
@@ -46,6 +55,7 @@ class GithubRepoOrm(Base):
     def api_model(self) -> GithubRepo:
         return GithubRepo.from_orm(self)
 
+<<<<<<< HEAD
     class QueryParams(TypedDict):
         team_id: UUID | str
         external_repo_id: NotRequired[str]
@@ -72,28 +82,43 @@ class GithubRepoOrm(Base):
 
         return lookup
 
+=======
+>>>>>>> f2af8a3b (feat: add composite index to gh repos table)
     @classmethod
     async def create(
         cls,
         session: AsyncSession,
         team_id: UUID,
         external_repo_id: str,
+<<<<<<< HEAD
         api_documentation_state: State = State.DISABLED,
         inline_code_documentation_state: State = State.DISABLED,
         architecture_documentation_state: State = State.DISABLED,
+=======
+        api_documentation_state: Status,
+        inline_code_documentation_state: Status,
+        architecture_documentation_state: Status,
+>>>>>>> f2af8a3b (feat: add composite index to gh repos table)
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
+<<<<<<< HEAD
             api_documentation_state=api_documentation_state.value,
             inline_code_documentation_state=inline_code_documentation_state.value,
             architecture_documentation_state=architecture_documentation_state.value,
+=======
+            api_documentation_state=api_documentation_state,
+            inline_code_documentation_state=inline_code_documentation_state,
+            architecture_documentation_state=architecture_documentation_state,
+>>>>>>> f2af8a3b (feat: add composite index to gh repos table)
         )
         session.add(obj)
         await session.flush()
         return obj
 
     @classmethod
+<<<<<<< HEAD
     async def list_all(cls, team_id: UUID, session: AsyncSession) -> Sequence[Self]:
         stmt = cls._build_query(team_id=team_id)
         result = (await session.scalars(stmt)).all()
@@ -102,11 +127,16 @@ class GithubRepoOrm(Base):
     @classmethod
     async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
         stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
+=======
+    async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
+        stmt = select(cls).where(cls.team_id == team_id).where(cls.external_repo_id == external_repo_id).limit(1)
+>>>>>>> f2af8a3b (feat: add composite index to gh repos table)
         result = (await session.scalars(stmt)).one()
         return result
 
     @classmethod
     async def one_or_none(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self | None:
+<<<<<<< HEAD
         stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
         result = await session.scalar(stmt)
         return result
@@ -148,3 +178,8 @@ class GithubRepoOrm(Base):
 
         result = (await session.scalars(stmt)).all()
         return len(result) == 0
+=======
+        stmt = select(cls).where(cls.team_id == team_id).where(cls.external_repo_id == external_repo_id).limit(1)
+        result = await session.scalar(stmt)
+        return result
+>>>>>>> f2af8a3b (feat: add composite index to gh repos table)
