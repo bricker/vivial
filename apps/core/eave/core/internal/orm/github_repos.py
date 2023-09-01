@@ -3,10 +3,12 @@ from enum import StrEnum
 from typing import Optional, Self
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint
+from sqlalchemy import PrimaryKeyConstraint, Index
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.stdlib.core_api.models.repos import GithubRepo, State
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
@@ -20,12 +22,13 @@ class GithubRepoOrm(Base):
             "external_repo_id",
         ),
         make_team_fk(),
+        Index(
+            None,
+            "team_id",
+            "external_repo_id",
+            unique=True,
+        ),
     )
-
-    class State(StrEnum):
-        DISABLED = "disabled"
-        ENABLED = "enabled"
-        PAUSED = "paused"
 
     team_id: Mapped[UUID] = mapped_column()
     external_repo_id: Mapped[str] = mapped_column(unique=True)
@@ -39,6 +42,39 @@ class GithubRepoOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    # @property
-    # def api_model(self) -> GithubRepo:
-    #     return GithubRepo.from_orm(self)
+    @property
+    def api_model(self) -> GithubRepo:
+        return GithubRepo.from_orm(self)
+
+    @classmethod
+    async def create(
+        cls,
+        session: AsyncSession,
+        team_id: UUID,
+        external_repo_id: str,
+        api_documentation_state: State,
+        inline_code_documentation_state: State,
+        architecture_documentation_state: State,
+    ) -> Self:
+        obj = cls(
+            team_id=team_id,
+            external_repo_id=external_repo_id,
+            api_documentation_state=api_documentation_state,
+            inline_code_documentation_state=inline_code_documentation_state,
+            architecture_documentation_state=architecture_documentation_state,
+        )
+        session.add(obj)
+        await session.flush()
+        return obj
+
+    @classmethod
+    async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
+        stmt = select(cls).where(cls.team_id == team_id).where(cls.external_repo_id == external_repo_id).limit(1)
+        result = (await session.scalars(stmt)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self | None:
+        stmt = select(cls).where(cls.team_id == team_id).where(cls.external_repo_id == external_repo_id).limit(1)
+        result = await session.scalar(stmt)
+        return result
