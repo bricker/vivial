@@ -125,7 +125,7 @@ class GithubRepoOrm(Base):
         await session.execute(stmt)
 
     @classmethod
-    async def all_features_match_state(cls, team_id: UUID, feature: Feature, state: State, session: AsyncSession) -> bool:
+    async def all_repos_match_feature_state(cls, team_id: UUID, feature: Feature, state: State, session: AsyncSession) -> bool:
         """
         Check if for a given `team_id` all their repos have the specified `state` for a `feature`. 
 
