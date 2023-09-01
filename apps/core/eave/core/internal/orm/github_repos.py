@@ -1,12 +1,13 @@
 from datetime import datetime
-from typing import Optional, Self, Sequence
+from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, Index
+from sqlalchemy import PrimaryKeyConstraint, Index, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+import eave.stdlib.util
 from eave.stdlib.core_api.models.repos import GithubRepo, State
 
 from .base import Base
@@ -45,6 +46,32 @@ class GithubRepoOrm(Base):
     def api_model(self) -> GithubRepo:
         return GithubRepo.from_orm(self)
 
+    class QueryParams(TypedDict):
+        team_id: UUID | str
+        external_repo_id: NotRequired[str]
+        api_documentation_state: NotRequired[State]
+        inline_code_documentation_state: NotRequired[State]
+        architecture_documentation_state: NotRequired[State]
+
+    @classmethod
+    def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
+        team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
+        lookup = select(cls).where(cls.team_id == team_id)
+
+        if (external_repo_id := kwargs.get("external_repo_id")):
+            lookup.where(cls.external_repo_id == external_repo_id)
+
+        if (api_documentation_state := kwargs.get("api_documentation_state")):
+            lookup.where(cls.api_documentation_state == api_documentation_state)
+
+        if (inline_code_documentation_state := kwargs.get("inline_code_documentation_state")):
+            lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state)
+
+        if (architecture_documentation_state := kwargs.get("architecture_documentation_state")):
+            lookup.where(cls.architecture_documentation_state == architecture_documentation_state)
+
+        return lookup
+
     @classmethod
     async def create(
         cls,
@@ -65,26 +92,25 @@ class GithubRepoOrm(Base):
         session.add(obj)
         await session.flush()
         return obj
-    
 
     @classmethod
     async def list_all(cls, team_id: UUID, session: AsyncSession) -> Sequence[Self]:
-        stmt = select(cls).where(cls.team_id == team_id)
+        stmt = cls._build_query(team_id=team_id)
         result = (await session.scalars(stmt)).all()
         return result
 
     @classmethod
     async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
-        stmt = select(cls).where(cls.team_id == team_id).where(cls.external_repo_id == external_repo_id).limit(1)
+        stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
         result = (await session.scalars(stmt)).one()
         return result
 
     @classmethod
     async def one_or_none(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self | None:
-        stmt = select(cls).where(cls.team_id == team_id).where(cls.external_repo_id == external_repo_id).limit(1)
+        stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
         result = await session.scalar(stmt)
         return result
-    
+
     @classmethod
     async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
         stmt = delete(cls).where(cls.team_id == team_id)
@@ -92,7 +118,7 @@ class GithubRepoOrm(Base):
         if len(external_repo_ids) < 1:
             # no work to be done (also dont delete ALL entries for team_id)
             return
-        
+
         for external_repo_id in external_repo_ids:
             stmt.where(cls.external_repo_id == external_repo_id)
 
