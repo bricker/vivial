@@ -85,9 +85,9 @@ class GithubRepoOrm(Base):
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
-            api_documentation_state=api_documentation_state.value,
-            inline_code_documentation_state=inline_code_documentation_state.value,
-            architecture_documentation_state=architecture_documentation_state.value,
+            api_documentation_state=api_documentation_state,
+            inline_code_documentation_state=inline_code_documentation_state,
+            architecture_documentation_state=architecture_documentation_state,
         )
         session.add(obj)
         await session.flush()
