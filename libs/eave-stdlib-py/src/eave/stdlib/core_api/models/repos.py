@@ -7,6 +7,12 @@ from eave.stdlib.core_api.models import BaseResponseModel
 
 from eave.stdlib.core_api.models import BaseInputModel
 
+
+class Feature(enum.StrEnum):
+    API_DOCUMENTATION = "api_documentation"
+    INLINE_CODE_DOCUMENTATION = "inline_code_documentation"
+    ARCHITECTURE_DOCUMENTATION = "architecture_documentation"
+
 class State(enum.StrEnum):
     DISABLED = "disabled"
     ENABLED = "enabled"

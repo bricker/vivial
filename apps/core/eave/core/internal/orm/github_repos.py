@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.repos import GithubRepo, State
+from eave.stdlib.core_api.models.repos import GithubRepo, State, Feature
 
 from .base import Base
 from .util import make_team_fk
@@ -123,3 +123,28 @@ class GithubRepoOrm(Base):
             stmt.where(cls.external_repo_id == external_repo_id)
 
         await session.execute(stmt)
+
+    @classmethod
+    async def all_features_match_state(cls, team_id: UUID, feature: Feature, state: State, session: AsyncSession) -> bool:
+        """
+        Check if for a given `team_id` all their repos have the specified `state` for a `feature`. 
+
+        This query will make use of the composite index for the team_id where clause, which should filter out
+        most entries. However, a linear scan will be used for the feature state comparisons. Hopefully it will
+        not be too expensive of a query to scan all the repos of a single team.
+        """
+        stmt = cls._build_query(team_id=team_id)
+        
+        # we find all entries for feature status NOT matching the provided one.
+        # if there are 0 matches, that means all rows have the same status
+        # for `feature` (or there are 0 rows)
+        match feature:
+            case Feature.INLINE_CODE_DOCUMENTATION:
+                stmt.where(cls.inline_code_documentation_state != state.value)
+            case Feature.API_DOCUMENTATION:
+                stmt.where(cls.api_documentation_state != state.value)
+            case Feature.ARCHITECTURE_DOCUMENTATION:
+                stmt.where(cls.architecture_documentation_state != state.value)
+
+        result = (await session.scalars(stmt)).all()
+        return len(result) == 0
