@@ -17,7 +17,6 @@ class GithubRepoOrm(Base):
     __table_args__ = (
         PrimaryKeyConstraint(
             "team_id",
-            "id",
             "external_repo_id",
         ),
         make_team_fk(),
@@ -29,7 +28,6 @@ class GithubRepoOrm(Base):
         PAUSED = "paused"
 
     team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     api_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=Status.DISABLED.value)
