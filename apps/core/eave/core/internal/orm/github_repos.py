@@ -58,16 +58,16 @@ class GithubRepoOrm(Base):
         team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
         lookup = select(cls).where(cls.team_id == team_id)
 
-        if (external_repo_id := kwargs.get("external_repo_id")):
+        if external_repo_id := kwargs.get("external_repo_id"):
             lookup.where(cls.external_repo_id == external_repo_id)
 
-        if (api_documentation_state := kwargs.get("api_documentation_state")):
+        if api_documentation_state := kwargs.get("api_documentation_state"):
             lookup.where(cls.api_documentation_state == api_documentation_state)
 
-        if (inline_code_documentation_state := kwargs.get("inline_code_documentation_state")):
+        if inline_code_documentation_state := kwargs.get("inline_code_documentation_state"):
             lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state)
 
-        if (architecture_documentation_state := kwargs.get("architecture_documentation_state")):
+        if architecture_documentation_state := kwargs.get("architecture_documentation_state"):
             lookup.where(cls.architecture_documentation_state == architecture_documentation_state)
 
         return lookup
@@ -85,9 +85,9 @@ class GithubRepoOrm(Base):
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
-            api_documentation_state=api_documentation_state,
-            inline_code_documentation_state=inline_code_documentation_state,
-            architecture_documentation_state=architecture_documentation_state,
+            api_documentation_state=api_documentation_state.value,
+            inline_code_documentation_state=inline_code_documentation_state.value,
+            architecture_documentation_state=architecture_documentation_state.value,
         )
         session.add(obj)
         await session.flush()
@@ -125,16 +125,18 @@ class GithubRepoOrm(Base):
         await session.execute(stmt)
 
     @classmethod
-    async def all_repos_match_feature_state(cls, team_id: UUID, feature: Feature, state: State, session: AsyncSession) -> bool:
+    async def all_repos_match_feature_state(
+        cls, team_id: UUID, feature: Feature, state: State, session: AsyncSession
+    ) -> bool:
         """
-        Check if for a given `team_id` all their repos have the specified `state` for a `feature`. 
+        Check if for a given `team_id` all their repos have the specified `state` for a `feature`.
 
         This query will make use of the composite index for the team_id where clause, which should filter out
         most entries. However, a linear scan will be used for the feature state comparisons. Hopefully it will
         not be too expensive of a query to scan all the repos of a single team.
         """
         stmt = cls._build_query(team_id=team_id)
-        
+
         # we find all entries for feature status NOT matching the provided one.
         # if there are 0 matches, that means all rows have the same status
         # for `feature` (or there are 0 rows)
