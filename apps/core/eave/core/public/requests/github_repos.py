@@ -9,11 +9,13 @@ from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
     GetGithubRepoRequest,
     ListGithubReposRequest,
-    UpdateGithubReposRequest,
-    DeleteGithubReposRequest,
+    UpdateGithubRepoRequest,
+    DeleteGithubRepoRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
+
+# TODO: add all this to app routes
 
 
 class CreateGithubRepoEndpoint(HTTPEndpoint):
@@ -64,7 +66,7 @@ class ListGithubReposEndpoint(HTTPEndpoint):
         eave_state = EaveRequestState.load(request=request)
 
         async with database.async_session.begin() as db_session:
-            gh_repo_orms = await GithubRepoOrm.query(
+            gh_repo_orms = await GithubRepoOrm.list_all(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
             )
@@ -76,30 +78,24 @@ class ListGithubReposEndpoint(HTTPEndpoint):
         )
 
 
-class UpdateGithubReposEndpoint(HTTPEndpoint):
+class UpdateGithubRepoEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = UpdateGithubReposRequest.RequestBody.parse_obj(body)
-
-        # transform input to dict for easier use
-        update_values = { repo.external_repo_id: repo.new_values for repo in input.repos }
+        input = UpdateGithubRepoRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            gh_repo_orms = await GithubRepoOrm.query(
+            gh_repo_orm = await GithubRepoOrm.one_or_exception(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_ids=list(update_values.keys()),
+                external_repo_id=input.repo.external_repo_id,
             )
 
-            for orm in gh_repo_orms:
-                assert orm.external_repo_id in update_values, "Received GithubRepo from db that we didnt request!"
-                orm.update(update_values[orm.external_repo_id])
-                
+            gh_repo_orm.update(input.repo.new_values)
 
         return json_response(
-            UpdateGithubReposRequest.ResponseBody(
-                repos=[orm.api_model for orm in gh_repo_orms],
+            UpdateGithubRepoRequest.ResponseBody(
+                repo=gh_repo_orm.api_model,
             )
         )
 
@@ -108,7 +104,7 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = DeleteGithubReposRequest.RequestBody.parse_obj(body)
+        input = DeleteGithubRepoRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
             gh_repo_orms = await GithubRepoOrm.delete_by_repo_ids(
