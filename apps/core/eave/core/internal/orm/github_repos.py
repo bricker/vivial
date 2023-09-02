@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.repos import GithubRepo, State, Feature
+from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
 
 from .base import Base
 from .util import make_team_fk
@@ -110,6 +110,14 @@ class GithubRepoOrm(Base):
         stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
         result = await session.scalar(stmt)
         return result
+
+    def update(self, input: GithubRepoUpdateValues) -> None:
+        if input.api_documentation_state is not None:
+            self.api_documentation_state = input.api_documentation_state
+        if input.architecture_documentation_state is not None:
+            self.architecture_documentation_state = input.architecture_documentation_state
+        if input.inline_code_documentation_state is not None:
+            self.inline_code_documentation_state = input.inline_code_documentation_state
 
     @classmethod
     async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
