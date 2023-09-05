@@ -87,6 +87,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
+            eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
 
         self.run_common_assertions()
@@ -115,6 +116,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
+            eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
 
         self.run_common_assertions()
@@ -140,6 +142,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
+            eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
 
         self.run_common_assertions()
@@ -172,6 +175,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=None,
+            eave_request_id=None,
         )
 
         self.run_common_assertions()
@@ -198,6 +202,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_time=self.data_now.isoformat(),
             eave_env=EaveEnvironment.development,
             opaque_eave_ctx=json.dumps(self.data_ctx),
+            eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
 
         self.run_common_assertions()
