@@ -3,7 +3,7 @@ from enum import StrEnum
 from typing import Optional, Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Index
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -27,6 +27,17 @@ class GithubDocumentsOrm(Base):
             ["external_repo_id"],
             ["github_repos.external_repo_id"],
             ondelete="CASCADE",
+        ),
+        Index(
+            None,
+            "team_id",
+            "external_repo_id",
+            unique=True,
+        ),
+        Index(
+            None,
+            "id",
+            unique=True,
         ),
     )
 
