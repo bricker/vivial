@@ -3,7 +3,8 @@ import uuid
 from ... import requests
 from eave.stdlib.core_api.models.github_repos import (
     GithubRepo,
-    GithubRepoInput,
+    GithubRepoCreateInput,
+    GithubRepoListInput,
     GithubReposDeleteInput,
     GithubRepoUpdateInput,
     GithubReposFeatureStateInput,
@@ -13,17 +14,17 @@ from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 # TODO: should all these be authed???/
 
 
-class GetGithubRepoRequest(Endpoint):
+class GetGithubReposRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-repos/query",
         auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):
-        repo: GithubRepoInput
+        repos: GithubRepoListInput
 
     class ResponseBody(BaseResponseBody):
-        repo: GithubRepo
+        repos: list[GithubRepo]
 
     @classmethod
     async def perform(
@@ -35,32 +36,6 @@ class GetGithubRepoRequest(Endpoint):
         response = await requests.make_request(
             url=cls.config.url,
             input=input,
-            team_id=team_id,
-            **kwargs,
-        )
-
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
-
-
-class ListGithubReposRequest(Endpoint):
-    config = EndpointConfiguration(
-        path="/github-repos/query/list",
-        auth_required=False,
-    )
-
-    class ResponseBody(BaseResponseBody):
-        repos: list[GithubRepo]
-
-    @classmethod
-    async def perform(
-        cls,
-        team_id: uuid.UUID,
-        **kwargs: Unpack[requests.CommonRequestArgs],
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            url=cls.config.url,
-            input=None,
             team_id=team_id,
             **kwargs,
         )
@@ -105,7 +80,7 @@ class CreateGithubRepoRequest(Endpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        repo: GithubRepoInput
+        repo: GithubRepoCreateInput
 
     class ResponseBody(BaseResponseBody):
         repo: GithubRepo

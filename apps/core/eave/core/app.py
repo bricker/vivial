@@ -16,8 +16,7 @@ from eave.stdlib.core_api.operations.subscriptions import (
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
-    GetGithubRepoRequest,
-    ListGithubReposRequest,
+    GetGithubReposRequest,
     UpdateGithubReposRequest,
     DeleteGithubReposRequest,
     FeatureStatusGithubReposRequest,
@@ -217,12 +216,8 @@ routes = [
         endpoint=github_repos.CreateGithubRepoEndpoint,
     ),
     make_route(
-        config=GetGithubRepoRequest.config,
+        config=GetGithubReposRequest.config,
         endpoint=github_repos.GetGithubRepoEndpoint,
-    ),
-    make_route(
-        config=ListGithubReposRequest.config,
-        endpoint=github_repos.ListGithubReposEndpoint,
     ),
     make_route(
         config=UpdateGithubReposRequest.config,

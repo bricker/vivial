@@ -7,8 +7,7 @@ from starlette.responses import Response
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
-    GetGithubRepoRequest,
-    ListGithubReposRequest,
+    GetGithubReposRequest,
     UpdateGithubReposRequest,
     DeleteGithubRepoRequest,
     FeatureStatusGithubReposRequest,
@@ -46,34 +45,17 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = GetGithubRepoRequest.RequestBody.parse_obj(body)
-
-        async with database.async_session.begin() as db_session:
-            gh_repo_orm = await GithubRepoOrm.one_or_exception(
-                session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_id=input.repo.external_repo_id,
-            )
-
-        return json_response(
-            GetGithubRepoRequest.ResponseBody(
-                repo=gh_repo_orm.api_model,
-            )
-        )
-
-
-class ListGithubReposEndpoint(HTTPEndpoint):
-    async def post(self, request: Request) -> Response:
-        eave_state = EaveRequestState.load(request=request)
+        input = GetGithubReposRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
             gh_repo_orms = await GithubRepoOrm.query(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
+                external_repo_ids=input.repos.external_repo_ids,
             )
 
         return json_response(
-            ListGithubReposRequest.ResponseBody(
+            GetGithubReposRequest.ResponseBody(
                 repos=[orm.api_model for orm in gh_repo_orms],
             )
         )
