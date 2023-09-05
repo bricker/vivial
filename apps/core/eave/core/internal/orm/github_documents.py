@@ -30,8 +30,8 @@ class GithubDocumentsOrm(Base):
 
     class Status(StrEnum):
         PROCESSING = "processing"
-        UNDERREVIEW = "under-review"
-        UPTODATE = "up-to-date"
+        PR_OPENED = "pr_opened"
+        PR_MERGED = "pr_merged"
 
     class DocumentType(StrEnum):
         API_DOCUMENT = "api_document"
