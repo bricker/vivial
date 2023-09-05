@@ -8,6 +8,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.stdlib.core_api.models.github_documents import GithubDocument, Status, DocumentType
+
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
 
@@ -17,8 +19,8 @@ class GithubDocumentsOrm(Base):
     __table_args__ = (
         PrimaryKeyConstraint(
             "team_id",
-            "id",
             "external_repo_id",
+            "id",
         ),
         make_team_fk(),
         ForeignKeyConstraint(
@@ -27,15 +29,6 @@ class GithubDocumentsOrm(Base):
             ondelete="CASCADE",
         ),
     )
-
-    class Status(StrEnum):
-        PROCESSING = "processing"
-        PR_OPENED = "pr_opened"
-        PR_MERGED = "pr_merged"
-
-    class DocumentType(StrEnum):
-        API_DOCUMENT = "api_document"
-        ARCHITECTURE_DOCUMENT = "architecture_document"
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
@@ -48,6 +41,7 @@ class GithubDocumentsOrm(Base):
     )  # TODO: should default up-to-date instead??
     """Current state of API documentation for this repo. options: processing, under-review, up-to-date"""
     status_updated: Mapped[Optional[datetime]] = mapped_column(server_default=None)
+    """Last time the `status` column was updated."""
     file_path: Mapped[str] = mapped_column()
     """Relative file path to this document in the given repo."""
     api_name: Mapped[str] = mapped_column()
@@ -57,6 +51,6 @@ class GithubDocumentsOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    # @property
-    # def api_model(self) -> GithubRepo:
-    #     return GithubRepo.from_orm(self)
+    @property
+    def api_model(self) -> GithubDocument:
+        return GithubDocument.from_orm(self)
