@@ -20,6 +20,7 @@ from eave.stdlib.core_api.operations.github_repos import (
     ListGithubReposRequest,
     UpdateGithubReposRequest,
     DeleteGithubReposRequest,
+    FeatureStatusGithubReposRequest,
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
@@ -230,6 +231,10 @@ routes = [
     make_route(
         config=DeleteGithubReposRequest.config,
         endpoint=github_repos.DeleteGithubReposEndpoint,
+    ),
+    make_route(
+        config=FeatureStatusGithubReposRequest.config,
+        endpoint=github_repos.FeatureStatusGithubReposEndpoint,
     ),
     # Authenticated API endpoints.
     make_route(

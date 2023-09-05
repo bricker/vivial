@@ -9,8 +9,9 @@ from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
     GetGithubRepoRequest,
     ListGithubReposRequest,
-    UpdateGithubRepoRequest,
+    UpdateGithubReposRequest,
     DeleteGithubRepoRequest,
+    FeatureStatusGithubReposRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
@@ -66,7 +67,7 @@ class ListGithubReposEndpoint(HTTPEndpoint):
         eave_state = EaveRequestState.load(request=request)
 
         async with database.async_session.begin() as db_session:
-            gh_repo_orms = await GithubRepoOrm.list_all(
+            gh_repo_orms = await GithubRepoOrm.query(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
             )
@@ -78,11 +79,34 @@ class ListGithubReposEndpoint(HTTPEndpoint):
         )
 
 
-class UpdateGithubRepoEndpoint(HTTPEndpoint):
+class FeatureStatusGithubReposEndpoint(HTTPEndpoint):
+    """Query if for a given `team_id` all their repos have the specified `status` for the provided `feature`."""
+
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = UpdateGithubRepoRequest.RequestBody.parse_obj(body)
+        input = FeatureStatusGithubReposRequest.RequestBody.parse_obj(body)
+
+        async with database.async_session.begin() as db_session:
+            status = await GithubRepoOrm.all_repos_match_feature_state(
+                session=db_session,
+                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
+                feature=input.query_params.feature,
+                state=input.query_params.state,
+            )
+
+        return json_response(
+            FeatureStatusGithubReposRequest.ResponseBody(
+                status=status,
+            )
+        )
+
+
+class UpdateGithubReposEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = EaveRequestState.load(request=request)
+        body = await request.json()
+        input = UpdateGithubReposRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
             gh_repo_orm = await GithubRepoOrm.one_or_exception(
@@ -94,7 +118,7 @@ class UpdateGithubRepoEndpoint(HTTPEndpoint):
             gh_repo_orm.update(input.repo.new_values)
 
         return json_response(
-            UpdateGithubRepoRequest.ResponseBody(
+            UpdateGithubReposRequest.ResponseBody(
                 repo=gh_repo_orm.api_model,
             )
         )

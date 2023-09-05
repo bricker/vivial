@@ -35,10 +35,12 @@ class GithubRepoInput(BaseInputModel):
     architecture_documentation_state: State = State.DISABLED
 
 
+
 class GithubRepoUpdateValues:
     api_documentation_state: Optional[State]
     inline_code_documentation_state: Optional[State]
     architecture_documentation_state: Optional[State]
+
 
 
 class GithubRepoUpdateInput(BaseInputModel):
@@ -48,3 +50,8 @@ class GithubRepoUpdateInput(BaseInputModel):
 
 class GithubReposDeleteInput(BaseInputModel):
     external_repo_ids: list[str]
+
+
+class GithubReposFeatureStateInput(BaseInputModel):
+    feature: Feature
+    state: State
