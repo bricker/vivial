@@ -18,7 +18,7 @@ from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
     GetGithubRepoRequest,
     ListGithubReposRequest,
-    UpdateGithubRepoRequest,
+    UpdateGithubReposRequest,
     DeleteGithubReposRequest,
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
@@ -224,8 +224,8 @@ routes = [
         endpoint=github_repos.ListGithubReposEndpoint,
     ),
     make_route(
-        config=UpdateGithubRepoRequest.config,
-        endpoint=github_repos.UpdateGithubRepoEndpoint,
+        config=UpdateGithubReposRequest.config,
+        endpoint=github_repos.UpdateGithubReposEndpoint,
     ),
     make_route(
         config=DeleteGithubReposRequest.config,

@@ -121,17 +121,17 @@ class DeleteGithubReposRequest(Endpoint):
 
         return cls.ResponseBody(_raw_response=response)
 
-class UpdateGithubRepoRequest(Endpoint):
+class UpdateGithubReposRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-repos/update",
         auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):
-        repo: GithubRepoUpdateInput
+        repos: list[GithubRepoUpdateInput]
 
     class ResponseBody(BaseResponseBody):
-        repo: GithubRepo
+        repos: list[GithubRepo]
 
     @classmethod
     async def perform(
