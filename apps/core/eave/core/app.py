@@ -1,6 +1,6 @@
 from eave.core.public.middlewares.authentication import AuthASGIMiddleware
 from eave.core.public.middlewares.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests import connect_integration
+from eave.core.public.requests import connect_integration, github_repos
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.stdlib import cache
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
@@ -13,6 +13,13 @@ from eave.stdlib.core_api.operations.subscriptions import (
     CreateSubscriptionRequest,
     DeleteSubscriptionRequest,
     GetSubscriptionRequest,
+)
+from eave.stdlib.core_api.operations.github_repos import (
+    CreateGithubRepoRequest,
+    GetGithubRepoRequest,
+    ListGithubReposRequest,
+    UpdateGithubRepoRequest,
+    DeleteGithubReposRequest,
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
@@ -203,6 +210,26 @@ routes = [
     make_route(
         config=GetTeamRequest.config,
         endpoint=team.GetTeamEndpoint,
+    ),
+    make_route(
+        config=CreateGithubRepoRequest.config,
+        endpoint=github_repos.CreateGithubRepoEndpoint,
+    ),
+    make_route(
+        config=GetGithubRepoRequest.config,
+        endpoint=github_repos.GetGithubRepoEndpoint,
+    ),
+    make_route(
+        config=ListGithubReposRequest.config,
+        endpoint=github_repos.ListGithubReposEndpoint,
+    ),
+    make_route(
+        config=UpdateGithubRepoRequest.config,
+        endpoint=github_repos.UpdateGithubRepoEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubReposRequest.config,
+        endpoint=github_repos.DeleteGithubReposEndpoint,
     ),
     # Authenticated API endpoints.
     make_route(

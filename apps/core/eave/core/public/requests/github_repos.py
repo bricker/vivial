@@ -10,12 +10,10 @@ from eave.stdlib.core_api.operations.github_repos import (
     GetGithubRepoRequest,
     ListGithubReposRequest,
     UpdateGithubRepoRequest,
-    DeleteGithubRepoRequest,
+    DeleteGithubReposRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
-
-# TODO: add all this to app routes
 
 
 class CreateGithubRepoEndpoint(HTTPEndpoint):
@@ -104,7 +102,7 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = DeleteGithubRepoRequest.RequestBody.parse_obj(body)
+        input = DeleteGithubReposRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
             gh_repo_orms = await GithubRepoOrm.delete_by_repo_ids(
