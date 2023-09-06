@@ -59,16 +59,16 @@ class GithubRepoOrm(Base):
         lookup = select(cls).where(cls.team_id == team_id)
 
         if external_repo_id := kwargs.get("external_repo_id"):
-            lookup.where(cls.external_repo_id == external_repo_id)
+            lookup = lookup.where(cls.external_repo_id == external_repo_id)
 
         if api_documentation_state := kwargs.get("api_documentation_state"):
-            lookup.where(cls.api_documentation_state == api_documentation_state)
+            lookup = lookup.where(cls.api_documentation_state == api_documentation_state)
 
         if inline_code_documentation_state := kwargs.get("inline_code_documentation_state"):
-            lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state)
+            lookup = lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state)
 
         if architecture_documentation_state := kwargs.get("architecture_documentation_state"):
-            lookup.where(cls.architecture_documentation_state == architecture_documentation_state)
+            lookup = lookup.where(cls.architecture_documentation_state == architecture_documentation_state)
 
         return lookup
 
@@ -136,15 +136,11 @@ class GithubRepoOrm(Base):
 
     @classmethod
     async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
-        stmt = delete(cls).where(cls.team_id == team_id)
-
         if len(external_repo_ids) < 1:
             # no work to be done (also dont delete ALL entries for team_id)
             return
 
-        for external_repo_id in external_repo_ids:
-            stmt.where(cls.external_repo_id == external_repo_id)
-
+        stmt = delete(cls).where(cls.team_id == team_id).where(cls.external_repo_id.in_(external_repo_ids))
         await session.execute(stmt)
 
     @classmethod
@@ -165,11 +161,11 @@ class GithubRepoOrm(Base):
         # for `feature` (or there are 0 rows)
         match feature:
             case Feature.INLINE_CODE_DOCUMENTATION:
-                stmt.where(cls.inline_code_documentation_state != state.value)
+                stmt = stmt.where(cls.inline_code_documentation_state != state.value)
             case Feature.API_DOCUMENTATION:
-                stmt.where(cls.api_documentation_state != state.value)
+                stmt = stmt.where(cls.api_documentation_state != state.value)
             case Feature.ARCHITECTURE_DOCUMENTATION:
-                stmt.where(cls.architecture_documentation_state != state.value)
+                stmt = stmt.where(cls.architecture_documentation_state != state.value)
 
         result = (await session.scalars(stmt)).all()
         return len(result) == 0
