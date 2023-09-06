@@ -15,8 +15,6 @@ from eave.stdlib.core_api.operations.github_repos import (
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
 
-# TODO: add all this to app routes
-
 
 class CreateGithubRepoEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
