@@ -70,7 +70,7 @@ async def subscribe_to_file_changes(
     urls -- links paired with their platform type [(url, url platform)]
     returns -- list of subscriptions that got created
     """
-    tasks: list[asyncio.Task[SubscriptionInfo | None]] = []
+    tasks: list[asyncio.Task[Optional[SubscriptionInfo] | Exception]] = []
     for link, link_type in urls:
         tasks.append(
             asyncio.ensure_future(
@@ -81,7 +81,7 @@ async def subscribe_to_file_changes(
     # have asyncio.gather eat any network exceptions and return them as part of result
     completed_tasks: list[Optional[SubscriptionInfo]] = await asyncio.gather(*tasks, return_exceptions=True)
     # only return the successful results
-    subscription_sources = [src for src in completed_tasks if src]
+    subscription_sources = [src for src in completed_tasks if type(src) is SubscriptionInfo]
     return subscription_sources
 
 
