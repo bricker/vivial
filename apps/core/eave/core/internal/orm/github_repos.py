@@ -22,7 +22,7 @@ class GithubRepoOrm(Base):
         make_team_fk(),
     )
 
-    class Status(Enum):
+    class State(Enum):
         DISABLED = None
         ENABLED = "enabled"
         PAUSED = "paused"
@@ -30,11 +30,11 @@ class GithubRepoOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
-    api_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=Status.DISABLED.value)
+    api_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the API documentation feature for this repo. options: null (disabled), enabled, paused"""
-    inline_code_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=Status.DISABLED.value)
+    inline_code_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the inline code documentation feature for this repo. options: null (disabled), enabled, paused"""
-    architecture_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=Status.DISABLED.value)
+    architecture_documentation_state: Mapped[Optional[str]] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the architecture documentation feature for this repo. options: null (disabled), enabled, paused"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
