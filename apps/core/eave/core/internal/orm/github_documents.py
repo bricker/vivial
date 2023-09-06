@@ -76,11 +76,11 @@ class GithubDocumentsOrm(Base):
         lookup = select(cls)
 
         if id := kwargs.get("id"):
-            lookup.where(cls.id == id)
+            lookup = lookup.where(cls.id == id)
         if team_id := kwargs.get("team_id"):
-            lookup.where(cls.team_id == team_id)
+            lookup = lookup.where(cls.team_id == team_id)
         if external_repo_id := kwargs.get("external_repo_id"):
-            lookup.where(cls.external_repo_id == external_repo_id)
+            lookup = lookup.where(cls.external_repo_id == external_repo_id)
 
         return lookup
 
@@ -119,13 +119,9 @@ class GithubDocumentsOrm(Base):
 
     @classmethod
     async def delete_by_ids(cls, ids: list[UUID], session: AsyncSession) -> None:
-        stmt = delete(cls)
-
         if len(ids) < 1:
             # dont delete all the rows
             return
-
-        for id in ids:
-            stmt.where(cls.id == id)
-
+        
+        stmt = delete(cls).where(cls.id.in_(ids))
         await session.execute(stmt)
