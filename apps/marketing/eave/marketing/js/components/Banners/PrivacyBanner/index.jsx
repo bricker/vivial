@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/styles';
 import { FOOTER } from '../../../constants.js';
 import PageSection from '../../PageSection/index.jsx';
 import Copy from '../../Copy/index.jsx';
-import { imageUrl } from '../../../asset-helpers.js';
+import { imageUrl } from '../../../util/asset-helpers.js';
 
 const makeClasses = makeStyles((theme) => ({
   section: {

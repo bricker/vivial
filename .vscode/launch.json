@@ -269,7 +269,7 @@
       "stopAll": true
     },
     {
-      "name": "API + Website",
+      "name": "Core API + Marketing Website",
       "configurations": [
         "Core API",
         "Marketing Website (Client)",

@@ -4,7 +4,7 @@ import classNames from 'classnames';
 
 import Copy from '../../Copy/index.jsx';
 import PageSection from '../../PageSection/index.jsx';
-import { imageUrl } from '../../../asset-helpers.js';
+import { imageUrl } from '../../../util/asset-helpers.js';
 
 const makeClasses = makeStyles((theme) => ({
   wrapper: {
