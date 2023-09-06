@@ -88,18 +88,23 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
         body = await request.json()
         input = UpdateGithubReposRequest.RequestBody.parse_obj(body)
 
+        # transform to dict for ease of use
+        update_values = {repo.external_repo_id: repo.new_values for repo in input.repos}
+
         async with database.async_session.begin() as db_session:
-            gh_repo_orm = await GithubRepoOrm.one_or_exception(
+            gh_repo_orms = await GithubRepoOrm.query(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_id=input.repo.external_repo_id,
+                external_repo_ids=list(update_values.keys()),
             )
 
-            gh_repo_orm.update(input.repo.new_values)
+            for gh_repo_orm in gh_repo_orms:
+                assert gh_repo_orm.external_repo_id in update_values, "Received a GithubRepo ORM that was not requested"
+                gh_repo_orm.update(update_values[gh_repo_orm.external_repo_id])
 
         return json_response(
             UpdateGithubReposRequest.ResponseBody(
-                repo=gh_repo_orm.api_model,
+                repos=[orm.api_model for orm in gh_repo_orms],
             )
         )
 

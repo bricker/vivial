@@ -139,10 +139,10 @@ class UpdateGithubReposRequest(Endpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        repo: GithubRepoUpdateInput
+        repos: list[GithubRepoUpdateInput]
 
     class ResponseBody(BaseResponseBody):
-        repo: GithubRepo
+        repos: list[GithubRepo]
 
     @classmethod
     async def perform(
