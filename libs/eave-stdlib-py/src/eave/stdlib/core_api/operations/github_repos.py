@@ -44,7 +44,7 @@ class GetGithubReposRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class FeatureStatusGithubReposRequest(Endpoint):
+class FeatureStateGithubReposRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-repos/query/enabled",
         auth_required=False,
@@ -103,7 +103,7 @@ class CreateGithubRepoRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class DeleteGithubRepoRequest(Endpoint):
+class DeleteGithubReposRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-repos/delete",
         auth_required=False,

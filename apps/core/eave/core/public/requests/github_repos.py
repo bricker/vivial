@@ -9,8 +9,8 @@ from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
     GetGithubReposRequest,
     UpdateGithubReposRequest,
-    DeleteGithubRepoRequest,
-    FeatureStatusGithubReposRequest,
+    DeleteGithubReposRequest,
+    FeatureStateGithubReposRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
@@ -67,7 +67,7 @@ class FeatureStatusGithubReposEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = FeatureStatusGithubReposRequest.RequestBody.parse_obj(body)
+        input = FeatureStateGithubReposRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
             status = await GithubRepoOrm.all_repos_match_feature_state(
@@ -78,7 +78,7 @@ class FeatureStatusGithubReposEndpoint(HTTPEndpoint):
             )
 
         return json_response(
-            FeatureStatusGithubReposRequest.ResponseBody(
+            FeatureStateGithubReposRequest.ResponseBody(
                 status=status,
             )
         )
@@ -110,10 +110,10 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = DeleteGithubRepoRequest.RequestBody.parse_obj(body)
+        input = DeleteGithubReposRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            gh_repo_orms = await GithubRepoOrm.delete_by_repo_ids(
+            await GithubRepoOrm.delete_by_repo_ids(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
                 external_repo_ids=input.repos.external_repo_ids,

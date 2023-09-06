@@ -97,14 +97,14 @@ class GithubRepoOrm(Base):
     async def query(
         cls,
         team_id: UUID,
+        external_repo_ids: list[str],
         session: AsyncSession,
-        external_repo_ids: list[str] = [],
     ) -> Sequence[Self]:
         """
         Get/list GithubRepos.
-        You must filter results by `team_id`, but can optionally provide a list
-        of `external_repo_ids` to fetch. Excluding this parameter will list all
-        repos for the provided `team_id`.
+        You must filter results by `team_id`, but can optionally provide a list of
+        `external_repo_ids` to fetch. Providing an empty `external_repo_ids` list
+        will get all repos for the provided `team_id`.
         """
         stmt = cls._build_query(team_id=team_id)
 
