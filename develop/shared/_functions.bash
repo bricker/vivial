@@ -178,7 +178,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	}
 
-	function cmd-exists() {
+	function ^cmd-exists() {
 		if command -v "$1" >/dev/null; then
 			return 0
 		fi

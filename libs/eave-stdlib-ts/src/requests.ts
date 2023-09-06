@@ -1,7 +1,7 @@
 import { constants as httpConstants } from 'node:http2';
 import { NextFunction, Request, Response } from 'express';
 import eaveLogger, { LogContext } from './logging.js';
-import { EaveOrigin } from './eave-origins.js';
+import { EaveApp } from './eave-origins.js';
 import Signing, { buildMessageToSign } from './signing.js';
 import eaveHeaders from './headers.js';
 import { redact } from './util.js';
@@ -18,7 +18,7 @@ export type CtxArg = {
 }
 
 export type RequestArgsOrigin = CtxArg & {
-  origin: EaveOrigin | string;
+  origin: EaveApp | string;
 }
 
 export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
@@ -27,32 +27,44 @@ export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
 
 type RequestArgs = CtxArg & {
   url: string;
-  origin: EaveOrigin | string;
-  sign?: boolean;
+  origin: EaveApp | string;
   input?: unknown;
   accessToken?: string;
   teamId?: string;
   accountId?: string;
   method?: string;
   ctx?: LogContext;
+  addlHeaders?: {[key:string]: string};
+  baseTimeoutSeconds?: number;
 }
 
 export async function makeRequest(args: RequestArgs): Promise<globalThis.Response> {
+  const ctx = LogContext.wrap(args.ctx);
+
   const {
     url,
     origin,
     input,
     accessToken,
-    teamId,
-    accountId,
+    addlHeaders,
+    teamId = ctx?.eave_team_id,
+    accountId = ctx?.eave_account_id,
     method = httpConstants.HTTP2_METHOD_POST,
+    baseTimeoutSeconds = 600,
   } = args;
 
-  const ctx = LogContext.wrap(args.ctx);
   const requestId = ctx.eave_request_id;
-  const payload = input === undefined ? '{}' : JSON.stringify(input);
+  let payload: string | undefined;
 
-  const headers: { [key: string]: string } = {
+  if (input === undefined) {
+    payload = '{}';
+  } else if (typeof input !== 'string') {
+    payload = JSON.stringify(input);
+  } else {
+    payload = input;
+  }
+
+  let headers: { [key: string]: string } = {
     [httpConstants.HTTP2_HEADER_CONTENT_TYPE]: eaveHeaders.MIME_TYPE_JSON,
     [eaveHeaders.EAVE_ORIGIN_HEADER]: origin,
     [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
@@ -86,6 +98,10 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
     headers[eaveHeaders.EAVE_ACCOUNT_ID_HEADER] = accountId;
   }
 
+  if (addlHeaders) {
+    headers = Object.assign(headers, addlHeaders);
+  }
+
   const requestContext: JsonObject = {
     eave_origin: origin,
     signature: redact(signature),
@@ -104,29 +120,35 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   );
 
   const abortController = new AbortController();
-  setTimeout(() => abortController.abort(), 1000 * 120);
+  setTimeout(() => abortController.abort(), 1000 * baseTimeoutSeconds);
 
-  const response = await fetch(url, {
-    method,
-    body: payload,
-    headers,
-    signal: abortController.signal,
-  });
+  try {
+    const response = await fetch(url, {
+      method,
+      body: payload,
+      headers,
+      signal: abortController.signal,
+    });
 
-  eaveLogger.info(
-    `Client Response: ${requestId}: ${method} ${url}`,
-    ctx,
-    requestContext,
-    { status: response.status },
-  );
-
-  if (response.status >= 400) {
-    eaveLogger.error(
-      `Request Error (${response.status}): ${url}`,
+    eaveLogger.info(
+      `Client Response: ${requestId}: ${method} ${url}`,
       ctx,
       requestContext,
+      { status: response.status },
     );
-  }
 
-  return response;
+    if (response.status >= 400) {
+      eaveLogger.error(
+        `Request Error (${response.status}): ${url}`,
+        ctx,
+        requestContext,
+      );
+    }
+
+    return response;
+  } catch (e: unknown) {
+    // TODO: Remove this block, it was just for debugging
+    console.log(e);
+    throw e;
+  }
 }

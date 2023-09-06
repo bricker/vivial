@@ -3,12 +3,12 @@ import { constants as httpConstants } from 'node:http2';
 import Express from 'express';
 import { createTaskFromRequest } from '@eave-fyi/eave-stdlib-ts/src/task-queue.js';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
+import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import getCacheClient, { Cache } from '@eave-fyi/eave-stdlib-ts/src/cache.js';
 import { commonInternalApiMiddlewares, rawJsonBody } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
 import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
 import { getTeamForInstallation, githubAppClient } from '../lib/octokit-util.js';
-import { GITHUB_EVENT_QUEUE_NAME, GITHUB_EVENT_QUEUE_TARGET_PATH } from '../config.js';
+import { GITHUB_EVENT_QUEUE_NAME } from '../config.js';
 import registry, { HandlerFunction } from './registry.js';
 import { GithubWebhookBody, getGithubWebhookHeaders, validateGithubWebhookHeaders } from '../middleware/process-webhook-payload.js';
 
@@ -90,8 +90,8 @@ export function WebhookRouter(): Express.Router {
 
       await createTaskFromRequest({
         queueName: GITHUB_EVENT_QUEUE_NAME,
-        targetPath: GITHUB_EVENT_QUEUE_TARGET_PATH,
-        origin: EaveOrigin.eave_github_app,
+        targetPath: '/_/github/tasks/events',
+        origin: EaveApp.eave_github_app,
         req,
         ctx,
       });

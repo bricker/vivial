@@ -4,7 +4,7 @@ from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request
 import eave.stdlib.signing as signing
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
     CONTENT_TYPE,
     EAVE_ACCOUNT_ID_HEADER,
@@ -50,7 +50,7 @@ async def create_task_from_request(
     queue_name: str,
     target_path: str,
     request: Request,
-    origin: EaveOrigin,
+    origin: EaveApp,
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
     ctx: Optional[LogContext] = None,
@@ -83,7 +83,7 @@ async def create_task(
     queue_name: str,
     target_path: str,
     payload: JsonObject | bytes,
-    origin: EaveOrigin,
+    origin: EaveApp,
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
     headers: Optional[dict[str, str]] = None,

@@ -3,7 +3,7 @@ import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js'
 import { getTeam } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
 import { CtxArg } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
 import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
-import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
+import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { Team } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js';
 import { appConfig } from '../config.js';
 
@@ -20,9 +20,10 @@ export async function githubAppClient(): Promise<App> {
   if (!_APP_CLIENT) {
     const secret = await appConfig.eaveGithubAppWebhookSecret;
     const privateKey = await appConfig.eaveGithubAppPrivateKey;
+    const appId = await appConfig.eaveGithubAppId;
 
     const app = new App({
-      appId: appConfig.eaveGithubAppId,
+      appId,
       privateKey,
       webhooks: { secret },
     });
@@ -46,7 +47,7 @@ export async function getInstallationId(eaveTeamId: string, ctx: LogContext): Pr
 
 export async function getTeamForInstallation({ installationId, ctx }: CtxArg & { installationId: string }): Promise<Team | null> {
   const response = await getGithubInstallation({
-    origin: EaveOrigin.eave_github_app,
+    origin: EaveApp.eave_github_app,
     input: {
       github_integration: {
         github_install_id: installationId,

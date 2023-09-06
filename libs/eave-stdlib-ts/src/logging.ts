@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import winston from 'winston';
+import LogForm from 'logform';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 import { Request, Response } from 'express';
 import { sharedConfig } from './config.js';
@@ -94,6 +95,26 @@ export class LogContext {
   }
 }
 
+// class RequestFormatter {
+//   transform(info: LogForm.TransformableInfo): LogForm.TransformableInfo | boolean {
+//     const {
+//       level,
+//       message,
+//       [LEVEL],
+//       [MESSAGE],
+//       [SPLAT],
+//       ...rest
+//     } = info;
+
+//     const ctx = JSON.stringify(rest, null, 2);
+//     return {
+//       level,
+//       message,
+//       ctx,
+//     };
+//   };
+// }
+
 function createLogger(): winston.Logger {
   const level = sharedConfig.logLevel.toLowerCase();
   let logger: winston.Logger;
@@ -119,6 +140,7 @@ function createLogger(): winston.Logger {
       level,
       format: winston.format.combine(
         winston.format.simple(),
+        // new RequestFormatter(),
         winston.format.colorize({
           all: true,
           colors: {

@@ -16,7 +16,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		# it should be setup by their shell loginfile
 		import-loginfile
 
-		if ! cmd-exists "nvm"; then
+		if ! ^cmd-exists "nvm"; then
 			statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
 			return 0
 		fi

@@ -2,12 +2,12 @@ from typing import Unpack
 import uuid
 from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
 
-from eave.stdlib.eave_origins import EaveService
+from eave.stdlib.eave_origins import EaveApp
 from . import operations
 from .. import requests
 from ..config import shared_config
 
-_base_url = shared_config.eave_internal_service_base(EaveService.github)
+_base_url = shared_config.eave_internal_service_base(EaveApp.eave_github_app)
 
 
 async def get_file_content(

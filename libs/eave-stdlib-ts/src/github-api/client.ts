@@ -1,10 +1,10 @@
 import * as ops from './operations.js';
 import { RequestArgsOriginAndTeamId, makeRequest } from '../requests.js';
 import { CreateSubscriptionResponseBody } from '../core-api/operations/subscriptions.js';
-import { EaveService } from '../eave-origins.js';
+import { EaveApp } from '../eave-origins.js';
 import { sharedConfig } from '../config.js';
 
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.github);
+const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app);
 
 export async function createSubscription(args: RequestArgsOriginAndTeamId & {
   input: ops.CreateGithubResourceSubscriptionRequestBody,

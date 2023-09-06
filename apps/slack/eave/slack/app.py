@@ -10,7 +10,7 @@ from .config import SLACK_EVENT_QUEUE_TARGET_PATH
 from .requests.warmup import StopRequest, WarmupRequest, StartRequest
 from .requests.event_callback import SlackEventCallbackHandler
 from .requests.event_processor import SlackEventProcessorTask
-from eave.stdlib.middleware import standard_middleware_starlette
+from eave.stdlib.middleware import common_middlewares, common_internal_api_middlewares
 
 eave.stdlib.time.set_utc()
 
@@ -19,14 +19,21 @@ routes = [
     Route("/_ah/warmup", WarmupRequest, methods=["GET"]),
     Route("/_ah/start", StartRequest, methods=["GET"]),
     Route("/_ah/stop", StopRequest, methods=["GET"]),
-    Route(SLACK_EVENT_QUEUE_TARGET_PATH, SlackEventProcessorTask, methods=["POST"]),
+
     Mount(
         "/slack",
         routes=[
             StatusRoute,
             Route("/events", SlackEventCallbackHandler, methods=["POST"]),
         ],
-        # TODO: Add mounts for API with signature & origin verification
+    ),
+
+    Mount(
+        "/_/slack/tasks",
+        middleware=common_internal_api_middlewares,
+        routes=[
+            Route("/events", SlackEventProcessorTask, methods=["POST"]),
+        ],
     ),
 ]
 
@@ -37,7 +44,7 @@ async def graceful_shutdown() -> None:
 
 
 api = Starlette(
-    middleware=standard_middleware_starlette,
+    middleware=common_middlewares,
     routes=routes,
     on_shutdown=[graceful_shutdown],
 )

@@ -30,7 +30,7 @@ from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team, status
 from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 from .internal.database import async_engine
-from eave.stdlib.middleware import standard_middleware_starlette
+from eave.stdlib.middleware import common_middlewares
 
 eave.stdlib.time.set_utc()
 
@@ -49,7 +49,7 @@ def make_route(
     The order of these is important! Inner middlewares may have dependencies on outer middlewares.
     The middlewares are ordered here from "inner" to "outer".
     Although we are _initializing_ the middlewares here, we're not _calling_ them.
-    It's important to remember that a Middleware is just a Callable object that takes ASGI specific arguments.
+    It's important to remember that a Middleware is just a Callable object that takes ASGI-specific arguments.
     When we "initialize" a Middleware, we're really just creating a pre-configured Callable.
     It is common to have a Middleware that isn't initialized in this way, and instead a class itself is provided as the Callable.
     In that case, the class's initializer would take the necessary ASGI arguments.
@@ -320,7 +320,7 @@ async def graceful_shutdown() -> None:
 
 
 app = starlette.applications.Starlette(
-    middleware=standard_middleware_starlette,
+    middleware=common_middlewares,
     routes=routes,
     exception_handlers=exception_handlers,
     on_shutdown=[graceful_shutdown],

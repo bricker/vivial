@@ -106,9 +106,9 @@ class SlackEventCallbackHandler(HTTPEndpoint):
 
         await create_task_from_request(
             queue_name=SLACK_EVENT_QUEUE_NAME,
-            target_path=SLACK_EVENT_QUEUE_TARGET_PATH,
+            target_path="/_/slack/tasks/events",
             request=self._request,
-            origin=eave_origins.EaveOrigin.eave_slack_app,
+            origin=eave_origins.EaveApp.eave_slack_app,
             task_name_prefix=task_name_prefix,
             ctx=self._ctx,
         )

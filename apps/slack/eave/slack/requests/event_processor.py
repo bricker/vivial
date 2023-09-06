@@ -69,7 +69,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
             return False
 
         try:
-            origin = eave_origins.EaveOrigin(value=origin_header)
+            origin = eave_origins.EaveApp(value=origin_header)
             signing_key = eave.stdlib.signing.get_key(origin)
         except (ValueError, KeyError) as e:
             eaveLogger.warning(e, self._ctx)

@@ -1,8 +1,9 @@
+import assert from 'node:assert';
 import { constants as httpConstants } from 'node:http2';
 import { Request } from 'express';
 import { CloudTasksClient, protos } from '@google-cloud/tasks';
-import { EaveOrigin } from './eave-origins.js';
-import { CtxArg } from './requests.js';
+import { EaveApp } from './eave-origins.js';
+import { CtxArg, makeRequest } from './requests.js';
 import headersImport from './headers.js';
 import eaveLogger, { LogContext } from './logging.js';
 import Signing, { buildMessageToSign } from './signing.js';
@@ -11,7 +12,7 @@ import { sharedConfig } from './config.js';
 type CreateTaskSharedArgs = CtxArg & {
   queueName: string,
   targetPath: string,
-  origin: EaveOrigin,
+  origin: EaveApp,
   uniqueTaskId?: string,
   taskNamePrefix?: string,
 }
@@ -83,7 +84,7 @@ export async function createTask({
   uniqueTaskId,
   taskNamePrefix,
   ctx,
-}: CreateTaskArgs): Promise<protos.google.cloud.tasks.v2.ITask> {
+}: CreateTaskArgs): Promise<void> {
   ctx = LogContext.wrap(ctx);
 
   if (!headers) {
@@ -167,15 +168,26 @@ export async function createTask({
     },
   );
 
-  // if (sharedConfig.isDevelopment) {
-  //   // FIXME: This is a hack
-  //   await fetch(`http://localhost:${process.env['PORT']}/${targetPath}`, {
-  //     method: httpConstants.HTTP2_METHOD_POST,
-  //     body,
-  //     headers,
-  //   });
-  // }
+  assert(task.appEngineHttpRequest);
 
-  const [responseTask] = await client.createTask({ parent, task });
-  return responseTask;
+  if (sharedConfig.isDevelopment) {
+    const host = sharedConfig.eavePublicServiceBase(origin);
+
+    /*
+    In development only, signature is done twice: once in this function, and again in `makeRequest`. Not ideal but not worth refactoring this function to prevent it.
+
+    The purpose of having this development block at the bottom of the function is to run as much code as possible in development. Cloud Tasks doesn't have an official local emulator as of this writing, so placing a job on the queue isn't useful during development.
+
+    So in development, we bypass the queue and make the request directly to the target app. It's not a great solution! [This](https://github.com/aertje/cloud-tasks-emulator) exists, but it's a) third-party, and b) requires either `go` or `docker`, which currently would complicate development/onboarding too much to be worth it.
+    */
+    await makeRequest({
+      url: `${host}${task.appEngineHttpRequest.relativeUri}`,
+      origin,
+      ctx,
+      input: task.appEngineHttpRequest.body,
+      addlHeaders: task.appEngineHttpRequest.headers || undefined,
+    });
+  }
+
+  await client.createTask({ parent, task });
 }

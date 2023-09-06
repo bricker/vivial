@@ -65,7 +65,7 @@ export async function validateGithubWebhookHeaders(req: Express.Request, res: Ex
     if (!verified) {
       eaveLogger.error('signature verification failed', ctx, { id, eventName, installationId });
 
-      if (!appConfig.isDevelopment && !appConfig.devMode) {
+      if (appConfig.isDevelopment && appConfig.devMode) {
         eaveLogger.warning('bypassing signature verification failure in dev mode', ctx);
       } else {
         res.sendStatus(httpConstants.HTTP_STATUS_BAD_REQUEST);

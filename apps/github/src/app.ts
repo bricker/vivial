@@ -9,9 +9,8 @@ app.use(helmetMiddleware());
 app.use(commonRequestMiddlewares);
 app.use(GAELifecycleRouter());
 
-// This path isn't namespaced under `github` and therefore only available when sending requests directly to the AppEngine service.
-// It is not available through the load balancer.
-app.use('/_tasks', TaskQueueRouter());
+// This isn't mounted on the `rootRouter` because it isn't namespaced under `/github` (and therefore not accessible through the load balancer)
+app.use('/_/github/tasks', TaskQueueRouter());
 
 const rootRouter = express.Router();
 app.use('/github', rootRouter);

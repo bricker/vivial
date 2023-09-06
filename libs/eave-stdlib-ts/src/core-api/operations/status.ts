@@ -1,7 +1,7 @@
 import { sharedConfig } from '../../config.js';
-import { EaveService } from '../../eave-origins.js';
+import { EaveApp } from '../../eave-origins.js';
 
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
+const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_api);
 
 export type StatusResponseBody = {
   service: string;

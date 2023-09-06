@@ -7,7 +7,7 @@ from pydantic import UUID4
 from .core_api.models.subscriptions import SubscriptionInfo
 from .core_api.enums import LinkType
 
-from .eave_origins import EaveOrigin
+from .eave_origins import EaveApp
 import eave.stdlib.github_api.client as github_api_client
 import eave.stdlib.github_api.operations as gh_ops
 
@@ -30,7 +30,7 @@ def filter_supported_links(urls: list[str]) -> list[tuple[str, LinkType]]:
 
 
 async def map_url_content(
-    origin: EaveOrigin, eave_team_id: UUID4, urls: list[tuple[str, LinkType]]
+    origin: EaveApp, eave_team_id: UUID4, urls: list[tuple[str, LinkType]]
 ) -> list[Optional[str]]:
     """
     Given a list of urls, returns mapping to content found at each link. Order is preserved.
@@ -61,7 +61,7 @@ async def map_url_content(
 
 
 async def subscribe_to_file_changes(
-    origin: EaveOrigin, eave_team_id: UUID4, urls: list[tuple[str, LinkType]]
+    origin: EaveApp, eave_team_id: UUID4, urls: list[tuple[str, LinkType]]
 ) -> list[SubscriptionInfo]:
     """
     Create Eave Subscriptions to watch for changes in all of the URL resources in `urls`
@@ -98,7 +98,7 @@ def _get_link_type(link: str) -> Optional[LinkType]:
 
 
 async def _create_subscription_source(
-    origin: EaveOrigin, url: str, link_type: LinkType, eave_team_id: UUID4
+    origin: EaveApp, url: str, link_type: LinkType, eave_team_id: UUID4
 ) -> Optional[SubscriptionInfo]:
     """
     Insert a subcription into the Eave database to watch the resource at `url`.

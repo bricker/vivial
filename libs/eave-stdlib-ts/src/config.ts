@@ -1,5 +1,5 @@
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
-import { EaveService } from './eave-origins.js';
+import { EaveApp } from './eave-origins.js';
 
 export enum EaveEnvironment {
   development = 'development',
@@ -64,51 +64,52 @@ export class EaveConfig {
   }
 
   get eavePublicAppsBase(): string {
-    return process.env['EAVE_PUBLIC_APPS_BASE']
+    return process.env['EAVE_APPS_BASE_PUBLIC']
       || process.env['EAVE_APPS_BASE']
       || 'https://apps.eave.fyi';
   }
 
   get eavePublicApiBase(): string {
-    return this.eavePublicServiceBase(EaveService.api);
+    return this.eavePublicServiceBase(EaveApp.eave_api);
   }
 
   get eavePublicWwwBase(): string {
-    return this.eavePublicServiceBase(EaveService.www);
+    return this.eavePublicServiceBase(EaveApp.eave_www);
   }
 
-  eavePublicServiceBase(service: EaveService): string {
-    const envv = process.env[`EAVE_PUBLIC_${service.toUpperCase()}_BASE`];
+  eavePublicServiceBase(service: EaveApp): string {
+    const envv = process.env[`${service.toUpperCase()}_BASE_PUBLIC`];
     if (envv) {
       return envv;
     }
 
     switch (service) {
-      case EaveService.api:
+      case EaveApp.eave_api:
         return process.env['EAVE_API_BASE'] || 'https://api.eave.fyi';
-      case EaveService.www:
+      case EaveApp.eave_www:
         return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
       default:
         return this.eavePublicAppsBase;
     }
   }
 
-  eaveInternalServiceBase(service: EaveService): string {
-    const envv = process.env[`EAVE_INTERNAL_${service.toUpperCase()}_BASE`];
+  eaveInternalServiceBase(service: EaveApp): string {
+    const envv = process.env[`${service.toUpperCase()}_BASE_INTERNAL`];
     if (envv) {
       return envv;
     }
 
     if (this.isDevelopment) {
       switch (service) {
-        case EaveService.api:
+        case EaveApp.eave_api:
           return this.eavePublicApiBase;
-        case EaveService.www:
+        case EaveApp.eave_www:
           return this.eavePublicWwwBase;
         default:
           return this.eavePublicAppsBase;
       }
     } else {
+      // TODO: Remove hardcoded AppEngine URL
       // FIXME: Hardcoded region id (uc)
       return `https://${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
     }
