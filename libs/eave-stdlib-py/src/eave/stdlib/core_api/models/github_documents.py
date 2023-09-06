@@ -24,9 +24,16 @@ class DocumentType(StrEnum):
 class GithubDocument(BaseResponseModel):
     team_id: uuid.UUID
     external_repo_id: str
-    pull_request_number: int
+    pull_request_number: Optional[int]
     status: Status
     status_updated: Optional[datetime.datetime]
     file_path: str
     api_name: str
     type: DocumentType
+
+
+class GithubDocumentsQueryInput(BaseInputModel):
+    # team_id provided by request ctx
+    id: Optional[uuid.UUID]
+    external_repo_id: Optional[str]
+    type: Optional[DocumentType]
