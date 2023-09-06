@@ -35,7 +35,6 @@ class GithubRepoCreateInput(BaseInputModel):
     architecture_documentation_state: State = State.DISABLED
 
 
-
 class GithubRepoListInput(BaseInputModel):
     external_repo_ids: list[str] = []
     """List of ids to filter by. Provide empty list to fetch all repos."""
@@ -45,7 +44,6 @@ class GithubRepoUpdateValues:
     api_documentation_state: Optional[State]
     inline_code_documentation_state: Optional[State]
     architecture_documentation_state: Optional[State]
-
 
 
 class GithubRepoUpdateInput(BaseInputModel):
