@@ -28,12 +28,23 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("external_repo_id", sa.String(), nullable=False),
-        sa.Column("api_documentation_state", sa.String(), nullable=True),
         sa.Column(
-            "inline_code_documentation_state", sa.String(), nullable=True
+            "api_documentation_state",
+            sa.String(),
+            server_default="disabled",
+            nullable=False,
         ),
         sa.Column(
-            "architecture_documentation_state", sa.String(), nullable=True
+            "inline_code_documentation_state",
+            sa.String(),
+            server_default="disabled",
+            nullable=False,
+        ),
+        sa.Column(
+            "architecture_documentation_state",
+            sa.String(),
+            server_default="disabled",
+            nullable=False,
         ),
         sa.Column(
             "created",
@@ -57,9 +68,7 @@ def upgrade() -> None:
         ),
         sa.Column("external_repo_id", sa.String(), nullable=False),
         sa.Column("pull_request_number", sa.Integer(), nullable=False),
-        sa.Column(
-            "status", sa.String(), server_default="processing", nullable=False
-        ),
+        sa.Column("status", sa.String(), server_default="processing", nullable=False),
         sa.Column("status_updated", sa.DateTime(), nullable=True),
         sa.Column("file_path", sa.String(), nullable=False),
         sa.Column("api_name", sa.String(), nullable=False),
