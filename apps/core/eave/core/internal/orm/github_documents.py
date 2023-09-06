@@ -70,6 +70,7 @@ class GithubDocumentsOrm(Base):
         id: NotRequired[UUID | str]
         team_id: NotRequired[UUID | str]
         external_repo_id: NotRequired[str]
+        type: NotRequired[DocumentType]
 
     @classmethod
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
@@ -81,6 +82,8 @@ class GithubDocumentsOrm(Base):
             lookup = lookup.where(cls.team_id == team_id)
         if external_repo_id := kwargs.get("external_repo_id"):
             lookup = lookup.where(cls.external_repo_id == external_repo_id)
+        if type := kwargs.get("type"):
+            lookup = lookup.where(cls.type == type)
 
         return lookup
 
