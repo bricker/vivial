@@ -106,10 +106,7 @@ class GithubRepoOrm(Base):
         `external_repo_ids` to fetch. Providing an empty `external_repo_ids` list
         will get all repos for the provided `team_id`.
         """
-        stmt = cls._build_query(team_id=team_id)
-
-        for external_repo_id in external_repo_ids:
-            stmt.where(cls.external_repo_id == external_repo_id)
+        stmt = cls._build_query(team_id=team_id).where(cls.external_repo_id.in_(external_repo_ids))
 
         result = (await session.scalars(stmt)).all()
         return result
