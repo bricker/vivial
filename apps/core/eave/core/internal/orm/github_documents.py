@@ -5,11 +5,12 @@ from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tup
 from uuid import UUID
 
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Index, Select
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.github_documents import GithubDocument, Status, DocumentType
+from eave.stdlib.endpoints import status_payload
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
@@ -82,7 +83,7 @@ class GithubDocumentsOrm(Base):
             lookup.where(cls.external_repo_id == external_repo_id)
 
         return lookup
-    
+
     @classmethod
     async def query(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Sequence[Self]:
         stmt = cls._build_query(**kwargs)
@@ -95,18 +96,36 @@ class GithubDocumentsOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         external_repo_id: str,
-        pull_request_number: Optional[int],
-        status: Status,
-        status_updated: datetime,
         file_path: str,
         api_name: str,
         type: DocumentType,
+        pull_request_number: Optional[int] = None,
+        status: Status = Status.PROCESSING,
+        status_updated: Optional[datetime] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
-
+            file_path=file_path,
+            api_name=api_name,
+            type=type,
+            pull_request_number=pull_request_number,
+            status=status,
+            status_updated=status_updated,
         )
         session.add(obj)
         await session.flush()
         return obj
+
+    @classmethod
+    async def delete_by_ids(cls, ids: list[UUID], session: AsyncSession) -> None:
+        stmt = delete(cls)
+
+        if len(ids) < 1:
+            # dont delete all the rows
+            return
+
+        for id in ids:
+            stmt.where(cls.id == id)
+
+        await session.execute(stmt)
