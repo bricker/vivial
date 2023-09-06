@@ -59,8 +59,8 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
         )
 
 
-class FeatureStatusGithubReposEndpoint(HTTPEndpoint):
-    """Query if for a given `team_id` all their repos have the specified `status` for the provided `feature`."""
+class FeatureStateGithubReposEndpoint(HTTPEndpoint):
+    """Query if for a given `team_id` all their repos have the specified `state` for the provided `feature`."""
 
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
@@ -68,7 +68,7 @@ class FeatureStatusGithubReposEndpoint(HTTPEndpoint):
         input = FeatureStateGithubReposRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            status = await GithubRepoOrm.all_repos_match_feature_state(
+            state = await GithubRepoOrm.all_repos_match_feature_state(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
                 feature=input.query_params.feature,
@@ -77,7 +77,7 @@ class FeatureStatusGithubReposEndpoint(HTTPEndpoint):
 
         return json_response(
             FeatureStateGithubReposRequest.ResponseBody(
-                status=status,
+                states_match=state,
             )
         )
 

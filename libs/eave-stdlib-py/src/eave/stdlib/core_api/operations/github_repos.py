@@ -54,7 +54,7 @@ class FeatureStateGithubReposRequest(Endpoint):
         query_params: GithubReposFeatureStateInput
 
     class ResponseBody(BaseResponseBody):
-        status: bool
+        states_match: bool
 
     @classmethod
     async def perform(

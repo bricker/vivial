@@ -229,7 +229,7 @@ routes = [
     ),
     make_route(
         config=FeatureStateGithubReposRequest.config,
-        endpoint=github_repos.FeatureStatusGithubReposEndpoint,
+        endpoint=github_repos.FeatureStateGithubReposEndpoint,
     ),
     # Authenticated API endpoints.
     make_route(
