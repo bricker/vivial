@@ -102,7 +102,7 @@ class ContextBuildingMixin(Base):
                 openai_params = openai.ChatCompletionParameters(
                     model=context_building_model,
                     messages=[prompt],
-                    temperature=0.9,
+                    temperature=0.1,
                     frequency_penalty=1.0,
                     presence_penalty=1.0,
                 )

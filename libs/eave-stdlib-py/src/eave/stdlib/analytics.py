@@ -40,7 +40,7 @@ async def log_event(
         eave_account_id = eave_account.id
     elif ctx:
         eave_account_id = ctx.eave_account_id
-    
+
     eave_team_id: str | UUID | None = None
     if eave_team:
         eave_team_id = eave_team.id
