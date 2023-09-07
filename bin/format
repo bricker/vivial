@@ -11,6 +11,6 @@ source "$EAVE_HOME/develop/functions.bash"
 			continue
 		fi
 		statusmsg -d "Running $ss"
-		$ss
+		_ONLY_THIS_MODULE=1 $ss
 	done
 )
