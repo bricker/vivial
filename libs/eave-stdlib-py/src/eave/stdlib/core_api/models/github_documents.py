@@ -45,3 +45,15 @@ class GithubDocumentCreateInput(BaseInputModel):
     api_name: str
     type: DocumentType
     pull_request_number: Optional[int]
+
+class GithubDocumentValuesInput(BaseInputModel):
+    pull_request_number: Optional[int]
+    status: Optional[Status]
+    file_path: Optional[str]
+    api_name: Optional[str]
+
+class GithubDocumentUpdateInput(BaseInputModel):
+    id: uuid.UUID
+    new_values: GithubDocumentValuesInput
+
+

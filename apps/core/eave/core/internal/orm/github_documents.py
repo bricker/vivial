@@ -9,7 +9,7 @@ from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.github_documents import GithubDocument, Status, DocumentType
+from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentValuesInput, Status, DocumentType
 from eave.stdlib.endpoints import status_payload
 
 from .base import Base
@@ -94,6 +94,12 @@ class GithubDocumentsOrm(Base):
         return results
 
     @classmethod
+    async def one_or_exception(cls, id: UUID, session: AsyncSession) -> Self:
+        stmt = cls._build_query(id=id)
+        result = (await session.scalars(stmt)).one()
+        return result
+
+    @classmethod
     async def create(
         cls,
         session: AsyncSession,
@@ -120,11 +126,22 @@ class GithubDocumentsOrm(Base):
         await session.flush()
         return obj
 
+    def update(self, values: GithubDocumentValuesInput) -> None:
+        if pull_request_number := values.pull_request_number:
+            self.pull_request_number = pull_request_number
+        if status := values.status:
+            self.status = status
+            self.status_updated = datetime.now()
+        if file_path := values.file_path:
+            self.file_path = file_path
+        if api_name := values.api_name:
+            self.api_name = api_name
+
     @classmethod
     async def delete_by_ids(cls, ids: list[UUID], session: AsyncSession) -> None:
         if len(ids) < 1:
             # dont delete all the rows
             return
-        
+
         stmt = delete(cls).where(cls.id.in_(ids))
         await session.execute(stmt)

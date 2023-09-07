@@ -8,6 +8,7 @@ from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.github_documents import (
     GetGithubDocumentsRequest,
     CreateGithubDocumentRequest,
+    UpdateGithubDocumentRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
@@ -59,3 +60,24 @@ class CreateGithubDocumentsEndpoint(HTTPEndpoint):
                 document=gh_doc_orm.api_model,
             )
         )
+
+class UpdateGithubDocumentEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = EaveRequestState.load(request=request)
+        body = await request.json()
+        input = UpdateGithubDocumentRequest.RequestBody.parse_obj(body)
+
+        async with database.async_session.begin() as db_session:
+            gh_doc_orm = await GithubDocumentsOrm.one_or_exception(
+                session=db_session,
+                id=input.document.id,
+            )
+
+            gh_doc_orm.update(input.document.new_values)
+
+        return json_response(
+            UpdateGithubDocumentRequest.ResponseBody(
+                document=gh_doc_orm.api_model,
+            )
+        )
+    
