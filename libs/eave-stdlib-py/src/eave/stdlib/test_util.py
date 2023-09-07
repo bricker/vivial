@@ -141,13 +141,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            data = json.dumps(
-                {
-                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
-                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
-                    f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
-                }
-            )
+            data = json.dumps({f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)})
             self.testdata[name] = data
 
         value: str = self.testdata[name]
@@ -161,11 +155,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            data: JsonObject = {
-                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
-                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
-                f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}",
-            }
+            data: JsonObject = {f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)}
             self.testdata[name] = data
 
         value: JsonObject = self.testdata[name]

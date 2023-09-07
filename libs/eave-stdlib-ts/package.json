@@ -50,8 +50,8 @@
     "tiktoken": "1.x"
   },
   "peerDependencies": {
-    "atlassian-connect-express": "8.x",
-    "@eave-fyi/eave-pubsub-schemas": "x"
+    "atlassian-connect-express": "8.2.0",
+    "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript"
   },
   "devDependencies": {
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",

@@ -111,17 +111,17 @@ class LogContext(JsonObject):
             self.set({"eave_account_id": get_header_value(cscope, EAVE_ACCOUNT_ID_HEADER)})
             self.set({"eave_origin": get_header_value(cscope, EAVE_ORIGIN_HEADER)})
 
-            r = Request(scope)
+            r = Request(cast(Scope, scope))
             tracking_cookies = get_tracking_cookies(r.cookies)
-            self.set({"eave_visitor_id": tracking_cookies.visitor_id })
-            self.set({"eave_utm_params": tracking_cookies.utm_params })
+            self.set({"eave_visitor_id": tracking_cookies.visitor_id})
+            self.set({"eave_utm_params": tracking_cookies.utm_params})
         else:
             self.set({"eave_request_id": str(uuid.uuid4())})
             self.set({"eave_team_id": None})
             self.set({"eave_account_id": None})
             self.set({"eave_origin": None})
-            self.set({"eave_visitor_id": None })
-            self.set({"eave_utm_params": None })
+            self.set({"eave_visitor_id": None})
+            self.set({"eave_utm_params": None})
 
     def set(self, attributes: JsonObject) -> Self:
         self.update(attributes)
