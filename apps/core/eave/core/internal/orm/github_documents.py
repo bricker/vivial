@@ -1,19 +1,16 @@
 from datetime import datetime
-from enum import StrEnum
-from pydoc import Doc
 from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Index, Select
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentValuesInput, Status, DocumentType
-from eave.stdlib.endpoints import status_payload
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk
+from .util import make_team_fk
 
 
 class GithubDocumentsOrm(Base):
@@ -22,7 +19,6 @@ class GithubDocumentsOrm(Base):
         PrimaryKeyConstraint(
             "team_id",
             "external_repo_id",
-            # "id",
         ),
         make_team_fk(),
         ForeignKeyConstraint(
@@ -30,26 +26,14 @@ class GithubDocumentsOrm(Base):
             ["github_repos.external_repo_id"],
             ondelete="CASCADE",
         ),
-        # Index(
-        #     None,
-        #     "team_id",
-        #     "external_repo_id",
-        #     unique=True,
-        # ),
-        # Index(
-        #     None,
-        #     "id",
-        #     unique=True,
-        # ),
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    # id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     external_repo_id: Mapped[str] = mapped_column()
     """Github API node_id for this repo"""
     pull_request_number: Mapped[Optional[int]] = mapped_column(server_default=None)
     """Number of the most recent PR opened for this document"""
-    status: Mapped[Status] = mapped_column(server_default=Status.PROCESSING.value)
+    status: Mapped[str] = mapped_column(server_default=Status.PROCESSING.value)
     """Current state of API documentation for this repo. options: processing, under-review, up-to-date"""
     status_updated: Mapped[Optional[datetime]] = mapped_column(server_default=None)
     """Last time the `status` column was updated."""
@@ -57,7 +41,7 @@ class GithubDocumentsOrm(Base):
     """Relative file path to this document in the given repo."""
     api_name: Mapped[str] = mapped_column()
     """Name of the API this document is documenting"""
-    type: Mapped[DocumentType] = mapped_column()
+    type: Mapped[str] = mapped_column()
     """Document type. options: api_document, architecture_document"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -67,7 +51,6 @@ class GithubDocumentsOrm(Base):
         return GithubDocument.from_orm(self)
 
     class QueryParams(TypedDict):
-        # id: NotRequired[UUID | str]
         team_id: NotRequired[UUID | str]
         external_repo_id: NotRequired[str]
         type: NotRequired[DocumentType]
@@ -76,8 +59,6 @@ class GithubDocumentsOrm(Base):
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-        # if id := kwargs.get("id"):
-        #     lookup = lookup.where(cls.id == id)
         if team_id := kwargs.get("team_id"):
             lookup = lookup.where(cls.team_id == team_id)
         if external_repo_id := kwargs.get("external_repo_id"):
@@ -117,9 +98,9 @@ class GithubDocumentsOrm(Base):
             external_repo_id=external_repo_id,
             file_path=file_path,
             api_name=api_name,
-            type=type,
+            type=type.value,
             pull_request_number=pull_request_number,
-            status=status,
+            status=status.value,
             status_updated=status_updated,
         )
         session.add(obj)

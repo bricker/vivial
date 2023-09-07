@@ -33,11 +33,11 @@ class GithubRepoOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
-    api_documentation_state: Mapped[State] = mapped_column(server_default=State.DISABLED.value)
+    api_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the API documentation feature for this repo. options: disabled, enabled, paused"""
-    inline_code_documentation_state: Mapped[State] = mapped_column(server_default=State.DISABLED.value)
+    inline_code_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the inline code documentation feature for this repo. options: disabled, enabled, paused"""
-    architecture_documentation_state: Mapped[State] = mapped_column(server_default=State.DISABLED.value)
+    architecture_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the architecture documentation feature for this repo. options: disabled, enabled, paused"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -62,13 +62,13 @@ class GithubRepoOrm(Base):
             lookup = lookup.where(cls.external_repo_id == external_repo_id)
 
         if api_documentation_state := kwargs.get("api_documentation_state"):
-            lookup = lookup.where(cls.api_documentation_state == api_documentation_state)
+            lookup = lookup.where(cls.api_documentation_state == api_documentation_state.value)
 
         if inline_code_documentation_state := kwargs.get("inline_code_documentation_state"):
-            lookup = lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state)
+            lookup = lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state.value)
 
         if architecture_documentation_state := kwargs.get("architecture_documentation_state"):
-            lookup = lookup.where(cls.architecture_documentation_state == architecture_documentation_state)
+            lookup = lookup.where(cls.architecture_documentation_state == architecture_documentation_state.value)
 
         return lookup
 
