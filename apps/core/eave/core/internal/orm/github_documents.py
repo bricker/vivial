@@ -22,7 +22,7 @@ class GithubDocumentsOrm(Base):
         PrimaryKeyConstraint(
             "team_id",
             "external_repo_id",
-            "id",
+            # "id",
         ),
         make_team_fk(),
         ForeignKeyConstraint(
@@ -30,21 +30,21 @@ class GithubDocumentsOrm(Base):
             ["github_repos.external_repo_id"],
             ondelete="CASCADE",
         ),
-        Index(
-            None,
-            "team_id",
-            "external_repo_id",
-            unique=True,
-        ),
-        Index(
-            None,
-            "id",
-            unique=True,
-        ),
+        # Index(
+        #     None,
+        #     "team_id",
+        #     "external_repo_id",
+        #     unique=True,
+        # ),
+        # Index(
+        #     None,
+        #     "id",
+        #     unique=True,
+        # ),
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    # id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     external_repo_id: Mapped[str] = mapped_column()
     """Github API node_id for this repo"""
     pull_request_number: Mapped[Optional[int]] = mapped_column(server_default=None)
@@ -67,7 +67,7 @@ class GithubDocumentsOrm(Base):
         return GithubDocument.from_orm(self)
 
     class QueryParams(TypedDict):
-        id: NotRequired[UUID | str]
+        # id: NotRequired[UUID | str]
         team_id: NotRequired[UUID | str]
         external_repo_id: NotRequired[str]
         type: NotRequired[DocumentType]
@@ -76,8 +76,8 @@ class GithubDocumentsOrm(Base):
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-        if id := kwargs.get("id"):
-            lookup = lookup.where(cls.id == id)
+        # if id := kwargs.get("id"):
+        #     lookup = lookup.where(cls.id == id)
         if team_id := kwargs.get("team_id"):
             lookup = lookup.where(cls.team_id == team_id)
         if external_repo_id := kwargs.get("external_repo_id"):
@@ -94,8 +94,8 @@ class GithubDocumentsOrm(Base):
         return results
 
     @classmethod
-    async def one_or_exception(cls, id: UUID, session: AsyncSession) -> Self:
-        stmt = cls._build_query(id=id)
+    async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
+        stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id)
         result = (await session.scalars(stmt)).one()
         return result
 
@@ -138,10 +138,10 @@ class GithubDocumentsOrm(Base):
             self.api_name = api_name
 
     @classmethod
-    async def delete_by_ids(cls, ids: list[UUID], session: AsyncSession) -> None:
-        if len(ids) < 1:
+    async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
+        if len(external_repo_ids) < 1:
             # dont delete all the rows
             return
 
-        stmt = delete(cls).where(cls.id.in_(ids))
+        stmt = delete(cls).where(cls.team_id == team_id).where(cls.external_repo_id.in_(external_repo_ids))
         await session.execute(stmt)

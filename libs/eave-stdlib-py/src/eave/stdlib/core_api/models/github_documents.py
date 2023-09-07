@@ -4,7 +4,6 @@ from enum import StrEnum
 from eave.stdlib.core_api.models import BaseResponseModel
 from typing import Optional
 import uuid
-from pydantic import BaseModel
 
 from eave.stdlib.core_api.models import BaseResponseModel
 from eave.stdlib.core_api.models import BaseInputModel
@@ -34,7 +33,6 @@ class GithubDocument(BaseResponseModel):
 
 class GithubDocumentsQueryInput(BaseInputModel):
     # team_id provided by request ctx
-    id: Optional[uuid.UUID]
     external_repo_id: Optional[str]
     type: Optional[DocumentType]
 
@@ -46,14 +44,18 @@ class GithubDocumentCreateInput(BaseInputModel):
     type: DocumentType
     pull_request_number: Optional[int]
 
+
 class GithubDocumentValuesInput(BaseInputModel):
     pull_request_number: Optional[int]
     status: Optional[Status]
     file_path: Optional[str]
     api_name: Optional[str]
 
+
 class GithubDocumentUpdateInput(BaseInputModel):
-    id: uuid.UUID
+    external_repo_id: str
     new_values: GithubDocumentValuesInput
 
 
+class GithubDocumentDeleteInput(BaseInputModel):
+    external_repo_id: str
