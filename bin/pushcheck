@@ -2,7 +2,7 @@
 
 set -e
 
-source ${EAVE_HOME}/develop/shared/_functions.bash
+source "${EAVE_HOME}/develop/shared/_functions.bash"
 
 bin/format
 bin/lint
