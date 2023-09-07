@@ -10,7 +10,7 @@
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@swc/core": "1.x",
-    "atlassian-connect-express": "8.x",
+    "atlassian-connect-express": "8.2.0",
     "express": "4.x",
     "helmet": "7.x",
     "html-entities": "2.x",

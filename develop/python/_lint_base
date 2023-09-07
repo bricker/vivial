@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	python-lint .
+	if test -z "${_ONLY_THIS_MODULE:-}"; then
+		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/lint
+		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/lint
+	fi
+)

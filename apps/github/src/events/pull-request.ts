@@ -173,94 +173,99 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     return Buffer.from(updatedFileContent!).toString('base64');
   }));
 
-  // get base branch head commit
-  const getHeadCommitQuery = await GraphQLUtil.loadQuery('getBranchHeadCommit');
-  const getHeadCommitParams: {
-    repoName: Scalars['String'],
-    repoOwner: Scalars['String'],
-    branchName: Scalars['String'],
-  } = {
-    repoName,
-    repoOwner,
-    branchName: event.pull_request.base.ref,
-  };
-  const headResp = await octokit.graphql<{ repository: Query['repository'] }>(getHeadCommitQuery, getHeadCommitParams);
-  const commitHead = headResp.repository?.ref?.target;
-  if (!commitHead) {
-    eaveLogger.error(`Failed to fetch ${event.pull_request.base.ref} head commit from ${repoOwner}/${repoName}`, ctx);
-    return;
-  }
+  try {
+    // get base branch head commit
+    const getHeadCommitQuery = await GraphQLUtil.loadQuery('getBranchHeadCommit');
+    const getHeadCommitParams: {
+      repoName: Scalars['String'],
+      repoOwner: Scalars['String'],
+      branchName: Scalars['String'],
+    } = {
+      repoName,
+      repoOwner,
+      branchName: event.pull_request.base.ref,
+    };
+    const headResp = await octokit.graphql<{ repository: Query['repository'] }>(getHeadCommitQuery, getHeadCommitParams);
+    const commitHead = headResp.repository?.ref?.target;
+    if (!commitHead) {
+      eaveLogger.error(`Failed to fetch ${event.pull_request.base.ref} head commit from ${repoOwner}/${repoName}`, ctx);
+      return;
+    }
 
-  // branch off the head commit (should usually be PR merge commit)
-  // https://docs.github.com/en/graphql/reference/mutations#createref
-  const createBranchMutation = await GraphQLUtil.loadQuery('createBranch');
-  const createBranchParameters: {
-    repoId: Scalars['ID'],
-    branchName: Scalars['String'],
-    commitHeadId: Scalars['GitObjectID'],
-  } = {
-    commitHeadId: commitHead.oid,
-    branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
-    repoId,
-  };
-  const branchResp = await octokit.graphql<{ createRef: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
-  const docsBranch = branchResp.createRef?.ref;
-  if (!docsBranch) {
-    eaveLogger.error(`Failed to create branch in ${repoOwner}/${repoName}`, ctx);
-    return;
-  }
+    // branch off the head commit (should usually be PR merge commit)
+    // https://docs.github.com/en/graphql/reference/mutations#createref
+    const createBranchMutation = await GraphQLUtil.loadQuery('createBranch');
+    const createBranchParameters: {
+      repoId: Scalars['ID'],
+      branchName: Scalars['String'],
+      commitHeadId: Scalars['GitObjectID'],
+    } = {
+      commitHeadId: commitHead.oid,
+      branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
+      repoId,
+    };
+    const branchResp = await octokit.graphql<{ createRef: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
+    const docsBranch = branchResp.createRef?.ref;
+    if (!docsBranch) {
+      eaveLogger.error(`Failed to create branch in ${repoOwner}/${repoName}`, ctx);
+      return;
+    }
 
-  // commit changes
-  // https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch
-  const createCommitMutation = await GraphQLUtil.loadQuery('createCommitOnBranch');
-  const createCommitParameters: {
-    branch: CommittableBranch,
-    headOid: Scalars['GitObjectID'],
-    message: CommitMessage,
-    fileChanges: FileChanges,
-  } = {
-    branch: { branchName: docsBranch.name, repositoryNameWithOwner: `${repoOwner}/${repoName}` },
-    headOid: docsBranch.target!.oid,
-    message: { headline: 'docs: automated update' },
-    fileChanges: {
-      additions: filePaths.map((fpath, i) => {
-        return {
-          path: fpath,
-          contents: b64UpdatedContent[i],
-        };
-      }).filter((adds) => {
-        // remove entries w/ null content from content fetch failures
-        return adds.contents !== null;
-      }),
-    },
-  };
-  const commitResp = await octokit.graphql<{ createCommitOnBranch: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
-  if (!commitResp.createCommitOnBranch?.commit?.oid) {
-    eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`, ctx);
-    await deleteBranch(octokit, docsBranch!.id);
-    return;
-  }
+    // commit changes
+    // https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch
+    const createCommitMutation = await GraphQLUtil.loadQuery('createCommitOnBranch');
+    const createCommitParameters: {
+      branch: CommittableBranch,
+      headOid: Scalars['GitObjectID'],
+      message: CommitMessage,
+      fileChanges: FileChanges,
+    } = {
+      branch: { branchName: docsBranch.name, repositoryNameWithOwner: `${repoOwner}/${repoName}` },
+      headOid: docsBranch.target!.oid,
+      message: { headline: 'docs: automated update' },
+      fileChanges: {
+        additions: filePaths.map((fpath, i) => {
+          return {
+            path: fpath,
+            contents: b64UpdatedContent[i],
+          };
+        }).filter((adds) => {
+          // remove entries w/ null content from content fetch failures
+          return adds.contents !== null;
+        }),
+      },
+    };
+    const commitResp = await octokit.graphql<{ createCommitOnBranch: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
+    if (!commitResp.createCommitOnBranch?.commit?.oid) {
+      eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`, ctx);
+      await deleteBranch(octokit, docsBranch!.id);
+      return;
+    }
 
-  // open new PR against event.pull_request.base.ref (same base as PR that triggered this event)
-  // https://docs.github.com/en/graphql/reference/mutations#createpullrequest
-  const createPrMutation = await GraphQLUtil.loadQuery('createPullRequest');
-  const createPrParameters: {
-    baseRefName: Scalars['String'],
-    body: Scalars['String'],
-    headRefName: Scalars['String'],
-    repoId: Scalars['ID'],
-    title: Scalars['String'],
-  } = {
-    repoId,
-    baseRefName: event.pull_request.base.ref,
-    headRefName: docsBranch!.name,
-    title: eavePrTitle,
-    body: `Your new code docs based on changes from PR #${event.pull_request.number}`,
-  };
-  const prResp = await octokit.graphql<{ createPullRequest: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
-  if (!prResp.createPullRequest?.pullRequest?.number) {
-    eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`, ctx);
-    await deleteBranch(octokit, docsBranch!.id);
+    // open new PR against event.pull_request.base.ref (same base as PR that triggered this event)
+    // https://docs.github.com/en/graphql/reference/mutations#createpullrequest
+    const createPrMutation = await GraphQLUtil.loadQuery('createPullRequest');
+    const createPrParameters: {
+      baseRefName: Scalars['String'],
+      body: Scalars['String'],
+      headRefName: Scalars['String'],
+      repoId: Scalars['ID'],
+      title: Scalars['String'],
+    } = {
+      repoId,
+      baseRefName: event.pull_request.base.ref,
+      headRefName: docsBranch!.name,
+      title: eavePrTitle,
+      body: `Your new code docs based on changes from PR #${event.pull_request.number}`,
+    };
+    const prResp = await octokit.graphql<{ createPullRequest: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
+    if (!prResp.createPullRequest?.pullRequest?.number) {
+      eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`, ctx);
+      await deleteBranch(octokit, docsBranch!.id);
+      return;
+    }
+  } catch (error: any) {
+    eaveLogger.error(`GitHub API threw an error during inline docs PR creation: ${JSON.stringify(error)}`, ctx);
     return;
   }
 }
