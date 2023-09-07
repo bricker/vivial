@@ -24,6 +24,7 @@
   "[python]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
+    "editor.defaultFormatter": "ms-python.black-formatter",
   },
   "[shellscript]": {
     "editor.insertSpaces": false,
@@ -71,16 +72,6 @@
   "javascript.inlayHints.parameterTypes.enabled": true,
   "javascript.inlayHints.propertyDeclarationTypes.enabled": true,
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
-  "python.formatting.provider": "black",
-  "python.linting.mypyArgs": [
-    "--ignore-missing-imports",
-    "--show-column-numbers",
-    "--no-pretty",
-    "--follow-imports=silent",
-    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
-  ],
-  "python.linting.mypyEnabled": true,
-  "python.linting.enabled": true,
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.inlayHints.functionReturnTypes": true,
@@ -104,12 +95,11 @@
     "*test.py"
   ],
   "git.openRepositoryInParentFolders": "always",
-  "python.formatting.blackArgs": [
-    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
-  ],
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml"
+    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml",
+    "--rootdir=${workspaceFolder}",
+    "."
   ],
   "python.analysis.exclude": [
     "**/node_modules",
@@ -187,5 +177,17 @@
   "shellcheck.useWorkspaceRootAsCwd": true,
   "shellcheck.customArgs": [
     "-x"
-  ]
+  ],
+  "black-formatter.importStrategy": "fromEnvironment",
+  "black-formatter.args": [
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
+  ],
+  "mypy-type-checker.args": [
+    "--ignore-missing-imports",
+    "--show-column-numbers",
+    "--no-pretty",
+    "--follow-imports=silent",
+    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
+  ],
+  "mypy-type-checker.importStrategy": "fromEnvironment"
 }
