@@ -6,7 +6,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.github_documents import (
-    GetGithubReposRequest,
+    GetGithubDocumentsRequest,
+    CreateGithubDocumentRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
@@ -16,7 +17,7 @@ class GetGithubDocumentsEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = GetGithubReposRequest.RequestBody.parse_obj(body)
+        input = GetGithubDocumentsRequest.RequestBody.parse_obj(body)
 
         # query cant take None values, so we only pass parameters
         # that aren't None by destructuring a dict as kwargs
@@ -30,7 +31,31 @@ class GetGithubDocumentsEndpoint(HTTPEndpoint):
             )
 
         return json_response(
-            GetGithubReposRequest.ResponseBody(
+            GetGithubDocumentsRequest.ResponseBody(
                 documents=[orm.api_model for orm in gh_doc_orms],
+            )
+        )
+
+
+class CreateGithubDocumentsEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = EaveRequestState.load(request=request)
+        body = await request.json()
+        input = CreateGithubDocumentRequest.RequestBody.parse_obj(body)
+
+        async with database.async_session.begin() as db_session:
+            gh_doc_orm = await GithubDocumentsOrm.create(
+                session=db_session,
+                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
+                external_repo_id=input.document.external_repo_id,
+                file_path=input.document.file_path,
+                api_name=input.document.api_name,
+                type=input.document.type,
+                pull_request_number=input.document.pull_request_number,
+            )
+
+        return json_response(
+            CreateGithubDocumentRequest.ResponseBody(
+                document=gh_doc_orm.api_model,
             )
         )

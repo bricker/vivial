@@ -37,3 +37,11 @@ class GithubDocumentsQueryInput(BaseInputModel):
     id: Optional[uuid.UUID]
     external_repo_id: Optional[str]
     type: Optional[DocumentType]
+
+
+class GithubDocumentCreateInput(BaseInputModel):
+    external_repo_id: str
+    file_path: str
+    api_name: str
+    type: DocumentType
+    pull_request_number: Optional[int]
