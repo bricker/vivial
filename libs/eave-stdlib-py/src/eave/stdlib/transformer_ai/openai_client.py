@@ -1,4 +1,3 @@
-import asyncio
 import enum
 import textwrap
 import time
@@ -106,7 +105,7 @@ async def chat_completion(
     params: ChatCompletionParameters,
     ctx: Optional[LogContext],
     baseTimeoutSeconds: int = 30,
-    document_id: Optional[str] = None
+    document_id: Optional[str] = None,
 ) -> str:
     """
     Makes a request to OpenAI chat completion API, return string response.
@@ -175,8 +174,8 @@ async def chat_completion(
     answer = str(choice.message.content).strip()
     timestamp_end = time.perf_counter()
     duration_seconds = round(timestamp_end - timestamp_start)
-    input_tokens =  usage["prompt_tokens"] if (usage := response["usage"]) else None
-    output_tokens =  usage["completion_tokens"] if (usage := response["usage"]) else None
+    input_tokens = usage["prompt_tokens"] if (usage := response["usage"]) else None
+    output_tokens = usage["completion_tokens"] if (usage := response["usage"]) else None
     await _log_gpt_request(params, answer, duration_seconds, input_tokens, output_tokens, ctx, document_id)
     return answer
 
@@ -192,8 +191,8 @@ async def _log_gpt_request(
 ) -> None:
     full_prompt = "\n".join(params.messages)
 
-    input_tokens = token_count(full_prompt, params.model) if input_tokens == None else cast(int, input_tokens)
-    output_tokens = token_count(response, params.model) if output_tokens == None else cast(int, output_tokens)
+    input_tokens = token_count(full_prompt, params.model) if input_tokens is None else input_tokens
+    output_tokens = token_count(response, params.model) if output_tokens is None else output_tokens
 
     prompt_cost = calculate_prompt_cost_usd(input_tokens, params.model)
     response_cost = calculate_response_cost_usd(output_tokens, params.model)

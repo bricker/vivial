@@ -72,7 +72,7 @@ export async function rollingSummary({
             { role: 'user', content: prompt },
           ],
           model,
-          temperature: 0.9,
+          temperature: 0.1,
           frequency_penalty: 1,
           presence_penalty: 1,
         },
