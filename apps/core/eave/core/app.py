@@ -211,6 +211,7 @@ routes = [
         config=GetTeamRequest.config,
         endpoint=team.GetTeamEndpoint,
     ),
+    # Authenticated API endpoints.
     make_route(
         config=CreateGithubRepoRequest.config,
         endpoint=github_repos.CreateGithubRepoEndpoint,
@@ -231,7 +232,6 @@ routes = [
         config=FeatureStateGithubReposRequest.config,
         endpoint=github_repos.FeatureStateGithubReposEndpoint,
     ),
-    # Authenticated API endpoints.
     make_route(
         config=UpsertConfluenceDestinationAuthedRequest.config,
         endpoint=team.UpsertConfluenceDestinationAuthedEndpoint,
