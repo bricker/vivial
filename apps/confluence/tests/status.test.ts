@@ -1,41 +1,24 @@
-// import { v4 as uuidv4 } from 'uuid';
-// import anyTest, { TestFn } from 'ava';
-// import request from 'supertest';
-// import { app } from '../src/app.js';
+import anyTest, { TestFn } from 'ava';
+import request from 'supertest';
+import { TestContextBase, TestUtil } from '@eave-fyi/eave-stdlib-ts/src/test-util.js';
+import { app } from '../src/app.js';
 
-// class TestUtil {
-//   testData: {[key:string]: any} = {};
+interface TestContext extends TestContextBase {
+}
 
-//   anystr(name: string): string {
-//     if (this.testData[name] === undefined) {
-//       this.testData[name] = uuidv4();
-//     }
+const test = anyTest as TestFn<TestContext>;
 
-//     return this.testData[name];
-//   }
+test.beforeEach((t) => {
+  t.context = {
+    u: new TestUtil(),
+  };
+});
 
-//   getstr(name: string): string {
-//     return this.testData[name];
-//   }
-// }
+test.afterEach((t) => {
+});
 
-// interface TestContext {
-//   u: TestUtil;
-// }
-
-// const test = anyTest as TestFn<TestContext>;
-
-// test.beforeEach((t) => {
-//   t.context = {
-//     u: new TestUtil(),
-//   };
-// });
-
-// test.afterEach((t) => {
-// });
-
-// test('status', async (t) => {
-//   const response = await request(app).get('/confluence/status');
-//   t.assert(response.status === 200);
-//   t.assert(response.body['status'] === 'OK');
-// });
+test('status', async (t) => {
+  const response = await request(app).get('/confluence/status');
+  t.assert(response.status === 200);
+  t.assert(response.body['status'] === 'OK');
+});
