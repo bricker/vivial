@@ -1,5 +1,5 @@
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import walk from 'walkdir';
 import Parser from 'tree-sitter';
 
@@ -76,7 +76,7 @@ export class ExpressAPIDocumentor {
    * Finds the closest declaration node to a given node.
    * If the given node is a declarationn node, it is returned.
    */
-  static findDeclaration(node: Parser.SyntaxNode): (Parser.SyntaxNode|null) {
+  static findDeclaration(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
     if (node.type.includes('declaration')) {
       return node;
     }
