@@ -1,15 +1,14 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk
+from .util import make_team_fk
 
 
 class GithubRepoOrm(Base):
