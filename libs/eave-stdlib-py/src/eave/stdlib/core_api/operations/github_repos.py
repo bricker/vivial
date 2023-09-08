@@ -11,8 +11,6 @@ from eave.stdlib.core_api.models.github_repos import (
 )
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
-# TODO: should all these be authed???/
-
 
 class GetGithubReposRequest(Endpoint):
     config = EndpointConfiguration(

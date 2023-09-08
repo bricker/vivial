@@ -40,10 +40,10 @@ class GithubRepoListInput(BaseInputModel):
     """List of ids to filter by. Provide empty list to fetch all repos."""
 
 
-class GithubRepoUpdateValues:
-    api_documentation_state: Optional[State]
-    inline_code_documentation_state: Optional[State]
-    architecture_documentation_state: Optional[State]
+class GithubRepoUpdateValues(BaseInputModel):
+    api_documentation_state: Optional[State] = None
+    inline_code_documentation_state: Optional[State] = None
+    architecture_documentation_state: Optional[State] = None
 
 
 class GithubRepoUpdateInput(BaseInputModel):
