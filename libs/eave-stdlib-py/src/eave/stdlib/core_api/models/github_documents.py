@@ -33,8 +33,8 @@ class GithubDocument(BaseResponseModel):
 
 class GithubDocumentsQueryInput(BaseInputModel):
     # team_id provided by request ctx
-    external_repo_id: Optional[str]
-    type: Optional[DocumentType]
+    external_repo_id: Optional[str] = None
+    type: Optional[DocumentType] = None
 
 
 class GithubDocumentCreateInput(BaseInputModel):
@@ -46,10 +46,10 @@ class GithubDocumentCreateInput(BaseInputModel):
 
 
 class GithubDocumentValuesInput(BaseInputModel):
-    pull_request_number: Optional[int]
-    status: Optional[Status]
-    file_path: Optional[str]
-    api_name: Optional[str]
+    pull_request_number: Optional[int] = None
+    status: Optional[Status] = None
+    file_path: Optional[str] = None
+    api_name: Optional[str] = None
 
 
 class GithubDocumentUpdateInput(BaseInputModel):
