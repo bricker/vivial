@@ -42,7 +42,7 @@ class GithubDocumentsOrm(Base):
     """Github API node_id for this repo"""
     pull_request_number: Mapped[int] = mapped_column()
     """Number of the most recent PR opened for this document"""
-    status: Mapped[Status] = mapped_column(
+    status: Mapped[str] = mapped_column(
         server_default=Status.PROCESSING.value
     )  # TODO: should default up-to-date instead??
     """Current state of API documentation for this repo. options: processing, under-review, up-to-date"""
@@ -51,7 +51,7 @@ class GithubDocumentsOrm(Base):
     """Relative file path to this document in the given repo."""
     api_name: Mapped[str] = mapped_column()
     """Name of the API this document is documenting"""
-    type: Mapped[DocumentType] = mapped_column()
+    type: Mapped[str] = mapped_column()
     """Document type. options: api_document, architecture_document"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
