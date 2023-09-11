@@ -590,10 +590,8 @@ export class ExpressAPIDocumentor {
         **{response code}**: {explanation of when this response code will be returned}
 
       `);
-      const userPrompt = formatprompt(`
-        !!!
-        ${apiEndpoint}
-      `);
+      const userPrompt = formatprompt('!!!', apiEndpoint);
+
       try {
         const openaiResponse = await openaiClient.createChatCompletion({
           parameters: {
@@ -605,7 +603,7 @@ export class ExpressAPIDocumentor {
             temperature: 0,
           },
         });
-        if (openaiResponse && openaiResponse !== 'none') {
+        if (openaiResponse && !openaiResponse.match('^none')) {
           apiDoc += `${openaiResponse}\n\n<br />\n\n`;
         }
       } catch (e) {
