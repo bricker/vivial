@@ -17,7 +17,6 @@ routes = [
     Route("/_ah/warmup", WarmupRequest, methods=["GET"]),
     Route("/_ah/start", StartRequest, methods=["GET"]),
     Route("/_ah/stop", StopRequest, methods=["GET"]),
-
     Mount(
         "/slack",
         routes=[
@@ -25,7 +24,6 @@ routes = [
             Route("/events", SlackEventCallbackHandler, methods=["POST"]),
         ],
     ),
-
     Mount(
         "/_/slack",
         middleware=common_internal_api_middlewares,

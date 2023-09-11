@@ -8,7 +8,6 @@ from .core_api.models.subscriptions import SubscriptionInfo
 from .core_api.enums import LinkType
 
 from .eave_origins import EaveApp
-import eave.stdlib.github_api.client as github_api_client
 import eave.stdlib.github_api.operations as gh_ops
 
 # mapping from link type to regex for matching raw links against
@@ -45,9 +44,9 @@ async def map_url_content(
             case LinkType.github:
                 tasks.append(
                     asyncio.ensure_future(
-                        github_api_client.get_file_content(
+                        gh_ops.GetGithubUrlContent.perform(
                             origin=origin,
-                            eave_team_id=eave_team_id,
+                            team_id=eave_team_id,
                             input=gh_ops.GetGithubUrlContent.RequestBody(
                                 url=link,
                             ),
@@ -110,9 +109,9 @@ async def _create_subscription_source(
     # populate required subscription data based on link type
     match link_type:
         case LinkType.github:
-            subscription_response = await github_api_client.create_subscription(
+            subscription_response = await gh_ops.CreateGithubResourceSubscription.perform(
                 origin=origin,
-                eave_team_id=eave_team_id,
+                team_id=eave_team_id,
                 input=gh_ops.CreateGithubResourceSubscription.RequestBody(
                     url=url,
                 ),

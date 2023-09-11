@@ -3,6 +3,8 @@ import uuid
 import aiohttp
 import pydantic
 from eave.stdlib import requests
+from eave.stdlib.core_api.models.subscriptions import DocumentReference, Subscription
+from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.eave_origins import EaveApp
 from ..config import shared_config
 
@@ -10,8 +12,10 @@ from eave.stdlib.github_api.models import GithubRepoInput
 
 _base_url = shared_config.eave_internal_service_base(EaveApp.eave_github_app)
 
+
 class Endpoint:
     pass
+
 
 class BaseRequestBody(pydantic.BaseModel):
     pass
@@ -46,13 +50,14 @@ class GetGithubUrlContent(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-
 class CreateGithubResourceSubscription(Endpoint):
     class RequestBody(BaseRequestBody):
         url: str
 
     class ResponseBody(BaseResponseBody):
-        pass
+        team: Team
+        subscription: Subscription
+        document_reference: Optional[DocumentReference] = None
 
     @classmethod
     async def perform(

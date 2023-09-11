@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-let users: string[] = ['Liam', 'Lana', 'Leilenah', 'Bryan'];
+const users: string[] = ['Liam', 'Lana', 'Leilenah', 'Bryan'];
 
 export function getUsers(req: Request, res: Response) {
   res.status(200).json(users);

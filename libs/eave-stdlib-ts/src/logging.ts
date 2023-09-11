@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import winston from 'winston';
-import LogForm from 'logform';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 import { Request, Response } from 'express';
 import { sharedConfig } from './config.js';

@@ -24,6 +24,7 @@ eave.stdlib.time.set_utc()
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
 
+
 @app.get("/status")
 def status() -> str:
     model = status_payload()

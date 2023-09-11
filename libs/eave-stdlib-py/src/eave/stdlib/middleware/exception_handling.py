@@ -1,9 +1,7 @@
 import http
 from typing import cast
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, Scope
-from starlette.exceptions import HTTPException
 import starlette.types
-from eave.stdlib.exceptions import InternalServerError
 
 from eave.stdlib.request_state import EaveRequestState
 from ..api_util import json_response

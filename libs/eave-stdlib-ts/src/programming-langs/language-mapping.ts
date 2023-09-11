@@ -1,4 +1,4 @@
-import extensionMap from './languages.json';
+import extensionMap from './languages.json' assert { type: 'json' };
 
 export enum ProgrammingLanguage {
   javascript = 'javascript',

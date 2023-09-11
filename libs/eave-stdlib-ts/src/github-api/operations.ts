@@ -1,8 +1,8 @@
-import { sharedConfig } from "../config.js";
-import { CreateSubscriptionResponseBody } from "../core-api/operations/subscriptions.js";
-import { EaveApp } from "../eave-origins.js";
-import { CtxArg, RequestArgsAccountId, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from "../requests.js";
-import { GithubRepoInput } from "./models.js";
+import { sharedConfig } from '../config.js';
+import { CreateSubscriptionResponseBody } from '../core-api/operations/subscriptions.js';
+import { EaveApp } from '../eave-origins.js';
+import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../requests.js';
+import { GithubRepoInput } from './models.js';
 
 const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app);
 

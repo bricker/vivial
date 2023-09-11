@@ -94,9 +94,7 @@ class EaveConfig:
     @property
     def eave_public_apps_base(self) -> str:
         return (
-            os.getenv("EAVE_APPS_BASE_PUBLIC")
-            or os.getenv("EAVE_APPS_BASE") # deprecated
-            or "https://apps.eave.fyi"
+            os.getenv("EAVE_APPS_BASE_PUBLIC") or os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"  # deprecated
         )
 
     @property
