@@ -2,6 +2,7 @@ import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
 import { getFunctionDocumentationQueries, grammarForLanguage } from './grammars.js';
 import logging, { LogContext } from '../logging.js';
+import { ProgrammingLanguage } from '../language-mapping.js';
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
@@ -34,7 +35,7 @@ export function parseFunctionsAndComments({
 }: {
   content: string,
   extName: string,
-  language: string,
+  language: ProgrammingLanguage,
   ctx?: LogContext,
 }): ParsedFunction[] {
   const parser = new Parser();

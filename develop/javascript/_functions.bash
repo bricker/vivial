@@ -72,11 +72,32 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		node-validate-version
 		node-activate-venv
 
-		local target=${1:-tests}
-		cd "$target" || exit 1
+		local usage="Usage: bin/test [-p path] [-f file] [-h]"
+		local targetpath
+		local testfile
+
+		targetpath="$(^parentpath)"
+
+		while getopts "p:f:h" argname; do
+			case "$argname" in
+			p) targetpath=$OPTARG ;;
+			f) testfile=$OPTARG ;;
+			h)
+				echo "$usage"
+				return 0
+				;;
+			*)
+				echo "$usage"
+				exit 1
+				;;
+			esac
+		done
+
+		cd "$targetpath" || exit 1
 
 		npx ava \
-			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs"
+			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs" \
+			"$testfile"
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

@@ -100,6 +100,12 @@ function setuppython() (
 	fi
 )
 
+function setupnode() (
+	statusmsg -pa "Setting up Node virtual environment"
+	node-activate-venv
+	npm install
+)
+
 function setupgcloud() (
 	if ! ^force && cmd-exists "gcloud"; then
 		statusmsg -o "gcloud CLI already installed."
@@ -272,6 +278,7 @@ echo ""
 
 setenvvars
 setuppython
+setupnode
 setupgcloud
 setupcloudsqlproxy
 installjq

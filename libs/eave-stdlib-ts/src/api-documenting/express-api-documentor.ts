@@ -1,12 +1,15 @@
 import path from 'node:path';
-import fs from 'node:fs';
-import walk from 'walkdir';
+import { promises as fs } from 'node:fs';
 import Parser from 'tree-sitter';
-
-import { runSync } from '../util.js';
 import { grammarForLanguage } from '../parsing/grammars.js';
 import OpenAIClient, { formatprompt } from '../transformer-ai/openai.js';
 import { OpenAIModel } from '../transformer-ai/models.js';
+import eaveLogger, { LogContext } from '../logging.js';
+import { ProgrammingLanguage, getProgrammingLanguageByExtension } from '../language-mapping.js';
+
+const DIR_EXCLUDES = [
+  'node_modules',
+];
 
 const EXPRESS_ROUTING_METHODS = [
   'checkout',
@@ -34,13 +37,23 @@ const EXPRESS_ROUTING_METHODS = [
   'unsubscribe',
 ];
 
-type Repo = {
+export type Repo = {
   name: string,
   url: string,
   wiki?: {
     name: string,
     url: string,
   }
+}
+
+export type ExpressAPI = {
+  name: string;
+  endpoints: string[];
+}
+
+type ExpressIdentifiers = {
+  app?: string;
+  router?: string;
 }
 
 /**
@@ -64,61 +77,122 @@ export class ExpressAPIDocumentor {
 
   wikiDir?: string;
 
-  language?: string;
+  language?: ProgrammingLanguage;
 
   parser: Parser = new Parser();
 
-  constructor(repo: Repo) {
+  readonly #ctx: LogContext;
+
+  constructor(repo: Repo, ctx: LogContext) {
     this.repo = repo;
+    this.#ctx = ctx;
   }
 
   /**
-   * Finds the closest declaration node to a given node.
-   * If the given node is a declarationn node, it is returned.
+   * Identifies all Express APIs in a repo associated with an instance of this
+   * class and generates API documentation for each API.
    */
-  static findDeclaration(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
-    if (node.type.includes('declaration')) {
-      return node;
-    }
-    if (node.type === 'export_statement') {
-      for (const child of node.namedChildren) {
-        if (child.type.includes('declaration')) {
-          return child;
+  async document({ dir }: { dir: string }) {
+    const apis = await this.getExpressAPIs({ dir });
+    await Promise.allSettled(apis.map(async (api) => {
+      await this.#generateExpressAPIDoc({ api });
+      // TODO: Open pull request
+    }));
+  }
+
+  /**
+   * Searches package.json files in a repo associated with an instance of this
+   * class. If any package file requires Express, this function will drill into the
+   * directory that the package file is in and attempt to build Express API code.
+   */
+  async getExpressAPIs({ dir }: { dir: string }): Promise<ExpressAPI[]> {
+    const apis: ExpressAPI[] = [];
+
+    // NOTE: in node 20.1.0, a 'recursive' flag was added. It's not documented but probably useful here.
+    const dirents = await fs.readdir(dir, { withFileTypes: true });
+
+    // BFS: First look at the files in the directory, then enter each directory
+    await Promise.allSettled(dirents.filter((d) => d.name === 'package.json').map(async (dirent) => {
+      const filePath = path.join(dir, dirent.name);
+      const fileContents = await fs.readFile(filePath, 'utf8');
+      try {
+        const packageObj = JSON.parse(fileContents);
+        if (packageObj.dependencies?.['express']) {
+          const rootFilePath = await this.#findRootFilePath({ apiDir: dir });
+          if (rootFilePath) {
+            const apiEndpoints = await this.#getExpressAPIEndpoints({ rootFilePath });
+            if (apiEndpoints && apiEndpoints.length > 0) {
+              const apiName = this.#guessExpressAPIName({ apiDir: dir });
+              apis.push({ name: apiName, endpoints: apiEndpoints });
+            }
+          }
+        }
+      } catch (e: any) {
+        eaveLogger.exception(e, this.#ctx);
+      }
+    }));
+
+    // now enter each directory
+    await Promise.allSettled(dirents.filter((d) => d.isDirectory() && !DIR_EXCLUDES.includes(d.name)).map(async (dirent) => {
+      const dirPath = path.join(dir, dirent.name);
+      const nestedApis = await this.getExpressAPIs({ dir: dirPath });
+      apis.push(...nestedApis);
+    }));
+
+    return apis;
+  }
+
+  /**
+   * Given the directory of a suspected Express API, finds the file in which
+   * the Express app is initialized.
+   */
+  async #findRootFilePath({ apiDir }: { apiDir: string }): Promise<string | null> {
+    const dirents = await fs.readdir(apiDir, { withFileTypes: true });
+
+    // BFS
+    const files = dirents.filter((d) => d.isFile());
+    for (const dirent of files) {
+      const extName = path.extname(dirent.name);
+      const language = getProgrammingLanguageByExtension(extName);
+      if (language) {
+        this.language = language;
+        const grammar = grammarForLanguage({ language, extName });
+        this.parser.setLanguage(grammar);
+
+        const filePath = path.join(apiDir, dirent.name);
+        const code = await fs.readFile(filePath, 'utf8');
+        const tree = this.parser.parse(code);
+        const variables = this.#getVariableMap({ tree });
+
+        for (const expressionNode of variables.values()) {
+          const children = this.#getNodeChildMap({ node: expressionNode });
+          const expression = this.#getExpression({ siblings: children });
+          if (expression === 'express') {
+            // We found the file; return from the whole function.
+            return filePath;
+          }
         }
       }
     }
+
+    const dirs = dirents.filter((d) => d.isDirectory() && !DIR_EXCLUDES.includes(d.name));
+    for (const dirent of dirs) {
+      const dirPath = path.join(apiDir, dirent.name);
+      const rootFilePath = await this.#findRootFilePath({ apiDir: dirPath });
+      if (rootFilePath) {
+        // A subdirectory had the file; return it.
+        return rootFilePath;
+      }
+    }
+
+    // No file was found. Return null.
     return null;
-  }
-
-  /**
-   * Given a map of sibling nodes, returns the first expression detected.
-   * Use getNodeChildMap(node) to get a map of sibling nodes.
-   */
-  static getExpression(siblings: Map<string, Parser.SyntaxNode>): (string|undefined) {
-    if (siblings.has('identifier')) {
-      return siblings.get('identifier')?.text;
-    }
-    return siblings.get('member_expression')?.text;
-  }
-
-  /**
-   * Returns the programming language associated with the given extension.
-   * Only TypeScript and JavaScript are supported.
-   */
-  static getLanguage(extName: string): (string|undefined) {
-    if (extName === '.ts' || extName === '.tsx') {
-      return 'typescript';
-    }
-    if (extName === '.js') {
-      return 'javascript';
-    }
-    return '';
   }
 
   /**
    * Given a relative file path, returns the full local file path if it exists.
    */
-  static getLocalFilePath(srcDir: string, relativeFilePath: string): string {
+  #getLocalFilePath({ srcDir, relativeFilePath }: { srcDir: string, relativeFilePath: string }): string {
     let filePath = relativeFilePath.replace(/'|"/g, '');
     const extName = path.extname(filePath);
     const isSupportedFile = extName === '.js' || extName === '.ts';
@@ -144,19 +218,19 @@ export class ExpressAPIDocumentor {
    * Assesses the import statements in the given tree and builds a map of the
    * imported declarations that live in the target repo.
    */
-  static getLocalImportPaths(tree: Parser.Tree, filePath: string): Map<string, string> {
+  #getLocalImportPaths({ tree, filePath }: { tree: Parser.Tree, filePath: string }): Map<string, string> {
     const dirName = path.dirname(filePath);
     const importNodes = tree.rootNode.descendantsOfType('import_statement');
     const importPaths = new Map();
 
     for (const importNode of importNodes) {
-      const children = ExpressAPIDocumentor.getNodeChildMap(importNode);
+      const children = this.#getNodeChildMap({ node: importNode });
       const importPath = children.get('string')?.text || '';
       const importClause = children.get('import_clause')?.text;
       const importNames = importClause?.replace(/ |{|}/g, '').split(',') || [];
 
       for (const importName of importNames) {
-        const fullFilePath = ExpressAPIDocumentor.getLocalFilePath(dirName, importPath);
+        const fullFilePath = this.#getLocalFilePath({ srcDir: dirName, relativeFilePath: importPath });
         if (fullFilePath) {
           importPaths.set(importName, fullFilePath);
         }
@@ -169,19 +243,19 @@ export class ExpressAPIDocumentor {
    * Assesses the require statements in the given tree and builds a map of the
    * imported declarations that live in the target repo.
    */
-  static getLocalRequirePaths(tree: Parser.Tree, filePath: string): Map<string, string> {
+  #getLocalRequirePaths({ tree, filePath }: { tree: Parser.Tree, filePath: string }): Map<string, string> {
     const dirName = path.dirname(filePath);
-    const variables = ExpressAPIDocumentor.getVariableMap(tree);
+    const variables = this.#getVariableMap({ tree });
     const requirePaths = new Map();
 
     for (const [identifier, expressionNode] of variables) {
-      const children = ExpressAPIDocumentor.getNodeChildMap(expressionNode);
-      const expression = ExpressAPIDocumentor.getExpression(children);
+      const children = this.#getNodeChildMap({ node: expressionNode });
+      const expression = this.#getExpression({ siblings: children });
 
       if (expression === 'require') {
         const args = children.get('arguments');
         const relativeFilePath = args?.firstNamedChild?.text || '';
-        const fullFilePath = relativeFilePath && ExpressAPIDocumentor.getLocalFilePath(dirName, relativeFilePath);
+        const fullFilePath = relativeFilePath && this.#getLocalFilePath({ srcDir: dirName, relativeFilePath });
         if (fullFilePath) {
           requirePaths.set(identifier, fullFilePath);
         }
@@ -193,7 +267,7 @@ export class ExpressAPIDocumentor {
   /**
    * Adds the given node's children to a map for convenient lookup.
    */
-  static getNodeChildMap(node: Parser.SyntaxNode): Map<string, Parser.SyntaxNode> {
+  #getNodeChildMap({ node }: { node: Parser.SyntaxNode }): Map<string, Parser.SyntaxNode> {
     const nodeInfo = new Map();
     for (const child of node.children) {
       nodeInfo.set(child.type, child);
@@ -205,11 +279,11 @@ export class ExpressAPIDocumentor {
    * Adds variable nodes to a map for convenient lookup.
    * Currently only considers variables that are set to a call expression.
    */
-  static getVariableMap(tree: Parser.Tree): Map<string, Parser.SyntaxNode> {
+  #getVariableMap({ tree }: { tree: Parser.Tree }): Map<string, Parser.SyntaxNode> {
     const variableNodes = tree.rootNode.descendantsOfType('variable_declarator');
     const variables = new Map();
     for (const node of variableNodes) {
-      const children = ExpressAPIDocumentor.getNodeChildMap(node);
+      const children = this.#getNodeChildMap({ node });
       const identifierNode = children.get('identifier');
       const expressionNode = children.get('call_expression');
       if (identifierNode && expressionNode) {
@@ -220,13 +294,31 @@ export class ExpressAPIDocumentor {
   }
 
   /**
+   * Finds the closest declaration node to a given node.
+   * If the given node is a declarationn node, it is returned.
+   */
+  #findDeclaration({ node }: { node: Parser.SyntaxNode }): Parser.SyntaxNode | null {
+    if (node.type.includes('declaration')) {
+      return node;
+    }
+    if (node.type === 'export_statement') {
+      for (const child of node.namedChildren) {
+        if (child.type.includes('declaration')) {
+          return child;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Given a tree, finds all of the top-level declarations in that tree and
    * returns them in a convenient map.
    */
-  static getDeclarationMap(tree: Parser.Tree): Map<string, Parser.SyntaxNode> {
+  #getDeclarationMap({ tree }: { tree: Parser.Tree }): Map<string, Parser.SyntaxNode> {
     const declarations = new Map();
     for (const node of tree.rootNode.namedChildren) {
-      const declaration = ExpressAPIDocumentor.findDeclaration(node);
+      const declaration = this.#findDeclaration({ node });
       if (declaration) {
         const identifier = node.descendantsOfType('identifier')?.at(0);
         if (identifier) {
@@ -238,21 +330,33 @@ export class ExpressAPIDocumentor {
   }
 
   /**
+   * Given a map of sibling nodes, returns the first expression detected.
+   * Use getNodeChildMap(node) to get a map of sibling nodes.
+   */
+  #getExpression({ siblings }: { siblings: Map<string, Parser.SyntaxNode> }): string | undefined {
+    if (siblings.has('identifier')) {
+      return siblings.get('identifier')?.text;
+    }
+    return siblings.get('member_expression')?.text;
+  }
+
+  /**
    * Searches a tree for relevant Express calls and returns the variables that
    * are used to declare the root Express app and the Express Router if needed.
    */
-  static getExpressAppIdentifiers(tree: Parser.Tree): Map<string, string> {
-    const variables = ExpressAPIDocumentor.getVariableMap(tree);
-    const identifiers = new Map();
+  async #getExpressAppIdentifiers({ tree }: { tree: Parser.Tree }): Promise<ExpressIdentifiers> {
+    const variables = await this.#getVariableMap({ tree });
+    const identifiers: ExpressIdentifiers = {};
+
     for (const [identifier, expressionNode] of variables) {
-      const children = ExpressAPIDocumentor.getNodeChildMap(expressionNode);
-      const expression = ExpressAPIDocumentor.getExpression(children);
+      const children = await this.#getNodeChildMap({ node: expressionNode });
+      const expression = await this.#getExpression({ siblings: children });
       if (expression === 'express') {
-        identifiers.set('app', identifier);
+        identifiers.app = identifier;
         continue;
       }
       if (expression === 'express.Router' || expression === 'Router') {
-        identifiers.set('router', identifier);
+        identifiers.router = identifier;
       }
     }
     return identifiers;
@@ -262,7 +366,7 @@ export class ExpressAPIDocumentor {
    * Given a node, returns the uniqie set of identifiers referenced in that node.
    * Ignores any exclusions passed in.
    */
-  static getUniqueIdentifiers(rootNode: Parser.SyntaxNode, exclusions: Array<string>): Set<string> {
+  #getUniqueIdentifiers({ rootNode, exclusions }: { rootNode: Parser.SyntaxNode, exclusions: Array<string> }): Set<string> {
     const identifiers: Set<string> = new Set();
     for (const node of rootNode.descendantsOfType('identifier')) {
       if (!exclusions.includes(node.text)) {
@@ -279,7 +383,7 @@ export class ExpressAPIDocumentor {
    * NOTE: I kind of hate this. If you are reading this and can think of a
    * better solution, feel free to gently place this code into a trash can.
    */
-  static guessExpressAPIName(apiDir: string): string {
+  #guessExpressAPIName({ apiDir }: { apiDir: string }): string {
     const dirName = path.basename(apiDir);
     const apiName = dirName.replace(/[^a-zA-Z0-9]/g, ' ').toLowerCase();
     const capitalizedName = apiName.split(' ').map((str) => {
@@ -295,9 +399,9 @@ export class ExpressAPIDocumentor {
    * Returns true if the text for a given node is setting up an Express route.
    * Otherwise, returns false.
    */
-  static isExpressRouteCall(node: Parser.SyntaxNode, app: string, router: string): boolean {
-    const children = ExpressAPIDocumentor.getNodeChildMap(node);
-    const expression = ExpressAPIDocumentor.getExpression(children);
+  async #isExpressRouteCall({ node, app, router }: { node: Parser.SyntaxNode, app: string, router: string }): Promise<boolean> {
+    const children = await this.#getNodeChildMap({ node });
+    const expression = await this.#getExpression({ siblings: children });
     if (expression) {
       if (router) {
         return expression === `${router}.use`;
@@ -317,40 +421,55 @@ export class ExpressAPIDocumentor {
    * Reads the file at the given path if it exists. If the file path ends in .js,
    * it will be converted to a .ts path if needed.
    */
-  static readFile(filePath: string): string {
-    if (fs.existsSync(filePath)) {
-      return fs.readFileSync(filePath, 'utf8');
+  async #readFile({ filePath }: { filePath: string }): Promise<string | null> {
+    try {
+      const contents = await fs.readFile(filePath, 'utf8');
+      return contents;
+    } catch (e: any) {
+      // eaveLogger.exception(e, this.#ctx);
     }
+
+    // Because typescript source files are imported as js (compiled) files, we need to try to import the js version of the ts file.
     if (path.extname(filePath) === '.js') {
       const tsFilePath = `${filePath.slice(0, filePath.length - 2)}ts`;
-      if (fs.existsSync(tsFilePath)) {
-        return fs.readFileSync(tsFilePath, 'utf8');
+
+      try {
+        const contents = await fs.readFile(tsFilePath, 'utf8');
+        return contents;
+      } catch (e: any) {
+        eaveLogger.exception(e, this.#ctx);
       }
     }
-    return '';
+
+    // fallback case
+    return null;
   }
 
   /**
    * Given a top-level declaration identifier, this function recursively builds
    * up all of the local source code for that declaration.
    */
-  #buildCode(identifier: string, filePath: string, accumulator: string): string {
+  async #buildCode({ identifier, filePath, accumulator = '' }: { identifier: string, filePath: string, accumulator?: string }): Promise<string | undefined> {
     // Case 1: Required fields are missing.
     if (!identifier || !filePath) {
       return accumulator;
     }
 
-    const code = ExpressAPIDocumentor.readFile(filePath);
+    const code = await this.#readFile({ filePath });
+    if (!code) {
+      return undefined;
+    }
+
     const tree = this.parser.parse(code);
-    const declarations = ExpressAPIDocumentor.getDeclarationMap(tree);
+    const declarations = this.#getDeclarationMap({ tree });
     const declaration = declarations.get(identifier);
 
     // Case 2: The given identifier is declared in the given file.
     if (declaration) {
       accumulator += `${declaration.text}\n\n`;
-      const importPaths = ExpressAPIDocumentor.getLocalImportPaths(tree, filePath);
-      const requirePaths = ExpressAPIDocumentor.getLocalRequirePaths(tree, filePath);
-      const innerIdentifiers = ExpressAPIDocumentor.getUniqueIdentifiers(declaration, [identifier]);
+      const importPaths = this.#getLocalImportPaths({ tree, filePath });
+      const requirePaths = this.#getLocalRequirePaths({ tree, filePath });
+      const innerIdentifiers = this.#getUniqueIdentifiers({ rootNode: declaration, exclusions: [identifier] });
 
       for (const innerIdentifier of innerIdentifiers) {
         const innerDeclaration = declarations.get(innerIdentifier);
@@ -361,12 +480,18 @@ export class ExpressAPIDocumentor {
         }
         const importPath = importPaths.get(innerIdentifier);
         if (importPath) {
-          accumulator = this.#buildCode(innerIdentifier, importPath, accumulator);
+          const c = await this.#buildCode({ identifier: innerIdentifier, filePath: importPath, accumulator });
+          if (c) {
+            accumulator = c;
+          }
           continue;
         }
         const requirePath = requirePaths.get(innerIdentifier);
         if (requirePath) {
-          accumulator = this.#buildCode(innerIdentifier, requirePath, accumulator);
+          const c = await this.#buildCode({ identifier: innerIdentifier, filePath: requirePath, accumulator });
+          if (c) {
+            accumulator = c;
+          }
         }
       }
       return accumulator;
@@ -375,12 +500,15 @@ export class ExpressAPIDocumentor {
     // Case 3: The declaration we're looking for wasn't found -- check for default export.
     const exportNodes = tree.rootNode.descendantsOfType('export_statement');
     for (const exportNode of exportNodes) {
-      const children = ExpressAPIDocumentor.getNodeChildMap(exportNode);
+      const children = this.#getNodeChildMap({ node: exportNode });
       if (children.has('default')) {
         const defaultIdentifier = children.get('identifier')?.text;
         if (defaultIdentifier) {
-          accumulator = this.#buildCode(defaultIdentifier, filePath, accumulator);
-          accumulator = accumulator.replaceAll(defaultIdentifier, identifier);
+          const c = await this.#buildCode({ identifier: defaultIdentifier, filePath, accumulator });
+          if (c) {
+            accumulator = c;
+            accumulator = c.replaceAll(defaultIdentifier, identifier);
+          }
         }
       }
     }
@@ -392,11 +520,11 @@ export class ExpressAPIDocumentor {
    * Given a tree, builds the local source code for the top-level imports found
    * in the tree. Returns the code in a map for convenient lookup.
    */
-  #buildLocalImports(tree: Parser.Tree, rootFilePath: string): Map<string, string> {
-    const importPaths = ExpressAPIDocumentor.getLocalImportPaths(tree, rootFilePath);
+  async #buildLocalImports({ tree, rootFilePath }: { tree: Parser.Tree, rootFilePath: string }): Promise<Map<string, string>> {
+    const importPaths = this.#getLocalImportPaths({ tree, filePath: rootFilePath });
     const imports = new Map();
     for (const [identifier, importPath] of importPaths) {
-      const importCode = this.#buildCode(identifier, importPath, '');
+      const importCode = await this.#buildCode({ identifier, filePath: importPath });
       imports.set(identifier, importCode);
     }
     return imports;
@@ -406,69 +534,23 @@ export class ExpressAPIDocumentor {
    * Given a tree, builds the local source code for the top-level required modules
    * found the tree. Returns the code in a map for convenient lookup.
    */
-  #buildLocalRequires(tree: Parser.Tree, rootFilePath: string): Map<string, string> {
-    const requirePaths = ExpressAPIDocumentor.getLocalRequirePaths(tree, rootFilePath);
+  async #buildLocalRequires({ tree, rootFilePath }: { tree: Parser.Tree, rootFilePath: string }): Promise<Map<string, string>> {
+    const requirePaths = this.#getLocalRequirePaths({ tree, filePath: rootFilePath });
     const requires = new Map();
     for (const [identifier, requirePath] of requirePaths) {
-      const requireCode = this.#buildCode(identifier, requirePath, '');
+      const requireCode = await this.#buildCode({ identifier, filePath: requirePath });
       requires.set(identifier, requireCode);
     }
     return requires;
   }
 
   /**
-   * Uses a child process to clone a GitHub repo associated with an instance
-   * of this class.
-   */
-  #cloneRepo() {
-    this.repoDir = `temp/${this.repo.name}`;
-    if (this.repo.wiki) {
-      this.wikiDir = `temp/${this.repo.wiki.name}`;
-      runSync(`mkdir temp && cd temp && git clone ${this.repo.url} && git clone ${this.repo.wiki.url}`);
-    } else {
-      runSync(`mkdir temp && cd temp && git clone ${this.repo.url}`);
-    }
-  }
-
-  /**
-   * Given the directory of a suspected Express API, finds the file in which
-   * the Express app is initialized.
-   */
-  #findRootFilePath(apiDir: string) {
-    let rootFilePath = '';
-    walk.sync(apiDir, (filePath, stats) => {
-      if (rootFilePath || !stats.isFile()) {
-        return;
-      }
-      const extName = path.extname(filePath);
-      const language = ExpressAPIDocumentor.getLanguage(extName);
-      if (language) {
-        this.language = language;
-        const grammar = grammarForLanguage({ language, extName });
-        this.parser.setLanguage(grammar);
-        const code = fs.readFileSync(filePath, 'utf8');
-        const tree = this.parser.parse(code);
-        const variables = ExpressAPIDocumentor.getVariableMap(tree);
-
-        for (const expressionNode of variables.values()) {
-          const children = ExpressAPIDocumentor.getNodeChildMap(expressionNode);
-          const expression = ExpressAPIDocumentor.getExpression(children);
-          if (expression === 'express') {
-            rootFilePath = filePath;
-          }
-        }
-      }
-    });
-    return rootFilePath;
-  }
-
-  /**
    * Given a list of Express API endpoints, this function builds up API
    * documentation by sending the endpoints to OpenAI one at a time.
    */
-  async #generateExpressAPIDoc(apiEndpoints: Array<string>): Promise<string> {
+  async #generateExpressAPIDoc({ api }: { api: ExpressAPI }): Promise<string> {
     let apiDoc = '';
-    for (const apiEndpoint of apiEndpoints) {
+    for (const apiEndpoint of api.endpoints) {
       const openaiClient = await OpenAIClient.getAuthedClient();
       const systemPrompt = formatprompt(`
         You will be given a block of ${this.language} code, delimited by three exclamation marks, containing definitions for API endpoints using the Express API framework.
@@ -527,7 +609,7 @@ export class ExpressAPIDocumentor {
           apiDoc += `${openaiResponse}\n\n<br />\n\n`;
         }
       } catch (e) {
-        console.error(`❗ Unable to parse api endpoint due to error ${e}`);
+        console.error(`Unable to parse api endpoint due to error ${e}`);
       }
     }
     return apiDoc;
@@ -537,20 +619,24 @@ export class ExpressAPIDocumentor {
    * Given the root file for an Express API, this function attempts to identify
    * each API endpoint in the file. It then builds the code for each endpoint.
    */
-  #getExpressAPIEndpoints(rootFilePath: string): Array<string> {
-    const code = ExpressAPIDocumentor.readFile(rootFilePath);
+  async #getExpressAPIEndpoints({ rootFilePath }: { rootFilePath: string }): Promise<Array<string> | null> {
+    const code = await this.#readFile({ filePath: rootFilePath });
+    if (!code) {
+      return null;
+    }
+
     const tree = this.parser.parse(code);
     const calls = tree.rootNode.descendantsOfType('call_expression');
-    const requires = this.#buildLocalRequires(tree, rootFilePath);
-    const imports = this.#buildLocalImports(tree, rootFilePath);
-    const declarations = ExpressAPIDocumentor.getDeclarationMap(tree);
-    const identifiers = ExpressAPIDocumentor.getExpressAppIdentifiers(tree);
-    const app = identifiers.get('app') || '';
-    const router = identifiers.get('router') || '';
+    const requires = await this.#buildLocalRequires({ tree, rootFilePath });
+    const imports = await this.#buildLocalImports({ tree, rootFilePath });
+    const declarations = this.#getDeclarationMap({ tree });
+    const { app = '', router = '' } = await this.#getExpressAppIdentifiers({ tree });
     const apiEndpoints: Array<string> = [];
 
     let baseCode = `import express from 'express';\nconst ${app} = express();\n`;
-    if (router) baseCode += `const ${router} = express.Router();\n`;
+    if (router) {
+      baseCode += `const ${router} = express.Router();\n`;
+    }
 
     for (const call of calls) {
       const isMiddleWareCall = call.text.startsWith(`${app}.use`);
@@ -558,10 +644,10 @@ export class ExpressAPIDocumentor {
         baseCode += `${call.text}\n`;
       }
 
-      const isRouteCall = ExpressAPIDocumentor.isExpressRouteCall(call, app, router);
+      const isRouteCall = await this.#isExpressRouteCall({ node: call, app, router });
       if (isRouteCall) {
         let endpointCode = `${baseCode}\n${call.text}\n\n`;
-        const nestedIdentifiers = ExpressAPIDocumentor.getUniqueIdentifiers(call, [app, router]);
+        const nestedIdentifiers = this.#getUniqueIdentifiers({ rootNode: call, exclusions: [app, router] });
         for (const identifier of nestedIdentifiers) {
           const importCode = imports.get(identifier);
           if (importCode) {
@@ -581,64 +667,7 @@ export class ExpressAPIDocumentor {
         apiEndpoints.push(endpointCode);
       }
     }
+
     return apiEndpoints;
-  }
-
-  /**
-   * Searches package.json files in a repo associated with an instance of this
-   * class. If any package file requires Express, this function will drill into the
-   * directory that the package file is in and attempt to build Express API code.
-   */
-  #getExpressAPIs(): Map<string, Array<string>> {
-    const apis = new Map();
-    walk.sync(this.repoDir, (filePath, stats) => {
-      const isPackageFile = stats.isFile() && (path.basename(filePath) === 'package.json');
-      if (isPackageFile) {
-        const packageObj = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        const usesExpress = packageObj.dependencies?.express;
-        if (usesExpress) {
-          const rootDir = path.dirname(filePath);
-          const rootFilePath = this.#findRootFilePath(rootDir);
-          if (rootFilePath) {
-            const apiEndpoints = this.#getExpressAPIEndpoints(rootFilePath);
-            if (apiEndpoints.length) {
-              const apiName = ExpressAPIDocumentor.guessExpressAPIName(rootDir);
-              apis.set(apiName, apiEndpoints);
-            }
-          }
-        }
-      }
-    });
-    return apis;
-  }
-
-  /**
-   * Uses a child process to push an API document to a GitHub Wiki associated
-   * with an instance of this class.
-   */
-  #pushToWiki(apiName: string, apiDoc: string) {
-    const filePath = `${this.wikiDir}/${apiName}.md`;
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    fs.appendFileSync(filePath, apiDoc);
-    runSync(`cd ${this.wikiDir} && git add . && git commit -m 'Update ${apiName} document.' && git push`);
-    console.log(`✅ Successfully documented ${apiName}.`);
-  }
-
-  /**
-   * Identifies all Express APIs in a repo associated with an instance of this
-   * class and generates API documentation for each API.
-   */
-  async document() {
-    this.#cloneRepo();
-    const apis = this.#getExpressAPIs();
-    for (const [apiName, apiEndpoints] of apis) {
-      const apiDoc = await this.#generateExpressAPIDoc(apiEndpoints);
-      if (this.repo.wiki) {
-        this.#pushToWiki(apiName, apiDoc);
-      }
-    }
-    runSync('rm -rf temp');
   }
 }

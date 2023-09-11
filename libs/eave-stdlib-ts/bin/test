@@ -5,5 +5,5 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	node-test "$(^parentpath)"
+	node-test "$@"
 )

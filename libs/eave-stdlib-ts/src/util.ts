@@ -1,23 +1,3 @@
-import child_process from 'child_process';
-
-export function run(command: string) {
-  try {
-    child_process.exec(command);
-  } catch (e) {
-    console.error(`Unable to run command '${command}' due to error ${e}`);
-    throw e;
-  }
-}
-
-export function runSync(command: string) {
-  try {
-    child_process.execSync(command);
-  } catch (e) {
-    console.error(`Unable to run command '${command}' due to error ${e}`);
-    throw e;
-  }
-}
-
 export function redact(str: string | undefined): string | undefined {
   if (str === undefined) {
     return undefined;
