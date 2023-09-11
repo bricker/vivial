@@ -117,7 +117,7 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
         body = await request.json()
         input = DeleteGithubReposRequest.RequestBody.parse_obj(body)
 
-        external_repo_ids = [repo.external_repo_id for repo in input.repos] 
+        external_repo_ids = [repo.external_repo_id for repo in input.repos]
 
         async with database.async_session.begin() as db_session:
             await GithubRepoOrm.delete_by_repo_ids(

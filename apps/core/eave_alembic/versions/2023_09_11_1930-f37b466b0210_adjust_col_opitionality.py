@@ -48,9 +48,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(), nullable=False),
         sa.Column(
             "document_platform",
-            sa.Enum(
-                "eave", "confluence", "google_drive", name="documentplatform"
-            ),
+            sa.Enum("eave", "confluence", "google_drive", name="documentplatform"),
             nullable=True,
         ),
         sa.Column(
@@ -85,9 +83,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "auth_provider",
-            sa.Enum(
-                "google", "slack", "atlassian", "github", name="authprovider"
-            ),
+            sa.Enum("google", "slack", "atlassian", "github", name="authprovider"),
             nullable=False,
         ),
         sa.Column("auth_id", sa.String(), nullable=False),
@@ -348,9 +344,7 @@ def upgrade() -> None:
         sa.Column("team_id", sa.Uuid(), nullable=False),
         sa.Column("external_repo_id", sa.String(), nullable=False),
         sa.Column("pull_request_number", sa.Integer(), nullable=True),
-        sa.Column(
-            "status", sa.String(), server_default="processing", nullable=False
-        ),
+        sa.Column("status", sa.String(), server_default="processing", nullable=False),
         sa.Column(
             "status_updated",
             sa.DateTime(),
@@ -386,9 +380,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "source_platform",
-            sa.Enum(
-                "slack", "github", "jira", name="subscriptionsourceplatform"
-            ),
+            sa.Enum("slack", "github", "jira", name="subscriptionsourceplatform"),
             nullable=False,
         ),
         sa.Column(
@@ -434,18 +426,14 @@ def downgrade() -> None:
     op.drop_table("github_documents")
     op.drop_table("confluence_destinations")
     op.drop_index("slack_team_id_eave_team_id", table_name="slack_sources")
-    op.drop_index(
-        op.f("ix_slack_sources_slack_team_id"), table_name="slack_sources"
-    )
+    op.drop_index(op.f("ix_slack_sources_slack_team_id"), table_name="slack_sources")
     op.drop_table("slack_sources")
     op.drop_table("github_repos")
     op.drop_index(
         op.f("ix_github_installations_github_install_id"),
         table_name="github_installations",
     )
-    op.drop_index(
-        "eave_team_id_github_install_id", table_name="github_installations"
-    )
+    op.drop_index("eave_team_id_github_install_id", table_name="github_installations")
     op.drop_table("github_installations")
     op.drop_table("document_references")
     op.drop_index(
@@ -461,9 +449,7 @@ def downgrade() -> None:
         table_name="connect_installations",
     )
     op.drop_table("connect_installations")
-    op.drop_index(
-        "eave_team_id_atlassian_team_id", table_name="atlassian_installations"
-    )
+    op.drop_index("eave_team_id_atlassian_team_id", table_name="atlassian_installations")
     op.drop_table("atlassian_installations")
     op.drop_index(op.f("ix_accounts_auth_provider"), table_name="accounts")
     op.drop_index("auth_provider_auth_id", table_name="accounts")

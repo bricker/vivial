@@ -188,7 +188,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         response_obj = CreateGithubDocumentRequest.ResponseBody(**response.json())
         assert response_obj.document.team_id == team.id
         assert response_obj.document.external_repo_id == repo.external_repo_id
-        assert response_obj.document.pull_request_number == None
+        assert response_obj.document.pull_request_number is None
         assert response_obj.document.type == DocumentType.ARCHITECTURE_DOCUMENT
         assert response_obj.document.file_path == "first/location"
         assert response_obj.document.api_name == "jimmy-johns-freaky-first-api"

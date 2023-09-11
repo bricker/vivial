@@ -42,7 +42,5 @@ def downgrade() -> None:
         ["team_id", "external_repo_id"],
         unique=False,
     )
-    op.create_index(
-        "ix_github_documents_id", "github_documents", ["id"], unique=False
-    )
+    op.create_index("ix_github_documents_id", "github_documents", ["id"], unique=False)
     # ### end Alembic commands ###

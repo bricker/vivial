@@ -13,7 +13,7 @@ import {
 const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
 
 export type GetGithubReposRequestBody = {
-  repos: GithubRepoListInput;
+  repos?: Array<GithubRepoListInput>;
 }
 
 export type GetGithubReposResponseBody = {
@@ -70,7 +70,7 @@ export async function createGithubRepo(
 }
 
 export type DeleteGithubReposRequestBody = {
-  repos: GithubReposDeleteInput;
+  repos: Array<GithubReposDeleteInput>;
 }
 
 export async function deleteGithubRepos(

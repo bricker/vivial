@@ -1,7 +1,5 @@
 import datetime
 from enum import StrEnum
-
-from eave.stdlib.core_api.models import BaseResponseModel
 from typing import Optional
 import uuid
 
