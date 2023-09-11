@@ -25,24 +25,23 @@ class GithubDocument(BaseResponseModel):
     external_repo_id: str
     pull_request_number: Optional[int]
     status: Status
-    status_updated: Optional[datetime.datetime]
-    file_path: str
-    api_name: str
+    status_updated: datetime.datetime
+    file_path: Optional[str]
+    api_name: Optional[str]
     type: DocumentType
 
 
 class GithubDocumentsQueryInput(BaseInputModel):
-    # team_id provided by request ctx
     external_repo_id: Optional[str] = None
     type: Optional[DocumentType] = None
 
 
 class GithubDocumentCreateInput(BaseInputModel):
     external_repo_id: str
-    file_path: str
-    api_name: str
     type: DocumentType
-    pull_request_number: Optional[int]
+    file_path: Optional[str] = None
+    api_name: Optional[str] = None
+    pull_request_number: Optional[int] = None
 
 
 class GithubDocumentValuesInput(BaseInputModel):

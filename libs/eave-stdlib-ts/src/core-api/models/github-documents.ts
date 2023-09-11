@@ -14,9 +14,9 @@ export type GithubDocument = {
   external_repo_id: string;
   pull_request_number?: number;
   status: Status;
-  status_updated?: Date;
-  file_path: string;
-  api_name: string;
+  status_updated: Date;
+  file_path?: string;
+  api_name?: string;
   type: DocumentType;
 }
 
@@ -27,8 +27,8 @@ export type GithubDocumentsQueryInput = {
 
 export type GithubDocumentCreateInput = {
   external_repo_id: string;
-  file_path: string;
-  api_name: string;
+  file_path?: string;
+  api_name?: string;
   type: DocumentType;
   pull_request_number?: number;
 }

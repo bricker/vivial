@@ -50,7 +50,7 @@ class GithubRepoUpdateInput(BaseInputModel):
 
 
 class GithubReposDeleteInput(BaseInputModel):
-    external_repo_ids: list[str]
+    external_repo_id: str
 
 
 class GithubReposFeatureStateInput(BaseInputModel):

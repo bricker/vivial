@@ -104,7 +104,7 @@ class DeleteGithubReposRequest(Endpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        repos: GithubReposDeleteInput
+        repos: list[GithubReposDeleteInput]
 
     class ResponseBody(BaseResponseBody):
         pass

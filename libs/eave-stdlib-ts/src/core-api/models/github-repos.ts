@@ -26,8 +26,7 @@ export type GithubRepoCreateInput = {
 }
 
 export type GithubRepoListInput = {
-  /** List of ids to filter by. Provide empty list to fetch all repos. */
-  external_repo_ids: Array<string>;
+  external_repo_id: string;
 }
 
 export type GithubRepoUpdateValues = {
@@ -42,7 +41,7 @@ export type GithubRepoUpdateInput = {
 }
 
 export type GithubReposDeleteInput = {
-  external_repo_ids: Array<string>;
+  external_repo_id: string;
 }
 
 export type GithubReposFeatureStateInput = {
