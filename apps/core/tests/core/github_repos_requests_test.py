@@ -5,17 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.stdlib.core_api.models.github_repos import (
     Feature,
-    GithubRepoCreateInput,
-    GithubRepoListInput,
-    GithubRepoUpdateInput,
-    GithubRepoUpdateValues,
-    GithubReposDeleteInput,
-    GithubReposFeatureStateInput,
     State,
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
-    DeleteGithubReposRequest,
     FeatureStateGithubReposRequest,
     GetGithubReposRequest,
     UpdateGithubReposRequest,
@@ -73,7 +66,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/github-repos/query",
-            payload={"repos": {"external_repo_ids": []}},
+            payload={"repos": {"external_repo_ids": None}},
             team_id=team2.id,
             access_token=account.access_token,
             account_id=account.id,

@@ -36,8 +36,8 @@ class GithubRepoCreateInput(BaseInputModel):
 
 
 class GithubRepoListInput(BaseInputModel):
-    external_repo_ids: list[str] = []
-    """List of ids to filter by. Provide empty list to fetch all repos."""
+    external_repo_ids: Optional[list[str]]
+    """List of ids to filter by, or `None` to fetch all repos."""
 
 
 class GithubRepoUpdateValues(BaseInputModel):
