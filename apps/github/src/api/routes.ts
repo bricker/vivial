@@ -8,7 +8,7 @@ export function InternalApiRouter(): Router {
   const router = Router();
   router.use(commonInternalApiMiddlewares, jsonParser);
 
-  router.post('/content', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/api/content', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getSummary(req, res);
       res.end(); // safety
@@ -17,7 +17,7 @@ export function InternalApiRouter(): Router {
     }
   });
 
-  router.post('/subscribe', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/api/subscribe', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await subscribe(req, res);
       res.end(); // safety

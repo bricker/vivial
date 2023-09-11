@@ -1,6 +1,6 @@
 import { sharedConfig } from '../../config.js';
 import { EaveApp } from '../../eave-origins.js';
-import { RequestArgsOrigin, makeRequest } from '../../requests.js';
+import { CtxArg, RequestArgsOrigin, makeRequest } from '../../requests.js';
 import { SlackInstallation, SlackInstallationInput } from '../models/slack.js';
 import { Team } from '../models/team.js';
 
@@ -15,7 +15,7 @@ export type GetSlackInstallationResponseBody = {
   slack_integration: SlackInstallation;
 }
 
-export async function getSlackInstallation(args: RequestArgsOrigin & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
+export async function getSlackInstallation(args: RequestArgsOrigin & CtxArg & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/integrations/slack/query`,
     ...args,

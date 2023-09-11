@@ -17,12 +17,16 @@ export type CtxArg = {
   ctx?: LogContext;
 }
 
-export type RequestArgsOrigin = CtxArg & {
+export type RequestArgsOrigin = {
   origin: EaveApp | string;
 }
 
-export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
+export type RequestArgsTeamId = {
   teamId: string;
+}
+
+export type RequestArgsAccountId = {
+  accountId: string;
 }
 
 type RequestArgs = CtxArg & {

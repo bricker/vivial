@@ -25,6 +25,7 @@ function getEventHandler(req: Express.Request, res: Express.Response): HandlerFu
 
   return handler;
 }
+
 export function WebhookRouter(): Express.Router {
   const router = Express.Router();
   /*
@@ -38,7 +39,7 @@ export function WebhookRouter(): Express.Router {
   /*
     This is the endpoint that GitHub sends events to.
   */
-  router.post('/', async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+  router.post('/events', async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
     try {
       const ctx = LogContext.load(res);
 
@@ -105,7 +106,7 @@ export function WebhookRouter(): Express.Router {
   return router;
 }
 
-export function TaskQueueRouter(): Express.Router {
+export function WebhookOfflineTaskRouter(): Express.Router {
   const router = Express.Router();
   router.use(commonInternalApiMiddlewares);
   // github webhook signature assumed to be already verified.

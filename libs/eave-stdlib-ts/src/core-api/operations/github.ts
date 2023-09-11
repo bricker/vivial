@@ -1,6 +1,6 @@
 import { sharedConfig } from '../../config.js';
 import { EaveApp } from '../../eave-origins.js';
-import { RequestArgsOrigin, makeRequest } from '../../requests.js';
+import { CtxArg, RequestArgsOrigin, makeRequest } from '../../requests.js';
 import { GithubInstallation, GithubInstallationInput } from '../models/github.js';
 import { Team } from '../models/team.js';
 
@@ -15,7 +15,7 @@ export type GetGithubInstallationResponseBody = {
   github_integration: GithubInstallation;
 }
 
-export async function getGithubInstallation(args: RequestArgsOrigin & {input: GetGithubInstallationRequestBody}): Promise<GetGithubInstallationResponseBody> {
+export async function getGithubInstallation(args: RequestArgsOrigin & CtxArg & {input: GetGithubInstallationRequestBody}): Promise<GetGithubInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/integrations/github/query`,
     ...args,

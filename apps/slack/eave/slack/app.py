@@ -5,8 +5,6 @@ from starlette.applications import Starlette
 from starlette.routing import Route, Mount
 from eave.stdlib import cache
 
-from .config import SLACK_EVENT_QUEUE_TARGET_PATH
-
 from .requests.warmup import StopRequest, WarmupRequest, StartRequest
 from .requests.event_callback import SlackEventCallbackHandler
 from .requests.event_processor import SlackEventProcessorTask
@@ -29,7 +27,7 @@ routes = [
     ),
 
     Mount(
-        "/_/slack/tasks",
+        "/_/slack",
         middleware=common_internal_api_middlewares,
         routes=[
             Route("/events", SlackEventProcessorTask, methods=["POST"]),

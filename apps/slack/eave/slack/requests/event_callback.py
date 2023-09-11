@@ -12,7 +12,7 @@ from starlette.endpoints import HTTPEndpoint
 
 from eave.stdlib.typing import JsonObject
 from .. import slack_app
-from ..config import SLACK_EVENT_QUEUE_NAME, SLACK_EVENT_QUEUE_TARGET_PATH, app_config
+from ..config import SLACK_EVENT_QUEUE_NAME, app_config
 
 
 class SlackEventCallbackHandler(HTTPEndpoint):
@@ -106,7 +106,7 @@ class SlackEventCallbackHandler(HTTPEndpoint):
 
         await create_task_from_request(
             queue_name=SLACK_EVENT_QUEUE_NAME,
-            target_path="/_/slack/tasks/events",
+            target_path="/_/slack/events",
             request=self._request,
             origin=eave_origins.EaveApp.eave_slack_app,
             task_name_prefix=task_name_prefix,

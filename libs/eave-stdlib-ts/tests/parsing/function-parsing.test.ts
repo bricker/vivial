@@ -1,6 +1,6 @@
 import test from 'ava';
 import { parseFunctionsAndComments, writeUpdatedCommentsIntoFileString } from '../../src/parsing/function-parsing.js';
-import { ProgrammingLanguage } from '../../src/language-mapping.js';
+import { ProgrammingLanguage } from '../../src/programming-langs/language-mapping.js';
 
 test('Typescript grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)

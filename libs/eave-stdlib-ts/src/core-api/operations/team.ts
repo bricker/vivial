@@ -1,6 +1,6 @@
 import { sharedConfig } from '../../config.js';
 import { EaveApp } from '../../eave-origins.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../../requests.js';
+import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../../requests.js';
 import { Integrations } from '../models/integrations.js';
 import { Team } from '../models/team.js';
 
@@ -11,7 +11,7 @@ export type GetTeamResponseBody = {
   integrations: Integrations;
 }
 
-export async function getTeam(args: RequestArgsOriginAndTeamId): Promise<GetTeamResponseBody> {
+export async function getTeam(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg): Promise<GetTeamResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/team/query`,
     ...args,

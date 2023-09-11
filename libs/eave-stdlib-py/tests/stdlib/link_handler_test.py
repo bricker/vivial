@@ -113,11 +113,12 @@ class TestLinkHandler(UtilityBaseTestCase):
         )
 
         # WHEN subscribe request fails (for whatever reason)
-        input_links = [
+        # explicit type is needed because the tuple is typed with Literals when defined this way
+        input_links: list[tuple[str, LinkType]] = [
             ("https://github.com/eave-fyi/mono-repo/README.md", LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
-            origin=EaveOrigin.eave_slack_app,
+            origin=EaveApp.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )

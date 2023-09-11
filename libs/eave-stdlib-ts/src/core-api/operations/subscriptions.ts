@@ -1,6 +1,6 @@
 import { sharedConfig } from '../../config.js';
 import { EaveApp } from '../../eave-origins.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../../requests.js';
+import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../../requests.js';
 import { DocumentReference, DocumentReferenceInput, Subscription, SubscriptionInput } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
 
@@ -31,7 +31,7 @@ export type DeleteSubscriptionRequestBody = {
   subscription: SubscriptionInput;
 }
 
-export async function createSubscription(args: RequestArgsOriginAndTeamId & {input: CreateSubscriptionRequestBody}): Promise<CreateSubscriptionResponseBody> {
+export async function createSubscription(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {input: CreateSubscriptionRequestBody}): Promise<CreateSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/subscriptions/create`,
     ...args,
@@ -40,7 +40,7 @@ export async function createSubscription(args: RequestArgsOriginAndTeamId & {inp
   return responseData;
 }
 
-export async function deleteSubscription(args: RequestArgsOriginAndTeamId & {input: DeleteSubscriptionRequestBody}): Promise<null> {
+export async function deleteSubscription(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {input: DeleteSubscriptionRequestBody}): Promise<null> {
   await makeRequest({
     url: `${baseUrl}/subscriptions/delete`,
     ...args,
@@ -48,7 +48,7 @@ export async function deleteSubscription(args: RequestArgsOriginAndTeamId & {inp
   return null;
 }
 
-export async function getSubscription(args: RequestArgsOriginAndTeamId & {input: GetSubscriptionRequestBody}): Promise<GetSubscriptionResponseBody> {
+export async function getSubscription(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {input: GetSubscriptionRequestBody}): Promise<GetSubscriptionResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/subscriptions/query`,
     ...args,

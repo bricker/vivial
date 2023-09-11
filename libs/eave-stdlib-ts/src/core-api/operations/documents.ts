@@ -1,6 +1,6 @@
 import { sharedConfig } from '../../config.js';
 import { EaveApp } from '../../eave-origins.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../../requests.js';
+import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../../requests.js';
 import { DocumentInput, DocumentSearchResult } from '../models/documents.js';
 import { DocumentReference, Subscription } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
@@ -17,7 +17,7 @@ export type UpsertDocumentResponseBody = {
   document_reference: DocumentReference;
 }
 
-export async function upsertDocument(args: RequestArgsOriginAndTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
+export async function upsertDocument(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/documents/upsert`,
     ...args,
@@ -35,7 +35,7 @@ export type SearchDocumentsResponseBody = {
   documents: DocumentSearchResult[];
 }
 
-export async function searchDocuments(args: RequestArgsOriginAndTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
+export async function searchDocuments(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/documents/search`,
     ...args,
