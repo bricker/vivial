@@ -1,11 +1,7 @@
 import enum
-from typing import Optional
 import uuid
 
-from pydantic import BaseModel
 from eave.stdlib.core_api.models import BaseResponseModel
-
-from eave.stdlib.core_api.models import BaseInputModel
 
 
 class Feature(enum.StrEnum):
@@ -13,10 +9,12 @@ class Feature(enum.StrEnum):
     INLINE_CODE_DOCUMENTATION = "inline_code_documentation"
     ARCHITECTURE_DOCUMENTATION = "architecture_documentation"
 
+
 class State(enum.StrEnum):
     DISABLED = "disabled"
     ENABLED = "enabled"
     PAUSED = "paused"
+
 
 class GithubRepo(BaseResponseModel):
     team_id: uuid.UUID

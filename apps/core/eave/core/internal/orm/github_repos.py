@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.repos import GithubRepo, State, Feature
+from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
 
 from .base import Base
 from .util import make_team_fk
@@ -33,11 +33,11 @@ class GithubRepoOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
-    api_documentation_state: Mapped[State] = mapped_column(server_default=State.DISABLED.value)
+    api_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the API documentation feature for this repo. options: disabled, enabled, paused"""
-    inline_code_documentation_state: Mapped[State] = mapped_column(server_default=State.DISABLED.value)
+    inline_code_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the inline code documentation feature for this repo. options: disabled, enabled, paused"""
-    architecture_documentation_state: Mapped[State] = mapped_column(server_default=State.DISABLED.value)
+    architecture_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the architecture documentation feature for this repo. options: disabled, enabled, paused"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -62,13 +62,13 @@ class GithubRepoOrm(Base):
             lookup = lookup.where(cls.external_repo_id == external_repo_id)
 
         if api_documentation_state := kwargs.get("api_documentation_state"):
-            lookup = lookup.where(cls.api_documentation_state == api_documentation_state)
+            lookup = lookup.where(cls.api_documentation_state == api_documentation_state.value)
 
         if inline_code_documentation_state := kwargs.get("inline_code_documentation_state"):
-            lookup = lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state)
+            lookup = lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state.value)
 
         if architecture_documentation_state := kwargs.get("architecture_documentation_state"):
-            lookup = lookup.where(cls.architecture_documentation_state == architecture_documentation_state)
+            lookup = lookup.where(cls.architecture_documentation_state == architecture_documentation_state.value)
 
         return lookup
 
@@ -94,8 +94,23 @@ class GithubRepoOrm(Base):
         return obj
 
     @classmethod
-    async def list_all(cls, team_id: UUID, session: AsyncSession) -> Sequence[Self]:
+    async def query(
+        cls,
+        team_id: UUID,
+        external_repo_ids: Optional[list[str]],
+        session: AsyncSession,
+    ) -> Sequence[Self]:
+        """
+        Get/list GithubRepos.
+        You must filter results by `team_id`, but can optionally provide a list of
+        `external_repo_ids` to fetch. Providing None for `external_repo_ids` (or empty list)
+        will get all repos for the provided `team_id`.
+        """
         stmt = cls._build_query(team_id=team_id)
+
+        if external_repo_ids:
+            stmt = stmt.where(cls.external_repo_id.in_(external_repo_ids))
+
         result = (await session.scalars(stmt)).all()
         return result
 
@@ -110,6 +125,14 @@ class GithubRepoOrm(Base):
         stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
         result = await session.scalar(stmt)
         return result
+
+    def update(self, input: GithubRepoUpdateValues) -> None:
+        if input.api_documentation_state is not None:
+            self.api_documentation_state = input.api_documentation_state.value
+        if input.architecture_documentation_state is not None:
+            self.architecture_documentation_state = input.architecture_documentation_state.value
+        if input.inline_code_documentation_state is not None:
+            self.inline_code_documentation_state = input.inline_code_documentation_state.value
 
     @classmethod
     async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
