@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-let lists: string[] = ['TODO', 'Personal', 'Work', 'Shopping'];
+const lists: string[] = ['TODO', 'Personal', 'Work', 'Shopping'];
 
 export function getLists(req: Request, res: Response) {
   res.status(200).json(lists);

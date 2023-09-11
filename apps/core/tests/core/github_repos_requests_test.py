@@ -194,7 +194,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = FeatureStateGithubReposRequest.ResponseBody(**response.json())
-        assert response_obj.states_match == True
+        assert response_obj.states_match is True
 
         # all entries should not all have matching INLINE_CODE_DOCUMENTATION feature state
 
@@ -213,4 +213,4 @@ class TestGithubRepoRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = FeatureStateGithubReposRequest.ResponseBody(**response.json())
-        assert response_obj.states_match == False
+        assert response_obj.states_match is False

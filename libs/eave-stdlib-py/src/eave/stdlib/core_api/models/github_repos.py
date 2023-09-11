@@ -2,7 +2,6 @@ import enum
 from typing import Optional
 import uuid
 
-from pydantic import BaseModel
 from eave.stdlib.core_api.models import BaseResponseModel
 
 from eave.stdlib.core_api.models import BaseInputModel
