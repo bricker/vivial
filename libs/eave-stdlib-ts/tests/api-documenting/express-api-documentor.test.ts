@@ -1,7 +1,7 @@
 import anyTest, { TestFn } from 'ava';
-import { ExpressAPI, ExpressAPIDocumentor, Repo } from '../../src/api-documenting/express-api-documentor.js';
 import { LogContext } from '../../src/logging.js';
 import { TestContextBase, TestUtil } from '../../src/test-util.js';
+import { ExpressAPIDocumentor, Repo } from '../../src/api-documenting/express-api-documentor.js';
 
 const test = anyTest as TestFn<TestContextBase>;
 
