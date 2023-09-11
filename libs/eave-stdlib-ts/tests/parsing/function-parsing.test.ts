@@ -1,11 +1,12 @@
 import test from 'ava';
 import { parseFunctionsAndComments, writeUpdatedCommentsIntoFileString } from '../../src/parsing/function-parsing.js';
+import { ProgrammingLanguage } from '../../src/language-mapping.js';
 
 test('Typescript grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.ts';
-  const language = 'typescript';
+  const language = ProgrammingLanguage.typescript;
   const content = `import { appConfig } from './src/config.js';
 
 function foo() {
@@ -96,7 +97,7 @@ test('Javascript grammar queries adds/replaces all doc comments correctly', (t) 
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.js';
-  const language = 'javascript';
+  const language = ProgrammingLanguage.javascript;
   const content = `const appConfig = require('./src/config.js');
 
 function foo() {
@@ -186,7 +187,7 @@ test('Rust grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.rs';
-  const language = 'rust';
+  const language = ProgrammingLanguage.rust;
   const content = `mod app_config;
 
 fn foo() {
@@ -269,7 +270,7 @@ test('C grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.c';
-  const language = 'c';
+  const language = ProgrammingLanguage.c;
   const content = `#include "./src/config.h";
 #include <stdio.h>;
 
@@ -362,7 +363,7 @@ test('C++ grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.cpp';
-  const language = 'c++';
+  const language = ProgrammingLanguage.cpp;
   const content = `#include "./src/config.h";
 #include <stdio.h>;
 
@@ -455,7 +456,7 @@ test('Go grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.go';
-  const language = 'go';
+  const language = ProgrammingLanguage.go;
   const content = `package main
 
 import "fmt"
@@ -538,7 +539,7 @@ test('Java grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.java';
-  const language = 'java';
+  const language = ProgrammingLanguage.java;
   const content = `import com.src.config;
 
 public class Main {
@@ -633,7 +634,7 @@ test('Kotlin grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.kt';
-  const language = 'kotlin';
+  const language = ProgrammingLanguage.kotlin;
   const content = `import com.src.config;
 
 fun foo() {
@@ -724,7 +725,7 @@ test('PHP grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.php';
-  const language = 'php';
+  const language = ProgrammingLanguage.php;
   const content = `<?php
 
 namespace Main/NameSpace;
@@ -819,7 +820,7 @@ test('Ruby grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.rb';
-  const language = 'ruby';
+  const language = ProgrammingLanguage.ruby;
   const content = `require "./src/config.js";
 
 def foo
@@ -898,7 +899,7 @@ test('Swift grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.swift';
-  const language = 'swift';
+  const language = ProgrammingLanguage.swift;
   const content = `import Config
 
 func foo() {
@@ -981,7 +982,7 @@ test('C# grammar queries adds/replaces all doc comments correctly', (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
   const extName = '.cs';
-  const language = 'c#';
+  const language = ProgrammingLanguage.csharp;
   const content = `using System;
 
 namespace MyNamespace

@@ -1,7 +1,6 @@
 import { AddOn, HostClient } from 'atlassian-connect-express';
 import { CoreOptions, RequestResponse, UrlOptions } from 'request';
 import { promisify } from 'util';
-import { Request } from 'express';
 import eaveLogger, { LogContext } from '../logging.js';
 import { queryConnectInstallation } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
@@ -19,7 +18,6 @@ export default class ConnectClient {
     clientKey,
     ctx,
   }: CtxArg & {
-    req: Request,
     addon: AddOn,
     product: AtlassianProduct,
     origin: EaveOrigin,

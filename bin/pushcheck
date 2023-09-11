@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
 set -e
+
+source "${EAVE_HOME}/develop/shared/_functions.bash"
+
 bin/format
 bin/lint
 bin/test
+
+statusmsg -s "Checks passed!"

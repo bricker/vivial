@@ -4,6 +4,10 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		test -n "${CI:-}"
 	}
 
+	function ^norecurse() (
+		grep -qE "node_modules|\.venv|vendor" <<<"$1"
+	)
+
 	function statusmsg() (
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE
@@ -170,8 +174,15 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function import-loginfile() {
-		local loginfile=$(shloginfile)
-		source $loginfile
+		local loginfile
+		loginfile=$(shloginfile)
+
+		if test -z "$loginfile"; then
+			statusmsg -d "No login file detected."
+		else
+			# shellcheck disable=SC1090
+			source "$loginfile"
+		fi
 	}
 
 	function cmd-exists() {

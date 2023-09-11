@@ -1,20 +1,18 @@
-import fs from 'fs';
-
-let extensionMap: { [key: string]: string } | undefined;
+import extensionMap from './languages.json';
 
 export enum ProgrammingLanguage {
-  javascript,
-  typescript,
-  rust,
-  c,
-  go,
-  java,
-  kotlin,
-  ruby,
-  cpp,
-  php,
-  swift,
-  csharp,
+  javascript = 'javascript',
+  typescript = 'typescript',
+  rust = 'rust',
+  c = 'c',
+  go = 'go',
+  java = 'java',
+  kotlin = 'kotlin',
+  ruby = 'ruby',
+  cpp = 'cpp',
+  php = 'php',
+  swift = 'swift',
+  csharp = 'csharp',
 }
 
 /**
@@ -33,22 +31,16 @@ export function stringToProgrammingLanguage(lang: string): ProgrammingLanguage |
   }
 }
 
-export async function isSupportedProgrammingLanguage(extName: string): Promise<boolean> {
-  if (!extensionMap) {
-    await loadExtensionMap();
+export function getProgrammingLanguageByExtension(extName: string): ProgrammingLanguage | undefined {
+  // quality-of-life (also to prevent bugs): Accept extension with or without leading dot
+  if (extName.at(0) !== '.') {
+    extName = `.${extName}`;
   }
-  return stringToProgrammingLanguage(extensionMap![extName] || '') !== undefined;
+  const lang = extensionMap[extName as keyof typeof extensionMap];
+  return lang ? stringToProgrammingLanguage(lang) : undefined;
 }
 
-export async function loadExtensionMap() {
-  // TODO: host this on CDN or something instead to avoid gross path assumptions???
-  const extensionMapString = await fs.promises.readFile('../../libs/eave-stdlib-ts/languages.json', { encoding: 'utf8' });
-  extensionMap = JSON.parse(extensionMapString);
-}
-
-export async function getExtensionMap(): Promise<{ [key: string]: string }> {
-  if (!extensionMap) {
-    await loadExtensionMap();
-  }
-  return extensionMap!;
+export function isSupportedProgrammingLanguage(extName: string): boolean {
+  const lang = getProgrammingLanguageByExtension(extName);
+  return lang !== undefined;
 }
