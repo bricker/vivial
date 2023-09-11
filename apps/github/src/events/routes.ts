@@ -108,7 +108,7 @@ export function WebhookRouter(): Express.Router {
 
 export function WebhookOfflineTaskRouter(): Express.Router {
   const router = Express.Router();
-  router.use(commonInternalApiMiddlewares);
+  router.use(...commonInternalApiMiddlewares);
   // github webhook signature assumed to be already verified.
   router.use(jsonParser);
 

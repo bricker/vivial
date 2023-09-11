@@ -12,7 +12,7 @@ import ConfluenceClient from '../confluence-client.js';
 
 export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
   const router = Router();
-  router.use(commonInternalApiMiddlewares);
+  router.use(...commonInternalApiMiddlewares);
   router.use(jsonParser);
 
   router.post('/spaces/query', async (req: Request, res: Response, next: NextFunction) => {

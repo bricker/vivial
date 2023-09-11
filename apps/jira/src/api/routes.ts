@@ -5,7 +5,7 @@ import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.
 
 export function InternalApiRouter(_args: {addon: AddOn}): Router {
   const router = Router();
-  router.use(commonInternalApiMiddlewares);
+  router.use(...commonInternalApiMiddlewares);
   router.use(jsonParser);
 
   // Not currently used

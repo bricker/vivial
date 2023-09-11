@@ -1,13 +1,13 @@
 import Express from 'express';
 import { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { commonInternalApiMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
-import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
 import { runApiDocumentation } from '../tasks/api-documentation.js';
 
 export function OfflineTaskRouter(): Express.Router {
   const router = Express.Router();
-  router.use(commonInternalApiMiddlewares);
-  router.use(jsonParser);
+  router.use(...commonInternalApiMiddlewares);
+  // FIXME: jsonParser is being called twice on this router, I don't know why.
+  // router.use(jsonParser);
 
   router.post('/run-api-documentation', async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
     try {

@@ -6,7 +6,8 @@ import { subscribe } from './subscribe.js';
 
 export function InternalApiRouter(): Router {
   const router = Router();
-  router.use(commonInternalApiMiddlewares, jsonParser);
+  router.use(...commonInternalApiMiddlewares);
+  router.use(jsonParser);
 
   router.post('/api/content', async (req: Request, res: Response, next: NextFunction) => {
     try {
