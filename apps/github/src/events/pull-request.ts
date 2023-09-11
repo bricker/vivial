@@ -101,7 +101,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       }
 
       // filter file types that arent source files we support writing docs for
-      if (!(await isSupportedProgrammingLanguage(path.extname(f.path)))) {
+      if (!isSupportedProgrammingLanguage(path.extname(f.path))) {
         continue;
       }
 
