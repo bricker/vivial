@@ -122,7 +122,7 @@ class GithubDocumentsOrm(Base):
     @classmethod
     async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
         if len(external_repo_ids) < 1:
-            # dont delete all the rows
+            # don't delete all the rows
             return
 
         stmt = delete(cls).where(cls.team_id == team_id).where(cls.external_repo_id.in_(external_repo_ids))
