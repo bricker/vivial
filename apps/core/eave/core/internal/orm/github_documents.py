@@ -35,11 +35,11 @@ class GithubDocumentsOrm(Base):
     """Number of the most recent PR opened for this document"""
     status: Mapped[str] = mapped_column(server_default=Status.PROCESSING.value)
     """Current state of API documentation for this repo. options: processing, under-review, up-to-date"""
-    status_updated: Mapped[Optional[datetime]] = mapped_column(server_default=None)
+    status_updated: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     """Last time the `status` column was updated."""
-    file_path: Mapped[str] = mapped_column()
+    file_path: Mapped[Optional[str]] = mapped_column()
     """Relative file path to this document in the given repo."""
-    api_name: Mapped[str] = mapped_column()
+    api_name: Mapped[Optional[str]] = mapped_column()
     """Name of the API this document is documenting"""
     type: Mapped[str] = mapped_column()
     """Document type. options: api_document, architecture_document"""
@@ -86,9 +86,9 @@ class GithubDocumentsOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         external_repo_id: str,
-        file_path: str,
-        api_name: str,
         type: DocumentType,
+        file_path: Optional[str] = None,
+        api_name: Optional[str] = None,
         pull_request_number: Optional[int] = None,
         status: Status = Status.PROCESSING,
         status_updated: Optional[datetime] = None,
