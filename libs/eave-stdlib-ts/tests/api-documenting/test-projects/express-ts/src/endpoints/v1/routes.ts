@@ -1,4 +1,4 @@
-import { Request, Response, Router, json } from 'express';
+import { Request, Response, Router } from 'express';
 import { getLists, getList, createList, updateList, deleteList } from './lists.js';
 import { getUsers, getUser, createUser, updateUser, deleteUser } from './users.js';
 
