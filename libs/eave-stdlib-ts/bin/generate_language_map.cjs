@@ -35,7 +35,7 @@ async function main() {
 
   // write to local file as json for easier access by prod TS code
   const jsonString = JSON.stringify(transformedFileObject, null, 2);
-  await fs.writeFile(`${process.env['EAVE_HOME']}/apps/github/languages.json`, jsonString, 'utf8');
+  await fs.writeFile(`${process.env['EAVE_HOME']}/libs/eave-stdlib-ts/src/languages.json`, jsonString, 'utf8');
 }
 
 main();

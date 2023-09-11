@@ -26,10 +26,17 @@ const { typescript: Typescript, tsx } = tsPkg;
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarForLanguage({ language, extName }: { language: string, extName: string }): any {
-  const pl = stringToProgrammingLanguage(language);
-  if (pl === undefined) {
-    return null;
+export function grammarForLanguage({ language, extName }: { language: string | ProgrammingLanguage, extName: string }): any {
+  let pl: ProgrammingLanguage;
+
+  if (typeof language === 'string') {
+    const lang = stringToProgrammingLanguage(language);
+    if (lang === undefined) {
+      return null;
+    }
+    pl = lang;
+  } else {
+    pl = language;
   }
 
   switch (pl) {
@@ -71,19 +78,14 @@ export function getFunctionDocumentationQueries({
   language,
   funcMatcher,
   commentMatcher,
-}: { language: string, funcMatcher: string, commentMatcher: string }): string[] {
-  const pl = stringToProgrammingLanguage(language);
-  if (pl === undefined) {
-    return [];
-  }
-
-  switch (pl) {
+}: { language: ProgrammingLanguage, funcMatcher: string, commentMatcher: string }): string[] {
+  switch (language) {
     case ProgrammingLanguage.javascript: // js and ts grammar similar enough to share queries
     case ProgrammingLanguage.typescript:
       return [
         // captures root level functions + comments
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
 
@@ -91,7 +93,7 @@ export function getFunctionDocumentationQueries({
         // NOTE: this must run after the normal func level query in order to rewrite its bad entries of exported funcs from previous query
         //       w/ the corrected ones containing comment string
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (export_statement declaration:
             (function_declaration) @${funcMatcher}
           )
@@ -121,13 +123,13 @@ export function getFunctionDocumentationQueries({
       return [
         // plain functions
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
 
         // struct receiver methods
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method_declaration) @${funcMatcher}
         )`,
       ];
@@ -135,14 +137,14 @@ export function getFunctionDocumentationQueries({
     case ProgrammingLanguage.c:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_definition) @${funcMatcher}
         )`,
       ];
     case ProgrammingLanguage.kotlin:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
       ];
@@ -150,20 +152,20 @@ export function getFunctionDocumentationQueries({
       return [
         // root level functions
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_definition) @${funcMatcher}
         )`,
 
         // class methods
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method_declaration) @${funcMatcher}
         )`,
       ];
     case ProgrammingLanguage.ruby:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method) @${funcMatcher}
         )`,
       ];
@@ -171,7 +173,7 @@ export function getFunctionDocumentationQueries({
       return [
         // single line doc comments (swift standard)
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (function_declaration) @${funcMatcher}
         )`,
 
@@ -185,7 +187,7 @@ export function getFunctionDocumentationQueries({
     case ProgrammingLanguage.csharp:
       return [
         `(
-          (comment) @${commentMatcher}* 
+          (comment) @${commentMatcher}*
           (method_declaration) @${funcMatcher}
         )`,
       ];
@@ -193,7 +195,7 @@ export function getFunctionDocumentationQueries({
     default:
       // used to typecheck our enum cases as exhuastive
       // eslint-disable-next-line no-case-declarations
-      const unhandledCase: never = pl;
+      const unhandledCase: never = language;
       throw new Error(`Unhandled ProgrammingLanguage case: ${unhandledCase}`);
   }
 }
