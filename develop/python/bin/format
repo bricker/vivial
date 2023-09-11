@@ -5,8 +5,6 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-format "$(^parentpath)" # format self
-	python-format . # format caller
-	"${EAVE_HOME}"/libs/eave-stdlib-py/bin/format
-	"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/format
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/python/_format_base
 )

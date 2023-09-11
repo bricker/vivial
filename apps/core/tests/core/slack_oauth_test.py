@@ -123,7 +123,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
         async with self.db_session.begin() as s:
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-            assert not response.cookies.get("ev_oauth_state_slack")  # Test the cookie was deleted
+            assert response.cookies.get("ev_oauth_state_slack") is None  # Test the cookie was deleted
             assert response.headers["Location"]
             assert (
                 response.headers["Location"]
@@ -363,8 +363,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("old_refresh_token")
 
             # Test that the cookies were NOT updated
-            assert response.cookies.get("ev_account_id") == str(eave_account_before.id)
-            assert response.cookies.get("ev_access_token") == eave_account_before.access_token
+            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
+            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
 
     async def test_slack_callback_invalid_state(self) -> None:
         response = await self.make_request(

@@ -7,8 +7,11 @@ export GLOBIGNORE="node_modules"
 source "$EAVE_HOME/develop/functions.bash"
 
 (
-	for ss in {apps,libs}/**/bin/format; do
+	for ss in {apps,libs,develop}/**/bin/format; do
+		if ^norecurse "$ss"; then
+			continue
+		fi
 		statusmsg -d "Running $ss"
-		$ss
+		_ONLY_THIS_MODULE=1 $ss
 	done
 )

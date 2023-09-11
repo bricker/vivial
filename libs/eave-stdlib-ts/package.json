@@ -10,18 +10,17 @@
     "src/"
   ],
   "scripts": {
-    "test": "ava",
     "yalc": "yalc publish --push"
   },
   "dependencies": {
+    "@google-cloud/compute": "3.x",
     "@google-cloud/kms": "3.x",
     "@google-cloud/logging": "10.x",
     "@google-cloud/logging-winston": "5.x",
     "@google-cloud/pubsub": "3.x",
-    "@google-cloud/secret-manager": "4.x",
     "@google-cloud/redis": "3.x",
-    "@google-cloud/compute": "3.x",
     "@google-cloud/tasks": "4.x",
+    "@google-cloud/secret-manager": "4.x",
     "@redis/client": "1.x",
     "express": "4.x",
     "fast-crc32c": "2.x",
@@ -32,8 +31,7 @@
     "protobufjs": "7.x",
     "redis": "4.x",
     "request": "2.x",
-    "uuid": "9.x",
-    "winston": "3.x",
+    "tiktoken": "1.x",
     "tree-sitter": "^0.20.5",
     "tree-sitter-c": "^0.20.4",
     "tree-sitter-c-sharp": "^0.20.0",
@@ -48,11 +46,12 @@
     "tree-sitter-rust": "^0.20.3",
     "tree-sitter-swift": "^0.3.6",
     "tree-sitter-typescript": "^0.20.1",
-    "tiktoken": "1.x"
+    "uuid": "9.x",
+    "winston": "3.x"
   },
   "peerDependencies": {
-    "atlassian-connect-express": "8.x",
-    "@eave-fyi/eave-pubsub-schemas": "x"
+    "atlassian-connect-express": "8.2.0",
+    "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript"
   },
   "devDependencies": {
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
@@ -65,7 +64,6 @@
     "@types/uuid": "9.x",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
-    "ava": "5.x",
     "eslint": "8.x",
     "eslint-config-airbnb-base": "15.x",
     "eslint-plugin-import": "2.x",
@@ -74,16 +72,5 @@
     "sinon": "15.x",
     "ts-node": "10.x",
     "typescript": "4.x"
-  },
-  "ava": {
-    "extensions": {
-      "ts": "module"
-    },
-    "nodeArguments": [
-      "--loader=ts-node/esm"
-    ],
-    "environmentVariables": {
-      "TS_NODE_LOG_ERROR": "true"
-    }
   }
 }

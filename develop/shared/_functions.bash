@@ -4,6 +4,10 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		test -n "${CI:-}"
 	}
 
+	function ^norecurse() (
+		grep -qE "node_modules|\.venv|vendor" <<<"$1"
+	)
+
 	function statusmsg() (
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE

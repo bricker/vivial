@@ -2,7 +2,7 @@ import path from 'path';
 import { writeUpdatedCommentsIntoFileString, parseFunctionsAndComments } from './parsing/function-parsing.js';
 import eaveLogger, { LogContext } from './logging.js';
 import * as AIUtil from './transformer-ai/util.js';
-import { getExtensionMap } from './programming-langs/language-mapping.js';
+import { getProgrammingLanguageByExtension } from './programming-langs/language-mapping.js';
 import OpenAIClient, { formatprompt } from './transformer-ai/openai.js';
 import { OpenAIModel } from './transformer-ai/models.js';
 
@@ -35,7 +35,7 @@ export async function updateDocumentation({
 }): Promise<string | null> {
   // load language from file extension map file
   const extName = `${path.extname(filePath).toLowerCase()}`;
-  const flang = (await getExtensionMap())[extName];
+  const flang = getProgrammingLanguageByExtension(extName);
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early

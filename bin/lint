@@ -6,8 +6,11 @@ shopt -s globstar
 source "${EAVE_HOME}/develop/functions.bash"
 
 (
-	for ss in {apps,libs}/**/bin/lint; do
+	for ss in {apps,libs,develop}/**/bin/lint; do
+		if ^norecurse "$ss"; then
+			continue
+		fi
 		statusmsg -d "Running $ss"
-		$ss
+		_ONLY_THIS_MODULE=1 $ss
 	done
 )

@@ -5,8 +5,6 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	node-lint "$(^parentpath)" # lint self
-	node-lint . # lint caller
-	"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/lint
-	"${EAVE_HOME}"/libs/eave-pubsub-schemas/typescript/bin/lint
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/javascript/_lint_base
 )

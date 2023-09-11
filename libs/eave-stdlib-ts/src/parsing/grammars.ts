@@ -26,10 +26,17 @@ const { typescript: Typescript, tsx } = tsPkg;
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarForLanguage({ language, extName }: { language: string, extName: string }): any {
-  const pl = stringToProgrammingLanguage(language);
-  if (pl === undefined) {
-    return null;
+export function grammarForLanguage({ language, extName }: { language: string | ProgrammingLanguage, extName: string }): any {
+  let pl: ProgrammingLanguage;
+
+  if (typeof language === 'string') {
+    const lang = stringToProgrammingLanguage(language);
+    if (lang === undefined) {
+      return null;
+    }
+    pl = lang;
+  } else {
+    pl = language;
   }
 
   switch (pl) {
@@ -71,13 +78,8 @@ export function getFunctionDocumentationQueries({
   language,
   funcMatcher,
   commentMatcher,
-}: { language: string, funcMatcher: string, commentMatcher: string }): string[] {
-  const pl = stringToProgrammingLanguage(language);
-  if (pl === undefined) {
-    return [];
-  }
-
-  switch (pl) {
+}: { language: ProgrammingLanguage, funcMatcher: string, commentMatcher: string }): string[] {
+  switch (language) {
     case ProgrammingLanguage.javascript: // js and ts grammar similar enough to share queries
     case ProgrammingLanguage.typescript:
       return [
@@ -193,7 +195,7 @@ export function getFunctionDocumentationQueries({
     default:
       // used to typecheck our enum cases as exhuastive
       // eslint-disable-next-line no-case-declarations
-      const unhandledCase: never = pl;
+      const unhandledCase: never = language;
       throw new Error(`Unhandled ProgrammingLanguage case: ${unhandledCase}`);
   }
 }

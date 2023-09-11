@@ -5,7 +5,6 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-test . # test caller
-	"${EAVE_HOME}"/libs/eave-stdlib-py/bin/test
-	"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/test
+	cd "$(^parentpath)"
+	"${EAVE_HOME}"/develop/python/_test_base
 )

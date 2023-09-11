@@ -6,7 +6,6 @@ import { sharedConfig } from './config.js';
 import getCacheClient, { cacheInitialized } from './cache.js';
 import eaveLogger from './logging.js';
 import { redact } from './util.js';
-import { loadExtensionMap } from './programming-langs/language-mapping.js';
 
 export function statusPayload(): StatusResponseBody {
   return {
@@ -47,8 +46,6 @@ export function GAELifecycleRouter(): Router {
     // Initializes a client and connects to Redis
     const cacheClient = await getCacheClient();
     await cacheClient.ping();
-
-    await loadExtensionMap();
     res.sendStatus(200);
   });
 

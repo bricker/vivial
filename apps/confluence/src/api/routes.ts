@@ -75,7 +75,6 @@ export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
 async function getConfluenceClient(req: Request, _res: Response, addon: AddOn): Promise<ConfluenceClient> {
   const teamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
   const client = await ConfluenceClient.getAuthedConfluenceClient({
-    req,
     addon,
     teamId,
   });
