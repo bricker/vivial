@@ -19,6 +19,7 @@ class GithubDocumentsOrm(Base):
         PrimaryKeyConstraint(
             "team_id",
             "external_repo_id",
+            "id",
         ),
         make_team_fk(),
         ForeignKeyConstraint(
