@@ -7,5 +7,5 @@ from .connect_installation import ConnectInstallationOrm as ConnectInstallationO
 from .subscription import SubscriptionOrm as SubscriptionOrm
 from .team import TeamOrm as TeamOrm
 from .resource_mutex import ResourceMutexOrm as ResourceMutexOrm
-from .github_documents import GithubDocumentsOrm
-from .github_repos import GithubRepoOrm
+from .github_documents import GithubDocumentsOrm as GithubDocumentsOrm
+from .github_repos import GithubRepoOrm as GithubRepoOrm
