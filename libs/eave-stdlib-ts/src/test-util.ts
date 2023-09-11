@@ -3,7 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 export class TestUtil {
   testData: { [key: string]: any } = {};
 
-  anystr(name: string): string {
+  anystr(name?: string): string {
+    name = name || uuidv4();
+
     if (this.testData[name] === undefined) {
       this.testData[name] = uuidv4();
     }

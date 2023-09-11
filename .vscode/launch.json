@@ -258,6 +258,23 @@
       "request": "test",
       "justMyCode": false,
     },
+    {
+      "name": "Debug AVA test file",
+      "envFile": "${workspaceFolder}/.env",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/ava/entrypoints/cli.mjs",
+      "args": [
+        "--config=${workspaceFolder}/develop/javascript/es-config/typescript/ava.config.mjs",
+        "--serial",
+        "${file}"
+      ],
+      "outputCapture": "std",
+      "console": "integratedTerminal",
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
+    }
   ],
   "compounds": [
     {
