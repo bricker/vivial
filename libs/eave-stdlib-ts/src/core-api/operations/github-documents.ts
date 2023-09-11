@@ -38,7 +38,7 @@ export type CreateGithubDocumentResponseBody = {
   document: GithubDocument;
 }
 
-export async function createGithubDocuments(
+export async function createGithubDocument(
   args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody },
 ): Promise<CreateGithubDocumentResponseBody> {
   const resp = await makeRequest({
@@ -57,7 +57,7 @@ export type UpdateGithubDocumentResponseBody = {
   document: GithubDocument;
 }
 
-export async function updateGithubDocuments(
+export async function updateGithubDocument(
   args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody },
 ): Promise<UpdateGithubDocumentResponseBody> {
   const resp = await makeRequest({

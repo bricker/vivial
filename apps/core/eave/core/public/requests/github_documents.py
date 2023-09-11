@@ -21,7 +21,7 @@ class GetGithubDocumentsEndpoint(HTTPEndpoint):
         body = await request.json()
         input = GetGithubDocumentsRequest.RequestBody.parse_obj(body)
 
-        # query cant take None values, so we only pass parameters
+        # query can't take None values, so we only pass parameters
         # that aren't None by destructuring a dict as kwargs
         kwargs = {k: v for k, v in vars(input.query_params).items() if v is not None}
 
@@ -39,7 +39,7 @@ class GetGithubDocumentsEndpoint(HTTPEndpoint):
         )
 
 
-class CreateGithubDocumentsEndpoint(HTTPEndpoint):
+class CreateGithubDocumentEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
