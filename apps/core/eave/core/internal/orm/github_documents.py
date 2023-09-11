@@ -123,7 +123,7 @@ class GithubDocumentsOrm(Base):
     @classmethod
     async def delete_by_ids(cls, ids: list[UUID], session: AsyncSession) -> None:
         if len(ids) < 1:
-            # dont delete all the rows
+            # don't delete all the rows
             return
         
         stmt = delete(cls).where(cls.id.in_(ids))
