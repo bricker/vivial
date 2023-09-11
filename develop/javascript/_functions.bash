@@ -95,9 +95,9 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		cd "$targetpath" || exit 1
 
-		npx ava \
-			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs" \
-			"$testfile"
+		# shellcheck disable=SC2086
+		node "${EAVE_HOME}/node_modules/ava/entrypoints/cli.mjs" \
+			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs" ${testfile:-}
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

@@ -103,6 +103,7 @@ function setuppython() (
 function setupnode() (
 	statusmsg -pa "Setting up Node virtual environment"
 	node-activate-venv
+	rm -rf node_modules
 	npm install
 )
 
@@ -261,7 +262,7 @@ function setupapps() (
 		python-activate-venv
 		node-activate-venv
 
-		for ss in {apps,libs,develop}/**/setup; do
+		for ss in {apps,libs,develop}/**/bin/setup; do
 			statusmsg -d "Running $ss"
 			$ss
 		done

@@ -10,7 +10,6 @@
     "src/"
   ],
   "scripts": {
-    "test": "ava",
     "yalc": "yalc publish --push"
   },
   "dependencies": {
@@ -72,16 +71,5 @@
     "sinon": "15.x",
     "ts-node": "10.x",
     "typescript": "4.x"
-  },
-  "ava": {
-    "extensions": {
-      "ts": "module"
-    },
-    "nodeArguments": [
-      "--loader=ts-node/esm"
-    ],
-    "environmentVariables": {
-      "TS_NODE_LOG_ERROR": "true"
-    }
   }
 }
