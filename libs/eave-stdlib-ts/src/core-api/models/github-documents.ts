@@ -10,6 +10,7 @@ export enum DocumentType {
 }
 
 export type GithubDocument = {
+  id: string;
   team_id: string;
   external_repo_id: string;
   pull_request_number?: number;
@@ -21,6 +22,7 @@ export type GithubDocument = {
 }
 
 export type GithubDocumentsQueryInput = {
+  id?: string;
   external_repo_id?: string;
   type?: DocumentType;
 }
@@ -41,10 +43,10 @@ export type GithubDocumentValuesInput = {
 }
 
 export type GithubDocumentUpdateInput = {
-  external_repo_id: string;
+  id: string;
   new_values: GithubDocumentValuesInput;
 }
 
 export type GithubDocumentDeleteInput = {
-  external_repo_id: string;
+  id: string;
 }

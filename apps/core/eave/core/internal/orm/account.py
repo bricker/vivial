@@ -103,10 +103,10 @@ class AccountOrm(Base):
     def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
         lookup = select(cls).limit(1)
 
-        if id := kwargs.get("id"):
+        if id := ensure_uuid_or_none(kwargs.get("id")):
             lookup = lookup.where(cls.id == id)
 
-        if team_id := kwargs.get("team_id"):
+        if team_id := ensure_uuid_or_none(kwargs.get("team_id")):
             lookup = lookup.where(cls.team_id == team_id)
 
         if auth_provider := kwargs.get("auth_provider"):

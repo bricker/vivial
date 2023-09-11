@@ -130,14 +130,14 @@ class TestGithubDocumentsRequests(BaseTestCase):
     async def test_github_documents_req_update(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            await self.create_documents(session=s, team_id=team.id)
+            docs = await self.create_documents(session=s, team_id=team.id)
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
             path="/github-documents/update",
             payload={
                 "document": {
-                    "external_repo_id": self.getstr(f"external_repo_id:{team.id}:3"),
+                    "id": str(docs[3].id),
                     "new_values": {
                         "pull_request_number": 34,
                         "status": Status.PR_MERGED,
@@ -153,6 +153,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = UpdateGithubDocumentRequest.ResponseBody(**response.json())
+        assert response_obj.document.id == docs[3].id
         assert response_obj.document.external_repo_id == self.getstr(f"external_repo_id:{team.id}:3")
         assert response_obj.document.team_id == team.id
         assert response_obj.document.pull_request_number == 34
@@ -195,7 +196,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
             team2 = await self.make_team(s)
-            await self.create_documents(session=s, team_id=team.id)
+            orms = await self.create_documents(session=s, team_id=team.id)
             await self.create_documents(session=s, team_id=team2.id)
             account = await self.make_account(s, team_id=team.id)
 
@@ -203,9 +204,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/github-documents/delete",
-            payload={
-                "documents": [{"external_repo_id": self.getstr(f"external_repo_id:{team.id}:{i}")} for i in range(2)]
-            },
+            payload={"documents": [{"id": str(orms[i].id)} for i in range(2)]},
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -217,12 +216,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/github-documents/query",
-            payload={
-                "query_params": {
-                    "external_repo_id": None,
-                    "type": None,
-                }
-            },
+            payload={"query_params": {}},
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,

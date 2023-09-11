@@ -2,15 +2,16 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, Index
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentValuesInput, Status, DocumentType
+from eave.stdlib.util import ensure_uuid_or_none
 
 from .base import Base
-from .util import make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class GithubDocumentsOrm(Base):
@@ -19,6 +20,7 @@ class GithubDocumentsOrm(Base):
         PrimaryKeyConstraint(
             "team_id",
             "external_repo_id",
+            "id",
         ),
         make_team_fk(),
         ForeignKeyConstraint(
@@ -26,8 +28,14 @@ class GithubDocumentsOrm(Base):
             ["github_repos.external_repo_id"],
             ondelete="CASCADE",
         ),
+        Index(
+            None,
+            "id",
+            unique=True,
+        )
     )
 
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     team_id: Mapped[UUID] = mapped_column()
     external_repo_id: Mapped[str] = mapped_column()
     """Github API node_id for this repo"""
@@ -51,6 +59,7 @@ class GithubDocumentsOrm(Base):
         return GithubDocument.from_orm(self)
 
     class QueryParams(TypedDict):
+        id: NotRequired[UUID | str]
         team_id: NotRequired[UUID | str]
         external_repo_id: NotRequired[str]
         type: NotRequired[DocumentType]
@@ -59,12 +68,14 @@ class GithubDocumentsOrm(Base):
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-        if team_id := kwargs.get("team_id"):
+        if team_id := ensure_uuid_or_none(kwargs.get("team_id")):
             lookup = lookup.where(cls.team_id == team_id)
         if external_repo_id := kwargs.get("external_repo_id"):
             lookup = lookup.where(cls.external_repo_id == external_repo_id)
+        if id := ensure_uuid_or_none(kwargs.get("id")):
+            lookup = lookup.where(cls.id == id)
         if type := kwargs.get("type"):
-            lookup = lookup.where(cls.type == type)
+            lookup = lookup.where(cls.type == type.value)
 
         return lookup
 
@@ -75,8 +86,8 @@ class GithubDocumentsOrm(Base):
         return results
 
     @classmethod
-    async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
-        stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id)
+    async def one_or_exception(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self:
+        stmt = cls._build_query(team_id=team_id, id=id)
         result = (await session.scalars(stmt)).one()
         return result
 
@@ -119,10 +130,10 @@ class GithubDocumentsOrm(Base):
             self.api_name = api_name
 
     @classmethod
-    async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
-        if len(external_repo_ids) < 1:
+    async def delete_by_ids(cls, team_id: UUID, ids: list[UUID], session: AsyncSession) -> None:
+        if len(ids) < 1:
             # don't delete all the rows
             return
 
-        stmt = delete(cls).where(cls.team_id == team_id).where(cls.external_repo_id.in_(external_repo_ids))
+        stmt = delete(cls).where(cls.team_id == team_id).where(cls.id.in_(ids))
         await session.execute(stmt)

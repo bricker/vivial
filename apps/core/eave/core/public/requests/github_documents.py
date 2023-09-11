@@ -73,7 +73,7 @@ class UpdateGithubDocumentEndpoint(HTTPEndpoint):
             gh_doc_orm = await GithubDocumentsOrm.one_or_exception(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_id=input.document.external_repo_id,
+                id=ensure_uuid(input.document.id),
             )
 
             gh_doc_orm.update(input.document.new_values)
@@ -92,10 +92,10 @@ class DeleteGithubDocumentsEndpoint(HTTPEndpoint):
         input = DeleteGithubDocumentsRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            await GithubDocumentsOrm.delete_by_repo_ids(
+            await GithubDocumentsOrm.delete_by_ids(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_ids=[document.external_repo_id for document in input.documents],
+                ids=[ensure_uuid(document.id) for document in input.documents],
             )
 
         return Response(status_code=HTTPStatus.OK)

@@ -19,6 +19,7 @@ class DocumentType(StrEnum):
 
 
 class GithubDocument(BaseResponseModel):
+    id: uuid.UUID
     team_id: uuid.UUID
     external_repo_id: str
     pull_request_number: Optional[int]
@@ -30,6 +31,7 @@ class GithubDocument(BaseResponseModel):
 
 
 class GithubDocumentsQueryInput(BaseInputModel):
+    id: Optional[uuid.UUID] = None
     external_repo_id: Optional[str] = None
     type: Optional[DocumentType] = None
 
@@ -50,9 +52,9 @@ class GithubDocumentValuesInput(BaseInputModel):
 
 
 class GithubDocumentUpdateInput(BaseInputModel):
-    external_repo_id: str
+    id: uuid.UUID
     new_values: GithubDocumentValuesInput
 
 
 class GithubDocumentDeleteInput(BaseInputModel):
-    external_repo_id: str
+    id: uuid.UUID
