@@ -1,4 +1,4 @@
-from typing import Unpack
+from typing import Unpack, Optional
 import uuid
 from ... import requests
 from eave.stdlib.core_api.models.github_repos import (
@@ -18,7 +18,7 @@ class GetGithubReposRequest(Endpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        repos: GithubRepoListInput
+        repos: Optional[list[GithubRepoListInput]] = None
 
     class ResponseBody(BaseResponseBody):
         repos: list[GithubRepo]

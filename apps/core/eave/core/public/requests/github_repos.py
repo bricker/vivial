@@ -45,11 +45,13 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
         body = await request.json()
         input = GetGithubReposRequest.RequestBody.parse_obj(body)
 
+        external_repo_ids = [repo.external_repo_id for repo in repos] if (repos := input.repos) else None
+
         async with database.async_session.begin() as db_session:
             gh_repo_orms = await GithubRepoOrm.query(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_ids=input.repos.external_repo_ids,
+                external_repo_ids=external_repo_ids,
             )
 
         return json_response(

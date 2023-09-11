@@ -41,9 +41,11 @@ class TestGithubRepoRequests(BaseTestCase):
         response = await self.make_request(
             path="/github-repos/query",
             payload={
-                "repos": {
-                    "external_repo_ids": [self.getstr(f"external_repo_id:{team2.id}:3")],
-                }
+                "repos": [
+                    {
+                        "external_repo_id": self.getstr(f"external_repo_id:{team2.id}:3"),
+                    },
+                ]
             },
             team_id=team2.id,
             access_token=account.access_token,
@@ -66,7 +68,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/github-repos/query",
-            payload={"repos": {"external_repo_ids": None}},
+            payload={"repos": None},
             team_id=team2.id,
             access_token=account.access_token,
             account_id=account.id,
@@ -158,7 +160,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/github-repos/query",
-            payload={"repos": {"external_repo_ids": []}},
+            payload={"repos": None},
             team_id=team.id,
             access_token=account.access_token,
             account_id=account.id,
