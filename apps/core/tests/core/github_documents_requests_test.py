@@ -13,8 +13,6 @@ from eave.stdlib.core_api.operations.github_documents import (
 
 from .base import BaseTestCase
 
-# TODO: tests are failing because external_repo_id is a fk to the gh_repo table and i havent created any rows in that table in these tests
-
 
 class TestGithubDocumentsRequests(BaseTestCase):
     async def create_repo(self, session: AsyncSession, team_id: UUID, index: int = 0) -> GithubRepoOrm:
