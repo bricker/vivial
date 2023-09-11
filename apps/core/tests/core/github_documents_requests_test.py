@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from eave.core.internal.orm.github_documents import GithubDocumentsOrm
+from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.stdlib.core_api.models.github_documents import DocumentType, Status
 from eave.stdlib.core_api.operations.github_documents import (
     CreateGithubDocumentRequest,
@@ -14,21 +15,34 @@ from .base import BaseTestCase
 
 # TODO: tests are failing because external_repo_id is a fk to the gh_repo table and i havent created any rows in that table in these tests
 
+
 class TestGithubDocumentsRequests(BaseTestCase):
+    async def create_repo(self, session: AsyncSession, team_id: UUID, index: int = 0) -> GithubRepoOrm:
+        return await GithubRepoOrm.create(
+            session=session,
+            team_id=team_id,
+            external_repo_id=self.anystr(f"external_repo_id:{team_id}:{index}"),
+        )
+
     async def create_documents(
         self, session: AsyncSession, team_id: UUID, quantity: int = 5
     ) -> list[GithubDocumentsOrm]:
         orms: list[GithubDocumentsOrm] = []
         for i in range(quantity):
-            orm = await GithubDocumentsOrm.create(
+            repo = await self.create_repo(
                 session=session,
                 team_id=team_id,
-                external_repo_id=self.anystr(f"external_repo_id:{team_id}:{i}"),
+                index=i,
+            )
+            doc = await GithubDocumentsOrm.create(
+                session=session,
+                team_id=team_id,
+                external_repo_id=repo.external_repo_id,
                 api_name="eave-the-best",
                 file_path="/",
                 type=DocumentType.API_DOCUMENT,
             )
-            orms.append(orm)
+            orms.append(doc)
         return orms
 
     async def test_github_documents_req_get_one_by_repo_id(self) -> None:
@@ -151,14 +165,14 @@ class TestGithubDocumentsRequests(BaseTestCase):
     async def test_github_documents_req_create(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            await self.create_documents(session=s, team_id=team.id)
+            repo = await self.create_repo(session=s, team_id=team.id)
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
             path="/github-documents/create",
             payload={
                 "document": {
-                    "external_repo_id": self.getstr(f"external_repo_id:{team.id}:3"),
+                    "external_repo_id": repo.external_repo_id,
                     "pull_request_number": None,
                     "type": DocumentType.ARCHITECTURE_DOCUMENT,
                     "file_path": "first/location",
@@ -173,7 +187,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = CreateGithubDocumentRequest.ResponseBody(**response.json())
         assert response_obj.document.team_id == team.id
-        assert response_obj.document.external_repo_id == self.getstr(f"external_repo_id:{team.id}:3")
+        assert response_obj.document.external_repo_id == repo.external_repo_id
         assert response_obj.document.pull_request_number == None
         assert response_obj.document.type == DocumentType.ARCHITECTURE_DOCUMENT
         assert response_obj.document.file_path == "first/location"
