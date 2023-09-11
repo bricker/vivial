@@ -4,39 +4,40 @@ import classNames from 'classnames';
 
 const makeClasses = makeStyles((theme) => ({
   h1: {
+    color: theme.palette.background.contrastText,
     fontSize: 32,
     lineHeight: '38px',
     fontWeight: 400,
     margin: 0,
-    color: theme.typography.color.dark,
     [theme.breakpoints.up('sm')]: {
       fontSize: 54,
       lineHeight: '70px',
     },
   },
   h2: {
+    color: theme.palette.background.contrastText,
     fontSize: 24,
     lineHeight: '31px',
     fontWeight: 400,
     margin: '0 0 12px',
-    color: theme.typography.color.dark,
     [theme.breakpoints.up('sm')]: {
       fontSize: 32,
       lineHeight: '42px',
     },
   },
   h3: {
+    color: theme.palette.background.contrastText,
     fontSize: 16,
     lineHeight: '20px',
     fontWeight: 400,
     margin: '0 0 12px',
-    color: theme.typography.color.dark,
     [theme.breakpoints.up('sm')]: {
       fontSize: 24,
       lineHeight: '31px',
     },
   },
   footnote: {
+    color: theme.palette.background.contrastText,
     fontSize: 14,
     lineHeight: '18px',
     margin: 0,
@@ -46,6 +47,7 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   pSmall: {
+    color: theme.palette.background.contrastText,
     fontSize: 16,
     lineHeight: '21px',
     fontWeight: 400,
@@ -56,6 +58,7 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   p: {
+    color: theme.palette.background.contrastText,
     fontSize: 16,
     lineHeight: '21px',
     fontWeight: 400,

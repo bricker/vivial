@@ -10,9 +10,9 @@ const makeClasses = makeStyles((theme) => ({
     padding: '0px 16px',
     fontSize: 16,
     fontWeight: 700,
-    color: theme.typography.color.light,
     textTransform: 'none',
     borderRadius: 10,
+    minWidth: 166,
   },
   large: {
     height: 60,
@@ -25,7 +25,6 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   link: {
-    color: theme.typography.color.light,
     textDecoration: 'none',
   },
 }));

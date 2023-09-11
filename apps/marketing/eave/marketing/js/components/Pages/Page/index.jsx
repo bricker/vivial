@@ -7,10 +7,10 @@ import AuthModal from '../../AuthModal/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   container: {
+    backgroundColor: theme.palette.background.main,
+    fontFamily: theme.typography.fontFamily,
     position: 'relative',
     minHeight: '100vh',
-    color: theme.typography.color.main,
-    backgroundColor: theme.palette.background.main,
   },
 }));
 

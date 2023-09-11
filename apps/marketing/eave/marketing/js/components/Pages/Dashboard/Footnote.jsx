@@ -11,7 +11,6 @@ const makeClasses = makeStyles((theme) => ({
     padding: '26px 34px',
     marginTop: 28,
     marginBottom: 24,
-    backgroundColor: theme.palette.background.secondary,
     display: 'flex',
     [theme.breakpoints.up('md')]: {
       padding: 24,

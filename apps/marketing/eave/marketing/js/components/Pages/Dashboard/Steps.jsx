@@ -74,9 +74,6 @@ const makeClasses = makeStyles((theme) => ({
       marginBottom: 22,
       marginTop: 22,
     },
-    '& .MuiStepLabel-completed $header': {
-      color: theme.typography.color.innactive,
-    },
     '& .MuiStepLabel-completed svg': {
       opacity: 0.7,
     },
@@ -110,10 +107,8 @@ const makeClasses = makeStyles((theme) => ({
   },
   connectButton: {
     width: 166,
-    color: theme.typography.color.dark,
     marginTop: 22,
     marginRight: 20,
-    border: `1px solid ${theme.typography.color.dark}`,
     height: 60,
     position: 'relative',
   },

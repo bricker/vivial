@@ -15,9 +15,6 @@ const makeClasses = makeStyles((theme) => ({
       padding: '72px 40px',
     },
   },
-  alternateBackground: {
-    backgroundColor: theme.palette.background.dark,
-  },
   topSection: {
     paddingTop: `calc(${HEADER.mobile.heightPx} + 54px)`,
   },

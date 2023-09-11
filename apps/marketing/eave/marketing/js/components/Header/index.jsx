@@ -18,15 +18,15 @@ const makeClasses = makeStyles((theme) => ({
     zIndex: 100,
   },
   innerContainer: {
-    height: HEADER.mobile.height,
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    padding: '0px 16px',
+    padding: '16px',
     maxWidth: 1440,
     margin: '0 auto',
     [theme.breakpoints.up('md')]: {
       height: HEADER.desktop.height,
+      alignItems: 'center',
       padding: '0px 46px',
     },
   },
@@ -43,15 +43,15 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   mobileMenu: {
+    backgroundColor: theme.palette.background.main,
     width: '100vw',
     height: '100vh',
-    backgroundColor: theme.palette.background.main,
   },
   mobileNav: {
     padding: '30px 26px',
   },
   mobileNavItem: {
-    color: theme.palette.primary.main,
+    color: theme.palette.background.contrastText,
     textDecoration: 'none',
     fontSize: 32,
     lineHeight: '37.5px',
@@ -72,17 +72,16 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   inlineButton: {
+    color: theme.palette.background.contrastText,
     display: 'inline-block',
-    color: theme.typography.color.main,
-    padding: 0,
-    margin: '0 32px 0 0',
+    padding: '0px 32px',
     border: 'none',
     appearance: 'none',
     cursor: 'pointer',
     background: 'none',
     fontSize: 16,
     lineHeight: '21px',
-    fontWeight: 400,
+    fontWeight: 700,
     textDecoration: 'none',
   },
 }));
@@ -110,7 +109,7 @@ const Header = ({ simpleHeader }) => {
         Log In
       </button>
       <Button onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
-        Get Early Access
+        Sign Up
       </Button>
     </>
   );
@@ -131,7 +130,7 @@ const Header = ({ simpleHeader }) => {
         Log In
       </button>
       <button className={classes.mobileNavItem} onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
-        Get Early Access
+        Sign Up
       </button>
     </>
   );

@@ -13,7 +13,6 @@ import SlackIcon from '../Icons/SlackIcon.jsx';
 const makeClasses = makeStyles((theme) => ({
   container: {
     maxWidth: 546,
-    color: theme.typography.color.dark,
     padding: '70px 25px 36px',
     boxSizing: 'border-box',
     position: 'relative',
@@ -40,10 +39,8 @@ const makeClasses = makeStyles((theme) => ({
   loginButton: {
     maxWidth: 323,
     width: '100%',
-    color: theme.typography.color.dark,
     marginTop: 12,
     justifyContent: 'flex-start',
-    border: `1px solid ${theme.typography.color.dark}`,
   },
   icon: {
     width: 30,

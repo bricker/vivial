@@ -2,42 +2,24 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import classNames from 'classnames';
 import { makeStyles } from '@material-ui/styles';
+import { imageUrl } from '../../util/asset-helpers';
 
 const makeClasses = makeStyles((theme) => ({
-  logoWrapper: {
-    fontFamily: "'Pattaya', sans-serif",
-    fontSize: 24,
-    lineHeight: '24px',
-    textDecoration: 'none',
-    color: theme.typography.color.dark,
-    width: 52,
+  logoContainer: {
     display: 'inline-block',
-    [theme.breakpoints.up('md')]: {
-      fontSize: 40,
-      lineHeight: '40px',
-      width: 78,
-    },
+    width: 88,
+    height: 47,
   },
-  beta: {
-    fontSize: 12,
-    fontWeight: 700,
-    display: 'block',
-    lineHeight: 0,
-    textAlign: 'right',
-    [theme.breakpoints.up('md')]: {
-      fontSize: 16,
-    },
-  },
+  logo: {
+    width: '100%',
+  }
 }));
 
 const EaveLogo = ({ className }) => {
   const classes = makeClasses();
-  const logoClasses = classNames(classes.logoWrapper, className);
-
   return (
-    <Link className={logoClasses} to="/">
-      eave
-      <span className={classes.beta}>Beta</span>
+    <Link className={classes.logoContainer} to="/">
+      <img className={classes.logo} src={imageUrl('eave-logo-beta.png')} />
     </Link>
   );
 };
