@@ -220,7 +220,7 @@ routes = [
     # Authenticated API endpoints.
     make_route(
         config=CreateGithubDocumentRequest.config,
-        endpoint=github_documents.CreateGithubDocumentsEndpoint,
+        endpoint=github_documents.CreateGithubDocumentEndpoint,
     ),
     make_route(
         config=GetGithubDocumentsRequest.config,

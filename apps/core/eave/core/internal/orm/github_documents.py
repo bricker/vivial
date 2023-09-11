@@ -32,7 +32,7 @@ class GithubDocumentsOrm(Base):
             None,
             "id",
             unique=True,
-        )
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
