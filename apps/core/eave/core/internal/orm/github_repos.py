@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, Index, Select
+from sqlalchemy import PrimaryKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -22,12 +22,6 @@ class GithubRepoOrm(Base):
             "external_repo_id",
         ),
         make_team_fk(),
-        Index(
-            None,
-            "team_id",
-            "external_repo_id",
-            unique=True,
-        ),
     )
 
     team_id: Mapped[UUID] = mapped_column()

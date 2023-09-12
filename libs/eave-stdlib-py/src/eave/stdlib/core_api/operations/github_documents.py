@@ -1,27 +1,27 @@
-from typing import Unpack, Optional
+from typing import Unpack
 import uuid
 from ... import requests
-from eave.stdlib.core_api.models.github_repos import (
-    GithubRepo,
-    GithubRepoCreateInput,
-    GithubRepoListInput,
-    GithubReposDeleteInput,
-    GithubRepoUpdateInput,
-    GithubReposFeatureStateInput,
+from eave.stdlib.core_api.models.github_documents import (
+    GithubDocument,
+    GithubDocumentsDeleteByIdsInput,
+    GithubDocumentsDeleteByTypeInput,
+    GithubDocumentsQueryInput,
+    GithubDocumentCreateInput,
+    GithubDocumentUpdateInput,
 )
 from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 
 
-class GetGithubReposRequest(Endpoint):
+class GetGithubDocumentsRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/github-repos/query",
+        path="/github-documents/query",
     )
 
     class RequestBody(BaseRequestBody):
-        repos: Optional[list[GithubRepoListInput]] = None
+        query_params: GithubDocumentsQueryInput
 
     class ResponseBody(BaseResponseBody):
-        repos: list[GithubRepo]
+        documents: list[GithubDocument]
 
     @classmethod
     async def perform(
@@ -41,44 +41,16 @@ class GetGithubReposRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class FeatureStateGithubReposRequest(Endpoint):
+class CreateGithubDocumentRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/github-repos/query/enabled",
+        path="/github-documents/create",
     )
 
     class RequestBody(BaseRequestBody):
-        query_params: GithubReposFeatureStateInput
+        document: GithubDocumentCreateInput
 
     class ResponseBody(BaseResponseBody):
-        states_match: bool
-
-    @classmethod
-    async def perform(
-        cls,
-        team_id: uuid.UUID,
-        **kwargs: Unpack[requests.CommonRequestArgs],
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            url=cls.config.url,
-            input=None,
-            team_id=team_id,
-            **kwargs,
-        )
-
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
-
-
-class CreateGithubRepoRequest(Endpoint):
-    config = EndpointConfiguration(
-        path="/github-repos/create",
-    )
-
-    class RequestBody(BaseRequestBody):
-        repo: GithubRepoCreateInput
-
-    class ResponseBody(BaseResponseBody):
-        repo: GithubRepo
+        document: GithubDocument
 
     @classmethod
     async def perform(
@@ -98,13 +70,42 @@ class CreateGithubRepoRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class DeleteGithubReposRequest(Endpoint):
+class UpdateGithubDocumentRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/github-repos/delete",
+        path="/github-documents/update",
     )
 
     class RequestBody(BaseRequestBody):
-        repos: list[GithubReposDeleteInput]
+        document: GithubDocumentUpdateInput
+
+    class ResponseBody(BaseResponseBody):
+        document: GithubDocument
+
+    @classmethod
+    async def perform(
+        cls,
+        input: RequestBody,
+        team_id: uuid.UUID,
+        **kwargs: Unpack[requests.CommonRequestArgs],
+    ) -> ResponseBody:
+        response = await requests.make_request(
+            url=cls.config.url,
+            input=input,
+            team_id=team_id,
+            **kwargs,
+        )
+
+        response_json = await response.json()
+        return cls.ResponseBody(**response_json, _raw_response=response)
+
+
+class DeleteGithubDocumentsByIdsRequest(Endpoint):
+    config = EndpointConfiguration(
+        path="/github-documents/delete/id",
+    )
+
+    class RequestBody(BaseRequestBody):
+        documents: list[GithubDocumentsDeleteByIdsInput]
 
     class ResponseBody(BaseResponseBody):
         pass
@@ -125,17 +126,16 @@ class DeleteGithubReposRequest(Endpoint):
 
         return cls.ResponseBody(_raw_response=response)
 
-
-class UpdateGithubReposRequest(Endpoint):
+class DeleteGithubDocumentsByTypeRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/github-repos/update",
+        path="/github-documents/delete/type",
     )
 
     class RequestBody(BaseRequestBody):
-        repos: list[GithubRepoUpdateInput]
+        documents: GithubDocumentsDeleteByTypeInput
 
     class ResponseBody(BaseResponseBody):
-        repos: list[GithubRepo]
+        pass
 
     @classmethod
     async def perform(
@@ -151,5 +151,4 @@ class UpdateGithubReposRequest(Endpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        return cls.ResponseBody(_raw_response=response)
