@@ -192,18 +192,16 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response_obj.document.file_path == "first/location"
         assert response_obj.document.api_name == "jimmy-johns-freaky-first-api"
 
-    async def test_github_documents_req_delete(self) -> None:
+    async def test_github_documents_req_delete_by_ids(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            team2 = await self.make_team(s)
             orms = await self.create_documents(session=s, team_id=team.id)
-            await self.create_documents(session=s, team_id=team2.id)
             account = await self.make_account(s, team_id=team.id)
 
         # delete some rows from table and make sure request is successful
 
         response = await self.make_request(
-            path="/github-documents/delete",
+            path="/github-documents/delete/id",
             payload={"documents": [{"id": str(orms[i].id)} for i in range(2)]},
             team_id=team.id,
             account_id=account.id,
@@ -225,3 +223,37 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = GetGithubDocumentsRequest.ResponseBody(**response.json())
         assert len(response_obj.documents) == 3
+
+    async def test_github_documents_req_delete_by_type(self) -> None:
+        async with self.db_session.begin() as s:
+            team = await self.make_team(s)
+            orms = await self.create_documents(session=s, team_id=team.id)
+            # change 1 document type to be expected to remain after delete op 
+            orms[2].type = DocumentType.ARCHITECTURE_DOCUMENT
+            account = await self.make_account(s, team_id=team.id)
+
+        # delete some rows from table and make sure request is successful
+
+        response = await self.make_request(
+            path="/github-documents/delete/type",
+            payload={"documents": {"type": DocumentType.API_DOCUMENT}},
+            team_id=team.id,
+            account_id=account.id,
+            access_token=account.access_token,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+
+        # verify that correct number of rows were deleted from the table
+
+        response = await self.make_request(
+            path="/github-documents/query",
+            payload={"query_params": {}},
+            team_id=team.id,
+            account_id=account.id,
+            access_token=account.access_token,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetGithubDocumentsRequest.ResponseBody(**response.json())
+        assert len(response_obj.documents) == 1
