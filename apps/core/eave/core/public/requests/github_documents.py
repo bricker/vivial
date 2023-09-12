@@ -9,7 +9,8 @@ from eave.stdlib.core_api.operations.github_documents import (
     GetGithubDocumentsRequest,
     CreateGithubDocumentRequest,
     UpdateGithubDocumentRequest,
-    DeleteGithubDocumentsRequest,
+    DeleteGithubDocumentsByIdsRequest,
+    DeleteGithubDocumentsByTypeRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap, ensure_uuid
@@ -85,17 +86,32 @@ class UpdateGithubDocumentEndpoint(HTTPEndpoint):
         )
 
 
-class DeleteGithubDocumentsEndpoint(HTTPEndpoint):
+class DeleteGithubDocumentsByIdsEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = DeleteGithubDocumentsRequest.RequestBody.parse_obj(body)
+        input = DeleteGithubDocumentsByIdsRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
             await GithubDocumentsOrm.delete_by_ids(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
                 ids=[ensure_uuid(document.id) for document in input.documents],
+            )
+
+        return Response(status_code=HTTPStatus.OK)
+    
+class DeleteGithubDocumentsByTypeEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        eave_state = EaveRequestState.load(request=request)
+        body = await request.json()
+        input = DeleteGithubDocumentsByTypeRequest.RequestBody.parse_obj(body)
+
+        async with database.async_session.begin() as db_session:
+            await GithubDocumentsOrm.delete_by_type(
+                session=db_session,
+                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
+                type=input.documents.type,
             )
 
         return Response(status_code=HTTPStatus.OK)

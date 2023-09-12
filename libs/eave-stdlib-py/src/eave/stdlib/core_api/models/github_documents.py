@@ -56,5 +56,9 @@ class GithubDocumentUpdateInput(BaseInputModel):
     new_values: GithubDocumentValuesInput
 
 
-class GithubDocumentDeleteInput(BaseInputModel):
+class GithubDocumentsDeleteByIdsInput(BaseInputModel):
     id: uuid.UUID
+
+
+class GithubDocumentsDeleteByTypeInput(BaseInputModel):
+    type: DocumentType

@@ -4,7 +4,8 @@ import { makeRequest, RequestArgsAuthedRequest } from '../../requests.js';
 import {
   GithubDocument,
   GithubDocumentCreateInput,
-  GithubDocumentDeleteInput,
+  GithubDocumentsDeleteByIdsInput,
+  GithubDocumentsDeleteByTypeInput,
   GithubDocumentsQueryInput,
   GithubDocumentUpdateInput,
 } from '../models/github-documents.js';
@@ -68,15 +69,28 @@ export async function updateGithubDocument(
   return responseData;
 }
 
-export type DeleteGithubDocumentsRequestBody = {
-  documents: Array<GithubDocumentDeleteInput>;
+export type DeleteGithubDocumentsByIdsRequestBody = {
+  documents: Array<GithubDocumentsDeleteByIdsInput>;
 }
 
-export async function deleteGithubDocuments(
-  args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsRequestBody },
+export async function deleteGithubDocumentsByIds(
+  args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByIdsRequestBody },
 ): Promise<void> {
   await makeRequest({
-    url: `${baseUrl}/github-documents/delete`,
+    url: `${baseUrl}/github-documents/delete/id`,
+    ...args,
+  });
+}
+
+export type DeleteGithubDocumentsByTypeRequestBody = {
+  documents: Array<GithubDocumentsDeleteByTypeInput>;
+}
+
+export async function deleteGithubDocumentsByType(
+  args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByTypeRequestBody },
+): Promise<void> {
+  await makeRequest({
+    url: `${baseUrl}/github-documents/delete/type`,
     ...args,
   });
 }

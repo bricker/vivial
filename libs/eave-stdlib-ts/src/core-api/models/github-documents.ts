@@ -47,6 +47,10 @@ export type GithubDocumentUpdateInput = {
   new_values: GithubDocumentValuesInput;
 }
 
-export type GithubDocumentDeleteInput = {
+export type GithubDocumentsDeleteByIdsInput = {
   id: string;
+}
+
+export type GithubDocumentsDeleteByTypeInput = {
+  type: DocumentType;
 }

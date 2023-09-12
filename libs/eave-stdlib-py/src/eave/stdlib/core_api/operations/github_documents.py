@@ -3,7 +3,8 @@ import uuid
 from ... import requests
 from eave.stdlib.core_api.models.github_documents import (
     GithubDocument,
-    GithubDocumentDeleteInput,
+    GithubDocumentsDeleteByIdsInput,
+    GithubDocumentsDeleteByTypeInput,
     GithubDocumentsQueryInput,
     GithubDocumentCreateInput,
     GithubDocumentUpdateInput,
@@ -98,13 +99,40 @@ class UpdateGithubDocumentRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class DeleteGithubDocumentsRequest(Endpoint):
+class DeleteGithubDocumentsByIdsRequest(Endpoint):
     config = EndpointConfiguration(
-        path="/github-documents/delete",
+        path="/github-documents/delete/id",
     )
 
     class RequestBody(BaseRequestBody):
-        documents: list[GithubDocumentDeleteInput]
+        documents: list[GithubDocumentsDeleteByIdsInput]
+
+    class ResponseBody(BaseResponseBody):
+        pass
+
+    @classmethod
+    async def perform(
+        cls,
+        input: RequestBody,
+        team_id: uuid.UUID,
+        **kwargs: Unpack[requests.CommonRequestArgs],
+    ) -> ResponseBody:
+        response = await requests.make_request(
+            url=cls.config.url,
+            input=input,
+            team_id=team_id,
+            **kwargs,
+        )
+
+        return cls.ResponseBody(_raw_response=response)
+
+class DeleteGithubDocumentsByTypeRequest(Endpoint):
+    config = EndpointConfiguration(
+        path="/github-documents/delete/type",
+    )
+
+    class RequestBody(BaseRequestBody):
+        documents: GithubDocumentsDeleteByTypeInput
 
     class ResponseBody(BaseResponseBody):
         pass

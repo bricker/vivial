@@ -137,3 +137,8 @@ class GithubDocumentsOrm(Base):
 
         stmt = delete(cls).where(cls.team_id == team_id).where(cls.id.in_(ids))
         await session.execute(stmt)
+
+    @classmethod
+    async def delete_by_type(cls, team_id: UUID, type: DocumentType, session: AsyncSession) -> None:
+        stmt = delete(cls).where(cls.team_id == team_id).where(cls.type == type)
+        await session.execute(stmt)

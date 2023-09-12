@@ -18,7 +18,8 @@ from eave.stdlib.core_api.operations.github_documents import (
     CreateGithubDocumentRequest,
     GetGithubDocumentsRequest,
     UpdateGithubDocumentRequest,
-    DeleteGithubDocumentsRequest,
+    DeleteGithubDocumentsByIdsRequest,
+    DeleteGithubDocumentsByTypeRequest,
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
@@ -231,8 +232,12 @@ routes = [
         endpoint=github_documents.UpdateGithubDocumentEndpoint,
     ),
     make_route(
-        config=DeleteGithubDocumentsRequest.config,
-        endpoint=github_documents.DeleteGithubDocumentsEndpoint,
+        config=DeleteGithubDocumentsByIdsRequest.config,
+        endpoint=github_documents.DeleteGithubDocumentsByIdsEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubDocumentsByTypeRequest.config,
+        endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
     ),
     make_route(
         config=CreateGithubRepoRequest.config,
