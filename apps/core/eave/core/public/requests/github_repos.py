@@ -4,6 +4,7 @@ from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.stdlib.analytics import log_event
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
@@ -102,7 +103,47 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
 
             for gh_repo_orm in gh_repo_orms:
                 assert gh_repo_orm.external_repo_id in update_values, "Received a GithubRepo ORM that was not requested"
-                gh_repo_orm.update(update_values[gh_repo_orm.external_repo_id])
+                new_values = update_values[gh_repo_orm.external_repo_id]
+
+                # fire analytics event for each changed feature
+                if new_values.api_documentation_state is not None:
+                    await log_event(
+                        event_name="eave_github_feature_state_change",
+                        event_description="An Eave GitHub App feature was activated/deactivated",
+                        event_source="eave core api",
+                        opaque_params={
+                            "feature": "api_documentation",
+                            "new_state": new_values.api_documentation_state.value,
+                            "external_repo_id": gh_repo_orm.external_repo_id,
+                        },
+                        ctx=eave_state.ctx,
+                    )
+                if new_values.architecture_documentation_state is not None:
+                    await log_event(
+                        event_name="eave_github_feature_state_change",
+                        event_description="An Eave GitHub App feature was activated/deactivated",
+                        event_source="eave core api",
+                        opaque_params={
+                            "feature": "architecture_documentation",
+                            "new_state": new_values.architecture_documentation_state.value,
+                            "external_repo_id": gh_repo_orm.external_repo_id,
+                        },
+                        ctx=eave_state.ctx,
+                    )
+                if new_values.inline_code_documentation_state is not None:
+                    await log_event(
+                        event_name="eave_github_feature_state_change",
+                        event_description="An Eave GitHub App feature was activated/deactivated",
+                        event_source="eave core api",
+                        opaque_params={
+                            "feature": "inline_code_documentation",
+                            "new_state": new_values.inline_code_documentation_state.value,
+                            "external_repo_id": gh_repo_orm.external_repo_id,
+                        },
+                        ctx=eave_state.ctx,
+                    )
+
+                gh_repo_orm.update(new_values)
 
         return json_response(
             UpdateGithubReposRequest.ResponseBody(
