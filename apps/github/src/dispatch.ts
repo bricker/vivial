@@ -6,10 +6,12 @@ import * as Registry from './registry.js';
 import { appConfig } from './config.js';
 import pushHandler from './events/push.js';
 import pullRequestClosedHandler from './events/pull-request.js';
+import installationHandler from './events/installation.js';
 import { createAppClient } from './lib/octokit-util.js';
 
 Registry.registerHandler('push', pushHandler);
 Registry.registerHandler('pull_request.closed', pullRequestClosedHandler);
+Registry.registerHandler('installation', installationHandler);
 
 export default async function dispatch(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
