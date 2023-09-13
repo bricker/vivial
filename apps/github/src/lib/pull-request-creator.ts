@@ -1,5 +1,6 @@
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { FileChange } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import {
   Query,
   Scalars,
@@ -12,7 +13,6 @@ import {
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
 import * as GraphQLUtil from '../lib/graphql-util.js';
-import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 
 export class PullRequestCreator {
   private repoName: string;

@@ -6,9 +6,8 @@ import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 import { PullRequestCreator } from '../lib/pull-request-creator.js';
 
 // TODO: create stdlib operations (ts and python)
-// TODO: add this endpoint to router
 
-async function createPullRequest(req: Request, res: Response): Promise<void> {
+export async function createPullRequest(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
   const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
 
@@ -33,7 +32,7 @@ async function createPullRequest(req: Request, res: Response): Promise<void> {
   const prCreator = new PullRequestCreator({
     repoName: input.repoName,
     repoOwner: input.repoOwner,
-    repoId,
+    repoId: input.repoId,
     baseBranchName: input.baseBranchName, // TODO: does this also require the refs/heads prefix? 
     octokit: client,
     ctx,
