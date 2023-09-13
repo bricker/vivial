@@ -6,8 +6,8 @@
     "test": "ava --config=./node_modules/@eave-fyi/es-config/typescript/ava.config.mjs tests"
   },
   "dependencies": {
-    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
+    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "@swc/core": "1.x",
     "atlassian-connect-express": "8.2.0",
@@ -28,7 +28,6 @@
     "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
-    "ava": "5.x",
     "eslint": "8.x",
     "eslint-config-airbnb-base": "15.x",
     "eslint-plugin-import": "2.x",
