@@ -21,6 +21,7 @@ export class PullRequestCreator {
 
   private repoId: string;
 
+  // expected to have the 'refs/heads/' prefix
   private baseBranchName: string;
 
   private octokit: Octokit;
@@ -47,7 +48,7 @@ export class PullRequestCreator {
     this.octokit = octokit;
     this.ctx = ctx;
     this.repoId = repoId;
-    this.baseBranchName = baseBranchName;
+    this.baseBranchName = this.#ensureBranchPrefix(baseBranchName);
   }
 
   /**
@@ -160,6 +161,14 @@ export class PullRequestCreator {
     await this.octokit.graphql<{ resp: Mutation['deleteRef'] }>(query, params);
   }
 
+  #ensureBranchPrefix(branchName: string): string {
+    const githubBranchPrefix = 'refs/heads/';
+    if (branchName.startsWith(githubBranchPrefix)) {
+      return branchName;
+    }
+    return `${githubBranchPrefix}${branchName}`;
+  }
+
   /**
    * Open a new PR containing the input `fileChanges`, targeted at `baseBranchName`.
    * Input parameters used for PR creation details.
@@ -178,7 +187,7 @@ export class PullRequestCreator {
     prBody: string,
     fileChanges: Array<FileChange>,
   }): Promise<number> {
-    const branch = await this.#createBranch(branchName);
+    const branch = await this.#createBranch(this.#ensureBranchPrefix(branchName));
     await this.#createCommit(branch, commitMessage, fileChanges);
     const pr = await this.#openPullRequest(branch, prTitle, prBody);
 

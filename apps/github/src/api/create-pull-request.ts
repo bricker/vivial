@@ -33,7 +33,7 @@ export async function createPullRequest(req: Request, res: Response): Promise<vo
     repoName: input.repoName,
     repoOwner: input.repoOwner,
     repoId: input.repoId,
-    baseBranchName: input.baseBranchName, // TODO: does this also require the refs/heads prefix? 
+    baseBranchName: input.baseBranchName,
     octokit: client,
     ctx,
   });

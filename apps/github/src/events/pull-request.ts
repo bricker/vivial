@@ -15,10 +15,10 @@ import {
 import { isSupportedProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/language-mapping.js';
 import { updateDocumentation } from '@eave-fyi/eave-stdlib-ts/src/function-documenting.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
+import { FileChange } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
 import { GitHubOperationsContext } from '../types.js';
 import { PullRequestCreator } from '../lib/pull-request-creator.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
-import { FileChange } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
 
 const eavePrTitle = 'docs: Eave inline code documentation update';
 
