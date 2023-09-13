@@ -23,7 +23,7 @@ This VSCode workspace defines launch configurations for each app, which you can 
 This repository comes with mitmproxy, configured as a pseudo-reverse proxy that listens on localhost:8080 and routes traffic based on the hostname and path, similar to our production load balancer. To run the proxy:
 
 ```bash
-$EAVE_HOME/bin/proxy
+$EAVE_HOME/bin/http-proxy
 ```
 
 Now, start whichever services you need, and access them using the respective domain (with TLD `localhost` and port `8080`). For example:
