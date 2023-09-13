@@ -4,3 +4,14 @@ export type GithubRepository = {
   node_id: string;
   full_name: string;
 }
+
+export type FileChange = {
+  /**
+   * path from github repo root to file to change
+   */
+  path: string,
+  /**
+   * base64 encoded string to replace the content of the file at `path`
+   */
+  contents: string,
+};
