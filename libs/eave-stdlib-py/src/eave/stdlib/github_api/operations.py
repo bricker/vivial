@@ -19,6 +19,7 @@ class CreateGithubResourceSubscription(Endpoint):
     class RequestBody(pydantic.BaseModel):
         url: str
 
+
 class CreateGitHubPullRequest(Endpoint):
     class RequestBody(pydantic.BaseModel):
         repo_name: str
