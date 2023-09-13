@@ -13,15 +13,15 @@ export type CreateGithubResourceSubscriptionRequestBody = {
 }
 
 export type CreateGitHubPullRequestRequestBody = {
-  repoName: string,
-  repoOwner: string,
-  repoId: string,
-  baseBranchName: string,
-  branchName: string,
-  commitMessage: string,
-  prTitle: string,
-  prBody: string,
-  fileChanges: Array<FileChange>,
+  repo_name: string,
+  repo_owner: string,
+  repo_id: string,
+  base_branch_name: string,
+  branch_name: string,
+  commit_message: string,
+  pr_title: string,
+  pr_body: string,
+  file_changes: Array<FileChange>,
 }
 
 export type CreateGitHubPullRequestResponseBody = {

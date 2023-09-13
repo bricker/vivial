@@ -13,9 +13,9 @@ export async function createPullRequest(req: Request, res: Response): Promise<vo
 
   // validate input
   const input = <CreateGitHubPullRequestRequestBody>req.body;
-  if (!(input.repoName && input.repoOwner && input.repoId
-    && input.baseBranchName && input.branchName && input.prBody
-    && input.prTitle && input.fileChanges && input.commitMessage)) {
+  if (!(input.repo_name && input.repo_owner && input.repo_id
+    && input.base_branch_name && input.branch_name && input.pr_body
+    && input.pr_title && input.file_changes && input.commit_message)) {
     eaveLogger.error('Invalid input', ctx);
     res.sendStatus(400);
     return;
@@ -30,19 +30,19 @@ export async function createPullRequest(req: Request, res: Response): Promise<vo
   const client = await createOctokitClient(installationId);
 
   const prCreator = new PullRequestCreator({
-    repoName: input.repoName,
-    repoOwner: input.repoOwner,
-    repoId: input.repoId,
-    baseBranchName: input.baseBranchName,
+    repoName: input.repo_name,
+    repoOwner: input.repo_owner,
+    repoId: input.repo_id,
+    baseBranchName: input.base_branch_name,
     octokit: client,
     ctx,
   });
   const pr_number = await prCreator.createPullRequest({
-    branchName: `refs/heads/${input.branchName}`,
-    commitMessage: input.commitMessage,
-    fileChanges: input.fileChanges,
-    prTitle: input.prTitle,
-    prBody: input.prBody,
+    branchName: `refs/heads/${input.branch_name}`,
+    commitMessage: input.commit_message,
+    fileChanges: input.file_changes,
+    prTitle: input.pr_title,
+    prBody: input.pr_body,
   });
 
   const output: CreateGitHubPullRequestResponseBody = { pr_number };

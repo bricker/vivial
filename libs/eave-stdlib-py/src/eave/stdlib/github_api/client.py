@@ -46,3 +46,22 @@ async def create_subscription(
 
     response_json = await response.json()
     return CreateSubscriptionRequest.ResponseBody(**response_json)
+
+
+async def create_pull_request(
+    eave_team_id: uuid.UUID,
+    input: operations.CreateGitHubPullRequest.RequestBody,
+    **kwargs: Unpack[requests.CommonRequestArgs],
+) -> operations.CreateGitHubPullRequest.ResponseBody:
+    """
+    POST /github/api/create-pull-request
+    """
+    response = await requests.make_request(
+        url=f"{_base_url}/github/api/create-pull-request",
+        input=input,
+        team_id=eave_team_id,
+        **kwargs,
+    )
+
+    response_json = await response.json()
+    return operations.CreateGitHubPullRequest.ResponseBody(**response_json)

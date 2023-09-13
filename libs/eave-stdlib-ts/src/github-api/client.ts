@@ -27,3 +27,14 @@ export async function getFileContent(args: RequestArgsOriginAndTeamId & {
   const responseData = <ops.GetGithubUrlContentResponseBody>(await resp.json());
   return responseData;
 }
+
+export async function createPullRequest(args: RequestArgsOriginAndTeamId & {
+  input: ops.CreateGitHubPullRequestRequestBody,
+}): Promise<ops.CreateGitHubPullRequestResponseBody> {
+  const resp = await makeRequest({
+    url: `${baseUrl}/github/api/create-pull-request`,
+    ...args,
+  });
+  const responseData = <ops.CreateGitHubPullRequestResponseBody>(await resp.json());
+  return responseData;
+}

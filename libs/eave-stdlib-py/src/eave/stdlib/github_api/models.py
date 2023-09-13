@@ -6,3 +6,10 @@ import pydantic
 class GithubRepository(pydantic.BaseModel):
     node_id: str
     full_name: str
+
+
+class FileChange(pydantic.BaseModel):
+    path: str
+    """path from github repo root to file to change"""
+    contents: str
+    """base64 encoded string to replace the content of the file at `path`"""
