@@ -83,8 +83,8 @@
   "python.linting.enabled": true,
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.typeCheckingMode": "basic",
-  "python.analysis.inlayHints.functionReturnTypes": true,
-  "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.inlayHints.functionReturnTypes": false,
+  "python.analysis.inlayHints.variableTypes": false,
   "python.analysis.extraPaths": [
     "vendor",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
@@ -127,7 +127,7 @@
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
   ],
-  "python.analysis.inlayHints.pytestParameters": true,
+  "python.analysis.inlayHints.pytestParameters": false,
   "ruff.args": [
     "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
   ],

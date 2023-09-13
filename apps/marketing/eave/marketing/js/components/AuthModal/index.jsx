@@ -12,6 +12,7 @@ import SlackIcon from '../Icons/SlackIcon.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   container: {
+    color: theme.palette.primary.contrastText,
     maxWidth: 546,
     padding: '70px 25px 36px',
     boxSizing: 'border-box',
@@ -33,14 +34,23 @@ const makeClasses = makeStyles((theme) => ({
     right: 21,
     padding: 0,
   },
+  header: {
+    color: 'inherit',
+  },
   subheader: {
     marginBottom: 30,
+    color: 'inherit',
   },
   loginButton: {
+    color: theme.palette.primary.contrastText,
+    borderColor: 'black',
     maxWidth: 323,
     width: '100%',
     marginTop: 12,
     justifyContent: 'flex-start',
+    '&:hover': {
+      borderColor: 'black',
+    }
   },
   icon: {
     width: 30,
@@ -63,7 +73,7 @@ const AuthModal = () => {
         <IconButton onClick={closeModal} className={classes.closeButton}>
           <CloseIcon />
         </IconButton>
-        <Copy variant="h2">{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
+        <Copy variant="h2" className={classes.header}>{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
         <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google sign up only. Additional account options coming soon.'}</Copy>
         <Button
           to={`${window.eave.apiBase}/oauth/google/authorize`}
@@ -74,15 +84,6 @@ const AuthModal = () => {
         >
           Continue with Google
         </Button>
-        {/* <Button
-          to={`${window.eave.apiBase}/oauth/slack/authorize`}
-          className={classes.loginButton}
-          variant="outlined"
-          startIcon={<SlackIcon className={classes.icon} />}
-          lg
-        >
-          Continue with Slack
-        </Button> */}
         {isSignupMode && (
           <Copy className={classes.disclaimer} variant="footnote">
             By clicking “Continue with Google” you agree to Eave’s{' '}

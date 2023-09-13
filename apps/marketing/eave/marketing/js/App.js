@@ -10,7 +10,7 @@ import { ThemeProvider, CssBaseline } from '@material-ui/core';
 import { Helmet } from 'react-helmet';
 
 import AppStoreProvider from './context/Provider.js';
-import { darkTheme } from './themes/darkTheme.js';
+import { darkTheme } from './themes/index.js';
 import HomePage from './components/Pages/HomePage/index.jsx';
 import TermsPage from './components/Pages/TermsPage/index.jsx';
 import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
@@ -34,9 +34,9 @@ const App = () => {
               <Routes>
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
-                {/* <Route element={<PrivateRoutes />}> */}
+                <Route element={<PrivateRoutes />}>
                   <Route path="/dashboard" element={<Dashboard />} />
-                {/* </Route> */}
+                </Route>
                 <Route path="/" element={<HomePage />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
