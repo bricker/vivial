@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@eave-fyi/es-config": "file:./develop/javascript/es-config",
+    "ava": "5.x",
+    "tsx": "3.x"
+  }
+}

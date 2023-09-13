@@ -1,87 +1,67 @@
-// import { v4 as uuidv4 } from 'uuid';
-// import anyTest, { TestFn } from 'ava';
-// import sinon from 'sinon';
-// import request from 'supertest';
-// import * as signing from '@eave-fyi/eave-stdlib-ts/src/signing.js';
-// import { createHash } from 'crypto';
-// import { app } from '../src/app.js';
-// import ConfluenceClient from '../src/confluence-client.js';
+import anyTest, { TestFn } from 'ava';
+import sinon from 'sinon';
+import request from 'supertest';
+import Signing, * as signing from '@eave-fyi/eave-stdlib-ts/src/signing.js';
+import { TestContextBase, TestUtil } from '@eave-fyi/eave-stdlib-ts/src/test-util.js';
+import { createHash } from 'crypto';
+import { app } from '../src/app.js';
+import ConfluenceClient from '../src/confluence-client.js';
 
-// class TestUtil {
-//   testData: {[key:string]: any} = {};
+interface TestContext extends TestContextBase {
+  sandbox: sinon.SinonSandbox;
+  confluenceClient: sinon.SinonStubbedInstance<ConfluenceClient>;
+}
 
-//   anystr(name: string): string {
-//     if (this.testData[name] === undefined) {
-//       this.testData[name] = uuidv4();
-//     }
+const test = anyTest as TestFn<TestContext>;
 
-//     return this.testData[name];
-//   }
+test.beforeEach((t) => {
+  const sandbox = sinon.createSandbox();
+  const mockConfluenceClient = new ConfluenceClient(<any>null); // client doesn't matter
+  const confluenceClient = sandbox.stub(mockConfluenceClient);
+  sandbox.stub(ConfluenceClient, 'getAuthedConfluenceClient').returns(Promise.resolve(confluenceClient));
 
-//   getstr(name: string): string {
-//     return this.testData[name];
-//   }
-// }
+  const mockSigning = new Signing('eave_www');
+  sandbox.stub(Signing, 'new').returns(mockSigning);
+  sandbox.stub(signing.default.prototype, 'signBase64').callsFake(async (data: string | Buffer): Promise<string> => {
+    return createHash('sha256')
+      .update(data)
+      .digest().toString();
+  });
+  sandbox.stub(signing.default.prototype, 'verifySignatureOrException').callsFake(async (message: string | Buffer, signature: string | Buffer): Promise<boolean> => {
+    return signature === createHash('sha256')
+      .update(message)
+      .digest().toString();
+  });
 
-// interface TestContext {
-//   sandbox: sinon.SinonSandbox;
-//   confluenceClient: sinon.SinonStubbedInstance<ConfluenceClient>;
-//   signing: sinon.SinonStubbedInstance<Signing>;
-//   u: TestUtil;
-// }
+  t.context = {
+    sandbox,
+    confluenceClient,
+    u: new TestUtil(),
+  };
+});
 
-// const test = anyTest as TestFn<TestContext>;
+test.afterEach((t) => {
+  t.context.sandbox.restore();
+});
 
-// test.beforeEach((t) => {
-//   const sandbox = sinon.createSandbox();
-//   const mockConfluenceClient = new ConfluenceClient(<any>null); // client doesn't matter
-//   const confluenceClient = sandbox.stub(mockConfluenceClient);
-//   sandbox.stub(ConfluenceClient, 'getAuthedConnectClient').returns(Promise.resolve(confluenceClient));
+test('createContent', async (t) => {
+  const response = await request(app)
+    .post('/confluence/api/content/create')
+    .set({
+      'eave-team-id': t.context.u.anystr('team id'),
+      'eave-origin': 'eave_www',
+      'eave-signature': 'xxx',
+    })
+    .send({
+      confluence_destination: {
+        space_key: t.context.u.anystr('space_key'),
+      },
+      document: {
+        title: t.context.u.anystr('doc title'),
+        content: t.context.u.anystr('doc content'),
+      },
+    });
 
-//   const mockSigning = new signing.default('eave_www');
-//   const s = sandbox.stub(signing, 'default').returns(mockSigning);
-//   s.signBase64.callsFake(async (data: string | Buffer): Promise<string> => {
-//     return createHash('sha256')
-//       .update(data)
-//       .digest().toString();
-//   });
-//   signing.verifySignatureOrException.callsFake(async (message: string | Buffer, signature: string | Buffer): Promise<boolean> => {
-//     return true;
-//     // return signature === createHash('sha256')
-//     //   .update(message)
-//     //   .digest().toString();
-//   });
-
-//   t.context = {
-//     sandbox,
-//     confluenceClient,
-//     signing,
-//     u: new TestUtil(),
-//   };
-// });
-
-// test.afterEach((t) => {
-//   t.context.sandbox.restore();
-// });
-
-// test('createContent', async (t) => {
-//   const response = await request(app)
-//     .post('/confluence/api/content/create')
-//     .set({
-//       'eave-team-id': t.context.u.anystr('team id'),
-//       'eave-origin': 'eave_www',
-//       'eave-signature': 'xxx',
-//     })
-//     .send({
-//       confluence_destination: {
-//         space_key: t.context.u.anystr('space_key'),
-//       },
-//       document: {
-//         title: t.context.u.anystr('doc title'),
-//         content: t.context.u.anystr('doc content'),
-//       },
-//     });
-
-//   t.assert(t.context.confluenceClient.getSpaceByKey.called);
-//   t.assert(response !== null);
-// });
+  t.assert(t.context.confluenceClient.getSpaceByKey.called);
+  t.assert(response !== null);
+});

@@ -24,6 +24,11 @@ export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
   teamId: string;
 }
 
+export type RequestArgsAuthedRequest = RequestArgsOriginAndTeamId & {
+  accountId: string;
+  accessToken: string;
+}
+
 type RequestArgs = CtxArg & {
   url: string;
   origin: EaveOrigin | string;
