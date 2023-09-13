@@ -36,7 +36,7 @@ export async function createPullRequest(req: Request, res: Response): Promise<vo
     ctx,
   });
   const pr_number = await prCreator.createPullRequest({
-    branchName: `refs/heads/${input.branch_name}`,
+    branchName: input.branch_name,
     commitMessage: input.commit_message,
     fileChanges: input.file_changes,
     prTitle: input.pr_title,
