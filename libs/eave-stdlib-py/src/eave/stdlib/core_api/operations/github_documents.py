@@ -126,6 +126,7 @@ class DeleteGithubDocumentsByIdsRequest(Endpoint):
 
         return cls.ResponseBody(_raw_response=response)
 
+
 class DeleteGithubDocumentsByTypeRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-documents/delete/type",
