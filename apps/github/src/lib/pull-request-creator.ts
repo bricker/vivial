@@ -12,6 +12,7 @@ import {
 } from '@octokit/graphql-schema';
 import { Octokit } from 'octokit';
 import * as GraphQLUtil from '../lib/graphql-util.js';
+import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 
 export class PullRequestCreator {
   private repoName: string;
@@ -180,6 +181,12 @@ export class PullRequestCreator {
     const branch = await this.#createBranch(branchName);
     await this.#createCommit(branch, commitMessage, fileChanges);
     const pr = await this.#openPullRequest(branch, prTitle, prBody);
+
+    await logEvent({
+      event_name: 'eave_github_pull_request_opened',
+      event_description: 'Eave GitHub app opened a PR',
+    }, this.ctx);
+
     return pr.number;
   }
 }

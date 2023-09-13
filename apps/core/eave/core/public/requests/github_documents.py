@@ -100,7 +100,8 @@ class DeleteGithubDocumentsByIdsEndpoint(HTTPEndpoint):
             )
 
         return Response(status_code=HTTPStatus.OK)
-    
+
+
 class DeleteGithubDocumentsByTypeEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
