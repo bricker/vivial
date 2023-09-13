@@ -5,8 +5,6 @@ import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 import { PullRequestCreator } from '../lib/pull-request-creator.js';
 
-// TODO: create stdlib operations (ts and python)
-
 export async function createPullRequest(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
   const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
