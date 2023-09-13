@@ -147,7 +147,7 @@ class TestGithubRepoRequests(BaseTestCase):
         response = await self.make_request(
             path="/github-repos/delete",
             payload={
-                "repos": {"external_repo_ids": [self.getstr(f"external_repo_id:{team.id}:{i}") for i in range(2)]}
+                "repos": [{"external_repo_id": self.getstr(f"external_repo_id:{team.id}:{i}")} for i in range(2)],
             },
             team_id=team.id,
             access_token=account.access_token,

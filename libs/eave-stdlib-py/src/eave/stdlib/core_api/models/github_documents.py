@@ -1,10 +1,7 @@
 import datetime
 from enum import StrEnum
-
-from eave.stdlib.core_api.models import BaseResponseModel
 from typing import Optional
 import uuid
-from pydantic import BaseModel
 
 from eave.stdlib.core_api.models import BaseResponseModel
 from eave.stdlib.core_api.models import BaseInputModel
@@ -22,11 +19,46 @@ class DocumentType(StrEnum):
 
 
 class GithubDocument(BaseResponseModel):
+    id: uuid.UUID
     team_id: uuid.UUID
     external_repo_id: str
-    pull_request_number: int
+    pull_request_number: Optional[int]
     status: Status
-    status_updated: Optional[datetime.datetime]
-    file_path: str
-    api_name: str
+    status_updated: datetime.datetime
+    file_path: Optional[str]
+    api_name: Optional[str]
+    type: DocumentType
+
+
+class GithubDocumentsQueryInput(BaseInputModel):
+    id: Optional[uuid.UUID] = None
+    external_repo_id: Optional[str] = None
+    type: Optional[DocumentType] = None
+
+
+class GithubDocumentCreateInput(BaseInputModel):
+    external_repo_id: str
+    type: DocumentType
+    file_path: Optional[str] = None
+    api_name: Optional[str] = None
+    pull_request_number: Optional[int] = None
+
+
+class GithubDocumentValuesInput(BaseInputModel):
+    pull_request_number: Optional[int] = None
+    status: Optional[Status] = None
+    file_path: Optional[str] = None
+    api_name: Optional[str] = None
+
+
+class GithubDocumentUpdateInput(BaseInputModel):
+    id: uuid.UUID
+    new_values: GithubDocumentValuesInput
+
+
+class GithubDocumentsDeleteByIdsInput(BaseInputModel):
+    id: uuid.UUID
+
+
+class GithubDocumentsDeleteByTypeInput(BaseInputModel):
     type: DocumentType

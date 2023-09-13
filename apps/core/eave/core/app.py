@@ -1,6 +1,6 @@
 from eave.core.public.middlewares.authentication import AuthASGIMiddleware
 from eave.core.public.middlewares.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests import connect_integration, github_repos
+from eave.core.public.requests import connect_integration, github_repos, github_documents
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.stdlib import cache
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
@@ -13,6 +13,13 @@ from eave.stdlib.core_api.operations.subscriptions import (
     CreateSubscriptionRequest,
     DeleteSubscriptionRequest,
     GetSubscriptionRequest,
+)
+from eave.stdlib.core_api.operations.github_documents import (
+    CreateGithubDocumentRequest,
+    GetGithubDocumentsRequest,
+    UpdateGithubDocumentRequest,
+    DeleteGithubDocumentsByIdsRequest,
+    DeleteGithubDocumentsByTypeRequest,
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
@@ -212,6 +219,26 @@ routes = [
         endpoint=team.GetTeamEndpoint,
     ),
     # Authenticated API endpoints.
+    make_route(
+        config=CreateGithubDocumentRequest.config,
+        endpoint=github_documents.CreateGithubDocumentEndpoint,
+    ),
+    make_route(
+        config=GetGithubDocumentsRequest.config,
+        endpoint=github_documents.GetGithubDocumentsEndpoint,
+    ),
+    make_route(
+        config=UpdateGithubDocumentRequest.config,
+        endpoint=github_documents.UpdateGithubDocumentEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubDocumentsByIdsRequest.config,
+        endpoint=github_documents.DeleteGithubDocumentsByIdsEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubDocumentsByTypeRequest.config,
+        endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
+    ),
     make_route(
         config=CreateGithubRepoRequest.config,
         endpoint=github_repos.CreateGithubRepoEndpoint,

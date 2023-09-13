@@ -11,6 +11,7 @@ import eave.core.internal
 import eave.core.internal.orm as orm
 import eave.core.internal.orm.base
 from eave.stdlib.core_api.models.connect import AtlassianProduct
+from eave.stdlib.core_api.models.github_documents import DocumentType
 from eave.stdlib.core_api.models.team import DocumentPlatform
 
 """
@@ -42,7 +43,7 @@ async def seed_database() -> None:
 
     session = AsyncSession(eave.core.internal.database.async_engine)
 
-    num_rows = 1000
+    num_rows = 100
 
     # setup toolbar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
@@ -58,11 +59,12 @@ async def seed_database() -> None:
         session.add(team)
         await session.commit()
         await session.refresh(team)  # necessary to populate team.id
+        team_id = team.id
 
         # NOTE: not seeding any Subscription objects rn
 
         slack = orm.SlackInstallationOrm(
-            team_id=team.id,
+            team_id=team_id,
             slack_team_id=f"slack_team_id{row}",
             bot_token="bot_token",
             bot_refresh_token="bot_refresh_token",
@@ -71,20 +73,20 @@ async def seed_database() -> None:
         session.add(slack)
 
         github = orm.GithubInstallationOrm(
-            team_id=team.id,
+            team_id=team_id,
             github_install_id=f"github_install_id{row}",
         )
         session.add(github)
 
         atlassian = orm.AtlassianInstallationOrm(
-            team_id=team.id,
+            team_id=team_id,
             atlassian_cloud_id=f"atlassian_cloud_id{row}",
             oauth_token_encoded="oauth_token_encoded",
         )
         session.add(atlassian)
 
         connect_jira = orm.ConnectInstallationOrm(
-            team_id=team.id,
+            team_id=team_id,
             product=AtlassianProduct.jira,
             client_key=f"client_key{row}",
             shared_secret="shared_secret",
@@ -97,7 +99,7 @@ async def seed_database() -> None:
         session.add(connect_jira)
 
         connect_confluence = orm.ConnectInstallationOrm(
-            team_id=team.id,
+            team_id=team_id,
             product=AtlassianProduct.confluence,
             client_key=f"client_key{row}",
             shared_secret="shared_secret",
@@ -108,6 +110,21 @@ async def seed_database() -> None:
             description=None,
         )
         session.add(connect_confluence)
+
+        gh_repo = orm.GithubRepoOrm(
+            team_id=team_id,
+            external_repo_id=f"external_repo_id{row}",
+        )
+        session.add(gh_repo)
+        await session.commit()
+        await session.refresh(gh_repo)  # necessary to populate fk relation for gh_document
+
+        gh_document = orm.GithubDocumentsOrm(
+            team_id=team_id,
+            external_repo_id=gh_repo.external_repo_id,
+            type=DocumentType.API_DOCUMENT,
+        )
+        session.add(gh_document)
 
         await session.commit()
         end = time.perf_counter()
