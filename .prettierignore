@@ -1,0 +1,8 @@
+.*
+__pycache__
+node_modules
+*.egg-info
+build
+yalc.lock
+dist
+vendor

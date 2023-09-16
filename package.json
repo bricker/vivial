@@ -3,6 +3,8 @@
   "devDependencies": {
     "@eave-fyi/es-config": "file:./develop/javascript/es-config",
     "ava": "5.x",
+    "eslint-config-prettier": "9.x",
+    "prettier": "3.x",
     "tsx": "3.x"
   }
 }

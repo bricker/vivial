@@ -1,6 +1,7 @@
 const config = {
   extends: [
     'airbnb-base',
+    'prettier',
   ],
   plugins: [],
   ignorePatterns: [
@@ -9,6 +10,10 @@ const config = {
     '!.github',
     'dist',
     'generated',
+    '.venv',
+    '__pycache__',
+    'vendor',
+    '\.*',
   ],
   env: {
     browser: true,
