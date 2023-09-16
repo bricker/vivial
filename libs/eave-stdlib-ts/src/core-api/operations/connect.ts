@@ -14,7 +14,7 @@ export type RegisterConnectInstallationResponseBody = {
   connect_integration: ConnectInstallation;
 }
 
-export async function registerConnectInstallation(args: RequestArgsOrigin & CtxArg & {input: RegisterConnectInstallationRequestBody}): Promise<RegisterConnectInstallationResponseBody> {
+export async function registerConnectInstallation(args: RequestArgsOrigin & {input: RegisterConnectInstallationRequestBody}): Promise<RegisterConnectInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/integrations/connect/register`,
     ...args,
@@ -31,7 +31,7 @@ export type QueryConnectInstallationResponseBody = {
   connect_integration: ConnectInstallation;
 }
 
-export async function queryConnectInstallation(args: RequestArgsOrigin & CtxArg & {input: QueryConnectInstallationRequestBody}): Promise<QueryConnectInstallationResponseBody> {
+export async function queryConnectInstallation(args: RequestArgsOrigin & {input: QueryConnectInstallationRequestBody}): Promise<QueryConnectInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/integrations/connect/query`,
     ...args,

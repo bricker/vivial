@@ -15,7 +15,7 @@ export type GetSlackInstallationResponseBody = {
   slack_integration: SlackInstallation;
 }
 
-export async function getSlackInstallation(args: RequestArgsOrigin & CtxArg & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
+export async function getSlackInstallation(args: RequestArgsOrigin & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/integrations/slack/query`,
     ...args,

@@ -11,7 +11,7 @@ export type GetTeamResponseBody = {
   integrations: Integrations;
 }
 
-export async function getTeam(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg): Promise<GetTeamResponseBody> {
+export async function getTeam(args: RequestArgsTeamId): Promise<GetTeamResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/team/query`,
     ...args,

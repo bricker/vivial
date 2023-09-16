@@ -15,7 +15,7 @@ export type GetGithubInstallationResponseBody = {
   github_integration: GithubInstallation;
 }
 
-export async function getGithubInstallation(args: RequestArgsOrigin & CtxArg & {input: GetGithubInstallationRequestBody}): Promise<GetGithubInstallationResponseBody> {
+export async function getGithubInstallation(args: RequestArgsOrigin & {input: GetGithubInstallationRequestBody}): Promise<GetGithubInstallationResponseBody> {
   const resp = await makeRequest({
     url: `${baseUrl}/integrations/github/query`,
     ...args,

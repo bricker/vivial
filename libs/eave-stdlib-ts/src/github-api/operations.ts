@@ -10,7 +10,7 @@ export type CreateGithubResourceSubscriptionRequestBody = {
   url: string;
 }
 
-export async function createSubscription(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {
+export async function createSubscription(args: RequestArgsTeamId & {
   input: CreateGithubResourceSubscriptionRequestBody,
 }): Promise<CreateSubscriptionResponseBody> {
   const resp = await makeRequest({
@@ -29,7 +29,7 @@ export type GetGithubUrlContentResponseBody = {
   content: string | null;
 }
 
-export async function getFileContent(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {
+export async function getFileContent(args: RequestArgsTeamId & {
   input: GetGithubUrlContentRequestBody,
 }): Promise<GetGithubUrlContentResponseBody> {
   const resp = await makeRequest({
@@ -44,7 +44,7 @@ export type RunApiDocumentationTaskRequestBody = {
   repo: GithubRepoInput;
 }
 
-export async function runApiDocumentationTask(args: RequestArgsOrigin & RequestArgsTeamId & CtxArg & {
+export async function runApiDocumentationTask(args: RequestArgsTeamId & {
   input: RunApiDocumentationTaskRequestBody,
 }): Promise<void> {
   await makeRequest({
