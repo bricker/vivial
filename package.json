@@ -5,6 +5,7 @@
     "ava": "5.x",
     "eslint-config-prettier": "9.x",
     "prettier": "3.x",
+    "prettier-plugin-sh": "0.13.x",
     "tsx": "3.x"
   }
 }
