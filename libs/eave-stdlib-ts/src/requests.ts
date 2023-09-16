@@ -17,27 +17,27 @@ export type CtxArg = {
   ctx?: LogContext;
 }
 
-export type RequestArgsOrigin = {
+export type RequestArgsOrigin = CtxArg & {
   origin: EaveApp | string;
 }
 
-export type RequestArgsTeamId = {
+export type RequestArgsTeamId = RequestArgsOrigin & {
   teamId: string;
 }
 
-export type RequestArgsAccountId = {
+export type RequestArgsAuthedRequest = RequestArgsTeamId & {
   accountId: string;
+  accessToken: string;
 }
 
 type RequestArgs = CtxArg & {
   url: string;
   origin: EaveApp | string;
   input?: unknown;
+  accountId?: string;
   accessToken?: string;
   teamId?: string;
-  accountId?: string;
   method?: string;
-  ctx?: LogContext;
   addlHeaders?: {[key:string]: string};
   baseTimeoutSeconds?: number;
 }

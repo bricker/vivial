@@ -1,6 +1,6 @@
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests import connect_integration
+from eave.core.public.requests import connect_integration, github_repos, github_documents
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.stdlib import cache
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
@@ -13,6 +13,20 @@ from eave.stdlib.core_api.operations.subscriptions import (
     CreateSubscriptionRequest,
     DeleteSubscriptionRequest,
     GetSubscriptionRequest,
+)
+from eave.stdlib.core_api.operations.github_documents import (
+    CreateGithubDocumentRequest,
+    GetGithubDocumentsRequest,
+    UpdateGithubDocumentRequest,
+    DeleteGithubDocumentsByIdsRequest,
+    DeleteGithubDocumentsByTypeRequest,
+)
+from eave.stdlib.core_api.operations.github_repos import (
+    CreateGithubRepoRequest,
+    GetGithubReposRequest,
+    UpdateGithubReposRequest,
+    DeleteGithubReposRequest,
+    FeatureStateGithubReposRequest,
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
@@ -205,6 +219,46 @@ routes = [
         endpoint=team.GetTeamEndpoint,
     ),
     # Authenticated API endpoints.
+    make_route(
+        config=CreateGithubDocumentRequest.config,
+        endpoint=github_documents.CreateGithubDocumentEndpoint,
+    ),
+    make_route(
+        config=GetGithubDocumentsRequest.config,
+        endpoint=github_documents.GetGithubDocumentsEndpoint,
+    ),
+    make_route(
+        config=UpdateGithubDocumentRequest.config,
+        endpoint=github_documents.UpdateGithubDocumentEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubDocumentsByIdsRequest.config,
+        endpoint=github_documents.DeleteGithubDocumentsByIdsEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubDocumentsByTypeRequest.config,
+        endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
+    ),
+    make_route(
+        config=CreateGithubRepoRequest.config,
+        endpoint=github_repos.CreateGithubRepoEndpoint,
+    ),
+    make_route(
+        config=GetGithubReposRequest.config,
+        endpoint=github_repos.GetGithubRepoEndpoint,
+    ),
+    make_route(
+        config=UpdateGithubReposRequest.config,
+        endpoint=github_repos.UpdateGithubReposEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubReposRequest.config,
+        endpoint=github_repos.DeleteGithubReposEndpoint,
+    ),
+    make_route(
+        config=FeatureStateGithubReposRequest.config,
+        endpoint=github_repos.FeatureStateGithubReposEndpoint,
+    ),
     make_route(
         config=UpsertConfluenceDestinationAuthedRequest.config,
         endpoint=team.UpsertConfluenceDestinationAuthedEndpoint,

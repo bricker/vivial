@@ -263,6 +263,9 @@ function setupapps() (
 		node-activate-venv
 
 		for ss in {apps,libs,develop}/**/bin/setup; do
+			if ^norecurse "$ss"; then
+				continue
+			fi
 			statusmsg -d "Running $ss"
 			$ss
 		done
