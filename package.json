@@ -1,11 +1,17 @@
 {
   "type": "module",
   "devDependencies": {
-    "@eave-fyi/es-config": "file:./develop/javascript/es-config",
+    "@typescript-eslint/eslint-plugin": "5.x",
+    "@typescript-eslint/parser": "5.x",
+    "eslint": "8.x",
+    "eslint-config-airbnb-base": "15.x",
+    "eslint-plugin-import": "2.x",
+    "eslint-plugin-yaml": "0.5.x",
+    "eslint-plugin-unused-imports": "2.x",
+    "@graphql-eslint/eslint-plugin": "3.x",
     "ava": "5.x",
     "eslint-config-prettier": "9.x",
     "prettier": "3.x",
-    "prettier-plugin-sh": "0.13.x",
     "tsx": "3.x"
   }
 }
