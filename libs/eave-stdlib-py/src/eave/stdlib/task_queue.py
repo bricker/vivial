@@ -51,9 +51,9 @@ async def create_task_from_request(
     target_path: str,
     request: Request,
     origin: EaveApp,
+    ctx: Optional[LogContext],
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
-    ctx: Optional[LogContext] = None,
 ) -> None:
     if not unique_task_id:
         if trace_id := request.headers.get(GCP_CLOUD_TRACE_CONTEXT):
@@ -84,10 +84,10 @@ async def create_task(
     target_path: str,
     payload: JsonObject | bytes,
     origin: EaveApp,
+    ctx: Optional[LogContext],
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
     headers: Optional[dict[str, str]] = None,
-    ctx: Optional[LogContext] = None,
 ) -> tasks.Task:
     ctx = LogContext.wrap(ctx)
 

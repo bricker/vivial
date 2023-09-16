@@ -1,4 +1,4 @@
 locals {
-  project_id = "eavefyi-dev"
+  project_id = "eave-production"
   region        = "us-central1"
 }

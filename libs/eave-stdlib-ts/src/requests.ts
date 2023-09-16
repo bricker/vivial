@@ -126,33 +126,27 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   const abortController = new AbortController();
   setTimeout(() => abortController.abort(), 1000 * baseTimeoutSeconds);
 
-  try {
-    const response = await fetch(url, {
-      method,
-      body: payload,
-      headers,
-      signal: abortController.signal,
-    });
+  const response = await fetch(url, {
+    method,
+    body: payload,
+    headers,
+    signal: abortController.signal,
+  });
 
-    eaveLogger.info(
-      `Client Response: ${requestId}: ${method} ${url}`,
+  eaveLogger.info(
+    `Client Response: ${requestId}: ${method} ${url}`,
+    ctx,
+    requestContext,
+    { status: response.status },
+  );
+
+  if (response.status >= 400) {
+    eaveLogger.error(
+      `Request Error (${response.status}): ${url}`,
       ctx,
       requestContext,
-      { status: response.status },
     );
-
-    if (response.status >= 400) {
-      eaveLogger.error(
-        `Request Error (${response.status}): ${url}`,
-        ctx,
-        requestContext,
-      );
-    }
-
-    return response;
-  } catch (e: unknown) {
-    // TODO: Remove this block, it was just for debugging
-    console.log(e);
-    throw e;
   }
+
+  return response;
 }
