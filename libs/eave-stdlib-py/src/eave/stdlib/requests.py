@@ -2,7 +2,7 @@ import pydantic
 from typing import NotRequired, Optional, Required, TypedDict, Unpack
 import uuid
 import aiohttp
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.typing import JsonObject
 
 from eave.stdlib.util import ensure_str_or_none, redact
@@ -13,7 +13,7 @@ from .logging import LogContext, eaveLogger
 
 
 class CommonRequestArgs(TypedDict):
-    origin: Required[EaveOrigin]
+    origin: Required[EaveApp]
     method: NotRequired[str]
     addl_headers: NotRequired[Optional[dict[str, str]]]
     ctx: NotRequired[Optional[LogContext]]
@@ -50,9 +50,11 @@ async def make_request(
     if access_token:
         headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
 
+    team_id = team_id or ctx.eave_team_id
     if team_id:
         headers[eave_headers.EAVE_TEAM_ID_HEADER] = str(team_id)
 
+    account_id = account_id or ctx.eave_account_id
     if account_id:
         headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
 

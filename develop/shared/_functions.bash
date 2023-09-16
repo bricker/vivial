@@ -176,16 +176,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	function import-loginfile() {
 		local loginfile
 		loginfile=$(shloginfile)
-
-		if test -z "$loginfile"; then
-			statusmsg -d "No login file detected."
-		else
+		if test -n "$loginfile"; then
 			# shellcheck disable=SC1090
 			source "$loginfile"
 		fi
 	}
 
-	function cmd-exists() {
+	function ^cmd-exists() {
 		if command -v "$1" >/dev/null; then
 			return 0
 		fi
@@ -307,6 +304,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			fi
 
 			echo -e "\n${varcmd[*]}" >>"$loginfile"
+			# set for this shell.
+			# shellcheck disable=SC2048
+			${varcmd[*]}
 			;;
 		"fish")
 			if fish -c "set -q $varname"; then
@@ -319,8 +319,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
 			;;
 		esac
-
-		"${varcmd[*]}"
 	}
 
 	function run-with-dotenv() (

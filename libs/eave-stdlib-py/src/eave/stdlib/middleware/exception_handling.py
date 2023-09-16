@@ -35,13 +35,17 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
         try:
             await self.app(scope, receive, _send)
         except Exception as e:
-            if shared_config.raise_app_exceptions:
-                raise
-
             eave_state = EaveRequestState.load(scope=scope)
             eaveLogger.exception(e, eave_state.ctx)
 
+            if shared_config.raise_app_exceptions:
+                # NOTE: In development and test, this effectively converts every HTTPException into a 500 Server Error, and can make it difficult to troubleshoot request errors.
+                # That isn't great. Something to fix when possible.
+                raise
+
             if not response_started:
+                # In production, all errors return a 500 as a security precaution for internal APIs.
+                # For public APIs, more useful response codes will be returned, but there are currently no public APIs.
                 model = ErrorResponse(
                     status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
                     error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,

@@ -1,5 +1,5 @@
 import helmet from 'helmet';
-import { Express, NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 // Atlassian security policy requirements
 // http://go.atlassian.com/security-requirements-for-cloud-apps
@@ -16,15 +16,15 @@ const atlassianHeaderMiddleware = (_req: Request, res: Response, next: NextFunct
   next();
 };
 
-export function applyAtlassianSecurityPolicyMiddlewares({ app }: { app: Express }) {
-  app.use(helmet.hsts({
+export const atlassianSecurityPolicyMiddlewares = [
+  helmet.hsts({
     maxAge: 31536000,
     includeSubDomains: false,
-  }));
+  }),
 
-  app.use(helmet.referrerPolicy({
+  helmet.referrerPolicy({
     policy: ['origin'],
-  }));
+  }),
 
-  app.use(atlassianHeaderMiddleware);
-}
+  atlassianHeaderMiddleware,
+];

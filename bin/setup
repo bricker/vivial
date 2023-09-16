@@ -85,7 +85,7 @@ function setenvvars() (
 function setuppython() (
 	statusmsg -pa "Setting up Python virtual environment"
 	if ^ask; then
-		if ! cmd-exists pyenv; then
+		if ! ^cmd-exists pyenv; then
 			pythonpath="$(which python)"
 			statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
 			statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
@@ -108,7 +108,7 @@ function setupnode() (
 )
 
 function setupgcloud() (
-	if ! ^force && cmd-exists "gcloud"; then
+	if ! ^force && ^cmd-exists "gcloud"; then
 		statusmsg -o "gcloud CLI already installed."
 	else
 		statusmsg -pa "Downloading and installing the gcloud CLI into $HOME/google-cloud-sdk."
@@ -130,14 +130,14 @@ function setupgcloud() (
 )
 
 function setupcloudsqlproxy() (
-	if ! ^force && cmd-exists "cloud-sql-proxy"; then
+	if ! ^force && ^cmd-exists "cloud-sql-proxy"; then
 		statusmsg -o "CloudSQL Proxy already installed."
 	else
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
 		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
 		if ^ask; then
 			cd "$tmpdir" || exit 1
-			if cmd-exists "gcloud"; then
+			if ^cmd-exists "gcloud"; then
 				cloudsqlproxypath=$(dirname "$(which gcloud)")
 			else
 				cloudsqlproxypath="/usr/local/bin"
@@ -164,7 +164,7 @@ function setupcloudsqlproxy() (
 )
 
 function installjq() (
-	if ! ^force && cmd-exists "jq"; then
+	if ! ^force && ^cmd-exists "jq"; then
 		statusmsg -o "jq already installed."
 	else
 		statusmsg -pa "Installing the 'jq' command line utility."
@@ -189,7 +189,7 @@ function installjq() (
 				;;
 
 			"darwin")
-				if cmd-exists "brew"; then
+				if ^cmd-exists "brew"; then
 					brew install jq
 				else
 					statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
@@ -201,14 +201,14 @@ function installjq() (
 )
 
 function installyq() (
-	if ! ^force && cmd-exists "yq"; then
+	if ! ^force && ^cmd-exists "yq"; then
 		statusmsg -o "yq already installed."
 	else
 		statusmsg -pa "Installing the 'yq' command line utility."
 		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
 
 		if ^ask; then
-			if cmd-exists "brew"; then
+			if ^cmd-exists "brew"; then
 				brew install yq
 			else
 				statusmsg -e "yq is installed via Homebrew, which wasn't found in your PATH."
@@ -219,14 +219,14 @@ function installyq() (
 )
 
 function installshfmt() (
-	if ! ^force && cmd-exists "shfmt"; then
+	if ! ^force && ^cmd-exists "shfmt"; then
 		statusmsg -o "shfmt already installed."
 	else
 		statusmsg -pa "Installing the 'shfmt' command line utility."
 		statusmsg -i "The shfmt program is used to auto-format shell scripts"
 
 		if ^ask; then
-			if cmd-exists "brew"; then
+			if ^cmd-exists "brew"; then
 				brew install shfmt
 			else
 				statusmsg -e "shfmt is installed via Homebrew, which wasn't found in your PATH."
@@ -237,14 +237,14 @@ function installshfmt() (
 )
 
 function installshellcheck() (
-	if ! ^force && cmd-exists "shellcheck"; then
+	if ! ^force && ^cmd-exists "shellcheck"; then
 		statusmsg -o "shellcheck already installed."
 	else
 		statusmsg -pa "Installing the 'shellcheck' command line utility."
 		statusmsg -i "The shellcheck program is used to lint shell scripts"
 
 		if ^ask; then
-			if cmd-exists "brew"; then
+			if ^cmd-exists "brew"; then
 				brew install shellcheck
 			else
 				statusmsg -e "shellcheck is installed via Homebrew, which wasn't found in your PATH."

@@ -12,7 +12,15 @@ export class LogContext {
 
   static load(res: Response): LogContext {
     const existing = res.locals[headers.EAVE_CTX_KEY];
-    return LogContext.wrap(existing, res.req);
+
+    // Attach this context to the response object, if one wasn't already.
+    if (existing) {
+      return existing;
+    }
+
+    const ctx = new LogContext(res.req);
+    res.locals[headers.EAVE_CTX_KEY] = ctx;
+    return ctx;
   }
 
   static wrap(ctx?: LogContext, req?: Request): LogContext {
@@ -86,6 +94,26 @@ export class LogContext {
   }
 }
 
+// class RequestFormatter {
+//   transform(info: LogForm.TransformableInfo): LogForm.TransformableInfo | boolean {
+//     const {
+//       level,
+//       message,
+//       [LEVEL],
+//       [MESSAGE],
+//       [SPLAT],
+//       ...rest
+//     } = info;
+
+//     const ctx = JSON.stringify(rest, null, 2);
+//     return {
+//       level,
+//       message,
+//       ctx,
+//     };
+//   };
+// }
+
 function createLogger(): winston.Logger {
   const level = sharedConfig.logLevel.toLowerCase();
   let logger: winston.Logger;
@@ -111,6 +139,7 @@ function createLogger(): winston.Logger {
       level,
       format: winston.format.combine(
         winston.format.simple(),
+        // new RequestFormatter(),
         winston.format.colorize({
           all: true,
           colors: {

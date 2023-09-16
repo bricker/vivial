@@ -72,9 +72,14 @@ class CustomFormatter(logging.Formatter):
 
 
 class CustomFilter(logging.Filter):
+    _whitelist_records = [
+        "eave",
+        "werkzeug",
+    ]
+
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
-        return log and record.name == "eave"
+        return log and record.name in self._whitelist_records
 
 
 rootLogger = logging.getLogger()

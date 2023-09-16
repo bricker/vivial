@@ -5,7 +5,7 @@ import unittest.mock
 from starlette.responses import Response
 import eave.stdlib.requests
 import eave.stdlib.signing
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
 from .base import BaseTestCase
 
 
@@ -47,7 +47,7 @@ class EventsEndpointTest(BaseTestCase):
 
         request_body = self.anydict()
         eave_request_id = self.anystring("eave request id")
-        origin = EaveOrigin.eave_slack_app
+        origin = EaveApp.eave_slack_app
         signature_message = eave.stdlib.signing.build_message_to_sign(
             method="POST",
             origin=origin,
@@ -84,7 +84,7 @@ class EventsEndpointTest(BaseTestCase):
             "POST",
             "/_tasks/slack-events",
             headers={
-                "eave-origin": EaveOrigin.eave_slack_app,
+                "eave-origin": EaveApp.eave_slack_app,
                 "eave-request-id": self.anystring(),
                 "eave-signature": self.anystring("invalid signature"),
             },

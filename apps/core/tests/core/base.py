@@ -131,7 +131,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         payload: Optional[eave.stdlib.typing.JsonObject] = None,
         method: str = "POST",
         headers: Optional[dict[str, Optional[str]]] = None,
-        origin: Optional[eave.stdlib.eave_origins.EaveOrigin] = None,
+        origin: Optional[eave.stdlib.eave_origins.EaveApp] = None,
         team_id: Optional[uuid.UUID] = None,
         account_id: Optional[uuid.UUID] = None,
         access_token: Optional[str] = None,
@@ -160,7 +160,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             headers["eave-origin"] = origin.value
         else:
             if "eave-origin" not in headers:
-                origin = eave.stdlib.eave_origins.EaveOrigin.eave_www
+                origin = eave.stdlib.eave_origins.EaveApp.eave_www
                 headers["eave-origin"] = origin
 
         if request_id:
@@ -182,7 +182,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             request_args["content"] = encoded_payload
 
         if "eave-signature" not in headers:
-            origin = origin or eave.stdlib.eave_origins.EaveOrigin.eave_www
+            origin = origin or eave.stdlib.eave_origins.EaveApp.eave_www
             signature_message = eave.stdlib.signing.build_message_to_sign(
                 method=method,
                 url=f"{eave.core.internal.app_config.eave_public_api_base}{path}",

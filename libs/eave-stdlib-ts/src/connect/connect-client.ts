@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import eaveLogger, { LogContext } from '../logging.js';
 import { queryConnectInstallation } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
-import { EaveOrigin } from '../eave-origins.js';
+import { EaveApp } from '../eave-origins.js';
 import { CtxArg } from '../requests.js';
 
 export type RequestOpts = CoreOptions & UrlOptions;
@@ -20,7 +20,7 @@ export default class ConnectClient {
   }: CtxArg & {
     addon: AddOn,
     product: AtlassianProduct,
-    origin: EaveOrigin,
+    origin: EaveApp,
     teamId?: string,
     clientKey?: string,
   }): Promise<HostClient> {

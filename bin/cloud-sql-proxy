@@ -5,7 +5,7 @@ set -eu
 source "$EAVE_HOME"/develop/functions.bash
 
 function run-cloud-sql-proxy() {
-	if ! cmd-exists "cloud-sql-proxy"; then
+	if ! ^cmd-exists "cloud-sql-proxy"; then
 		statusmsg -e "cloud-sql-proxy is not installed in your PATH."
 		statusmsg -e "Re-run the repository's setup script, otherwise visit https://cloud.google.com/sql/docs/postgres/sql-proxy for installation instructions."
 		exit 1

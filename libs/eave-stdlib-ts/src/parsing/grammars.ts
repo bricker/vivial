@@ -11,7 +11,7 @@ import PHP from 'tree-sitter-php';
 import Ruby from 'tree-sitter-ruby';
 import Swift from 'tree-sitter-swift';
 import Csharp from 'tree-sitter-c-sharp';
-import { ProgrammingLanguage, stringToProgrammingLanguage } from '../language-mapping.js';
+import { ProgrammingLanguage, stringToProgrammingLanguage } from '../programming-langs/language-mapping.js';
 
 const { typescript: Typescript, tsx } = tsPkg;
 
