@@ -1,4 +1,4 @@
-// import { EaveOrigin } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
+// import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 // import { signBase64, getKey } from '@eave-fyi/eave-stdlib-ts/src/signing.js';
 // import { buildMessageToSign } from '@eave-fyi/eave-stdlib-ts/src/lib/requests.js';
 
@@ -18,7 +18,7 @@
 
 //   console.log(msg); /* eslint-ignore */
 
-//   const key = getKey(EaveOrigin.eave_slack_app);
+//   const key = getKey(EaveApp.eave_slack_app);
 //   const sig = await signBase64(key, msg);
 
 //   console.log(sig); /* eslint-ignore */

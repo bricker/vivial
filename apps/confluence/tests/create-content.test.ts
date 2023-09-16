@@ -1,9 +1,10 @@
 import anyTest, { TestFn } from 'ava';
 import sinon from 'sinon';
 import request from 'supertest';
+import { createHash } from 'crypto';
 import Signing, * as signing from '@eave-fyi/eave-stdlib-ts/src/signing.js';
 import { TestContextBase, TestUtil } from '@eave-fyi/eave-stdlib-ts/src/test-util.js';
-import { createHash } from 'crypto';
+import { InvalidSignatureError } from '@eave-fyi/eave-stdlib-ts/src/exceptions.js';
 import { app } from '../src/app.js';
 import ConfluenceClient from '../src/confluence-client.js';
 
@@ -27,11 +28,17 @@ test.beforeEach((t) => {
       .update(data)
       .digest().toString();
   });
-  sandbox.stub(signing.default.prototype, 'verifySignatureOrException').callsFake(async (message: string | Buffer, signature: string | Buffer): Promise<boolean> => {
-    return signature === createHash('sha256')
+
+  const replacementSignatureFunc = async (message: string | Buffer, signature: string | Buffer): Promise<void> => {
+    const expected = createHash('sha256')
       .update(message)
       .digest().toString();
-  });
+
+    if (signature !== expected) {
+      throw new InvalidSignatureError('Signature failed verification');
+    }
+  };
+  sandbox.stub(signing.default.prototype, 'verifySignatureOrException').callsFake(replacementSignatureFunc);
 
   t.context = {
     sandbox,

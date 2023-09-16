@@ -11,7 +11,7 @@ import google.cloud.secretmanager
 import google.cloud.runtimeconfig
 import google.cloud.client
 
-from eave.stdlib.eave_origins import EaveService
+from eave.stdlib.eave_origins import EaveApp
 
 
 from . import checksum
@@ -94,35 +94,35 @@ class EaveConfig:
     @property
     def eave_public_apps_base(self) -> str:
         return (
-            os.getenv("EAVE_PUBLIC_APPS_BASE") or os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"  # deprecated
+            os.getenv("EAVE_APPS_BASE_PUBLIC") or os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"  # deprecated
         )
 
     @property
     def eave_public_api_base(self) -> str:
-        return self.eave_public_service_base(EaveService.api)
+        return self.eave_public_service_base(EaveApp.eave_api)
 
     @property
     def eave_public_www_base(self) -> str:
-        return self.eave_public_service_base(EaveService.www)
+        return self.eave_public_service_base(EaveApp.eave_www)
 
-    def eave_public_service_base(self, service: EaveService) -> str:
+    def eave_public_service_base(self, service: EaveApp) -> str:
         sname = service.value.upper()
-        if v := os.getenv(f"EAVE_PUBLIC_{sname}_BASE"):
+        if v := os.getenv(f"{sname}_BASE_PUBLIC"):
             return v
 
         # EAVE_API_BASE, EAVE_WWW_BASE, and EAVE_APPS_BASE are deprecated.
-        # Use EAVE_PUBLIC_*_BASE instead.
+        # Use EAVE_*_BASE_PUBLIC instead.
         # The `match` block here is mostly for the apps domain. The api and www cases shouldn't be reached
         # normally, but are here as fallbacks.
         match service:
-            case EaveService.api:
+            case EaveApp.eave_api:
                 return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"  # deprecated
-            case EaveService.www:
+            case EaveApp.eave_www:
                 return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"  # deprecated
             case _:
                 return self.eave_public_apps_base
 
-    def eave_internal_service_base(self, service: EaveService) -> str:
+    def eave_internal_service_base(self, service: EaveApp) -> str:
         """
         This method gets the internal URL for the given service.
         It is a little messy because of the following:
@@ -131,21 +131,22 @@ class EaveConfig:
         """
 
         sname = service.value.upper()
-        if v := os.getenv(f"EAVE_INTERNAL_{sname}_BASE"):
+        if v := os.getenv(f"{sname}_BASE_INTERNAL"):
             return v
 
         if self.is_development:
             # In development, Internal and Public URLs are expected to be the same.
             match service:
-                case EaveService.api:
+                case EaveApp.eave_api:
                     return self.eave_public_api_base
-                case EaveService.www:
+                case EaveApp.eave_www:
                     return self.eave_public_www_base
                 case _:
                     return self.eave_public_apps_base
         else:
             # In production (AppEngine), Internal and Public urls are expected to be different.
             # Internal AppEngine services eave have a specific base URL.
+            # TODO: Remove hardcoded AppEngine URL
             # FIXME: Hardcoded region ID (uc)
             return "https://" f"{service.value}" "-dot-" f"{self.google_cloud_project}" ".uc.r.appspot.com"
 

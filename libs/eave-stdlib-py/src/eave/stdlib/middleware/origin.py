@@ -4,7 +4,7 @@ from .base import EaveASGIMiddleware
 from ..api_util import get_header_value
 from ..headers import EAVE_ORIGIN_HEADER
 from ..exceptions import MissingRequiredHeaderError
-from ..eave_origins import EaveOrigin
+from ..eave_origins import EaveApp
 from ..request_state import EaveRequestState
 
 
@@ -22,5 +22,5 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
         if not origin_header:
             raise MissingRequiredHeaderError(EAVE_ORIGIN_HEADER)
 
-        origin = EaveOrigin(value=origin_header)
+        origin = EaveApp(value=origin_header)
         eave_state.ctx.eave_origin = str(origin)

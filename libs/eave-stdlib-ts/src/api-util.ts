@@ -1,10 +1,10 @@
+import { constants as httpConstants } from 'node:http2';
 import { Request, Response, Router } from 'express';
 import { Server } from 'http';
 import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
 import getCacheClient, { cacheInitialized } from './cache.js';
 import eaveLogger from './logging.js';
-import headers from './headers.js';
 import { redact } from './util.js';
 
 export function statusPayload(): StatusResponseBody {
@@ -75,16 +75,28 @@ export function applyShutdownHandlers({ server }: { server: Server }) {
 }
 
 export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<string>): { [key: string]: string | undefined } {
-  const redactedcp = new Set<string>(redacted);
-  redactedcp.add(headers.AUTHORIZATION_HEADER);
-  redactedcp.add(headers.COOKIE_HEADER);
+  const redactedCaseInsensitive = new Set<string>(
+    redacted
+      ? Array.from(redacted).map((v) => v.toLowerCase())
+      : [],
+  );
+
+  const excludedCaseInsensitive = new Set<string>(
+    excluded
+      ? Array.from(excluded).map((v) => v.toLowerCase())
+      : [],
+  );
+
+  redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_AUTHORIZATION);
+  redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_COOKIE);
 
   const logHeaders: { [key: string]: string | undefined } = {};
 
   Object.entries(req.headers).forEach(([k, v]) => {
-    if (!excluded?.has(k)) {
+    const lck = k.toLowerCase();
+    if (!excludedCaseInsensitive.has(lck)) {
       const joined = v instanceof Array ? v.join(',') : v;
-      logHeaders[k] = redactedcp.has(k) ? redact(joined) : joined;
+      logHeaders[lck] = redactedCaseInsensitive.has(lck) ? redact(joined) : joined;
     }
   });
 
@@ -92,7 +104,7 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
 }
 
 export function constructUrl(req: Request): string {
-  const audience = req.header(headers.HOST);
+  const audience = req.header(httpConstants.HTTP2_HEADER_HOST);
   const path = req.originalUrl;
 
   return `https://${audience}${path}`;

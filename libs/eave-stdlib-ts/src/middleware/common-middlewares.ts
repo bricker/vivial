@@ -1,4 +1,4 @@
-import { Express, raw } from 'express';
+import { raw } from 'express';
 import helmet from 'helmet';
 import { requestLoggingMiddleware } from './logging.js';
 import { requestIntegrityMiddleware } from './request-integrity.js';
@@ -7,30 +7,28 @@ import { requireHeaders } from './require-headers.js';
 import { originMiddleware } from './origin.js';
 import { signatureVerification } from './signature-verification.js';
 import headers from '../headers.js';
-import { bodyParser } from './body-parser.js';
 
 // This isn't included in the common middlewares so individual apps can configure it as needed.
 export const helmetMiddleware = helmet;
 
-export function applyCommonRequestMiddlewares({ app }: { app: Express }) {
-  app.use(requestIntegrityMiddleware);
-  app.use(requestLoggingMiddleware);
-}
+export const commonRequestMiddlewares = [
+  requestIntegrityMiddleware,
+  requestLoggingMiddleware,
+];
 
-export function applyCommonResponseMiddlewares({ app }: { app: Express }) {
-  app.use(exceptionHandlingMiddleware);
-}
+export const commonResponseMiddlewares = [
+  exceptionHandlingMiddleware,
+];
 
-export function applyInternalApiMiddlewares({ app, path }: {app: Express, path: string}) {
+export const rawJsonBody = raw({ type: 'application/json', limit: '5mb' });
+
+export const commonInternalApiMiddlewares = [
   /*
-  Using raw parsing rather than express.json() parser because of GitHub signature verification.
-  If even 1 byte were different after passing through JSON.parse and then the signature verification would fail.
+  It's important that the body isn't parsed (eg with `express.json()`) before signature verification. For example, running the body through JSON.parse(), and then through JSON.stringify(), will yield different bytes than the original body (probably differences in spacing/indentation), causing signature verification to fail.
+  Apps should apply their own body parsers (ideally using the `body-parser` middleware).
   */
-  app.use(path, raw({ type: 'application/json' }));
-  app.use(path, requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER));
-  app.use(path, originMiddleware);
-  app.use(path, signatureVerification());
-
-  // This goes _after_ signature verification, so that signature verification has access to the raw body.
-  app.use(path, bodyParser);
-}
+  rawJsonBody,
+  requireHeaders(headers.EAVE_SIGNATURE_HEADER, headers.EAVE_TEAM_ID_HEADER, headers.EAVE_ORIGIN_HEADER),
+  originMiddleware,
+  signatureVerification(),
+];

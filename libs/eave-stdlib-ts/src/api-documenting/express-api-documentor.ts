@@ -5,7 +5,7 @@ import { grammarForLanguage } from '../parsing/grammars.js';
 import OpenAIClient, { formatprompt } from '../transformer-ai/openai.js';
 import { OpenAIModel } from '../transformer-ai/models.js';
 import eaveLogger, { LogContext } from '../logging.js';
-import { ProgrammingLanguage, getProgrammingLanguageByExtension } from '../language-mapping.js';
+import { ProgrammingLanguage, getProgrammingLanguageByExtension } from '../programming-langs/language-mapping.js';
 
 const DIR_EXCLUDES = [
   'node_modules',

@@ -19,6 +19,7 @@
     "@google-cloud/logging-winston": "5.x",
     "@google-cloud/pubsub": "3.x",
     "@google-cloud/redis": "3.x",
+    "@google-cloud/tasks": "4.x",
     "@google-cloud/secret-manager": "4.x",
     "@redis/client": "1.x",
     "express": "4.x",

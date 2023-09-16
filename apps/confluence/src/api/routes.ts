@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { AddOn } from 'atlassian-connect-express';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
+import { commonInternalApiMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
+import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
 import getAvailableSpaces from './get-available-spaces.js';
 import searchContent from './search-content.js';
 import createContent from './create-content.js';
@@ -10,6 +12,8 @@ import ConfluenceClient from '../confluence-client.js';
 
 export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
   const router = Router();
+  router.use(...commonInternalApiMiddlewares);
+  router.use(jsonParser);
 
   router.post('/spaces/query', async (req: Request, res: Response, next: NextFunction) => {
     try {

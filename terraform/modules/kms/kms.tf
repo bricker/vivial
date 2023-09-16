@@ -1,0 +1,1 @@
+// https://registry.terraform.io/modules/terraform-google-modules/kms/google/latest

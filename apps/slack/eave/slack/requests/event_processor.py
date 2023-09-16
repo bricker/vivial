@@ -38,7 +38,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
 
         default_success_response = Response(status_code=http.HTTPStatus.OK)
 
-        is_valid_signature = await self._is_valid_signature()
+        is_valid_signature = await self._is_signature_valid()
         if is_valid_signature is not True:
             # Assume already logged
             return default_success_response  # Return success so Cloud Tasks doesn't retry
@@ -58,7 +58,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
         return response
 
     # TODO: Make this a middleware and move to stdlib
-    async def _is_valid_signature(self) -> bool:
+    async def _is_signature_valid(self) -> bool:
         body = await self._request.body()
         signature = self._request.headers.get(EAVE_SIGNATURE_HEADER)
         request_id = self._request.headers.get(EAVE_REQUEST_ID_HEADER)
@@ -69,7 +69,7 @@ class SlackEventProcessorTask(HTTPEndpoint):
             return False
 
         try:
-            origin = eave_origins.EaveOrigin(value=origin_header)
+            origin = eave_origins.EaveApp(value=origin_header)
             signing_key = eave.stdlib.signing.get_key(origin)
         except (ValueError, KeyError) as e:
             eaveLogger.warning(e, self._ctx)

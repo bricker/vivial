@@ -2,6 +2,7 @@
 
 set -eu
 shopt -s globstar
+export GLOBIGNORE="node_modules"
 
 source "$EAVE_HOME/develop/functions.bash"
 

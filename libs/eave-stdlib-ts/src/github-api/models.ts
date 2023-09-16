@@ -4,3 +4,7 @@ export type GithubRepository = {
   node_id: string;
   full_name: string;
 }
+
+export type GithubRepoInput = {
+  external_repo_id: string;
+}

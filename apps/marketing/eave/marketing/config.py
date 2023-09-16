@@ -2,11 +2,11 @@ import os
 from functools import cached_property
 
 import eave.stdlib.config
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
-    eave_origin = EaveOrigin.eave_www
+    eave_origin = EaveApp.eave_www
 
     @property
     def asset_base(self) -> str:
