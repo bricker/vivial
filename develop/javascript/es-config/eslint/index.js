@@ -15,7 +15,6 @@ const config = {
   },
   rules: {
     // Rules that enforce consistent code style, but may not be fixable by a formatter. These could also indicate a bug.
-    "arrow-body-style": ["warn", "always"],
     "curly": ["warn", "all"],
     "no-var": "warn",
     "prefer-const": "warn",
