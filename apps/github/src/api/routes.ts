@@ -1,12 +1,16 @@
 import { NextFunction, Request, Response, Router } from 'express';
+import { commonInternalApiMiddlewares } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
+import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
 import { getSummary } from './content.js';
 import { subscribe } from './subscribe.js';
 import { createPullRequest } from './create-pull-request.js';
 
 export function InternalApiRouter(): Router {
   const router = Router();
+  router.use(...commonInternalApiMiddlewares);
+  router.use(jsonParser);
 
-  router.post('/content', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/api/content', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getSummary(req, res);
       res.end(); // safety
@@ -15,7 +19,7 @@ export function InternalApiRouter(): Router {
     }
   });
 
-  router.post('/subscribe', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/api/subscribe', async (req: Request, res: Response, next: NextFunction) => {
     try {
       await subscribe(req, res);
       res.end(); // safety

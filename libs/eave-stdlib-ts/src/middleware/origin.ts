@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import eaveHeaders from '../headers.js';
-import { EaveOrigin } from '../eave-origins.js';
+import { EaveApp } from '../eave-origins.js';
 import eaveLogger, { LogContext } from '../logging.js';
 
 export function originMiddleware(req: Request, res: Response, next: NextFunction): void {
@@ -13,7 +13,7 @@ export function originMiddleware(req: Request, res: Response, next: NextFunction
     return;
   }
 
-  const originValue = EaveOrigin[originHeader as keyof typeof EaveOrigin];
+  const originValue = EaveApp[originHeader as keyof typeof EaveApp];
   if (originValue === undefined) {
     eaveLogger.warning(`invalid origin header ${originHeader}`, ctx);
     res.sendStatus(400);

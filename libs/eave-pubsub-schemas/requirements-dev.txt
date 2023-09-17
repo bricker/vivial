@@ -1,3 +1,0 @@
-types-protobuf
-grpcio-tools==1.53.0
-protobuf==4.21.12

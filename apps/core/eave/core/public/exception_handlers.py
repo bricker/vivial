@@ -9,6 +9,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib.core_api.models.error import ErrorResponse
+from eave.stdlib.exceptions import BadRequestError, NotFoundError, UnauthorizedError
 from eave.stdlib.logging import eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 
@@ -83,9 +84,11 @@ def validation_error(request: Request, exc: Exception) -> Response:
 
 
 exception_handlers: Mapping[Any, Callable[[Request, Exception], Response]] = {
-    # eave.stdlib.exceptions.NotFoundError: not_found,
-    # eave.stdlib.exceptions.BadRequestError: bad_request,
-    # eave.stdlib.exceptions.UnauthorizedError: unauthorized,
+    # These are only used in development. In production, all error responses are 500s.
+    NotFoundError: not_found,
+    BadRequestError: bad_request,
+    UnauthorizedError: unauthorized,
+    # All data validation errors
     pydantic.ValidationError: validation_error,
     # This special case is used by Starlette for the ServerErrorMiddleware, which always re-raises the error.
     # This generic handler allows us to define our own Internal Server Error response.

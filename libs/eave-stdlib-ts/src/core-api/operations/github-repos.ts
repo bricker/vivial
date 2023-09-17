@@ -1,5 +1,5 @@
 import { sharedConfig } from '../../config.js';
-import { EaveService } from '../../eave-origins.js';
+import { EaveApp } from '../../eave-origins.js';
 import { makeRequest, RequestArgsAuthedRequest } from '../../requests.js';
 import {
   GithubRepo,
@@ -10,7 +10,7 @@ import {
   GithubRepoUpdateInput,
 } from '../models/github-repos.js';
 
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
+const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_api);
 
 export type GetGithubReposRequestBody = {
   repos?: Array<GithubRepoListInput>;

@@ -1,4 +1,5 @@
 import * as os from 'os';
+import { constants as httpConstants } from 'node:http2';
 import { Request, Response } from 'express';
 import eaveLogger, { LogContext } from '../logging.js';
 import { sharedConfig } from '../config.js';
@@ -27,7 +28,7 @@ export function developmentBypassAuth(req: Request, res: Response): void {
   const ctx = LogContext.load(res);
   eaveLogger.warning('Bypassing auth verification in dev env', ctx);
 
-  const accountId = req.header(eaveHeaders.AUTHORIZATION_HEADER);
+  const accountId = req.header(httpConstants.HTTP2_HEADER_AUTHORIZATION);
   if (accountId === undefined || typeof accountId !== 'string') {
     throw new Error('Authorization header was empty');
   }

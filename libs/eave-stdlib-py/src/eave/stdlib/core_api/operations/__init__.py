@@ -1,10 +1,10 @@
 import aiohttp
 from typing import Optional
 import pydantic
-from eave.stdlib.eave_origins import EaveService
+from eave.stdlib.eave_origins import EaveApp
 from ...config import shared_config
 
-_base_url = shared_config.eave_internal_service_base(EaveService.api)
+_base_url = shared_config.eave_internal_service_base(EaveApp.eave_api)
 
 
 class EndpointConfiguration:
@@ -50,7 +50,7 @@ class Endpoint:
     # @classmethod
     # async def perform(
     #     cls,
-    #     origin: EaveOrigin,
+    #     origin: EaveApp,
     #     input: Optional[RequestBody] = None,
     #     team_id: Optional[uuid.UUID] = None,
     #     access_token: Optional[str] = None,

@@ -9,7 +9,7 @@ from eave.stdlib.core_api.models.subscriptions import (
 )
 from eave.stdlib.core_api.models.team import DocumentPlatform, Team
 from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.github_api.operations as gh_ops
 from eave.stdlib.test_util import UtilityBaseTestCase
@@ -73,7 +73,7 @@ class TestLinkHandler(UtilityBaseTestCase):
             ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
         ]
         actual_result = await link_handler.map_url_content(
-            origin=EaveOrigin.eave_slack_app,
+            origin=EaveApp.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )
@@ -90,7 +90,7 @@ class TestLinkHandler(UtilityBaseTestCase):
             ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
-            origin=EaveOrigin.eave_slack_app,
+            origin=EaveApp.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )
@@ -113,11 +113,12 @@ class TestLinkHandler(UtilityBaseTestCase):
         )
 
         # WHEN subscribe request fails (for whatever reason)
-        input_links = [
+        # explicit type is needed because the tuple is typed with Literals when defined this way
+        input_links: list[tuple[str, LinkType]] = [
             ("https://github.com/eave-fyi/mono-repo/README.md", LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
-            origin=EaveOrigin.eave_slack_app,
+            origin=EaveApp.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )

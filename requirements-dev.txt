@@ -1,0 +1,22 @@
+# Requirements that are only installed and used during local development or in CI.
+
+-e ./libs/eave-pubsub-schemas/python
+-e ./libs/eave-stdlib-py
+-e ${EAVE_HOME}/develop/python
+
+grpcio-tools==1.53.0
+protobuf==4.21.12
+mypy
+black
+ruff
+httpx
+python-dotenv[cli]
+pytest
+coverage
+pretty_errors
+types-requests
+types-redis
+types-protobuf
+mitmproxy @ git+https://github.com/mitmproxy/mitmproxy@main # to resolve asgiref dependency version error
+click
+alembic

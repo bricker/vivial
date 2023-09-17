@@ -1,20 +1,12 @@
-import ConnectClient, { RequestOpts } from '@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js';
-import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
-import { AddOn } from 'atlassian-connect-express';
-import { ADFRootNode } from '@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js';
-import appConfig from './config.js';
-import { JiraComment, JiraUser } from './types.js';
+import ConnectClient, { RequestOpts } from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
+import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
+import { AddOn } from "atlassian-connect-express";
+import { ADFRootNode } from "@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js";
+import appConfig from "./config.js";
+import { JiraComment, JiraUser } from "./types.js";
 
 export default class JiraClient extends ConnectClient {
-  static async getAuthedJiraClient({
-    addon,
-    teamId,
-    clientKey,
-  }: {
-    addon: AddOn,
-    teamId?: string,
-    clientKey?: string,
-  }): Promise<JiraClient> {
+  static async getAuthedJiraClient({ addon, teamId, clientKey }: { addon: AddOn; teamId?: string; clientKey?: string }): Promise<JiraClient> {
     const connectClient = await ConnectClient.getAuthedConnectClient({
       addon,
       product: AtlassianProduct.jira,
@@ -28,13 +20,13 @@ export default class JiraClient extends ConnectClient {
 
   async getUser({ accountId }: { accountId: string }): Promise<JiraUser | undefined> {
     const request: RequestOpts = {
-      url: '/rest/api/3/user',
+      url: "/rest/api/3/user",
       qs: {
         accountId,
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return undefined;
     }
@@ -44,14 +36,14 @@ export default class JiraClient extends ConnectClient {
   }
 
   /* https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-comments/#api-rest-api-3-issue-issueidorkey-comment-post */
-  async postComment({ issueId, commentBody }: { issueId: string, commentBody: ADFRootNode }): Promise<JiraComment | undefined> {
+  async postComment({ issueId, commentBody }: { issueId: string; commentBody: ADFRootNode }): Promise<JiraComment | undefined> {
     const request: RequestOpts = {
       url: `/rest/api/3/issue/${issueId}/comment`,
       json: true,
       body: { body: commentBody },
     };
 
-    const response = await this.request('post', request);
+    const response = await this.request("post", request);
     if (response.statusCode >= 400) {
       return undefined;
     }

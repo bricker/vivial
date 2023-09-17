@@ -1,5 +1,5 @@
 import anyTest, { TestFn } from 'ava';
-import { ProgrammingLanguage, getProgrammingLanguageByExtension, isSupportedProgrammingLanguage, stringToProgrammingLanguage } from '../src/language-mapping.js';
+import { ProgrammingLanguage, getProgrammingLanguageByExtension, isSupportedProgrammingLanguage, stringToProgrammingLanguage } from '../src/programming-langs/language-mapping.js';
 import { TestContextBase, TestUtil } from '../src/test-util.js';
 
 const test = anyTest as TestFn<TestContextBase>;

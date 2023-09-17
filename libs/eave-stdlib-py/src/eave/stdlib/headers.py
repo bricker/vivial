@@ -18,6 +18,7 @@ AUTHORIZATION_HEADER = "authorization"
 HOST = "host"
 CONTENT_TYPE = "content-type"
 CONTENT_LENGTH = "content-length"
+USER_AGENT = "user-agent"
 
 # Request headers added by Google
 GCP_CLOUD_TRACE_CONTEXT = "X-Cloud-Trace-Context"

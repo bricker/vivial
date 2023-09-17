@@ -15,3 +15,7 @@ export type FileChange = {
    */
   contents: string,
 };
+
+export type GithubRepoInput = {
+  external_repo_id: string;
+}

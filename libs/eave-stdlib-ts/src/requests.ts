@@ -1,6 +1,7 @@
+import { constants as httpConstants } from 'node:http2';
 import { NextFunction, Request, Response } from 'express';
 import eaveLogger, { LogContext } from './logging.js';
-import { EaveOrigin } from './eave-origins.js';
+import { EaveApp } from './eave-origins.js';
 import Signing, { buildMessageToSign } from './signing.js';
 import eaveHeaders from './headers.js';
 import { redact } from './util.js';
@@ -17,47 +18,58 @@ export type CtxArg = {
 }
 
 export type RequestArgsOrigin = CtxArg & {
-  origin: EaveOrigin | string;
+  origin: EaveApp | string;
 }
 
-export type RequestArgsOriginAndTeamId = RequestArgsOrigin & {
+export type RequestArgsTeamId = RequestArgsOrigin & {
   teamId: string;
 }
 
-export type RequestArgsAuthedRequest = RequestArgsOriginAndTeamId & {
+export type RequestArgsAuthedRequest = RequestArgsTeamId & {
   accountId: string;
   accessToken: string;
 }
 
 type RequestArgs = CtxArg & {
   url: string;
-  origin: EaveOrigin | string;
-  sign?: boolean;
+  origin: EaveApp | string;
   input?: unknown;
+  accountId?: string;
   accessToken?: string;
   teamId?: string;
-  accountId?: string;
   method?: string;
-  ctx?: LogContext;
+  addlHeaders?: {[key:string]: string};
+  baseTimeoutSeconds?: number;
 }
 
 export async function makeRequest(args: RequestArgs): Promise<globalThis.Response> {
+  const ctx = LogContext.wrap(args.ctx);
+
   const {
     url,
     origin,
     input,
     accessToken,
-    teamId,
-    accountId,
-    method = 'post',
+    addlHeaders,
+    teamId = ctx?.eave_team_id,
+    accountId = ctx?.eave_account_id,
+    method = httpConstants.HTTP2_METHOD_POST,
+    baseTimeoutSeconds = 600,
   } = args;
 
-  const ctx = LogContext.wrap(args.ctx);
   const requestId = ctx.eave_request_id;
-  const payload = input === undefined ? '{}' : JSON.stringify(input);
+  let payload: string | undefined;
 
-  const headers: { [key: string]: string } = {
-    'content-type': 'application/json',
+  if (input === undefined) {
+    payload = '{}';
+  } else if (typeof input !== 'string') {
+    payload = JSON.stringify(input);
+  } else {
+    payload = input;
+  }
+
+  let headers: { [key: string]: string } = {
+    [httpConstants.HTTP2_HEADER_CONTENT_TYPE]: eaveHeaders.MIME_TYPE_JSON,
     [eaveHeaders.EAVE_ORIGIN_HEADER]: origin,
     [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
   };
@@ -79,7 +91,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
 
   if (accessToken !== undefined) {
-    headers[eaveHeaders.AUTHORIZATION_HEADER] = `Bearer ${accessToken}`;
+    headers[httpConstants.HTTP2_HEADER_AUTHORIZATION] = `Bearer ${accessToken}`;
   }
 
   if (teamId !== undefined) {
@@ -88,6 +100,10 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
 
   if (accountId !== undefined) {
     headers[eaveHeaders.EAVE_ACCOUNT_ID_HEADER] = accountId;
+  }
+
+  if (addlHeaders) {
+    headers = Object.assign(headers, addlHeaders);
   }
 
   const requestContext: JsonObject = {
@@ -108,7 +124,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   );
 
   const abortController = new AbortController();
-  setTimeout(() => abortController.abort(), 1000 * 120);
+  setTimeout(() => abortController.abort(), 1000 * baseTimeoutSeconds);
 
   const response = await fetch(url, {
     method,
