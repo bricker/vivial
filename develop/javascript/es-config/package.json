@@ -3,16 +3,14 @@
   "version": "0.1.0",
   "type": "commonjs",
   "files": [
-      "eslint/",
-      "prettier/",
-      "typescript/",
-      "pm2/"
+    "eslint/",
+    "prettier/",
+    "typescript/",
+    "pm2/"
   ],
   "scripts": {
     "yalc": "yalc publish --push"
   },
-  "dependencies": {
-  },
-  "devDependencies": {
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }
