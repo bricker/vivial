@@ -56,6 +56,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 			--log-level "$prettierloglevel" \
 			--config "${EAVE_HOME}/develop/javascript/es-config/prettier/index.js" \
 			--ignore-path "${EAVE_HOME}/develop/javascript/es-config/prettier/prettierignore" \
+			--ignore-path ".prettierignore" \
 			.
 
 		if test -f "tsconfig.json"; then
@@ -86,6 +87,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 			--log-level "$prettierloglevel" \
 			--config "${EAVE_HOME}/develop/javascript/es-config/prettier/index.js" \
 			--ignore-path "${EAVE_HOME}/develop/javascript/es-config/prettier/prettierignore" \
+			--ignore-path ".prettierignore" \
 			.
 
 		statusmsg -sp " ✔ "
