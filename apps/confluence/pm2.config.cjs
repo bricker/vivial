@@ -1,3 +1,3 @@
-const buildConfig = require('@eave-fyi/es-config/pm2');
+const buildConfig = require("@eave-fyi/es-config/pm2");
 
-module.exports = buildConfig('confluence');
+module.exports = buildConfig("confluence");

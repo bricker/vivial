@@ -1,20 +1,12 @@
-import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
-import { AddOn } from 'atlassian-connect-express';
-import { AtlassianProduct } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js';
-import ConnectClient, { RequestOpts } from '@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js';
-import appConfig from './config.js';
-import { cleanDocument } from './api/util.js';
+import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
+import { AddOn } from "atlassian-connect-express";
+import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
+import ConnectClient, { RequestOpts } from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
+import appConfig from "./config.js";
+import { cleanDocument } from "./api/util.js";
 
 export default class ConfluenceClient extends ConnectClient {
-  static async getAuthedConfluenceClient({
-    addon,
-    teamId,
-    clientKey,
-  }: {
-    addon: AddOn,
-    teamId?: string,
-    clientKey?: string,
-  }): Promise<ConfluenceClient> {
+  static async getAuthedConfluenceClient({ addon, teamId, clientKey }: { addon: AddOn; teamId?: string; clientKey?: string }): Promise<ConfluenceClient> {
     const connectClient = await ConnectClient.getAuthedConnectClient({
       addon,
       product: AtlassianProduct.confluence,
@@ -33,11 +25,11 @@ export default class ConfluenceClient extends ConnectClient {
     const request: RequestOpts = {
       url: `/rest/api/space/${spaceKey}`,
       qs: {
-        expand: 'homepage',
+        expand: "homepage",
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -50,17 +42,17 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-get
   */
-  async getPageByTitle({ space, title }: { space: ConfluenceSpace, title: string }): Promise<ConfluencePage | null> {
+  async getPageByTitle({ space, title }: { space: ConfluenceSpace; title: string }): Promise<ConfluencePage | null> {
     const request: RequestOpts = {
-      url: '/rest/api/content',
+      url: "/rest/api/content",
       qs: {
-        type: 'page',
+        type: "page",
         space: space.key,
         title,
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -77,11 +69,11 @@ export default class ConfluenceClient extends ConnectClient {
     const request: RequestOpts = {
       url: `/rest/api/content/${pageId}`,
       qs: {
-        expand: 'body.storage,version',
+        expand: "body.storage,version",
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -102,7 +94,7 @@ export default class ConfluenceClient extends ConnectClient {
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return [];
     }
@@ -123,7 +115,7 @@ export default class ConfluenceClient extends ConnectClient {
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -139,19 +131,19 @@ export default class ConfluenceClient extends ConnectClient {
   }
 
   /* https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-page/#api-pages-post */
-  async createPage({ space, body, title, parentId }: { space: ConfluenceSpace, title: string, body: string, parentId?: string }): Promise<ConfluencePage | null> {
+  async createPage({ space, body, title, parentId }: { space: ConfluenceSpace; title: string; body: string; parentId?: string }): Promise<ConfluencePage | null> {
     const pageBody: ConfluencePageBodyWrite = {
       representation: ConfluenceContentBodyRepresentation.storage,
       value: cleanDocument(body),
     };
 
-    let ancestors: {id: string}[] | undefined;
+    let ancestors: { id: string }[] | undefined;
     if (parentId !== undefined) {
       ancestors = [{ id: parentId }];
     }
 
     const request: RequestOpts = {
-      url: '/rest/api/content',
+      url: "/rest/api/content",
       json: true,
       body: {
         title,
@@ -167,7 +159,7 @@ export default class ConfluenceClient extends ConnectClient {
       },
     };
 
-    const response = await this.request('post', request);
+    const response = await this.request("post", request);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -181,15 +173,13 @@ export default class ConfluenceClient extends ConnectClient {
   */
   async archivePage({ contentId }: { contentId: string }) {
     const request: RequestOpts = {
-      url: '/rest/api/content/archive',
+      url: "/rest/api/content/archive",
       json: true,
       body: {
-        pages: [
-          { id: contentId },
-        ],
+        pages: [{ id: contentId }],
       },
     };
-    await this.request('post', request);
+    await this.request("post", request);
   }
 
   /*
@@ -197,14 +187,14 @@ export default class ConfluenceClient extends ConnectClient {
   */
   async getSpaces(): Promise<ConfluenceSpace[]> {
     const request: RequestOpts = {
-      url: '/rest/api/space',
+      url: "/rest/api/space",
       qs: {
         status: ConfluenceSpaceStatus.current,
         type: ConfluenceSpaceType.global,
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return [];
     }
@@ -217,17 +207,17 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/#api-wiki-rest-api-search-get
   */
-  async search({ cql, cqlcontext }: { cql: string, cqlcontext?: {[key: string]: any} }): Promise<ConfluenceSearchResultWithBody[]> {
+  async search({ cql, cqlcontext }: { cql: string; cqlcontext?: { [key: string]: any } }): Promise<ConfluenceSearchResultWithBody[]> {
     const request: RequestOpts = {
-      url: '/rest/api/content/search',
+      url: "/rest/api/content/search",
       qs: {
         cql,
         cqlcontext: cqlcontext ? JSON.stringify(cqlcontext) : undefined,
-        expand: 'body.storage,version',
+        expand: "body.storage,version",
       },
     };
 
-    const response = await this.request('get', request);
+    const response = await this.request("get", request);
     if (response.statusCode >= 400) {
       return [];
     }
@@ -240,7 +230,7 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-id-put
   */
-  async updatePage({ page, body }: { page: ConfluencePage, body: string }): Promise<ConfluencePage | null> {
+  async updatePage({ page, body }: { page: ConfluencePage; body: string }): Promise<ConfluencePage | null> {
     let currentVersion = page.version?.number;
     if (currentVersion === undefined) {
       currentVersion = 0;
@@ -257,7 +247,7 @@ export default class ConfluenceClient extends ConnectClient {
       body: {
         version: {
           number: currentVersion + 1,
-          message: 'Update from Eave',
+          message: "Update from Eave",
         },
         title: page.title,
         type: page.type,
@@ -268,7 +258,7 @@ export default class ConfluenceClient extends ConnectClient {
       },
     };
 
-    const response = await this.request('put', request);
+    const response = await this.request("put", request);
     if (response.statusCode >= 400) {
       return null;
     }
@@ -281,10 +271,10 @@ export default class ConfluenceClient extends ConnectClient {
   */
   async getSystemInfo(): Promise<SystemInfoEntity | null> {
     const request: RequestOpts = {
-      url: '/rest/api/settings/systemInfo',
+      url: "/rest/api/settings/systemInfo",
     };
 
-    const response = await this.request('put', request);
+    const response = await this.request("put", request);
     if (response.statusCode >= 400) {
       return null;
     }
