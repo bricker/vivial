@@ -1,18 +1,18 @@
-import extensionMap from './languages.json' assert { type: 'json' };
+import extensionMap from "./generated/languages.json" assert { type: "json" };
 
 export enum ProgrammingLanguage {
-  javascript = 'javascript',
-  typescript = 'typescript',
-  rust = 'rust',
-  c = 'c',
-  go = 'go',
-  java = 'java',
-  kotlin = 'kotlin',
-  ruby = 'ruby',
-  cpp = 'cpp',
-  php = 'php',
-  swift = 'swift',
-  csharp = 'csharp',
+  javascript = "javascript",
+  typescript = "typescript",
+  rust = "rust",
+  c = "c",
+  go = "go",
+  java = "java",
+  kotlin = "kotlin",
+  ruby = "ruby",
+  cpp = "cpp",
+  php = "php",
+  swift = "swift",
+  csharp = "csharp",
 }
 
 /**
@@ -25,15 +25,18 @@ export function stringToProgrammingLanguage(lang: string): ProgrammingLanguage |
   const language = lang.toLowerCase();
   // handle languages w/ special characters in name separately
   switch (language) {
-    case 'c++': return ProgrammingLanguage.cpp;
-    case 'c#': return ProgrammingLanguage.csharp;
-    default: return ProgrammingLanguage[language as keyof typeof ProgrammingLanguage];
+    case "c++":
+      return ProgrammingLanguage.cpp;
+    case "c#":
+      return ProgrammingLanguage.csharp;
+    default:
+      return ProgrammingLanguage[language as keyof typeof ProgrammingLanguage];
   }
 }
 
 export function getProgrammingLanguageByExtension(extName: string): ProgrammingLanguage | undefined {
   // quality-of-life (also to prevent bugs): Accept extension with or without leading dot
-  if (extName.at(0) !== '.') {
+  if (extName.at(0) !== ".") {
     extName = `.${extName}`;
   }
   const lang = extensionMap[extName as keyof typeof extensionMap];
