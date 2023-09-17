@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { CreateGitHubPullRequestRequestBody, CreateGitHubPullRequestResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
+import { CreateGitHubPullRequestRequestBody, CreateGitHubPullRequestResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 import { PullRequestCreator } from '../lib/pull-request-creator.js';

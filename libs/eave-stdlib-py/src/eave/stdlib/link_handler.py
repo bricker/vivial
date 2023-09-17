@@ -4,6 +4,9 @@ from typing import Optional
 from urllib.parse import urlparse
 from pydantic import UUID4
 
+from eave.stdlib.github_api.operations.content import GetGithubUrlContent
+from eave.stdlib.github_api.operations.subscriptions import CreateGithubResourceSubscription
+
 from .core_api.models.subscriptions import SubscriptionInfo
 from .core_api.enums import LinkType
 
@@ -38,23 +41,23 @@ async def map_url_content(
     the position of the link in the returned list is None.
     """
     # gather content from all links in parallel
-    tasks: list[asyncio.Task[gh_ops.GetGithubUrlContent.ResponseBody]] = []
+    tasks: list[asyncio.Task[GetGithubUrlContent.ResponseBody]] = []
     for link, link_type in urls:
         match link_type:
             case LinkType.github:
                 tasks.append(
                     asyncio.ensure_future(
-                        gh_ops.GetGithubUrlContent.perform(
+                        GetGithubUrlContent.perform(
                             origin=origin,
                             team_id=eave_team_id,
-                            input=gh_ops.GetGithubUrlContent.RequestBody(
+                            input=GetGithubUrlContent.RequestBody(
                                 url=link,
                             ),
                         )
                     )
                 )
 
-    content_responses: list[Optional[gh_ops.GetGithubUrlContent.ResponseBody]] = await asyncio.gather(*tasks)
+    content_responses: list[Optional[GetGithubUrlContent.ResponseBody]] = await asyncio.gather(*tasks)
     content = list(map(lambda x: x.content if x else None, content_responses))
     return content
 
@@ -109,10 +112,10 @@ async def _create_subscription_source(
     # populate required subscription data based on link type
     match link_type:
         case LinkType.github:
-            subscription_response = await gh_ops.CreateGithubResourceSubscription.perform(
+            subscription_response = await CreateGithubResourceSubscription.perform(
                 origin=origin,
                 team_id=eave_team_id,
-                input=gh_ops.CreateGithubResourceSubscription.RequestBody(
+                input=CreateGithubResourceSubscription.RequestBody(
                     url=url,
                 ),
             )

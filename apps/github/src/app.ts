@@ -11,15 +11,11 @@ app.use(commonRequestMiddlewares);
 app.use(GAELifecycleRouter());
 
 const rootRouter = express.Router();
-app.use('/github', rootRouter);
-rootRouter.use(StatusRouter());
+app.use(rootRouter);
+rootRouter.use("/github", StatusRouter());
 rootRouter.use(WebhookRouter());
 rootRouter.use(InternalApiRouter());
-
-// This isn't mounted on the `rootRouter` because it isn't namespaced under `/github` (and therefore not accessible through the load balancer)
-const taskQueueRouter = express.Router();
-app.use('/_/github', taskQueueRouter);
-taskQueueRouter.use(WebhookOfflineTaskRouter());
-taskQueueRouter.use(OfflineTaskRouter());
+rootRouter.use(WebhookOfflineTaskRouter());
+rootRouter.use(OfflineTaskRouter());
 
 app.use(commonResponseMiddlewares);

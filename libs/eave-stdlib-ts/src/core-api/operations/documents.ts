@@ -4,8 +4,7 @@ import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../..
 import { DocumentInput, DocumentSearchResult } from '../models/documents.js';
 import { DocumentReference, Subscription } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
-
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_api);
+import { CORE_API_BASE_URL } from './shared.js';
 
 export type UpsertDocumentRequestBody = {
   document: DocumentInput;
@@ -19,7 +18,7 @@ export type UpsertDocumentResponseBody = {
 
 export async function upsertDocument(args: RequestArgsTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/documents/upsert`,
+    url: `${CORE_API_BASE_URL}/documents/upsert`,
     ...args,
   });
   const responseData = <UpsertDocumentResponseBody>(await resp.json());
@@ -37,7 +36,7 @@ export type SearchDocumentsResponseBody = {
 
 export async function searchDocuments(args: RequestArgsTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/documents/search`,
+    url: `${CORE_API_BASE_URL}/documents/search`,
     ...args,
   });
   const responseData = <SearchDocumentsResponseBody>(await resp.json());

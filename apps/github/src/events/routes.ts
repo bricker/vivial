@@ -5,8 +5,9 @@ import { createTaskFromRequest } from '@eave-fyi/eave-stdlib-ts/src/task-queue.j
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import getCacheClient, { Cache } from '@eave-fyi/eave-stdlib-ts/src/cache.js';
-import { commonInternalApiMiddlewares, rawJsonBody } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
+import { rawJsonBody } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
 import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
+import * as GithubEventHandlerTask from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js';
 import { getTeamForInstallation, githubAppClient } from '../lib/octokit-util.js';
 import { GITHUB_EVENT_QUEUE_NAME } from '../config.js';
 import registry, { HandlerFunction } from './registry.js';
@@ -39,7 +40,7 @@ export function WebhookRouter(): Express.Router {
   /*
     This is the endpoint that GitHub sends events to.
   */
-  router.post('/events', async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+  router.post('/github/events', async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
     try {
       const ctx = LogContext.load(res);
 
@@ -91,7 +92,7 @@ export function WebhookRouter(): Express.Router {
 
       await createTaskFromRequest({
         queueName: GITHUB_EVENT_QUEUE_NAME,
-        targetPath: '/_/github/tasks/events',
+        targetPath: GithubEventHandlerTask.config.path,
         origin: EaveApp.eave_github_app,
         req,
         ctx,
@@ -108,11 +109,8 @@ export function WebhookRouter(): Express.Router {
 
 export function WebhookOfflineTaskRouter(): Express.Router {
   const router = Express.Router();
-  router.use(...commonInternalApiMiddlewares);
-  // github webhook signature assumed to be already verified.
-  router.use(jsonParser);
 
-  router.post('/events', async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+  router.post(GithubEventHandlerTask.config.path, ...GithubEventHandlerTask.config.middlewares, async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
     try {
       const ctx = LogContext.load(res);
       const handler = getEventHandler(req, res);

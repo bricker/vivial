@@ -9,8 +9,7 @@ import {
   GithubDocumentsQueryInput,
   GithubDocumentUpdateInput,
 } from '../models/github-documents.js';
-
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_api);
+import { CORE_API_BASE_URL } from './shared.js';
 
 export type GetGithubDocumentsRequestBody = {
   query_params: GithubDocumentsQueryInput;
@@ -24,7 +23,7 @@ export async function getGithubDocuments(
   args: RequestArgsAuthedRequest & { input: GetGithubDocumentsRequestBody },
 ): Promise<GetGithubDocumentsResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/github-documents/query`,
+    url: `${CORE_API_BASE_URL}/github-documents/query`,
     ...args,
   });
   const responseData = <GetGithubDocumentsResponseBody>(await resp.json());
@@ -43,7 +42,7 @@ export async function createGithubDocument(
   args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody },
 ): Promise<CreateGithubDocumentResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/github-documents/create`,
+    url: `${CORE_API_BASE_URL}/github-documents/create`,
     ...args,
   });
   const responseData = <CreateGithubDocumentResponseBody>(await resp.json());
@@ -62,7 +61,7 @@ export async function updateGithubDocument(
   args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody },
 ): Promise<UpdateGithubDocumentResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/github-documents/update`,
+    url: `${CORE_API_BASE_URL}/github-documents/update`,
     ...args,
   });
   const responseData = <UpdateGithubDocumentResponseBody>(await resp.json());
@@ -77,7 +76,7 @@ export async function deleteGithubDocumentsByIds(
   args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByIdsRequestBody },
 ): Promise<void> {
   await makeRequest({
-    url: `${baseUrl}/github-documents/delete/id`,
+    url: `${CORE_API_BASE_URL}/github-documents/delete/id`,
     ...args,
   });
 }
@@ -90,7 +89,7 @@ export async function deleteGithubDocumentsByType(
   args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByTypeRequestBody },
 ): Promise<void> {
   await makeRequest({
-    url: `${baseUrl}/github-documents/delete/type`,
+    url: `${CORE_API_BASE_URL}/github-documents/delete/type`,
     ...args,
   });
 }

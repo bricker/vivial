@@ -1,7 +1,6 @@
 import { sharedConfig } from '../../config.js';
 import { EaveApp } from '../../eave-origins.js';
-
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_api);
+import { CORE_API_BASE_URL } from './shared.js';
 
 export type StatusResponseBody = {
   service: string;
@@ -10,7 +9,7 @@ export type StatusResponseBody = {
 }
 
 export async function status(): Promise<StatusResponseBody> {
-  const resp = await fetch(`${baseUrl}/status`, {
+  const resp = await fetch(`${CORE_API_BASE_URL}/status`, {
     method: 'get',
   });
 

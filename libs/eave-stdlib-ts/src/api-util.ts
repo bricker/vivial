@@ -17,7 +17,7 @@ export function statusPayload(): StatusResponseBody {
 
 export function StatusRouter(): Router {
   const router = Router();
-  router.get('/status', async (_req: Request, res: Response) => {
+  router.get(`/status`, async (_req: Request, res: Response) => {
     const payload = statusPayload();
 
     if (cacheInitialized()) {
