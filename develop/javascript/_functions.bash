@@ -45,7 +45,18 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -in "Linting $logtarget (js/ts)"
 		npx eslint --max-warnings=0 .
-		npx prettier --check .
+
+		local prettierloglevel="silent"
+		if verbose; then
+			prettierloglevel="log"
+		fi
+
+		npx prettier \
+			--check \
+			--log-level "$prettierloglevel" \
+			--config "${EAVE_HOME}/develop/javascript/es-config/prettier/index.js" \
+			--ignore-path "${EAVE_HOME}/develop/javascript/es-config/prettier/prettierignore" \
+			.
 
 		if test -f "tsconfig.json"; then
 			npx tsc --project . --noEmit
@@ -64,8 +75,19 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
+		local prettierloglevel="silent"
+		if verbose; then
+			prettierloglevel="log"
+		fi
+
 		statusmsg -in "Formatting $logtarget (js/ts)"
-		npx prettier --write .
+		npx prettier \
+			--write \
+			--log-level "$prettierloglevel" \
+			--config "${EAVE_HOME}/develop/javascript/es-config/prettier/index.js" \
+			--ignore-path "${EAVE_HOME}/develop/javascript/es-config/prettier/prettierignore" \
+			.
+
 		statusmsg -sp " ✔ "
 	)
 
