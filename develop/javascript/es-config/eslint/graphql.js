@@ -1,10 +1,9 @@
 const config = {
   overrides: [
     {
-      files: ["*.graphql"],
+      files: ["*.graphql", "*.gql"],
       parser: "@graphql-eslint/eslint-plugin",
       plugins: ["@graphql-eslint"],
-      rules: {},
     },
   ],
 };
