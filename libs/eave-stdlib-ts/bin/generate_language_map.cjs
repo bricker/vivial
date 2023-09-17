@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const fs = require('fs').promises;
-const yaml = require('js-yaml'); // eslint-disable-line import/no-extraneous-dependencies
+const fs = require("fs").promises;
+const yaml = require("js-yaml"); // eslint-disable-line import/no-extraneous-dependencies
 
 async function main() {
   // download latest lang file from https://github.com/github-linguist
-  const fileResp = await fetch('https://raw.githubusercontent.com/github-linguist/linguist/master/lib/linguist/languages.yml');
+  const fileResp = await fetch("https://raw.githubusercontent.com/github-linguist/linguist/master/lib/linguist/languages.yml");
   const fileString = await fileResp.text();
 
   // ingest file content
@@ -14,7 +14,9 @@ async function main() {
   // transform into extension -> lang name map
   const transformedFileObject = {};
   Object.keys(fileObject).forEach((langName) => {
-    if (!fileObject[langName]?.extensions) { return; }
+    if (!fileObject[langName]?.extensions) {
+      return;
+    }
 
     for (const ext of fileObject[langName].extensions) {
       // it is possible that some langauges will share some extensions (e.g. C/C++)
@@ -27,16 +29,16 @@ async function main() {
   });
 
   // ensure common file types have correct mapping
-  transformedFileObject['.tsx'] = 'TypeScript';
-  transformedFileObject['.ts'] = 'TypeScript';
-  transformedFileObject['.ex'] = 'Elixir';
-  transformedFileObject['.rs'] = 'Rust';
-  transformedFileObject['.r'] = 'R';
-  transformedFileObject['.cs'] = 'C#';
+  transformedFileObject[".tsx"] = "TypeScript";
+  transformedFileObject[".ts"] = "TypeScript";
+  transformedFileObject[".ex"] = "Elixir";
+  transformedFileObject[".rs"] = "Rust";
+  transformedFileObject[".r"] = "R";
+  transformedFileObject[".cs"] = "C#";
 
   // write to local file as json for easier access by prod TS code
   const jsonString = JSON.stringify(transformedFileObject, null, 2);
-  await fs.writeFile(`${process.env['EAVE_HOME']}/libs/eave-stdlib-ts/src/programming-langs/languages.json`, jsonString, 'utf8');
+  await fs.writeFile(`${process.env["EAVE_HOME"]}/libs/eave-stdlib-ts/src/programming-langs/generated/languages.json`, jsonString, "utf8");
 }
 
 main();

@@ -1,4 +1,0 @@
-python-dotenv[cli]
-mitmproxy @ git+https://github.com/mitmproxy/mitmproxy@main # to resolve asgiref dependency version error
-click
--e ${EAVE_HOME}/develop/python

@@ -1,6 +1,7 @@
 const config = {
   extends: [
     'airbnb-base',
+    'prettier',
   ],
   plugins: [],
   ignorePatterns: [
@@ -9,6 +10,10 @@ const config = {
     '!.github',
     'dist',
     'generated',
+    '.venv',
+    '__pycache__',
+    'vendor',
+    '\.*',
   ],
   env: {
     browser: true,
@@ -46,8 +51,6 @@ const config = {
     // Style preferences
     'prefer-destructuring': 'off',
     'no-underscore-dangle': 'off',
-    'object-curly-newline': 'off',
-    'function-paren-newline': 'off',
     'arrow-body-style': 'off',
   },
   overrides: [
