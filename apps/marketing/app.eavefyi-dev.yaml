@@ -9,19 +9,19 @@ entrypoint: |-
     eave.marketing.app:app
 
 handlers:
-- url: /static
-  static_dir: eave/marketing/static
+  - url: /static
+    static_dir: eave/marketing/static
 
-- url: /_ah/.*
-  login: admin
-  script: auto
-  auth_fail_action: unauthorized
+  - url: /_ah/.*
+    login: admin
+    script: auto
+    auth_fail_action: unauthorized
 
-- url: .*
-  script: auto
+  - url: .*
+    script: auto
 
 inbound_services:
-- warmup
+  - warmup
 
 instance_class: B2
 basic_scaling:
