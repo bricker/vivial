@@ -1,12 +1,3 @@
-const path = require('node:path');
+const buildConfig = require('@eave-fyi/es-config/pm2');
 
-module.exports = {
-  apps: [{
-    name: 'jira',
-    script: './server.ts',
-    out_file: '/dev/stdout',
-    error_file: '/dev/stderr',
-    interpreter: path.join(__dirname, 'node_modules/.bin/ts-node'),
-    interpreter_args: '--swc',
-  }],
-};
+module.exports = buildConfig('jira');

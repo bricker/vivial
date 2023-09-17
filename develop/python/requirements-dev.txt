@@ -1,9 +1,0 @@
-mypy
-black
-httpx
-types-requests
-python-dotenv
-pytest
-coverage
-pretty_errors
-ruff

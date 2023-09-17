@@ -45,6 +45,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -in "Linting $logtarget (js/ts)"
 		npx eslint --max-warnings=0 .
+		npx prettier --check .
 
 		if test -f "tsconfig.json"; then
 			npx tsc --project . --noEmit
@@ -64,7 +65,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		logtarget=$(^eavepwd)
 
 		statusmsg -in "Formatting $logtarget (js/ts)"
-		npx eslint . --fix
+		npx prettier --write .
 		statusmsg -sp " ✔ "
 	)
 

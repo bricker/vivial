@@ -15,6 +15,7 @@ const config = {
     'react/prop-types': 'off',
     'react/prefer-stateless-function': 'off',
     'react/jsx-one-expression-per-line': 'off',
+    'react/no-unescaped-entities': 'off',
   },
 };
 

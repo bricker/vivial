@@ -51,8 +51,6 @@ const config = {
     // Style preferences
     'prefer-destructuring': 'off',
     'no-underscore-dangle': 'off',
-    'object-curly-newline': 'off',
-    'function-paren-newline': 'off',
     'arrow-body-style': 'off',
   },
   overrides: [
