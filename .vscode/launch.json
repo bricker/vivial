@@ -265,7 +265,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/node_modules/ava/entrypoints/cli.mjs",
       "args": [
-        "--config=${workspaceFolder}/develop/javascript/es-config/typescript/ava.config.mjs",
+        "-r ${workspaceFolder}/develop/javascript/es-config/ava/test-setup.js",
+        "--config=${workspaceFolder}/develop/javascript/es-config/ava/ava.config.mjs",
         "--serial",
         "${file}"
       ],

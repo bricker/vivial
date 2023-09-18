@@ -10,8 +10,5 @@
   },
   "dependencies": {
     "protobufjs": "7.x"
-  },
-  "devDependencies": {
-    "@eave-fyi/es-config": "file:../../../develop/javascript/es-config"
   }
 }

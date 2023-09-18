@@ -322,9 +322,35 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function run-with-dotenv() (
+		local usage="Usage: run-with-dotenv [-f filename ...] [-h]"
+		local files=""
+		while getopts "f:h" argname; do
+			case "$argname" in
+			f)
+				if test -f "$OPTARG"; then
+					files="$files --file $OPTARG"
+				fi
+				;;
+			h)
+				statusmsg -i "$usage"
+				exit 0
+				;;
+			*)
+				statusmsg -i "$usage"
+				exit 1
+				;;
+			esac
+		done
+
+		if test -z "$files"; then
+			files="--file ${EAVE_HOME}/.env"
+		fi
+
 		python-validate-version
 		python-activate-venv
-		PYTHONPATH=. python -m dotenv --file "$EAVE_HOME/.env" run --no-override -- "$@"
+
+		# shellcheck disable=SC2086
+		PYTHONPATH=. python -m dotenv $files run --no-override -- "$@"
 	)
 
 	function run-appengine-dev-server() (

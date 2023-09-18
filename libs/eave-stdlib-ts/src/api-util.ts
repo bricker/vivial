@@ -17,7 +17,7 @@ export function statusPayload(): StatusResponseBody {
 
 export function StatusRouter(): Router {
   const router = Router();
-  router.get('/status', async (_req: Request, res: Response) => {
+  router.get('/', async (_req: Request, res: Response) => {
     const payload = statusPayload();
 
     if (cacheInitialized()) {
@@ -105,7 +105,8 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
 
 export function constructUrl(req: Request): string {
   const audience = req.header(httpConstants.HTTP2_HEADER_HOST);
+  const proto = req.protocol;
   const path = req.originalUrl;
 
-  return `https://${audience}${path}`;
+  return `${proto}://${audience}${path}`;
 }

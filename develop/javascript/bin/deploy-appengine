@@ -20,9 +20,6 @@ function deploy() (
 	yalc publish ../../libs/eave-pubsub-schemas/typescript --replace $qflag
 	yalc add @eave-fyi/eave-pubsub-schemas $qflag
 
-	yalc publish ../../develop/javascript/es-config --replace $qflag
-	yalc add @eave-fyi/es-config $qflag
-
 	# Remove references to the monorepo packages
 	npm prune
 

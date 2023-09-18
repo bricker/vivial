@@ -33,14 +33,11 @@ export function WebhookRouter(): Express.Router {
   Using raw parsing rather than express.json() parser because of GitHub signature verification.
   JSON.parse/stringify changes the bytes of the original body, so signature verification would fail.
   */
-  router.use(rawJsonBody);
-  router.use(validateGithubWebhookHeaders);
-  router.use(jsonParser);
 
   /*
     This is the endpoint that GitHub sends events to.
   */
-  router.post('/github/events', async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+  router.post('/github/events', rawJsonBody, validateGithubWebhookHeaders, jsonParser, async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
     try {
       const ctx = LogContext.load(res);
 

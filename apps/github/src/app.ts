@@ -12,7 +12,7 @@ app.use(GAELifecycleRouter());
 
 const rootRouter = express.Router();
 app.use(rootRouter);
-rootRouter.use("/github", StatusRouter());
+rootRouter.use("/github/status", StatusRouter());
 rootRouter.use(WebhookRouter());
 rootRouter.use(InternalApiRouter());
 rootRouter.use(WebhookOfflineTaskRouter());

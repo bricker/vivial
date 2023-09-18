@@ -33,7 +33,7 @@ app.use(GAELifecycleRouter());
 const rootRouter = express.Router();
 app.use("/jira", rootRouter);
 
-rootRouter.use(StatusRouter());
+rootRouter.use("/status", StatusRouter());
 rootRouter.use("/events", WebhookRouter({ addon }));
 rootRouter.use("/api", InternalApiRouter({ addon }));
 
