@@ -9,7 +9,7 @@ import {
   GithubDocumentsQueryInput,
   GithubDocumentUpdateInput,
 } from '../models/github-documents.js';
-import { CORE_API_BASE_URL } from './shared.js';
+import { CoreApiEndpointConfiguration } from './shared.js';
 
 export type GetGithubDocumentsRequestBody = {
   query_params: GithubDocumentsQueryInput;
@@ -19,17 +19,19 @@ export type GetGithubDocumentsResponseBody = {
   documents: Array<GithubDocument>;
 }
 
-export async function getGithubDocuments(
-  args: RequestArgsAuthedRequest & { input: GetGithubDocumentsRequestBody },
-): Promise<GetGithubDocumentsResponseBody> {
-  const resp = await makeRequest({
-    url: `${CORE_API_BASE_URL}/github-documents/query`,
-    ...args,
-  });
-  const responseData = <GetGithubDocumentsResponseBody>(await resp.json());
-  return responseData;
+export class GetGithubDocumentsOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/query" })
+  static async perform(
+    args: RequestArgsAuthedRequest & { input: GetGithubDocumentsRequestBody },
+  ): Promise<GetGithubDocumentsResponseBody> {
+    const resp = await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+    const responseData = <GetGithubDocumentsResponseBody>(await resp.json());
+    return responseData;
+  }
 }
-
 export type CreateGithubDocumentRequestBody = {
   document: GithubDocumentCreateInput;
 }
@@ -38,17 +40,19 @@ export type CreateGithubDocumentResponseBody = {
   document: GithubDocument;
 }
 
-export async function createGithubDocument(
-  args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody },
-): Promise<CreateGithubDocumentResponseBody> {
-  const resp = await makeRequest({
-    url: `${CORE_API_BASE_URL}/github-documents/create`,
-    ...args,
-  });
-  const responseData = <CreateGithubDocumentResponseBody>(await resp.json());
-  return responseData;
+export class CreateGithubDocumentOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/create" })
+  static async perform(
+    args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody },
+  ): Promise<CreateGithubDocumentResponseBody> {
+    const resp = await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+    const responseData = <CreateGithubDocumentResponseBody>(await resp.json());
+    return responseData;
+  }
 }
-
 export type UpdateGithubDocumentRequestBody = {
   document: GithubDocumentUpdateInput;
 }
@@ -57,39 +61,46 @@ export type UpdateGithubDocumentResponseBody = {
   document: GithubDocument;
 }
 
-export async function updateGithubDocument(
-  args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody },
-): Promise<UpdateGithubDocumentResponseBody> {
-  const resp = await makeRequest({
-    url: `${CORE_API_BASE_URL}/github-documents/update`,
-    ...args,
-  });
-  const responseData = <UpdateGithubDocumentResponseBody>(await resp.json());
-  return responseData;
+export class UpdateGithubDocumentOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/update" })
+  static async perform(
+    args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody },
+  ): Promise<UpdateGithubDocumentResponseBody> {
+    const resp = await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+    const responseData = <UpdateGithubDocumentResponseBody>(await resp.json());
+    return responseData;
+  }
 }
-
 export type DeleteGithubDocumentsByIdsRequestBody = {
   documents: Array<GithubDocumentsDeleteByIdsInput>;
 }
 
-export async function deleteGithubDocumentsByIds(
-  args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByIdsRequestBody },
-): Promise<void> {
-  await makeRequest({
-    url: `${CORE_API_BASE_URL}/github-documents/delete/id`,
-    ...args,
-  });
+export class DeleteGithubDocumentsByIdsOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/delete/id" })
+  static async perform(
+    args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByIdsRequestBody },
+  ): Promise<void> {
+    await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+  }
 }
-
 export type DeleteGithubDocumentsByTypeRequestBody = {
   documents: Array<GithubDocumentsDeleteByTypeInput>;
 }
 
-export async function deleteGithubDocumentsByType(
-  args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByTypeRequestBody },
-): Promise<void> {
-  await makeRequest({
-    url: `${CORE_API_BASE_URL}/github-documents/delete/type`,
-    ...args,
-  });
+export class DeleteGithubDocumentsByTypeOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/delete/type" })
+  static async perform(
+    args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByTypeRequestBody },
+  ): Promise<void> {
+    await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+  }
 }

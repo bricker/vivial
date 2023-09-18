@@ -4,7 +4,7 @@ import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../..
 import { DocumentInput, DocumentSearchResult } from '../models/documents.js';
 import { DocumentReference, Subscription } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
-import { CORE_API_BASE_URL } from './shared.js';
+import { CoreApiEndpointConfiguration } from './shared.js';
 
 export type UpsertDocumentRequestBody = {
   document: DocumentInput;
@@ -16,13 +16,17 @@ export type UpsertDocumentResponseBody = {
   document_reference: DocumentReference;
 }
 
-export async function upsertDocument(args: RequestArgsTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
-  const resp = await makeRequest({
-    url: `${CORE_API_BASE_URL}/documents/upsert`,
-    ...args,
-  });
-  const responseData = <UpsertDocumentResponseBody>(await resp.json());
-  return responseData;
+export class UpsertDocumentOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/documents/upsert" })
+
+  static async perform(args: RequestArgsTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
+    const resp = await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+    const responseData = <UpsertDocumentResponseBody>(await resp.json());
+    return responseData;
+  }
 }
 
 export type SearchDocumentsRequestBody = {
@@ -34,11 +38,16 @@ export type SearchDocumentsResponseBody = {
   documents: DocumentSearchResult[];
 }
 
-export async function searchDocuments(args: RequestArgsTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
-  const resp = await makeRequest({
-    url: `${CORE_API_BASE_URL}/documents/search`,
-    ...args,
-  });
-  const responseData = <SearchDocumentsResponseBody>(await resp.json());
-  return responseData;
+export class SearchDocuments {
+  static config = new CoreApiEndpointConfiguration({ path: "/documents/search" })
+
+  static async perform(args: RequestArgsTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
+    const resp = await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+    const responseData = <SearchDocumentsResponseBody>(await resp.json());
+    return responseData;
+  }
 }
+
