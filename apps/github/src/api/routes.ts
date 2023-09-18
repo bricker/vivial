@@ -10,7 +10,6 @@ import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 
-
 export function InternalApiRouter(): Router {
   const router = Router();
 
@@ -47,6 +46,15 @@ export function InternalApiRouter(): Router {
       if (octokit) {
         await createPullRequest({ req, res, octokit, ctx });
       }
+      res.end(); // safety
+    } catch (e: unknown) {
+      next(e);
+    }
+  });
+
+  router.post(CreateGithubPullRequestOperation.config.path, ...CreateGithubPullRequestOperation.config.middlewares, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await createPullRequest(req, res);
       res.end(); // safety
     } catch (e: unknown) {
       next(e);
