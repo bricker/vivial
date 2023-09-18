@@ -6,6 +6,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.analytics import log_event
 from eave.stdlib.api_util import json_response
+from eave.stdlib.core_api.models.repos import Feature
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
     GetGithubReposRequest,
@@ -115,7 +116,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         event_description=_event_description,
                         event_source=_event_source,
                         opaque_params={
-                            "feature": "api_documentation",
+                            "feature": Feature.API_DOCUMENTATION.value,
                             "new_state": new_values.api_documentation_state.value,
                             "external_repo_id": gh_repo_orm.external_repo_id,
                         },
@@ -127,7 +128,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         event_description=_event_description,
                         event_source=_event_source,
                         opaque_params={
-                            "feature": "architecture_documentation",
+                            "feature": Feature.ARCHITECTURE_DOCUMENTATION.value,
                             "new_state": new_values.architecture_documentation_state.value,
                             "external_repo_id": gh_repo_orm.external_repo_id,
                         },
@@ -139,7 +140,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         event_description=_event_description,
                         event_source=_event_source,
                         opaque_params={
-                            "feature": "inline_code_documentation",
+                            "feature": Feature.INLINE_CODE_DOCUMENTATION.value,
                             "new_state": new_values.inline_code_documentation_state.value,
                             "external_repo_id": gh_repo_orm.external_repo_id,
                         },
