@@ -4,23 +4,25 @@ import { EaveApp } from "../../eave-origins.js";
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
 import { GithubAppEndpointConfiguration } from "./shared.js";
 
-export const config = new GithubAppEndpointConfiguration({
-  path: "/github/api/subscribe",
-  authRequired: false,
-})
-
 export type CreateGithubResourceSubscriptionRequestBody = {
   url: string;
 }
 
-export async function createGithubResourceSubscription(args: RequestArgsTeamId & {
-  input: CreateGithubResourceSubscriptionRequestBody,
-}): Promise<CreateSubscriptionResponseBody> {
-  const resp = await makeRequest({
-    url: config.url,
-    ...args,
-  });
+export class CreateGithubResourceSubscriptionOperation {
+  static config = new GithubAppEndpointConfiguration({
+    path: "/github/api/subscribe",
+    authRequired: false,
+  })
 
-  const responseData = <CreateSubscriptionResponseBody>(await resp.json());
-  return responseData;
+  static async perform(args: RequestArgsTeamId & {
+    input: CreateGithubResourceSubscriptionRequestBody,
+  }): Promise<CreateSubscriptionResponseBody> {
+    const resp = await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+
+    const responseData = <CreateSubscriptionResponseBody>(await resp.json());
+    return responseData;
+  }
 }

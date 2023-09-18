@@ -1,6 +1,6 @@
 import Express from 'express';
 import { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import * as RunApiDocumentationTaskOperation from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js';
+import { RunApiDocumentationTaskOperation } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js';
 import { runApiDocumentation } from './api-documentation.js';
 
 export function OfflineTaskRouter(): Express.Router {

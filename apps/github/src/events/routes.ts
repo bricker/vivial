@@ -4,10 +4,10 @@ import Express from 'express';
 import { createTaskFromRequest } from '@eave-fyi/eave-stdlib-ts/src/task-queue.js';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
+import { GithubEventHandlerTaskOperation } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js';
 import getCacheClient, { Cache } from '@eave-fyi/eave-stdlib-ts/src/cache.js';
 import { rawJsonBody } from '@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js';
 import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js';
-import * as GithubEventHandlerTask from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js';
 import { getTeamForInstallation, githubAppClient } from '../lib/octokit-util.js';
 import { GITHUB_EVENT_QUEUE_NAME } from '../config.js';
 import registry, { HandlerFunction } from './registry.js';
@@ -92,7 +92,7 @@ export function WebhookRouter(): Express.Router {
 
       await createTaskFromRequest({
         queueName: GITHUB_EVENT_QUEUE_NAME,
-        targetPath: GithubEventHandlerTask.config.path,
+        targetPath: GithubEventHandlerTaskOperation.config.path,
         origin: EaveApp.eave_github_app,
         req,
         ctx,
@@ -110,7 +110,7 @@ export function WebhookRouter(): Express.Router {
 export function WebhookOfflineTaskRouter(): Express.Router {
   const router = Express.Router();
 
-  router.post(GithubEventHandlerTask.config.path, ...GithubEventHandlerTask.config.middlewares, async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+  router.post(GithubEventHandlerTaskOperation.config.path, ...GithubEventHandlerTaskOperation.config.middlewares, async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
     try {
       const ctx = LogContext.load(res);
       const handler = getEventHandler(req, res);
