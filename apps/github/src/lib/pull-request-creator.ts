@@ -48,14 +48,14 @@ export class PullRequestCreator {
     this.octokit = octokit;
     this.ctx = ctx;
     this.repoId = repoId;
-    this.baseBranchName = this.#ensureBranchPrefix(baseBranchName);
+    this.baseBranchName = this.ensureBranchPrefix(baseBranchName);
   }
 
   /**
    * branch off the head commit (should usually be PR merge commit)
    * https://docs.github.com/en/graphql/reference/mutations#createref
    */
-  async #createBranch(branchName: string): Promise<Ref> {
+  private async createBranch(branchName: string): Promise<Ref> {
     // get base branch head commit
     const getHeadCommitQuery = await GraphQLUtil.loadQuery('getBranchHeadCommit');
     const getHeadCommitParams: {
@@ -99,7 +99,7 @@ export class PullRequestCreator {
    *
    * @param fileChanges - `contents` field of each `FileChange` object must be base64 encoded
    */
-  async #createCommit(branch: Ref, message: string, fileChanges: Array<FileChange>): Promise<void> {
+  private async createCommit(branch: Ref, message: string, fileChanges: Array<FileChange>): Promise<void> {
     const createCommitMutation = await GraphQLUtil.loadQuery('createCommitOnBranch');
     const createCommitParameters: {
       branch: CommittableBranch,
@@ -117,7 +117,7 @@ export class PullRequestCreator {
     const commitResp = await this.octokit.graphql<{ createCommitOnBranch: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
     if (!commitResp.createCommitOnBranch?.commit?.oid) {
       eaveLogger.error(`Failed to create commit in ${this.repoOwner}/${this.repoName}`, this.ctx);
-      await this.#deleteBranch(branch!.id);
+      await this.deleteBranch(branch!.id);
       throw new Error('Failed to create commit');
     }
   }
@@ -126,7 +126,7 @@ export class PullRequestCreator {
    * open new PR against event.pull_request.base.ref (same base as PR that triggered this event)
    * https://docs.github.com/en/graphql/reference/mutations#createpullrequest
    */
-  async #openPullRequest(branch: Ref, prTitle: string, prBody: string): Promise<PullRequest> {
+  private async openPullRequest(branch: Ref, prTitle: string, prBody: string): Promise<PullRequest> {
     const createPrMutation = await GraphQLUtil.loadQuery('createPullRequest');
     const createPrParameters: {
       baseRefName: Scalars['String'],
@@ -144,14 +144,14 @@ export class PullRequestCreator {
     const prResp = await this.octokit.graphql<{ createPullRequest: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
     if (!prResp.createPullRequest?.pullRequest?.number) {
       eaveLogger.error(`Failed to create PR in ${this.repoOwner}/${this.repoName}`, this.ctx);
-      await this.#deleteBranch(branch!.id);
+      await this.deleteBranch(branch!.id);
       throw new Error('Failed to open PR');
     }
     return prResp.createPullRequest.pullRequest;
   }
 
   // https://docs.github.com/en/graphql/reference/mutations#deleteref
-  async #deleteBranch(branchNodeId: string): Promise<void> {
+  private async deleteBranch(branchNodeId: string): Promise<void> {
     const query = await GraphQLUtil.loadQuery('deleteBranch');
     const params: {
       refNodeId: Scalars['ID'],
@@ -161,7 +161,7 @@ export class PullRequestCreator {
     await this.octokit.graphql<{ resp: Mutation['deleteRef'] }>(query, params);
   }
 
-  #ensureBranchPrefix(branchName: string): string {
+  private ensureBranchPrefix(branchName: string): string {
     const githubBranchPrefix = 'refs/heads/';
     if (branchName.startsWith(githubBranchPrefix)) {
       return branchName;
@@ -174,7 +174,7 @@ export class PullRequestCreator {
    * Input parameters used for PR creation details.
    * @returns the number of the created PR
    */
-  async createPullRequest({
+  public async createPullRequest({
     branchName,
     commitMessage,
     prTitle,
@@ -187,9 +187,9 @@ export class PullRequestCreator {
     prBody: string,
     fileChanges: Array<FileChange>,
   }): Promise<number> {
-    const branch = await this.#createBranch(this.#ensureBranchPrefix(branchName));
-    await this.#createCommit(branch, commitMessage, fileChanges);
-    const pr = await this.#openPullRequest(branch, prTitle, prBody);
+    const branch = await this.createBranch(this.ensureBranchPrefix(branchName));
+    await this.createCommit(branch, commitMessage, fileChanges);
+    const pr = await this.openPullRequest(branch, prTitle, prBody);
 
     await logEvent({
       event_name: 'eave_github_pull_request_opened',
