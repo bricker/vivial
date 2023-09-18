@@ -9,8 +9,7 @@ import {
   GithubReposFeatureStateInput,
   GithubRepoUpdateInput,
 } from '../models/github-repos.js';
-
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_api);
+import { CORE_API_BASE_URL } from './shared.js';
 
 export type GetGithubReposRequestBody = {
   repos?: Array<GithubRepoListInput>;
@@ -24,7 +23,7 @@ export async function getGithubRepos(
   args: RequestArgsAuthedRequest & { input: GetGithubReposRequestBody },
 ): Promise<GetGithubReposResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/github-repos/query`,
+    url: `${CORE_API_BASE_URL}/github-repos/query`,
     ...args,
   });
   const responseData = <GetGithubReposResponseBody>(await resp.json());
@@ -43,7 +42,7 @@ export async function queryGithubReposFeatureState(
   args: RequestArgsAuthedRequest & { input: FeatureStateGithubReposRequestBody },
 ): Promise<FeatureStateGithubReposResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/github-repos/query/enabled`,
+    url: `${CORE_API_BASE_URL}/github-repos/query/enabled`,
     ...args,
   });
   const responseData = <FeatureStateGithubReposResponseBody>(await resp.json());
@@ -62,7 +61,7 @@ export async function createGithubRepo(
   args: RequestArgsAuthedRequest & { input: CreateGithubRepoRequestBody },
 ): Promise<CreateGithubRepoResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/github-repos/create`,
+    url: `${CORE_API_BASE_URL}/github-repos/create`,
     ...args,
   });
   const responseData = <CreateGithubRepoResponseBody>(await resp.json());
@@ -77,7 +76,7 @@ export async function deleteGithubRepos(
   args: RequestArgsAuthedRequest & { input: DeleteGithubReposRequestBody },
 ): Promise<void> {
   await makeRequest({
-    url: `${baseUrl}/github-repos/delete`,
+    url: `${CORE_API_BASE_URL}/github-repos/delete`,
     ...args,
   });
 }
@@ -94,7 +93,7 @@ export async function updateGithubRepos(
   args: RequestArgsAuthedRequest & { input: UpdateGithubReposRequestBody },
 ): Promise<UpdateGithubReposResponseBody> {
   const resp = await makeRequest({
-    url: `${baseUrl}/github-repos/update`,
+    url: `${CORE_API_BASE_URL}/github-repos/update`,
     ...args,
   });
   const responseData = <UpdateGithubReposResponseBody>(await resp.json());

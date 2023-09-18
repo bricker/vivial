@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Octokit } from 'octokit';
 import { Blob, Query, Ref, Repository, Scalars } from '@octokit/graphql-schema';
-import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations.js';
+import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';

@@ -4,7 +4,9 @@ from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.core.public.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.stdlib.analytics import log_event
 from eave.stdlib.api_util import json_response
+from eave.stdlib.core_api.models.repos import Feature
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
     GetGithubReposRequest,
@@ -102,7 +104,50 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
 
             for gh_repo_orm in gh_repo_orms:
                 assert gh_repo_orm.external_repo_id in update_values, "Received a GithubRepo ORM that was not requested"
-                gh_repo_orm.update(update_values[gh_repo_orm.external_repo_id])
+                new_values = update_values[gh_repo_orm.external_repo_id]
+
+                # fire analytics event for each changed feature
+                _event_name = "eave_github_feature_state_change"
+                _event_description = "An Eave GitHub App feature was activated/deactivated"
+                _event_source = "eave core api"
+                if new_values.api_documentation_state is not None:
+                    await log_event(
+                        event_name=_event_name,
+                        event_description=_event_description,
+                        event_source=_event_source,
+                        opaque_params={
+                            "feature": Feature.API_DOCUMENTATION.value,
+                            "new_state": new_values.api_documentation_state.value,
+                            "external_repo_id": gh_repo_orm.external_repo_id,
+                        },
+                        ctx=eave_state.ctx,
+                    )
+                if new_values.architecture_documentation_state is not None:
+                    await log_event(
+                        event_name=_event_name,
+                        event_description=_event_description,
+                        event_source=_event_source,
+                        opaque_params={
+                            "feature": Feature.ARCHITECTURE_DOCUMENTATION.value,
+                            "new_state": new_values.architecture_documentation_state.value,
+                            "external_repo_id": gh_repo_orm.external_repo_id,
+                        },
+                        ctx=eave_state.ctx,
+                    )
+                if new_values.inline_code_documentation_state is not None:
+                    await log_event(
+                        event_name=_event_name,
+                        event_description=_event_description,
+                        event_source=_event_source,
+                        opaque_params={
+                            "feature": Feature.INLINE_CODE_DOCUMENTATION.value,
+                            "new_state": new_values.inline_code_documentation_state.value,
+                            "external_repo_id": gh_repo_orm.external_repo_id,
+                        },
+                        ctx=eave_state.ctx,
+                    )
+
+                gh_repo_orm.update(new_values)
 
         return json_response(
             UpdateGithubReposRequest.ResponseBody(

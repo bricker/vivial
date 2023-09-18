@@ -10,6 +10,7 @@ from eave.stdlib.core_api.models.subscriptions import (
 from eave.stdlib.core_api.models.team import DocumentPlatform, Team
 from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
 from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.github_api.operations.content import GetGithubUrlContent
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.github_api.operations as gh_ops
 from eave.stdlib.test_util import UtilityBaseTestCase
@@ -64,8 +65,8 @@ class TestLinkHandler(UtilityBaseTestCase):
     async def test_map_link_content(self) -> None:
         mock = self.get_mock("github_client.get_file_content")
         mock.side_effect = [
-            gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 1")),
-            gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 2")),
+            GetGithubUrlContent.ResponseBody(content=self.anystring("file content 1")),
+            GetGithubUrlContent.ResponseBody(content=self.anystring("file content 2")),
         ]
 
         input_links = [

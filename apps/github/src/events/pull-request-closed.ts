@@ -11,16 +11,13 @@ import {
   PullRequest,
   PullRequestChangedFileConnection,
   PullRequestChangedFile,
-  Mutation,
-  FileChanges,
-  CommitMessage,
-  CommittableBranch,
 } from '@octokit/graphql-schema';
-import { Octokit } from 'octokit';
 import { isSupportedProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js';
 import { updateDocumentation } from '@eave-fyi/eave-stdlib-ts/src/function-documenting.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
+import { FileChange } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
 import { GitHubOperationsContext } from '../types.js';
+import { PullRequestCreator } from '../lib/pull-request-creator.js';
 import * as GraphQLUtil from '../lib/graphql-util.js';
 
 const eavePrTitle = 'docs: Eave inline code documentation update';
@@ -174,109 +171,35 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   }));
 
   try {
-    // get base branch head commit
-    const getHeadCommitQuery = await GraphQLUtil.loadQuery('getBranchHeadCommit');
-    const getHeadCommitParams: {
-      repoName: Scalars['String'],
-      repoOwner: Scalars['String'],
-      branchName: Scalars['String'],
-    } = {
+    const fileChanges = filePaths.reduce((acc, fpath, i) => {
+      const content = b64UpdatedContent[i];
+      // remove entries w/ null content from content fetch failures
+      if (content) {
+        acc.push({
+          path: fpath,
+          contents: content,
+        });
+      }
+      return acc;
+    }, Array<FileChange>());
+
+    const prCreator = new PullRequestCreator({
       repoName,
       repoOwner,
-      branchName: event.pull_request.base.ref,
-    };
-    const headResp = await octokit.graphql<{ repository: Query['repository'] }>(getHeadCommitQuery, getHeadCommitParams);
-    const commitHead = headResp.repository?.ref?.target;
-    if (!commitHead) {
-      eaveLogger.error(`Failed to fetch ${event.pull_request.base.ref} head commit from ${repoOwner}/${repoName}`, ctx);
-      return;
-    }
-
-    // branch off the head commit (should usually be PR merge commit)
-    // https://docs.github.com/en/graphql/reference/mutations#createref
-    const createBranchMutation = await GraphQLUtil.loadQuery('createBranch');
-    const createBranchParameters: {
-      repoId: Scalars['ID'],
-      branchName: Scalars['String'],
-      commitHeadId: Scalars['GitObjectID'],
-    } = {
-      commitHeadId: commitHead.oid,
+      repoId,
+      baseBranchName: event.pull_request.base.ref,
+      octokit,
+      ctx,
+    });
+    await prCreator.createPullRequest({
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
-      repoId,
-    };
-    const branchResp = await octokit.graphql<{ createRef: Mutation['createRef'] }>(createBranchMutation, createBranchParameters);
-    const docsBranch = branchResp.createRef?.ref;
-    if (!docsBranch) {
-      eaveLogger.error(`Failed to create branch in ${repoOwner}/${repoName}`, ctx);
-      return;
-    }
-
-    // commit changes
-    // https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch
-    const createCommitMutation = await GraphQLUtil.loadQuery('createCommitOnBranch');
-    const createCommitParameters: {
-      branch: CommittableBranch,
-      headOid: Scalars['GitObjectID'],
-      message: CommitMessage,
-      fileChanges: FileChanges,
-    } = {
-      branch: { branchName: docsBranch.name, repositoryNameWithOwner: `${repoOwner}/${repoName}` },
-      headOid: docsBranch.target!.oid,
-      message: { headline: 'docs: automated update' },
-      fileChanges: {
-        additions: filePaths.map((fpath, i) => {
-          return {
-            path: fpath,
-            contents: b64UpdatedContent[i],
-          };
-        }).filter((adds) => {
-          // remove entries w/ null content from content fetch failures
-          return adds.contents !== null;
-        }),
-      },
-    };
-    const commitResp = await octokit.graphql<{ createCommitOnBranch: Mutation['createCommitOnBranch'] }>(createCommitMutation, createCommitParameters);
-    if (!commitResp.createCommitOnBranch?.commit?.oid) {
-      eaveLogger.error(`Failed to create commit in ${repoOwner}/${repoName}`, ctx);
-      await deleteBranch(octokit, docsBranch!.id);
-      return;
-    }
-
-    // open new PR against event.pull_request.base.ref (same base as PR that triggered this event)
-    // https://docs.github.com/en/graphql/reference/mutations#createpullrequest
-    const createPrMutation = await GraphQLUtil.loadQuery('createPullRequest');
-    const createPrParameters: {
-      baseRefName: Scalars['String'],
-      body: Scalars['String'],
-      headRefName: Scalars['String'],
-      repoId: Scalars['ID'],
-      title: Scalars['String'],
-    } = {
-      repoId,
-      baseRefName: event.pull_request.base.ref,
-      headRefName: docsBranch!.name,
-      title: eavePrTitle,
-      body: `Your new code docs based on changes from PR #${event.pull_request.number}`,
-    };
-    const prResp = await octokit.graphql<{ createPullRequest: Mutation['createPullRequest'] }>(createPrMutation, createPrParameters);
-    if (!prResp.createPullRequest?.pullRequest?.number) {
-      eaveLogger.error(`Failed to create PR in ${repoOwner}/${repoName}`, ctx);
-      await deleteBranch(octokit, docsBranch!.id);
-      return;
-    }
+      commitMessage: 'docs: automated update',
+      fileChanges,
+      prTitle: eavePrTitle,
+      prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
+    });
   } catch (error: any) {
     eaveLogger.error(`GitHub API threw an error during inline docs PR creation: ${JSON.stringify(error)}`, ctx);
     return;
   }
-}
-
-// https://docs.github.com/en/graphql/reference/mutations#deleteref
-async function deleteBranch(octokit: Octokit, branchNodeId: string) {
-  const query = await GraphQLUtil.loadQuery('deleteBranch');
-  const params: {
-    refNodeId: Scalars['ID'],
-  } = {
-    refNodeId: branchNodeId,
-  };
-  await octokit.graphql<{ resp: Mutation['deleteRef'] }>(query, params);
 }

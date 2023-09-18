@@ -5,6 +5,17 @@ export type GithubRepository = {
   full_name: string;
 }
 
+export type FileChange = {
+  /**
+   * path from github repo root to file to change
+   */
+  path: string,
+  /**
+   * base64 encoded string to replace the content of the file at `path`
+   */
+  contents: string,
+};
+
 export type GithubRepoInput = {
   external_repo_id: string;
 }
