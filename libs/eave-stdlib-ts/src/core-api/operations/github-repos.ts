@@ -1,6 +1,4 @@
-import { sharedConfig } from '../../config.js';
-import { EaveApp } from '../../eave-origins.js';
-import { makeRequest, RequestArgsAuthedRequest } from '../../requests.js';
+import { makeRequest, RequestArgsAuthedRequest, RequestArgsOrigin, RequestArgsTeamId } from '../../requests.js';
 import {
   GithubRepo,
   GithubRepoCreateInput,
@@ -20,7 +18,7 @@ export type GetGithubReposResponseBody = {
 }
 
 export async function getGithubRepos(
-  args: RequestArgsAuthedRequest & { input: GetGithubReposRequestBody },
+  args: RequestArgsOrigin & RequestArgsTeamId & { input: GetGithubReposRequestBody },
 ): Promise<GetGithubReposResponseBody> {
   const resp = await makeRequest({
     url: `${CORE_API_BASE_URL}/github-repos/query`,
@@ -39,7 +37,7 @@ export type FeatureStateGithubReposResponseBody = {
 }
 
 export async function queryGithubReposFeatureState(
-  args: RequestArgsAuthedRequest & { input: FeatureStateGithubReposRequestBody },
+  args: RequestArgsOrigin & RequestArgsTeamId & { input: FeatureStateGithubReposRequestBody },
 ): Promise<FeatureStateGithubReposResponseBody> {
   const resp = await makeRequest({
     url: `${CORE_API_BASE_URL}/github-repos/query/enabled`,
@@ -58,7 +56,7 @@ export type CreateGithubRepoResponseBody = {
 }
 
 export async function createGithubRepo(
-  args: RequestArgsAuthedRequest & { input: CreateGithubRepoRequestBody },
+  args: RequestArgsOrigin & RequestArgsTeamId & { input: CreateGithubRepoRequestBody },
 ): Promise<CreateGithubRepoResponseBody> {
   const resp = await makeRequest({
     url: `${CORE_API_BASE_URL}/github-repos/create`,

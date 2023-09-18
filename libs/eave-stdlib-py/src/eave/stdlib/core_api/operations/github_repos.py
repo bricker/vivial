@@ -15,6 +15,7 @@ from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
 class GetGithubReposRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-repos/query",
+        auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):
@@ -44,6 +45,7 @@ class GetGithubReposRequest(Endpoint):
 class FeatureStateGithubReposRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-repos/query/enabled",
+        auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):
@@ -72,6 +74,7 @@ class FeatureStateGithubReposRequest(Endpoint):
 class CreateGithubRepoRequest(Endpoint):
     config = EndpointConfiguration(
         path="/github-repos/create",
+        auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):
