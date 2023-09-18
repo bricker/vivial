@@ -3,8 +3,8 @@ import { Pair } from './types.js';
 import eaveLogger from './logging.js';
 import { CtxArg, RequestArgsOrigin, RequestArgsTeamId } from './requests.js';
 import { Subscription } from './core-api/models/subscriptions.js';
-import { getGithubUrlContent } from './github-api/operations/get-content.js';
-import { createGithubResourceSubscription } from './github-api/operations/create-subscription.js';
+import { GetGithubUrlContentOperation } from './github-api/operations/get-content.js';
+import { CreateGithubResourceSubscriptionOperation } from './github-api/operations/create-subscription.js';
 
 // mapping from link type to regex for matching raw links against
 const SUPPORTED_LINKS: { [linkType: string]: Array<RegExp> } = {
@@ -37,7 +37,7 @@ export async function mapUrlContent({ origin, teamId, urls, ctx }: RequestArgsTe
 
     switch (type) {
       case LinkType.github: {
-        const contentResponse = await getGithubUrlContent({
+        const contentResponse = await GetGithubUrlContentOperation.perform({
           ctx,
           origin,
           teamId,
@@ -111,13 +111,14 @@ function getLinkType(link: string): LinkType | null {
 async function createSubscription({ origin, teamId, url, linkType, ctx }: RequestArgsTeamId & { url: string, linkType: LinkType }): Promise<Subscription | null> {
   switch (linkType) {
     case LinkType.github: {
-      const subscriptionResponse = await createGithubResourceSubscription({
+      const subscriptionResponse = await CreateGithubResourceSubscriptionOperation.perform({
         ctx,
         origin,
         teamId,
         input: {
           url,
-        } });
+        }
+      });
       return subscriptionResponse.subscription;
     }
     default:
