@@ -106,11 +106,14 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                 new_values = update_values[gh_repo_orm.external_repo_id]
 
                 # fire analytics event for each changed feature
+                _event_name = "eave_github_feature_state_change"
+                _event_description = "An Eave GitHub App feature was activated/deactivated"
+                _event_source = "eave core api"
                 if new_values.api_documentation_state is not None:
                     await log_event(
-                        event_name="eave_github_feature_state_change",
-                        event_description="An Eave GitHub App feature was activated/deactivated",
-                        event_source="eave core api",
+                        event_name=_event_name,
+                        event_description=_event_description,
+                        event_source=_event_source,
                         opaque_params={
                             "feature": "api_documentation",
                             "new_state": new_values.api_documentation_state.value,
@@ -120,9 +123,9 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                     )
                 if new_values.architecture_documentation_state is not None:
                     await log_event(
-                        event_name="eave_github_feature_state_change",
-                        event_description="An Eave GitHub App feature was activated/deactivated",
-                        event_source="eave core api",
+                        event_name=_event_name,
+                        event_description=_event_description,
+                        event_source=_event_source,
                         opaque_params={
                             "feature": "architecture_documentation",
                             "new_state": new_values.architecture_documentation_state.value,
@@ -132,9 +135,9 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                     )
                 if new_values.inline_code_documentation_state is not None:
                     await log_event(
-                        event_name="eave_github_feature_state_change",
-                        event_description="An Eave GitHub App feature was activated/deactivated",
-                        event_source="eave core api",
+                        event_name=_event_name,
+                        event_description=_event_description,
+                        event_source=_event_source,
                         opaque_params={
                             "feature": "inline_code_documentation",
                             "new_state": new_values.inline_code_documentation_state.value,
