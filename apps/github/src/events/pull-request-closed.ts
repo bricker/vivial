@@ -171,15 +171,17 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   }));
 
   try {
-    const fileChanges = <Array<FileChange>>filePaths.map((fpath, i) => {
-      return {
-        path: fpath,
-        contents: b64UpdatedContent[i],
-      };
-    }).filter((addition) => {
+    const fileChanges = filePaths.reduce((acc, fpath, i) => {
+      const content = b64UpdatedContent[i];
       // remove entries w/ null content from content fetch failures
-      return addition.contents !== null && addition.contents !== undefined;
-    });
+      if (content) {
+        acc.push({
+          path: fpath,
+          contents: content,
+        });
+      }
+      return acc;
+    }, Array<FileChange>());
 
     const prCreator = new PullRequestCreator({
       repoName,
