@@ -76,12 +76,13 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
+		statusmsg -in "Formatting $logtarget (js/ts)"
+
 		local prettierloglevel="silent"
 		if verbose; then
 			prettierloglevel="log"
 		fi
 
-		statusmsg -in "Formatting $logtarget (js/ts)"
 		npx prettier \
 			--write \
 			--log-level "$prettierloglevel" \

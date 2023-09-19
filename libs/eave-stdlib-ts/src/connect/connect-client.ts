@@ -2,10 +2,10 @@ import { AddOn, HostClient } from 'atlassian-connect-express';
 import { CoreOptions, RequestResponse, UrlOptions } from 'request';
 import { promisify } from 'util';
 import eaveLogger, { LogContext } from '../logging.js';
-import { queryConnectInstallation } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveApp } from '../eave-origins.js';
 import { CtxArg } from '../requests.js';
+import { QueryConnectInstallationOperation } from '../core-api/operations/connect.js';
 
 export type RequestOpts = CoreOptions & UrlOptions;
 
@@ -25,7 +25,7 @@ export default class ConnectClient {
     clientKey?: string,
   }): Promise<HostClient> {
     if (!clientKey) {
-      const connectIntegrationResponse = await queryConnectInstallation({
+      const connectIntegrationResponse = await QueryConnectInstallationOperation.perform({
         origin,
         ctx,
         input: {

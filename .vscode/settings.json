@@ -41,7 +41,7 @@
     "editor.tabSize": 2
   },
   "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "yaml.schemas": {
     "https://json.schemastore.org/github-action": ["action.yml"],
@@ -189,5 +189,7 @@
     "--follow-imports=silent",
     "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
-  "mypy-type-checker.importStrategy": "fromEnvironment"
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
+  "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
 }

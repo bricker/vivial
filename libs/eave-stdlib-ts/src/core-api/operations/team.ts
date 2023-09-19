@@ -3,18 +3,22 @@ import { EaveApp } from '../../eave-origins.js';
 import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../../requests.js';
 import { Integrations } from '../models/integrations.js';
 import { Team } from '../models/team.js';
-import { CORE_API_BASE_URL } from './shared.js';
+import { CoreApiEndpointConfiguration } from './shared.js';
 
 export type GetTeamResponseBody = {
   team: Team;
   integrations: Integrations;
 }
 
-export async function getTeam(args: RequestArgsTeamId): Promise<GetTeamResponseBody> {
-  const resp = await makeRequest({
-    url: `${CORE_API_BASE_URL}/team/query`,
-    ...args,
-  });
-  const responseData = <GetTeamResponseBody>(await resp.json());
-  return responseData;
+export class GetTeamOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/team/query" })
+
+  static async perform(args: RequestArgsTeamId): Promise<GetTeamResponseBody> {
+    const resp = await makeRequest({
+      url: this.config.url,
+      ...args,
+    });
+    const responseData = <GetTeamResponseBody>(await resp.json());
+    return responseData;
+  }
 }
