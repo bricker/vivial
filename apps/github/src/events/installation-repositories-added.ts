@@ -1,5 +1,5 @@
 import { InstallationRepositoriesAddedEvent } from '@octokit/webhooks-types';
-import { createGithubRepo, getGithubRepos, queryGithubReposFeatureState } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js'
+import { CreateGithubRepoOperation, GetGithubReposOperation, FeatureStateGithubReposOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js'
 import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { Feature, State } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js';
 import { enumCases } from '@eave-fyi/eave-stdlib-ts/src/util.js';
@@ -26,7 +26,7 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
     ctx,
   };
 
-  const res = await getGithubRepos({
+  const res = await GetGithubReposOperation.perform({
     ...sharedReqInput,
     input: {}
   });
@@ -46,7 +46,7 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
 
       // if all the team's repos have the ENABLED state for this feature,
       // the new repo will also get the ENABLED state to match the default
-      defaultFeatureStates[feat] = (await queryGithubReposFeatureState({
+      defaultFeatureStates[feat] = (await FeatureStateGithubReposOperation.perform({
         ...sharedReqInput,
         input: {
           query_params: {
@@ -57,7 +57,7 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
       })).states_match ? State.ENABLED : State.DISABLED;
     }
 
-    const repoResponse = await createGithubRepo({
+    const repoResponse = await CreateGithubRepoOperation.perform({
       teamId: ctx.eave_team_id,
       origin: EaveApp.eave_confluence_app,
       input: {
