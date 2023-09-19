@@ -1,6 +1,6 @@
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
 import { GithubRepoInput } from "../models.js";
-import { GITHUB_APP_TASKS_MOUNT_PATH, GithubAppEndpointConfiguration } from "./shared.js";
+import { GithubAppEndpointConfiguration } from "./shared.js";
 
 export type RunApiDocumentationTaskRequestBody = {
   repo: GithubRepoInput;
@@ -8,12 +8,8 @@ export type RunApiDocumentationTaskRequestBody = {
 
 export class RunApiDocumentationTaskOperation {
   static config = new GithubAppEndpointConfiguration({
-    mountPath: GITHUB_APP_TASKS_MOUNT_PATH,
-    subPath: "/run-api-documentation",
+    path: "/_/github/run-api-documentation",
     authRequired: false,
-    teamIdRequired: false,
-    signatureRequired: false,
-    originRequired: false,
   })
 
   static async perform(args: RequestArgsTeamId & {
