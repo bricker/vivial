@@ -1,9 +1,9 @@
 import { InstallationRepositoriesAddedEvent } from '@octokit/webhooks-types';
-import { createGithubRepo, getGithubRepos, GetGithubReposRequestBody, queryGithubReposFeatureState } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js'
-import { GitHubOperationsContext } from '../types.js';
+import { createGithubRepo, getGithubRepos, queryGithubReposFeatureState } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js'
 import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { Feature, State } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js';
 import { enumCases } from '@eave-fyi/eave-stdlib-ts/src/util.js';
+import { GitHubOperationsContext } from '../types.js';
 
 /**
  * Receives github webhook pull_request events.
@@ -34,12 +34,17 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
   }
 
   for (const repo of event.repositories_added) {
-    const featureStates: { [key: string]: State } = {}
+    const defaultFeatureStates: { [key: string]: State } = {}
 
     for (const feat of enumCases(Feature)) {
+      // TODO: don't skip these features once implemented
+      if ([Feature.ARCHITECTURE_DOCUMENTATION].includes(feat)) {
+        continue;
+      }
+
       // if all the team's repos have the ENABLED state for this feature,
       // the new repo will also get the ENABLED state to match the default
-      featureStates[Feature.API_DOCUMENTATION] = (await queryGithubReposFeatureState({
+      defaultFeatureStates[feat] = (await queryGithubReposFeatureState({
         ...sharedReqInput,
         input: {
           query_params: {
@@ -56,13 +61,11 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
       input: {
         repo: {
           external_repo_id: repo.node_id,
-          api_documentation_state: featureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
-          inline_code_documentation_state: featureStates[Feature.INLINE_CODE_DOCUMENTATION] || State.DISABLED,
-          architecture_documentation_state: featureStates[Feature.ARCHITECTURE_DOCUMENTATION] || State.DISABLED,
+          api_documentation_state: defaultFeatureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
+          inline_code_documentation_state: defaultFeatureStates[Feature.INLINE_CODE_DOCUMENTATION] || State.DISABLED,
+          architecture_documentation_state: defaultFeatureStates[Feature.ARCHITECTURE_DOCUMENTATION] || State.DISABLED,
         }
       },
     });
   }
-
- 
 }
