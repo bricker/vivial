@@ -1,5 +1,5 @@
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
-import { GithubAppEndpointConfiguration } from "./shared.js";
+import { GITHUB_APP_API_MOUNT_PATH, GithubAppEndpointConfiguration } from "./shared.js";
 
 export type GetGithubUrlContentRequestBody = {
   url: string;
@@ -11,7 +11,8 @@ export type GetGithubUrlContentResponseBody = {
 
 export class GetGithubUrlContentOperation {
   static config = new GithubAppEndpointConfiguration({
-    path: "/github/api/content",
+    mountPath: GITHUB_APP_API_MOUNT_PATH,
+    subPath: "/content",
     authRequired: false,
   })
 

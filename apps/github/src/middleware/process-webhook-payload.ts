@@ -5,6 +5,7 @@ import { InstallationLite, WebhookEventName } from '@octokit/webhooks-types';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { appConfig } from '../config.js';
 import { githubAppClient } from '../lib/octokit-util.js';
+import registry, { HandlerFunction } from '../events/registry.js';
 
 type GithubWebhookHeaders = {
   id?: string,
@@ -40,6 +41,20 @@ export function getGithubWebhookHeaders(req: Express.Request): GithubWebhookHead
     installationId,
     eventName,
   };
+}
+
+export function getEventHandler(req: Express.Request, res: Express.Response): HandlerFunction | undefined {
+  const ctx = LogContext.load(res);
+  const { eventName } = getGithubWebhookHeaders(req);
+  const { action } = <GithubWebhookBody>req.body;
+  const fullEventName = [eventName, action].filter((n) => n).join('.');
+
+  const handler = registry[fullEventName];
+  if (!handler) {
+    eaveLogger.warning(`Event not supported: ${fullEventName}`, ctx);
+  }
+
+  return handler;
 }
 
 export async function validateGithubWebhookHeaders(req: Express.Request, res: Express.Response, next: Express.NextFunction): Promise<void> {

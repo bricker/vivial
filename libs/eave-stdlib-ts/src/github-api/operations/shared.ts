@@ -10,27 +10,35 @@ import { jsonParser } from "../../middleware/body-parser.js";
 
 const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app);
 
+export const GITHUB_APP_API_MOUNT_PATH = "/github/api"
+export const GITHUB_APP_WEBHOOK_MOUNT_PATH = "/github/events"
+export const GITHUB_APP_TASKS_MOUNT_PATH = "/_/github/tasks"
+
 export class GithubAppEndpointConfiguration {
-  path: string;
+  mountPath: string;
+  subPath: string;
   teamIdRequired: boolean;
   authRequired: boolean;
   originRequired: boolean;
   signatureRequired: boolean;
 
   constructor({
-    path,
+    mountPath,
+    subPath,
     teamIdRequired = true,
     authRequired = true,
     originRequired = true,
     signatureRequired = true,
   }: {
-    path: string,
+    mountPath: string,
+    subPath: string,
     teamIdRequired?: boolean,
     authRequired?: boolean,
     originRequired?: boolean,
     signatureRequired?: boolean,
   }) {
-    this.path = path;
+    this.mountPath = mountPath;
+    this.subPath = subPath;
     this.teamIdRequired = teamIdRequired;
     this.authRequired = authRequired;
     this.originRequired = originRequired;
@@ -39,6 +47,10 @@ export class GithubAppEndpointConfiguration {
 
   get url(): string {
     return `${baseUrl}${this.path}`;
+  }
+
+  get path(): string {
+    return `${this.mountPath}${this.subPath}`;
   }
 
   get middlewares(): RequestHandler[] {

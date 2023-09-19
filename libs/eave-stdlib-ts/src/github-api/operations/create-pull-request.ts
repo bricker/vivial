@@ -1,6 +1,6 @@
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
 import { FileChange } from "../models.js";
-import { GithubAppEndpointConfiguration } from "./shared.js";
+import { GITHUB_APP_API_MOUNT_PATH, GithubAppEndpointConfiguration } from "./shared.js";
 
 export type CreateGitHubPullRequestRequestBody = {
   repo_name: string,
@@ -20,7 +20,8 @@ export type CreateGitHubPullRequestResponseBody = {
 
 export class CreateGithubPullRequestOperation {
   static config = new GithubAppEndpointConfiguration({
-    path: "/github/api/create-pull-request",
+    mountPath: GITHUB_APP_API_MOUNT_PATH,
+    subPath: "/create-pull-request",
     authRequired: false,
   })
 

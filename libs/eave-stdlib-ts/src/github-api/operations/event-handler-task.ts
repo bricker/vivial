@@ -1,10 +1,11 @@
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
 import { GithubRepoInput } from "../models.js";
-import { GithubAppEndpointConfiguration } from "./shared.js";
+import { GITHUB_APP_TASKS_MOUNT_PATH, GithubAppEndpointConfiguration } from "./shared.js";
 
 export class GithubEventHandlerTaskOperation {
   static config = new GithubAppEndpointConfiguration({
-    path: "/_/github/events",
+    mountPath: GITHUB_APP_TASKS_MOUNT_PATH,
+    subPath: "/events",
     authRequired: false,
   })
 

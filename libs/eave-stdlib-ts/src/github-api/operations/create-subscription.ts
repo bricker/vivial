@@ -2,7 +2,7 @@ import { sharedConfig } from "../../config.js";
 import { CreateSubscriptionResponseBody } from "../../core-api/operations/subscriptions.js";
 import { EaveApp } from "../../eave-origins.js";
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
-import { GithubAppEndpointConfiguration } from "./shared.js";
+import { GITHUB_APP_API_MOUNT_PATH, GithubAppEndpointConfiguration } from "./shared.js";
 
 export type CreateGithubResourceSubscriptionRequestBody = {
   url: string;
@@ -10,7 +10,8 @@ export type CreateGithubResourceSubscriptionRequestBody = {
 
 export class CreateGithubResourceSubscriptionOperation {
   static config = new GithubAppEndpointConfiguration({
-    path: "/github/api/subscribe",
+    mountPath: GITHUB_APP_API_MOUNT_PATH,
+    subPath: "/subscribe",
     authRequired: false,
   })
 

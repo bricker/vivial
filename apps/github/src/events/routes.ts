@@ -11,21 +11,7 @@ import { jsonParser } from '@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.
 import { getTeamForInstallation, githubAppClient } from '../lib/octokit-util.js';
 import { GITHUB_EVENT_QUEUE_NAME } from '../config.js';
 import registry, { HandlerFunction } from './registry.js';
-import { GithubWebhookBody, getGithubWebhookHeaders, validateGithubWebhookHeaders } from '../middleware/process-webhook-payload.js';
-
-function getEventHandler(req: Express.Request, res: Express.Response): HandlerFunction | undefined {
-  const ctx = LogContext.load(res);
-  const { eventName } = getGithubWebhookHeaders(req);
-  const { action } = <GithubWebhookBody>req.body;
-  const fullEventName = [eventName, action].filter((n) => n).join('.');
-
-  const handler = registry[fullEventName];
-  if (!handler) {
-    eaveLogger.warning(`Event not supported: ${fullEventName}`, ctx);
-  }
-
-  return handler;
-}
+import { GithubWebhookBody, getEventHandler, getGithubWebhookHeaders, validateGithubWebhookHeaders } from '../middleware/process-webhook-payload.js';
 
 export function WebhookRouter(): Express.Router {
   const router = Express.Router();
@@ -37,7 +23,7 @@ export function WebhookRouter(): Express.Router {
   /*
     This is the endpoint that GitHub sends events to.
   */
-  router.post('/github/events', rawJsonBody, validateGithubWebhookHeaders, jsonParser, async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+  router.post(GithubEventHandlerTaskOperation.config.subPath, rawJsonBody, validateGithubWebhookHeaders, jsonParser, async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
     try {
       const ctx = LogContext.load(res);
 
@@ -96,34 +82,6 @@ export function WebhookRouter(): Express.Router {
       });
 
       res.sendStatus(httpConstants.HTTP_STATUS_OK);
-    } catch (e: unknown) {
-      next(e);
-    }
-  });
-
-  return router;
-}
-
-export function WebhookOfflineTaskRouter(): Express.Router {
-  const router = Express.Router();
-
-  router.post(GithubEventHandlerTaskOperation.config.path, ...GithubEventHandlerTaskOperation.config.middlewares, async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
-    try {
-      const ctx = LogContext.load(res);
-      const handler = getEventHandler(req, res);
-      if (!handler) {
-        res.sendStatus(httpConstants.HTTP_STATUS_OK);
-        return;
-      }
-
-      const { installationId } = getGithubWebhookHeaders(req);
-      assert(installationId);
-
-      const eventBody = <GithubWebhookBody>req.body;
-      const app = await githubAppClient();
-      const octokit = await app.getInstallationOctokit(parseInt(installationId, 10));
-      await handler(eventBody, { octokit, ctx });
-      res.end(); // safety
     } catch (e: unknown) {
       next(e);
     }
