@@ -11,7 +11,7 @@ import { GitHubOperationsContext } from '../types.js';
  *
  * Features:
  * Inserts rows into the github_repos db table with feature activation states matching
- * the other rows in the table whenever it is given access to a new repo in GitHub.
+ * the other rows in the table whenever it is given access to new repos in GitHub.
  */
 export default async function handler(event: InstallationRepositoriesAddedEvent, context: GitHubOperationsContext) {
   if (event.action !== 'added') {
