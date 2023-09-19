@@ -5,12 +5,15 @@ import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types.js';
 import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
 import { createSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { appConfig } from '../config.js';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { GitHubOperationsContext } from '../types.js';
 
 export async function subscribe(
-  { req, res, octokit, ctx }: { req: Request, res: Response, octokit: Octokit, ctx: LogContext }
+  req: Request, res: Response, context: GitHubOperationsContext,
 ): Promise<void> {
+  const { octokit, ctx } = context;
+
   const input = <CreateGithubResourceSubscriptionRequestBody>req.body;
   if (!input.url) {
     eaveLogger.error('Missing input.url', ctx);

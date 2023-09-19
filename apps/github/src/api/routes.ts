@@ -18,7 +18,7 @@ export function InternalApiRouter(): Router {
       const ctx = LogContext.load(res);
       const octokit = await buildOctokitClient(req, res, ctx);
       if (octokit) {
-        await getSummary({ req, res, octokit, ctx });
+        await getSummary(req, res, { octokit, ctx });
       }
       res.end(); // safety
     } catch (e: unknown) {
@@ -31,7 +31,7 @@ export function InternalApiRouter(): Router {
       const ctx = LogContext.load(res);
       const octokit = await buildOctokitClient(req, res, ctx);
       if (octokit) {
-        await subscribe({ req, res, octokit, ctx });
+        await subscribe(req, res, { octokit, ctx });
       }
       res.end(); // safety
     } catch (e: unknown) {
@@ -44,17 +44,8 @@ export function InternalApiRouter(): Router {
       const ctx = LogContext.load(res);
       const octokit = await buildOctokitClient(req, res, ctx);
       if (octokit) {
-        await createPullRequest({ req, res, octokit, ctx });
+        await createPullRequest(req, res, { octokit, ctx });
       }
-      res.end(); // safety
-    } catch (e: unknown) {
-      next(e);
-    }
-  });
-
-  router.post(CreateGithubPullRequestOperation.config.path, ...CreateGithubPullRequestOperation.config.middlewares, async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await createPullRequest(req, res);
       res.end(); // safety
     } catch (e: unknown) {
       next(e);

@@ -4,11 +4,12 @@ import { Blob, Query, Ref, Repository, Scalars } from '@octokit/graphql-schema';
 import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js';
 import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { loadQuery } from '../lib/graphql-util.js';
+import { GitHubOperationsContext } from '../types.js';
 
 export async function getSummary(
-  { req, res, octokit, ctx }: { req: Request, res: Response, octokit: Octokit, ctx: LogContext }
+  req: Request, res: Response, context: GitHubOperationsContext,
 ): Promise<void> {
-
+  const { octokit, ctx } = context;
   const input = <GetGithubUrlContentRequestBody>req.body;
   if (!input.url) {
     eaveLogger.error('Invalid input', ctx);

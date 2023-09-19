@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { CreateGitHubPullRequestRequestBody, CreateGitHubPullRequestResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js';
-import { Octokit } from 'octokit';
 import { PullRequestCreator } from '../lib/pull-request-creator.js';
+import { GitHubOperationsContext } from '../types.js';
 
 export async function createPullRequest(
-  { req, res, octokit, ctx }: { req: Request, res: Response, octokit: Octokit, ctx: LogContext }
+  req: Request, res: Response, context: GitHubOperationsContext
 ): Promise<void> {
+  const { octokit, ctx } = context;
+
   // validate input
   const input = <CreateGitHubPullRequestRequestBody>req.body;
   if (!(input.repo_name && input.repo_owner && input.repo_id
