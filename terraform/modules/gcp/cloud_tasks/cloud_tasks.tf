@@ -1,7 +1,15 @@
-resource "google_cloud_tasks_queue" "slack-events-processor" {
-  location = "us-central1"
+variable "project_id" {
+  type = string
+}
+
+variable "region" {
+  type = string
+}
+
+resource "google_cloud_tasks_queue" "slack_events_processor_queue" {
+  location = var.region
+  project = var.project_id
   name     = "slack-events-processor"
-  project  = var.project_id
 
   app_engine_routing_override {
     instance = null
@@ -29,10 +37,10 @@ resource "google_cloud_tasks_queue" "slack-events-processor" {
   }
 }
 
-resource "google_cloud_tasks_queue" "github-events-processor" {
-  location = "us-central1"
+resource "google_cloud_tasks_queue" "github_events_processor_queue" {
+  location = var.region
+  project = var.project_id
   name     = "github-events-processor"
-  project  = "eavefyi-dev"
   app_engine_routing_override {
     instance = null
     service  = "github"

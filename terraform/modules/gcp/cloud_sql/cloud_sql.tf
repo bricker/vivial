@@ -1,5 +1,13 @@
 // https://registry.terraform.io/modules/GoogleCloudPlatform/sql-db/google/latest
 
+variable "project_id" {
+  type = string
+}
+
+variable "region" {
+  type = string
+}
+
 resource "google_sql_database_instance" "eave_pg_core" {
   database_version     = "POSTGRES_14"
   deletion_protection  = true
@@ -7,7 +15,7 @@ resource "google_sql_database_instance" "eave_pg_core" {
   maintenance_version  = "POSTGRES_14_7.R20230530.01_04"
   master_instance_name = null
   name                 = "eave-pg-core"
-  project              = var.project_id
+  project = var.project_id
   region               = var.region
   root_password        = null # sensitive
   settings {

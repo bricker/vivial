@@ -1,8 +1,16 @@
+variable "project_id" {
+  type = string
+}
+
+variable "region" {
+  type = string
+}
+
 resource "google_app_engine_application" "app" {
   auth_domain    = "gmail.com"
   database_type  = "CLOUD_DATASTORE_COMPATIBILITY"
-  location_id    = "us-central"
-  project        = "eavefyi-dev"
+  location_id    = var.region
+  project        = var.project_id
   serving_status = "SERVING"
   feature_settings {
     split_health_checks = true
@@ -10,7 +18,7 @@ resource "google_app_engine_application" "app" {
 }
 
 resource "google_app_engine_service_network_settings" "www" {
-  project = "eavefyi-dev"
+  project = var.project_id
   service = "www"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
@@ -18,7 +26,7 @@ resource "google_app_engine_service_network_settings" "www" {
 }
 
 resource "google_app_engine_service_network_settings" "slack" {
-  project = "eavefyi-dev"
+  project = var.project_id
   service = "slack"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
@@ -27,7 +35,7 @@ resource "google_app_engine_service_network_settings" "slack" {
 
 # __generated__ by Terraform from "api"
 resource "google_app_engine_service_network_settings" "api" {
-  project = "eavefyi-dev"
+  project = var.project_id
   service = "api"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
@@ -36,7 +44,7 @@ resource "google_app_engine_service_network_settings" "api" {
 
 # __generated__ by Terraform
 resource "google_app_engine_service_network_settings" "github" {
-  project = "eavefyi-dev"
+  project = var.project_id
   service = "github"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
@@ -45,7 +53,7 @@ resource "google_app_engine_service_network_settings" "github" {
 
 # __generated__ by Terraform from "confluence"
 resource "google_app_engine_service_network_settings" "confluence" {
-  project = "eavefyi-dev"
+  project = var.project_id
   service = "confluence"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
@@ -54,7 +62,7 @@ resource "google_app_engine_service_network_settings" "confluence" {
 
 # __generated__ by Terraform from "jira"
 resource "google_app_engine_service_network_settings" "jira" {
-  project = "eavefyi-dev"
+  project = var.project_id
   service = "jira"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
