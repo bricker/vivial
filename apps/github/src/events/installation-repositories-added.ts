@@ -3,6 +3,7 @@ import { createGithubRepo, getGithubRepos, queryGithubReposFeatureState } from '
 import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { Feature, State } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js';
 import { enumCases } from '@eave-fyi/eave-stdlib-ts/src/util.js';
+import { RunApiDocumentationTaskOperation } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js';
 import { GitHubOperationsContext } from '../types.js';
 
 /**
@@ -22,6 +23,7 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
   const sharedReqInput = {
     teamId: ctx.eave_team_id,
     origin: EaveApp.eave_github_app,
+    ctx,
   };
 
   const res = await getGithubRepos({
@@ -29,7 +31,7 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
     input: {}
   });
   if (res.repos.length < 1) {
-    // exit early; website app handles adding first repo to the db
+    // exit early; website app handles adding first repo(s) to the db
     return;
   }
 
@@ -37,8 +39,8 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
     const defaultFeatureStates: { [key: string]: State } = {}
 
     for (const feat of enumCases(Feature)) {
-      // TODO: don't skip these features once implemented
-      if ([Feature.ARCHITECTURE_DOCUMENTATION].includes(feat)) {
+      // TODO: don't skip arch feature once implemented
+      if (feat === Feature.ARCHITECTURE_DOCUMENTATION) {
         continue;
       }
 
@@ -55,7 +57,7 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
       })).states_match ? State.ENABLED : State.DISABLED;
     }
 
-    await createGithubRepo({
+    const repoResponse = await createGithubRepo({
       teamId: ctx.eave_team_id,
       origin: EaveApp.eave_confluence_app,
       input: {
@@ -67,5 +69,17 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
         }
       },
     });
+
+    // run api docs for first time if necessary
+    if (repoResponse.repo.api_documentation_state === State.ENABLED) {
+      await RunApiDocumentationTaskOperation.perform({
+        ...sharedReqInput,
+        input: {
+          repo: {
+            external_repo_id: repoResponse.repo.external_repo_id,
+          }
+        },
+      });
+    }
   }
 }
