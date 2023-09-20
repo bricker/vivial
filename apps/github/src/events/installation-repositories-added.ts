@@ -58,8 +58,7 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
     }
 
     const repoResponse = await CreateGithubRepoOperation.perform({
-      teamId: ctx.eave_team_id,
-      origin: EaveApp.eave_confluence_app,
+      ...sharedReqInput,
       input: {
         repo: {
           external_repo_id: repo.node_id,
