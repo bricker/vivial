@@ -7,13 +7,13 @@ import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
 import { CreateSubscriptionOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
-import { createOctokitClient, getInstallationId } from '../lib/octokit-util.js';
+import { createOctokitClient, createTeamOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 import { appConfig } from '../config.js';
+import { GitHubOperationsContext } from '../types.js';
 
 export async function subscribeHandler(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
-
-  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
+  const octokit = await createTeamOctokitClient(req, ctx);
 
   const input = <CreateGithubResourceSubscriptionRequestBody>req.body;
   if (!input.url) {
@@ -22,17 +22,8 @@ export async function subscribeHandler(req: Request, res: Response): Promise<voi
     return;
   }
 
-  // TODO: Move this into API dispatch (it is duplicated across api handlers)
-  const instllationId = await getInstallationId(eaveTeamId, ctx);
-  if (instllationId === null) {
-    eaveLogger.error('installation ID not found', ctx);
-    res.sendStatus(500);
-    return;
-  }
-
   // fetch unique info about repo to build subscription source ID
-  const client = await createOctokitClient(instllationId);
-  const repoInfo = await getRepo(client, input.url);
+  const repoInfo = await getRepo(octokit, input.url);
   const pathChunks = input.url.split(`${repoInfo.full_name}/blob/`);
   // we need the 2nd element, which is branch name + resource path
   if (pathChunks.length < 2) {
@@ -48,7 +39,7 @@ export async function subscribeHandler(req: Request, res: Response): Promise<voi
   const subResponse = await CreateSubscriptionOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
-    teamId: eaveTeamId,
+    teamId: ctx.eave_team_id,
     input: {
       subscription: {
         source: {

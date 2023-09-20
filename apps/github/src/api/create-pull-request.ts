@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
 import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { CreateGitHubPullRequestRequestBody, CreateGitHubPullRequestResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js';
-import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
-import { getInstallationId, createOctokitClient } from '../lib/octokit-util.js';
 import { PullRequestCreator } from '../lib/pull-request-creator.js';
+import { GitHubOperationsContext } from '../types.js';
+import { createTeamOctokitClient } from '../lib/octokit-util.js';
 
-export async function createPullRequestHandler(req: Request, res: Response): Promise<void> {
+export async function createPullRequestHandler(
+  req: Request, res: Response,
+): Promise<void> {
   const ctx = LogContext.load(res);
-  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
+  const octokit = await createTeamOctokitClient(req, ctx);
 
   // validate input
   const input = <CreateGitHubPullRequestRequestBody>req.body;
@@ -19,20 +21,12 @@ export async function createPullRequestHandler(req: Request, res: Response): Pro
     return;
   }
 
-  const installationId = await getInstallationId(eaveTeamId, ctx);
-  if (installationId === null) {
-    eaveLogger.error('missing github installation id', ctx);
-    res.sendStatus(500);
-    return;
-  }
-  const client = await createOctokitClient(installationId);
-
   const prCreator = new PullRequestCreator({
     repoName: input.repo_name,
     repoOwner: input.repo_owner,
     repoId: input.repo_id,
     baseBranchName: input.base_branch_name,
-    octokit: client,
+    octokit,
     ctx,
   });
   const pr_number = await prCreator.createPullRequest({

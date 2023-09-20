@@ -1,3 +1,4 @@
+import Express from "express";
 import { App, Octokit } from 'octokit';
 import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { CtxArg } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
@@ -6,11 +7,23 @@ import { Team } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js';
 import { appConfig } from '../config.js';
 import { GetGithubInstallationOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { GetTeamOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
+import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
 
 export async function createOctokitClient(installationId: number): Promise<Octokit> {
   const app = await githubAppClient();
   const octokit = await app.getInstallationOctokit(installationId);
   return octokit;
+}
+
+export async function createTeamOctokitClient(req: Express.Request, ctx: LogContext): Promise<Octokit> {
+  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated by middleware
+
+  const installationId = await getInstallationId(eaveTeamId, ctx);
+  if (installationId === null) {
+    throw new Error('missing github installation id');
+  }
+  const client = await createOctokitClient(installationId);
+  return client;
 }
 
 // FIXME: thread safety
