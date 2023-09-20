@@ -7,7 +7,7 @@ import { RunApiDocumentationTaskOperation } from '@eave-fyi/eave-stdlib-ts/src/g
 import { GitHubOperationsContext } from '../types.js';
 
 /**
- * Receives github webhook pull_request events.
+ * Receives github webhook installation_repositories events.
  * https://docs.github.com/en/webhooks/webhook-events-and-payloads#installation_repositories
  *
  * Features:
