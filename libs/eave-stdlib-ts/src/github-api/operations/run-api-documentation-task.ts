@@ -8,7 +8,7 @@ export type RunApiDocumentationTaskRequestBody = {
 
 export class RunApiDocumentationTaskOperation {
   static config = new GithubAppEndpointConfiguration({
-    path: "/_/github/run-api-documentation",
+    path: "/_/github/tasks/run-api-documentation",
     authRequired: false,
   })
 

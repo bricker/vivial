@@ -1,4 +1,4 @@
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { FileChange } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import {

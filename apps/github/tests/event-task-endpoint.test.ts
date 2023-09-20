@@ -29,7 +29,7 @@ test.afterEach((t) => {
 test("endpoint is alive", async (t) => {
   const response = await makeRequest({
     app,
-    path: "/_/github/tasks/run-api-documentation",
+    path: "/_/github/tasks/events",
     // input: {} satisfies RunApiDocumentationTaskRequestBody
   });
 

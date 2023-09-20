@@ -1,11 +1,11 @@
 import { App, Octokit } from 'octokit';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getTeam } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
+import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { CtxArg } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
-import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 import { Team } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js';
 import { appConfig } from '../config.js';
+import { GetGithubInstallationOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
+import { GetTeamOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
 
 export async function createOctokitClient(installationId: number): Promise<Octokit> {
   const app = await githubAppClient();
@@ -36,7 +36,7 @@ export async function githubAppClient(): Promise<App> {
 
 export async function getInstallationId(eaveTeamId: string, ctx: LogContext): Promise<number | null> {
   // TODO: Use /integrations/github/query endpoint instead
-  const teamResponse = await getTeam({ ctx, origin: appConfig.eaveOrigin, teamId: eaveTeamId });
+  const teamResponse = await GetTeamOperation.perform({ ctx, origin: appConfig.eaveOrigin, teamId: eaveTeamId });
   const ghIntegration = teamResponse.integrations.github_integration;
   if (!ghIntegration) {
     eaveLogger.error(`GitHub Integration missing for team ${teamResponse.team.id}`, teamResponse, ctx);
@@ -46,7 +46,7 @@ export async function getInstallationId(eaveTeamId: string, ctx: LogContext): Pr
 }
 
 export async function getTeamForInstallation({ installationId, ctx }: CtxArg & { installationId: string }): Promise<Team | null> {
-  const response = await getGithubInstallation({
+  const response = await GetGithubInstallationOperation.perform({
     origin: EaveApp.eave_github_app,
     input: {
       github_integration: {

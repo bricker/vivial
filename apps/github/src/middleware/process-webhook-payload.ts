@@ -2,7 +2,7 @@ import { constants as httpConstants } from 'node:http2';
 import Express from 'express';
 import { EmitterWebhookEvent, EmitterWebhookEventName } from '@octokit/webhooks';
 import { InstallationLite, WebhookEventName } from '@octokit/webhooks-types';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { appConfig } from '../config.js';
 import { githubAppClient } from '../lib/octokit-util.js';
 import registry, { HandlerFunction } from '../events/registry.js';
