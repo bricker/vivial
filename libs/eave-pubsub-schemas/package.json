@@ -1,6 +1,5 @@
 {
   "devDependencies": {
-    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "ts-proto": "^1.146"
   },
   "dependencies": {

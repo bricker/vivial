@@ -4,7 +4,7 @@ import { GithubAppEndpointConfiguration } from "./shared.js";
 
 export class GithubEventHandlerTaskOperation {
   static config = new GithubAppEndpointConfiguration({
-    path: "/_/github/events",
+    path: "/_/github/tasks/events",
     authRequired: false,
   })
 

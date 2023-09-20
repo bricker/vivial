@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
+  "extends": "./src/tsconfig-base.json",
   "include": ["src/**/*", "tests/**/*"],
   "compilerOptions": {
     "typeRoots": ["src/@types", "node_modules/@types"]

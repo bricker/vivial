@@ -1,6 +1,6 @@
 import { LinkType } from './core-api/enums.js';
 import { Pair } from './types.js';
-import eaveLogger from './logging.js';
+import { eaveLogger } from './logging.js';
 import { CtxArg, RequestArgsOrigin, RequestArgsTeamId } from './requests.js';
 import { Subscription } from './core-api/models/subscriptions.js';
 import { GetGithubUrlContentOperation } from './github-api/operations/get-content.js';

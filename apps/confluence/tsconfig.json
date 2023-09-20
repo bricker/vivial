@@ -1,4 +1,4 @@
 {
-  "extends": "./node_modules/@eave-fyi/es-config/typescript/tsconfig.json",
+  "extends": "./node_modules/@eave-fyi/eave-stdlib-ts/src/tsconfig-base.json",
   "include": ["**/*.ts"]
 }

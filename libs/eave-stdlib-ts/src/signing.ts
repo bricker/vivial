@@ -5,7 +5,7 @@ import { sharedConfig } from './config.js';
 import { EaveApp, ExternalOrigin } from './eave-origins.js';
 import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
 import { CtxArg } from './requests.js';
-import eaveLogger from './logging.js';
+import { eaveLogger } from './logging.js';
 
 const { RSA_PKCS1_PADDING } = cryptoConstants;
 

@@ -84,23 +84,21 @@ function setenvvars() (
 
 function setuppython() (
 	statusmsg -pa "Setting up Python virtual environment"
-	if ^ask; then
-		if ! ^cmd-exists pyenv; then
-			pythonpath="$(which python)"
-			statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
-			statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
-			statusmsg -w "I did not find pyenv, so I will proceed with the available python executable ($pythonpath)."
-		else
-			pyenv install -s
-			pyenv version
-		fi
-
-		python -m venv --clear --upgrade-deps "$EAVE_HOME/.venv"
-		python-activate-venv
-
-		# shellcheck disable=SC2086
-		python -m pip install -r "$EAVE_HOME/requirements-dev.txt"
+	if ! ^cmd-exists pyenv; then
+		pythonpath="$(which python)"
+		statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
+		statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
+		statusmsg -w "I did not find pyenv, so I will proceed with the available python executable ($pythonpath)."
+	else
+		pyenv install -s
+		pyenv version
 	fi
+
+	python -m venv --clear --upgrade-deps "$EAVE_HOME/.venv"
+	python-activate-venv
+
+	# shellcheck disable=SC2086
+	python -m pip install -r "$EAVE_HOME/requirements-dev.txt"
 )
 
 function setupnode() (
@@ -133,7 +131,7 @@ function setupgcloud() (
 )
 
 function setupcloudsqlproxy() (
-	if ! ^force && ^cmd-exists "cloud-sql-proxy"; then
+	if ! ^force && ! ^cmd-exists "cloud-sql-proxy"; then
 		statusmsg -o "CloudSQL Proxy already installed."
 	else
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."

@@ -1,7 +1,7 @@
 import { AddOn, HostClient } from 'atlassian-connect-express';
 import { CoreOptions, RequestResponse, UrlOptions } from 'request';
 import { promisify } from 'util';
-import eaveLogger, { LogContext } from '../logging.js';
+import { eaveLogger, LogContext } from '../logging.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveApp } from '../eave-origins.js';
 import { CtxArg } from '../requests.js';

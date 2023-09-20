@@ -4,13 +4,6 @@
   "type": "commonjs",
   "files": [
     "eslint/",
-    "prettier/",
-    "typescript/",
-    "pm2/"
-  ],
-  "scripts": {
-    "yalc": "yalc publish --push"
-  },
-  "dependencies": {},
-  "devDependencies": {}
+    "prettier/"
+  ]
 }

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveLogger, { LogContext } from '../logging.js';
+import { eaveLogger, LogContext } from '../logging.js';
 
 export function requireHeaders(...headers: string[]): ((req: Request, res: Response, next: NextFunction) => void) {
   return (req: Request, res: Response, next: NextFunction) => {

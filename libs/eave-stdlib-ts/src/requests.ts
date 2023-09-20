@@ -1,6 +1,6 @@
 import { constants as httpConstants } from 'node:http2';
 import { NextFunction, Request, Response } from 'express';
-import eaveLogger, { LogContext } from './logging.js';
+import { eaveLogger, LogContext } from './logging.js';
 import { EaveApp } from './eave-origins.js';
 import Signing, { buildMessageToSign } from './signing.js';
 import eaveHeaders from './headers.js';
