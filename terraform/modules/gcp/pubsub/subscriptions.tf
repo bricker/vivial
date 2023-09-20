@@ -9,7 +9,7 @@ resource "google_pubsub_subscription" "eave_event_bq_writer_pubsub_subscription"
   project                      = var.project_id
   retain_acked_messages        = false
   topic                        = "projects/${var.project_id}/topics/eave_event"
-  depends_on = [ google_pubsub_topic.eave_event_pubsub_topic ]
+  depends_on                   = [google_pubsub_topic.eave_event_pubsub_topic]
   bigquery_config {
     drop_unknown_fields = true
     table               = "${var.project_id}.eave_events.eave_events"
@@ -41,7 +41,7 @@ resource "google_pubsub_subscription" "eave_dead_letter_pubsub_subscription" {
   project                      = var.project_id
   retain_acked_messages        = false
   topic                        = "projects/${var.project_id}/topics/eave_dead_letter"
-  depends_on = [ google_pubsub_topic.eave_dead_letter_pubsub_topic ]
+  depends_on                   = [google_pubsub_topic.eave_dead_letter_pubsub_topic]
   expiration_policy {
     ttl = ""
   }
@@ -63,7 +63,7 @@ resource "google_pubsub_subscription" "gpt_request_event_bq_writer_pubsub_subscr
   project                      = var.project_id
   retain_acked_messages        = false
   topic                        = "projects/${var.project_id}/topics/gpt_request_event"
-  depends_on = [ google_pubsub_topic.gpt_request_event_pubsub_topic ]
+  depends_on                   = [google_pubsub_topic.gpt_request_event_pubsub_topic]
   bigquery_config {
     drop_unknown_fields = true
     table               = "${var.project_id}.eave_events.gpt_request_events"

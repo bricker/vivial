@@ -11,7 +11,7 @@ resource "google_cloud_scheduler_job" "run_api_documentation_job" {
   description      = null
   name             = "run-api-documentation"
   paused           = false
-  project = var.project_id
+  project          = var.project_id
   region           = var.region
   schedule         = "0 * * * *"
   time_zone        = "Etc/UTC"

@@ -8,7 +8,7 @@ variable "region" {
 
 resource "google_cloud_tasks_queue" "slack_events_processor_queue" {
   location = var.region
-  project = var.project_id
+  project  = var.project_id
   name     = "slack-events-processor"
 
   app_engine_routing_override {
@@ -39,7 +39,7 @@ resource "google_cloud_tasks_queue" "slack_events_processor_queue" {
 
 resource "google_cloud_tasks_queue" "github_events_processor_queue" {
   location = var.region
-  project = var.project_id
+  project  = var.project_id
   name     = "github-events-processor"
   app_engine_routing_override {
     instance = null

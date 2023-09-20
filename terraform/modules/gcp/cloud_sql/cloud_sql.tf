@@ -15,7 +15,7 @@ resource "google_sql_database_instance" "eave_pg_core" {
   maintenance_version  = "POSTGRES_14_7.R20230530.01_04"
   master_instance_name = null
   name                 = "eave-pg-core"
-  project = var.project_id
+  project              = var.project_id
   region               = var.region
   root_password        = null # sensitive
   settings {
