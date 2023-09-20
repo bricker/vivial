@@ -14,7 +14,7 @@ export function redact(str: string | undefined): string | undefined {
 export function enumCases<O extends object>(obj: O): Array<NonNullable<O[keyof O]>> {
   return Object.keys(obj).reduce((acc, key, _) => {
     const candidateCase = obj[key as keyof typeof obj];
-    if (candidateCase && Number.isNaN(parseInt(key, 10))) {
+    if (candidateCase && Number.isNaN(key)) {
       acc.push(candidateCase);
     }
     return acc;
