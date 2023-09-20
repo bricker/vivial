@@ -20,7 +20,7 @@ export type GetGithubReposResponseBody = {
 export class GetGithubReposOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-repos/query" })
   static async perform(
-    args: RequestArgsOrigin & RequestArgsTeamId & { input: GetGithubReposRequestBody },
+    args: RequestArgsTeamId & { input: GetGithubReposRequestBody },
   ): Promise<GetGithubReposResponseBody> {
     const resp = await makeRequest({
       url: this.config.url,
@@ -41,7 +41,7 @@ export type FeatureStateGithubReposResponseBody = {
 export class FeatureStateGithubReposOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-repos/query/enabled" })
   static async perform(
-    args: RequestArgsOrigin & RequestArgsTeamId & { input: FeatureStateGithubReposRequestBody },
+    args: RequestArgsTeamId & { input: FeatureStateGithubReposRequestBody },
   ): Promise<FeatureStateGithubReposResponseBody> {
     const resp = await makeRequest({
       url: this.config.url,
@@ -62,7 +62,7 @@ export type CreateGithubRepoResponseBody = {
 export class CreateGithubRepoOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-repos/create" })
   static async perform(
-    args: RequestArgsOrigin & RequestArgsTeamId & { input: CreateGithubRepoRequestBody },
+    args: RequestArgsTeamId & { input: CreateGithubRepoRequestBody },
   ): Promise<CreateGithubRepoResponseBody> {
     const resp = await makeRequest({
       url: this.config.url,
