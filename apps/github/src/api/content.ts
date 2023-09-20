@@ -1,15 +1,17 @@
-import { Request, Response } from 'express';
-import { Octokit } from 'octokit';
-import { Blob, Query, Ref, Repository, Scalars } from '@octokit/graphql-schema';
-import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { loadQuery } from '../lib/graphql-util.js';
-import { GitHubOperationsContext } from '../types.js';
+import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js";
+import headers from "@eave-fyi/eave-stdlib-ts/src/headers.js";
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { Blob, Query, Ref, Repository, Scalars } from "@octokit/graphql-schema";
+import { Request, Response } from "express";
+import { Octokit } from "octokit";
+import { loadQuery } from "../lib/graphql-util.js";
+import { createOctokitClient, createTeamOctokitClient, getInstallationId } from "../lib/octokit-util.js";
+import { GitHubOperationsContext } from "../types.js";
 
-export async function getSummary(
-  req: Request, res: Response, context: GitHubOperationsContext,
-): Promise<void> {
-  const { octokit, ctx } = context;
+export async function getContentSummaryHandler(req: Request, res: Response): Promise<void> {
+  const ctx = LogContext.load(res);
+  const octokit = await createTeamOctokitClient(req, ctx);
+
   const input = <GetGithubUrlContentRequestBody>req.body;
   if (!input.url) {
     eaveLogger.error("Invalid input", ctx);

@@ -1,4 +1,4 @@
-import eaveLogger, { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { UpdateContentRequestBody, UpdateContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
 import { ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import OpenAIClient from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";

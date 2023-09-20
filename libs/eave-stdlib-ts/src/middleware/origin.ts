@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import eaveHeaders from '../headers.js';
 import { EaveApp } from '../eave-origins.js';
-import eaveLogger, { LogContext } from '../logging.js';
+import { eaveLogger, LogContext } from '../logging.js';
 
 export function originMiddleware(req: Request, res: Response, next: NextFunction): void {
   const ctx = LogContext.load(res);

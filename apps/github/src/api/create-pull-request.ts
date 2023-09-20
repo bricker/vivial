@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { CreateGitHubPullRequestRequestBody, CreateGitHubPullRequestResponseBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js';
 import { PullRequestCreator } from '../lib/pull-request-creator.js';
 import { GitHubOperationsContext } from '../types.js';
+import { createTeamOctokitClient } from '../lib/octokit-util.js';
 
-export async function createPullRequest(
-  req: Request, res: Response, context: GitHubOperationsContext
+export async function createPullRequestHandler(
+  req: Request, res: Response,
 ): Promise<void> {
-  const { octokit, ctx } = context;
+  const ctx = LogContext.load(res);
+  const octokit = await createTeamOctokitClient(req, ctx);
 
   // validate input
   const input = <CreateGitHubPullRequestRequestBody>req.body;

@@ -1,6 +1,6 @@
 const path = require("node:path");
 
-function buildConfig(name, overrides = {}) {
+module.exports = function buildConfig(name = "express", overrides = {}) {
   return {
     apps: [
       {
@@ -14,4 +14,3 @@ function buildConfig(name, overrides = {}) {
     ],
   };
 }
-module.exports = buildConfig;

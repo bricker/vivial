@@ -1,7 +1,6 @@
 import { familySync, GLIBC } from "detect-libc"; // eslint-disable-line import/no-extraneous-dependencies
 
-// eslint-disable-next-line no-unused-vars
-export default ({ projectDir }) => {
+export default (/* { projectDir } */) => {
   return {
     files: ["tests/**/*.test.ts"],
     extensions: {
@@ -11,5 +10,8 @@ export default ({ projectDir }) => {
     // worker threads may need to be disabled to prevent test failures in some linux flavors
     // https://github.com/lovell/sharp/issues/3164
     workerThreads: familySync() !== GLIBC,
+    require: [
+      `${process.env["EAVE_HOME"]}/develop/javascript/es-config/ava/test-setup.js`
+    ]
   };
 };

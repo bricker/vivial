@@ -1,20 +1,17 @@
 {
   "type": "module",
   "scripts": {
-    "start": "pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion start pm2.config.cjs",
+    "start": "start-pm2",
     "start-dev": "pkill -n ngrok || true && nodemon ./server.ts"
   },
   "dependencies": {
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
     "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
-    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
     "atlassian-connect-express": "8.2.0",
     "express": "4.x",
     "helmet": "7.x",
     "html-entities": "2.x",
-    "pm2": "5.x",
     "request": "2.x",
-    "tsx": "3.x",
     "uuid": "9.x"
   },
   "devDependencies": {

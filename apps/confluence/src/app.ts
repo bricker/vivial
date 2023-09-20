@@ -1,7 +1,7 @@
 import express from "express";
 import ace from "atlassian-connect-express";
 import { atlassianSecurityPolicyMiddlewares } from "@eave-fyi/eave-stdlib-ts/src/connect/security-policy-middlewares.js";
-import { GAELifecycleRouter, StatusRouter } from "@eave-fyi/eave-stdlib-ts/src/api-util.js";
+import { StatusRouter, addGAELifecycleRoutes } from "@eave-fyi/eave-stdlib-ts/src/api-util.js";
 import EaveApiAdapter from "@eave-fyi/eave-stdlib-ts/src/connect/eave-api-store-adapter.js";
 import { helmetMiddleware, commonRequestMiddlewares, commonResponseMiddlewares } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
 import { InternalApiRouter } from "./api/routes.js";
@@ -28,12 +28,12 @@ export const addon = ace(app, {
 app.use(helmetMiddleware());
 app.use(atlassianSecurityPolicyMiddlewares);
 app.use(commonRequestMiddlewares);
-app.use(GAELifecycleRouter());
+addGAELifecycleRoutes({ router: app });
 
 const rootRouter = express.Router();
 app.use("/confluence", rootRouter);
 
-rootRouter.use(StatusRouter());
+rootRouter.use("/status", StatusRouter());
 rootRouter.use("/events", WebhookRouter({ addon }));
 rootRouter.use("/api", InternalApiRouter({ addon }));
 

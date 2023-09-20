@@ -2,8 +2,8 @@ import AddOnFactory from 'atlassian-connect-express';
 import { QueryConnectInstallationOperation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
 import { EaveApp } from '../eave-origins.js';
-import getCacheClient, { Cache } from '../cache.js';
-import eaveLogger, { LogContext } from '../logging.js';
+import { getCacheClient, Cache } from '../cache.js';
+import { eaveLogger, LogContext } from '../logging.js';
 
 type AppKey = 'eave-confluence' | 'eave-jira'
 type AdapterParams = { appKey: AppKey, eaveOrigin: EaveApp, productType: AtlassianProduct }

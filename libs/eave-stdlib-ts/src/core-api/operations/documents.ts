@@ -38,7 +38,7 @@ export type SearchDocumentsResponseBody = {
   documents: DocumentSearchResult[];
 }
 
-export class SearchDocuments {
+export class SearchDocumentsOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/documents/search" })
 
   static async perform(args: RequestArgsTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {

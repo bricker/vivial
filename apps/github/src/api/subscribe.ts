@@ -3,16 +3,17 @@ import { CreateGithubResourceSubscriptionRequestBody } from '@eave-fyi/eave-stdl
 import { Octokit } from 'octokit';
 import { Pair } from '@eave-fyi/eave-stdlib-ts/src/types.js';
 import { GithubRepository } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
+import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
+import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
-import { createSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { CreateSubscriptionOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
+import { createOctokitClient, createTeamOctokitClient, getInstallationId } from '../lib/octokit-util.js';
 import { appConfig } from '../config.js';
 import { GitHubOperationsContext } from '../types.js';
 
-export async function subscribe(
-  req: Request, res: Response, context: GitHubOperationsContext,
-): Promise<void> {
-  const { octokit, ctx } = context;
+export async function subscribeHandler(req: Request, res: Response): Promise<void> {
+  const ctx = LogContext.load(res);
+  const octokit = await createTeamOctokitClient(req, ctx);
 
   const input = <CreateGithubResourceSubscriptionRequestBody>req.body;
   if (!input.url) {
@@ -35,7 +36,7 @@ export async function subscribe(
   const platform = SubscriptionSourcePlatform.github;
   const event = SubscriptionSourceEvent.github_file_change;
 
-  const subResponse = await createSubscription({
+  const subResponse = await CreateSubscriptionOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
     teamId: ctx.eave_team_id,

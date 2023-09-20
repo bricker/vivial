@@ -226,4 +226,4 @@ class EaveLogger {
   }
 }
 
-export default new EaveLogger();
+export const eaveLogger = new EaveLogger();

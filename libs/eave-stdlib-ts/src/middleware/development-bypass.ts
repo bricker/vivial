@@ -1,7 +1,7 @@
 import * as os from 'os';
 import { constants as httpConstants } from 'node:http2';
 import { Request, Response } from 'express';
-import eaveLogger, { LogContext } from '../logging.js';
+import { eaveLogger, LogContext } from '../logging.js';
 import { sharedConfig } from '../config.js';
 import eaveHeaders from '../headers.js';
 

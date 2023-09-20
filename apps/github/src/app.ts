@@ -1,21 +1,37 @@
-import { GAELifecycleRouter, StatusRouter } from "@eave-fyi/eave-stdlib-ts/src/api-util.js";
-import { commonRequestMiddlewares, commonResponseMiddlewares, helmetMiddleware } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
+import { StatusRouter, addGAELifecycleRoutes, handlerWrapper, makeRoute } from "@eave-fyi/eave-stdlib-ts/src/api-util.js";
+import { commonRequestMiddlewares, commonResponseMiddlewares, helmetMiddleware, rawJsonBody } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
 import express from "express";
-import { InternalApiRouter } from "./api/routes.js";
-import { WebhookOfflineTaskRouter, WebhookRouter } from "./events/routes.js";
-import { OfflineTaskRouter } from "./tasks/routes.js";
+import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
+import { runApiDocumentationTaskHandler } from "./tasks/run-api-documentation.js";
+import { GithubEventHandlerTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js";
+import { webhookEventTaskHandler } from "./tasks/webhook-event.js";
+import { webhookEventHandler } from "./events/webhook.js";
+import { validateGithubWebhookHeaders } from "./middleware/process-webhook-payload.js";
+import { jsonParser } from "@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js";
+import { getContentSummaryHandler } from "./api/content.js";
+import { GetGithubUrlContentOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js";
+import { CreateGithubResourceSubscriptionOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-subscription.js";
+import { subscribeHandler } from "./api/subscribe.js";
+import { CreateGithubPullRequestOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js";
+import { createPullRequestHandler } from "./api/create-pull-request.js";
 
 export const app = express();
 app.use(helmetMiddleware());
 app.use(commonRequestMiddlewares);
-app.use(GAELifecycleRouter());
+app.use("/github/status", StatusRouter());
+addGAELifecycleRoutes({ router: app });
 
-const rootRouter = express.Router();
-app.use(rootRouter);
-rootRouter.use("/github", StatusRouter());
-rootRouter.use(WebhookRouter());
-rootRouter.use(InternalApiRouter());
-rootRouter.use(WebhookOfflineTaskRouter());
-rootRouter.use(OfflineTaskRouter());
+// Github Webhook endpoint
+// This doesn't use `makeRoute` because it uses a special middleware
+app.post("/github/events", rawJsonBody, validateGithubWebhookHeaders, jsonParser, handlerWrapper(webhookEventHandler));
+
+// API Endpoints
+makeRoute({ router: app, config: GetGithubUrlContentOperation.config, handler: getContentSummaryHandler });
+makeRoute({ router: app, config: CreateGithubResourceSubscriptionOperation.config, handler: subscribeHandler });
+makeRoute({ router: app, config: CreateGithubPullRequestOperation.config, handler: createPullRequestHandler });
+
+// Offline Tasks
+makeRoute({ router: app, config: RunApiDocumentationTaskOperation.config, handler: runApiDocumentationTaskHandler });
+makeRoute({ router: app, config: GithubEventHandlerTaskOperation.config, handler: webhookEventTaskHandler });
 
 app.use(commonResponseMiddlewares);

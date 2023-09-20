@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { CreateContentRequestBody, CreateContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
-import eaveLogger, { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { ConfluencePage, ConfluenceSpace } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
 import { DocumentInput } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js";
 import { CtxArg, ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";

@@ -2,12 +2,12 @@ import { PushEvent } from '@octokit/webhooks-types';
 import { Query, Scalars, Commit, Blob, TreeEntry, Repository } from '@octokit/graphql-schema';
 import OpenAIClient from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
 import { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { getGithubInstallation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
+import { eaveLogger } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { GetGithubInstallationOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
 import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js';
-import { GetSubscriptionResponseBody, getSubscription } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
+import { GetSubscriptionResponseBody, GetSubscriptionOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js';
 import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
-import { upsertDocument } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
+import { UpsertDocumentOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js';
 import { rollingSummary } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/util.js';
 import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
 import { GitHubOperationsContext } from '../types.js';
@@ -37,7 +37,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
 
   // fetch eave team id required for core_api requests
   const installationId = event.installation!.id;
-  const teamResponse = await getGithubInstallation({
+  const teamResponse = await GetGithubInstallationOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
     input: {
@@ -70,7 +70,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
       // check if we are subscribed to this file
       let subscriptionResponse: GetSubscriptionResponseBody | null = null;
       try {
-        subscriptionResponse = await getSubscription({
+        subscriptionResponse = await GetSubscriptionOperation.perform({
           ctx,
           origin: appConfig.eaveOrigin,
           teamId: eaveTeamId,
@@ -177,7 +177,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
         eave_team: JSON.stringify(teamResponse.team),
       }, ctx);
 
-      await upsertDocument({
+      await UpsertDocumentOperation.perform({
         ctx,
         origin: appConfig.eaveOrigin,
         teamId: eaveTeamId,
