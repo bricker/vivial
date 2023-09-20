@@ -6,7 +6,7 @@
     "src/"
   ],
   "bin": {
-    "start-pm2": "./src/pm2.js"
+    "start-pm2": "./src/pm2-cli.sh"
   },
   "scripts": {
     "yalc": "yalc publish --push"

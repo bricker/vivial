@@ -127,7 +127,6 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		# shellcheck disable=2086
 		node "${EAVE_HOME}/node_modules/ava/entrypoints/cli.mjs" \
-			-r "${EAVE_HOME}/develop/javascript/es-config/ava/test-setup.js" \
 			--config="${EAVE_HOME}/develop/javascript/es-config/ava/ava.config.mjs" \
 			${testfile:-}
 
