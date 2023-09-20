@@ -5,7 +5,7 @@ import { CloudTasksClient, protos } from '@google-cloud/tasks';
 import { EaveApp } from './eave-origins.js';
 import { CtxArg, makeRequest } from './requests.js';
 import headersImport from './headers.js';
-import eaveLogger, { LogContext } from './logging.js';
+import { eaveLogger, LogContext } from './logging.js';
 import Signing, { buildMessageToSign } from './signing.js';
 import { sharedConfig } from './config.js';
 

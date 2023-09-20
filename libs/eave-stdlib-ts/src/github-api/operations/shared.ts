@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import { Handler } from "express";
 import { sharedConfig } from "../../config.js";
 import { EaveApp } from "../../eave-origins.js";
 import { originMiddleware } from "../../middleware/origin.js";
@@ -7,42 +7,18 @@ import eaveHeaders from '../../headers.js';
 import { requireHeaders } from "../../middleware/require-headers.js";
 import { rawJsonBody } from "../../middleware/common-middlewares.js";
 import { jsonParser } from "../../middleware/body-parser.js";
+import { ServerApiEndpointConfiguration } from "../../api-util.js";
+import { ExpressRoutingMethod } from "../../types.js";
 
 const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app);
 
-export class GithubAppEndpointConfiguration {
-  path: string;
-  teamIdRequired: boolean;
-  authRequired: boolean;
-  originRequired: boolean;
-  signatureRequired: boolean;
-
-  constructor({
-    path,
-    teamIdRequired = true,
-    authRequired = true,
-    originRequired = true,
-    signatureRequired = true,
-  }: {
-    path: string,
-    teamIdRequired?: boolean,
-    authRequired?: boolean,
-    originRequired?: boolean,
-    signatureRequired?: boolean,
-  }) {
-    this.path = path;
-    this.teamIdRequired = teamIdRequired;
-    this.authRequired = authRequired;
-    this.originRequired = originRequired;
-    this.signatureRequired = signatureRequired;
-  }
-
+export class GithubAppEndpointConfiguration extends ServerApiEndpointConfiguration {
   get url(): string {
     return `${baseUrl}${this.path}`;
   }
 
-  get middlewares(): RequestHandler[] {
-    const m: RequestHandler[] = [];
+  get middlewares(): Handler[] {
+    const m: Handler[] = [];
     const headers: string[] = [];
 
     m.push(rawJsonBody);

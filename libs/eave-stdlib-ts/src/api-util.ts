@@ -1,11 +1,14 @@
+import Express, { Handler } from "express";
 import { constants as httpConstants } from 'node:http2';
-import { Request, Response, Router } from 'express';
+import { IRouter, Request, Response, Router } from 'express';
 import { Server } from 'http';
 import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
-import getCacheClient, { cacheInitialized } from './cache.js';
-import eaveLogger from './logging.js';
+import { getCacheClient, cacheInitialized } from './cache.js';
+import {eaveLogger} from './logging.js';
 import { redact } from './util.js';
+import { ExpressRoutingMethod } from "./types.js";
+
 
 export function statusPayload(): StatusResponseBody {
   return {
@@ -17,7 +20,7 @@ export function statusPayload(): StatusResponseBody {
 
 export function StatusRouter(): Router {
   const router = Router();
-  router.get('/status', async (_req: Request, res: Response) => {
+  router.get('/', async (_req: Request, res: Response) => {
     const payload = statusPayload();
 
     if (cacheInitialized()) {
@@ -31,9 +34,7 @@ export function StatusRouter(): Router {
   return router;
 }
 
-export function GAELifecycleRouter(): Router {
-  const router = Router();
-
+export function addGAELifecycleRoutes({ router }: { router: IRouter }) {
   router.get('/_ah/start', (_req: Request, res: Response) => {
     res.sendStatus(200);
   });
@@ -48,8 +49,6 @@ export function GAELifecycleRouter(): Router {
     await cacheClient.ping();
     res.sendStatus(200);
   });
-
-  return router;
 }
 
 export function gracefulShutdownHandler({ server }: { server: Server }): () => void {
@@ -105,7 +104,75 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
 
 export function constructUrl(req: Request): string {
   const audience = req.header(httpConstants.HTTP2_HEADER_HOST);
+  const proto = req.protocol;
   const path = req.originalUrl;
 
-  return `https://${audience}${path}`;
+  return `${proto}://${audience}${path}`;
+}
+
+export abstract class ClientApiEndpointConfiguration {
+  path: string;
+  method: ExpressRoutingMethod;
+  abstract get url(): string;
+
+  constructor({
+    path,
+    method = ExpressRoutingMethod.post,
+  }: {
+    path: string;
+    method?: ExpressRoutingMethod;
+  }) {
+    this.path = path;
+    this.method = method;
+  }
+}
+
+export abstract class ServerApiEndpointConfiguration {
+  path: string;
+  method: ExpressRoutingMethod;
+  teamIdRequired: boolean;
+  authRequired: boolean;
+  originRequired: boolean;
+  signatureRequired: boolean;
+
+  abstract get middlewares(): Express.Handler[];
+  abstract get url(): string;
+
+  constructor({
+    path,
+    method = ExpressRoutingMethod.post,
+    teamIdRequired = true,
+    authRequired = true,
+    originRequired = true,
+    signatureRequired = true,
+  }: {
+    path: string;
+    method?: ExpressRoutingMethod;
+    teamIdRequired?: boolean;
+    authRequired?: boolean;
+    originRequired?: boolean;
+    signatureRequired?: boolean;
+  }) {
+    this.path = path;
+    this.method = method;
+    this.teamIdRequired = teamIdRequired;
+    this.authRequired = authRequired;
+    this.originRequired = originRequired;
+    this.signatureRequired = signatureRequired;
+  }
+}
+
+export function handlerWrapper(func: Express.RequestHandler): Express.RequestHandler {
+  return async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+    try {
+      await func(req, res, next);
+      res.end(); // Safety; if the handler forgets to end the request, it will hang.
+    } catch (e: unknown) {
+      next(e);
+    }
+  };
+}
+
+export function makeRoute({ router, config, handler }: { router: Express.Router, config: ServerApiEndpointConfiguration, handler: Express.Handler }) {
+  router[config.method](config.path, ...config.middlewares, handlerWrapper(handler));
 }

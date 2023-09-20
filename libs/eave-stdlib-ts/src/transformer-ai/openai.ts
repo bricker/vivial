@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
 import { sharedConfig } from '../config.js';
-import eaveLogger, { LogContext } from '../logging.js';
+import { eaveLogger, LogContext } from '../logging.js';
 import { CtxArg } from '../requests.js';
 import { modelFromString } from './models.js';
 import { logGptRequest } from '../analytics.js';

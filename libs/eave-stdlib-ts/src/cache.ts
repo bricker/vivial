@@ -2,7 +2,7 @@ import { createClient } from 'redis';
 import { RedisCommandArgument } from '@redis/client/dist/lib/commands/index.js';
 import { SetOptions } from '@redis/client/dist/lib/commands/SET.js';
 import { sharedConfig } from './config.js';
-import eaveLogger from './logging.js';
+import { eaveLogger } from './logging.js';
 
 export interface Cache {
   get: (key: RedisCommandArgument) => Promise<RedisCommandArgument | null>;
@@ -131,7 +131,7 @@ async function loadCacheImpl(): Promise<Cache> {
 
 let _PROCESS_CACHE_CLIENT: Cache | undefined;
 
-export default async function client(): Promise<Cache> {
+export async function getCacheClient(): Promise<Cache> {
   if (_PROCESS_CACHE_CLIENT === undefined) {
     _PROCESS_CACHE_CLIENT = await loadCacheImpl();
   }

@@ -100,7 +100,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local usage="Usage: bin/test [-p path] [-f file] [-h]"
 		local targetpath
-		local testfile
+		local testfile=""
 
 		targetpath="$(^parentpath)"
 
@@ -121,9 +121,16 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		cd "$targetpath" || exit 1
 
-		# shellcheck disable=SC2086
+		if verbose; then
+			set -x
+		fi
+
+		# shellcheck disable=2086
 		node "${EAVE_HOME}/node_modules/ava/entrypoints/cli.mjs" \
-			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs" ${testfile:-}
+			--config="${EAVE_HOME}/develop/javascript/es-config/ava/ava.config.mjs" \
+			${testfile:-}
+
+		set +x
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

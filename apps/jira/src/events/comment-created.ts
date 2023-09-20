@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import eaveLogger, { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import OpenAIClient from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
 import { OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
-import { queryConnectInstallation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js";
-import { SearchDocumentsResponseBody, searchDocuments } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js";
+import { QueryConnectInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/connect.js";
+import { SearchDocumentsResponseBody, SearchDocumentsOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js";
 import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { ADFLinkMark, ADFMentionNode, ADFNode, ADFRootNode, ADFTextNode, ADFBlockNodeType, ADFInlineNodeType, ADFParagraphNode, ADFMarkType, ADFListItemNode, ADFChildBlockNodeType, ADFBulletListNode } from "@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js";
@@ -56,7 +56,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
   }
 
   // TODO: Get this from cache
-  const connectInstallation = await queryConnectInstallation({
+  const connectInstallation = await QueryConnectInstallationOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
     input: {
@@ -105,7 +105,7 @@ export default async function commentCreatedEventHandler({ req, res, jiraClient 
 
   const searchQuery = await getSearchQuery({ comment: cleanedBody, openaiClient, ctx });
 
-  const searchResults = await searchDocuments({
+  const searchResults = await SearchDocumentsOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
     teamId: team.id,

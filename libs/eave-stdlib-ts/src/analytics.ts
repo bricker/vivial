@@ -1,7 +1,7 @@
 import { PubSub } from '@google-cloud/pubsub';
 import { EaveEvent } from '@eave-fyi/eave-pubsub-schemas/src/generated/eave_event.js';
 import { GPTRequestEvent } from '@eave-fyi/eave-pubsub-schemas/src/generated/gpt_request_event.js';
-import eaveLogger, { LogContext } from './logging.js';
+import { eaveLogger, LogContext } from './logging.js';
 import { sharedConfig } from './config.js';
 import { JsonObject } from './types.js';
 

@@ -5,6 +5,9 @@
   "files": [
     "src/"
   ],
+  "bin": {
+    "start-pm2": "./src/pm2-cli.sh"
+  },
   "scripts": {
     "yalc": "yalc publish --push"
   },
@@ -43,14 +46,13 @@
     "tree-sitter-swift": "^0.3.6",
     "tree-sitter-typescript": "^0.20.1",
     "uuid": "9.x",
-    "winston": "3.x"
+    "winston": "3.x",
+    "pm2": "5.x",
+    "tsx": "3.x"
   },
   "peerDependencies": {
     "atlassian-connect-express": "8.2.0",
     "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript"
-  },
-  "devDependencies": {
-    "@eave-fyi/es-config": "file:../../develop/javascript/es-config"
   },
   "eslintConfig": {
     "parserOptions": {

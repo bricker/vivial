@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import onFinished from 'on-finished';
-import eaveLogger, { LogContext } from '../logging.js';
+import { eaveLogger, LogContext } from '../logging.js';
 
 export function requestLoggingMiddleware(req: Request, res: Response, next: NextFunction) {
   const ctx = LogContext.load(res);

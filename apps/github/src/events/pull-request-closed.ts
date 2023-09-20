@@ -1,6 +1,6 @@
 import { PullRequestEvent } from '@octokit/webhooks-types';
 import path from 'path';
-import eaveLogger from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { eaveLogger } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 import OpenAIClient, { formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
 import { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
 import {

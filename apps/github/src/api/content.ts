@@ -1,15 +1,16 @@
 import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js";
 import headers from "@eave-fyi/eave-stdlib-ts/src/headers.js";
-import eaveLogger, { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { Blob, Query, Ref, Repository, Scalars } from "@octokit/graphql-schema";
 import { Request, Response } from "express";
 import { Octokit } from "octokit";
 import { loadQuery } from "../lib/graphql-util.js";
-import { createOctokitClient, getInstallationId } from "../lib/octokit-util.js";
+import { createOctokitClient, createTeamOctokitClient, getInstallationId } from "../lib/octokit-util.js";
+import { GitHubOperationsContext } from "../types.js";
 
-export async function getSummary(req: Request, res: Response): Promise<void> {
+export async function getContentSummaryHandler(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
-  const eaveTeamId = req.header(headers.EAVE_TEAM_ID_HEADER)!; // presence already validated
+  const octokit = await createTeamOctokitClient(req, ctx);
 
   const input = <GetGithubUrlContentRequestBody>req.body;
   if (!input.url) {
@@ -18,14 +19,7 @@ export async function getSummary(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const installationId = await getInstallationId(eaveTeamId, ctx);
-  if (installationId === null) {
-    eaveLogger.error("missing github installation id", ctx);
-    res.sendStatus(500);
-    return;
-  }
-  const client = await createOctokitClient(installationId);
-  const content = await getFileContent(client, input.url, ctx);
+  const content = await getFileContent(octokit, input.url, ctx);
   const output: GetGithubUrlContentResponseBody = { content };
   res.json(output);
 }
