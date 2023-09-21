@@ -1,7 +1,9 @@
 query ($resourceUrl: URI!) {
   resource(url: $resourceUrl) {
-    ...on Repository {
-      owner { login }
+    ... on Repository {
+      owner {
+        login
+      }
       name
     }
   }

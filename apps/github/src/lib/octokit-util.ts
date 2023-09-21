@@ -1,13 +1,13 @@
+import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
+import { GetGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
+import { GetTeamOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js";
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
+import headers from "@eave-fyi/eave-stdlib-ts/src/headers.js";
+import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import Express from "express";
-import { App, Octokit } from 'octokit';
-import { eaveLogger, LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { CtxArg } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
-import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
-import { Team } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js';
-import { appConfig } from '../config.js';
-import { GetGithubInstallationOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js';
-import { GetTeamOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js';
-import headers from '@eave-fyi/eave-stdlib-ts/src/headers.js';
+import { App, Octokit } from "octokit";
+import { appConfig } from "../config.js";
 
 export async function createOctokitClient(installationId: number): Promise<Octokit> {
   const app = await githubAppClient();
@@ -20,7 +20,7 @@ export async function createTeamOctokitClient(req: Express.Request, ctx: LogCont
 
   const installationId = await getInstallationId(eaveTeamId, ctx);
   if (installationId === null) {
-    throw new Error('missing github installation id');
+    throw new Error("missing github installation id");
   }
   const client = await createOctokitClient(installationId);
   return client;
@@ -70,7 +70,7 @@ export async function getTeamForInstallation({ installationId, ctx }: CtxArg & {
   });
 
   if (!response.team) {
-    eaveLogger.error('github_install_id not found', response, ctx);
+    eaveLogger.error("github_install_id not found", response, ctx);
     return null;
   }
 

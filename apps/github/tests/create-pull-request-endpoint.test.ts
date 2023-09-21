@@ -1,8 +1,7 @@
-import anyTest, { TestFn } from 'ava';
-import { TestContextBase, TestUtil, makeRequest, mockSigning } from '@eave-fyi/eave-stdlib-ts/src/test-util.js';
+import { TestContextBase, TestUtil, makeRequest, mockSigning } from "@eave-fyi/eave-stdlib-ts/src/test-util.js";
+import anyTest, { TestFn } from "ava";
 import sinon from "sinon";
 import { app } from "../src/app.js";
-import { CreateGitHubPullRequestRequestBody } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js';
 
 interface TestContext extends TestContextBase {
   sandbox: sinon.SinonSandbox;

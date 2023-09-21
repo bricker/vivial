@@ -1,26 +1,18 @@
-import { PullRequestEvent } from '@octokit/webhooks-types';
-import path from 'path';
-import { eaveLogger } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import OpenAIClient, { formatprompt } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
-import { OpenAIModel } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
-import {
-  Query,
-  Scalars,
-  Blob,
-  Repository,
-  PullRequest,
-  PullRequestChangedFileConnection,
-  PullRequestChangedFile,
-} from '@octokit/graphql-schema';
-import { isSupportedProgrammingLanguage } from '@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js';
-import { updateDocumentation } from '@eave-fyi/eave-stdlib-ts/src/function-documenting.js';
-import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
-import { FileChange } from '@eave-fyi/eave-stdlib-ts/src/github-api/models.js';
-import { GitHubOperationsContext } from '../types.js';
-import { PullRequestCreator } from '../lib/pull-request-creator.js';
-import * as GraphQLUtil from '../lib/graphql-util.js';
+import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
+import { updateDocumentation } from "@eave-fyi/eave-stdlib-ts/src/function-documenting.js";
+import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
+import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { isSupportedProgrammingLanguage } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
+import { OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
+import OpenAIClient, { formatprompt } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
+import { Blob, PullRequest, PullRequestChangedFile, PullRequestChangedFileConnection, Query, Repository, Scalars } from "@octokit/graphql-schema";
+import { PullRequestEvent } from "@octokit/webhooks-types";
+import path from "path";
+import * as GraphQLUtil from "../lib/graphql-util.js";
+import { PullRequestCreator } from "../lib/pull-request-creator.js";
+import { GitHubOperationsContext } from "../types.js";
 
-const eavePrTitle = 'docs: Eave inline code documentation update';
+const eavePrTitle = "docs: Eave inline code documentation update";
 
 /**
  * Receives github webhook pull_request events.
@@ -31,7 +23,7 @@ const eavePrTitle = 'docs: Eave inline code documentation update';
  * for each file with code changes.
  */
 export default async function handler(event: PullRequestEvent, context: GitHubOperationsContext) {
-  if (event.action !== 'closed') {
+  if (event.action !== "closed") {
     return;
   }
   const { ctx, octokit } = context;
@@ -39,13 +31,16 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   // don't open more docs PRs from other Eave PRs getting merged
   // TODO: perform this check using event.sender.id instead for broader metric capture. compare to app id?? (app_id diff for prod vs stage)
   if (event.pull_request.title === eavePrTitle) {
-    const interaction = event.pull_request.merged ? 'merged' : 'closed';
-    await logEvent({
-      event_name: 'github_eave_pr_interaction',
-      event_description: `A GitHub PR opened by Eave was ${interaction}`,
-      event_source: 'github webhook pull_request event',
-      opaque_params: JSON.stringify({ interaction }),
-    }, ctx);
+    const interaction = event.pull_request.merged ? "merged" : "closed";
+    await logEvent(
+      {
+        event_name: "github_eave_pr_interaction",
+        event_description: `A GitHub PR opened by Eave was ${interaction}`,
+        event_source: "github webhook pull_request event",
+        opaque_params: JSON.stringify({ interaction }),
+      },
+      ctx,
+    );
     return;
   }
 
@@ -59,17 +54,17 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const repoId = event.repository.node_id.toString();
 
   const openaiClient = await OpenAIClient.getAuthedClient();
-  eaveLogger.debug('Processing github pull_request event', ctx);
+  eaveLogger.debug("Processing github pull_request event", ctx);
 
   let keepPaginating = true;
   let filePaths: Array<string> = [];
-  const filesQuery = await GraphQLUtil.loadQuery('getFilesInPullRequest');
+  const filesQuery = await GraphQLUtil.loadQuery("getFilesInPullRequest");
   const filesQueryVariables: {
-    repoOwner: Scalars['String'],
-    repoName: Scalars['String'],
-    prNumber: Scalars['Int'],
-    batchSize: Scalars['Int'],
-    after?: Scalars['String'],
+    repoOwner: Scalars["String"];
+    repoName: Scalars["String"];
+    prNumber: Scalars["Int"];
+    batchSize: Scalars["Int"];
+    after?: Scalars["String"];
   } = {
     repoOwner,
     repoName,
@@ -79,21 +74,21 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
   // paginate to collect all files from the PR
   while (keepPaginating) {
-    const queryResp = await octokit.graphql<{ repository: Query['repository'] }>(filesQuery, filesQueryVariables);
+    const queryResp = await octokit.graphql<{ repository: Query["repository"] }>(filesQuery, filesQueryVariables);
     const prRepo = <Repository>queryResp.repository;
     const pr = <PullRequest>prRepo.pullRequest;
     const prFilesConnection = <PullRequestChangedFileConnection>pr.files;
     const prFileNodes = <Array<PullRequestChangedFile>>prFilesConnection.nodes;
 
     if (!prFileNodes) {
-      eaveLogger.error('Failed to acquire file list from PR while processing PR merge event', ctx);
+      eaveLogger.error("Failed to acquire file list from PR while processing PR merge event", ctx);
       return;
     }
 
     const documentableFiles: Array<PullRequestChangedFile> = [];
     for (const f of prFileNodes) {
       // dont document files that aren't new or modified
-      if (!(f.changeType === 'ADDED' || f.changeType === 'MODIFIED')) {
+      if (!(f.changeType === "ADDED" || f.changeType === "MODIFIED")) {
         continue;
       }
 
@@ -113,20 +108,17 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
         scripts/setup.sh: NO
         bin/run: NO
         frontend/tests/LogicTests.js: NO
-        ${f.path}:`,
-      );
+        ${f.path}:`);
       const openaiResponse = await openaiClient.createChatCompletion({
         parameters: {
-          messages: [
-            { role: 'user', content: prompt },
-          ],
+          messages: [{ role: "user", content: prompt }],
           model: OpenAIModel.GPT4,
           max_tokens: 10,
         },
         ctx,
       });
 
-      if (openaiResponse.trim() === 'YES') {
+      if (openaiResponse.trim() === "YES") {
         documentableFiles.push(f);
       }
     }
@@ -140,35 +132,37 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   }
 
   // update docs in each file
-  const contentsQuery = await GraphQLUtil.loadQuery('getFileContentsByPath');
-  const b64UpdatedContent = await Promise.all(filePaths.map(async (fpath): Promise<string | null> => {
-    const contentsQueryVariables: {
-      repoOwner: Scalars['String'],
-      repoName: Scalars['String'],
-      expression: Scalars['String'],
-    } = {
-      repoOwner,
-      repoName,
-      expression: `${event.pull_request.base.ref}:${fpath}`,
-    };
+  const contentsQuery = await GraphQLUtil.loadQuery("getFileContentsByPath");
+  const b64UpdatedContent = await Promise.all(
+    filePaths.map(async (fpath): Promise<string | null> => {
+      const contentsQueryVariables: {
+        repoOwner: Scalars["String"];
+        repoName: Scalars["String"];
+        expression: Scalars["String"];
+      } = {
+        repoOwner,
+        repoName,
+        expression: `${event.pull_request.base.ref}:${fpath}`,
+      };
 
-    const response = await octokit.graphql<{ repository: Query['repository'] }>(contentsQuery, contentsQueryVariables);
-    const objectRepository = <Repository>response.repository;
-    const gitObject = <Blob>objectRepository?.object;
-    const fileContent = gitObject?.text;
-    if (!fileContent) {
-      eaveLogger.error(`Error fetching file content in ${repoOwner}/${repoName}`, ctx);
-      return null; // exits just this iteration of map
-    }
+      const response = await octokit.graphql<{ repository: Query["repository"] }>(contentsQuery, contentsQueryVariables);
+      const objectRepository = <Repository>response.repository;
+      const gitObject = <Blob>objectRepository?.object;
+      const fileContent = gitObject?.text;
+      if (!fileContent) {
+        eaveLogger.error(`Error fetching file content in ${repoOwner}/${repoName}`, ctx);
+        return null; // exits just this iteration of map
+      }
 
-    const updatedFileContent = await updateDocumentation({ currContent: fileContent, filePath: fpath, openaiClient, ctx, fileNodeId: gitObject.id });
-    if (!updatedFileContent) {
-      return null;
-    }
+      const updatedFileContent = await updateDocumentation({ currContent: fileContent, filePath: fpath, openaiClient, ctx, fileNodeId: gitObject.id });
+      if (!updatedFileContent) {
+        return null;
+      }
 
-    // encode new content as b64 bcus thats how github likes it
-    return Buffer.from(updatedFileContent!).toString('base64');
-  }));
+      // encode new content as b64 bcus thats how github likes it
+      return Buffer.from(updatedFileContent!).toString("base64");
+    }),
+  );
 
   try {
     const fileChanges = filePaths.reduce((acc, fpath, i) => {
@@ -193,7 +187,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
     });
     await prCreator.createPullRequest({
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
-      commitMessage: 'docs: automated update',
+      commitMessage: "docs: automated update",
       fileChanges,
       prTitle: eavePrTitle,
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,

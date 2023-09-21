@@ -1,11 +1,11 @@
-import { InstallationRepositoriesAddedEvent } from '@octokit/webhooks-types';
-import { CreateGithubRepoOperation, GetGithubReposOperation, FeatureStateGithubReposOperation } from '@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js'
-import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
-import { Feature, State } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js';
-import { enumCases } from '@eave-fyi/eave-stdlib-ts/src/util.js';
-import { RunApiDocumentationTaskOperation } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js';
-import { GitHubOperationsContext } from '../types.js';
-import { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
+import { Feature, State } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { CreateGithubRepoOperation, FeatureStateGithubReposOperation, GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
+import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
+import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { enumCases } from "@eave-fyi/eave-stdlib-ts/src/util.js";
+import { InstallationRepositoriesAddedEvent } from "@octokit/webhooks-types";
+import { GitHubOperationsContext } from "../types.js";
 
 /**
  * Receives github webhook installation_repositories events.
@@ -16,7 +16,7 @@ import { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
  * the other rows in the table whenever it is given access to new repos in GitHub.
  */
 export default async function handler(event: InstallationRepositoriesAddedEvent, context: GitHubOperationsContext) {
-  if (event.action !== 'added') {
+  if (event.action !== "added") {
     return;
   }
   const { ctx } = context;
@@ -37,7 +37,7 @@ export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: Lo
 
   const res = await GetGithubReposOperation.perform({
     ...sharedReqInput,
-    input: {}
+    input: {},
   });
 
   if (res.repos.length < 1) {
@@ -46,7 +46,7 @@ export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: Lo
   }
 
   for (const repo of repositoriesAdded) {
-    const defaultFeatureStates: { [key: string]: State } = {}
+    const defaultFeatureStates: { [key: string]: State } = {};
 
     for (const feat of enumCases(Feature)) {
       // TODO: don't skip arch feature once implemented
@@ -56,15 +56,19 @@ export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: Lo
 
       // if all the team's repos have the ENABLED state for this feature,
       // the new repo will also get the ENABLED state to match the default
-      defaultFeatureStates[feat] = (await FeatureStateGithubReposOperation.perform({
-        ...sharedReqInput,
-        input: {
-          query_params: {
-            feature: feat,
-            state: State.ENABLED,
-          }
-        }
-      })).states_match ? State.ENABLED : State.DISABLED;
+      defaultFeatureStates[feat] = (
+        await FeatureStateGithubReposOperation.perform({
+          ...sharedReqInput,
+          input: {
+            query_params: {
+              feature: feat,
+              state: State.ENABLED,
+            },
+          },
+        })
+      ).states_match
+        ? State.ENABLED
+        : State.DISABLED;
     }
 
     const repoResponse = await CreateGithubRepoOperation.perform({
@@ -75,7 +79,7 @@ export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: Lo
           api_documentation_state: defaultFeatureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
           inline_code_documentation_state: defaultFeatureStates[Feature.INLINE_CODE_DOCUMENTATION] || State.DISABLED,
           architecture_documentation_state: defaultFeatureStates[Feature.ARCHITECTURE_DOCUMENTATION] || State.DISABLED,
-        }
+        },
       },
     });
 
@@ -86,7 +90,7 @@ export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: Lo
         input: {
           repo: {
             external_repo_id: repoResponse.repo.external_repo_id,
-          }
+          },
         },
       });
     }
