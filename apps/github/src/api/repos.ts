@@ -31,8 +31,8 @@ function convertRepoObject(gqlRepo: Repository): ExternalGithubRepo {
     name: gqlRepo.name,
     url: gqlRepo.url,
     description: gqlRepo.description,
-    createdAt: gqlRepo.createdAt,
-    updatedAt: gqlRepo.updatedAt,
-    pushedAt: gqlRepo.pushedAt,
+    created_at: gqlRepo.createdAt,
+    updated_at: gqlRepo.updatedAt,
+    pushed_at: gqlRepo.pushedAt,
   };
 }

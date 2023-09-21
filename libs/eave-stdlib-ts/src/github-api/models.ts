@@ -25,7 +25,7 @@ export type ExternalGithubRepo = {
   name?: string;
   url?: string;
   description?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  pushedAt?: string;
+  created_at?: string;
+  updated_at?: string;
+  pushed_at?: string;
 }
