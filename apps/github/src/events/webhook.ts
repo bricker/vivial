@@ -1,14 +1,14 @@
-import { constants as httpConstants } from 'node:http2';
-import assert from "node:assert";
+import { Cache, getCacheClient } from "@eave-fyi/eave-stdlib-ts/src/cache.js";
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
+import { GithubEventHandlerTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js";
 import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { createTaskFromRequest } from "@eave-fyi/eave-stdlib-ts/src/task-queue.js";
 import Express from "express";
+import assert from "node:assert";
+import { constants as httpConstants } from "node:http2";
+import { GITHUB_EVENT_QUEUE_NAME } from "../config.js";
+import { getTeamForInstallation } from "../lib/octokit-util.js";
 import { getEventHandler, getGithubWebhookHeaders } from "../middleware/process-webhook-payload.js";
-import { getCacheClient, Cache } from '@eave-fyi/eave-stdlib-ts/src/cache.js';
-import { getTeamForInstallation } from '../lib/octokit-util.js';
-import { createTaskFromRequest } from '@eave-fyi/eave-stdlib-ts/src/task-queue.js';
-import { GITHUB_EVENT_QUEUE_NAME } from '../config.js';
-import { GithubEventHandlerTaskOperation } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js';
-import { EaveApp } from '@eave-fyi/eave-stdlib-ts/src/eave-origins.js';
 
 export async function webhookEventHandler(req: Express.Request, res: Express.Response): Promise<void> {
   const ctx = LogContext.load(res);
@@ -38,7 +38,7 @@ export async function webhookEventHandler(req: Express.Request, res: Express.Res
       eaveTeamId = cachedTeamId.toString();
     }
   } catch (e: any) {
-    eaveLogger.warning('Error connecting to cache', ctx, e);
+    eaveLogger.warning("Error connecting to cache", ctx, e);
   }
 
   if (!eaveTeamId) {

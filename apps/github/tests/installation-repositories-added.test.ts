@@ -1,4 +1,4 @@
-import { State, Feature } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { Feature, State } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { CreateGithubRepoOperation, FeatureStateGithubReposOperation, GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
