@@ -5,6 +5,7 @@ import { Feature, State } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/git
 import { enumCases } from '@eave-fyi/eave-stdlib-ts/src/util.js';
 import { RunApiDocumentationTaskOperation } from '@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js';
 import { GitHubOperationsContext } from '../types.js';
+import { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
 
 /**
  * Receives github webhook installation_repositories events.
@@ -20,6 +21,14 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
   }
   const { ctx } = context;
 
+  await maybeAddReposToDataBase(event.repositories_added, ctx);
+}
+
+type Repo = {
+  node_id: string;
+};
+
+export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: LogContext) {
   const sharedReqInput = {
     teamId: ctx.eave_team_id,
     origin: EaveApp.eave_github_app,
@@ -30,12 +39,13 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
     ...sharedReqInput,
     input: {}
   });
+
   if (res.repos.length < 1) {
     // exit early; website app handles adding first repo(s) to the db
     return;
   }
 
-  for (const repo of event.repositories_added) {
+  for (const repo of repositoriesAdded) {
     const defaultFeatureStates: { [key: string]: State } = {}
 
     for (const feat of enumCases(Feature)) {
