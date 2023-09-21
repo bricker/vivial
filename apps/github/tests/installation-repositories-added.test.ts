@@ -23,23 +23,21 @@ function anyRepo(t: TestUtil) {
   };
 }
 
-const sandbox = sinon.createSandbox();
-
 test.beforeEach((t) => {
+  const sandbox = sinon.createSandbox();
   const util = new TestUtil();
 
   t.context = {
     sandbox,
     u: util,
   };
-  sandbox.restore();
 });
 
 test.afterEach((t) => {
   t.context.sandbox.restore();
 });
 
-test("no existing github_repos for team should not insert rows", async (t) => {
+test.serial("no existing github_repos for team should not insert rows", async (t) => {
   // TODO: do something about this
   t.context.sandbox.restore();
   // GIVEN there are no entries in github_repos db for this team
@@ -58,7 +56,7 @@ test("no existing github_repos for team should not insert rows", async (t) => {
   t.assert(runApiDocsStub.notCalled);
 });
 
-test("all repos have feature enabled then new repo will also have feature enabled", async (t) => {
+test.serial("all repos have feature enabled then new repo will also have feature enabled", async (t) => {
   // TODO: do something about this
   t.context.sandbox.restore();
   // GIVEN this team has existing repos with all inline_code_docs feature states ENABLED
@@ -102,7 +100,7 @@ test("all repos have feature enabled then new repo will also have feature enable
   t.assert(runApiDocsStub.notCalled);
 });
 
-test("multiple repos added at once lead to multiple db row creations", async (t) => {
+test.serial("multiple repos added at once lead to multiple db row creations", async (t) => {
   // TODO: do something about this
   t.context.sandbox.restore();
   // GIVEN this team has existing repos with all inline_code_docs feature states ENABLED
@@ -147,7 +145,7 @@ test("multiple repos added at once lead to multiple db row creations", async (t)
   t.assert(runApiDocsStub.notCalled);
 });
 
-test("any repo has feature disabled then new repo will not have feature enabled", async (t) => {
+test.serial("any repo has feature disabled then new repo will not have feature enabled", async (t) => {
   // TODO: do something about this
   t.context.sandbox.restore();
   // GIVEN this team has existing repos that don't all have the ENABLED feature state for any features
@@ -179,7 +177,7 @@ test("any repo has feature disabled then new repo will not have feature enabled"
   t.assert(runApiDocsStub.notCalled);
 });
 
-test("new repos with api docs feature enabled get an initial run of the feature on creation", async (t) => {
+test.serial("new repos with api docs feature enabled get an initial run of the feature on creation", async (t) => {
   // TODO: do something about this
   t.context.sandbox.restore();
   // GIVEN this team has existing repos with all api_docs feature states ENABLED
