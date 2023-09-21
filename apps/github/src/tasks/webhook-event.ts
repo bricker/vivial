@@ -1,10 +1,9 @@
-import Express from "express";
-import { constants as httpConstants } from 'node:http2';
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
-import { NextFunction } from "express";
-import { GithubWebhookBody, getEventHandler, getGithubWebhookHeaders } from "../middleware/process-webhook-payload.js";
+import Express from "express";
 import assert from "node:assert";
+import { constants as httpConstants } from "node:http2";
 import { githubAppClient } from "../lib/octokit-util.js";
+import { GithubWebhookBody, getEventHandler, getGithubWebhookHeaders } from "../middleware/process-webhook-payload.js";
 
 export async function webhookEventTaskHandler(req: Express.Request, res: Express.Response): Promise<void> {
   const ctx = LogContext.load(res);

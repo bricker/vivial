@@ -1,7 +1,7 @@
-import anyTest, { TestFn } from 'ava';
-import { TestContextBase, TestUtil } from '@eave-fyi/eave-stdlib-ts/src/test-util.js';
-import request from "supertest";
+import { TestContextBase, TestUtil } from "@eave-fyi/eave-stdlib-ts/src/test-util.js";
+import anyTest, { TestFn } from "ava";
 import sinon from "sinon";
+import request from "supertest";
 import { app } from "../src/app.js";
 
 interface TestContext extends TestContextBase {
@@ -27,5 +27,5 @@ test.afterEach((t) => {
 test("status endpoint is alive", async (t) => {
   const response = await request(app).get("/github/status");
   t.assert(response.ok);
-  t.is(response.body.status, 'OK');
+  t.is(response.body.status, "OK");
 });

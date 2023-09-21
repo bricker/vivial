@@ -2,7 +2,7 @@ query ($repoOwner: String!, $repoName: String!, $commitOid: GitObjectID!, $fileP
   repository(owner: $repoOwner, name: $repoName) {
     id
     owner {
-      ...on Organization {
+      ... on Organization {
         name
       }
     }
@@ -10,7 +10,7 @@ query ($repoOwner: String!, $repoName: String!, $commitOid: GitObjectID!, $fileP
     object(oid: $commitOid) {
       id
       oid
-      ...on Commit {
+      ... on Commit {
         file(path: $filePath) {
           oid
           name
@@ -21,7 +21,7 @@ query ($repoOwner: String!, $repoName: String!, $commitOid: GitObjectID!, $fileP
           object {
             id
             oid
-            ...on Blob {
+            ... on Blob {
               text
             }
           }
