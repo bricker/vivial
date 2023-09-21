@@ -1,4 +1,4 @@
-query ($orgLogin: String!) {
+query {
   viewer {
     repositories(isArchived: false, orderBy: { direction: DESC, field: PUSHED_AT }, first: 100) {
       nodes {
