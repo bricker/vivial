@@ -2,8 +2,6 @@ import { RequestArgsTeamId, makeRequest } from "../../requests.js";
 import { ExternalGithubRepo } from "../models.js";
 import { GithubAppEndpointConfiguration } from "./shared.js";
 
-export type QueryGithubReposRequestBody = {};
-
 export type QueryGithubReposResponseBody = {
   repos: ExternalGithubRepo[];
 };
@@ -15,9 +13,7 @@ export class QueryGithubReposOperation {
   });
 
   static async perform(
-    args: RequestArgsTeamId & {
-      input: QueryGithubReposRequestBody;
-    },
+    args: RequestArgsTeamId,
   ): Promise<QueryGithubReposResponseBody> {
     const resp = await makeRequest({
       url: this.config.url,
