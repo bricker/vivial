@@ -1,6 +1,4 @@
-import { sharedConfig } from '../../config.js';
-import { EaveApp } from '../../eave-origins.js';
-import { makeRequest, RequestArgsAuthedRequest } from '../../requests.js';
+import { makeRequest, RequestArgsAuthedRequest, RequestArgsOrigin, RequestArgsTeamId } from '../../requests.js';
 import {
   GithubRepo,
   GithubRepoCreateInput,
@@ -22,7 +20,7 @@ export type GetGithubReposResponseBody = {
 export class GetGithubReposOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-repos/query" })
   static async perform(
-    args: RequestArgsAuthedRequest & { input: GetGithubReposRequestBody },
+    args: RequestArgsTeamId & { input: GetGithubReposRequestBody },
   ): Promise<GetGithubReposResponseBody> {
     const resp = await makeRequest({
       url: this.config.url,
@@ -43,7 +41,7 @@ export type FeatureStateGithubReposResponseBody = {
 export class FeatureStateGithubReposOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-repos/query/enabled" })
   static async perform(
-    args: RequestArgsAuthedRequest & { input: FeatureStateGithubReposRequestBody },
+    args: RequestArgsTeamId & { input: FeatureStateGithubReposRequestBody },
   ): Promise<FeatureStateGithubReposResponseBody> {
     const resp = await makeRequest({
       url: this.config.url,
@@ -64,7 +62,7 @@ export type CreateGithubRepoResponseBody = {
 export class CreateGithubRepoOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-repos/create" })
   static async perform(
-    args: RequestArgsAuthedRequest & { input: CreateGithubRepoRequestBody },
+    args: RequestArgsTeamId & { input: CreateGithubRepoRequestBody },
   ): Promise<CreateGithubRepoResponseBody> {
     const resp = await makeRequest({
       url: this.config.url,
