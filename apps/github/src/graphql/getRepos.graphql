@@ -1,0 +1,15 @@
+query ($orgLogin: String!) {
+  viewer {
+    repositories(isArchived: false, orderBy: { direction: DESC, field: PUSHED_AT }, first: 100) {
+      nodes {
+        id
+        name
+        url
+        description
+        createdAt
+        updatedAt
+        pushedAt
+      }
+    }
+  }
+}

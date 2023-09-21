@@ -3,12 +3,14 @@ import { CreateGithubPullRequestOperation } from "@eave-fyi/eave-stdlib-ts/src/g
 import { CreateGithubResourceSubscriptionOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-subscription.js";
 import { GithubEventHandlerTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js";
 import { GetGithubUrlContentOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js";
+import { QueryGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/query-repos.js";
 import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { jsonParser } from "@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js";
 import { commonRequestMiddlewares, commonResponseMiddlewares, helmetMiddleware, rawJsonBody } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
 import express from "express";
 import { getContentSummaryHandler } from "./api/content.js";
 import { createPullRequestHandler } from "./api/create-pull-request.js";
+import { queryReposHandler } from "./api/repos.js";
 import { subscribeHandler } from "./api/subscribe.js";
 import { webhookEventHandler } from "./events/webhook.js";
 import { validateGithubWebhookHeaders } from "./middleware/process-webhook-payload.js";
@@ -29,6 +31,7 @@ app.post("/github/events", rawJsonBody, validateGithubWebhookHeaders, jsonParser
 makeRoute({ router: app, config: GetGithubUrlContentOperation.config, handler: getContentSummaryHandler });
 makeRoute({ router: app, config: CreateGithubResourceSubscriptionOperation.config, handler: subscribeHandler });
 makeRoute({ router: app, config: CreateGithubPullRequestOperation.config, handler: createPullRequestHandler });
+makeRoute({ router: app, config: QueryGithubReposOperation.config, handler: queryReposHandler });
 
 // Offline Tasks
 makeRoute({ router: app, config: RunApiDocumentationTaskOperation.config, handler: runApiDocumentationTaskHandler });

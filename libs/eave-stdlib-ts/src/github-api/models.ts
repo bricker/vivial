@@ -19,3 +19,13 @@ export type FileChange = {
 export type GithubRepoInput = {
   external_repo_id: string;
 }
+
+export type ExternalGithubRepo = {
+  id?: string;
+  name?: string;
+  url?: string;
+  description?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  pushedAt?: string;
+}
