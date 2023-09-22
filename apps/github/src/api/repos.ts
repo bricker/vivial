@@ -34,5 +34,10 @@ function convertRepoObject(gqlRepo: Repository): ExternalGithubRepo {
     created_at: gqlRepo.createdAt,
     updated_at: gqlRepo.updatedAt,
     pushed_at: gqlRepo.pushedAt,
+    owner: {
+      id: gqlRepo.owner.id,
+      login: gqlRepo.owner.login,
+      avatar_url: gqlRepo.owner.avatarUrl,
+    },
   };
 }

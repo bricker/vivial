@@ -9,6 +9,11 @@ query {
         createdAt
         updatedAt
         pushedAt
+        owner {
+          id
+          login
+          avatarUrl
+        }
       }
     }
   }

@@ -20,6 +20,12 @@ export type GithubRepoInput = {
   external_repo_id: string;
 }
 
+export type ExternalGithubRepoOwner = {
+  id?: string;
+  login?: string;
+  avatar_url?: string;
+}
+
 export type ExternalGithubRepo = {
   id?: string;
   name?: string;
@@ -28,4 +34,5 @@ export type ExternalGithubRepo = {
   created_at?: string;
   updated_at?: string;
   pushed_at?: string;
+  owner?: ExternalGithubRepoOwner;
 }
