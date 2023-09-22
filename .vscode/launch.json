@@ -114,7 +114,13 @@
       "program": "${workspaceFolder}/apps/github/server.ts",
       "restart": true,
       "args": [],
-      "runtimeExecutable": "${workspaceFolder}/apps/github/node_modules/.bin/nodemon",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/nodemon",
+      "args": [
+        "--exec", "${workspaceFolder}/node_modules/.bin/tsx",
+        "--watch", "${workspaceFolder}/apps/github/src",
+        "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
+        "--delay", "5",
+      ],
       "consoleTitle": "GitHub App",
       "console": "integratedTerminal",
       "env": {
@@ -144,13 +150,13 @@
       ],
       "program": "${workspaceFolder}/apps/confluence/server.ts",
       "restart": true,
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/nodemon",
       "args": [
-        "--exec", "ts-node",
+        "--exec", "${workspaceFolder}/node_modules/.bin/tsx",
         "--watch", "${workspaceFolder}/apps/confluence/src",
         "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
         "--delay", "5",
       ],
-      "runtimeExecutable": "${workspaceFolder}/apps/confluence/node_modules/.bin/nodemon",
       "consoleTitle": "Confluence App",
       "console": "integratedTerminal",
       "env": {
@@ -180,13 +186,13 @@
       ],
       "program": "${workspaceFolder}/apps/jira/server.ts",
       "restart": true,
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/nodemon",
       "args": [
-        "--exec", "ts-node",
+        "--exec", "${workspaceFolder}/node_modules/.bin/tsx",
         "--watch", "${workspaceFolder}/apps/jira/src",
         "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
         "--delay", "5",
       ],
-      "runtimeExecutable": "${workspaceFolder}/apps/jira/node_modules/.bin/nodemon",
       "consoleTitle": "Jira App",
       "console": "integratedTerminal",
       "env": {
