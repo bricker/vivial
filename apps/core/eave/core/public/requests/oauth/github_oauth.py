@@ -1,10 +1,18 @@
 import json
 import urllib.parse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from sqlalchemy.orm import Session
+from eave.core.internal.orm.github_repos import GithubRepoOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 from eave.stdlib.auth_cookies import get_auth_cookies
 import eave.stdlib.cookies
+from eave.stdlib.core_api.models.github_repos import GithubRepo
+from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.github_api.models import ExternalGithubRepo
+from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 import eave.stdlib.util
 import eave.stdlib.analytics
 import oauthlib.common
@@ -18,7 +26,7 @@ from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.request_state import EaveRequestState
 
-from ...http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import EaveOnboardingErrorCode, shared
 from eave.stdlib.logging import eaveLogger
 
@@ -85,17 +93,17 @@ class GithubOAuthCallback(HTTPEndpoint):
         # error = request.query_params.get("error")
         # error_description = request.query_params.get("error_description")
 
-        self.eave_state = eave_state = EaveRequestState.load(request=request)
+        self.eave_state = EaveRequestState.load(request=request)
 
         setup_action = request.query_params.get("setup_action")
-        if setup_action != "install":
-            eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", eave_state.ctx)
+        if setup_action not in ["install", "update"]:
+            eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", self.eave_state.ctx)
 
         installation_id = request.query_params.get("installation_id")
         if not installation_id:
             eaveLogger.warning(
                 f"github installation_id not provided for action {setup_action}. Cannot proceed.",
-                eave_state.ctx,
+                self.eave_state.ctx,
             )
             return shared.cancel_flow(response=self.response)
 
@@ -103,11 +111,10 @@ class GithubOAuthCallback(HTTPEndpoint):
 
         auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-        # TODO: Allow GitHub as real auth provider.
-        # For GitHub, we don't actually do OAuth (despite the name and location of this file), so if they
-        # arrive here then they're expect to be already logged in.
         if not auth_cookies.access_token or not auth_cookies.account_id:
-            eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", eave_state.ctx)
+            # This is the case where they're going through the install flow but not logged in.
+            # TODO: Once we allow people to install the app before they've created an account, this is where we'd redirect them to the registration flow.
+            eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", self.eave_state.ctx)
             return shared.cancel_flow(response=self.response)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
@@ -122,6 +129,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             location=shared.DEFAULT_REDIRECT_LOCATION,
         )
         await self._update_or_create_github_installation()
+        await self._sync_github_repos()
         return self.response
 
     async def _update_or_create_github_installation(
@@ -134,7 +142,27 @@ class GithubOAuthCallback(HTTPEndpoint):
                 github_install_id=self.installation_id,
             )
 
-            if github_installation and github_installation.team_id != self.eave_account.team_id:
+            if not github_installation:
+                # create new github installation associated with the TeamOrm
+                github_installation = await eave.core.internal.orm.GithubInstallationOrm.create(
+                    session=db_session,
+                    team_id=self.eave_account.team_id,
+                    github_install_id=self.installation_id,
+                )
+
+                await eave.stdlib.analytics.log_event(
+                    event_name="eave_application_integration",
+                    event_description="An integration was added for a team",
+                    event_source="core api github oauth",
+                    eave_account=self.eave_account.analytics_model,
+                    eave_team=self.eave_team.analytics_model,
+                    opaque_params={
+                        "integration_name": Integration.github.value,
+                    },
+                    ctx=self.eave_state.ctx,
+                )
+
+            elif github_installation.team_id != self.eave_account.team_id:
                 eaveLogger.warning(
                     f"A Github integration already exists with github install id {self.installation_id}",
                     self.eave_state.ctx,
@@ -149,23 +177,57 @@ class GithubOAuthCallback(HTTPEndpoint):
                 )
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 return
-
             else:
-                # create new github installation associated with the TeamOrm
-                github_installation = await eave.core.internal.orm.GithubInstallationOrm.create(
-                    session=db_session,
-                    team_id=self.eave_account.team_id,
-                    github_install_id=self.installation_id,
+                await eave.stdlib.analytics.log_event(
+                    event_name="eave_application_integration_updated",
+                    event_description="An integration was re-installed or updated for a team",
+                    event_source="core api github oauth",
+                    eave_account=self.eave_account.analytics_model,
+                    eave_team=self.eave_team.analytics_model,
+                    opaque_params={
+                        "integration_name": Integration.github.value,
+                    },
+                    ctx=self.eave_state.ctx,
                 )
 
-        await eave.stdlib.analytics.log_event(
-            event_name="eave_application_integration",
-            event_description="An integration was added for a team",
-            event_source="core api github oauth",
-            eave_account=self.eave_account.analytics_model,
-            eave_team=self.eave_team.analytics_model,
-            opaque_params={
-                "integration_name": Integration.github.value,
-            },
-            ctx=self.eave_state.ctx,
+    async def _sync_github_repos(self) -> None:
+        response = await QueryGithubRepos.perform(team_id=self.eave_team.id, origin=EaveApp.eave_api, ctx=self.eave_state.ctx)
+
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            for repo in response.repos:
+                await self._create_local_github_repo(repo=repo, db_session=db_session)
+
+    async def _create_local_github_repo(self, repo: ExternalGithubRepo, db_session: AsyncSession) -> None:
+        if repo.id is None:
+            eaveLogger.error(
+                "Malformed repository object",
+                self.eave_state.ctx,
+            )
+            return
+
+        existing_repo = await GithubRepoOrm.one_or_none(
+            session=db_session,
+            team_id=self.eave_team.id,
+            external_repo_id=repo.id,
         )
+
+        if existing_repo:
+            await eave.stdlib.analytics.log_event(
+                event_name="repo_already_added",
+                event_description="A repo already existed when attempting to save it to the Eave database",
+                event_source="core api github oauth",
+                eave_account=self.eave_account.analytics_model,
+                eave_team=self.eave_team.analytics_model,
+                opaque_params={
+                    "integration_name": Integration.github.value,
+                    "repo_name": repo.name,
+                    "repo_id": repo.id,
+                },
+                ctx=self.eave_state.ctx,
+            )
+        else:
+            await GithubRepoOrm.create(
+                session=db_session,
+                team_id=self.eave_team.id,
+                external_repo_id=repo.id,
+            )
