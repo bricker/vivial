@@ -4,7 +4,7 @@ import eave.core.internal.database as eave_db
 import eave.core.internal.orm as eave_orm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.core.public.http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 from eave.stdlib.logging import eaveLogger
 

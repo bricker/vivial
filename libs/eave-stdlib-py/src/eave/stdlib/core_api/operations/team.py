@@ -2,12 +2,12 @@ from typing import Unpack
 import uuid
 from ... import requests
 from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
-from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
 from ..models import integrations
 
 
-class GetTeamRequest(Endpoint):
-    config = EndpointConfiguration(
+class GetTeamRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/team/query",
         auth_required=False,
     )
@@ -23,7 +23,7 @@ class GetTeamRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=None,
             team_id=team_id,
             **kwargs,
@@ -33,8 +33,8 @@ class GetTeamRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class UpsertConfluenceDestinationAuthedRequest(Endpoint):
-    config = EndpointConfiguration(
+class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/me/team/destinations/confluence/upsert",
         team_id_required=False,
     )
@@ -55,7 +55,7 @@ class UpsertConfluenceDestinationAuthedRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             access_token=access_token,
             account_id=account_id,
@@ -66,8 +66,8 @@ class UpsertConfluenceDestinationAuthedRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-# class UpdateTeam(Endpoint):
-#     config = EndpointConfiguration(
+# class UpdateTeam(CoreApiEndpoint):
+#     config = CoreApiEndpointConfiguration(
 #         path="/team/update",
 #         auth_required=False,
 #     )

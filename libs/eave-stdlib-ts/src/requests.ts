@@ -2,10 +2,11 @@ import { constants as httpConstants } from 'node:http2';
 import { NextFunction, Request, Response } from 'express';
 import { eaveLogger, LogContext } from './logging.js';
 import { EaveApp } from './eave-origins.js';
-import Signing, { buildMessageToSign } from './signing.js';
-import eaveHeaders from './headers.js';
+import Signing, { buildMessageToSign, makeSigTs } from './signing.js';
 import { redact } from './util.js';
 import { JsonObject } from './types.js';
+import { ClientApiEndpointConfiguration } from './api-util.js';
+import { EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIGNATURE_HEADER, EAVE_SIG_TS_HEADER, EAVE_TEAM_ID_HEADER, MIME_TYPE_JSON } from './headers.js';
 
 export type ExpressHandlerArgs = {
   req: Request;
@@ -31,7 +32,7 @@ export type RequestArgsAuthedRequest = RequestArgsTeamId & {
 }
 
 type RequestArgs = CtxArg & {
-  url: string;
+  config: ClientApiEndpointConfiguration;
   origin: EaveApp | string;
   input?: unknown;
   accountId?: string;
@@ -46,7 +47,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   const ctx = LogContext.wrap(args.ctx);
 
   const {
-    url,
+    config,
     origin,
     input,
     accessToken,
@@ -58,6 +59,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   } = args;
 
   const requestId = ctx.eave_request_id;
+  const eaveSigTs = makeSigTs();
   let payload: string | undefined;
 
   if (input === undefined) {
@@ -69,15 +71,18 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   }
 
   let headers: { [key: string]: string } = {
-    [httpConstants.HTTP2_HEADER_CONTENT_TYPE]: eaveHeaders.MIME_TYPE_JSON,
-    [eaveHeaders.EAVE_ORIGIN_HEADER]: origin,
-    [eaveHeaders.EAVE_REQUEST_ID_HEADER]: requestId,
+    [httpConstants.HTTP2_HEADER_CONTENT_TYPE]: MIME_TYPE_JSON,
+    [EAVE_ORIGIN_HEADER]: origin,
+    [EAVE_REQUEST_ID_HEADER]: requestId,
+    [EAVE_SIG_TS_HEADER]: eaveSigTs.toString(),
   };
 
   const message = buildMessageToSign({
     method,
-    url,
+    path: config.path,
+    ts: eaveSigTs,
     requestId,
+    audience: config.audience,
     origin,
     payload,
     teamId,
@@ -88,18 +93,18 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   const signing = Signing.new(origin);
   const signature = await signing.signBase64(message);
 
-  headers[eaveHeaders.EAVE_SIGNATURE_HEADER] = signature;
+  headers[EAVE_SIGNATURE_HEADER] = signature;
 
   if (accessToken !== undefined) {
     headers[httpConstants.HTTP2_HEADER_AUTHORIZATION] = `Bearer ${accessToken}`;
   }
 
   if (teamId !== undefined) {
-    headers[eaveHeaders.EAVE_TEAM_ID_HEADER] = teamId;
+    headers[EAVE_TEAM_ID_HEADER] = teamId;
   }
 
   if (accountId !== undefined) {
-    headers[eaveHeaders.EAVE_ACCOUNT_ID_HEADER] = accountId;
+    headers[EAVE_ACCOUNT_ID_HEADER] = accountId;
   }
 
   if (addlHeaders) {
@@ -114,11 +119,11 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
     eave_team_id: teamId,
     eave_account_id: accountId,
     method,
-    url,
+    url: config.url,
   };
 
   eaveLogger.info(
-    `Client Request: ${requestId}: ${method} ${url}`,
+    `Client Request: ${requestId}: ${method} ${config.url}`,
     ctx,
     requestContext,
   );
@@ -126,7 +131,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   const abortController = new AbortController();
   setTimeout(() => abortController.abort(), 1000 * baseTimeoutSeconds);
 
-  const response = await fetch(url, {
+  const response = await fetch(config.url, {
     method,
     body: payload,
     headers,
@@ -134,7 +139,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
   });
 
   eaveLogger.info(
-    `Client Response: ${requestId}: ${method} ${url}`,
+    `Client Response: ${requestId}: ${method} ${config.url}`,
     ctx,
     requestContext,
     { status: response.status },
@@ -142,7 +147,7 @@ export async function makeRequest(args: RequestArgs): Promise<globalThis.Respons
 
   if (response.status >= 400) {
     eaveLogger.error(
-      `Request Error (${response.status}): ${url}`,
+      `Request Error (${response.status}): ${config.url}`,
       ctx,
       requestContext,
     );

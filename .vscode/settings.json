@@ -47,7 +47,6 @@
     "https://json.schemastore.org/github-action": ["action.yml"],
     "https://json.schemastore.org/github-workflow": ".github/workflows/*.yml",
   },
-  "graphql-config.load.rootDir": "${workspaceFolder}/apps/github",
   "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
   "eslint.experimental.useFlatConfig": false,
   "eslint.format.enable": true,
@@ -192,4 +191,5 @@
   "mypy-type-checker.importStrategy": "fromEnvironment",
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
+  "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
 }

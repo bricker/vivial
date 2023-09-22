@@ -2,27 +2,25 @@ from typing import Optional, Unpack
 import uuid
 from eave.stdlib import requests
 from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
+from eave.stdlib.github_api.models import ExternalGithubRepo
 from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpointConfiguration
 
 
-class GetGithubUrlContent(GithubAppEndpoint):
+class QueryGithubRepos(GithubAppEndpoint):
     config = GithubAppEndpointConfiguration(
-        path="/github/api/content",
+        path="/github/api/repos/query",
     )
 
-    class RequestBody(BaseRequestBody):
-        url: str
-
     class ResponseBody(BaseResponseBody):
-        content: Optional[str]
+        repos: list[ExternalGithubRepo]
 
     @classmethod
     async def perform(
-        cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
+        cls, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
-            input=input,
+            input=None,
             team_id=team_id,
             **kwargs,
         )

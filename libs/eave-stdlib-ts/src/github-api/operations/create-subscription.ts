@@ -18,7 +18,7 @@ export class CreateGithubResourceSubscriptionOperation {
     input: CreateGithubResourceSubscriptionRequestBody,
   }): Promise<CreateSubscriptionResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
 

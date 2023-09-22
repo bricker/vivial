@@ -6,6 +6,8 @@ import { ExpressRoutingMethod } from "../../types.js";
 const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_api);
 
 export class CoreApiEndpointConfiguration extends ClientApiEndpointConfiguration {
+  audience = EaveApp.eave_api;
+
   get url(): string {
     return `${baseUrl}${this.path}`;
   }

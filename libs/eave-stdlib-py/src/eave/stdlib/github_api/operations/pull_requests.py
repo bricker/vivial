@@ -34,7 +34,7 @@ class CreateGitHubPullRequest(GithubAppEndpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,

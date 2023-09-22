@@ -1,4 +1,5 @@
 import json
+import time
 import unittest
 import unittest.mock
 import urllib.parse
@@ -141,6 +142,12 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         if headers is None:
             headers = {}
 
+        if e := headers.get("eave-sig-ts"):
+            eave_sig_ts = int(e)
+        else:
+            eave_sig_ts = eave.stdlib.signing.make_sig_ts()
+            headers["eave-sig-ts"] = str(eave_sig_ts)
+
         if team_id:
             assert "eave-team-id" not in headers
             headers["eave-team-id"] = str(team_id)
@@ -185,8 +192,10 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             origin = origin or eave.stdlib.eave_origins.EaveApp.eave_www
             signature_message = eave.stdlib.signing.build_message_to_sign(
                 method=method,
-                url=f"{eave.core.internal.app_config.eave_public_api_base}{path}",
+                path=path,
+                ts=eave_sig_ts,
                 origin=origin,
+                audience=eave.stdlib.eave_origins.EaveApp.eave_api,
                 payload=encoded_payload,
                 request_id=request_id,
                 team_id=team_id,

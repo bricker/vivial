@@ -6,7 +6,7 @@ import eave.core.internal.orm as eave_orm
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.exceptions import NotFoundError
 
-from ..http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 
 
 class SlackIntegration(HTTPEndpoint):

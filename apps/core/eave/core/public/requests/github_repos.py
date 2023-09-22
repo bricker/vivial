@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_repos import GithubRepoOrm
-from eave.core.public.http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.analytics import log_event
@@ -29,6 +29,7 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
                 external_repo_id=input.repo.external_repo_id,
+                display_name=input.repo.display_name,
                 api_documentation_state=input.repo.api_documentation_state,
                 inline_code_documentation_state=input.repo.inline_code_documentation_state,
                 architecture_documentation_state=input.repo.architecture_documentation_state,

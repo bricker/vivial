@@ -1,7 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { createHash } from "crypto";
-import Signing, { buildMessageToSign } from './signing.js';
+import Signing, { buildMessageToSign, makeSigTs } from './signing.js';
 import { InvalidSignatureError } from './exceptions.js';
 import { JsonObject } from './types.js';
 import { EaveApp } from './eave-origins.js';
@@ -71,12 +71,14 @@ export async function makeRequest({
   input,
   accessToken,
   headers,
+  audience,
   method = 'post',
   origin = EaveApp.eave_www,
   requestId = uuidv4(),
 }: {
   app: express.Express,
   path: string,
+  audience: EaveApp,
   input?: unknown,
   method?: 'get' | 'post',
   origin?: EaveApp,
@@ -104,6 +106,15 @@ export async function makeRequest({
     updatedHeaders["authorization"] = `Bearer ${accessToken}`;
   }
 
+  let eaveSigTs: number;
+  const eaveSigTsHeader = headers?.["eave-sig-ts"];
+  if (eaveSigTsHeader) {
+    eaveSigTs = parseInt(eaveSigTsHeader, 10);
+  } else {
+    eaveSigTs = makeSigTs();
+    updatedHeaders["eave-sig-ts"] = eaveSigTs.toString();
+  }
+
   updatedHeaders["eave-request-id"] = requestId;
   updatedHeaders["eave-origin"] = origin;
 
@@ -117,13 +128,13 @@ export async function makeRequest({
     encodedPayload = input;
   }
 
-  // supertest binds the server to an ephemeral port, so we need to get the server address from it.
-  const url = requestAgent.url;
   const message = buildMessageToSign({
     method,
-    url,
+    path,
+    ts: eaveSigTs,
     requestId,
     origin,
+    audience,
     payload: encodedPayload,
     teamId,
     accountId,

@@ -18,7 +18,7 @@ export class RegisterConnectInstallationOperation {
 
   static async perform(args: RequestArgsOrigin & {input: RegisterConnectInstallationRequestBody}): Promise<RegisterConnectInstallationResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <RegisterConnectInstallationResponseBody>(await resp.json());
@@ -40,7 +40,7 @@ export class QueryConnectInstallationOperation {
 
   static async perform(args: RequestArgsOrigin & {input: QueryConnectInstallationRequestBody}): Promise<QueryConnectInstallationResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <QueryConnectInstallationResponseBody>(await resp.json());

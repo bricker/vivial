@@ -19,7 +19,7 @@ export class GetGithubInstallationOperation {
 
   static async perform(args: RequestArgsOrigin & {input: GetGithubInstallationRequestBody}): Promise<GetGithubInstallationResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <GetGithubInstallationResponseBody>(await resp.json());

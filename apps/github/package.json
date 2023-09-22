@@ -6,7 +6,7 @@
   "dependencies": {
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
     "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
-    "@octokit/graphql-schema": "12.x",
+    "@octokit/graphql-schema": "14.x",
     "@octokit/webhooks": "10.x",
     "express": "4.x",
     "octokit": "2.x"

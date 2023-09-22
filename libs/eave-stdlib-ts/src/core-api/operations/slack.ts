@@ -19,7 +19,7 @@ export class GetSlackInstallationOperation {
 
   static async perform(args: RequestArgsOrigin & {input: GetSlackInstallationRequestBody}): Promise<GetSlackInstallationResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <GetSlackInstallationResponseBody>(await resp.json());

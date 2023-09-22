@@ -28,7 +28,7 @@ export class CreateGithubPullRequestOperation {
     input: CreateGitHubPullRequestRequestBody,
   }): Promise<CreateGitHubPullRequestResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <CreateGitHubPullRequestResponseBody>(await resp.json());

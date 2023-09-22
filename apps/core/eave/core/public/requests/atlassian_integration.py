@@ -8,7 +8,7 @@ from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.exceptions import NotFoundError
 
 
-from ..http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 
 
 class AtlassianIntegration(HTTPEndpoint):

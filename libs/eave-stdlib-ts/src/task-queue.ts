@@ -4,15 +4,18 @@ import { Request } from 'express';
 import { CloudTasksClient, protos } from '@google-cloud/tasks';
 import { EaveApp } from './eave-origins.js';
 import { CtxArg, makeRequest } from './requests.js';
-import headersImport from './headers.js';
 import { eaveLogger, LogContext } from './logging.js';
-import Signing, { buildMessageToSign } from './signing.js';
+import Signing, { buildMessageToSign, makeSigTs } from './signing.js';
 import { sharedConfig } from './config.js';
+import { EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIGNATURE_HEADER, EAVE_SIG_TS_HEADER, EAVE_TEAM_ID_HEADER, GCP_CLOUD_TRACE_CONTEXT, GCP_GAE_REQUEST_LOG_ID, MIME_TYPE_JSON } from './headers.js';
+import { ClientApiEndpointConfiguration } from './api-util.js';
+import { ExpressRoutingMethod } from './types.js';
 
 type CreateTaskSharedArgs = CtxArg & {
   queueName: string,
   targetPath: string,
   origin: EaveApp,
+  audience: EaveApp,
   uniqueTaskId?: string,
   taskNamePrefix?: string,
 }
@@ -30,6 +33,7 @@ export async function createTaskFromRequest({
   queueName,
   targetPath,
   origin,
+  audience,
   uniqueTaskId,
   taskNamePrefix,
   req,
@@ -38,8 +42,8 @@ export async function createTaskFromRequest({
   ctx = LogContext.wrap(ctx, req);
 
   if (!uniqueTaskId) {
-    const traceId = req.header(headersImport.GCP_CLOUD_TRACE_CONTEXT);
-    const logId = req.header(headersImport.GCP_GAE_REQUEST_LOG_ID);
+    const traceId = req.header(GCP_CLOUD_TRACE_CONTEXT);
+    const logId = req.header(GCP_GAE_REQUEST_LOG_ID);
 
     if (traceId) {
       uniqueTaskId = traceId.split('/')[0];
@@ -67,6 +71,7 @@ export async function createTaskFromRequest({
     queueName,
     targetPath,
     origin,
+    audience,
     uniqueTaskId,
     taskNamePrefix,
     payload,
@@ -81,6 +86,7 @@ export async function createTask({
   payload,
   headers,
   origin,
+  audience,
   uniqueTaskId,
   taskNamePrefix,
   ctx,
@@ -91,7 +97,7 @@ export async function createTask({
     headers = {};
   }
 
-  headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = headersImport.MIME_TYPE_JSON;
+  headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = MIME_TYPE_JSON;
 
   let body: string;
   if (payload instanceof Buffer) {
@@ -102,11 +108,15 @@ export async function createTask({
     body = JSON.stringify(payload);
   }
 
+  const eaveSigTs = makeSigTs();
+
   const signatureMessage = buildMessageToSign({
     method: httpConstants.HTTP2_METHOD_POST,
-    url: targetPath,
+    path: targetPath,
+    ts: eaveSigTs,
     requestId: ctx.eave_request_id,
     origin,
+    audience,
     payload: body,
     teamId: ctx.eave_team_id,
     accountId: ctx.eave_account_id,
@@ -116,16 +126,17 @@ export async function createTask({
   const signing = Signing.new(origin);
   const signature = await signing.signBase64(signatureMessage);
 
-  headers[headersImport.EAVE_SIGNATURE_HEADER] = signature;
-  headers[headersImport.EAVE_REQUEST_ID_HEADER] = ctx.eave_request_id;
-  headers[headersImport.EAVE_ORIGIN_HEADER] = origin;
+  headers[EAVE_SIGNATURE_HEADER] = signature;
+  headers[EAVE_REQUEST_ID_HEADER] = ctx.eave_request_id;
+  headers[EAVE_ORIGIN_HEADER] = origin;
+  headers[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
 
   if (ctx.eave_account_id) {
-    headers[headersImport.EAVE_ACCOUNT_ID_HEADER] = ctx.eave_account_id;
+    headers[EAVE_ACCOUNT_ID_HEADER] = ctx.eave_account_id;
   }
 
   if (ctx.eave_team_id) {
-    headers[headersImport.EAVE_TEAM_ID_HEADER] = ctx.eave_team_id;
+    headers[EAVE_TEAM_ID_HEADER] = ctx.eave_team_id;
   }
 
   const client = new CloudTasksClient();
@@ -173,6 +184,13 @@ export async function createTask({
   if (sharedConfig.isDevelopment) {
     const host = sharedConfig.eavePublicServiceBase(origin);
 
+    const endpointConfig: ClientApiEndpointConfiguration = {
+      path: task.appEngineHttpRequest.relativeUri!,
+      url: `${host}${task.appEngineHttpRequest.relativeUri}`,
+      audience,
+      method: ExpressRoutingMethod.post,
+    }
+
     /*
     In development only, signature is done twice: once in this function, and again in `makeRequest`. Not ideal but not worth refactoring this function to prevent it.
 
@@ -181,7 +199,7 @@ export async function createTask({
     So in development, we bypass the queue and make the request directly to the target app. It's not a great solution! [This](https://github.com/aertje/cloud-tasks-emulator) exists, but it's a) third-party, and b) requires either `go` or `docker`, which currently would complicate development/onboarding too much to be worth it.
     */
     await makeRequest({
-      url: `${host}${task.appEngineHttpRequest.relativeUri}`,
+      config: endpointConfig,
       origin,
       ctx,
       input: task.appEngineHttpRequest.body,

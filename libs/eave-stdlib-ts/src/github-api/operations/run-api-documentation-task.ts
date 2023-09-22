@@ -16,7 +16,7 @@ export class RunApiDocumentationTaskOperation {
     input: RunApiDocumentationTaskRequestBody,
   }): Promise<void> {
     await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
   }

@@ -63,6 +63,7 @@ export async function webhookEventHandler(req: Express.Request, res: Express.Res
     queueName: GITHUB_EVENT_QUEUE_NAME,
     targetPath: GithubEventHandlerTaskOperation.config.path,
     origin: EaveApp.eave_github_app,
+    audience: EaveApp.eave_github_app,
     req,
     ctx,
   });

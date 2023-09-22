@@ -30,7 +30,7 @@ class GetAvailableSpacesRequest(ConfluenceEndpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=None,
             team_id=team_id,
             **kwargs,
@@ -60,7 +60,7 @@ class SearchContentRequest(ConfluenceEndpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -91,7 +91,7 @@ class CreateContentRequest(ConfluenceEndpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -121,7 +121,7 @@ class UpdateContentRequest(ConfluenceEndpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -151,7 +151,7 @@ class DeleteContentRequest(ConfluenceEndpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,

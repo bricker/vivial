@@ -30,9 +30,8 @@ test("endpoint is alive", async (t) => {
   const response = await makeRequest({
     app,
     audience: EaveApp.eave_github_app,
-    path: "/github/events",
-    input: {}, // TODO: mock github event payload
-    headers: {}, // TODO: mock github event headers
+    path: "/github/api/repos/query",
+    teamId: t.context.u.anystr("team id"),
   });
 
   t.not(response.status, 404);

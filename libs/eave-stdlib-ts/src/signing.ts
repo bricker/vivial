@@ -6,6 +6,7 @@ import { EaveApp, ExternalOrigin } from './eave-origins.js';
 import { InvalidChecksumError, InvalidSignatureError } from './exceptions.js';
 import { CtxArg } from './requests.js';
 import { eaveLogger } from './logging.js';
+import { Request } from 'express';
 
 const { RSA_PKCS1_PADDING } = cryptoConstants;
 
@@ -277,8 +278,10 @@ export default class Signing {
 
 export function buildMessageToSign({
   method,
-  url,
+  path,
+  ts,
   requestId,
+  audience,
   origin,
   payload,
   teamId,
@@ -286,8 +289,10 @@ export function buildMessageToSign({
   ctx,
 }: CtxArg & {
   method: string,
-  url: string,
+  path: string,
+  ts: number,
   requestId: string,
+  audience: EaveApp,
   origin: EaveApp | string,
   payload: string,
   teamId?: string,
@@ -296,7 +301,9 @@ export function buildMessageToSign({
   const signatureElements = [
     origin,
     method.toUpperCase(),
-    url,
+    audience,
+    path,
+    ts.toString(),
     requestId,
     payload,
   ];
@@ -311,4 +318,8 @@ export function buildMessageToSign({
   const signature_message = signatureElements.join(':');
   eaveLogger.debug('signature message', ctx, { signature_message });
   return signature_message;
+}
+
+export function makeSigTs(): number {
+  return Math.trunc(Date.now() / 1000);
 }
