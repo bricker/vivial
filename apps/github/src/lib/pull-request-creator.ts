@@ -36,9 +36,9 @@ export class PullRequestCreator {
     // get base branch head commit
     const getHeadCommitQuery = await GraphQLUtil.loadQuery("getBranchHeadCommit");
     const getHeadCommitParams: {
-      repoName: Scalars["String"];
-      repoOwner: Scalars["String"];
-      branchName: Scalars["String"];
+      repoName: Scalars["String"]["input"];
+      repoOwner: Scalars["String"]["input"];
+      branchName: Scalars["String"]["input"];
     } = {
       repoName: this.repoName,
       repoOwner: this.repoOwner,
@@ -53,9 +53,9 @@ export class PullRequestCreator {
 
     const createBranchMutation = await GraphQLUtil.loadQuery("createBranch");
     const createBranchParameters: {
-      repoId: Scalars["ID"];
-      branchName: Scalars["String"];
-      commitHeadId: Scalars["GitObjectID"];
+      repoId: Scalars["ID"]["input"];
+      branchName: Scalars["String"]["input"];
+      commitHeadId: Scalars["GitObjectID"]["input"];
     } = {
       commitHeadId: commitHead.oid,
       branchName,
@@ -106,11 +106,11 @@ export class PullRequestCreator {
   private async openPullRequest(branch: Ref, prTitle: string, prBody: string): Promise<PullRequest> {
     const createPrMutation = await GraphQLUtil.loadQuery("createPullRequest");
     const createPrParameters: {
-      baseRefName: Scalars["String"];
-      body: Scalars["String"];
-      headRefName: Scalars["String"];
-      repoId: Scalars["ID"];
-      title: Scalars["String"];
+      baseRefName: Scalars["String"]["input"];
+      body: Scalars["String"]["input"];
+      headRefName: Scalars["String"]["input"];
+      repoId: Scalars["ID"]["input"];
+      title: Scalars["String"]["input"];
     } = {
       repoId: this.repoId,
       baseRefName: this.baseBranchName,
@@ -131,7 +131,7 @@ export class PullRequestCreator {
   private async deleteBranch(branchNodeId: string): Promise<void> {
     const query = await GraphQLUtil.loadQuery("deleteBranch");
     const params: {
-      refNodeId: Scalars["ID"];
+      refNodeId: Scalars["ID"]["input"];
     } = {
       refNodeId: branchNodeId,
     };
