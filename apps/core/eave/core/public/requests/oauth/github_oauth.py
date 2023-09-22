@@ -230,4 +230,5 @@ class GithubOAuthCallback(HTTPEndpoint):
                 session=db_session,
                 team_id=self.eave_team.id,
                 external_repo_id=repo.id,
+                display_name=repo.name,
             )
