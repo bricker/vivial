@@ -8,11 +8,11 @@ import OpenAIClient, { formatprompt } from "@eave-fyi/eave-stdlib-ts/src/transfo
 import { Blob, PullRequest, PullRequestChangedFile, PullRequestChangedFileConnection, Query, Repository, Scalars } from "@octokit/graphql-schema";
 import { PullRequestEvent } from "@octokit/webhooks-types";
 import path from "path";
+import { appConfig } from "../config.js";
 import * as GraphQLUtil from "../lib/graphql-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { GitHubOperationsContext } from "../types.js";
 
-const eavePrTitle = "docs: Eave inline code documentation update";
 
 /**
  * Receives github webhook pull_request events.
@@ -29,8 +29,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const { ctx, octokit } = context;
 
   // don't open more docs PRs from other Eave PRs getting merged
-  // TODO: perform this check using event.sender.id instead for broader metric capture. compare to app id?? (app_id diff for prod vs stage)
-  if (event.pull_request.title === eavePrTitle) {
+  if (event.sender.id.toString() === (await appConfig.eaveGithubAppId)) {
     const interaction = event.pull_request.merged ? "merged" : "closed";
     await logEvent(
       {
@@ -189,7 +188,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
       commitMessage: "docs: automated update",
       fileChanges,
-      prTitle: eavePrTitle,
+      prTitle: "docs: Eave inline code documentation update",
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
     });
   } catch (error: any) {
