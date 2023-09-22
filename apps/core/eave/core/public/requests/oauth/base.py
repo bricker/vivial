@@ -6,7 +6,7 @@ from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 
-from ...http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import shared
 
 

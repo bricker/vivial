@@ -94,10 +94,10 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           }
 
           const variables: {
-            repoOwner: Scalars["String"];
-            repoName: Scalars["String"];
-            commitOid: Scalars["String"];
-            filePath: Scalars["String"];
+            repoOwner: Scalars["String"]["input"];
+            repoName: Scalars["String"]["input"];
+            commitOid: Scalars["String"]["input"];
+            filePath: Scalars["String"]["input"];
           } = {
             repoOwner: event.repository.owner.name!,
             repoName: event.repository.name,

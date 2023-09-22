@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import eaveHeaders from '../headers.js';
 import { EaveApp } from '../eave-origins.js';
 import { eaveLogger, LogContext } from '../logging.js';
+import { EAVE_ORIGIN_HEADER } from '../headers.js';
 
 export function originMiddleware(req: Request, res: Response, next: NextFunction): void {
   const ctx = LogContext.load(res);
-  const originHeader = req.header(eaveHeaders.EAVE_ORIGIN_HEADER);
+  const originHeader = req.header(EAVE_ORIGIN_HEADER);
 
   if (originHeader === undefined) {
     eaveLogger.warning('missing origin header', ctx);

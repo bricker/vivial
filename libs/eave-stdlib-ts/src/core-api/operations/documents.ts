@@ -21,7 +21,7 @@ export class UpsertDocumentOperation {
 
   static async perform(args: RequestArgsTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <UpsertDocumentResponseBody>(await resp.json());
@@ -43,7 +43,7 @@ export class SearchDocumentsOperation {
 
   static async perform(args: RequestArgsTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <SearchDocumentsResponseBody>(await resp.json());

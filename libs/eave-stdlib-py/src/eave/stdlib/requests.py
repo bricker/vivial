@@ -1,7 +1,9 @@
+import time
 import pydantic
 from typing import NotRequired, Optional, Required, TypedDict, Unpack
 import uuid
 import aiohttp
+from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.typing import JsonObject
 
@@ -14,14 +16,15 @@ from .logging import LogContext, eaveLogger
 
 class CommonRequestArgs(TypedDict):
     origin: Required[EaveApp]
-    method: NotRequired[str]
     addl_headers: NotRequired[Optional[dict[str, str]]]
     ctx: NotRequired[Optional[LogContext]]
     base_timeout_seconds: NotRequired[int]
 
+class MissingParameterError(Exception):
+    pass
 
 async def make_request(
-    url: str,
+    config: EndpointConfiguration,
     input: Optional[pydantic.BaseModel],
     team_id: Optional[uuid.UUID | str] = None,
     access_token: Optional[str] = None,
@@ -30,17 +33,18 @@ async def make_request(
 ) -> aiohttp.ClientResponse:
     origin = kwargs["origin"]
     ctx = kwargs.get("ctx")
-    method = kwargs.get("method", "POST")
     addl_headers = kwargs.get("addl_headers", {})
     base_timeout_seconds = kwargs.get("base_timeout_seconds", 600)
 
     ctx = LogContext.wrap(ctx)
     request_id = ctx.eave_request_id
+    eave_sig_ts = signing.make_sig_ts()
 
     headers: dict[str, str] = {
         eave_headers.CONTENT_TYPE: "application/json",
         eave_headers.EAVE_ORIGIN_HEADER: origin.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: request_id,
+        eave_headers.EAVE_SIG_TS_HEADER: str(eave_sig_ts),
     }
 
     # The indent and separators params here ensure that the payload is as compact as possible.
@@ -59,10 +63,12 @@ async def make_request(
         headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
 
     signature_message = signing.build_message_to_sign(
-        method=method,
-        url=url,
+        method=config.method,
+        path=config.path,
         request_id=request_id,
-        origin=origin.value,
+        origin=origin,
+        audience=config.audience,
+        ts=eave_sig_ts,
         team_id=team_id,
         account_id=account_id,
         payload=payload,
@@ -85,22 +91,23 @@ async def make_request(
         "access_token": redact(access_token),
         "eave_request_id": request_id,
         "eave_origin": origin.value,
+        "eave_audience": config.audience.value,
         "eave_team_id": ensure_str_or_none(team_id),
         "eave_account_id": ensure_str_or_none(account_id),
-        "method": method,
-        "url": url,
+        "method": config.method,
+        "url": config.url,
     }
 
     eaveLogger.info(
-        f"Client Request: {request_id}: {method} {url}",
+        f"Client Request: {request_id}: {config.method} {config.path}",
         ctx,
         request_params,
     )
 
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=base_timeout_seconds)) as session:
         response = await session.request(
-            method=method,
-            url=url,
+            method=config.method,
+            url=config.url,
             headers=headers,
             data=payload,
         )
@@ -109,7 +116,7 @@ async def make_request(
         await response.read()
 
     eaveLogger.info(
-        f"Client Response: {request_id}: {method} {url}",
+        f"Client Response: {request_id}: {config.method} {config.url}",
         ctx,
         request_params,
         {"status": response.status},

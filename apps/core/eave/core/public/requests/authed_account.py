@@ -9,9 +9,9 @@ from eave.stdlib.core_api.operations.account import (
     GetAuthenticatedAccountTeamIntegrations,
 )
 from eave.stdlib.request_state import EaveRequestState
+from eave.stdlib.http_endpoint import HTTPEndpoint
 
-
-class GetAuthedAccount(eave.core.public.http_endpoint.HTTPEndpoint):
+class GetAuthedAccount(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
 
@@ -31,7 +31,7 @@ class GetAuthedAccount(eave.core.public.http_endpoint.HTTPEndpoint):
         )
 
 
-class GetAuthedAccountTeamIntegrations(eave.core.public.http_endpoint.HTTPEndpoint):
+class GetAuthedAccountTeamIntegrations(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
 

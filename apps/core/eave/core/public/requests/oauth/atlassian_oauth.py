@@ -25,7 +25,7 @@ from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.core_api.models.team import DocumentPlatform
 
-from ...http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import EaveOnboardingErrorCode, base, shared
 from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
 from eave.core.internal.config import app_config

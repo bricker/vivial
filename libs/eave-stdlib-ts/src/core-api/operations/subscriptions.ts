@@ -20,7 +20,7 @@ export class CreateSubscriptionOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/subscriptions/create" })
   static async perform(args: RequestArgsTeamId & {input: CreateSubscriptionRequestBody}): Promise<CreateSubscriptionResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <CreateSubscriptionResponseBody>(await resp.json());
@@ -36,7 +36,7 @@ export class DeleteSubscriptionOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/subscriptions/delete" })
   static async perform(args: RequestArgsTeamId & {input: DeleteSubscriptionRequestBody}): Promise<null> {
     await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     return null;
@@ -57,7 +57,7 @@ export class GetSubscriptionOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/subscriptions/query" })
   static async perform(args: RequestArgsTeamId & {input: GetSubscriptionRequestBody}): Promise<GetSubscriptionResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <GetSubscriptionResponseBody>(await resp.json());

@@ -3,14 +3,14 @@ import { constants as httpConstants } from 'node:http2';
 import { Request, Response } from 'express';
 import { eaveLogger, LogContext } from '../logging.js';
 import { sharedConfig } from '../config.js';
-import eaveHeaders from '../headers.js';
+import { EAVE_DEV_BYPASS_HEADER } from '../headers.js';
 
 export function developmentBypassAllowed(req: Request, res: Response): boolean {
   if (!sharedConfig.devMode || sharedConfig.googleCloudProject === 'eave-production') {
     return false;
   }
 
-  const devHeader = req.header(eaveHeaders.EAVE_DEV_BYPASS_HEADER);
+  const devHeader = req.header(EAVE_DEV_BYPASS_HEADER);
   if (devHeader === undefined) {
     return false;
   }

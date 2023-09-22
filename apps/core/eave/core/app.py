@@ -8,7 +8,7 @@ from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocu
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.core_api.operations.github import GetGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration, EndpointConfiguration
 from eave.stdlib.core_api.operations.subscriptions import (
     CreateSubscriptionRequest,
     DeleteSubscriptionRequest,
@@ -30,6 +30,7 @@ from eave.stdlib.core_api.operations.github_repos import (
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
+from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -50,7 +51,7 @@ eave.stdlib.time.set_utc()
 
 
 def make_route(
-    config: EndpointConfiguration,
+    config: CoreApiEndpointConfiguration,
     endpoint: ASGI3Application,
 ) -> Route:
     """
@@ -154,7 +155,7 @@ def make_route(
     if config.signature_required:
         # If signature is required, origin is also required.
         assert config.origin_required
-        endpoint = SignatureVerificationASGIMiddleware(app=endpoint)
+        endpoint = SignatureVerificationASGIMiddleware(app=endpoint, audience=EaveApp.eave_api)
 
     if config.origin_required:
         # First thing to happen when the middleware chain is kicked off
@@ -164,10 +165,10 @@ def make_route(
 
 
 routes = [
-    Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
     Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
     Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
     Route(path="/_ah/stop", endpoint=status.StopRequest, methods=["GET"]),
+    Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
@@ -274,7 +275,7 @@ routes = [
     # OAuth endpoints.
     # These endpoints don't require any verification (except the OAuth flow itself)
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/google/authorize",
             auth_required=False,
             signature_required=False,
@@ -284,7 +285,7 @@ routes = [
         endpoint=google_oauth.GoogleOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/google/callback",
             auth_required=False,
             signature_required=False,
@@ -294,7 +295,7 @@ routes = [
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/slack/authorize",
             auth_required=False,
             signature_required=False,
@@ -304,7 +305,7 @@ routes = [
         endpoint=slack_oauth.SlackOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/slack/callback",
             auth_required=False,
             signature_required=False,
@@ -314,7 +315,7 @@ routes = [
         endpoint=slack_oauth.SlackOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/atlassian/authorize",
             auth_required=False,
             signature_required=False,
@@ -324,7 +325,7 @@ routes = [
         endpoint=atlassian_oauth.AtlassianOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/atlassian/callback",
             auth_required=False,
             signature_required=False,
@@ -334,7 +335,7 @@ routes = [
         endpoint=atlassian_oauth.AtlassianOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/github/authorize",
             auth_required=False,
             signature_required=False,
@@ -344,7 +345,7 @@ routes = [
         endpoint=github_oauth.GithubOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/github/callback",
             auth_required=False,
             signature_required=False,
@@ -354,7 +355,7 @@ routes = [
         endpoint=github_oauth.GithubOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/favicon.ico",
             auth_required=False,
             signature_required=False,

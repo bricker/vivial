@@ -25,7 +25,7 @@ export class GetGithubDocumentsOperation {
     args: RequestArgsAuthedRequest & { input: GetGithubDocumentsRequestBody },
   ): Promise<GetGithubDocumentsResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <GetGithubDocumentsResponseBody>(await resp.json());
@@ -46,7 +46,7 @@ export class CreateGithubDocumentOperation {
     args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody },
   ): Promise<CreateGithubDocumentResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <CreateGithubDocumentResponseBody>(await resp.json());
@@ -67,7 +67,7 @@ export class UpdateGithubDocumentOperation {
     args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody },
   ): Promise<UpdateGithubDocumentResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <UpdateGithubDocumentResponseBody>(await resp.json());
@@ -84,7 +84,7 @@ export class DeleteGithubDocumentsByIdsOperation {
     args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByIdsRequestBody },
   ): Promise<void> {
     await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
   }
@@ -99,7 +99,7 @@ export class DeleteGithubDocumentsByTypeOperation {
     args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByTypeRequestBody },
   ): Promise<void> {
     await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
   }

@@ -60,11 +60,11 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   let filePaths: Array<string> = [];
   const filesQuery = await GraphQLUtil.loadQuery("getFilesInPullRequest");
   const filesQueryVariables: {
-    repoOwner: Scalars["String"];
-    repoName: Scalars["String"];
-    prNumber: Scalars["Int"];
-    batchSize: Scalars["Int"];
-    after?: Scalars["String"];
+    repoOwner: Scalars["String"]["input"];
+    repoName: Scalars["String"]["input"];
+    prNumber: Scalars["Int"]["input"];
+    batchSize: Scalars["Int"]["input"];
+    after?: Scalars["String"]["input"];
   } = {
     repoOwner,
     repoName,
@@ -136,9 +136,9 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
   const b64UpdatedContent = await Promise.all(
     filePaths.map(async (fpath): Promise<string | null> => {
       const contentsQueryVariables: {
-        repoOwner: Scalars["String"];
-        repoName: Scalars["String"];
-        expression: Scalars["String"];
+        repoOwner: Scalars["String"]["input"];
+        repoName: Scalars["String"]["input"];
+        expression: Scalars["String"]["input"];
       } = {
         repoOwner,
         repoName,

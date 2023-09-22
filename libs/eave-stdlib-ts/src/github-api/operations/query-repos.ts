@@ -16,7 +16,7 @@ export class QueryGithubReposOperation {
     args: RequestArgsTeamId,
   ): Promise<QueryGithubReposResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <QueryGithubReposResponseBody>await resp.json();

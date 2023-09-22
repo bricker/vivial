@@ -2,7 +2,7 @@ from eave.core.internal import database
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
-from eave.core.public.http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.api_util import json_response

@@ -15,7 +15,7 @@ export class GetTeamOperation {
 
   static async perform(args: RequestArgsTeamId): Promise<GetTeamResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <GetTeamResponseBody>(await resp.json());

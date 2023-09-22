@@ -9,11 +9,11 @@ from eave.stdlib.core_api.models.github_documents import (
     GithubDocumentCreateInput,
     GithubDocumentUpdateInput,
 )
-from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
 
 
-class GetGithubDocumentsRequest(Endpoint):
-    config = EndpointConfiguration(
+class GetGithubDocumentsRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-documents/query",
     )
 
@@ -31,7 +31,7 @@ class GetGithubDocumentsRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -41,8 +41,8 @@ class GetGithubDocumentsRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class CreateGithubDocumentRequest(Endpoint):
-    config = EndpointConfiguration(
+class CreateGithubDocumentRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-documents/create",
     )
 
@@ -60,7 +60,7 @@ class CreateGithubDocumentRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -70,8 +70,8 @@ class CreateGithubDocumentRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class UpdateGithubDocumentRequest(Endpoint):
-    config = EndpointConfiguration(
+class UpdateGithubDocumentRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-documents/update",
     )
 
@@ -89,7 +89,7 @@ class UpdateGithubDocumentRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -99,8 +99,8 @@ class UpdateGithubDocumentRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class DeleteGithubDocumentsByIdsRequest(Endpoint):
-    config = EndpointConfiguration(
+class DeleteGithubDocumentsByIdsRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-documents/delete/id",
     )
 
@@ -118,7 +118,7 @@ class DeleteGithubDocumentsByIdsRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -127,8 +127,8 @@ class DeleteGithubDocumentsByIdsRequest(Endpoint):
         return cls.ResponseBody(_raw_response=response)
 
 
-class DeleteGithubDocumentsByTypeRequest(Endpoint):
-    config = EndpointConfiguration(
+class DeleteGithubDocumentsByTypeRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-documents/delete/type",
     )
 
@@ -146,7 +146,7 @@ class DeleteGithubDocumentsByTypeRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,

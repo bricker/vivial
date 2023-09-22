@@ -19,7 +19,7 @@ export class GetGithubUrlContentOperation {
     input: GetGithubUrlContentRequestBody,
   }): Promise<GetGithubUrlContentResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <GetGithubUrlContentResponseBody>(await resp.json());

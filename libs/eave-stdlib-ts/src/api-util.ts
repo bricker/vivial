@@ -8,6 +8,7 @@ import { getCacheClient, cacheInitialized } from './cache.js';
 import {eaveLogger} from './logging.js';
 import { redact } from './util.js';
 import { ExpressRoutingMethod } from "./types.js";
+import { EaveApp } from "./eave-origins.js";
 
 
 export function statusPayload(): StatusResponseBody {
@@ -102,17 +103,12 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
   return logHeaders;
 }
 
-export function constructUrl(req: Request): string {
-  const audience = req.header(httpConstants.HTTP2_HEADER_HOST);
-  const proto = req.protocol;
-  const path = req.originalUrl;
-
-  return `${proto}://${audience}${path}`;
-}
-
 export abstract class ClientApiEndpointConfiguration {
   path: string;
   method: ExpressRoutingMethod;
+
+  abstract audience: EaveApp;
+
   abstract get url(): string;
 
   constructor({
@@ -127,16 +123,13 @@ export abstract class ClientApiEndpointConfiguration {
   }
 }
 
-export abstract class ServerApiEndpointConfiguration {
-  path: string;
-  method: ExpressRoutingMethod;
+export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointConfiguration {
   teamIdRequired: boolean;
   authRequired: boolean;
   originRequired: boolean;
   signatureRequired: boolean;
 
   abstract get middlewares(): Express.Handler[];
-  abstract get url(): string;
 
   constructor({
     path,
@@ -153,8 +146,7 @@ export abstract class ServerApiEndpointConfiguration {
     originRequired?: boolean;
     signatureRequired?: boolean;
   }) {
-    this.path = path;
-    this.method = method;
+    super({ path, method });
     this.teamIdRequired = teamIdRequired;
     this.authRequired = authRequired;
     this.originRequired = originRequired;

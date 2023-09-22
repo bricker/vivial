@@ -38,7 +38,7 @@ async function getFileContent(client: Octokit, url: string, ctx: LogContext): Pr
 async function getRepositoryByUrl(client: Octokit, url: string, ctx: LogContext): Promise<Repository | null> {
   const query = await loadQuery("getResource");
   const variables: {
-    resourceUrl: Scalars["URI"];
+    resourceUrl: Scalars["URI"]["input"];
   } = {
     resourceUrl: url,
   };
@@ -100,10 +100,10 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
     const candidateBranchName = rest.slice(0, numberOfSegments).join("/");
 
     const variables: {
-      repoOwner: Scalars["String"];
-      repoName: Scalars["String"];
-      refPrefix: Scalars["String"];
-      refQuery: Scalars["String"];
+      repoOwner: Scalars["String"]["input"];
+      repoName: Scalars["String"]["input"];
+      refPrefix: Scalars["String"]["input"];
+      refQuery: Scalars["String"]["input"];
     } = {
       repoOwner: repository.owner.login,
       repoName: repository.name,
@@ -176,9 +176,9 @@ async function getRawContent(client: Octokit, url: string, ctx: LogContext): Pro
 
   const contentsQuery = await loadQuery("getFileContentsByPath");
   const variables: {
-    repoOwner: Scalars["String"];
-    repoName: Scalars["String"];
-    expression: Scalars["String"];
+    repoOwner: Scalars["String"]["input"];
+    repoName: Scalars["String"]["input"];
+    expression: Scalars["String"]["input"];
   } = {
     repoOwner: repository.owner.login,
     repoName: repository.name,

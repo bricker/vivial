@@ -23,7 +23,7 @@ export class GetGithubReposOperation {
     args: RequestArgsTeamId & { input: GetGithubReposRequestBody },
   ): Promise<GetGithubReposResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <GetGithubReposResponseBody>(await resp.json());
@@ -44,7 +44,7 @@ export class FeatureStateGithubReposOperation {
     args: RequestArgsTeamId & { input: FeatureStateGithubReposRequestBody },
   ): Promise<FeatureStateGithubReposResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <FeatureStateGithubReposResponseBody>(await resp.json());
@@ -65,7 +65,7 @@ export class CreateGithubRepoOperation {
     args: RequestArgsTeamId & { input: CreateGithubRepoRequestBody },
   ): Promise<CreateGithubRepoResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <CreateGithubRepoResponseBody>(await resp.json());
@@ -82,7 +82,7 @@ export class DeleteGithubRepoOperation {
     args: RequestArgsAuthedRequest & { input: DeleteGithubReposRequestBody },
   ): Promise<void> {
     await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
   }
@@ -102,7 +102,7 @@ export class UpdateGithubReposOperation {
     args: RequestArgsAuthedRequest & { input: UpdateGithubReposRequestBody },
   ): Promise<UpdateGithubReposResponseBody> {
     const resp = await makeRequest({
-      url: this.config.url,
+      config: this.config,
       ...args,
     });
     const responseData = <UpdateGithubReposResponseBody>(await resp.json());

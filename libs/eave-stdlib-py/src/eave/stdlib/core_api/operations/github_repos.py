@@ -9,11 +9,11 @@ from eave.stdlib.core_api.models.github_repos import (
     GithubRepoUpdateInput,
     GithubReposFeatureStateInput,
 )
-from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
 
 
-class GetGithubReposRequest(Endpoint):
-    config = EndpointConfiguration(
+class GetGithubReposRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-repos/query",
         auth_required=False,
     )
@@ -32,7 +32,7 @@ class GetGithubReposRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -42,8 +42,8 @@ class GetGithubReposRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class FeatureStateGithubReposRequest(Endpoint):
-    config = EndpointConfiguration(
+class FeatureStateGithubReposRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-repos/query/enabled",
         auth_required=False,
     )
@@ -61,7 +61,7 @@ class FeatureStateGithubReposRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=None,
             team_id=team_id,
             **kwargs,
@@ -71,8 +71,8 @@ class FeatureStateGithubReposRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class CreateGithubRepoRequest(Endpoint):
-    config = EndpointConfiguration(
+class CreateGithubRepoRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-repos/create",
         auth_required=False,
     )
@@ -91,7 +91,7 @@ class CreateGithubRepoRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -101,8 +101,8 @@ class CreateGithubRepoRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class DeleteGithubReposRequest(Endpoint):
-    config = EndpointConfiguration(
+class DeleteGithubReposRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-repos/delete",
     )
 
@@ -120,7 +120,7 @@ class DeleteGithubReposRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -129,8 +129,8 @@ class DeleteGithubReposRequest(Endpoint):
         return cls.ResponseBody(_raw_response=response)
 
 
-class UpdateGithubReposRequest(Endpoint):
-    config = EndpointConfiguration(
+class UpdateGithubReposRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/github-repos/update",
     )
 
@@ -148,7 +148,7 @@ class UpdateGithubReposRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
