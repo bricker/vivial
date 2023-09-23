@@ -1,17 +1,14 @@
-import { LinkType } from './core-api/enums.js';
-import { Pair } from './types.js';
-import { eaveLogger } from './logging.js';
-import { CtxArg, RequestArgsOrigin, RequestArgsTeamId } from './requests.js';
-import { Subscription } from './core-api/models/subscriptions.js';
-import { GetGithubUrlContentOperation } from './github-api/operations/get-content.js';
-import { CreateGithubResourceSubscriptionOperation } from './github-api/operations/create-subscription.js';
+import { LinkType } from "./core-api/enums.js";
+import { Subscription } from "./core-api/models/subscriptions.js";
+import { CreateGithubResourceSubscriptionOperation } from "./github-api/operations/create-subscription.js";
+import { GetGithubUrlContentOperation } from "./github-api/operations/get-content.js";
+import { eaveLogger } from "./logging.js";
+import { RequestArgsTeamId } from "./requests.js";
+import { Pair } from "./types.js";
 
 // mapping from link type to regex for matching raw links against
 const SUPPORTED_LINKS: { [linkType: string]: Array<RegExp> } = {
-  [LinkType.github]: [
-    /github\.com/,
-    /github\..+\.com/,
-  ],
+  [LinkType.github]: [/github\.com/, /github\..+\.com/],
 };
 
 export function filterSupportedLinks(urls: Array<string>): Array<Pair<string, LinkType>> {
@@ -32,25 +29,28 @@ export function filterSupportedLinks(urls: Array<string>): Array<Pair<string, Li
  * the position of the link in the returned list is None.
  */
 export async function mapUrlContent({ origin, teamId, urls, ctx }: RequestArgsTeamId & { urls: Array<Pair<string, LinkType>> }): Promise<Array<string | null>> {
-  const contentResponses = await Promise.all(urls.map(async (linkContext: Pair<string, LinkType>) => {
-    const { first: url, second: type } = linkContext;
+  const contentResponses = await Promise.all(
+    urls.map(async (linkContext: Pair<string, LinkType>) => {
+      const { first: url, second: type } = linkContext;
 
-    switch (type) {
-      case LinkType.github: {
-        const contentResponse = await GetGithubUrlContentOperation.perform({
-          ctx,
-          origin,
-          teamId,
-          input: {
-            url,
-          } });
-        return contentResponse.content;
+      switch (type) {
+        case LinkType.github: {
+          const contentResponse = await GetGithubUrlContentOperation.perform({
+            ctx,
+            origin,
+            teamId,
+            input: {
+              url,
+            },
+          });
+          return contentResponse.content;
+        }
+        default:
+          eaveLogger.warning(`unsupported link type: ${type}`, ctx);
+          return null;
       }
-      default:
-        eaveLogger.warning(`unsupported link type: ${type}`, ctx);
-        return null;
-    }
-  }));
+    }),
+  );
 
   return contentResponses;
 }
@@ -78,8 +78,10 @@ export async function subscribeToFileChanges({ origin, teamId, urls, ctx }: Requ
 // smelly conversion from string to enum case to make ts happy
 function stringToLinkType(value: string): LinkType | null {
   switch (value) {
-    case 'github': return LinkType.github;
-    default: return null;
+    case "github":
+      return LinkType.github;
+    default:
+      return null;
   }
 }
 
@@ -88,7 +90,7 @@ function stringToLinkType(value: string): LinkType | null {
  * @returns link type if supported, otherwise None
  */
 function getLinkType(link: string): LinkType | null {
-  const domain = (new URL(link)).hostname;
+  const domain = new URL(link).hostname;
   let returnValue = null;
   Object.keys(SUPPORTED_LINKS).forEach((linkType) => {
     const patterns = SUPPORTED_LINKS[linkType]!;
@@ -108,7 +110,7 @@ function getLinkType(link: string): LinkType | null {
  * @param linkType -- resource platform to subscribe on
  * @param eaveTeamId -- ID of team to associate subscription with
  */
-async function createSubscription({ origin, teamId, url, linkType, ctx }: RequestArgsTeamId & { url: string, linkType: LinkType }): Promise<Subscription | null> {
+async function createSubscription({ origin, teamId, url, linkType, ctx }: RequestArgsTeamId & { url: string; linkType: LinkType }): Promise<Subscription | null> {
   switch (linkType) {
     case LinkType.github: {
       const subscriptionResponse = await CreateGithubResourceSubscriptionOperation.perform({
@@ -117,7 +119,7 @@ async function createSubscription({ origin, teamId, url, linkType, ctx }: Reques
         teamId,
         input: {
           url,
-        }
+        },
       });
       return subscriptionResponse.subscription;
     }

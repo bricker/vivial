@@ -4,17 +4,19 @@ import { GithubAppEndpointConfiguration } from "./shared.js";
 
 export type RunApiDocumentationTaskRequestBody = {
   repo: GithubRepoInput;
-}
+};
 
 export class RunApiDocumentationTaskOperation {
   static config = new GithubAppEndpointConfiguration({
     path: "/_/github/tasks/run-api-documentation",
     authRequired: false,
-  })
+  });
 
-  static async perform(args: RequestArgsTeamId & {
-    input: RunApiDocumentationTaskRequestBody,
-  }): Promise<void> {
+  static async perform(
+    args: RequestArgsTeamId & {
+      input: RunApiDocumentationTaskRequestBody;
+    },
+  ): Promise<void> {
     await makeRequest({
       config: this.config,
       ...args,

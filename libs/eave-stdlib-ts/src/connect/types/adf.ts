@@ -1,45 +1,45 @@
 // https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/
 
 export enum ADFBlockNodeType {
-  doc = 'doc',
-  blockquote = 'blockquote',
-  bulletList = 'bulletList',
-  codeBlock = 'codeBlock',
-  heading = 'heading',
-  mediaGroup = 'mediaGroup',
-  mediaSingle = 'mediaSingle',
-  orderedList = 'orderedList',
-  panel = 'panel',
-  paragraph = 'paragraph',
-  rule = 'rule',
-  table = 'table',
+  doc = "doc",
+  blockquote = "blockquote",
+  bulletList = "bulletList",
+  codeBlock = "codeBlock",
+  heading = "heading",
+  mediaGroup = "mediaGroup",
+  mediaSingle = "mediaSingle",
+  orderedList = "orderedList",
+  panel = "panel",
+  paragraph = "paragraph",
+  rule = "rule",
+  table = "table",
 }
 
 export enum ADFChildBlockNodeType {
-  listItem = 'listItem',
-  media = 'media',
-  table_cell = 'table_cell',
-  table_header = 'table_header',
-  table_row = 'table_row',
+  listItem = "listItem",
+  media = "media",
+  table_cell = "table_cell",
+  table_header = "table_header",
+  table_row = "table_row",
 }
 
 export enum ADFInlineNodeType {
-  emoji = 'emoji',
-  hardBreak = 'hardBreak',
-  inlineCard = 'inlineCard',
-  mention = 'mention',
-  text = 'text',
+  emoji = "emoji",
+  hardBreak = "hardBreak",
+  inlineCard = "inlineCard",
+  mention = "mention",
+  text = "text",
 }
 
 export enum ADFMarkType {
-  code = 'code',
-  em = 'em',
-  link = 'link',
-  strike = 'strike',
-  strong = 'strong',
-  subsup = 'subsup',
-  textColor = 'textColor',
-  underline = 'underline',
+  code = "code",
+  em = "em",
+  link = "link",
+  strike = "strike",
+  strong = "strong",
+  subsup = "subsup",
+  textColor = "textColor",
+  underline = "underline",
 }
 
 export interface ADFMark {
@@ -87,10 +87,10 @@ export interface ADFBulletListNode extends ADFBlockNode {
 export interface ADFMentionNode extends ADFInlineNode {
   type: ADFInlineNodeType.mention;
   attrs: {
-    accessLevel?: 'NONE' | 'SITE' | 'APPLICATION' | 'CONTAINER';
+    accessLevel?: "NONE" | "SITE" | "APPLICATION" | "CONTAINER";
     id: string;
     text?: string;
-    userType?: 'DEFAULT' | 'SPECIAL' | 'APP';
+    userType?: "DEFAULT" | "SPECIAL" | "APP";
   };
 }
 
@@ -102,14 +102,14 @@ export interface ADFTextNode extends ADFInlineNode {
 }
 
 export interface ADFLinkMark extends ADFMark {
-  type: ADFMarkType.link,
+  type: ADFMarkType.link;
   attrs: {
     collection?: string;
     href: string;
     id?: string;
     occurrenceKey?: string;
     title?: string;
-  }
+  };
 }
 
 // LinkAttrs: https://developer.atlassian.com/cloud/jira/platform/apis/document/marks/link/#attributes

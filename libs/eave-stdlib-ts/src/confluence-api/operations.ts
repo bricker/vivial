@@ -1,9 +1,8 @@
-import { DocumentInput } from '../core-api/models/documents.js';
-import { ConfluenceDestinationInput } from '../core-api/models/team.js';
-import { ConfluencePage, ConfluenceSearchParamsInput, ConfluenceSearchResultWithBody, ConfluenceSpace, DeleteContentInput, UpdateConfluenceContentInput } from './models.js';
+import { DocumentInput } from "../core-api/models/documents.js";
+import { ConfluenceDestinationInput } from "../core-api/models/team.js";
+import { ConfluencePage, ConfluenceSearchParamsInput, ConfluenceSearchResultWithBody, ConfluenceSpace, DeleteContentInput, UpdateConfluenceContentInput } from "./models.js";
 
-export interface GetAvailableSpacesRequestBody {
-}
+export interface GetAvailableSpacesRequestBody {}
 
 export interface GetAvailableSpacesResponseBody {
   confluence_spaces: ConfluenceSpace[];
@@ -11,7 +10,7 @@ export interface GetAvailableSpacesResponseBody {
 
 export type SearchContentRequestBody = {
   search_params: ConfluenceSearchParamsInput;
-}
+};
 
 export interface SearchContentResponseBody {
   results: ConfluenceSearchResultWithBody[];
@@ -20,7 +19,7 @@ export interface SearchContentResponseBody {
 export type CreateContentRequestBody = {
   confluence_destination: ConfluenceDestinationInput;
   document: DocumentInput;
-}
+};
 
 export interface CreateContentResponseBody {
   content: ConfluencePage | null;
@@ -28,7 +27,7 @@ export interface CreateContentResponseBody {
 
 export type UpdateContentRequestBody = {
   content: UpdateConfluenceContentInput;
-}
+};
 
 export interface UpdateContentResponseBody {
   content: ConfluencePage | null;
@@ -36,4 +35,4 @@ export interface UpdateContentResponseBody {
 
 export type DeleteContentRequestBody = {
   content: DeleteContentInput;
-}
+};

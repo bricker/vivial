@@ -1,6 +1,6 @@
 export type SlackInstallationInput = {
   slack_team_id: string;
-}
+};
 
 export type SlackInstallation = {
   id: string;
@@ -10,4 +10,4 @@ export type SlackInstallation = {
   bot_token: string;
   bot_id: string;
   bot_user_id?: string;
-}
+};

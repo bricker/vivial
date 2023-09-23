@@ -1,14 +1,13 @@
 import { Handler } from "express";
+import { ServerApiEndpointConfiguration } from "../../api-util.js";
 import { sharedConfig } from "../../config.js";
 import { EaveApp } from "../../eave-origins.js";
-import { originMiddleware } from "../../middleware/origin.js";
-import { signatureVerification } from "../../middleware/signature-verification.js";
-import { requireHeaders } from "../../middleware/require-headers.js";
-import { rawJsonBody } from "../../middleware/common-middlewares.js";
+import { EAVE_ACCOUNT_ID_HEADER, EAVE_TEAM_ID_HEADER } from "../../headers.js";
 import { jsonParser } from "../../middleware/body-parser.js";
-import { ServerApiEndpointConfiguration } from "../../api-util.js";
-import { ExpressRoutingMethod } from "../../types.js";
-import { EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER } from "../../headers.js";
+import { rawJsonBody } from "../../middleware/common-middlewares.js";
+import { originMiddleware } from "../../middleware/origin.js";
+import { requireHeaders } from "../../middleware/require-headers.js";
+import { signatureVerification } from "../../middleware/signature-verification.js";
 
 const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app);
 

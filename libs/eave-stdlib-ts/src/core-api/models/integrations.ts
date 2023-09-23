@@ -1,7 +1,7 @@
-import { AtlassianInstallation } from './atlassian.js';
-import { GithubInstallation } from './github.js';
-import { ConnectInstallation } from './connect.js';
-import { SlackInstallation } from './slack.js';
+import { AtlassianInstallation } from "./atlassian.js";
+import { ConnectInstallation } from "./connect.js";
+import { GithubInstallation } from "./github.js";
+import { SlackInstallation } from "./slack.js";
 
 /**
  * Key-value mapping of Integration to Installation info.
@@ -13,4 +13,4 @@ export type Integrations = {
   atlassian_integration?: AtlassianInstallation;
   confluence_integration?: ConnectInstallation;
   jira_integration?: ConnectInstallation;
-}
+};

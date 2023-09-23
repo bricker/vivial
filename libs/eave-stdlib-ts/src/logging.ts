@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
-import winston from 'winston';
-import { LoggingWinston } from '@google-cloud/logging-winston';
-import { Request, Response } from 'express';
-import { sharedConfig } from './config.js';
-import { JsonObject } from './types.js';
-import { getHeaders } from './api-util.js';
-import { EAVE_ACCOUNT_ID_HEADER, EAVE_CTX_KEY, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER } from './headers.js';
+import { LoggingWinston } from "@google-cloud/logging-winston";
+import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
+import winston from "winston";
+import { getHeaders } from "./api-util.js";
+import { sharedConfig } from "./config.js";
+import { EAVE_ACCOUNT_ID_HEADER, EAVE_CTX_KEY, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER } from "./headers.js";
+import { JsonObject } from "./types.js";
 
 export class LogContext {
   attributes: JsonObject = {};
@@ -49,7 +49,7 @@ export class LogContext {
   }
 
   get eave_request_id(): string {
-    return <string> this.attributes['eave_request_id'];
+    return <string>this.attributes["eave_request_id"];
   }
 
   set eave_request_id(value: string) {
@@ -57,7 +57,7 @@ export class LogContext {
   }
 
   get eave_account_id(): string {
-    return <string> this.attributes['eave_account_id'];
+    return <string>this.attributes["eave_account_id"];
   }
 
   set eave_account_id(value: string) {
@@ -65,7 +65,7 @@ export class LogContext {
   }
 
   get eave_team_id(): string {
-    return <string> this.attributes['eave_team_id'];
+    return <string>this.attributes["eave_team_id"];
   }
 
   set eave_team_id(value: string) {
@@ -73,7 +73,7 @@ export class LogContext {
   }
 
   get eave_origin(): string {
-    return <string> this.attributes['eave_origin'];
+    return <string>this.attributes["eave_origin"];
   }
 
   set eave_origin(value: string) {
@@ -81,7 +81,7 @@ export class LogContext {
   }
 
   get feature_name(): string | undefined {
-    return <string | undefined> this.attributes['feature_name'];
+    return <string | undefined>this.attributes["feature_name"];
   }
 
   set feature_name(value: string | undefined) {
@@ -125,7 +125,7 @@ function createLogger(): winston.Logger {
   https://github.com/winstonjs/logform/issues/100
   */
   if (sharedConfig.monitoringEnabled) {
-    const loggingWinston = new LoggingWinston({ logName: 'eave' });
+    const loggingWinston = new LoggingWinston({ logName: "eave" });
 
     // LoggingWinston does its own formatting
     logger = winston.createLogger({
@@ -143,11 +143,11 @@ function createLogger(): winston.Logger {
         winston.format.colorize({
           all: true,
           colors: {
-            debug: 'grey',
-            info: 'blue',
-            warn: 'yellow',
-            warning: 'yellow',
-            error: 'red',
+            debug: "grey",
+            info: "blue",
+            warn: "yellow",
+            warning: "yellow",
+            error: "red",
           },
         }),
       ),

@@ -1,34 +1,34 @@
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
-import { EaveApp } from './eave-origins.js';
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
+import { EaveApp } from "./eave-origins.js";
 
 export enum EaveEnvironment {
-  development = 'development',
-  production = 'production',
+  development = "development",
+  production = "production",
 }
 
 export class EaveConfig {
   get googleCloudProject(): string {
-    const value = process.env['GOOGLE_CLOUD_PROJECT'];
+    const value = process.env["GOOGLE_CLOUD_PROJECT"];
     if (value === undefined) {
-      throw new Error('GOOGLE_CLOUD_PROJECT is undefined');
+      throw new Error("GOOGLE_CLOUD_PROJECT is undefined");
     }
     return value;
   }
 
   get devMode(): boolean {
-    return this.nodeEnv === 'development';
+    return this.nodeEnv === "development";
   }
 
   get nodeEnv(): string {
-    return process.env['NODE_ENV'] || 'production';
+    return process.env["NODE_ENV"] || "production";
   }
 
   get eaveEnv(): EaveEnvironment {
-    const strenv = process.env['EAVE_ENV'] || 'production';
+    const strenv = process.env["EAVE_ENV"] || "production";
     switch (strenv) {
-      case 'development':
+      case "development":
         return EaveEnvironment.development;
-      case 'production':
+      case "production":
         return EaveEnvironment.production;
       default:
         return EaveEnvironment.production;
@@ -40,33 +40,31 @@ export class EaveConfig {
   }
 
   get monitoringEnabled(): boolean {
-    return process.env['EAVE_MONITORING_DISABLED'] !== '1';
+    return process.env["EAVE_MONITORING_DISABLED"] !== "1";
   }
 
   get analyticsEnabled(): boolean {
-    return process.env['EAVE_ANALYTICS_DISABLED'] !== '1';
+    return process.env["EAVE_ANALYTICS_DISABLED"] !== "1";
   }
 
   get logLevel(): string {
-    return (process.env['LOG_LEVEL'] || 'INFO').toLowerCase();
+    return (process.env["LOG_LEVEL"] || "INFO").toLowerCase();
   }
 
   get appService(): string {
-    return process.env['GAE_SERVICE'] || 'unknown';
+    return process.env["GAE_SERVICE"] || "unknown";
   }
 
   get appVersion(): string {
-    return process.env['GAE_VERSION'] || 'unknown';
+    return process.env["GAE_VERSION"] || "unknown";
   }
 
   get appLocation(): string {
-    return process.env['GAE_LOCATION'] || 'us-central1';
+    return process.env["GAE_LOCATION"] || "us-central1";
   }
 
   get eavePublicAppsBase(): string {
-    return process.env['EAVE_APPS_BASE_PUBLIC']
-      || process.env['EAVE_APPS_BASE']
-      || 'https://apps.eave.fyi';
+    return process.env["EAVE_APPS_BASE_PUBLIC"] || process.env["EAVE_APPS_BASE"] || "https://apps.eave.fyi";
   }
 
   get eavePublicApiBase(): string {
@@ -85,9 +83,9 @@ export class EaveConfig {
 
     switch (service) {
       case EaveApp.eave_api:
-        return process.env['EAVE_API_BASE'] || 'https://api.eave.fyi';
+        return process.env["EAVE_API_BASE"] || "https://api.eave.fyi";
       case EaveApp.eave_www:
-        return process.env['EAVE_WWW_BASE'] || 'https://www.eave.fyi';
+        return process.env["EAVE_WWW_BASE"] || "https://www.eave.fyi";
       default:
         return this.eavePublicAppsBase;
     }
@@ -116,32 +114,32 @@ export class EaveConfig {
   }
 
   get eaveCookieDomain(): string {
-    const envv = process.env['EAVE_COOKIE_DOMAIN'];
+    const envv = process.env["EAVE_COOKIE_DOMAIN"];
     if (envv) {
       return envv;
     }
 
     const url = new URL(this.eavePublicWwwBase);
-    return url.hostname.replace(/^www/, '');
+    return url.hostname.replace(/^www/, "");
   }
 
-  get redisConnection(): {host: string, port: number, db: number} | undefined {
-    const connection = process.env['REDIS_CONNECTION'];
+  get redisConnection(): { host: string; port: number; db: number } | undefined {
+    const connection = process.env["REDIS_CONNECTION"];
 
     if (connection === undefined) {
       return undefined;
     }
 
-    const parts = connection.split(':');
+    const parts = connection.split(":");
 
-    const host = parts[0] || 'localhost';
-    const port = parseInt(parts[1] || '6379', 10);
-    const db = parseInt(parts[2] || '0', 10);
+    const host = parts[0] || "localhost";
+    const port = parseInt(parts[1] || "6379", 10);
+    const db = parseInt(parts[2] || "0", 10);
     return { host, port, db };
   }
 
   async redisAuth(): Promise<string | undefined> {
-    const key = 'REDIS_AUTH';
+    const key = "REDIS_AUTH";
     if (this.isDevelopment) {
       // Doing it this way because it would never make sense to use the gcloud secret in local dev.
       const value = process.env[key];
@@ -157,15 +155,15 @@ export class EaveConfig {
   }
 
   get redisTlsCA(): string | undefined {
-    return process.env['REDIS_TLS_CA'];
+    return process.env["REDIS_TLS_CA"];
   }
 
   get openaiApiKey(): Promise<string> {
-    return this.getSecret('OPENAI_API_KEY');
+    return this.getSecret("OPENAI_API_KEY");
   }
 
   get openaiApiOrg(): Promise<string> {
-    return this.getSecret('OPENAI_API_ORG');
+    return this.getSecret("OPENAI_API_ORG");
   }
 
   private cache: { [key: string]: string } = {};

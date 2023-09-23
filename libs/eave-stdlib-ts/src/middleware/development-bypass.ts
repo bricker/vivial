@@ -1,12 +1,12 @@
-import * as os from 'os';
-import { constants as httpConstants } from 'node:http2';
-import { Request, Response } from 'express';
-import { eaveLogger, LogContext } from '../logging.js';
-import { sharedConfig } from '../config.js';
-import { EAVE_DEV_BYPASS_HEADER } from '../headers.js';
+import { Request, Response } from "express";
+import { constants as httpConstants } from "node:http2";
+import * as os from "os";
+import { sharedConfig } from "../config.js";
+import { EAVE_DEV_BYPASS_HEADER } from "../headers.js";
+import { LogContext, eaveLogger } from "../logging.js";
 
 export function developmentBypassAllowed(req: Request, res: Response): boolean {
-  if (!sharedConfig.devMode || sharedConfig.googleCloudProject === 'eave-production') {
+  if (!sharedConfig.devMode || sharedConfig.googleCloudProject === "eave-production") {
     return false;
   }
 
@@ -18,7 +18,7 @@ export function developmentBypassAllowed(req: Request, res: Response): boolean {
   const ctx = LogContext.load(res);
   const expectedDevHeader = createDevHeaderValue();
   if (devHeader === expectedDevHeader) {
-    eaveLogger.warning('Development bypass request accepted; some checks will be bypassed.', ctx);
+    eaveLogger.warning("Development bypass request accepted; some checks will be bypassed.", ctx);
     return true;
   }
   throw new Error(`Provided dev bypass header was not accepted. Expected: ${expectedDevHeader}`);
@@ -26,11 +26,11 @@ export function developmentBypassAllowed(req: Request, res: Response): boolean {
 
 export function developmentBypassAuth(req: Request, res: Response): void {
   const ctx = LogContext.load(res);
-  eaveLogger.warning('Bypassing auth verification in dev env', ctx);
+  eaveLogger.warning("Bypassing auth verification in dev env", ctx);
 
   const accountId = req.header(httpConstants.HTTP2_HEADER_AUTHORIZATION);
-  if (accountId === undefined || typeof accountId !== 'string') {
-    throw new Error('Authorization header was empty');
+  if (accountId === undefined || typeof accountId !== "string") {
+    throw new Error("Authorization header was empty");
   }
 
   // no account lookup since we cant access orm from ts...

@@ -2,15 +2,15 @@ export type DocumentInput = {
   title: string;
   content: string;
   parent?: DocumentInput;
-}
+};
 
 export type EaveDocument = {
   title: string;
   content: string;
   parent?: EaveDocument;
-}
+};
 
 export type DocumentSearchResult = {
-    title: string;
-    url: string;
-}
+  title: string;
+  url: string;
+};

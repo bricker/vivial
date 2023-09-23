@@ -1,21 +1,21 @@
-import Parser from 'tree-sitter';
-import * as crypto from 'crypto';
-import { getFunctionDocumentationQueries, grammarForLanguage } from './grammars.js';
-import { eaveLogger, LogContext } from '../logging.js';
-import { ProgrammingLanguage } from '../programming-langs/language-mapping.js';
+import * as crypto from "crypto";
+import Parser from "tree-sitter";
+import { LogContext, eaveLogger } from "../logging.js";
+import { ProgrammingLanguage } from "../programming-langs/language-mapping.js";
+import { getFunctionDocumentationQueries, grammarForLanguage } from "./grammars.js";
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
 export type ParsedFunction = {
   // string index where function (or comment, if defined) begins
-  start: number
+  start: number;
   // full extracted doc comment preceding function (if any present)
-  comment?: string
+  comment?: string;
   // full extracted function, from signature to end brace (or equivalent)
-  func: string
+  func: string;
   // [for external use] updated version of `comment`
-  updatedComment?: string
-}
+  updatedComment?: string;
+};
 
 /**
  * Use tree-sitter to extract functions and their doc comments from
@@ -27,17 +27,7 @@ export type ParsedFunction = {
  * @param language programming language of `content`. Used for constructing grammar queries.
  * @returns array of function data parsed from `content`
  */
-export function parseFunctionsAndComments({
-  content,
-  extName,
-  language,
-  ctx = undefined,
-}: {
-  content: string,
-  extName: string,
-  language: ProgrammingLanguage,
-  ctx?: LogContext,
-}): ParsedFunction[] {
+export function parseFunctionsAndComments({ content, extName, language, ctx = undefined }: { content: string; extName: string; language: ProgrammingLanguage; ctx?: LogContext }): ParsedFunction[] {
   const parser = new Parser();
   const languageGrammar = grammarForLanguage({ language, extName });
   if (!languageGrammar) {
@@ -50,8 +40,8 @@ export function parseFunctionsAndComments({
   // map from str hash of func body to ParsedFunction data.
   // func body hash used to prevent duplicate entries of the same exact function
   let fmap: { [key: string]: ParsedFunction } = {};
-  const funcMatcher = '_function';
-  const commentMatcher = '_doc_comment';
+  const funcMatcher = "_function";
+  const commentMatcher = "_doc_comment";
 
   const queries = getFunctionDocumentationQueries({ language, funcMatcher, commentMatcher });
 
@@ -77,19 +67,21 @@ export function parseFunctionsAndComments({
 export function writeUpdatedCommentsIntoFileString(content: string, parsedFunctions: ParsedFunction[]): string {
   // sort high to low so we can insert into content string without invalidating other indices
   let newContent = content;
-  parsedFunctions.sort((a, b) => b.start - a.start).forEach((f) => {
-    if (f.updatedComment) {
-      indentUpdatedComment(f, content);
+  parsedFunctions
+    .sort((a, b) => b.start - a.start)
+    .forEach((f) => {
+      if (f.updatedComment) {
+        indentUpdatedComment(f, content);
 
-      // include comment length (if present) to find beginning of function signature
-      // that we must insert the comment before
-      let before: number | undefined;
-      if (f.comment) {
-        before = f.start + f.comment.length;
+        // include comment length (if present) to find beginning of function signature
+        // that we must insert the comment before
+        let before: number | undefined;
+        if (f.comment) {
+          before = f.start + f.comment.length;
+        }
+        newContent = insertDocsComment({ content: newContent, docs: f.updatedComment, after: f.start, before });
       }
-      newContent = insertDocsComment({ content: newContent, docs: f.updatedComment, after: f.start, before });
-    }
-  });
+    });
 
   return newContent;
 }
@@ -105,17 +97,7 @@ export function writeUpdatedCommentsIntoFileString(content: string, parsedFuncti
  * @param before index in content to put docs before. (set to after if undefined)
  * @returns content with `docs` inserted
  */
-function insertDocsComment({
-  content,
-  docs,
-  after,
-  before,
-}: {
-  content: string,
-  docs: string,
-  after: number,
-  before?: number,
-}) {
+function insertDocsComment({ content, docs, after, before }: { content: string; docs: string; after: number; before?: number }) {
   if (before === undefined) {
     before = after;
   }
@@ -124,8 +106,8 @@ function insertDocsComment({
   const postcontent = content.slice(before);
 
   // add a newline if one not already present directly following docs
-  if (postcontent[0] !== '\n') {
-    docs += '\n';
+  if (postcontent[0] !== "\n") {
+    docs += "\n";
   }
 
   return `${precontent}${docs}${postcontent}`;
@@ -144,19 +126,7 @@ function insertDocsComment({
  * @param commentMatcher name used by `query` to capture comment nodes from `rootNode` tree
  * @return hash map object storing `query` results
  */
-function runQuery({
-  query,
-  rootNode,
-  content,
-  funcMatcher,
-  commentMatcher,
-}: {
-  query: Parser.Query,
-  rootNode: Parser.SyntaxNode,
-  content: string,
-  funcMatcher: string,
-  commentMatcher: string,
-}): { [key: string]: ParsedFunction } {
+function runQuery({ query, rootNode, content, funcMatcher, commentMatcher }: { query: Parser.Query; rootNode: Parser.SyntaxNode; content: string; funcMatcher: string; commentMatcher: string }): { [key: string]: ParsedFunction } {
   const fmap: { [key: string]: ParsedFunction } = {};
   const matches = query.matches(rootNode);
 
@@ -170,7 +140,7 @@ function runQuery({
     const funcData: ParsedFunction = {
       start: Infinity,
       comment: undefined,
-      func: '',
+      func: "",
       updatedComment: undefined,
     };
 
@@ -179,7 +149,7 @@ function runQuery({
         case funcMatcher:
           // track `start` back to closest newline to account for export, or other pre-function-signature gunk
           functionStart = cap.node.startIndex;
-          while (functionStart > 0 && content[functionStart - 1] !== '\n') {
+          while (functionStart > 0 && content[functionStart - 1] !== "\n") {
             functionStart -= 1;
           }
 
@@ -240,7 +210,7 @@ function runQuery({
     */
     // ensure comment-function pairing are really next to each other (not just sibling nodes).
     // There should be nothing between the end of the doc comment and the function signature.
-    if (commentEnd && functionStart && content.slice(commentEnd, functionStart).trim() !== '') {
+    if (commentEnd && functionStart && content.slice(commentEnd, functionStart).trim() !== "") {
       // reset funcData as if comment was not set in it
       funcData.comment = undefined;
       minStart = functionStart;
@@ -250,7 +220,7 @@ function runQuery({
     if (functionStart) {
       funcData.func = content.slice(functionStart, functionEnd);
       funcData.start = minStart;
-      const funcHash = crypto.createHash('md5').update(funcData.func).digest('hex');
+      const funcHash = crypto.createHash("md5").update(funcData.func).digest("hex");
       fmap[funcHash] = funcData;
     }
   });
@@ -277,5 +247,5 @@ function indentUpdatedComment(funcData: ParsedFunction, content: string) {
 
   // only add leading indent on first line if indent doesnt already match
   const needsLeadingIndent = content.slice(Math.max(funcData.start - (indent.length + 1), 0), funcData.start) !== `\n${indent}`;
-  funcData.updatedComment = `${needsLeadingIndent ? indent : ''}${funcData.updatedComment.trim().split('\n').join(`\n${indent}`)}`;
+  funcData.updatedComment = `${needsLeadingIndent ? indent : ""}${funcData.updatedComment.trim().split("\n").join(`\n${indent}`)}`;
 }
