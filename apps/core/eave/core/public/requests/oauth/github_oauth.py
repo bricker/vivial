@@ -2,14 +2,12 @@ import json
 import urllib.parse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sqlalchemy.orm import Session
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 from eave.stdlib.auth_cookies import get_auth_cookies
 import eave.stdlib.cookies
-from eave.stdlib.core_api.models.github_repos import GithubRepo
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import ExternalGithubRepo
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
@@ -191,7 +189,9 @@ class GithubOAuthCallback(HTTPEndpoint):
                 )
 
     async def _sync_github_repos(self) -> None:
-        response = await QueryGithubRepos.perform(team_id=self.eave_team.id, origin=EaveApp.eave_api, ctx=self.eave_state.ctx)
+        response = await QueryGithubRepos.perform(
+            team_id=self.eave_team.id, origin=EaveApp.eave_api, ctx=self.eave_state.ctx
+        )
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             for repo in response.repos:

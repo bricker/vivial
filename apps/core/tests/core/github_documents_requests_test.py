@@ -20,6 +20,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
             session=session,
             team_id=team_id,
             external_repo_id=self.anystr(f"external_repo_id:{team_id}:{index}"),
+            display_name=self.anystr(),
         )
 
     async def create_documents(
