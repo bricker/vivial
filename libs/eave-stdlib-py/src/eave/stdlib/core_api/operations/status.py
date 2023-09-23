@@ -2,8 +2,6 @@ import aiohttp
 
 from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
-from . import Endpoint
-
 
 class Status(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(

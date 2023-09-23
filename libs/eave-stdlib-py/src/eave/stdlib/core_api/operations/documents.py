@@ -8,7 +8,6 @@ from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpoin
 from ..models.subscriptions import DocumentReference, DocumentReferenceInput, Subscription
 from ..models.subscriptions import SubscriptionInput
 
-from . import Endpoint
 from ..models import team
 from ... import requests
 

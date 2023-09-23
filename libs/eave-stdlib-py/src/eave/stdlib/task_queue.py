@@ -1,6 +1,5 @@
 import asyncio
 import json
-import time
 from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request

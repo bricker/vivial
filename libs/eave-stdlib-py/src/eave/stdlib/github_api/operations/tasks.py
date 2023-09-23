@@ -6,6 +6,7 @@ from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
 from eave.stdlib.github_api.models import GithubRepoInput
 from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpointConfiguration
 
+
 class RunApiDocumentationTask(GithubAppEndpoint):
     config = GithubAppEndpointConfiguration(
         path="/_/github/run-api-documentation",

@@ -1,6 +1,7 @@
 from typing import Optional
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
+
 # Source response object defined in Github API
 # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
 class GithubRepository(BaseResponseModel):
@@ -14,6 +15,7 @@ class FileChange(BaseResponseModel):
     contents: str
     """base64 encoded string to replace the content of the file at `path`"""
 
+
 class GithubRepoInput(BaseInputModel):
     """
     For sending the repo ID to the Eave Github App API when performing operations on a repository
@@ -21,10 +23,12 @@ class GithubRepoInput(BaseInputModel):
 
     external_repo_id: str
 
+
 class ExternalGithubRepoOwner(BaseResponseModel):
     id: Optional[str]
     login: Optional[str]
     avatar_url: Optional[str]
+
 
 class ExternalGithubRepo(BaseResponseModel):
     id: Optional[str]
