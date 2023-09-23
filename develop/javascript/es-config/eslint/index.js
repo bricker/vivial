@@ -15,7 +15,7 @@ const config = {
   },
   rules: {
     // Rules that enforce consistent code style, but may not be fixable by a formatter. These could also indicate a bug.
-    "curly": ["warn", "all"],
+    curly: ["warn", "all"],
     "no-var": "warn",
     "prefer-const": "warn",
     "no-useless-computed-key": "warn",
@@ -35,13 +35,13 @@ const config = {
     "array-callback-return": "warn",
     "default-case": "warn",
     "default-case-last": "warn",
-    "eqeqeq": "warn",
+    eqeqeq: "warn",
     "guard-for-in": "warn",
     "no-invalid-this": "warn",
     "no-new-wrappers": "warn",
     "no-octal-escape": "warn",
     "no-unused-expressions": "warn",
-    "radix": "warn",
+    radix: "warn",
     "no-unused-vars": [
       "warn",
       {
@@ -67,7 +67,6 @@ const config = {
 
     // Rules enabled by default that I don't like
     "import/prefer-default-export": "off",
-
   },
   overrides: [
     {
