@@ -1,5 +1,17 @@
 import { imageUrl } from './util/asset-helpers.js';
 
+export const FEATURES = {
+  API_DOCS: "api_documentation",
+  INLINE_CODE_DOCS: "inline_code_documentation",
+  ARCHITECTURE_DOCS: "architecture_documentation",
+};
+
+export const FEATURE_STATES = {
+  ENABLED: "enabled",
+  DISABLED: "disabled",
+  PAUSED: "paused",
+};
+
 export const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfkmCRGUy4IRG-jRwviYNiOk9oNIfRDBjc0CogtDpYGfsOktQ/viewform?usp=sf_link';
 
 export const HEADER = {

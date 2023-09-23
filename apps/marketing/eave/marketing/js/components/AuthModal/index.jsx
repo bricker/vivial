@@ -47,7 +47,7 @@ const makeClasses = makeStyles((theme) => ({
     maxWidth: 323,
     width: '100%',
     marginTop: 12,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     '&:hover': {
       borderColor: 'black',
     }
@@ -71,7 +71,7 @@ const AuthModal = () => {
     <Dialog open={isOpen}>
       <section className={sectionClassList}>
         <IconButton onClick={closeModal} className={classes.closeButton}>
-          <CloseIcon />
+          <CloseIcon stroke="#121212" />
         </IconButton>
         <Copy variant="h2" className={classes.header}>{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
         <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google sign up only. Additional account options coming soon.'}</Copy>
@@ -80,7 +80,6 @@ const AuthModal = () => {
           className={classes.loginButton}
           variant="outlined"
           startIcon={<GoogleIcon className={classes.icon} />}
-          lg
         >
           Continue with Google
         </Button>

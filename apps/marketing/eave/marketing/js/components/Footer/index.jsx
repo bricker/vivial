@@ -8,8 +8,6 @@ const makeClasses = makeStyles((theme) => ({
   outerContainer: {
     width: '100%',
     zIndex: 10,
-    position: 'absolute',
-    bottom: 0,
   },
   innerContainer: {
     display: 'flex',

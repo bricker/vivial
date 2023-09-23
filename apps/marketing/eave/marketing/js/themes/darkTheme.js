@@ -32,6 +32,7 @@ export const darkTheme = createTheme({
     // Black
     background: {
       main: '#121212',
+      light: '#363636',
       contrastText: '#FFFFFF',
     }
   },

@@ -26,13 +26,12 @@ class GetGithubReposRequest(Endpoint):
     @classmethod
     async def perform(
         cls,
-        input: RequestBody,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             url=cls.config.url,
-            input=input,
+            input=None,
             team_id=team_id,
             **kwargs,
         )
@@ -84,7 +83,7 @@ class CreateGithubRepoRequest(Endpoint):
     async def perform(
         cls,
         input: RequestBody,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(

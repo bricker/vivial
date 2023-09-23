@@ -4,8 +4,9 @@ import { makeStyles } from '@material-ui/styles';
 
 import useUser from '../../hooks/useUser';
 
-const makeClasses = makeStyles(() => ({
+const makeClasses = makeStyles((theme) => ({
   loader: {
+    backgroundColor: theme.palette.background.main,
     width: '100vw',
     height: '100vh',
     display: 'flex',
@@ -16,16 +17,16 @@ const makeClasses = makeStyles(() => ({
 
 const AuthUser = ({ children }) => {
   const classes = makeClasses();
-  const { userState, checkUserAuthState } = useUser();
-  const { authenticated } = userState;
+  const { user, checkUserAuth } = useUser();
+  const { isAuthenticated } = user;
 
   useEffect(() => {
-    if (authenticated === null) {
-      checkUserAuthState();
+    if (isAuthenticated === null) {
+      checkUserAuth();
     }
-  }, [authenticated]);
+  }, [isAuthenticated]);
 
-  if (authenticated === null) {
+  if (isAuthenticated === null) {
     return (
       <div className={classes.loader}>
         <CircularProgress />

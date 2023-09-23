@@ -20,11 +20,15 @@ const makeClasses = makeStyles((theme) => ({
       maxWidth: 840,
     },
   },
+  button: {
+    width: 250,
+    height: 60,
+    fontWeight: 700,
+  },
 }));
 
 const Hero = ({ title, subtitle, cta }) => {
   const classes = makeClasses();
-
   const { openModal } = useAuthModal();
 
   return (
@@ -35,7 +39,7 @@ const Hero = ({ title, subtitle, cta }) => {
       <Copy className={classes.subtitle} variant="p">
         {subtitle}
       </Copy>
-      <Button lg onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
+      <Button className={classes.button} onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
         {cta}
       </Button>
     </PageSection>

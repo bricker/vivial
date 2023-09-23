@@ -2,6 +2,10 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 
+/**
+ * TODO: Deprecate this component in favor of MUI's Typography Component.
+ * Reference: https://mui.com/material-ui/api/typography/
+ */
 const makeClasses = makeStyles((theme) => ({
   h1: {
     color: theme.palette.background.contrastText,

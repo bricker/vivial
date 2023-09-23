@@ -15,20 +15,16 @@ const makeClasses = makeStyles((theme) => ({
       padding: '72px 40px',
     },
   },
-  topSection: {
-    paddingTop: `calc(${HEADER.mobile.heightPx} + 54px)`,
-  },
   wrapper: {
     maxWidth: 1115,
     margin: '0 auto',
   },
 }));
 
-const PageSection = ({ children, alternateBackground, topSection, sectionClassName, wrapperClassName, id }) => {
+const PageSection = ({ children, alternateBackground, sectionClassName, wrapperClassName, id }) => {
   const classes = makeClasses();
   const sectionClasslist = classNames(
     classes.section,
-    topSection && classes.topSection,
     alternateBackground && classes.alternateBackground,
     sectionClassName,
   );

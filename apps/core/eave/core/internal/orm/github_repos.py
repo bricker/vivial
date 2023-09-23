@@ -49,7 +49,7 @@ class GithubRepoOrm(Base):
 
     @classmethod
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
-        team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
+        team_id = eave.stdlib.util.ensure_str_or_none(kwargs["team_id"])
         lookup = select(cls).where(cls.team_id == team_id)
 
         if external_repo_id := kwargs.get("external_repo_id"):
@@ -70,7 +70,7 @@ class GithubRepoOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        team_id: UUID,
+        team_id: UUID | str,
         external_repo_id: str,
         api_documentation_state: State = State.DISABLED,
         inline_code_documentation_state: State = State.DISABLED,
@@ -90,7 +90,7 @@ class GithubRepoOrm(Base):
     @classmethod
     async def query(
         cls,
-        team_id: UUID,
+        team_id: UUID | str,
         external_repo_ids: Optional[list[str]],
         session: AsyncSession,
     ) -> Sequence[Self]:

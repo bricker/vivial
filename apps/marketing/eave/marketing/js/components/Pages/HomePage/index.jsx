@@ -40,17 +40,17 @@ const copy = {
 };
 
 const HomePage = () => {
-  const { userState } = useUser();
+  const { user } = useUser();
   const navigate = useNavigate();
 
-  const { authenticated } = userState;
+  const { isAuthenticated } = user;
   const { hero, integrations, slack, documentation, privacy } = copy;
 
   useEffect(() => {
-    if (authenticated) {
+    if (isAuthenticated) {
       navigate('/dashboard');
     }
-  }, [authenticated]);
+  }, [isAuthenticated]);
 
   return (
     <Page>

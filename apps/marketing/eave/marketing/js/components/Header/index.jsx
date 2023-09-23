@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { makeStyles } from '@material-ui/styles';
 import { IconButton, Drawer } from '@material-ui/core';
 
@@ -12,10 +13,12 @@ import EaveLogo from '../EaveLogo/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   outterContainer: {
-    position: 'absolute',
-    top: '0',
     width: '100%',
     zIndex: 100,
+    marginBottom: 28,
+    [theme.breakpoints.up('md')]: {
+      marginBottom: 86,
+    }
   },
   innerContainer: {
     display: 'flex',
@@ -32,6 +35,7 @@ const makeClasses = makeStyles((theme) => ({
   },
   logoContainer: {
     paddingLeft: 10,
+    lineHeight: 0,
     [theme.breakpoints.up('md')]: {
       paddingLeft: 0,
     },
@@ -48,7 +52,7 @@ const makeClasses = makeStyles((theme) => ({
     height: '100vh',
   },
   mobileNav: {
-    padding: '30px 26px',
+    padding: '0px 25px',
   },
   mobileNavItem: {
     color: theme.palette.background.contrastText,
@@ -58,7 +62,7 @@ const makeClasses = makeStyles((theme) => ({
     fontWeight: 400,
     display: 'block',
     padding: 0,
-    margin: '0 0 12px',
+    margin: '0 0 32px',
     border: 'none',
     appearance: 'none',
     cursor: 'pointer',
@@ -70,6 +74,9 @@ const makeClasses = makeStyles((theme) => ({
       display: 'block',
       fontSize: 32,
     },
+  },
+  button: {
+    fontWeight: 700,
   },
   inlineButton: {
     color: theme.palette.background.contrastText,
@@ -90,15 +97,15 @@ const Header = ({ simpleHeader }) => {
   const classes = makeClasses();
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const { openModal } = useAuthModal();
-  const { userState, logOut } = useUser();
-  const { authenticated } = userState;
+  const { user, logUserOut } = useUser();
+  const { isAuthenticated } = user;
 
-  const TopButtons = authenticated ? (
+  const TopButtons = isAuthenticated ? (
     <>
       <a className={classes.inlineButton} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
         Send Feedback
       </a>
-      <button className={classes.inlineButton} onClick={logOut}>
+      <button className={classes.inlineButton} onClick={logUserOut}>
         Log Out
       </button>
     </>
@@ -108,18 +115,21 @@ const Header = ({ simpleHeader }) => {
       <button className={classes.inlineButton} onClick={ () => openModal(AUTH_MODAL_STATE.LOGIN) }>
         Log In
       </button>
-      <Button onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
+      <Button className={classes.button} onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
         Sign Up
       </Button>
     </>
   );
 
-  const navButtons = authenticated ? (
+  const navButtons = isAuthenticated ? (
     <>
+      <Link className={classes.mobileNavItem} to="/dashboard">
+        Dashboard
+      </Link>
       <a className={classes.mobileNavItem} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
         Send Feedback
       </a>
-      <button className={classes.mobileNavItem} onClick={logOut}>
+      <button className={classes.mobileNavItem} onClick={logUserOut}>
         Log Out
       </button>
     </>
@@ -154,16 +164,18 @@ const Header = ({ simpleHeader }) => {
             </IconButton>
             <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
               <div className={classes.mobileMenu}>
-                <div className={classes.innerContainer}>
-                  <div className={classes.logoContainer}>
-                    <EaveLogo />
+                <div className={classes.outterContainer}>
+                  <div className={classes.innerContainer}>
+                    <div className={classes.logoContainer}>
+                      <EaveLogo />
+                    </div>
+                    <IconButton
+                      classes={{ root: classes.menuIconBtn }}
+                      onClick={() => setDrawerIsOpen(false)}
+                    >
+                      <CloseIcon />
+                    </IconButton>
                   </div>
-                  <IconButton
-                    classes={{ root: classes.menuIconBtn }}
-                    onClick={() => setDrawerIsOpen(false)}
-                  >
-                    <CloseIcon />
-                  </IconButton>
                 </div>
                 <nav className={classes.mobileNav}>
                   {navButtons}

@@ -4,25 +4,17 @@ import { Button as MaterialButton } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles(() => ({
   root: {
+    width: 172,
     height: 50,
-    padding: '0px 16px',
-    fontSize: 16,
-    fontWeight: 700,
     textTransform: 'none',
-    borderRadius: 10,
-    minWidth: 166,
+    borderRadius: '10px',
+    fontSize: 16,
   },
-  large: {
-    height: 60,
-    width: '100%',
-    fontSize: 18,
-    [theme.breakpoints.up('sm')]: {
-      height: 70,
-      width: 213,
-      fontSize: 20,
-    },
+  disabled: {
+    backgroundColor: '#808182 !important',
+    color: '#FFFFFF !important',
   },
   link: {
     textDecoration: 'none',
@@ -30,25 +22,25 @@ const makeClasses = makeStyles((theme) => ({
 }));
 
 const Button = ({
+  color = "primary",
+  variant = "contained",
   children,
   className,
-  lg,
-  color,
-  variant,
-  to,
   target,
+  to,
   ...rest
 }) => {
   const classes = makeClasses();
+  const rootClass = classNames(classes.root, className);
 
-  const sizeClass = lg ? classes.large : '';
-  const rootClass = classNames(classes.root, className, sizeClass);
-  const btn = (
+  const button = (
     <MaterialButton
-      classes={{ root: rootClass }}
-      color={color || 'primary'}
-      variant={variant || 'contained'}
-      target={target}
+      classes={{
+        root: rootClass,
+        disabled: classes.disabled
+      }}
+      color={color}
+      variant={variant}
       {...rest}
     >
       {children}
@@ -58,12 +50,12 @@ const Button = ({
   if (to) {
     return (
       <Link className={classes.link} to={to} target={target}>
-        {btn}
+        {button}
       </Link>
     );
   }
 
-  return btn;
+  return button;
 };
 
 export default Button;

@@ -14,13 +14,13 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const Page = ({ children, simpleHeader }) => {
+const Page = ({ children, simpleHeader, hideFooter }) => {
   const classes = makeClasses();
   return (
     <div className={classes.container}>
       <Header simpleHeader={simpleHeader} />
       {children}
-      <Footer />
+      {!hideFooter && <Footer />}
       <AuthModal />
     </div>
   );
