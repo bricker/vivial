@@ -1,10 +1,16 @@
-import { LinkType } from './core-api/enums.js';
 import { Pair } from './types.js';
 import { eaveLogger } from './logging.js';
 import { CtxArg, RequestArgsOrigin, RequestArgsTeamId } from './requests.js';
 import { Subscription } from './core-api/models/subscriptions.js';
 import { GetGithubUrlContentOperation } from './github-api/operations/get-content.js';
 import { CreateGithubResourceSubscriptionOperation } from './github-api/operations/create-subscription.js';
+
+/**
+ * Link types that we support fetching content from for integration into AI documentation creation.
+ */
+export enum LinkType {
+  github = 'github',
+}
 
 // mapping from link type to regex for matching raw links against
 const SUPPORTED_LINKS: { [linkType: string]: Array<RegExp> } = {

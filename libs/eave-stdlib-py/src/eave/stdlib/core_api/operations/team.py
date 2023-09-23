@@ -32,7 +32,6 @@ class GetTeamRequest(Endpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-
 class UpsertConfluenceDestinationAuthedRequest(Endpoint):
     config = EndpointConfiguration(
         path="/me/team/destinations/confluence/upsert",

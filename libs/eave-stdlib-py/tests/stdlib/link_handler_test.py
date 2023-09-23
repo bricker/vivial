@@ -1,4 +1,3 @@
-from eave.stdlib.core_api.enums import LinkType
 from eave.stdlib.core_api.models.subscriptions import (
     SubscriptionSource,
     SubscriptionSourceEvent,
@@ -49,10 +48,10 @@ class TestLinkHandler(UtilityBaseTestCase):
 
     async def test_filter_supported_links(self) -> None:
         test_cases = [
-            ("https://github.com", [LinkType.github]),
-            ("https://github.enterprise.com", [LinkType.github]),
-            ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", [LinkType.github]),
-            ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", [LinkType.github]),
+            ("https://github.com", [link_handler.LinkType.github]),
+            ("https://github.enterprise.com", [link_handler.LinkType.github]),
+            ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", [link_handler.LinkType.github]),
+            ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", [link_handler.LinkType.github]),
             ("https://api.github.com", []),
             ("https://githubby.com", []),
             ("https://google.com", []),
@@ -70,8 +69,8 @@ class TestLinkHandler(UtilityBaseTestCase):
         ]
 
         input_links = [
-            ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", LinkType.github),
-            ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
+            ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", link_handler.LinkType.github),
+            ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", link_handler.LinkType.github),
         ]
         actual_result = await link_handler.map_url_content(
             origin=EaveApp.eave_slack_app,
@@ -87,8 +86,8 @@ class TestLinkHandler(UtilityBaseTestCase):
 
     async def test_subscribe_successful_subscription(self) -> None:
         input_links = [
-            ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", LinkType.github),
-            ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
+            ("https://github.com/eave-fyi/eave-monorepo/blob/main/.gitignore", link_handler.LinkType.github),
+            ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", link_handler.LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
             origin=EaveApp.eave_slack_app,
@@ -115,8 +114,8 @@ class TestLinkHandler(UtilityBaseTestCase):
 
         # WHEN subscribe request fails (for whatever reason)
         # explicit type is needed because the tuple is typed with Literals when defined this way
-        input_links: list[tuple[str, LinkType]] = [
-            ("https://github.com/eave-fyi/mono-repo/README.md", LinkType.github),
+        input_links: list[tuple[str, link_handler.LinkType]] = [
+            ("https://github.com/eave-fyi/mono-repo/README.md", link_handler.LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
             origin=EaveApp.eave_slack_app,
