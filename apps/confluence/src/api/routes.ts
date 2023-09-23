@@ -1,27 +1,22 @@
-import { NextFunction, Request, Response, Router } from "express";
-import { AddOn } from "atlassian-connect-express";
-import { rawJsonBody } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
+import { EAVE_ORIGIN_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
 import { jsonParser } from "@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js";
-import getAvailableSpaces from "./get-available-spaces.js";
-import searchContent from "./search-content.js";
-import createContent from "./create-content.js";
-import updateContent from "./update-content.js";
-import deleteContent from "./delete-content.js";
-import ConfluenceClient from "../confluence-client.js";
+import { rawJsonBody } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
 import { originMiddleware } from "@eave-fyi/eave-stdlib-ts/src/middleware/origin.js";
 import { requireHeaders } from "@eave-fyi/eave-stdlib-ts/src/middleware/require-headers.js";
 import { signatureVerification } from "@eave-fyi/eave-stdlib-ts/src/middleware/signature-verification.js";
-import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
-import { EAVE_ORIGIN_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
+import { AddOn } from "atlassian-connect-express";
+import { NextFunction, Request, Response, Router } from "express";
+import ConfluenceClient from "../confluence-client.js";
+import createContent from "./create-content.js";
+import deleteContent from "./delete-content.js";
+import getAvailableSpaces from "./get-available-spaces.js";
+import searchContent from "./search-content.js";
+import updateContent from "./update-content.js";
 
 export function InternalApiRouter({ addon }: { addon: AddOn }): Router {
   const router = Router();
-  router.use(
-    rawJsonBody,
-    requireHeaders(EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER, EAVE_ORIGIN_HEADER),
-    originMiddleware,
-    signatureVerification({ audience: EaveApp.eave_confluence_app }),
-  )
+  router.use(rawJsonBody, requireHeaders(EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER, EAVE_ORIGIN_HEADER), originMiddleware, signatureVerification({ audience: EaveApp.eave_confluence_app }));
 
   router.use(jsonParser);
 
