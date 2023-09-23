@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function run () (
+	if ! ^cmd-exists gh; then
+		statusmsg -e "The github cli is required for this script. Install here: https://cli.github.com/"
+		exit 1
+	fi
+
+	local repo
+	repo="$1"
+
+	local secret
+	secret=$(openssl rand -hex 16)
+	run-with-dotenv gh webhook forward --events="*" --repo="$repo" --url="http://apps.eave.run:8080/github/events" --secret="${EAVE_GITHUB_APP_WEBHOOK_SECRET:-$secret}"
+)
+
+run "$@"

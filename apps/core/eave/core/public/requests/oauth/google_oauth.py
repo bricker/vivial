@@ -12,7 +12,7 @@ import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 
-from ...http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import base, shared
 
 _AUTH_PROVIDER = AuthProvider.google

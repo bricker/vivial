@@ -4,3 +4,35 @@ export type GithubRepository = {
   node_id: string;
   full_name: string;
 }
+
+export type FileChange = {
+  /**
+   * path from github repo root to file to change
+   */
+  path: string,
+  /**
+   * base64 encoded string to replace the content of the file at `path`
+   */
+  contents: string,
+};
+
+export type GithubRepoInput = {
+  external_repo_id: string;
+}
+
+export type ExternalGithubRepoOwner = {
+  id?: string;
+  login?: string;
+  avatar_url?: string;
+}
+
+export type ExternalGithubRepo = {
+  id?: string;
+  name?: string;
+  url?: string;
+  description?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  pushed_at?: string;
+  owner?: ExternalGithubRepoOwner;
+}

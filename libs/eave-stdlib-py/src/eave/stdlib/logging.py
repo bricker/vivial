@@ -38,6 +38,22 @@ class CustomFormatter(logging.Formatter):
         logging.CRITICAL: bold_red + formatstr + reset,
     }
 
+    @classmethod
+    def get_formatstr(cls, levelno: int, message: str) -> str:
+        match levelno:
+            case logging.DEBUG:
+                return cls.purple + message + cls.reset
+            case logging.INFO:
+                return cls.cyan + message + cls.reset
+            case logging.WARNING:
+                return cls.yellow + message + cls.reset
+            case logging.ERROR:
+                return cls.red + message + cls.reset
+            case logging.CRITICAL:
+                return cls.bold_red + message + cls.reset
+            case _:
+                return message
+
     IGNORE_KEYS = set(
         [
             "asctime",
@@ -62,7 +78,7 @@ class CustomFormatter(logging.Formatter):
     )
 
     def format(self, record: logging.LogRecord) -> str:
-        log_fmt = self.FORMATS.get(record.levelno)
+        log_fmt = self.get_formatstr(record.levelno, self.formatstr)
         formatter = logging.Formatter(log_fmt)
         string = formatter.format(record)
 
@@ -72,9 +88,14 @@ class CustomFormatter(logging.Formatter):
 
 
 class CustomFilter(logging.Filter):
+    _whitelist_records = [
+        "eave",
+        "werkzeug",
+    ]
+
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
-        return log and record.name == "eave"
+        return log and record.name in self._whitelist_records
 
 
 rootLogger = logging.getLogger()
@@ -188,6 +209,12 @@ class EaveLogger:
 
     def __init__(self) -> None:
         pass
+
+    def f(self, level: int, message: str) -> str:
+        return CustomFormatter.get_formatstr(level, message)
+
+    def fprint(self, level: int, message: str) -> None:
+        print(self.f(level, message))
 
     def debug(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
         self._raw_logger.debug(**self._preparekwargs(msg, *args, **kwargs))

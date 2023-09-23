@@ -1,15 +1,15 @@
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { UpdateContentRequestBody, UpdateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
-import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
-import OpenAIClient from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js';
-import { OpenAIModel, maxTokens } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js';
-import { tokenCount } from '@eave-fyi/eave-stdlib-ts/src/transformer-ai/token-counter.js';
-import { logEvent } from '@eave-fyi/eave-stdlib-ts/src/analytics.js';
-import { ConfluenceClientArg } from './util.js';
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { UpdateContentRequestBody, UpdateContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
+import { ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import OpenAIClient from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
+import { OpenAIModel, maxTokens } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
+import { tokenCount } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/token-counter.js";
+import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
+import { ConfluenceClientArg } from "./util.js";
 
 export default async function updateContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
-  ctx.feature_name = 'confluence_update_content';
+  ctx.feature_name = "confluence_update_content";
   const { content } = <UpdateContentRequestBody>req.body;
   const page = await confluenceClient.getPageById({ pageId: content.id });
   if (page === null) {
@@ -18,35 +18,21 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
     return;
   }
 
-  await logEvent({
-    event_name: ctx.feature_name,
-    event_description: 'updating confluence document content',
-    event_source: ctx.eave_origin,
-    opaque_params: JSON.stringify({ pageId: content.id }),
-  }, ctx);
+  await logEvent(
+    {
+      event_name: ctx.feature_name,
+      event_description: "updating confluence document content",
+      event_source: ctx.eave_origin,
+      opaque_params: JSON.stringify({ pageId: content.id }),
+    },
+    ctx,
+  );
 
   const existingBody = page.body?.storage?.value;
   let newBody = content.body;
 
   if (existingBody) {
-    const prompt = [
-      'Merge the following two HTML documents so that the unique information is retained, but duplicate information is removed.',
-      'The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>',
-      'Maintain the overall document layout and style from the first document.',
-      'Respond with only the merged document.',
-      "If you can't perform this task because of insuffient information or any other reason, respond with the word \"UNABLE\" and nothing else.\n",
-      '=========================',
-      'First Document:',
-      '=========================',
-      existingBody,
-      '=========================',
-      'Second Document:',
-      '=========================',
-      content.body,
-      '=========================',
-      'Merged Document:',
-      '=========================',
-    ].join('\n');
+    const prompt = ["Merge the following two HTML documents so that the unique information is retained, but duplicate information is removed.", "The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>", "Maintain the overall document layout and style from the first document.", "Respond with only the merged document.", 'If you can\'t perform this task because of insuffient information or any other reason, respond with the word "UNABLE" and nothing else.\n', "=========================", "First Document:", "=========================", existingBody, "=========================", "Second Document:", "=========================", content.body, "=========================", "Merged Document:", "========================="].join("\n");
 
     // Check which model to use based on token count.
     // The idea with dividing by 1.5 is that the prompt contains roughly 2/3 of the full token usage,
@@ -62,9 +48,7 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
       const openaiClient = await OpenAIClient.getAuthedClient();
       const openaiResponse = await openaiClient.createChatCompletion({
         parameters: {
-          messages: [
-            { role: 'user', content: prompt },
-          ],
+          messages: [{ role: "user", content: prompt }],
           model: OpenAIModel.GPT4,
         },
         baseTimeoutSeconds: 120,
@@ -72,12 +56,12 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
       });
 
       if (openaiResponse.match(/UNABLE/i)) {
-        eaveLogger.warning('openai was unable to merge the documents. The new content will be used.', ctx);
+        eaveLogger.warning("openai was unable to merge the documents. The new content will be used.", ctx);
       } else {
         newBody = openaiResponse;
       }
     } else {
-      eaveLogger.warning('Prompt is too big for OpenAI. Document will be overwritten', ctx);
+      eaveLogger.warning("Prompt is too big for OpenAI. Document will be overwritten", ctx);
     }
   }
 

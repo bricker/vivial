@@ -18,9 +18,9 @@ from eave.stdlib.exceptions import UnexpectedMissingValue
 from eave.core.internal.orm.subscription import SubscriptionOrm
 import eave.stdlib.api_util
 from eave.stdlib.request_state import EaveRequestState
+from eave.stdlib.http_endpoint import HTTPEndpoint
 
-
-class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
+class UpsertDocument(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
@@ -127,7 +127,7 @@ class UpsertDocument(eave.core.public.http_endpoint.HTTPEndpoint):
         return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.ACCEPTED, model=model)
 
 
-class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
+class SearchDocuments(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
@@ -164,7 +164,7 @@ class SearchDocuments(eave.core.public.http_endpoint.HTTPEndpoint):
         return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.OK, model=model)
 
 
-class DeleteDocument(eave.core.public.http_endpoint.HTTPEndpoint):
+class DeleteDocument(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()

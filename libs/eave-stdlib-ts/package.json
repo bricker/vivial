@@ -1,14 +1,13 @@
 {
   "name": "@eave-fyi/eave-stdlib-ts",
   "version": "0.1.0",
-  "engines": {
-    "node": "18",
-    "npm": "9"
-  },
   "type": "module",
   "files": [
     "src/"
   ],
+  "bin": {
+    "start-pm2": "./src/pm2-cli.sh"
+  },
   "scripts": {
     "yalc": "yalc publish --push"
   },
@@ -19,6 +18,7 @@
     "@google-cloud/logging-winston": "5.x",
     "@google-cloud/pubsub": "3.x",
     "@google-cloud/redis": "3.x",
+    "@google-cloud/tasks": "4.x",
     "@google-cloud/secret-manager": "4.x",
     "@redis/client": "1.x",
     "express": "4.x",
@@ -46,30 +46,17 @@
     "tree-sitter-swift": "^0.3.6",
     "tree-sitter-typescript": "^0.20.1",
     "uuid": "9.x",
-    "winston": "3.x"
+    "winston": "3.x",
+    "pm2": "5.x",
+    "tsx": "3.x"
   },
   "peerDependencies": {
     "atlassian-connect-express": "8.2.0",
     "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript"
   },
-  "devDependencies": {
-    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
-    "@types/express": "4.x",
-    "@types/fast-crc32c": "2.x",
-    "@types/node": "18.x",
-    "@types/on-finished": "2.x",
-    "@types/request": "2.x",
-    "@types/sinon": "10.x",
-    "@types/uuid": "9.x",
-    "@typescript-eslint/eslint-plugin": "5.x",
-    "@typescript-eslint/parser": "5.x",
-    "eslint": "8.x",
-    "eslint-config-airbnb-base": "15.x",
-    "eslint-plugin-import": "2.x",
-    "eslint-plugin-unused-imports": "2.x",
-    "nodemon": "2.x",
-    "sinon": "15.x",
-    "ts-node": "10.x",
-    "typescript": "4.x"
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
   }
 }

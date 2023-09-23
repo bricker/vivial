@@ -16,7 +16,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		# it should be setup by their shell loginfile
 		import-loginfile
 
-		if ! cmd-exists "nvm"; then
+		if ! ^cmd-exists "nvm"; then
 			statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
 			return 0
 		fi
@@ -46,6 +46,19 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		statusmsg -in "Linting $logtarget (js/ts)"
 		npx eslint --max-warnings=0 .
 
+		local prettierloglevel="silent"
+		if verbose; then
+			prettierloglevel="log"
+		fi
+
+		npx prettier \
+			--check \
+			--log-level "$prettierloglevel" \
+			--config "${EAVE_HOME}/develop/javascript/es-config/prettier/index.js" \
+			--ignore-path "${EAVE_HOME}/develop/javascript/es-config/prettier/prettierignore" \
+			--ignore-path ".prettierignore" \
+			.
+
 		if test -f "tsconfig.json"; then
 			npx tsc --project . --noEmit
 		else
@@ -64,7 +77,20 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		logtarget=$(^eavepwd)
 
 		statusmsg -in "Formatting $logtarget (js/ts)"
-		npx eslint . --fix
+
+		local prettierloglevel="silent"
+		if verbose; then
+			prettierloglevel="log"
+		fi
+
+		npx prettier \
+			--write \
+			--log-level "$prettierloglevel" \
+			--config "${EAVE_HOME}/develop/javascript/es-config/prettier/index.js" \
+			--ignore-path "${EAVE_HOME}/develop/javascript/es-config/prettier/prettierignore" \
+			--ignore-path ".prettierignore" \
+			.
+
 		statusmsg -sp " ✔ "
 	)
 
@@ -74,7 +100,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		local usage="Usage: bin/test [-p path] [-f file] [-h]"
 		local targetpath
-		local testfile
+		local testfile=""
 
 		targetpath="$(^parentpath)"
 
@@ -95,9 +121,16 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 
 		cd "$targetpath" || exit 1
 
-		# shellcheck disable=SC2086
+		if verbose; then
+			set -x
+		fi
+
+		# shellcheck disable=2086
 		node "${EAVE_HOME}/node_modules/ava/entrypoints/cli.mjs" \
-			--config="${EAVE_HOME}/develop/javascript/es-config/typescript/ava.config.mjs" ${testfile:-}
+			--config="${EAVE_HOME}/develop/javascript/es-config/ava/ava.config.mjs" \
+			${testfile:-}
+
+		set +x
 	)
 
 	_JAVASCRIPT_FUNCTIONS_LOADED=1

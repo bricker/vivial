@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
-import { CreateContentRequestBody, CreateContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { ConfluencePage, ConfluenceSpace } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js';
-import { DocumentInput } from '@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js';
-import { CtxArg, ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
-import ConfluenceClient from '../confluence-client.js';
-import { ConfluenceClientArg } from './util.js';
+import { v4 as uuidv4 } from "uuid";
+import { CreateContentRequestBody, CreateContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { ConfluencePage, ConfluenceSpace } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
+import { DocumentInput } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js";
+import { CtxArg, ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import ConfluenceClient from "../confluence-client.js";
+import { ConfluenceClientArg } from "./util.js";
 
 export default async function createContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
@@ -88,7 +88,7 @@ export default async function createContent({ req, res, confluenceClient }: Expr
       const newFolderAtThisLevel = await confluenceClient.createPage({
         space,
         title: resolvedFolderTitle,
-        body: '', // A "folder" is just an empty page.
+        body: "", // A "folder" is just an empty page.
         parentId: currentDirId, // If we get here and currentDir is null, it means we're creating a new folder in the root of the space.
       });
       if (newFolderAtThisLevel) {
@@ -134,7 +134,7 @@ export default async function createContent({ req, res, confluenceClient }: Expr
   res.json(responseBody);
 }
 
-async function resolveTitleConflict({ confluenceClient, title, space, ctx }: CtxArg & { confluenceClient: ConfluenceClient, title: string, space: ConfluenceSpace }): Promise<string> {
+async function resolveTitleConflict({ confluenceClient, title, space, ctx }: CtxArg & { confluenceClient: ConfluenceClient; title: string; space: ConfluenceSpace }): Promise<string> {
   // TODO: This can be done "passively", i.e. handle an API response error and then run this function to get a unique title.
   let resolvedTitle = title;
   const limit = 20;
@@ -144,7 +144,7 @@ async function resolveTitleConflict({ confluenceClient, title, space, ctx }: Ctx
 
   while (page) {
     if (n > limit) {
-      eaveLogger.warning('title conflict failsafe condition reached', ctx);
+      eaveLogger.warning("title conflict failsafe condition reached", ctx);
       // failsafe to avoid forever loop. I don't know why this would happen, but it would be a big problem if it did.
       const giveup = uuidv4();
       resolvedTitle = `${title} (${giveup})`;

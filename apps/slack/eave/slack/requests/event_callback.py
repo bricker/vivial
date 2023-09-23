@@ -3,16 +3,17 @@ from slack_bolt.async_app import AsyncBoltRequest
 from slack_bolt.response import BoltResponse
 from slack_sdk.signature import SignatureVerifier
 import eave.stdlib.eave_origins as eave_origins
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext, eaveLogger
+from eave.stdlib.slack_api.operations import SlackEventProcessorTaskOperation
 from eave.stdlib.task_queue import create_task_from_request
 from slack_bolt.adapter.starlette.async_handler import to_async_bolt_request
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
-from starlette.endpoints import HTTPEndpoint
 
 from eave.stdlib.typing import JsonObject
 from .. import slack_app
-from ..config import SLACK_EVENT_QUEUE_NAME, SLACK_EVENT_QUEUE_TARGET_PATH, app_config
+from ..config import SLACK_EVENT_QUEUE_NAME, app_config
 
 
 class SlackEventCallbackHandler(HTTPEndpoint):
@@ -106,9 +107,10 @@ class SlackEventCallbackHandler(HTTPEndpoint):
 
         await create_task_from_request(
             queue_name=SLACK_EVENT_QUEUE_NAME,
-            target_path=SLACK_EVENT_QUEUE_TARGET_PATH,
+            target_path=SlackEventProcessorTaskOperation.config.path,
             request=self._request,
-            origin=eave_origins.EaveOrigin.eave_slack_app,
+            origin=eave_origins.EaveApp.eave_slack_app,
+            audience=eave_origins.EaveApp.eave_slack_app,
             task_name_prefix=task_name_prefix,
             ctx=self._ctx,
         )

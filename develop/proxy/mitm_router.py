@@ -8,25 +8,25 @@ class NoUpstreamDefinedError(Exception):
 
 
 def request(flow: mitmproxy.http.HTTPFlow) -> None:
-    if re.search(r"\.eave\.(localhost|run|dev)$", flow.request.host) is None:
+    if re.search(r"\.eave\.(localhost|run)$", flow.request.host) is None:
         # do nothing
         return
 
     # tld = flow.request.host.split(".")[-1]
     port = None
 
-    if re.match(r"^www\.eave\.", flow.request.host):
+    if re.match(r"^www\.", flow.request.host):
         port = 5000
-    elif re.match(r"^api\.eave\.", flow.request.host):
+    elif re.match(r"^api\.", flow.request.host):
         port = 5100
-    elif re.match(r"^apps\.eave\.", flow.request.host):
-        if re.match("/slack", flow.request.path):
+    elif re.match(r"^apps\.", flow.request.host):
+        if re.match(r"(/_)?/slack", flow.request.path):
             port = 5200
-        elif re.match("/github", flow.request.path):
+        elif re.match(r"(/_)?/github", flow.request.path):
             port = 5300
-        elif re.match("/confluence", flow.request.path):
+        elif re.match(r"(/_)?/confluence", flow.request.path):
             port = 5400
-        elif re.match("/jira", flow.request.path):
+        elif re.match(r"(/_)?/jira", flow.request.path):
             port = 5500
 
     if not port:

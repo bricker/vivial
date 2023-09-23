@@ -1,4 +1,5 @@
 import json
+import time
 import unittest
 import unittest.mock
 import urllib.parse
@@ -131,7 +132,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         payload: Optional[eave.stdlib.typing.JsonObject] = None,
         method: str = "POST",
         headers: Optional[dict[str, Optional[str]]] = None,
-        origin: Optional[eave.stdlib.eave_origins.EaveOrigin] = None,
+        origin: Optional[eave.stdlib.eave_origins.EaveApp] = None,
         team_id: Optional[uuid.UUID] = None,
         account_id: Optional[uuid.UUID] = None,
         access_token: Optional[str] = None,
@@ -140,6 +141,12 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     ) -> Response:
         if headers is None:
             headers = {}
+
+        if e := headers.get("eave-sig-ts"):
+            eave_sig_ts = int(e)
+        else:
+            eave_sig_ts = eave.stdlib.signing.make_sig_ts()
+            headers["eave-sig-ts"] = str(eave_sig_ts)
 
         if team_id:
             assert "eave-team-id" not in headers
@@ -160,7 +167,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             headers["eave-origin"] = origin.value
         else:
             if "eave-origin" not in headers:
-                origin = eave.stdlib.eave_origins.EaveOrigin.eave_www
+                origin = eave.stdlib.eave_origins.EaveApp.eave_www
                 headers["eave-origin"] = origin
 
         if request_id:
@@ -182,11 +189,13 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             request_args["content"] = encoded_payload
 
         if "eave-signature" not in headers:
-            origin = origin or eave.stdlib.eave_origins.EaveOrigin.eave_www
+            origin = origin or eave.stdlib.eave_origins.EaveApp.eave_www
             signature_message = eave.stdlib.signing.build_message_to_sign(
                 method=method,
-                url=f"{eave.core.internal.app_config.eave_public_api_base}{path}",
+                path=path,
+                ts=eave_sig_ts,
                 origin=origin,
+                audience=eave.stdlib.eave_origins.EaveApp.eave_api,
                 payload=encoded_payload,
                 request_id=request_id,
                 team_id=team_id,

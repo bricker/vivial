@@ -1,4 +1,4 @@
-query($repoOwner: String!, $repoName: String!, $prNumber: Int!, $batchSize: Int!, $after: String) {
+query ($repoOwner: String!, $repoName: String!, $prNumber: Int!, $batchSize: Int!, $after: String) {
   repository(owner: $repoOwner, name: $repoName) {
     pullRequest(number: $prNumber) {
       files(first: $batchSize, after: $after) {

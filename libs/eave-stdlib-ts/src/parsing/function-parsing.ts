@@ -1,8 +1,8 @@
 import Parser from 'tree-sitter';
 import * as crypto from 'crypto';
 import { getFunctionDocumentationQueries, grammarForLanguage } from './grammars.js';
-import logging, { LogContext } from '../logging.js';
-import { ProgrammingLanguage } from '../language-mapping.js';
+import { eaveLogger, LogContext } from '../logging.js';
+import { ProgrammingLanguage } from '../programming-langs/language-mapping.js';
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
@@ -41,7 +41,7 @@ export function parseFunctionsAndComments({
   const parser = new Parser();
   const languageGrammar = grammarForLanguage({ language, extName });
   if (!languageGrammar) {
-    logging.debug(`No grammar found for ${language}`, ctx);
+    eaveLogger.debug(`No grammar found for ${language}`, ctx);
     return [];
   }
   parser.setLanguage(languageGrammar);

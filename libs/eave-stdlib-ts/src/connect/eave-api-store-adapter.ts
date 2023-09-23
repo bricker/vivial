@@ -1,12 +1,12 @@
 import AddOnFactory from 'atlassian-connect-express';
-import { queryConnectInstallation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from '../core-api/operations/connect.js';
+import { QueryConnectInstallationOperation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
-import { EaveOrigin } from '../eave-origins.js';
-import getCacheClient, { Cache } from '../cache.js';
-import eaveLogger, { LogContext } from '../logging.js';
+import { EaveApp } from '../eave-origins.js';
+import { getCacheClient, Cache } from '../cache.js';
+import { eaveLogger, LogContext } from '../logging.js';
 
 type AppKey = 'eave-confluence' | 'eave-jira'
-type AdapterParams = { appKey: AppKey, eaveOrigin: EaveOrigin, productType: AtlassianProduct }
+type AdapterParams = { appKey: AppKey, eaveOrigin: EaveApp, productType: AtlassianProduct }
 
 export type EaveClientInfo = AddOnFactory.ClientInfo & {
   eaveTeamId?: string;
@@ -15,7 +15,7 @@ export type EaveClientInfo = AddOnFactory.ClientInfo & {
 export class EaveApiAdapter /* implements StoreAdapter */ {
   appKey: AppKey;
 
-  eaveOrigin: EaveOrigin;
+  eaveOrigin: EaveApp;
 
   productType: AtlassianProduct;
 
@@ -87,7 +87,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     }
 
     try {
-      const response = await queryConnectInstallation({
+      const response = await QueryConnectInstallationOperation.perform({
         origin: this.eaveOrigin,
         input: {
           connect_integration: {

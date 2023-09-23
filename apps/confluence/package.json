@@ -1,46 +1,28 @@
 {
   "type": "module",
   "scripts": {
-    "start": "pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion start pm2.config.cjs",
-    "start-dev": "pkill -n ngrok || true && nodemon ./server.ts",
-    "test": "ava --config=./node_modules/@eave-fyi/es-config/typescript/ava.config.mjs tests"
+    "start": "start-pm2",
+    "start-dev": "pkill -n ngrok || true && nodemon ./server.ts"
   },
   "dependencies": {
-    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
-    "@eave-fyi/es-config": "file:../../develop/javascript/es-config",
-    "@swc/core": "1.x",
+    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "atlassian-connect-express": "8.2.0",
     "express": "4.x",
     "helmet": "7.x",
     "html-entities": "2.x",
-    "pm2": "5.x",
     "request": "2.x",
-    "ts-node": "10.x",
     "uuid": "9.x"
   },
   "devDependencies": {
-    "@types/express": "4.x",
-    "@types/node": "18.x",
-    "@types/request": "2.x",
-    "@types/sinon": "^10.0.15",
-    "@types/supertest": "^2.0.12",
-    "@types/uuid": "^9.0.2",
-    "@typescript-eslint/eslint-plugin": "5.x",
-    "@typescript-eslint/parser": "5.x",
-    "ava": "5.x",
-    "eslint": "8.x",
-    "eslint-config-airbnb-base": "15.x",
-    "eslint-plugin-import": "2.x",
-    "eslint-plugin-unused-imports": "2.x",
-    "eslint-plugin-yaml": "0.5.x",
     "longjohn": "~0.2.2",
     "ngrok": "5.0.0-beta.2",
-    "nodemon": "2.x",
-    "sinon": "15.x",
-    "sqlite3": "5.x",
-    "supertest": "6.x",
-    "typescript": "4.x"
+    "sqlite3": "5.x"
   },
-  "//": "longjohn has to be installed, or atlassian-connect-validator crashes the app in dev"
+  "//": "longjohn has to be installed, or atlassian-connect-validator crashes the app in dev",
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  }
 }

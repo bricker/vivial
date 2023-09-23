@@ -11,7 +11,7 @@ export interface JiraProject extends ApiResource {
   name: string;
   projectTypeKey: string;
   simplified: boolean;
-  avatarUrls: {[key: string]: string };
+  avatarUrls: { [key: string]: string };
 }
 
 export interface JiraIssueType extends ApiResource {

@@ -1,6 +1,0 @@
-# Requirements that are only installed and used during local development or in CI.
-alembic
-
--e ${EAVE_HOME}/libs/eave-stdlib-py
--e ${EAVE_HOME}/libs/eave-pubsub-schemas/python
--e ${EAVE_HOME}/develop/python

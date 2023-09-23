@@ -3,16 +3,24 @@ import winston from 'winston';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 import { Request, Response } from 'express';
 import { sharedConfig } from './config.js';
-import headers from './headers.js';
 import { JsonObject } from './types.js';
 import { getHeaders } from './api-util.js';
+import { EAVE_ACCOUNT_ID_HEADER, EAVE_CTX_KEY, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER } from './headers.js';
 
 export class LogContext {
   attributes: JsonObject = {};
 
   static load(res: Response): LogContext {
-    const existing = res.locals[headers.EAVE_CTX_KEY];
-    return LogContext.wrap(existing, res.req);
+    const existing = res.locals[EAVE_CTX_KEY];
+
+    // Attach this context to the response object, if one wasn't already.
+    if (existing) {
+      return existing;
+    }
+
+    const ctx = new LogContext(res.req);
+    res.locals[EAVE_CTX_KEY] = ctx;
+    return ctx;
   }
 
   static wrap(ctx?: LogContext, req?: Request): LogContext {
@@ -27,10 +35,10 @@ export class LogContext {
     if (req) {
       this.set({
         headers: getHeaders(req),
-        eave_request_id: req.header(headers.EAVE_REQUEST_ID_HEADER) || uuidv4(),
-        eave_team_id: req.header(headers.EAVE_TEAM_ID_HEADER),
-        eave_account_id: req.header(headers.EAVE_ACCOUNT_ID_HEADER),
-        eave_origin: req.header(headers.EAVE_ORIGIN_HEADER),
+        eave_request_id: req.header(EAVE_REQUEST_ID_HEADER) || uuidv4(),
+        eave_team_id: req.header(EAVE_TEAM_ID_HEADER),
+        eave_account_id: req.header(EAVE_ACCOUNT_ID_HEADER),
+        eave_origin: req.header(EAVE_ORIGIN_HEADER),
         request_path: req.originalUrl,
       });
     } else {
@@ -86,6 +94,26 @@ export class LogContext {
   }
 }
 
+// class RequestFormatter {
+//   transform(info: LogForm.TransformableInfo): LogForm.TransformableInfo | boolean {
+//     const {
+//       level,
+//       message,
+//       [LEVEL],
+//       [MESSAGE],
+//       [SPLAT],
+//       ...rest
+//     } = info;
+
+//     const ctx = JSON.stringify(rest, null, 2);
+//     return {
+//       level,
+//       message,
+//       ctx,
+//     };
+//   };
+// }
+
 function createLogger(): winston.Logger {
   const level = sharedConfig.logLevel.toLowerCase();
   let logger: winston.Logger;
@@ -111,6 +139,7 @@ function createLogger(): winston.Logger {
       level,
       format: winston.format.combine(
         winston.format.simple(),
+        // new RequestFormatter(),
         winston.format.colorize({
           all: true,
           colors: {
@@ -197,4 +226,4 @@ class EaveLogger {
   }
 }
 
-export default new EaveLogger();
+export const eaveLogger = new EaveLogger();

@@ -1,7 +1,6 @@
 import { sharedConfig } from '../../config.js';
-import { EaveService } from '../../eave-origins.js';
-
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
+import { EaveApp } from '../../eave-origins.js';
+import { CoreApiEndpointConfiguration } from './shared.js';
 
 export type StatusResponseBody = {
   service: string;
@@ -9,11 +8,15 @@ export type StatusResponseBody = {
   status: string;
 }
 
-export async function status(): Promise<StatusResponseBody> {
-  const resp = await fetch(`${baseUrl}/status`, {
-    method: 'get',
-  });
+export class StatusOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/status" })
 
-  const responseData = <StatusResponseBody>(await resp.json());
-  return responseData;
+  static async perform(): Promise<StatusResponseBody> {
+    const resp = await fetch(this.config.url, {
+      method: 'get',
+    });
+
+    const responseData = <StatusResponseBody>(await resp.json());
+    return responseData;
+  }
 }

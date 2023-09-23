@@ -4,37 +4,12 @@ import Parser from 'tree-sitter';
 import { grammarForLanguage } from '../parsing/grammars.js';
 import OpenAIClient, { formatprompt } from '../transformer-ai/openai.js';
 import { OpenAIModel } from '../transformer-ai/models.js';
-import eaveLogger, { LogContext } from '../logging.js';
-import { ProgrammingLanguage, getProgrammingLanguageByExtension } from '../language-mapping.js';
+import { eaveLogger, LogContext } from '../logging.js';
+import {ExpressRoutingMethod} from '../types.js';
+import { ProgrammingLanguage, getProgrammingLanguageByExtension } from '../programming-langs/language-mapping.js';
 
 const DIR_EXCLUDES = [
   'node_modules',
-];
-
-const EXPRESS_ROUTING_METHODS = [
-  'checkout',
-  'copy',
-  'delete',
-  'get',
-  'head',
-  'lock',
-  'merge',
-  'mkactivity',
-  'mkcol',
-  'move',
-  'm-search',
-  'notify',
-  'options',
-  'patch',
-  'post',
-  'purge',
-  'put',
-  'report',
-  'search',
-  'subscribe',
-  'trace',
-  'unlock',
-  'unsubscribe',
 ];
 
 export type Repo = {
@@ -407,7 +382,7 @@ export class ExpressAPIDocumentor {
         return expression === `${router}.use`;
       }
       if (expression.startsWith(`${app}.`)) {
-        for (const method of EXPRESS_ROUTING_METHODS) {
+        for (const method of Object.values(ExpressRoutingMethod)) {
           if (expression === `${app}.${method}`) {
             return true;
           }

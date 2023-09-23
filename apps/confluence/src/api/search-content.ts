@@ -1,7 +1,7 @@
-import { SearchContentRequestBody, SearchContentResponseBody } from '@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js';
-import eaveLogger, { LogContext } from '@eave-fyi/eave-stdlib-ts/src/logging.js';
-import { ExpressHandlerArgs } from '@eave-fyi/eave-stdlib-ts/src/requests.js';
-import { ConfluenceClientArg } from './util.js';
+import { SearchContentRequestBody, SearchContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
+import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import { ConfluenceClientArg } from "./util.js";
 
 export default async function searchContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
@@ -9,7 +9,7 @@ export default async function searchContent({ req, res, confluenceClient }: Expr
 
   const { space_key, text } = requestBody.search_params;
   const cqlConditions: string[] = [];
-  let cqlcontext: {[key:string]: any} = {};
+  let cqlcontext: { [key: string]: any } = {};
 
   if (space_key !== undefined) {
     cqlcontext = {
@@ -20,10 +20,10 @@ export default async function searchContent({ req, res, confluenceClient }: Expr
     cqlConditions.push(`text ~ "${text}"`);
   }
 
-  const cql = cqlConditions.join(' AND ');
+  const cql = cqlConditions.join(" AND ");
 
   if (cql.length === 0) {
-    eaveLogger.error('Invalid CQL', { cql, cqlcontext }, ctx);
+    eaveLogger.error("Invalid CQL", { cql, cqlcontext }, ctx);
     res.sendStatus(500);
     return;
   }

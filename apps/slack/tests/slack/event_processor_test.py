@@ -1,11 +1,12 @@
 import http
 import json
+import time
 import unittest.mock
 
 from starlette.responses import Response
 import eave.stdlib.requests
 import eave.stdlib.signing
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
 from .base import BaseTestCase
 
 
@@ -47,12 +48,15 @@ class EventsEndpointTest(BaseTestCase):
 
         request_body = self.anydict()
         eave_request_id = self.anystring("eave request id")
-        origin = EaveOrigin.eave_slack_app
+        origin = EaveApp.eave_slack_app
+        eave_sig_ts = eave.stdlib.signing.make_sig_ts()
         signature_message = eave.stdlib.signing.build_message_to_sign(
             method="POST",
             origin=origin,
+            audience=EaveApp.eave_slack_app,
+            ts=eave_sig_ts,
             request_id=eave_request_id,
-            url="/_tasks/slack-events",
+            path="/_tasks/slack-events",
             payload=json.dumps(request_body),
             team_id=None,
             account_id=None,
@@ -70,6 +74,7 @@ class EventsEndpointTest(BaseTestCase):
                 "eave-origin": origin,
                 "eave-request-id": eave_request_id,
                 "eave-signature": signature,
+                "eave-sig-ts": str(eave_sig_ts),
             },
             json=request_body,
         )
@@ -84,7 +89,7 @@ class EventsEndpointTest(BaseTestCase):
             "POST",
             "/_tasks/slack-events",
             headers={
-                "eave-origin": EaveOrigin.eave_slack_app,
+                "eave-origin": EaveApp.eave_slack_app,
                 "eave-request-id": self.anystring(),
                 "eave-signature": self.anystring("invalid signature"),
             },

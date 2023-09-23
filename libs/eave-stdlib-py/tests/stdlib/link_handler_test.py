@@ -9,7 +9,8 @@ from eave.stdlib.core_api.models.subscriptions import (
 )
 from eave.stdlib.core_api.models.team import DocumentPlatform, Team
 from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.github_api.operations.content import GetGithubUrlContent
 import eave.stdlib.link_handler as link_handler
 import eave.stdlib.github_api.operations as gh_ops
 from eave.stdlib.test_util import UtilityBaseTestCase
@@ -64,8 +65,8 @@ class TestLinkHandler(UtilityBaseTestCase):
     async def test_map_link_content(self) -> None:
         mock = self.get_mock("github_client.get_file_content")
         mock.side_effect = [
-            gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 1")),
-            gh_ops.GetGithubUrlContent.ResponseBody(content=self.anystring("file content 2")),
+            GetGithubUrlContent.ResponseBody(content=self.anystring("file content 1")),
+            GetGithubUrlContent.ResponseBody(content=self.anystring("file content 2")),
         ]
 
         input_links = [
@@ -73,7 +74,7 @@ class TestLinkHandler(UtilityBaseTestCase):
             ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
         ]
         actual_result = await link_handler.map_url_content(
-            origin=EaveOrigin.eave_slack_app,
+            origin=EaveApp.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )
@@ -90,7 +91,7 @@ class TestLinkHandler(UtilityBaseTestCase):
             ("http://github.enterprise.com/the-org/repo-name/path/to/file.txt", LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
-            origin=EaveOrigin.eave_slack_app,
+            origin=EaveApp.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )
@@ -113,11 +114,12 @@ class TestLinkHandler(UtilityBaseTestCase):
         )
 
         # WHEN subscribe request fails (for whatever reason)
-        input_links = [
+        # explicit type is needed because the tuple is typed with Literals when defined this way
+        input_links: list[tuple[str, LinkType]] = [
             ("https://github.com/eave-fyi/mono-repo/README.md", LinkType.github),
         ]
         subscriptions = await link_handler.subscribe_to_file_changes(
-            origin=EaveOrigin.eave_slack_app,
+            origin=EaveApp.eave_slack_app,
             eave_team_id=self.anyuuid(),
             urls=input_links,
         )

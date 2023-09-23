@@ -2,16 +2,15 @@ from functools import cached_property
 import os
 
 import eave.stdlib.config
-from eave.stdlib.eave_origins import EaveOrigin
+from eave.stdlib.eave_origins import EaveApp
 
 SLACK_EVENT_QUEUE_NAME = "slack-events-processor"
-SLACK_EVENT_QUEUE_TARGET_PATH = "/_tasks/slack-events"
 TASK_EXECUTION_COUNT_CONTEXT_KEY = "TASK_EXECUTION_COUNT"
 EAVE_CTX_KEY = "EAVE_CTX_KEY"
 
 
 class AppConfig(eave.stdlib.config.EaveConfig):
-    eave_origin = EaveOrigin.eave_slack_app
+    eave_origin = EaveApp.eave_slack_app
 
     @cached_property
     def eave_slack_app_signing_secret(self) -> str:

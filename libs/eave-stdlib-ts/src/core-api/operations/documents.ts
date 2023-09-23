@@ -1,11 +1,10 @@
 import { sharedConfig } from '../../config.js';
-import { EaveService } from '../../eave-origins.js';
-import { RequestArgsOriginAndTeamId, makeRequest } from '../../requests.js';
+import { EaveApp } from '../../eave-origins.js';
+import { CtxArg, RequestArgsOrigin, RequestArgsTeamId, makeRequest } from '../../requests.js';
 import { DocumentInput, DocumentSearchResult } from '../models/documents.js';
 import { DocumentReference, Subscription } from '../models/subscriptions.js';
 import { Team } from '../models/team.js';
-
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveService.api);
+import { CoreApiEndpointConfiguration } from './shared.js';
 
 export type UpsertDocumentRequestBody = {
   document: DocumentInput;
@@ -17,13 +16,17 @@ export type UpsertDocumentResponseBody = {
   document_reference: DocumentReference;
 }
 
-export async function upsertDocument(args: RequestArgsOriginAndTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
-  const resp = await makeRequest({
-    url: `${baseUrl}/documents/upsert`,
-    ...args,
-  });
-  const responseData = <UpsertDocumentResponseBody>(await resp.json());
-  return responseData;
+export class UpsertDocumentOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/documents/upsert" })
+
+  static async perform(args: RequestArgsTeamId & {input: UpsertDocumentRequestBody}): Promise<UpsertDocumentResponseBody> {
+    const resp = await makeRequest({
+      config: this.config,
+      ...args,
+    });
+    const responseData = <UpsertDocumentResponseBody>(await resp.json());
+    return responseData;
+  }
 }
 
 export type SearchDocumentsRequestBody = {
@@ -35,11 +38,16 @@ export type SearchDocumentsResponseBody = {
   documents: DocumentSearchResult[];
 }
 
-export async function searchDocuments(args: RequestArgsOriginAndTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
-  const resp = await makeRequest({
-    url: `${baseUrl}/documents/search`,
-    ...args,
-  });
-  const responseData = <SearchDocumentsResponseBody>(await resp.json());
-  return responseData;
+export class SearchDocumentsOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/documents/search" })
+
+  static async perform(args: RequestArgsTeamId & {input: SearchDocumentsRequestBody}): Promise<SearchDocumentsResponseBody> {
+    const resp = await makeRequest({
+      config: this.config,
+      ...args,
+    });
+    const responseData = <SearchDocumentsResponseBody>(await resp.json());
+    return responseData;
+  }
 }
+

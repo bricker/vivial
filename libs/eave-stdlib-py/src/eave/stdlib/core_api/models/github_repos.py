@@ -22,6 +22,7 @@ class State(enum.StrEnum):
 class GithubRepo(BaseResponseModel):
     team_id: uuid.UUID
     external_repo_id: str
+    display_name: Optional[str]
     api_documentation_state: State
     inline_code_documentation_state: State
     architecture_documentation_state: State
@@ -29,6 +30,7 @@ class GithubRepo(BaseResponseModel):
 
 class GithubRepoCreateInput(BaseInputModel):
     external_repo_id: str
+    display_name: str
     api_documentation_state: State = State.DISABLED
     inline_code_documentation_state: State = State.DISABLED
     architecture_documentation_state: State = State.DISABLED

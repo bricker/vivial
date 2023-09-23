@@ -2,6 +2,7 @@
 EAVE_TEAM_ID_HEADER = "eave-team-id"
 EAVE_ACCOUNT_ID_HEADER = "eave-account-id"
 EAVE_SIGNATURE_HEADER = "eave-signature"
+EAVE_SIG_TS_HEADER = "eave-sig-ts"
 EAVE_ORIGIN_HEADER = "eave-origin"
 EAVE_REQUEST_ID_HEADER = "eave-request-id"
 
@@ -18,6 +19,7 @@ AUTHORIZATION_HEADER = "authorization"
 HOST = "host"
 CONTENT_TYPE = "content-type"
 CONTENT_LENGTH = "content-length"
+USER_AGENT = "user-agent"
 
 # Request headers added by Google
 GCP_CLOUD_TRACE_CONTEXT = "X-Cloud-Trace-Context"

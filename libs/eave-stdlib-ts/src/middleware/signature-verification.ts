@@ -1,19 +1,22 @@
+import { constants as httpConstants } from 'node:http2';
 import { Request, Response, NextFunction } from 'express';
-import eaveHeaders from '../headers.js';
+import * as eaveHeaders from '../headers.js';
 import { developmentBypassAllowed } from './development-bypass.js';
-import Signing, { buildMessageToSign } from '../signing.js';
-import eaveLogger, { LogContext } from '../logging.js';
-import { constructUrl } from '../api-util.js';
+import Signing, { buildMessageToSign, makeSigTs } from '../signing.js';
+import { LogContext } from '../logging.js';
+import { EaveApp } from '../eave-origins.js';
+
+const MAX_SIGNATURE_AGE = 60 * 60 // 1h
 
 /**
  * Reads the body and headers and verifies the signature.
  * Note that this middleware necessarily blocks the request until the full body is received,
  * so that it can calculate the expected signature and compare it to the provided signature.
  */
-export function signatureVerification(): ((req: Request, res: Response, next: NextFunction) => void) {
+export function signatureVerification({ audience }: { audience: EaveApp }): ((req: Request, res: Response, next: NextFunction) => void) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await doSignatureVerification(req, res);
+      await doSignatureVerification(req, res, audience);
       next();
     } catch (e: any) {
       if (developmentBypassAllowed(req, res)) {
@@ -25,14 +28,22 @@ export function signatureVerification(): ((req: Request, res: Response, next: Ne
   };
 }
 
-async function doSignatureVerification(req: Request, res: Response): Promise<boolean> {
+async function doSignatureVerification(req: Request, res: Response, audience: EaveApp): Promise<void> {
   const ctx = LogContext.load(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
+  if (!signature) {
+    throw new Error('Missing Eave signature header');
+  }
 
-  if (signature === undefined) {
-    eaveLogger.error('Missing Eave signature header', ctx);
-    res.sendStatus(400);
-    return false;
+  const eaveSigTsHeader = req.header(eaveHeaders.EAVE_SIG_TS_HEADER);
+  if (!eaveSigTsHeader) {
+    throw new Error('Missing eave-sig-ts header');
+  }
+
+  const eaveSigTs = parseInt(eaveSigTsHeader, 10);
+  const now = makeSigTs();
+  if (now - eaveSigTs > MAX_SIGNATURE_AGE) {
+    throw new Error('expired signature');
   }
 
   const teamId = req.header(eaveHeaders.EAVE_TEAM_ID_HEADER);
@@ -50,9 +61,11 @@ async function doSignatureVerification(req: Request, res: Response): Promise<boo
 
   const message = buildMessageToSign({
     method: req.method,
-    url: constructUrl(req),
+    path: req.originalUrl,
+    ts: eaveSigTs,
     requestId: ctx.eave_request_id,
     origin,
+    audience,
     payload,
     teamId,
     accountId,
@@ -61,5 +74,4 @@ async function doSignatureVerification(req: Request, res: Response): Promise<boo
 
   const signing = Signing.new(origin);
   await signing.verifySignatureOrException(message, signature);
-  return true;
 }

@@ -1,7 +1,7 @@
 from starlette.requests import Request
 from starlette.responses import Response
 
-from ..http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 
 
 class NoopRequest(HTTPEndpoint):

@@ -24,6 +24,7 @@
   "[python]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
+    "editor.defaultFormatter": "ms-python.black-formatter",
   },
   "[shellscript]": {
     "editor.insertSpaces": false,
@@ -40,13 +41,12 @@
     "editor.tabSize": 2
   },
   "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "yaml.schemas": {
     "https://json.schemastore.org/github-action": ["action.yml"],
     "https://json.schemastore.org/github-workflow": ".github/workflows/*.yml",
   },
-  "graphql-config.load.rootDir": "${workspaceFolder}/apps/github",
   "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
   "eslint.experimental.useFlatConfig": false,
   "eslint.format.enable": true,
@@ -71,16 +71,6 @@
   "javascript.inlayHints.parameterTypes.enabled": false,
   "javascript.inlayHints.propertyDeclarationTypes.enabled": false,
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
-  "python.formatting.provider": "black",
-  "python.linting.mypyArgs": [
-    "--ignore-missing-imports",
-    "--show-column-numbers",
-    "--no-pretty",
-    "--follow-imports=silent",
-    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
-  ],
-  "python.linting.mypyEnabled": true,
-  "python.linting.enabled": true,
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.inlayHints.functionReturnTypes": false,
@@ -104,12 +94,11 @@
     "*test.py"
   ],
   "git.openRepositoryInParentFolders": "always",
-  "python.formatting.blackArgs": [
-    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
-  ],
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml"
+    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml",
+    "--rootdir=${workspaceFolder}",
+    "."
   ],
   "python.analysis.exclude": [
     "**/node_modules",
@@ -187,5 +176,20 @@
   "shellcheck.useWorkspaceRootAsCwd": true,
   "shellcheck.customArgs": [
     "-x"
-  ]
+  ],
+  "black-formatter.importStrategy": "fromEnvironment",
+  "black-formatter.args": [
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
+  ],
+  "mypy-type-checker.args": [
+    "--ignore-missing-imports",
+    "--show-column-numbers",
+    "--no-pretty",
+    "--follow-imports=silent",
+    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
+  ],
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
+  "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
+  "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
 }

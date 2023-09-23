@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_documents import GithubDocumentsOrm
-from eave.core.public.http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.api_util import json_response
@@ -100,7 +100,8 @@ class DeleteGithubDocumentsByIdsEndpoint(HTTPEndpoint):
             )
 
         return Response(status_code=HTTPStatus.OK)
-    
+
+
 class DeleteGithubDocumentsByTypeEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)

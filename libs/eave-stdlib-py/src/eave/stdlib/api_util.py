@@ -65,21 +65,3 @@ def get_bearer_token(scope: HTTPScope) -> str | None:
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
     response = Response(status_code=status_code, content=model.json(), media_type="application/json")
     return response
-
-
-def construct_url(scope: HTTPScope) -> str:
-    """
-    Constructs the request URL from these components:
-    - scheme (hardcoded to https)
-    - host header (may include port)
-    - path
-    """
-
-    path = scope["path"]
-    host = get_header_value(scope=scope, name=HOST)
-    assert host
-
-    if shared_config.is_development:
-        host = re.sub(r":[0-9]+", ":8080", host)
-
-    return f"https://{host}{path}"

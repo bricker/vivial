@@ -1,11 +1,15 @@
-import { Request, Response, Router } from 'express';
+import Express, { Handler } from "express";
+import { constants as httpConstants } from 'node:http2';
+import { IRouter, Request, Response, Router } from 'express';
 import { Server } from 'http';
 import { StatusResponseBody } from './core-api/operations/status.js';
 import { sharedConfig } from './config.js';
-import getCacheClient, { cacheInitialized } from './cache.js';
-import eaveLogger from './logging.js';
-import headers from './headers.js';
+import { getCacheClient, cacheInitialized } from './cache.js';
+import {eaveLogger} from './logging.js';
 import { redact } from './util.js';
+import { ExpressRoutingMethod } from "./types.js";
+import { EaveApp } from "./eave-origins.js";
+
 
 export function statusPayload(): StatusResponseBody {
   return {
@@ -17,7 +21,7 @@ export function statusPayload(): StatusResponseBody {
 
 export function StatusRouter(): Router {
   const router = Router();
-  router.get('/status', async (_req: Request, res: Response) => {
+  router.get('/', async (_req: Request, res: Response) => {
     const payload = statusPayload();
 
     if (cacheInitialized()) {
@@ -31,9 +35,7 @@ export function StatusRouter(): Router {
   return router;
 }
 
-export function GAELifecycleRouter(): Router {
-  const router = Router();
-
+export function addGAELifecycleRoutes({ router }: { router: IRouter }) {
   router.get('/_ah/start', (_req: Request, res: Response) => {
     res.sendStatus(200);
   });
@@ -48,8 +50,6 @@ export function GAELifecycleRouter(): Router {
     await cacheClient.ping();
     res.sendStatus(200);
   });
-
-  return router;
 }
 
 export function gracefulShutdownHandler({ server }: { server: Server }): () => void {
@@ -75,25 +75,96 @@ export function applyShutdownHandlers({ server }: { server: Server }) {
 }
 
 export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<string>): { [key: string]: string | undefined } {
-  const redactedcp = new Set<string>(redacted);
-  redactedcp.add(headers.AUTHORIZATION_HEADER);
-  redactedcp.add(headers.COOKIE_HEADER);
+  const redactedCaseInsensitive = new Set<string>(
+    redacted
+      ? Array.from(redacted).map((v) => v.toLowerCase())
+      : [],
+  );
+
+  const excludedCaseInsensitive = new Set<string>(
+    excluded
+      ? Array.from(excluded).map((v) => v.toLowerCase())
+      : [],
+  );
+
+  redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_AUTHORIZATION);
+  redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_COOKIE);
 
   const logHeaders: { [key: string]: string | undefined } = {};
 
   Object.entries(req.headers).forEach(([k, v]) => {
-    if (!excluded?.has(k)) {
+    const lck = k.toLowerCase();
+    if (!excludedCaseInsensitive.has(lck)) {
       const joined = v instanceof Array ? v.join(',') : v;
-      logHeaders[k] = redactedcp.has(k) ? redact(joined) : joined;
+      logHeaders[lck] = redactedCaseInsensitive.has(lck) ? redact(joined) : joined;
     }
   });
 
   return logHeaders;
 }
 
-export function constructUrl(req: Request): string {
-  const audience = req.header(headers.HOST);
-  const path = req.originalUrl;
+export abstract class ClientApiEndpointConfiguration {
+  path: string;
+  method: ExpressRoutingMethod;
 
-  return `https://${audience}${path}`;
+  abstract audience: EaveApp;
+
+  abstract get url(): string;
+
+  constructor({
+    path,
+    method = ExpressRoutingMethod.post,
+  }: {
+    path: string;
+    method?: ExpressRoutingMethod;
+  }) {
+    this.path = path;
+    this.method = method;
+  }
+}
+
+export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointConfiguration {
+  teamIdRequired: boolean;
+  authRequired: boolean;
+  originRequired: boolean;
+  signatureRequired: boolean;
+
+  abstract get middlewares(): Express.Handler[];
+
+  constructor({
+    path,
+    method = ExpressRoutingMethod.post,
+    teamIdRequired = true,
+    authRequired = true,
+    originRequired = true,
+    signatureRequired = true,
+  }: {
+    path: string;
+    method?: ExpressRoutingMethod;
+    teamIdRequired?: boolean;
+    authRequired?: boolean;
+    originRequired?: boolean;
+    signatureRequired?: boolean;
+  }) {
+    super({ path, method });
+    this.teamIdRequired = teamIdRequired;
+    this.authRequired = authRequired;
+    this.originRequired = originRequired;
+    this.signatureRequired = signatureRequired;
+  }
+}
+
+export function handlerWrapper(func: Express.RequestHandler): Express.RequestHandler {
+  return async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+    try {
+      await func(req, res, next);
+      res.end(); // Safety; if the handler forgets to end the request, it will hang.
+    } catch (e: unknown) {
+      next(e);
+    }
+  };
+}
+
+export function makeRoute({ router, config, handler }: { router: Express.Router, config: ServerApiEndpointConfiguration, handler: Express.Handler }) {
+  router[config.method](config.path, ...config.middlewares, handlerWrapper(handler));
 }

@@ -9,19 +9,19 @@ entrypoint: |-
     eave.marketing.app:app
 
 handlers:
-- url: /static
-  static_dir: eave/marketing/static
+  - url: /static
+    static_dir: eave/marketing/static
 
-- url: /_ah/.*
-  login: admin
-  script: auto
-  auth_fail_action: unauthorized
+  - url: /_ah/.*
+    login: admin
+    script: auto
+    auth_fail_action: unauthorized
 
-- url: .*
-  script: auto
+  - url: .*
+    script: auto
 
 inbound_services:
-- warmup
+  - warmup
 
 instance_class: B2
 basic_scaling:
@@ -31,9 +31,9 @@ vpc_access_connector:
   name: projects/eavefyi-dev/locations/us-central1/connectors/appengine
 
 env_variables:
-  EAVE_PUBLIC_APPS_BASE: https://apps.eave.dev
-  EAVE_PUBLIC_API_BASE: https://api.eave.dev
-  EAVE_PUBLIC_WWW_BASE: https://www.eave.dev
+  EAVE_APPS_BASE_PUBLIC: https://apps.eave.dev
+  EAVE_API_BASE_PUBLIC: https://api.eave.dev
+  EAVE_WWW_BASE_PUBLIC: https://www.eave.dev
   LOG_LEVEL: "DEBUG"
   REDIS_CONNECTION: "10.223.96.43:6378:0"
   REDIS_TLS_CA: |-

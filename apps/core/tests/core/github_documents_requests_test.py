@@ -228,7 +228,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
             orms = await self.create_documents(session=s, team_id=team.id)
-            # change 1 document type to be expected to remain after delete op 
+            # change 1 document type to be expected to remain after delete op
             orms[2].type = DocumentType.ARCHITECTURE_DOCUMENT
             account = await self.make_account(s, team_id=team.id)
 

@@ -1,4 +1,6 @@
 import asyncio
+from logging import LogRecord
+import logging
 import os
 import sys
 import time
@@ -13,6 +15,7 @@ import eave.core.internal.orm.base
 from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.github_documents import DocumentType
 from eave.stdlib.core_api.models.team import DocumentPlatform
+from eave.stdlib.logging import CustomFormatter, eaveLogger
 
 """
 This script is for seeding your local database with a bunch of garbage
@@ -24,19 +27,32 @@ foreign keys linking correctly.
 UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 """
 
-load_dotenv(f"{os.getenv('EAVE_HOME')}/.env", override=True)
+load_dotenv(f"{os.getenv('EAVE_HOME')}/.env", override=False)
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
+GCLOUD_PROJECT = os.getenv("GCLOUD_PROJECT")
+GAE_ENV = os.getenv("GAE_ENV")
+
+eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {GOOGLE_CLOUD_PROJECT}")
+eaveLogger.fprint(logging.INFO, f"> EAVE_DB_NAME: {EAVE_DB_NAME}")
 
 # Some attempts to prevent this script from running against the production database
-assert os.getenv("GAE_ENV") is None
-assert os.getenv("GOOGLE_CLOUD_PROJECT") != "eave-production"
-assert os.getenv("GCLOUD_PROJECT") != "eave-production"
+assert GAE_ENV is None
+assert GOOGLE_CLOUD_PROJECT != "eave-production"
+assert GCLOUD_PROJECT != "eave-production"
 assert EAVE_DB_NAME is not None
 assert EAVE_DB_NAME != "eave"
 
-
 async def seed_database() -> None:
+    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
+    eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {EAVE_DB_NAME} database.")
+
+    answer = input(eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {EAVE_DB_NAME} database? (Y/n) "))
+    if answer != "Y":
+        print("Aborting.")
+        return
+
     print(f"Starting to seed your db {EAVE_DB_NAME}...")
     async with eave.core.internal.database.async_engine.begin() as connection:
         await connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)

@@ -176,16 +176,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	function import-loginfile() {
 		local loginfile
 		loginfile=$(shloginfile)
-
-		if test -z "$loginfile"; then
-			statusmsg -d "No login file detected."
-		else
+		if test -n "$loginfile"; then
 			# shellcheck disable=SC1090
 			source "$loginfile"
 		fi
 	}
 
-	function cmd-exists() {
+	function ^cmd-exists() {
 		if command -v "$1" >/dev/null; then
 			return 0
 		fi
@@ -307,6 +304,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			fi
 
 			echo -e "\n${varcmd[*]}" >>"$loginfile"
+			# set for this shell.
+			# shellcheck disable=SC2048
+			${varcmd[*]}
 			;;
 		"fish")
 			if fish -c "set -q $varname"; then
@@ -319,14 +319,38 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			statusmsg -w "Your shell ($usershell) isn't supported by this script. Please update this script to add support!"
 			;;
 		esac
-
-		"${varcmd[*]}"
 	}
 
 	function run-with-dotenv() (
+		local usage="Usage: run-with-dotenv [-f filename ...] [-h]"
+		local files=""
+		while getopts "f:h" argname; do
+			case "$argname" in
+			f)
+				if test -f "$OPTARG"; then
+					files="$files --file $OPTARG"
+				fi
+				;;
+			h)
+				statusmsg -i "$usage"
+				exit 0
+				;;
+			*)
+				statusmsg -i "$usage"
+				exit 1
+				;;
+			esac
+		done
+
+		if test -z "$files"; then
+			files="--file ${EAVE_HOME}/.env"
+		fi
+
 		python-validate-version
 		python-activate-venv
-		PYTHONPATH=. python -m dotenv --file "$EAVE_HOME/.env" run --no-override -- "$@"
+
+		# shellcheck disable=SC2086
+		PYTHONPATH=. python -m dotenv $files run --no-override -- "$@"
 	)
 
 	function run-appengine-dev-server() (

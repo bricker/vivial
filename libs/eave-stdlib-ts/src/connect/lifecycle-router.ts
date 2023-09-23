@@ -1,18 +1,18 @@
 import { Request, Response, Router } from 'express';
 import AddOnFactory, { AddOn } from 'atlassian-connect-express';
-import { registerConnectInstallation } from '../core-api/operations/connect.js';
 import { AtlassianProduct } from '../core-api/models/connect.js';
-import { EaveOrigin } from '../eave-origins.js';
-import eaveLogger, { LogContext } from '../logging.js';
+import { EaveApp } from '../eave-origins.js';
+import { eaveLogger, LogContext } from '../logging.js';
+import { RegisterConnectInstallationOperation } from '../core-api/operations/connect.js';
 
-export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn, product: AtlassianProduct, eaveOrigin: EaveOrigin }): Router {
+export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn, product: AtlassianProduct, eaveOrigin: EaveApp }): Router {
   const router = Router();
 
   // A custom implementation of the atlassian-connect-express built-in install handler.
   router.post('/installed', addon.verifyInstallation(), async (req: Request, res: Response) => {
     const settings: AddOnFactory.ClientInfo = req.body;
     const ctx = new LogContext(req);
-    await registerConnectInstallation({
+    await RegisterConnectInstallationOperation.perform({
       ctx,
       origin: eaveOrigin,
       input: {

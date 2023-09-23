@@ -1,73 +1,90 @@
+/* eslint-disable quote-props */
+
 const config = {
-  extends: [
-    'airbnb-base',
-  ],
+  extends: ["eslint:recommended", "prettier"],
   plugins: [],
-  ignorePatterns: [
-    'node_modules',
-    '*.doccarchive',
-    '!.github',
-    'dist',
-    'generated',
-  ],
+  ignorePatterns: ["node_modules", "*.doccarchive", "!.github", "dist", "generated", ".venv", "__pycache__", "vendor", ".*"],
   env: {
     browser: true,
     es2022: true,
     node: true,
   },
   parserOptions: {
-    ecmaVersion: 'latest',
+    ecmaVersion: "latest",
     impliedStrict: true,
   },
   rules: {
-    'import/no-unresolved': 'off', // https://github.com/import-js/eslint-plugin-import/issues/1810
-    'import/extensions': 'off', // extensions always required
-    'no-restricted-syntax': ['error', {
-      selector: 'ForInStatement', // for...in is genuinely confusing and can cause bugs.
-      message: 'If you intend to iterate over an array, use for...of',
-    }],
-    camelcase: 'off', // Our API request bodies use snake case
-    'no-param-reassign': 'off', // I understand that this may indicate a bug, but it is so common that it makes sense to completely disable it.
-    'import/prefer-default-export': 'off', // Preference
-    'class-methods-use-this': 'off', // Preference
-    'max-classes-per-file': 'off', // Preference
-    'max-len': 'off', // Preference
-    'no-else-return': 'off', // else after return can be good for readability
-    'no-useless-return': 'off', // useless returns are good for readability and don't necessarily indicate bugs
-    'no-continue': 'off', // continues are a valid and useful language feature
-    'no-await-in-loop': 'off', // awaiting in a loop is a valid and useful language feature
-    'no-console': 'off', // Appengine reads stdout and stderr for app logs
-    'dot-notation': 'off',
-    'no-use-before-define': ['error', {
-      functions: false,
-      classes: false,
-      variables: true,
-    }],
-    // Style preferences
-    'prefer-destructuring': 'off',
-    'no-underscore-dangle': 'off',
-    'object-curly-newline': 'off',
-    'function-paren-newline': 'off',
-    'arrow-body-style': 'off',
+    // Rules that enforce consistent code style, but may not be fixable by a formatter. These could also indicate a bug.
+    "curly": ["warn", "all"],
+    "no-var": "warn",
+    "prefer-const": "warn",
+    "no-useless-computed-key": "warn",
+    "no-multi-assign": "warn",
+    "import/extensions": "off", // extensions always required
+    "default-param-last": "warn",
+    "quote-props": ["warn", "as-needed"],
+
+    // Rules that may indicate a bug
+    "import/no-unresolved": "off", // https://github.com/import-js/eslint-plugin-import/issues/1810
+    "import/order": "off", // prettier handles this
+    "no-unused-private-class-members": "warn",
+    "no-template-curly-in-string": "warn",
+    "no-self-compare": "warn",
+    "no-constructor-return": "warn",
+    "no-constant-binary-expression": "warn",
+    "array-callback-return": "warn",
+    "default-case": "warn",
+    "default-case-last": "warn",
+    "eqeqeq": "warn",
+    "guard-for-in": "warn",
+    "no-invalid-this": "warn",
+    "no-new-wrappers": "warn",
+    "no-octal-escape": "warn",
+    "no-unused-expressions": "warn",
+    "radix": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        varsIgnorePattern: "^_",
+        argsIgnorePattern: "^_",
+      },
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        selector: "ForInStatement", // for...in is genuinely confusing and can cause bugs.
+        message: "If you intend to iterate over an array, use for...of",
+      },
+    ],
+    "no-use-before-define": [
+      "error",
+      {
+        functions: false,
+        classes: false,
+        variables: true,
+      },
+    ],
+
+    // Rules enabled by default that I don't like
+    "import/prefer-default-export": "off",
+
   },
   overrides: [
     {
       // Force eslint to lint the following additional extensions.
-      files: ['*.cjs', '*.mjs'],
+      files: ["*.cjs", "*.mjs"],
     },
     {
-      // ava's `t` context variable is intended to be modified during the lifecycle of a test.
-      files: ['*.test.js', '*.test.ts'],
+      files: ["*.test.js", "*.test.ts"],
       rules: {
-        'no-param-reassign': 'off',
-        'import/no-extraneous-dependencies': 'off',
+        "no-unused-vars": "off", // Allow ava test context to be unused
       },
     },
     {
       // template curly syntax ${{ expr }} is used by github actions workflows
-      files: ['.github/workflows/src/**/*.js'],
+      files: [".github/workflows/src/**/*.js"],
       rules: {
-        'no-template-curly-in-string': 'off',
+        "no-template-curly-in-string": "off",
       },
     },
   ],
