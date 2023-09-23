@@ -1,13 +1,13 @@
-import { AddOn } from "atlassian-connect-express";
-import { Request, Response, Router, NextFunction } from "express";
 import { LifecycleRouter } from "@eave-fyi/eave-stdlib-ts/src/connect/lifecycle-router.js";
 import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
-import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { jsonParser } from "@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js";
+import { AddOn } from "atlassian-connect-express";
+import { NextFunction, Request, Response, Router } from "express";
 import appConfig from "../config.js";
+import JiraClient from "../jira-client.js";
 import { JiraWebhookEvent } from "../types.js";
 import commentCreatedEventHandler from "./comment-created.js";
-import JiraClient from "../jira-client.js";
 
 export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   // webhooks

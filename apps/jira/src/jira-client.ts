@@ -1,7 +1,7 @@
 import ConnectClient, { RequestOpts } from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
+import { ADFRootNode } from "@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js";
 import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
 import { AddOn } from "atlassian-connect-express";
-import { ADFRootNode } from "@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js";
 import appConfig from "./config.js";
 import { JiraComment, JiraUser } from "./types.js";
 
