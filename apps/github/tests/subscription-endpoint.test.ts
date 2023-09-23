@@ -1,8 +1,8 @@
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { TestContextBase, TestUtil, makeRequest, mockSigning } from "@eave-fyi/eave-stdlib-ts/src/test-util.js";
 import anyTest, { TestFn } from "ava";
 import sinon from "sinon";
 import { app } from "../src/app.js";
-import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 
 interface TestContext extends TestContextBase {
   sandbox: sinon.SinonSandbox;
