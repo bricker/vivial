@@ -26,7 +26,6 @@ const config = {
 
     // Rules that may indicate a bug
     "import/no-unresolved": "off", // https://github.com/import-js/eslint-plugin-import/issues/1810
-    "import/order": "off", // prettier handles this
     "no-unused-private-class-members": "warn",
     "no-template-curly-in-string": "warn",
     "no-self-compare": "warn",
@@ -67,6 +66,7 @@ const config = {
 
     // Rules enabled by default that I don't like
     "import/prefer-default-export": "off",
+    "import/order": "off", // prettier handles this
   },
   overrides: [
     {
