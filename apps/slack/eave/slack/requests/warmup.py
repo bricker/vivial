@@ -11,6 +11,7 @@ from ..config import app_config
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.cache
 
+
 class WarmupRequest(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         eaveLogger.info(
@@ -48,6 +49,7 @@ class StopRequest(HTTPEndpoint):
         )
 
         return Response(status_code=http.HTTPStatus.OK, content="OK")
+
 
 class StatusRequest(HTTPEndpoint):
     async def post(self, request: Request) -> Response:

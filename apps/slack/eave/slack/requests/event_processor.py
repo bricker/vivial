@@ -1,17 +1,8 @@
-import http
 from eave.stdlib.http_endpoint import HTTPEndpoint
-import eave.stdlib.signing
 from eave.stdlib.logging import eaveLogger
-import eave.stdlib.requests
-import eave.stdlib.eave_origins as eave_origins
-from eave.stdlib.exceptions import InvalidSignatureError
 from eave.stdlib.headers import (
-    EAVE_ORIGIN_HEADER,
-    EAVE_REQUEST_ID_HEADER,
-    EAVE_SIGNATURE_HEADER,
     GCP_GAE_TASK_EXECUTION_COUNT,
 )
-import eave.stdlib.time
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from starlette.requests import Request
 from starlette.responses import Response

@@ -1,6 +1,5 @@
 import http
 import json
-import time
 import unittest.mock
 
 from starlette.responses import Response

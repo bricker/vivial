@@ -1,5 +1,4 @@
 from asgiref.typing import ASGI3Application
-from starlette.middleware import Middleware
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
@@ -8,7 +7,7 @@ from eave.stdlib.slack_api import SlackAppEndpointConfiguration
 from eave.stdlib.slack_api.operations import SlackEventProcessorTaskOperation, SlackWebhookOperation
 import eave.stdlib.time
 from starlette.applications import Starlette
-from starlette.routing import Route, Mount
+from starlette.routing import Route
 from eave.stdlib import cache
 
 from .requests.warmup import StatusRequest, StopRequest, WarmupRequest, StartRequest
@@ -17,6 +16,7 @@ from .requests.event_processor import SlackEventProcessorTask
 from eave.stdlib.middleware import common_middlewares
 
 eave.stdlib.time.set_utc()
+
 
 def make_route(
     config: SlackAppEndpointConfiguration,
@@ -30,6 +30,7 @@ def make_route(
         endpoint = OriginASGIMiddleware(app=endpoint)
 
     return Route(path=config.path, endpoint=endpoint)
+
 
 routes = [
     Route("/_ah/warmup", WarmupRequest, methods=["GET"]),
