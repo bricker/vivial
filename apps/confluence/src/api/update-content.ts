@@ -1,8 +1,8 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { UpdateContentRequestBody, UpdateContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
-import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
-import { maxTokens, OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
+import { OpenAIModel, maxTokens } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
 import OpenAIClient from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
 import { tokenCount } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/token-counter.js";
 import { ConfluenceClientArg } from "./util.js";
