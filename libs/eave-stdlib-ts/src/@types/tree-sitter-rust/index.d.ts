@@ -1,1 +1,1 @@
-declare module 'tree-sitter-rust';
+declare module "tree-sitter-rust";

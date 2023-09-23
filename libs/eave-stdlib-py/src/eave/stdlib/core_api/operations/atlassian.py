@@ -1,7 +1,7 @@
 from typing import Unpack
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallation
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallationInput
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models import team
 from ... import requests

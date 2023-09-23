@@ -9,7 +9,7 @@ from eave.stdlib.core_api.models.github_documents import (
     GithubDocumentCreateInput,
     GithubDocumentUpdateInput,
 )
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetGithubDocumentsRequest(CoreApiEndpoint):

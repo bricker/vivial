@@ -4,16 +4,12 @@ import hashlib
 from dataclasses import dataclass
 import time
 from typing import Literal, Optional, cast
-from urllib.parse import urlparse
 import uuid
-from asgiref.typing import HTTPScope
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
-from starlette.requests import Request
-from starlette.types import Scope
 from eave.stdlib.config import shared_config
 from eave.stdlib.eave_origins import EaveApp, ExternalOrigin
 from google.cloud import kms
@@ -247,6 +243,7 @@ def build_message_to_sign(
 
     eaveLogger.debug("signature message", ctx, {"signature_message": signature_message})
     return signature_message
+
 
 def make_sig_ts() -> int:
     return int(time.time())

@@ -6,7 +6,7 @@ from eave.stdlib.core_api.models.connect import (
     RegisterConnectInstallationInput,
 )
 
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 from ... import requests

@@ -1,7 +1,7 @@
 from typing import Unpack
 from eave.stdlib.core_api.models.slack import SlackInstallation
 from eave.stdlib.core_api.models.slack import SlackInstallationInput
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models import team
 from ... import requests

@@ -60,17 +60,6 @@ def cancel_flow(response: Response) -> Response:
     return set_redirect(response=response, location=eave.core.internal.app_config.eave_public_www_base)
 
 
-def check_beta_whitelisted(email: typing.Optional[str]) -> bool:
-    if eave.stdlib.config.shared_config.eave_beta_whitelist_disabled:
-        return True
-
-    if email:
-        beta_prewhitelist = eave.core.internal.app_config.eave_beta_prewhitelisted_emails
-        return email in beta_prewhitelist
-    else:
-        return False
-
-
 async def get_logged_in_eave_account(
     request: Request,
     auth_provider: AuthProvider,
@@ -133,7 +122,6 @@ async def create_new_account_and_team(
     request: Request,
     eave_team_name: str,
     user_email: str | None,
-    beta_whitelisted: bool,
     auth_provider: AuthProvider,
     auth_id: str,
     access_token: str,
@@ -145,7 +133,6 @@ async def create_new_account_and_team(
     async with eave.core.internal.database.async_session.begin() as db_session:
         eave_team = await eave.core.internal.orm.TeamOrm.create(
             session=db_session,
-            beta_whitelisted=beta_whitelisted,
             name=eave_team_name,
             document_platform=None,
         )
@@ -239,12 +226,10 @@ async def get_or_create_eave_account(
 
     if not eave_account:
         # Create an account
-        beta_whitelisted = check_beta_whitelisted(email=user_email)
         eave_account = await create_new_account_and_team(
             request=request,
             eave_team_name=eave_team_name,
             user_email=user_email,
-            beta_whitelisted=beta_whitelisted,
             auth_provider=auth_provider,
             auth_id=auth_id,
             access_token=access_token,

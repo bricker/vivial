@@ -1,4 +1,3 @@
-import time
 import pydantic
 from typing import NotRequired, Optional, Required, TypedDict, Unpack
 import uuid
@@ -20,8 +19,10 @@ class CommonRequestArgs(TypedDict):
     ctx: NotRequired[Optional[LogContext]]
     base_timeout_seconds: NotRequired[int]
 
+
 class MissingParameterError(Exception):
     pass
+
 
 async def make_request(
     config: EndpointConfiguration,

@@ -2,7 +2,7 @@ from typing import Unpack
 import uuid
 from ... import requests
 from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 from ..models import integrations
 
 

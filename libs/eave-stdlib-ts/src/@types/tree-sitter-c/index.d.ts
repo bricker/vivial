@@ -1,1 +1,1 @@
-declare module 'tree-sitter-c';
+declare module "tree-sitter-c";

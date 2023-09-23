@@ -9,7 +9,7 @@ from eave.stdlib.core_api.models.github_repos import (
     GithubRepoUpdateInput,
     GithubReposFeatureStateInput,
 )
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, Endpoint, CoreApiEndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetGithubReposRequest(CoreApiEndpoint):

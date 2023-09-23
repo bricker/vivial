@@ -7,10 +7,12 @@ from . import GithubAppEndpoint, GithubAppEndpointConfiguration
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.core_api.models.subscriptions import Subscription, DocumentReference
 
+
 class CreateGithubResourceSubscription(GithubAppEndpoint):
     config = GithubAppEndpointConfiguration(
         path="/github/api/subscribe",
     )
+
     class RequestBody(BaseRequestBody):
         url: str
 
