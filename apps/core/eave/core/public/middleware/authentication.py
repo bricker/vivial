@@ -25,15 +25,17 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         await self.app(scope, receive, send)
 
-    @staticmethod
-    async def _verify_auth(scope: HTTPScope) -> None:
+    async def _verify_auth(self, scope: HTTPScope) -> None:
         eave_state = EaveRequestState.load(scope=scope)
 
         account_id_header = eave.stdlib.api_util.get_header_value(
             scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
         )
         if not account_id_header:
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
+            if not self.endpoint_config.auth_required:
+                return
+            else:
+                raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
 
         account_id = uuid.UUID(account_id_header)
 

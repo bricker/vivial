@@ -29,18 +29,28 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             return
 
         body = await self.read_body(scope=scope, receive=receive)
-        self._do_signature_verification(scope=scope, body=body)
+
+        try:
+            self._do_signature_verification(scope=scope, body=body)
+        except Exception as e:
+            if not development_bypass_allowed(scope=scope):
+                raise
+            else:
+                eaveLogger.exception(e)
+                eaveLogger.warning("Bypassing signature verification in dev environment")
 
         await self.app(scope, receive, send)
 
-    @staticmethod
-    def _do_signature_verification(scope: HTTPScope, body: bytes) -> None:
+    def _do_signature_verification(self, scope: HTTPScope, body: bytes) -> None:
         eave_state = EaveRequestState.load(scope=scope)
 
         signature = get_header_value(scope=scope, name=EAVE_SIGNATURE_HEADER)
         if not signature:
-            # reject None or empty strings
-            raise MissingRequiredHeaderError(EAVE_SIGNATURE_HEADER)
+            if not self.endpoint_config.signature_required:
+                return
+            else:
+                # reject None or empty strings
+                raise MissingRequiredHeaderError(EAVE_SIGNATURE_HEADER)
 
         payload = body.decode()
         team_id_header = get_header_value(scope=scope, name=EAVE_TEAM_ID_HEADER)

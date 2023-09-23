@@ -15,12 +15,14 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
 
         await self.app(scope, receive, send)
 
-    @staticmethod
-    def _process_origin(scope: HTTPScope) -> None:
+    def _process_origin(self, scope: HTTPScope) -> None:
         eave_state = EaveRequestState.load(scope=scope)
         origin_header = get_header_value(scope=scope, name=EAVE_ORIGIN_HEADER)
         if not origin_header:
-            raise MissingRequiredHeaderError(EAVE_ORIGIN_HEADER)
+            if not self.endpoint_config.origin_required:
+                return
+            else:
+                raise MissingRequiredHeaderError(EAVE_ORIGIN_HEADER)
 
         origin = EaveApp(value=origin_header)
         eave_state.ctx.eave_origin = str(origin)

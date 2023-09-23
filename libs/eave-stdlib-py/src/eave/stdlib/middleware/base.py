@@ -1,4 +1,5 @@
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, Scope, HTTPScope
+from eave.stdlib.core_api.operations import EndpointConfiguration
 
 from eave.stdlib.request_state import EaveRequestState
 
@@ -9,9 +10,11 @@ class EaveASGIMiddleware:
     """
 
     app: ASGI3Application
+    endpoint_config: EndpointConfiguration
 
-    def __init__(self, app: ASGI3Application) -> None:
+    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
         self.app = app
+        self.endpoint_config = endpoint_config
 
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         ...

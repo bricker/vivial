@@ -18,8 +18,7 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
 
         await self.app(scope, receive, send)
 
-    @staticmethod
-    async def _lookup_team(scope: HTTPScope) -> None:
+    async def _lookup_team(self, scope: HTTPScope) -> None:
         eave_state = EaveRequestState.load(scope=scope)
 
         team_id_header = eave.stdlib.api_util.get_header_value(
@@ -35,7 +34,10 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
                 raise eave.stdlib.exceptions.BadRequestError("mismatched team and account")
 
         if not team_id_header:
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
+            if not self.endpoint_config.team_id_required:
+                return
+            else:
+                raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
 
         team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
         async with eave.core.internal.database.async_session.begin() as db_session:
