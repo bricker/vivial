@@ -23,7 +23,7 @@ class GetSubscriptionRequest(Endpoint):
     class ResponseBody(BaseResponseBody):
         team: team.Team
         subscription: Optional[Subscription]
-        document_reference: Optional[DocumentReference] = None
+        document_reference: Optional[DocumentReference]
 
     @classmethod
     async def perform(
@@ -51,12 +51,12 @@ class CreateSubscriptionRequest(Endpoint):
 
     class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
-        document_reference: Optional[DocumentReferenceInput] = None
+        document_reference: Optional[DocumentReferenceInput]
 
     class ResponseBody(BaseResponseBody):
         team: team.Team
         subscription: Subscription
-        document_reference: Optional[DocumentReference] = None
+        document_reference: Optional[DocumentReference]
 
     @classmethod
     async def perform(

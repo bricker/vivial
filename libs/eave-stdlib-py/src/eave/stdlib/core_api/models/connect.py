@@ -1,9 +1,10 @@
 import enum
-from typing import Any, Optional
+from typing import Any, Optional, Self
 import uuid
 import pydantic
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
+from eave.stdlib.model_validators import validate_at_least_one_of
 
 
 class AtlassianProduct(enum.StrEnum):
@@ -46,16 +47,10 @@ class ConnectInstallationPeek(BaseResponseModel):
 
 class QueryConnectInstallationInput(BaseInputModel):
     product: AtlassianProduct
-    client_key: Optional[str]
-    team_id: Optional[uuid.UUID | str]
+    client_key: Optional[str] = None
+    team_id: Optional[uuid.UUID | str] = None
 
-    @pydantic.root_validator(pre=True)
-    def validate_sparse_fields(cls, values: dict[str, Any]) -> dict[str, Any]:
-        client_key = values.get("client_key")
-        team_id = values.get("team_id")
-        assert client_key or team_id, "At least one of client_key or team_id must be specified"
-        return values
-
+    _v1 = validate_at_least_one_of("client_key", "team_id")
 
 class RegisterConnectInstallationInput(BaseInputModel):
     """

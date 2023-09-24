@@ -439,6 +439,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	)
 
 	function ^eavepwd() (
+		# Returns the absolute path to the working directory, with the value of EAVE_HOME replaced with the literal "$EAVE_HOME", to be evaluated later.
 		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
 	)
 

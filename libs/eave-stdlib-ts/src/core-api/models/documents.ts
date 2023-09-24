@@ -1,13 +1,13 @@
 export type DocumentInput = {
   title: string;
   content: string;
-  parent?: DocumentInput;
+  parent: DocumentInput | null;
 }
 
 export type EaveDocument = {
   title: string;
   content: string;
-  parent?: EaveDocument;
+  parent: EaveDocument | null;
 }
 
 export type DocumentSearchResult = {

@@ -9,7 +9,7 @@ export type RegisterConnectInstallationRequestBody = {
   connect_integration: RegisterConnectInstallationInput;
 }
 export type RegisterConnectInstallationResponseBody = {
-  team?: Team;
+  team: Team | null;
   connect_integration: ConnectInstallation;
 }
 
@@ -31,7 +31,7 @@ export type QueryConnectInstallationRequestBody = {
   connect_integration: QueryConnectInstallationInput;
 }
 export type QueryConnectInstallationResponseBody = {
-  team?: Team;
+  team: Team | null;
   connect_integration: ConnectInstallation;
 }
 

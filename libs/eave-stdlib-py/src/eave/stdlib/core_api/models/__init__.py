@@ -1,11 +1,10 @@
 import pydantic
+from pydantic import ConfigDict
 
 
 class BaseResponseModel(pydantic.BaseModel):
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BaseInputModel(pydantic.BaseModel):
-    class Config:
-        extra = pydantic.Extra.forbid
+    model_config = ConfigDict(extra=pydantic.Extra.forbid)

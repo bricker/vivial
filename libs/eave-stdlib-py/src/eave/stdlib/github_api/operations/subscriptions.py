@@ -17,7 +17,7 @@ class CreateGithubResourceSubscription(GithubAppEndpoint):
     class ResponseBody(BaseResponseBody):
         team: Team
         subscription: Subscription
-        document_reference: Optional[DocumentReference] = None
+        document_reference: Optional[DocumentReference]
 
     @classmethod
     async def perform(
