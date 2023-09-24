@@ -12,6 +12,7 @@ force-exclude = '''
 line-length = 120
 
 [tool.mypy]
+plugins = ["strawberry.ext.mypy_plugin"]
 cache_dir = "/tmp/cache/.mypy_cache"
 exclude = [
   "eave_alembic/versions",

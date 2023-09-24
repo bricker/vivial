@@ -20,3 +20,4 @@ types-protobuf
 mitmproxy @ git+https://github.com/mitmproxy/mitmproxy@main # to resolve asgiref dependency version error
 click
 alembic
+strawberry-graphql[debug-server]
