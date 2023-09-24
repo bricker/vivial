@@ -12,12 +12,14 @@ from .core_api.models.subscriptions import SubscriptionInfo
 
 from .eave_origins import EaveApp
 
+
 class LinkType(enum.StrEnum):
     """
     Link types that we support fetching content from for integration into AI documentation creation.
     """
 
     github = "github"
+
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[LinkType, list[str]] = {

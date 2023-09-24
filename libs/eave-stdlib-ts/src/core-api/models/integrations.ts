@@ -13,4 +13,4 @@ export type Integrations = {
   atlassian_integration: AtlassianInstallation | null;
   confluence_integration: ConnectInstallation | null;
   jira_integration: ConnectInstallation | null;
-}
+};

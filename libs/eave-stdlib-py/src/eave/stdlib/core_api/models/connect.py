@@ -1,7 +1,6 @@
 import enum
-from typing import Any, Optional, Self
+from typing import Optional
 import uuid
-import pydantic
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 from eave.stdlib.model_validators import validate_at_least_one_of
@@ -51,6 +50,7 @@ class QueryConnectInstallationInput(BaseInputModel):
     team_id: Optional[uuid.UUID | str] = None
 
     _v1 = validate_at_least_one_of("client_key", "team_id")
+
 
 class RegisterConnectInstallationInput(BaseInputModel):
     """

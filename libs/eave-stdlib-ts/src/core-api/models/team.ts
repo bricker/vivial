@@ -8,7 +8,7 @@ export type Team = {
   id: string;
   name: string;
   document_platform: DocumentPlatform | null;
-}
+};
 
 export type TeamInput = {
   id: string;

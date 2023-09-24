@@ -12,7 +12,7 @@ export type CreateSubscriptionResponseBody = {
   team: Team;
   subscription: Subscription;
   document_reference: DocumentReference | null;
-}
+};
 
 export class CreateSubscriptionOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/subscriptions/create" });

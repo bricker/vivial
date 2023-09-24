@@ -40,4 +40,4 @@ class Team(BaseResponseModel):
     id: uuid.UUID
     name: str
     document_platform: Optional[DocumentPlatform]
-    beta_whitelisted: bool = False # DEPRECATED
+    beta_whitelisted: bool = False  # DEPRECATED

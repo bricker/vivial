@@ -10,4 +10,4 @@ export type SlackInstallation = {
   bot_token: string;
   bot_id: string;
   bot_user_id: string | null;
-}
+};

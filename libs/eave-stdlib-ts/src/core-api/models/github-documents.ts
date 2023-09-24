@@ -27,7 +27,7 @@ export type GithubDocumentsQueryInput = {
   type?: DocumentType;
 
   // TODO: Validation
-}
+};
 
 export type GithubDocumentCreateInput = {
   external_repo_id: string;
@@ -35,7 +35,7 @@ export type GithubDocumentCreateInput = {
   api_name: string | null;
   type: DocumentType;
   pull_request_number: number | null;
-}
+};
 
 export type GithubDocumentValuesInput = {
   pull_request_number?: number;

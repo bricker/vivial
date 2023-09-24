@@ -1,5 +1,3 @@
-from functools import reduce
-from typing import Type
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration, github_repos, github_documents
@@ -32,7 +30,6 @@ from eave.stdlib.core_api.operations.github_repos import (
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
-from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
@@ -148,10 +145,14 @@ def make_route(
     So, that's a long-winded explanation of the order of the middlewares below.
     """
 
-    endpoint = TeamLookupASGIMiddleware(app=endpoint, endpoint_config=config) # Last thing to happen before the Route handler
+    endpoint = TeamLookupASGIMiddleware(
+        app=endpoint, endpoint_config=config
+    )  # Last thing to happen before the Route handler
     endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
     endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
-    endpoint = OriginASGIMiddleware(app=endpoint, endpoint_config=config) # First thing to happen when the middleware chain is kicked off
+    endpoint = OriginASGIMiddleware(
+        app=endpoint, endpoint_config=config
+    )  # First thing to happen when the middleware chain is kicked off
     return Route(path=config.path, endpoint=endpoint)
 
 

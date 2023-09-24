@@ -13,7 +13,7 @@ export type ConnectInstallation = {
   atlassian_actor_account_id: string | null;
   display_url: string | null;
   description: string | null;
-}
+};
 
 export type RegisterConnectInstallationInput = {
   product: AtlassianProduct;
@@ -23,7 +23,7 @@ export type RegisterConnectInstallationInput = {
   atlassian_actor_account_id: string | null;
   display_url: string | null;
   description: string | null;
-}
+};
 
 export type QueryConnectInstallationInput = {
   product: AtlassianProduct;
@@ -31,4 +31,4 @@ export type QueryConnectInstallationInput = {
   // TODO: Validation on these fields (see the Python counterpart for an example)
   client_key?: string;
   team_id?: string;
-}
+};

@@ -1,15 +1,15 @@
-import { Pair } from './types.js';
-import { eaveLogger } from './logging.js';
-import { RequestArgsTeamId } from './requests.js';
-import { Subscription } from './core-api/models/subscriptions.js';
-import { GetGithubUrlContentOperation } from './github-api/operations/get-content.js';
-import { CreateGithubResourceSubscriptionOperation } from './github-api/operations/create-subscription.js';
+import { Subscription } from "./core-api/models/subscriptions.js";
+import { CreateGithubResourceSubscriptionOperation } from "./github-api/operations/create-subscription.js";
+import { GetGithubUrlContentOperation } from "./github-api/operations/get-content.js";
+import { eaveLogger } from "./logging.js";
+import { RequestArgsTeamId } from "./requests.js";
+import { Pair } from "./types.js";
 
 /**
  * Link types that we support fetching content from for integration into AI documentation creation.
  */
 export enum LinkType {
-  github = 'github',
+  github = "github",
 }
 
 // mapping from link type to regex for matching raw links against

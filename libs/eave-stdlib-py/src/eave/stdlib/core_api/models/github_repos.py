@@ -52,8 +52,10 @@ class GithubRepoUpdateInput(BaseInputModel):
     inline_code_documentation_state: Optional[State] = None
     architecture_documentation_state: Optional[State] = None
 
+
 class GithubReposDeleteInput(BaseInputModel):
     external_repo_id: str
+
 
 class GithubRepoQueryInput(BaseInputModel):
     external_repo_id: str

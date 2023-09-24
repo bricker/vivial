@@ -1,9 +1,10 @@
-from typing import Any, Callable, Self, TypeVar
+from typing import Any, TypeVar
 
 import pydantic
 
 
 T = TypeVar("T")
+
 
 def validate_at_least_one_of(*fields: str) -> Any:
     def validate(self: T) -> T:
