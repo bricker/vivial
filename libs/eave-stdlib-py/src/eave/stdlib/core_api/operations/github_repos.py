@@ -27,6 +27,7 @@ class GetGithubReposRequest(CoreApiEndpoint):
     @classmethod
     async def perform(
         cls,
+        input: RequestBody,
         team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:

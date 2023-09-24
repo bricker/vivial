@@ -2,35 +2,41 @@ import React, { useCallback, useEffect, useState } from 'react';
 import useUser from '../../../hooks/useUser.js';
 import useTeam from '../../../hooks/useTeam.js';
 
+import { FEATURES } from '../../../constants.js';
 import ExploreFeatures from '../../ExploreFeatures/index.jsx';
 import GitHubFeatureModal from '../../GitHubFeatureModal/index.jsx';
 import ErrorPage from '../ErrorPage/index.jsx';
 import LoadingPage from '../LoadingPage/index.jsx';
 import Page from '../Page/index.jsx';
 
+
 const Dashboard = () => {
-  const { user, getUserAccount } = useUser();
-  const { team, getTeam, getTeamRepos, getTeamFeatureStates, getTeamAccessibleRepos } = useTeam();
-  const teamId = user.account.team_id;
+  const {
+    user,
+    getUserAccount
+  } = useUser();
+
+  const {
+    team,
+    getTeam,
+    getTeamRepos,
+    getTeamFeatureStates,
+    updateTeamFeatureState
+  } = useTeam();
 
   const isLoading =
     user.accountIsLoading
     || team.teamIsLoading
     || team.reposAreLoading
-    || team.featureStatesAreLoading
-    || team.accessibleReposAreLoading;
+    || team.featureStatesLoading;
 
   const isErroring =
     user.accountIsErroring
     || team.teamIsErroring
     || team.reposAreErroring
-    || team.accessibleReposAreErroring;
+    || team.featureStatesErroring;
 
-  const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(true); // TODO: false
-
-  const inlineDocsEnabledRepoIds = team.repos
-    .filter(repo => repo.inline_code_documentation_state === "enabled")
-    .map(repo => repo.id);
+  const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
 
   const openInlineDocsModal = useCallback(() => {
     setInlineDocsModalIsOpen(true);
@@ -40,11 +46,14 @@ const Dashboard = () => {
     setInlineDocsModalIsOpen(false);
   }, []);
 
-  const turnOnInlineDocsFeature = useCallback((teamId, repoIds) => {
-    console.log('turnOnInlineDocsFeature()');
-    console.log(teamId);
-    console.log(repoIds);
-    // closeInlineDocsModal();
+  const handleUpdateFeatureState = useCallback((teamId, teamRepoIds, enabledRepoIds, feature) => {
+    updateTeamFeatureState(
+      teamId,
+      teamRepoIds,
+      enabledRepoIds,
+      feature,
+    );
+    closeInlineDocsModal();
   }, []);
 
   useEffect(() => {
@@ -52,12 +61,12 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const teamId = user.account.team_id;
     if (teamId) {
       getTeam(teamId);
       getTeamRepos(teamId);
-      getTeamAccessibleRepos(teamId);
     }
-  }, [teamId]);
+  }, [user.account.team_id]);
 
   useEffect(() => {
     if (team.repos.length) {
@@ -75,15 +84,11 @@ const Dashboard = () => {
     <Page>
       <ExploreFeatures onInlineDocsClick={openInlineDocsModal} />
       <GitHubFeatureModal
-        title="Inline Code Documentation"
+        feature={FEATURES.INLINE_CODE_DOCS}
         open={inlineDocsModalIsOpen}
         onClose={closeInlineDocsModal}
-        onTurnOn={turnOnInlineDocsFeature}
-        enabledRepoIds={inlineDocsEnabledRepoIds}
-      >
-        <p>Automate inline code documentation within your GitHub files.</p>
-        <p>As changes are made to the codebase, Eave will automatically generate inline documentation via a pull request for your team's review.</p>
-      </GitHubFeatureModal>
+        onUpdate={handleUpdateFeatureState}
+      />
     </Page>
   );
 };

@@ -1,15 +1,10 @@
 import React, { createContext, useState } from 'react';
-
 import { AUTH_MODAL_STATE } from '../constants.js';
 
 export const AppContext = createContext(null);
 
-
-// TODO: update modal and error to use ctx verbiage
-
-
 const AppContextProvider = ({ children }) => {
-  const [modalState, setModalState] = useState({
+  const [authModal, setAuthModal] = useState({
     isOpen: false,
     mode: AUTH_MODAL_STATE.SIGNUP,
   });
@@ -33,35 +28,18 @@ const AppContextProvider = ({ children }) => {
     reposAreErroring: false,
     repoCreationInProgress: false,
     repoCreationIsErroring: false,
-
-
-    // TODO: won't need this
-    accessibleRepos: [],
-    accessibleReposAreLoading: true,
-    accessibleReposAreErroring: false,
-
-
-
-
-
     apiDocuments: [],
-    featureStates: {},
-    featureStatesAreLoading: true,
-  });
-
-  const [errorState, setErrorState] = useState({
-    error: null,
+    featureStatesLoading: true,
+    featureStatesErroring: false,
+    inlineCodeDocsState: null,
+    apiDocsState: null,
+    architectureDocsState: null,
   });
 
   const ctx = {
-    authModal: [modalState, setModalState],
-
-
+    authModalCtx: [authModal, setAuthModal],
     userCtx: [user, setUser],
     teamCtx: [team, setTeam],
-
-
-    error: [errorState, setErrorState],
   };
 
   return (

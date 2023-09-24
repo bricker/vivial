@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { makeStyles } from "@material-ui/styles";
 import { Dialog, IconButton, Typography } from '@material-ui/core';
 
+import { FEATURES } from "../../constants.js";
 import { imageUrl } from "../../util/asset-helpers.js";
 import useTeam from "../../hooks/useTeam.js";
 import CloseIcon from "../Icons/CloseIcon.js";
@@ -10,7 +11,6 @@ import ExpandIcon from "../Icons/ExpandIcon.jsx";
 import Button from "../Button/index.jsx";
 import InfoTooltip from "../InfoTooltip/index.jsx";
 import GitHubRepoSelect from "../GitHubRepoSelect/index.jsx";
-
 
 const makeClasses = makeStyles((theme) => ({
   paper: {
@@ -22,6 +22,7 @@ const makeClasses = makeStyles((theme) => ({
     maxWidth: 762,
     margin: 0,
     padding: '88px 25px',
+    overflow: 'visible',
     [theme.breakpoints.up('md')]: {
       backgroundColor: theme.palette.background.light,
       height: 'auto',
@@ -49,6 +50,7 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 14,
     [theme.breakpoints.up('md')]: {
       flexDirection: 'column',
+      marginBottom: 30,
     }
   },
   requiredText: {
@@ -69,13 +71,13 @@ const makeClasses = makeStyles((theme) => ({
     fontSize: 16,
     fontWeight: 700,
     marginBottom: 25,
-    color: "#E03C6C",
+    color: theme.palette.error.main,
     [theme.breakpoints.up('md')]: {
       fontSize: 18,
       marginBottom: 36,
     }
   },
-  children: {
+  description: {
     fontSize: 18,
     fontWeight: 400,
     marginBottom: 10,
@@ -89,19 +91,19 @@ const makeClasses = makeStyles((theme) => ({
       marginBottom: 0,
     }
   },
-  btnContainer: {
+  ctaBtnContainer: {
     [theme.breakpoints.up('md')]: {
       display: 'flex',
       justifyContent: 'flex-end',
     }
   },
-  btn: {
+  ctaBtn: {
     width: '100%',
-    marginTop: 30,
     fontSize: 20,
+    marginTop: 20,
     [theme.breakpoints.up('md')]: {
-      marginTop: 40,
       width: 200,
+      marginTop: 0,
     }
   },
   selectedReposText: {
@@ -115,13 +117,13 @@ const makeClasses = makeStyles((theme) => ({
   tooltip: {
     marginLeft: 4,
   },
-  defaultText: {
+  selectedReposLabel: {
     display: 'inline-block',
     marginLeft: 4,
     fontWeight: 700,
   },
   expandBtnContainer: {
-    marginTop: 12,
+    marginTop: 8,
   },
   expandBtn: {
     width: 'auto',
@@ -135,67 +137,89 @@ const makeClasses = makeStyles((theme) => ({
   },
   selectText: {
     fontSize: 14,
-    margin: '14px 0',
+    margin: '11px 0 5px',
   }
 }));
 
+function renderTitle(feature) {
+  if (feature === FEATURES.INLINE_CODE_DOCS) {
+    return "Inline Code Documentation";
+  }
+}
 
-const GitHubFeatureModal = ({
-  children,
-  onClose,
-  onTurnOn,
-  open,
-  title,
-  enabledRepoIds,
-}) => {
+function renderDescription(feature) {
+  if (feature === FEATURES.INLINE_CODE_DOCS) {
+    return (
+      <>
+        <p>Automate inline code documentation within your GitHub files.</p>
+        <p>As changes are made to the codebase, Eave will automatically generate inline documentation via a pull request for your team's review.</p>
+      </>
+    );
+  }
+}
+
+const GitHubFeatureModal = ({ onClose, onUpdate, open, feature }) => {
   const classes = makeClasses();
   const { team } = useTeam();
   const githubIntegration = team.integrations.github_integration;
   const githubLogoFile = githubIntegration ? 'eave-github-logo-installed.png' : 'eave-github-logo-required.png';
   const githubOauthUrl = `${window.eave.apiBase}/oauth/github/authorize`;
-  const [optionsExpanded, setOptionsExpanded] = useState(true); // TODO: false default
-  const accessibleRepoIds = team.accessibleRepos.map(repo => repo.id);
-  const [selectedRepoIds, setSelectedRepoIds] = useState(enabledRepoIds.length ? enabledRepoIds : accessibleRepoIds);
-  const [selectedReposDesc, setSelectedReposDesc] = useState("Default");
+  const teamRepoIds = team.repos.map(repo => repo.external_repo_id);
+  const enabledRepoIds = team.repos
+    .filter(repo => repo[feature] === "enabled")
+    .map(repo => repo.external_repo_id);
+  const allSelected = teamRepoIds.length === enabledRepoIds.length;
+  const cta = enabledRepoIds.length ? "Update" : "Turn On";
+  const [optionsExpanded, setOptionsExpanded] = useState(false);
+  const [selectedRepoIds, setSelectedRepoIds] = useState(allSelected ? teamRepoIds : enabledRepoIds);
+  const [selectedRepoError, setSelectedRepoError] = useState(null);
+  const [selectedReposLabel, setSelectedReposLabel] = useState(allSelected ? "Default" : "Custom");
   const selectedReposTextClass = classNames(
     classes.selectedReposText,
-    !githubIntegration && classes.disabledText,
+    !githubIntegration && classes.disabledText
   );
 
-  const toggleExpandOptions = () => {
+  const toggleExpandOptions = useCallback(() => {
     setOptionsExpanded(!optionsExpanded);
-  };
+  }, [optionsExpanded]);
 
-  const handleTurnOn = useCallback(() => {
-    onTurnOn(team.id, selectedRepoIds);
-  }, [team.id, selectedRepoIds]);
-
-
-
+  const handleUpdate = useCallback(() => {
+    onUpdate(team.id, teamRepoIds, selectedRepoIds, feature);
+  }, [team.id, teamRepoIds, selectedRepoIds]);
 
   const handleSelectRepo = useCallback((val) => {
+    const selectionError = "At least one repository must be selected to turn on this feature.";
     if (val === "default") {
-      setSelectedRepoIds(accessibleRepoIds);
-      setSelectedReposDesc("Default");
+      // Case 1: All repos are already selected and user selects "default".
+      if (selectedRepoIds.length === teamRepoIds.length) {
+        setSelectedRepoIds([]);
+        setSelectedReposLabel("Custom");
+        setSelectedRepoError(selectionError);
+        return;
+      }
+      // Case 2: One or more repos are not selected and use selects "default".
+      setSelectedRepoIds(teamRepoIds);
+      setSelectedReposLabel("Default");
+      setSelectedRepoError(null);
       return;
     }
+    // Case 3: The user is deselecting a repo.
     if (selectedRepoIds.includes(val)) {
       const newSelectedRepoIds = selectedRepoIds.filter(id => id !== val);
       setSelectedRepoIds(newSelectedRepoIds);
-      setSelectedReposDesc("Custom");
+      setSelectedReposLabel("Custom");
+      if (!newSelectedRepoIds.length) {
+        setSelectedRepoError(selectionError);
+      }
       return;
     }
+    // Case 4: The user is reselecting a repo.
     setSelectedRepoIds([...selectedRepoIds, val]);
-    if ((selectedRepoIds.length + 1) === accessibleRepoIds.length) {
-      setSelectedReposDesc("Default");
+    setSelectedRepoError(null);
+    if ((selectedRepoIds.length + 1) === teamRepoIds.length) {
+      setSelectedReposLabel("Default");
     }
-  }, [selectedRepoIds]);
-
-
-
-
-
-
+  }, [selectedRepoIds, teamRepoIds]);
 
   return (
     <Dialog
@@ -207,7 +231,7 @@ const GitHubFeatureModal = ({
         <CloseIcon />
       </IconButton>
       <Typography className={classes.title} variant="h2">
-        {title}
+        {renderTitle(feature)}
       </Typography>
       <div className={classes.githubRequirement}>
         <Typography className={classes.requiredText}>
@@ -220,11 +244,11 @@ const GitHubFeatureModal = ({
           This feature requires a GitHub integration. In order to proceed, please add the Eave app to your GitHub account by clicking on the button below.
         </Typography>
       )}
-      <div className={classes.children}>
-        {children}
+      <div className={classes.description}>
+        {renderDescription(feature)}
       </div>
       <div className={selectedReposTextClass}>
-        Selected Repositories: <span className={classes.defaultText}>{selectedReposDesc}</span>
+        Selected Repositories: <span className={classes.selectedReposLabel}>{selectedReposLabel}</span>
         <InfoTooltip className={classes.tooltip} disabled={!githubIntegration}>
           <p>By default, this feature will access all repositories provided to the Eave for GitHub app.</p>
           <p>To select a custom subset of repos, click “Advanced Options”, or to update what Eave for GitHub can access, go to the app settings in your GitHub account (settings/apps/eave-fyi/permissions).</p>
@@ -232,30 +256,29 @@ const GitHubFeatureModal = ({
       </div>
       {githubIntegration && (
         <div className={classes.expandBtnContainer}>
-          <Button className={classes.expandBtn} onClick={toggleExpandOptions} variant="text">
-            Advanced Options <ExpandIcon up={optionsExpanded} />
+          <Button className={classes.expandBtn} onClick={toggleExpandOptions} variant="text" disableRipple>
+            Advanced Options <ExpandIcon up={optionsExpanded} color="#0092C7" />
           </Button>
         </div>
       )}
-      {optionsExpanded && (
-        <>
-          <Typography className={classes.selectText}>
-            Select Individual Repositories
-          </Typography>
-          <GitHubRepoSelect
-            repos={team.accessibleRepos}
-            selectedRepoIds={selectedRepoIds}
-            onSelect={handleSelectRepo}
-          />
-        </>
-      )}
-      <div className={classes.btnContainer}>
+      <div style={{ visibility: optionsExpanded ? 'visible' : 'hidden' }}>
+        <Typography className={classes.selectText}>
+          Select Individual Repositories
+        </Typography>
+        <GitHubRepoSelect
+          repos={team.repos}
+          selectedRepoIds={selectedRepoIds}
+          error={selectedRepoError}
+          onSelect={handleSelectRepo}
+        />
+      </div>
+      <div className={classes.ctaBtnContainer}>
         {githubIntegration ? (
-          <Button onClick={handleTurnOn} className={classes.btn} color="secondary" >
-            Turn On
+          <Button onClick={handleUpdate} className={classes.ctaBtn} disabled={!!selectedRepoError} color="secondary" >
+            {cta}
           </Button>
         ) : (
-          <Button to={githubOauthUrl} className={classes.btn} color="secondary">
+          <Button to={githubOauthUrl} className={classes.ctaBtn} color="secondary">
             Add App
           </Button>
         )}
@@ -263,6 +286,5 @@ const GitHubFeatureModal = ({
     </Dialog>
   );
 };
-
 
 export default GitHubFeatureModal;

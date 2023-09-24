@@ -1,9 +1,9 @@
 import { imageUrl } from './util/asset-helpers.js';
 
 export const FEATURES = {
-  API_DOCS: "api_documentation",
-  INLINE_CODE_DOCS: "inline_code_documentation",
-  ARCHITECTURE_DOCS: "architecture_documentation",
+  API_DOCS: "api_documentation_state",
+  INLINE_CODE_DOCS: "inline_code_documentation_state",
+  ARCHITECTURE_DOCS: "architecture_documentation_state",
 };
 
 export const FEATURE_STATES = {

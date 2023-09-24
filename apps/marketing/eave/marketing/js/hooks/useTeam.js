@@ -40,44 +40,62 @@ const useTeam = () => {
       });
   }
 
-
-
-
-  // TODO: Fetch real data from Github App.
-  async function getTeamAccessibleRepos(teamId) {
-    setTeam((prev) => ({ ...prev, accessibleReposAreLoading: true, accessibleReposAreErroring: false}));
-    const accessibleRepos = [
-      {id: '1234', name: "Transactional Third Party"},
-      {id: '5678', name: "Payments Point of Sales"},
-      {id: '9101', name: "Returns"},
-      {id: '1213', name: "Sales Tax"},
-    ];
-    setTeam((prev) => ({ ...prev, accessibleRepos, accessibleReposAreLoading: false}));
-  };
-
-
-
-
-
   async function getTeamFeatureStates(repos) {
-    setTeam((prev) => ({...prev, featureStatesAreLoading: true}));
-    const featureStates = {
-      [FEATURES.API_DOCS]: FEATURE_STATES.DISABLED,
-      [FEATURES.INLINE_CODE_DOCS]: FEATURE_STATES.DISABLED,
-      [FEATURES.ARCHITECTURE_DOCS]: FEATURE_STATES.DISABLED,
-    }
+    setTeam((prev) => ({...prev, featureStatesLoading: true}));
+    let inlineCodeDocsState = FEATURE_STATES.DISABLED;
+    let apiDocsState = FEATURE_STATES.DISABLED;
+    let architectureDocsState = FEATURE_STATES.DISABLED;
+
     for (const repo of repos) {
-      if (repo[`${FEATURES.API_DOCS}_state`] === FEATURE_STATES.ENABLED) {
-        states[FEATURES.API_DOCS] = FEATURE_STATES.ENABLED;
+      if (repo[FEATURES.API_DOCS] === FEATURE_STATES.ENABLED) {
+        apiDocsState = FEATURE_STATES.ENABLED;
       }
-      if (repo[`${FEATURES.INLINE_CODE_DOCS}_state`] === FEATURE_STATES.ENABLED) {
-        states[FEATURES.INLINE_CODE_DOCS] = FEATURE_STATES.ENABLED;
+      if (repo[FEATURES.INLINE_CODE_DOCS] === FEATURE_STATES.ENABLED) {
+        inlineCodeDocsState = FEATURE_STATES.ENABLED;
       }
-      if (repo[`${FEATURES.ARCHITECTURE_DOCS}_state`] === FEATURE_STATES.ENABLED) {
-        states[FEATURES.ARCHITECTURE_DOCS] = FEATURE_STATES.ENABLED;
+      if (repo[FEATURES.ARCHITECTURE_DOCS] === FEATURE_STATES.ENABLED) {
+        architectureDocsState = FEATURE_STATES.ENABLED;
       }
     }
-    setTeam((prev) => ({...prev, featureStates, featureStatesAreLoading: false }));
+    setTeam((prev) => ({
+      ...prev,
+      featureStatesLoading: false,
+      inlineCodeDocsState,
+      apiDocsState,
+      architectureDocsState,
+    }));
+  }
+
+  async function updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature) {
+    setTeam((prev) => ({...prev, featureStatesLoading: true, featureStatesErroring: false}));
+    const repoUpdates = teamRepoIds.map((repoId) => {
+      const state = enabledRepoIds.includes(repoId) ? FEATURE_STATES.ENABLED : FEATURE_STATES.DISABLED;
+      return ({
+        external_repo_id: repoId,
+        new_values: {
+          [feature]: state,
+        }
+      });
+    });
+    fetch('/dashboard/team/repos/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        team_id: teamId,
+        repos: repoUpdates,
+      }),
+    })
+    .then(() => {
+      getTeamRepos(teamId);
+    })
+    .catch(() => {
+      setTeam((prev) => ({...prev, featureStatesErroring: true}));
+    })
+    .finally(() => {
+      setTeam((prev) => ({...prev, featureStatesLoading: false}));
+    });
   }
 
   return {
@@ -85,7 +103,7 @@ const useTeam = () => {
     getTeam,
     getTeamRepos,
     getTeamFeatureStates,
-    getTeamAccessibleRepos,
+    updateTeamFeatureState,
   };
 };
 

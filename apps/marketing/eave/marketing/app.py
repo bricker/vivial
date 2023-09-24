@@ -6,10 +6,7 @@ import eave.stdlib.cookies
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
-from eave.stdlib.core_api.models.github_repos import (
-  GithubRepoCreateInput
-)
-
+from eave.stdlib.core_api.models.github_repos import (GithubRepoUpdateInput)
 
 from eave.stdlib.endpoints import status_payload
 import eave.stdlib.requests
@@ -120,46 +117,35 @@ async def get_team_repos(team_id: str) -> Response:
     origin=app_config.eave_origin,
     account_id=auth_cookies.account_id,
     access_token=auth_cookies.access_token,
-    team_id=team_id
+    team_id=team_id,
+    input=None,
   )
 
   return _json_response(body=eave_response.json())
 
 
-@app.route("/dashboard/team/repos/create", methods=["POST"])
-async def create_team_repo() -> Response:
+@app.route("/dashboard/team/repos/update", methods=["POST"])
+async def update_team_repos() -> Response:
   auth_cookies = get_auth_cookies(cookies=request.cookies)
 
   if not auth_cookies.access_token or not auth_cookies.account_id:
     raise werkzeug.exceptions.Unauthorized()
 
   body = request.get_json()
-  team_id = body['teamId']
-  external_repo_id = body['externalRepoId']
+  team_id = body['team_id']
+  repos = body['repos']
 
-  eave_response = await github_repos.CreateGithubRepoRequest.perform(
+  eave_response = await github_repos.UpdateGithubReposRequest.perform(
     origin=app_config.eave_origin,
     account_id=auth_cookies.account_id,
     access_token=auth_cookies.access_token,
     team_id=team_id,
-    input=github_repos.CreateGithubRepoRequest.RequestBody(
-      repo=GithubRepoCreateInput(external_repo_id=external_repo_id)
+    input=github_repos.UpdateGithubReposRequest.RequestBody(
+      repos=repos
     )
   )
 
   return _json_response(body=eave_response.json())
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @app.route("/dashboard/logout", methods=["GET"])

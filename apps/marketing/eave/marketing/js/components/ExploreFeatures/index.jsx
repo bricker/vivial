@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Typography } from '@material-ui/core';
 import useTeam from '../../hooks/useTeam';
-import { FEATURES, FEATURE_STATES } from '../../constants';
+import { FEATURE_STATES } from '../../constants';
 import FeatureCard from '../FeatureCard/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
@@ -39,15 +39,13 @@ const makeClasses = makeStyles((theme) => ({
 const ExploreFeatures = ({ onInlineDocsClick }) => {
   const classes = makeClasses();
   const { team } = useTeam();
-  const showInlineDocsCard = team.featureStates[FEATURES.INLINE_CODE_DOCS] === FEATURE_STATES.DISABLED;
-
   return (
     <section className={classes.container}>
       <Typography className={classes.title} variant="h2">
         Explore Features
       </Typography>
       <div className={classes.featureCards}>
-        {showInlineDocsCard && (
+        {team.inlineCodeDocsState === FEATURE_STATES.DISABLED && (
           <FeatureCard
             className={classes.featureCard}
             onClick={onInlineDocsClick}
