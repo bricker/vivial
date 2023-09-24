@@ -1,14 +1,13 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
-import { FOOTER } from '../../../constants.js';
 import PageSection from '../../PageSection/index.jsx';
 import Copy from '../../Copy/index.jsx';
 import { imageUrl } from '../../../util/asset-helpers.js';
 
 const makeClasses = makeStyles((theme) => ({
   section: {
-    padding: `54px 40px calc(${FOOTER.mobile.heightPx} + 108px)`,
+    padding: `54px 40px calc(${theme.footer.height}px + 108px)`,
   },
   wrapper: {
     display: 'flex',

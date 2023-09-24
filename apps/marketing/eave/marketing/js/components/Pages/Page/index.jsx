@@ -12,6 +12,12 @@ const makeClasses = makeStyles((theme) => ({
     position: 'relative',
     minHeight: '100vh',
   },
+  sections: {
+    minHeight: `calc(100vh - ${theme.header.height}px - ${theme.header.marginBottom}px - ${theme.footer.height}px)`,
+    [theme.breakpoints.up('md')]: {
+      minHeight: `calc(100vh - ${theme.header.md.height}px - ${theme.header.md.marginBottom}px - ${theme.footer.height}px)`,
+    }
+  }
 }));
 
 const Page = ({ children, simpleHeader, hideFooter }) => {
@@ -19,7 +25,9 @@ const Page = ({ children, simpleHeader, hideFooter }) => {
   return (
     <div className={classes.container}>
       <Header simpleHeader={simpleHeader} />
-      {children}
+      <div className={classes.sections}>
+        {children}
+      </div>
       {!hideFooter && <Footer />}
       <AuthModal />
     </div>

@@ -2,8 +2,6 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 
-import { HEADER } from '../../constants.js';
-
 const makeClasses = makeStyles((theme) => ({
   section: {
     position: 'relative',

@@ -47,4 +47,16 @@ export const darkTheme = createTheme({
       'sans-serif',
     ].join(','),
   },
+  header: {
+    height: 66,
+    marginBottom: 28,
+    // Medium breakpoint.
+    md: {
+      height: 110,
+      marginBottom: 86,
+    }
+  },
+  footer: {
+    height: 70,
+  }
 });

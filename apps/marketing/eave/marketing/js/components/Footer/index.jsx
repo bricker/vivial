@@ -6,6 +6,7 @@ import Copy from '../Copy/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   outerContainer: {
+    height: theme.footer.height,
     width: '100%',
     zIndex: 10,
   },

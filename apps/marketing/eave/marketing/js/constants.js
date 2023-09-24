@@ -14,28 +14,6 @@ export const FEATURE_STATES = {
 
 export const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfkmCRGUy4IRG-jRwviYNiOk9oNIfRDBjc0CogtDpYGfsOktQ/viewform?usp=sf_link';
 
-export const HEADER = {
-  mobile: {
-    height: 66,
-    heightPx: '66px',
-  },
-  desktop: {
-    height: 110,
-    heightPx: '110px',
-  },
-};
-
-export const FOOTER = {
-  mobile: {
-    height: 81,
-    heightPx: '81px',
-  },
-  desktop: {
-    height: 78,
-    heightPx: '78px',
-  },
-};
-
 export const AFFILIATE_LOGOS = {
   amazon: {
     src: imageUrl('amazon-logo-3x.png'),

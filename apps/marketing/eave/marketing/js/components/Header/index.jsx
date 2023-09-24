@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { makeStyles } from '@material-ui/styles';
 import { IconButton, Drawer } from '@material-ui/core';
 
-import { HEADER, AUTH_MODAL_STATE, FEEDBACK_URL } from '../../constants.js';
+import { AUTH_MODAL_STATE, FEEDBACK_URL } from '../../constants.js';
 import useAuthModal from '../../hooks/useAuthModal.js';
 import useUser from '../../hooks/useUser.js';
 import HamburgerIcon from '../Icons/HamburgerIcon.js';
@@ -13,14 +13,15 @@ import EaveLogo from '../EaveLogo/index.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   outterContainer: {
+    marginBottom: theme.header.marginBottom,
     width: '100%',
     zIndex: 100,
-    marginBottom: 28,
     [theme.breakpoints.up('md')]: {
-      marginBottom: 86,
+      marginBottom: theme.header.md.marginBottom,
     }
   },
   innerContainer: {
+    height: theme.header.height,
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
@@ -28,7 +29,7 @@ const makeClasses = makeStyles((theme) => ({
     maxWidth: 1440,
     margin: '0 auto',
     [theme.breakpoints.up('md')]: {
-      height: HEADER.desktop.height,
+      height: theme.header.md.height,
       alignItems: 'center',
       padding: '0px 46px',
     },
