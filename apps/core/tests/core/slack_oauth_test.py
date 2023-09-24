@@ -246,8 +246,6 @@ class TestSlackOAuthHandler(BaseTestCase):
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
 
-            assert eave_team.beta_whitelisted is True
-
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
             assert (
                 response.headers["Location"]

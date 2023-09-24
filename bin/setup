@@ -131,7 +131,7 @@ function setupgcloud() (
 )
 
 function setupcloudsqlproxy() (
-	if ! ^force && ! ^cmd-exists "cloud-sql-proxy"; then
+	if ! ^force && ^cmd-exists "cloud-sql-proxy"; then
 		statusmsg -o "CloudSQL Proxy already installed."
 	else
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."

@@ -10,6 +10,8 @@ _base_url = shared_config.eave_internal_service_base(EaveApp.eave_api)
 
 class EndpointConfiguration:
     path: str
+    method: str
+    audience: EaveApp
     auth_required: bool
     team_id_required: bool
     signature_required: bool
@@ -18,12 +20,14 @@ class EndpointConfiguration:
     def __init__(
         self,
         path: str,
+        method: str = "POST",
         auth_required: bool = True,
         team_id_required: bool = True,
         signature_required: bool = True,
         origin_required: bool = True,
     ) -> None:
         self.path = path
+        self.method = method
         self.auth_required = auth_required
         self.team_id_required = team_id_required
         self.signature_required = signature_required
@@ -32,6 +36,11 @@ class EndpointConfiguration:
     @property
     def url(self) -> str:
         return f"{_base_url}{self.path}"
+
+
+class CoreApiEndpointConfiguration(EndpointConfiguration):
+    audience = EaveApp.eave_api
+
 
 class BaseRequestBody(pydantic.BaseModel):
     pass
@@ -55,7 +64,7 @@ class Endpoint:
     #     account_id: Optional[uuid.UUID] = None,
     # ) -> ResponseBody:
     #     response = await requests.make_request(
-    #         url=cls.config.url,
+    #         config=cls.config,
     #         origin=origin,
     #         input=input,
     #         team_id=team_id,
@@ -69,3 +78,7 @@ class Endpoint:
     #         return cls.ResponseBody(**response_json, _raw_response=response)
     #     else:
     #         return cls.ResponseBody(_raw_response=response)
+
+
+class CoreApiEndpoint(Endpoint):
+    config: CoreApiEndpointConfiguration

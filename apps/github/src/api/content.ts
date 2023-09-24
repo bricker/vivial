@@ -1,12 +1,10 @@
 import { GetGithubUrlContentRequestBody, GetGithubUrlContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/get-content.js";
-import headers from "@eave-fyi/eave-stdlib-ts/src/headers.js";
-import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { Blob, Query, Ref, Repository, Scalars } from "@octokit/graphql-schema";
 import { Request, Response } from "express";
 import { Octokit } from "octokit";
 import { loadQuery } from "../lib/graphql-util.js";
-import { createOctokitClient, createTeamOctokitClient, getInstallationId } from "../lib/octokit-util.js";
-import { GitHubOperationsContext } from "../types.js";
+import { createTeamOctokitClient } from "../lib/octokit-util.js";
 
 export async function getContentSummaryHandler(req: Request, res: Response): Promise<void> {
   const ctx = LogContext.load(res);
@@ -40,7 +38,7 @@ async function getFileContent(client: Octokit, url: string, ctx: LogContext): Pr
 async function getRepositoryByUrl(client: Octokit, url: string, ctx: LogContext): Promise<Repository | null> {
   const query = await loadQuery("getResource");
   const variables: {
-    resourceUrl: Scalars["URI"];
+    resourceUrl: Scalars["URI"]["input"];
   } = {
     resourceUrl: url,
   };
@@ -102,10 +100,10 @@ async function getFileInfoFromUrl(client: Octokit, repository: Repository, url: 
     const candidateBranchName = rest.slice(0, numberOfSegments).join("/");
 
     const variables: {
-      repoOwner: Scalars["String"];
-      repoName: Scalars["String"];
-      refPrefix: Scalars["String"];
-      refQuery: Scalars["String"];
+      repoOwner: Scalars["String"]["input"];
+      repoName: Scalars["String"]["input"];
+      refPrefix: Scalars["String"]["input"];
+      refQuery: Scalars["String"]["input"];
     } = {
       repoOwner: repository.owner.login,
       repoName: repository.name,
@@ -178,9 +176,9 @@ async function getRawContent(client: Octokit, url: string, ctx: LogContext): Pro
 
   const contentsQuery = await loadQuery("getFileContentsByPath");
   const variables: {
-    repoOwner: Scalars["String"];
-    repoName: Scalars["String"];
-    expression: Scalars["String"];
+    repoOwner: Scalars["String"]["input"];
+    repoName: Scalars["String"]["input"];
+    expression: Scalars["String"]["input"];
   } = {
     repoOwner: repository.owner.login,
     repoName: repository.name,

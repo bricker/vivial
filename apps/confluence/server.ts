@@ -1,6 +1,6 @@
 import { applyShutdownHandlers } from "@eave-fyi/eave-stdlib-ts/src/api-util.js";
 import { registerDevApp } from "@eave-fyi/eave-stdlib-ts/src/connect/dev-tunnel-config.js";
-import { app, addon } from "./src/app.js";
+import { addon, app } from "./src/app.js";
 import appConfig from "./src/config.js";
 
 const PORT = parseInt(process.env["PORT"] || "5400", 10);

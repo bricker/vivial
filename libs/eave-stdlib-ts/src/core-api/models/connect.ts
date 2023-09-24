@@ -1,34 +1,34 @@
 export enum AtlassianProduct {
-    jira = 'jira',
-    confluence = 'confluence',
+  jira = "jira",
+  confluence = "confluence",
 }
 
 export type ConnectInstallation = {
-    id: string;
-    product: AtlassianProduct;
-    client_key: string;
-    base_url: string;
-    shared_secret: string;
-    team_id: string | null;
-    atlassian_actor_account_id: string | null;
-    display_url: string | null;
-    description: string | null;
+  id: string;
+  product: AtlassianProduct;
+  client_key: string;
+  base_url: string;
+  shared_secret: string;
+  team_id: string | null;
+  atlassian_actor_account_id: string | null;
+  display_url: string | null;
+  description: string | null;
 }
 
 export type RegisterConnectInstallationInput = {
-    product: AtlassianProduct;
-    client_key: string;
-    base_url: string;
-    shared_secret: string;
-    atlassian_actor_account_id: string | null;
-    display_url: string | null;
-    description: string | null;
+  product: AtlassianProduct;
+  client_key: string;
+  base_url: string;
+  shared_secret: string;
+  atlassian_actor_account_id: string | null;
+  display_url: string | null;
+  description: string | null;
 }
 
 export type QueryConnectInstallationInput = {
-    product: AtlassianProduct;
+  product: AtlassianProduct;
 
-    // TODO: Validation on these fields (see the Python counterpart for an example)
-    client_key?: string;
-    team_id?: string;
+  // TODO: Validation on these fields (see the Python counterpart for an example)
+  client_key?: string;
+  team_id?: string;
 }

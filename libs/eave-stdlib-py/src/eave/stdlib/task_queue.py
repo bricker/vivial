@@ -10,6 +10,7 @@ from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,
     EAVE_ORIGIN_HEADER,
     EAVE_REQUEST_ID_HEADER,
+    EAVE_SIG_TS_HEADER,
     EAVE_SIGNATURE_HEADER,
     EAVE_TEAM_ID_HEADER,
     GCP_CLOUD_TRACE_CONTEXT,
@@ -51,6 +52,7 @@ async def create_task_from_request(
     target_path: str,
     request: Request,
     origin: EaveApp,
+    audience: EaveApp,
     ctx: Optional[LogContext],
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
@@ -72,6 +74,7 @@ async def create_task_from_request(
         target_path=target_path,
         payload=payload,
         origin=origin,
+        audience=audience,
         unique_task_id=unique_task_id,
         task_name_prefix=task_name_prefix,
         headers=headers,
@@ -84,6 +87,7 @@ async def create_task(
     target_path: str,
     payload: JsonObject | bytes,
     origin: EaveApp,
+    audience: EaveApp,
     ctx: Optional[LogContext],
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
@@ -104,11 +108,15 @@ async def create_task(
     headers[CONTENT_TYPE] = "application/json"
 
     request_id = ctx.eave_request_id
-    signature_message = signing.build_message_to_sign(
+    eave_sig_ts = signing.make_sig_ts()
+
+    signature_message, ts = signing.build_message_to_sign(
         method="POST",
-        origin=origin.value,
+        origin=origin,
+        ts=eave_sig_ts,
+        audience=audience,
         request_id=request_id,
-        url=target_path,
+        path=target_path,
         payload=body.decode(),
         team_id=ctx.eave_team_id,
         account_id=ctx.eave_account_id,
@@ -118,6 +126,7 @@ async def create_task(
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
     headers[EAVE_SIGNATURE_HEADER] = signature
+    headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
     headers[EAVE_REQUEST_ID_HEADER] = request_id
     headers[EAVE_ORIGIN_HEADER] = origin.value
 

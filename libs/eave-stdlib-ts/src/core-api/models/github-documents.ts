@@ -1,12 +1,12 @@
 export enum Status {
-  PROCESSING = 'processing',
-  PR_OPENED = 'pr_opened',
-  PR_MERGED = 'pr_merged',
+  PROCESSING = "processing",
+  PR_OPENED = "pr_opened",
+  PR_MERGED = "pr_merged",
 }
 
 export enum DocumentType {
-  API_DOCUMENT = 'api_document',
-  ARCHITECTURE_DOCUMENT = 'architecture_document',
+  API_DOCUMENT = "api_document",
+  ARCHITECTURE_DOCUMENT = "architecture_document",
 }
 
 export type GithubDocument = {
@@ -19,7 +19,7 @@ export type GithubDocument = {
   file_path: string | null;
   api_name: string | null;
   type: DocumentType;
-}
+};
 
 export type GithubDocumentsQueryInput = {
   id?: string;
@@ -42,17 +42,17 @@ export type GithubDocumentValuesInput = {
   status?: Status;
   file_path?: string;
   api_name?: string;
-}
+};
 
 export type GithubDocumentUpdateInput = {
   id: string;
   new_values: GithubDocumentValuesInput;
-}
+};
 
 export type GithubDocumentsDeleteByIdsInput = {
   id: string;
-}
+};
 
 export type GithubDocumentsDeleteByTypeInput = {
   type: DocumentType;
-}
+};

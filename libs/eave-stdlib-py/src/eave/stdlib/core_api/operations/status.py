@@ -1,12 +1,10 @@
 import aiohttp
 
-from . import BaseResponseBody, EndpointConfiguration
-
-from . import Endpoint
+from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
-class Status(Endpoint):
-    config = EndpointConfiguration(
+class Status(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/status",
         auth_required=False,
         team_id_required=False,

@@ -3,18 +3,17 @@ import uuid
 
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
 from eave.stdlib.core_api.models.documents import DocumentInput
-from . import BaseRequestBody, BaseResponseBody, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models.subscriptions import DocumentReference, DocumentReferenceInput, Subscription
 from ..models.subscriptions import SubscriptionInput
 
-from . import Endpoint
 from ..models import team
 from ... import requests
 
 
-class UpsertDocument(Endpoint):
-    config = EndpointConfiguration(
+class UpsertDocument(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/documents/upsert",
         auth_required=False,
     )
@@ -36,7 +35,7 @@ class UpsertDocument(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -46,8 +45,8 @@ class UpsertDocument(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class SearchDocuments(Endpoint):
-    config = EndpointConfiguration(
+class SearchDocuments(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/documents/search",
         auth_required=False,
     )
@@ -64,7 +63,7 @@ class SearchDocuments(Endpoint):
         cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -74,8 +73,8 @@ class SearchDocuments(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class DeleteDocument(Endpoint):
-    config = EndpointConfiguration(
+class DeleteDocument(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/documents/delete",
         auth_required=False,
     )
@@ -94,7 +93,7 @@ class DeleteDocument(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,

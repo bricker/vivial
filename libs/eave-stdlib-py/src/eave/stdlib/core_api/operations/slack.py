@@ -1,14 +1,14 @@
 from typing import Unpack
 from eave.stdlib.core_api.models.slack import SlackInstallation
 from eave.stdlib.core_api.models.slack import SlackInstallationInput
-from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models import team
 from ... import requests
 
 
-class GetSlackInstallation(Endpoint):
-    config = EndpointConfiguration(
+class GetSlackInstallation(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/integrations/slack/query",
         auth_required=False,
         team_id_required=False,
@@ -28,7 +28,7 @@ class GetSlackInstallation(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             **kwargs,
         )

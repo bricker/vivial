@@ -1,6 +1,6 @@
 export type SlackInstallationInput = {
   slack_team_id: string;
-}
+};
 
 export type SlackInstallation = {
   id: string;

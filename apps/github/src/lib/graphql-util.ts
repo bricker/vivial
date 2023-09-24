@@ -1,7 +1,7 @@
-import { promises as fs } from 'node:fs';
-import { validate, Query, ProjectV2Item, Issue } from '@octokit/graphql-schema';
-import GlobalCache from '../lib/cache.js';
-import { GitHubOperationsContext } from '../types.js';
+import { Issue, ProjectV2Item, Query, validate } from "@octokit/graphql-schema";
+import { promises as fs } from "node:fs";
+import GlobalCache from "../lib/cache.js";
+import { GitHubOperationsContext } from "../types.js";
 
 export async function loadQuery(name: string): Promise<string> {
   const cacheKey = `query.${name}`;
@@ -10,7 +10,7 @@ export async function loadQuery(name: string): Promise<string> {
     return cachedValue.toString();
   }
 
-  const query = await fs.readFile(`./src/graphql/${name}.graphql`, 'utf-8');
+  const query = await fs.readFile(`./src/graphql/${name}.graphql`, "utf-8");
   const errors = await validate(query);
   if (errors.length > 0) {
     throw new Error(`GraphQL query ${name} is invalid: ${errors}`);
@@ -21,13 +21,13 @@ export async function loadQuery(name: string): Promise<string> {
 }
 
 export async function getProjectV2ItemFieldValue(itemNodeId: string, fieldName: string, context: GitHubOperationsContext): Promise<ProjectV2Item> {
-  const query = await loadQuery('getProjectV2ItemFieldValue');
+  const query = await loadQuery("getProjectV2ItemFieldValue");
   const variables = {
     itemNodeId,
     fieldName,
   };
 
-  const response = await context.octokit.graphql<{ node: Query['node'] }>(query, variables);
+  const response = await context.octokit.graphql<{ node: Query["node"] }>(query, variables);
   const projectV2Item = <ProjectV2Item>response.node!;
   return projectV2Item;
 }
@@ -60,12 +60,12 @@ export async function getProjectV2ItemFieldValue(itemNodeId: string, fieldName: 
 // }
 
 export async function getIssueByNodeId(nodeId: string, context: GitHubOperationsContext): Promise<Issue> {
-  const query = await loadQuery('getIssueByNodeId');
+  const query = await loadQuery("getIssueByNodeId");
   const variables = {
     nodeId,
   };
 
-  const response = await context.octokit.graphql<{ node: Query['node'] }>(query, variables);
+  const response = await context.octokit.graphql<{ node: Query["node"] }>(query, variables);
   const item = <Issue>response.node;
   return item;
 }

@@ -1,11 +1,10 @@
-import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { createHash } from "crypto";
-import Signing, { buildMessageToSign } from './signing.js';
-import { InvalidSignatureError } from './exceptions.js';
-import { JsonObject } from './types.js';
-import { EaveApp } from './eave-origins.js';
-import { LogContext } from './logging.js';
+import express from "express";
+import { v4 as uuidv4 } from "uuid";
+import { EaveApp } from "./eave-origins.js";
+import { InvalidSignatureError } from "./exceptions.js";
+import { LogContext } from "./logging.js";
+import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 
 /*
   These libraries aren't listed in the dependencies for eave-stdlib-ts, because they are development dependencies but this file is exported from this library.
@@ -13,8 +12,8 @@ import { LogContext } from './logging.js';
   These imports will fail in a non-development environment.
 */
 /* eslint-disable import/order, import/no-extraneous-dependencies */
-import request from "supertest";
 import sinon from "sinon";
+import request from "supertest";
 /* eslint-enable import/order, import/no-extraneous-dependencies */
 
 export class TestUtil {
@@ -39,13 +38,12 @@ export interface TestContextBase {
   u: TestUtil;
 }
 
-
 function fakeSign(m: string | Buffer): string {
   return createHash("sha256").update(m).digest().toString("base64");
 }
 
 const replacementSignFunc = async (data: string | Buffer): Promise<string> => {
-  return fakeSign(data)
+  return fakeSign(data);
 };
 
 const replacementVerifyFunc = async (message: string | Buffer, signature: string | Buffer): Promise<void> => {
@@ -63,32 +61,10 @@ export function mockSigning({ sandbox }: { sandbox: sinon.SinonSandbox }) {
   sandbox.stub(mock, "verifySignatureOrException").callsFake(replacementVerifyFunc);
 }
 
-export async function makeRequest({
-  app,
-  path,
-  teamId,
-  accountId,
-  input,
-  accessToken,
-  headers,
-  method = 'post',
-  origin = EaveApp.eave_www,
-  requestId = uuidv4(),
-}: {
-  app: express.Express,
-  path: string,
-  input?: unknown,
-  method?: 'get' | 'post',
-  origin?: EaveApp,
-  teamId?: string,
-  accountId?: string,
-  accessToken?: string,
-  requestId?: string,
-  headers?: {[key:string]: string},
-}): Promise<request.Test> {
+export async function makeRequest({ app, path, teamId, accountId, input, accessToken, headers, audience, method = "post", origin = EaveApp.eave_www, requestId = uuidv4() }: { app: express.Express; path: string; audience: EaveApp; input?: unknown; method?: "get" | "post"; origin?: EaveApp; teamId?: string; accountId?: string; accessToken?: string; requestId?: string; headers?: { [key: string]: string } }): Promise<request.Test> {
   const ctx = new LogContext();
-  const updatedHeaders: {[key:string]: string} = {};
-  const requestAgent = request(app)[method](path).type('json');
+  const updatedHeaders: { [key: string]: string } = {};
+  const requestAgent = request(app)[method](path).type("json");
 
   if (teamId !== undefined) {
     updatedHeaders["eave-team-id"] = teamId;
@@ -104,26 +80,35 @@ export async function makeRequest({
     updatedHeaders["authorization"] = `Bearer ${accessToken}`;
   }
 
+  let eaveSigTs: number;
+  const eaveSigTsHeader = headers?.["eave-sig-ts"];
+  if (eaveSigTsHeader) {
+    eaveSigTs = parseInt(eaveSigTsHeader, 10);
+  } else {
+    eaveSigTs = makeSigTs();
+    updatedHeaders["eave-sig-ts"] = eaveSigTs.toString();
+  }
+
   updatedHeaders["eave-request-id"] = requestId;
   updatedHeaders["eave-origin"] = origin;
 
   let encodedPayload: string;
 
   if (input === undefined) {
-    encodedPayload = '{}';
+    encodedPayload = "{}";
   } else if (typeof input !== "string") {
     encodedPayload = JSON.stringify(input);
   } else {
     encodedPayload = input;
   }
 
-  // supertest binds the server to an ephemeral port, so we need to get the server address from it.
-  const url = requestAgent.url;
   const message = buildMessageToSign({
     method,
-    url,
+    path,
+    ts: eaveSigTs,
     requestId,
     origin,
+    audience,
     payload: encodedPayload,
     teamId,
     accountId,
@@ -138,9 +123,7 @@ export async function makeRequest({
     Object.assign(updatedHeaders, headers);
   }
 
-  const response = await requestAgent
-    .set(updatedHeaders)
-    .send(encodedPayload);
+  const response = await requestAgent.set(updatedHeaders).send(encodedPayload);
 
   return response;
 }

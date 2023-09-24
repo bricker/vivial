@@ -7,10 +7,12 @@ from . import GithubAppEndpoint, GithubAppEndpointConfiguration
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.core_api.models.subscriptions import Subscription, DocumentReference
 
+
 class CreateGithubResourceSubscription(GithubAppEndpoint):
     config = GithubAppEndpointConfiguration(
         path="/github/api/subscribe",
     )
+
     class RequestBody(BaseRequestBody):
         url: str
 
@@ -24,7 +26,7 @@ class CreateGithubResourceSubscription(GithubAppEndpoint):
         cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,

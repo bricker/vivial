@@ -11,7 +11,6 @@ from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequ
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.operations.content import GetGithubUrlContent
 import eave.stdlib.link_handler as link_handler
-import eave.stdlib.github_api.operations as gh_ops
 from eave.stdlib.test_util import UtilityBaseTestCase
 import unittest.mock
 

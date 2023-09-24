@@ -11,6 +11,6 @@ export type EaveDocument = {
 }
 
 export type DocumentSearchResult = {
-    title: string;
-    url: string;
-}
+  title: string;
+  url: string;
+};

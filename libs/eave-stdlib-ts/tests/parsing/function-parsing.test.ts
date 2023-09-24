@@ -1,11 +1,11 @@
-import test from 'ava';
-import { parseFunctionsAndComments, writeUpdatedCommentsIntoFileString } from '../../src/parsing/function-parsing.js';
-import { ProgrammingLanguage } from '../../src/programming-langs/language-mapping.js';
+import test from "ava";
+import { parseFunctionsAndComments, writeUpdatedCommentsIntoFileString } from "../../src/parsing/function-parsing.js";
+import { ProgrammingLanguage } from "../../src/programming-langs/language-mapping.js";
 
-test('Typescript grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Typescript grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.ts';
+  const extName = ".ts";
   const language = ProgrammingLanguage.typescript;
   const content = `import { appConfig } from './src/config.js';
 
@@ -93,10 +93,10 @@ async function fizzbuzz(): Promise<string> {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('Javascript grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Javascript grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.js';
+  const extName = ".js";
   const language = ProgrammingLanguage.javascript;
   const content = `const appConfig = require('./src/config.js');
 
@@ -183,10 +183,10 @@ async function fizzbuzz() {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('Rust grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Rust grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.rs';
+  const extName = ".rs";
   const language = ProgrammingLanguage.rust;
   const content = `mod app_config;
 
@@ -266,10 +266,10 @@ async fn fizzbuzz() -> Result<&str> {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('C grammar queries adds/replaces all doc comments correctly', (t) => {
+test("C grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.c';
+  const extName = ".c";
   const language = ProgrammingLanguage.c;
   const content = `#include "./src/config.h";
 #include <stdio.h>;
@@ -359,10 +359,10 @@ char* fizzbuzz() {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('C++ grammar queries adds/replaces all doc comments correctly', (t) => {
+test("C++ grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.cpp';
+  const extName = ".cpp";
   const language = ProgrammingLanguage.cpp;
   const content = `#include "./src/config.h";
 #include <stdio.h>;
@@ -452,10 +452,10 @@ char* fizzbuzz() {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('Go grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Go grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.go';
+  const extName = ".go";
   const language = ProgrammingLanguage.go;
   const content = `package main
 
@@ -535,10 +535,10 @@ func fizzbuzz() string {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('Java grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Java grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.java';
+  const extName = ".java";
   const language = ProgrammingLanguage.java;
   const content = `import com.src.config;
 
@@ -630,10 +630,10 @@ public class Main {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('Kotlin grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Kotlin grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.kt';
+  const extName = ".kt";
   const language = ProgrammingLanguage.kotlin;
   const content = `import com.src.config;
 
@@ -721,10 +721,10 @@ suspend fun fizzbuzz(): Deferred<String> {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('PHP grammar queries adds/replaces all doc comments correctly', (t) => {
+test("PHP grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.php';
+  const extName = ".php";
   const language = ProgrammingLanguage.php;
   const content = `<?php
 
@@ -816,10 +816,10 @@ function fizzbuzz() {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('Ruby grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Ruby grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.rb';
+  const extName = ".rb";
   const language = ProgrammingLanguage.ruby;
   const content = `require "./src/config.js";
 
@@ -895,10 +895,10 @@ end
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('Swift grammar queries adds/replaces all doc comments correctly', (t) => {
+test("Swift grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.swift';
+  const extName = ".swift";
   const language = ProgrammingLanguage.swift;
   const content = `import Config
 
@@ -978,10 +978,10 @@ func fizzbuzz() -> String {
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test('C# grammar queries adds/replaces all doc comments correctly', (t) => {
+test("C# grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = '.cs';
+  const extName = ".cs";
   const language = ProgrammingLanguage.csharp;
   const content = `using System;
 

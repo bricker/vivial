@@ -1,5 +1,5 @@
-import { encoding_for_model } from 'tiktoken';
-import { OpenAIModel } from './models.js';
+import { encoding_for_model } from "tiktoken";
+import { OpenAIModel } from "./models.js";
 
 /**
  * Cost per 1k prompt tokens by model.

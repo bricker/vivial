@@ -10,7 +10,7 @@ from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocu
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.core_api.operations.github import GetGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.subscriptions import (
     CreateSubscriptionRequest,
     DeleteSubscriptionRequest,
@@ -33,6 +33,7 @@ from eave.stdlib.core_api.operations.github_repos import (
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 from eave.stdlib.middleware.base import EaveASGIMiddleware
+from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -53,7 +54,7 @@ eave.stdlib.time.set_utc()
 
 
 def make_route(
-    config: EndpointConfiguration,
+    config: CoreApiEndpointConfiguration,
     endpoint: ASGI3Application,
 ) -> Route:
     """
@@ -147,37 +148,18 @@ def make_route(
     So, that's a long-winded explanation of the order of the middlewares below.
     """
 
-    # The above explanation was to explain this approach:
-    # endpoint = TeamLookupASGIMiddleware(app=endpoint, endpoint_config=config) # Last thing to happen before the Route handler
-    # endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
-    # endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config)
-    # endpoint = OriginASGIMiddleware(app=endpoint, endpoint_config=config) # First thing to happen when the middleware chain is kicked off
-
-    # But now we're using this approach, which is maybe more readable, or at least easier to understand.
-    # This could probably be done more simply using `reduce`
-    return Route(
-        path=config.path,
-        endpoint=OriginASGIMiddleware(
-            endpoint_config=config,
-            app=SignatureVerificationASGIMiddleware(
-                endpoint_config=config,
-                app=AuthASGIMiddleware(
-                    endpoint_config=config,
-                    app=TeamLookupASGIMiddleware(
-                        endpoint_config=config,
-                        app=endpoint,
-                    )
-                )
-            )
-        )
-    )
+    endpoint = TeamLookupASGIMiddleware(app=endpoint, endpoint_config=config) # Last thing to happen before the Route handler
+    endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
+    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
+    endpoint = OriginASGIMiddleware(app=endpoint, endpoint_config=config) # First thing to happen when the middleware chain is kicked off
+    return Route(path=config.path, endpoint=endpoint)
 
 
 routes = [
-    Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
     Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
     Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
     Route(path="/_ah/stop", endpoint=status.StopRequest, methods=["GET"]),
+    Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
@@ -228,6 +210,18 @@ routes = [
         config=GetTeamRequest.config,
         endpoint=team.GetTeamEndpoint,
     ),
+    make_route(
+        config=CreateGithubRepoRequest.config,
+        endpoint=github_repos.CreateGithubRepoEndpoint,
+    ),
+    make_route(
+        config=GetGithubReposRequest.config,
+        endpoint=github_repos.GetGithubRepoEndpoint,
+    ),
+    make_route(
+        config=FeatureStateGithubReposRequest.config,
+        endpoint=github_repos.FeatureStateGithubReposEndpoint,
+    ),
     # Authenticated API endpoints.
     make_route(
         config=CreateGithubDocumentRequest.config,
@@ -250,24 +244,12 @@ routes = [
         endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
     ),
     make_route(
-        config=CreateGithubRepoRequest.config,
-        endpoint=github_repos.CreateGithubRepoEndpoint,
-    ),
-    make_route(
-        config=GetGithubReposRequest.config,
-        endpoint=github_repos.GetGithubRepoEndpoint,
-    ),
-    make_route(
         config=UpdateGithubReposRequest.config,
         endpoint=github_repos.UpdateGithubReposEndpoint,
     ),
     make_route(
         config=DeleteGithubReposRequest.config,
         endpoint=github_repos.DeleteGithubReposEndpoint,
-    ),
-    make_route(
-        config=FeatureStateGithubReposRequest.config,
-        endpoint=github_repos.FeatureStateGithubReposEndpoint,
     ),
     make_route(
         config=UpsertConfluenceDestinationAuthedRequest.config,
@@ -284,7 +266,7 @@ routes = [
     # OAuth endpoints.
     # These endpoints don't require any verification (except the OAuth flow itself)
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/google/authorize",
             auth_required=False,
             signature_required=False,
@@ -294,7 +276,7 @@ routes = [
         endpoint=google_oauth.GoogleOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/google/callback",
             auth_required=False,
             signature_required=False,
@@ -304,7 +286,7 @@ routes = [
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/slack/authorize",
             auth_required=False,
             signature_required=False,
@@ -314,7 +296,7 @@ routes = [
         endpoint=slack_oauth.SlackOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/slack/callback",
             auth_required=False,
             signature_required=False,
@@ -324,7 +306,7 @@ routes = [
         endpoint=slack_oauth.SlackOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/atlassian/authorize",
             auth_required=False,
             signature_required=False,
@@ -334,7 +316,7 @@ routes = [
         endpoint=atlassian_oauth.AtlassianOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/atlassian/callback",
             auth_required=False,
             signature_required=False,
@@ -344,7 +326,7 @@ routes = [
         endpoint=atlassian_oauth.AtlassianOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/github/authorize",
             auth_required=False,
             signature_required=False,
@@ -354,7 +336,7 @@ routes = [
         endpoint=github_oauth.GithubOAuthAuthorize,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/oauth/github/callback",
             auth_required=False,
             signature_required=False,
@@ -364,7 +346,7 @@ routes = [
         endpoint=github_oauth.GithubOAuthCallback,
     ),
     make_route(
-        config=EndpointConfiguration(
+        config=CoreApiEndpointConfiguration(
             path="/favicon.ico",
             auth_required=False,
             signature_required=False,

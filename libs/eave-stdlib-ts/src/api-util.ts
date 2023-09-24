@@ -1,26 +1,25 @@
-import Express, { Handler } from "express";
-import { constants as httpConstants } from 'node:http2';
-import { IRouter, Request, Response, Router } from 'express';
-import { Server } from 'http';
-import { StatusResponseBody } from './core-api/operations/status.js';
-import { sharedConfig } from './config.js';
-import { getCacheClient, cacheInitialized } from './cache.js';
-import {eaveLogger} from './logging.js';
-import { redact } from './util.js';
+import Express, { IRouter, Request, Response, Router } from "express";
+import { Server } from "http";
+import { constants as httpConstants } from "node:http2";
+import { cacheInitialized, getCacheClient } from "./cache.js";
+import { sharedConfig } from "./config.js";
+import { StatusResponseBody } from "./core-api/operations/status.js";
+import { EaveApp } from "./eave-origins.js";
+import { eaveLogger } from "./logging.js";
 import { ExpressRoutingMethod } from "./types.js";
-
+import { redact } from "./util.js";
 
 export function statusPayload(): StatusResponseBody {
   return {
     service: sharedConfig.appService,
     version: sharedConfig.appVersion,
-    status: 'OK',
+    status: "OK",
   };
 }
 
 export function StatusRouter(): Router {
   const router = Router();
-  router.get('/', async (_req: Request, res: Response) => {
+  router.get("/", async (_req: Request, res: Response) => {
     const payload = statusPayload();
 
     if (cacheInitialized()) {
@@ -35,15 +34,15 @@ export function StatusRouter(): Router {
 }
 
 export function addGAELifecycleRoutes({ router }: { router: IRouter }) {
-  router.get('/_ah/start', (_req: Request, res: Response) => {
+  router.get("/_ah/start", (_req: Request, res: Response) => {
     res.sendStatus(200);
   });
 
-  router.get('/_ah/stop', (_req: Request, res: Response) => {
+  router.get("/_ah/stop", (_req: Request, res: Response) => {
     res.sendStatus(200);
   });
 
-  router.get('/_ah/warmup', async (_req: Request, res: Response) => {
+  router.get("/_ah/warmup", async (_req: Request, res: Response) => {
     // Initializes a client and connects to Redis
     const cacheClient = await getCacheClient();
     await cacheClient.ping();
@@ -56,11 +55,15 @@ export function gracefulShutdownHandler({ server }: { server: Server }): () => v
     if (cacheInitialized()) {
       getCacheClient()
         .then((client) => client.quit())
-        .then(() => { eaveLogger.info('redis connection closed.'); })
-        .catch((e) => { eaveLogger.error(e); })
+        .then(() => {
+          eaveLogger.info("redis connection closed.");
+        })
+        .catch((e) => {
+          eaveLogger.error(e);
+        })
         .finally(() => {
           server.close(() => {
-            eaveLogger.info('HTTP server closed');
+            eaveLogger.info("HTTP server closed");
           });
         });
     }
@@ -69,22 +72,14 @@ export function gracefulShutdownHandler({ server }: { server: Server }): () => v
 
 export function applyShutdownHandlers({ server }: { server: Server }) {
   const handler = gracefulShutdownHandler({ server });
-  process.on('SIGTERM', handler);
-  process.on('SIGINT', handler);
+  process.on("SIGTERM", handler);
+  process.on("SIGINT", handler);
 }
 
 export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<string>): { [key: string]: string | undefined } {
-  const redactedCaseInsensitive = new Set<string>(
-    redacted
-      ? Array.from(redacted).map((v) => v.toLowerCase())
-      : [],
-  );
+  const redactedCaseInsensitive = new Set<string>(redacted ? Array.from(redacted).map((v) => v.toLowerCase()) : []);
 
-  const excludedCaseInsensitive = new Set<string>(
-    excluded
-      ? Array.from(excluded).map((v) => v.toLowerCase())
-      : [],
-  );
+  const excludedCaseInsensitive = new Set<string>(excluded ? Array.from(excluded).map((v) => v.toLowerCase()) : []);
 
   redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_AUTHORIZATION);
   redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_COOKIE);
@@ -94,7 +89,7 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
   Object.entries(req.headers).forEach(([k, v]) => {
     const lck = k.toLowerCase();
     if (!excludedCaseInsensitive.has(lck)) {
-      const joined = v instanceof Array ? v.join(',') : v;
+      const joined = v instanceof Array ? v.join(",") : v;
       logHeaders[lck] = redactedCaseInsensitive.has(lck) ? redact(joined) : joined;
     }
   });
@@ -102,59 +97,30 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
   return logHeaders;
 }
 
-export function constructUrl(req: Request): string {
-  const audience = req.header(httpConstants.HTTP2_HEADER_HOST);
-  const proto = req.protocol;
-  const path = req.originalUrl;
-
-  return `${proto}://${audience}${path}`;
-}
-
 export abstract class ClientApiEndpointConfiguration {
   path: string;
   method: ExpressRoutingMethod;
+
+  abstract audience: EaveApp;
+
   abstract get url(): string;
 
-  constructor({
-    path,
-    method = ExpressRoutingMethod.post,
-  }: {
-    path: string;
-    method?: ExpressRoutingMethod;
-  }) {
+  constructor({ path, method = ExpressRoutingMethod.post }: { path: string; method?: ExpressRoutingMethod }) {
     this.path = path;
     this.method = method;
   }
 }
 
-export abstract class ServerApiEndpointConfiguration {
-  path: string;
-  method: ExpressRoutingMethod;
+export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointConfiguration {
   teamIdRequired: boolean;
   authRequired: boolean;
   originRequired: boolean;
   signatureRequired: boolean;
 
   abstract get middlewares(): Express.Handler[];
-  abstract get url(): string;
 
-  constructor({
-    path,
-    method = ExpressRoutingMethod.post,
-    teamIdRequired = true,
-    authRequired = true,
-    originRequired = true,
-    signatureRequired = true,
-  }: {
-    path: string;
-    method?: ExpressRoutingMethod;
-    teamIdRequired?: boolean;
-    authRequired?: boolean;
-    originRequired?: boolean;
-    signatureRequired?: boolean;
-  }) {
-    this.path = path;
-    this.method = method;
+  constructor({ path, method = ExpressRoutingMethod.post, teamIdRequired = true, authRequired = true, originRequired = true, signatureRequired = true }: { path: string; method?: ExpressRoutingMethod; teamIdRequired?: boolean; authRequired?: boolean; originRequired?: boolean; signatureRequired?: boolean }) {
+    super({ path, method });
     this.teamIdRequired = teamIdRequired;
     this.authRequired = authRequired;
     this.originRequired = originRequired;
@@ -173,6 +139,6 @@ export function handlerWrapper(func: Express.RequestHandler): Express.RequestHan
   };
 }
 
-export function makeRoute({ router, config, handler }: { router: Express.Router, config: ServerApiEndpointConfiguration, handler: Express.Handler }) {
+export function makeRoute({ router, config, handler }: { router: Express.Router; config: ServerApiEndpointConfiguration; handler: Express.Handler }) {
   router[config.method](config.path, ...config.middlewares, handlerWrapper(handler));
 }

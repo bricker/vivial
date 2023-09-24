@@ -5,14 +5,14 @@ query ($repoOwner: String!, $repoName: String!, $expression: String!) {
       commitResourcePath
       id
       oid
-      ...on Blob {
+      ... on Blob {
         text
       }
-      ...on Tree {
+      ... on Tree {
         entries {
           name
           object {
-            ...on Blob {
+            ... on Blob {
               oid
               text
             }

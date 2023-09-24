@@ -4,15 +4,14 @@ from eave.stdlib.core_api.models.subscriptions import DocumentReference
 from eave.stdlib.core_api.models.subscriptions import Subscription
 from eave.stdlib.core_api.models.subscriptions import DocumentReferenceInput
 from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
-from . import BaseRequestBody, BaseResponseBody, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
-from . import Endpoint
 from ..models import team
 from ... import requests
 
 
-class GetSubscriptionRequest(Endpoint):
-    config = EndpointConfiguration(
+class GetSubscriptionRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/subscriptions/query",
         auth_required=False,
     )
@@ -33,7 +32,7 @@ class GetSubscriptionRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -43,8 +42,8 @@ class GetSubscriptionRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class CreateSubscriptionRequest(Endpoint):
-    config = EndpointConfiguration(
+class CreateSubscriptionRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/subscriptions/create",
         auth_required=False,
     )
@@ -66,7 +65,7 @@ class CreateSubscriptionRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,
@@ -76,8 +75,8 @@ class CreateSubscriptionRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class DeleteSubscriptionRequest(Endpoint):
-    config = EndpointConfiguration(
+class DeleteSubscriptionRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/subscriptions/delete",
         auth_required=False,
     )
@@ -96,7 +95,7 @@ class DeleteSubscriptionRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             team_id=team_id,
             **kwargs,

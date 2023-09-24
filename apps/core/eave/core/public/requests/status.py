@@ -6,7 +6,7 @@ from starlette.responses import Response
 from eave.stdlib.endpoints import status_payload
 
 
-from ..http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 import eave.core.internal.database as eave_db
 import eave.core.internal
 from eave.stdlib.config import shared_config

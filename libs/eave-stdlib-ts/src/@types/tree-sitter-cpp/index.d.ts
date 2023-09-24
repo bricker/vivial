@@ -1,1 +1,1 @@
-declare module 'tree-sitter-cpp';
+declare module "tree-sitter-cpp";

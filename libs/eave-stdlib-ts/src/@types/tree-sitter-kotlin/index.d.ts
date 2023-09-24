@@ -1,1 +1,1 @@
-declare module 'tree-sitter-kotlin';
+declare module "tree-sitter-kotlin";

@@ -1,5 +1,6 @@
-import anyTest, { TestFn } from 'ava';
-import { TestContextBase, TestUtil, makeRequest, mockSigning } from '@eave-fyi/eave-stdlib-ts/src/test-util.js';
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
+import { TestContextBase, TestUtil, makeRequest, mockSigning } from "@eave-fyi/eave-stdlib-ts/src/test-util.js";
+import anyTest, { TestFn } from "ava";
 import sinon from "sinon";
 import { app } from "../src/app.js";
 
@@ -28,6 +29,7 @@ test.afterEach((t) => {
 test("endpoint is alive", async (t) => {
   const response = await makeRequest({
     app,
+    audience: EaveApp.eave_github_app,
     path: "/github/events",
     input: {}, // TODO: mock github event payload
     headers: {}, // TODO: mock github event headers

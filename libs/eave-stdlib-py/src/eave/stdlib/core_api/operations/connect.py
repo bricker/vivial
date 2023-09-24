@@ -6,14 +6,14 @@ from eave.stdlib.core_api.models.connect import (
     RegisterConnectInstallationInput,
 )
 
-from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 from ... import requests
 
 
-class RegisterConnectIntegrationRequest(Endpoint):
-    config = EndpointConfiguration(
+class RegisterConnectIntegrationRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/integrations/connect/register",
         auth_required=False,
         team_id_required=False,
@@ -35,7 +35,7 @@ class RegisterConnectIntegrationRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             **kwargs,
         )
@@ -44,8 +44,8 @@ class RegisterConnectIntegrationRequest(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class QueryConnectIntegrationRequest(Endpoint):
-    config = EndpointConfiguration(
+class QueryConnectIntegrationRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/integrations/connect/query",
         auth_required=False,
         team_id_required=False,
@@ -67,7 +67,7 @@ class QueryConnectIntegrationRequest(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             **kwargs,
         )

@@ -1,1 +1,1 @@
-declare module 'tree-sitter-swift';
+declare module "tree-sitter-swift";

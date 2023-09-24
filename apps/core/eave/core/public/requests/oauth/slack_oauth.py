@@ -15,7 +15,7 @@ from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal.config import app_config
 from eave.stdlib.logging import LogContext, eaveLogger
 
-from ...http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import EaveOnboardingErrorCode, base, shared
 
 _AUTH_PROVIDER = AuthProvider.slack

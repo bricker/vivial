@@ -1,11 +1,11 @@
-import { AddOn, HostClient } from 'atlassian-connect-express';
-import { CoreOptions, RequestResponse, UrlOptions } from 'request';
-import { promisify } from 'util';
-import { eaveLogger, LogContext } from '../logging.js';
-import { AtlassianProduct } from '../core-api/models/connect.js';
-import { EaveApp } from '../eave-origins.js';
-import { CtxArg } from '../requests.js';
-import { QueryConnectInstallationOperation } from '../core-api/operations/connect.js';
+import { AddOn, HostClient } from "atlassian-connect-express";
+import { CoreOptions, RequestResponse, UrlOptions } from "request";
+import { promisify } from "util";
+import { AtlassianProduct } from "../core-api/models/connect.js";
+import { QueryConnectInstallationOperation } from "../core-api/operations/connect.js";
+import { EaveApp } from "../eave-origins.js";
+import { LogContext, eaveLogger } from "../logging.js";
+import { CtxArg } from "../requests.js";
 
 export type RequestOpts = CoreOptions & UrlOptions;
 
@@ -18,11 +18,11 @@ export default class ConnectClient {
     clientKey,
     ctx,
   }: CtxArg & {
-    addon: AddOn,
-    product: AtlassianProduct,
-    origin: EaveApp,
-    teamId?: string,
-    clientKey?: string,
+    addon: AddOn;
+    product: AtlassianProduct;
+    origin: EaveApp;
+    teamId?: string;
+    clientKey?: string;
   }): Promise<HostClient> {
     if (!clientKey) {
       const connectIntegrationResponse = await QueryConnectInstallationOperation.perform({
@@ -62,7 +62,7 @@ export default class ConnectClient {
     this.client = client;
   }
 
-  async request(method: 'get' | 'post' | 'put' | 'del' | 'patch' | 'head', payload: RequestOpts, ctx?: LogContext): Promise<RequestResponse> {
+  async request(method: "get" | "post" | "put" | "del" | "patch" | "head", payload: RequestOpts, ctx?: LogContext): Promise<RequestResponse> {
     const finalPayload = {
       timeout: 1000 * 120,
       ...payload,
@@ -107,10 +107,6 @@ export default class ConnectClient {
       );
     }
 
-    eaveLogger.debug(
-      '[connect client] response body',
-      { body: response.body },
-      ctx,
-    );
+    eaveLogger.debug("[connect client] response body", { body: response.body }, ctx);
   }
 }

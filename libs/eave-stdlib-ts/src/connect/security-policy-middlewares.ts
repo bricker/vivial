@@ -1,18 +1,15 @@
-import helmet from 'helmet';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from "express";
+import helmet from "helmet";
 
 // Atlassian security policy requirements
 // http://go.atlassian.com/security-requirements-for-cloud-apps
 // HSTS must be enabled with a minimum age of at least one year
 
 const atlassianHeaderMiddleware = (_req: Request, res: Response, next: NextFunction) => {
-  res.setHeader('Surrogate-Control', 'no-store');
-  res.setHeader(
-    'Cache-Control',
-    'no-store, no-cache, must-revalidate, proxy-revalidate',
-  );
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
+  res.setHeader("Surrogate-Control", "no-store");
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   next();
 };
 
@@ -23,7 +20,7 @@ export const atlassianSecurityPolicyMiddlewares = [
   }),
 
   helmet.referrerPolicy({
-    policy: ['origin'],
+    policy: ["origin"],
   }),
 
   atlassianHeaderMiddleware,

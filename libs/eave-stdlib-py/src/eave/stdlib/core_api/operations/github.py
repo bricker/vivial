@@ -1,14 +1,14 @@
 from typing import Unpack
 from eave.stdlib.core_api.models.github import GithubInstallation
 from eave.stdlib.core_api.models.github import GithubInstallationInput
-from . import BaseRequestBody, BaseResponseBody, Endpoint, EndpointConfiguration
+from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models import team
 from ... import requests
 
 
-class GetGithubInstallation(Endpoint):
-    config = EndpointConfiguration(
+class GetGithubInstallation(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/integrations/github/query",
         auth_required=False,
         team_id_required=False,
@@ -28,7 +28,7 @@ class GetGithubInstallation(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=input,
             **kwargs,
         )

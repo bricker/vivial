@@ -1,6 +1,6 @@
-import OpenAIClient, { formatprompt } from './openai.js';
-import { OpenAIModel, maxTokens } from './models.js';
-import { tokenCount } from './token-counter.js';
+import { OpenAIModel, maxTokens } from "./models.js";
+import OpenAIClient, { formatprompt } from "./openai.js";
+import { tokenCount } from "./token-counter.js";
 
 /**
  * Given a `content` string to summarize that is (assumed) longer than `threshold`
@@ -15,17 +15,7 @@ import { tokenCount } from './token-counter.js';
  *                  (Recommended to be less than MAX_TOKENS allowed by API)
  * @return a summary of the content in `content`
  */
-export async function rollingSummary({
-  client,
-  content,
-  threshold = undefined,
-  model = OpenAIModel.GPT4,
-}: {
-  client: OpenAIClient,
-  content: string,
-  threshold?: number,
-  model?: OpenAIModel,
-}): Promise<string> {
+export async function rollingSummary({ client, content, threshold = undefined, model = OpenAIModel.GPT4 }: { client: OpenAIClient; content: string; threshold?: number; model?: OpenAIModel }): Promise<string> {
   const chunkSize = threshold === undefined ? Math.floor(maxTokens(model) / 2) : threshold;
   let summary = content;
 
@@ -49,28 +39,14 @@ export async function rollingSummary({
     for (const chunk of chunks.filter((chnk) => chnk.length > 0)) {
       let prompt: string;
       if (newSummary.length === 0) {
-        prompt = formatprompt(
-          'Condense the following information. Maintain the important information.\n',
-          '###',
-          chunk,
-          '###',
-        );
+        prompt = formatprompt("Condense the following information. Maintain the important information.\n", "###", chunk, "###");
       } else {
-        prompt = formatprompt(
-          'Amend and expand on the following information. Maintain the important information.\n\n',
-          '###',
-          newSummary,
-          '\n',
-          chunk,
-          '###',
-        );
+        prompt = formatprompt("Amend and expand on the following information. Maintain the important information.\n\n", "###", newSummary, "\n", chunk, "###");
       }
 
       newSummary = await client.createChatCompletion({
         parameters: {
-          messages: [
-            { role: 'user', content: prompt },
-          ],
+          messages: [{ role: "user", content: prompt }],
           model,
           temperature: 0.1,
           frequency_penalty: 1,

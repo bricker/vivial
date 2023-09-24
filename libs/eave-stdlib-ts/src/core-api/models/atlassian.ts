@@ -1,7 +1,7 @@
 export type ConfluenceSpace = {
   key: string;
   name: string;
-}
+};
 
 export type AtlassianInstallation = {
   id: string;

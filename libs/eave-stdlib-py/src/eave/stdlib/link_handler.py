@@ -11,7 +11,6 @@ from eave.stdlib.github_api.operations.subscriptions import CreateGithubResource
 from .core_api.models.subscriptions import SubscriptionInfo
 
 from .eave_origins import EaveApp
-import eave.stdlib.github_api.operations as gh_ops
 
 class LinkType(enum.StrEnum):
     """

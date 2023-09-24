@@ -6,6 +6,8 @@ _base_url = shared_config.eave_internal_service_base(EaveApp.eave_confluence_app
 
 
 class ConfluenceEndpointConfiguration(EndpointConfiguration):
+    audience = EaveApp.eave_confluence_app
+
     @property
     def url(self) -> str:
         return f"{_base_url}/confluence/api{self.path}"

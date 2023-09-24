@@ -2,6 +2,7 @@ import base64
 import enum
 import hashlib
 from dataclasses import dataclass
+import time
 from typing import Literal, Optional, cast
 import uuid
 
@@ -212,8 +213,10 @@ def preload_public_keys() -> None:
 
 def build_message_to_sign(
     method: str,
-    url: str,
+    path: str,
+    ts: int,
     request_id: uuid.UUID | str,
+    audience: EaveApp | str,
     origin: EaveApp | str,
     payload: str,
     team_id: Optional[uuid.UUID | str],
@@ -221,9 +224,11 @@ def build_message_to_sign(
     ctx: Optional[LogContext] = None,
 ) -> str:
     signature_elements: list[str] = [
-        origin,
+        str(origin),
         method,
-        url,
+        str(audience),
+        path,
+        str(ts),
         str(request_id),
         payload,
     ]
@@ -238,3 +243,7 @@ def build_message_to_sign(
 
     eaveLogger.debug("signature message", ctx, {"signature_message": signature_message})
     return signature_message
+
+
+def make_sig_ts() -> int:
+    return int(time.time())

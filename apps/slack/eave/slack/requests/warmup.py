@@ -1,12 +1,15 @@
 import http
-from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.stdlib.api_util import json_response
 from eave.stdlib.config import shared_config
 import eave.stdlib.cache as cache
+from eave.stdlib.endpoints import status_payload
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.signing import preload_public_keys
 from ..config import app_config
 from eave.stdlib.logging import eaveLogger
+import eave.stdlib.cache
 
 
 class WarmupRequest(HTTPEndpoint):
@@ -46,3 +49,28 @@ class StopRequest(HTTPEndpoint):
         )
 
         return Response(status_code=http.HTTPStatus.OK, content="OK")
+
+
+class StatusRequest(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        return await self.get(request=request)
+
+    async def delete(self, request: Request) -> Response:
+        return await self.get(request=request)
+
+    async def head(self, request: Request) -> Response:
+        return await self.get(request=request)
+
+    async def options(self, request: Request) -> Response:
+        return await self.get(request=request)
+
+    async def get(self, request: Request) -> Response:
+        status = status_payload()
+        if eave.stdlib.cache.initialized():
+            try:
+                await eave.stdlib.cache.client().ping()
+            except Exception as e:
+                eaveLogger.exception(e)
+                status.status = "UNHEALTHY"
+
+        return json_response(model=status)

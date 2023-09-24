@@ -15,7 +15,7 @@ from eave.stdlib.core_api.operations.subscriptions import (
 )
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.request_state import EaveRequestState
-from ..http_endpoint import HTTPEndpoint
+from eave.stdlib.http_endpoint import HTTPEndpoint
 
 
 class GetSubscription(HTTPEndpoint):
@@ -52,7 +52,7 @@ class GetSubscription(HTTPEndpoint):
         )
 
 
-class CreateSubscription(eave.core.public.http_endpoint.HTTPEndpoint):
+class CreateSubscription(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
@@ -95,7 +95,7 @@ class CreateSubscription(eave.core.public.http_endpoint.HTTPEndpoint):
         )
 
 
-class DeleteSubscription(eave.core.public.http_endpoint.HTTPEndpoint):
+class DeleteSubscription(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()

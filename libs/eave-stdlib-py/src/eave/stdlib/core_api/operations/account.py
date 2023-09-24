@@ -2,15 +2,14 @@ from typing import Optional, Unpack
 import uuid
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Destination, Team
-from . import BaseResponseBody, EndpointConfiguration
+from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
-from . import Endpoint
 from ..models.integrations import Integrations
 from ... import requests
 
 
-class GetAuthenticatedAccount(Endpoint):
-    config = EndpointConfiguration(
+class GetAuthenticatedAccount(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/me/query",
         team_id_required=False,
     )
@@ -24,7 +23,7 @@ class GetAuthenticatedAccount(Endpoint):
         cls, access_token: str, account_id: uuid.UUID | str, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=None,
             access_token=access_token,
             account_id=account_id,
@@ -35,8 +34,8 @@ class GetAuthenticatedAccount(Endpoint):
         return cls.ResponseBody(**response_json, _raw_response=response)
 
 
-class GetAuthenticatedAccountTeamIntegrations(Endpoint):
-    config = EndpointConfiguration(
+class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
         path="/me/team/integrations/query",
         team_id_required=False,
     )
@@ -55,7 +54,7 @@ class GetAuthenticatedAccountTeamIntegrations(Endpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
-            url=cls.config.url,
+            config=cls.config,
             input=None,
             access_token=access_token,
             account_id=account_id,
