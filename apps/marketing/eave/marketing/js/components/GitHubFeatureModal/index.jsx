@@ -233,14 +233,15 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   const enabledRepoIds = team.repos
     .filter(repo => repo[feature] === "enabled")
     .map(repo => repo.external_repo_id);
-  const allSelected = teamRepoIds.length === enabledRepoIds.length;
   const cta = enabledRepoIds.length ? "Update" : "Turn On"
   const canDisable = !!enabledRepoIds.length;
   const [showDisableConfirmation, setShowDisableConfirmation] = useState(false);
   const [optionsExpanded, setOptionsExpanded] = useState(false);
-  const [selectedRepoIds, setSelectedRepoIds] = useState(allSelected ? teamRepoIds : enabledRepoIds);
+  const [selectedRepoIds, setSelectedRepoIds] = useState(enabledRepoIds.length ? enabledRepoIds : teamRepoIds);
   const [selectedRepoError, setSelectedRepoError] = useState(null);
-  const [selectedReposLabel, setSelectedReposLabel] = useState(allSelected ? "Default" : "Custom");
+  const [selectedReposLabel, setSelectedReposLabel] = useState(
+    selectedRepoIds.length === teamRepoIds.length ? "Default" : "Custom"
+  );
   const selectedReposTextClass = classNames(
     classes.selectedReposText,
     !githubIntegration && classes.disabledText
@@ -265,16 +266,6 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   const handleHideDisableConfirmation = useCallback(() => {
     setShowDisableConfirmation(false);
   }, []);
-
-  const handleClose = useCallback(() => {
-    onClose();
-    if (showDisableConfirmation) {
-      // We wait briefly before removing the confirmation UI from the modal view
-      // in order to avoid accidentally showing the user the default modal UI
-      // for a split second before the modal closes.
-      setTimeout(handleHideDisableConfirmation, 600);
-    }
-  }, [showDisableConfirmation]);
 
   const handleAddApp = useCallback(() => {
     setCookie(COOKIE_NAMES.FEATURE_MODAL, feature);
@@ -330,8 +321,8 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   if (showDisableConfirmation) {
     const paperClass = classNames(classes.paper, classes.confirmationPaper);
     return (
-      <Dialog classes={{ paper: paperClass }} onClose={handleClose} open={open}>
-        <IconButton className={classes.closeButton} onClick={handleClose}>
+      <Dialog classes={{ paper: paperClass }} onClose={onClose} open={open}>
+        <IconButton className={classes.closeButton} onClick={onClose}>
           <CloseIcon />
         </IconButton>
         <Typography className={classes.title} variant="h2">
@@ -358,13 +349,13 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   }
 
   return (
-    <Dialog classes={{ paper: classes.paper }} onClose={handleClose} open={open}>
+    <Dialog classes={{ paper: classes.paper }} onClose={onClose} open={open}>
       {canDisable && (
         <Button className={classes.turnOffBtn} onClick={handleTurnOffClick} variant="text" disableRipple>
           Turn Off
         </Button>
       )}
-      <IconButton className={classes.closeButton} onClick={handleClose}>
+      <IconButton className={classes.closeButton} onClick={onClose}>
         <CloseIcon />
       </IconButton>
       <Typography className={classes.title} variant="h2">

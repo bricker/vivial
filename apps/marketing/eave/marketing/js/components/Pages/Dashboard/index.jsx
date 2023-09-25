@@ -111,13 +111,15 @@ const Dashboard = () => {
       {showFeatureSettings && (
         <FeatureSettings onInlineDocsClick={openInlineDocsModal} />
       )}
-      <GitHubFeatureModal
-        feature={FEATURES.INLINE_CODE_DOCS}
-        param={SEARCH_PARAM_VALUES.INLINE_CODE_DOCS}
-        open={inlineDocsModalIsOpen}
-        onClose={closeInlineDocsModal}
-        onUpdate={handleUpdateFeatureState}
-      />
+      {inlineDocsModalIsOpen && (
+        <GitHubFeatureModal
+          feature={FEATURES.INLINE_CODE_DOCS}
+          param={SEARCH_PARAM_VALUES.INLINE_CODE_DOCS}
+          onClose={closeInlineDocsModal}
+          onUpdate={handleUpdateFeatureState}
+          open
+        />
+      )}
     </Page>
   );
 };
