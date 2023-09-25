@@ -1,17 +1,17 @@
-import JavaScript from 'tree-sitter-javascript';
-import tsPkg from 'tree-sitter-typescript';
-import Rust from 'tree-sitter-rust';
-import C from 'tree-sitter-c';
-import Go from 'tree-sitter-go';
-import Java from 'tree-sitter-java';
-import Cpp from 'tree-sitter-cpp';
-import Kotlin from 'tree-sitter-kotlin';
-import PHP from 'tree-sitter-php';
+import C from "tree-sitter-c";
+import Cpp from "tree-sitter-cpp";
+import Go from "tree-sitter-go";
+import Java from "tree-sitter-java";
+import JavaScript from "tree-sitter-javascript";
+import Kotlin from "tree-sitter-kotlin";
+import PHP from "tree-sitter-php";
+import Rust from "tree-sitter-rust";
+import tsPkg from "tree-sitter-typescript";
 // import Python from 'tree-sitter-python';
-import Ruby from 'tree-sitter-ruby';
-import Swift from 'tree-sitter-swift';
-import Csharp from 'tree-sitter-c-sharp';
-import { ProgrammingLanguage, stringToProgrammingLanguage } from '../programming-langs/language-mapping.js';
+import Csharp from "tree-sitter-c-sharp";
+import Ruby from "tree-sitter-ruby";
+import Swift from "tree-sitter-swift";
+import { ProgrammingLanguage, stringToProgrammingLanguage } from "../programming-langs/language-mapping.js";
 
 const { typescript: Typescript, tsx } = tsPkg;
 
@@ -26,10 +26,10 @@ const { typescript: Typescript, tsx } = tsPkg;
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarForLanguage({ language, extName }: { language: string | ProgrammingLanguage, extName: string }): any {
+export function grammarForLanguage({ language, extName }: { language: string | ProgrammingLanguage; extName: string }): any {
   let pl: ProgrammingLanguage;
 
-  if (typeof language === 'string') {
+  if (typeof language === "string") {
     const lang = stringToProgrammingLanguage(language);
     if (lang === undefined) {
       return null;
@@ -40,25 +40,36 @@ export function grammarForLanguage({ language, extName }: { language: string | P
   }
 
   switch (pl) {
-    case ProgrammingLanguage.javascript: return JavaScript;
+    case ProgrammingLanguage.javascript:
+      return JavaScript;
     case ProgrammingLanguage.typescript:
-      if (extName === '.tsx') {
+      if (extName === ".tsx") {
         return tsx;
       }
       return Typescript;
-    case ProgrammingLanguage.rust: return Rust;
+    case ProgrammingLanguage.rust:
+      return Rust;
     // case '.h': // TODO: header files won't really have a function body... will be very hard for eave to tell what function does just from signature...
-    case ProgrammingLanguage.c: return C;
-    case ProgrammingLanguage.go: return Go;
-    case ProgrammingLanguage.java: return Java;
+    case ProgrammingLanguage.c:
+      return C;
+    case ProgrammingLanguage.go:
+      return Go;
+    case ProgrammingLanguage.java:
+      return Java;
     // case '.hh': // TODO: document header file??
-    case ProgrammingLanguage.cpp: return Cpp;
-    case ProgrammingLanguage.kotlin: return Kotlin;
-    case ProgrammingLanguage.php: return PHP;
+    case ProgrammingLanguage.cpp:
+      return Cpp;
+    case ProgrammingLanguage.kotlin:
+      return Kotlin;
+    case ProgrammingLanguage.php:
+      return PHP;
     // case 'python': return Python; // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
-    case ProgrammingLanguage.ruby: return Ruby;
-    case ProgrammingLanguage.swift: return Swift;
-    case ProgrammingLanguage.csharp: return Csharp;
+    case ProgrammingLanguage.ruby:
+      return Ruby;
+    case ProgrammingLanguage.swift:
+      return Swift;
+    case ProgrammingLanguage.csharp:
+      return Csharp;
     default:
       // used to typecheck our enum cases as exhuastive
       // eslint-disable-next-line no-case-declarations
@@ -74,11 +85,7 @@ export function grammarForLanguage({ language, extName }: { language: string | P
  * @param language name of programming language to get queries for
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
-export function getFunctionDocumentationQueries({
-  language,
-  funcMatcher,
-  commentMatcher,
-}: { language: ProgrammingLanguage, funcMatcher: string, commentMatcher: string }): string[] {
+export function getFunctionDocumentationQueries({ language, funcMatcher, commentMatcher }: { language: ProgrammingLanguage; funcMatcher: string; commentMatcher: string }): string[] {
   switch (language) {
     case ProgrammingLanguage.javascript: // js and ts grammar similar enough to share queries
     case ProgrammingLanguage.typescript:

@@ -2,9 +2,8 @@ from typing import Unpack
 import uuid
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Destination, Team
-from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration, EndpointConfiguration
+from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
-from . import Endpoint
 from ..models.integrations import Integrations
 from ... import requests
 

@@ -13,7 +13,6 @@ import * as GraphQLUtil from "../lib/graphql-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { GitHubOperationsContext } from "../types.js";
 
-
 /**
  * Receives github webhook pull_request events.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request

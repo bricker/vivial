@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { eaveLogger, LogContext } from '../logging.js';
+import { NextFunction, Request, Response } from "express";
+import { LogContext, eaveLogger } from "../logging.js";
 
-export function requireHeaders(...headers: string[]): ((req: Request, res: Response, next: NextFunction) => void) {
+export function requireHeaders(...headers: string[]): (req: Request, res: Response, next: NextFunction) => void {
   return (req: Request, res: Response, next: NextFunction) => {
     const ctx = LogContext.load(res);
     for (const header of headers) {

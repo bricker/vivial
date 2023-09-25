@@ -1,4 +1,4 @@
-import Express from 'express';
+import Express from "express";
 
 /*
 Simple JSON body parser. Similar to body-parser's json parser, but different in these ways:

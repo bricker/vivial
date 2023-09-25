@@ -9,11 +9,11 @@ interface ApiResource {
 // This enum definition is incomplete
 // https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/
 export enum ContentType {
-  doc = 'doc',
-  paragraph = 'paragraph',
-  text = 'text',
-  mention = 'mention',
-  link = 'link',
+  doc = "doc",
+  paragraph = "paragraph",
+  text = "text",
+  mention = "mention",
+  link = "link",
 }
 
 // LinkAttrs: https://developer.atlassian.com/cloud/jira/platform/apis/document/marks/link/#attributes
@@ -34,7 +34,7 @@ export interface JiraProject extends ApiResource {
   name: string;
   projectTypeKey: string;
   simplified: boolean;
-  avatarUrls: {[key: string]: string };
+  avatarUrls: { [key: string]: string };
 }
 
 export interface JiraIssueType extends ApiResource {

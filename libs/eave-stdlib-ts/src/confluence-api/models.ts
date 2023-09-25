@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { JsonObject } from '../types.js';
+import { JsonObject } from "../types.js";
 
 export interface PaginatedResults<T> {
   start?: number;
@@ -18,81 +18,81 @@ export interface DeleteContentInput {
 }
 
 export enum ConfluenceOperation {
-  administer = 'administer',
-  archive = 'archive',
-  clear_permissions = 'clear_permissions',
-  copy = 'copy',
-  create = 'create',
-  create_space = 'create_space',
-  delete = 'delete',
-  export = 'export',
-  move = 'move',
-  purge = 'purge',
-  purge_version = 'purge_version',
-  read = 'read',
-  restore = 'restore',
-  restrict_content = 'restrict_content',
-  update = 'update',
-  use = 'use',
+  administer = "administer",
+  archive = "archive",
+  clear_permissions = "clear_permissions",
+  copy = "copy",
+  create = "create",
+  create_space = "create_space",
+  delete = "delete",
+  export = "export",
+  move = "move",
+  purge = "purge",
+  purge_version = "purge_version",
+  read = "read",
+  restore = "restore",
+  restrict_content = "restrict_content",
+  update = "update",
+  use = "use",
 }
 
 export enum ConfluenceSpaceType {
-  global = 'global',
-  personal = 'personal',
+  global = "global",
+  personal = "personal",
 }
 
 export enum ConfluenceSpaceStatus {
-  current = 'current',
-  archived = 'archived',
+  current = "current",
+  archived = "archived",
 }
 
 export enum ConfluenceContentType {
-  page = 'page',
-  blogpost = 'blogpost',
-  custom = 'custom',
+  page = "page",
+  blogpost = "blogpost",
+  custom = "custom",
 }
 
 /* https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-spacekey-content-type-get-request-Query%20parameters */
 export enum ConfluenceSpaceContentDepth {
-  root = 'root',
-  all = 'all',
+  root = "root",
+  all = "all",
 }
 
 export enum ConfluenceUserType {
-  known = 'known',
-  unknown = 'unknown',
-  anonymous = 'anonymous',
-  user = 'user',
+  known = "known",
+  unknown = "unknown",
+  anonymous = "anonymous",
+  user = "user",
 }
 
 export enum ConfluenceUserAccountType {
-  atlassian = 'atlassian',
-  app = 'app',
-  unavailable = '',
+  atlassian = "atlassian",
+  app = "app",
+  unavailable = "",
 }
 
 export enum ConfluenceContentBodyRepresentation {
-  view = 'view',
-  export_view = 'export_view',
-  styled_view = 'styled_view',
-  storage = 'storage',
-  editor = 'editor',
-  editor2 = 'editor2',
-  anonymous_export_view = 'anonymous_export_view',
-  wiki = 'wiki',
-  atlas_doc_format = 'atlas_doc_format',
-  dynamic = 'dynamic',
-  raw = 'raw',
-  _unknown = '_unknown',
+  view = "view",
+  export_view = "export_view",
+  styled_view = "styled_view",
+  storage = "storage",
+  editor = "editor",
+  editor2 = "editor2",
+  anonymous_export_view = "anonymous_export_view",
+  wiki = "wiki",
+  atlas_doc_format = "atlas_doc_format",
+  dynamic = "dynamic",
+  raw = "raw",
+  _unknown = "_unknown",
 }
 
 export enum ConfluenceContentStatus {
-  current = 'current',
-  draft = 'draft',
+  current = "current",
+  draft = "draft",
 }
 
 export enum ConfluenceGroupType {
-  group = 'group',
+  group = "group",
 }
 
 export interface BodyType {
@@ -268,11 +268,9 @@ export interface ApiResource {
   links?: ConfluenceGenericLinks;
 }
 
-export interface ConfluenceUserIcon {
-}
+export interface ConfluenceUserIcon {}
 
-export interface ConfluenceUserDetails {
-}
+export interface ConfluenceUserDetails {}
 
 export interface ConfluenceUser {
   type?: ConfluenceUserType;
@@ -319,7 +317,6 @@ export interface ConfluencePageVersion {
   confRev?: string;
   syncRev?: string;
   syncRevSource?: string;
-
 }
 
 export interface ConfluencePageContributors {
@@ -344,16 +341,14 @@ export interface ConfluenceMediaToken {
   fileIds?: string[];
   token?: string;
 }
-export interface ConfluenceWebResourceDependencies {
-}
+export interface ConfluenceWebResourceDependencies {}
 
-export interface ConfluenceEmbeddable {
-}
+export interface ConfluenceEmbeddable {}
 
 export interface ConfluenceEmbeddedContent {
-  entityId?: number
+  entityId?: number;
   entityType?: string;
-  entity?: ConfluenceEmbeddable
+  entity?: ConfluenceEmbeddable;
 }
 
 export interface ConfluenceContentBody {
@@ -415,7 +410,7 @@ export interface ConfluenceSearchResultWithBody {
   title: string;
   body: {
     storage: ConfluenceContentBody;
-  },
+  };
   _links?: ConfluenceGenericLinks;
 }
 

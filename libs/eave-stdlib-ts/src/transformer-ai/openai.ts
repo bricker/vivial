@@ -1,22 +1,19 @@
-import { v4 as uuidv4 } from 'uuid';
-import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessageRoleEnum } from 'openai';
-import { sharedConfig } from '../config.js';
-import { eaveLogger, LogContext } from '../logging.js';
-import { CtxArg } from '../requests.js';
-import { modelFromString } from './models.js';
-import { logGptRequest } from '../analytics.js';
-import * as costCounter from './token-counter.js';
+import { ChatCompletionRequestMessageRoleEnum, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
+import { v4 as uuidv4 } from "uuid";
+import { logGptRequest } from "../analytics.js";
+import { sharedConfig } from "../config.js";
+import { LogContext, eaveLogger } from "../logging.js";
+import { CtxArg } from "../requests.js";
+import { modelFromString } from "./models.js";
+import * as costCounter from "./token-counter.js";
 
 // eslint-disable-next-line operator-linebreak
-export const PROMPT_PREFIX =
-  'You are Eave, a documentation expert. '
-  + "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. "
-  + "You are responsible for the quality and integrity of this organization's documentation.";
+export const PROMPT_PREFIX = "You are Eave, a documentation expert. " + "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. " + "You are responsible for the quality and integrity of this organization's documentation.";
 
 export function formatprompt(...prompts: string[]): string {
   const prompt: string[] = [];
   for (const s of prompts) {
-    let chunks = s.split('\n');
+    let chunks = s.split("\n");
     if (chunks.length <= 1) {
       // not a multiline string; nothing to dedent
       prompt.push(s);
@@ -25,7 +22,7 @@ export function formatprompt(...prompts: string[]): string {
 
     const commonLeadingWhitespaceLength = chunks.reduce((len, line) => {
       // Ignore empty lines
-      if (line.trim() === '') {
+      if (line.trim() === "") {
         return len;
       }
 
@@ -43,9 +40,9 @@ export function formatprompt(...prompts: string[]): string {
     }
 
     chunks = chunks.map((line) => line.slice(commonLeadingWhitespaceLength));
-    prompt.push(chunks.join('\n'));
+    prompt.push(chunks.join("\n"));
   }
-  return prompt.join('\n');
+  return prompt.join("\n");
 }
 
 export default class OpenAIClient {
@@ -80,9 +77,9 @@ export default class OpenAIClient {
     baseTimeoutSeconds = 30,
     documentId = undefined,
   }: CtxArg & {
-    parameters: CreateChatCompletionRequest,
-    baseTimeoutSeconds?: number,
-    documentId?: string,
+    parameters: CreateChatCompletionRequest;
+    baseTimeoutSeconds?: number;
+    documentId?: string;
   }): Promise<string> {
     parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
 
@@ -102,19 +99,21 @@ export default class OpenAIClient {
 
     const maxAttempts = 3;
     for (let i = 0; i < maxAttempts; i += 1) {
-      const backoffMs = baseTimeoutSeconds * (2 ** i) * 1000;
+      const backoffMs = baseTimeoutSeconds * 2 ** i * 1000;
 
       try {
-        eaveLogger.debug('openai request', ctx, logParams);
+        eaveLogger.debug("openai request", ctx, logParams);
         completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
-        eaveLogger.debug('openai response', logParams, { openaiResponse: <any>completion.data }, ctx);
+        eaveLogger.debug("openai response", logParams, { openaiResponse: <any>completion.data }, ctx);
         text = completion.data.choices[0]?.message?.content;
         break;
       } catch (e: any) {
         // Network error?
         if (i + 1 < maxAttempts) {
           eaveLogger.warning(e, logParams, ctx);
-          await new Promise((r) => { setTimeout(r, backoffMs); });
+          await new Promise((r) => {
+            setTimeout(r, backoffMs);
+          });
         } else {
           throw e;
         }
@@ -122,7 +121,7 @@ export default class OpenAIClient {
     }
 
     if (text === undefined) {
-      throw new Error('openai text response is undefined');
+      throw new Error("openai text response is undefined");
     }
 
     const timestampEnd = Date.now();
@@ -133,16 +132,8 @@ export default class OpenAIClient {
   }
 }
 
-async function logGptRequestData(
-  parameters: CreateChatCompletionRequest,
-  duration_seconds: number,
-  response: string,
-  input_token_count?: number,
-  output_token_count?: number,
-  document_id?: string,
-  ctx?: LogContext,
-) {
-  const fullPrompt = parameters.messages.map((m) => m.content).join('\n');
+async function logGptRequestData(parameters: CreateChatCompletionRequest, duration_seconds: number, response: string, input_token_count?: number, output_token_count?: number, document_id?: string, ctx?: LogContext) {
+  const fullPrompt = parameters.messages.map((m) => m.content).join("\n");
   const modelEnum = modelFromString(parameters.model);
 
   if (input_token_count === undefined) {
@@ -152,16 +143,19 @@ async function logGptRequestData(
     output_token_count = costCounter.tokenCount(response, modelEnum);
   }
 
-  await logGptRequest({
-    feature_name: ctx?.feature_name,
-    duration_seconds,
-    input_cost_usd: costCounter.calculatePromptCostUSD(input_token_count, modelEnum),
-    output_cost_usd: costCounter.calculateResponseCostUSD(output_token_count, modelEnum),
-    input_prompt: fullPrompt,
-    output_response: response,
-    input_token_count,
-    output_token_count,
-    model: parameters.model,
-    document_id,
-  }, ctx);
+  await logGptRequest(
+    {
+      feature_name: ctx?.feature_name,
+      duration_seconds,
+      input_cost_usd: costCounter.calculatePromptCostUSD(input_token_count, modelEnum),
+      output_cost_usd: costCounter.calculateResponseCostUSD(output_token_count, modelEnum),
+      input_prompt: fullPrompt,
+      output_response: response,
+      input_token_count,
+      output_token_count,
+      model: parameters.model,
+      document_id,
+    },
+    ctx,
+  );
 }

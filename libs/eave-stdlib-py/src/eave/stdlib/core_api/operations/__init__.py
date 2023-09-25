@@ -36,8 +36,10 @@ class EndpointConfiguration:
     def url(self) -> str:
         return f"{_base_url}{self.path}"
 
+
 class CoreApiEndpointConfiguration(EndpointConfiguration):
     audience = EaveApp.eave_api
+
 
 class BaseRequestBody(pydantic.BaseModel):
     pass
@@ -77,6 +79,7 @@ class Endpoint:
     #         return cls.ResponseBody(**response_json, _raw_response=response)
     #     else:
     #         return cls.ResponseBody(_raw_response=response)
+
 
 class CoreApiEndpoint(Endpoint):
     config: CoreApiEndpointConfiguration

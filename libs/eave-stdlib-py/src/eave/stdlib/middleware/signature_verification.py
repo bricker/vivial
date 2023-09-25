@@ -1,9 +1,4 @@
-import datetime
-import time
-from typing import cast
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
-from starlette.requests import Request
-from starlette.types import Scope as StarletteScope
 
 from eave.stdlib.eave_origins import EaveApp
 
@@ -17,7 +12,8 @@ from ..request_state import EaveRequestState
 from ..util import unwrap
 from .. import signing
 
-MAX_SIGNATURE_AGE = 60 * 60 # 1h
+MAX_SIGNATURE_AGE = 60 * 60  # 1h
+
 
 class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """

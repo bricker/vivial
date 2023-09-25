@@ -1,7 +1,7 @@
 import { Cache, getCacheClient } from "@eave-fyi/eave-stdlib-ts/src/cache.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { GithubEventHandlerTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js";
-import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { createTaskFromRequest } from "@eave-fyi/eave-stdlib-ts/src/task-queue.js";
 import Express from "express";
 import assert from "node:assert";

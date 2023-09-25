@@ -12,9 +12,7 @@ export class QueryGithubReposOperation {
     authRequired: false,
   });
 
-  static async perform(
-    args: RequestArgsTeamId,
-  ): Promise<QueryGithubReposResponseBody> {
+  static async perform(args: RequestArgsTeamId): Promise<QueryGithubReposResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

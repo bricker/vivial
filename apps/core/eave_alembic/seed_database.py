@@ -1,5 +1,4 @@
 import asyncio
-from logging import LogRecord
 import logging
 import os
 import sys
@@ -15,7 +14,7 @@ import eave.core.internal.orm.base
 from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.github_documents import DocumentType
 from eave.stdlib.core_api.models.team import DocumentPlatform
-from eave.stdlib.logging import CustomFormatter, eaveLogger
+from eave.stdlib.logging import eaveLogger
 
 """
 This script is for seeding your local database with a bunch of garbage
@@ -44,11 +43,14 @@ assert GCLOUD_PROJECT != "eave-production"
 assert EAVE_DB_NAME is not None
 assert EAVE_DB_NAME != "eave"
 
+
 async def seed_database() -> None:
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
     eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {EAVE_DB_NAME} database.")
 
-    answer = input(eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {EAVE_DB_NAME} database? (Y/n) "))
+    answer = input(
+        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {EAVE_DB_NAME} database? (Y/n) ")
+    )
     if answer != "Y":
         print("Aborting.")
         return
@@ -130,6 +132,7 @@ async def seed_database() -> None:
         gh_repo = orm.GithubRepoOrm(
             team_id=team_id,
             external_repo_id=f"external_repo_id{row}",
+            display_name=f"repository {row}",
         )
         session.add(gh_repo)
         await session.commit()

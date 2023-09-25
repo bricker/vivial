@@ -1,5 +1,4 @@
 import json
-import time
 import unittest
 import unittest.mock
 import urllib.parse
@@ -229,7 +228,6 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             session=session,
             name=self.anystring("team name"),
             document_platform=DocumentPlatform.confluence,
-            beta_whitelisted=False,
         )
 
         return team

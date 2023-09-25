@@ -1,1 +1,1 @@
-declare module 'tree-sitter-ruby';
+declare module "tree-sitter-ruby";

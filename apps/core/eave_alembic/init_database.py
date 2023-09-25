@@ -29,6 +29,7 @@ assert GCLOUD_PROJECT != "eave-production"
 assert EAVE_DB_NAME is not None
 assert EAVE_DB_NAME != "eave"
 
+
 async def init_database() -> None:
     """
     https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
@@ -39,11 +40,15 @@ async def init_database() -> None:
     postgres_engine = create_async_engine(postgres_uri, isolation_level="AUTOCOMMIT")
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
 
-    eaveLogger.fprint(logging.WARNING, f"\nThis script will perform the following operations on the {EAVE_DB_NAME} database:")
+    eaveLogger.fprint(
+        logging.WARNING, f"\nThis script will perform the following operations on the {EAVE_DB_NAME} database:"
+    )
     eaveLogger.fprint(logging.WARNING, "- 💥 DELETES THE DATABASE 💥 (if it exists)")
     eaveLogger.fprint(logging.WARNING, "- (RE-)CREATES THE DATABASE")
 
-    answer = input(eaveLogger.f(logging.WARNING, f"Proceed to delete and (re-)create the {EAVE_DB_NAME} database? (Y/n) "))
+    answer = input(
+        eaveLogger.f(logging.WARNING, f"Proceed to delete and (re-)create the {EAVE_DB_NAME} database? (Y/n) ")
+    )
     if answer != "Y":
         print("Aborting.")
         return

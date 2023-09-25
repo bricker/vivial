@@ -1,8 +1,8 @@
-import { createClient } from 'redis';
-import { RedisCommandArgument } from '@redis/client/dist/lib/commands/index.js';
-import { SetOptions } from '@redis/client/dist/lib/commands/SET.js';
-import { sharedConfig } from './config.js';
-import { eaveLogger } from './logging.js';
+import { SetOptions } from "@redis/client/dist/lib/commands/SET.js";
+import { RedisCommandArgument } from "@redis/client/dist/lib/commands/index.js";
+import { createClient } from "redis";
+import { sharedConfig } from "./config.js";
+import { eaveLogger } from "./logging.js";
 
 export interface Cache {
   get: (key: RedisCommandArgument) => Promise<RedisCommandArgument | null>;
@@ -39,7 +39,7 @@ class CacheEntry {
 }
 
 export class EphemeralCache implements Cache {
-  private storage: {[key:string]: CacheEntry} = {};
+  private storage: { [key: string]: CacheEntry } = {};
 
   async get(key: RedisCommandArgument): Promise<RedisCommandArgument | null> {
     const entry = this.storage[key.toString()];
@@ -59,7 +59,7 @@ export class EphemeralCache implements Cache {
   async set(key: RedisCommandArgument, value: RedisCommandArgument | number, options?: SetOptions): Promise<RedisCommandArgument | null> {
     const entry = new CacheEntry(key.toString(), value.toString(), options?.EX);
     this.storage[key.toString()] = entry;
-    return '1';
+    return "1";
   }
 
   async del(keys: RedisCommandArgument | Array<RedisCommandArgument>): Promise<number> {
@@ -86,11 +86,11 @@ export class EphemeralCache implements Cache {
   }
 
   async ping(): Promise<string> {
-    return '1';
+    return "1";
   }
 
   async quit(): Promise<string> {
-    return '1';
+    return "1";
   }
 }
 
@@ -104,7 +104,7 @@ async function loadCacheImpl(): Promise<Cache> {
   const { host, port, db } = redisConnection;
   const redisAuth = await sharedConfig.redisAuth();
 
-  const logAuth = redisAuth ? redisAuth.slice(0, 4) : '(none)';
+  const logAuth = redisAuth ? redisAuth.slice(0, 4) : "(none)";
   eaveLogger.debug(`Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...`);
 
   const redisTlsCA = sharedConfig.redisTlsCA;
@@ -120,10 +120,18 @@ async function loadCacheImpl(): Promise<Cache> {
     pingInterval: 1000 * 60 * 5,
   });
 
-  impl.on('error', (e) => { eaveLogger.error(e); });
-  impl.on('connect', () => { eaveLogger.debug('redis client connected'); });
-  impl.on('reconnecting', () => { eaveLogger.debug('redis client reconnecting'); });
-  impl.on('ready', () => { eaveLogger.debug('redis client ready'); });
+  impl.on("error", (e) => {
+    eaveLogger.error(e);
+  });
+  impl.on("connect", () => {
+    eaveLogger.debug("redis client connected");
+  });
+  impl.on("reconnecting", () => {
+    eaveLogger.debug("redis client reconnecting");
+  });
+  impl.on("ready", () => {
+    eaveLogger.debug("redis client ready");
+  });
 
   await impl.connect();
   return impl;

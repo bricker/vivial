@@ -41,12 +41,10 @@ class TeamOrm(Base):
         session: AsyncSession,
         name: str,
         document_platform: Optional[DocumentPlatform] = None,
-        beta_whitelisted: bool = False,
     ) -> Self:
         obj = cls(
             name=name,
             document_platform=document_platform,
-            beta_whitelisted=beta_whitelisted,
         )
         session.add(obj)
         await session.flush()

@@ -6,7 +6,6 @@ from eave.stdlib.core_api.models.subscriptions import DocumentReferenceInput
 from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
 from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
-from . import Endpoint
 from ..models import team
 from ... import requests
 

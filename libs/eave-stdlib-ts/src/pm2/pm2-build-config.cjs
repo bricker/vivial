@@ -13,4 +13,4 @@ module.exports = function buildConfig(name = "express", overrides = {}) {
       },
     ],
   };
-}
+};

@@ -11,7 +11,6 @@ from .core_api.models.subscriptions import SubscriptionInfo
 from .core_api.enums import LinkType
 
 from .eave_origins import EaveApp
-import eave.stdlib.github_api.operations as gh_ops
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[LinkType, list[str]] = {

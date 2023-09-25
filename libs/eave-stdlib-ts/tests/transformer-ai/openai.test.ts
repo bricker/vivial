@@ -1,7 +1,7 @@
-import test from 'ava';
-import { formatprompt } from '../../src/transformer-ai/openai.js';
+import test from "ava";
+import { formatprompt } from "../../src/transformer-ai/openai.js";
 
-test('formatprompt should remove common leading indentation from multiline strings', (t) => {
+test("formatprompt should remove common leading indentation from multiline strings", (t) => {
   const input = `
     Hello,
       This is a test.
@@ -16,7 +16,7 @@ Hello,
   t.is(result, expectedOutput);
 });
 
-test('formatprompt should handle multiple multiline strings', (t) => {
+test("formatprompt should handle multiple multiline strings", (t) => {
   const input1 = `
     Standard indentation.
     Oh look, some code!`;
@@ -41,25 +41,25 @@ indentation levels.
   t.is(result, expectedOutput);
 });
 
-test('formatprompt should not modify single-line strings', (t) => {
-  const input = 'This is a single-line string';
+test("formatprompt should not modify single-line strings", (t) => {
+  const input = "This is a single-line string";
   const result = formatprompt(input);
   t.is(result, input);
 });
 
-test('formatprompt should handle empty strings', (t) => {
-  const input = '';
+test("formatprompt should handle empty strings", (t) => {
+  const input = "";
   const result = formatprompt(input);
   t.is(result, input);
 });
 
-test('formatprompt should handle strings with only whitespace', (t) => {
-  const input = '    \t  \n   \t  \n  \t \n';
+test("formatprompt should handle strings with only whitespace", (t) => {
+  const input = "    \t  \n   \t  \n  \t \n";
   const result = formatprompt(input);
   t.is(result, input);
 });
 
-test('formatprompt should ignore separating lines with only whitespace', (t) => {
+test("formatprompt should ignore separating lines with only whitespace", (t) => {
   const input = `
     Line 1
     line after this one has TONS of whitespace

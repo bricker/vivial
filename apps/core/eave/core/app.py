@@ -8,7 +8,7 @@ from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocu
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.core_api.operations.github import GetGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
-from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration, EndpointConfiguration
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.subscriptions import (
     CreateSubscriptionRequest,
     DeleteSubscriptionRequest,

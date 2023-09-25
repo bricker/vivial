@@ -11,6 +11,7 @@ from eave.stdlib.core_api.operations.account import (
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.http_endpoint import HTTPEndpoint
 
+
 class GetAuthedAccount(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)

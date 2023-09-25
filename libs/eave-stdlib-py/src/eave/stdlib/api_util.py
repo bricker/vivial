@@ -3,10 +3,9 @@ import re
 from typing import Optional
 
 import pydantic
-from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER, HOST
+from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER
 
 import eave.stdlib.util as util
-from eave.stdlib.config import shared_config
 from starlette.responses import Response
 from asgiref.typing import HTTPScope
 

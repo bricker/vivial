@@ -178,8 +178,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
 
-            assert eave_team.beta_whitelisted is True
-
             assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
             assert response.headers["Location"]
             assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
