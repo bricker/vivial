@@ -14,4 +14,4 @@ def merged_dotenv_values(files: list[str]) -> dict[str, str]:
 
 def load_merged_dotenv_files(files: list[str]) -> None:
     for f in files:
-        dotenv.load_dotenv(f, override=True)
+        dotenv.load_dotenv(f, override=False)
