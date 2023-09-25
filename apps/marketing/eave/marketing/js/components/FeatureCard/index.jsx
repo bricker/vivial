@@ -1,9 +1,8 @@
 import React from "react";
+import classNames from "classnames";
 import { makeStyles } from "@material-ui/styles";
 import { Typography } from "@material-ui/core";
-
 import Button from "../Button/index.jsx";
-import classNames from "classnames";
 
 const makeClasses = makeStyles((theme) => ({
   container: {
@@ -41,7 +40,6 @@ const makeClasses = makeStyles((theme) => ({
 const FeatureCard = ({ title, description, comingSoon, onClick, className }) => {
   const classes = makeClasses();
   const containerClass = classNames(classes.container, className);
-
   return (
     <div className={containerClass}>
       {comingSoon && (

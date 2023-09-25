@@ -9,8 +9,8 @@ import { CookiesProvider, withCookies } from 'react-cookie';
 import { ThemeProvider, CssBaseline } from '@material-ui/core';
 import { Helmet } from 'react-helmet';
 
+import { theme } from './theme.js';
 import AppStoreProvider from './context/Provider.js';
-import { darkTheme } from './themes/index.js';
 import HomePage from './components/Pages/HomePage/index.jsx';
 import TermsPage from './components/Pages/TermsPage/index.jsx';
 import PrivacyPage from './components/Pages/PrivacyPage/index.jsx';
@@ -23,7 +23,7 @@ const App = () => {
   return (
     <CookiesProvider>
       <AppStoreProvider>
-        <ThemeProvider theme={darkTheme}>
+        <ThemeProvider theme={theme}>
           <CssBaseline />
           <Helmet>
             <title>Eave - for your information.</title>

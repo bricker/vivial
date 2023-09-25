@@ -1,11 +1,10 @@
 import React, { useCallback, useState, useEffect } from "react";
+import classNames from "classnames";
 import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
-import classNames from "classnames";
 import { makeStyles } from "@material-ui/styles";
 import { Dialog, IconButton, Typography } from '@material-ui/core';
 
-import { FEATURES, COOKIE_NAMES, SEARCH_PARAM_NAMES, SEARCH_PARAM_VALUES } from "../../constants.js";
 import { imageUrl } from "../../util/asset-helpers.js";
 import useTeam from "../../hooks/useTeam.js";
 import CloseIcon from "../Icons/CloseIcon.js";
@@ -13,6 +12,14 @@ import ExpandIcon from "../Icons/ExpandIcon.jsx";
 import Button from "../Button/index.jsx";
 import InfoTooltip from "../InfoTooltip/index.jsx";
 import GitHubRepoSelect from "../GitHubRepoSelect/index.jsx";
+
+import {
+  FEATURES,
+  FEATURE_STATES,
+  FEEDBACK_URL,
+  COOKIE_NAMES,
+  SEARCH_PARAM_NAMES,
+} from "../../constants.js";
 
 const makeClasses = makeStyles((theme) => ({
   paper: {
@@ -114,7 +121,7 @@ const makeClasses = makeStyles((theme) => ({
       marginTop: 0,
     }
   },
-  selectedReposText: {
+  githubReposText: {
     display: 'flex',
     alignItems: 'center',
     fontSize: 18,
@@ -175,7 +182,7 @@ const makeClasses = makeStyles((theme) => ({
       justifyContent: 'center',
     }
   },
-  disableConfirmationBtn: {
+  disableBtn: {
     border: `1px solid ${theme.palette.background.contrastText}`,
     color: theme.palette.background.contrastText,
     fontSize: 20,
@@ -222,34 +229,43 @@ function renderDescription(feature) {
   }
 }
 
+function getEnabledRepoIds(repos, feature) {
+  return repos
+    .filter(repo => repo[feature] === FEATURE_STATES.ENABLED)
+    .map(repo => repo.external_repo_id);
+}
+
 const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   const classes = makeClasses();
-  const { team } = useTeam();
-  const [_, setCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const githubIntegration = team.integrations.github_integration;
-  const githubLogoFile = githubIntegration ? 'eave-github-logo-installed.png' : 'eave-github-logo-required.png';
-  const teamRepoIds = team.repos.map(repo => repo.external_repo_id);
-  const enabledRepoIds = team.repos
-    .filter(repo => repo[feature] === "enabled")
-    .map(repo => repo.external_repo_id);
-  const cta = enabledRepoIds.length ? "Update" : "Turn On"
-  const canDisable = !!enabledRepoIds.length;
-  const [showDisableConfirmation, setShowDisableConfirmation] = useState(false);
+  const [_, setCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [optionsExpanded, setOptionsExpanded] = useState(false);
-  const [selectedRepoIds, setSelectedRepoIds] = useState(enabledRepoIds.length ? enabledRepoIds : teamRepoIds);
   const [selectedRepoError, setSelectedRepoError] = useState(null);
-  const [selectedReposLabel, setSelectedReposLabel] = useState(
-    selectedRepoIds.length === teamRepoIds.length ? "Default" : "Custom"
-  );
-  const selectedReposTextClass = classNames(
-    classes.selectedReposText,
-    !githubIntegration && classes.disabledText
-  );
+  const { team } = useTeam();
+
+  const github = team.integrations.github_integration;
+  const githubLogoFile = github ? 'eave-github-installed.png' : 'eave-github-required.png';
+  const githubReposClass = classNames(classes.githubReposText, !github && classes.disabledText);
+  const teamRepoIds = team.repos.map(repo => repo.external_repo_id);
+  const enabledRepoIds = getEnabledRepoIds(team.repos, feature);
+  const isEnabled = !!enabledRepoIds.length;
+  const cta = isEnabled ? "Update" : "Turn On";
+  const [selectedRepoIds, setSelectedRepoIds] = useState(isEnabled ? enabledRepoIds : teamRepoIds);
+  const selectedAll = selectedRepoIds.length === teamRepoIds.length;
+  const [selectedReposLabel, setSelectedReposLabel] = useState(selectedAll ? "Default" : "Custom");
 
   const toggleExpandOptions = useCallback(() => {
     setOptionsExpanded(!optionsExpanded);
   }, [optionsExpanded]);
+
+  const openConfirmation = useCallback(() => {
+    setShowConfirmation(true);
+  }, []);
+
+  const closeConfirmation = useCallback(() => {
+    setShowConfirmation(false);
+  }, []);
 
   const handleUpdate = useCallback(() => {
     onUpdate(team.id, teamRepoIds, selectedRepoIds, feature);
@@ -259,14 +275,6 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
     onUpdate(team.id, teamRepoIds, [], feature);
   }, [team.id, teamRepoIds]);
 
-  const handleTurnOffClick = useCallback(() => {
-    setShowDisableConfirmation(true);
-  }, []);
-
-  const handleHideDisableConfirmation = useCallback(() => {
-    setShowDisableConfirmation(false);
-  }, []);
-
   const handleAddApp = useCallback(() => {
     setCookie(COOKIE_NAMES.FEATURE_MODAL, feature);
     const githubOauthUrl = `${window.eave.apiBase}/oauth/github/authorize`;
@@ -274,13 +282,13 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   }, []);
 
   const handleSelectRepo = useCallback((val) => {
-    const selectionError = "At least one repository must be selected to turn on this feature.";
+    const error = "At least one repository must be selected to turn on this feature.";
     if (val === "default") {
       // Case 1: All repos are already selected and user selects "default".
       if (selectedRepoIds.length === teamRepoIds.length) {
         setSelectedRepoIds([]);
         setSelectedReposLabel("Custom");
-        setSelectedRepoError(selectionError);
+        setSelectedRepoError(error);
         return;
       }
       // Case 2: One or more repos are not selected and use selects "default".
@@ -295,7 +303,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
       setSelectedRepoIds(newSelectedRepoIds);
       setSelectedReposLabel("Custom");
       if (!newSelectedRepoIds.length) {
-        setSelectedRepoError(selectionError);
+        setSelectedRepoError(error);
       }
       return;
     }
@@ -313,15 +321,18 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
       if (!currentParam) {
         setSearchParams({[SEARCH_PARAM_NAMES.FEATURE_MODAL]: param });
       }
-    } else {
-      setSearchParams({});
+      return;
     }
+    setSearchParams({});
   }, [searchParams, open]);
 
-  if (showDisableConfirmation) {
-    const paperClass = classNames(classes.paper, classes.confirmationPaper);
+  if (showConfirmation) {
     return (
-      <Dialog classes={{ paper: paperClass }} onClose={onClose} open={open}>
+      <Dialog
+        classes={{ paper: classNames(classes.paper, classes.confirmationPaper) }}
+        onClose={onClose}
+        open={open}
+      >
         <IconButton className={classes.closeButton} onClick={onClose}>
           <CloseIcon />
         </IconButton>
@@ -332,26 +343,26 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
           Eave will stop automatically updating these documents once this feature is turned off. Updates will need to be made manually.
         </div>
         <div className={classes.confirmationBtns}>
-          <Button onClick={handleDisable} className={classes.disableConfirmationBtn} variant="outlined">
+          <Button onClick={handleDisable} className={classes.disableBtn} variant="outlined">
             Yes, I'll Manually Update
           </Button>
-          <Button onClick={handleHideDisableConfirmation} className={classes.ctaBtn} color="secondary">
+          <Button onClick={closeConfirmation} className={classes.ctaBtn} color="secondary">
             No, Keep Automation
           </Button>
         </div>
         <div className={classes.feedbackLinkContainer}>
-          <a className={classes.feedbackLink} href="https://forms.gle/3v5Xdz7kPya5UW9U6" target="_blank">
+          <a className={classes.feedbackLink} href={FEEDBACK_URL} target="_blank">
             Send Feedback
           </a>
         </div>
       </Dialog>
-    )
+    );
   }
 
   return (
     <Dialog classes={{ paper: classes.paper }} onClose={onClose} open={open}>
-      {canDisable && (
-        <Button className={classes.turnOffBtn} onClick={handleTurnOffClick} variant="text" disableRipple>
+      {isEnabled && (
+        <Button className={classes.turnOffBtn} onClick={openConfirmation} variant="text" disableRipple>
           Turn Off
         </Button>
       )}
@@ -367,7 +378,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
         </Typography>
         <img className={classes.githubLogo} src={imageUrl(githubLogoFile)} />
       </div>
-      {!githubIntegration && (
+      {!github && (
         <Typography className={classes.githubWarning}>
           This feature requires a GitHub integration. In order to proceed, please add the Eave app to your GitHub account by clicking on the button below.
         </Typography>
@@ -375,14 +386,14 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
       <div className={classes.description}>
         {renderDescription(feature)}
       </div>
-      <div className={selectedReposTextClass}>
+      <div className={githubReposClass}>
         Selected Repositories: <span className={classes.selectedReposLabel}>{selectedReposLabel}</span>
-        <InfoTooltip className={classes.tooltip} disabled={!githubIntegration}>
+        <InfoTooltip className={classes.tooltip} disabled={!github}>
           <p>By default, this feature will access all repositories provided to the Eave for GitHub app.</p>
           <p>To select a custom subset of repos, click “Advanced Options”, or to update what Eave for GitHub can access, go to the app settings in your GitHub account (settings/apps/eave-fyi/permissions).</p>
         </InfoTooltip>
       </div>
-      {githubIntegration && (
+      {github && (
         <div className={classes.expandBtnContainer}>
           <Button className={classes.expandBtn} onClick={toggleExpandOptions} variant="text" disableRipple>
             Advanced Options <ExpandIcon up={optionsExpanded} color="#0092C7" />
@@ -401,7 +412,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
         />
       </div>
       <div className={classes.ctaBtnContainer}>
-        {githubIntegration ? (
+        {github ? (
           <Button onClick={handleUpdate} className={classes.ctaBtn} disabled={!!selectedRepoError} color="secondary" >
             {cta}
           </Button>

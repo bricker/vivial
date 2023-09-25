@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router-dom';
 import useUser from '../../../hooks/useUser.js';
 import useTeam from '../../../hooks/useTeam.js';
 
-import { FEATURES, FEATURE_STATES, COOKIE_NAMES, SEARCH_PARAM_NAMES, SEARCH_PARAM_VALUES } from '../../../constants.js';
 import ExploreFeatures from '../../ExploreFeatures/index.jsx';
 import FeatureSettings from '../../FeatureSettings/index.jsx';
 import GitHubFeatureModal from '../../GitHubFeatureModal/index.jsx';
@@ -12,21 +11,19 @@ import ErrorPage from '../ErrorPage/index.jsx';
 import LoadingPage from '../LoadingPage/index.jsx';
 import Page from '../Page/index.jsx';
 
+import {
+  FEATURES,
+  FEATURE_STATES,
+  COOKIE_NAMES,
+  SEARCH_PARAM_NAMES,
+  SEARCH_PARAM_VALUES,
+} from '../../../constants.js';
 
 const Dashboard = () => {
-  const [cookies, _, removeCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
   const [searchParams] = useSearchParams();
-  const {
-    user,
-    getUserAccount
-  } = useUser();
-  const {
-    team,
-    getTeam,
-    getTeamRepos,
-    getTeamFeatureStates,
-    updateTeamFeatureState,
-  } = useTeam();
+  const [cookies, _, removeCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
+  const { team, getTeam, getTeamRepos, getTeamFeatureStates, updateTeamFeatureState } = useTeam();
+  const { user, getUserAccount } = useUser();
 
   const isLoading =
     user.accountIsLoading
@@ -44,17 +41,22 @@ const Dashboard = () => {
     team.inlineCodeDocsState === FEATURE_STATES.ENABLED
     || team.apiDocsState === FEATURE_STATES.ENABLED;
 
-  const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
+  const [showInlineDocsModal, setShowInlineDocsModal] = useState(false);
 
   const openInlineDocsModal = useCallback(() => {
-    setInlineDocsModalIsOpen(true);
+    setShowInlineDocsModal(true);
   }, []);
 
   const closeInlineDocsModal = useCallback(() => {
-    setInlineDocsModalIsOpen(false);
+    setShowInlineDocsModal(false);
   }, []);
 
-  const handleUpdateFeatureState = useCallback((teamId, teamRepoIds, enabledRepoIds, feature) => {
+  const handleFeatureUpdate = useCallback((
+    teamId,
+    teamRepoIds,
+    enabledRepoIds,
+    feature
+  ) => {
     updateTeamFeatureState(
       teamId,
       teamRepoIds,
@@ -109,12 +111,12 @@ const Dashboard = () => {
       {showFeatureSettings && (
         <FeatureSettings onInlineDocsClick={openInlineDocsModal} />
       )}
-      {inlineDocsModalIsOpen && (
+      {showInlineDocsModal && (
         <GitHubFeatureModal
           feature={FEATURES.INLINE_CODE_DOCS}
           param={SEARCH_PARAM_VALUES.INLINE_CODE_DOCS}
           onClose={closeInlineDocsModal}
-          onUpdate={handleUpdateFeatureState}
+          onUpdate={handleFeatureUpdate}
           open
         />
       )}

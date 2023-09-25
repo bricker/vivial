@@ -1,6 +1,5 @@
 import { useContext } from 'react';
 import { AppContext } from '../context/Provider.js';
-
 import { FEATURES, FEATURE_STATES } from '../constants.js';
 
 const useTeam = () => {
@@ -45,7 +44,6 @@ const useTeam = () => {
     let inlineCodeDocsState = FEATURE_STATES.DISABLED;
     let apiDocsState = FEATURE_STATES.DISABLED;
     let architectureDocsState = FEATURE_STATES.DISABLED;
-
     for (const repo of repos) {
       if (repo[FEATURES.API_DOCS] === FEATURE_STATES.ENABLED) {
         apiDocsState = FEATURE_STATES.ENABLED;

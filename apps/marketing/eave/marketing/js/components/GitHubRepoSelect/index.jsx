@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { makeStyles } from "@material-ui/styles";
 import classNames from "classnames";
-import { FormGroup, FormControlLabel, Checkbox, Typography } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
+import { FormGroup, FormControlLabel, Checkbox } from "@material-ui/core";
 
-import Button from "../Button/index.jsx";
 import ExpandIcon from "../Icons/ExpandIcon.jsx";
+import Button from "../Button/index.jsx";
 
 const makeClasses = makeStyles((theme) => ({
   outerContainer: {
@@ -62,13 +62,8 @@ const makeClasses = makeStyles((theme) => ({
 const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
   const classes = makeClasses();
   const [reposExpanded, setReposExpanded] = useState(false);
+  const innerContainerClass = classNames(classes.innerContainer, error && classes.innerContainerError);
   const label = repos.length === selectedRepoIds.length ? "Default (All)" : "Custom";
-  const expandColor = error ? "#E03C6C" : "white";
-
-  const innerContainerClass = classNames(
-    classes.innerContainer,
-    error && classes.innerContainerError
-  );
 
   const toggleExpandRepos = useCallback(() => {
     setReposExpanded(!reposExpanded);
@@ -88,7 +83,7 @@ const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
       <div className={classes.outerContainer}>
         <div className={innerContainerClass}>
         <Button className={classes.expandBtn} onClick={toggleExpandRepos} variant="text" disableRipple>
-          {label} <ExpandIcon up={reposExpanded} color={expandColor} lg />
+          {label} <ExpandIcon up={reposExpanded} color={error ? "#E03C6C" : "white"} lg />
         </Button>
         {reposExpanded && (
           <FormGroup >

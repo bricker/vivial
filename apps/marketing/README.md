@@ -9,7 +9,7 @@
 bin/http-proxy
 ```
 
-2. Connect to the Cloud SQL proxy (if needed).
+2. Connect to the Cloud SQL proxy.
 ```
 bin/cloud-sql-proxy
 ```
@@ -20,8 +20,8 @@ bin/cloud-sql-proxy
 bin/pg-shell -d <database> -u <username>
 ```
 
-4. Open the Run & Debug panel in VS Code and select either "Marketing Website" or "Core API + Marketing Website" in the dropdown menu.
+4. Open the Run & Debug panel in VS Code and select "Core API + Marketing Website" in the dropdown menu.
 
 5. Click the play button located next to the dropdown menu.
 
-6. Now you should be able to access the marketing website at https://www.eave.run:8080.
+6. Access the marketing website at https://www.eave.run:8080.

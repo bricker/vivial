@@ -25,7 +25,7 @@ export const FEATURE_STATES = {
   PAUSED: "paused",
 };
 
-export const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfkmCRGUy4IRG-jRwviYNiOk9oNIfRDBjc0CogtDpYGfsOktQ/viewform?usp=sf_link';
+export const FEEDBACK_URL = 'https://forms.gle/3v5Xdz7kPya5UW9U6';
 
 export const AFFILIATE_LOGOS = {
   amazon: {

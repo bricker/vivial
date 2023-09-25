@@ -2,8 +2,8 @@ import React from "react";
 import { makeStyles } from "@material-ui/styles";
 import { Typography } from "@material-ui/core";
 
-import useTeam from "../../hooks/useTeam";
 import { FEATURE_STATES } from "../../constants";
+import useTeam from "../../hooks/useTeam";
 import FeatureSettingCard from "../FeatureSettingCard/index.jsx";
 
 const makeClasses = makeStyles((theme) => ({

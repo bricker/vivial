@@ -30,7 +30,6 @@ const InfoTooltip = ({ children, className, disabled }) => {
   const classes = makeClasses();
   const iconBtnClass = classNames(classes.iconBtn, className);
   const iconColor = disabled ? '#808182' : '#3179E7';
-
   return (
     <Tooltip
       classes={{

@@ -6,7 +6,6 @@ import eave.stdlib.cookies
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
-from eave.stdlib.core_api.models.github_repos import (GithubRepoUpdateInput)
 
 from eave.stdlib.endpoints import status_payload
 import eave.stdlib.requests
