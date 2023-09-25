@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+npx pm2 \
+  --no-daemon \
+  --silent \
+  --no-pmx \
+  --no-automation \
+  --disable-trace \
+  --no-vizion \
+  --name "github" \
+  start pm2.config.cjs

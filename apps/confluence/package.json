@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "start-pm2",
+    "start": "bin/start-pm2",
     "start-dev": "pkill -n ngrok || true && nodemon ./server.ts"
   },
   "dependencies": {
@@ -12,7 +12,9 @@
     "helmet": "7.x",
     "html-entities": "2.x",
     "request": "2.x",
-    "uuid": "9.x"
+    "uuid": "9.x",
+    "pm2": "5.x",
+    "tsx": "3.x"
   },
   "devDependencies": {
     "longjohn": "~0.2.2",
