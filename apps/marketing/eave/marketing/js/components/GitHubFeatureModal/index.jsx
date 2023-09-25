@@ -250,11 +250,6 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
     setOptionsExpanded(!optionsExpanded);
   }, [optionsExpanded]);
 
-  const handleClose = useCallback(() => {
-    onClose();
-    setShowDisableConfirmation(false);
-  }, []);
-
   const handleUpdate = useCallback(() => {
     onUpdate(team.id, teamRepoIds, selectedRepoIds, feature);
   }, [team.id, teamRepoIds, selectedRepoIds]);
@@ -270,6 +265,16 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   const handleHideDisableConfirmation = useCallback(() => {
     setShowDisableConfirmation(false);
   }, []);
+
+  const handleClose = useCallback(() => {
+    onClose();
+    if (showDisableConfirmation) {
+      // We wait briefly before removing the confirmation UI from the modal view
+      // in order to avoid accidentally showing the user the default modal UI
+      // for a split second before the modal closes.
+      setTimeout(handleHideDisableConfirmation, 600);
+    }
+  }, [showDisableConfirmation]);
 
   const handleAddApp = useCallback(() => {
     setCookie(COOKIE_NAMES.FEATURE_MODAL, feature);
