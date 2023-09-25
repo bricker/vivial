@@ -1,9 +1,9 @@
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import Express from "express";
-import assert from "node:assert";
 import { constants as httpConstants } from "node:http2";
 import { githubAppClient } from "../lib/octokit-util.js";
 import { GithubWebhookBody, getEventHandler, getGithubWebhookHeaders } from "../middleware/process-webhook-payload.js";
+import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";
 
 export async function webhookEventTaskHandler(req: Express.Request, res: Express.Response): Promise<void> {
   const ctx = LogContext.load(res);
@@ -14,7 +14,9 @@ export async function webhookEventTaskHandler(req: Express.Request, res: Express
   }
 
   const { installationId } = getGithubWebhookHeaders(req);
-  assert(installationId);
+  if (!installationId) {
+    throw new MissingRequiredHeaderError("installationId");
+  }
 
   const eventBody = <GithubWebhookBody>req.body;
   const app = await githubAppClient();

@@ -4,7 +4,7 @@ import { InstallationLite, WebhookEventName } from "@octokit/webhooks-types";
 import Express from "express";
 import { constants as httpConstants } from "node:http2";
 import { appConfig } from "../config.js";
-import registry, { HandlerFunction } from "../events/registry.js";
+import { getEventHandler as getEventHandlerFromRegistry, HandlerFunction } from "../events/event-registry.js";
 import { githubAppClient } from "../lib/octokit-util.js";
 
 type GithubWebhookHeaders = {
@@ -49,7 +49,7 @@ export function getEventHandler(req: Express.Request, res: Express.Response): Ha
   const { action } = <GithubWebhookBody>req.body;
   const fullEventName = [eventName, action].filter((n) => n).join(".");
 
-  const handler = registry[fullEventName];
+  const handler = getEventHandlerFromRegistry({ dispatchKey: fullEventName });
   if (!handler) {
     eaveLogger.warning(`Event not supported: ${fullEventName}`, ctx);
   }

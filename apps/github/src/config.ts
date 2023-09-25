@@ -25,6 +25,10 @@ class AppConfig extends EaveConfig {
   get eaveGithubAppClientSecret(): Promise<string> {
     return this.getSecret("EAVE_GITHUB_APP_CLIENT_SECRET");
   }
+
+  get eaveGithubAppCronSecret(): Promise<string> {
+    return this.getSecret("EAVE_GITHUB_APP_CRON_SECRET");
+  }
 }
 
 export const appConfig = new AppConfig();
