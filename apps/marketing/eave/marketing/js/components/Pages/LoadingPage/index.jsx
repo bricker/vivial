@@ -5,10 +5,7 @@ import Page from '../Page/index.jsx';
 
 const makeClasses = makeStyles(() => ({
   loader: {
-    position: 'absolute',
-    top: 0,
-    width: '100vw',
-    height: '100vh',
+    width: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -18,7 +15,7 @@ const makeClasses = makeStyles(() => ({
 const LoadingPage = () => {
   const classes = makeClasses();
   return (
-    <Page hideFooter>
+    <Page>
       <div className={classes.loader}>
         <CircularProgress />
       </div>

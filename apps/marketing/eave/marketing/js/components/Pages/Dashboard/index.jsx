@@ -77,9 +77,7 @@ const Dashboard = () => {
   }, [user.account.team_id]);
 
   useEffect(() => {
-    if (team.repos.length) {
-      getTeamFeatureStates(team.repos);
-    }
+    getTeamFeatureStates(team.repos);
   }, [team.repos]);
 
   useEffect(() => {

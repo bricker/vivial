@@ -20,7 +20,7 @@ const makeClasses = makeStyles((theme) => ({
   }
 }));
 
-const Page = ({ children, simpleHeader, hideFooter }) => {
+const Page = ({ children, simpleHeader }) => {
   const classes = makeClasses();
   return (
     <div className={classes.container}>
@@ -28,7 +28,7 @@ const Page = ({ children, simpleHeader, hideFooter }) => {
       <div className={classes.sections}>
         {children}
       </div>
-      {!hideFooter && <Footer />}
+      <Footer />
       <AuthModal />
     </div>
   );

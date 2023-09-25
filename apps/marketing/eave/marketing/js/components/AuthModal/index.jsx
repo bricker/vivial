@@ -8,14 +8,11 @@ import Copy from '../Copy/index.jsx';
 import CloseIcon from '../Icons/CloseIcon.js';
 import Button from '../Button/index.jsx';
 import GoogleIcon from '../Icons/GoogleIcon.jsx';
-import SlackIcon from '../Icons/SlackIcon.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   container: {
     backgroundColor: theme.palette.background.light,
     color: theme.palette.background.contrastText,
-
-
     maxWidth: 546,
     padding: '70px 25px 36px',
     boxSizing: 'border-box',

@@ -5,36 +5,32 @@ import { createTheme } from '@material-ui/core';
  */
 export const darkTheme = createTheme({
   palette: {
-    // Yellow
+    // yellow
     primary: {
       main: '#F4E346',
       light: '#F8ED87',
       dark: '#F1DA0E',
       contrastText: '#121212',
     },
-
-    // Green
+    // green
     secondary: {
       main: '#13D491',
       light: '#14EBA0',
       dark: '#10BC80',
       contrastText: '#121212',
     },
-
-    // Blue
+    // blue
     tertiary: {
       main: '#01A6F7',
       light: '#1BB2FE',
       dark: '#0188CB',
       contrastText: '#FFFFFF',
     },
-
-    // Red
+    // red
     error: {
       main: "#E03C6C",
     },
-
-    // Black
+    // black
     background: {
       main: '#121212',
       light: '#363636',
@@ -50,7 +46,6 @@ export const darkTheme = createTheme({
   header: {
     height: 66,
     marginBottom: 28,
-    // Medium breakpoint.
     md: {
       height: 110,
       marginBottom: 86,
