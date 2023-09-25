@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "bin/start-pm2"
+    "start": "bin/start-prod"
   },
   "dependencies": {
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",

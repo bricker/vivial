@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "bin/start-pm2",
+    "start": "bin/start-prod",
     "start-dev": "pkill -n ngrok || true && nodemon ./server.ts"
   },
   "dependencies": {
