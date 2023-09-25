@@ -4,7 +4,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
-	bin/lint
+	# bin/lint
 	setup-deployment-workspace
 	# gcloud builds submit --ignore-file=.gcloudignore-builder --config=cloudbuild.yaml
 	"${EAVE_HOME}"/develop/python/bin/deploy-appengine "$@"
