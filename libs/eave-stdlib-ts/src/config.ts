@@ -1,5 +1,5 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { EaveApp } from "./eave-origins.js";
+import { EaveApp, appengineServiceName } from "./eave-origins.js";
 
 export enum EaveEnvironment {
   development = "development",
@@ -109,7 +109,7 @@ export class EaveConfig {
     } else {
       // TODO: Remove hardcoded AppEngine URL
       // FIXME: Hardcoded region id (uc)
-      return `https://${service}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
+      return `https://${appengineServiceName(service)}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
     }
   }
 
