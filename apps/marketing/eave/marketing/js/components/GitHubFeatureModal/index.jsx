@@ -1,9 +1,11 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
+import { useSearchParams } from "react-router-dom";
 import classNames from "classnames";
 import { makeStyles } from "@material-ui/styles";
 import { Dialog, IconButton, Typography } from '@material-ui/core';
 
-import { FEATURES } from "../../constants.js";
+import { FEATURES, COOKIE_NAMES, SEARCH_PARAM_NAMES, SEARCH_PARAM_VALUES } from "../../constants.js";
 import { imageUrl } from "../../util/asset-helpers.js";
 import useTeam from "../../hooks/useTeam.js";
 import CloseIcon from "../Icons/CloseIcon.js";
@@ -29,6 +31,11 @@ const makeClasses = makeStyles((theme) => ({
       padding: '60px 54px 44px',
     }
   },
+  confirmationPaper: {
+    [theme.breakpoints.up('md')]: {
+      padding: '146px 96px 64px',
+    }
+  },
   closeButton: {
     position: 'absolute',
     top: 10,
@@ -40,7 +47,7 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 14,
     [theme.breakpoints.up('md')]: {
       textAlign: 'center',
-      marginBottom: 10,
+      marginBottom: 18,
       fontSize: 36,
     }
   },
@@ -102,7 +109,8 @@ const makeClasses = makeStyles((theme) => ({
     fontSize: 20,
     marginTop: 20,
     [theme.breakpoints.up('md')]: {
-      width: 200,
+      width: 'auto',
+      minWidth: 200,
       marginTop: 0,
     }
   },
@@ -138,7 +146,63 @@ const makeClasses = makeStyles((theme) => ({
   selectText: {
     fontSize: 14,
     margin: '11px 0 5px',
-  }
+  },
+  turnOffBtn: {
+    color: theme.palette.error.main,
+    textDecoration: 'underline',
+    fontSize: 16,
+    fontWeight: 700,
+    position: 'absolute',
+    left: 25,
+    top: 25,
+    width: 'auto',
+    height: 'auto',
+    padding: 0,
+    '&:hover': {
+      backgroundColor: 'transparent',
+      textDecoration: 'underline',
+    },
+    [theme.breakpoints.up('md')]: {
+      fontSize: 14,
+      left: 31,
+      top: 22,
+    }
+  },
+  confirmationBtns: {
+    marginTop: 42,
+    [theme.breakpoints.up('md')]: {
+      display: 'flex',
+      justifyContent: 'center',
+    }
+  },
+  disableConfirmationBtn: {
+    border: `1px solid ${theme.palette.background.contrastText}`,
+    color: theme.palette.background.contrastText,
+    fontSize: 20,
+    width: '100%',
+    marginBottom: 10,
+    '&:hover': {
+      border: `1px solid ${theme.palette.background.contrastText}`,
+      backgroundColor: 'transparent',
+    },
+    [theme.breakpoints.up('md')]: {
+      marginBottom: 0,
+      marginRight: 15,
+      width: 'auto',
+    }
+  },
+  feedbackLinkContainer: {
+    marginTop: 90,
+    textAlign: 'center',
+    [theme.breakpoints.up('md')]: {
+      marginTop: 140,
+    }
+  },
+  feedbackLink: {
+    color: "#0092C7",
+    fontSize: 16,
+    fontWeight: 400,
+  },
 }));
 
 function renderTitle(feature) {
@@ -158,18 +222,21 @@ function renderDescription(feature) {
   }
 }
 
-const GitHubFeatureModal = ({ onClose, onUpdate, open, feature }) => {
+const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
   const classes = makeClasses();
   const { team } = useTeam();
+  const [_, setCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
+  const [searchParams, setSearchParams] = useSearchParams();
   const githubIntegration = team.integrations.github_integration;
   const githubLogoFile = githubIntegration ? 'eave-github-logo-installed.png' : 'eave-github-logo-required.png';
-  const githubOauthUrl = `${window.eave.apiBase}/oauth/github/authorize`;
   const teamRepoIds = team.repos.map(repo => repo.external_repo_id);
   const enabledRepoIds = team.repos
     .filter(repo => repo[feature] === "enabled")
     .map(repo => repo.external_repo_id);
   const allSelected = teamRepoIds.length === enabledRepoIds.length;
-  const cta = enabledRepoIds.length ? "Update" : "Turn On";
+  const cta = enabledRepoIds.length ? "Update" : "Turn On"
+  const canDisable = !!enabledRepoIds.length;
+  const [showDisableConfirmation, setShowDisableConfirmation] = useState(false);
   const [optionsExpanded, setOptionsExpanded] = useState(false);
   const [selectedRepoIds, setSelectedRepoIds] = useState(allSelected ? teamRepoIds : enabledRepoIds);
   const [selectedRepoError, setSelectedRepoError] = useState(null);
@@ -183,9 +250,32 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature }) => {
     setOptionsExpanded(!optionsExpanded);
   }, [optionsExpanded]);
 
+  const handleClose = useCallback(() => {
+    onClose();
+    setShowDisableConfirmation(false);
+  }, []);
+
   const handleUpdate = useCallback(() => {
     onUpdate(team.id, teamRepoIds, selectedRepoIds, feature);
   }, [team.id, teamRepoIds, selectedRepoIds]);
+
+  const handleDisable = useCallback(() => {
+    onUpdate(team.id, teamRepoIds, [], feature);
+  }, [team.id, teamRepoIds]);
+
+  const handleTurnOffClick = useCallback(() => {
+    setShowDisableConfirmation(true);
+  }, []);
+
+  const handleHideDisableConfirmation = useCallback(() => {
+    setShowDisableConfirmation(false);
+  }, []);
+
+  const handleAddApp = useCallback(() => {
+    setCookie(COOKIE_NAMES.FEATURE_MODAL, feature);
+    const githubOauthUrl = `${window.eave.apiBase}/oauth/github/authorize`;
+    window.open(githubOauthUrl, "_self");
+  }, []);
 
   const handleSelectRepo = useCallback((val) => {
     const selectionError = "At least one repository must be selected to turn on this feature.";
@@ -221,13 +311,55 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature }) => {
     }
   }, [selectedRepoIds, teamRepoIds]);
 
+  useEffect(() => {
+    if (open) {
+      const currentParam = searchParams.get(SEARCH_PARAM_NAMES.FEATURE_MODAL);
+      if (!currentParam) {
+        setSearchParams({[SEARCH_PARAM_NAMES.FEATURE_MODAL]: param });
+      }
+    } else {
+      setSearchParams({});
+    }
+  }, [searchParams, open]);
+
+  if (showDisableConfirmation) {
+    const paperClass = classNames(classes.paper, classes.confirmationPaper);
+    return (
+      <Dialog classes={{ paper: paperClass }} onClose={handleClose} open={open}>
+        <IconButton className={classes.closeButton} onClick={handleClose}>
+          <CloseIcon />
+        </IconButton>
+        <Typography className={classes.title} variant="h2">
+          Are you sure you want to turn off {renderTitle(feature)}?
+        </Typography>
+        <div className={classes.description}>
+          Eave will stop automatically updating these documents once this feature is turned off. Updates will need to be made manually.
+        </div>
+        <div className={classes.confirmationBtns}>
+          <Button onClick={handleDisable} className={classes.disableConfirmationBtn} variant="outlined">
+            Yes, I'll Manually Update
+          </Button>
+          <Button onClick={handleHideDisableConfirmation} className={classes.ctaBtn} color="secondary">
+            No, Keep Automation
+          </Button>
+        </div>
+        <div className={classes.feedbackLinkContainer}>
+          <a className={classes.feedbackLink} href="https://forms.gle/3v5Xdz7kPya5UW9U6" target="_blank">
+            Send Feedback
+          </a>
+        </div>
+      </Dialog>
+    )
+  }
+
   return (
-    <Dialog
-      classes={{ paper: classes.paper }}
-      onClose={onClose}
-      open={open}
-    >
-      <IconButton className={classes.closeButton} onClick={onClose}>
+    <Dialog classes={{ paper: classes.paper }} onClose={handleClose} open={open}>
+      {canDisable && (
+        <Button className={classes.turnOffBtn} onClick={handleTurnOffClick} variant="text" disableRipple>
+          Turn Off
+        </Button>
+      )}
+      <IconButton className={classes.closeButton} onClick={handleClose}>
         <CloseIcon />
       </IconButton>
       <Typography className={classes.title} variant="h2">
@@ -278,7 +410,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature }) => {
             {cta}
           </Button>
         ) : (
-          <Button to={githubOauthUrl} className={classes.ctaBtn} color="secondary">
+          <Button onClick={handleAddApp} className={classes.ctaBtn} color="secondary">
             Add App
           </Button>
         )}

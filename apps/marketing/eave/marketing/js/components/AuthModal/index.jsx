@@ -12,7 +12,10 @@ import SlackIcon from '../Icons/SlackIcon.jsx';
 
 const makeClasses = makeStyles((theme) => ({
   container: {
-    color: theme.palette.primary.contrastText,
+    backgroundColor: theme.palette.background.light,
+    color: theme.palette.background.contrastText,
+
+
     maxWidth: 546,
     padding: '70px 25px 36px',
     boxSizing: 'border-box',
@@ -42,14 +45,15 @@ const makeClasses = makeStyles((theme) => ({
     color: 'inherit',
   },
   loginButton: {
-    color: theme.palette.primary.contrastText,
-    borderColor: 'black',
-    maxWidth: 323,
+    color: theme.palette.background.contrastText,
+    borderColor: theme.palette.background.contrastText,
     width: '100%',
+    maxWidth: 240,
     marginTop: 12,
     justifyContent: 'center',
     '&:hover': {
-      borderColor: 'black',
+      borderColor: theme.palette.background.contrastText,
+      backgroundColor: theme.palette.background.light,
     }
   },
   icon: {
@@ -57,8 +61,12 @@ const makeClasses = makeStyles((theme) => ({
     height: 30,
   },
   disclaimer: {
+    color: theme.palette.background.contrastText,
     margin: '39px auto 0px',
     maxWidth: 374,
+    '& > a': {
+      color: theme.palette.background.contrastText,
+    }
   },
 }));
 
@@ -71,7 +79,7 @@ const AuthModal = () => {
     <Dialog open={isOpen}>
       <section className={sectionClassList}>
         <IconButton onClick={closeModal} className={classes.closeButton}>
-          <CloseIcon stroke="#121212" />
+          <CloseIcon />
         </IconButton>
         <Copy variant="h2" className={classes.header}>{isLoginMode ? 'Log In' : 'Get Free Early Access'}</Copy>
         <Copy variant="pSmall" className={classes.subheader}>{isLoginMode ? 'Access your free Beta account' : 'Early access is available via Google sign up only. Additional account options coming soon.'}</Copy>

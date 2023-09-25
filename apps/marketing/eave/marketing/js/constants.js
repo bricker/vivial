@@ -1,5 +1,18 @@
 import { imageUrl } from './util/asset-helpers.js';
 
+export const COOKIE_NAMES = {
+  FEATURE_MODAL: "ev_feature_modal",
+};
+
+export const SEARCH_PARAM_NAMES = {
+  FEATURE_MODAL:  "feature-modal",
+};
+
+export const SEARCH_PARAM_VALUES = {
+  API_DOCS: "api-documentation",
+  INLINE_CODE_DOCS: "inline-code-documentation",
+};
+
 export const FEATURES = {
   API_DOCS: "api_documentation_state",
   INLINE_CODE_DOCS: "inline_code_documentation_state",

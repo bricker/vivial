@@ -17,9 +17,10 @@ const makeClasses = makeStyles((theme) => ({
     color: theme.palette.secondary.main,
     fontSize: 32,
     fontWeight: 400,
-    marginBottom: 32,
+    marginBottom: 22,
     [theme.breakpoints.up('md')]: {
       fontSize: 36,
+      marginBottom: 28,
     }
   },
   featureCard: {
