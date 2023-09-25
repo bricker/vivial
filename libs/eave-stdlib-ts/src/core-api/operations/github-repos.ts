@@ -1,4 +1,4 @@
-import { makeRequest, RequestArgsAuthedRequest, RequestArgsTeamId } from "../../requests.js";
+import { makeRequest, RequestArgsAuthedRequest, RequestArgsOrigin, RequestArgsTeamId } from "../../requests.js";
 import { GithubRepo, GithubRepoCreateInput, GithubRepoListInput, GithubReposDeleteInput, GithubReposFeatureStateInput, GithubRepoUpdateInput } from "../models/github-repos.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
@@ -21,6 +21,27 @@ export class GetGithubReposOperation {
     return responseData;
   }
 }
+
+export type GetAllTeamGithubReposRequestBody = {
+  query_params: GithubReposFeatureStateInput;
+};
+
+export type GetAllTeamsGithubReposResponseBody = {
+  repos: Array<GithubRepo>;
+};
+
+export class GetAllTeamGithubReposOperation {
+  static config = new CoreApiEndpointConfiguration({ path: "/_/github-repos/query" });
+  static async perform(args: RequestArgsOrigin & { input: GetAllTeamGithubReposRequestBody }): Promise<GetAllTeamsGithubReposResponseBody> {
+    const resp = await makeRequest({
+      config: this.config,
+      ...args,
+    });
+    const responseData = <GetAllTeamsGithubReposResponseBody>await resp.json();
+    return responseData;
+  }
+}
+
 export type FeatureStateGithubReposRequestBody = {
   query_params: GithubReposFeatureStateInput;
 };
