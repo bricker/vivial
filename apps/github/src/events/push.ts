@@ -152,6 +152,7 @@ export default async function handler(event: PushEvent, context: GitHubOperation
           const document: DocumentInput = {
             title: `Description of code in ${repositoryName} ${filePath}`,
             content: openaiResponse,
+            parent: null,
           };
 
           await logEvent(

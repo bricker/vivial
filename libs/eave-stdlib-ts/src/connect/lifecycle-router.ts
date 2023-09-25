@@ -22,6 +22,8 @@ export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn; 
           base_url: settings.baseUrl,
           shared_secret: settings.sharedSecret,
           description: settings.description,
+          atlassian_actor_account_id: null,
+          display_url: null,
         },
       },
     });

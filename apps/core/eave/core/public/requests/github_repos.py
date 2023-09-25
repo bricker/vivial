@@ -1,14 +1,15 @@
 from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_repos import GithubRepoOrm
+from eave.stdlib.core_api.models.github_repos import Feature
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.analytics import log_event
 from eave.stdlib.api_util import json_response
-from eave.stdlib.core_api.models.repos import Feature
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
+    GetAllTeamsGithubReposRequest,
     GetGithubReposRequest,
     UpdateGithubReposRequest,
     DeleteGithubReposRequest,
@@ -59,6 +60,28 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
 
         return json_response(
             GetGithubReposRequest.ResponseBody(
+                repos=[orm.api_model for orm in gh_repo_orms],
+            )
+        )
+
+class GetAllTeamsGithubRepoEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        body = await request.json()
+        input = GetAllTeamsGithubReposRequest.RequestBody.parse_obj(body)
+
+        async with database.async_session.begin() as db_session:
+            feature = input.query_params.feature
+            state = input.query_params.state
+
+            gh_repo_orms = await GithubRepoOrm.query(
+                session=db_session,
+                api_documentation_state=state if feature is Feature.API_DOCUMENTATION else None,
+                inline_code_documentation_state=state if feature is Feature.INLINE_CODE_DOCUMENTATION else None,
+                architecture_documentation_state=state if feature is Feature.ARCHITECTURE_DOCUMENTATION else None,
+            )
+
+        return json_response(
+            GetAllTeamsGithubReposRequest.ResponseBody(
                 repos=[orm.api_model for orm in gh_repo_orms],
             )
         )

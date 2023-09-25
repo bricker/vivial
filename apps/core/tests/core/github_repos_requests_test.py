@@ -10,6 +10,7 @@ from eave.stdlib.core_api.models.github_repos import (
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
     FeatureStateGithubReposRequest,
+    GetAllTeamsGithubReposRequest,
     GetGithubReposRequest,
     UpdateGithubReposRequest,
 )
@@ -30,6 +31,93 @@ class TestGithubRepoRequests(BaseTestCase):
                 )
             )
         return orms
+
+    async def test_get_all_teams_repos_with_api_doc_feature_enabled(self) -> None:
+        async with self.db_session.begin() as s:
+            team1 = await self.make_team(s)
+            team2 = await self.make_team(s)
+            orms1 = await self.create_repos(session=s, team_id=team1.id)
+            orms2 = await self.create_repos(session=s, team_id=team2.id)
+
+            orms1[0].api_documentation_state = State.ENABLED
+            orms2[0].api_documentation_state = State.ENABLED
+
+        response = await self.make_request(
+            path="/_/github-repos/query",
+            payload={"query_params": { "feature": "api_documentation", "state": "enabled" } },
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetAllTeamsGithubReposRequest.ResponseBody(**response.json())
+        assert len(response_obj.repos) == 2
+
+        response = await self.make_request(
+            path="/_/github-repos/query",
+            payload={"query_params": { "feature": "api_documentation", "state": "disabled" } },
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetAllTeamsGithubReposRequest.ResponseBody(**response.json())
+        assert len(response_obj.repos) == 8
+
+    async def test_get_all_teams_repos_with_inline_code_doc_feature_enabled(self) -> None:
+        async with self.db_session.begin() as s:
+            team1 = await self.make_team(s)
+            team2 = await self.make_team(s)
+            orms1 = await self.create_repos(session=s, team_id=team1.id)
+            orms2 = await self.create_repos(session=s, team_id=team2.id)
+
+            orms1[0].inline_code_documentation_state = State.ENABLED
+            orms2[0].inline_code_documentation_state = State.ENABLED
+
+        response = await self.make_request(
+            path="/_/github-repos/query",
+            payload={"query_params": { "feature": "inline_code_documentation", "state": "enabled" } },
+            team_id=team2.id,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetAllTeamsGithubReposRequest.ResponseBody(**response.json())
+        assert len(response_obj.repos) == 2
+
+        response = await self.make_request(
+            path="/_/github-repos/query",
+            payload={"query_params": { "feature": "inline_code_documentation", "state": "disabled" } },
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetAllTeamsGithubReposRequest.ResponseBody(**response.json())
+        assert len(response_obj.repos) == 8
+
+    async def test_get_all_teams_repos_with_arch_doc_feature_enabled(self) -> None:
+        async with self.db_session.begin() as s:
+            team1 = await self.make_team(s)
+            team2 = await self.make_team(s)
+            orms1 = await self.create_repos(session=s, team_id=team1.id)
+            orms2 = await self.create_repos(session=s, team_id=team2.id)
+
+            orms1[0].architecture_documentation_state = State.ENABLED
+            orms2[0].architecture_documentation_state = State.ENABLED
+
+        response = await self.make_request(
+            path="/_/github-repos/query",
+            payload={"query_params": { "feature": "architecture_documentation", "state": "enabled" } },
+            team_id=team2.id,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetAllTeamsGithubReposRequest.ResponseBody(**response.json())
+        assert len(response_obj.repos) == 2
+
+        response = await self.make_request(
+            path="/_/github-repos/query",
+            payload={"query_params": { "feature": "architecture_documentation", "state": "disabled" } },
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetAllTeamsGithubReposRequest.ResponseBody(**response.json())
+        assert len(response_obj.repos) == 8
+
 
     async def test_github_repo_req_get_one(self) -> None:
         async with self.db_session.begin() as s:
@@ -215,3 +303,4 @@ class TestGithubRepoRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = FeatureStateGithubReposRequest.ResponseBody(**response.json())
         assert response_obj.states_match is False
+

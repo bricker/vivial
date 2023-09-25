@@ -23,6 +23,7 @@ from eave.stdlib.core_api.operations.github_documents import (
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
+    GetAllTeamsGithubReposRequest,
     GetGithubReposRequest,
     UpdateGithubReposRequest,
     DeleteGithubReposRequest,
@@ -153,6 +154,7 @@ def make_route(
     endpoint = OriginASGIMiddleware(
         app=endpoint, endpoint_config=config
     )  # First thing to happen when the middleware chain is kicked off
+
     return Route(path=config.path, endpoint=endpoint)
 
 
@@ -218,6 +220,10 @@ routes = [
     make_route(
         config=GetGithubReposRequest.config,
         endpoint=github_repos.GetGithubRepoEndpoint,
+    ),
+    make_route(
+        config=GetAllTeamsGithubReposRequest.config,
+        endpoint=github_repos.GetAllTeamsGithubRepoEndpoint,
     ),
     make_route(
         config=FeatureStateGithubReposRequest.config,

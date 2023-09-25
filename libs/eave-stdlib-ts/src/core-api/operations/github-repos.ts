@@ -21,7 +21,6 @@ export class GetGithubReposOperation {
     return responseData;
   }
 }
-
 export type FeatureStateGithubReposRequestBody = {
   query_params: GithubReposFeatureStateInput;
 };

@@ -36,6 +36,7 @@ class TestLinkHandler(UtilityBaseTestCase):
                             id=self.anystring(),
                         ),
                     ),
+                    document_reference=None,
                 ),
             ),
         )

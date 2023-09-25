@@ -6,6 +6,7 @@ import { TestContextBase, TestUtil } from "@eave-fyi/eave-stdlib-ts/src/test-uti
 import anyTest, { TestFn } from "ava";
 import sinon from "sinon";
 import { maybeAddReposToDataBase } from "../src/events/installation-repositories-added.js";
+import { InstallationRepositoriesAddedEvent } from "@octokit/webhooks-types";
 
 interface TestContext extends TestContextBase {
   sandbox: sinon.SinonSandbox;
@@ -47,7 +48,16 @@ test.serial("no existing github_repos for team should not insert rows", async (t
   const runApiDocsStub = t.context.sandbox.stub(RunApiDocumentationTaskOperation, "perform");
 
   // WHEN the Eave gh app is given access to a new repo
-  await maybeAddReposToDataBase([{ node_id: "dummy_node_id" }], LogContext.wrap());
+  // Force-casting here to avoid having to pass in all the unused fields
+  const event = <InstallationRepositoriesAddedEvent>{
+    repositories_added: [
+      {
+        node_id: t.context.u.anystr("repo1 id"),
+        name: t.context.u.anystr("repo1 name"),
+      },
+  ]
+  };
+  await maybeAddReposToDataBase(event, LogContext.wrap());
 
   // THEN no action is taken (beyond checking for existing entries in the db)
   t.deepEqual(getGithubReposStub.callCount, 1);
@@ -77,8 +87,17 @@ test.serial("all repos have feature enabled then new repo will also have feature
   const createGithubRepoStub = t.context.sandbox.stub(CreateGithubRepoOperation, "perform").returns(Promise.resolve({ repo: anyRepo(t.context.u) }));
   const runApiDocsStub = t.context.sandbox.stub(RunApiDocumentationTaskOperation, "perform");
 
+  const event = <InstallationRepositoriesAddedEvent>{
+    repositories_added: [
+      {
+        node_id: t.context.u.anystr("repo1 id"),
+        name: t.context.u.anystr("repo1 name"),
+      },
+  ]
+  };
+
   // WHEN the Eave gh app is given access to a new repo
-  await maybeAddReposToDataBase([{ node_id: "dummy_node_id" }], LogContext.wrap());
+  await maybeAddReposToDataBase(event, LogContext.wrap());
 
   // THEN the db row is created
   t.deepEqual(getGithubReposStub.callCount, 1);
@@ -88,7 +107,8 @@ test.serial("all repos have feature enabled then new repo will also have feature
       sinon.match({
         input: {
           repo: {
-            external_repo_id: "dummy_node_id",
+            external_repo_id: t.context.u.getstr("repo1 id"),
+            display_name: t.context.u.getstr("repo1 name"),
             api_documentation_state: State.DISABLED,
             inline_code_documentation_state: State.ENABLED,
             architecture_documentation_state: State.DISABLED,
@@ -121,8 +141,21 @@ test.serial("multiple repos added at once lead to multiple db row creations", as
   const createGithubRepoStub = t.context.sandbox.stub(CreateGithubRepoOperation, "perform").returns(Promise.resolve({ repo: anyRepo(t.context.u) }));
   const runApiDocsStub = t.context.sandbox.stub(RunApiDocumentationTaskOperation, "perform");
 
+    const event = <InstallationRepositoriesAddedEvent>{
+      repositories_added: [
+        {
+          node_id: t.context.u.anystr("repo1 id"),
+          name: t.context.u.anystr("repo1 name"),
+        },
+        {
+          node_id: t.context.u.anystr("repo2 id"),
+          name: t.context.u.anystr("repo2 name"),
+        },
+      ]
+    };
+
   // WHEN the Eave gh app is given access to multiple new repos
-  await maybeAddReposToDataBase([{ node_id: "dummy_node_id" }, { node_id: "dummy_node_id" }], LogContext.wrap());
+  await maybeAddReposToDataBase(event, LogContext.wrap());
 
   // THEN the multiple db rows are created
   t.deepEqual(getGithubReposStub.callCount, 1);
@@ -133,7 +166,8 @@ test.serial("multiple repos added at once lead to multiple db row creations", as
       sinon.match({
         input: {
           repo: {
-            external_repo_id: "dummy_node_id",
+            external_repo_id: t.context.u.getstr("repo1 id"),
+            display_name: t.context.u.getstr("repo1 name"),
             api_documentation_state: State.DISABLED,
             inline_code_documentation_state: State.ENABLED,
             architecture_documentation_state: State.DISABLED,
@@ -154,8 +188,17 @@ test.serial("any repo has feature disabled then new repo will not have feature e
   const createGithubRepoStub = t.context.sandbox.stub(CreateGithubRepoOperation, "perform").returns(Promise.resolve({ repo: anyRepo(t.context.u) }));
   const runApiDocsStub = t.context.sandbox.stub(RunApiDocumentationTaskOperation, "perform");
 
+  const event = <InstallationRepositoriesAddedEvent>{
+    repositories_added: [
+      {
+        node_id: t.context.u.anystr("repo1 id"),
+        name: t.context.u.anystr("repo1 name"),
+      },
+    ]
+  };
+
   // WHEN the Eave gh app is given access to a new repo
-  await maybeAddReposToDataBase([{ node_id: "dummy_node_id" }], LogContext.wrap());
+  await maybeAddReposToDataBase(event, LogContext.wrap());
 
   // THEN the db row is created w/ all features disabled
   t.deepEqual(getGithubReposStub.callCount, 1);
@@ -165,7 +208,8 @@ test.serial("any repo has feature disabled then new repo will not have feature e
       sinon.match({
         input: {
           repo: {
-            external_repo_id: "dummy_node_id",
+            external_repo_id: t.context.u.getstr("repo1 id"),
+            display_name: t.context.u.getstr("repo1 name"),
             api_documentation_state: State.DISABLED,
             inline_code_documentation_state: State.DISABLED,
             architecture_documentation_state: State.DISABLED,
@@ -189,8 +233,21 @@ test.serial("new repos with api docs feature enabled get an initial run of the f
   const createGithubRepoStub = t.context.sandbox.stub(CreateGithubRepoOperation, "perform").returns(Promise.resolve({ repo: createdRepo }));
   const runApiDocsStub = t.context.sandbox.stub(RunApiDocumentationTaskOperation, "perform");
 
+  const event = <InstallationRepositoriesAddedEvent>{
+    repositories_added: [
+      {
+        node_id: t.context.u.anystr("repo1 id"),
+        name: t.context.u.anystr("repo1 name"),
+      },
+      {
+        node_id: t.context.u.anystr("repo2 id"),
+        name: t.context.u.anystr("repo2 name"),
+      },
+    ]
+  };
+
   // WHEN the Eave gh app is given access to multiple new repos
-  await maybeAddReposToDataBase([{ node_id: "dummy_node_id" }, { node_id: "dummy_node_id" }], LogContext.wrap());
+  await maybeAddReposToDataBase(event, LogContext.wrap());
 
   // THEN the multiple db rows are created and the API docs feature is triggered for each
   t.deepEqual(getGithubReposStub.callCount, 1);
@@ -201,7 +258,8 @@ test.serial("new repos with api docs feature enabled get an initial run of the f
       sinon.match({
         input: {
           repo: {
-            external_repo_id: "dummy_node_id",
+            external_repo_id: t.context.u.getstr("repo1 id"),
+            display_name: t.context.u.getstr("repo1 name"),
             api_documentation_state: State.ENABLED,
             inline_code_documentation_state: State.ENABLED,
             architecture_documentation_state: State.DISABLED,

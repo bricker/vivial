@@ -2,7 +2,6 @@ from typing import cast
 from eave.stdlib import utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 
-import eave.stdlib.core_api.enums
 import google.oauth2.credentials
 import google.oauth2.id_token
 from starlette.requests import Request

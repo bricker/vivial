@@ -50,7 +50,7 @@ class CreateSubscriptionRequest(CoreApiEndpoint):
 
     class RequestBody(BaseRequestBody):
         subscription: SubscriptionInput
-        document_reference: Optional[DocumentReferenceInput]
+        document_reference: Optional[DocumentReferenceInput] = None
 
     class ResponseBody(BaseResponseBody):
         team: team.Team

@@ -1,7 +1,5 @@
 from http import HTTPStatus
 
-import eave.stdlib.core_api.enums
-
 import eave.core.internal.orm.document_reference
 from eave.core.internal.orm.subscription import SubscriptionOrm
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSourcePlatform

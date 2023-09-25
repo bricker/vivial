@@ -31,9 +31,9 @@ class GithubRepo(BaseResponseModel):
 class GithubRepoCreateInput(BaseInputModel):
     external_repo_id: str
     display_name: str
-    api_documentation_state: Optional[State] = None
-    inline_code_documentation_state: Optional[State] = None
-    architecture_documentation_state: Optional[State] = None
+    api_documentation_state: State = State.DISABLED
+    inline_code_documentation_state: State = State.DISABLED
+    architecture_documentation_state: State = State.DISABLED
 
 
 class GithubRepoListInput(BaseInputModel):
@@ -48,17 +48,13 @@ class GithubRepoUpdateValues(BaseInputModel):
 
 class GithubRepoUpdateInput(BaseInputModel):
     external_repo_id: str
-    api_documentation_state: Optional[State] = None
-    inline_code_documentation_state: Optional[State] = None
-    architecture_documentation_state: Optional[State] = None
+    new_values: GithubRepoUpdateValues
 
 
 class GithubReposDeleteInput(BaseInputModel):
     external_repo_id: str
 
 
-class GithubRepoQueryInput(BaseInputModel):
-    external_repo_id: str
-    api_documentation_state: Optional[State] = None
-    inline_code_documentation_state: Optional[State] = None
-    architecture_documentation_state: Optional[State] = None
+class GithubReposFeatureStateInput(BaseInputModel):
+    feature: Feature
+    state: State

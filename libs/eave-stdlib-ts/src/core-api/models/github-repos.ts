@@ -22,9 +22,9 @@ export type GithubRepo = {
 export type GithubRepoCreateInput = {
   external_repo_id: string;
   display_name: string;
-  api_documentation_state?: State;
-  inline_code_documentation_state?: State;
-  architecture_documentation_state?: State;
+  api_documentation_state: State;
+  inline_code_documentation_state: State;
+  architecture_documentation_state: State;
 };
 
 export type GithubRepoListInput = {
