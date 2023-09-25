@@ -33,7 +33,8 @@
     "sinon": "15.x",
     "supertest": "6.x",
     "tsx": "3.x",
-    "typescript": "5.x"
+    "typescript": "5.x",
+    "yalc": "^1.0.0-pre.53"
   },
   "prettier": "./develop/javascript/es-config/prettier",
   "eslintConfig": {

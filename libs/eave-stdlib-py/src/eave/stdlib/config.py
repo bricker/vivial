@@ -148,7 +148,7 @@ class EaveConfig:
             # Internal AppEngine services eave have a specific base URL.
             # TODO: Remove hardcoded AppEngine URL
             # FIXME: Hardcoded region ID (uc)
-            return "https://" f"{service.value}" "-dot-" f"{self.google_cloud_project}" ".uc.r.appspot.com"
+            return "https://" f"{service.appengine_name}" "-dot-" f"{self.google_cloud_project}" ".uc.r.appspot.com"
 
     @property
     def eave_cookie_domain(self) -> str:

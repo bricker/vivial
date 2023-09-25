@@ -8,9 +8,6 @@
   "bin": {
     "start-pm2": "./src/pm2-cli.sh"
   },
-  "scripts": {
-    "yalc": "yalc publish --push"
-  },
   "dependencies": {
     "@google-cloud/compute": "3.x",
     "@google-cloud/kms": "3.x",
