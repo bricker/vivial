@@ -1,3 +1,4 @@
+from typing_extensions import override
 import uuid
 
 import eave.stdlib.headers
@@ -16,6 +17,7 @@ from eave.stdlib.exceptions import BadRequestError
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
+    @override
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
             if development_bypass_allowed(scope=scope):

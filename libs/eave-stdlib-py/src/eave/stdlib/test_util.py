@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import json
 import os
+from typing_extensions import override
 import uuid
 import random
 from typing import Any, Literal, TypeVar, Optional
@@ -24,6 +25,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         super().__init__(methodName)
         self.addAsyncCleanup(self.cleanup)
 
+    @override
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         self.mock_google_services()
@@ -31,6 +33,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.mock_signing()
         self.mock_analytics()
 
+    @override
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
@@ -296,8 +299,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         # No calls matched the given args
         return False
 
-    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:  # type:ignore
-        m = patch.start()
+    def patch(self, patch: unittest.mock._patch[Any], name: Optional[str] = None) -> unittest.mock.Mock:  # type:ignore
+        m: Any = patch.start()
         m._testMethodName = self._testMethodName
 
         if name is None:
@@ -314,7 +317,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", values))
         return m
 
-    def patch_dict(self, patch: unittest.mock._patch_dict, name: Optional[str] = None) -> unittest.mock.Mock:
+    def patch_dict(self, patch: unittest.mock._patch_dict, name: Optional[str] = None) -> unittest.mock.Mock: # pyright: ignore reportPrivateUsage
         name = name or str(patch.in_dict)
         mock = patch.start()
         self.active_patches[name] = patch

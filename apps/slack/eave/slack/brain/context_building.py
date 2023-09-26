@@ -5,7 +5,6 @@ import eave.stdlib.transformer_ai.openai_client as openai
 import eave.stdlib.transformer_ai.models as ai_model
 from eave.stdlib.util import memoized
 from eave.stdlib import link_handler
-from eave.stdlib.exceptions import SlackDataError
 from .base import Base
 from . import message_prompts
 from ..config import app_config
@@ -49,9 +48,6 @@ class ContextBuildingMixin(Base):
 
     async def build_concatenated_context(self) -> str:
         messages = await self.message.get_conversation_messages()
-        if messages is None:
-            raise SlackDataError("messages for concatenated context")
-
         messages_without_self = filter(lambda m: m.is_eave is False, messages)
 
         formatted_messages: list[Optional[str]] = await asyncio.gather(
@@ -66,9 +62,6 @@ class ContextBuildingMixin(Base):
 
     async def build_rolling_context(self) -> str:
         messages = await self.message.get_conversation_messages()
-        if messages is None:
-            raise SlackDataError("messages for rolling context")
-
         messages_without_self = filter(lambda m: m.is_eave is False, messages)
 
         messages_for_prompt = list[str]()
@@ -113,7 +106,7 @@ class ContextBuildingMixin(Base):
             messages_for_prompt.append(formatted_text)
 
         recent_messages = "\n\n".join(messages_for_prompt)
-        return f"{condensed_context}\n\n" f"{recent_messages}"
+        return f"{condensed_context}\n\n{recent_messages}"
 
 
     async def _summarize_content(self, content: str) -> str:

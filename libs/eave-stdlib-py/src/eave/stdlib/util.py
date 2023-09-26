@@ -98,7 +98,7 @@ def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
         return uuid.UUID(bytes=data)
     elif isinstance(data, int):
         return uuid.UUID(int=data)
-    elif isinstance(data, str):
+    else:
         return uuid.UUID(hex=data)
 
 

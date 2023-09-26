@@ -1,3 +1,5 @@
+# pyright: basic
+
 import unittest.mock
 import eave.core.internal
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm

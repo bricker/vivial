@@ -7,6 +7,7 @@
 grpcio-tools==1.53.0
 protobuf==4.21.12
 mypy
+pyright
 black
 ruff
 httpx
@@ -17,6 +18,8 @@ pretty_errors
 types-requests
 types-redis
 types-protobuf
+google-auth-stubs
+google-api-python-client-stubs
 mitmproxy @ git+https://github.com/mitmproxy/mitmproxy@main # to resolve asgiref dependency version error
 click
 alembic

@@ -1,3 +1,4 @@
+from typing_extensions import override
 import uuid
 
 import eave.stdlib.exceptions
@@ -12,6 +13,7 @@ from eave.stdlib.request_state import EaveRequestState
 
 
 class TeamLookupASGIMiddleware(EaveASGIMiddleware):
+    @override
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
             await self._lookup_team(scope=scope)

@@ -11,37 +11,135 @@ force-exclude = '''
 '''
 line-length = 120
 
-[tool.mypy]
-cache_dir = "/tmp/cache/.mypy_cache"
+[tool.pyright]
 exclude = [
-  "eave_alembic/versions",
-  "generated",
-  "vendor",
-  "node_modules",
-  "__pycache__",
-  "build",
-  "^\\.",
+  "**/eave_alembic/versions",
+  "**/generated",
+  "**/vendor",
+  "**/node_modules",
+  "**/__pycache__",
+  "**/build",
+  "**/\\.",
 ]
-warn_unused_ignores = true
-warn_redundant_casts = true
-warn_return_any = false
-warn_unreachable = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_any_explicit = false
-disallow_any_generics = true
-disallow_subclassing_any = false
-ignore_missing_imports = true
-namespace_packages = true
-explicit_package_bases = true
-enable_incomplete_feature = "Unpack"
+venvPath="../../../.venv"
+extraPaths=[
+    # "vendor",
+    "../../../libs/eave-stdlib-py/src",
+    "../../../libs/eave-pubsub-schemas/python/src",
+    "../../../apps/core",
+    # "../../../apps/core/vendor",
+    "../../../apps/slack",
+    # "../../../apps/slack/vendor",
+    "../../../apps/marketing",
+    # "../../../apps/marketing/vendor",
+    "../../../develop/python/src",
+]
 
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
+# https://microsoft.github.io/pyright/#/configuration?id=diagnostic-rule-defaults
+typeCheckingMode = "basic"
+analyzeUnannotatedFunctions = "error"
+strictParameterNoneValue = "error"
+enableTypeIgnoreComments = "error"
+disableBytesTypePromotions = "error"
+strictListInference = "error"
+strictDictionaryInference = "error"
+strictSetInference = "error"
+deprecateTypingAliases = "none"
+enableExperimentalFeatures = "none"
+reportMissingModuleSource = "warning"
+reportMissingImports = "error"
+reportUndefinedVariable = "error"
+reportAssertAlwaysTrue = "error"
+reportInvalidStringEscapeSequence = "error"
+reportInvalidTypeVarUse = "error"
+reportMissingTypeStubs = "error"
+reportSelfClsParameterName = "error"
+reportUnsupportedDunderAll = "error"
+reportUnusedExpression = "error"
+reportWildcardImportFromLibrary = "error"
+reportGeneralTypeIssues = "error"
+reportOptionalSubscript = "error"
+reportOptionalMemberAccess = "error"
+reportOptionalCall = "error"
+reportOptionalIterable = "error"
+reportOptionalContextManager = "error"
+reportOptionalOperand = "error"
+reportTypedDictNotRequiredAccess = "error"
+reportPrivateImportUsage = "error"
+reportUnboundVariable = "error"
+reportUnusedCoroutine = "error"
+reportConstantRedefinition = "error"
+reportDeprecated = "error"
+reportDuplicateImport = "error"
+reportFunctionMemberAccess = "error"
+reportIncompatibleMethodOverride = "error"
+reportIncompatibleVariableOverride = "error"
+reportIncompleteStub = "error"
+reportInconsistentConstructor = "error"
+reportInvalidStubStatement = "error"
+reportMatchNotExhaustive = "error"
+reportMissingParameterType = "error"
+reportMissingTypeArgument = "error"
+reportOverlappingOverload = "error"
+reportPrivateUsage = "error"
+reportTypeCommentUsage = "error"
+reportUnknownArgumentType = "warning"
+reportUnknownLambdaType = "warning"
+reportUnknownMemberType = "warning"
+reportUnknownParameterType = "warning"
+reportUnknownVariableType = "warning"
+reportUnnecessaryCast = "error"
+reportUnnecessaryComparison = "error"
+reportUnnecessaryContains = "error"
+reportUnnecessaryIsInstance = "error"
+reportUnusedClass = "error"
+reportUnusedImport = "error"
+reportUnusedFunction = "error"
+reportUnusedVariable = "error"
+reportUntypedBaseClass = "error"
+reportUntypedClassDecorator = "error"
+reportUntypedFunctionDecorator = "error"
+reportUntypedNamedTuple = "error"
+reportCallInDefaultInitializer = "error"
+reportImplicitOverride = "error"
+reportImplicitStringConcatenation = "error"
+reportImportCycles = "error"
+reportMissingSuperCall = "none"
+reportPropertyTypeMismatch = "error"
+reportShadowedImports = "error"
+reportUninitializedInstanceVariable = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+reportUnusedCallResult = "none"
+
+# [tool.mypy]
+# exclude = [
+#   "eave_alembic/versions",
+#   "generated",
+#   "vendor",
+#   "node_modules",
+#   "__pycache__",
+#   "build",
+#   "^\\.",
+# ]
+# warn_unused_ignores = true
+# warn_redundant_casts = true
+# warn_return_any = false
+# warn_unreachable = true
+# disallow_untyped_defs = true
+# disallow_incomplete_defs = true
+# disallow_any_explicit = false
+# disallow_any_generics = true
+# disallow_subclassing_any = false
+# ignore_missing_imports = true
+# namespace_packages = true
+# explicit_package_bases = true
+# enable_incomplete_feature = "Unpack"
+
+# [[tool.mypy.overrides]]
+# module = "tests.*"
+# disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
-cache_dir = "/tmp/cache/.pytest_cache"
 log_cli = false
 pythonpath = [
   "../../../apps/core",
@@ -58,7 +156,6 @@ norecursedirs = [
 ]
 
 [tool.ruff]
-cache-dir = "/tmp/cache/.ruff_cache"
 extend-select = ["B006"]
 line-length = 1000
 extend-exclude = [

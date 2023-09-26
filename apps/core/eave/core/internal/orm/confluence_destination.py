@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing_extensions import override
 from uuid import UUID
 import uuid
 
@@ -147,6 +148,7 @@ class ConfluenceClient(DocumentClient):
         )
         return response
 
+    @override
     async def search_documents(self, *, query: str, ctx: Optional[LogContext] = None) -> list[DocumentSearchResult]:
         response = await SearchContentRequest.perform(
             ctx=ctx,
@@ -169,6 +171,7 @@ class ConfluenceClient(DocumentClient):
             for result in response.results
         ]
 
+    @override
     async def delete_document(self, *, document_id: str, ctx: Optional[LogContext] = None) -> None:
         await DeleteContentRequest.perform(
             ctx=ctx,
@@ -181,6 +184,7 @@ class ConfluenceClient(DocumentClient):
             ),
         )
 
+    @override
     async def create_document(self, *, input: DocumentInput, ctx: Optional[LogContext] = None) -> DocumentMetadata:
         response = await CreateContentRequest.perform(
             ctx=ctx,
@@ -199,6 +203,7 @@ class ConfluenceClient(DocumentClient):
             url=response.content.url,
         )
 
+    @override
     async def update_document(
         self, *, input: DocumentInput, document_id: str, ctx: Optional[LogContext] = None
     ) -> DocumentMetadata:

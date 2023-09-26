@@ -420,16 +420,12 @@ class SlackMessage:
     async def add_reaction(self, name: str) -> None:
         if self.channel is None:
             raise SlackDataError("channel")
-        if self.ts is None:
-            raise SlackDataError("message ts")
 
         await self._slack_ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.ts)
 
     async def add_reaction_to_parent(self, name: str) -> None:
         if self.channel is None:
             raise SlackDataError("channel")
-        if self.ts is None:
-            raise SlackDataError("message ts")
 
         await self._slack_ctx.client.reactions_add(name=name, channel=self.channel, timestamp=self.parent_ts)
 
@@ -497,9 +493,6 @@ class SlackMessage:
 
     async def formatted_messages(self) -> AsyncGenerator[str, None]:
         messages = await self.get_conversation_messages()
-        if messages is None:
-            return
-
         for message in messages:
             formatted_message = await message.get_formatted_message()
             if formatted_message is not None:
@@ -508,9 +501,6 @@ class SlackMessage:
     @eave_util.memoized
     async def get_formatted_conversation(self) -> str | None:
         messages = await self.get_conversation_messages()
-        if messages is None:
-            return None
-
         formatted_messages: list[Optional[str]] = await asyncio.gather(
             *[message.get_formatted_message() for message in messages]
         )
@@ -587,7 +577,7 @@ class SlackMessage:
 
             channel = self.channel_mentions_dict.get(channel_id)
 
-            if channel is not None and channel.name is not None:
+            if channel is not None:
                 return f"@{channel.name}"
             else:
                 return match.group()

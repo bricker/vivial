@@ -1,3 +1,5 @@
+# pyright: basic
+
 import typing
 from dataclasses import dataclass
 from functools import cache
@@ -31,7 +33,7 @@ ATLASSIAN_OAUTH_SCOPES = [
 
 
 class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
-    def __init__(self, client=None, token=None, state=None, token_updater=None, **kwargs):  # type: ignore[no-untyped-def]
+    def __init__(self, client=None, token=None, state=None, token_updater=None, **kwargs):
         client_id = app_config.eave_atlassian_app_client_id
         client_secret = app_config.eave_atlassian_app_client_secret
 
@@ -51,7 +53,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             **kwargs,
         )
 
-    def authorization_url(self, state=None, **kwargs):  # type: ignore[no-untyped-def]
+    def authorization_url(self, state=None, **kwargs):
         return super().authorization_url(
             url="https://auth.atlassian.com/authorize",
             state=state,
@@ -60,7 +62,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             **kwargs,
         )
 
-    def fetch_token(self, code=None, authorization_response=None, body="", auth=None, username=None, password=None, method="POST", force_querystring=False, timeout=None, headers=None, verify=True, proxies=None, include_client_id=None, cert=None, **kwargs):  # type: ignore[no-untyped-def]
+    def fetch_token(self, code=None, authorization_response=None, body="", auth=None, username=None, password=None, method="POST", force_querystring=False, timeout=None, headers=None, verify=True, proxies=None, include_client_id=None, cert=None, **kwargs):
         return super().fetch_token(
             token_url="https://auth.atlassian.com/oauth/token",
             client_secret=app_config.eave_atlassian_app_client_secret,
@@ -81,7 +83,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
             **kwargs,
         )
 
-    def request(self, method, url, data=None, headers=None, withhold_token=False, client_id=None, client_secret=None, **kwargs):  # type: ignore[no-untyped-def]
+    def request(self, method, url, data=None, headers=None, withhold_token=False, client_id=None, client_secret=None, **kwargs):
         return super().request(method, url, data, headers, withhold_token, client_id, client_secret, **kwargs)
 
     def oauth_flow_info(self) -> OAuthFlowInfo:

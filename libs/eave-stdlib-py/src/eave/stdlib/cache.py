@@ -1,6 +1,7 @@
 import abc
 import time
 from typing import Optional, Protocol
+from typing_extensions import override
 import redis.asyncio as redis
 from .config import shared_config
 from .logging import eaveLogger
@@ -46,6 +47,7 @@ class _CacheEntry:
 class EphemeralCache(CacheInterface):
     _store: dict[str, _CacheEntry] = {}
 
+    @override
     async def get(self, name: str) -> str | None:
         e = self._store.get(name)
         if e is None:
@@ -56,6 +58,7 @@ class EphemeralCache(CacheInterface):
         else:
             return e.value
 
+    @override
     async def set(self, name: str, value: str, ex: Optional[int] = None) -> bool | None:
         # quick way to put a hard limit on the size of this cache.
         # This class is only for development so there's no need for anything more complex than this.
@@ -65,6 +68,7 @@ class EphemeralCache(CacheInterface):
         self._store[name] = _CacheEntry(value=value, ex=ex)
         return True
 
+    @override
     async def delete(self, *names: str) -> int:
         num = 0
         for k in names:
@@ -76,9 +80,11 @@ class EphemeralCache(CacheInterface):
 
         return num
 
+    @override
     async def close(self, close_connection_pool: Optional[bool] = None) -> None:
         return None
 
+    @override
     async def ping(self) -> bool:
         return True
 

@@ -1,4 +1,10 @@
+
 from datetime import datetime, timedelta
+from typing import Optional
+from typing_extensions import override
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
@@ -16,6 +22,7 @@ from eave.core.internal.config import app_config
 from eave.stdlib.logging import LogContext, eaveLogger
 
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.util import unwrap
 from . import EaveOnboardingErrorCode, base, shared
 
 _AUTH_PROVIDER = AuthProvider.slack
@@ -24,15 +31,16 @@ _AUTH_PROVIDER = AuthProvider.slack
 class SlackOAuthAuthorize(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         # random value for verifying request wasnt tampered with via CSRF
-        state: str = oauthlib.common.generate_token()
-        authorization_url = eave.core.internal.oauth.slack.authorize_url_generator.generate(state)
+        state: str = oauthlib.common.generate_token() # pyright: ignore reportUnknownVariableType
+
+        authorization_url = eave.core.internal.oauth.slack.authorize_url_generator.generate(state) # pyright: ignore reportUnknownArgumentType
         response = RedirectResponse(url=authorization_url)
 
         utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
 
         oauth_cookies.save_state_cookie(
             response=response,
-            state=state,
+            state=state, # pyright: ignore reportUnknownArgumentType
             provider=_AUTH_PROVIDER,
         )
         return response
@@ -40,7 +48,12 @@ class SlackOAuthAuthorize(HTTPEndpoint):
 
 class SlackOAuthCallback(base.BaseOAuthCallback):
     auth_provider = _AUTH_PROVIDER
+    _eave_team: Optional[TeamOrm] = None
+    _eave_account: Optional[AccountOrm] = None
+    _slack_oauth_data: Optional[eave.core.internal.oauth.slack.SlackOAuthResponse] = None
+    _slack_installation: Optional[SlackInstallationOrm] = None
 
+    @override
     async def get(self, request: Request) -> Response:
         await super().get(request=request)
 
@@ -48,11 +61,11 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         if not self.code or not self._check_valid_callback():
             return self.response
 
-        self.slack_oauth_data = slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token_or_exception(
+        self._slack_oauth_data = slack_oauth_data = await eave.core.internal.oauth.slack.get_access_token_or_exception(
             code=self.code
         )
         slack_team_name = slack_oauth_data["team"]["name"]
-        slack_team_id = self.slack_oauth_data["team"]["id"]
+        slack_team_id = self._slack_oauth_data["team"]["id"]
         slack_user_id = slack_oauth_data["authed_user"]["id"]
         slack_user_access_token = slack_oauth_data["authed_user"]["access_token"]
         slack_user_refresh_token = slack_oauth_data["authed_user"]["refresh_token"]
@@ -70,7 +83,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         else:
             eave_team_name = "Your Team"
 
-        self.eave_account = await shared.get_or_create_eave_account(
+        self._eave_account = await shared.get_or_create_eave_account(
             request=self.request,
             response=self.response,
             eave_team_name=eave_team_name,
@@ -82,7 +95,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         )
 
         async with eave.core.internal.database.async_session.begin() as db_session:
-            self.eave_team = await self.eave_account.get_team(session=db_session)
+            self._eave_team = await self._eave_account.get_team(session=db_session)
 
         await self._update_or_create_slack_installation()
 
@@ -96,11 +109,12 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
     async def _update_or_create_slack_installation(
         self,
     ) -> None:
-        slack_team_id = self.slack_oauth_data["team"]["id"]
-        slack_team_name = self.slack_oauth_data["team"]["name"]
-        slack_bot_access_token = self.slack_oauth_data["access_token"]
-        slack_bot_refresh_token = self.slack_oauth_data["refresh_token"]
-        slack_token_expires_in = self.slack_oauth_data["expires_in"]
+        data = unwrap(self._slack_oauth_data)
+        slack_team_id = data["team"]["id"]
+        slack_team_name = data["team"]["name"]
+        slack_bot_access_token = data["access_token"]
+        slack_bot_refresh_token = data["refresh_token"]
+        slack_token_expires_in = data["expires_in"]
         log_context = self.eave_state.ctx.set({"slack_team_id": slack_team_id})
 
         if not slack_token_expires_in:
@@ -111,12 +125,12 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             # try fetch existing slack installation
-            self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
+            self._slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
                 session=db_session,
                 slack_team_id=slack_team_id,
             )
 
-            if self.slack_installation and self.slack_installation.team_id != self.eave_account.team_id:
+            if self._slack_installation and self._slack_installation.team_id != unwrap(self._eave_account).team_id:
                 eaveLogger.warning(
                     f"A Slack integration already exists with slack team id {slack_team_id}",
                     log_context,
@@ -124,8 +138,8 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 await eave.stdlib.analytics.log_event(
                     event_name="duplicate_integration_attempt",
                     event_source="core api slack oauth",
-                    eave_account=self.eave_account.analytics_model,
-                    eave_team=self.eave_team.analytics_model,
+                    eave_account=unwrap(self._eave_account).analytics_model,
+                    eave_team=unwrap(self._eave_team).analytics_model,
                     opaque_params={"integration": Integration.slack},
                     ctx=log_context,
                 )
@@ -133,18 +147,18 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 return
 
-            if self.slack_installation:
+            if self._slack_installation:
                 if slack_bot_access_token:
-                    self.slack_installation.bot_token = slack_bot_access_token
+                    self._slack_installation.bot_token = slack_bot_access_token
                 if slack_bot_refresh_token:
-                    self.slack_installation.bot_refresh_token = slack_bot_refresh_token
+                    self._slack_installation.bot_refresh_token = slack_bot_refresh_token
                 if slack_team_name:
-                    self.slack_installation.slack_team_name = slack_team_name
+                    self._slack_installation.slack_team_name = slack_team_name
             else:
                 # create new slack installation associated with the TeamOrm
-                self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.create(
+                self._slack_installation = await eave.core.internal.orm.SlackInstallationOrm.create(
                     session=db_session,
-                    team_id=self.eave_account.team_id,
+                    team_id=unwrap(self._eave_account).team_id,
                     slack_team_id=slack_team_id,
                     slack_team_name=slack_team_name,
                     bot_token=slack_bot_access_token,
@@ -160,7 +174,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         self,
         log_context: LogContext,
     ) -> None:
-        slack_bot_access_token = self.slack_oauth_data["access_token"]
+        slack_bot_access_token = unwrap(self._slack_oauth_data)["access_token"]
         slack_client = eave.core.internal.oauth.slack.get_authenticated_client(access_token=slack_bot_access_token)
 
         approximate_num_members = 0
@@ -170,7 +184,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
             # This counts the number of people in the #general channel, but you can only find the #general channel by
             # looping through the entire list of channels.
             # Anyways, if there is any error for any reason, just abort and move on.
-            cursor = None
+            cursor: Optional[str] = None
             while True:
                 channels_response = await slack_client.conversations_list(
                     cursor=cursor,
@@ -204,19 +218,19 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
             event_name="eave_application_integration",
             event_description="An integration was added for a team",
             event_source="core api slack oauth",
-            eave_account=self.eave_account.analytics_model,
-            eave_team=self.eave_team.analytics_model,
+            eave_account=unwrap(self._eave_account).analytics_model,
+            eave_team=unwrap(self._eave_team).analytics_model,
             opaque_params={
                 "integration_name": Integration.slack.value,
                 "approximate_num_members": approximate_num_members,
-                "slack_team_name": self.slack_installation.slack_team_name if self.slack_installation else None,
+                "slack_team_name": self._slack_installation.slack_team_name if self._slack_installation else None,
             },
             ctx=log_context,
         )
 
         try:
-            slack_user_id = self.slack_oauth_data["authed_user"]["id"]
-            slack_bot_id = self.slack_oauth_data.get("bot_user_id")
+            slack_user_id = unwrap(self._slack_oauth_data)["authed_user"]["id"]
+            slack_bot_id = self._slack_oauth_data.get("bot_user_id")
             ref = f"<@{slack_bot_id}>" if slack_bot_id else "@Eave"
 
             message = (

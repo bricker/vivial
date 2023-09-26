@@ -10,7 +10,6 @@ from eave.stdlib.core_api.models.subscriptions import (
     SubscriptionSourcePlatform,
 )
 from eave.stdlib.core_api.models.subscriptions import SubscriptionInput
-from eave.stdlib.exceptions import SlackDataError
 import eave.stdlib.transformer_ai.openai_client
 from eave.stdlib.logging import eaveLogger
 from . import message_prompts
@@ -128,8 +127,6 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
     async def build_resources(self) -> str:
         all_messages = await self.message.get_conversation_messages()
-        if all_messages is None:
-            raise SlackDataError("all_messages")
 
         # convert to list so the generator produced by filter is not
         # consumed completely the first time we iterate the entire iterable
@@ -141,7 +138,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         resources_doc = ""
 
         if len(links) > 0:
-            resources_doc += "<h3>Resources</h3>" "<ol>"
+            resources_doc += "<h3>Resources</h3><ol>"
             for link in links:
                 parts = link.split("|")
                 if len(parts) > 1:
@@ -151,7 +148,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
                     name = parts[0]
                     url = parts[0]
 
-                resources_doc += "<li>" f'<a href="{url}">{name}</a>' "</li>"
+                resources_doc += f'<li><a href="{url}">{name}</a></li>'
 
             resources_doc += "</ol>"
 

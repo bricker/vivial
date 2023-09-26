@@ -1,7 +1,6 @@
 """
 DEPRECATED: This module has been replaced by eave.stdlib.confluence_api.models
 """
-from dataclasses import dataclass
 from typing import Optional
 
 from eave.stdlib.util import erasetype
@@ -9,7 +8,6 @@ from eave.stdlib.util import erasetype
 from .typing import JsonObject
 
 
-@dataclass
 class AtlassianAvailableResource:
     """
     https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/#implementing-oauth-2-0--3lo-
