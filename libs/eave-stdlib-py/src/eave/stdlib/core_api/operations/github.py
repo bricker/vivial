@@ -1,4 +1,5 @@
 from typing import Unpack
+import uuid
 from eave.stdlib.core_api.models.github import GithubInstallation
 from eave.stdlib.core_api.models.github import GithubInstallationInput
 from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
@@ -25,11 +26,13 @@ class GetGithubInstallation(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
+        team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=input,
+            team_id=team_id,
             **kwargs,
         )
 
@@ -41,7 +44,6 @@ class DeleteGithubInstallation(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/integrations/github/delete",
         auth_required=False,
-        team_id_required=False,
     )
 
     class RequestBody(BaseRequestBody):
