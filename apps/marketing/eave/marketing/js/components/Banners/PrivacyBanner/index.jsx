@@ -1,7 +1,7 @@
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
-import { imageUrl } from "../../../util/asset-helpers.js";
+import { imageUrl } from "../../../util/asset-util.js";
 import Copy from "../../Copy/index.jsx";
 import PageSection from "../../PageSection/index.jsx";
 

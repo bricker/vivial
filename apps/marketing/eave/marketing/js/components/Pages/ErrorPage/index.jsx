@@ -5,9 +5,9 @@ import Page from "../Page/index.jsx";
 const makeClasses = makeStyles((theme) => ({
   error: {
     color: theme.palette.error.main,
-    padding: 60,
+    padding: '0px 30px',
     textAlign: "center",
-    fontSize: "32px",
+    fontSize: "26px",
   },
 }));
 

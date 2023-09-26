@@ -1,7 +1,7 @@
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 import { Link } from "react-router-dom";
-import { imageUrl } from "../../util/asset-helpers";
+import { imageUrl } from "../../util/asset-util";
 
 const makeClasses = makeStyles((theme) => ({
   logoContainer: {

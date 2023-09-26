@@ -18,13 +18,9 @@ const Dashboard = () => {
   const [cookies, _, removeCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
   const { team, getTeam, getTeamRepos, getTeamFeatureStates, updateTeamFeatureState } = useTeam();
   const { user, getUserAccount } = useUser();
-
   const isLoading = user.accountIsLoading || team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
-
   const isErroring = user.accountIsErroring || team.teamIsErroring || team.reposAreErroring || team.featureStatesErroring;
-
   const showFeatureSettings = team.inlineCodeDocsState === FEATURE_STATES.ENABLED || team.apiDocsState === FEATURE_STATES.ENABLED;
-
   const [showInlineDocsModal, setShowInlineDocsModal] = useState(false);
 
   const openInlineDocsModal = useCallback(() => {
@@ -73,11 +69,11 @@ const Dashboard = () => {
     }
   }, [searchParams]);
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
   if (isErroring) {
     return <ErrorPage page="dashboard" />;
+  }
+  if (isLoading) {
+    return <LoadingPage />;
   }
   return (
     <Page>

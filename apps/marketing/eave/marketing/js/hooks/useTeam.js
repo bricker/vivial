@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { FEATURES, FEATURE_STATES } from "../constants.js";
+import { isHTTPError } from "../util/http-util.js";
 import { AppContext } from "../context/Provider.js";
 
 const useTeam = () => {
@@ -10,6 +11,9 @@ const useTeam = () => {
     setTeam((prev) => ({ ...prev, teamIsLoading: true, teamIsErroring: false }));
     fetch(`dashboard/team/${teamId}`)
       .then((resp) => {
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
         resp.json().then((data) => {
           setTeam((prev) => ({
             ...prev,
@@ -31,6 +35,9 @@ const useTeam = () => {
     setTeam((prev) => ({ ...prev, reposAreLoading: true, reposAreErroring: false }));
     fetch(`dashboard/team/repos/${teamId}`)
       .then((resp) => {
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
         resp.json().then((data) => {
           setTeam((prev) => ({ ...prev, repos: data.repos }));
         });
@@ -89,7 +96,10 @@ const useTeam = () => {
         repos: repoUpdates,
       }),
     })
-      .then(() => {
+      .then((resp) => {
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
         getTeamRepos(teamId);
       })
       .catch(() => {

@@ -1,4 +1,4 @@
-import { imageUrl } from "./util/asset-helpers.js";
+import { imageUrl } from "./util/asset-util.js";
 
 export const COOKIE_NAMES = {
   FEATURE_MODAL: "ev_feature_modal",

@@ -6,7 +6,7 @@ import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
 
 import useTeam from "../../hooks/useTeam.js";
-import { imageUrl } from "../../util/asset-helpers.js";
+import { imageUrl } from "../../util/asset-util.js";
 import Button from "../Button/index.jsx";
 import GitHubRepoSelect from "../GitHubRepoSelect/index.jsx";
 import CloseIcon from "../Icons/CloseIcon.js";

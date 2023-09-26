@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { AppContext } from "../context/Provider.js";
+import { isHTTPError } from "../util/http-util.js";
 
 const useUser = () => {
   const { userCtx } = useContext(AppContext);
@@ -8,11 +9,14 @@ const useUser = () => {
   async function checkUserAuth() {
     fetch("/authcheck")
       .then((resp) => {
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
         resp.json().then((data) => {
           setUser((prev) => ({ ...prev, isAuthenticated: data.authenticated }));
         });
       })
-      .catch((_) => {
+      .catch(() => {
         setUser((prev) => ({ ...prev, authIsErroring: true }));
       });
   }
@@ -21,6 +25,9 @@ const useUser = () => {
     setUser((prev) => ({ ...prev, accountIsLoading: true, accountIsErroring: false }));
     fetch("/dashboard/me")
       .then((resp) => {
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
         resp.json().then((data) => {
           setUser((prev) => ({ ...prev, account: data.account }));
         });
