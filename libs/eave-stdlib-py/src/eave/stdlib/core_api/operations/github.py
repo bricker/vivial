@@ -36,7 +36,7 @@ class GetGithubInstallation(CoreApiEndpoint):
         response_json = await response.json()
         return cls.ResponseBody(**response_json, _raw_response=response)
 
-# TODO: ts translation
+
 class DeleteGithubInstallation(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/integrations/github/delete",
