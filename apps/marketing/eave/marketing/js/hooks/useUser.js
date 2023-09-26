@@ -12,7 +12,7 @@ const useUser = () => {
           setUser((prev) => ({ ...prev, isAuthenticated: data.authenticated }));
         });
       })
-      .catch((e) => {
+      .catch((_) => {
         setUser((prev) => ({ ...prev, authIsErroring: true }));
       });
   }
