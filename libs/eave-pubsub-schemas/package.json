@@ -1,8 +1,5 @@
 {
   "devDependencies": {
     "ts-proto": "^1.146"
-  },
-  "dependencies": {
-    "long": "^5.2.3"
   }
 }

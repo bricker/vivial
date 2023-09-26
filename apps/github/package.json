@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "bin/start-pm2"
+    "start": "npx pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion --name github start pm2.config.cjs"
   },
   "dependencies": {
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
