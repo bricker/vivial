@@ -37,7 +37,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		statusmsg -i "Linting $logtarget (py)..."
 
 		python -m ruff --config="$configfile" .
-		python -m mypy --config-file="$configfile" --pretty .
+		python -m pyright --project "$EAVE_HOME" .
 		python -m black --config="$configfile" --check .
 
 		statusmsg -s "Linting $logtarget passed"

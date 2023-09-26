@@ -414,6 +414,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			--exclude '.venv' \
 			--exclude '.ruff_cache' \
 			--exclude '.mypy_cache' \
+			--exclude '.pytest_cache' \
 			--exclude '__pycache__' \
 			--exclude '*.pyc' \
 			"$PWD" "$builddir"
