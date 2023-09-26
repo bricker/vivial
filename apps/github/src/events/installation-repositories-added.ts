@@ -21,14 +21,10 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
   }
   const { ctx } = context;
 
-  await maybeAddReposToDataBase(event.repositories_added, ctx);
+  await maybeAddReposToDataBase(event, ctx);
 }
 
-type Repo = {
-  node_id: string;
-};
-
-export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: LogContext) {
+export async function maybeAddReposToDataBase(event: InstallationRepositoriesAddedEvent, ctx: LogContext) {
   const sharedReqInput = {
     teamId: ctx.eave_team_id,
     origin: EaveApp.eave_github_app,
@@ -45,7 +41,7 @@ export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: Lo
     return;
   }
 
-  for (const repo of repositoriesAdded) {
+  for (const repo of event.repositories_added) {
     const defaultFeatureStates: { [key: string]: State } = {};
 
     for (const feat of enumCases(Feature)) {
@@ -76,6 +72,7 @@ export async function maybeAddReposToDataBase(repositoriesAdded: Repo[], ctx: Lo
       input: {
         repo: {
           external_repo_id: repo.node_id,
+          display_name: repo.name,
           api_documentation_state: defaultFeatureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
           inline_code_documentation_state: defaultFeatureStates[Feature.INLINE_CODE_DOCUMENTATION] || State.DISABLED,
           architecture_documentation_state: defaultFeatureStates[Feature.ARCHITECTURE_DOCUMENTATION] || State.DISABLED,

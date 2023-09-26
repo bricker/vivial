@@ -12,6 +12,7 @@ const config = {
   parserOptions: {
     ecmaVersion: "latest",
     impliedStrict: true,
+    sourceType: "module",
   },
   rules: {
     // Rules that enforce consistent code style, but may not be fixable by a formatter. These could also indicate a bug.
