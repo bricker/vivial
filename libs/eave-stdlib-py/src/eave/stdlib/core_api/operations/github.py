@@ -26,13 +26,11 @@ class GetGithubInstallation(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
-        team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=input,
-            team_id=team_id,
             **kwargs,
         )
 
@@ -56,11 +54,13 @@ class DeleteGithubInstallation(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
+        team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=input,
+            team_id=team_id,
             **kwargs,
         )
 
