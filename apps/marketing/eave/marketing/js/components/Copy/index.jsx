@@ -11,7 +11,7 @@ const makeClasses = makeStyles((theme) => ({
     color: theme.palette.background.contrastText,
     fontSize: 32,
     lineHeight: "38px",
-    fontWeight: 400,
+    fontWeight: 700,
     margin: 0,
     [theme.breakpoints.up("sm")]: {
       fontSize: 54,
