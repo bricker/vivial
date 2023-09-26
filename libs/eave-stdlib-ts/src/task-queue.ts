@@ -46,8 +46,8 @@ export async function createTaskFromRequest({ queueName, targetPath, origin, aud
   const payload = req.body;
   const headers: { [key: string]: string } = {};
   // FIXME: Is there a cleaner way to do this? req.headers is a NodeJS.Dict typescript object.
+  // eslint-disable-next-line no-restricted-syntax
   for (const key in req.headers) {
-    // eslint-disable-line no-restricted-syntax
     if (Object.hasOwn(req.headers, key)) {
       // express joins array values into string values for headers
       const value = req.header(key)!;

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require("fs").promises;
-const yaml = require("js-yaml"); // eslint-disable-line import/no-extraneous-dependencies
+const yaml = require("js-yaml");
 
 async function main() {
   // download latest lang file from https://github.com/github-linguist
