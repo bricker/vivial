@@ -1,5 +1,8 @@
 if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
+	export CHAR_CHECK=" ✔ "
+	export CHAR_X=" X "
+
 	function ^ci() {
 		test -n "${CI:-}"
 	}

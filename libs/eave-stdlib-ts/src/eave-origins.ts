@@ -12,14 +12,22 @@ export enum EaveApp {
 
 export function appengineServiceName(eaveApp: EaveApp): string {
   switch (eaveApp) {
-    case EaveApp.eave_api: return "api";
-    case EaveApp.eave_www: return "www";
-    case EaveApp.eave_github_app: return "github";
-    case EaveApp.eave_slack_app: return "slack";
-    case EaveApp.eave_atlassian_app: return "atlassian";
-    case EaveApp.eave_jira_app: return "jira";
-    case EaveApp.eave_confluence_app: return "confluence";
-    default: throw new InvalidEnumCase(eaveApp);
+    case EaveApp.eave_api:
+      return "api";
+    case EaveApp.eave_www:
+      return "www";
+    case EaveApp.eave_github_app:
+      return "github";
+    case EaveApp.eave_slack_app:
+      return "slack";
+    case EaveApp.eave_atlassian_app:
+      return "atlassian";
+    case EaveApp.eave_jira_app:
+      return "jira";
+    case EaveApp.eave_confluence_app:
+      return "confluence";
+    default:
+      throw new InvalidEnumCase(eaveApp);
   }
 }
 
