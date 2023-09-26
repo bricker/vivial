@@ -44,16 +44,16 @@ export default async function handler(event: InstallationDeletedEvent, context: 
   });
 
   // delete all gh repo and document entries from our db
-  const repos = await GetGithubReposOperation.perform({
+  // (github_documents deletion will cascade from github_repos deletions)
+  const allTeamRepos = await GetGithubReposOperation.perform({
     ...sharedInput,
     input: {},
   });
 
-  // gh_documents deletion will cascade from repo deletions
   await DeleteGithubRepoOperation.perform({
     ...sharedInput,
     input: {
-      repos: repos.map((repo) => {
+      repos: allTeamRepos.repos.map((repo) => {
         return {
           external_repo_id: repo.external_repo_id,
         };

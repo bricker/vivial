@@ -232,6 +232,10 @@ routes = [
         endpoint=github_repos.GetGithubRepoEndpoint,
     ),
     make_route(
+        config=DeleteGithubReposRequest.config,
+        endpoint=github_repos.DeleteGithubReposEndpoint,
+    ),
+    make_route(
         config=FeatureStateGithubReposRequest.config,
         endpoint=github_repos.FeatureStateGithubReposEndpoint,
     ),
@@ -259,10 +263,6 @@ routes = [
     make_route(
         config=UpdateGithubReposRequest.config,
         endpoint=github_repos.UpdateGithubReposEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubReposRequest.config,
-        endpoint=github_repos.DeleteGithubReposEndpoint,
     ),
     make_route(
         config=UpsertConfluenceDestinationAuthedRequest.config,

@@ -104,6 +104,7 @@ class CreateGithubRepoRequest(CoreApiEndpoint):
 class DeleteGithubReposRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/github-repos/delete",
+        auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):
