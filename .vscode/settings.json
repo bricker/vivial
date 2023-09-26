@@ -181,14 +181,6 @@
   "black-formatter.args": [
     "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
-  "mypy-type-checker.args": [
-    "--ignore-missing-imports",
-    "--show-column-numbers",
-    "--no-pretty",
-    "--follow-imports=silent",
-    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml"
-  ],
-  "mypy-type-checker.importStrategy": "fromEnvironment",
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
   "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
