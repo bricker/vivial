@@ -1,4 +1,7 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
+import { DeleteGithubRepoOperation, GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
+import { DeleteGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { InstallationDeletedEvent } from "@octokit/webhooks-types";
 import { GitHubOperationsContext } from "../types.js";
 
@@ -25,8 +28,36 @@ export default async function handler(event: InstallationDeletedEvent, context: 
     ctx,
   );
 
-  // TODO: delete gh installation (how??? creat api endpoint?? exposure???)
+  const sharedInput = {
+    teamId: ctx.eave_team_id,
+    origin: EaveApp.eave_github_app,
+  };
 
-  // TODO: delete gh_repos (if not already cascaded???)
+  // remove gh app installation from user's eave account
+  await DeleteGithubInstallationOperation.perform({
+    ...sharedInput,
+    input: {
+      github_integration: {
+        github_install_id: event.installation.id.toString(),
+      },
+    },
+  });
+
+  // delete all gh repo and document entries from our db
+  const repos = await GetGithubReposOperation.perform({
+    ...sharedInput,
+    input: {},
+  });
+
   // gh_documents deletion will cascade from repo deletions
+  await DeleteGithubRepoOperation.perform({
+    ...sharedInput,
+    input: {
+      repos: repos.map((repo) => {
+        return {
+          external_repo_id: repo.external_repo_id,
+        };
+      }),
+    },
+  });
 }
