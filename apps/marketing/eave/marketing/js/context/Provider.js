@@ -1,5 +1,5 @@
-import React, { createContext, useState } from 'react';
-import { AUTH_MODAL_STATE } from '../constants.js';
+import React, { createContext, useState } from "react";
+import { AUTH_MODAL_STATE } from "../constants.js";
 
 export const AppContext = createContext(null);
 
@@ -42,11 +42,7 @@ const AppContextProvider = ({ children }) => {
     teamCtx: [team, setTeam],
   };
 
-  return (
-    <AppContext.Provider value={ctx}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={ctx}>{children}</AppContext.Provider>;
 };
 
 export default AppContextProvider;

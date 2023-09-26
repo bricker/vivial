@@ -1,7 +1,7 @@
-import { useContext } from 'react';
+import { useContext } from "react";
 
-import { AppContext } from '../context/Provider.js';
-import { AUTH_MODAL_STATE } from '../constants.js';
+import { AUTH_MODAL_STATE } from "../constants.js";
+import { AppContext } from "../context/Provider.js";
 
 const useAuthModal = () => {
   const { authModalCtx } = useContext(AppContext);

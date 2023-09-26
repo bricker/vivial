@@ -1,78 +1,78 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { makeStyles } from '@material-ui/styles';
-import { IconButton, Drawer } from '@material-ui/core';
+import { Drawer, IconButton } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { AUTH_MODAL_STATE, FEEDBACK_URL } from '../../constants.js';
-import useAuthModal from '../../hooks/useAuthModal.js';
-import useUser from '../../hooks/useUser.js';
-import HamburgerIcon from '../Icons/HamburgerIcon.js';
-import CloseIcon from '../Icons/CloseIcon.js';
-import Button from '../Button/index.jsx';
-import EaveLogo from '../EaveLogo/index.jsx';
+import { AUTH_MODAL_STATE, FEEDBACK_URL } from "../../constants.js";
+import useAuthModal from "../../hooks/useAuthModal.js";
+import useUser from "../../hooks/useUser.js";
+import Button from "../Button/index.jsx";
+import EaveLogo from "../EaveLogo/index.jsx";
+import CloseIcon from "../Icons/CloseIcon.js";
+import HamburgerIcon from "../Icons/HamburgerIcon.js";
 
 const makeClasses = makeStyles((theme) => ({
   outterContainer: {
     marginBottom: theme.header.marginBottom,
-    width: '100%',
+    width: "100%",
     zIndex: 100,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up("md")]: {
       marginBottom: theme.header.md.marginBottom,
-    }
+    },
   },
   innerContainer: {
     height: theme.header.height,
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    padding: '16px',
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    padding: "16px",
     maxWidth: 1440,
-    margin: '0 auto',
-    [theme.breakpoints.up('md')]: {
+    margin: "0 auto",
+    [theme.breakpoints.up("md")]: {
       height: theme.header.md.height,
-      alignItems: 'center',
-      padding: '0px 46px',
+      alignItems: "center",
+      padding: "0px 46px",
     },
   },
   logoContainer: {
     paddingLeft: 10,
     lineHeight: 0,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up("md")]: {
       paddingLeft: 0,
     },
   },
   menuIconBtn: {
     padding: 0,
-    [theme.breakpoints.up('md')]: {
-      display: 'none',
+    [theme.breakpoints.up("md")]: {
+      display: "none",
     },
   },
   mobileMenu: {
     backgroundColor: theme.palette.background.main,
-    width: '100vw',
-    height: '100vh',
+    width: "100vw",
+    height: "100vh",
   },
   mobileNav: {
-    padding: '0px 25px',
+    padding: "0px 25px",
   },
   mobileNavItem: {
     color: theme.palette.background.contrastText,
-    textDecoration: 'none',
+    textDecoration: "none",
     fontSize: 32,
-    lineHeight: '37.5px',
+    lineHeight: "37.5px",
     fontWeight: 400,
-    display: 'block',
+    display: "block",
     padding: 0,
-    margin: '0 0 32px',
-    border: 'none',
-    appearance: 'none',
-    cursor: 'pointer',
-    background: 'none',
+    margin: "0 0 32px",
+    border: "none",
+    appearance: "none",
+    cursor: "pointer",
+    background: "none",
   },
   ctaContainer: {
-    display: 'none',
-    [theme.breakpoints.up('md')]: {
-      display: 'block',
+    display: "none",
+    [theme.breakpoints.up("md")]: {
+      display: "block",
       fontSize: 32,
     },
   },
@@ -81,16 +81,16 @@ const makeClasses = makeStyles((theme) => ({
   },
   inlineButton: {
     color: theme.palette.background.contrastText,
-    display: 'inline-block',
-    padding: '0px 32px',
-    border: 'none',
-    appearance: 'none',
-    cursor: 'pointer',
-    background: 'none',
+    display: "inline-block",
+    padding: "0px 32px",
+    border: "none",
+    appearance: "none",
+    cursor: "pointer",
+    background: "none",
     fontSize: 16,
-    lineHeight: '21px',
+    lineHeight: "21px",
     fontWeight: 700,
-    textDecoration: 'none',
+    textDecoration: "none",
   },
 }));
 
@@ -110,13 +110,12 @@ const Header = ({ simpleHeader }) => {
         Log Out
       </button>
     </>
-
   ) : (
     <>
-      <button className={classes.inlineButton} onClick={ () => openModal(AUTH_MODAL_STATE.LOGIN) }>
+      <button className={classes.inlineButton} onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}>
         Log In
       </button>
-      <Button className={classes.button} onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
+      <Button className={classes.button} onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
         Sign Up
       </Button>
     </>
@@ -134,13 +133,12 @@ const Header = ({ simpleHeader }) => {
         Log Out
       </button>
     </>
-
   ) : (
     <>
-      <button className={classes.mobileNavItem} onClick={ () => openModal(AUTH_MODAL_STATE.LOGIN) }>
+      <button className={classes.mobileNavItem} onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}>
         Log In
       </button>
-      <button className={classes.mobileNavItem} onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
+      <button className={classes.mobileNavItem} onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
         Sign Up
       </button>
     </>
@@ -154,13 +152,8 @@ const Header = ({ simpleHeader }) => {
         </div>
         {!simpleHeader && (
           <>
-            <div className={classes.ctaContainer}>
-              {TopButtons}
-            </div>
-            <IconButton
-              classes={{ root: classes.menuIconBtn }}
-              onClick={() => setDrawerIsOpen(true)}
-            >
+            <div className={classes.ctaContainer}>{TopButtons}</div>
+            <IconButton classes={{ root: classes.menuIconBtn }} onClick={() => setDrawerIsOpen(true)}>
               <HamburgerIcon />
             </IconButton>
             <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
@@ -170,17 +163,12 @@ const Header = ({ simpleHeader }) => {
                     <div className={classes.logoContainer}>
                       <EaveLogo />
                     </div>
-                    <IconButton
-                      classes={{ root: classes.menuIconBtn }}
-                      onClick={() => setDrawerIsOpen(false)}
-                    >
+                    <IconButton classes={{ root: classes.menuIconBtn }} onClick={() => setDrawerIsOpen(false)}>
                       <CloseIcon />
                     </IconButton>
                   </div>
                 </div>
-                <nav className={classes.mobileNav}>
-                  {navButtons}
-                </nav>
+                <nav className={classes.mobileNav}>{navButtons}</nav>
               </div>
             </Drawer>
           </>

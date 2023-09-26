@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
 class ConnectIcon extends React.Component {
   render() {
     const { className } = this.props;
-    const fill = 'currentColor';
+    const fill = "currentColor";
     return (
       <svg className={className} viewBox="0 0 52.12 50.75" style={{ fill }}>
         <g data-name="Layer 2" id="Layer_2">

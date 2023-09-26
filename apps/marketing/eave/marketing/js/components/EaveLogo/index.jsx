@@ -1,27 +1,27 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { makeStyles } from '@material-ui/styles';
-import { imageUrl } from '../../util/asset-helpers';
+import { makeStyles } from "@material-ui/styles";
+import React from "react";
+import { Link } from "react-router-dom";
+import { imageUrl } from "../../util/asset-helpers";
 
 const makeClasses = makeStyles((theme) => ({
   logoContainer: {
-    display: 'inline-block',
+    display: "inline-block",
     lineHeight: 0,
     width: 66,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up("md")]: {
       width: 88,
-    }
+    },
   },
   logo: {
-    width: '100%',
-  }
+    width: "100%",
+  },
 }));
 
 const EaveLogo = () => {
   const classes = makeClasses();
   return (
     <Link className={classes.logoContainer} to="/">
-      <img className={classes.logo} src={imageUrl('eave-logo-beta.png')} />
+      <img className={classes.logo} src={imageUrl("eave-logo-beta.png")} />
     </Link>
   );
 };

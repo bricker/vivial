@@ -5,11 +5,13 @@
 ## Local Development (optimized for VS Code)
 
 1. Run the HTTP proxy from the root directory.
+
 ```
 bin/http-proxy
 ```
 
 2. Connect to the Cloud SQL proxy.
+
 ```
 bin/cloud-sql-proxy
 ```

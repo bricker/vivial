@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const ExpandIcon = ({ color = "white", up, lg }) => {
   if (lg) {

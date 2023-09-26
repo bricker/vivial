@@ -1,51 +1,51 @@
-import React, { useCallback, useState } from "react";
-import classNames from "classnames";
+import { Checkbox, FormControlLabel, FormGroup } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import { FormGroup, FormControlLabel, Checkbox } from "@material-ui/core";
+import classNames from "classnames";
+import React, { useCallback, useState } from "react";
 
-import ExpandIcon from "../Icons/ExpandIcon.jsx";
 import Button from "../Button/index.jsx";
+import ExpandIcon from "../Icons/ExpandIcon.jsx";
 
 const makeClasses = makeStyles((theme) => ({
   outerContainer: {
-    position: 'relative',
-    [theme.breakpoints.up('md')]: {
+    position: "relative",
+    [theme.breakpoints.up("md")]: {
       height: 40,
-    }
+    },
   },
   innerContainer: {
     color: theme.palette.background.contrastText,
     border: `1px solid ${theme.palette.background.contrastText}`,
     backgroundColor: theme.palette.background.main,
     zIndex: 10,
-    width: '100%',
-    padding: '0 14px',
+    width: "100%",
+    padding: "0 14px",
     borderRadius: 5,
     fontSize: 14,
     maxHeight: 168,
-    overflowY: 'scroll',
-    [theme.breakpoints.up('md')]: {
+    overflowY: "scroll",
+    [theme.breakpoints.up("md")]: {
       backgroundColor: theme.palette.background.light,
-      position: 'absolute',
+      position: "absolute",
       width: 300,
       maxHeight: 256,
-    }
+    },
   },
   innerContainerError: {
     border: `1px solid ${theme.palette.error.main}`,
     color: theme.palette.error.main,
   },
   expandBtn: {
-    color: 'inherit',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
+    color: "inherit",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
     height: 40,
     padding: 0,
-    '&:hover': {
-      backgroundColor: 'transparent',
-    }
+    "&:hover": {
+      backgroundColor: "transparent",
+    },
   },
   checkbox: {
     color: "#808182",
@@ -56,7 +56,7 @@ const makeClasses = makeStyles((theme) => ({
   },
   formLabels: {
     color: theme.palette.background.contrastText,
-  }
+  },
 }));
 
 const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
@@ -75,51 +75,24 @@ const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
 
   return (
     <>
-      {error && (
-        <div className={classes.errorContainer}>
-          {error}
-        </div>
-      )}
+      {error && <div className={classes.errorContainer}>{error}</div>}
       <div className={classes.outerContainer}>
         <div className={innerContainerClass}>
-        <Button className={classes.expandBtn} onClick={toggleExpandRepos} variant="text" disableRipple>
-          {label} <ExpandIcon up={reposExpanded} color={error ? "#E03C6C" : "white"} lg />
-        </Button>
-        {reposExpanded && (
-          <FormGroup >
-            <FormControlLabel
-              value="default"
-              label="Default (All)"
-              classes={{ root: classes.formLabels }}
-              onChange={handleSelect}
-              control={
-                <Checkbox
-                  classes={{ root: classes.checkbox }}
-                  checked={repos.length === selectedRepoIds.length}
-                />
-              }
-            />
-            {repos.map((repo) => (
-              <FormControlLabel
-                key={repo.external_repo_id}
-                value={repo.external_repo_id}
-                label={repo.display_name}
-                classes={{ root: classes.formLabels }}
-                onChange={handleSelect}
-                control={
-                  <Checkbox
-                    classes={{ root: classes.checkbox }}
-                    checked={selectedRepoIds.includes(repo.external_repo_id)}
-                  />
-                }
-              />
-            ))}
-          </FormGroup>
-        )}
+          <Button className={classes.expandBtn} onClick={toggleExpandRepos} variant="text" disableRipple>
+            {label} <ExpandIcon up={reposExpanded} color={error ? "#E03C6C" : "white"} lg />
+          </Button>
+          {reposExpanded && (
+            <FormGroup>
+              <FormControlLabel value="default" label="Default (All)" classes={{ root: classes.formLabels }} onChange={handleSelect} control={<Checkbox classes={{ root: classes.checkbox }} checked={repos.length === selectedRepoIds.length} />} />
+              {repos.map((repo) => (
+                <FormControlLabel key={repo.external_repo_id} value={repo.external_repo_id} label={repo.display_name} classes={{ root: classes.formLabels }} onChange={handleSelect} control={<Checkbox classes={{ root: classes.checkbox }} checked={selectedRepoIds.includes(repo.external_repo_id)} />} />
+              ))}
+            </FormGroup>
+          )}
         </div>
       </div>
     </>
   );
-}
+};
 
 export default GitHubRepoSelect;

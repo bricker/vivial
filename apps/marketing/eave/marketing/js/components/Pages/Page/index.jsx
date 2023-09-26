@@ -1,23 +1,23 @@
-import React from 'react';
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles } from "@material-ui/styles";
+import React from "react";
 
-import Header from '../../Header/index.jsx';
-import Footer from '../../Footer/index.jsx';
-import AuthModal from '../../AuthModal/index.jsx';
+import AuthModal from "../../AuthModal/index.jsx";
+import Footer from "../../Footer/index.jsx";
+import Header from "../../Header/index.jsx";
 
 const makeClasses = makeStyles((theme) => ({
   container: {
     backgroundColor: theme.palette.background.main,
     fontFamily: theme.typography.fontFamily,
-    position: 'relative',
-    minHeight: '100vh',
+    position: "relative",
+    minHeight: "100vh",
   },
   sections: {
     minHeight: `calc(100vh - ${theme.header.height}px - ${theme.header.marginBottom}px - ${theme.footer.height}px)`,
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up("md")]: {
       minHeight: `calc(100vh - ${theme.header.md.height}px - ${theme.header.md.marginBottom}px - ${theme.footer.height}px)`,
-    }
-  }
+    },
+  },
 }));
 
 const Page = ({ children, simpleHeader }) => {
@@ -25,9 +25,7 @@ const Page = ({ children, simpleHeader }) => {
   return (
     <div className={classes.container}>
       <Header simpleHeader={simpleHeader} />
-      <div className={classes.sections}>
-        {children}
-      </div>
+      <div className={classes.sections}>{children}</div>
       <Footer />
       <AuthModal />
     </div>

@@ -1,13 +1,13 @@
-import { useContext } from 'react';
-import { AppContext } from '../context/Provider.js';
-import { FEATURES, FEATURE_STATES } from '../constants.js';
+import { useContext } from "react";
+import { FEATURES, FEATURE_STATES } from "../constants.js";
+import { AppContext } from "../context/Provider.js";
 
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
   const [team, setTeam] = teamCtx;
 
   async function getTeam(teamId) {
-    setTeam((prev) => ({...prev, teamIsLoading: true, teamIsErroring: false}));
+    setTeam((prev) => ({ ...prev, teamIsLoading: true, teamIsErroring: false }));
     fetch(`dashboard/team/${teamId}`)
       .then((resp) => {
         resp.json().then((data) => {
@@ -18,29 +18,33 @@ const useTeam = () => {
             integrations: data.integrations,
           }));
         });
-      }).catch(() => {
-        setTeam((prev) => ({...prev, teamIsErroring: true}));
-      }).finally(() => {
-        setTeam((prev) => ({...prev, teamIsLoading: false}));
+      })
+      .catch(() => {
+        setTeam((prev) => ({ ...prev, teamIsErroring: true }));
+      })
+      .finally(() => {
+        setTeam((prev) => ({ ...prev, teamIsLoading: false }));
       });
   }
 
   async function getTeamRepos(teamId) {
-    setTeam((prev) => ({...prev, reposAreLoading: true, reposAreErroring: false}));
+    setTeam((prev) => ({ ...prev, reposAreLoading: true, reposAreErroring: false }));
     fetch(`dashboard/team/repos/${teamId}`)
       .then((resp) => {
         resp.json().then((data) => {
-          setTeam((prev) => ({...prev, repos: data.repos}));
+          setTeam((prev) => ({ ...prev, repos: data.repos }));
         });
-      }).catch(() => {
-        setTeam((prev) => ({...prev, reposAreErroring: true}));
-      }).finally(() => {
-        setTeam((prev) => ({...prev, reposAreLoading: false}));
+      })
+      .catch(() => {
+        setTeam((prev) => ({ ...prev, reposAreErroring: true }));
+      })
+      .finally(() => {
+        setTeam((prev) => ({ ...prev, reposAreLoading: false }));
       });
   }
 
   async function getTeamFeatureStates(repos) {
-    setTeam((prev) => ({...prev, featureStatesLoading: true}));
+    setTeam((prev) => ({ ...prev, featureStatesLoading: true }));
     let inlineCodeDocsState = FEATURE_STATES.DISABLED;
     let apiDocsState = FEATURE_STATES.DISABLED;
     let architectureDocsState = FEATURE_STATES.DISABLED;
@@ -65,35 +69,35 @@ const useTeam = () => {
   }
 
   async function updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature) {
-    setTeam((prev) => ({...prev, featureStatesLoading: true, featureStatesErroring: false}));
+    setTeam((prev) => ({ ...prev, featureStatesLoading: true, featureStatesErroring: false }));
     const repoUpdates = teamRepoIds.map((repoId) => {
       const state = enabledRepoIds.includes(repoId) ? FEATURE_STATES.ENABLED : FEATURE_STATES.DISABLED;
-      return ({
+      return {
         external_repo_id: repoId,
         new_values: {
           [feature]: state,
-        }
-      });
+        },
+      };
     });
-    fetch('/dashboard/team/repos/update', {
-      method: 'POST',
+    fetch("/dashboard/team/repos/update", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         team_id: teamId,
         repos: repoUpdates,
       }),
     })
-    .then(() => {
-      getTeamRepos(teamId);
-    })
-    .catch(() => {
-      setTeam((prev) => ({...prev, featureStatesErroring: true}));
-    })
-    .finally(() => {
-      setTeam((prev) => ({...prev, featureStatesLoading: false}));
-    });
+      .then(() => {
+        getTeamRepos(teamId);
+      })
+      .catch(() => {
+        setTeam((prev) => ({ ...prev, featureStatesErroring: true }));
+      })
+      .finally(() => {
+        setTeam((prev) => ({ ...prev, featureStatesLoading: false }));
+      });
   }
 
   return {
