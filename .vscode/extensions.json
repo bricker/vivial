@@ -20,7 +20,6 @@
     "charliermarsh.ruff",
     "timonwong.shellcheck",
     "mkhl.shfmt",
-    "ms-python.mypy-type-checker",
     "ms-python.black-formatter",
     "esbenp.prettier-vscode"
   ],

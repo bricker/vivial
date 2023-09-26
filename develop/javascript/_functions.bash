@@ -43,10 +43,13 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
-		statusmsg -in "Linting $logtarget (js/ts)"
-		npx eslint --max-warnings=0 .
+		statusmsg -i "Linting $logtarget (js/ts)..."
+		npx eslint \
+			--no-error-on-unmatched-pattern \
+			--max-warnings=0 \
+			.
 
-		local prettierloglevel="silent"
+		local prettierloglevel="warn"
 		if verbose; then
 			prettierloglevel="log"
 		fi
@@ -64,7 +67,9 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		else
 			statusmsg -w "No tsconfig.json, skipping TypeScript linting"
 		fi
-		statusmsg -sp " ✔ "
+
+		statusmsg -s "Linting $logtarget passed"
+		echo
 	)
 
 	function node-format() (
@@ -76,9 +81,9 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
-		statusmsg -in "Formatting $logtarget (js/ts)"
+		statusmsg -i "Formatting $logtarget (js/ts)..."
 
-		local prettierloglevel="silent"
+		local prettierloglevel="warn"
 		if verbose; then
 			prettierloglevel="log"
 		fi
@@ -91,7 +96,8 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 			--ignore-path ".prettierignore" \
 			.
 
-		statusmsg -sp " ✔ "
+		statusmsg -s "Formatting $logtarget completed"
+		echo
 	)
 
 	function node-test() (

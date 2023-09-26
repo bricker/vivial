@@ -11,37 +11,7 @@ force-exclude = '''
 '''
 line-length = 120
 
-[tool.mypy]
-cache_dir = "/tmp/cache/.mypy_cache"
-exclude = [
-  "eave_alembic/versions",
-  "generated",
-  "vendor",
-  "node_modules",
-  "__pycache__",
-  "build",
-  "^\\.",
-]
-warn_unused_ignores = true
-warn_redundant_casts = true
-warn_return_any = false
-warn_unreachable = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_any_explicit = false
-disallow_any_generics = true
-disallow_subclassing_any = false
-ignore_missing_imports = true
-namespace_packages = true
-explicit_package_bases = true
-enable_incomplete_feature = "Unpack"
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
-
 [tool.pytest.ini_options]
-cache_dir = "/tmp/cache/.pytest_cache"
 log_cli = false
 pythonpath = [
   "../../../apps/core",
@@ -58,7 +28,6 @@ norecursedirs = [
 ]
 
 [tool.ruff]
-cache-dir = "/tmp/cache/.ruff_cache"
 extend-select = ["B006"]
 line-length = 1000
 extend-exclude = [
@@ -70,10 +39,3 @@ extend-exclude = [
   ".*",
 ]
 ignore-init-module-imports = true
-
-[tool.coverage.run]
-branch = true
-data_file = ".coverage/data"
-
-[tool.coverage.lcov]
-output = ".coverage/report.lcov"
