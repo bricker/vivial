@@ -198,15 +198,6 @@ class EaveConfig:
     def redis_tls_ca(self) -> Optional[str]:
         return os.getenv("REDIS_TLS_CA")
 
-    @property
-    def eave_beta_whitelist_disabled(self) -> bool:
-        try:
-            value = self.get_secret("EAVE_BETA_WHITELIST_DISABLED")
-            return value == "1"
-        except Exception:
-            # Beta whitelist secret doesn't exist
-            return False
-
     @cached_property
     def eave_openai_api_key(self) -> str:
         value = self.get_secret("OPENAI_API_KEY")

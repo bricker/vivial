@@ -27,13 +27,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-validate-version
 		python-activate-venv
 
-		local qflag="--quiet"
-		local mypyout=/dev/null
-		if verbose; then
-			qflag=""
-			mypyout=/dev/stdout
-		fi
-
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
@@ -41,22 +34,20 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
-		statusmsg -on "Linting $logtarget (py)..."
-		python -m ruff $qflag --config="$configfile" .
-		python -m black $qflag --config="$configfile" --check .
-		python -m mypy --config-file="$configfile" . >$mypyout
-		statusmsg -sp " ✔ "
+		statusmsg -i "Linting $logtarget (py)..."
+
+		python -m ruff --config="$configfile" .
+		python -m mypy --config-file="$configfile" --pretty .
+		python -m black --config="$configfile" --check .
+
+		statusmsg -s "Linting $logtarget passed"
+		echo
 	)
 
 	function python-format() (
 		python-validate-version
 		python-activate-venv
 
-		local qflag="--quiet"
-		if verbose; then
-			qflag=""
-		fi
-
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
@@ -64,10 +55,15 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
-		statusmsg -on "Formatting $logtarget (py)..."
-		python -m ruff $qflag --fix --config="$configfile" .
-		python -m black $qflag --config="$configfile" .
-		statusmsg -sp " ✔ "
+		statusmsg -i "Formatting $logtarget (py)..."
+
+		python -m black --config="$configfile" .
+
+		# Ruff --fix is commented out here because it could change code semantics. The auto-formatter is intended to be completely safe.
+		# python -m ruff --fix --config="$configfile" .
+
+		statusmsg -s "Formatting $logtarget completed"
+		echo
 	)
 
 	function python-test() (

@@ -6,6 +6,7 @@
     "src/"
   ],
   "dependencies": {
-    "protobufjs": "7.x"
+    "protobufjs": "7.x",
+    "long": "^5.2.3"
   }
 }
