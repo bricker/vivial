@@ -1,8 +1,18 @@
-import { Blob, Commit, GitObject, Query, Repository, Scalars, Tag, Tree } from "@octokit/graphql-schema";
+import {
+  Blob,
+  Query,
+  Repository,
+  Scalars,
+  Tree,
+} from "@octokit/graphql-schema";
 import { loadQuery } from "../lib/graphql-util.js";
 import { GitHubOperationsContext } from "../types.js";
 
-export async function recurseGitTree({ octokit, repo, ctx }: GitHubOperationsContext & { repo: Repository }) {
+export async function recurseGitTree({
+  octokit,
+  repo,
+  ctx,
+}: GitHubOperationsContext & { repo: Repository }) {
   const query = await loadQuery("getTree");
   const variables: {
     repoOwner: Scalars["String"]["input"];
@@ -14,7 +24,10 @@ export async function recurseGitTree({ octokit, repo, ctx }: GitHubOperationsCon
     expression: "main:path/path/tree",
   };
 
-  const response = await octokit.graphql<{ repository: Query["repository"] }>(query, variables);
+  const response = await octokit.graphql<{ repository: Query["repository"] }>(
+    query,
+    variables,
+  );
   const repository = <Repository>response.repository;
 
   if (!repository.object) {
@@ -25,7 +38,6 @@ export async function recurseGitTree({ octokit, repo, ctx }: GitHubOperationsCon
     const tree = repository.object;
     await recurseGitTree({ tree, repo, octokit, ctx });
   } else if (isBlob(repository.object)) {
-
   }
 
   // FIXME:

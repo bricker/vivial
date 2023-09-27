@@ -5,7 +5,17 @@ import { constants as httpConstants } from "node:http2";
 import { ClientApiEndpointConfiguration } from "./api-util.js";
 import { sharedConfig } from "./config.js";
 import { EaveApp } from "./eave-origins.js";
-import { EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIGNATURE_HEADER, EAVE_SIG_TS_HEADER, EAVE_TEAM_ID_HEADER, GCP_CLOUD_TRACE_CONTEXT, GCP_GAE_REQUEST_LOG_ID, MIME_TYPE_JSON } from "./headers.js";
+import {
+  EAVE_ACCOUNT_ID_HEADER,
+  EAVE_ORIGIN_HEADER,
+  EAVE_REQUEST_ID_HEADER,
+  EAVE_SIGNATURE_HEADER,
+  EAVE_SIG_TS_HEADER,
+  EAVE_TEAM_ID_HEADER,
+  GCP_CLOUD_TRACE_CONTEXT,
+  GCP_GAE_REQUEST_LOG_ID,
+  MIME_TYPE_JSON,
+} from "./headers.js";
 import { LogContext, eaveLogger } from "./logging.js";
 import { CtxArg, makeRequest } from "./requests.js";
 import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
@@ -29,7 +39,16 @@ type CreateTaskFromRequestArgs = CreateTaskSharedArgs & {
   req: Request;
 };
 
-export async function createTaskFromRequest({ queueName, targetPath, origin, audience, uniqueTaskId, taskNamePrefix, req, ctx }: CreateTaskFromRequestArgs): Promise<void> {
+export async function createTaskFromRequest({
+  queueName,
+  targetPath,
+  origin,
+  audience,
+  uniqueTaskId,
+  taskNamePrefix,
+  req,
+  ctx,
+}: CreateTaskFromRequestArgs): Promise<void> {
   ctx = LogContext.wrap(ctx, req);
 
   if (!uniqueTaskId) {
@@ -72,7 +91,17 @@ export async function createTaskFromRequest({ queueName, targetPath, origin, aud
   });
 }
 
-export async function createTask({ queueName, targetPath, payload, headers, origin, audience, uniqueTaskId, taskNamePrefix, ctx }: CreateTaskArgs): Promise<void> {
+export async function createTask({
+  queueName,
+  targetPath,
+  payload,
+  headers,
+  origin,
+  audience,
+  uniqueTaskId,
+  taskNamePrefix,
+  ctx,
+}: CreateTaskArgs): Promise<void> {
   ctx = LogContext.wrap(ctx);
 
   if (!headers) {
@@ -122,7 +151,11 @@ export async function createTask({ queueName, targetPath, payload, headers, orig
   }
 
   const client = new CloudTasksClient();
-  const parent = client.queuePath(sharedConfig.googleCloudProject, sharedConfig.appLocation, queueName);
+  const parent = client.queuePath(
+    sharedConfig.googleCloudProject,
+    sharedConfig.appLocation,
+    queueName,
+  );
 
   const task: protos.google.cloud.tasks.v2.ITask = {
     appEngineHttpRequest: {
@@ -139,7 +172,12 @@ export async function createTask({ queueName, targetPath, payload, headers, orig
     }
 
     // If this isn't given, Cloud Tasks creates a unique task name automatically.
-    task.name = client.taskPath(sharedConfig.googleCloudProject, sharedConfig.appLocation, queueName, uniqueTaskId);
+    task.name = client.taskPath(
+      sharedConfig.googleCloudProject,
+      sharedConfig.appLocation,
+      queueName,
+      uniqueTaskId,
+    );
   }
 
   eaveLogger.debug(`Creating task on queue ${queueName}`, ctx, {

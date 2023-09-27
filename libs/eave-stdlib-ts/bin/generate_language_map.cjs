@@ -5,7 +5,9 @@ const yaml = require("js-yaml");
 
 async function main() {
   // download latest lang file from https://github.com/github-linguist
-  const fileResp = await fetch("https://raw.githubusercontent.com/github-linguist/linguist/master/lib/linguist/languages.yml");
+  const fileResp = await fetch(
+    "https://raw.githubusercontent.com/github-linguist/linguist/master/lib/linguist/languages.yml",
+  );
   const fileString = await fileResp.text();
 
   // ingest file content
@@ -38,7 +40,11 @@ async function main() {
 
   // write to local file as json for easier access by prod TS code
   const jsonString = JSON.stringify(transformedFileObject, null, 2);
-  await fs.writeFile(`${process.env["EAVE_HOME"]}/libs/eave-stdlib-ts/src/programming-langs/generated/languages.json`, jsonString, "utf8");
+  await fs.writeFile(
+    `${process.env["EAVE_HOME"]}/libs/eave-stdlib-ts/src/programming-langs/generated/languages.json`,
+    jsonString,
+    "utf8",
+  );
 }
 
 main();

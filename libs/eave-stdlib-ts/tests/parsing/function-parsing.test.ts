@@ -1,5 +1,8 @@
 import test from "ava";
-import { parseFunctionsAndComments, writeUpdatedCommentsIntoFileString } from "../../src/parsing/function-parsing.js";
+import {
+  parseFunctionsAndComments,
+  writeUpdatedCommentsIntoFileString,
+} from "../../src/parsing/function-parsing.js";
 import { ProgrammingLanguage } from "../../src/programming-langs/language-mapping.js";
 
 test("Typescript grammar queries adds/replaces all doc comments correctly", (t) => {
@@ -34,7 +37,11 @@ async function fizzbuzz(): Promise<string> {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -47,7 +54,10 @@ async function fizzbuzz(): Promise<string> {
  * @return very well
  */`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import { appConfig } from './src/config.js';
@@ -125,7 +135,11 @@ async function fizzbuzz() {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   // NOTE: 3 instead of 4 bcus cjs module export function on same line is not detected by current
@@ -142,7 +156,10 @@ async function fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `const appConfig = require('./src/config.js');
@@ -215,7 +232,11 @@ async fn fizzbuzz() -> Result<&str> {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -226,7 +247,10 @@ async fn fizzbuzz() -> Result<&str> {
 /// @param Eave wrote
 /// @return very well`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `mod app_config;
@@ -299,7 +323,11 @@ char* fizzbuzz() {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -312,7 +340,10 @@ char* fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `#include "./src/config.h";
@@ -392,7 +423,11 @@ char* fizzbuzz() {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -405,7 +440,10 @@ char* fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `#include "./src/config.h";
@@ -484,7 +522,11 @@ func fizzbuzz() string {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -495,7 +537,10 @@ func fizzbuzz() string {
 // @param Eave wrote
 // @return very well`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `package main
@@ -569,7 +614,11 @@ public class Main {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -582,7 +631,10 @@ public class Main {
  * @return very well
  */`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import com.src.config;
@@ -662,7 +714,11 @@ suspend fun fizzbuzz(): Deferred<String> {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -675,7 +731,10 @@ suspend fun fizzbuzz(): Deferred<String> {
  * @return very well
  */`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import com.src.config;
@@ -755,7 +814,11 @@ function fizzbuzz() {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -768,7 +831,10 @@ function fizzbuzz() {
  * @return very well
  */`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `<?php
@@ -846,7 +912,11 @@ end
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -857,7 +927,10 @@ end
 # @param Eave wrote
 # @return very well`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `require "./src/config.js";
@@ -927,7 +1000,11 @@ func fizzbuzz() -> String {
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -938,7 +1015,10 @@ func fizzbuzz() -> String {
 /// @param Eave wrote
 /// @return very well`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `import Config
@@ -1021,7 +1101,11 @@ namespace MyNamespace
 `;
 
   // WHEN content parsed by tree-sitter grammars
-  const funcDocsArray = parseFunctionsAndComments({ content, extName, language });
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    extName,
+    language,
+  });
 
   // THEN all functions should be detected/parsed by queries
   t.deepEqual(funcDocsArray.length, 4);
@@ -1034,7 +1118,10 @@ namespace MyNamespace
 /// @return very well
 /// </summary>`;
   }
-  const updatedContent = writeUpdatedCommentsIntoFileString(content, funcDocsArray);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
 
   // THEN updated file content should be fully documented at correct indentation levels
   const expectedUpdatedContent = `using System;

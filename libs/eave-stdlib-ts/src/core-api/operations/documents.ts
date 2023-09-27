@@ -15,9 +15,13 @@ export type UpsertDocumentResponseBody = {
 };
 
 export class UpsertDocumentOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/documents/upsert" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/documents/upsert",
+  });
 
-  static async perform(args: RequestArgsTeamId & { input: UpsertDocumentRequestBody }): Promise<UpsertDocumentResponseBody> {
+  static async perform(
+    args: RequestArgsTeamId & { input: UpsertDocumentRequestBody },
+  ): Promise<UpsertDocumentResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -37,9 +41,13 @@ export type SearchDocumentsResponseBody = {
 };
 
 export class SearchDocumentsOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/documents/search" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/documents/search",
+  });
 
-  static async perform(args: RequestArgsTeamId & { input: SearchDocumentsRequestBody }): Promise<SearchDocumentsResponseBody> {
+  static async perform(
+    args: RequestArgsTeamId & { input: SearchDocumentsRequestBody },
+  ): Promise<SearchDocumentsResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

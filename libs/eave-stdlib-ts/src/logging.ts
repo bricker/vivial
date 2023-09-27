@@ -4,7 +4,13 @@ import { v4 as uuidv4 } from "uuid";
 import winston from "winston";
 import { getHeaders } from "./api-util.js";
 import { sharedConfig } from "./config.js";
-import { EAVE_ACCOUNT_ID_HEADER, EAVE_CTX_KEY, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER } from "./headers.js";
+import {
+  EAVE_ACCOUNT_ID_HEADER,
+  EAVE_CTX_KEY,
+  EAVE_ORIGIN_HEADER,
+  EAVE_REQUEST_ID_HEADER,
+  EAVE_TEAM_ID_HEADER,
+} from "./headers.js";
 import { JsonObject } from "./types.js";
 
 export class LogContext {
@@ -173,7 +179,10 @@ class EaveLogger {
     this.rawLogger.info(message, this.makeExtra(...rest));
   }
 
-  warning(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+  warning(
+    message: string | Error,
+    ...rest: (JsonObject | LogContext | undefined)[]
+  ) {
     let msg: string;
     if (message instanceof Error) {
       msg = message.stack || message.message;
@@ -184,7 +193,10 @@ class EaveLogger {
     this.rawLogger.warn(msg, this.makeExtra(...rest));
   }
 
-  error(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+  error(
+    message: string | Error,
+    ...rest: (JsonObject | LogContext | undefined)[]
+  ) {
     let msg: string;
     if (message instanceof Error) {
       msg = message.stack || message.message;
@@ -195,15 +207,23 @@ class EaveLogger {
     this.rawLogger.error(msg, this.makeExtra(...rest));
   }
 
-  exception(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+  exception(
+    message: string | Error,
+    ...rest: (JsonObject | LogContext | undefined)[]
+  ) {
     this.error(message, ...rest);
   }
 
-  critical(message: string | Error, ...rest: (JsonObject | LogContext | undefined)[]) {
+  critical(
+    message: string | Error,
+    ...rest: (JsonObject | LogContext | undefined)[]
+  ) {
     this.error(message, ...rest);
   }
 
-  private makeExtra(...rest: (JsonObject | LogContext | undefined)[]): { eave: JsonObject } {
+  private makeExtra(...rest: (JsonObject | LogContext | undefined)[]): {
+    eave: JsonObject;
+  } {
     return {
       eave: <JsonObject>rest.reduce((acc, cur) => {
         if (!cur) {

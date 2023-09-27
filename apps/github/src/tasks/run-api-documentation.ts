@@ -1,26 +1,44 @@
+import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
+import { ExpressAPIDocumentor } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-api-documentor.js";
+import {
+  DocumentType,
+  GithubDocument,
+  GithubDocumentValuesInput,
+  Status,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
+import {
+  GithubRepo,
+  State,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
+import {
+  CreateGithubDocumentOperation,
+  GetGithubDocumentsOperation,
+  UpdateGithubDocumentOperation,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-documents.js";
+import { GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { GetTeamOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js";
+import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";
 import { RunApiDocumentationTaskRequestBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import { Query, Repository, Scalars } from "@octokit/graphql-schema";
+import assert from "assert";
 import Express from "express";
 import { appConfig } from "../config.js";
-import { EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
-import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";
-import { GithubRepo, State } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
-import { GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
-import { CreateGithubDocumentOperation, GetGithubDocumentsOperation, UpdateGithubDocumentOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-documents.js";
-import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
-import { DocumentType, GithubDocument, GithubDocumentValuesInput, Status } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
-import { ExpressAPIDocumentor } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-api-documentor.js";
-import { PullRequestCreator } from "../lib/pull-request-creator.js";
-import { Query, Repository, Scalars } from "@octokit/graphql-schema";
-import { createOctokitClient, getInstallationId, githubAppClient } from "../lib/octokit-util.js";
-import { GitHubOperationsContext } from "../types.js";
 import { loadQuery } from "../lib/graphql-util.js";
-import assert from "assert";
+import { createOctokitClient, getInstallationId } from "../lib/octokit-util.js";
+import { PullRequestCreator } from "../lib/pull-request-creator.js";
+import { GitHubOperationsContext } from "../types.js";
 
-export async function runApiDocumentationTaskHandler(req: Express.Request, res: Express.Response): Promise<void> {
+export async function runApiDocumentationTaskHandler(
+  req: Express.Request,
+  res: Express.Response,
+): Promise<void> {
   const ctx = LogContext.load(res);
   const input = <RunApiDocumentationTaskRequestBody>req.body;
 
@@ -36,16 +54,20 @@ export async function runApiDocumentationTaskHandler(req: Express.Request, res: 
   const octokit = await createOctokitClient(installId);
 
   const repo = await getRepo({ team, input, ctx });
-  assert(repo.api_documentation_state === State.ENABLED, `API documentation feature not enabled for repo ID ${repo.external_repo_id}`);
+  assert(
+    repo.api_documentation_state === State.ENABLED,
+    `API documentation feature not enabled for repo ID ${repo.external_repo_id}`,
+  );
 
   await logEvent({
     event_name: "run_api_documentation",
-    event_description: "The API documentation process was kicked off for a repo",
+    event_description:
+      "The API documentation process was kicked off for a repo",
     eave_team: team,
     event_source: "github app",
     opaque_params: {
       repo,
-    }
+    },
   });
 
   const document = await getOrCreateGithubDocument({ repo, team, ctx });
@@ -90,12 +112,26 @@ export async function runApiDocumentationTaskHandler(req: Express.Request, res: 
   });
 }
 
-async function getTeam({ teamId, ctx }: CtxArg & { teamId: string }): Promise<Team> {
-  const response = await GetTeamOperation.perform({origin: appConfig.eaveOrigin, teamId, ctx });
+async function getTeam({
+  teamId,
+  ctx,
+}: CtxArg & { teamId: string }): Promise<Team> {
+  const response = await GetTeamOperation.perform({
+    origin: appConfig.eaveOrigin,
+    teamId,
+    ctx,
+  });
   return response.team;
 }
 
-async function getRepo({ team, input, ctx }: CtxArg & { team: Team, input: RunApiDocumentationTaskRequestBody }): Promise<GithubRepo> {
+async function getRepo({
+  team,
+  input,
+  ctx,
+}: CtxArg & {
+  team: Team;
+  input: RunApiDocumentationTaskRequestBody;
+}): Promise<GithubRepo> {
   const response = await GetGithubReposOperation.perform({
     origin: appConfig.eaveOrigin,
     teamId: team.id,
@@ -106,15 +142,22 @@ async function getRepo({ team, input, ctx }: CtxArg & { team: Team, input: RunAp
   });
 
   if (response.repos.length > 1) {
-    eaveLogger.warning(`Unexpected multiple repos for id ${input.repo.external_repo_id}`, ctx);
+    eaveLogger.warning(
+      `Unexpected multiple repos for id ${input.repo.external_repo_id}`,
+      ctx,
+    );
   }
 
   const repo = response.repos[0];
-  assert(repo, `No repo found in Eave for ID ${input.repo.external_repo_id}`)
+  assert(repo, `No repo found in Eave for ID ${input.repo.external_repo_id}`);
   return repo;
 }
 
-async function getOrCreateGithubDocument({ team, repo, ctx }: CtxArg & { team: Team, repo: GithubRepo }): Promise<GithubDocument> {
+async function getOrCreateGithubDocument({
+  team,
+  repo,
+  ctx,
+}: CtxArg & { team: Team; repo: GithubRepo }): Promise<GithubDocument> {
   const getDocResponse = await GetGithubDocumentsOperation.perform({
     input: {
       query_params: {
@@ -128,7 +171,10 @@ async function getOrCreateGithubDocument({ team, repo, ctx }: CtxArg & { team: T
   });
 
   if (getDocResponse.documents.length > 1) {
-    eaveLogger.warning(`Unexpected multiple documents for repo id ${repo.external_repo_id}`, ctx);
+    eaveLogger.warning(
+      `Unexpected multiple documents for repo id ${repo.external_repo_id}`,
+      ctx,
+    );
   }
 
   const existingDocument = getDocResponse.documents[0];
@@ -147,20 +193,29 @@ async function getOrCreateGithubDocument({ team, repo, ctx }: CtxArg & { team: T
         api_name: null,
         file_path: null,
         pull_request_number: null,
-      }
-    }
+      },
+    },
   });
 
   return createDocResponse.document;
 }
 
-async function updateGithubDocument({ team, document, newValues, ctx }: CtxArg & { team: Team, document: GithubDocument, newValues: GithubDocumentValuesInput }): Promise<void> {
+async function updateGithubDocument({
+  team,
+  document,
+  newValues,
+  ctx,
+}: CtxArg & {
+  team: Team;
+  document: GithubDocument;
+  newValues: GithubDocumentValuesInput;
+}): Promise<void> {
   await UpdateGithubDocumentOperation.perform({
     input: {
       document: {
         id: document.id,
         new_values: newValues,
-      }
+      },
     },
     origin: appConfig.eaveOrigin,
     teamId: team.id,
@@ -168,7 +223,11 @@ async function updateGithubDocument({ team, document, newValues, ctx }: CtxArg &
   });
 }
 
-async function getExternalRepo({ repo, ctx, octokit }: GitHubOperationsContext & { repo: GithubRepo }): Promise<Repository> {
+async function getExternalRepo({
+  repo,
+  ctx,
+  octokit,
+}: GitHubOperationsContext & { repo: GithubRepo }): Promise<Repository> {
   const query = await loadQuery("getRepo");
   const variables: {
     nodeId: Scalars["ID"]["input"];
@@ -176,14 +235,22 @@ async function getExternalRepo({ repo, ctx, octokit }: GitHubOperationsContext &
     nodeId: repo.external_repo_id,
   };
 
-  const response = await octokit.graphql<{ node: Query["node"] }>(query, variables);
+  const response = await octokit.graphql<{ node: Query["node"] }>(
+    query,
+    variables,
+  );
   return <Repository>response.node;
 }
 
-
-async function generateApiDocumentation({ repo, octokit, ctx }: GitHubOperationsContext & { repo: Repository }) {
+async function generateApiDocumentation({
+  repo,
+  octokit,
+  ctx,
+}: GitHubOperationsContext & { repo: Repository }) {
   const response = await octokit.rest.search.code({
-    q: encodeURIComponent(`"express": in:file filename:package.json repo:${repo.owner.login}/${repo.name}`),
+    q: encodeURIComponent(
+      `"express": in:file filename:package.json repo:${repo.owner.login}/${repo.name}`,
+    ),
   });
 
   // TODO: Pagination

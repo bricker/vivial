@@ -6,7 +6,11 @@ import { eaveLogger } from "./logging.js";
 
 export interface Cache {
   get: (key: RedisCommandArgument) => Promise<RedisCommandArgument | null>;
-  set: (key: RedisCommandArgument, value: RedisCommandArgument | number, options?: SetOptions) => Promise<RedisCommandArgument | null>;
+  set: (
+    key: RedisCommandArgument,
+    value: RedisCommandArgument | number,
+    options?: SetOptions,
+  ) => Promise<RedisCommandArgument | null>;
   del: (keys: RedisCommandArgument | RedisCommandArgument[]) => Promise<number>;
   ping: () => Promise<string>;
   quit: () => Promise<string>;
@@ -56,13 +60,19 @@ export class EphemeralCache implements Cache {
     return entry.value;
   }
 
-  async set(key: RedisCommandArgument, value: RedisCommandArgument | number, options?: SetOptions): Promise<RedisCommandArgument | null> {
+  async set(
+    key: RedisCommandArgument,
+    value: RedisCommandArgument | number,
+    options?: SetOptions,
+  ): Promise<RedisCommandArgument | null> {
     const entry = new CacheEntry(key.toString(), value.toString(), options?.EX);
     this.storage[key.toString()] = entry;
     return "1";
   }
 
-  async del(keys: RedisCommandArgument | Array<RedisCommandArgument>): Promise<number> {
+  async del(
+    keys: RedisCommandArgument | Array<RedisCommandArgument>,
+  ): Promise<number> {
     let k: RedisCommandArgument[];
 
     if (keys.length === 0) {
@@ -105,7 +115,9 @@ async function loadCacheImpl(): Promise<Cache> {
   const redisAuth = await sharedConfig.redisAuth();
 
   const logAuth = redisAuth ? redisAuth.slice(0, 4) : "(none)";
-  eaveLogger.debug(`Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...`);
+  eaveLogger.debug(
+    `Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...`,
+  );
 
   const redisTlsCA = sharedConfig.redisTlsCA;
   const impl = createClient({

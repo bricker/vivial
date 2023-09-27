@@ -4,8 +4,18 @@ import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { isSupportedProgrammingLanguage } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
 import { OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
-import OpenAIClient, { formatprompt } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
-import { Blob, PullRequest, PullRequestChangedFile, PullRequestChangedFileConnection, Query, Repository, Scalars } from "@octokit/graphql-schema";
+import OpenAIClient, {
+  formatprompt,
+} from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
+import {
+  Blob,
+  PullRequest,
+  PullRequestChangedFile,
+  PullRequestChangedFileConnection,
+  Query,
+  Repository,
+  Scalars,
+} from "@octokit/graphql-schema";
 import { PullRequestEvent } from "@octokit/webhooks-types";
 import path from "path";
 import { appConfig } from "../config.js";
@@ -21,7 +31,10 @@ import { GitHubOperationsContext } from "../types.js";
  * Checks if closed PR was merged. If so, update inline file docs
  * for each file with code changes.
  */
-export default async function handler(event: PullRequestEvent, context: GitHubOperationsContext) {
+export default async function handler(
+  event: PullRequestEvent,
+  context: GitHubOperationsContext,
+) {
   if (event.action !== "closed") {
     return;
   }
@@ -72,14 +85,19 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
   // paginate to collect all files from the PR
   while (keepPaginating) {
-    const queryResp = await octokit.graphql<{ repository: Query["repository"] }>(filesQuery, filesQueryVariables);
+    const queryResp = await octokit.graphql<{
+      repository: Query["repository"];
+    }>(filesQuery, filesQueryVariables);
     const prRepo = <Repository>queryResp.repository;
     const pr = <PullRequest>prRepo.pullRequest;
     const prFilesConnection = <PullRequestChangedFileConnection>pr.files;
     const prFileNodes = <Array<PullRequestChangedFile>>prFilesConnection.nodes;
 
     if (!prFileNodes) {
-      eaveLogger.error("Failed to acquire file list from PR while processing PR merge event", ctx);
+      eaveLogger.error(
+        "Failed to acquire file list from PR while processing PR merge event",
+        ctx,
+      );
       return;
     }
 
@@ -125,7 +143,8 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
 
     // assign query vars `after` field so that next query will continue paginating
     // files where the previous request left off
-    filesQueryVariables.after = prFilesConnection.pageInfo.endCursor || undefined; // convert null to undefined for happy types
+    filesQueryVariables.after =
+      prFilesConnection.pageInfo.endCursor || undefined; // convert null to undefined for happy types
     keepPaginating = prFilesConnection.pageInfo.hasNextPage;
   }
 
@@ -143,16 +162,27 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
         expression: `${event.pull_request.base.ref}:${fpath}`,
       };
 
-      const response = await octokit.graphql<{ repository: Query["repository"] }>(contentsQuery, contentsQueryVariables);
+      const response = await octokit.graphql<{
+        repository: Query["repository"];
+      }>(contentsQuery, contentsQueryVariables);
       const objectRepository = <Repository>response.repository;
       const gitObject = <Blob>objectRepository?.object;
       const fileContent = gitObject?.text;
       if (!fileContent) {
-        eaveLogger.error(`Error fetching file content in ${repoOwner}/${repoName}`, ctx);
+        eaveLogger.error(
+          `Error fetching file content in ${repoOwner}/${repoName}`,
+          ctx,
+        );
         return null; // exits just this iteration of map
       }
 
-      const updatedFileContent = await updateDocumentation({ currContent: fileContent, filePath: fpath, openaiClient, ctx, fileNodeId: gitObject.id });
+      const updatedFileContent = await updateDocumentation({
+        currContent: fileContent,
+        filePath: fpath,
+        openaiClient,
+        ctx,
+        fileNodeId: gitObject.id,
+      });
       if (!updatedFileContent) {
         return null;
       }
@@ -191,7 +221,12 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
     });
   } catch (error: any) {
-    eaveLogger.error(`GitHub API threw an error during inline docs PR creation: ${JSON.stringify(error)}`, ctx);
+    eaveLogger.error(
+      `GitHub API threw an error during inline docs PR creation: ${JSON.stringify(
+        error,
+      )}`,
+      ctx,
+    );
     return;
   }
 }

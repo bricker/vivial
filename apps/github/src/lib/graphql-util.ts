@@ -22,15 +22,20 @@ export async function loadQuery(name: string): Promise<string> {
   return query;
 }
 
-async function prependFragments(query: string, manifest?: Set<string>): Promise<string> {
+async function prependFragments(
+  query: string,
+  manifest?: Set<string>,
+): Promise<string> {
   if (!manifest) {
     manifest = new Set<string>();
   }
 
   const fragmentMatches = Array.from(query.matchAll(/\.{3}(.+?)Fragment/g));
-  const missingFragments = fragmentMatches.filter((m) => {
-    return !manifest!.has(m[1]!);
-  }).map((f) => f[1]!);
+  const missingFragments = fragmentMatches
+    .filter((m) => {
+      return !manifest!.has(m[1]!);
+    })
+    .map((f) => f[1]!);
 
   if (missingFragments.length === 0) {
     return query;
@@ -43,7 +48,10 @@ async function prependFragments(query: string, manifest?: Set<string>): Promise<
     const fragmentCacheKey = `fragment.${fragmentName}`;
     let fragmentData = await GlobalCache.get(fragmentCacheKey);
     if (fragmentData === null) {
-      fragmentData = await fs.readFile(`./src/graphql/fragments/_${fragmentName}.graphql`, "utf-8");
+      fragmentData = await fs.readFile(
+        `./src/graphql/fragments/_${fragmentName}.graphql`,
+        "utf-8",
+      );
       await GlobalCache.set(fragmentCacheKey, fragmentData);
     }
 
@@ -53,14 +61,21 @@ async function prependFragments(query: string, manifest?: Set<string>): Promise<
   return prependFragments(newQuery, manifest);
 }
 
-export async function getProjectV2ItemFieldValue(itemNodeId: string, fieldName: string, context: GitHubOperationsContext): Promise<ProjectV2Item> {
+export async function getProjectV2ItemFieldValue(
+  itemNodeId: string,
+  fieldName: string,
+  context: GitHubOperationsContext,
+): Promise<ProjectV2Item> {
   const query = await loadQuery("getProjectV2ItemFieldValue");
   const variables = {
     itemNodeId,
     fieldName,
   };
 
-  const response = await context.octokit.graphql<{ node: Query["node"] }>(query, variables);
+  const response = await context.octokit.graphql<{ node: Query["node"] }>(
+    query,
+    variables,
+  );
   const projectV2Item = <ProjectV2Item>response.node!;
   return projectV2Item;
 }
@@ -92,13 +107,19 @@ export async function getProjectV2ItemFieldValue(itemNodeId: string, fieldName: 
 //   });
 // }
 
-export async function getIssueByNodeId(nodeId: string, context: GitHubOperationsContext): Promise<Issue> {
+export async function getIssueByNodeId(
+  nodeId: string,
+  context: GitHubOperationsContext,
+): Promise<Issue> {
   const query = await loadQuery("getIssueByNodeId");
   const variables = {
     nodeId,
   };
 
-  const response = await context.octokit.graphql<{ node: Query["node"] }>(query, variables);
+  const response = await context.octokit.graphql<{ node: Query["node"] }>(
+    query,
+    variables,
+  );
   const item = <Issue>response.node;
   return item;
 }

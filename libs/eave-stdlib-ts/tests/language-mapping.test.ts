@@ -1,5 +1,10 @@
 import anyTest, { TestFn } from "ava";
-import { ProgrammingLanguage, getProgrammingLanguageByExtension, isSupportedProgrammingLanguage, stringToProgrammingLanguage } from "../src/programming-langs/language-mapping.js";
+import {
+  ProgrammingLanguage,
+  getProgrammingLanguageByExtension,
+  isSupportedProgrammingLanguage,
+  stringToProgrammingLanguage,
+} from "../src/programming-langs/language-mapping.js";
 import { TestContextBase, TestUtil } from "../src/test-util.js";
 
 const test = anyTest as TestFn<TestContextBase>;
@@ -11,11 +16,17 @@ test.beforeEach((t) => {
 });
 
 test("stringToProgrammingLanguage with valid language name", (t) => {
-  t.is(stringToProgrammingLanguage("typescript"), ProgrammingLanguage.typescript);
+  t.is(
+    stringToProgrammingLanguage("typescript"),
+    ProgrammingLanguage.typescript,
+  );
 });
 
 test("stringToProgrammingLanguage with valid language name uppercase", (t) => {
-  t.is(stringToProgrammingLanguage("TYPESCRIPT"), ProgrammingLanguage.typescript);
+  t.is(
+    stringToProgrammingLanguage("TYPESCRIPT"),
+    ProgrammingLanguage.typescript,
+  );
 });
 
 test("stringToProgrammingLanguage with special names", (t) => {

@@ -9,7 +9,7 @@ export type AuthenticatedAccount = {
   auth_provider: AuthProvider;
   visitor_id: string | null;
   team_id: string;
-  opaque_utm_params: {[key:string]: any} | null;
+  opaque_utm_params: { [key: string]: any } | null;
   email: string | null;
   access_token: string;
 };
@@ -19,5 +19,5 @@ export type AnalyticsAccount = {
   auth_provider: AuthProvider;
   visitor_id: string | null;
   team_id: string;
-  opaque_utm_params: {[key:string]: any} | null;
+  opaque_utm_params: { [key: string]: any } | null;
 };
