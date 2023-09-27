@@ -1,5 +1,8 @@
 import anyTest, { TestFn } from "ava";
-import { ExpressAPIDocumentor, Repo } from "../../src/api-documenting/express-api-documentor.js";
+import {
+  ExpressAPIDocumentor,
+  Repo,
+} from "../../src/api-documenting/express-api-documentor.js";
 import { LogContext } from "../../src/logging.js";
 import { TestContextBase, TestUtil } from "../../src/test-util.js";
 
@@ -30,7 +33,9 @@ test("it finds the express apps", async (t) => {
   };
 
   const d = new ExpressAPIDocumentor(repo, ctx);
-  const v = await d.getExpressAPIs({ dir: `${process.env["EAVE_HOME"]}/libs/eave-stdlib-ts/tests/api-documenting/test-projects` });
+  const v = await d.getExpressAPIs({
+    dir: `${process.env["EAVE_HOME"]}/libs/eave-stdlib-ts/tests/api-documenting/test-projects`,
+  });
 
   t.assert(
     v.some((api) => {

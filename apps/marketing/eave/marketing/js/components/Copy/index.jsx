@@ -82,8 +82,16 @@ const Copy = ({ children, className, variant, bold }) => {
   const h1Class = classNames(classes.h1, bold && classes.bold, className);
   const h2Class = classNames(classes.h2, bold && classes.bold, className);
   const h3Class = classNames(classes.h3, bold && classes.bold, className);
-  const footnoteClass = classNames(classes.footnote, bold && classes.bold, className);
-  const pSmallClass = classNames(classes.pSmall, bold && classes.bold, className);
+  const footnoteClass = classNames(
+    classes.footnote,
+    bold && classes.bold,
+    className,
+  );
+  const pSmallClass = classNames(
+    classes.pSmall,
+    bold && classes.bold,
+    className,
+  );
   const pClass = classNames(classes.p, bold && classes.bold, className);
   let element;
 

@@ -10,6 +10,8 @@ export default (/* { projectDir } */) => {
     // worker threads may need to be disabled to prevent test failures in some linux flavors
     // https://github.com/lovell/sharp/issues/3164
     workerThreads: familySync() !== GLIBC,
-    require: [`${process.env["EAVE_HOME"]}/develop/javascript/es-config/ava/test-setup.js`],
+    require: [
+      `${process.env["EAVE_HOME"]}/develop/javascript/es-config/ava/test-setup.js`,
+    ],
   };
 };

@@ -62,8 +62,12 @@ const makeClasses = makeStyles((theme) => ({
 const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
   const classes = makeClasses();
   const [reposExpanded, setReposExpanded] = useState(false);
-  const innerContainerClass = classNames(classes.innerContainer, error && classes.innerContainerError);
-  const label = repos.length === selectedRepoIds.length ? "Default (All)" : "Custom";
+  const innerContainerClass = classNames(
+    classes.innerContainer,
+    error && classes.innerContainerError,
+  );
+  const label =
+    repos.length === selectedRepoIds.length ? "Default (All)" : "Custom";
 
   const toggleExpandRepos = useCallback(() => {
     setReposExpanded(!reposExpanded);
@@ -78,14 +82,47 @@ const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
       {error && <div className={classes.errorContainer}>{error}</div>}
       <div className={classes.outerContainer}>
         <div className={innerContainerClass}>
-          <Button className={classes.expandBtn} onClick={toggleExpandRepos} variant="text" disableRipple>
-            {label} <ExpandIcon up={reposExpanded} color={error ? "#E03C6C" : "white"} lg />
+          <Button
+            className={classes.expandBtn}
+            onClick={toggleExpandRepos}
+            variant="text"
+            disableRipple
+          >
+            {label}{" "}
+            <ExpandIcon
+              up={reposExpanded}
+              color={error ? "#E03C6C" : "white"}
+              lg
+            />
           </Button>
           {reposExpanded && (
             <FormGroup>
-              <FormControlLabel value="default" label="Default (All)" classes={{ root: classes.formLabels }} onChange={handleSelect} control={<Checkbox classes={{ root: classes.checkbox }} checked={repos.length === selectedRepoIds.length} />} />
+              <FormControlLabel
+                value="default"
+                label="Default (All)"
+                classes={{ root: classes.formLabels }}
+                onChange={handleSelect}
+                control={
+                  <Checkbox
+                    classes={{ root: classes.checkbox }}
+                    checked={repos.length === selectedRepoIds.length}
+                  />
+                }
+              />
               {repos.map((repo) => (
-                <FormControlLabel key={repo.external_repo_id} value={repo.external_repo_id} label={repo.display_name} classes={{ root: classes.formLabels }} onChange={handleSelect} control={<Checkbox classes={{ root: classes.checkbox }} checked={selectedRepoIds.includes(repo.external_repo_id)} />} />
+                <FormControlLabel
+                  key={repo.external_repo_id}
+                  value={repo.external_repo_id}
+                  label={repo.display_name}
+                  classes={{ root: classes.formLabels }}
+                  onChange={handleSelect}
+                  control={
+                    <Checkbox
+                      classes={{ root: classes.checkbox }}
+                      checked={selectedRepoIds.includes(repo.external_repo_id)}
+                    />
+                  }
+                />
               ))}
             </FormGroup>
           )}

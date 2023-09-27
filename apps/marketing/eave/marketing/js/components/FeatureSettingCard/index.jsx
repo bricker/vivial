@@ -27,7 +27,12 @@ const FeatureSettingCard = ({ children, className, onClick }) => {
   const classes = makeClasses();
   const containerClass = classNames(classes.container, className);
   return (
-    <Button className={containerClass} onClick={onClick} variant="outlined" disableRipple>
+    <Button
+      className={containerClass}
+      onClick={onClick}
+      variant="outlined"
+      disableRipple
+    >
       {children} <CheckIcon className={classes.checkIcon} />
     </Button>
   );

@@ -7,7 +7,10 @@ import { requestIntegrityMiddleware } from "./request-integrity.js";
 // This isn't included in the common middlewares so individual apps can configure it as needed.
 export const helmetMiddleware = helmet;
 
-export const commonRequestMiddlewares = [requestIntegrityMiddleware, requestLoggingMiddleware];
+export const commonRequestMiddlewares = [
+  requestIntegrityMiddleware,
+  requestLoggingMiddleware,
+];
 
 export const commonResponseMiddlewares = [exceptionHandlingMiddleware];
 

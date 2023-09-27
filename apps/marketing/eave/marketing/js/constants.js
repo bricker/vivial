@@ -18,8 +18,8 @@ export const FEATURE_MODAL = {
     API_DOCS: "api-documentation",
     INLINE_CODE_DOCS: "inline-code-documentation",
     ARCHITECTURE_DOCS: "architecture-documentation",
-  }
-}
+  },
+};
 
 export const FEEDBACK_URL = "https://forms.gle/3v5Xdz7kPya5UW9U6";
 

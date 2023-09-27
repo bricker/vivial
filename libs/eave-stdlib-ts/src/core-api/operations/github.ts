@@ -1,5 +1,8 @@
 import { RequestArgsOrigin, makeRequest } from "../../requests.js";
-import { GithubInstallation, GithubInstallationInput } from "../models/github.js";
+import {
+  GithubInstallation,
+  GithubInstallationInput,
+} from "../models/github.js";
 import { Team } from "../models/team.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
@@ -13,9 +16,13 @@ export type GetGithubInstallationResponseBody = {
 };
 
 export class GetGithubInstallationOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/integrations/github/query" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/integrations/github/query",
+  });
 
-  static async perform(args: RequestArgsOrigin & { input: GetGithubInstallationRequestBody }): Promise<GetGithubInstallationResponseBody> {
+  static async perform(
+    args: RequestArgsOrigin & { input: GetGithubInstallationRequestBody },
+  ): Promise<GetGithubInstallationResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

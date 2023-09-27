@@ -1,13 +1,26 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
-import { UpdateContentRequestBody, UpdateContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  UpdateContentRequestBody,
+  UpdateContentResponseBody,
+} from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
-import { OpenAIModel, maxTokens } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
+import {
+  OpenAIModel,
+  maxTokens,
+} from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
 import OpenAIClient from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
 import { tokenCount } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/token-counter.js";
 import { ConfluenceClientArg } from "./util.js";
 
-export default async function updateContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
+export default async function updateContent({
+  req,
+  res,
+  confluenceClient,
+}: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
   ctx.feature_name = "confluence_update_content";
   const { content } = <UpdateContentRequestBody>req.body;
@@ -32,15 +45,38 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
   let newBody = content.body;
 
   if (existingBody) {
-    const prompt = ["Merge the following two HTML documents so that the unique information is retained, but duplicate information is removed.", "The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>", "Maintain the overall document layout and style from the first document.", "Respond with only the merged document.", 'If you can\'t perform this task because of insuffient information or any other reason, respond with the word "UNABLE" and nothing else.\n', "=========================", "First Document:", "=========================", existingBody, "=========================", "Second Document:", "=========================", content.body, "=========================", "Merged Document:", "========================="].join("\n");
+    const prompt = [
+      "Merge the following two HTML documents so that the unique information is retained, but duplicate information is removed.",
+      "The resulting document should be should be formatted using plain HTML tags without any inline styling. The document will be embedded into another HTML document, so you should only include HTML tags needed for formatting, and omit tags such as <head>, <body>, <html>, and <!doctype>",
+      "Maintain the overall document layout and style from the first document.",
+      "Respond with only the merged document.",
+      'If you can\'t perform this task because of insuffient information or any other reason, respond with the word "UNABLE" and nothing else.\n',
+      "=========================",
+      "First Document:",
+      "=========================",
+      existingBody,
+      "=========================",
+      "Second Document:",
+      "=========================",
+      content.body,
+      "=========================",
+      "Merged Document:",
+      "=========================",
+    ].join("\n");
 
     // Check which model to use based on token count.
     // The idea with dividing by 1.5 is that the prompt contains roughly 2/3 of the full token usage,
     // because the prompt + response contains three total documents.
     let model: OpenAIModel | undefined;
-    if (tokenCount(prompt, OpenAIModel.GPT4) < maxTokens(OpenAIModel.GPT4) / 1.5) {
+    if (
+      tokenCount(prompt, OpenAIModel.GPT4) <
+      maxTokens(OpenAIModel.GPT4) / 1.5
+    ) {
       model = OpenAIModel.GPT4;
-    } else if (tokenCount(prompt, OpenAIModel.GPT_35_TURBO_16K) < maxTokens(OpenAIModel.GPT_35_TURBO_16K) / 1.5) {
+    } else if (
+      tokenCount(prompt, OpenAIModel.GPT_35_TURBO_16K) <
+      maxTokens(OpenAIModel.GPT_35_TURBO_16K) / 1.5
+    ) {
       model = OpenAIModel.GPT_35_TURBO_16K;
     }
 
@@ -56,12 +92,18 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
       });
 
       if (openaiResponse.match(/UNABLE/i)) {
-        eaveLogger.warning("openai was unable to merge the documents. The new content will be used.", ctx);
+        eaveLogger.warning(
+          "openai was unable to merge the documents. The new content will be used.",
+          ctx,
+        );
       } else {
         newBody = openaiResponse;
       }
     } else {
-      eaveLogger.warning("Prompt is too big for OpenAI. Document will be overwritten", ctx);
+      eaveLogger.warning(
+        "Prompt is too big for OpenAI. Document will be overwritten",
+        ctx,
+      );
     }
   }
 

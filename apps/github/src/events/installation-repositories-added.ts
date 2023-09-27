@@ -1,5 +1,12 @@
-import { Feature, State } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
-import { CreateGithubRepoOperation, FeatureStateGithubReposOperation, GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
+import {
+  Feature,
+  State,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import {
+  CreateGithubRepoOperation,
+  FeatureStateGithubReposOperation,
+  GetGithubReposOperation,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
@@ -15,7 +22,10 @@ import { GitHubOperationsContext } from "../types.js";
  * Inserts rows into the github_repos db table with feature activation states matching
  * the other rows in the table whenever it is given access to new repos in GitHub.
  */
-export default async function handler(event: InstallationRepositoriesAddedEvent, context: GitHubOperationsContext) {
+export default async function handler(
+  event: InstallationRepositoriesAddedEvent,
+  context: GitHubOperationsContext,
+) {
   if (event.action !== "added") {
     return;
   }
@@ -24,7 +34,10 @@ export default async function handler(event: InstallationRepositoriesAddedEvent,
   await maybeAddReposToDataBase(event, ctx);
 }
 
-export async function maybeAddReposToDataBase(event: InstallationRepositoriesAddedEvent, ctx: LogContext) {
+export async function maybeAddReposToDataBase(
+  event: InstallationRepositoriesAddedEvent,
+  ctx: LogContext,
+) {
   const sharedReqInput = {
     teamId: ctx.eave_team_id,
     origin: EaveApp.eave_github_app,
@@ -73,9 +86,14 @@ export async function maybeAddReposToDataBase(event: InstallationRepositoriesAdd
         repo: {
           external_repo_id: repo.node_id,
           display_name: repo.name,
-          api_documentation_state: defaultFeatureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
-          inline_code_documentation_state: defaultFeatureStates[Feature.INLINE_CODE_DOCUMENTATION] || State.DISABLED,
-          architecture_documentation_state: defaultFeatureStates[Feature.ARCHITECTURE_DOCUMENTATION] || State.DISABLED,
+          api_documentation_state:
+            defaultFeatureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
+          inline_code_documentation_state:
+            defaultFeatureStates[Feature.INLINE_CODE_DOCUMENTATION] ||
+            State.DISABLED,
+          architecture_documentation_state:
+            defaultFeatureStates[Feature.ARCHITECTURE_DOCUMENTATION] ||
+            State.DISABLED,
         },
       },
     });

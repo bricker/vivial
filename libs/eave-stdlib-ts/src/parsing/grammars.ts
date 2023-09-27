@@ -11,7 +11,10 @@ import tsPkg from "tree-sitter-typescript";
 import Csharp from "tree-sitter-c-sharp";
 import Ruby from "tree-sitter-ruby";
 import Swift from "tree-sitter-swift";
-import { ProgrammingLanguage, stringToProgrammingLanguage } from "../programming-langs/language-mapping.js";
+import {
+  ProgrammingLanguage,
+  stringToProgrammingLanguage,
+} from "../programming-langs/language-mapping.js";
 
 const { typescript: Typescript, tsx } = tsPkg;
 
@@ -26,7 +29,13 @@ const { typescript: Typescript, tsx } = tsPkg;
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarForLanguage({ language, extName }: { language: string | ProgrammingLanguage; extName: string }): any {
+export function grammarForLanguage({
+  language,
+  extName,
+}: {
+  language: string | ProgrammingLanguage;
+  extName: string;
+}): any {
   let pl: ProgrammingLanguage;
 
   if (typeof language === "string") {
@@ -85,7 +94,15 @@ export function grammarForLanguage({ language, extName }: { language: string | P
  * @param language name of programming language to get queries for
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
-export function getFunctionDocumentationQueries({ language, funcMatcher, commentMatcher }: { language: ProgrammingLanguage; funcMatcher: string; commentMatcher: string }): string[] {
+export function getFunctionDocumentationQueries({
+  language,
+  funcMatcher,
+  commentMatcher,
+}: {
+  language: ProgrammingLanguage;
+  funcMatcher: string;
+  commentMatcher: string;
+}): string[] {
   switch (language) {
     case ProgrammingLanguage.javascript: // js and ts grammar similar enough to share queries
     case ProgrammingLanguage.typescript:

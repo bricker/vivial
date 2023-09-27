@@ -70,7 +70,10 @@ const makeClasses = makeStyles((theme) => ({
 const AuthModal = () => {
   const classes = makeClasses();
   const { isOpen, isLoginMode, isSignupMode, closeModal } = useAuthModal();
-  const sectionClassList = classNames(classes.container, isLoginMode && classes.paddingBottom);
+  const sectionClassList = classNames(
+    classes.container,
+    isLoginMode && classes.paddingBottom,
+  );
 
   return (
     <Dialog open={isOpen}>
@@ -82,7 +85,9 @@ const AuthModal = () => {
           {isLoginMode ? "Log In" : "Get Free Early Access"}
         </Copy>
         <Copy variant="pSmall" className={classes.subheader}>
-          {isLoginMode ? "Access your free Beta account" : "Early access is available via Google sign up only. Additional account options coming soon."}
+          {isLoginMode
+            ? "Access your free Beta account"
+            : "Early access is available via Google sign up only. Additional account options coming soon."}
         </Copy>
         <Button
           to={`${window.eave.apiBase}/oauth/google/authorize`}

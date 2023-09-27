@@ -1,4 +1,9 @@
-query ($repoOwner: String!, $repoName: String!, $commitOid: GitObjectID!, $filePath: String!) {
+query (
+  $repoOwner: String!
+  $repoName: String!
+  $commitOid: GitObjectID!
+  $filePath: String!
+) {
   repository(owner: $repoOwner, name: $repoName) {
     id
     owner {

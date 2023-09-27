@@ -1,5 +1,9 @@
 import { RequestArgsOrigin, makeRequest } from "../../requests.js";
-import { ConnectInstallation, QueryConnectInstallationInput, RegisterConnectInstallationInput } from "../models/connect.js";
+import {
+  ConnectInstallation,
+  QueryConnectInstallationInput,
+  RegisterConnectInstallationInput,
+} from "../models/connect.js";
 import { Team } from "../models/team.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
@@ -12,14 +16,20 @@ export type RegisterConnectInstallationResponseBody = {
 };
 
 export class RegisterConnectInstallationOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/integrations/connect/register" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/integrations/connect/register",
+  });
 
-  static async perform(args: RequestArgsOrigin & { input: RegisterConnectInstallationRequestBody }): Promise<RegisterConnectInstallationResponseBody> {
+  static async perform(
+    args: RequestArgsOrigin & { input: RegisterConnectInstallationRequestBody },
+  ): Promise<RegisterConnectInstallationResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
     });
-    const responseData = <RegisterConnectInstallationResponseBody>await resp.json();
+    const responseData = <RegisterConnectInstallationResponseBody>(
+      await resp.json()
+    );
     return responseData;
   }
 }
@@ -33,14 +43,20 @@ export type QueryConnectInstallationResponseBody = {
 };
 
 export class QueryConnectInstallationOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/integrations/connect/query" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/integrations/connect/query",
+  });
 
-  static async perform(args: RequestArgsOrigin & { input: QueryConnectInstallationRequestBody }): Promise<QueryConnectInstallationResponseBody> {
+  static async perform(
+    args: RequestArgsOrigin & { input: QueryConnectInstallationRequestBody },
+  ): Promise<QueryConnectInstallationResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
     });
-    const responseData = <QueryConnectInstallationResponseBody>await resp.json();
+    const responseData = <QueryConnectInstallationResponseBody>(
+      await resp.json()
+    );
     return responseData;
   }
 }

@@ -181,12 +181,14 @@ export interface ConfluenceSpaceBackgroundLookAndFeel {
   backgroundSize?: string;
 }
 
-export interface ConfluenceSpaceContainerLookAndFeel extends ConfluenceSpaceBackgroundLookAndFeel {
+export interface ConfluenceSpaceContainerLookAndFeel
+  extends ConfluenceSpaceBackgroundLookAndFeel {
   padding?: string;
   borderRadius?: string;
 }
 
-export interface ConfluenceSpaceScreenLookAndFeel extends ConfluenceSpaceBackgroundLookAndFeel {
+export interface ConfluenceSpaceScreenLookAndFeel
+  extends ConfluenceSpaceBackgroundLookAndFeel {
   layer?: object;
   gutterTop?: string;
   gutterRight?: string;

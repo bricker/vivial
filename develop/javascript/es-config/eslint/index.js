@@ -1,8 +1,17 @@
-/** @type {import("eslint").Config} */
 const config = {
   extends: ["eslint:recommended", "prettier"],
   plugins: [],
-  ignorePatterns: ["node_modules", "*.doccarchive", "!.github", "dist", "generated", ".venv", "__pycache__", "vendor", ".*"],
+  ignorePatterns: [
+    "node_modules",
+    "*.doccarchive",
+    "!.github",
+    "dist",
+    "generated",
+    ".venv",
+    "__pycache__",
+    "vendor",
+    ".*",
+  ],
   env: {
     browser: true,
     es2022: true,

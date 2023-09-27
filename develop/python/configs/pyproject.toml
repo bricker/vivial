@@ -11,6 +11,19 @@ force-exclude = '''
 '''
 line-length = 120
 
+[tool.ruff]
+extend-select = ["B006"]
+ignore = ["E501"] # line-length; Black handles this
+extend-exclude = [
+  "generated",
+  "__pycache__",
+  "node_modules",
+  "vendor",
+  "build",
+  ".*",
+]
+ignore-init-module-imports = true
+
 [tool.pytest.ini_options]
 log_cli = false
 pythonpath = [
@@ -26,16 +39,3 @@ norecursedirs = [
   "build",
   ".*",
 ]
-
-[tool.ruff]
-extend-select = ["B006"]
-line-length = 1000
-extend-exclude = [
-  "generated",
-  "__pycache__",
-  "node_modules",
-  "vendor",
-  "build",
-  ".*",
-]
-ignore-init-module-imports = true

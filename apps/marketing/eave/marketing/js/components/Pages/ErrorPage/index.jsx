@@ -5,7 +5,7 @@ import Page from "../Page/index.jsx";
 const makeClasses = makeStyles((theme) => ({
   error: {
     color: theme.palette.error.main,
-    padding: '0px 30px',
+    padding: "0px 30px",
     textAlign: "center",
     fontSize: "26px",
   },

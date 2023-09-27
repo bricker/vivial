@@ -47,8 +47,20 @@ const ExploreFeatures = ({ onInlineDocsClick }) => {
         Explore Features
       </Typography>
       <div className={classes.featureCards}>
-        {team.inlineCodeDocsState === FEATURE_STATES.DISABLED && <FeatureCard className={classes.featureCard} onClick={onInlineDocsClick} title="Inline Code Documentation" description="Enable Eave to automatically summarize files and add inline documentation that updates with each code change." />}
-        <FeatureCard className={classes.featureCard} title="Architecture Diagrams" description="Ensure your system documentation is always accurate. Automatically create and maintain your architecture diagrams." comingSoon />
+        {team.inlineCodeDocsState === FEATURE_STATES.DISABLED && (
+          <FeatureCard
+            className={classes.featureCard}
+            onClick={onInlineDocsClick}
+            title="Inline Code Documentation"
+            description="Enable Eave to automatically summarize files and add inline documentation that updates with each code change."
+          />
+        )}
+        <FeatureCard
+          className={classes.featureCard}
+          title="Architecture Diagrams"
+          description="Ensure your system documentation is always accurate. Automatically create and maintain your architecture diagrams."
+          comingSoon
+        />
       </div>
     </section>
   );

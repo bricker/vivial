@@ -51,15 +51,22 @@ export async function logEvent(fields: EaveEventFields, ctx?: LogContext) {
   const protoMessage = EaveEvent.encode(event).finish();
 
   if (sharedConfig.analyticsEnabled) {
-    eaveLogger.debug("Publishing analytics event", ctx, { pubsub: { event: jsonEvent } });
+    eaveLogger.debug("Publishing analytics event", ctx, {
+      pubsub: { event: jsonEvent },
+    });
     const messageId = await topic.publishMessage({ data: protoMessage });
-    eaveLogger.debug("Analytics event published", ctx, { pubsub: { event: jsonEvent, result: [messageId] } });
+    eaveLogger.debug("Analytics event published", ctx, {
+      pubsub: { event: jsonEvent, result: [messageId] },
+    });
   } else {
     eaveLogger.warning("Analytics disabled", { event: jsonEvent }, ctx);
   }
 }
 
-export async function logGptRequest(fields: GPTRequestEventFields, ctx?: LogContext) {
+export async function logGptRequest(
+  fields: GPTRequestEventFields,
+  ctx?: LogContext,
+) {
   const pubSubClient = new PubSub();
 
   // Get the topic metadata to learn about its schema.
@@ -76,9 +83,13 @@ export async function logGptRequest(fields: GPTRequestEventFields, ctx?: LogCont
   const protoMessage = GPTRequestEvent.encode(event).finish();
 
   if (sharedConfig.analyticsEnabled) {
-    eaveLogger.debug("Publishing analytics event", ctx, { pubsub: { event: jsonEvent } });
+    eaveLogger.debug("Publishing analytics event", ctx, {
+      pubsub: { event: jsonEvent },
+    });
     const messageId = await topic.publishMessage({ data: protoMessage });
-    eaveLogger.debug("Analytics event published", ctx, { pubsub: { event: jsonEvent, result: [messageId] } });
+    eaveLogger.debug("Analytics event published", ctx, {
+      pubsub: { event: jsonEvent, result: [messageId] },
+    });
   } else {
     eaveLogger.warning("Analytics disabled", { event: jsonEvent }, ctx);
   }

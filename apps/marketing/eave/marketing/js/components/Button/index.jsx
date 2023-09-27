@@ -21,7 +21,15 @@ const makeClasses = makeStyles(() => ({
   },
 }));
 
-const Button = ({ color = "primary", variant = "contained", children, className, target, to, ...rest }) => {
+const Button = ({
+  color = "primary",
+  variant = "contained",
+  children,
+  className,
+  target,
+  to,
+  ...rest
+}) => {
   const classes = makeClasses();
   const rootClass = classNames(classes.root, className);
 

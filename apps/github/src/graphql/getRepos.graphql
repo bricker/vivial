@@ -1,7 +1,11 @@
 query {
   viewer {
     # TODO: Pagination
-    repositories(isArchived: false, orderBy: { direction: DESC, field: PUSHED_AT }, first: 100) {
+    repositories(
+      isArchived: false
+      orderBy: { direction: DESC, field: PUSHED_AT }
+      first: 100
+    ) {
       nodes {
         id
         name

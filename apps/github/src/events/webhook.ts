@@ -1,16 +1,25 @@
 import { Cache, getCacheClient } from "@eave-fyi/eave-stdlib-ts/src/cache.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { GithubEventHandlerTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { createTaskFromRequest } from "@eave-fyi/eave-stdlib-ts/src/task-queue.js";
 import Express from "express";
 import assert from "node:assert";
 import { constants as httpConstants } from "node:http2";
 import { GITHUB_EVENT_QUEUE_NAME } from "../config.js";
 import { getTeamForInstallation } from "../lib/octokit-util.js";
-import { getEventHandler, getGithubWebhookHeaders } from "../middleware/process-webhook-payload.js";
+import {
+  getEventHandler,
+  getGithubWebhookHeaders,
+} from "../middleware/process-webhook-payload.js";
 
-export async function webhookEventHandler(req: Express.Request, res: Express.Response): Promise<void> {
+export async function webhookEventHandler(
+  req: Express.Request,
+  res: Express.Response,
+): Promise<void> {
   const ctx = LogContext.load(res);
 
   // Quick check to make sure we have a handler for this event.
@@ -52,7 +61,11 @@ export async function webhookEventHandler(req: Express.Request, res: Express.Res
   }
 
   if (!eaveTeamId) {
-    eaveLogger.warning(`No Eave Team found for installation ID ${installationId}`, ctx, { installationId });
+    eaveLogger.warning(
+      `No Eave Team found for installation ID ${installationId}`,
+      ctx,
+      { installationId },
+    );
     res.sendStatus(httpConstants.HTTP_STATUS_FORBIDDEN);
     return;
   }

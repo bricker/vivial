@@ -3,7 +3,11 @@ import { EaveApp } from "../eave-origins.js";
 import { EAVE_ORIGIN_HEADER } from "../headers.js";
 import { LogContext, eaveLogger } from "../logging.js";
 
-export function originMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function originMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const ctx = LogContext.load(res);
   const originHeader = req.header(EAVE_ORIGIN_HEADER);
 

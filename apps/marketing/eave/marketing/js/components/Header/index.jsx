@@ -103,7 +103,12 @@ const Header = ({ simpleHeader }) => {
 
   const TopButtons = isAuthenticated ? (
     <>
-      <a className={classes.inlineButton} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
+      <a
+        className={classes.inlineButton}
+        href={FEEDBACK_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
         Send Feedback
       </a>
       <button className={classes.inlineButton} onClick={logUserOut}>
@@ -112,10 +117,16 @@ const Header = ({ simpleHeader }) => {
     </>
   ) : (
     <>
-      <button className={classes.inlineButton} onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}>
+      <button
+        className={classes.inlineButton}
+        onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}
+      >
         Log In
       </button>
-      <Button className={classes.button} onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
+      <Button
+        className={classes.button}
+        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
+      >
         Sign Up
       </Button>
     </>
@@ -126,7 +137,12 @@ const Header = ({ simpleHeader }) => {
       <Link className={classes.mobileNavItem} to="/dashboard">
         Dashboard
       </Link>
-      <a className={classes.mobileNavItem} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
+      <a
+        className={classes.mobileNavItem}
+        href={FEEDBACK_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
         Send Feedback
       </a>
       <button className={classes.mobileNavItem} onClick={logUserOut}>
@@ -135,10 +151,16 @@ const Header = ({ simpleHeader }) => {
     </>
   ) : (
     <>
-      <button className={classes.mobileNavItem} onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}>
+      <button
+        className={classes.mobileNavItem}
+        onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}
+      >
         Log In
       </button>
-      <button className={classes.mobileNavItem} onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
+      <button
+        className={classes.mobileNavItem}
+        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
+      >
         Sign Up
       </button>
     </>
@@ -153,7 +175,10 @@ const Header = ({ simpleHeader }) => {
         {!simpleHeader && (
           <>
             <div className={classes.ctaContainer}>{TopButtons}</div>
-            <IconButton classes={{ root: classes.menuIconBtn }} onClick={() => setDrawerIsOpen(true)}>
+            <IconButton
+              classes={{ root: classes.menuIconBtn }}
+              onClick={() => setDrawerIsOpen(true)}
+            >
               <HamburgerIcon />
             </IconButton>
             <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
@@ -163,7 +188,10 @@ const Header = ({ simpleHeader }) => {
                     <div className={classes.logoContainer}>
                       <EaveLogo />
                     </div>
-                    <IconButton classes={{ root: classes.menuIconBtn }} onClick={() => setDrawerIsOpen(false)}>
+                    <IconButton
+                      classes={{ root: classes.menuIconBtn }}
+                      onClick={() => setDrawerIsOpen(false)}
+                    >
                       <CloseIcon />
                     </IconButton>
                   </div>
