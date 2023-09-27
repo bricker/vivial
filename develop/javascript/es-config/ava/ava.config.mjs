@@ -1,4 +1,4 @@
-import { familySync, GLIBC } from "detect-libc"; // eslint-disable-line import/no-extraneous-dependencies
+import { familySync, GLIBC } from "detect-libc";
 
 export default (/* { projectDir } */) => {
   return {

@@ -310,7 +310,6 @@ export interface ConfluencePageVersion {
   message?: string;
   number: number;
   minorEdit: boolean;
-  // eslint-disable-next-line no-use-before-define
   content?: ConfluencePage;
   collaborators?: ConfluenceUsersUserKeys;
   contentTypeModified?: boolean;

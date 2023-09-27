@@ -1,4 +1,4 @@
-import dotenv from "dotenv"; /* eslint-disable-line import/no-extraneous-dependencies */
+import dotenv from "dotenv";
 import path from "node:path";
 
 dotenv.config({ path: path.join(process.env["EAVE_HOME"], ".env") });

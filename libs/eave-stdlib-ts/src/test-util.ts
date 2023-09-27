@@ -11,10 +11,8 @@ import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
   So when this file is imported, they need to be available from somewhere else (probably the app or repo running the tests).
   These imports will fail in a non-development environment.
 */
-/* eslint-disable import/order, import/no-extraneous-dependencies */
 import sinon from "sinon";
 import request from "supertest";
-/* eslint-enable import/order, import/no-extraneous-dependencies */
 
 export class TestUtil {
   testData: { [key: string]: any } = {};

@@ -1,5 +1,3 @@
-/* eslint-disable quote-props */
-
 const config = {
   extends: ["eslint:recommended", "prettier"],
   plugins: [],

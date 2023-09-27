@@ -86,11 +86,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			case $msgtype in
 			off) ;;
 
+			# NOTE: different terminals have different capabilities, so before adding something here, make sure it'll work on all common terminals. For example, macOS Terminal doesn't support `dim` by default, so using `dim` here causes a failure when using the macOS Terminal.
 			debug)
 				tput -S <<-EOC
 					setaf $_cc_white
 					rev
-					dim
 				EOC
 				;;
 

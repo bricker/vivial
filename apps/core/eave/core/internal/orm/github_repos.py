@@ -111,7 +111,7 @@ class GithubRepoOrm(Base):
     ) -> Sequence[Self]:
         """
         Get/list GithubRepos.
-        You must filter results by `team_id`, but can optionally provide a list of
+        Optionally provide a list of
         `external_repo_ids` to fetch. Providing None for `external_repo_ids` (or empty list)
         will get all repos for the provided `team_id`.
         """
