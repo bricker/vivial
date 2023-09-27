@@ -1,26 +1,52 @@
-import { ConfluencePage, ConfluenceSpace } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
-import { CreateContentRequestBody, CreateContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
+import {
+  ConfluencePage,
+  ConfluenceSpace,
+} from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
+import {
+  CreateContentRequestBody,
+  CreateContentResponseBody,
+} from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
 import { DocumentInput } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/documents.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
-import { CtxArg, ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  CtxArg,
+  ExpressHandlerArgs,
+} from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { v4 as uuidv4 } from "uuid";
 import ConfluenceClient from "../confluence-client.js";
 import { ConfluenceClientArg } from "./util.js";
 
-export default async function createContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
+export default async function createContent({
+  req,
+  res,
+  confluenceClient,
+}: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
-  const { document, confluence_destination } = <CreateContentRequestBody>req.body;
+  const { document, confluence_destination } = <CreateContentRequestBody>(
+    req.body
+  );
 
   // Get the space
-  const space = await confluenceClient.getSpaceByKey({ spaceKey: confluence_destination.space_key });
+  const space = await confluenceClient.getSpaceByKey({
+    spaceKey: confluence_destination.space_key,
+  });
   if (space === null) {
-    eaveLogger.warning(`Space not found for key ${confluence_destination.space_key}`, ctx);
+    eaveLogger.warning(
+      `Space not found for key ${confluence_destination.space_key}`,
+      ctx,
+    );
     res.sendStatus(400);
     return;
   }
 
   if (!space.homepage) {
-    eaveLogger.warning(`Homepage not found for space ${confluence_destination.space_key}`, ctx);
+    eaveLogger.warning(
+      `Homepage not found for space ${confluence_destination.space_key}`,
+      ctx,
+    );
     res.sendStatus(400);
     return;
   }
@@ -57,7 +83,9 @@ export default async function createContent({ req, res, confluenceClient }: Expr
   // Get the pages at the root of the space.
   let currentDir: ConfluencePage | undefined; // undefined is root
   let currentDirId: string | undefined; // We have to track this separately because of hoisting, I think
-  let currentDirContent = await confluenceClient.getPageChildren({ pageId: space.homepage?.id });
+  let currentDirContent = await confluenceClient.getPageChildren({
+    pageId: space.homepage?.id,
+  });
 
   // Figure out where the document goes in the Space hierarchy.
   // For each level in the given hierarchy, check if a page (i.e. folder, same thing) already exists with the given name.
@@ -67,7 +95,9 @@ export default async function createContent({ req, res, confluenceClient }: Expr
   // There is almost certainly a better way to do this using the Confluence APIs!
 
   for (const dir of hierarchy) {
-    const existingDirAtThisLevel = currentDirContent.find((content) => content.title === dir.title);
+    const existingDirAtThisLevel = currentDirContent.find(
+      (content) => content.title === dir.title,
+    );
     if (existingDirAtThisLevel !== undefined) {
       // A directory with the given name exists at this level; enter it.
       currentDir = existingDirAtThisLevel;
@@ -101,7 +131,9 @@ export default async function createContent({ req, res, confluenceClient }: Expr
 
     if (currentDir) {
       // TODO: What happens if currentDir is null?
-      currentDirContent = await confluenceClient.getPageChildren({ pageId: String(currentDir.id) });
+      currentDirContent = await confluenceClient.getPageChildren({
+        pageId: String(currentDir.id),
+      });
     }
   }
 
@@ -134,13 +166,25 @@ export default async function createContent({ req, res, confluenceClient }: Expr
   res.json(responseBody);
 }
 
-async function resolveTitleConflict({ confluenceClient, title, space, ctx }: CtxArg & { confluenceClient: ConfluenceClient; title: string; space: ConfluenceSpace }): Promise<string> {
+async function resolveTitleConflict({
+  confluenceClient,
+  title,
+  space,
+  ctx,
+}: CtxArg & {
+  confluenceClient: ConfluenceClient;
+  title: string;
+  space: ConfluenceSpace;
+}): Promise<string> {
   // TODO: This can be done "passively", i.e. handle an API response error and then run this function to get a unique title.
   let resolvedTitle = title;
   const limit = 20;
   let n = 0;
 
-  let page = await confluenceClient.getPageByTitle({ title: resolvedTitle, space });
+  let page = await confluenceClient.getPageByTitle({
+    title: resolvedTitle,
+    space,
+  });
 
   while (page) {
     if (n > limit) {
@@ -152,7 +196,10 @@ async function resolveTitleConflict({ confluenceClient, title, space, ctx }: Ctx
     } else {
       n += 1;
       resolvedTitle = `${title} (${n})`;
-      page = await confluenceClient.getPageByTitle({ title: resolvedTitle, space });
+      page = await confluenceClient.getPageByTitle({
+        title: resolvedTitle,
+        space,
+      });
     }
   }
 
