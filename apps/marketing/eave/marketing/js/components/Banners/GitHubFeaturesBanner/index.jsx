@@ -12,10 +12,10 @@ const makeClasses = makeStyles((theme) => ({
   wrapper: {
     display: "flex",
     alignItems: "center",
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
     [theme.breakpoints.up("md")]: {
-      flexDirection: "column",
+      flexDirection: "row",
     },
   },
   copy: {
@@ -38,16 +38,14 @@ const GitHubFeaturesBanner = ({ title, features }) => {
       <Copy variant="h1">{title}</Copy>
 
       <div className={classes.wrapper}>
-        {features.map((feature) => {
-          return (
-            <div className={classes.featureContainer}>
-              <Copy variant="h2">{feature.title}</Copy>
-              <Copy variant="p">{feature.subtitle}</Copy>
-              {/* image isn't important for a11y, so use empty alt text to show that */}
-              <img className={classes.featureImage} src={imageUrl(feature.image)} alt="" />
-            </div>
-          );
-        })}
+        {features.map((feature, i) => (
+          <div key={i} className={classes.featureContainer}>
+            <Copy variant="h2">{feature.title}</Copy>
+            <Copy variant="p">{feature.subtitle}</Copy>
+            {/* image isn't important for a11y, so use empty alt text to show that */}
+            <img className={classes.featureImage} src={imageUrl(feature.image)} alt="" />
+          </div>
+        ))}
       </div>
     </PageSection>
   );

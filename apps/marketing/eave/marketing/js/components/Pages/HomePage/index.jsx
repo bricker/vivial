@@ -60,7 +60,7 @@ const HomePage = () => {
     <Page>
       <main>
         <Hero title={hero.title} subtitle={hero.subtitle} cta={hero.cta} />
-        <GitHubFeaturesBanner title={githubFeatures.title} />
+        <GitHubFeaturesBanner title={githubFeatures.title} features={githubFeatures.features} />
         <ProductivityBanner title={productivity.title} />
         <PrivacyBanner title={privacy.title} subtitle={privacy.subtitle} />
       </main>
