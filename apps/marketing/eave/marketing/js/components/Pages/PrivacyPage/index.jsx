@@ -61,31 +61,6 @@ const PrivacyPage = () => {
           services, communicate with our users, and personalize their
           experience. Specifically, we may use your information to:
         </Copy>
-        <Copy className={classes.para}>
-          Eave Technologies, Inc. ("Eave", "we", "us", or "our") is committed to
-          protecting the privacy of our customers and users of our products and
-          services ("you" or "your"). This Privacy Policy explains how we
-          collect, use, and disclose information that we obtain from you when
-          you use our products and services.
-        </Copy>
-        <Copy className={classes.para}>Information We Collect</Copy>
-        <Copy className={classes.para}>
-          We may collect information from you when you use our products and
-          services, including your name, email address, phone number, and other
-          contact information. We may also collect information about your
-          device, such as IP address, operating system, and browser type.
-        </Copy>
-        <Copy className={classes.para}>
-          We may also collect information about your usage of our products and
-          services, such as the pages you visit, the features you use, and the
-          content you view.
-        </Copy>
-        <Copy className={classes.para}>How We Use Your Information</Copy>
-        <Copy className={classes.para}>
-          We use personal information to provide and improve our product and
-          services, communicate with our users, and personalize their
-          experience. Specifically, we may use your information to:
-        </Copy>
         <ul>
           <li>
             <Copy>Process payments</Copy>
