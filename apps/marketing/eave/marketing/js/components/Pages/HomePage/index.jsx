@@ -2,9 +2,9 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useUser from "../../../hooks/useUser.js";
-import ProductivityBanner from "../../Banners/ProductivityBanner/index.jsx";
 import GitHubFeaturesBanner from "../../Banners/GitHubFeaturesBanner/index.jsx";
 import PrivacyBanner from "../../Banners/PrivacyBanner/index.jsx";
+import ProductivityBanner from "../../Banners/ProductivityBanner/index.jsx";
 import Hero from "../../Hero/index.jsx";
 import Page from "../Page/index.jsx";
 
@@ -14,8 +14,25 @@ const copy = {
     subtitle: "Eave ensures your technical documentation is accurate and up to date. Stop wasting time manually maintaining your documentation and spend more time building.",
     cta: "Start for Free",
   },
-  githubFeatures : {
+  githubFeatures: {
     title: "One Integration for Automation",
+    features: [
+      {
+        title: "API Documentation",
+        subtitle: "Whether for internal employees or customers, Eave ensures your API docs are up to date.",
+        image: "api-docs-feat-3x.png",
+      },
+      {
+        title: "Architecture Diagrams",
+        subtitle: "Maintain the integrity of your arch docs and preserve a single source of truth.",
+        image: "arch-diagram-feat-3x.png",
+      },
+      {
+        title: "Inline Code Documentation",
+        subtitle: "With every code change, Eave will automatically create inline documentation for your team.",
+        image: "code-docs-feat-3x.png",
+      },
+    ],
   },
   productivity: {
     title: "Unlock a New Level of Productivity",
