@@ -33,7 +33,7 @@ const useTeam = () => {
 
   async function getTeamRepos(teamId) {
     setTeam((prev) => ({ ...prev, reposAreLoading: true, reposAreErroring: false }));
-    fetch(`dashboard/team/repos/${teamId}`)
+    fetch(`dashboard/team/${teamId}/repos`)
       .then((resp) => {
         if (isHTTPError(resp)) {
           throw resp;
@@ -77,7 +77,7 @@ const useTeam = () => {
 
   async function updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature) {
     setTeam((prev) => ({ ...prev, featureStatesLoading: true, featureStatesErroring: false }));
-    const repoUpdates = teamRepoIds.map((repoId) => {
+    const repos = teamRepoIds.map((repoId) => {
       const state = enabledRepoIds.includes(repoId) ? FEATURE_STATES.ENABLED : FEATURE_STATES.DISABLED;
       return {
         external_repo_id: repoId,
@@ -86,15 +86,12 @@ const useTeam = () => {
         },
       };
     });
-    fetch("/dashboard/team/repos/update", {
+    fetch(`/dashboard/team/${teamId}/repos/update`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        team_id: teamId,
-        repos: repoUpdates,
-      }),
+      body: JSON.stringify({ repos }),
     })
       .then((resp) => {
         if (isHTTPError(resp)) {

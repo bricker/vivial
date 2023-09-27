@@ -84,7 +84,12 @@ const AuthModal = () => {
         <Copy variant="pSmall" className={classes.subheader}>
           {isLoginMode ? "Access your free Beta account" : "Early access is available via Google sign up only. Additional account options coming soon."}
         </Copy>
-        <Button to={`${window.eave.apiBase}/oauth/google/authorize`} className={classes.loginButton} variant="outlined" startIcon={<GoogleIcon className={classes.icon} />}>
+        <Button
+          to={`${window.eave.apiBase}/oauth/google/authorize`}
+          className={classes.loginButton}
+          variant="outlined"
+          startIcon={<GoogleIcon className={classes.icon} />}
+        >
           Continue with Google
         </Button>
         {isSignupMode && (

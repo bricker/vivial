@@ -102,7 +102,7 @@ async def get_team(team_id: str) -> Response:
     return _json_response(body=eave_response.json())
 
 
-@app.route("/dashboard/team/repos/<team_id>", methods=["GET"])
+@app.route("/dashboard/team/<team_id>/repos", methods=["GET"])
 async def get_team_repos(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
 
@@ -120,15 +120,14 @@ async def get_team_repos(team_id: str) -> Response:
     return _json_response(body=eave_response.json())
 
 
-@app.route("/dashboard/team/repos/update", methods=["POST"])
-async def update_team_repos() -> Response:
+@app.route("/dashboard/team/<team_id>/repos/update", methods=["POST"])
+async def update_team_repos(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
 
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
 
     body = request.get_json()
-    team_id = body["team_id"]
     repos = body["repos"]
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(

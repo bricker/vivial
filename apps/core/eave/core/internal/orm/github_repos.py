@@ -72,7 +72,7 @@ class GithubRepoOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        team_id: UUID | str,
+        team_id: UUID,
         external_repo_id: str,
         display_name: Optional[str],
         api_documentation_state: State = State.DISABLED,
