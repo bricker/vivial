@@ -24,7 +24,7 @@ export async function createPullRequestHandler(req: Request, res: Response): Pro
     octokit,
     ctx,
   });
-  const pr_number = await prCreator.createPullRequest({
+  const pr = await prCreator.createPullRequest({
     branchName: input.branch_name,
     commitMessage: input.commit_message,
     fileChanges: input.file_changes,
@@ -32,6 +32,6 @@ export async function createPullRequestHandler(req: Request, res: Response): Pro
     prBody: input.pr_body,
   });
 
-  const output: CreateGitHubPullRequestResponseBody = { pr_number };
+  const output: CreateGitHubPullRequestResponseBody = { pr_number: pr.number };
   res.json(output);
 }

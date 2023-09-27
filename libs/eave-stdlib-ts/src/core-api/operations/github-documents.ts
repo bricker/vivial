@@ -1,4 +1,4 @@
-import { makeRequest, RequestArgsAuthedRequest } from "../../requests.js";
+import { makeRequest, RequestArgsAuthedRequest, RequestArgsTeamId } from "../../requests.js";
 import { GithubDocument, GithubDocumentCreateInput, GithubDocumentsDeleteByIdsInput, GithubDocumentsDeleteByTypeInput, GithubDocumentsQueryInput, GithubDocumentUpdateInput } from "../models/github-documents.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
@@ -12,7 +12,7 @@ export type GetGithubDocumentsResponseBody = {
 
 export class GetGithubDocumentsOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-documents/query" });
-  static async perform(args: RequestArgsAuthedRequest & { input: GetGithubDocumentsRequestBody }): Promise<GetGithubDocumentsResponseBody> {
+  static async perform(args: RequestArgsTeamId & { input: GetGithubDocumentsRequestBody }): Promise<GetGithubDocumentsResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -31,7 +31,7 @@ export type CreateGithubDocumentResponseBody = {
 
 export class CreateGithubDocumentOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-documents/create" });
-  static async perform(args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody }): Promise<CreateGithubDocumentResponseBody> {
+  static async perform(args: RequestArgsTeamId & { input: CreateGithubDocumentRequestBody }): Promise<CreateGithubDocumentResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -50,7 +50,7 @@ export type UpdateGithubDocumentResponseBody = {
 
 export class UpdateGithubDocumentOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-documents/update" });
-  static async perform(args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody }): Promise<UpdateGithubDocumentResponseBody> {
+  static async perform(args: RequestArgsTeamId & { input: UpdateGithubDocumentRequestBody }): Promise<UpdateGithubDocumentResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

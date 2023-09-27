@@ -1,0 +1,10 @@
+fragment commitFragment on Commit {
+  commitMessage: message
+  additions
+  changedFilesIfAvailable
+  deletions
+  committedDate
+  tree {
+    ...treeFragment
+  }
+}

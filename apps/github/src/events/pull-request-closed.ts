@@ -35,7 +35,7 @@ export default async function handler(event: PullRequestEvent, context: GitHubOp
         event_name: "github_eave_pr_interaction",
         event_description: `A GitHub PR opened by Eave was ${interaction}`,
         event_source: "github webhook pull_request event",
-        opaque_params: JSON.stringify({ interaction }),
+        opaque_params: { interaction },
       },
       ctx,
     );

@@ -160,15 +160,15 @@ export default async function handler(event: PushEvent, context: GitHubOperation
               event_name,
               event_description: "updating a document subscribed to github file changes",
               event_source: "github webhook push event",
-              opaque_params: JSON.stringify({
+              opaque_params: {
                 repoOwner: event.repository.owner.name,
                 repoName: event.repository.name,
                 filePath: eventCommitTouchedFilename,
                 fileLanguage: languageName,
                 document_id: subscriptionResponse.document_reference?.document_id,
                 eventId,
-              }),
-              eave_team: JSON.stringify(teamResponse.team),
+              },
+              eave_team: teamResponse.team,
             },
             ctx,
           );

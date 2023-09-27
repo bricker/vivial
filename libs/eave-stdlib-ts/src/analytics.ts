@@ -4,6 +4,8 @@ import { PubSub } from "@google-cloud/pubsub";
 import { sharedConfig } from "./config.js";
 import { eaveLogger, LogContext } from "./logging.js";
 import { JsonObject } from "./types.js";
+import { Team } from "./core-api/models/team.js";
+import { AnalyticsAccount } from "./core-api/models/account.js";
 
 const EVENT_TOPIC_ID = "eave_event";
 const GPT_EVENT_TOPIC_ID = "gpt_request_event";
@@ -12,10 +14,10 @@ export interface EaveEventFields {
   event_name: string;
   event_description?: string;
   event_source?: string;
-  opaque_params?: string;
+  opaque_params?: JsonObject | string;
   eave_visitor_id?: string;
-  eave_account?: string;
-  eave_team?: string;
+  eave_account?: AnalyticsAccount;
+  eave_team?: Team;
 }
 
 export interface GPTRequestEventFields {
@@ -37,14 +39,44 @@ export async function logEvent(fields: EaveEventFields, ctx?: LogContext) {
   // Get the topic metadata to learn about its schema.
   const topic = pubSubClient.topic(EVENT_TOPIC_ID);
 
-  const event = EaveEvent.create(fields);
-  event.eave_env = sharedConfig.eaveEnv;
-  event.event_time = new Date().toISOString();
+  const event = EaveEvent.create({
+    event_name: fields.event_name,
+    event_description: fields.event_description,
+    event_source: fields.event_source,
+    eave_visitor_id: fields.eave_visitor_id,
+    eave_env: sharedConfig.eaveEnv,
+    event_time: new Date().toISOString(),
+  });
+
+  if (typeof fields.opaque_params === "string") {
+    event.opaque_params = fields.opaque_params;
+  } else if (fields.opaque_params === undefined) {
+    event.opaque_params = undefined;
+  } else {
+    event.opaque_params = JSON.stringify(fields.opaque_params);
+  }
+
+  if (fields.eave_team) {
+    event.eave_team_id = fields.eave_team.id;
+    event.eave_team = JSON.stringify(fields.eave_team);
+  }
+
+  if (fields.eave_account) {
+    event.eave_account_id = fields.eave_account.id;
+    event.eave_account = JSON.stringify(fields.eave_account);
+  }
+
   if (ctx !== undefined) {
     event.opaque_eave_ctx = JSON.stringify(ctx);
-    event.eave_account_id = ctx.eave_account_id;
-    event.eave_team_id = ctx.eave_team_id;
     event.eave_request_id = ctx.eave_request_id;
+
+    if (!event.eave_account_id && ctx.eave_account_id) {
+      event.eave_account_id = ctx.eave_account_id;
+    }
+
+    if (!event.eave_team_id && ctx.eave_team_id) {
+      event.eave_team_id = ctx.eave_team_id;
+    }
   }
 
   const jsonEvent = <JsonObject>EaveEvent.toJSON(event);

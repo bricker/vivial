@@ -151,7 +151,7 @@ export class PullRequestCreator {
    * Input parameters used for PR creation details.
    * @returns the number of the created PR
    */
-  public async createPullRequest({ branchName, commitMessage, prTitle, prBody, fileChanges }: { branchName: string; commitMessage: string; prTitle: string; prBody: string; fileChanges: Array<FileChange> }): Promise<number> {
+  public async createPullRequest({ branchName, commitMessage, prTitle, prBody, fileChanges }: { branchName: string; commitMessage: string; prTitle: string; prBody: string; fileChanges: Array<FileChange> }): Promise<PullRequest> {
     const branch = await this.createBranch(this.ensureBranchPrefix(branchName));
     await this.createCommit(branch, commitMessage, fileChanges);
     const pr = await this.openPullRequest(branch, prTitle, prBody);
@@ -164,6 +164,6 @@ export class PullRequestCreator {
       this.ctx,
     );
 
-    return pr.number;
+    return pr;
   }
 }

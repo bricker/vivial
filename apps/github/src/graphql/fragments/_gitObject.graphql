@@ -1,0 +1,8 @@
+fragment gitObjectFragment on GitObject {
+  __typename
+  id
+  oid
+  abbreviatedOid
+  commitUrl
+  commitResourcePath
+}

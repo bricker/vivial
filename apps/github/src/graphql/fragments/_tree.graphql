@@ -1,0 +1,35 @@
+fragment treeFragment on Tree {
+  __typename
+  id
+  oid
+  abbreviatedOid
+  commitUrl
+  commitResourcePath
+  entries {
+    __typename
+    type
+    oid
+    pathRaw
+    nameRaw
+    path
+    name
+    extension
+    mode
+    isGenerated
+    lineCount
+    size
+
+    language {
+      __typename
+      id
+      name
+    }
+
+    object {
+      __typename
+      id
+      oid
+      abbreviatedOid
+    }
+  }
+}

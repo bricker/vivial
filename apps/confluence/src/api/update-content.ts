@@ -23,7 +23,7 @@ export default async function updateContent({ req, res, confluenceClient }: Expr
       event_name: ctx.feature_name,
       event_description: "updating confluence document content",
       event_source: ctx.eave_origin,
-      opaque_params: JSON.stringify({ pageId: content.id }),
+      opaque_params: { pageId: content.id },
     },
     ctx,
   );

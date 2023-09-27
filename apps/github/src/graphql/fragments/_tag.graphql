@@ -1,0 +1,10 @@
+fragment tagFragment on Tag {
+  tagMessage: message
+  name
+  target {
+    __typename
+    id
+    oid
+    abbreviatedOid
+  }
+}

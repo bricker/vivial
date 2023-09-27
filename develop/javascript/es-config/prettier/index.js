@@ -1,7 +1,11 @@
 /** @type {import("prettier").Config} */
 const config = {
+  plugins: [
+    "prettier-plugin-multiline-arrays",
+    "prettier-plugin-organize-imports",
+  ],
   printWidth: 10000,
-  plugins: ["prettier-plugin-organize-imports"],
+  multilineArraysWrapThreshold: 3,
 };
 
 module.exports = config;
