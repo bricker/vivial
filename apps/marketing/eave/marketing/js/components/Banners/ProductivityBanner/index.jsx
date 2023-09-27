@@ -23,8 +23,15 @@ const ProductivityBanner = ({ title }) => {
       </PageSection>
       <picture>
         {/* TODO: get this width from somewhere; constants (weher the heck is sm and md defined for theme?) */}
-        <source media="(max-width:650px)" srcSet={imageUrl("productivity-banner-design-vertical-3x.png")} />
-        <img className={classes.productivityBanner} src={imageUrl("productivity-banner-design-horizontal-3x.png")} alt="Colorful lines intersecting each letter of the Eave logo, company logos for integration platforms ride the lines." />
+        <source
+          media="(max-width:650px)"
+          srcSet={imageUrl("productivity-banner-design-vertical-3x.png")}
+        />
+        <img
+          className={classes.productivityBanner}
+          src={imageUrl("productivity-banner-design-horizontal-3x.png")}
+          alt="Colorful lines intersecting each letter of the Eave logo, company logos for integration platforms ride the lines."
+        />
       </picture>
     </>
   );

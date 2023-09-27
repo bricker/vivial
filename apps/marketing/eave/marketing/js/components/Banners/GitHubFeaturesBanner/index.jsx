@@ -63,7 +63,11 @@ const GitHubFeaturesBanner = ({ title, features }) => {
         <Copy variant="h1" className={classes.titleCopy}>
           {title}
         </Copy>
-        <img className={classes.titleImage} src={imageUrl("eave-github-logos-3x.png")} alt="Eave and GitHub logos side-by-side" />
+        <img
+          className={classes.titleImage}
+          src={imageUrl("eave-github-logos-3x.png")}
+          alt="Eave and GitHub logos side-by-side"
+        />
       </div>
 
       <div className={classes.wrapper}>
@@ -76,7 +80,11 @@ const GitHubFeaturesBanner = ({ title, features }) => {
               {feature.subtitle}
             </Copy>
             {/* image isn't important for a11y, so use empty alt text to show that */}
-            <img className={classes.featureImage} src={imageUrl(feature.image)} alt="" />
+            <img
+              className={classes.featureImage}
+              src={imageUrl(feature.image)}
+              alt=""
+            />
           </div>
         ))}
       </div>

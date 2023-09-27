@@ -11,7 +11,8 @@ import Page from "../Page/index.jsx";
 const copy = {
   hero: {
     title: "Automate your Engineering Documentation",
-    subtitle: "Eave ensures your technical documentation is accurate and up to date. Stop wasting time manually maintaining your documentation and spend more time building.",
+    subtitle:
+      "Eave ensures your technical documentation is accurate and up to date. Stop wasting time manually maintaining your documentation and spend more time building.",
     cta: "Start for Free",
   },
   githubFeatures: {
@@ -19,17 +20,20 @@ const copy = {
     features: [
       {
         title: "API Documentation",
-        subtitle: "Whether for internal employees or customers, Eave ensures your API docs are up to date.",
+        subtitle:
+          "Whether for internal employees or customers, Eave ensures your API docs are up to date.",
         image: "api-docs-feat-3x.png",
       },
       {
         title: "Architecture Diagrams",
-        subtitle: "Maintain the integrity of your arch docs and preserve a single source of truth.",
+        subtitle:
+          "Maintain the integrity of your arch docs and preserve a single source of truth.",
         image: "arch-diagram-feat-3x.png",
       },
       {
         title: "Inline Code Documentation",
-        subtitle: "With every code change, Eave will automatically create inline documentation for your team.",
+        subtitle:
+          "With every code change, Eave will automatically create inline documentation for your team.",
         image: "code-docs-feat-3x.png",
       },
     ],
@@ -39,7 +43,8 @@ const copy = {
   },
   privacy: {
     title: "Your information is protected.",
-    subtitle: "We care about your privacy and uphold the highest level of data integrity. All information collected is solely for the purpose of streamlining documentation processes for your business (and only yours). Your data will never be shared or sold. That’s a promise.",
+    subtitle:
+      "We care about your privacy and uphold the highest level of data integrity. All information collected is solely for the purpose of streamlining documentation processes for your business (and only yours). Your data will never be shared or sold. That’s a promise.",
   },
 };
 
@@ -60,7 +65,10 @@ const HomePage = () => {
     <Page>
       <main>
         <Hero title={hero.title} subtitle={hero.subtitle} cta={hero.cta} />
-        <GitHubFeaturesBanner title={githubFeatures.title} features={githubFeatures.features} />
+        <GitHubFeaturesBanner
+          title={githubFeatures.title}
+          features={githubFeatures.features}
+        />
         <ProductivityBanner title={productivity.title} />
         <PrivacyBanner title={privacy.title} subtitle={privacy.subtitle} />
       </main>
