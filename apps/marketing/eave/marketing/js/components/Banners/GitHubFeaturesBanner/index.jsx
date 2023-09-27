@@ -15,12 +15,6 @@ const makeClasses = makeStyles((theme) => ({
       flexDirection: "row",
     },
   },
-  copy: {
-    [theme.breakpoints.up("md")]: {
-      maxWidth: 654,
-      marginLeft: 24,
-    },
-  },
   featureContainer: {
     flexGrow: 1,
     flexBasis: 150,
