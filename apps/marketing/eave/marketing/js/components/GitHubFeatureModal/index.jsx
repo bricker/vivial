@@ -18,8 +18,8 @@ const makeClasses = makeStyles((theme) => ({
   paper: {
     backgroundColor: theme.palette.background.main,
     color: theme.palette.background.contrastText,
-    width: "100vw",
-    height: "100vh",
+    width: "100%",
+    height: "100%",
     maxHeight: "none",
     maxWidth: 762,
     margin: 0,
