@@ -1,4 +1,3 @@
-/** @type {import("eslint").Config} */
 const config = {
   extends: ["eslint:recommended", "prettier"],
   plugins: [],
