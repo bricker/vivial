@@ -67,7 +67,7 @@ makeRoute({
   handler: queryReposHandler,
 });
 
-// Cloud Tasks targets
+// Offline Tasks
 makeRoute({
   router: app,
   config: RunApiDocumentationTaskOperation.config,
@@ -78,8 +78,6 @@ makeRoute({
   config: GithubEventHandlerTaskOperation.config,
   handler: webhookEventTaskHandler,
 });
-
-// Cloud Scheduler target
 makeRoute({
   router: app,
   config: CronTriggerOperation.config,
