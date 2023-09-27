@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
 class SnapIcon extends React.Component {
   render() {
     const { className } = this.props;
-    const fill = 'currentColor';
+    const fill = "currentColor";
     return (
       <svg className={className} viewBox="0 0 128 128" style={{ fill }}>
         <g>

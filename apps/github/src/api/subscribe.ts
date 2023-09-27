@@ -1,15 +1,24 @@
-import { SubscriptionSourceEvent, SubscriptionSourcePlatform } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js";
+import {
+  SubscriptionSourceEvent,
+  SubscriptionSourcePlatform,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js";
 import { CreateSubscriptionOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js";
 import { GithubRepository } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { CreateGithubResourceSubscriptionRequestBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-subscription.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { Pair } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { Request, Response } from "express";
 import { Octokit } from "octokit";
 import { appConfig } from "../config.js";
 import { createTeamOctokitClient } from "../lib/octokit-util.js";
 
-export async function subscribeHandler(req: Request, res: Response): Promise<void> {
+export async function subscribeHandler(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const ctx = LogContext.load(res);
   const octokit = await createTeamOctokitClient(req, ctx);
 
@@ -55,7 +64,10 @@ export async function subscribeHandler(req: Request, res: Response): Promise<voi
  * Request data about the github repo pointed to by `url` from the GitHub API
  * (`url` doesnt have to point directly to the repo, it can point to any file w/in the repo too)
  */
-async function getRepo(client: Octokit, url: string): Promise<GithubRepository> {
+async function getRepo(
+  client: Octokit,
+  url: string,
+): Promise<GithubRepository> {
   // gather data for API request URL
   const { first: owner, second: repo } = getRepoLocation(url);
 
@@ -73,7 +85,9 @@ function getRepoLocation(url: string): Pair<string, string> {
   const urlPathComponents = new URL(url).pathname.split("/");
 
   if (urlPathComponents.length < 3) {
-    throw Error(`GitHub URL ${url} did not contain expected org and repo name in its path`);
+    throw Error(
+      `GitHub URL ${url} did not contain expected org and repo name in its path`,
+    );
   }
 
   // urlPathComponents === ['', 'org', 'repo', ...]

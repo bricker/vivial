@@ -2,11 +2,11 @@ import json
 from typing import Any
 from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
-from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
 import eave.stdlib.cookies
-from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 import eave.stdlib.core_api.operations.account as account
-from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest
+import eave.stdlib.core_api.operations.team as team
+import eave.stdlib.core_api.operations.github_repos as github_repos
+
 from eave.stdlib.endpoints import status_payload
 import eave.stdlib.requests
 import eave.stdlib.logging
@@ -74,14 +74,12 @@ async def get_auth_state() -> Response:
     return _json_response(body=response_body)
 
 
-@app.route("/dashboard/me/team", methods=["GET"])
-async def authed_account_team() -> Response:
+@app.route("/dashboard/me", methods=["GET"])
+async def get_user() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
 
-    if not auth_cookies.access_token or not auth_cookies.account_id:
-        raise werkzeug.exceptions.Unauthorized()
-
-    eave_response = await account.GetAuthenticatedAccountTeamIntegrations.perform(
+    eave_response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
@@ -90,56 +88,49 @@ async def authed_account_team() -> Response:
     return _clean_response(eave_response)
 
 
-@app.route("/dashboard/me/team/destinations/confluence/spaces/query", methods=["GET"])
-async def get_available_spaces() -> Response:
+@app.route("/dashboard/team/<team_id>", methods=["GET"])
+async def get_team(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
 
-    if not auth_cookies.access_token or not auth_cookies.account_id:
-        raise werkzeug.exceptions.Unauthorized()
+    eave_response = await team.GetTeamRequest.perform(origin=app_config.eave_origin, team_id=team_id)
 
-    # HACK: Just using this endpoint to validate the access token
-    team_response = await account.GetAuthenticatedAccountTeamIntegrations.perform(
+    return _json_response(body=eave_response.json())
+
+
+@app.route("/dashboard/team/<team_id>/repos", methods=["GET"])
+async def get_team_repos(team_id: str) -> Response:
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
+
+    eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=app_config.eave_origin,
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
+        team_id=team_id,
+        input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
 
-    spaces_response = await GetAvailableSpacesRequest.perform(
-        origin=app_config.eave_origin,
-        team_id=team_response.team.id,
-    )
-
-    return _json_response(body=spaces_response.json())
+    return _json_response(body=eave_response.json())
 
 
-@app.route("/dashboard/me/team/destinations/confluence/upsert", methods=["POST"])
-async def upsert_confluence_destination() -> Response:
+@app.route("/dashboard/team/<team_id>/repos/update", methods=["POST"])
+async def update_team_repos(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
-
-    if not auth_cookies.access_token or not auth_cookies.account_id:
-        raise werkzeug.exceptions.Unauthorized()
+    _assert_auth(auth_cookies)
 
     body = request.get_json()
-    confluence_space_key = body["confluence_destination"]["space_key"]
+    repos = body["repos"]
 
-    await UpsertConfluenceDestinationAuthedRequest.perform(
+    eave_response = await github_repos.UpdateGithubReposRequest.perform(
         origin=app_config.eave_origin,
         account_id=auth_cookies.account_id,
         access_token=auth_cookies.access_token,
-        input=UpsertConfluenceDestinationAuthedRequest.RequestBody(
-            confluence_destination=ConfluenceDestinationInput(
-                space_key=confluence_space_key,
-            ),
-        ),
+        team_id=team_id,
+        input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
 
-    eave_response = await account.GetAuthenticatedAccountTeamIntegrations.perform(
-        origin=app_config.eave_origin,
-        account_id=auth_cookies.account_id,
-        access_token=auth_cookies.access_token,
-    )
-
-    return _clean_response(eave_response)
+    return _json_response(body=eave_response.json())
 
 
 @app.route("/dashboard/logout", methods=["GET"])
@@ -158,7 +149,12 @@ def catch_all(path: str) -> Response:
     return response
 
 
-def _clean_response(eave_response: account.GetAuthenticatedAccountTeamIntegrations.ResponseBody) -> Response:
+def _assert_auth(auth_cookies):
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        raise werkzeug.exceptions.Unauthorized()
+
+
+def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:
     # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
     access_token = eave_response.account.access_token
     del eave_response.account.access_token

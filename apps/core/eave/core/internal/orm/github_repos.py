@@ -94,7 +94,7 @@ class GithubRepoOrm(Base):
     @classmethod
     async def query(
         cls,
-        team_id: UUID,
+        team_id: UUID | str,
         external_repo_ids: Optional[list[str]],
         session: AsyncSession,
     ) -> Sequence[Self]:

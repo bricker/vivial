@@ -58,7 +58,10 @@ export function tokenCount(data: string, model: OpenAIModel): number {
  * @param model
  * @returns float price in USD
  */
-export function calculatePromptCostUSD(inputTokenCount: number, model: OpenAIModel): number {
+export function calculatePromptCostUSD(
+  inputTokenCount: number,
+  model: OpenAIModel,
+): number {
   return (inputTokenCount / 1000) * inputTokenCost(model);
 }
 
@@ -68,6 +71,9 @@ export function calculatePromptCostUSD(inputTokenCount: number, model: OpenAIMod
  * @param model
  * @returns float price in USD
  */
-export function calculateResponseCostUSD(outputTokenCount: number, model: OpenAIModel): number {
+export function calculateResponseCostUSD(
+  outputTokenCount: number,
+  model: OpenAIModel,
+): number {
   return (outputTokenCount / 1000) * outputTokenCost(model);
 }

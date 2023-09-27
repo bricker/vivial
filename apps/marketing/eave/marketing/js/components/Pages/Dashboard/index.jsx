@@ -1,56 +1,127 @@
-/* eslint-disable no-nested-ternary */
-import React, { useEffect } from 'react';
-import { makeStyles } from '@material-ui/styles';
-import { CircularProgress } from '@material-ui/core';
+import React, { useCallback, useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
+import { useSearchParams } from "react-router-dom";
+import useTeam from "../../../hooks/useTeam.js";
+import useUser from "../../../hooks/useUser.js";
 
-import useUser from '../../../hooks/useUser.js';
-import PageSection from '../../PageSection/index.jsx';
-import Page from '../Page/index.jsx';
-import Thanks from './Thanks.jsx';
-import Steps from './Steps.jsx';
-import Copy from '../../Copy/index.jsx';
+import ExploreFeatures from "../../ExploreFeatures/index.jsx";
+import FeatureSettings from "../../FeatureSettings/index.jsx";
+import GitHubFeatureModal from "../../GitHubFeatureModal/index.jsx";
+import ErrorPage from "../ErrorPage/index.jsx";
+import LoadingPage from "../LoadingPage/index.jsx";
+import Page from "../Page/index.jsx";
 
-const makeClasses = makeStyles(() => ({
-  main: {
-    minHeight: '80vh',
-  },
-  loading: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '80vh',
-  },
-}));
+import { FEATURES, FEATURE_MODAL, FEATURE_STATES } from "../../../constants.js";
 
 const Dashboard = () => {
-  const classes = makeClasses();
-  const { userState, loadingGetUserInfo, getUserInfo, getUserError } = useUser();
-  const { teamInfo } = userState;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
+  const {
+    team,
+    getTeam,
+    getTeamRepos,
+    getTeamFeatureStates,
+    updateTeamFeatureState,
+  } = useTeam();
+  const { user, getUserAccount } = useUser();
+  const isLoading =
+    user.accountIsLoading ||
+    team.teamIsLoading ||
+    team.reposAreLoading ||
+    team.featureStatesLoading;
+  const isErroring =
+    user.accountIsErroring ||
+    team.teamIsErroring ||
+    team.reposAreErroring ||
+    team.featureStatesErroring;
+  const showFeatureSettings =
+    team.inlineCodeDocsState === FEATURE_STATES.ENABLED ||
+    team.apiDocsState === FEATURE_STATES.ENABLED;
+  const [showInlineDocsModal, setShowInlineDocsModal] = useState(false);
+
+  const modalCleanup = () => {
+    removeCookie(FEATURE_MODAL.ID);
+    setSearchParams({});
+  };
+
+  const openInlineDocsModal = useCallback(() => {
+    setSearchParams({
+      [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS,
+    });
+    setShowInlineDocsModal(true);
+  }, []);
+
+  const closeInlineDocsModal = useCallback(() => {
+    setShowInlineDocsModal(false);
+    modalCleanup();
+  }, []);
+
+  const handleFeatureUpdate = useCallback(
+    (teamId, teamRepoIds, enabledRepoIds, feature) => {
+      updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature);
+      closeInlineDocsModal();
+    },
+    [],
+  );
 
   useEffect(() => {
-    // fetch info
-    if (!teamInfo && !loadingGetUserInfo) {
-      getUserInfo();
-    }
-  }, [teamInfo]);
+    getUserAccount();
+  }, []);
 
+  useEffect(() => {
+    const teamId = user.account.team_id;
+    if (teamId) {
+      getTeam(teamId);
+      getTeamRepos(teamId);
+    }
+  }, [user.account.team_id]);
+
+  useEffect(() => {
+    getTeamFeatureStates(team.repos);
+  }, [team.repos]);
+
+  useEffect(() => {
+    const featureModal = cookies && cookies[FEATURE_MODAL.ID];
+    if (featureModal) {
+      if (featureModal === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS) {
+        openInlineDocsModal();
+      }
+    }
+  }, [cookies]);
+
+  useEffect(() => {
+    const featureParam = searchParams.get(FEATURE_MODAL.ID);
+    if (featureParam) {
+      if (
+        featureParam === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS &&
+        !showInlineDocsModal
+      ) {
+        openInlineDocsModal();
+      }
+    }
+  }, [searchParams, showInlineDocsModal]);
+
+  if (isErroring) {
+    return <ErrorPage page="dashboard" />;
+  }
+  if (isLoading) {
+    return <LoadingPage />;
+  }
   return (
     <Page>
-      <PageSection wrapperClassName={classes.main} topSection>
-        {!teamInfo || loadingGetUserInfo ? (
-          <div className={classes.loading}>
-            {getUserError ? (
-              <Copy>something went wrong, please try again</Copy>
-            ) : (
-              <CircularProgress />
-            )}
-          </div>
-        ) : teamInfo.team.beta_whitelisted === false ? (
-          <Thanks />
-        ) : (
-          <Steps />
-        )}
-      </PageSection>
+      <ExploreFeatures onInlineDocsClick={openInlineDocsModal} />
+      {showFeatureSettings && (
+        <FeatureSettings onInlineDocsClick={openInlineDocsModal} />
+      )}
+      {showInlineDocsModal && (
+        <GitHubFeatureModal
+          feature={FEATURES.INLINE_CODE_DOCS}
+          type={FEATURE_MODAL.TYPES.INLINE_CODE_DOCS}
+          onClose={closeInlineDocsModal}
+          onUpdate={handleFeatureUpdate}
+          open={showInlineDocsModal}
+        />
+      )}
     </Page>
   );
 };

@@ -5,30 +5,42 @@ import { RegisterConnectInstallationOperation } from "../core-api/operations/con
 import { EaveApp } from "../eave-origins.js";
 import { LogContext, eaveLogger } from "../logging.js";
 
-export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn; product: AtlassianProduct; eaveOrigin: EaveApp }): Router {
+export function LifecycleRouter({
+  addon,
+  product,
+  eaveOrigin,
+}: {
+  addon: AddOn;
+  product: AtlassianProduct;
+  eaveOrigin: EaveApp;
+}): Router {
   const router = Router();
 
   // A custom implementation of the atlassian-connect-express built-in install handler.
-  router.post("/installed", addon.verifyInstallation(), async (req: Request, res: Response) => {
-    const settings: AddOnFactory.ClientInfo = req.body;
-    const ctx = new LogContext(req);
-    await RegisterConnectInstallationOperation.perform({
-      ctx,
-      origin: eaveOrigin,
-      input: {
-        connect_integration: {
-          product,
-          client_key: settings.clientKey,
-          base_url: settings.baseUrl,
-          shared_secret: settings.sharedSecret,
-          description: settings.description,
+  router.post(
+    "/installed",
+    addon.verifyInstallation(),
+    async (req: Request, res: Response) => {
+      const settings: AddOnFactory.ClientInfo = req.body;
+      const ctx = new LogContext(req);
+      await RegisterConnectInstallationOperation.perform({
+        ctx,
+        origin: eaveOrigin,
+        input: {
+          connect_integration: {
+            product,
+            client_key: settings.clientKey,
+            base_url: settings.baseUrl,
+            shared_secret: settings.sharedSecret,
+            description: settings.description,
+          },
         },
-      },
-    });
+      });
 
-    await addon.settings.set("clientInfo", settings, settings.clientKey);
-    res.sendStatus(204);
-  });
+      await addon.settings.set("clientInfo", settings, settings.clientKey);
+      res.sendStatus(204);
+    },
+  );
 
   router.post("/enabled", async (req: Request, res: Response) => {
     const ctx = new LogContext(req);
@@ -59,19 +71,23 @@ export function LifecycleRouter({ addon, product, eaveOrigin }: { addon: AddOn; 
     res.sendStatus(204);
   });
 
-  router.post("/uninstalled", addon.verifyInstallation(), async (req: Request, res: Response) => {
-    const ctx = new LogContext(req);
-    eaveLogger.info(
-      "received uninstalled lifecycle event",
-      {
-        body: req.body,
-        product,
-        eaveOrigin,
-      },
-      ctx,
-    );
-    res.sendStatus(204);
-  });
+  router.post(
+    "/uninstalled",
+    addon.verifyInstallation(),
+    async (req: Request, res: Response) => {
+      const ctx = new LogContext(req);
+      eaveLogger.info(
+        "received uninstalled lifecycle event",
+        {
+          body: req.body,
+          product,
+          eaveOrigin,
+        },
+        ctx,
+      );
+      res.sendStatus(204);
+    },
+  );
 
   return router;
 }

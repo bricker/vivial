@@ -1,7 +1,19 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
-import { eaveLogger, LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
-import { CommitMessage, CommittableBranch, FileChanges, Mutation, PullRequest, Query, Ref, Scalars } from "@octokit/graphql-schema";
+import {
+  eaveLogger,
+  LogContext,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  CommitMessage,
+  CommittableBranch,
+  FileChanges,
+  Mutation,
+  PullRequest,
+  Query,
+  Ref,
+  Scalars,
+} from "@octokit/graphql-schema";
 import { Octokit } from "octokit";
 import * as GraphQLUtil from "../lib/graphql-util.js";
 
@@ -19,7 +31,21 @@ export class PullRequestCreator {
 
   private ctx: LogContext;
 
-  constructor({ repoName, repoOwner, repoId, baseBranchName, octokit, ctx }: { repoName: string; repoOwner: string; repoId: string; baseBranchName: string; octokit: Octokit; ctx: LogContext }) {
+  constructor({
+    repoName,
+    repoOwner,
+    repoId,
+    baseBranchName,
+    octokit,
+    ctx,
+  }: {
+    repoName: string;
+    repoOwner: string;
+    repoId: string;
+    baseBranchName: string;
+    octokit: Octokit;
+    ctx: LogContext;
+  }) {
     this.repoName = repoName;
     this.repoOwner = repoOwner;
     this.octokit = octokit;
@@ -34,7 +60,9 @@ export class PullRequestCreator {
    */
   private async createBranch(branchName: string): Promise<Ref> {
     // get base branch head commit
-    const getHeadCommitQuery = await GraphQLUtil.loadQuery("getBranchHeadCommit");
+    const getHeadCommitQuery = await GraphQLUtil.loadQuery(
+      "getBranchHeadCommit",
+    );
     const getHeadCommitParams: {
       repoName: Scalars["String"]["input"];
       repoOwner: Scalars["String"]["input"];
@@ -44,10 +72,15 @@ export class PullRequestCreator {
       repoOwner: this.repoOwner,
       branchName: this.baseBranchName,
     };
-    const headResp = await this.octokit.graphql<{ repository: Query["repository"] }>(getHeadCommitQuery, getHeadCommitParams);
+    const headResp = await this.octokit.graphql<{
+      repository: Query["repository"];
+    }>(getHeadCommitQuery, getHeadCommitParams);
     const commitHead = headResp.repository?.ref?.target;
     if (!commitHead) {
-      eaveLogger.error(`Failed to fetch ${this.baseBranchName} head commit from ${this.repoOwner}/${this.repoName}`, this.ctx);
+      eaveLogger.error(
+        `Failed to fetch ${this.baseBranchName} head commit from ${this.repoOwner}/${this.repoName}`,
+        this.ctx,
+      );
       throw new Error("Failed to create branch");
     }
 
@@ -61,10 +94,15 @@ export class PullRequestCreator {
       branchName,
       repoId: this.repoId,
     };
-    const branchResp = await this.octokit.graphql<{ createRef: Mutation["createRef"] }>(createBranchMutation, createBranchParameters);
+    const branchResp = await this.octokit.graphql<{
+      createRef: Mutation["createRef"];
+    }>(createBranchMutation, createBranchParameters);
     const docsBranch = branchResp.createRef?.ref;
     if (!docsBranch) {
-      eaveLogger.error(`Failed to create branch in ${this.repoOwner}/${this.repoName}`, this.ctx);
+      eaveLogger.error(
+        `Failed to create branch in ${this.repoOwner}/${this.repoName}`,
+        this.ctx,
+      );
       throw new Error("Failed to create branch");
     }
     return docsBranch;
@@ -76,24 +114,38 @@ export class PullRequestCreator {
    *
    * @param fileChanges - `contents` field of each `FileChange` object must be base64 encoded
    */
-  private async createCommit(branch: Ref, message: string, fileChanges: Array<FileChange>): Promise<void> {
-    const createCommitMutation = await GraphQLUtil.loadQuery("createCommitOnBranch");
+  private async createCommit(
+    branch: Ref,
+    message: string,
+    fileChanges: Array<FileChange>,
+  ): Promise<void> {
+    const createCommitMutation = await GraphQLUtil.loadQuery(
+      "createCommitOnBranch",
+    );
     const createCommitParameters: {
       branch: CommittableBranch;
       headOid: Scalars["GitObjectID"];
       message: CommitMessage;
       fileChanges: FileChanges;
     } = {
-      branch: { branchName: branch.name, repositoryNameWithOwner: `${this.repoOwner}/${this.repoName}` },
+      branch: {
+        branchName: branch.name,
+        repositoryNameWithOwner: `${this.repoOwner}/${this.repoName}`,
+      },
       headOid: branch.target!.oid,
       message: { headline: message },
       fileChanges: {
         additions: fileChanges,
       },
     };
-    const commitResp = await this.octokit.graphql<{ createCommitOnBranch: Mutation["createCommitOnBranch"] }>(createCommitMutation, createCommitParameters);
+    const commitResp = await this.octokit.graphql<{
+      createCommitOnBranch: Mutation["createCommitOnBranch"];
+    }>(createCommitMutation, createCommitParameters);
     if (!commitResp.createCommitOnBranch?.commit?.oid) {
-      eaveLogger.error(`Failed to create commit in ${this.repoOwner}/${this.repoName}`, this.ctx);
+      eaveLogger.error(
+        `Failed to create commit in ${this.repoOwner}/${this.repoName}`,
+        this.ctx,
+      );
       await this.deleteBranch(branch!.id);
       throw new Error("Failed to create commit");
     }
@@ -103,7 +155,11 @@ export class PullRequestCreator {
    * open new PR against event.pull_request.base.ref (same base as PR that triggered this event)
    * https://docs.github.com/en/graphql/reference/mutations#createpullrequest
    */
-  private async openPullRequest(branch: Ref, prTitle: string, prBody: string): Promise<PullRequest> {
+  private async openPullRequest(
+    branch: Ref,
+    prTitle: string,
+    prBody: string,
+  ): Promise<PullRequest> {
     const createPrMutation = await GraphQLUtil.loadQuery("createPullRequest");
     const createPrParameters: {
       baseRefName: Scalars["String"]["input"];
@@ -118,9 +174,14 @@ export class PullRequestCreator {
       title: prTitle,
       body: prBody,
     };
-    const prResp = await this.octokit.graphql<{ createPullRequest: Mutation["createPullRequest"] }>(createPrMutation, createPrParameters);
+    const prResp = await this.octokit.graphql<{
+      createPullRequest: Mutation["createPullRequest"];
+    }>(createPrMutation, createPrParameters);
     if (!prResp.createPullRequest?.pullRequest?.number) {
-      eaveLogger.error(`Failed to create PR in ${this.repoOwner}/${this.repoName}`, this.ctx);
+      eaveLogger.error(
+        `Failed to create PR in ${this.repoOwner}/${this.repoName}`,
+        this.ctx,
+      );
       await this.deleteBranch(branch!.id);
       throw new Error("Failed to open PR");
     }
@@ -151,7 +212,19 @@ export class PullRequestCreator {
    * Input parameters used for PR creation details.
    * @returns the number of the created PR
    */
-  public async createPullRequest({ branchName, commitMessage, prTitle, prBody, fileChanges }: { branchName: string; commitMessage: string; prTitle: string; prBody: string; fileChanges: Array<FileChange> }): Promise<number> {
+  public async createPullRequest({
+    branchName,
+    commitMessage,
+    prTitle,
+    prBody,
+    fileChanges,
+  }: {
+    branchName: string;
+    commitMessage: string;
+    prTitle: string;
+    prBody: string;
+    fileChanges: Array<FileChange>;
+  }): Promise<number> {
     const branch = await this.createBranch(this.ensureBranchPrefix(branchName));
     await this.createCommit(branch, commitMessage, fileChanges);
     const pr = await this.openPullRequest(branch, prTitle, prBody);

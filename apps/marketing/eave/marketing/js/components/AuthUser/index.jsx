@@ -1,31 +1,35 @@
-import React, { useEffect } from 'react';
-import { CircularProgress } from '@material-ui/core';
-import { makeStyles } from '@material-ui/styles';
+import { CircularProgress } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
+import React, { useEffect } from "react";
 
-import useUser from '../../hooks/useUser';
+import useUser from "../../hooks/useUser";
 
-const makeClasses = makeStyles(() => ({
+const makeClasses = makeStyles((theme) => ({
   loader: {
-    width: '100vw',
-    height: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: theme.palette.background.main,
+    paddingTop: `calc(${theme.header.height}px + ${theme.header.marginBottom}px)`,
+    width: "100vw",
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    [theme.breakpoints.up("md")]: {
+      paddingTop: `calc(${theme.header.md.height}px + ${theme.header.md.marginBottom}px)`,
+    },
   },
 }));
 
 const AuthUser = ({ children }) => {
   const classes = makeClasses();
-  const { userState, checkUserAuthState } = useUser();
-  const { authenticated } = userState;
+  const { user, checkUserAuth } = useUser();
+  const { isAuthenticated } = user;
 
   useEffect(() => {
-    if (authenticated === null) {
-      checkUserAuthState();
+    if (isAuthenticated === null) {
+      checkUserAuth();
     }
-  }, [authenticated]);
+  }, [isAuthenticated]);
 
-  if (authenticated === null) {
+  if (isAuthenticated === null) {
     return (
       <div className={classes.loader}>
         <CircularProgress />

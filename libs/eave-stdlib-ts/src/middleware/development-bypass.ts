@@ -6,7 +6,10 @@ import { EAVE_DEV_BYPASS_HEADER } from "../headers.js";
 import { LogContext, eaveLogger } from "../logging.js";
 
 export function developmentBypassAllowed(req: Request, res: Response): boolean {
-  if (!sharedConfig.devMode || sharedConfig.googleCloudProject === "eave-production") {
+  if (
+    !sharedConfig.devMode ||
+    sharedConfig.googleCloudProject === "eave-production"
+  ) {
     return false;
   }
 
@@ -18,10 +21,15 @@ export function developmentBypassAllowed(req: Request, res: Response): boolean {
   const ctx = LogContext.load(res);
   const expectedDevHeader = createDevHeaderValue();
   if (devHeader === expectedDevHeader) {
-    eaveLogger.warning("Development bypass request accepted; some checks will be bypassed.", ctx);
+    eaveLogger.warning(
+      "Development bypass request accepted; some checks will be bypassed.",
+      ctx,
+    );
     return true;
   }
-  throw new Error(`Provided dev bypass header was not accepted. Expected: ${expectedDevHeader}`);
+  throw new Error(
+    `Provided dev bypass header was not accepted. Expected: ${expectedDevHeader}`,
+  );
 }
 
 export function developmentBypassAuth(req: Request, res: Response): void {

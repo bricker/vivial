@@ -1,16 +1,37 @@
-import { CreateGitHubPullRequestRequestBody, CreateGitHubPullRequestResponseBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  CreateGitHubPullRequestRequestBody,
+  CreateGitHubPullRequestResponseBody,
+} from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-pull-request.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { Request, Response } from "express";
 import { createTeamOctokitClient } from "../lib/octokit-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 
-export async function createPullRequestHandler(req: Request, res: Response): Promise<void> {
+export async function createPullRequestHandler(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const ctx = LogContext.load(res);
   const octokit = await createTeamOctokitClient(req, ctx);
 
   // validate input
   const input = <CreateGitHubPullRequestRequestBody>req.body;
-  if (!(input.repo_name && input.repo_owner && input.repo_id && input.base_branch_name && input.branch_name && input.pr_body && input.pr_title && input.file_changes && input.commit_message)) {
+  if (
+    !(
+      input.repo_name &&
+      input.repo_owner &&
+      input.repo_id &&
+      input.base_branch_name &&
+      input.branch_name &&
+      input.pr_body &&
+      input.pr_title &&
+      input.file_changes &&
+      input.commit_message
+    )
+  ) {
     eaveLogger.error("Invalid input", ctx);
     res.sendStatus(400);
     return;

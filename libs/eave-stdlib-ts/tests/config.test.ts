@@ -15,7 +15,16 @@ test("eaveInternalServiceBase for non-dev", (t) => {
   const project = t.context.u.anystr("gcp");
   process.env["GOOGLE_CLOUD_PROJECT"] = project;
   process.env["EAVE_ENV"] = EaveEnvironment.production;
-  t.is(sharedConfig.eaveInternalServiceBase(EaveApp.eave_api), `https://api-dot-${project}.uc.r.appspot.com`);
-  t.is(sharedConfig.eaveInternalServiceBase(EaveApp.eave_www), `https://www-dot-${project}.uc.r.appspot.com`);
-  t.is(sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app), `https://github-dot-${project}.uc.r.appspot.com`);
+  t.is(
+    sharedConfig.eaveInternalServiceBase(EaveApp.eave_api),
+    `https://api-dot-${project}.uc.r.appspot.com`,
+  );
+  t.is(
+    sharedConfig.eaveInternalServiceBase(EaveApp.eave_www),
+    `https://www-dot-${project}.uc.r.appspot.com`,
+  );
+  t.is(
+    sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app),
+    `https://github-dot-${project}.uc.r.appspot.com`,
+  );
 });

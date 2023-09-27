@@ -11,10 +11,8 @@ import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
   So when this file is imported, they need to be available from somewhere else (probably the app or repo running the tests).
   These imports will fail in a non-development environment.
 */
-/* eslint-disable import/order, import/no-extraneous-dependencies */
 import sinon from "sinon";
 import request from "supertest";
-/* eslint-enable import/order, import/no-extraneous-dependencies */
 
 export class TestUtil {
   testData: { [key: string]: any } = {};
@@ -46,7 +44,10 @@ const replacementSignFunc = async (data: string | Buffer): Promise<string> => {
   return fakeSign(data);
 };
 
-const replacementVerifyFunc = async (message: string | Buffer, signature: string | Buffer): Promise<void> => {
+const replacementVerifyFunc = async (
+  message: string | Buffer,
+  signature: string | Buffer,
+): Promise<void> => {
   const expected = fakeSign(message);
 
   if (signature.toString("base64") !== expected) {
@@ -58,10 +59,36 @@ export function mockSigning({ sandbox }: { sandbox: sinon.SinonSandbox }) {
   const mock = new Signing("eave_www");
   sandbox.stub(Signing, "new").returns(mock);
   sandbox.stub(mock, "signBase64").callsFake(replacementSignFunc);
-  sandbox.stub(mock, "verifySignatureOrException").callsFake(replacementVerifyFunc);
+  sandbox
+    .stub(mock, "verifySignatureOrException")
+    .callsFake(replacementVerifyFunc);
 }
 
-export async function makeRequest({ app, path, teamId, accountId, input, accessToken, headers, audience, method = "post", origin = EaveApp.eave_www, requestId = uuidv4() }: { app: express.Express; path: string; audience: EaveApp; input?: unknown; method?: "get" | "post"; origin?: EaveApp; teamId?: string; accountId?: string; accessToken?: string; requestId?: string; headers?: { [key: string]: string } }): Promise<request.Test> {
+export async function makeRequest({
+  app,
+  path,
+  teamId,
+  accountId,
+  input,
+  accessToken,
+  headers,
+  audience,
+  method = "post",
+  origin = EaveApp.eave_www,
+  requestId = uuidv4(),
+}: {
+  app: express.Express;
+  path: string;
+  audience: EaveApp;
+  input?: unknown;
+  method?: "get" | "post";
+  origin?: EaveApp;
+  teamId?: string;
+  accountId?: string;
+  accessToken?: string;
+  requestId?: string;
+  headers?: { [key: string]: string };
+}): Promise<request.Test> {
   const ctx = new LogContext();
   const updatedHeaders: { [key: string]: string } = {};
   const requestAgent = request(app)[method](path).type("json");

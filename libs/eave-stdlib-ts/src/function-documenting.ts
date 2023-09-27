@@ -1,6 +1,9 @@
 import path from "path";
 import { LogContext, eaveLogger } from "./logging.js";
-import { parseFunctionsAndComments, writeUpdatedCommentsIntoFileString } from "./parsing/function-parsing.js";
+import {
+  parseFunctionsAndComments,
+  writeUpdatedCommentsIntoFileString,
+} from "./parsing/function-parsing.js";
 import { getProgrammingLanguageByExtension } from "./programming-langs/language-mapping.js";
 import { OpenAIModel } from "./transformer-ai/models.js";
 import OpenAIClient, { formatprompt } from "./transformer-ai/openai.js";
@@ -18,18 +21,40 @@ import * as AIUtil from "./transformer-ai/util.js";
  * @param model the AI model to use to generate new documentation (Default: OpenAIModel.GPT4)
  * @returns the same code content as `currContent` but with doc strings updated, or null if unable to create updated document
  */
-export async function updateDocumentation({ currContent, filePath, openaiClient, ctx, fileNodeId, model = OpenAIModel.GPT4 }: { currContent: string; filePath: string; openaiClient: OpenAIClient; ctx: LogContext; fileNodeId: string; model?: OpenAIModel }): Promise<string | null> {
+export async function updateDocumentation({
+  currContent,
+  filePath,
+  openaiClient,
+  ctx,
+  fileNodeId,
+  model = OpenAIModel.GPT4,
+}: {
+  currContent: string;
+  filePath: string;
+  openaiClient: OpenAIClient;
+  ctx: LogContext;
+  fileNodeId: string;
+  model?: OpenAIModel;
+}): Promise<string | null> {
   // load language from file extension map file
   const extName = `${path.extname(filePath).toLowerCase()}`;
   const flang = getProgrammingLanguageByExtension(extName);
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early
-    eaveLogger.error(`No matching language found for file extension: "${extName}"`, ctx);
+    eaveLogger.error(
+      `No matching language found for file extension: "${extName}"`,
+      ctx,
+    );
     return null;
   }
 
-  const parsedData = parseFunctionsAndComments({ content: currContent, extName, language: flang, ctx });
+  const parsedData = parseFunctionsAndComments({
+    content: currContent,
+    extName,
+    language: flang,
+    ctx,
+  });
   if (parsedData.length === 0) {
     eaveLogger.error(`Unable to parse ${flang} from ${extName} file`, ctx);
     return null;
@@ -40,13 +65,21 @@ export async function updateDocumentation({ currContent, filePath, openaiClient,
     parsedData.map(async (funcData) => {
       // convert long function strings to a summary for docs writing to prevent AI from getting overwhelmed by
       // implementation details in raw code file (and to account for functions longer than model context)
-      const summarizedFunction = await AIUtil.rollingSummary({ client: openaiClient, content: funcData.func });
+      const summarizedFunction = await AIUtil.rollingSummary({
+        client: openaiClient,
+        content: funcData.func,
+      });
 
       // update docs, or write new ones if currDocs is empty/undefined
       // TODO: retest w/ summarized function
       // TODO: experiment performance quality on dif types of comments:
       //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
-      const docsPrompt = formatprompt(`Write a ${flang} doc comment for the following function.\n`, "===", summarizedFunction, "===");
+      const docsPrompt = formatprompt(
+        `Write a ${flang} doc comment for the following function.\n`,
+        "===",
+        summarizedFunction,
+        "===",
+      );
       const newDocsResponse = await openaiClient.createChatCompletion({
         parameters: {
           messages: [
@@ -79,7 +112,18 @@ export async function updateDocumentation({ currContent, filePath, openaiClient,
               },
               {
                 role: "user",
-                content: formatprompt(`Merge these two ${flang} doc comments, maintaining the important information.`, `If there are any conflicts of content, prefer the new documentation. Return only the ${flang} doc comment.\n`, "Old documentation:", "===", funcData.comment, "===\n", "New documentation:", "===", newDocsResponse, "==="),
+                content: formatprompt(
+                  `Merge these two ${flang} doc comments, maintaining the important information.`,
+                  `If there are any conflicts of content, prefer the new documentation. Return only the ${flang} doc comment.\n`,
+                  "Old documentation:",
+                  "===",
+                  funcData.comment,
+                  "===\n",
+                  "New documentation:",
+                  "===",
+                  newDocsResponse,
+                  "===",
+                ),
               },
             ],
             model,

@@ -2,14 +2,28 @@
 
 [https://www.eave.fyi/](https://www.eave.fyi/)
 
-## Connecting to Prod Database
+## Local Development (optimized for VS Code)
 
-Cloud SQL Proxy
+1. Run the HTTP proxy from the root directory.
+
 ```
-./cloud_sql_proxy -dir=/tmp/cloudsql --instances=eave-production:us-central1:eave-development
+bin/http-proxy
 ```
 
-Postgres [pgAdmin](https://www.pgadmin.org/)
+2. Connect to the Cloud SQL proxy.
+
 ```
-psql --host=/tmp/cloudsql/eave-production\:us-central1\:eave-development/ --username=<username> -d eave
+bin/cloud-sql-proxy
 ```
+
+3. Run the PostgreSQL shell (if needed). See basic commands [here](https://www.commandprompt.com/education/postgresql-basic-psql-commands/).
+
+```
+bin/pg-shell -d <database> -u <username>
+```
+
+4. Open the Run & Debug panel in VS Code and select "Core API + Marketing Website" in the dropdown menu.
+
+5. Click the play button located next to the dropdown menu.
+
+6. Access the marketing website at https://www.eave.run:8080.

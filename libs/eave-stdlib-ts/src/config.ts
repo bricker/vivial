@@ -64,7 +64,11 @@ export class EaveConfig {
   }
 
   get eavePublicAppsBase(): string {
-    return process.env["EAVE_APPS_BASE_PUBLIC"] || process.env["EAVE_APPS_BASE"] || "https://apps.eave.fyi";
+    return (
+      process.env["EAVE_APPS_BASE_PUBLIC"] ||
+      process.env["EAVE_APPS_BASE"] ||
+      "https://apps.eave.fyi"
+    );
   }
 
   get eavePublicApiBase(): string {
@@ -109,7 +113,9 @@ export class EaveConfig {
     } else {
       // TODO: Remove hardcoded AppEngine URL
       // FIXME: Hardcoded region id (uc)
-      return `https://${appengineServiceName(service)}-dot-${this.googleCloudProject}.uc.r.appspot.com`;
+      return `https://${appengineServiceName(service)}-dot-${
+        this.googleCloudProject
+      }.uc.r.appspot.com`;
     }
   }
 
@@ -123,7 +129,9 @@ export class EaveConfig {
     return url.hostname.replace(/^www/, "");
   }
 
-  get redisConnection(): { host: string; port: number; db: number } | undefined {
+  get redisConnection():
+    | { host: string; port: number; db: number }
+    | undefined {
     const connection = process.env["REDIS_CONNECTION"];
 
     if (connection === undefined) {
