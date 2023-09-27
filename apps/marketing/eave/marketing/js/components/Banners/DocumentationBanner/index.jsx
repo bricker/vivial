@@ -43,15 +43,32 @@ const DocumentationBanner = ({ title, subtitle }) => {
   const classes = makeClasses();
 
   return (
-    <PageSection alternateBackground id="eave-integrations-banner" wrapperClassName={classes.wrapper} sectionClassName={classes.section}>
+    <PageSection
+      alternateBackground
+      id="eave-integrations-banner"
+      wrapperClassName={classes.wrapper}
+      sectionClassName={classes.section}
+    >
       <div className={classes.copy}>
         <Copy variant="h2">{title}</Copy>
         <Copy variant="pSmall">{subtitle}</Copy>
       </div>
       <picture>
-        <source media="(min-width: 600px)" sizes="1266px" srcSet={`${imageUrl("confluence-mock.png")} 1266w`} />
-        <source media="(max-width: 599px)" sizes="714px" srcSet={`${imageUrl("confluence-mock-mobile.png")} 714w`} />
-        <img className={classes.img} src={imageUrl("confluence-mock-mobile.png")} alt="Confluence documentation written by Eave." />
+        <source
+          media="(min-width: 600px)"
+          sizes="1266px"
+          srcSet={`${imageUrl("confluence-mock.png")} 1266w`}
+        />
+        <source
+          media="(max-width: 599px)"
+          sizes="714px"
+          srcSet={`${imageUrl("confluence-mock-mobile.png")} 714w`}
+        />
+        <img
+          className={classes.img}
+          src={imageUrl("confluence-mock-mobile.png")}
+          alt="Confluence documentation written by Eave."
+        />
       </picture>
     </PageSection>
   );

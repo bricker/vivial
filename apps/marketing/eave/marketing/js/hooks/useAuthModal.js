@@ -18,7 +18,8 @@ const useAuthModal = () => {
         isOpen: true,
       }));
     },
-    closeModal: () => setAuthModal((prevState) => ({ ...prevState, isOpen: false })),
+    closeModal: () =>
+      setAuthModal((prevState) => ({ ...prevState, isOpen: false })),
     isLoginMode: authModal.mode === AUTH_MODAL_STATE.LOGIN,
     isSignupMode: authModal.mode === AUTH_MODAL_STATE.SIGNUP,
   };

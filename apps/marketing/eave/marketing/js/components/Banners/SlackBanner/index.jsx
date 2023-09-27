@@ -74,9 +74,21 @@ const SlackBanner = ({ titles, subtitles }) => {
   return (
     <PageSection wrapperClassName={classes.wrapper}>
       <picture className={classes.imgWrapper}>
-        <source media="(min-width: 600px)" sizes="1266px" srcSet={`${imageUrl("eave-slack-2x.png")} 1266w`} />
-        <source media="(max-width: 599px)" sizes="714px" srcSet={`${imageUrl("eave-slack-small-2x.png")} 714w`} />
-        <img className={classes.img} src={imageUrl("eave-slack-small-2x.png")} alt="Slack conversation between team members and Eave." />
+        <source
+          media="(min-width: 600px)"
+          sizes="1266px"
+          srcSet={`${imageUrl("eave-slack-2x.png")} 1266w`}
+        />
+        <source
+          media="(max-width: 599px)"
+          sizes="714px"
+          srcSet={`${imageUrl("eave-slack-small-2x.png")} 714w`}
+        />
+        <img
+          className={classes.img}
+          src={imageUrl("eave-slack-small-2x.png")}
+          alt="Slack conversation between team members and Eave."
+        />
       </picture>
       <div className={upperCopyClasses}>
         <Copy variant="h2">{titles[0]}</Copy>

@@ -13,10 +13,26 @@ class Affiliates extends React.Component {
           Trusted by employees from
         </Copy>
         <div className={classes.logos}>
-          <img className={classes.amazonLogo} src={AFFILIATE_LOGOS.amazon.src} alt={AFFILIATE_LOGOS.amazon.alt} />
-          <img className={classes.paypalLogo} src={AFFILIATE_LOGOS.paypal.src} alt={AFFILIATE_LOGOS.paypal.alt} />
-          <img className={classes.disneyLogo} src={AFFILIATE_LOGOS.disney.src} alt={AFFILIATE_LOGOS.disney.alt} />
-          <img className={classes.honeyLogo} src={AFFILIATE_LOGOS.honey.src} alt={AFFILIATE_LOGOS.honey.alt} />
+          <img
+            className={classes.amazonLogo}
+            src={AFFILIATE_LOGOS.amazon.src}
+            alt={AFFILIATE_LOGOS.amazon.alt}
+          />
+          <img
+            className={classes.paypalLogo}
+            src={AFFILIATE_LOGOS.paypal.src}
+            alt={AFFILIATE_LOGOS.paypal.alt}
+          />
+          <img
+            className={classes.disneyLogo}
+            src={AFFILIATE_LOGOS.disney.src}
+            alt={AFFILIATE_LOGOS.disney.alt}
+          />
+          <img
+            className={classes.honeyLogo}
+            src={AFFILIATE_LOGOS.honey.src}
+            alt={AFFILIATE_LOGOS.honey.alt}
+          />
         </div>
       </div>
     );

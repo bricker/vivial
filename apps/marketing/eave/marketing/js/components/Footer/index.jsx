@@ -43,7 +43,9 @@ const Footer = () => {
   return (
     <footer className={classes.outerContainer}>
       <Copy className={classes.innerContainer} variant="footnote">
-        <span className={classes.copyRight}>© {year} Eave Technologies, Inc. All rights reserved.</span>
+        <span className={classes.copyRight}>
+          © {year} Eave Technologies, Inc. All rights reserved.
+        </span>
         <Link className={classes.link} to="/terms">
           Terms
         </Link>

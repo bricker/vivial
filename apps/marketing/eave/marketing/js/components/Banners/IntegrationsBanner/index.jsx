@@ -71,9 +71,21 @@ const IntegrationsBanner = ({ title, subtitle }) => {
         <Copy variant="pSmall">{subtitle}</Copy>
       </div>
       <div className={classes.logos}>
-        <img className={classes.slack} src={INTEGRATION_LOGOS.slack.src} alt={INTEGRATION_LOGOS.slack.alt} />
-        <img className={classes.github} src={INTEGRATION_LOGOS.github.src} alt={INTEGRATION_LOGOS.github.alt} />
-        <img className={classes.jira} src={INTEGRATION_LOGOS.jira.src} alt={INTEGRATION_LOGOS.jira.alt} />
+        <img
+          className={classes.slack}
+          src={INTEGRATION_LOGOS.slack.src}
+          alt={INTEGRATION_LOGOS.slack.alt}
+        />
+        <img
+          className={classes.github}
+          src={INTEGRATION_LOGOS.github.src}
+          alt={INTEGRATION_LOGOS.github.alt}
+        />
+        <img
+          className={classes.jira}
+          src={INTEGRATION_LOGOS.jira.src}
+          alt={INTEGRATION_LOGOS.jira.alt}
+        />
       </div>
     </PageSection>
   );

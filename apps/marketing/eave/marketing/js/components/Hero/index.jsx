@@ -39,7 +39,10 @@ const Hero = ({ title, subtitle, cta }) => {
       <Copy className={classes.subtitle} variant="p">
         {subtitle}
       </Copy>
-      <Button className={classes.button} onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}>
+      <Button
+        className={classes.button}
+        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
+      >
         {cta}
       </Button>
     </PageSection>

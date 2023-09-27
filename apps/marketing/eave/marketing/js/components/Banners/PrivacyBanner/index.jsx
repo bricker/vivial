@@ -39,8 +39,15 @@ const PrivacyBanner = ({ title, subtitle }) => {
   const classes = makeClasses();
 
   return (
-    <PageSection sectionClassName={classes.section} wrapperClassName={classes.wrapper}>
-      <img className={classes.privacyIcon} src={imageUrl("privacy-icons-3x.png")} alt="Lock icon symbolizing privacy" />
+    <PageSection
+      sectionClassName={classes.section}
+      wrapperClassName={classes.wrapper}
+    >
+      <img
+        className={classes.privacyIcon}
+        src={imageUrl("privacy-icons-3x.png")}
+        alt="Lock icon symbolizing privacy"
+      />
       <div className={classes.copy}>
         <Copy variant="h2">{title}</Copy>
         <Copy variant="pSmall">{subtitle}</Copy>

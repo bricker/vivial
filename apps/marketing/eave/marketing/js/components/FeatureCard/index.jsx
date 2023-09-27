@@ -37,7 +37,13 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const FeatureCard = ({ title, description, comingSoon, onClick, className }) => {
+const FeatureCard = ({
+  title,
+  description,
+  comingSoon,
+  onClick,
+  className,
+}) => {
   const classes = makeClasses();
   const containerClass = classNames(classes.container, className);
   return (

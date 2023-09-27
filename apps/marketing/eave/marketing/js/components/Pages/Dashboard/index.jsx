@@ -11,16 +11,32 @@ import ErrorPage from "../ErrorPage/index.jsx";
 import LoadingPage from "../LoadingPage/index.jsx";
 import Page from "../Page/index.jsx";
 
-import { FEATURES, FEATURE_STATES, FEATURE_MODAL } from "../../../constants.js";
+import { FEATURES, FEATURE_MODAL, FEATURE_STATES } from "../../../constants.js";
 
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
-  const { team, getTeam, getTeamRepos, getTeamFeatureStates, updateTeamFeatureState } = useTeam();
+  const {
+    team,
+    getTeam,
+    getTeamRepos,
+    getTeamFeatureStates,
+    updateTeamFeatureState,
+  } = useTeam();
   const { user, getUserAccount } = useUser();
-  const isLoading = user.accountIsLoading || team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
-  const isErroring = user.accountIsErroring || team.teamIsErroring || team.reposAreErroring || team.featureStatesErroring;
-  const showFeatureSettings = team.inlineCodeDocsState === FEATURE_STATES.ENABLED || team.apiDocsState === FEATURE_STATES.ENABLED;
+  const isLoading =
+    user.accountIsLoading ||
+    team.teamIsLoading ||
+    team.reposAreLoading ||
+    team.featureStatesLoading;
+  const isErroring =
+    user.accountIsErroring ||
+    team.teamIsErroring ||
+    team.reposAreErroring ||
+    team.featureStatesErroring;
+  const showFeatureSettings =
+    team.inlineCodeDocsState === FEATURE_STATES.ENABLED ||
+    team.apiDocsState === FEATURE_STATES.ENABLED;
   const [showInlineDocsModal, setShowInlineDocsModal] = useState(false);
 
   const modalCleanup = () => {
@@ -29,7 +45,9 @@ const Dashboard = () => {
   };
 
   const openInlineDocsModal = useCallback(() => {
-    setSearchParams({ [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS });
+    setSearchParams({
+      [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS,
+    });
     setShowInlineDocsModal(true);
   }, []);
 
@@ -38,10 +56,13 @@ const Dashboard = () => {
     modalCleanup();
   }, []);
 
-  const handleFeatureUpdate = useCallback((teamId, teamRepoIds, enabledRepoIds, feature) => {
-    updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature);
-    closeInlineDocsModal();
-  }, []);
+  const handleFeatureUpdate = useCallback(
+    (teamId, teamRepoIds, enabledRepoIds, feature) => {
+      updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature);
+      closeInlineDocsModal();
+    },
+    [],
+  );
 
   useEffect(() => {
     getUserAccount();
@@ -71,7 +92,10 @@ const Dashboard = () => {
   useEffect(() => {
     const featureParam = searchParams.get(FEATURE_MODAL.ID);
     if (featureParam) {
-      if (featureParam === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS && !showInlineDocsModal) {
+      if (
+        featureParam === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS &&
+        !showInlineDocsModal
+      ) {
         openInlineDocsModal();
       }
     }
@@ -86,7 +110,9 @@ const Dashboard = () => {
   return (
     <Page>
       <ExploreFeatures onInlineDocsClick={openInlineDocsModal} />
-      {showFeatureSettings && <FeatureSettings onInlineDocsClick={openInlineDocsModal} />}
+      {showFeatureSettings && (
+        <FeatureSettings onInlineDocsClick={openInlineDocsModal} />
+      )}
       {showInlineDocsModal && (
         <GitHubFeatureModal
           feature={FEATURES.INLINE_CODE_DOCS}

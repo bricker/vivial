@@ -48,7 +48,10 @@ const FeatureSettings = ({ onInlineDocsClick }) => {
       </Typography>
       <div className={classes.settingBtns}>
         {team.inlineCodeDocsState === FEATURE_STATES.ENABLED && (
-          <FeatureSettingCard className={classes.settingCard} onClick={onInlineDocsClick}>
+          <FeatureSettingCard
+            className={classes.settingCard}
+            onClick={onInlineDocsClick}
+          >
             Inline Code Documentation
           </FeatureSettingCard>
         )}

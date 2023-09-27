@@ -22,7 +22,11 @@ const useUser = () => {
   }
 
   async function getUserAccount() {
-    setUser((prev) => ({ ...prev, accountIsLoading: true, accountIsErroring: false }));
+    setUser((prev) => ({
+      ...prev,
+      accountIsLoading: true,
+      accountIsErroring: false,
+    }));
     fetch("/dashboard/me")
       .then((resp) => {
         if (isHTTPError(resp)) {

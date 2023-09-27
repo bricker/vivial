@@ -1,14 +1,18 @@
 import { useContext } from "react";
 import { FEATURES, FEATURE_STATES } from "../constants.js";
-import { isHTTPError } from "../util/http-util.js";
 import { AppContext } from "../context/Provider.js";
+import { isHTTPError } from "../util/http-util.js";
 
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
   const [team, setTeam] = teamCtx;
 
   async function getTeam(teamId) {
-    setTeam((prev) => ({ ...prev, teamIsLoading: true, teamIsErroring: false }));
+    setTeam((prev) => ({
+      ...prev,
+      teamIsLoading: true,
+      teamIsErroring: false,
+    }));
     fetch(`dashboard/team/${teamId}`)
       .then((resp) => {
         if (isHTTPError(resp)) {
@@ -32,7 +36,11 @@ const useTeam = () => {
   }
 
   async function getTeamRepos(teamId) {
-    setTeam((prev) => ({ ...prev, reposAreLoading: true, reposAreErroring: false }));
+    setTeam((prev) => ({
+      ...prev,
+      reposAreLoading: true,
+      reposAreErroring: false,
+    }));
     fetch(`dashboard/team/${teamId}/repos`)
       .then((resp) => {
         if (isHTTPError(resp)) {
@@ -75,10 +83,21 @@ const useTeam = () => {
     }));
   }
 
-  async function updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature) {
-    setTeam((prev) => ({ ...prev, featureStatesLoading: true, featureStatesErroring: false }));
+  async function updateTeamFeatureState(
+    teamId,
+    teamRepoIds,
+    enabledRepoIds,
+    feature,
+  ) {
+    setTeam((prev) => ({
+      ...prev,
+      featureStatesLoading: true,
+      featureStatesErroring: false,
+    }));
     const repos = teamRepoIds.map((repoId) => {
-      const state = enabledRepoIds.includes(repoId) ? FEATURE_STATES.ENABLED : FEATURE_STATES.DISABLED;
+      const state = enabledRepoIds.includes(repoId)
+        ? FEATURE_STATES.ENABLED
+        : FEATURE_STATES.DISABLED;
       return {
         external_repo_id: repoId,
         new_values: {
