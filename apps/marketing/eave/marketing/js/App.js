@@ -1,5 +1,5 @@
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
-import React from "react";
+import React, { useEffect } from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
@@ -13,6 +13,7 @@ import PrivateRoutes from "./components/PrivateRoutes/index.jsx";
 import ScrollToTop from "./components/ScrollToTop/index.jsx";
 import AppStoreProvider from "./context/Provider.js";
 import { theme } from "./theme.js";
+import '../static/css/app.css';
 
 const App = () => {
   return (

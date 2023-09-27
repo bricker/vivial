@@ -1,9 +1,8 @@
 import { Dialog, IconButton, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import classNames from "classnames";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useSearchParams } from "react-router-dom";
 
 import useTeam from "../../hooks/useTeam.js";
 import { imageUrl } from "../../util/asset-util.js";
@@ -13,7 +12,7 @@ import CloseIcon from "../Icons/CloseIcon.js";
 import ExpandIcon from "../Icons/ExpandIcon.jsx";
 import InfoTooltip from "../InfoTooltip/index.jsx";
 
-import { COOKIE_NAMES, FEATURES, FEATURE_STATES, FEEDBACK_URL, SEARCH_PARAM_NAMES } from "../../constants.js";
+import { FEATURE_MODAL, FEATURE_STATES, FEEDBACK_URL } from "../../constants.js";
 
 const makeClasses = makeStyles((theme) => ({
   paper: {
@@ -25,11 +24,12 @@ const makeClasses = makeStyles((theme) => ({
     maxWidth: 762,
     margin: 0,
     padding: "88px 25px",
-    overflow: "visible",
+    overflowY: "scroll",
     [theme.breakpoints.up("md")]: {
       backgroundColor: theme.palette.background.light,
       height: "auto",
       padding: "60px 54px 44px",
+      overflowY: "visible",
     },
   },
   confirmationPaper: {
@@ -171,6 +171,9 @@ const makeClasses = makeStyles((theme) => ({
   },
   confirmationBtns: {
     marginTop: 42,
+    '& > button': {
+      width: 250,
+    },
     [theme.breakpoints.up("md")]: {
       display: "flex",
       justifyContent: "center",
@@ -206,14 +209,14 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-function renderTitle(feature) {
-  if (feature === FEATURES.INLINE_CODE_DOCS) {
+function renderTitle(type) {
+  if (type === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS) {
     return "Inline Code Documentation";
   }
 }
 
-function renderDescription(feature) {
-  if (feature === FEATURES.INLINE_CODE_DOCS) {
+function renderDescription(type) {
+  if (type === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS) {
     return (
       <>
         <p>Automate inline code documentation within your GitHub files.</p>
@@ -227,16 +230,16 @@ function getEnabledRepoIds(repos, feature) {
   return repos.filter((repo) => repo[feature] === FEATURE_STATES.ENABLED).map((repo) => repo.external_repo_id);
 }
 
-const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
+const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
   const classes = makeClasses();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [_, setCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
+  const [_, setCookie] = useCookies([FEATURE_MODAL.ID]);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [optionsExpanded, setOptionsExpanded] = useState(false);
   const [selectedRepoError, setSelectedRepoError] = useState(null);
   const { team } = useTeam();
 
   const github = team.integrations.github_integration;
+  const githubOauthUrl = `${window.eave.apiBase}/oauth/github/authorize`;
   const githubLogoFile = github ? "eave-github-installed.png" : "eave-github-required.png";
   const githubReposClass = classNames(classes.githubReposText, !github && classes.disabledText);
   const teamRepoIds = team.repos.map((repo) => repo.external_repo_id);
@@ -267,10 +270,8 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
     onUpdate(team.id, teamRepoIds, [], feature);
   }, [team.id, teamRepoIds]);
 
-  const handleAddApp = useCallback(() => {
-    setCookie(COOKIE_NAMES.FEATURE_MODAL, feature);
-    const githubOauthUrl = `${window.eave.apiBase}/oauth/github/authorize`;
-    window.open(githubOauthUrl, "_self");
+  const setModalCookie = useCallback(() => {
+    setCookie(FEATURE_MODAL.ID, type);
   }, []);
 
   const handleSelectRepo = useCallback(
@@ -310,17 +311,6 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
     [selectedRepoIds, teamRepoIds],
   );
 
-  useEffect(() => {
-    if (open) {
-      const currentParam = searchParams.get(SEARCH_PARAM_NAMES.FEATURE_MODAL);
-      if (!currentParam) {
-        setSearchParams({ [SEARCH_PARAM_NAMES.FEATURE_MODAL]: param });
-      }
-      return;
-    }
-    setSearchParams({});
-  }, [searchParams, open]);
-
   if (showConfirmation) {
     return (
       <Dialog classes={{ paper: classNames(classes.paper, classes.confirmationPaper) }} onClose={onClose} open={open}>
@@ -328,7 +318,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
           <CloseIcon />
         </IconButton>
         <Typography className={classes.title} variant="h2">
-          Are you sure you want to turn off {renderTitle(feature)}?
+          Are you sure you want to turn off {renderTitle(type)}?
         </Typography>
         <div className={classes.description}>Eave will stop automatically updating these documents once this feature is turned off. Updates will need to be made manually.</div>
         <div className={classes.confirmationBtns}>
@@ -359,14 +349,14 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
         <CloseIcon />
       </IconButton>
       <Typography className={classes.title} variant="h2">
-        {renderTitle(feature)}
+        {renderTitle(type)}
       </Typography>
       <div className={classes.githubRequirement}>
         <Typography className={classes.requiredText}>Required for setup:</Typography>
         <img className={classes.githubLogo} src={imageUrl(githubLogoFile)} />
       </div>
       {!github && <Typography className={classes.githubWarning}>This feature requires a GitHub integration. In order to proceed, please add the Eave app to your GitHub account by clicking on the button below.</Typography>}
-      <div className={classes.description}>{renderDescription(feature)}</div>
+      <div className={classes.description}>{renderDescription(type)}</div>
       <div className={githubReposClass}>
         Selected Repositories: <span className={classes.selectedReposLabel}>{selectedReposLabel}</span>
         <InfoTooltip className={classes.tooltip} disabled={!github}>
@@ -391,7 +381,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, param }) => {
             {cta}
           </Button>
         ) : (
-          <Button onClick={handleAddApp} className={classes.ctaBtn} color="secondary">
+          <Button to={githubOauthUrl} onClick={setModalCookie} className={classes.ctaBtn} color="secondary">
             Add App
           </Button>
         )}

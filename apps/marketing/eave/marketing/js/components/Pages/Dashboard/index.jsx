@@ -11,11 +11,11 @@ import ErrorPage from "../ErrorPage/index.jsx";
 import LoadingPage from "../LoadingPage/index.jsx";
 import Page from "../Page/index.jsx";
 
-import { COOKIE_NAMES, FEATURES, FEATURE_STATES, SEARCH_PARAM_NAMES, SEARCH_PARAM_VALUES } from "../../../constants.js";
+import { FEATURES, FEATURE_STATES, FEATURE_MODAL } from "../../../constants.js";
 
 const Dashboard = () => {
-  const [searchParams] = useSearchParams();
-  const [cookies, _, removeCookie] = useCookies([COOKIE_NAMES.FEATURE_MODAL]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
   const { team, getTeam, getTeamRepos, getTeamFeatureStates, updateTeamFeatureState } = useTeam();
   const { user, getUserAccount } = useUser();
   const isLoading = user.accountIsLoading || team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
@@ -23,12 +23,19 @@ const Dashboard = () => {
   const showFeatureSettings = team.inlineCodeDocsState === FEATURE_STATES.ENABLED || team.apiDocsState === FEATURE_STATES.ENABLED;
   const [showInlineDocsModal, setShowInlineDocsModal] = useState(false);
 
+  const modalCleanup = () => {
+    removeCookie(FEATURE_MODAL.ID);
+    setSearchParams({});
+  };
+
   const openInlineDocsModal = useCallback(() => {
+    setSearchParams({ [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS });
     setShowInlineDocsModal(true);
   }, []);
 
   const closeInlineDocsModal = useCallback(() => {
     setShowInlineDocsModal(false);
+    modalCleanup();
   }, []);
 
   const handleFeatureUpdate = useCallback((teamId, teamRepoIds, enabledRepoIds, feature) => {
@@ -53,21 +60,22 @@ const Dashboard = () => {
   }, [team.repos]);
 
   useEffect(() => {
-    const openFeature = cookies && cookies[COOKIE_NAMES.FEATURE_MODAL];
-    if (openFeature) {
-      if (openFeature === FEATURES.INLINE_CODE_DOCS) {
+    const featureModal = cookies && cookies[FEATURE_MODAL.ID];
+    if (featureModal) {
+      if (featureModal === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS) {
         openInlineDocsModal();
       }
-      removeCookie(COOKIE_NAMES.FEATURE_MODAL);
     }
   }, [cookies]);
 
   useEffect(() => {
-    const openFeature = searchParams.get(SEARCH_PARAM_NAMES.FEATURE_MODAL);
-    if (openFeature === SEARCH_PARAM_VALUES.INLINE_CODE_DOCS) {
-      openInlineDocsModal();
+    const featureParam = searchParams.get(FEATURE_MODAL.ID);
+    if (featureParam) {
+      if (featureParam === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS && !showInlineDocsModal) {
+        openInlineDocsModal();
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, showInlineDocsModal]);
 
   if (isErroring) {
     return <ErrorPage page="dashboard" />;
@@ -79,7 +87,15 @@ const Dashboard = () => {
     <Page>
       <ExploreFeatures onInlineDocsClick={openInlineDocsModal} />
       {showFeatureSettings && <FeatureSettings onInlineDocsClick={openInlineDocsModal} />}
-      {showInlineDocsModal && <GitHubFeatureModal feature={FEATURES.INLINE_CODE_DOCS} param={SEARCH_PARAM_VALUES.INLINE_CODE_DOCS} onClose={closeInlineDocsModal} onUpdate={handleFeatureUpdate} open />}
+      {showInlineDocsModal && (
+        <GitHubFeatureModal
+          feature={FEATURES.INLINE_CODE_DOCS}
+          type={FEATURE_MODAL.TYPES.INLINE_CODE_DOCS}
+          onClose={closeInlineDocsModal}
+          onUpdate={handleFeatureUpdate}
+          open={showInlineDocsModal}
+        />
+      )}
     </Page>
   );
 };

@@ -1,18 +1,5 @@
 import { imageUrl } from "./util/asset-util.js";
 
-export const COOKIE_NAMES = {
-  FEATURE_MODAL: "ev_feature_modal",
-};
-
-export const SEARCH_PARAM_NAMES = {
-  FEATURE_MODAL: "feature-modal",
-};
-
-export const SEARCH_PARAM_VALUES = {
-  API_DOCS: "api-documentation",
-  INLINE_CODE_DOCS: "inline-code-documentation",
-};
-
 export const FEATURES = {
   API_DOCS: "api_documentation_state",
   INLINE_CODE_DOCS: "inline_code_documentation_state",
@@ -24,6 +11,15 @@ export const FEATURE_STATES = {
   DISABLED: "disabled",
   PAUSED: "paused",
 };
+
+export const FEATURE_MODAL = {
+  ID: "feature-modal",
+  TYPES: {
+    API_DOCS: "api-documentation",
+    INLINE_CODE_DOCS: "inline-code-documentation",
+    ARCHITECTURE_DOCS: "architecture-documentation",
+  }
+}
 
 export const FEEDBACK_URL = "https://forms.gle/3v5Xdz7kPya5UW9U6";
 
