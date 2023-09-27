@@ -7,8 +7,8 @@ import InfoIcon from "../Icons/InfoIcon.jsx";
 const makeClasses = makeStyles(() => ({
   tooltip: {
     padding: 14,
-    backgroundColor: "#F1F1F1",
-    color: "#3E3E3E",
+    backgroundColor: "#F1F1F1",  // component-specific color
+    color: "#3E3E3E",  // component-specific color
     fontSize: 14,
     borderRadius: 10,
     "& > p": {
@@ -19,7 +19,7 @@ const makeClasses = makeStyles(() => ({
     },
   },
   arrow: {
-    color: "#F1F1F1",
+    color: "#F1F1F1",  // component-specific color
   },
   iconBtn: {
     padding: 0,

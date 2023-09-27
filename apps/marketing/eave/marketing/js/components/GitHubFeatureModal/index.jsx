@@ -244,9 +244,9 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
   const githubReposClass = classNames(classes.githubReposText, !github && classes.disabledText);
   const teamRepoIds = team.repos.map((repo) => repo.external_repo_id);
   const enabledRepoIds = getEnabledRepoIds(team.repos, feature);
-  const isEnabled = !!enabledRepoIds.length;
-  const cta = isEnabled ? "Update" : "Turn On";
-  const [selectedRepoIds, setSelectedRepoIds] = useState(isEnabled ? enabledRepoIds : teamRepoIds);
+  const featureIsEnabled = !!enabledRepoIds.length;
+  const cta = featureIsEnabled ? "Update" : "Turn On";
+  const [selectedRepoIds, setSelectedRepoIds] = useState(featureIsEnabled ? enabledRepoIds : teamRepoIds);
   const selectedAll = selectedRepoIds.length === teamRepoIds.length;
   const [selectedReposLabel, setSelectedReposLabel] = useState(selectedAll ? "Default" : "Custom");
 
@@ -340,7 +340,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
 
   return (
     <Dialog classes={{ paper: classes.paper }} onClose={onClose} open={open}>
-      {isEnabled && (
+      {featureIsEnabled && (
         <Button className={classes.turnOffBtn} onClick={openConfirmation} variant="text" disableRipple>
           Turn Off
         </Button>

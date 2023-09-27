@@ -77,9 +77,7 @@ async def get_auth_state() -> Response:
 @app.route("/dashboard/me", methods=["GET"])
 async def get_user() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
-
-    if not auth_cookies.access_token or not auth_cookies.account_id:
-        raise werkzeug.exceptions.Unauthorized()
+    _assert_auth(auth_cookies)
 
     eave_response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
@@ -93,9 +91,7 @@ async def get_user() -> Response:
 @app.route("/dashboard/team/<team_id>", methods=["GET"])
 async def get_team(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
-
-    if not auth_cookies.access_token or not auth_cookies.account_id:
-        raise werkzeug.exceptions.Unauthorized()
+    _assert_auth(auth_cookies)
 
     eave_response = await team.GetTeamRequest.perform(origin=app_config.eave_origin, team_id=team_id)
 
@@ -105,9 +101,7 @@ async def get_team(team_id: str) -> Response:
 @app.route("/dashboard/team/<team_id>/repos", methods=["GET"])
 async def get_team_repos(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
-
-    if not auth_cookies.access_token or not auth_cookies.account_id:
-        raise werkzeug.exceptions.Unauthorized()
+    _assert_auth(auth_cookies)
 
     eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=app_config.eave_origin,
@@ -123,9 +117,7 @@ async def get_team_repos(team_id: str) -> Response:
 @app.route("/dashboard/team/<team_id>/repos/update", methods=["POST"])
 async def update_team_repos(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
-
-    if not auth_cookies.access_token or not auth_cookies.account_id:
-        raise werkzeug.exceptions.Unauthorized()
+    _assert_auth(auth_cookies)
 
     body = request.get_json()
     repos = body["repos"]
@@ -155,6 +147,11 @@ def catch_all(path: str) -> Response:
     response = make_response(spa)
     set_tracking_cookies(cookies=request.cookies, query_params=request.args, response=response)
     return response
+
+
+def _assert_auth(auth_cookies):
+    if not auth_cookies.access_token or not auth_cookies.account_id:
+        raise werkzeug.exceptions.Unauthorized()
 
 
 def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:
