@@ -36,7 +36,6 @@ export default class ConnectClient {
         },
       });
 
-      // eslint-disable-next-line no-param-reassign
       clientKey = connectIntegrationResponse.connect_integration.client_key;
     }
 

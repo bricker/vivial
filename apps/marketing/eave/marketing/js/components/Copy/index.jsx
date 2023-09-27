@@ -1,72 +1,79 @@
-import React from 'react';
-import { makeStyles } from '@material-ui/styles';
-import classNames from 'classnames';
+import { makeStyles } from "@material-ui/styles";
+import classNames from "classnames";
+import React from "react";
 
+/**
+ * TODO: Deprecate this component in favor of MUI's Typography Component.
+ * Reference: https://mui.com/material-ui/api/typography/
+ */
 const makeClasses = makeStyles((theme) => ({
   h1: {
+    color: theme.palette.background.contrastText,
     fontSize: 32,
-    lineHeight: '38px',
+    lineHeight: "38px",
     fontWeight: 400,
     margin: 0,
-    color: theme.typography.color.dark,
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up("sm")]: {
       fontSize: 54,
-      lineHeight: '70px',
+      lineHeight: "70px",
     },
   },
   h2: {
+    color: theme.palette.background.contrastText,
     fontSize: 24,
-    lineHeight: '31px',
+    lineHeight: "31px",
     fontWeight: 400,
-    margin: '0 0 12px',
-    color: theme.typography.color.dark,
-    [theme.breakpoints.up('sm')]: {
+    margin: "0 0 12px",
+    [theme.breakpoints.up("sm")]: {
       fontSize: 32,
-      lineHeight: '42px',
+      lineHeight: "42px",
     },
   },
   h3: {
+    color: theme.palette.background.contrastText,
     fontSize: 16,
-    lineHeight: '20px',
+    lineHeight: "20px",
     fontWeight: 400,
-    margin: '0 0 12px',
-    color: theme.typography.color.dark,
-    [theme.breakpoints.up('sm')]: {
+    margin: "0 0 12px",
+    [theme.breakpoints.up("sm")]: {
       fontSize: 24,
-      lineHeight: '31px',
+      lineHeight: "31px",
     },
   },
   footnote: {
+    color: theme.palette.background.contrastText,
     fontSize: 14,
-    lineHeight: '18px',
+    lineHeight: "18px",
     margin: 0,
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up("sm")]: {
       fontSize: 16,
-      lineHeight: '21px',
+      lineHeight: "21px",
     },
   },
   pSmall: {
+    color: theme.palette.background.contrastText,
     fontSize: 16,
-    lineHeight: '21px',
+    lineHeight: "21px",
     fontWeight: 400,
     margin: 0,
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up("sm")]: {
       fontSize: 18,
-      lineHeight: '23px',
+      lineHeight: "23px",
     },
   },
   p: {
+    color: theme.palette.background.contrastText,
     fontSize: 16,
-    lineHeight: '21px',
+    lineHeight: "21px",
     fontWeight: 400,
     margin: 0,
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up("sm")]: {
       fontSize: 24,
-      lineHeight: '31px',
+      lineHeight: "31px",
     },
   },
   bold: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 }));
 
@@ -81,19 +88,19 @@ const Copy = ({ children, className, variant, bold }) => {
   let element;
 
   switch (variant) {
-    case 'h1':
+    case "h1":
       element = <h1 className={h1Class}>{children}</h1>;
       break;
-    case 'h2':
+    case "h2":
       element = <h2 className={h2Class}>{children}</h2>;
       break;
-    case 'h3':
+    case "h3":
       element = <h3 className={h3Class}>{children}</h3>;
       break;
-    case 'footnote':
+    case "footnote":
       element = <p className={footnoteClass}>{children}</p>;
       break;
-    case 'pSmall':
+    case "pSmall":
       element = <p className={pSmallClass}>{children}</p>;
       break;
     default:

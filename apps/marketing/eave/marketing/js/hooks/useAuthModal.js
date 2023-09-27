@@ -1,26 +1,26 @@
-import { useContext } from 'react';
+import { useContext } from "react";
 
-import { AppContext } from '../context/Provider.js';
-import { AUTH_MODAL_STATE } from '../constants.js';
+import { AUTH_MODAL_STATE } from "../constants.js";
+import { AppContext } from "../context/Provider.js";
 
 const useAuthModal = () => {
-  const { authModal } = useContext(AppContext);
-  const [modalState, setModalState] = authModal;
+  const { authModalCtx } = useContext(AppContext);
+  const [authModal, setAuthModal] = authModalCtx;
 
   return {
-    modalState,
-    setModalState,
-    isOpen: modalState.isOpen,
+    authModal,
+    setAuthModal,
+    isOpen: authModal.isOpen,
     openModal: (mode) => {
-      setModalState((prevState) => ({
+      setAuthModal((prevState) => ({
         ...prevState,
         ...(mode && mode !== prevState.mode && { mode }),
         isOpen: true,
       }));
     },
-    closeModal: () => setModalState((prevState) => ({ ...prevState, isOpen: false })),
-    isLoginMode: modalState.mode === AUTH_MODAL_STATE.LOGIN,
-    isSignupMode: modalState.mode === AUTH_MODAL_STATE.SIGNUP,
+    closeModal: () => setAuthModal((prevState) => ({ ...prevState, isOpen: false })),
+    isLoginMode: authModal.mode === AUTH_MODAL_STATE.LOGIN,
+    isSignupMode: authModal.mode === AUTH_MODAL_STATE.SIGNUP,
   };
 };
 

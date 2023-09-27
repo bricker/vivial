@@ -1,5 +1,4 @@
-/* eslint-disable quote-props */
-
+/** @type {import("eslint").Config} */
 const config = {
   extends: ["eslint:recommended", "prettier"],
   plugins: [],

@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
 class DocumentIcon extends React.Component {
   render() {
     const { className } = this.props;
-    const fill = 'currentColor';
+    const fill = "currentColor";
     return (
       <svg className={className} viewBox="0 0 44.49 53.35" style={{ fill }}>
         <g data-name="Layer 2" id="Layer_2">

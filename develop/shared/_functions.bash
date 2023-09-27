@@ -90,7 +90,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 				tput -S <<-EOC
 					setaf $_cc_white
 					rev
-					dim
 				EOC
 				;;
 

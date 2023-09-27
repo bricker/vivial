@@ -68,13 +68,13 @@
   "javascript.inlayHints.enumMemberValues.enabled": false,
   "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
   "javascript.inlayHints.parameterNames.enabled": "none",
-  "javascript.inlayHints.parameterTypes.enabled": true,
-  "javascript.inlayHints.propertyDeclarationTypes.enabled": true,
+  "javascript.inlayHints.parameterTypes.enabled": false,
+  "javascript.inlayHints.propertyDeclarationTypes.enabled": false,
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.typeCheckingMode": "basic",
-  "python.analysis.inlayHints.functionReturnTypes": true,
-  "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.inlayHints.functionReturnTypes": false,
+  "python.analysis.inlayHints.variableTypes": false,
   "python.analysis.extraPaths": [
     "vendor",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
@@ -116,7 +116,7 @@
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
   ],
-  "python.analysis.inlayHints.pytestParameters": true,
+  "python.analysis.inlayHints.pytestParameters": false,
   "ruff.args": [
     "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
   ],
