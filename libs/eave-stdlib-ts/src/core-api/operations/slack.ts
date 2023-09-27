@@ -13,9 +13,13 @@ export type GetSlackInstallationResponseBody = {
 };
 
 export class GetSlackInstallationOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/integrations/slack/query" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/integrations/slack/query",
+  });
 
-  static async perform(args: RequestArgsOrigin & { input: GetSlackInstallationRequestBody }): Promise<GetSlackInstallationResponseBody> {
+  static async perform(
+    args: RequestArgsOrigin & { input: GetSlackInstallationRequestBody },
+  ): Promise<GetSlackInstallationResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

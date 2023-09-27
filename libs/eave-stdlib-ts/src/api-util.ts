@@ -50,7 +50,11 @@ export function addGAELifecycleRoutes({ router }: { router: IRouter }) {
   });
 }
 
-export function gracefulShutdownHandler({ server }: { server: Server }): () => void {
+export function gracefulShutdownHandler({
+  server,
+}: {
+  server: Server;
+}): () => void {
   return () => {
     if (cacheInitialized()) {
       getCacheClient()
@@ -76,10 +80,18 @@ export function applyShutdownHandlers({ server }: { server: Server }) {
   process.on("SIGINT", handler);
 }
 
-export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<string>): { [key: string]: string | undefined } {
-  const redactedCaseInsensitive = new Set<string>(redacted ? Array.from(redacted).map((v) => v.toLowerCase()) : []);
+export function getHeaders(
+  req: Request,
+  excluded?: Set<string>,
+  redacted?: Set<string>,
+): { [key: string]: string | undefined } {
+  const redactedCaseInsensitive = new Set<string>(
+    redacted ? Array.from(redacted).map((v) => v.toLowerCase()) : [],
+  );
 
-  const excludedCaseInsensitive = new Set<string>(excluded ? Array.from(excluded).map((v) => v.toLowerCase()) : []);
+  const excludedCaseInsensitive = new Set<string>(
+    excluded ? Array.from(excluded).map((v) => v.toLowerCase()) : [],
+  );
 
   redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_AUTHORIZATION);
   redactedCaseInsensitive.add(httpConstants.HTTP2_HEADER_COOKIE);
@@ -90,7 +102,9 @@ export function getHeaders(req: Request, excluded?: Set<string>, redacted?: Set<
     const lck = k.toLowerCase();
     if (!excludedCaseInsensitive.has(lck)) {
       const joined = v instanceof Array ? v.join(",") : v;
-      logHeaders[lck] = redactedCaseInsensitive.has(lck) ? redact(joined) : joined;
+      logHeaders[lck] = redactedCaseInsensitive.has(lck)
+        ? redact(joined)
+        : joined;
     }
   });
 
@@ -105,7 +119,13 @@ export abstract class ClientApiEndpointConfiguration {
 
   abstract get url(): string;
 
-  constructor({ path, method = ExpressRoutingMethod.post }: { path: string; method?: ExpressRoutingMethod }) {
+  constructor({
+    path,
+    method = ExpressRoutingMethod.post,
+  }: {
+    path: string;
+    method?: ExpressRoutingMethod;
+  }) {
     this.path = path;
     this.method = method;
   }
@@ -119,7 +139,21 @@ export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointCo
 
   abstract get middlewares(): Express.Handler[];
 
-  constructor({ path, method = ExpressRoutingMethod.post, teamIdRequired = true, authRequired = true, originRequired = true, signatureRequired = true }: { path: string; method?: ExpressRoutingMethod; teamIdRequired?: boolean; authRequired?: boolean; originRequired?: boolean; signatureRequired?: boolean }) {
+  constructor({
+    path,
+    method = ExpressRoutingMethod.post,
+    teamIdRequired = true,
+    authRequired = true,
+    originRequired = true,
+    signatureRequired = true,
+  }: {
+    path: string;
+    method?: ExpressRoutingMethod;
+    teamIdRequired?: boolean;
+    authRequired?: boolean;
+    originRequired?: boolean;
+    signatureRequired?: boolean;
+  }) {
     super({ path, method });
     this.teamIdRequired = teamIdRequired;
     this.authRequired = authRequired;
@@ -128,8 +162,14 @@ export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointCo
   }
 }
 
-export function handlerWrapper(func: Express.RequestHandler): Express.RequestHandler {
-  return async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+export function handlerWrapper(
+  func: Express.RequestHandler,
+): Express.RequestHandler {
+  return async (
+    req: Express.Request,
+    res: Express.Response,
+    next: Express.NextFunction,
+  ) => {
     try {
       await func(req, res, next);
       res.end(); // Safety; if the handler forgets to end the request, it will hang.
@@ -139,6 +179,18 @@ export function handlerWrapper(func: Express.RequestHandler): Express.RequestHan
   };
 }
 
-export function makeRoute({ router, config, handler }: { router: Express.Router; config: ServerApiEndpointConfiguration; handler: Express.Handler }) {
-  router[config.method](config.path, ...config.middlewares, handlerWrapper(handler));
+export function makeRoute({
+  router,
+  config,
+  handler,
+}: {
+  router: Express.Router;
+  config: ServerApiEndpointConfiguration;
+  handler: Express.Handler;
+}) {
+  router[config.method](
+    config.path,
+    ...config.middlewares,
+    handlerWrapper(handler),
+  );
 }

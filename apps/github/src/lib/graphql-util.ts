@@ -20,14 +20,21 @@ export async function loadQuery(name: string): Promise<string> {
   return query;
 }
 
-export async function getProjectV2ItemFieldValue(itemNodeId: string, fieldName: string, context: GitHubOperationsContext): Promise<ProjectV2Item> {
+export async function getProjectV2ItemFieldValue(
+  itemNodeId: string,
+  fieldName: string,
+  context: GitHubOperationsContext,
+): Promise<ProjectV2Item> {
   const query = await loadQuery("getProjectV2ItemFieldValue");
   const variables = {
     itemNodeId,
     fieldName,
   };
 
-  const response = await context.octokit.graphql<{ node: Query["node"] }>(query, variables);
+  const response = await context.octokit.graphql<{ node: Query["node"] }>(
+    query,
+    variables,
+  );
   const projectV2Item = <ProjectV2Item>response.node!;
   return projectV2Item;
 }
@@ -59,13 +66,19 @@ export async function getProjectV2ItemFieldValue(itemNodeId: string, fieldName: 
 //   });
 // }
 
-export async function getIssueByNodeId(nodeId: string, context: GitHubOperationsContext): Promise<Issue> {
+export async function getIssueByNodeId(
+  nodeId: string,
+  context: GitHubOperationsContext,
+): Promise<Issue> {
   const query = await loadQuery("getIssueByNodeId");
   const variables = {
     nodeId,
   };
 
-  const response = await context.octokit.graphql<{ node: Query["node"] }>(query, variables);
+  const response = await context.octokit.graphql<{ node: Query["node"] }>(
+    query,
+    variables,
+  );
   const item = <Issue>response.node;
   return item;
 }

@@ -1,5 +1,11 @@
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
-import { EmitterWebhookEvent, EmitterWebhookEventName } from "@octokit/webhooks";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  EmitterWebhookEvent,
+  EmitterWebhookEventName,
+} from "@octokit/webhooks";
 import { InstallationLite, WebhookEventName } from "@octokit/webhooks-types";
 import Express from "express";
 import { constants as httpConstants } from "node:http2";
@@ -19,7 +25,9 @@ export type GithubWebhookBody = EmitterWebhookEvent<EmitterWebhookEventName> & {
   action?: string;
 };
 
-export function getGithubWebhookHeaders(req: Express.Request): GithubWebhookHeaders {
+export function getGithubWebhookHeaders(
+  req: Express.Request,
+): GithubWebhookHeaders {
   const id = req.header("x-github-delivery");
 
   /*
@@ -31,7 +39,9 @@ export function getGithubWebhookHeaders(req: Express.Request): GithubWebhookHead
     But, generally, you can think of the "Event" (in Github terms) to be the subject of the action, and the "Action" to be the trigger.
     It seems silly to separate the "Event" and "Action" values, because one is useless without the other.
   */
-  const eventName = req.header("x-github-event") as WebhookEventName | undefined;
+  const eventName = req.header("x-github-event") as
+    | WebhookEventName
+    | undefined;
   const signature = req.header("x-hub-signature-256");
   const installationId = req.header("x-github-hook-installation-target-id");
 
@@ -43,7 +53,10 @@ export function getGithubWebhookHeaders(req: Express.Request): GithubWebhookHead
   };
 }
 
-export function getEventHandler(req: Express.Request, res: Express.Response): HandlerFunction | undefined {
+export function getEventHandler(
+  req: Express.Request,
+  res: Express.Response,
+): HandlerFunction | undefined {
   const ctx = LogContext.load(res);
   const { eventName } = getGithubWebhookHeaders(req);
   const { action } = <GithubWebhookBody>req.body;
@@ -57,14 +70,23 @@ export function getEventHandler(req: Express.Request, res: Express.Response): Ha
   return handler;
 }
 
-export async function validateGithubWebhookHeaders(req: Express.Request, res: Express.Response, next: Express.NextFunction): Promise<void> {
+export async function validateGithubWebhookHeaders(
+  req: Express.Request,
+  res: Express.Response,
+  next: Express.NextFunction,
+): Promise<void> {
   try {
     const ctx = LogContext.load(res);
     const rawBody = (<Buffer>req.body).toString();
-    const { id, signature, eventName, installationId } = getGithubWebhookHeaders(req);
+    const { id, signature, eventName, installationId } =
+      getGithubWebhookHeaders(req);
 
     if (!eventName || !id || !signature || !installationId) {
-      eaveLogger.error("missing header data from GitHub", ctx, { id, eventName, installationId });
+      eaveLogger.error("missing header data from GitHub", ctx, {
+        id,
+        eventName,
+        installationId,
+      });
       res.sendStatus(httpConstants.HTTP_STATUS_BAD_REQUEST);
       return;
     }
@@ -73,10 +95,17 @@ export async function validateGithubWebhookHeaders(req: Express.Request, res: Ex
     const verified = await app.webhooks.verify(rawBody, signature);
 
     if (!verified) {
-      eaveLogger.error("signature verification failed", ctx, { id, eventName, installationId });
+      eaveLogger.error("signature verification failed", ctx, {
+        id,
+        eventName,
+        installationId,
+      });
 
       if (appConfig.isDevelopment && appConfig.devMode) {
-        eaveLogger.warning("bypassing signature verification failure in dev mode", ctx);
+        eaveLogger.warning(
+          "bypassing signature verification failure in dev mode",
+          ctx,
+        );
       } else {
         res.sendStatus(httpConstants.HTTP_STATUS_BAD_REQUEST);
         return;

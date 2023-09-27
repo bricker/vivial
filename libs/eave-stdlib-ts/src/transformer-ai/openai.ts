@@ -1,4 +1,9 @@
-import { ChatCompletionRequestMessageRoleEnum, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
+import {
+  ChatCompletionRequestMessageRoleEnum,
+  Configuration,
+  CreateChatCompletionRequest,
+  OpenAIApi,
+} from "openai";
 import { v4 as uuidv4 } from "uuid";
 import { logGptRequest } from "../analytics.js";
 import { sharedConfig } from "../config.js";
@@ -8,7 +13,10 @@ import { modelFromString } from "./models.js";
 import * as costCounter from "./token-counter.js";
 
 // eslint-disable-next-line operator-linebreak
-export const PROMPT_PREFIX = "You are Eave, a documentation expert. " + "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. " + "You are responsible for the quality and integrity of this organization's documentation.";
+export const PROMPT_PREFIX =
+  "You are Eave, a documentation expert. " +
+  "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. " +
+  "You are responsible for the quality and integrity of this organization's documentation.";
 
 export function formatprompt(...prompts: string[]): string {
   const prompt: string[] = [];
@@ -81,7 +89,10 @@ export default class OpenAIClient {
     baseTimeoutSeconds?: number;
     documentId?: string;
   }): Promise<string> {
-    parameters.messages.unshift({ role: ChatCompletionRequestMessageRoleEnum.System, content: PROMPT_PREFIX });
+    parameters.messages.unshift({
+      role: ChatCompletionRequestMessageRoleEnum.System,
+      content: PROMPT_PREFIX,
+    });
 
     const model = modelFromString(parameters.model);
     if (!model) {
@@ -103,8 +114,15 @@ export default class OpenAIClient {
 
       try {
         eaveLogger.debug("openai request", ctx, logParams);
-        completion = await this.client.createChatCompletion(parameters, { timeout: backoffMs }); // timeout in ms
-        eaveLogger.debug("openai response", logParams, { openaiResponse: <any>completion.data }, ctx);
+        completion = await this.client.createChatCompletion(parameters, {
+          timeout: backoffMs,
+        }); // timeout in ms
+        eaveLogger.debug(
+          "openai response",
+          logParams,
+          { openaiResponse: <any>completion.data },
+          ctx,
+        );
         text = completion.data.choices[0]?.message?.content;
         break;
       } catch (e: any) {
@@ -126,13 +144,29 @@ export default class OpenAIClient {
 
     const timestampEnd = Date.now();
     const duration_seconds = (timestampEnd - timestampStart) * 1000;
-    await logGptRequestData(parameters, duration_seconds, text, completion?.request?.usage?.prompt_tokens, completion?.request?.usage?.completion_tokens, documentId, ctx);
+    await logGptRequestData(
+      parameters,
+      duration_seconds,
+      text,
+      completion?.request?.usage?.prompt_tokens,
+      completion?.request?.usage?.completion_tokens,
+      documentId,
+      ctx,
+    );
 
     return text;
   }
 }
 
-async function logGptRequestData(parameters: CreateChatCompletionRequest, duration_seconds: number, response: string, input_token_count?: number, output_token_count?: number, document_id?: string, ctx?: LogContext) {
+async function logGptRequestData(
+  parameters: CreateChatCompletionRequest,
+  duration_seconds: number,
+  response: string,
+  input_token_count?: number,
+  output_token_count?: number,
+  document_id?: string,
+  ctx?: LogContext,
+) {
   const fullPrompt = parameters.messages.map((m) => m.content).join("\n");
   const modelEnum = modelFromString(parameters.model);
 
@@ -147,8 +181,14 @@ async function logGptRequestData(parameters: CreateChatCompletionRequest, durati
     {
       feature_name: ctx?.feature_name,
       duration_seconds,
-      input_cost_usd: costCounter.calculatePromptCostUSD(input_token_count, modelEnum),
-      output_cost_usd: costCounter.calculateResponseCostUSD(output_token_count, modelEnum),
+      input_cost_usd: costCounter.calculatePromptCostUSD(
+        input_token_count,
+        modelEnum,
+      ),
+      output_cost_usd: costCounter.calculateResponseCostUSD(
+        output_token_count,
+        modelEnum,
+      ),
       input_prompt: fullPrompt,
       output_response: response,
       input_token_count,
