@@ -1,11 +1,12 @@
 import json
 from typing import Any
-from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
+from eave.stdlib.util import unwrap
 
 from eave.stdlib.endpoints import status_payload
 import eave.stdlib.requests
@@ -81,8 +82,8 @@ async def get_user() -> Response:
 
     eave_response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
-        account_id=auth_cookies.account_id,
-        access_token=auth_cookies.access_token,
+        account_id=unwrap(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
     )
 
     return _clean_response(eave_response)
@@ -105,8 +106,8 @@ async def get_team_repos(team_id: str) -> Response:
 
     eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        account_id=auth_cookies.account_id,
-        access_token=auth_cookies.access_token,
+        account_id=unwrap(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
         team_id=team_id,
         input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
@@ -124,8 +125,8 @@ async def update_team_repos(team_id: str) -> Response:
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        account_id=auth_cookies.account_id,
-        access_token=auth_cookies.access_token,
+        account_id=unwrap(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
         team_id=team_id,
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
@@ -149,7 +150,7 @@ def catch_all(path: str) -> Response:
     return response
 
 
-def _assert_auth(auth_cookies):
+def _assert_auth(auth_cookies: AuthCookies) -> None:
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
 
