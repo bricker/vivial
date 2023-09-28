@@ -60,7 +60,7 @@ class FeatureStateGithubReposRequest(CoreApiEndpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -119,7 +119,7 @@ class DeleteGithubReposRequest(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -147,7 +147,7 @@ class UpdateGithubReposRequest(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         account_id: uuid.UUID | str,
         access_token: str,
         **kwargs: Unpack[requests.CommonRequestArgs],
