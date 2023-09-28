@@ -1,6 +1,7 @@
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
+import bgimg from "../../../static/images/hero-background-horizontal-4x.png";
 import { AUTH_MODAL_STATE } from "../../constants.js";
 import useAuthModal from "../../hooks/useAuthModal.js";
 import Button from "../Button/index.jsx";
@@ -32,20 +33,29 @@ const Hero = ({ title, subtitle, cta }) => {
   const { openModal } = useAuthModal();
 
   return (
-    <PageSection topSection>
-      <Copy className={classes.title} variant="h1">
-        {title}
-      </Copy>
-      <Copy className={classes.subtitle} variant="p">
-        {subtitle}
-      </Copy>
-      <Button
-        className={classes.button}
-        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
-      >
-        {cta}
-      </Button>
-    </PageSection>
+    <div
+      style={{
+        backgroundImage: `url(${bgimg})`,
+        backgroundRepeat: "no-repeat",
+        // backgroundAttachment: 'fixed',
+        backgroundSize: 'cover',
+      }}
+    >
+      <PageSection topSection>
+        <Copy className={classes.title} variant="h1">
+          {title}
+        </Copy>
+        <Copy className={classes.subtitle} variant="p">
+          {subtitle}
+        </Copy>
+        <Button
+          className={classes.button}
+          onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
+        >
+          {cta}
+        </Button>
+      </PageSection>
+    </div>
   );
 };
 
