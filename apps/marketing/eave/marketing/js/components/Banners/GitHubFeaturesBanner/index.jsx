@@ -52,13 +52,17 @@ const makeClasses = makeStyles((theme) => ({
       alignItems: "flex-end",
     },
   },
+  heroBufferPadding: {
+    paddingTop: 300,
+    // breakpoints?
+  },
 }));
 
 const GitHubFeaturesBanner = ({ title, features }) => {
   const classes = makeClasses();
 
   return (
-    <PageSection>
+    <PageSection sectionClassName={classes.heroBufferPadding}>
       <div className={classes.titleContainer}>
         <Copy variant="h1" className={classes.titleCopy}>
           {title}

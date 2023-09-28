@@ -1,16 +1,14 @@
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
+import horizontalBgImage from "../../../../static/images/hero-background-horizontal-4x.png";
+import verticalBgImage from "../../../../static/images/hero-background-vertical-3x.png";
 import AuthModal from "../../AuthModal/index.jsx";
 import Footer from "../../Footer/index.jsx";
 import Header from "../../Header/index.jsx";
-import horizontalBgImage from "../../../../static/images/hero-background-horizontal-4x.png";
-import verticalBgImage from "../../../../static/images/hero-background-vertical-3x.png";
 
 const makeClasses = makeStyles((theme) => ({
-  heroBackgroundImage: {
-    
-  },
+  heroBackgroundImage: {},
   container: {
     backgroundColor: theme.palette.background.main,
     fontFamily: theme.typography.fontFamily,
@@ -18,11 +16,14 @@ const makeClasses = makeStyles((theme) => ({
     minHeight: "100vh",
     backgroundImage: `url(${horizontalBgImage})`,
     backgroundRepeat: "no-repeat",
-    backgroundSize: 'contain',
+    backgroundSize: "contain",
+    backgroundPosition: "center top",
     [theme.breakpoints.down("sm")]: {
       backgroundImage: `url(${verticalBgImage})`,
+    },
+    [theme.breakpoints.up("xl")]: {
+      backgroundSize: "auto 1800px",
     }
-    // TODO: max width
   },
   sections: {
     minHeight: `calc(100vh - ${theme.header.height}px - ${theme.header.marginBottom}px - ${theme.footer.height}px)`,
