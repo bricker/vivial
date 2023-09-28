@@ -1,6 +1,6 @@
 import json
 from typing import Any
-from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
 import eave.stdlib.core_api.operations.account as account
@@ -77,12 +77,12 @@ async def get_auth_state() -> Response:
 @app.route("/dashboard/me", methods=["GET"])
 async def get_user() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    access_token, account_id = _assert_auth(auth_cookies)
 
     eave_response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
-        account_id=auth_cookies.account_id,
-        access_token=auth_cookies.access_token,
+        account_id=account_id,
+        access_token=access_token,
     )
 
     return _clean_response(eave_response)
@@ -105,8 +105,6 @@ async def get_team_repos(team_id: str) -> Response:
 
     eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        account_id=auth_cookies.account_id,
-        access_token=auth_cookies.access_token,
         team_id=team_id,
         input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
@@ -117,15 +115,15 @@ async def get_team_repos(team_id: str) -> Response:
 @app.route("/dashboard/team/<team_id>/repos/update", methods=["POST"])
 async def update_team_repos(team_id: str) -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    access_token, account_id = _assert_auth(auth_cookies)
 
     body = request.get_json()
     repos = body["repos"]
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        account_id=auth_cookies.account_id,
-        access_token=auth_cookies.access_token,
+        account_id=account_id,
+        access_token=access_token,
         team_id=team_id,
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
@@ -149,9 +147,11 @@ def catch_all(path: str) -> Response:
     return response
 
 
-def _assert_auth(auth_cookies):
+def _assert_auth(auth_cookies: AuthCookies) -> tuple[str, str]:
     if not auth_cookies.access_token or not auth_cookies.account_id:
         raise werkzeug.exceptions.Unauthorized()
+
+    return (auth_cookies.access_token, auth_cookies.account_id)
 
 
 def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:

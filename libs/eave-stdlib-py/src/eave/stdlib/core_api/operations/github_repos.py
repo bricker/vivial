@@ -148,7 +148,7 @@ class UpdateGithubReposRequest(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         account_id: uuid.UUID | str,
         access_token: str,
         **kwargs: Unpack[requests.CommonRequestArgs],
