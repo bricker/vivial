@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from eave.core.internal.orm.github_repos import GithubRepoOrm
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.stdlib.core_api.models.github_repos import (
     Feature,
     State,
@@ -20,11 +21,18 @@ from .base import BaseTestCase
 class TestGithubRepoRequests(BaseTestCase):
     async def create_repos(self, session: AsyncSession, team_id: UUID, quantity: int = 5) -> list[GithubRepoOrm]:
         orms: list[GithubRepoOrm] = []
+        gh_install = await GithubInstallationOrm.create(
+            session=session,
+            team_id=team_id,
+            github_install_id=self.anystr(),
+        )
+
         for i in range(quantity):
             orms.append(
                 await GithubRepoOrm.create(
                     session=session,
                     team_id=team_id,
+                    github_install_id=gh_install.github_install_id,
                     external_repo_id=self.anystr(f"external_repo_id:{team_id}:{i}"),
                     display_name=self.anystr(),
                 )
