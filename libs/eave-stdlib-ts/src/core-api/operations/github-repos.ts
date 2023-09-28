@@ -87,8 +87,12 @@ export type DeleteGithubReposRequestBody = {
 };
 
 export class DeleteGithubRepoOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-repos/delete" });
-  static async perform(args: RequestArgsAuthedRequest & { input: DeleteGithubReposRequestBody }): Promise<void> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-repos/delete",
+  });
+  static async perform(
+    args: RequestArgsAuthedRequest & { input: DeleteGithubReposRequestBody },
+  ): Promise<void> {
     await makeRequest({
       config: this.config,
       ...args,

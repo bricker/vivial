@@ -1,5 +1,12 @@
-import { RequestArgsOrigin, RequestArgsTeamId, makeRequest } from "../../requests.js";
-import { GithubInstallation, GithubInstallationInput } from "../models/github.js";
+import {
+  RequestArgsOrigin,
+  RequestArgsTeamId,
+  makeRequest,
+} from "../../requests.js";
+import {
+  GithubInstallation,
+  GithubInstallationInput,
+} from "../models/github.js";
 import { Team } from "../models/team.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
@@ -34,9 +41,13 @@ export type DeleteGithubInstallationRequestBody = {
 };
 
 export class DeleteGithubInstallationOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/integrations/github/delete" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/integrations/github/delete",
+  });
 
-  static async perform(args: RequestArgsTeamId & { input: DeleteGithubInstallationRequestBody }): Promise<void> {
+  static async perform(
+    args: RequestArgsTeamId & { input: DeleteGithubInstallationRequestBody },
+  ): Promise<void> {
     await makeRequest({
       config: this.config,
       ...args,

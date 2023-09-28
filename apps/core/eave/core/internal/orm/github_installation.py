@@ -75,7 +75,7 @@ class GithubInstallationOrm(Base):
         lookup = cls._build_select(**kwargs)
         result = (await session.scalars(lookup)).one()
         return result
-    
+
     @classmethod
     async def delete_by_github_install_id(cls, team_id: UUID, github_install_id: str, session: AsyncSession) -> None:
         stmt = delete(cls).where(cls.team_id == team_id).where(cls.github_install_id == github_install_id)
