@@ -93,19 +93,23 @@ class TestGithubRepoRequests(BaseTestCase):
     async def test_github_repo_req_create(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            account = await self.make_account(s, team_id=team.id)
+            gh_install = await GithubInstallationOrm.create(
+                session=s,
+                team_id=team.id,
+                github_install_id=self.anystr(),
+            )
 
         response = await self.make_request(
             path="/github-repos/create",
             payload={
                 "repo": {
                     "external_repo_id": self.anystr("external_repo_id"),
+                    "github_install_id": gh_install.github_install_id,
+                    "display_name": "aaa",
                     "inline_code_documentation_state": State.ENABLED.value,
                 }
             },
             team_id=team.id,
-            account_id=account.id,
-            access_token=account.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
