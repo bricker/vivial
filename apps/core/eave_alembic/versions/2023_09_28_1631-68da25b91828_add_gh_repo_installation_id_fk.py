@@ -1,8 +1,8 @@
-"""add gh install id fk to gh repos
+"""add gh repo installation id fk
 
-Revision ID: 18df005a7979
+Revision ID: 68da25b91828
 Revises: 70b7dad6deff
-Create Date: 2023-09-28 03:12:23.182097
+Create Date: 2023-09-28 16:31:08.775394
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "18df005a7979"
+revision = "68da25b91828"
 down_revision = "70b7dad6deff"
 branch_labels = None
 depends_on = None
@@ -27,7 +27,7 @@ def upgrade() -> None:
         "github_repos",
         "github_installations",
         ["github_installation_id"],
-        ["id"],
+        ["github_install_id"],
         ondelete="CASCADE",
     )
     # ### end Alembic commands ###
