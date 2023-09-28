@@ -107,7 +107,6 @@ class CreateGithubRepoRequest(CoreApiEndpoint):
 class DeleteGithubReposRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/github-repos/delete",
-        auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):
@@ -121,12 +120,16 @@ class DeleteGithubReposRequest(CoreApiEndpoint):
         cls,
         input: RequestBody,
         team_id: uuid.UUID,
+        account_id: uuid.UUID | str,
+        access_token: str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=input,
             team_id=team_id,
+            account_id=account_id,
+            access_token=access_token,
             **kwargs,
         )
 

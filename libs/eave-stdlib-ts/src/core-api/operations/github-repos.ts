@@ -26,7 +26,7 @@ export class GetGithubReposOperation {
     path: "/github-repos/query",
   });
   static async perform(
-    args: RequestArgsTeamId & { input: GetGithubReposRequestBody },
+    args: RequestArgsAuthedRequest & { input: GetGithubReposRequestBody },
   ): Promise<GetGithubReposResponseBody> {
     const resp = await makeRequest({
       config: this.config,
@@ -88,7 +88,7 @@ export type DeleteGithubReposRequestBody = {
 
 export class DeleteGithubRepoOperation {
   static config = new CoreApiEndpointConfiguration({ path: "/github-repos/delete" });
-  static async perform(args: RequestArgsTeamId & { input: DeleteGithubReposRequestBody }): Promise<void> {
+  static async perform(args: RequestArgsAuthedRequest & { input: DeleteGithubReposRequestBody }): Promise<void> {
     await makeRequest({
       config: this.config,
       ...args,
