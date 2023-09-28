@@ -26,7 +26,7 @@ export class GetGithubReposOperation {
     path: "/github-repos/query",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & { input: GetGithubReposRequestBody },
+    args: RequestArgsTeamId & { input: GetGithubReposRequestBody },
   ): Promise<GetGithubReposResponseBody> {
     const resp = await makeRequest({
       config: this.config,

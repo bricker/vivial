@@ -228,6 +228,10 @@ routes = [
         endpoint=github_repos.CreateGithubRepoEndpoint,
     ),
     make_route(
+        config=GetGithubReposRequest.config,
+        endpoint=github_repos.GetGithubRepoEndpoint,
+    ),
+    make_route(
         config=FeatureStateGithubReposRequest.config,
         endpoint=github_repos.FeatureStateGithubReposEndpoint,
     ),
@@ -251,10 +255,6 @@ routes = [
     make_route(
         config=DeleteGithubDocumentsByTypeRequest.config,
         endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
-    ),
-    make_route(
-        config=GetGithubReposRequest.config,
-        endpoint=github_repos.GetGithubRepoEndpoint,
     ),
     make_route(
         config=UpdateGithubReposRequest.config,
