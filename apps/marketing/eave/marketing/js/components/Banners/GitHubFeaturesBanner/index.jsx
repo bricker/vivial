@@ -21,23 +21,24 @@ const makeClasses = makeStyles((theme) => ({
     marginRight: 80,
   },
   featureSubtitle: {
-    marginBottom: 50,
+    marginBottom: 41,
   },
   featureImage: {
     // widthFn = (maxWidth) => (maxWidth - PageSection.padding*2 - featureContainer.margin*2) / numberOfFeatures
     // min( widthFn(viewportWidth), widthFn(PageSection.maxWidth) )
     maxWidth: "min((100vw - 108px - 160px) / 3, 282px)",
-    marginBottom: 100,
     minWidth: 150,
     [theme.breakpoints.down("sm")]: {
-      minWidth: 300,
+      minWidth: 328, // TODO: maybe have this change w/ window size?
+      marginBottom: 75,
     },
   },
   titleImage: {
     maxWidth: 355,
     [theme.breakpoints.down("sm")]: {
       order: -1,
-      marginBottom: 50,
+      marginBottom: 28,
+      maxWidth: "50%",
     },
     [theme.breakpoints.up("lg")]: {
       marginRight: -140,
@@ -48,7 +49,7 @@ const makeClasses = makeStyles((theme) => ({
     flexDirection: "column",
     alignItems: "flex-start",
     justifyContent: "spacing-between",
-    marginBottom: 100,
+    marginBottom: 85,
     [theme.breakpoints.up("md")]: {
       flexDirection: "row",
       alignItems: "flex-end",
