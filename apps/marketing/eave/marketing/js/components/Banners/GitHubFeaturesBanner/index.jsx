@@ -33,12 +33,14 @@ const makeClasses = makeStyles((theme) => ({
       minWidth: 300,
     },
   },
-  titleCopy: {},
   titleImage: {
     maxWidth: 355,
     [theme.breakpoints.down("sm")]: {
       order: -1,
       marginBottom: 50,
+    },
+    [theme.breakpoints.up("lg")]: {
+      marginRight: -140,
     },
   },
   titleContainer: {
@@ -54,7 +56,12 @@ const makeClasses = makeStyles((theme) => ({
   },
   heroBufferPadding: {
     paddingTop: 300,
-    // breakpoints?
+    [theme.breakpoints.only("md")]: {
+      paddingTop: 200,
+    },
+    [theme.breakpoints.only("sm")]: {
+      paddingTop: 150,
+    },
   },
 }));
 
