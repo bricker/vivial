@@ -1,15 +1,16 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import Parser from "tree-sitter";
-import { eaveLogger, LogContext } from "../logging.js";
-import { grammarForLanguage } from "../parsing/grammars.js";
+import { eaveLogger, LogContext } from "../../logging.js";
+import { grammarForLanguage } from "../../parsing/grammars.js";
 import {
   getProgrammingLanguageByExtension,
   ProgrammingLanguage,
-} from "../programming-langs/language-mapping.js";
-import { OpenAIModel } from "../transformer-ai/models.js";
-import OpenAIClient, { formatprompt } from "../transformer-ai/openai.js";
-import { ExpressRoutingMethod } from "../types.js";
+} from "../../programming-langs/language-mapping.js";
+import { OpenAIModel } from "../../transformer-ai/models.js";
+import OpenAIClient, { formatprompt } from "../../transformer-ai/openai.js";
+import { ExpressRoutingMethod } from "../../types.js";
+import { CtxArg } from "../../requests.js";
 
 const DIR_EXCLUDES = ["node_modules"];
 
@@ -64,19 +65,19 @@ export class ExpressAPIDocumentor {
     this.#ctx = ctx;
   }
 
-  /**
-   * Identifies all Express APIs in a repo associated with an instance of this
-   * class and generates API documentation for each API.
-   */
-  async document({ dir }: { dir: string }) {
-    const apis = await this.getExpressAPIs({ dir });
-    await Promise.allSettled(
-      apis.map(async (api) => {
-        await this.#generateExpressAPIDoc({ api });
-        // TODO: Open pull request
-      }),
-    );
-  }
+  // /**
+  //  * Identifies all Express APIs in a repo associated with an instance of this
+  //  * class and generates API documentation for each API.
+  //  */
+  // async document({ dir }: { dir: string }) {
+  //   const apis = await this.getExpressAPIs({ dir });
+  //   await Promise.allSettled(
+  //     apis.map(async (api) => {
+  //       await this.#generateExpressAPIDoc({ api });
+  //       // TODO: Open pull request
+  //     }),
+  //   );
+  // }
 
   /**
    * Searches package.json files in a repo associated with an instance of this
@@ -132,349 +133,349 @@ export class ExpressAPIDocumentor {
     return apis;
   }
 
-  /**
-   * Given the directory of a suspected Express API, finds the file in which
-   * the Express app is initialized.
-   */
-  async #findRootFilePath({
-    apiDir,
-  }: {
-    apiDir: string;
-  }): Promise<string | null> {
-    const dirents = await fs.readdir(apiDir, { withFileTypes: true });
+  // /**
+  //  * Given the directory of a suspected Express API, finds the file in which
+  //  * the Express app is initialized.
+  //  */
+  // async #findRootFilePath({
+  //   apiDir,
+  // }: {
+  //   apiDir: string;
+  // }): Promise<string | null> {
+  //   const dirents = await fs.readdir(apiDir, { withFileTypes: true });
 
-    // BFS
-    const files = dirents.filter((d) => d.isFile());
-    for (const dirent of files) {
-      const extName = path.extname(dirent.name);
-      const language = getProgrammingLanguageByExtension(extName);
-      if (language) {
-        this.language = language;
-        const grammar = grammarForLanguage({ language, extName });
-        this.parser.setLanguage(grammar);
+  //   // BFS
+  //   const files = dirents.filter((d) => d.isFile());
+  //   for (const dirent of files) {
+  //     const extName = path.extname(dirent.name);
+  //     const language = getProgrammingLanguageByExtension(extName);
+  //     if (language) {
+  //       this.language = language;
+  //       const grammar = grammarForLanguage({ language, extName });
+  //       this.parser.setLanguage(grammar);
 
-        const filePath = path.join(apiDir, dirent.name);
-        const code = await fs.readFile(filePath, "utf8");
-        const tree = this.parser.parse(code);
-        const variables = this.#getVariableMap({ tree });
+  //       const filePath = path.join(apiDir, dirent.name);
+  //       const code = await fs.readFile(filePath, "utf8");
+  //       const tree = this.parser.parse(code);
+  //       const variables = this.#getVariableMap({ tree });
 
-        for (const expressionNode of variables.values()) {
-          const children = this.#getNodeChildMap({ node: expressionNode });
-          const expression = this.#getExpression({ siblings: children });
-          if (expression === "express") {
-            // We found the file; return from the whole function.
-            return filePath;
-          }
-        }
-      }
-    }
+  //       for (const expressionNode of variables.values()) {
+  //         const children = this.#getNodeChildMap({ node: expressionNode });
+  //         const expression = this.#getExpression({ siblings: children });
+  //         if (expression === "express") {
+  //           // We found the file; return from the whole function.
+  //           return filePath;
+  //         }
+  //       }
+  //     }
+  //   }
 
-    const dirs = dirents.filter(
-      (d) => d.isDirectory() && !DIR_EXCLUDES.includes(d.name),
-    );
-    for (const dirent of dirs) {
-      const dirPath = path.join(apiDir, dirent.name);
-      const rootFilePath = await this.#findRootFilePath({ apiDir: dirPath });
-      if (rootFilePath) {
-        // A subdirectory had the file; return it.
-        return rootFilePath;
-      }
-    }
+  //   const dirs = dirents.filter(
+  //     (d) => d.isDirectory() && !DIR_EXCLUDES.includes(d.name),
+  //   );
+  //   for (const dirent of dirs) {
+  //     const dirPath = path.join(apiDir, dirent.name);
+  //     const rootFilePath = await this.#findRootFilePath({ apiDir: dirPath });
+  //     if (rootFilePath) {
+  //       // A subdirectory had the file; return it.
+  //       return rootFilePath;
+  //     }
+  //   }
 
-    // No file was found. Return null.
-    return null;
-  }
+  //   // No file was found. Return null.
+  //   return null;
+  // }
 
-  /**
-   * Given a relative file path, returns the full local file path if it exists.
-   */
-  #getLocalFilePath({
-    srcDir,
-    relativeFilePath,
-  }: {
-    srcDir: string;
-    relativeFilePath: string;
-  }): string {
-    let filePath = relativeFilePath.replace(/'|"/g, "");
-    const extName = path.extname(filePath);
-    const isSupportedFile = extName === ".js" || extName === ".ts";
-    const isLocalFile = filePath.startsWith(".");
+  // /**
+  //  * Given a relative file path, returns the full local file path if it exists.
+  //  */
+  // #getLocalFilePath({
+  //   srcDir,
+  //   relativeFilePath,
+  // }: {
+  //   srcDir: string;
+  //   relativeFilePath: string;
+  // }): string {
+  //   let filePath = relativeFilePath.replace(/'|"/g, "");
+  //   const extName = path.extname(filePath);
+  //   const isSupportedFile = extName === ".js" || extName === ".ts";
+  //   const isLocalFile = filePath.startsWith(".");
 
-    if (isSupportedFile && isLocalFile) {
-      if (filePath.startsWith("./")) {
-        return srcDir + filePath.slice(1);
-      }
-      let numDirsUp = filePath.match(/\.\.\//g)?.length || 0;
-      let currentDir = srcDir;
-      while (numDirsUp > 0) {
-        currentDir = currentDir.slice(0, currentDir.lastIndexOf("/"));
-        filePath = filePath.slice(3);
-        numDirsUp -= numDirsUp;
-      }
-      return `${currentDir}/${filePath}`;
-    }
-    return "";
-  }
+  //   if (isSupportedFile && isLocalFile) {
+  //     if (filePath.startsWith("./")) {
+  //       return srcDir + filePath.slice(1);
+  //     }
+  //     let numDirsUp = filePath.match(/\.\.\//g)?.length || 0;
+  //     let currentDir = srcDir;
+  //     while (numDirsUp > 0) {
+  //       currentDir = currentDir.slice(0, currentDir.lastIndexOf("/"));
+  //       filePath = filePath.slice(3);
+  //       numDirsUp -= numDirsUp;
+  //     }
+  //     return `${currentDir}/${filePath}`;
+  //   }
+  //   return "";
+  // }
 
-  /**
-   * Assesses the import statements in the given tree and builds a map of the
-   * imported declarations that live in the target repo.
-   */
-  #getLocalImportPaths({
-    tree,
-    filePath,
-  }: {
-    tree: Parser.Tree;
-    filePath: string;
-  }): Map<string, string> {
-    const dirName = path.dirname(filePath);
-    const importNodes = tree.rootNode.descendantsOfType("import_statement");
-    const importPaths = new Map();
+  // /**
+  //  * Assesses the import statements in the given tree and builds a map of the
+  //  * imported declarations that live in the target repo.
+  //  */
+  // #getLocalImportPaths({
+  //   tree,
+  //   filePath,
+  // }: {
+  //   tree: Parser.Tree;
+  //   filePath: string;
+  // }): Map<string, string> {
+  //   const dirName = path.dirname(filePath);
+  //   const importNodes = tree.rootNode.descendantsOfType("import_statement");
+  //   const importPaths = new Map();
 
-    for (const importNode of importNodes) {
-      const children = this.#getNodeChildMap({ node: importNode });
-      const importPath = children.get("string")?.text || "";
-      const importClause = children.get("import_clause")?.text;
-      const importNames = importClause?.replace(/ |{|}/g, "").split(",") || [];
+  //   for (const importNode of importNodes) {
+  //     const children = this.#getNodeChildMap({ node: importNode });
+  //     const importPath = children.get("string")?.text || "";
+  //     const importClause = children.get("import_clause")?.text;
+  //     const importNames = importClause?.replace(/ |{|}/g, "").split(",") || [];
 
-      for (const importName of importNames) {
-        const fullFilePath = this.#getLocalFilePath({
-          srcDir: dirName,
-          relativeFilePath: importPath,
-        });
-        if (fullFilePath) {
-          importPaths.set(importName, fullFilePath);
-        }
-      }
-    }
-    return importPaths;
-  }
+  //     for (const importName of importNames) {
+  //       const fullFilePath = this.#getLocalFilePath({
+  //         srcDir: dirName,
+  //         relativeFilePath: importPath,
+  //       });
+  //       if (fullFilePath) {
+  //         importPaths.set(importName, fullFilePath);
+  //       }
+  //     }
+  //   }
+  //   return importPaths;
+  // }
 
-  /**
-   * Assesses the require statements in the given tree and builds a map of the
-   * imported declarations that live in the target repo.
-   */
-  #getLocalRequirePaths({
-    tree,
-    filePath,
-  }: {
-    tree: Parser.Tree;
-    filePath: string;
-  }): Map<string, string> {
-    const dirName = path.dirname(filePath);
-    const variables = this.#getVariableMap({ tree });
-    const requirePaths = new Map();
+  // /**
+  //  * Assesses the require statements in the given tree and builds a map of the
+  //  * imported declarations that live in the target repo.
+  //  */
+  // #getLocalRequirePaths({
+  //   tree,
+  //   filePath,
+  // }: {
+  //   tree: Parser.Tree;
+  //   filePath: string;
+  // }): Map<string, string> {
+  //   const dirName = path.dirname(filePath);
+  //   const variables = this.#getVariableMap({ tree });
+  //   const requirePaths = new Map();
 
-    for (const [identifier, expressionNode] of variables) {
-      const children = this.#getNodeChildMap({ node: expressionNode });
-      const expression = this.#getExpression({ siblings: children });
+  //   for (const [identifier, expressionNode] of variables) {
+  //     const children = this.#getNodeChildMap({ node: expressionNode });
+  //     const expression = this.#getExpression({ siblings: children });
 
-      if (expression === "require") {
-        const args = children.get("arguments");
-        const relativeFilePath = args?.firstNamedChild?.text || "";
-        const fullFilePath =
-          relativeFilePath &&
-          this.#getLocalFilePath({ srcDir: dirName, relativeFilePath });
-        if (fullFilePath) {
-          requirePaths.set(identifier, fullFilePath);
-        }
-      }
-    }
-    return requirePaths;
-  }
+  //     if (expression === "require") {
+  //       const args = children.get("arguments");
+  //       const relativeFilePath = args?.firstNamedChild?.text || "";
+  //       const fullFilePath =
+  //         relativeFilePath &&
+  //         this.#getLocalFilePath({ srcDir: dirName, relativeFilePath });
+  //       if (fullFilePath) {
+  //         requirePaths.set(identifier, fullFilePath);
+  //       }
+  //     }
+  //   }
+  //   return requirePaths;
+  // }
 
-  /**
-   * Adds the given node's children to a map for convenient lookup.
-   */
-  #getNodeChildMap({
-    node,
-  }: {
-    node: Parser.SyntaxNode;
-  }): Map<string, Parser.SyntaxNode> {
-    const nodeInfo = new Map();
-    for (const child of node.children) {
-      nodeInfo.set(child.type, child);
-    }
-    return nodeInfo;
-  }
+  // /**
+  //  * Adds the given node's children to a map for convenient lookup.
+  //  */
+  // #getNodeChildMap({
+  //   node,
+  // }: {
+  //   node: Parser.SyntaxNode;
+  // }): Map<string, Parser.SyntaxNode> {
+  //   const nodeInfo = new Map();
+  //   for (const child of node.children) {
+  //     nodeInfo.set(child.type, child);
+  //   }
+  //   return nodeInfo;
+  // }
 
-  /**
-   * Adds variable nodes to a map for convenient lookup.
-   * Currently only considers variables that are set to a call expression.
-   */
-  #getVariableMap({
-    tree,
-  }: {
-    tree: Parser.Tree;
-  }): Map<string, Parser.SyntaxNode> {
-    const variableNodes = tree.rootNode.descendantsOfType(
-      "variable_declarator",
-    );
-    const variables = new Map();
-    for (const node of variableNodes) {
-      const children = this.#getNodeChildMap({ node });
-      const identifierNode = children.get("identifier");
-      const expressionNode = children.get("call_expression");
-      if (identifierNode && expressionNode) {
-        variables.set(identifierNode.text, expressionNode);
-      }
-    }
-    return variables;
-  }
+  // /**
+  //  * Adds variable nodes to a map for convenient lookup.
+  //  * Currently only considers variables that are set to a call expression.
+  //  */
+  // #getVariableMap({
+  //   tree,
+  // }: {
+  //   tree: Parser.Tree;
+  // }): Map<string, Parser.SyntaxNode> {
+  //   const variableNodes = tree.rootNode.descendantsOfType(
+  //     "variable_declarator",
+  //   );
+  //   const variables = new Map();
+  //   for (const node of variableNodes) {
+  //     const children = this.#getNodeChildMap({ node });
+  //     const identifierNode = children.get("identifier");
+  //     const expressionNode = children.get("call_expression");
+  //     if (identifierNode && expressionNode) {
+  //       variables.set(identifierNode.text, expressionNode);
+  //     }
+  //   }
+  //   return variables;
+  // }
 
-  /**
-   * Finds the closest declaration node to a given node.
-   * If the given node is a declarationn node, it is returned.
-   */
-  #findDeclaration({
-    node,
-  }: {
-    node: Parser.SyntaxNode;
-  }): Parser.SyntaxNode | null {
-    if (node.type.includes("declaration")) {
-      return node;
-    }
-    if (node.type === "export_statement") {
-      for (const child of node.namedChildren) {
-        if (child.type.includes("declaration")) {
-          return child;
-        }
-      }
-    }
-    return null;
-  }
+  // /**
+  //  * Finds the closest declaration node to a given node.
+  //  * If the given node is a declarationn node, it is returned.
+  //  */
+  // #findDeclaration({
+  //   node,
+  // }: {
+  //   node: Parser.SyntaxNode;
+  // }): Parser.SyntaxNode | null {
+  //   if (node.type.includes("declaration")) {
+  //     return node;
+  //   }
+  //   if (node.type === "export_statement") {
+  //     for (const child of node.namedChildren) {
+  //       if (child.type.includes("declaration")) {
+  //         return child;
+  //       }
+  //     }
+  //   }
+  //   return null;
+  // }
 
-  /**
-   * Given a tree, finds all of the top-level declarations in that tree and
-   * returns them in a convenient map.
-   */
-  #getDeclarationMap({
-    tree,
-  }: {
-    tree: Parser.Tree;
-  }): Map<string, Parser.SyntaxNode> {
-    const declarations = new Map();
-    for (const node of tree.rootNode.namedChildren) {
-      const declaration = this.#findDeclaration({ node });
-      if (declaration) {
-        const identifier = node.descendantsOfType("identifier")?.at(0);
-        if (identifier) {
-          declarations.set(identifier.text, declaration);
-        }
-      }
-    }
-    return declarations;
-  }
+  // /**
+  //  * Given a tree, finds all of the top-level declarations in that tree and
+  //  * returns them in a convenient map.
+  //  */
+  // #getDeclarationMap({
+  //   tree,
+  // }: {
+  //   tree: Parser.Tree;
+  // }): Map<string, Parser.SyntaxNode> {
+  //   const declarations = new Map();
+  //   for (const node of tree.rootNode.namedChildren) {
+  //     const declaration = this.#findDeclaration({ node });
+  //     if (declaration) {
+  //       const identifier = node.descendantsOfType("identifier")?.at(0);
+  //       if (identifier) {
+  //         declarations.set(identifier.text, declaration);
+  //       }
+  //     }
+  //   }
+  //   return declarations;
+  // }
 
-  /**
-   * Given a map of sibling nodes, returns the first expression detected.
-   * Use getNodeChildMap(node) to get a map of sibling nodes.
-   */
-  #getExpression({
-    siblings,
-  }: {
-    siblings: Map<string, Parser.SyntaxNode>;
-  }): string | undefined {
-    if (siblings.has("identifier")) {
-      return siblings.get("identifier")?.text;
-    }
-    return siblings.get("member_expression")?.text;
-  }
+  // /**
+  //  * Given a map of sibling nodes, returns the first expression detected.
+  //  * Use getNodeChildMap(node) to get a map of sibling nodes.
+  //  */
+  // #getExpression({
+  //   siblings,
+  // }: {
+  //   siblings: Map<string, Parser.SyntaxNode>;
+  // }): string | undefined {
+  //   if (siblings.has("identifier")) {
+  //     return siblings.get("identifier")?.text;
+  //   }
+  //   return siblings.get("member_expression")?.text;
+  // }
 
-  /**
-   * Searches a tree for relevant Express calls and returns the variables that
-   * are used to declare the root Express app and the Express Router if needed.
-   */
-  async #getExpressAppIdentifiers({
-    tree,
-  }: {
-    tree: Parser.Tree;
-  }): Promise<ExpressIdentifiers> {
-    const variables = await this.#getVariableMap({ tree });
-    const identifiers: ExpressIdentifiers = {};
+  // /**
+  //  * Searches a tree for relevant Express calls and returns the variables that
+  //  * are used to declare the root Express app and the Express Router if needed.
+  //  */
+  // async #getExpressAppIdentifiers({
+  //   tree,
+  // }: {
+  //   tree: Parser.Tree;
+  // }): Promise<ExpressIdentifiers> {
+  //   const variables = await this.#getVariableMap({ tree });
+  //   const identifiers: ExpressIdentifiers = {};
 
-    for (const [identifier, expressionNode] of variables) {
-      const children = await this.#getNodeChildMap({ node: expressionNode });
-      const expression = await this.#getExpression({ siblings: children });
-      if (expression === "express") {
-        identifiers.app = identifier;
-        continue;
-      }
-      if (expression === "express.Router" || expression === "Router") {
-        identifiers.router = identifier;
-      }
-    }
-    return identifiers;
-  }
+  //   for (const [identifier, expressionNode] of variables) {
+  //     const children = await this.#getNodeChildMap({ node: expressionNode });
+  //     const expression = await this.#getExpression({ siblings: children });
+  //     if (expression === "express") {
+  //       identifiers.app = identifier;
+  //       continue;
+  //     }
+  //     if (expression === "express.Router" || expression === "Router") {
+  //       identifiers.router = identifier;
+  //     }
+  //   }
+  //   return identifiers;
+  // }
 
-  /**
-   * Given a node, returns the uniqie set of identifiers referenced in that node.
-   * Ignores any exclusions passed in.
-   */
-  #getUniqueIdentifiers({
-    rootNode,
-    exclusions,
-  }: {
-    rootNode: Parser.SyntaxNode;
-    exclusions: Array<string>;
-  }): Set<string> {
-    const identifiers: Set<string> = new Set();
-    for (const node of rootNode.descendantsOfType("identifier")) {
-      if (!exclusions.includes(node.text)) {
-        identifiers.add(node.text);
-      }
-    }
-    return identifiers;
-  }
+  // /**
+  //  * Given a node, returns the unique set of identifiers referenced in that node.
+  //  * Ignores any exclusions passed in.
+  //  */
+  // #getUniqueIdentifiers({
+  //   rootNode,
+  //   exclusions,
+  // }: {
+  //   rootNode: Parser.SyntaxNode;
+  //   exclusions: Array<string>;
+  // }): Set<string> {
+  //   const identifiers: Set<string> = new Set();
+  //   for (const node of rootNode.descendantsOfType("identifier")) {
+  //     if (!exclusions.includes(node.text)) {
+  //       identifiers.add(node.text);
+  //     }
+  //   }
+  //   return identifiers;
+  // }
 
-  /**
-   * Uses an Express API's root directory name to cobble together a guess for
-   * what the name of the API is.
-   *
-   * NOTE: I kind of hate this. If you are reading this and can think of a
-   * better solution, feel free to gently place this code into a trash can.
-   */
-  #guessExpressAPIName({ apiDir }: { apiDir: string }): string {
-    const dirName = path.basename(apiDir);
-    const apiName = dirName.replace(/[^a-zA-Z0-9]/g, " ").toLowerCase();
-    const capitalizedName = apiName.split(" ").map((str) => {
-      if (/api/.test(str.toLowerCase())) {
-        return "";
-      }
-      return str && str[0] && str[0].toUpperCase() + str.slice(1);
-    });
-    return `${capitalizedName.join(" ")} API`;
-  }
+  // /**
+  //  * Uses an Express API's root directory name to cobble together a guess for
+  //  * what the name of the API is.
+  //  *
+  //  * NOTE: I kind of hate this. If you are reading this and can think of a
+  //  * better solution, feel free to gently place this code into a trash can.
+  //  */
+  // #guessExpressAPIName({ apiDir }: { apiDir: string }): string {
+  //   const dirName = path.basename(apiDir);
+  //   const apiName = dirName.replace(/[^a-zA-Z0-9]/g, " ").toLowerCase();
+  //   const capitalizedName = apiName.split(" ").map((str) => {
+  //     if (/api/.test(str.toLowerCase())) {
+  //       return "";
+  //     }
+  //     return str && str[0] && str[0].toUpperCase() + str.slice(1);
+  //   });
+  //   return `${capitalizedName.join(" ")} API`;
+  // }
 
-  /**
-   * Returns true if the text for a given node is setting up an Express route.
-   * Otherwise, returns false.
-   */
-  async #isExpressRouteCall({
-    node,
-    app,
-    router,
-  }: {
-    node: Parser.SyntaxNode;
-    app: string;
-    router: string;
-  }): Promise<boolean> {
-    const children = await this.#getNodeChildMap({ node });
-    const expression = await this.#getExpression({ siblings: children });
-    if (expression) {
-      if (router) {
-        return expression === `${router}.use`;
-      }
-      if (expression.startsWith(`${app}.`)) {
-        for (const method of Object.values(ExpressRoutingMethod)) {
-          if (expression === `${app}.${method}`) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
+  // /**
+  //  * Returns true if the text for a given node is setting up an Express route.
+  //  * Otherwise, returns false.
+  //  */
+  // async #isExpressRouteCall({
+  //   node,
+  //   app,
+  //   router,
+  // }: {
+  //   node: Parser.SyntaxNode;
+  //   app: string;
+  //   router: string;
+  // }): Promise<boolean> {
+  //   const children = await this.#getNodeChildMap({ node });
+  //   const expression = await this.#getExpression({ siblings: children });
+  //   if (expression) {
+  //     if (router) {
+  //       return expression === `${router}.use`;
+  //     }
+  //     if (expression.startsWith(`${app}.`)) {
+  //       for (const method of Object.values(ExpressRoutingMethod)) {
+  //         if (expression === `${app}.${method}`) {
+  //           return true;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return false;
+  // }
 
   /**
    * Reads the file at the given path if it exists. If the file path ends in .js,

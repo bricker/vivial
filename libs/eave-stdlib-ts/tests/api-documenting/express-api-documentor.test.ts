@@ -2,7 +2,7 @@ import anyTest, { TestFn } from "ava";
 import {
   ExpressAPIDocumentor,
   Repo,
-} from "../../src/api-documenting/express-api-documentor.js";
+} from "../../src/api-documenting/ecma/express-api-documentor.js";
 import { LogContext } from "../../src/logging.js";
 import { TestContextBase, TestUtil } from "../../src/test-util.js";
 
