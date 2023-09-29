@@ -56,9 +56,8 @@ const Dashboard = () => {
     modalCleanup();
   }, []);
 
-  const handleFeatureUpdate = useCallback(
-    (teamId, teamRepoIds, enabledRepoIds, feature) => {
-      updateTeamFeatureState(teamId, teamRepoIds, enabledRepoIds, feature);
+  const handleFeatureUpdate = useCallback(({ teamRepoIds, enabledRepoIds, feature }) => {
+      updateTeamFeatureState({ teamRepoIds, enabledRepoIds, feature });
       closeInlineDocsModal();
     },
     [],
@@ -69,10 +68,9 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const teamId = user.account.team_id;
-    if (teamId) {
-      getTeam(teamId);
-      getTeamRepos(teamId);
+    if (user.account.team_id) {
+      getTeam();
+      getTeamRepos();
     }
   }, [user.account.team_id]);
 
