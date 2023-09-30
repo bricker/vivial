@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
 import useTeam from "../../../hooks/useTeam.js";
-import useUser from "../../../hooks/useUser.js";
 
 import ExploreFeatures from "../../ExploreFeatures/index.jsx";
 import FeatureSettings from "../../FeatureSettings/index.jsx";
@@ -16,27 +15,22 @@ import { FEATURES, FEATURE_MODAL, FEATURE_STATES } from "../../../constants.js";
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
-  const {
-    team,
-    getTeam,
-    getTeamRepos,
-    getTeamFeatureStates,
-    updateTeamFeatureState,
-  } = useTeam();
-  const { user, getUserAccount } = useUser();
+  const { team, getTeam, getTeamRepos, getTeamFeatureStates, updateTeamFeatureState } = useTeam();
+
   const isLoading =
-    user.accountIsLoading ||
     team.teamIsLoading ||
     team.reposAreLoading ||
     team.featureStatesLoading;
+
   const isErroring =
-    user.accountIsErroring ||
     team.teamIsErroring ||
     team.reposAreErroring ||
     team.featureStatesErroring;
+
   const showFeatureSettings =
     team.inlineCodeDocsState === FEATURE_STATES.ENABLED ||
     team.apiDocsState === FEATURE_STATES.ENABLED;
+
   const [showInlineDocsModal, setShowInlineDocsModal] = useState(false);
 
   const modalCleanup = () => {
@@ -64,15 +58,9 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    getUserAccount();
+    getTeam();
+    getTeamRepos();
   }, []);
-
-  useEffect(() => {
-    if (user.account.team_id) {
-      getTeam();
-      getTeamRepos();
-    }
-  }, [user.account.team_id]);
 
   useEffect(() => {
     getTeamFeatureStates(team.repos);

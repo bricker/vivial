@@ -67,7 +67,7 @@ async def get_auth_state() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
 
     response_body: JsonObject
-    if not auth_cookies.access_token or not auth_cookies.account_id:
+    if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:
         response_body = {"authenticated": False}
     else:
         response_body = {"authenticated": True}
