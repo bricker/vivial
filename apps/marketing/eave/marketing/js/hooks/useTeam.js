@@ -7,13 +7,13 @@ const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
   const [team, setTeam] = teamCtx;
 
-  async function getTeam(teamId) {
+  async function getTeam() {
     setTeam((prev) => ({
       ...prev,
       teamIsLoading: true,
       teamIsErroring: false,
     }));
-    fetch(`dashboard/team/${teamId}`)
+    fetch('/dashboard/team')
       .then((resp) => {
         if (isHTTPError(resp)) {
           throw resp;
@@ -35,13 +35,13 @@ const useTeam = () => {
       });
   }
 
-  async function getTeamRepos(teamId) {
+  async function getTeamRepos() {
     setTeam((prev) => ({
       ...prev,
       reposAreLoading: true,
       reposAreErroring: false,
     }));
-    fetch(`dashboard/team/${teamId}/repos`)
+    fetch('/dashboard/team/repos')
       .then((resp) => {
         if (isHTTPError(resp)) {
           throw resp;
@@ -83,12 +83,7 @@ const useTeam = () => {
     }));
   }
 
-  async function updateTeamFeatureState(
-    teamId,
-    teamRepoIds,
-    enabledRepoIds,
-    feature,
-  ) {
+  async function updateTeamFeatureState({ teamRepoIds, enabledRepoIds, feature }) {
     setTeam((prev) => ({
       ...prev,
       featureStatesLoading: true,
@@ -105,7 +100,7 @@ const useTeam = () => {
         },
       };
     });
-    fetch(`/dashboard/team/${teamId}/repos/update`, {
+    fetch('/dashboard/team/repos/update', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -116,7 +111,7 @@ const useTeam = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        getTeamRepos(teamId);
+        getTeamRepos();
       })
       .catch(() => {
         setTeam((prev) => ({ ...prev, featureStatesErroring: true }));
