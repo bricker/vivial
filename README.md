@@ -18,7 +18,7 @@ To get started, open EAVE_HOME (this directory) in VSCode.
 
 This VSCode workspace defines launch configurations for each app, which you can use from the "Run and Debug" pane in VSCode.
 
-### Running the proxy
+### Running the HTTP proxy
 
 This repository comes with mitmproxy, configured as a pseudo-reverse proxy that listens on localhost:8080 and routes traffic based on the hostname and path, similar to our production load balancer. To run the proxy:
 

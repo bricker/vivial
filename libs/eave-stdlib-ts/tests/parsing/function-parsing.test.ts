@@ -8,7 +8,7 @@ import { ProgrammingLanguage } from "../../src/programming-langs/language-mappin
 test("Typescript grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".ts";
+  const filePath = "src/file.ts";
   const language = ProgrammingLanguage.typescript;
   const content = `import { appConfig } from './src/config.js';
 
@@ -39,7 +39,7 @@ async function fizzbuzz(): Promise<string> {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -106,7 +106,7 @@ async function fizzbuzz(): Promise<string> {
 test("Javascript grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".js";
+  const filePath = "src/file.js";
   const language = ProgrammingLanguage.javascript;
   const content = `const appConfig = require('./src/config.js');
 
@@ -137,7 +137,7 @@ async function fizzbuzz() {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -203,7 +203,7 @@ async function fizzbuzz() {
 test("Rust grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".rs";
+  const filePath = "src/file.rs";
   const language = ProgrammingLanguage.rust;
   const content = `mod app_config;
 
@@ -234,7 +234,7 @@ async fn fizzbuzz() -> Result<&str> {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -293,7 +293,7 @@ async fn fizzbuzz() -> Result<&str> {
 test("C grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".c";
+  const filePath = "src/file.c";
   const language = ProgrammingLanguage.c;
   const content = `#include "./src/config.h";
 #include <stdio.h>;
@@ -325,7 +325,7 @@ char* fizzbuzz() {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -393,7 +393,7 @@ char* fizzbuzz() {
 test("C++ grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".cpp";
+  const filePath = "src/file.cpp";
   const language = ProgrammingLanguage.cpp;
   const content = `#include "./src/config.h";
 #include <stdio.h>;
@@ -425,7 +425,7 @@ char* fizzbuzz() {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -493,7 +493,7 @@ char* fizzbuzz() {
 test("Go grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".go";
+  const filePath = "src/file.go";
   const language = ProgrammingLanguage.go;
   const content = `package main
 
@@ -524,7 +524,7 @@ func fizzbuzz() string {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -583,7 +583,7 @@ func fizzbuzz() string {
 test("Java grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".java";
+  const filePath = "src/file.java";
   const language = ProgrammingLanguage.java;
   const content = `import com.src.config;
 
@@ -616,7 +616,7 @@ public class Main {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -685,7 +685,7 @@ public class Main {
 test("Kotlin grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".kt";
+  const filePath = "src/file.kt";
   const language = ProgrammingLanguage.kotlin;
   const content = `import com.src.config;
 
@@ -716,7 +716,7 @@ suspend fun fizzbuzz(): Deferred<String> {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -783,7 +783,7 @@ suspend fun fizzbuzz(): Deferred<String> {
 test("PHP grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".php";
+  const filePath = "src/file.php";
   const language = ProgrammingLanguage.php;
   const content = `<?php
 
@@ -816,7 +816,7 @@ function fizzbuzz() {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -885,7 +885,7 @@ function fizzbuzz() {
 test("Ruby grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".rb";
+  const filePath = "src/file.rb";
   const language = ProgrammingLanguage.ruby;
   const content = `require "./src/config.js";
 
@@ -914,7 +914,7 @@ end
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -971,7 +971,7 @@ end
 test("Swift grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".swift";
+  const filePath = "src/file.swift";
   const language = ProgrammingLanguage.swift;
   const content = `import Config
 
@@ -1002,7 +1002,7 @@ func fizzbuzz() -> String {
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 
@@ -1061,7 +1061,7 @@ func fizzbuzz() -> String {
 test("C# grammar queries adds/replaces all doc comments correctly", (t) => {
   // GIVEN string content of a file (and language/ext data)
   // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
-  const extName = ".cs";
+  const filePath = "src/file.cs";
   const language = ProgrammingLanguage.csharp;
   const content = `using System;
 
@@ -1103,7 +1103,7 @@ namespace MyNamespace
   // WHEN content parsed by tree-sitter grammars
   const funcDocsArray = parseFunctionsAndComments({
     content,
-    extName,
+    filePath,
     language,
   });
 

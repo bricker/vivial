@@ -28,11 +28,6 @@ class GithubDocumentsOrm(Base):
             ["github_repos.external_repo_id"],
             ondelete="CASCADE",
         ),
-        Index(
-            None,
-            "id",
-            unique=True,
-        ),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)

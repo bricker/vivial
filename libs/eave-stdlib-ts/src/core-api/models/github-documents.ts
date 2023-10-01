@@ -1,5 +1,6 @@
 export enum Status {
   PROCESSING = "processing",
+  FAILED = "failed",
   PR_OPENED = "pr_opened",
   PR_MERGED = "pr_merged",
 }
@@ -35,6 +36,7 @@ export type GithubDocumentCreateInput = {
   api_name: string | null;
   type: DocumentType;
   pull_request_number: number | null;
+  status: Status;
 };
 
 export type GithubDocumentValuesInput = {

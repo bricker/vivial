@@ -24,10 +24,12 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """
 
     audience: EaveApp
+    endpoint_config: EndpointConfiguration
 
     def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration, audience: EaveApp):
-        super().__init__(app=app, endpoint_config=endpoint_config)
+        super().__init__(app=app)
         self.audience = audience
+        self.endpoint_config = endpoint_config
 
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] != "http":

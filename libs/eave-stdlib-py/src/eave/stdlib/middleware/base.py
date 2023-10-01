@@ -10,11 +10,9 @@ class EaveASGIMiddleware:
     """
 
     app: ASGI3Application
-    endpoint_config: EndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+    def __init__(self, app: ASGI3Application) -> None:
         self.app = app
-        self.endpoint_config = endpoint_config
 
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         ...

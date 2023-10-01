@@ -33,7 +33,7 @@ export interface GPTRequestEventFields {
   document_id?: string;
 }
 
-export async function logEvent(fields: EaveEventFields, ctx?: LogContext) {
+export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   const pubSubClient = new PubSub();
 
   // Get the topic metadata to learn about its schema.
@@ -66,17 +66,15 @@ export async function logEvent(fields: EaveEventFields, ctx?: LogContext) {
     event.eave_account = JSON.stringify(fields.eave_account);
   }
 
-  if (ctx !== undefined) {
-    event.opaque_eave_ctx = JSON.stringify(ctx);
-    event.eave_request_id = ctx.eave_request_id;
+  event.opaque_eave_ctx = JSON.stringify(ctx);
+  event.eave_request_id = ctx.eave_request_id;
 
-    if (!event.eave_account_id && ctx.eave_account_id) {
-      event.eave_account_id = ctx.eave_account_id;
-    }
+  if (!event.eave_account_id && ctx.eave_account_id) {
+    event.eave_account_id = ctx.eave_account_id;
+  }
 
-    if (!event.eave_team_id && ctx.eave_team_id) {
-      event.eave_team_id = ctx.eave_team_id;
-    }
+  if (!event.eave_team_id && ctx.eave_team_id) {
+    event.eave_team_id = ctx.eave_team_id;
   }
 
   const jsonEvent = <JsonObject>EaveEvent.toJSON(event);

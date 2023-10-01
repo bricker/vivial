@@ -3,16 +3,12 @@ query ($repoOwner: String!, $repoName: String!, $expression: String!) {
     object(expression: $expression) {
       ...gitObjectFragment
 
-      ... on Blob {
+      ...on Blob {
         ...blobFragment
       }
 
-      ... on Tree {
+      ...on Tree {
         ...treeFragment
-      }
-
-      ... on Commit {
-        ...commitFragment
       }
     }
   }

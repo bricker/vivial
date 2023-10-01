@@ -1,11 +1,12 @@
 import uuid
+from eave.stdlib.core_api.operations import EndpointConfiguration
 
 import eave.stdlib.headers
 import eave.stdlib.api_util
 import eave.stdlib.exceptions
 import eave.core.internal
 import eave.core.public
-from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 from eave.stdlib.api_util import get_bearer_token
 
 from eave.stdlib.request_state import EaveRequestState
@@ -16,6 +17,12 @@ from eave.stdlib.exceptions import BadRequestError
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
+    endpoint_config: EndpointConfiguration
+
+    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+        super().__init__(app)
+        self.endpoint_config = endpoint_config
+
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
             if development_bypass_allowed(scope=scope):

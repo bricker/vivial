@@ -1,7 +1,8 @@
-import { Issue, ProjectV2Item, Query, validate } from "@octokit/graphql-schema";
+import { Blob, Issue, ProjectV2Item, Query, Tree, validate } from "@octokit/graphql-schema";
 import { promises as fs } from "node:fs";
 import GlobalCache from "../lib/cache.js";
 import { GitHubOperationsContext } from "../types.js";
+import assert from "node:assert";
 
 export async function loadQuery(name: string): Promise<string> {
   const queryCacheKey = `query.${name}`;
@@ -19,7 +20,7 @@ export async function loadQuery(name: string): Promise<string> {
   }
 
   await GlobalCache.set(queryCacheKey, fullQuery);
-  return query;
+  return fullQuery;
 }
 
 async function prependFragments(
@@ -59,4 +60,20 @@ async function prependFragments(
   }
 
   return prependFragments(newQuery, manifest);
+}
+
+export function isTree(obj: { __typename?: string } | undefined | null): obj is Tree {
+  return obj?.__typename === "Tree"
+}
+
+export function isBlob(obj: { __typename?: string } | undefined | null): obj is Blob {
+  return obj?.__typename === "Blob";
+}
+
+export function assertIsTree(obj: { __typename?: string } | undefined | null): asserts obj is Tree {
+  assert(isTree(obj), `expected Tree, got ${obj?.__typename}`);
+}
+
+export function assertIsBlob(obj: { __typename?: string } | undefined | null): asserts obj is Blob {
+  assert(isBlob(obj), `expected Blob, got ${obj?.__typename}`);
 }

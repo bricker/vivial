@@ -4,6 +4,7 @@ import { LogContext, eaveLogger } from "../logging.js";
 import { ProgrammingLanguage } from "../programming-langs/language-mapping.js";
 import {
   getFunctionDocumentationQueries,
+  grammarForFilePathOrName,
   grammarForLanguage,
 } from "./grammars.js";
 
@@ -32,17 +33,17 @@ export type ParsedFunction = {
  */
 export function parseFunctionsAndComments({
   content,
-  extName,
+  filePath,
   language,
   ctx = undefined,
 }: {
   content: string;
-  extName: string;
+  filePath: string;
   language: ProgrammingLanguage;
   ctx?: LogContext;
 }): ParsedFunction[] {
   const parser = new Parser();
-  const languageGrammar = grammarForLanguage({ language, extName });
+  const languageGrammar = grammarForFilePathOrName(filePath);
   if (!languageGrammar) {
     eaveLogger.debug(`No grammar found for ${language}`, ctx);
     return [];

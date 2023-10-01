@@ -1,5 +1,4 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
-import { ExpressAPIDocumentor, testExpressRootFile } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-api-documentor.js";
 import {
   DocumentType,
   GithubDocument,
@@ -26,8 +25,8 @@ import {
   eaveLogger,
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
-import { Blob, Maybe, Query, Repository, Scalars, Tree, TreeEntry } from "@octokit/graphql-schema";
-import assert from "assert";
+import { Blob, FileAddition, FileChanges, Maybe, Query, Repository, Scalars, Tree, TreeEntry } from "@octokit/graphql-schema";
+import assert, { AssertionError } from "assert";
 import Express from "express";
 import { appConfig } from "../config.js";
 import { loadQuery } from "../lib/graphql-util.js";
@@ -35,6 +34,19 @@ import { createOctokitClient, getInstallationId } from "../lib/octokit-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { GitHubOperationsContext } from "../types.js";
 import { components } from "@octokit/openapi-types";
+import { ProgrammingLanguage, getProgrammingLanguageByExtension, getProgrammingLanguageByFilePathOrName } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
+import Parser from "tree-sitter";
+import { ExpressAPI, ExpressParsingUtility } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-parsing-utility.js";
+import { CodeFile } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/parsing-utility.js";
+import path from "path";
+import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
+import { assertPresence, underscoreify } from "@eave-fyi/eave-stdlib-ts/src/util.js";
+
+type GithubApiCallerArgs = GitHubOperationsContext & { repo: Repository, parser: ExpressParsingUtility };
+
+const IGNORE_DIRS = [
+  "node_modules",
+];
 
 export async function runApiDocumentationTaskHandler(
   req: Express.Request,
@@ -69,26 +81,124 @@ export async function runApiDocumentationTaskHandler(
     opaque_params: {
       repo,
     },
-  });
-
-  const document = await getOrCreateGithubDocument({ repo, team, ctx });
+  }, ctx);
 
   const externalRepo = await getExternalRepo({ repo, octokit, ctx });
 
-  const expressApiRootDirs = await getExpressAPIRootDirs({repo: externalRepo, octokit, ctx});
+  const parser = new ExpressParsingUtility({ ctx });
 
-  for (const expressApiRootDir of expressApiRootDirs) {
-    const expressApiRootFile = await getExpressAPIRootFile({apiRootDir: expressApiRootDir, repo: externalRepo, octokit, ctx});
-    if (!expressApiRootFile) {
-      // We thought this dir contained an Express app, but couldn't find a file that initialized the express server.
-      continue;
-    }
+  const fwdArgs = { repo: externalRepo, octokit, ctx, parser };
 
-    const newDocumentContents = await makeApiDocumentation({ apiRootFile: expressApiRootFile, repo: externalRepo, octokit, ctx});
+  const expressApiRootDirs = await getExpressAPIRootDirs({ repo: externalRepo, parser, octokit, ctx });
+
+  if (expressApiRootDirs.length === 0) {
+    await logEvent({
+      event_name: "express_api_detection_no_apps_detected",
+      event_description:
+        "The API documentation feature is enabled for this repository, but no express apps were not detected.",
+      eave_team: team,
+      event_source: "github app",
+      opaque_params: {
+        repo,
+      },
+    }, ctx);
+
+    eaveLogger.warning("No express apps found", repo, ctx);
+    res.sendStatus(200);
+    return;
   }
 
-  const documentor = new ExpressAPIDocumentor(repo, ctx);
-  const newDocumentContent = await documentor.document();
+  const existingEaveDocs = await getExistingGithubDocuments({ repo, team, ctx });
+
+  const results = await Promise.allSettled(expressApiRootDirs.map(async (rootDir) => {
+    const apiInfo = await getExpressApiInfo({ rootDir, team, eaveRepo: repo, ...fwdArgs });
+    assertPresence(apiInfo);
+    assertPresence(apiInfo.rootFile);
+
+    let eaveDoc = existingEaveDocs.find((d) => d.file_path === apiInfo.documentationFilePath);
+    if (eaveDoc) {
+      eaveDoc = await updateGithubDocument({ team, ctx, document: eaveDoc, newValues: { api_name: apiInfo.name, file_path: apiInfo.documentationFilePath, status: Status.PROCESSING } });
+    } else {
+      eaveDoc = await createPlaceholderGithubDocument({ apiInfo, repo, team, ctx });
+    }
+
+    const endpoints = await getExpressAPIEndpoints({ apiRootFilePath: apiInfo.rootFile.path, ...fwdArgs });
+    if (!endpoints || endpoints.length === 0) {
+      await logEvent({
+        event_name: "express_api_detection_no_endpoints",
+        event_description:
+          "An express API was detected, but no endpoints were found.",
+        eave_team: team,
+        event_source: "github app",
+        opaque_params: {
+          repo,
+          externalRepo,
+          rootDir,
+          expressApiRootFile: apiInfo.rootFile.path,
+          language: apiInfo.rootFile.language,
+          apiName: apiInfo.name,
+        },
+      }, ctx);
+
+      eaveLogger.warning("No express API endpoints found", { rootDir, expressApiRootFile: apiInfo.rootFile.path, apiName: apiInfo.name }, repo, externalRepo, ctx);
+      await updateGithubDocument({ team, ctx, document: eaveDoc, newValues: { status: Status.FAILED } });
+      return Promise.reject();
+    }
+
+    apiInfo.endpoints = endpoints;
+
+    const newDocumentContents = await parser.generateExpressAPIDoc({ api: apiInfo, ctx});
+    if (!newDocumentContents) {
+      await logEvent({
+        event_name: "express_api_documentation_not_generated",
+        event_description:
+          "Documentation for an express API was not generated, so the resulting document was empty. No pull request will be opened.",
+        eave_team: team,
+        event_source: "github app",
+        opaque_params: {
+          repo,
+          externalRepo,
+          rootDir,
+          expressApiRootFile: apiInfo.rootFile.path,
+          language: apiInfo.rootFile.language,
+          apiName: apiInfo.name,
+        },
+      }, ctx);
+      eaveLogger.warning("Empty express API documentation.", { rootDir, expressApiRootFile: apiInfo.rootFile.path, apiName: apiInfo.name }, repo, externalRepo, ctx);
+
+      await updateGithubDocument({ team, ctx, document: eaveDoc, newValues: { status: Status.FAILED } });
+      return Promise.reject();
+    } else {
+      await logEvent({
+        event_name: "express_api_documentation_generated",
+        event_description:
+          "Documentation for an express API was successfully generated.",
+        eave_team: team,
+        event_source: "github app",
+        opaque_params: {
+          repo,
+          externalRepo,
+          rootDir,
+          expressApiRootFile: apiInfo.rootFile.path,
+          language: apiInfo.rootFile.language,
+          apiName: apiInfo.name,
+        },
+      }, ctx);
+      apiInfo.documentation = newDocumentContents;
+      return apiInfo;
+    }
+  }));
+
+  const documents = results.filter((r) => r.status === "fulfilled").map((r) => (<PromiseFulfilledResult<ExpressAPI>>r).value);
+
+  const fileAdditions: FileAddition[] = documents.map((d) => {
+    assertPresence(d.documentation);
+    assertPresence(d.documentation);
+    return {
+      path: d.documentationFilePath,
+      contents: Buffer.from(d.documentation).toString("base64"),
+    }
+  });
 
   const prCreator = new PullRequestCreator({
     repoName: externalRepo.name,
@@ -99,184 +209,297 @@ export async function runApiDocumentationTaskHandler(
     ctx,
   });
 
-  const filePath = "EAVE_DOCS.md";
   const pullRequest = await prCreator.createPullRequest({
     branchName: "refs/heads/eave/auto-docs/api",
     commitMessage: "docs: automated update",
-    fileChanges: [
-      {
-        path: filePath,
-        contents: Buffer.from(newDocumentContent).toString("base64"),
-      },
-    ],
     prTitle: "docs: Eave API documentation update",
     prBody: "Your new API docs based on recent changes to your code",
-  });
-
-  await updateGithubDocument({
-    newValues: {
-      pull_request_number: pullRequest.number,
-      status: Status.PR_OPENED,
-      api_name: "tktktktk",
-      file_path: "tktktktkt",
+    fileChanges: {
+      additions: fileAdditions,
     },
-    document,
-    team,
-    ctx,
-  });
-}
-
-async function getTeam({
-  teamId,
-  ctx,
-}: CtxArg & { teamId: string }): Promise<Team> {
-  const response = await GetTeamOperation.perform({
-    origin: appConfig.eaveOrigin,
-    teamId,
-    ctx,
-  });
-  return response.team;
-}
-
-async function getRepo({
-  team,
-  input,
-  ctx,
-}: CtxArg & {
-  team: Team;
-  input: RunApiDocumentationTaskRequestBody;
-}): Promise<GithubRepo> {
-  const response = await GetGithubReposOperation.perform({
-    origin: appConfig.eaveOrigin,
-    teamId: team.id,
-    input: {
-      repos: [input.repo],
-    },
-    ctx,
   });
 
-  if (response.repos.length > 1) {
-    eaveLogger.warning(
-      `Unexpected multiple repos for id ${input.repo.external_repo_id}`,
+  for (const document of documents) {
+    const eaveDoc = existingEaveDocs.find((d) => d.file_path === document.documentationFilePath);
+    assertPresence(eaveDoc);
+    await updateGithubDocument({
+      document: eaveDoc,
+      team,
       ctx,
-    );
+      newValues: {
+        pull_request_number: pullRequest.number,
+        status: Status.PR_OPENED,
+      },
+    });
+  }
+}
+
+async function getExpressApiInfo({ rootDir, team, eaveRepo, repo, octokit, parser, ctx }: GithubApiCallerArgs & { team: Team, eaveRepo: GithubRepo, rootDir: string }): Promise<ExpressAPI | null> {
+  const fwdArgs = { repo, octokit, parser, ctx };
+
+  const api = new ExpressAPI({
+    rootDir,
+  });
+
+  const expressApiRootFile = await getExpressAPIRootFile({ apiRootDir: rootDir, ...fwdArgs });
+  if (!expressApiRootFile) {
+    // We thought this dir contained an Express app, but couldn't find a file that initialized the express server.
+    await logEvent({
+      event_name: "express_api_detection_false_positive",
+      event_description:
+        "An express API was detected, but no root file was found.",
+      eave_team: team,
+      event_source: "github app",
+      opaque_params: {
+        repo,
+        eaveRepo,
+        rootDir,
+      },
+    }, ctx);
+
+    eaveLogger.warning("No express API root file found", { rootDir }, repo, eaveRepo, ctx);
+    return null;
+  }
+  assert(expressApiRootFile.path, "unexpected missing path property");
+
+  api.rootFile = expressApiRootFile;
+
+  const apiName = await parser.guessExpressAPIName({ apiDir: rootDir });
+  api.name = apiName;
+  return api;
+}
+
+/**
+ * Given the root file for an Express API, this function attempts to identify
+ * each API endpoint in the file. It then builds the code for each endpoint.
+ */
+async function getExpressAPIEndpoints({
+  apiRootFilePath,
+  parser,
+  repo, octokit, ctx
+}: GithubApiCallerArgs & {
+  apiRootFilePath: string;
+}): Promise<Array<string> | null> {
+  const fwdArgs = { repo, octokit, ctx, parser };
+
+  const apiRootFile = await getFileContent({ filePath: apiRootFilePath, ...fwdArgs });
+  assert(apiRootFile, "unexpected missing file object");
+
+  const tree = parser.parseCode({ file: apiRootFile });
+  const calls = tree.rootNode.descendantsOfType("call_expression");
+  const requires = await buildLocalRequires({ tree, file: apiRootFile, ...fwdArgs });
+  const imports = await buildLocalImports({ tree, file: apiRootFile, ...fwdArgs });
+  const declarations = parser.getDeclarationMap({ tree });
+  const { app = "", router = "" } = await parser.getExpressAppIdentifiers({
+    tree,
+  });
+  const apiEndpoints: Array<string> = [];
+
+  let baseCode = `import express from 'express';\nconst ${app} = express();\n`;
+  if (router) {
+    baseCode += `const ${router} = express.Router();\n`;
   }
 
-  const repo = response.repos[0];
-  assert(repo, `No repo found in Eave for ID ${input.repo.external_repo_id}`);
-  return repo;
-}
+  for (const call of calls) {
+    const isMiddleWareCall = call.text.startsWith(`${app}.use`);
+    if (isMiddleWareCall) {
+      baseCode += `${call.text}\n`;
+    }
 
-async function getOrCreateGithubDocument({
-  team,
-  repo,
-  ctx,
-}: CtxArg & { team: Team; repo: GithubRepo }): Promise<GithubDocument> {
-  const getDocResponse = await GetGithubDocumentsOperation.perform({
-    input: {
-      query_params: {
-        external_repo_id: repo.external_repo_id,
-        type: DocumentType.API_DOCUMENT,
-      },
-    },
-    origin: appConfig.eaveOrigin,
-    teamId: team.id,
-    ctx,
-  });
-
-  if (getDocResponse.documents.length > 1) {
-    eaveLogger.warning(
-      `Unexpected multiple documents for repo id ${repo.external_repo_id}`,
-      ctx,
-    );
+    const isRouteCall = await parser.isExpressRouteCall({
+      node: call,
+      app,
+      router,
+    });
+    if (isRouteCall) {
+      let endpointCode = `${baseCode}\n${call.text}\n\n`;
+      const nestedIdentifiers = parser.getUniqueIdentifiers({
+        rootNode: call,
+        exclusions: [app, router],
+      });
+      for (const identifier of nestedIdentifiers) {
+        const importCode = imports.get(identifier);
+        if (importCode) {
+          endpointCode += importCode;
+          continue;
+        }
+        const requireCode = requires.get(identifier);
+        if (requireCode) {
+          endpointCode += requireCode;
+          continue;
+        }
+        const declarationCode = declarations.get(identifier)?.text;
+        if (declarationCode) {
+          endpointCode += `${declarationCode}\n\n`;
+        }
+      }
+      apiEndpoints.push(endpointCode);
+    }
   }
 
-  const existingDocument = getDocResponse.documents[0];
-  if (existingDocument) {
-    return existingDocument;
+  return apiEndpoints;
+}
+
+/**
+ * Given a top-level declaration identifier, this function recursively builds
+ * up all of the local source code for that declaration.
+ */
+async function buildExpressCode({
+  identifier,
+  filePath,
+  accumulator = "",
+  repo,
+  octokit,
+  ctx,
+  parser,
+}: GithubApiCallerArgs & {
+  identifier: string;
+  filePath: string;
+  accumulator?: string;
+}): Promise<string | null> {
+  const fwdArgs = { repo, octokit, ctx, parser };
+  assert(filePath, "unexpected missing filePath");
+  assert(identifier, "unexpected missing identifier");
+
+  const file = await getFileContent({ filePath, ...fwdArgs });
+  assert(file, "unexpected missing file object");
+
+  const tree = parser.parseCode({ file });
+  const declarations = parser.getDeclarationMap({ tree });
+  const declaration = declarations.get(identifier);
+
+  // Case 2: The given identifier is declared in the given file.
+  if (declaration) {
+    accumulator += `${declaration.text}\n\n`;
+    const importPaths = parser.getLocalImportPaths({ tree, file });
+    const requirePaths = parser.getLocalRequirePaths({ tree, file });
+    const innerIdentifiers = parser.getUniqueIdentifiers({
+      rootNode: declaration,
+      exclusions: [identifier],
+    });
+
+    for (const innerIdentifier of innerIdentifiers) {
+      const innerDeclaration = declarations.get(innerIdentifier);
+      const isRequire = innerDeclaration?.text.match(/require\(["|'][^"|']["|']\)/);
+      if (innerDeclaration && !isRequire) {
+        accumulator += `${innerDeclaration.text}\n\n`;
+        continue;
+      }
+      const importPath = importPaths.get(innerIdentifier);
+      if (importPath) {
+        const c = await buildExpressCode({
+          identifier: innerIdentifier,
+          filePath: importPath,
+          accumulator,
+          ...fwdArgs,
+        });
+        if (c) {
+          accumulator = c;
+        }
+        continue;
+      }
+      const requirePath = requirePaths.get(innerIdentifier);
+      if (requirePath) {
+        const c = await buildExpressCode({
+          identifier: innerIdentifier,
+          filePath: requirePath,
+          accumulator,
+          ...fwdArgs,
+        });
+        if (c) {
+          accumulator = c;
+        }
+      }
+    }
+    return accumulator;
   }
 
-  const createDocResponse = await CreateGithubDocumentOperation.perform({
-    origin: appConfig.eaveOrigin,
-    ctx,
-    teamId: team.id,
-    input: {
-      document: {
-        external_repo_id: repo.external_repo_id,
-        type: DocumentType.API_DOCUMENT,
-        api_name: null,
-        file_path: null,
-        pull_request_number: null,
-      },
-    },
+  // FIXME: This is broken (filePath being passed into recursive func
+  // // Case 3: The declaration we're looking for wasn't found -- check for default export.
+  // const exportNodes = tree.rootNode.descendantsOfType("export_statement");
+  // for (const exportNode of exportNodes) {
+  //   const children = parser.getNodeChildMap({ node: exportNode });
+  //   if (children.has("default")) {
+  //     const defaultIdentifier = children.get("identifier")?.text;
+  //     if (defaultIdentifier) {
+  //       const c = await buildExpressCode({
+  //         identifier: defaultIdentifier,
+  //         filePath,
+  //         accumulator,
+  //         ...fwdArgs,
+  //       });
+  //       if (c) {
+  //         accumulator = c;
+  //         accumulator = c.replaceAll(defaultIdentifier, identifier);
+  //       }
+  //     }
+  //   }
+  // }
+
+  return accumulator;
+}
+
+/**
+ * Given a tree, builds the local source code for the top-level imports found
+ * in the tree. Returns the code in a map for convenient lookup.
+ */
+async function buildLocalImports({
+  tree,
+  file,
+  repo, octokit, ctx, parser
+}: GithubApiCallerArgs & {
+  tree: Parser.Tree;
+  file: CodeFile;
+}): Promise<Map<string, string>> {
+  const fwdArgs = { repo, octokit, ctx, parser };
+  const importPaths = parser.getLocalImportPaths({
+    tree,
+    file,
   });
-
-  return createDocResponse.document;
+  const imports = new Map();
+  for (const [identifier, importPath] of importPaths) {
+    const importCode = await buildExpressCode({
+      identifier,
+      filePath: importPath,
+      ...fwdArgs,
+    });
+    imports.set(identifier, importCode);
+  }
+  return imports;
 }
 
-async function updateGithubDocument({
-  team,
-  document,
-  newValues,
-  ctx,
-}: CtxArg & {
-  team: Team;
-  document: GithubDocument;
-  newValues: GithubDocumentValuesInput;
-}): Promise<void> {
-  await UpdateGithubDocumentOperation.perform({
-    input: {
-      document: {
-        id: document.id,
-        new_values: newValues,
-      },
-    },
-    origin: appConfig.eaveOrigin,
-    teamId: team.id,
-    ctx,
+/**
+ * Given a tree, builds the local source code for the top-level required modules
+ * found the tree. Returns the code in a map for convenient lookup.
+ */
+async function buildLocalRequires({
+  tree,
+  file,
+  repo, octokit, ctx, parser,
+}: GithubApiCallerArgs & {
+  tree: Parser.Tree;
+  file: CodeFile;
+}): Promise<Map<string, string>> {
+  const fwdArgs = { repo, octokit, parser, ctx };
+  const requirePaths = parser.getLocalRequirePaths({
+    tree,
+    file,
   });
+  const requires = new Map();
+  for (const [identifier, requirePath] of requirePaths) {
+    const requireCode = await buildExpressCode({
+      identifier,
+      filePath: requirePath,
+      ...fwdArgs,
+    });
+    requires.set(identifier, requireCode);
+  }
+  return requires;
 }
 
-async function getExternalRepo({
-  repo,
-  ctx,
-  octokit,
-}: GitHubOperationsContext & { repo: GithubRepo }): Promise<Repository> {
-  const query = await loadQuery("getRepo");
-  const variables: {
-    nodeId: Scalars["ID"]["input"];
-  } = {
-    nodeId: repo.external_repo_id,
-  };
-
-  const response = await octokit.graphql<{ node: Query["node"] }>(
-    query,
-    variables,
-  );
-  return <Repository>response.node;
-}
-
-async function getExpressAPIRootDirs({
-  repo,
-  octokit,
-  ctx,
-}: GitHubOperationsContext & { repo: Repository }): Promise<string[]> {
-  const response = await octokit.rest.search.code({
-    q: encodeURIComponent(
-      `"\\"express\\":" in:file filename:package.json repo:${repo.owner.login}/${repo.name}`,
-    ),
-  });
-
-  return response.data.items.map((i) => i.path);
-}
-
-async function * recurseGitTree({
-  treeRootDir,
-  repo,
-  octokit,
-  ctx,
-}: GitHubOperationsContext & { treeRootDir: string; repo: Repository }): AsyncGenerator<TreeEntry> {
-  const query = await loadQuery("getTree");
+async function getFileContent({ filePath, repo, octokit, ctx, parser }: GithubApiCallerArgs & { filePath: string }): Promise<CodeFile | null> {
+  const file = new CodeFile({ path: filePath });
+  const query = await loadQuery("getGitObject");
   const variables: {
     repoOwner: Scalars["String"]["input"];
     repoName: Scalars["String"]["input"];
@@ -284,69 +507,37 @@ async function * recurseGitTree({
   } = {
     repoOwner: repo.owner.login,
     repoName: repo.name,
-    expression: `${repo.defaultBranchRef!.name}:${treeRootDir}`,
+    expression: `${repo.defaultBranchRef?.name}:${file.path}`,
   };
 
   const response = await octokit.graphql<{ repository: Query["repository"] }>(
     query,
     variables,
   );
-  const repository = <Repository>response.repository;
 
-  if (!repository.object) {
-    throw new Error("Unexpected empty object field");
+  eaveLogger.debug("getGitObject response", { query, variables, response }, ctx);
+
+  let repository = <Repository>response.repository;
+
+  if (repository.object === null && file.language === ProgrammingLanguage.javascript) {
+    // either the file doesn't exist, or this is a javascript import and the source file is typescript.
+    const tsPath = parser.changeFileExtension({ filePathOrName: filePath, to: ".ts" });
+    variables.expression = `${repo.defaultBranchRef?.name}:${tsPath}`;
+    const tsresponse = await octokit.graphql<{ repository: Query["repository"] }>(
+      query,
+      variables,
+    );
+    eaveLogger.debug("getGitObject response (ts try)", { query, variables, response: tsresponse }, ctx);
+    repository = <Repository>tsresponse.repository;
   }
 
-  assert(isTree(repository.object));
+  assertIsBlob(repository.object);
+  const code = repository.object.text;
 
-  const tree = repository.object;
-  const blobEntries = tree.entries?.filter((e) => isBlob(e.object));
-  const subTrees = tree.entries?.filter((e) => isTree(e.object));
-
-  // BFS
-  if (blobEntries) {
-    for (const blobEntry of blobEntries) {
-      // TODO: How to design this function to return a TreeEntry narrowed to `TreeEntry.object.__typename === "Blob"`, so the caller doesn't have to assert?
-      yield blobEntry;
-    }
+  if (!code) {
+    return null;
   }
 
-  if (subTrees) {
-    for (const subTree of subTrees) {
-      yield* recurseGitTree({ treeRootDir: subTree.path!, repo, octokit, ctx });
-    }
-  }
-}
-
-async function getExpressAPIRootFile({
-  apiRootDir,
-  repo,
-  octokit,
-  ctx,
-}: GitHubOperationsContext & { apiRootDir: string, repo: Repository }): Promise<TreeEntry | null> {
-  for await (const treeEntry of recurseGitTree({ treeRootDir: apiRootDir, repo, octokit, ctx })) {
-    const blob = treeEntry.object;
-    assert(isBlob(blob));
-    if (!blob.text) {
-      // text is either null (binary object), undefined (not in response), or empty string (empty file). Either way, move on.
-      continue
-    }
-
-    const isExpressRoot = testExpressRootFile({ fileName: treeEntry.name, fileContent: blob.text });
-    if (isExpressRoot) {
-      // We found the file; Early-exit the whole function
-      return treeEntry;
-    }
-  }
-
-  return null;
-}
-
-
-function isTree(obj: { __typename?: string } | undefined | null): obj is Tree {
-  return obj?.__typename === "Tree";
-}
-
-function isBlob(obj: { __typename?: string } | undefined | null): obj is Blob {
-  return obj?.__typename === "Blob";
+  file.contents = code;
+  return file;
 }

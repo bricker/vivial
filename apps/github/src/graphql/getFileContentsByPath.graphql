@@ -6,18 +6,7 @@ query ($repoOwner: String!, $repoName: String!, $expression: String!) {
       id
       oid
       ... on Blob {
-        text
-      }
-      ... on Tree {
-        entries {
-          name
-          object {
-            ... on Blob {
-              oid
-              text
-            }
-          }
-        }
+        ...blobFragment
       }
     }
   }

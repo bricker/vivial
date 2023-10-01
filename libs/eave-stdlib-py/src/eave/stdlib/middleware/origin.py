@@ -1,4 +1,6 @@
-from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+
+from eave.stdlib.core_api.operations import EndpointConfiguration
 
 from .base import EaveASGIMiddleware
 from ..api_util import get_header_value
@@ -9,6 +11,12 @@ from ..request_state import EaveRequestState
 
 
 class OriginASGIMiddleware(EaveASGIMiddleware):
+    endpoint_config: EndpointConfiguration
+
+    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+        super().__init__(app)
+        self.endpoint_config = endpoint_config
+
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
             self._process_origin(scope=scope)

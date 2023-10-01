@@ -1,35 +1,19 @@
 fragment treeFragment on Tree {
-  __typename
-  id
-  oid
-  abbreviatedOid
-  commitUrl
-  commitResourcePath
+  ...gitObjectFragment
   entries {
-    __typename
-    type
-    oid
-    pathRaw
-    nameRaw
-    path
-    name
-    extension
-    mode
-    isGenerated
-    lineCount
-    size
-
-    language {
-      __typename
-      id
-      name
-    }
+    ...treeEntryFragment
 
     object {
-      __typename
-      id
-      oid
-      abbreviatedOid
+      ...gitObjectFragment
+
+      ...on Blob {
+        ...blobFragment
+      }
+
+      ...on Tree {
+        # cannot recurse fragments
+        ...gitObjectFragment
+      }
     }
   }
 }

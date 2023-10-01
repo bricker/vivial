@@ -31,6 +31,18 @@ test.afterEach((t) => {
 });
 
 // TODO: Mocking for external API requests
+
+test("endpoint is alive", async (t) => {
+  const response = await makeRequest({
+    app,
+    audience: EaveApp.eave_github_app,
+    path: "/_/github/tasks/run-api-documentation",
+    // input: {} satisfies RunApiDocumentationTaskRequestBody
+  });
+
+  t.not(response.status, 404);
+});
+
 test("endpoint is alive", async (t) => {
   const response = await makeRequest({
     app,

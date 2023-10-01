@@ -48,7 +48,9 @@ export async function createPullRequestHandler(
   const pr = await prCreator.createPullRequest({
     branchName: input.branch_name,
     commitMessage: input.commit_message,
-    fileChanges: input.file_changes,
+    fileChanges: {
+      additions: input.file_changes,
+    },
     prTitle: input.pr_title,
     prBody: input.pr_body,
   });

@@ -1,17 +1,24 @@
 import uuid
+from eave.stdlib.core_api.operations import EndpointConfiguration
 
 import eave.stdlib.exceptions
 import eave.stdlib.api_util
 import eave.stdlib.headers
 import eave.core.internal
 import eave.core.public
-from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.request_state import EaveRequestState
 
 
 class TeamLookupASGIMiddleware(EaveASGIMiddleware):
+    endpoint_config: EndpointConfiguration
+
+    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+        super().__init__(app)
+        self.endpoint_config = endpoint_config
+
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] == "http":
             await self._lookup_team(scope=scope)

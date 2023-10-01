@@ -15,6 +15,7 @@ from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpoin
 class GetGithubReposRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/github-repos/query",
+        auth_required=False,
     )
 
     class RequestBody(BaseRequestBody):

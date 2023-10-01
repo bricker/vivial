@@ -117,7 +117,7 @@ export class PullRequestCreator {
   private async createCommit(
     branch: Ref,
     message: string,
-    fileChanges: Array<FileChange>,
+    fileChanges: FileChanges,
   ): Promise<void> {
     const createCommitMutation = await GraphQLUtil.loadQuery(
       "createCommitOnBranch",
@@ -134,9 +134,7 @@ export class PullRequestCreator {
       },
       headOid: branch.target!.oid,
       message: { headline: message },
-      fileChanges: {
-        additions: fileChanges,
-      },
+      fileChanges,
     };
     const commitResp = await this.octokit.graphql<{
       createCommitOnBranch: Mutation["createCommitOnBranch"];
@@ -223,7 +221,7 @@ export class PullRequestCreator {
     commitMessage: string;
     prTitle: string;
     prBody: string;
-    fileChanges: Array<FileChange>;
+    fileChanges: FileChanges;
   }): Promise<PullRequest> {
     const branch = await this.createBranch(this.ensureBranchPrefix(branchName));
     await this.createCommit(branch, commitMessage, fileChanges);

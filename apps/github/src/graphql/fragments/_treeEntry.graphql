@@ -1,0 +1,20 @@
+fragment treeEntryFragment on TreeEntry {
+  __typename
+  type
+  oid
+  pathRaw
+  nameRaw
+  path
+  name
+  extension
+  mode
+  isGenerated
+  lineCount
+  size
+
+  language {
+    __typename
+    id
+    name
+  }
+}

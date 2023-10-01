@@ -216,7 +216,7 @@ export default async function handler(
     await prCreator.createPullRequest({
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
       commitMessage: "docs: automated update",
-      fileChanges,
+      fileChanges: { additions: fileChanges },
       prTitle: "docs: Eave inline code documentation update",
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
     });

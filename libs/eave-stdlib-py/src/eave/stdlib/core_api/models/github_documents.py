@@ -9,6 +9,7 @@ from eave.stdlib.core_api.models import BaseInputModel
 
 class Status(StrEnum):
     PROCESSING = "processing"
+    FAILED = "failed"
     PR_OPENED = "pr_opened"
     PR_MERGED = "pr_merged"
 
@@ -39,6 +40,7 @@ class GithubDocumentsQueryInput(BaseInputModel):
 class GithubDocumentCreateInput(BaseInputModel):
     external_repo_id: str
     type: DocumentType
+    status: Status
     file_path: Optional[str]
     api_name: Optional[str]
     pull_request_number: Optional[int]
