@@ -38,16 +38,25 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const ExploreFeatures = ({ onInlineDocsClick }) => {
+const ExploreFeatures = ({ onAPIDocsClick, onInlineDocsClick }) => {
   const classes = makeClasses();
   const { team } = useTeam();
+
   return (
     <section className={classes.container}>
       <Typography className={classes.title} variant="h2">
         Explore Features
       </Typography>
       <div className={classes.featureCards}>
-        {team.inlineCodeDocsState === FEATURE_STATES.DISABLED && (
+        {!team.apiDocsEnabled && (
+          <FeatureCard
+            className={classes.featureCard}
+            onClick={onAPIDocsClick}
+            title="API Documentation"
+            description="Automate standard industry API documentation to streamline your internal processes and delight your customers."
+          />
+        )}
+        {!team.inlineCodeDocsEnabled && (
           <FeatureCard
             className={classes.featureCard}
             onClick={onInlineDocsClick}

@@ -1,5 +1,10 @@
 import { imageUrl } from "./util/asset-util.js";
 
+export const DOC_TYPES = {
+  API_DOC: "api_document",
+  ARCHITECTURE_DOC: "architecture_document",
+};
+
 export const FEATURES = {
   API_DOCS: "api_documentation_state",
   INLINE_CODE_DOCS: "inline_code_documentation_state",

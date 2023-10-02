@@ -28,12 +28,13 @@ const AppContextProvider = ({ children }) => {
     reposAreErroring: false,
     repoCreationInProgress: false,
     repoCreationIsErroring: false,
-    apiDocuments: [],
+    inlineCodeDocsEnabled: false,
+    apiDocsEnabled: false,
+    apiDocs: [],
+    apiDocsLoading: true,
+    apiDocsErroring: false,
     featureStatesLoading: true,
     featureStatesErroring: false,
-    inlineCodeDocsState: null,
-    apiDocsState: null,
-    architectureDocsState: null,
   });
 
   const ctx = {

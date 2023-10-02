@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { FEATURES, FEATURE_STATES } from "../constants.js";
+import { DOC_TYPES, FEATURES, FEATURE_STATES } from "../constants.js";
 import { AppContext } from "../context/Provider.js";
 import { isHTTPError } from "../util/http-util.js";
 
@@ -60,26 +60,21 @@ const useTeam = () => {
 
   async function getTeamFeatureStates(repos) {
     setTeam((prev) => ({ ...prev, featureStatesLoading: true }));
-    let inlineCodeDocsState = FEATURE_STATES.DISABLED;
-    let apiDocsState = FEATURE_STATES.DISABLED;
-    let architectureDocsState = FEATURE_STATES.DISABLED;
+    let inlineCodeDocsEnabled = false;
+    let apiDocsEnabled = false;
     for (const repo of repos) {
       if (repo[FEATURES.API_DOCS] === FEATURE_STATES.ENABLED) {
-        apiDocsState = FEATURE_STATES.ENABLED;
+        apiDocsEnabled = true;
       }
       if (repo[FEATURES.INLINE_CODE_DOCS] === FEATURE_STATES.ENABLED) {
-        inlineCodeDocsState = FEATURE_STATES.ENABLED;
-      }
-      if (repo[FEATURES.ARCHITECTURE_DOCS] === FEATURE_STATES.ENABLED) {
-        architectureDocsState = FEATURE_STATES.ENABLED;
+        inlineCodeDocsEnabled = true;
       }
     }
     setTeam((prev) => ({
       ...prev,
       featureStatesLoading: false,
-      inlineCodeDocsState,
-      apiDocsState,
-      architectureDocsState,
+      inlineCodeDocsEnabled,
+      apiDocsEnabled,
     }));
   }
 
@@ -121,10 +116,46 @@ const useTeam = () => {
       });
   }
 
+  async function getTeamAPIDocs() {
+    setTeam((prev) => ({
+      ...prev,
+      apiDocsLoading: true,
+      apiDocsErroring: false,
+    }));
+    fetch('/dashboard/team/documents', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ document_type: DOC_TYPES.API_DOC }),
+    })
+      .then((resp) => {
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        resp.json().then((data) => {
+
+
+          // TODO: sorting
+
+
+
+          setTeam((prev) => ({ ...prev, apiDocs: data.documents }));
+        });
+      })
+      .catch((e) => {
+        setTeam((prev) => ({ ...prev, apiDocsErroring: true }));
+      })
+      .finally(() => {
+        setTeam((prev) => ({ ...prev, apiDocsLoading: false }));
+      });
+  }
+
   return {
     team,
     getTeam,
     getTeamRepos,
+    getTeamAPIDocs,
     getTeamFeatureStates,
     updateTeamFeatureState,
   };

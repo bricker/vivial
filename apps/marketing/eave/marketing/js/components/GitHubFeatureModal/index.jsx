@@ -93,8 +93,11 @@ const makeClasses = makeStyles((theme) => ({
     fontSize: 18,
     fontWeight: 400,
     marginBottom: 10,
-    "& > p": {
+    "& > div": {
       margin: "0 0 30px",
+      "& > ul": {
+        margin: 0,
+      },
       [theme.breakpoints.up("md")]: {
         margin: "0 0 32px",
       },
@@ -220,6 +223,8 @@ function renderTitle(type) {
   switch (type) {
     case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
       return "Inline Code Documentation";
+    case FEATURE_MODAL.TYPES.API_DOCS:
+      return "API Documentation Automation"
     default:
       return "";
   }
@@ -230,11 +235,26 @@ function renderDescription(type) {
     case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
       return (
         <>
-          <p>Automate inline code documentation within your GitHub files.</p>
-          <p>
+          <div>Automate inline code documentation within your GitHub files.</div>
+          <div>
             As changes are made to the codebase, Eave will automatically generate
             inline documentation via a pull request for your team's review.
-          </p>
+          </div>
+        </>
+      );
+    case FEATURE_MODAL.TYPES.API_DOCS:
+      return (
+        <>
+          <div>
+            Automate standard industry API documentation to streamline your internal processes and delight your customers.
+          </div>
+          <div>
+            Currently supports Express REST APIs written in:
+            <ul>
+              <li>JavaScript</li>
+              <li>TypeScript</li>
+            </ul>
+          </div>
         </>
       );
     default:

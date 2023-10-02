@@ -38,7 +38,7 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const FeatureSettings = ({ onInlineDocsClick }) => {
+const FeatureSettings = ({ onAPIDocsClick, onInlineDocsClick }) => {
   const classes = makeClasses();
   const { team } = useTeam();
   return (
@@ -47,7 +47,15 @@ const FeatureSettings = ({ onInlineDocsClick }) => {
         Feature Settings
       </Typography>
       <div className={classes.settingBtns}>
-        {team.inlineCodeDocsState === FEATURE_STATES.ENABLED && (
+        {team.apiDocsEnabled && (
+          <FeatureSettingCard
+            className={classes.settingCard}
+            onClick={onAPIDocsClick}
+          >
+            API Documentation
+          </FeatureSettingCard>
+        )}
+        {team.inlineCodeDocsEnabled && (
           <FeatureSettingCard
             className={classes.settingCard}
             onClick={onInlineDocsClick}
