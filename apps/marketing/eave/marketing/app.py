@@ -67,7 +67,7 @@ async def get_auth_state() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
 
     response_body: JsonObject
-    if not auth_cookies.access_token or not auth_cookies.account_id:
+    if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:
         response_body = {"authenticated": False}
     else:
         response_body = {"authenticated": True}
@@ -89,18 +89,21 @@ async def get_user() -> Response:
     return _clean_response(eave_response)
 
 
-@app.route("/dashboard/team/<team_id>", methods=["GET"])
-async def get_team(team_id: str) -> Response:
+@app.route("/dashboard/team", methods=["GET"])
+async def get_team() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
 
-    eave_response = await team.GetTeamRequest.perform(origin=app_config.eave_origin, team_id=team_id)
+    eave_response = await team.GetTeamRequest.perform(
+        origin=app_config.eave_origin,
+        team_id=unwrap(auth_cookies.team_id),
+    )
 
     return _json_response(body=eave_response.json())
 
 
-@app.route("/dashboard/team/<team_id>/repos", methods=["GET"])
-async def get_team_repos(team_id: str) -> Response:
+@app.route("/dashboard/team/repos", methods=["GET"])
+async def get_team_repos() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
 
@@ -108,15 +111,15 @@ async def get_team_repos(team_id: str) -> Response:
         origin=app_config.eave_origin,
         account_id=unwrap(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
-        team_id=team_id,
+        team_id=unwrap(auth_cookies.team_id),
         input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
 
     return _json_response(body=eave_response.json())
 
 
-@app.route("/dashboard/team/<team_id>/repos/update", methods=["POST"])
-async def update_team_repos(team_id: str) -> Response:
+@app.route("/dashboard/team/repos/update", methods=["POST"])
+async def update_team_repos() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
 
@@ -127,7 +130,7 @@ async def update_team_repos(team_id: str) -> Response:
         origin=app_config.eave_origin,
         account_id=unwrap(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
-        team_id=team_id,
+        team_id=unwrap(auth_cookies.team_id),
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
 
@@ -151,7 +154,7 @@ def catch_all(path: str) -> Response:
 
 
 def _assert_auth(auth_cookies: AuthCookies) -> None:
-    if not auth_cookies.access_token or not auth_cookies.account_id:
+    if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:
         raise werkzeug.exceptions.Unauthorized()
 
 
