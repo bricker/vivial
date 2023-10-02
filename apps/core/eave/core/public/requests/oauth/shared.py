@@ -242,6 +242,7 @@ async def get_or_create_eave_account(
     auth_cookies.set_auth_cookies(
         response=response,
         account_id=eave_account.id,
+        team_id=eave_account.team_id,
         access_token=eave_account.access_token,
     )
 
