@@ -176,11 +176,14 @@ const makeClasses = makeStyles((theme) => ({
   confirmationBtns: {
     marginTop: 42,
     "& > button": {
-      width: 250,
+      width: '100%',
     },
     [theme.breakpoints.up("md")]: {
       display: "flex",
       justifyContent: "center",
+      "& > button": {
+        width: 250,
+      },
     },
   },
   disableBtn: {
@@ -214,22 +217,28 @@ const makeClasses = makeStyles((theme) => ({
 }));
 
 function renderTitle(type) {
-  if (type === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS) {
-    return "Inline Code Documentation";
+  switch (type) {
+    case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
+      return "Inline Code Documentation";
+    default:
+      return "";
   }
 }
 
 function renderDescription(type) {
-  if (type === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS) {
-    return (
-      <>
-        <p>Automate inline code documentation within your GitHub files.</p>
-        <p>
-          As changes are made to the codebase, Eave will automatically generate
-          inline documentation via a pull request for your team's review.
-        </p>
-      </>
-    );
+  switch (type) {
+    case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
+      return (
+        <>
+          <p>Automate inline code documentation within your GitHub files.</p>
+          <p>
+            As changes are made to the codebase, Eave will automatically generate
+            inline documentation via a pull request for your team's review.
+          </p>
+        </>
+      );
+    default:
+      return null;
   }
 }
 
@@ -281,11 +290,19 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
   }, []);
 
   const handleUpdate = useCallback(() => {
-    onUpdate(team.id, teamRepoIds, selectedRepoIds, feature);
+    onUpdate({
+      teamRepoIds,
+      enabledRepoIds: selectedRepoIds,
+      feature,
+    });
   }, [team.id, teamRepoIds, selectedRepoIds]);
 
   const handleDisable = useCallback(() => {
-    onUpdate(team.id, teamRepoIds, [], feature);
+    onUpdate({
+      teamRepoIds,
+      enabledRepoIds: [],
+      feature,
+    });
   }, [team.id, teamRepoIds]);
 
   const setModalCookie = useCallback(() => {
