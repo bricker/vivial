@@ -2,6 +2,7 @@ import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
 import horizontalBgImage from "../../../../static/images/hero-background-horizontal-4x.png";
+import tabletBgImage from "../../../../static/images/hero-background-tablet-3x.png";
 import verticalBgImage from "../../../../static/images/hero-background-vertical-3x.png";
 import AuthModal from "../../AuthModal/index.jsx";
 import Footer from "../../Footer/index.jsx";
@@ -18,12 +19,21 @@ const makeClasses = makeStyles((theme) => ({
     backgroundRepeat: "no-repeat",
     backgroundSize: "contain",
     backgroundPosition: "center top",
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.between(
+      theme.breakpoints.values.xs,
+      theme.breakpoints.values.thin,
+    )]: {
       backgroundImage: `url(${verticalBgImage})`,
+    },
+    [theme.breakpoints.between(
+      theme.breakpoints.values.thin,
+      theme.breakpoints.values.md,
+    )]: {
+      backgroundImage: `url(${tabletBgImage})`,
     },
     [theme.breakpoints.up("xl")]: {
       backgroundSize: "auto 1800px",
-    }
+    },
   },
   sections: {
     minHeight: `calc(100vh - ${theme.header.height}px - ${theme.header.marginBottom}px - ${theme.footer.height}px)`,
