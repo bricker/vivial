@@ -4,6 +4,7 @@ import React from "react";
 import { imageUrl } from "../../../util/asset-util.js";
 import Copy from "../../Copy/index.jsx";
 import PageSection from "../../PageSection/index.jsx";
+import { theme } from '../../../theme.js';
 
 const makeClasses = makeStyles((theme) => ({
   productivityBanner: {
@@ -31,7 +32,7 @@ const ProductivityBanner = ({ title }) => {
       </PageSection>
       <picture className={classes.wrapper}>
         <source
-          media="(max-width:650px)"
+          media={`(max-width:${theme.breakpoints.values.sm}px)`}
           srcSet={imageUrl("productivity-banner-design-vertical-3x.png")}
         />
         <img
