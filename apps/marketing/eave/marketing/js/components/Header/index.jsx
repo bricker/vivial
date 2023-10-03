@@ -94,7 +94,7 @@ const makeClasses = makeStyles((theme) => ({
   },
   yellowHighlight: {
     color: theme.palette.primary.main,
-  }
+  },
 }));
 
 const Header = ({ simpleHeader }) => {

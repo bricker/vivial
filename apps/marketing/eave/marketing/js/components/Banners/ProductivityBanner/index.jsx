@@ -1,10 +1,10 @@
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
+import { theme } from "../../../theme.js";
 import { imageUrl } from "../../../util/asset-util.js";
 import Copy from "../../Copy/index.jsx";
 import PageSection from "../../PageSection/index.jsx";
-import { theme } from '../../../theme.js';
 
 const makeClasses = makeStyles((theme) => ({
   productivityBanner: {
