@@ -7,7 +7,7 @@ variable "region" {
 }
 
 resource "google_cloud_scheduler_job" "run_api_documentation_job" {
-  attempt_deadline = "60m"
+  attempt_deadline = "3600s"
   description      = null
   name             = "run-api-documentation"
   paused           = false
