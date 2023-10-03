@@ -176,7 +176,10 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         ctx=eave_state.ctx,
                     )
 
-                if gh_repo_orm.api_documentation_state == State.DISABLED and new_values.api_documentation_state == State.ENABLED:
+                if (
+                    gh_repo_orm.api_documentation_state == State.DISABLED
+                    and new_values.api_documentation_state == State.ENABLED
+                ):
                     await RunApiDocumentationTask.perform(
                         team_id=gh_repo_orm.team_id,
                         ctx=eave_state.ctx,

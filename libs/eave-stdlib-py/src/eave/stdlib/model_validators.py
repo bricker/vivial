@@ -1,4 +1,4 @@
-from typing import Any, Optional, Sized, TypeVar
+from typing import Any, Sized, TypeVar
 
 import pydantic
 
@@ -13,17 +13,6 @@ def validate_at_least_one_of(*fields: str) -> Any:
         return values
 
     return pydantic.root_validator(allow_reuse=True, pre=False)(validate)
-
-
-def validate_minimum_length(field: str, minimum_length: int) -> Any:
-    def validate(cls: type, value: Optional[L]) -> Optional[L]:
-        if value is None:
-            return value
-
-        assert len(value) > minimum_length
-        return value
-
-    return pydantic.validator(field, allow_reuse=True)(validate)
 
 
 def validate_xnor(*fields: str) -> Any:
