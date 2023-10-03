@@ -1,5 +1,4 @@
 fragment blobFragment on Blob {
-  __typename
-  id
+  ...gitObjectFragment
   text
 }

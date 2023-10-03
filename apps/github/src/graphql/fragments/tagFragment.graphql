@@ -1,12 +1,9 @@
 fragment tagFragment on Tag {
-  __typename
-  id
+...gitObjectFragment
+
   tagMessage: message
   name
   target {
-    __typename
-    id
-    oid
-    abbreviatedOid
+    ...gitObjectFragment
   }
 }
