@@ -1,21 +1,8 @@
-import { promises as fs } from "node:fs";
 import path from "node:path";
 import Parser from "tree-sitter";
-import { eaveLogger, LogContext } from "../logging.js";
-import { assertPresence, titleize, underscoreify } from "../util.js";
-import { grammarForLanguage } from "../parsing/grammars.js";
-import {
-  getProgrammingLanguageByExtension,
-  getProgrammingLanguageByFilePathOrName,
-  ProgrammingLanguage,
-} from "../programming-langs/language-mapping.js";
-import { OpenAIModel } from "../transformer-ai/models.js";
-import OpenAIClient, { formatprompt } from "../transformer-ai/openai.js";
-import { ExpressRoutingMethod, JsonObject } from "../types.js";
-import { CtxArg } from "../requests.js";
+import { ExpressRoutingMethod } from "../types.js";
+import { titleize } from "../util.js";
 import { ESCodeFile } from "./es-parsing-utility.js";
-import { CodeFile } from "./parsing-utility.js";
-import { logEvent } from "../analytics.js";
 
 type ExpressIdentifiers = {
   app?: string;
@@ -23,12 +10,12 @@ type ExpressIdentifiers = {
 };
 
 export class ExpressCodeFile extends ESCodeFile {
-  private __memo_expressAppIdentifiers__?: ExpressIdentifiers
-  private __memo_testExpressRootFile__?: boolean
+  private __memo_expressAppIdentifiers__?: ExpressIdentifiers;
+  private __memo_testExpressRootFile__?: boolean;
 
   testExpressRootFile(): boolean {
     if (this.__memo_testExpressRootFile__ !== undefined) {
-      return this.__memo_testExpressRootFile__
+      return this.__memo_testExpressRootFile__;
     }
 
     if (!this.language) {
@@ -89,7 +76,7 @@ export class ExpressCodeFile extends ESCodeFile {
    */
   getExpressAppIdentifiers(): ExpressIdentifiers {
     if (this.__memo_expressAppIdentifiers__ !== undefined) {
-      return this.__memo_expressAppIdentifiers__
+      return this.__memo_expressAppIdentifiers__;
     }
 
     const variables = this.getVariableMap();
@@ -111,29 +98,43 @@ export class ExpressCodeFile extends ESCodeFile {
   }
 }
 
-
 export class ExpressAPI {
-  externalRepoId: string
-  rootDir?: string
-  rootFile?: ExpressCodeFile
+  externalRepoId: string;
+  rootDir?: string;
+  rootFile?: ExpressCodeFile;
   endpoints?: string[];
   documentationFilePath?: string;
   documentation?: string;
 
-  private __name__?: string
+  private __name__?: string;
 
-  constructor({ externalRepoId, name, rootDir, rootFile, endpoints, documentationFilePath, documentation }: { externalRepoId: string, name?: string, rootDir?: string, rootFile?: ExpressCodeFile, documentationFilePath?: string; endpoints?: string[], documentation?: string }) {
-
+  constructor({
+    externalRepoId,
+    name,
+    rootDir,
+    rootFile,
+    endpoints,
+    documentationFilePath,
+    documentation,
+  }: {
+    externalRepoId: string;
+    name?: string;
+    rootDir?: string;
+    rootFile?: ExpressCodeFile;
+    documentationFilePath?: string;
+    endpoints?: string[];
+    documentation?: string;
+  }) {
     if (name !== undefined) {
       this.name = name;
     }
 
-    this.externalRepoId = externalRepoId
-    this.rootDir = rootDir
-    this.rootFile = rootFile
-    this.endpoints = endpoints
-    this.documentationFilePath = documentationFilePath
-    this.documentation = documentation
+    this.externalRepoId = externalRepoId;
+    this.rootDir = rootDir;
+    this.rootFile = rootFile;
+    this.endpoints = endpoints;
+    this.documentationFilePath = documentationFilePath;
+    this.documentation = documentation;
   }
 
   /**
@@ -145,17 +146,17 @@ export class ExpressAPI {
    */
   get name(): string {
     if (this.__name__) {
-      return this.__name__
+      return this.__name__;
     }
 
     if (!this.rootDir) {
       // TODO: Better fallback?
-      return "API"
+      return "API";
     }
 
     const dirName = path.basename(this.rootDir);
     const apiName = dirName.replace(/[^a-zA-Z0-9]/g, " ").toLowerCase();
-    const capitalizedName = titleize(apiName).replace(/ api ?$/ig, "");
+    const capitalizedName = titleize(apiName).replace(/ api ?$/gi, "");
     const guessedName = `${capitalizedName} API`;
     this.__name__ = guessedName;
     return this.__name__;

@@ -1,14 +1,13 @@
-import path from "path";
-import { LogContext, eaveLogger } from "./logging.js";
+import { eaveLogger } from "./logging.js";
 import {
   parseFunctionsAndComments,
   writeUpdatedCommentsIntoFileString,
 } from "./parsing/function-parsing.js";
-import { getProgrammingLanguageByExtension, getProgrammingLanguageByFilePathOrName } from "./programming-langs/language-mapping.js";
+import { getProgrammingLanguageByFilePathOrName } from "./programming-langs/language-mapping.js";
+import { CtxArg } from "./requests.js";
 import { OpenAIModel } from "./transformer-ai/models.js";
 import OpenAIClient, { formatprompt } from "./transformer-ai/openai.js";
 import * as AIUtil from "./transformer-ai/util.js";
-import { CtxArg } from "./requests.js";
 
 /**
  * Given the current content of a file, returns the same file

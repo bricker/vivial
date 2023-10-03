@@ -14,7 +14,7 @@ fragment repoFragment on Repository {
     login
     avatarUrl
 
-    ...on Organization {
+    ... on Organization {
       name
     }
   }

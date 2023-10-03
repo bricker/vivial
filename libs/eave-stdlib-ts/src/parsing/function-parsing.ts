@@ -5,7 +5,6 @@ import { ProgrammingLanguage } from "../programming-langs/language-mapping.js";
 import {
   getFunctionDocumentationQueries,
   grammarForFilePathOrName,
-  grammarForLanguage,
 } from "./grammars.js";
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions

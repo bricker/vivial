@@ -47,11 +47,7 @@ class GetGithubReposRequest(CoreApiEndpoint):
 
 
 class GetAllTeamsGithubReposRequest(CoreApiEndpoint):
-    config = CoreApiEndpointConfiguration(
-        path="/_/github-repos/query",
-        auth_required=False,
-        team_id_required=False
-    )
+    config = CoreApiEndpointConfiguration(path="/_/github-repos/query", auth_required=False, team_id_required=False)
 
     class RequestBody(BaseRequestBody):
         query_params: GithubReposFeatureStateInput

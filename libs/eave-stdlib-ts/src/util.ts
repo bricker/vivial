@@ -40,13 +40,20 @@ export function normalizeExtName(extName: string): string {
   }
 }
 
-export function assertPresence<T>(v: T | undefined | null, msg?: string): asserts v is T {
+export function assertPresence<T>(
+  v: T | undefined | null,
+  msg?: string,
+): asserts v is T {
   assert(v !== undefined, msg || "Unexpected undefined value");
   assert(v !== null, msg || "Unexpected null value");
 }
 
 export function titleize(str: string) {
-  return str.split(" ").filter((s) => s.length > 0).map((s) => s.at(0)!.toUpperCase() + s.slice(1)).join(" ");
+  return str
+    .split(" ")
+    .filter((s) => s.length > 0)
+    .map((s) => s.at(0)!.toUpperCase() + s.slice(1))
+    .join(" ");
 }
 
 export function underscoreify(str: string) {

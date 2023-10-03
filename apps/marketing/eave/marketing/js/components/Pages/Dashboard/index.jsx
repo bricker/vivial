@@ -15,17 +15,19 @@ import { FEATURES, FEATURE_MODAL, FEATURE_STATES } from "../../../constants.js";
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
-  const { team, getTeam, getTeamRepos, getTeamFeatureStates, updateTeamFeatureState } = useTeam();
+  const {
+    team,
+    getTeam,
+    getTeamRepos,
+    getTeamFeatureStates,
+    updateTeamFeatureState,
+  } = useTeam();
 
   const isLoading =
-    team.teamIsLoading ||
-    team.reposAreLoading ||
-    team.featureStatesLoading;
+    team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
 
   const isErroring =
-    team.teamIsErroring ||
-    team.reposAreErroring ||
-    team.featureStatesErroring;
+    team.teamIsErroring || team.reposAreErroring || team.featureStatesErroring;
 
   const showFeatureSettings =
     team.inlineCodeDocsState === FEATURE_STATES.ENABLED ||
@@ -50,7 +52,8 @@ const Dashboard = () => {
     modalCleanup();
   }, []);
 
-  const handleFeatureUpdate = useCallback(({ teamRepoIds, enabledRepoIds, feature }) => {
+  const handleFeatureUpdate = useCallback(
+    ({ teamRepoIds, enabledRepoIds, feature }) => {
       updateTeamFeatureState({ teamRepoIds, enabledRepoIds, feature });
       closeInlineDocsModal();
     },

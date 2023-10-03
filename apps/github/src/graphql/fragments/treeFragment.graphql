@@ -6,11 +6,11 @@ fragment treeFragment on Tree {
     object {
       ...gitObjectFragment
 
-      ...on Blob {
+      ... on Blob {
         ...blobFragment
       }
 
-      ...on Tree {
+      ... on Tree {
         # cannot recurse fragments
         ...gitObjectFragment
       }

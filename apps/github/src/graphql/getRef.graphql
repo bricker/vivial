@@ -1,8 +1,4 @@
-query (
-  $repoOwner: String!
-  $repoName: String!
-  $refName: String!
-) {
+query ($repoOwner: String!, $repoName: String!, $refName: String!) {
   repository(owner: $repoOwner, name: $repoName) {
     ...repoFragment
 
@@ -11,7 +7,11 @@ query (
       id
       name
 
-      associatedPullRequests(states: OPEN, last: 1, orderBy: { direction: DESC, field: CREATED_AT }) {
+      associatedPullRequests(
+        states: OPEN
+        last: 1
+        orderBy: { direction: DESC, field: CREATED_AT }
+      ) {
         __typename
 
         nodes {

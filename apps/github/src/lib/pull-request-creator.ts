@@ -1,5 +1,4 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
-import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import {
   eaveLogger,
   LogContext,
@@ -55,7 +54,7 @@ export class PullRequestCreator {
   }
 
   private async getBranch(branchName: string): Promise<Ref | null> {
-    const getBranchQuery = await GraphQLUtil.loadQuery("getRef")
+    const getBranchQuery = await GraphQLUtil.loadQuery("getRef");
     const getBranchParameters: {
       repoName: Scalars["String"]["input"];
       repoOwner: Scalars["String"]["input"];
@@ -64,7 +63,7 @@ export class PullRequestCreator {
       repoName: this.repoName,
       repoOwner: this.repoOwner,
       refName: branchName,
-    }
+    };
 
     const branchResp = await this.octokit.graphql<{
       repository: Query["repository"];
@@ -142,7 +141,7 @@ export class PullRequestCreator {
     fileChanges: FileChanges,
   ): Promise<void> {
     if (!fileChanges.additions?.length && !fileChanges.deletions?.length) {
-      return
+      return;
     }
 
     const createCommitMutation = await GraphQLUtil.loadQuery(
@@ -166,7 +165,11 @@ export class PullRequestCreator {
       createCommitOnBranch: Mutation["createCommitOnBranch"];
     }>(createCommitMutation, createCommitParameters);
 
-    eaveLogger.debug("createCommitOnBranch response", { createCommitMutation, createCommitParameters, commitResp });
+    eaveLogger.debug("createCommitOnBranch response", {
+      createCommitMutation,
+      createCommitParameters,
+      commitResp,
+    });
 
     if (!commitResp.createCommitOnBranch?.commit?.oid) {
       eaveLogger.error(

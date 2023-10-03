@@ -44,7 +44,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/_/github-repos/query",
-            payload={"query_params": { "feature": "api_documentation", "state": "enabled" } },
+            payload={"query_params": {"feature": "api_documentation", "state": "enabled"}},
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -53,7 +53,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/_/github-repos/query",
-            payload={"query_params": { "feature": "api_documentation", "state": "disabled" } },
+            payload={"query_params": {"feature": "api_documentation", "state": "disabled"}},
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -72,7 +72,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/_/github-repos/query",
-            payload={"query_params": { "feature": "inline_code_documentation", "state": "enabled" } },
+            payload={"query_params": {"feature": "inline_code_documentation", "state": "enabled"}},
             team_id=team2.id,
         )
 
@@ -82,7 +82,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/_/github-repos/query",
-            payload={"query_params": { "feature": "inline_code_documentation", "state": "disabled" } },
+            payload={"query_params": {"feature": "inline_code_documentation", "state": "disabled"}},
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -101,7 +101,7 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/_/github-repos/query",
-            payload={"query_params": { "feature": "architecture_documentation", "state": "enabled" } },
+            payload={"query_params": {"feature": "architecture_documentation", "state": "enabled"}},
             team_id=team2.id,
         )
 
@@ -111,13 +111,12 @@ class TestGithubRepoRequests(BaseTestCase):
 
         response = await self.make_request(
             path="/_/github-repos/query",
-            payload={"query_params": { "feature": "architecture_documentation", "state": "disabled" } },
+            payload={"query_params": {"feature": "architecture_documentation", "state": "disabled"}},
         )
 
         assert response.status_code == HTTPStatus.OK
         response_obj = GetAllTeamsGithubReposRequest.ResponseBody(**response.json())
         assert len(response_obj.repos) == 8
-
 
     async def test_github_repo_req_get_one(self) -> None:
         async with self.db_session.begin() as s:
@@ -303,4 +302,3 @@ class TestGithubRepoRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = FeatureStateGithubReposRequest.ResponseBody(**response.json())
         assert response_obj.states_match is False
-

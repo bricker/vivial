@@ -1,24 +1,12 @@
-import { promises as fs } from "node:fs";
-import { CodeFile } from "./parsing-utility.js";
 import path from "node:path";
 import Parser from "tree-sitter";
-import { eaveLogger, LogContext } from "../logging.js";
-import { grammarForLanguage } from "../parsing/grammars.js";
-import {
-  getProgrammingLanguageByExtension,
-  ProgrammingLanguage,
-} from "../programming-langs/language-mapping.js";
-import { OpenAIModel } from "../transformer-ai/models.js";
-import OpenAIClient, { formatprompt } from "../transformer-ai/openai.js";
-import { ExpressRoutingMethod } from "../types.js";
-import { CtxArg } from "../requests.js";
-import { normalizeExtName } from "../util.js";
+import { CodeFile } from "./parsing-utility.js";
 
 export class ESCodeFile extends CodeFile {
-  private __memo_variableMap__?: Map<string, Parser.SyntaxNode>
-  private __memo_declarationMap__?: Map<string, Parser.SyntaxNode>
-  private __memo_localImportPaths__?: Map<string, string>
-  private __memo_localRequirePaths__?: Map<string, string>
+  private __memo_variableMap__?: Map<string, Parser.SyntaxNode>;
+  private __memo_declarationMap__?: Map<string, Parser.SyntaxNode>;
+  private __memo_localImportPaths__?: Map<string, string>;
+  private __memo_localRequirePaths__?: Map<string, string>;
 
   /**
    * Adds variable nodes to a map for convenient lookup.
@@ -54,7 +42,8 @@ export class ESCodeFile extends CodeFile {
       return this.__memo_localImportPaths__;
     }
 
-    const importNodes = this.tree.rootNode.descendantsOfType("import_statement");
+    const importNodes =
+      this.tree.rootNode.descendantsOfType("import_statement");
     const importPaths = new Map();
 
     for (const importNode of importNodes) {
@@ -114,7 +103,7 @@ export class ESCodeFile extends CodeFile {
    */
   getDeclarationMap(): Map<string, Parser.SyntaxNode> {
     if (this.__memo_declarationMap__ !== undefined) {
-      return this.__memo_declarationMap__
+      return this.__memo_declarationMap__;
     }
 
     const declarations = new Map();

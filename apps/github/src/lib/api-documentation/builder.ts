@@ -1,43 +1,55 @@
-import { ExpressAPI, ExpressCodeFile } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-parsing-utility.js";
-import { GithubRepo } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
-import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
-import { GithubAPIData } from "./github-api.js";
-import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
-import assert from "assert";
-import Parser from "tree-sitter";
-import { CodeFile, changeFileExtension } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/parsing-utility.js";
-import { assertIsBlob, assertIsRepository, assertIsTree, isBlob, isTree } from "../graphql-util.js";
-import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
-import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
-import { TreeEntry } from "@octokit/graphql-schema";
+import {
+  ExpressAPI,
+  ExpressCodeFile,
+} from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-parsing-utility.js";
+import { changeFileExtension } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/parsing-utility.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { ProgrammingLanguage } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
+import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
+import { assertIsBlob } from "../graphql-util.js";
+import { GithubAPIData } from "./github-api.js";
 
 export class ExpressAPIDocumentBuilder {
-  private readonly githubAPIData: GithubAPIData
-  private readonly ctx: LogContext
-  private readonly apiRootFile: ExpressCodeFile
+  private readonly githubAPIData: GithubAPIData;
+  private readonly ctx: LogContext;
+  private readonly apiRootFile: ExpressCodeFile;
 
-  static async buildAPI({ githubAPIData, ctx, apiRootDir }: CtxArg & { githubAPIData: GithubAPIData, apiRootDir: string }): Promise<ExpressAPI> {
+  static async buildAPI({
+    githubAPIData,
+    ctx,
+    apiRootDir,
+  }: CtxArg & {
+    githubAPIData: GithubAPIData;
+    apiRootDir: string;
+  }): Promise<ExpressAPI> {
     const apiInfo = new ExpressAPI({
       externalRepoId: githubAPIData.externalGithubRepo.id,
       rootDir: apiRootDir,
     });
 
-    for await (const treeEntry of githubAPIData.recurseGitTree({ treeRootDir: apiRootDir })) {
+    for await (const treeEntry of githubAPIData.recurseGitTree({
+      treeRootDir: apiRootDir,
+    })) {
       const blob = treeEntry.object;
       assertIsBlob(blob);
       if (!blob.text) {
         // text is either null (binary object), undefined (not in response), or empty string (empty file). Either way, move on.
-        continue
+        continue;
       }
 
       assertPresence(treeEntry.path);
-      const file = new ExpressCodeFile({ path: treeEntry.path, contents: blob.text });
+      const file = new ExpressCodeFile({
+        path: treeEntry.path,
+        contents: blob.text,
+      });
       if (file.testExpressRootFile()) {
         // We found the file; Early-exit the loop
         apiInfo.rootFile = file;
-        break
+        break;
       }
     }
 
@@ -46,21 +58,32 @@ export class ExpressAPIDocumentBuilder {
       return apiInfo;
     }
 
-    const builder = new ExpressAPIDocumentBuilder({ apiRootFile: apiInfo.rootFile, githubAPIData, ctx });
+    const builder = new ExpressAPIDocumentBuilder({
+      apiRootFile: apiInfo.rootFile,
+      githubAPIData,
+      ctx,
+    });
     const endpoints = await builder.findExpressAPIEndpoints();
 
     if (endpoints.length === 0) {
-      eaveLogger.warning("No express API endpoints found", { apiRootDir, apiRootFile: apiInfo.rootFile?.asJSON }, ctx);
+      eaveLogger.warning(
+        "No express API endpoints found",
+        { apiRootDir, apiRootFile: apiInfo.rootFile?.asJSON },
+        ctx,
+      );
     }
 
     return apiInfo;
   }
 
-
-  private constructor({ apiRootFile, githubAPIData, ctx }: CtxArg & {apiRootFile: ExpressCodeFile, githubAPIData: GithubAPIData }) {
-    this.githubAPIData = githubAPIData
-    this.ctx = ctx
-    this.apiRootFile = apiRootFile
+  private constructor({
+    apiRootFile,
+    githubAPIData,
+    ctx,
+  }: CtxArg & { apiRootFile: ExpressCodeFile; githubAPIData: GithubAPIData }) {
+    this.githubAPIData = githubAPIData;
+    this.ctx = ctx;
+    this.apiRootFile = apiRootFile;
   }
 
   /**
@@ -68,11 +91,13 @@ export class ExpressAPIDocumentBuilder {
    * each API endpoint in the file. It then builds the code for each endpoint.
    */
   private async findExpressAPIEndpoints(): Promise<Array<string>> {
-    const calls = this.apiRootFile.tree.rootNode.descendantsOfType("call_expression");
+    const calls =
+      this.apiRootFile.tree.rootNode.descendantsOfType("call_expression");
     const requires = await this.buildLocalRequires();
     const imports = await this.buildLocalImports();
     const declarations = this.apiRootFile.getDeclarationMap();
-    const { app = "", router = "" } = await this.apiRootFile.getExpressAppIdentifiers();
+    const { app = "", router = "" } =
+      await this.apiRootFile.getExpressAppIdentifiers();
     const apiEndpoints: Array<string> = [];
 
     let baseCode = `import express from 'express';\nconst ${app} = express();\n`;
@@ -148,14 +173,18 @@ export class ExpressAPIDocumentBuilder {
 
       for (const innerIdentifier of innerIdentifiers) {
         const innerDeclaration = declarations.get(innerIdentifier);
-        const isRequire = innerDeclaration?.text.match(/require\(["|'][^"|']["|']\)/);
+        const isRequire = innerDeclaration?.text.match(
+          /require\(["|'][^"|']["|']\)/,
+        );
         if (innerDeclaration && !isRequire) {
           accumulator += `${innerDeclaration.text}\n\n`;
           continue;
         }
         const importPath = importPaths.get(innerIdentifier);
         if (importPath) {
-          const importedFile = await this.getExpressCodeFile({ filePath: importPath });
+          const importedFile = await this.getExpressCodeFile({
+            filePath: importPath,
+          });
           const c = await this.concatenateImports({
             identifier: innerIdentifier,
             expressCodeFile: importedFile,
@@ -165,7 +194,9 @@ export class ExpressAPIDocumentBuilder {
         }
         const requirePath = requirePaths.get(innerIdentifier);
         if (requirePath) {
-          const importedFile = await this.getExpressCodeFile({ filePath: requirePath });
+          const importedFile = await this.getExpressCodeFile({
+            filePath: requirePath,
+          });
           const c = await this.concatenateImports({
             identifier: innerIdentifier,
             expressCodeFile: importedFile,
@@ -177,7 +208,8 @@ export class ExpressAPIDocumentBuilder {
     }
 
     // Case 3: The declaration we're looking for wasn't found -- check for default export.
-    const exportNodes = expressCodeFile.tree.rootNode.descendantsOfType("export_statement");
+    const exportNodes =
+      expressCodeFile.tree.rootNode.descendantsOfType("export_statement");
     for (const exportNode of exportNodes) {
       const children = expressCodeFile.getNodeChildMap({ node: exportNode });
       if (children.has("default")) {
@@ -203,10 +235,12 @@ export class ExpressAPIDocumentBuilder {
     const importPaths = this.apiRootFile.getLocalImportPaths();
     const imports = new Map();
     for (const [identifier, importPath] of importPaths) {
-      const expressCodeFile = await this.getExpressCodeFile({ filePath: importPath });
+      const expressCodeFile = await this.getExpressCodeFile({
+        filePath: importPath,
+      });
       const importCode = await this.concatenateImports({
         identifier,
-        expressCodeFile
+        expressCodeFile,
       });
       imports.set(identifier, importCode);
     }
@@ -221,24 +255,38 @@ export class ExpressAPIDocumentBuilder {
     const requirePaths = this.apiRootFile.getLocalRequirePaths();
     const requires = new Map();
     for (const [identifier, requirePath] of requirePaths) {
-      const expressCodeFile = await this.getExpressCodeFile({ filePath: requirePath });
+      const expressCodeFile = await this.getExpressCodeFile({
+        filePath: requirePath,
+      });
       const requireCode = await this.concatenateImports({
         identifier,
-        expressCodeFile
+        expressCodeFile,
       });
       requires.set(identifier, requireCode);
     }
     return requires;
   }
 
-  private async getExpressCodeFile({ filePath }: { filePath: string }): Promise<ExpressCodeFile> {
-    const file = new ExpressCodeFile({ path: filePath, contents: "" }) // empty contents as placeholder
+  private async getExpressCodeFile({
+    filePath,
+  }: {
+    filePath: string;
+  }): Promise<ExpressCodeFile> {
+    const file = new ExpressCodeFile({ path: filePath, contents: "" }); // empty contents as placeholder
 
     let gitBlob = await this.githubAPIData.getFileContent({ filePath });
-    if (!gitBlob && this.apiRootFile.language === ProgrammingLanguage.javascript) {
+    if (
+      !gitBlob &&
+      this.apiRootFile.language === ProgrammingLanguage.javascript
+    ) {
       // either the file doesn't exist, or this is a javascript import and the source file is typescript.
-      const tsFilePath = changeFileExtension({ filePathOrName: filePath, to: ".ts" });
-      gitBlob = await this.githubAPIData.getFileContent({ filePath: tsFilePath });
+      const tsFilePath = changeFileExtension({
+        filePathOrName: filePath,
+        to: ".ts",
+      });
+      gitBlob = await this.githubAPIData.getFileContent({
+        filePath: tsFilePath,
+      });
     }
 
     assertPresence(gitBlob?.text);

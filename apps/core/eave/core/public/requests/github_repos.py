@@ -64,6 +64,7 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
             )
         )
 
+
 class GetAllTeamsGithubRepoEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         body = await request.json()

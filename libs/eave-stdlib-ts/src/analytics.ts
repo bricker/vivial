@@ -74,7 +74,9 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
     event.eave_account = JSON.stringify(fields.eave_account);
   } else if (ctx.get("eave_account")) {
     try {
-      const sketchyEaveAccount = <JsonObject | undefined>ctx.get("eave_account");
+      const sketchyEaveAccount = <JsonObject | undefined>(
+        ctx.get("eave_account")
+      );
       event.eave_team_id = <string>sketchyEaveAccount?.["id"];
       event.eave_team = JSON.stringify(sketchyEaveAccount);
     } catch (e: any) {

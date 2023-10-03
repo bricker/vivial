@@ -1,19 +1,19 @@
-import Parser from "tree-sitter";
-import { ProgrammingLanguage, getProgrammingLanguageByFilePathOrName, getProgrammingLanguageByExtension } from "../programming-langs/language-mapping.js";
-import { LogContext } from "../logging.js";
-import { CtxArg } from "../requests.js";
-import assert from "node:assert";
 import nodePath from "node:path";
-import { grammarForFilePathOrName, grammarForLanguage } from "../parsing/grammars.js";
-import { assertPresence, normalizeExtName } from "../util.js";
+import Parser from "tree-sitter";
+import { grammarForFilePathOrName } from "../parsing/grammars.js";
+import {
+  ProgrammingLanguage,
+  getProgrammingLanguageByFilePathOrName,
+} from "../programming-langs/language-mapping.js";
 import { JsonObject } from "../types.js";
+import { normalizeExtName } from "../util.js";
 
 export class CodeFile {
   contents: string;
   path: string;
-  private __memo_tree__?: Parser.Tree
+  private __memo_tree__?: Parser.Tree;
 
-  constructor({path, contents}: { path: string; contents: string; }) {
+  constructor({ path, contents }: { path: string; contents: string }) {
     this.path = path;
     this.contents = contents;
   }
@@ -22,7 +22,7 @@ export class CodeFile {
     return {
       path: this.path,
       language: this.language,
-    }
+    };
   }
 
   get tree(): Parser.Tree {
@@ -66,19 +66,35 @@ export class CodeFile {
   // }
 }
 
-export function parseCode({ filePathOrName, code }: { filePathOrName: string, code: string }): Parser.Tree {
+export function parseCode({
+  filePathOrName,
+  code,
+}: {
+  filePathOrName: string;
+  code: string;
+}): Parser.Tree {
   const parser = makeParser({ filePathOrName });
   return parser.parse(code);
 }
 
-export function makeParser({ filePathOrName }: { filePathOrName: string }): Parser {
+export function makeParser({
+  filePathOrName,
+}: {
+  filePathOrName: string;
+}): Parser {
   const grammar = grammarForFilePathOrName(filePathOrName);
   const parser = new Parser();
   parser.setLanguage(grammar);
   return parser;
 }
 
-export function changeFileExtension({ filePathOrName, to }: { filePathOrName: string, to: string }): string {
+export function changeFileExtension({
+  filePathOrName,
+  to,
+}: {
+  filePathOrName: string;
+  to: string;
+}): string {
   const p = nodePath.parse(filePathOrName);
   p.base = ""; // node ignores p.ext and p.name if p.base is provided
   p.ext = normalizeExtName(to);

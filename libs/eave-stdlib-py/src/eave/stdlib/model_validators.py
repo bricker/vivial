@@ -14,6 +14,7 @@ def validate_at_least_one_of(*fields: str) -> Any:
 
     return pydantic.root_validator(allow_reuse=True, pre=False)(validate)
 
+
 def validate_minimum_length(field: str, minimum_length: int) -> Any:
     def validate(cls: type, value: Optional[L]) -> Optional[L]:
         if value is None:
@@ -23,6 +24,7 @@ def validate_minimum_length(field: str, minimum_length: int) -> Any:
         return value
 
     return pydantic.validator(field, allow_reuse=True)(validate)
+
 
 def validate_xnor(*fields: str) -> Any:
     def validate(cls, values: dict[str, Any]) -> dict[str, Any]:

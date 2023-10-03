@@ -95,7 +95,7 @@ export class LogContext {
   }
 
   get(attribute: string): JsonValue | undefined {
-    return this.attributes[attribute]
+    return this.attributes[attribute];
   }
 
   set(attributes: JsonObject): LogContext {

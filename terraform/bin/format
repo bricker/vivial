@@ -1,3 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-terraform fmt -recursive .
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	cd "$(^parentpath)"
+	terraform fmt -recursive .
+)

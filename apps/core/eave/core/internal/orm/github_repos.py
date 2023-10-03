@@ -60,7 +60,9 @@ class GithubRepoOrm(Base):
         external_repo_ids = kwargs.get("external_repo_ids")
         external_repo_id = kwargs.get("external_repo_id")
 
-        assert eave.stdlib.util.nand(external_repo_ids is not None, external_repo_id is not None), "external_repo_ids and external_repo_id are mutually exclusive inputs"
+        assert eave.stdlib.util.nand(
+            external_repo_ids is not None, external_repo_id is not None
+        ), "external_repo_ids and external_repo_id are mutually exclusive inputs"
 
         if external_repo_ids:
             lookup = lookup.where(cls.external_repo_id.in_(external_repo_ids))

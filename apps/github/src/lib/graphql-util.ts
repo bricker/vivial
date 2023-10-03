@@ -1,8 +1,7 @@
-import { Blob, Issue, ProjectV2Item, Query, Repository, Tree, validate } from "@octokit/graphql-schema";
+import { Blob, Repository, Tree, validate } from "@octokit/graphql-schema";
+import assert from "node:assert";
 import { promises as fs } from "node:fs";
 import GlobalCache from "../lib/cache.js";
-import { GitHubOperationsContext } from "../types.js";
-import assert from "node:assert";
 
 export async function loadQuery(name: string): Promise<string> {
   const queryCacheKey = `query.${name}`;
@@ -62,26 +61,38 @@ async function prependFragments(
   return prependFragments(newQuery, manifest);
 }
 
-export function isTree(obj: { __typename?: string } | undefined | null): obj is Tree {
-  return obj?.__typename === "Tree"
+export function isTree(
+  obj: { __typename?: string } | undefined | null,
+): obj is Tree {
+  return obj?.__typename === "Tree";
 }
 
-export function assertIsTree(obj: { __typename?: string } | undefined | null): asserts obj is Tree {
+export function assertIsTree(
+  obj: { __typename?: string } | undefined | null,
+): asserts obj is Tree {
   assert(isTree(obj), `expected Tree, got ${obj?.__typename}`);
 }
 
-export function isBlob(obj: { __typename?: string } | undefined | null): obj is Blob {
+export function isBlob(
+  obj: { __typename?: string } | undefined | null,
+): obj is Blob {
   return obj?.__typename === "Blob";
 }
 
-export function assertIsBlob(obj: { __typename?: string } | undefined | null): asserts obj is Blob {
+export function assertIsBlob(
+  obj: { __typename?: string } | undefined | null,
+): asserts obj is Blob {
   assert(isBlob(obj), `expected Blob, got ${obj?.__typename}`);
 }
 
-export function isRepository(obj: { __typename?: string } | undefined | null): obj is Repository {
+export function isRepository(
+  obj: { __typename?: string } | undefined | null,
+): obj is Repository {
   return obj?.__typename === "Repository";
 }
 
-export function assertIsRepository(obj: { __typename?: string } | undefined | null): asserts obj is Repository {
+export function assertIsRepository(
+  obj: { __typename?: string } | undefined | null,
+): asserts obj is Repository {
   assert(isRepository(obj), `expected Repository, got ${obj?.__typename}`);
 }
