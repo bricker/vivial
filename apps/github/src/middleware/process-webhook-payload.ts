@@ -19,7 +19,7 @@ import { githubAppClient } from "../lib/octokit-util.js";
 type GithubWebhookHeaders = {
   id?: string;
   signature?: string;
-  installationId?: string;
+  githubAppId?: string;
   eventName?: WebhookEventName;
 };
 
@@ -46,12 +46,12 @@ export function getGithubWebhookHeaders(
     | WebhookEventName
     | undefined;
   const signature = req.header("x-hub-signature-256");
-  const installationId = req.header("x-github-hook-installation-target-id");
+  const githubAppId = req.header("x-github-hook-installation-target-id");
 
   return {
     id,
     signature,
-    installationId,
+    githubAppId,
     eventName,
   };
 }
@@ -81,14 +81,14 @@ export async function validateGithubWebhookHeaders(
   try {
     const ctx = LogContext.load(res);
     const rawBody = (<Buffer>req.body).toString();
-    const { id, signature, eventName, installationId } =
+    const { id, signature, eventName, githubAppId } =
       getGithubWebhookHeaders(req);
 
-    if (!eventName || !id || !signature || !installationId) {
+    if (!eventName || !id || !signature || !githubAppId) {
       eaveLogger.error("missing header data from GitHub", ctx, {
         id,
         eventName,
-        installationId,
+        githubAppId,
       });
       res.sendStatus(httpConstants.HTTP_STATUS_BAD_REQUEST);
       return;
@@ -101,7 +101,7 @@ export async function validateGithubWebhookHeaders(
       eaveLogger.error("signature verification failed", ctx, {
         id,
         eventName,
-        installationId,
+        githubAppId,
       });
 
       if (appConfig.isDevelopment && appConfig.devMode) {

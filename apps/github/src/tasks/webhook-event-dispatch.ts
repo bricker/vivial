@@ -20,15 +20,10 @@ export async function webhookEventTaskHandler(
     return;
   }
 
-  const { installationId } = getGithubWebhookHeaders(req);
-  if (!installationId) {
-    throw new MissingRequiredHeaderError("installationId");
-  }
-
   const eventBody = <GithubWebhookBody>req.body;
+  const installationId = eventBody.installation.id;
+
   const app = await githubAppClient();
-  const octokit = await app.getInstallationOctokit(
-    parseInt(installationId, 10),
-  );
+  const octokit = await app.getInstallationOctokit(installationId);
   await handler(eventBody, { octokit, ctx });
 }
