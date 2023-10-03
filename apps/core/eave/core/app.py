@@ -6,7 +6,7 @@ from eave.stdlib import cache
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
 from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocuments, UpsertDocument
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
-from eave.stdlib.core_api.operations.github import GetGithubInstallation
+from eave.stdlib.core_api.operations.github import GetGithubInstallation, DeleteGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.subscriptions import (
@@ -209,7 +209,11 @@ routes = [
     ),
     make_route(
         config=GetGithubInstallation.config,
-        endpoint=eave.core.public.requests.github_integration.GithubIntegration,
+        endpoint=eave.core.public.requests.github_integration.GetGithubIntegrationEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubInstallation.config,
+        endpoint=eave.core.public.requests.github_integration.DeleteGithubIntegrationEndpoint,
     ),
     make_route(
         config=GetAtlassianInstallation.config,
