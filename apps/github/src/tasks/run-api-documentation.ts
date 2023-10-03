@@ -31,8 +31,6 @@ import { GithubAPIData } from "../lib/api-documentation/github-api.js";
 import { createOctokitClient, getInstallationId } from "../lib/octokit-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 
-const IGNORE_DIRS = ["node_modules"];
-
 const ANALYTICS_SOURCE = "run api documentation cron handler";
 
 export async function runApiDocumentationTaskHandler(

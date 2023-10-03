@@ -73,7 +73,7 @@ export default async function createContent({
 
   // Otherwise, if the document has at least one parent, build the hierarchy
   const hierarchy: DocumentInput[] = [];
-  let parent: DocumentInput | undefined = document.parent;
+  let parent: DocumentInput | null = document.parent;
 
   while (parent) {
     hierarchy.unshift(parent);

@@ -61,8 +61,10 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		python -m black --config="$configfile" .
 
-		# Ruff --fix is commented out here because it could change code semantics. The auto-formatter is intended to be completely safe.
-		# python -m ruff --fix --config="$configfile" .
+		# Ruff could change code semantics. The auto-formatter is intended to be completely safe.
+		# but it also removes unused import which we want.
+		# TODO: can we configure it to only fix the unused imports?
+		python -m ruff --fix --config="$configfile" .
 
 		statusmsg -s "Formatting $logtarget completed"
 		echo

@@ -1,5 +1,4 @@
 import pydantic
-from pydantic import ConfigDict
 
 
 class BaseResponseModel(pydantic.BaseModel):

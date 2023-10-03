@@ -1,5 +1,4 @@
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, Scope, HTTPScope
-from eave.stdlib.core_api.operations import EndpointConfiguration
 
 from eave.stdlib.request_state import EaveRequestState
 
