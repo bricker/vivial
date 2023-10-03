@@ -2,6 +2,9 @@ from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.stdlib.core_api.models.github_repos import Feature
+from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.github_api.models import GithubRepoInput
+from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -172,6 +175,15 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         ctx=eave_state.ctx,
                     )
 
+                if gh_repo_orm.api_documentation_state is False and new_values.api_documentation_state is True:
+                    await RunApiDocumentationTask.perform(
+                        team_id=gh_repo_orm.team_id,
+                        ctx=eave_state.ctx,
+                        origin=EaveApp.eave_api,
+                        input=RunApiDocumentationTask.RequestBody(
+                            repo=GithubRepoInput(external_repo_id=gh_repo_orm.external_repo_id)
+                        ),
+                    )
                 gh_repo_orm.update(new_values)
 
         return json_response(

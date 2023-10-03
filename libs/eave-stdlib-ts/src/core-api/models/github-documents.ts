@@ -26,7 +26,7 @@ export type GithubDocumentsQueryInput = {
   id?: string;
   external_repo_id?: string;
   type?: DocumentType;
-
+  pull_request_number?: number;
   // TODO: Validation
 };
 

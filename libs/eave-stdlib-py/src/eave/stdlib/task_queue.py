@@ -117,7 +117,8 @@ async def create_task(
         audience=audience,
         request_id=request_id,
         path=target_path,
-        payload=body.decode(),
+        # FIXME: The linter doesn't like this next line, with the error `Cannot access member "decode" for type "memoryview"`
+        payload=body.decode(),  # type: ignore
         team_id=ctx.eave_team_id,
         account_id=ctx.eave_account_id,
         ctx=ctx,

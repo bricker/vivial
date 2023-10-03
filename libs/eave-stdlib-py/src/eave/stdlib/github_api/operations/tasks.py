@@ -9,7 +9,7 @@ from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpoi
 
 class RunApiDocumentationTask(GithubAppEndpoint):
     config = GithubAppEndpointConfiguration(
-        path="/_/github/run-api-documentation",
+        path="/_/github/tasks/run-api-documentation",
     )
 
     class RequestBody(BaseRequestBody):
