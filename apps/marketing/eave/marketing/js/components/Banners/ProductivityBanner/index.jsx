@@ -30,7 +30,6 @@ const ProductivityBanner = ({ title }) => {
         <Copy variant="h1">{title}</Copy>
       </PageSection>
       <picture className={classes.wrapper}>
-        {/* TODO: get this width from some constant? 600 to match mui sm media breakpoint? */}
         <source
           media="(max-width:650px)"
           srcSet={imageUrl("productivity-banner-design-vertical-3x.png")}

@@ -92,6 +92,9 @@ const makeClasses = makeStyles((theme) => ({
     fontWeight: 700,
     textDecoration: "none",
   },
+  yellowHighlight: {
+    color: theme.palette.primary.main,
+  }
 }));
 
 const Header = ({ simpleHeader }) => {
@@ -152,16 +155,16 @@ const Header = ({ simpleHeader }) => {
   ) : (
     <>
       <button
+        className={`${classes.mobileNavItem} ${classes.yellowHighlight}`}
+        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
+      >
+        Sign Up
+      </button>
+      <button
         className={classes.mobileNavItem}
         onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}
       >
         Log In
-      </button>
-      <button
-        className={classes.mobileNavItem}
-        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
-      >
-        Sign Up
       </button>
     </>
   );
