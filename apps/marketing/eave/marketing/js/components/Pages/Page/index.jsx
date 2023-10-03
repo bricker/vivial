@@ -1,39 +1,17 @@
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
-import horizontalBgImage from "../../../../static/images/hero-background-horizontal-4x.png";
-import tabletBgImage from "../../../../static/images/hero-background-tablet-3x.png";
-import verticalBgImage from "../../../../static/images/hero-background-vertical-3x.png";
 import AuthModal from "../../AuthModal/index.jsx";
 import Footer from "../../Footer/index.jsx";
 import Header from "../../Header/index.jsx";
 
 const makeClasses = makeStyles((theme) => ({
-  heroBackgroundImage: {},
   container: {
     backgroundColor: theme.palette.background.main,
     fontFamily: theme.typography.fontFamily,
     position: "relative",
     minHeight: "100vh",
-    backgroundImage: `url(${horizontalBgImage})`,
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "contain",
-    backgroundPosition: "center top",
-    [theme.breakpoints.between(
-      theme.breakpoints.values.xs,
-      theme.breakpoints.values.thin,
-    )]: {
-      backgroundImage: `url(${verticalBgImage})`,
-    },
-    [theme.breakpoints.between(
-      theme.breakpoints.values.thin,
-      theme.breakpoints.values.md,
-    )]: {
-      backgroundImage: `url(${tabletBgImage})`,
-    },
-    [theme.breakpoints.up("xl")]: {
-      backgroundSize: "auto 1800px",
-    },
+    zIndex: 1, // this keeps the hero bg image behind the nav bar
   },
   sections: {
     minHeight: `calc(100vh - ${theme.header.height}px - ${theme.header.marginBottom}px - ${theme.footer.height}px)`,
