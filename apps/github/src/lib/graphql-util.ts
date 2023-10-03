@@ -31,7 +31,7 @@ async function prependFragments(
     manifest = new Set<string>();
   }
 
-  const fragmentMatches = Array.from(query.matchAll(/\.{3}(.+?)Fragment/g));
+  const fragmentMatches = Array.from(query.matchAll(/\.{3}(\w+?Fragment)/g));
   const missingFragments = fragmentMatches
     .filter((m) => {
       return !manifest!.has(m[1]!);
@@ -50,7 +50,7 @@ async function prependFragments(
     let fragmentData = await GlobalCache.get(fragmentCacheKey);
     if (fragmentData === null) {
       fragmentData = await fs.readFile(
-        `./src/graphql/fragments/_${fragmentName}.graphql`,
+        `./src/graphql/fragments/${fragmentName}.graphql`,
         "utf-8",
       );
       await GlobalCache.set(fragmentCacheKey, fragmentData);

@@ -2,6 +2,7 @@ import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import {
   DocumentType,
   GithubDocument,
+  GithubDocumentUpdateInput,
   GithubDocumentValuesInput,
   Status,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
@@ -208,6 +209,12 @@ export async function runApiDocumentationTaskHandler(
     }
   });
 
+  if (fileAdditions.length === 0) {
+    eaveLogger.warning("No file additions", ctx);
+    await updateDocuments({ coreAPIData, documents, newValues: { status: Status.FAILED } });
+    return;
+  }
+
   const prCreator = new PullRequestCreator({
     repoName: githubAPIData.externalGithubRepo.name,
     repoOwner: githubAPIData.externalGithubRepo.owner.login,
@@ -227,16 +234,17 @@ export async function runApiDocumentationTaskHandler(
     },
   });
 
+  await updateDocuments({ coreAPIData, documents, newValues: { pull_request_number: pullRequest.number, status: Status.FAILED } });
+}
+
+async function updateDocuments({ coreAPIData, documents, newValues }: { coreAPIData: CoreAPIData, documents: ExpressAPI[], newValues: GithubDocumentValuesInput }) {
   for (const document of documents) {
     if (document.documentationFilePath) {
       const eaveDoc = coreAPIData.getGithubDocument({ filePath: document.documentationFilePath })
       assertPresence(eaveDoc);
       await coreAPIData.updateGithubDocument({
         document: eaveDoc,
-        newValues: {
-          pull_request_number: pullRequest.number,
-          status: Status.PR_OPENED,
-        },
+        newValues,
       });
     }
   }

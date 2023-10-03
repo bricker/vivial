@@ -54,6 +54,27 @@ export class PullRequestCreator {
     this.baseBranchName = this.ensureBranchPrefix(baseBranchName);
   }
 
+  private async getBranch(branchName: string): Promise<Ref | null> {
+    const getBranchQuery = await GraphQLUtil.loadQuery("getRef")
+    const getBranchParameters: {
+      repoName: Scalars["String"]["input"];
+      repoOwner: Scalars["String"]["input"];
+      refName: Scalars["String"]["input"];
+    } = {
+      repoName: this.repoName,
+      repoOwner: this.repoOwner,
+      refName: branchName,
+    }
+
+    const branchResp = await this.octokit.graphql<{
+      repository: Query["repository"];
+    }>(getBranchQuery, getBranchParameters);
+
+    GraphQLUtil.assertIsRepository(branchResp.repository);
+    const ref = branchResp.repository.ref;
+    return ref || null;
+  }
+
   /**
    * branch off the head commit (should usually be PR merge commit)
    * https://docs.github.com/en/graphql/reference/mutations#createref
@@ -94,6 +115,7 @@ export class PullRequestCreator {
       branchName,
       repoId: this.repoId,
     };
+
     const branchResp = await this.octokit.graphql<{
       createRef: Mutation["createRef"];
     }>(createBranchMutation, createBranchParameters);
@@ -119,6 +141,10 @@ export class PullRequestCreator {
     message: string,
     fileChanges: FileChanges,
   ): Promise<void> {
+    if (!fileChanges.additions?.length && !fileChanges.deletions?.length) {
+      return
+    }
+
     const createCommitMutation = await GraphQLUtil.loadQuery(
       "createCommitOnBranch",
     );
@@ -139,6 +165,9 @@ export class PullRequestCreator {
     const commitResp = await this.octokit.graphql<{
       createCommitOnBranch: Mutation["createCommitOnBranch"];
     }>(createCommitMutation, createCommitParameters);
+
+    eaveLogger.debug("createCommitOnBranch response", { createCommitMutation, createCommitParameters, commitResp });
+
     if (!commitResp.createCommitOnBranch?.commit?.oid) {
       eaveLogger.error(
         `Failed to create commit in ${this.repoOwner}/${this.repoName}`,
@@ -223,7 +252,12 @@ export class PullRequestCreator {
     prBody: string;
     fileChanges: FileChanges;
   }): Promise<PullRequest> {
-    const branch = await this.createBranch(this.ensureBranchPrefix(branchName));
+    const fqBranchName = this.ensureBranchPrefix(branchName);
+    let branch = await this.getBranch(fqBranchName);
+    if (!branch) {
+      branch = await this.createBranch(fqBranchName);
+    }
+
     await this.createCommit(branch, commitMessage, fileChanges);
     const pr = await this.openPullRequest(branch, prTitle, prBody);
 
