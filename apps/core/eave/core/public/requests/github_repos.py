@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_repos import GithubRepoOrm
-from eave.stdlib.core_api.models.github_repos import Feature
+from eave.stdlib.core_api.models.github_repos import Feature, State
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import GithubRepoInput
 from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
@@ -176,7 +176,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         ctx=eave_state.ctx,
                     )
 
-                if gh_repo_orm.api_documentation_state is False and new_values.api_documentation_state is True:
+                if gh_repo_orm.api_documentation_state == State.DISABLED and new_values.api_documentation_state == State.ENABLED:
                     await RunApiDocumentationTask.perform(
                         team_id=gh_repo_orm.team_id,
                         ctx=eave_state.ctx,
