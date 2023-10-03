@@ -1,6 +1,5 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { DeleteGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
-import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { InstallationDeletedEvent } from "@octokit/webhooks-types";
 import { appConfig } from "../config.js";
 import { GitHubOperationsContext } from "../types.js";

@@ -109,8 +109,8 @@ async def get_team_repos() -> Response:
 
     eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        account_id=unwrap(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
+        # account_id=unwrap(auth_cookies.account_id),
+        # access_token=unwrap(auth_cookies.access_token),
         team_id=unwrap(auth_cookies.team_id),
         input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
