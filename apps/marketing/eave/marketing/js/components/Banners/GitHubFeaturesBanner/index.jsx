@@ -29,7 +29,7 @@ const makeClasses = makeStyles((theme) => ({
     maxWidth: "min((100vw - 108px - 160px) / 3, 282px)",
     minWidth: 150,
     [theme.breakpoints.down("sm")]: {
-      minWidth: 328, // TODO: maybe have this change w/ window size?
+      minWidth: 328,
       marginBottom: 75,
     },
   },
@@ -59,9 +59,6 @@ const makeClasses = makeStyles((theme) => ({
     paddingTop: 300,
     [theme.breakpoints.only("md")]: {
       paddingTop: 200,
-    },
-    [theme.breakpoints.only("sm")]: {
-      paddingTop: 150,
     },
   },
 }));

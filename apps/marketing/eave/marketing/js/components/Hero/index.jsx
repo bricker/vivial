@@ -40,7 +40,6 @@ const makeClasses = makeStyles((theme) => ({
     flexDirection: "column",
   },
   bgImage: {
-    // TODO: which css to use?? performance???
     width: "100%",
     height: "100%",
     position: "absolute",
