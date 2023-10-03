@@ -1,4 +1,3 @@
-import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import Express from "express";
 import { constants as httpConstants } from "node:http2";
@@ -6,7 +5,6 @@ import { githubAppClient } from "../lib/octokit-util.js";
 import {
   GithubWebhookBody,
   getEventHandler,
-  getGithubWebhookHeaders,
 } from "../middleware/process-webhook-payload.js";
 
 export async function webhookEventTaskHandler(
