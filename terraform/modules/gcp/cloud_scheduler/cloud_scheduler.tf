@@ -17,10 +17,11 @@ resource "google_cloud_scheduler_job" "run_api_documentation_job" {
   time_zone        = "Etc/UTC"
 
   app_engine_http_target {
-    body = null
+    body = "{}"
     headers = {
       "eave-cron-shared-secret" = "redacted"
       "eave-cron-dispatch-key"  = "run-api-documentation"
+      "content-type"  = "application/json"
     }
     http_method  = "POST"
     relative_uri = "/_/github/cron"
