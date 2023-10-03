@@ -167,6 +167,7 @@ export default async function handler(
           const summarizedContent = rollingSummary({
             client: openaiClient,
             content: fileContents,
+            ctx,
           });
 
           // FIXME: Add this eslint exception to eslint config

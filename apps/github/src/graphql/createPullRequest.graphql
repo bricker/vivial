@@ -14,7 +14,10 @@ mutation (
       title: $title
     }
   ) {
+    __typename
+
     pullRequest {
+      __typename
       number
     }
   }

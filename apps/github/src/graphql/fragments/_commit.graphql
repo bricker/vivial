@@ -1,4 +1,6 @@
 fragment commitFragment on Commit {
+  __typename
+  id
   commitMessage: message
   additions
   changedFilesIfAvailable

@@ -1,4 +1,6 @@
 fragment tagFragment on Tag {
+  __typename
+  id
   tagMessage: message
   name
   target {

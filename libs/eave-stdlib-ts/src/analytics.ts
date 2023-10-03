@@ -59,14 +59,30 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   if (fields.eave_team) {
     event.eave_team_id = fields.eave_team.id;
     event.eave_team = JSON.stringify(fields.eave_team);
+  } else if (ctx.get("eave_team")) {
+    try {
+      const sketchyEaveTeam = <JsonObject | undefined>ctx.get("eave_team");
+      event.eave_team_id = <string>sketchyEaveTeam?.["id"];
+      event.eave_team = JSON.stringify(sketchyEaveTeam);
+    } catch (e: any) {
+      eaveLogger.exception(e, ctx);
+    }
   }
 
   if (fields.eave_account) {
     event.eave_account_id = fields.eave_account.id;
     event.eave_account = JSON.stringify(fields.eave_account);
+  } else if (ctx.get("eave_account")) {
+    try {
+      const sketchyEaveAccount = <JsonObject | undefined>ctx.get("eave_account");
+      event.eave_team_id = <string>sketchyEaveAccount?.["id"];
+      event.eave_team = JSON.stringify(sketchyEaveAccount);
+    } catch (e: any) {
+      eaveLogger.exception(e, ctx);
+    }
   }
 
-  event.opaque_eave_ctx = JSON.stringify(ctx);
+  event.opaque_eave_ctx = JSON.stringify(ctx.attributes);
   event.eave_request_id = ctx.eave_request_id;
 
   if (!event.eave_account_id && ctx.eave_account_id) {

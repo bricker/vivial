@@ -1,0 +1,27 @@
+fragment repoFragment on Repository {
+  __typename
+  id
+  name
+  url
+  description
+  createdAt
+  updatedAt
+  pushedAt
+
+  owner {
+    __typename
+    id
+    login
+    avatarUrl
+
+    ...on Organization {
+      name
+    }
+  }
+
+  defaultBranchRef {
+    __typename
+    id
+    name
+  }
+}

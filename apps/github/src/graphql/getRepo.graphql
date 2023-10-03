@@ -1,24 +1,9 @@
 query ($nodeId: ID!) {
   node(id: $nodeId) {
+    __typename
+
     ... on Repository {
-      id
-      name
-      url
-      description
-      createdAt
-      updatedAt
-      pushedAt
-
-      owner {
-        id
-        login
-        avatarUrl
-      }
-
-      defaultBranchRef {
-        id
-        name
-      }
+      ...repoFragment
     }
   }
 }

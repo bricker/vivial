@@ -1,4 +1,4 @@
-import { Blob, Issue, ProjectV2Item, Query, Tree, validate } from "@octokit/graphql-schema";
+import { Blob, Issue, ProjectV2Item, Query, Repository, Tree, validate } from "@octokit/graphql-schema";
 import { promises as fs } from "node:fs";
 import GlobalCache from "../lib/cache.js";
 import { GitHubOperationsContext } from "../types.js";
@@ -66,14 +66,22 @@ export function isTree(obj: { __typename?: string } | undefined | null): obj is 
   return obj?.__typename === "Tree"
 }
 
-export function isBlob(obj: { __typename?: string } | undefined | null): obj is Blob {
-  return obj?.__typename === "Blob";
-}
-
 export function assertIsTree(obj: { __typename?: string } | undefined | null): asserts obj is Tree {
   assert(isTree(obj), `expected Tree, got ${obj?.__typename}`);
 }
 
+export function isBlob(obj: { __typename?: string } | undefined | null): obj is Blob {
+  return obj?.__typename === "Blob";
+}
+
 export function assertIsBlob(obj: { __typename?: string } | undefined | null): asserts obj is Blob {
   assert(isBlob(obj), `expected Blob, got ${obj?.__typename}`);
+}
+
+export function isRepository(obj: { __typename?: string } | undefined | null): obj is Repository {
+  return obj?.__typename === "Repository";
+}
+
+export function assertIsRepository(obj: { __typename?: string } | undefined | null): asserts obj is Repository {
+  assert(isRepository(obj), `expected Repository, got ${obj?.__typename}`);
 }

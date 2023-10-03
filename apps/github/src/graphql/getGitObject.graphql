@@ -1,5 +1,7 @@
 query ($repoOwner: String!, $repoName: String!, $expression: String!) {
   repository(owner: $repoOwner, name: $repoName) {
+    ...repoFragment
+
     object(expression: $expression) {
       ...gitObjectFragment
 

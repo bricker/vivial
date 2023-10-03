@@ -6,14 +6,33 @@ import assert from "node:assert";
 import nodePath from "node:path";
 import { grammarForFilePathOrName, grammarForLanguage } from "../parsing/grammars.js";
 import { assertPresence, normalizeExtName } from "../util.js";
+import { JsonObject } from "../types.js";
 
 export class CodeFile {
+  contents: string;
   path: string;
-  contents?: string;
+  private __memo_tree__?: Parser.Tree
 
-  constructor({path, contents}: { path: string; contents?: string; }) {
+  constructor({path, contents}: { path: string; contents: string; }) {
     this.path = path;
     this.contents = contents;
+  }
+
+  get asJSON(): JsonObject {
+    return {
+      path: this.path,
+      language: this.language,
+    }
+  }
+
+  get tree(): Parser.Tree {
+    if (this.__memo_tree__ !== undefined) {
+      return this.__memo_tree__;
+    }
+
+    const tree = parseCode({ filePathOrName: this.path, code: this.contents });
+    this.__memo_tree__ = tree;
+    return this.__memo_tree__;
   }
 
   get language(): ProgrammingLanguage | undefined {
@@ -24,77 +43,44 @@ export class CodeFile {
     return nodePath.dirname(this.path);
   }
 
-  set dirname(newValue: string) {
-    const p = nodePath.parse(this.path);
-    p.dir = newValue;
+  // set dirname(newValue: string) {
+  //   const p = nodePath.parse(this.path);
+  //   p.dir = newValue;
 
-    const newPath = nodePath.format(p);
-    this.path = newPath;
-  }
+  //   const newPath = nodePath.format(p);
+  //   this.path = newPath;
+  // }
 
   get extname(): string {
     return nodePath.extname(this.path);
   }
 
-  set extname(newValue: string) {
-    newValue = normalizeExtName(newValue);
-    const p = nodePath.parse(this.path);
-    p.base = ""; // node ignores p.ext and p.name if p.base is provided
-    p.ext = newValue;
+  // set extname(newValue: string) {
+  //   newValue = normalizeExtName(newValue);
+  //   const p = nodePath.parse(this.path);
+  //   p.base = ""; // node ignores p.ext and p.name if p.base is provided
+  //   p.ext = newValue;
 
-    const newPath = nodePath.format(p);
-    this.path = newPath;
-  }
+  //   const newPath = nodePath.format(p);
+  //   this.path = newPath;
+  // }
 }
 
-export class ParsingUtility {
-  private readonly ctx: LogContext;
+export function parseCode({ filePathOrName, code }: { filePathOrName: string, code: string }): Parser.Tree {
+  const parser = makeParser({ filePathOrName });
+  return parser.parse(code);
+}
 
-  constructor({ ctx }: CtxArg) {
-    this.ctx = ctx;
-  }
+export function makeParser({ filePathOrName }: { filePathOrName: string }): Parser {
+  const grammar = grammarForFilePathOrName(filePathOrName);
+  const parser = new Parser();
+  parser.setLanguage(grammar);
+  return parser;
+}
 
-  parseCode({ file }: { file: CodeFile }): Parser.Tree {
-    const parser = this.makeParser({ file });
-    assertPresence(file.contents);
-    return parser.parse(file.contents);
-  }
-
-  makeParser({ file }: { file: CodeFile }): Parser {
-    const grammar = grammarForFilePathOrName(file.path);
-    const parser = new Parser();
-    parser.setLanguage(grammar);
-    return parser;
-  }
-
-  /**
-   * Given a relative file path, returns the full local file path if it exists.
-   */
-  getLocalFilePath({
-    file,
-    relativeFilePath,
-  }: {
-    file: CodeFile;
-    relativeFilePath: string;
-  }): string {
-    relativeFilePath = relativeFilePath.replace(/'|"/g, "");
-    // FIXME: Remove specific extension names
-    const isSupportedFile = file.extname === ".js" || file.extname === ".ts";
-
-    // Don't use path.isAbsolute() here because we're checking node imports, which likely won't start with a /
-    const isLocal = relativeFilePath.at(0) === ".";
-    if (!isSupportedFile || !isLocal) {
-      return "";
-    }
-
-    const fullPath = `${file.path}/../${relativeFilePath}`;
-    return nodePath.normalize(fullPath);
-  }
-
-  changeFileExtension({ filePathOrName, to }: { filePathOrName: string, to: string }): string {
-    const p = nodePath.parse(filePathOrName);
-    p.base = ""; // node ignores p.ext and p.name if p.base is provided
-    p.ext = normalizeExtName(to);
-    return nodePath.format(p);
-  }
+export function changeFileExtension({ filePathOrName, to }: { filePathOrName: string, to: string }): string {
+  const p = nodePath.parse(filePathOrName);
+  p.base = ""; // node ignores p.ext and p.name if p.base is provided
+  p.ext = normalizeExtName(to);
+  return nodePath.format(p);
 }

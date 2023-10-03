@@ -1,10 +1,15 @@
 query ($repoOwner: String!, $repoName: String!, $branchName: String!) {
   repository(owner: $repoOwner, name: $repoName) {
+    ...repoFragment
+
     ref(qualifiedName: $branchName) {
+      __typename
+
       target {
+        ...gitObjectFragment
+
         ... on Commit {
-          oid
-          message
+          ...commitFragment
         }
       }
     }

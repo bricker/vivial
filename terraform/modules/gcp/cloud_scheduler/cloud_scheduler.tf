@@ -15,11 +15,15 @@ resource "google_cloud_scheduler_job" "run_api_documentation_job" {
   region           = var.region
   schedule         = "0 0 * * *"
   time_zone        = "Etc/UTC"
+
   app_engine_http_target {
     body         = null
-    headers      = {}
+    headers      = {
+      "eave-cron-shared-secret" = "redacted"
+      "eave-cron-dispatch-key" = "run-api-documentation"
+    }
     http_method  = "POST"
-    relative_uri = "/_/github/cron/run-api-documentation"
+    relative_uri = "/_/github/cron"
     app_engine_routing {
       instance = null
       service  = "github"

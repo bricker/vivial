@@ -1,5 +1,5 @@
 import { promises as fs } from "node:fs";
-import { CodeFile, ParsingUtility } from "./parsing-utility.js";
+import { CodeFile } from "./parsing-utility.js";
 import path from "node:path";
 import Parser from "tree-sitter";
 import { eaveLogger, LogContext } from "../logging.js";
@@ -14,19 +14,47 @@ import { ExpressRoutingMethod } from "../types.js";
 import { CtxArg } from "../requests.js";
 import { normalizeExtName } from "../util.js";
 
-export class ESParsingUtility extends ParsingUtility {
+export class ESCodeFile extends CodeFile {
+  private __memo_variableMap__?: Map<string, Parser.SyntaxNode>
+  private __memo_declarationMap__?: Map<string, Parser.SyntaxNode>
+  private __memo_localImportPaths__?: Map<string, string>
+  private __memo_localRequirePaths__?: Map<string, string>
+
+  /**
+   * Adds variable nodes to a map for convenient lookup.
+   * Currently only considers variables that are set to a call expression.
+   */
+  getVariableMap(): Map<string, Parser.SyntaxNode> {
+    if (this.__memo_variableMap__ !== undefined) {
+      return this.__memo_variableMap__;
+    }
+
+    const variableNodes = this.tree.rootNode.descendantsOfType(
+      "variable_declarator",
+    );
+    const variables = new Map();
+    for (const node of variableNodes) {
+      const children = this.getNodeChildMap({ node });
+      const identifierNode = children.get("identifier");
+      const expressionNode = children.get("call_expression");
+      if (identifierNode && expressionNode) {
+        variables.set(identifierNode.text, expressionNode);
+      }
+    }
+    this.__memo_variableMap__ = variables;
+    return this.__memo_variableMap__;
+  }
+
   /**
    * Assesses the import statements in the given tree and builds a map of the
    * imported declarations that live in the target repo.
    */
-  getLocalImportPaths({
-    tree,
-    file,
-  }: {
-    tree: Parser.Tree;
-    file: CodeFile;
-  }): Map<string, string> {
-    const importNodes = tree.rootNode.descendantsOfType("import_statement");
+  getLocalImportPaths(): Map<string, string> {
+    if (this.__memo_localImportPaths__ !== undefined) {
+      return this.__memo_localImportPaths__;
+    }
+
+    const importNodes = this.tree.rootNode.descendantsOfType("import_statement");
     const importPaths = new Map();
 
     for (const importNode of importNodes) {
@@ -36,8 +64,7 @@ export class ESParsingUtility extends ParsingUtility {
       const importNames = importClause?.replace(/ |{|}/g, "").split(",") || [];
 
       for (const importName of importNames) {
-        const fullFilePath = this.getLocalFilePath({
-          file,
+        const fullFilePath = this.resolveRelativeFilePath({
           relativeFilePath: importPath,
         });
         if (fullFilePath) {
@@ -45,21 +72,20 @@ export class ESParsingUtility extends ParsingUtility {
         }
       }
     }
-    return importPaths;
+
+    this.__memo_localImportPaths__ = importPaths;
+    return this.__memo_localImportPaths__;
   }
 
   /**
    * Assesses the require statements in the given tree and builds a map of the
    * imported declarations that live in the target repo.
    */
-  getLocalRequirePaths({
-    tree,
-    file,
-  }: {
-    tree: Parser.Tree;
-    file: CodeFile;
-  }): Map<string, string> {
-    const variables = this.getVariableMap({ tree });
+  getLocalRequirePaths(): Map<string, string> {
+    if (this.__memo_localRequirePaths__ !== undefined) {
+      return this.__memo_localRequirePaths__;
+    }
+    const variables = this.getVariableMap();
     const requirePaths = new Map();
 
     for (const [identifier, expressionNode] of variables) {
@@ -71,14 +97,41 @@ export class ESParsingUtility extends ParsingUtility {
         const relativeFilePath = args?.firstNamedChild?.text || "";
         const fullFilePath =
           relativeFilePath &&
-          this.getLocalFilePath({ file, relativeFilePath });
+          this.resolveRelativeFilePath({ relativeFilePath });
         if (fullFilePath) {
           requirePaths.set(identifier, fullFilePath);
         }
       }
     }
-    return requirePaths;
+
+    this.__memo_localRequirePaths__ = requirePaths;
+    return this.__memo_localRequirePaths__;
   }
+
+  /**
+   * Given a tree, finds all of the top-level declarations in that tree and
+   * returns them in a convenient map.
+   */
+  getDeclarationMap(): Map<string, Parser.SyntaxNode> {
+    if (this.__memo_declarationMap__ !== undefined) {
+      return this.__memo_declarationMap__
+    }
+
+    const declarations = new Map();
+    for (const node of this.tree.rootNode.namedChildren) {
+      const declaration = this.findDeclaration({ node });
+      if (declaration) {
+        const identifier = node.descendantsOfType("identifier")?.at(0);
+        if (identifier) {
+          declarations.set(identifier.text, declaration);
+        }
+      }
+    }
+
+    this.__memo_declarationMap__ = declarations;
+    return this.__memo_declarationMap__;
+  }
+
   /**
    * Given a map of sibling nodes, returns the first expression detected.
    * Use getNodeChildMap(node) to get a map of sibling nodes.
@@ -107,52 +160,6 @@ export class ESParsingUtility extends ParsingUtility {
       nodeInfo.set(child.type, child);
     }
     return nodeInfo;
-  }
-
-  /**
-   * Adds variable nodes to a map for convenient lookup.
-   * Currently only considers variables that are set to a call expression.
-   */
-  getVariableMap({
-    tree,
-  }: {
-    tree: Parser.Tree;
-  }): Map<string, Parser.SyntaxNode> {
-    const variableNodes = tree.rootNode.descendantsOfType(
-      "variable_declarator",
-    );
-    const variables = new Map();
-    for (const node of variableNodes) {
-      const children = this.getNodeChildMap({ node });
-      const identifierNode = children.get("identifier");
-      const expressionNode = children.get("call_expression");
-      if (identifierNode && expressionNode) {
-        variables.set(identifierNode.text, expressionNode);
-      }
-    }
-    return variables;
-  }
-
-  /**
-   * Given a tree, finds all of the top-level declarations in that tree and
-   * returns them in a convenient map.
-   */
-  getDeclarationMap({
-    tree,
-  }: {
-    tree: Parser.Tree;
-  }): Map<string, Parser.SyntaxNode> {
-    const declarations = new Map();
-    for (const node of tree.rootNode.namedChildren) {
-      const declaration = this.findDeclaration({ node });
-      if (declaration) {
-        const identifier = node.descendantsOfType("identifier")?.at(0);
-        if (identifier) {
-          declarations.set(identifier.text, declaration);
-        }
-      }
-    }
-    return declarations;
   }
 
   /**
@@ -195,5 +202,26 @@ export class ESParsingUtility extends ParsingUtility {
       }
     }
     return identifiers;
+  }
+
+  /**
+   * Given a relative file path, returns the full local file path if it exists.
+   */
+  resolveRelativeFilePath({
+    relativeFilePath,
+  }: {
+    relativeFilePath: string;
+  }): string {
+    relativeFilePath = relativeFilePath.replace(/'|"/g, "");
+    const isSupportedFile = this.extname === ".js" || this.extname === ".ts";
+
+    // Don't use path.isAbsolute() here because we're checking node imports, which likely won't start with a /
+    const isLocal = relativeFilePath.at(0) === ".";
+    if (!isSupportedFile || !isLocal) {
+      return "";
+    }
+
+    const fullPath = `${this.path}/../${relativeFilePath}`;
+    return path.normalize(fullPath);
   }
 }

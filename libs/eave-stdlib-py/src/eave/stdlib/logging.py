@@ -11,7 +11,7 @@ import google.cloud.logging
 from eave.stdlib.api_util import get_header_value, get_headers
 from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import JsonObject, JsonValue
 from .utm_cookies import get_tracking_cookies
 
 from .config import shared_config
