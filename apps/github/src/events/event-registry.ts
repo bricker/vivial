@@ -4,6 +4,7 @@ import {
 } from "@octokit/webhooks";
 import { GitHubOperationsContext } from "../types.js";
 import installationRepoAddedHandler from "./installation-repositories-added.js";
+import installationDeletedHandler from "./installation-deleted.js";
 import pullRequestClosedHandler from "./pull-request-closed.js";
 import pushHandler from "./push.js";
 
@@ -26,6 +27,8 @@ export function getEventHandler({
       return pullRequestClosedHandler;
     case "installation_repositories.added":
       return installationRepoAddedHandler;
+    case "installation.deleted":
+      return installationDeletedHandler;
     default:
       return undefined;
   }

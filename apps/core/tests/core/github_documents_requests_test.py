@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
+from eave.core.internal.orm import github_installation
 
 from eave.core.internal.orm.github_documents import GithubDocumentsOrm
 from eave.core.internal.orm.github_repos import GithubRepoOrm
@@ -16,9 +17,16 @@ from .base import BaseTestCase
 
 class TestGithubDocumentsRequests(BaseTestCase):
     async def create_repo(self, session: AsyncSession, team_id: UUID, index: int = 0) -> GithubRepoOrm:
+        gh_install = await github_installation.GithubInstallationOrm.create(
+            session=session,
+            team_id=team_id,
+            github_install_id=self.anystr(),
+        )
+
         return await GithubRepoOrm.create(
             session=session,
             team_id=team_id,
+            github_install_id=gh_install.github_install_id,
             external_repo_id=self.anystr(f"external_repo_id:{team_id}:{index}"),
             display_name=self.anystr(),
         )

@@ -28,6 +28,7 @@ function anyRepo(t: TestUtil) {
   return {
     team_id: t.anystr(),
     external_repo_id: t.anystr(),
+    github_install_id: t.anystr(),
     inline_code_documentation_state: State.DISABLED,
     architecture_documentation_state: State.DISABLED,
     api_documentation_state: State.DISABLED,

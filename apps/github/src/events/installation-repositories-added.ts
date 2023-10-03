@@ -86,6 +86,7 @@ export async function maybeAddReposToDataBase(
         repo: {
           external_repo_id: repo.node_id,
           display_name: repo.name,
+          github_install_id: event.installation.id.toString(),
           api_documentation_state:
             defaultFeatureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
           inline_code_documentation_state:

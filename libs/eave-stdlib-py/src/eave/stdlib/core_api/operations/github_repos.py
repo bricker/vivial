@@ -29,16 +29,12 @@ class GetGithubReposRequest(CoreApiEndpoint):
         cls,
         input: RequestBody,
         team_id: uuid.UUID | str,
-        account_id: uuid.UUID | str,
-        access_token: str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=input,
             team_id=team_id,
-            account_id=account_id,
-            access_token=access_token,
             **kwargs,
         )
 
@@ -146,12 +142,16 @@ class DeleteGithubReposRequest(CoreApiEndpoint):
         cls,
         input: RequestBody,
         team_id: uuid.UUID | str,
+        account_id: uuid.UUID | str,
+        access_token: str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=input,
             team_id=team_id,
+            account_id=account_id,
+            access_token=access_token,
             **kwargs,
         )
 
