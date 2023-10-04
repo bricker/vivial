@@ -7,6 +7,8 @@ import { Team } from "./core-api/models/team.js";
 import { eaveLogger, LogContext } from "./logging.js";
 import { JsonObject } from "./types.js";
 
+// document me
+
 const EVENT_TOPIC_ID = "eave_event";
 const GPT_EVENT_TOPIC_ID = "gpt_request_event";
 
