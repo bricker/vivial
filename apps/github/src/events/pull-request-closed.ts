@@ -31,12 +31,17 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { GitHubOperationsContext } from "../types.js";
 
 /**
- * Receives github webhook pull_request events.
+ * Handles GitHub pull request events. If the event indicates that a pull request has been closed, 
+ * the function logs the event and updates the status of associated documents. 
+ * If the pull request was merged, the function also fetches the list of changed files, 
+ * filters out files that do not need documentation, and updates the documentation in each file. 
+ * Finally, it creates a new pull request with the updated documentation.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
  *
- * Features:
- * Checks if closed PR was merged. If so, update inline file docs
- * for each file with code changes.
+ * @param event - The pull request event from GitHub.
+ * @param context - The context for GitHub operations, including the octokit instance and the context for logging.
+ * @throws Will throw an error if the installation ID or Eave team is not present.
+ * @returns Nothing.
  */
 export default async function handler(
   event: PullRequestEvent,
