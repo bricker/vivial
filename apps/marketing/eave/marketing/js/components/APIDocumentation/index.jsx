@@ -1,9 +1,8 @@
-import React, { useEffect } from "react";
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import { Typography } from "@material-ui/core";
-import useTeam from "../../hooks/useTeam";
+import React, { useEffect } from "react";
 import { DOC_STATUSES } from "../../constants.js";
+import useTeam from "../../hooks/useTeam";
 
 const makeClasses = makeStyles((theme) => ({
   container: {
@@ -29,39 +28,32 @@ const makeClasses = makeStyles((theme) => ({
     textAlign: "center",
   },
   docTable: {
-    width: '100%',
-    borderCollapse: 'collapse',
+    width: "100%",
+    borderCollapse: "collapse",
   },
   docTableLabel: {
     paddingBottom: 16,
     fontSize: 20,
     fontWeight: 400,
-    textAlign: 'left',
+    textAlign: "left",
   },
   docTableBody: {
     fontSize: 16,
   },
   docTableData: {
-    padding: '18px 0',
+    padding: "18px 0",
   },
   docTableRow: {
     borderBottom: `1px solid ${theme.palette.background.contrastText}`,
   },
 }));
 
-
-
-
-
-
 function formatStatus(doc) {
   const status = doc.status;
   const pullRequestNumber = doc.pull_request_number;
 
-
   // Example PR Link: https://github.com/eave-fyi/eave-monorepo/pull/163
   // Missing: org, repo name
-
 
   switch (status) {
     case DOC_STATUSES.PROCESSING:
@@ -75,11 +67,9 @@ function formatStatus(doc) {
   }
 }
 
-
 function formatLastUpdated(doc) {
   return doc.status_updated;
 }
-
 
 function renderContent(classes, team) {
   const { apiDocsErroring, apiDocsLoading, apiDocsFetchCount, apiDocs } = team;
@@ -100,7 +90,9 @@ function renderContent(classes, team) {
   if (apiDocs.length === 0) {
     return (
       <Typography color="inherit" variant="h6">
-        Eave is currently searching for Express APIs within your repositories. This may take some time. Please check back for any documentation created.
+        Eave is currently searching for Express APIs within your repositories.
+        This may take some time. Please check back for any documentation
+        created.
       </Typography>
     );
   }

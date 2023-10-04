@@ -2,7 +2,6 @@ import { Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
-import { FEATURE_STATES } from "../../constants";
 import useTeam from "../../hooks/useTeam";
 import FeatureCard from "../FeatureCard/index.jsx";
 

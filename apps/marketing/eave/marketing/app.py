@@ -7,7 +7,8 @@ import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
-from eave.stdlib.core_api.models.github_documents import (GithubDocumentsQueryInput)
+from eave.stdlib.core_api.models.github_documents import GithubDocumentsQueryInput
+
 # from eave.stdlib.github_api.operations.query_repos import (QueryGithubRepos)
 from eave.stdlib.util import unwrap
 
@@ -105,17 +106,12 @@ async def get_team() -> Response:
     return _json_response(body=eave_response.json())
 
 
-
-
-
-
-
 @app.route("/dashboard/team/repos", methods=["GET"])
 async def get_team_repos() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
 
-    origin=app_config.eave_origin
+    origin = app_config.eave_origin
     account_id = unwrap(auth_cookies.account_id)
     team_id = unwrap(auth_cookies.team_id)
     access_token = unwrap(auth_cookies.access_token)
@@ -140,14 +136,6 @@ async def get_team_repos() -> Response:
     # print('*' * 100)
 
     return _json_response(body=eave_core_api_response.json())
-
-
-
-
-
-
-
-
 
 
 @app.route("/dashboard/team/repos/update", methods=["POST"])
@@ -183,9 +171,7 @@ async def get_team_documents() -> Response:
         account_id=unwrap(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
         input=github_documents.GetGithubDocumentsRequest.RequestBody(
-            query_params=GithubDocumentsQueryInput(
-                type=document_type
-            )
+            query_params=GithubDocumentsQueryInput(type=document_type)
         ),
     )
 

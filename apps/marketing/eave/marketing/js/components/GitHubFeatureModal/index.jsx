@@ -224,7 +224,7 @@ function renderTitle(type) {
     case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
       return "Inline Code Documentation";
     case FEATURE_MODAL.TYPES.API_DOCS:
-      return "API Documentation Automation"
+      return "API Documentation Automation";
     default:
       return "";
   }
@@ -235,10 +235,13 @@ function renderDescription(type) {
     case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
       return (
         <>
-          <div>Automate inline code documentation within your GitHub files.</div>
           <div>
-            As changes are made to the codebase, Eave will automatically generate
-            inline documentation via a pull request for your team's review.
+            Automate inline code documentation within your GitHub files.
+          </div>
+          <div>
+            As changes are made to the codebase, Eave will automatically
+            generate inline documentation via a pull request for your team's
+            review.
           </div>
         </>
       );
@@ -246,7 +249,8 @@ function renderDescription(type) {
       return (
         <>
           <div>
-            Automate standard industry API documentation to streamline your internal processes and delight your customers.
+            Automate standard industry API documentation to streamline your
+            internal processes and delight your customers.
           </div>
           <div>
             Currently supports Express REST APIs written in:

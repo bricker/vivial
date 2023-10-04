@@ -21,7 +21,7 @@ resource "google_cloud_scheduler_job" "run_api_documentation_job" {
     headers = {
       "eave-cron-shared-secret" = "redacted"
       "eave-cron-dispatch-key"  = "run-api-documentation"
-      "content-type"  = "application/json"
+      "content-type"            = "application/json"
     }
     http_method  = "POST"
     relative_uri = "/_/github/cron"

@@ -51,7 +51,9 @@ const Dashboard = () => {
     if (inlineDocsModalIsOpen) {
       return;
     }
-    setSearchParams({[FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS});
+    setSearchParams({
+      [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS,
+    });
     setInlineDocsModalIsOpen(true);
   };
 
@@ -59,7 +61,7 @@ const Dashboard = () => {
     if (apiDocsModalIsOpen) {
       return;
     }
-    setSearchParams({[FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.API_DOCS});
+    setSearchParams({ [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.API_DOCS });
     setAPIDocsModalIsOpen(true);
   };
 

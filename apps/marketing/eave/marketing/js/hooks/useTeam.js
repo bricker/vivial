@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { DOC_TYPES, FEATURES, FEATURE_STATES } from "../constants.js";
 import { AppContext } from "../context/Provider.js";
-import { isHTTPError } from "../util/http-util.js";
 import { sortAPIDocuments } from "../util/document-util.js";
+import { isHTTPError } from "../util/http-util.js";
 
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
@@ -127,7 +127,7 @@ const useTeam = () => {
       apiDocsLoading: true,
       apiDocsErroring: false,
     }));
-    fetch('/dashboard/team/documents', {
+    fetch("/dashboard/team/documents", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
