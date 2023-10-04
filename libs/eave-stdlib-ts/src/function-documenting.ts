@@ -74,7 +74,9 @@ export async function updateDocumentation({
       // TODO: experiment performance quality on dif types of comments:
       //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
       const docsPrompt = formatprompt(
-        `Write a ${flang} doc comment for the following function.\n`,
+        `Write a ${flang} doc comment for the following function.`,
+        `Be succinct, excluding redundant or unnecessary terms like "This function {...}".`,
+        "Do not include surrounding markdown-style backticks.\n",
         "===",
         summarizedFunction,
         "===",
