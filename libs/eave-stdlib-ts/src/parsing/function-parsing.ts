@@ -7,6 +7,8 @@ import {
   grammarForFilePathOrName,
 } from "./grammars.js";
 
+// document me
+
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
 export type ParsedFunction = {
