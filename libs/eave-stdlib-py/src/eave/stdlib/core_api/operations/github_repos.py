@@ -29,6 +29,8 @@ class GetGithubReposRequest(CoreApiEndpoint):
         cls,
         input: RequestBody,
         team_id: uuid.UUID | str,
+        account_id: Optional[uuid.UUID | str],
+        access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
