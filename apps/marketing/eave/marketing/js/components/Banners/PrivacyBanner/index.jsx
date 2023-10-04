@@ -20,7 +20,7 @@ const makeClasses = makeStyles((theme) => ({
   },
   privacyIcon: {
     height: 173,
-    width: "156.33px",
+    width: "auto",
     marginBottom: 30,
     [theme.breakpoints.up("md")]: {
       marginRight: 26,
