@@ -28,7 +28,7 @@ class GetGithubDocumentsRequest(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         account_id: Optional[uuid.UUID],
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
