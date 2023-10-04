@@ -288,7 +288,7 @@ export default async function handler(
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
       commitMessage: "docs: automated update",
       fileChanges: { additions: fileChanges },
-      prTitle: "docs: Eave inline code documentation update",
+      prTitle: `docs: Eave inline code documentation update for #${event.pull_request.number}`,
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
     });
   } catch (e: any) {
