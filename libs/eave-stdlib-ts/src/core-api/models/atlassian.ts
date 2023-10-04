@@ -8,6 +8,6 @@ export type AtlassianInstallation = {
   /** eave TeamOrm model id */
   team_id: string;
   atlassian_cloud_id: string;
-  confluence_space?: string;
-  available_confluence_spaces?: Array<ConfluenceSpace>;
+  confluence_space: string | null;
+  available_confluence_spaces: Array<ConfluenceSpace> | null;
 };

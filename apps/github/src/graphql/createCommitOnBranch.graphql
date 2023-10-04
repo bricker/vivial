@@ -12,8 +12,10 @@ mutation (
       fileChanges: $fileChanges
     }
   ) {
+    __typename
+
     commit {
-      oid
+      ...commitFragment
     }
   }
 }

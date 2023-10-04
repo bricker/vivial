@@ -167,6 +167,7 @@ export default async function handler(
           const summarizedContent = rollingSummary({
             client: openaiClient,
             content: fileContents,
+            ctx,
           });
 
           // FIXME: Add this eslint exception to eslint config
@@ -191,6 +192,7 @@ export default async function handler(
           const document: DocumentInput = {
             title: `Description of code in ${repositoryName} ${filePath}`,
             content: openaiResponse,
+            parent: null,
           };
 
           await logEvent(
@@ -199,7 +201,7 @@ export default async function handler(
               event_description:
                 "updating a document subscribed to github file changes",
               event_source: "github webhook push event",
-              opaque_params: JSON.stringify({
+              opaque_params: {
                 repoOwner: event.repository.owner.name,
                 repoName: event.repository.name,
                 filePath: eventCommitTouchedFilename,
@@ -207,8 +209,8 @@ export default async function handler(
                 document_id:
                   subscriptionResponse.document_reference?.document_id,
                 eventId,
-              }),
-              eave_team: JSON.stringify(teamResponse.team),
+              },
+              eave_team: teamResponse.team,
             },
             ctx,
           );

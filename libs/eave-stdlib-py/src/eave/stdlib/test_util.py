@@ -203,7 +203,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             # Using `all` seems like a better way to do this, but I deliberately don't because I want
             # to fully loop through `attrs` to catch an invalid/unset attribute. Globally renaming Python attributes in an IDE
             # doesn't update string references to those attributes, so this is a trade-off where it'll be caught during the tests
-            # at runtime instead of during static analysts.
+            # at runtime instead of during static analysis.
             # all(getattr(obj1, attr) == getattr(obj2, attr) for attr in attrs)
 
             passing = True

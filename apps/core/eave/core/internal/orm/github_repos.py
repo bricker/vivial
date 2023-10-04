@@ -45,18 +45,31 @@ class GithubRepoOrm(Base):
         return GithubRepo.from_orm(self)
 
     class QueryParams(TypedDict):
-        team_id: UUID | str
-        external_repo_id: NotRequired[str]
-        api_documentation_state: NotRequired[State]
-        inline_code_documentation_state: NotRequired[State]
-        architecture_documentation_state: NotRequired[State]
+        team_id: NotRequired[UUID | str]
+        external_repo_id: NotRequired[Optional[str]]
+        external_repo_ids: NotRequired[Optional[list[str]]]
+        api_documentation_state: NotRequired[Optional[State]]
+        inline_code_documentation_state: NotRequired[Optional[State]]
+        architecture_documentation_state: NotRequired[Optional[State]]
 
     @classmethod
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
-        team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
-        lookup = select(cls).where(cls.team_id == team_id)
+        lookup = select(cls)
 
-        if external_repo_id := kwargs.get("external_repo_id"):
+        if team_id := kwargs.get("team_id"):
+            lookup = lookup.where(cls.team_id == eave.stdlib.util.ensure_uuid(team_id))
+
+        external_repo_ids = kwargs.get("external_repo_ids")
+        external_repo_id = kwargs.get("external_repo_id")
+
+        assert eave.stdlib.util.nand(
+            external_repo_ids is not None, external_repo_id is not None
+        ), "external_repo_ids and external_repo_id are mutually exclusive inputs"
+
+        if external_repo_ids:
+            lookup = lookup.where(cls.external_repo_id.in_(external_repo_ids))
+
+        if external_repo_id:
             lookup = lookup.where(cls.external_repo_id == external_repo_id)
 
         if api_documentation_state := kwargs.get("api_documentation_state"):
@@ -68,6 +81,7 @@ class GithubRepoOrm(Base):
         if architecture_documentation_state := kwargs.get("architecture_documentation_state"):
             lookup = lookup.where(cls.architecture_documentation_state == architecture_documentation_state.value)
 
+        assert lookup.whereclause is not None, "Malformed input"
         return lookup
 
     @classmethod
@@ -98,21 +112,16 @@ class GithubRepoOrm(Base):
     @classmethod
     async def query(
         cls,
-        team_id: UUID | str,
-        external_repo_ids: Optional[list[str]],
         session: AsyncSession,
+        **kwargs: Unpack[QueryParams],
     ) -> Sequence[Self]:
         """
         Get/list GithubRepos.
-        You must filter results by `team_id`, but can optionally provide a list of
+        Optionally provide a list of
         `external_repo_ids` to fetch. Providing None for `external_repo_ids` (or empty list)
         will get all repos for the provided `team_id`.
         """
-        stmt = cls._build_query(team_id=team_id)
-
-        if external_repo_ids:
-            stmt = stmt.where(cls.external_repo_id.in_(external_repo_ids))
-
+        stmt = cls._build_query(**kwargs)
         result = (await session.scalars(stmt)).all()
         return result
 

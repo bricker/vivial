@@ -16,7 +16,7 @@ export type CreateSubscriptionRequestBody = {
 export type CreateSubscriptionResponseBody = {
   team: Team;
   subscription: Subscription;
-  document_reference?: DocumentReference;
+  document_reference: DocumentReference | null;
 };
 
 export class CreateSubscriptionOperation {
@@ -60,7 +60,7 @@ export type GetSubscriptionRequestBody = {
 
 export type GetSubscriptionResponseBody = {
   team: Team;
-  subscription?: Subscription;
+  subscription: Subscription | null;
   document_reference?: DocumentReference;
 };
 

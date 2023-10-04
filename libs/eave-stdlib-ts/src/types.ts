@@ -31,3 +31,10 @@ export enum ExpressRoutingMethod {
   unlock = "unlock",
   unsubscribe = "unsubscribe",
 }
+
+/**
+ * Use for mixins
+ * https://www.typescriptlang.org/docs/handbook/mixins.html
+ */
+export type Constructor = new (...args: any[]) => any;
+export type GConstructor<T = NonNullable<unknown>> = new (...args: any[]) => T;

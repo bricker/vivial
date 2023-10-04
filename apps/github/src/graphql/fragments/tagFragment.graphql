@@ -1,0 +1,9 @@
+fragment tagFragment on Tag {
+  ...gitObjectFragment
+
+  tagMessage: message
+  name
+  target {
+    ...gitObjectFragment
+  }
+}

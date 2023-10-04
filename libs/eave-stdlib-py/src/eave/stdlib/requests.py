@@ -50,7 +50,7 @@ async def make_request(
 
     # The indent and separators params here ensure that the payload is as compact as possible.
     # It's mostly a way to normalize the payload so services know what to expect.
-    payload = input.json(indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
+    payload = input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
 
     if access_token:
         headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"

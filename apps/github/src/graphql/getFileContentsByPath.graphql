@@ -1,23 +1,12 @@
 query ($repoOwner: String!, $repoName: String!, $expression: String!) {
   repository(owner: $repoOwner, name: $repoName) {
+    ...repoFragment
+
     object(expression: $expression) {
-      __typename
-      commitResourcePath
-      id
-      oid
+      ...gitObjectFragment
+
       ... on Blob {
-        text
-      }
-      ... on Tree {
-        entries {
-          name
-          object {
-            ... on Blob {
-              oid
-              text
-            }
-          }
-        }
+        ...blobFragment
       }
     }
   }

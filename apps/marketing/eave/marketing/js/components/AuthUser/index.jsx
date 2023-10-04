@@ -6,6 +6,7 @@ import useUser from "../../hooks/useUser";
 
 const makeClasses = makeStyles((theme) => ({
   loader: {
+    color: theme.palette.background.contrastText,
     backgroundColor: theme.palette.background.main,
     paddingTop: `calc(${theme.header.height}px + ${theme.header.marginBottom}px)`,
     width: "100vw",
@@ -32,7 +33,7 @@ const AuthUser = ({ children }) => {
   if (isAuthenticated === null) {
     return (
       <div className={classes.loader}>
-        <CircularProgress />
+        <CircularProgress color="inherit" />
       </div>
     );
   }

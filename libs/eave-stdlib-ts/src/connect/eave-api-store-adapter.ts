@@ -67,6 +67,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
       throw new Error(`key not supported: ${key}`);
     }
 
+    const ctx = new LogContext();
     const cacheKey = this.cacheKey(clientKey);
     let cacheClient: Cache | undefined;
     try {
@@ -115,6 +116,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
             client_key: clientKey,
           },
         },
+        ctx,
       });
 
       const clientInfo = this.buildClientInfo(response);
