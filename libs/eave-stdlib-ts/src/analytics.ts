@@ -33,6 +33,36 @@ export interface GPTRequestEventFields {
   document_id?: string;
 }
 
+/**
+ * Asynchronously logs an event to the PubSub topic.
+ * 
+ * This function creates an EaveEvent object with the provided fields and context, 
+ * then publishes the event to the PubSub topic if analytics are enabled. 
+ * If analytics are disabled, a warning is logged instead.
+ * 
+ * @param {EaveEventFields} fields - The fields for the event to be logged.
+ * @param {LogContext} ctx - The context for the event to be logged.
+ * 
+ * @throws {Error} If there is an error while publishing the event to the PubSub topic.
+ * 
+ * @returns {Promise<void>} A Promise that resolves when the event has been successfully logged.
+ * 
+ * @example
+ * 
+ * const fields = {
+ *   event_name: 'test_event',
+ *   event_description: 'This is a test event',
+ *   event_source: 'test_source',
+ *   eave_visitor_id: '12345',
+ *   opaque_params: 'test_params',
+ *   eave_team: { id: 'team1', name: 'Team 1' },
+ *   eave_account: { id: 'account1', name: 'Account 1' }
+ * };
+ * 
+ * const ctx = new LogContext();
+ * 
+ * logEvent(fields, ctx);
+ */
 export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   const pubSubClient = new PubSub();
 
@@ -116,6 +146,27 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   }
 }
 
+/**
+ * Asynchronously logs a GPT request event to a PubSub topic.
+ *
+ * @export
+ * @async
+ * @function logGptRequest
+ * @param {GPTRequestEventFields} fields - The fields of the GPT request event to be logged.
+ * @param {LogContext} [ctx] - The logging context, which may include request and team IDs.
+ *
+ * This function first creates a PubSub client and retrieves the metadata for the GPT event topic.
+ * It then creates a GPT request event with the provided fields and the current time.
+ * If a logging context is provided, the function adds the request and team IDs from the context to the event.
+ *
+ * The function then converts the event to JSON and encodes it as a protobuf message.
+ * If analytics are enabled in the shared configuration, the function publishes the protobuf message to the PubSub topic and logs the event.
+ * If the message publication fails, the function logs the exception.
+ * If analytics are not enabled, the function logs a warning and the JSON event.
+ *
+ * @returns {Promise<void>} A promise that resolves when the logging operation is complete.
+ * @throws {Error} If an error occurs while publishing the message to the PubSub topic.
+ */
 export async function logGptRequest(
   fields: GPTRequestEventFields,
   ctx?: LogContext,

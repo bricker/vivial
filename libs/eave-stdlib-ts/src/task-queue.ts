@@ -41,6 +41,26 @@ type CreateTaskFromRequestArgs = CreateTaskSharedArgs & {
   req: Request;
 };
 
+/**
+ * This function creates a task from a request. It first wraps the context with the request, then checks if a uniqueTaskId is provided.
+ * If not, it tries to extract it from the request headers. It then constructs a payload from the request body and headers.
+ * It removes the user agent from the headers as it's not relevant for the task processor.
+ * Finally, it calls the createTask function with the constructed parameters.
+ *
+ * @param {Object} args - The arguments for the function.
+ * @param {string} args.queueName - The name of the queue where the task will be created.
+ * @param {string} args.targetPath - The target path for the task.
+ * @param {string} args.origin - The origin of the task.
+ * @param {string} args.audience - The audience for the task.
+ * @param {string} [args.uniqueTaskId] - The unique ID for the task. If not provided, it will be extracted from the request headers.
+ * @param {string} args.taskNamePrefix - The prefix for the task name.
+ * @param {Object} args.req - The request object from which the task is created.
+ * @param {Object} args.ctx - The context for the task.
+ *
+ * @returns {Promise<void>} A promise that resolves when the task is created.
+ *
+ * @throws {Error} If the uniqueTaskId cannot be extracted from the request headers.
+ */
 export async function createTaskFromRequest({
   queueName,
   targetPath,
@@ -93,6 +113,37 @@ export async function createTaskFromRequest({
   });
 }
 
+/**
+ * Asynchronously creates a task in Google Cloud Tasks.
+ *
+ * @param {CreateTaskArgs} args - The arguments to create a task.
+ * @param {string} args.queueName - The name of the queue where the task will be created.
+ * @param {string} args.targetPath - The relative URI path that the request will be sent to.
+ * @param {Buffer|string|Object} args.payload - The payload that will be sent in the HTTP request body.
+ * @param {Object} [args.headers={}] - Additional HTTP headers to send with the request.
+ * @param {string} args.origin - The origin of the request.
+ * @param {string} args.audience - The audience of the request.
+ * @param {string} [args.uniqueTaskId] - A unique identifier for the task. If not provided, Cloud Tasks will automatically generate one.
+ * @param {string} [args.taskNamePrefix] - A prefix for the task name. This will be prepended to the uniqueTaskId.
+ * @param {Object} args.ctx - The context of the request.
+ *
+ * @returns {Promise<void>} A promise that resolves when the task is successfully created.
+ *
+ * @throws {AssertionError} If the task's appEngineHttpRequest is not defined.
+ *
+ * @example
+ * createTask({
+ *   queueName: 'my-queue',
+ *   targetPath: '/my-path',
+ *   payload: { foo: 'bar' },
+ *   headers: { 'Content-Type': 'application/json' },
+ *   origin: 'my-origin',
+ *   audience: 'my-audience',
+ *   uniqueTaskId: 'my-unique-task-id',
+ *   taskNamePrefix: 'my-task-name-prefix',
+ *   ctx: { eave_request_id: 'my-request-id', eave_team_id: 'my-team-id', eave_account_id: 'my-account-id' },
+ * });
+ */
 export async function createTask({
   queueName,
   targetPath,
