@@ -85,7 +85,7 @@ const GitHubFeaturesBanner = ({ title, features }) => {
             <Copy variant="h2" bold={true}>
               {feature.title}
             </Copy>
-            <Copy variant="p" className={classes.featureSubtitle}>
+            <Copy variant="pSmall" className={classes.featureSubtitle}>
               {feature.subtitle}
             </Copy>
             {/* image isn't important for a11y, so use empty alt text to show that */}
