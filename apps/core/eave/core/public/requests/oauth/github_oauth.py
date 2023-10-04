@@ -229,7 +229,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             await GithubRepoOrm.create(
                 session=db_session,
                 team_id=self.eave_team.id,
-                github_install_id=self.installation_id,
+                github_installation_id=self.installation_id, # TODO: need composit pk
                 external_repo_id=repo.id,
                 display_name=repo.name,
             )

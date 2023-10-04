@@ -26,7 +26,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         return await GithubRepoOrm.create(
             session=session,
             team_id=team_id,
-            github_install_id=gh_install.github_install_id,
+            github_installation_id=gh_install.github_install_id,
             external_repo_id=self.anystr(f"external_repo_id:{team_id}:{index}"),
             display_name=self.anystr(),
         )
