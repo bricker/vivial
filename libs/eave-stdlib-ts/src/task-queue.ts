@@ -108,8 +108,6 @@ export async function createTask({
     headers = {};
   }
 
-  headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = MIME_TYPE_JSON;
-
   let body: string;
   if (payload instanceof Buffer) {
     body = payload.toString();
@@ -137,6 +135,7 @@ export async function createTask({
   const signing = Signing.new(origin);
   const signature = await signing.signBase64(signatureMessage);
 
+  headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = MIME_TYPE_JSON;
   headers[EAVE_SIGNATURE_HEADER] = signature;
   headers[EAVE_REQUEST_ID_HEADER] = ctx.eave_request_id;
   headers[EAVE_ORIGIN_HEADER] = origin;
@@ -162,9 +161,11 @@ export async function createTask({
       headers,
       httpMethod: "POST",
       relativeUri: targetPath,
-      body,
+      body: Buffer.from(body).toString("base64"),
     },
   };
+
+  assert(task.appEngineHttpRequest);
 
   if (uniqueTaskId) {
     if (taskNamePrefix) {
@@ -182,11 +183,13 @@ export async function createTask({
 
   eaveLogger.debug(`Creating task on queue ${queueName}`, ctx, {
     // fields are snake cased for consistency with Python
-    task_name: task.name,
+    task: {
+      name: task.name,
+      body: task.appEngineHttpRequest.body?.toString(),
+      headers: task.appEngineHttpRequest.headers,
+    },
     queue_name: parent,
   });
-
-  assert(task.appEngineHttpRequest);
 
   if (sharedConfig.isDevelopment) {
     const host = sharedConfig.eavePublicServiceBase(origin);
