@@ -24,15 +24,15 @@ export type ParsedFunction = {
 
 /**
  * Parses the content of a file to extract functions and their associated documentation comments.
- * 
+ *
  * @param {Object} params - The parameters for the function.
  * @param {string} params.content - The content of the file to parse.
  * @param {string} params.filePath - The path of the file to parse. The file extension of the source code file is expected to contain . prefix (e.g. ".js"). Used to determine the correct language grammar.
  * @param {ProgrammingLanguage} params.language - The programming language of the file. Used for constructing grammar queries.
  * @param {LogContext} [params.ctx] - Optional logging context.
- * 
+ *
  * @returns {ParsedFunction[]} An array of parsed functions, each with associated documentation comments if available.
- * 
+ *
  * @throws {Error} If no grammar is found for the specified programming language.
  */
 export function parseFunctionsAndComments({
