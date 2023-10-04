@@ -35,6 +35,21 @@ export interface GPTRequestEventFields {
   document_id?: string;
 }
 
+/**
+ * Asynchronously logs an event to a PubSub topic.
+ * 
+ * This function creates an event object from the provided fields and context, 
+ * then publishes the event to a PubSub topic if analytics are enabled. 
+ * The event object includes information about the event itself, 
+ * as well as the team and account associated with the event, if applicable.
+ * 
+ * @param {EaveEventFields} fields - The fields for the event to be logged.
+ * @param {LogContext} ctx - The context in which the event is being logged.
+ * 
+ * @throws {Error} If there is an error while publishing the event to the PubSub topic.
+ * 
+ * @returns {Promise<void>} A promise that resolves when the event has been successfully logged, or rejects if an error occurs.
+ */
 export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   const pubSubClient = new PubSub();
 
@@ -118,6 +133,27 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   }
 }
 
+/**
+ * Asynchronously logs a GPT request event to a PubSub topic.
+ *
+ * @export
+ * @async
+ * @function logGptRequest
+ * @param {GPTRequestEventFields} fields - The fields of the GPT request event to be logged.
+ * @param {LogContext} [ctx] - The context of the log, which includes the Eave request ID and team ID.
+ * 
+ * This function first creates a new PubSub client and gets the metadata of the GPT event topic.
+ * It then creates a GPT request event with the provided fields and sets the event time to the current time.
+ * If a log context is provided, the function also sets the Eave request ID and team ID of the event.
+ * 
+ * The function then converts the event to a JSON object and a protobuf message.
+ * If analytics is enabled in the shared configuration, the function publishes the protobuf message to the GPT event topic
+ * and logs the event and the result of the publish operation.
+ * If an error occurs during the publish operation, the function logs the exception.
+ * If analytics is not enabled, the function logs a warning and the event.
+ * 
+ * @returns {Promise<void>} A promise that resolves when the function has completed.
+ */
 export async function logGptRequest(
   fields: GPTRequestEventFields,
   ctx?: LogContext,
