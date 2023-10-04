@@ -145,7 +145,7 @@ const useTeam = () => {
           }));
         });
       })
-      .catch((e) => {
+      .catch(() => {
         setTeam((prev) => ({ ...prev, apiDocsErroring: true }));
       })
       .finally(() => {
