@@ -10,16 +10,20 @@ import OpenAIClient, { formatprompt } from "./transformer-ai/openai.js";
 import * as AIUtil from "./transformer-ai/util.js";
 
 /**
- * Given the current content of a file, returns the same file
- * content but with the documentation updated to reflect any code changes.
+ * This function updates the documentation of a given file. It first identifies the programming language of the file based on its extension.
+ * If the language is not supported, it logs an error and returns null. Otherwise, it parses the functions and comments from the file.
+ * If no data can be parsed, it logs an error and returns null. For each parsed function, it generates a summary and uses it to create or update the documentation.
+ * If the function already has documentation, the function merges the old and new documentation, preferring the new one in case of conflicts.
+ * Finally, it writes the updated comments back into the file content.
  *
- * @param currContent a file's content in plaintext
- * @param filePath file path correlated with `currContent` file content
- * @param openaiClient
- * @param ctx extra context for more detailed logs
- * @param fileNodeId GitHub graphql node ID https://docs.github.com/en/graphql/reference/interfaces#node
- * @param model the AI model to use to generate new documentation (Default: OpenAIModel.GPT4)
- * @returns the same code content as `currContent` but with doc strings updated, or null if unable to create updated document
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.currContent - The current content of the file.
+ * @param {string} params.filePath - The path of the file.
+ * @param {OpenAIClient} params.openaiClient - The OpenAI client to use for generating documentation.
+ * @param {Object} params.ctx - The context for logging.
+ * @param {string} params.fileNodeId - The GitHub graphql node ID of the file. See https://docs.github.com/en/graphql/reference/interfaces#node for more details.
+ * @param {OpenAIModel} [params.model=OpenAIModel.GPT4] - The OpenAI model to use for generating documentation.
+ * @returns {Promise<string|null>} The updated file content, or null if the language is not supported, no data could be parsed, or if unable to create updated document.
  */
 export async function updateDocumentation({
   currContent,
