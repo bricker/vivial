@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { DOC_TYPES, FEATURES, FEATURE_STATES } from "../constants.js";
 import { AppContext } from "../context/Provider.js";
 import { isHTTPError } from "../util/http-util.js";
+import { sortAPIDocuments } from "../util/document-util.js";
 
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
@@ -134,20 +135,21 @@ const useTeam = () => {
           throw resp;
         }
         resp.json().then((data) => {
-
-
-          // TODO: sorting
-
-
-
-          setTeam((prev) => ({ ...prev, apiDocs: data.documents }));
+          setTeam((prev) => ({
+            ...prev,
+            apiDocs: sortAPIDocuments(data.documents),
+          }));
         });
       })
       .catch((e) => {
         setTeam((prev) => ({ ...prev, apiDocsErroring: true }));
       })
       .finally(() => {
-        setTeam((prev) => ({ ...prev, apiDocsLoading: false }));
+        setTeam((prev) => ({
+          ...prev,
+          apiDocsFetchCount: prev.apiDocsFetchCount + 1,
+          apiDocsLoading: false,
+        }));
       });
   }
 

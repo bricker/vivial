@@ -31,6 +31,7 @@ const AppContextProvider = ({ children }) => {
     inlineCodeDocsEnabled: false,
     apiDocsEnabled: false,
     apiDocs: [],
+    apiDocsFetchCount: 0,
     apiDocsLoading: true,
     apiDocsErroring: false,
     featureStatesLoading: true,
