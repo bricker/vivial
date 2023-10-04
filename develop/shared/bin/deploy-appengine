@@ -25,7 +25,7 @@ function deploy() (
 	local appyaml="app.$project.yaml"
 	test -f "$appyaml"
 
-	local timestamp; timestamp=$(date --utc "+%Y%m%dt%H%Mz")
+	local timestamp; timestamp=$(date -u "+%Y%m%dt%H%Mz")
 	local gitrev; gitrev=$(git rev-parse --short HEAD)
 	local version="$timestamp-$gitrev"
 

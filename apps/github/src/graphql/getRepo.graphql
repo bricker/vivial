@@ -1,0 +1,9 @@
+query ($nodeId: ID!) {
+  node(id: $nodeId) {
+    __typename
+
+    ... on Repository {
+      ...repoFragment
+    }
+  }
+}

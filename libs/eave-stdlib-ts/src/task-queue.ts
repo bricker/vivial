@@ -142,11 +142,11 @@ export async function createTask({
   headers[EAVE_ORIGIN_HEADER] = origin;
   headers[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
 
-  if (ctx.eave_account_id) {
+  if (!headers[EAVE_ACCOUNT_ID_HEADER] && ctx.eave_account_id) {
     headers[EAVE_ACCOUNT_ID_HEADER] = ctx.eave_account_id;
   }
 
-  if (ctx.eave_team_id) {
+  if (!headers[EAVE_TEAM_ID_HEADER] && ctx.eave_team_id) {
     headers[EAVE_TEAM_ID_HEADER] = ctx.eave_team_id;
   }
 

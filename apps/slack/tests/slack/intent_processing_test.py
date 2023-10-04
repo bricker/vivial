@@ -73,6 +73,7 @@ class IntentProcessingMixinTest(BaseTestCase):
         self.get_mock("get subscription").return_value = GetSubscriptionRequest.ResponseBody(
             team=self._data_eave_team,
             subscription=None,
+            document_reference=None,
         )
         assert len(self.sut.subscriptions) == 0
 
@@ -116,6 +117,7 @@ class IntentProcessingMixinTest(BaseTestCase):
         self.get_mock("get subscription").return_value = GetSubscriptionRequest.ResponseBody(
             team=self._data_eave_team,
             subscription=None,
+            document_reference=None,
         )
         assert len(self.sut.subscriptions) == 0
 

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, Index
+from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -28,11 +28,7 @@ class GithubDocumentsOrm(Base):
             ["github_repos.external_repo_id"],
             ondelete="CASCADE",
         ),
-        Index(
-            None,
-            "id",
-            unique=True,
-        ),
+        Index(None, "team_id", "external_repo_id", "pull_request_number"),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
@@ -63,6 +59,7 @@ class GithubDocumentsOrm(Base):
         team_id: NotRequired[UUID | str]
         external_repo_id: NotRequired[str]
         type: NotRequired[DocumentType]
+        pull_request_number: NotRequired[int]
 
     @classmethod
     def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
@@ -76,6 +73,8 @@ class GithubDocumentsOrm(Base):
             lookup = lookup.where(cls.id == id)
         if type := kwargs.get("type"):
             lookup = lookup.where(cls.type == type.value)
+        if pull_request_number := kwargs.get("pull_request_number"):
+            lookup = lookup.where(cls.pull_request_number == pull_request_number)
 
         return lookup
 

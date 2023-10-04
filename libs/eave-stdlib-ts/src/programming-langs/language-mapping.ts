@@ -1,3 +1,5 @@
+import path from "node:path";
+import { normalizeExtName } from "../util.js";
 import extensionMap from "./generated/languages.json" assert { type: "json" };
 
 export enum ProgrammingLanguage {
@@ -39,12 +41,16 @@ export function stringToProgrammingLanguage(
 export function getProgrammingLanguageByExtension(
   extName: string,
 ): ProgrammingLanguage | undefined {
-  // quality-of-life (also to prevent bugs): Accept extension with or without leading dot
-  if (extName.at(0) !== ".") {
-    extName = `.${extName}`;
-  }
+  extName = normalizeExtName(extName);
   const lang = extensionMap[extName as keyof typeof extensionMap];
   return lang ? stringToProgrammingLanguage(lang) : undefined;
+}
+
+export function getProgrammingLanguageByFilePathOrName(
+  filePathOrName: string,
+): ProgrammingLanguage | undefined {
+  const extName = `${path.extname(filePathOrName).toLowerCase()}`;
+  return getProgrammingLanguageByExtension(extName);
 }
 
 export function isSupportedProgrammingLanguage(extName: string): boolean {

@@ -45,7 +45,7 @@ const config = {
     "default-case-last": "warn",
     eqeqeq: "warn",
     "guard-for-in": "warn",
-    "no-invalid-this": "warn",
+    "no-invalid-this": "error",
     "no-new-wrappers": "warn",
     "no-octal-escape": "warn",
     "no-unused-expressions": "warn",

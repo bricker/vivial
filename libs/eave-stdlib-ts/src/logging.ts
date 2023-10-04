@@ -11,7 +11,7 @@ import {
   EAVE_REQUEST_ID_HEADER,
   EAVE_TEAM_ID_HEADER,
 } from "./headers.js";
-import { JsonObject } from "./types.js";
+import { JsonObject, JsonValue } from "./types.js";
 
 export class LogContext {
   attributes: JsonObject = {};
@@ -92,6 +92,10 @@ export class LogContext {
 
   set feature_name(value: string | undefined) {
     this.set({ feature_name: value });
+  }
+
+  get(attribute: string): JsonValue | undefined {
+    return this.attributes[attribute];
   }
 
   set(attributes: JsonObject): LogContext {

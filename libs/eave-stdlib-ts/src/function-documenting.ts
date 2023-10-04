@@ -1,10 +1,10 @@
-import path from "path";
-import { LogContext, eaveLogger } from "./logging.js";
+import { eaveLogger } from "./logging.js";
 import {
   parseFunctionsAndComments,
   writeUpdatedCommentsIntoFileString,
 } from "./parsing/function-parsing.js";
-import { getProgrammingLanguageByExtension } from "./programming-langs/language-mapping.js";
+import { getProgrammingLanguageByFilePathOrName } from "./programming-langs/language-mapping.js";
+import { CtxArg } from "./requests.js";
 import { OpenAIModel } from "./transformer-ai/models.js";
 import OpenAIClient, { formatprompt } from "./transformer-ai/openai.js";
 import * as AIUtil from "./transformer-ai/util.js";
@@ -28,22 +28,20 @@ export async function updateDocumentation({
   ctx,
   fileNodeId,
   model = OpenAIModel.GPT4,
-}: {
+}: CtxArg & {
   currContent: string;
   filePath: string;
   openaiClient: OpenAIClient;
-  ctx: LogContext;
   fileNodeId: string;
   model?: OpenAIModel;
 }): Promise<string | null> {
   // load language from file extension map file
-  const extName = `${path.extname(filePath).toLowerCase()}`;
-  const flang = getProgrammingLanguageByExtension(extName);
+  const flang = getProgrammingLanguageByFilePathOrName(filePath);
   if (!flang) {
     // file extension not found in the map file, which makes it impossible for us to
     // put docs in a syntactially valid comment; exit early
     eaveLogger.error(
-      `No matching language found for file extension: "${extName}"`,
+      `No matching language found for file path: "${filePath}"`,
       ctx,
     );
     return null;
@@ -51,12 +49,12 @@ export async function updateDocumentation({
 
   const parsedData = parseFunctionsAndComments({
     content: currContent,
-    extName,
+    filePath,
     language: flang,
     ctx,
   });
   if (parsedData.length === 0) {
-    eaveLogger.error(`Unable to parse ${flang} from ${extName} file`, ctx);
+    eaveLogger.error(`Unable to parse ${flang} from file ${filePath}`, ctx);
     return null;
   }
 
@@ -68,6 +66,7 @@ export async function updateDocumentation({
       const summarizedFunction = await AIUtil.rollingSummary({
         client: openaiClient,
         content: funcData.func,
+        ctx,
       });
 
       // update docs, or write new ones if currDocs is empty/undefined

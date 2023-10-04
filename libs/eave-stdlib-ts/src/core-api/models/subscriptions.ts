@@ -22,7 +22,7 @@ export type SubscriptionInput = {
 
 export type Subscription = {
   id: string;
-  document_reference_id?: string;
+  document_reference_id: string | null;
   source: SubscriptionSource;
 };
 

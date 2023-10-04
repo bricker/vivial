@@ -176,7 +176,7 @@ const makeClasses = makeStyles((theme) => ({
   confirmationBtns: {
     marginTop: 42,
     "& > button": {
-      width: '100%',
+      width: "100%",
     },
     [theme.breakpoints.up("md")]: {
       display: "flex",
@@ -232,8 +232,9 @@ function renderDescription(type) {
         <>
           <p>Automate inline code documentation within your GitHub files.</p>
           <p>
-            As changes are made to the codebase, Eave will automatically generate
-            inline documentation via a pull request for your team's review.
+            As changes are made to the codebase, Eave will automatically
+            generate inline documentation via a pull request for your team's
+            review.
           </p>
         </>
       );

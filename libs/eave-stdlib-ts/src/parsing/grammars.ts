@@ -8,13 +8,17 @@ import PHP from "tree-sitter-php";
 import Rust from "tree-sitter-rust";
 import tsPkg from "tree-sitter-typescript";
 // import Python from 'tree-sitter-python';
+import assert from "node:assert";
+import path from "node:path";
 import Csharp from "tree-sitter-c-sharp";
 import Ruby from "tree-sitter-ruby";
 import Swift from "tree-sitter-swift";
 import {
   ProgrammingLanguage,
+  getProgrammingLanguageByFilePathOrName,
   stringToProgrammingLanguage,
 } from "../programming-langs/language-mapping.js";
+import { xor } from "../util.js";
 
 const { typescript: Typescript, tsx } = tsPkg;
 
@@ -32,10 +36,21 @@ const { typescript: Typescript, tsx } = tsPkg;
 export function grammarForLanguage({
   language,
   extName,
+  filePathOrName,
 }: {
   language: string | ProgrammingLanguage;
-  extName: string;
-}): any {
+  extName?: string;
+  filePathOrName?: string;
+}): ProgrammingLanguage | null {
+  assert(
+    xor(filePathOrName !== undefined, extName !== undefined),
+    "supply either filePathOrName or extName, not both",
+  );
+
+  if (filePathOrName !== undefined) {
+    extName = path.extname(filePathOrName);
+  }
+
   let pl: ProgrammingLanguage;
 
   if (typeof language === "string") {
@@ -85,6 +100,17 @@ export function grammarForLanguage({
       const unhandledCase: never = pl;
       throw new Error(`Unhandled ProgrammingLanguage case: ${unhandledCase}`);
   }
+}
+
+export function grammarForFilePathOrName(
+  filePathOrName: string,
+): ProgrammingLanguage | null {
+  const language = getProgrammingLanguageByFilePathOrName(filePathOrName);
+  assert(
+    language,
+    `Unsupported file extension: ${path.extname(filePathOrName)}`,
+  );
+  return grammarForLanguage({ language, filePathOrName });
 }
 
 /**

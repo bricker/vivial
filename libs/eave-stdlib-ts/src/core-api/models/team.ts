@@ -7,7 +7,7 @@ export enum DocumentPlatform {
 export type Team = {
   id: string;
   name: string;
-  document_platform?: DocumentPlatform;
+  document_platform: DocumentPlatform | null;
 };
 
 export type TeamInput = {

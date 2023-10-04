@@ -1,4 +1,9 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
+import { Status } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
+import {
+  GetGithubDocumentsOperation,
+  UpdateGithubDocumentOperation,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-documents.js";
 import { updateDocumentation } from "@eave-fyi/eave-stdlib-ts/src/function-documenting.js";
 import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
@@ -7,6 +12,7 @@ import { OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.
 import OpenAIClient, {
   formatprompt,
 } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
+import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import {
   Blob,
   PullRequest,
@@ -20,6 +26,7 @@ import { PullRequestEvent } from "@octokit/webhooks-types";
 import path from "path";
 import { appConfig } from "../config.js";
 import * as GraphQLUtil from "../lib/graphql-util.js";
+import { getTeamForInstallation } from "../lib/octokit-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { GitHubOperationsContext } from "../types.js";
 
@@ -48,7 +55,7 @@ export default async function handler(
         event_name: "github_eave_pr_interaction",
         event_description: `A GitHub PR opened by Eave was ${interaction}`,
         event_source: "github webhook pull_request event",
-        opaque_params: JSON.stringify({ interaction }),
+        opaque_params: { interaction },
       },
       ctx,
     );
@@ -60,9 +67,50 @@ export default async function handler(
     return;
   }
 
+  const installationId = event.installation?.id?.toString();
+  assertPresence(installationId);
+
+  const eaveTeam = await getTeamForInstallation({ installationId, ctx });
+  assertPresence(eaveTeam);
+
   const repoOwner = event.repository.owner.login;
   const repoName = event.repository.name;
   const repoId = event.repository.node_id.toString();
+
+  try {
+    const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
+      {
+        origin: appConfig.eaveOrigin,
+        ctx,
+        teamId: eaveTeam.id,
+        input: {
+          query_params: {
+            external_repo_id: repoId,
+            pull_request_number: event.pull_request.number,
+          },
+        },
+      },
+    );
+
+    for (const document of associatedGithubDocuments.documents) {
+      await UpdateGithubDocumentOperation.perform({
+        origin: appConfig.eaveOrigin,
+        ctx,
+        teamId: eaveTeam.id,
+        input: {
+          document: {
+            id: document.id,
+            new_values: {
+              status: Status.PR_MERGED,
+            },
+          },
+        },
+      });
+    }
+  } catch (e: any) {
+    eaveLogger.exception(e, ctx);
+    // Allow the function to continue running
+  }
 
   const openaiClient = await OpenAIClient.getAuthedClient();
   eaveLogger.debug("Processing github pull_request event", ctx);
@@ -216,7 +264,7 @@ export default async function handler(
     await prCreator.createPullRequest({
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
       commitMessage: "docs: automated update",
-      fileChanges,
+      fileChanges: { additions: fileChanges },
       prTitle: "docs: Eave inline code documentation update",
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
     });
