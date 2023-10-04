@@ -46,6 +46,7 @@ export default async function handler(
     return;
   }
   const { ctx, octokit } = context;
+  eaveLogger.debug("Processing github pull_request event", ctx);
 
   // don't open more docs PRs from other Eave PRs getting merged
   if (event.sender.id.toString() === (await appConfig.eaveGithubAppId)) {
@@ -113,7 +114,6 @@ export default async function handler(
   }
 
   const openaiClient = await OpenAIClient.getAuthedClient();
-  eaveLogger.debug("Processing github pull_request event", ctx);
 
   let keepPaginating = true;
   let filePaths: Array<string> = [];
@@ -267,7 +267,6 @@ export default async function handler(
     eaveLogger.debug("creating pull request for inline code docs", ctx, {
       repoId,
       pull_request_number: event.pull_request.number,
-      fileChanges,
     });
 
     await prCreator.createPullRequest({
