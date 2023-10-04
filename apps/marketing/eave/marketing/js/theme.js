@@ -51,4 +51,14 @@ export const theme = createTheme({
   footer: {
     height: 70,
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      thin: 500,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
 });
