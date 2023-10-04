@@ -196,6 +196,8 @@ export default async function handler(
     keepPaginating = prFilesConnection.pageInfo.hasNextPage;
   }
 
+  eaveLogger.debug("file paths", ctx, { repoId, filePaths });
+
   // update docs in each file
   const contentsQuery = await GraphQLUtil.loadQuery("getFileContentsByPath");
   const b64UpdatedContent = await Promise.all(
@@ -261,6 +263,13 @@ export default async function handler(
       octokit,
       ctx,
     });
+
+    eaveLogger.debug("creating pull request for inline code docs", ctx, {
+      repoId,
+      pull_request_number: event.pull_request.number,
+      fileChanges,
+    });
+
     await prCreator.createPullRequest({
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
       commitMessage: "docs: automated update",
@@ -268,13 +277,8 @@ export default async function handler(
       prTitle: "docs: Eave inline code documentation update",
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
     });
-  } catch (error: any) {
-    eaveLogger.error(
-      `GitHub API threw an error during inline docs PR creation: ${JSON.stringify(
-        error,
-      )}`,
-      ctx,
-    );
+  } catch (e: any) {
+    eaveLogger.exception(e, ctx);
     return;
   }
 }
