@@ -49,7 +49,7 @@ export default async function handler(
   eaveLogger.debug("Processing github pull_request event", ctx);
 
   // don't open more docs PRs from other Eave PRs getting merged
-  if (event.sender.id.toString() === (await appConfig.eaveGithubAppId)) {
+  if (event.pull_request.user.type === "Bot" && event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")) {
     const interaction = event.pull_request.merged ? "merged" : "closed";
     await logEvent(
       {
