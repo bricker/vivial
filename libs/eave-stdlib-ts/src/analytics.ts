@@ -102,10 +102,15 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
     eaveLogger.debug("Publishing analytics event", ctx, {
       pubsub: { event: jsonEvent },
     });
-    const messageId = await topic.publishMessage({ data: protoMessage });
-    eaveLogger.debug("Analytics event published", ctx, {
-      pubsub: { event: jsonEvent, result: [messageId] },
-    });
+
+    try {
+      const messageId = await topic.publishMessage({ data: protoMessage });
+      eaveLogger.debug("Analytics event published", ctx, {
+        pubsub: { event: jsonEvent, result: [messageId] },
+      });
+    } catch (e: any) {
+      eaveLogger.exception(e, ctx);
+    }
   } else {
     eaveLogger.warning("Analytics disabled", { event: jsonEvent }, ctx);
   }
@@ -134,10 +139,15 @@ export async function logGptRequest(
     eaveLogger.debug("Publishing analytics event", ctx, {
       pubsub: { event: jsonEvent },
     });
-    const messageId = await topic.publishMessage({ data: protoMessage });
-    eaveLogger.debug("Analytics event published", ctx, {
-      pubsub: { event: jsonEvent, result: [messageId] },
-    });
+
+    try {
+      const messageId = await topic.publishMessage({ data: protoMessage });
+      eaveLogger.debug("Analytics event published", ctx, {
+        pubsub: { event: jsonEvent, result: [messageId] },
+      });
+    } catch (e: any) {
+      eaveLogger.exception(e, ctx);
+    }
   } else {
     eaveLogger.warning("Analytics disabled", { event: jsonEvent }, ctx);
   }
