@@ -24,14 +24,17 @@ export type ParsedFunction = {
 };
 
 /**
- * Use tree-sitter to extract functions and their doc comments from
- * the provided file `content`.
- *
- * @param content string content of a source code file
- * @param extName file extension of the source code file. Expected to contain . prefix (e.g. ".js").
- *                Used to determine the correct language grammar.
- * @param language programming language of `content`. Used for constructing grammar queries.
- * @returns array of function data parsed from `content`
+ * Parses the content of a file to extract functions and their associated documentation comments.
+ * 
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.content - The content of the file to parse.
+ * @param {string} params.filePath - The path of the file to parse. The file extension of the source code file is expected to contain . prefix (e.g. ".js"). Used to determine the correct language grammar.
+ * @param {ProgrammingLanguage} params.language - The programming language of the file. Used for constructing grammar queries.
+ * @param {LogContext} [params.ctx] - Optional logging context.
+ * 
+ * @returns {ParsedFunction[]} An array of parsed functions, each with associated documentation comments if available.
+ * 
+ * @throws {Error} If no grammar is found for the specified programming language.
  */
 export function parseFunctionsAndComments({
   content,
@@ -84,11 +87,14 @@ export function parseFunctionsAndComments({
 }
 
 /**
- * Writes new doc comments into `content`, returning the updated file content string.
+ * Inserts updated comments into a given content string based on the parsed functions provided.
+ * The parsed functions are sorted from high to low to avoid invalidating other indices during insertion.
+ * If a function has an updated comment, it is indented and inserted into the content string.
+ * If the function has an existing comment, its length is considered to find the beginning of the function signature.
  *
- * @param content file string to write `fmap` comments into
- * @param parsedFunctions array of functions+comments data from `content`
- * @returns updated file content string
+ * @param {string} content - The original content string where comments are to be inserted.
+ * @param {ParsedFunction[]} parsedFunctions - An array of parsed functions with their updated comments.
+ * @returns {string} The updated content string with the inserted comments.
  */
 export function writeUpdatedCommentsIntoFileString(
   content: string,
@@ -121,15 +127,16 @@ export function writeUpdatedCommentsIntoFileString(
 }
 
 /**
- * Inserts docs between `after` and `before`.
- * Set a value for `before` if trying to replace an existing docstring in `content`
- * with `docs`.
+ * Inserts a documentation comment into a given content string at specified positions.
+ * Set a value for `params.before` if trying to replace an existing docstring in `params.content`
+ * with `params.docs`.
  *
- * @param content string to have docs inserted into
- * @param docs string to insert into content
- * @param after index in content to put docs after
- * @param before index in content to put docs before. (set to after if undefined)
- * @returns content with `docs` inserted
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.content - The content string where the documentation comment will be inserted.
+ * @param {string} params.docs - The documentation comment to be inserted.
+ * @param {number} params.after - The position in the content string after which the documentation comment will be inserted.
+ * @param {number} [params.before=params.after] - The position in the content string before which the documentation comment will be inserted. Defaults to the value of `params.after` if not provided.
+ * @returns {string} The content string with the inserted documentation comment.
  */
 function insertDocsComment({
   content,
@@ -158,17 +165,19 @@ function insertDocsComment({
 }
 
 /**
- * Runs `query` on `content`, creating a mapping from hashes of function strings to
- * function data extracted from `content` by `query`.
+ * Executes a given query on a syntax tree and returns a map of parsed functions.
+ * The function parses the content of the file, identifies functions and their associated comments,
+ * and stores them in a map where the key is a hash of the function content.
  * (Hash key value allows future queries to replace parsed values for a function if
  * multiple queries match the same function; query order matters!)
  *
- * @param query match query to run on `content`. Expected to have used `funcMatcher` and `commentMatcher` for capture names.
- * @param rootNode parse tree node
- * @param content file content used to create `rootNode`. Used for extracting string content located by `query`
- * @param funcMatcher name used by `query` to capture function_declaration (or equivilant) nodes from `rootNode` tree
- * @param commentMatcher name used by `query` to capture comment nodes from `rootNode` tree
- * @return hash map object storing `query` results
+ * @param {Object} params - The parameters for the function.
+ * @param {Parser.Query} params.query - The query to be run on the syntax tree. Expected to have used `funcMatcher` and `commentMatcher` for capture names.
+ * @param {Parser.SyntaxNode} params.rootNode - The root node of the syntax tree.
+ * @param {string} params.content - The content of the file to be parsed. Used for extracting string content located by `query`.
+ * @param {string} params.funcMatcher - The name of the query capture that matches function_declaration (or equivalent) nodes from `rootNode` tree.
+ * @param {string} params.commentMatcher - The name of the query capture that matches comment nodes from `rootNode` tree.
+ * @returns {Object} A map where the keys are hashes of the function content and the values are objects containing the parsed function data.
  */
 function runQuery({
   query,
@@ -294,13 +303,13 @@ function runQuery({
 }
 
 /**
- * Adds indentation (matching the level of `funcData.func`) to `funcData.updatedComment`.
- * Updates `funcData` in-place rather than returning a value.
+ * Updates the indentation of a parsed function's comment to match the function's indentation level.
+ * If the function does not have an updated comment, it will return without making changes.
  * This function only works for languages where doc comments should be at the same
  * indentation level as the function signature they document (i.e. not Python).
  *
- * @param funcData function and comment + meta data
- * @param content file content function + comment is contained in. Used for indent calculations
+ * @param {ParsedFunction} funcData - The parsed function data including its signature, start position, and updated comment.
+ * @param {string} content - The original content where the function is located.
  */
 function indentUpdatedComment(funcData: ParsedFunction, content: string) {
   if (!funcData.updatedComment) {
