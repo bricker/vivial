@@ -6,8 +6,8 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
-	"${EAVE_HOME}"/develop/python/bin/setup
 	"${EAVE_HOME}"/develop/javascript/bin/setup
+	"${EAVE_HOME}"/develop/python/bin/setup
 )
 (
 	cd "$(^parentpath)/typescript"

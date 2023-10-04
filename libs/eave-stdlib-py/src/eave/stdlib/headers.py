@@ -5,6 +5,7 @@ EAVE_SIGNATURE_HEADER = "eave-signature"
 EAVE_SIG_TS_HEADER = "eave-sig-ts"
 EAVE_ORIGIN_HEADER = "eave-origin"
 EAVE_REQUEST_ID_HEADER = "eave-request-id"
+EAVE_CRON_DISPATCH_KEY_HEADER = "eave-cron-dispatch-key"
 
 EAVE_DEV_BYPASS_HEADER = "X-Google-EAVEDEV"
 """

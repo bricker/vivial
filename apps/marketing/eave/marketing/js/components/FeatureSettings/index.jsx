@@ -2,7 +2,6 @@ import { Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
 
-import { FEATURE_STATES } from "../../constants";
 import useTeam from "../../hooks/useTeam";
 import FeatureSettingCard from "../FeatureSettingCard/index.jsx";
 
@@ -38,7 +37,7 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const FeatureSettings = ({ onInlineDocsClick }) => {
+const FeatureSettings = ({ onAPIDocsClick, onInlineDocsClick }) => {
   const classes = makeClasses();
   const { team } = useTeam();
   return (
@@ -47,7 +46,15 @@ const FeatureSettings = ({ onInlineDocsClick }) => {
         Feature Settings
       </Typography>
       <div className={classes.settingBtns}>
-        {team.inlineCodeDocsState === FEATURE_STATES.ENABLED && (
+        {team.apiDocsEnabled && (
+          <FeatureSettingCard
+            className={classes.settingCard}
+            onClick={onAPIDocsClick}
+          >
+            API Documentation
+          </FeatureSettingCard>
+        )}
+        {team.inlineCodeDocsEnabled && (
           <FeatureSettingCard
             className={classes.settingCard}
             onClick={onInlineDocsClick}

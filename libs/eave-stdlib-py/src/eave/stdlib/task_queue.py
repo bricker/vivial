@@ -104,9 +104,6 @@ async def create_task(
     if not headers:
         headers = {}
 
-    # Slack already sets this for the incoming event request, but setting it here too to be explicit.
-    headers[CONTENT_TYPE] = "application/json"
-
     request_id = ctx.eave_request_id
     eave_sig_ts = signing.make_sig_ts()
 
@@ -117,7 +114,8 @@ async def create_task(
         audience=audience,
         request_id=request_id,
         path=target_path,
-        payload=body.decode(),
+        # FIXME: The linter doesn't like this next line, with the error `Cannot access member "decode" for type "memoryview"`
+        payload=body.decode(),  # type: ignore
         team_id=ctx.eave_team_id,
         account_id=ctx.eave_account_id,
         ctx=ctx,
@@ -125,6 +123,7 @@ async def create_task(
 
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
+    headers[CONTENT_TYPE] = "application/json"
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
     headers[EAVE_REQUEST_ID_HEADER] = request_id

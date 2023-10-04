@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
 import useTeam from "../../../hooks/useTeam.js";
 
+import APIDocumentation from "../../APIDocumentation/index.jsx";
 import ExploreFeatures from "../../ExploreFeatures/index.jsx";
 import FeatureSettings from "../../FeatureSettings/index.jsx";
 import GitHubFeatureModal from "../../GitHubFeatureModal/index.jsx";
@@ -10,7 +11,7 @@ import ErrorPage from "../ErrorPage/index.jsx";
 import LoadingPage from "../LoadingPage/index.jsx";
 import Page from "../Page/index.jsx";
 
-import { FEATURES, FEATURE_MODAL, FEATURE_STATES } from "../../../constants.js";
+import { FEATURES, FEATURE_MODAL } from "../../../constants.js";
 
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +23,11 @@ const Dashboard = () => {
     getTeamFeatureStates,
     updateTeamFeatureState,
   } = useTeam();
+  const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
+  const [apiDocsModalIsOpen, setAPIDocsModalIsOpen] = useState(false);
+
+  const showFeatureSettings = team.inlineCodeDocsEnabled || team.apiDocsEnabled;
+  const showAPIDocs = team.apiDocsEnabled;
 
   const isLoading =
     team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
@@ -29,36 +35,40 @@ const Dashboard = () => {
   const isErroring =
     team.teamIsErroring || team.reposAreErroring || team.featureStatesErroring;
 
-  const showFeatureSettings =
-    team.inlineCodeDocsState === FEATURE_STATES.ENABLED ||
-    team.apiDocsState === FEATURE_STATES.ENABLED;
-
-  const [showInlineDocsModal, setShowInlineDocsModal] = useState(false);
-
-  const modalCleanup = () => {
+  const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
     setSearchParams({});
+    if (inlineDocsModalIsOpen) {
+      setInlineDocsModalIsOpen(false);
+      return;
+    }
+    if (apiDocsModalIsOpen) {
+      setAPIDocsModalIsOpen(false);
+    }
   };
 
-  const openInlineDocsModal = useCallback(() => {
+  const openInlineDocsModal = () => {
+    if (inlineDocsModalIsOpen) {
+      return;
+    }
     setSearchParams({
       [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS,
     });
-    setShowInlineDocsModal(true);
-  }, []);
+    setInlineDocsModalIsOpen(true);
+  };
 
-  const closeInlineDocsModal = useCallback(() => {
-    setShowInlineDocsModal(false);
-    modalCleanup();
-  }, []);
+  const openAPIDocsModal = () => {
+    if (apiDocsModalIsOpen) {
+      return;
+    }
+    setSearchParams({ [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.API_DOCS });
+    setAPIDocsModalIsOpen(true);
+  };
 
-  const handleFeatureUpdate = useCallback(
-    ({ teamRepoIds, enabledRepoIds, feature }) => {
-      updateTeamFeatureState({ teamRepoIds, enabledRepoIds, feature });
-      closeInlineDocsModal();
-    },
-    [],
-  );
+  const handleFeatureUpdate = ({ teamRepoIds, enabledRepoIds, feature }) => {
+    updateTeamFeatureState({ teamRepoIds, enabledRepoIds, feature });
+    closeModal();
+  };
 
   useEffect(() => {
     getTeam();
@@ -71,24 +81,31 @@ const Dashboard = () => {
 
   useEffect(() => {
     const featureModal = cookies && cookies[FEATURE_MODAL.ID];
-    if (featureModal) {
-      if (featureModal === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS) {
+    switch (featureModal) {
+      case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
         openInlineDocsModal();
-      }
+        break;
+      case FEATURE_MODAL.TYPES.API_DOCS:
+        openAPIDocsModal();
+        break;
+      default:
+        break;
     }
   }, [cookies]);
 
   useEffect(() => {
     const featureParam = searchParams.get(FEATURE_MODAL.ID);
-    if (featureParam) {
-      if (
-        featureParam === FEATURE_MODAL.TYPES.INLINE_CODE_DOCS &&
-        !showInlineDocsModal
-      ) {
+    switch (featureParam) {
+      case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
         openInlineDocsModal();
-      }
+        break;
+      case FEATURE_MODAL.TYPES.API_DOCS:
+        openAPIDocsModal();
+        break;
+      default:
+        break;
     }
-  }, [searchParams, showInlineDocsModal]);
+  }, [searchParams]);
 
   if (isErroring) {
     return <ErrorPage page="dashboard" />;
@@ -98,17 +115,33 @@ const Dashboard = () => {
   }
   return (
     <Page>
-      <ExploreFeatures onInlineDocsClick={openInlineDocsModal} />
+      {showAPIDocs && <APIDocumentation />}
+      <ExploreFeatures
+        onInlineDocsClick={openInlineDocsModal}
+        onAPIDocsClick={openAPIDocsModal}
+      />
       {showFeatureSettings && (
-        <FeatureSettings onInlineDocsClick={openInlineDocsModal} />
+        <FeatureSettings
+          onInlineDocsClick={openInlineDocsModal}
+          onAPIDocsClick={openAPIDocsModal}
+        />
       )}
-      {showInlineDocsModal && (
+      {inlineDocsModalIsOpen && (
         <GitHubFeatureModal
           feature={FEATURES.INLINE_CODE_DOCS}
           type={FEATURE_MODAL.TYPES.INLINE_CODE_DOCS}
-          onClose={closeInlineDocsModal}
+          onClose={closeModal}
           onUpdate={handleFeatureUpdate}
-          open={showInlineDocsModal}
+          open={inlineDocsModalIsOpen}
+        />
+      )}
+      {apiDocsModalIsOpen && (
+        <GitHubFeatureModal
+          feature={FEATURES.API_DOCS}
+          type={FEATURE_MODAL.TYPES.API_DOCS}
+          onClose={closeModal}
+          onUpdate={handleFeatureUpdate}
+          open={apiDocsModalIsOpen}
         />
       )}
     </Page>

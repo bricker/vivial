@@ -9,10 +9,10 @@ export type ConnectInstallation = {
   client_key: string;
   base_url: string;
   shared_secret: string;
-  team_id?: string;
-  atlassian_actor_account_id?: string;
-  display_url?: string;
-  description?: string;
+  team_id: string | null;
+  atlassian_actor_account_id: string | null;
+  display_url: string | null;
+  description: string | null;
 };
 
 export type RegisterConnectInstallationInput = {
@@ -20,13 +20,15 @@ export type RegisterConnectInstallationInput = {
   client_key: string;
   base_url: string;
   shared_secret: string;
-  atlassian_actor_account_id?: string;
-  display_url?: string;
-  description?: string;
+  atlassian_actor_account_id: string | null;
+  display_url: string | null;
+  description: string | null;
 };
 
 export type QueryConnectInstallationInput = {
   product: AtlassianProduct;
+
+  // TODO: Validation on these fields (see the Python counterpart for an example)
   client_key?: string;
   team_id?: string;
 };

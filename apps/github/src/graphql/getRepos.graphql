@@ -6,19 +6,10 @@ query {
       orderBy: { direction: DESC, field: PUSHED_AT }
       first: 100
     ) {
+      __typename
+
       nodes {
-        id
-        name
-        url
-        description
-        createdAt
-        updatedAt
-        pushedAt
-        owner {
-          id
-          login
-          avatarUrl
-        }
+        ...repoFragment
       }
     }
   }

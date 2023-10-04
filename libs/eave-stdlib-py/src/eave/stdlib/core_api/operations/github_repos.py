@@ -29,12 +29,39 @@ class GetGithubReposRequest(CoreApiEndpoint):
         cls,
         input: RequestBody,
         team_id: uuid.UUID | str,
+        account_id: Optional[uuid.UUID | str],
+        access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=input,
             team_id=team_id,
+            **kwargs,
+        )
+
+        response_json = await response.json()
+        return cls.ResponseBody(**response_json, _raw_response=response)
+
+
+class GetAllTeamsGithubReposRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(path="/_/github-repos/query", auth_required=False, team_id_required=False)
+
+    class RequestBody(BaseRequestBody):
+        query_params: GithubReposFeatureStateInput
+
+    class ResponseBody(BaseResponseBody):
+        repos: list[GithubRepo]
+
+    @classmethod
+    async def perform(
+        cls,
+        input: RequestBody,
+        **kwargs: Unpack[requests.CommonRequestArgs],
+    ) -> ResponseBody:
+        response = await requests.make_request(
+            config=cls.config,
+            input=input,
             **kwargs,
         )
 

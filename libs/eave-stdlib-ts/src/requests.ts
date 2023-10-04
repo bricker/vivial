@@ -23,7 +23,7 @@ export type ExpressHandlerArgs = {
 };
 
 export type CtxArg = {
-  ctx?: LogContext;
+  ctx: LogContext;
 };
 
 export type RequestArgsOrigin = CtxArg & {

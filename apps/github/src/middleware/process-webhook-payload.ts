@@ -10,13 +10,16 @@ import { InstallationLite, WebhookEventName } from "@octokit/webhooks-types";
 import Express from "express";
 import { constants as httpConstants } from "node:http2";
 import { appConfig } from "../config.js";
-import registry, { HandlerFunction } from "../events/registry.js";
+import {
+  HandlerFunction,
+  getEventHandler as getEventHandlerFromRegistry,
+} from "../events/event-registry.js";
 import { githubAppClient } from "../lib/octokit-util.js";
 
 type GithubWebhookHeaders = {
   id?: string;
   signature?: string;
-  installationId?: string;
+  githubAppId?: string;
   eventName?: WebhookEventName;
 };
 
@@ -43,12 +46,12 @@ export function getGithubWebhookHeaders(
     | WebhookEventName
     | undefined;
   const signature = req.header("x-hub-signature-256");
-  const installationId = req.header("x-github-hook-installation-target-id");
+  const githubAppId = req.header("x-github-hook-installation-target-id");
 
   return {
     id,
     signature,
-    installationId,
+    githubAppId,
     eventName,
   };
 }
@@ -62,7 +65,7 @@ export function getEventHandler(
   const { action } = <GithubWebhookBody>req.body;
   const fullEventName = [eventName, action].filter((n) => n).join(".");
 
-  const handler = registry[fullEventName];
+  const handler = getEventHandlerFromRegistry({ dispatchKey: fullEventName });
   if (!handler) {
     eaveLogger.warning(`Event not supported: ${fullEventName}`, ctx);
   }
@@ -78,14 +81,14 @@ export async function validateGithubWebhookHeaders(
   try {
     const ctx = LogContext.load(res);
     const rawBody = (<Buffer>req.body).toString();
-    const { id, signature, eventName, installationId } =
+    const { id, signature, eventName, githubAppId } =
       getGithubWebhookHeaders(req);
 
-    if (!eventName || !id || !signature || !installationId) {
+    if (!eventName || !id || !signature || !githubAppId) {
       eaveLogger.error("missing header data from GitHub", ctx, {
         id,
         eventName,
-        installationId,
+        githubAppId,
       });
       res.sendStatus(httpConstants.HTTP_STATUS_BAD_REQUEST);
       return;
@@ -98,7 +101,7 @@ export async function validateGithubWebhookHeaders(
       eaveLogger.error("signature verification failed", ctx, {
         id,
         eventName,
-        installationId,
+        githubAppId,
       });
 
       if (appConfig.isDevelopment && appConfig.devMode) {

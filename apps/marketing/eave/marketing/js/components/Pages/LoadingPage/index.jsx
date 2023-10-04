@@ -3,8 +3,9 @@ import { makeStyles } from "@material-ui/styles";
 import React from "react";
 import Page from "../Page/index.jsx";
 
-const makeClasses = makeStyles(() => ({
+const makeClasses = makeStyles((theme) => ({
   loader: {
+    color: theme.palette.background.contrastText,
     width: "100%",
     display: "flex",
     alignItems: "center",
@@ -17,7 +18,7 @@ const LoadingPage = () => {
   return (
     <Page>
       <div className={classes.loader}>
-        <CircularProgress />
+        <CircularProgress color="inherit" />
       </div>
     </Page>
   );

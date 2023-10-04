@@ -22,7 +22,7 @@ class GetSubscriptionRequest(CoreApiEndpoint):
     class ResponseBody(BaseResponseBody):
         team: team.Team
         subscription: Optional[Subscription]
-        document_reference: Optional[DocumentReference] = None
+        document_reference: Optional[DocumentReference]
 
     @classmethod
     async def perform(
@@ -55,7 +55,7 @@ class CreateSubscriptionRequest(CoreApiEndpoint):
     class ResponseBody(BaseResponseBody):
         team: team.Team
         subscription: Subscription
-        document_reference: Optional[DocumentReference] = None
+        document_reference: Optional[DocumentReference]
 
     @classmethod
     async def perform(

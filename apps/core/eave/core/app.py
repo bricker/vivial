@@ -23,6 +23,7 @@ from eave.stdlib.core_api.operations.github_documents import (
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
+    GetAllTeamsGithubReposRequest,
     GetGithubReposRequest,
     UpdateGithubReposRequest,
     DeleteGithubReposRequest,
@@ -145,21 +146,14 @@ def make_route(
     So, that's a long-winded explanation of the order of the middlewares below.
     """
 
-    if config.team_id_required:
-        # Last thing to happen before the Route handler
-        endpoint = TeamLookupASGIMiddleware(app=endpoint)
-
-    if config.auth_required:
-        endpoint = AuthASGIMiddleware(app=endpoint)
-
-    if config.signature_required:
-        # If signature is required, origin is also required.
-        assert config.origin_required
-        endpoint = SignatureVerificationASGIMiddleware(app=endpoint, audience=EaveApp.eave_api)
-
-    if config.origin_required:
-        # First thing to happen when the middleware chain is kicked off
-        endpoint = OriginASGIMiddleware(app=endpoint)
+    endpoint = TeamLookupASGIMiddleware(
+        app=endpoint, endpoint_config=config
+    )  # Last thing to happen before the Route handler
+    endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
+    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
+    endpoint = OriginASGIMiddleware(
+        app=endpoint, endpoint_config=config
+    )  # First thing to happen when the middleware chain is kicked off
 
     return Route(path=config.path, endpoint=endpoint)
 
@@ -230,6 +224,10 @@ routes = [
     make_route(
         config=GetGithubReposRequest.config,
         endpoint=github_repos.GetGithubRepoEndpoint,
+    ),
+    make_route(
+        config=GetAllTeamsGithubReposRequest.config,
+        endpoint=github_repos.GetAllTeamsGithubRepoEndpoint,
     ),
     make_route(
         config=FeatureStateGithubReposRequest.config,

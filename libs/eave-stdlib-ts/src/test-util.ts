@@ -17,6 +17,20 @@ import request from "supertest";
 export class TestUtil {
   testData: { [key: string]: any } = {};
 
+  anyint(name?: string): number {
+    name = name || uuidv4();
+
+    if (this.testData[name] === undefined) {
+      this.testData[name] = Math.trunc(Math.random() * Math.pow(10, 5));
+    }
+
+    return this.testData[name];
+  }
+
+  getint(name: string): number {
+    return this.testData[name];
+  }
+
   anystr(name?: string): string {
     name = name || uuidv4();
 

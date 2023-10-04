@@ -1,4 +1,4 @@
-from typing import Unpack
+from typing import Optional, Unpack
 import uuid
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Destination, Team
@@ -44,7 +44,7 @@ class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
         account: AuthenticatedAccount
         team: Team
         integrations: Integrations
-        destination: Destination | None
+        destination: Optional[Destination]
 
     @classmethod
     async def perform(

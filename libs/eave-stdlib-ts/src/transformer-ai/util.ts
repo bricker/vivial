@@ -1,3 +1,4 @@
+import { CtxArg } from "../requests.js";
 import { OpenAIModel, maxTokens } from "./models.js";
 import OpenAIClient, { formatprompt } from "./openai.js";
 import { tokenCount } from "./token-counter.js";
@@ -18,9 +19,10 @@ import { tokenCount } from "./token-counter.js";
 export async function rollingSummary({
   client,
   content,
+  ctx,
   threshold = undefined,
   model = OpenAIModel.GPT4,
-}: {
+}: CtxArg & {
   client: OpenAIClient;
   content: string;
   threshold?: number;
@@ -75,6 +77,7 @@ export async function rollingSummary({
           frequency_penalty: 1,
           presence_penalty: 1,
         },
+        ctx,
       });
     }
 

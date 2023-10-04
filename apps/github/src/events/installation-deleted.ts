@@ -34,6 +34,7 @@ export default async function handler(
   const sharedInput = {
     teamId: ctx.eave_team_id,
     origin: appConfig.eaveOrigin,
+    ctx,
   };
 
   // remove gh app installation from user's eave account
