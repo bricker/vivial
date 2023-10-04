@@ -139,7 +139,10 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                 _event_name = "eave_github_feature_state_change"
                 _event_description = "An Eave GitHub App feature was activated/deactivated"
                 _event_source = "eave core api"
-                if new_values.api_documentation_state is not None:
+                if (
+                    new_values.api_documentation_state
+                    and new_values.api_documentation_state.value != gh_repo_orm.api_documentation_state
+                ):
                     await log_event(
                         event_name=_event_name,
                         event_description=_event_description,
@@ -151,7 +154,11 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         },
                         ctx=eave_state.ctx,
                     )
-                if new_values.architecture_documentation_state is not None:
+                if (
+                    new_values.architecture_documentation_state
+                    and new_values.architecture_documentation_state.value
+                    != gh_repo_orm.architecture_documentation_state
+                ):
                     await log_event(
                         event_name=_event_name,
                         event_description=_event_description,
@@ -163,7 +170,10 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         },
                         ctx=eave_state.ctx,
                     )
-                if new_values.inline_code_documentation_state is not None:
+                if (
+                    new_values.inline_code_documentation_state
+                    and new_values.inline_code_documentation_state.value != gh_repo_orm.inline_code_documentation_state
+                ):
                     await log_event(
                         event_name=_event_name,
                         event_description=_event_description,
