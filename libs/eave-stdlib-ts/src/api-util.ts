@@ -9,6 +9,8 @@ import { eaveLogger } from "./logging.js";
 import { ExpressRoutingMethod } from "./types.js";
 import { redact } from "./util.js";
 
+// document me
+
 export function statusPayload(): StatusResponseBody {
   return {
     service: sharedConfig.appService,
