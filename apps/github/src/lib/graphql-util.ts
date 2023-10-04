@@ -3,8 +3,6 @@ import assert from "node:assert";
 import { promises as fs } from "node:fs";
 import GlobalCache from "../lib/cache.js";
 
-// document me
-
 export async function loadQuery(name: string): Promise<string> {
   const queryCacheKey = `query.${name}`;
   const cachedQuery = await GlobalCache.get(queryCacheKey);
