@@ -9,8 +9,8 @@ import React from "react";
 const makeClasses = makeStyles((theme) => ({
   h1: {
     color: theme.palette.background.contrastText,
-    fontSize: 32,
-    lineHeight: "38px",
+    fontSize: 36,
+    lineHeight: "47px",
     fontWeight: 700,
     margin: 0,
     [theme.breakpoints.up("sm")]: {
@@ -52,25 +52,17 @@ const makeClasses = makeStyles((theme) => ({
   },
   pSmall: {
     color: theme.palette.background.contrastText,
-    fontSize: 16,
-    lineHeight: "21px",
     fontWeight: 400,
     margin: 0,
-    [theme.breakpoints.up("sm")]: {
-      fontSize: 18,
-      lineHeight: "23px",
-    },
+    fontSize: 18,
+    lineHeight: "23px",
   },
   p: {
     color: theme.palette.background.contrastText,
-    fontSize: 16,
-    lineHeight: "21px",
     fontWeight: 400,
     margin: 0,
-    [theme.breakpoints.up("sm")]: {
-      fontSize: 24,
-      lineHeight: "31px",
-    },
+    fontSize: 24,
+    lineHeight: "31px",
   },
   bold: {
     fontWeight: "bold",
