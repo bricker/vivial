@@ -120,10 +120,6 @@ export class PullRequestCreator {
     }>(createBranchMutation, createBranchParameters);
     const docsBranch = branchResp.createRef?.ref;
     if (!docsBranch) {
-      eaveLogger.error(
-        `Failed to create branch in ${this.repoOwner}/${this.repoName}`,
-        this.ctx,
-      );
       throw new Error("Failed to create branch");
     }
     return docsBranch;
@@ -172,11 +168,6 @@ export class PullRequestCreator {
     });
 
     if (!commitResp.createCommitOnBranch?.commit?.oid) {
-      eaveLogger.error(
-        `Failed to create commit in ${this.repoOwner}/${this.repoName}`,
-        this.ctx,
-      );
-      await this.deleteBranch(branch!.id);
       throw new Error("Failed to create commit");
     }
   }
@@ -208,11 +199,6 @@ export class PullRequestCreator {
       createPullRequest: Mutation["createPullRequest"];
     }>(createPrMutation, createPrParameters);
     if (!prResp.createPullRequest?.pullRequest?.number) {
-      eaveLogger.error(
-        `Failed to create PR in ${this.repoOwner}/${this.repoName}`,
-        this.ctx,
-      );
-      await this.deleteBranch(branch!.id);
       throw new Error("Failed to open PR");
     }
     return prResp.createPullRequest.pullRequest;
@@ -261,16 +247,26 @@ export class PullRequestCreator {
       branch = await this.createBranch(fqBranchName);
     }
 
-    await this.createCommit(branch, commitMessage, fileChanges);
-    const pr = await this.openPullRequest(branch, prTitle, prBody);
+    let pr: PullRequest;
+    try {
+      await this.createCommit(branch, commitMessage, fileChanges);
+      pr = await this.openPullRequest(branch, prTitle, prBody);
 
-    await logEvent(
-      {
-        event_name: "eave_github_pull_request_opened",
-        event_description: "Eave GitHub app opened a PR",
-      },
-      this.ctx,
-    );
+      await logEvent(
+        {
+          event_name: "eave_github_pull_request_opened",
+          event_description: "Eave GitHub app opened a PR",
+        },
+        this.ctx,
+      );
+    } catch (e) {
+      eaveLogger.error(
+        `Failed to create PR in ${this.repoOwner}/${this.repoName}`,
+        this.ctx,
+      );
+      await this.deleteBranch(branch!.id);
+      throw e;
+    }
 
     return pr;
   }
