@@ -176,11 +176,19 @@ class EaveLogger {
   }
 
   debug(message: string, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.debug(message, this.makeExtra(...rest));
+    try {
+      this.rawLogger.debug(message, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.debug(e);
+    }
   }
 
   info(message: string, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.info(message, this.makeExtra(...rest));
+    try {
+      this.rawLogger.info(message, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.log(e);
+    }
   }
 
   warning(
@@ -194,7 +202,11 @@ class EaveLogger {
       msg = message;
     }
 
-    this.rawLogger.warn(msg, this.makeExtra(...rest));
+    try {
+      this.rawLogger.warn(msg, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.warn(e);
+    }
   }
 
   error(
@@ -208,7 +220,11 @@ class EaveLogger {
       msg = message;
     }
 
-    this.rawLogger.error(msg, this.makeExtra(...rest));
+    try {
+      this.rawLogger.error(msg, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.error(e);
+    }
   }
 
   exception(

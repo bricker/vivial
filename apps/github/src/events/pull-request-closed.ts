@@ -49,17 +49,32 @@ export default async function handler(
   eaveLogger.debug("Processing github pull_request event", ctx);
 
   // don't open more docs PRs from other Eave PRs getting merged
-  if (event.sender.id.toString() === (await appConfig.eaveGithubAppId)) {
+  if (
+    event.pull_request.user.type === "Bot" &&
+    event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
+  ) {
     const interaction = event.pull_request.merged ? "merged" : "closed";
-    await logEvent(
-      {
-        event_name: "github_eave_pr_interaction",
-        event_description: `A GitHub PR opened by Eave was ${interaction}`,
-        event_source: "github webhook pull_request event",
-        opaque_params: { interaction },
-      },
-      ctx,
-    );
+    if (interaction === "merged") {
+      await logEvent(
+        {
+          event_name: "github_eave_pr_merged",
+          event_description: `A GitHub PR opened by Eave was merged`,
+          event_source: "github webhook pull_request event",
+          opaque_params: { interaction },
+        },
+        ctx,
+      );
+    } else {
+      await logEvent(
+        {
+          event_name: "github_eave_pr_closed",
+          event_description: `A GitHub PR opened by Eave was closed without merging changes`,
+          event_source: "github webhook pull_request event",
+          opaque_params: { interaction },
+        },
+        ctx,
+      );
+    }
     return;
   }
 
