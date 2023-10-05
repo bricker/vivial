@@ -27,6 +27,7 @@ class GithubRepoOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     github_installation_id: Mapped[Optional[UUID]] = mapped_column()
+    """Foreign key to the github_installations table id column. May be NULL for backfill data."""
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
@@ -90,7 +91,7 @@ class GithubRepoOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         external_repo_id: str,
-        github_installation_id: UUID,
+        github_installation_id: Optional[UUID],
         display_name: Optional[str],
         api_documentation_state: State = State.DISABLED,
         inline_code_documentation_state: State = State.DISABLED,
