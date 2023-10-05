@@ -33,6 +33,7 @@ function anyRepo(t: TestUtil): GithubRepo {
   return {
     team_id: t.anystr(),
     external_repo_id: t.anystr(),
+    display_name: null,
     github_installation_id: t.anystr(),
     inline_code_documentation_state: State.DISABLED,
     architecture_documentation_state: State.DISABLED,

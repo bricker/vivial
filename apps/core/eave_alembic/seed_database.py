@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.internal
 import eave.core.internal.orm as orm
-from eave.core.internal.orm import github_installation
 import eave.core.internal.orm.base
 from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.github_documents import DocumentType

@@ -1,6 +1,5 @@
 import json
 import urllib.parse
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.pubsub_schemas

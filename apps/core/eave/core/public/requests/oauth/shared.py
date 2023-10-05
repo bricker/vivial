@@ -60,7 +60,7 @@ def is_error_response(response: Response) -> bool:
     location_header = response.headers["Location"]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
-    return qs.get(EAVE_ERROR_CODE_QP) != None
+    return qs.get(EAVE_ERROR_CODE_QP) is not None
 
 
 def cancel_flow(response: Response) -> Response:

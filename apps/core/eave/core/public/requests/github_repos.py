@@ -31,8 +31,7 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
 
         async with database.async_session.begin() as db_session:
             github_installation = await GithubInstallationOrm.one_or_exception(
-                session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id))
+                session=db_session, team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id))
             )
 
             gh_repo_orm = await GithubRepoOrm.create(
