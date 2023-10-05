@@ -13,8 +13,8 @@ export enum State {
 export type GithubRepo = {
   team_id: string;
   external_repo_id: string;
-  github_installation_id: string | null;
-  display_name?: string;
+  github_installation_id: string;
+  display_name: string | null;
   api_documentation_state: State;
   inline_code_documentation_state: State;
   architecture_documentation_state: State;
@@ -23,7 +23,6 @@ export type GithubRepo = {
 export type GithubRepoCreateInput = {
   external_repo_id: string;
   display_name: string;
-  github_installation_id: string;
   api_documentation_state: State;
   inline_code_documentation_state: State;
   architecture_documentation_state: State;

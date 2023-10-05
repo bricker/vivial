@@ -56,6 +56,13 @@ def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> R
     return set_redirect(response=response, location=urlunparse(location))
 
 
+def is_error_response(response: Response) -> bool:
+    location_header = response.headers["Location"]
+    location = urlparse(location_header)
+    qs = parse_qs(location.query)
+    return qs.get(EAVE_ERROR_CODE_QP) != None
+
+
 def cancel_flow(response: Response) -> Response:
     return set_redirect(response=response, location=eave.core.internal.app_config.eave_public_www_base)
 

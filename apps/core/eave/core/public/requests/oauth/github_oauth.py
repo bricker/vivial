@@ -61,7 +61,7 @@ class GithubOAuthAuthorize(HTTPEndpoint):
 
 class GithubOAuthCallback(HTTPEndpoint):
     auth_provider = _AUTH_PROVIDER
-    github_installation: Optional[GithubInstallationOrm]
+    github_installation: GithubInstallationOrm
 
     async def get(
         self,
@@ -124,8 +124,15 @@ class GithubOAuthCallback(HTTPEndpoint):
             response=self.response,
             location=shared.DEFAULT_REDIRECT_LOCATION,
         )
-        await self._update_or_create_github_installation()
-        await self._sync_github_repos()
+
+        try:
+            await self._update_or_create_github_installation()
+            await self._sync_github_repos()
+        except Exception as e:
+            if not shared.is_error_response(self.response):
+                return self.response
+            raise e
+
         return self.response
 
     async def _update_or_create_github_installation(
@@ -137,7 +144,6 @@ class GithubOAuthCallback(HTTPEndpoint):
                 session=db_session,
                 github_install_id=self.installation_id,
             )
-            self.github_installation = github_installation
 
             if not github_installation:
                 # create new github installation associated with the TeamOrm
@@ -146,7 +152,6 @@ class GithubOAuthCallback(HTTPEndpoint):
                     team_id=self.eave_account.team_id,
                     github_install_id=self.installation_id,
                 )
-                self.github_installation = github_installation
 
                 await eave.stdlib.analytics.log_event(
                     event_name="eave_application_integration",
@@ -174,7 +179,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     ctx=self.eave_state.ctx,
                 )
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
-                return
+                raise Exception("Attempted to link Github integration when one already existed")
             else:
                 await eave.stdlib.analytics.log_event(
                     event_name="eave_application_integration_updated",
@@ -187,6 +192,8 @@ class GithubOAuthCallback(HTTPEndpoint):
                     },
                     ctx=self.eave_state.ctx,
                 )
+
+            self.github_installation = github_installation
 
     async def _sync_github_repos(self) -> None:
         response = await QueryGithubRepos.perform(
@@ -229,7 +236,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             await GithubRepoOrm.create(
                 session=db_session,
                 team_id=self.eave_team.id,
-                github_installation_id=self.github_installation.id if self.github_installation else None,
+                github_installation_id=self.github_installation.id,
                 external_repo_id=repo.id,
                 display_name=repo.name,
             )
