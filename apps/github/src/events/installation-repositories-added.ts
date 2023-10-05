@@ -7,6 +7,7 @@ import {
   FeatureStateGithubReposOperation,
   GetGithubReposOperation,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
+import { GetGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
@@ -54,6 +55,15 @@ export async function maybeAddReposToDataBase(
     return;
   }
 
+  const { github_integration } = await GetGithubInstallationOperation.perform({
+    ...sharedReqInput,
+    input: {
+      github_integration: {
+        github_install_id: event.installation.id.toString(),
+      },
+    },
+  });
+
   for (const repo of event.repositories_added) {
     const defaultFeatureStates: { [key: string]: State } = {};
 
@@ -86,7 +96,7 @@ export async function maybeAddReposToDataBase(
         repo: {
           external_repo_id: repo.node_id,
           display_name: repo.name,
-          github_install_id: event.installation.id.toString(),
+          github_installation_id: github_integration.id,
           api_documentation_state:
             defaultFeatureStates[Feature.API_DOCUMENTATION] || State.DISABLED,
           inline_code_documentation_state:
