@@ -169,7 +169,7 @@ function installterraform() (
 		statusmsg -o "terraform already installed."
 	else
 		statusmsg -pa "Installing the 'terraform' command line utility."
-		statusmsg -i "The terraform CLI is used in deployment scripts in this repository."
+		statusmsg -i "The terraform CLI is used in various utility scripts in this repository."
 
 		if ^ask; then
 			case "$kernel" in
