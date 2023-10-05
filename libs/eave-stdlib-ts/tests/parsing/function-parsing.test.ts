@@ -1186,19 +1186,20 @@ test("assertValidSyntax throws on syntax error in content", async (t) => {
   const content = `import { appConfig } from './src/config.js';
 
 function foo() {
-  console.log('foo');
+  conslaw.log('weee");
 }
 
-class MyClass {
-  bar(): string {
-    return "bar";
+classMyClass {
+  bar(): string _> oops all beans {
+    return "bar";;;;;
   }
 }
 
 export function baz(): string {
-  return "baz";
+  return HAHWWHAW!!!!??? 
 }
 
+// the following is actually ok with tree-sitter T.T
 \`\`\`
 /**
  * Doc comment
