@@ -17,7 +17,7 @@ resource "google_cloud_scheduler_job" "run_api_documentation_job" {
   time_zone        = "Etc/UTC"
 
   app_engine_http_target {
-    body = "{}"
+    body = base64encode("{}")
     headers = {
       "eave-cron-shared-secret" = "redacted"
       "eave-cron-dispatch-key"  = "run-api-documentation"

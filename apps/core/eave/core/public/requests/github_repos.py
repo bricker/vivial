@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_repos import GithubRepoOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.core_api.models.github_repos import Feature, State
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import GithubRepoInput
@@ -29,11 +30,17 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
         input = CreateGithubRepoRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
+            installation = await eave_orm.GithubInstallationOrm.one_or_none(
+                session=db_session,
+                github_install_id=input.github_integration.github_install_id,
+            )
+
+            team_orm = await TeamOrm.one_or_exception(team_id=)
             gh_repo_orm = await GithubRepoOrm.create(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
                 external_repo_id=input.repo.external_repo_id,
-                github_install_id=input.repo.github_install_id,
+                github_installation_id=input.repo.github_install_id,
                 display_name=input.repo.display_name,
                 api_documentation_state=input.repo.api_documentation_state,
                 inline_code_documentation_state=input.repo.inline_code_documentation_state,

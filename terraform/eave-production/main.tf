@@ -41,9 +41,3 @@ module "gcp_cloud_scheduler" {
   project_id = local.project_id
   region     = local.region
 }
-
-module "gcp_pubsub" {
-  source     = "../modules/gcp/pubsub"
-  project_id = local.project_id
-  region     = local.region
-}
