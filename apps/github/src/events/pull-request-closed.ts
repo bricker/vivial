@@ -31,10 +31,10 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { GitHubOperationsContext } from "../types.js";
 
 /**
- * Handles GitHub pull request events. If the event indicates that a pull request has been closed, 
- * the function logs the event and updates the status of associated documents. 
- * If the pull request was merged, the function also fetches all files from the pull request, 
- * determines which files need documentation, and updates the documentation in each file. 
+ * Handles GitHub pull request events. If the event indicates that a pull request has been closed,
+ * the function logs the event and updates the status of associated documents.
+ * If the pull request was merged, the function also fetches all files from the pull request,
+ * determines which files need documentation, and updates the documentation in each file.
  * Finally, it creates a new pull request with the updated documentation.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
  *

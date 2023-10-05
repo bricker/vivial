@@ -41,7 +41,5 @@ def downgrade() -> None:
         existing_type=sa.UUID(),
         nullable=False,
     )
-    op.drop_index(
-        op.f("ix_github_documents_team_id"), table_name="github_documents"
-    )
+    op.drop_index(op.f("ix_github_documents_team_id"), table_name="github_documents")
     # ### end Alembic commands ###

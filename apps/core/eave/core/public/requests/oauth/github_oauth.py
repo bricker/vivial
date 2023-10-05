@@ -44,9 +44,7 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         state_json = json.dumps({"token": token, "redirect_uri": redirect_uri})
         state = eave.stdlib.util.b64encode(state_json, urlsafe=True)
 
-        authorization_url = (
-            f"{app_config.eave_github_app_public_url}/installations/new?state={state}"
-        )
+        authorization_url = f"{app_config.eave_github_app_public_url}/installations/new?state={state}"
         # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
         response = RedirectResponse(url=authorization_url)
 
@@ -149,7 +147,6 @@ class GithubOAuthCallback(HTTPEndpoint):
                     github_install_id=self.installation_id,
                 )
                 self.github_installation = github_installation
-
 
                 await eave.stdlib.analytics.log_event(
                     event_name="eave_application_integration",
