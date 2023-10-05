@@ -7,7 +7,6 @@ Create Date: 2023-10-05 22:07:10.496371
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "6cf1ca6c1e4d"
@@ -75,9 +74,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("pull_request_number", sa.Integer(), nullable=True),
-        sa.Column(
-            "status", sa.String(), server_default="processing", nullable=False
-        ),
+        sa.Column("status", sa.String(), server_default="processing", nullable=False),
         sa.Column(
             "status_updated",
             sa.DateTime(),
@@ -126,7 +123,5 @@ def upgrade() -> None:
         "ix_github_installations_github_install_id",
         table_name="github_installations",
     )
-    op.create_unique_constraint(
-        None, "github_installations", ["github_install_id"]
-    )
+    op.create_unique_constraint(None, "github_installations", ["github_install_id"])
     # ### end Alembic commands ###
