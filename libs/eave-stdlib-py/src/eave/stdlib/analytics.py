@@ -36,10 +36,16 @@ async def log_event(
     event_time = datetime.utcnow().isoformat()
 
     eave_account_id: str | UUID | None = None
+    eave_visitor_id: str | UUID | None = None
+
     if eave_account:
         eave_account_id = eave_account.id
+        eave_visitor_id = eave_account.visitor_id
     elif ctx:
         eave_account_id = ctx.eave_account_id
+
+    if not eave_visitor_id and ctx:
+        eave_visitor_id = ctx.eave_visitor_id
 
     eave_team_id: str | UUID | None = None
     if eave_team:
@@ -53,7 +59,7 @@ async def log_event(
         event_time=event_time,
         event_source=event_source,
         eave_account_id=str(eave_account_id) if eave_account_id else None,
-        eave_visitor_id=str(eave_account.visitor_id) if eave_account else None,
+        eave_visitor_id=str(eave_visitor_id) if eave_visitor_id else None,
         eave_team_id=str(eave_team_id) if eave_team_id else None,
         eave_env=shared_config.eave_env.value,
         opaque_params=serialized_params,
