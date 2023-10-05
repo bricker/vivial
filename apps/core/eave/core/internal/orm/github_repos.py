@@ -26,7 +26,7 @@ class GithubRepoOrm(Base):
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    github_installation_id: Mapped[UUID] = mapped_column()
+    github_installation_id: Mapped[Optional[UUID]] = mapped_column()
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
