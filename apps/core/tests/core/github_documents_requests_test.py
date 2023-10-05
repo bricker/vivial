@@ -17,7 +17,7 @@ from .base import BaseTestCase
 
 class TestGithubDocumentsRequests(BaseTestCase):
     async def create_repo(self, session: AsyncSession, team_id: UUID, index: int = 0) -> GithubRepoOrm:
-        gh_install = await github_installation.GithubInstallationOrm.create(
+        await github_installation.GithubInstallationOrm.create(
             session=session,
             team_id=team_id,
             github_install_id=self.anystr(),
@@ -26,7 +26,6 @@ class TestGithubDocumentsRequests(BaseTestCase):
         return await GithubRepoOrm.create(
             session=session,
             team_id=team_id,
-            github_install_id=gh_install.github_install_id,
             external_repo_id=self.anystr(f"external_repo_id:{team_id}:{index}"),
             display_name=self.anystr(),
         )
@@ -44,7 +43,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
             doc = await GithubDocumentsOrm.create(
                 session=session,
                 team_id=team_id,
-                external_repo_id=repo.external_repo_id,
+                github_repo_id=repo.id,
                 api_name="eave-the-best",
                 file_path="/",
                 type=DocumentType.API_DOCUMENT,
@@ -55,7 +54,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
     async def test_github_documents_req_get_one_by_repo_id(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            await self.create_documents(session=s, team_id=team.id)
+            orms = await self.create_documents(session=s, team_id=team.id)
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
@@ -74,7 +73,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = GetGithubDocumentsRequest.ResponseBody(**response.json())
         assert len(response_obj.documents) == 1
-        assert response_obj.documents[0].external_repo_id == self.getstr(f"external_repo_id:{team.id}:3")
+        assert response_obj.documents[0].github_repo_id == orms[0].id
         assert response_obj.documents[0].team_id == team.id
         assert response_obj.documents[0].type == DocumentType.API_DOCUMENT
 
@@ -101,7 +100,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = GetGithubDocumentsRequest.ResponseBody(**response.json())
         assert len(response_obj.documents) == 1
-        assert response_obj.documents[0].external_repo_id == self.getstr(f"external_repo_id:{team.id}:3")
+        assert response_obj.documents[0].github_repo_id == orms[0].id
         assert response_obj.documents[0].team_id == team.id
         assert response_obj.documents[0].type == DocumentType.ARCHITECTURE_DOCUMENT
 
@@ -163,7 +162,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = UpdateGithubDocumentRequest.ResponseBody(**response.json())
         assert response_obj.document.id == docs[3].id
-        assert response_obj.document.external_repo_id == self.getstr(f"external_repo_id:{team.id}:3")
+        assert response_obj.document.github_repo_id == docs[3].id
         assert response_obj.document.team_id == team.id
         assert response_obj.document.pull_request_number == 34
         assert response_obj.document.status == Status.PR_MERGED
@@ -195,7 +194,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = CreateGithubDocumentRequest.ResponseBody(**response.json())
         assert response_obj.document.team_id == team.id
-        assert response_obj.document.external_repo_id == repo.external_repo_id
+        assert response_obj.document.github_repo_id == repo.id
         assert response_obj.document.pull_request_number is None
         assert response_obj.document.type == DocumentType.ARCHITECTURE_DOCUMENT
         assert response_obj.document.file_path == "first/location"

@@ -1,5 +1,7 @@
 from typing import Optional, Unpack
 import uuid
+
+from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoRefInput
 from ... import requests
 from eave.stdlib.core_api.models.github_documents import (
     GithubDocument,
@@ -53,9 +55,11 @@ class CreateGithubDocumentRequest(CoreApiEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
+        repo: GithubRepoRefInput
         document: GithubDocumentCreateInput
 
     class ResponseBody(BaseResponseBody):
+        repo: GithubRepo
         document: GithubDocument
 
     @classmethod

@@ -13,7 +13,7 @@ export enum DocumentType {
 export type GithubDocument = {
   id: string;
   team_id: string;
-  external_repo_id: string;
+  github_repo_id: string;
   pull_request_number: number | null;
   status: Status;
   status_updated: Date;
@@ -24,14 +24,13 @@ export type GithubDocument = {
 
 export type GithubDocumentsQueryInput = {
   id?: string;
-  external_repo_id?: string;
+  github_repo_id?: string;
   type?: DocumentType;
   pull_request_number?: number;
   // TODO: Validation
 };
 
 export type GithubDocumentCreateInput = {
-  external_repo_id: string;
   file_path: string | null;
   api_name: string | null;
   type: DocumentType;

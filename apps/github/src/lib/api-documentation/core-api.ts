@@ -78,7 +78,7 @@ export class CoreAPIData {
       const response = await GetGithubDocumentsOperation.perform({
         input: {
           query_params: {
-            external_repo_id: eaveGithubRepo.external_repo_id,
+            github_repo_id: eaveGithubRepo.id,
             type: DocumentType.API_DOCUMENT,
           },
         },
@@ -134,8 +134,10 @@ export class CoreAPIData {
       ctx: this.ctx,
       teamId: this.team.id,
       input: {
+        repo: {
+          id: this.eaveGithubRepo.id,
+        },
         document: {
-          external_repo_id: this.eaveGithubRepo.external_repo_id,
           type: DocumentType.API_DOCUMENT,
           status: Status.PROCESSING,
           api_name: apiName,

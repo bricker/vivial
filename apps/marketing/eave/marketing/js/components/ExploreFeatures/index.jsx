@@ -50,9 +50,10 @@ const ExploreFeatures = ({ onAPIDocsClick, onInlineDocsClick }) => {
         {!team.apiDocsEnabled && (
           <FeatureCard
             className={classes.featureCard}
-            onClick={onAPIDocsClick}
+            // onClick={onAPIDocsClick}
             title="API Documentation"
             description="Automate standard industry API documentation to streamline your internal processes and delight your customers."
+            comingSoon
           />
         )}
         {!team.inlineCodeDocsEnabled && (

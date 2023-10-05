@@ -1,6 +1,7 @@
 import json
 import urllib.parse
 from sqlalchemy.ext.asyncio import AsyncSession
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
 
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 
@@ -64,6 +65,7 @@ class GithubOAuthAuthorize(HTTPEndpoint):
 
 class GithubOAuthCallback(HTTPEndpoint):
     auth_provider = _AUTH_PROVIDER
+    github_installation_orm: GithubInstallationOrm
 
     async def get(
         self,
@@ -135,14 +137,14 @@ class GithubOAuthCallback(HTTPEndpoint):
     ) -> None:
         async with eave.core.internal.database.async_session.begin() as db_session:
             # try fetch existing github installation
-            github_installation = await eave.core.internal.orm.GithubInstallationOrm.one_or_none(
+            github_installation_orm = await eave.core.internal.orm.GithubInstallationOrm.one_or_none(
                 session=db_session,
                 github_install_id=self.installation_id,
             )
 
-            if not github_installation:
+            if not github_installation_orm:
                 # create new github installation associated with the TeamOrm
-                github_installation = await eave.core.internal.orm.GithubInstallationOrm.create(
+                github_installation_orm = await eave.core.internal.orm.GithubInstallationOrm.create(
                     session=db_session,
                     team_id=self.eave_account.team_id,
                     github_install_id=self.installation_id,
@@ -160,7 +162,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     ctx=self.eave_state.ctx,
                 )
 
-            elif github_installation.team_id != self.eave_account.team_id:
+            elif github_installation_orm.team_id != self.eave_account.team_id:
                 eaveLogger.warning(
                     f"A Github integration already exists with github install id {self.installation_id}",
                     self.eave_state.ctx,
@@ -188,6 +190,8 @@ class GithubOAuthCallback(HTTPEndpoint):
                     ctx=self.eave_state.ctx,
                 )
 
+            self.github_installation_orm = github_installation_orm
+
     async def _sync_github_repos(self) -> None:
         response = await QueryGithubRepos.perform(
             team_id=self.eave_team.id, origin=EaveApp.eave_api, ctx=self.eave_state.ctx
@@ -205,11 +209,16 @@ class GithubOAuthCallback(HTTPEndpoint):
             )
             return
 
-        existing_repo = await GithubRepoOrm.one_or_none(
+        existing_repos = await GithubRepoOrm.query(
             session=db_session,
-            team_id=self.eave_team.id,
-            external_repo_id=repo.id,
+            params=GithubRepoOrm.QueryParams(
+                team_id=self.eave_team.id,
+                external_repo_id=repo.id,
+            ),
         )
+        assert not len(existing_repos) > 1
+
+        existing_repo = existing_repos[0] if len(existing_repos) == 1 else None
 
         if existing_repo:
             await eave.stdlib.analytics.log_event(
@@ -229,7 +238,6 @@ class GithubOAuthCallback(HTTPEndpoint):
             await GithubRepoOrm.create(
                 session=db_session,
                 team_id=self.eave_team.id,
-                github_install_id=self.installation_id,
                 external_repo_id=repo.id,
                 display_name=repo.name,
             )

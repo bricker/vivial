@@ -60,7 +60,7 @@ class AccountOrm(Base):
     refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
     email: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""
-    last_login: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    last_login: Mapped[Optional[datetime]] = mapped_column(server_default=func.current_timestamp(), nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 

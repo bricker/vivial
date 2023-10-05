@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.github import GithubInstallation, GithubInstallationPeek
+from eave.stdlib.util import ensure_uuid
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -56,7 +57,7 @@ class GithubInstallationOrm(Base):
         lookup = select(cls).limit(1)
 
         if (team_id := kwargs.get("team_id")) is not None:
-            lookup = lookup.where(cls.team_id == team_id)
+            lookup = lookup.where(cls.team_id == ensure_uuid(team_id))
 
         if (github_install_id := kwargs.get("github_install_id")) is not None:
             lookup = lookup.where(cls.github_install_id == github_install_id)

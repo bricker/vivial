@@ -1,3 +1,4 @@
+import datetime
 import http
 import re
 import typing
@@ -109,7 +110,8 @@ async def get_existing_eave_account(
         )
 
         if eave_account:
-            # An account exists. Update the saved auth tokens.
+            # An account exists. Update the saved auth tokens and login date.
+            eave_account.last_login = datetime.datetime.utcnow()
             if access_token:
                 eave_account.access_token = access_token
             if refresh_token:

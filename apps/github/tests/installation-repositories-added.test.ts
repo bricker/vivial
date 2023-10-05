@@ -26,6 +26,7 @@ const test = anyTest as TestFn<TestContext>;
 
 function anyRepo(t: TestUtil) {
   return {
+    id: t.anystr(),
     team_id: t.anystr(),
     external_repo_id: t.anystr(),
     github_install_id: t.anystr(),
