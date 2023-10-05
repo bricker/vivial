@@ -1,5 +1,6 @@
 import { eaveLogger } from "./logging.js";
 import {
+  assertValidSyntax,
   parseFunctionsAndComments,
   writeUpdatedCommentsIntoFileString,
 } from "./parsing/function-parsing.js";
@@ -74,7 +75,6 @@ export async function updateDocumentation({
       });
 
       // update docs, or write new ones if currDocs is empty/undefined
-      // TODO: retest w/ summarized function
       // TODO: experiment performance quality on dif types of comments:
       //      (1. update own comment 2. write from scratch 3. update existing detailed docs 4. fix slightly incorrect docs)
       const docsPrompt = formatprompt(
@@ -144,5 +144,19 @@ export async function updateDocumentation({
   );
 
   // write `updatedComment` data back into currContent string
-  return writeUpdatedCommentsIntoFileString(currContent, parsedData);
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    currContent,
+    parsedData,
+  );
+
+  // assert syntax check; never write syntax errors to customer code!
+  try {
+    assertValidSyntax({ content: updatedContent, filePath });
+  } catch {
+    eaveLogger.error("Eave wrote syntactically incorrect code", ctx);
+    // return existing file content with no changes
+    return currContent;
+  }
+
+  return updatedContent;
 }

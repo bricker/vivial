@@ -1,5 +1,6 @@
 import test from "ava";
 import {
+  assertValidSyntax,
   parseFunctionsAndComments,
   writeUpdatedCommentsIntoFileString,
 } from "../../src/parsing/function-parsing.js";
@@ -1176,4 +1177,94 @@ namespace MyNamespace
 }
 `;
   t.deepEqual(updatedContent, expectedUpdatedContent);
+});
+
+test("assertValidSyntax throws on syntax error in content", async (t) => {
+  // GIVEN string content of a file is syntactically invalid
+  const filePath = "src/file.ts";
+  const language = ProgrammingLanguage.typescript;
+  const content = `import { appConfig } from './src/config.js';
+
+function foo() {
+  console.log('foo');
+}
+
+class MyClass {
+  bar(): string {
+    return "bar";
+  }
+}
+
+export function baz(): string {
+  return "baz";
+}
+
+\`\`\`
+/**
+ * Doc comment
+ * @param to be replaced
+ * @returns by parse code
+ */
+\`\`\`
+async function fizzbuzz(): Promise<string> {
+  return 'fizzbuzz';
+}
+`;
+
+  // WHEN syntax validity is checked
+  try {
+    const funcDocsArray = assertValidSyntax({
+      content,
+      filePath,
+    });
+
+    t.fail("assertValidSyntax did not throw for invalid content");
+  } catch {
+    // THEN it should throw an error
+    t.pass();
+  }
+});
+
+test("assertValidSyntax does not throw on syntactically correct content", async (t) => {
+  // GIVEN string content of a file is syntactically valid
+  const filePath = "src/file.ts";
+  const language = ProgrammingLanguage.typescript;
+  const content = `import { appConfig } from './src/config.js';
+  
+  function foo() {
+    console.log('foo');
+  }
+  
+  class MyClass {
+    bar(): string {
+      return "bar";
+    }
+  }
+  
+  export function baz(): string {
+    return "baz";
+  }
+  
+  /**
+   * Doc comment
+   * @param to be replaced
+   * @returns by parse code
+   */
+  async function fizzbuzz(): Promise<string> {
+    return 'fizzbuzz';
+  }
+  `;
+
+  // WHEN syntax validity is checked
+  try {
+    const funcDocsArray = assertValidSyntax({
+      content,
+      filePath,
+    });
+
+    // THEN it should not throw an error
+    t.pass();
+  } catch {
+    t.fail("assertValidSyntax did not throw for invalid content");
+  }
 });
