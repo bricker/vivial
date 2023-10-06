@@ -105,7 +105,6 @@ export async function updateDocumentation({
       });
 
       // if there were already existing docs, update them using newly written docs
-      // TODO: how to handle comment merging...
       let updatedDocs = newDocsResponse;
       if (funcData.comment) {
         updatedDocs = await openaiClient.createChatCompletion({
@@ -138,6 +137,12 @@ export async function updateDocumentation({
           ctx,
         });
       }
+
+      // clean updated docs; make sure we dont write white space that could be lint errors
+      updatedDocs = updatedDocs
+        .split("\n")
+        .map((line) => line.trimEnd())
+        .join("\n");
 
       funcData.updatedComment = updatedDocs;
     }),
