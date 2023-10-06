@@ -19,7 +19,7 @@ export function jsonParser(
     const parsedBody = JSON.parse(rawBody.toString());
     req.body = parsedBody;
     next();
-  } catch (e: unknown) {
+  } catch (e: any) {
     next(e);
   }
 }

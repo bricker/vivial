@@ -11,11 +11,12 @@ import appConfig from "../config.js";
 import JiraClient from "../jira-client.js";
 import { JiraWebhookEvent } from "../types.js";
 import commentCreatedEventHandler from "./comment-created.js";
+import { rawJsonBody } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
 
 export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   // webhooks
   const router = Router();
-  router.use(jsonParser);
+  router.use(rawJsonBody, jsonParser);
   router.use(addon.middleware());
 
   const lifecycleRouter = LifecycleRouter({
