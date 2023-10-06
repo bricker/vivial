@@ -105,7 +105,7 @@ export class EphemeralCache implements Cache {
 }
 
 async function loadCacheImpl(): Promise<Cache> {
-  const redisConnection = sharedConfig.redisConnection;
+  const redisConnection = await sharedConfig.redisConnection();
   if (redisConnection === undefined) {
     const impl = new EphemeralCache();
     return impl;
@@ -113,13 +113,13 @@ async function loadCacheImpl(): Promise<Cache> {
 
   const { host, port, db } = redisConnection;
   const redisAuth = await sharedConfig.redisAuth();
+  const redisTlsCA = await sharedConfig.redisTlsCA();
 
   const logAuth = redisAuth ? redisAuth.slice(0, 4) : "(none)";
   eaveLogger.debug(
     `Redis connection: host=${host}, port=${port}, db=${db}, auth=${logAuth}...`,
   );
 
-  const redisTlsCA = sharedConfig.redisTlsCA;
   const impl = createClient({
     socket: {
       host,

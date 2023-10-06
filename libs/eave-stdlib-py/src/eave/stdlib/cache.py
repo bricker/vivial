@@ -2,6 +2,8 @@ import abc
 import time
 from typing import Optional, Protocol
 import redis.asyncio as redis
+from redis.asyncio.retry import Retry
+from redis.backoff import ConstantBackoff
 from .config import shared_config
 from .logging import eaveLogger
 
@@ -93,10 +95,11 @@ def client() -> CacheInterface | None:
         if redis_cfg := shared_config.redis_connection:
             host, port, db = redis_cfg
             auth = shared_config.redis_auth
+            redis_tls_ca = shared_config.redis_tls_ca
+
             logauth = auth[:4] if auth else "(none)"
             eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
 
-            redis_tls_ca = shared_config.redis_tls_ca
             try:
                 _PROCESS_CACHE_CLIENT = redis.Redis(
                     host=host,
@@ -108,6 +111,7 @@ def client() -> CacheInterface | None:
                     ssl_ca_data=redis_tls_ca,
                     health_check_interval=60 * 5,
                     socket_keepalive=True,
+                    retry=Retry(retries=2, backoff=ConstantBackoff(backoff=3)),
                 )
             except Exception as e:
                 eaveLogger.exception(e)

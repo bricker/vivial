@@ -31,4 +31,3 @@ vpc_access_connector:
 
 env_variables:
   LOG_LEVEL: "DEBUG"
-  REDIS_CONNECTION: "10.8.1.155:6379:0"
