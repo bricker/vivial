@@ -128,7 +128,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             await self._update_or_create_github_installation()
             await self._sync_github_repos()
         except Exception as e:
-            if not shared.is_error_response(self.response):
+            if shared.is_error_response(self.response):
                 return self.response
             raise e
 
