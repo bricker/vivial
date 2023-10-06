@@ -5,10 +5,10 @@ import {
   eaveLogger,
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { jsonParser } from "@eave-fyi/eave-stdlib-ts/src/middleware/body-parser.js";
+import { rawJsonBody } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
 import { AddOn } from "atlassian-connect-express";
 import { Request, Response, Router } from "express";
 import appConfig from "../config.js";
-import { rawJsonBody } from "@eave-fyi/eave-stdlib-ts/src/middleware/common-middlewares.js";
 
 export function WebhookRouter({ addon }: { addon: AddOn }): Router {
   // webhooks
