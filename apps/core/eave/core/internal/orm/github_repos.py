@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, Select, ForeignKeyConstraint
+from sqlalchemy import PrimaryKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -11,7 +11,7 @@ import eave.stdlib.util
 from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
 
 from .base import Base
-from .util import make_team_fk
+from .util import make_team_fk, make_team_composite_fk
 
 
 class GithubRepoOrm(Base):
@@ -22,16 +22,12 @@ class GithubRepoOrm(Base):
             "external_repo_id",
         ),
         make_team_fk(),
-        ForeignKeyConstraint(
-            ["github_install_id"],
-            ["github_installations.github_install_id"],
-            name="github_repos_github_installations_github_install_id_fk",
-            ondelete="CASCADE",
-        ),
+        make_team_composite_fk("github_installation_id", "github_installations"),
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    github_install_id: Mapped[str] = mapped_column()
+    github_installation_id: Mapped[UUID] = mapped_column()
+    """Foreign key to the github_installations table id column"""
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
@@ -95,7 +91,7 @@ class GithubRepoOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         external_repo_id: str,
-        github_install_id: str,
+        github_installation_id: UUID,
         display_name: Optional[str],
         api_documentation_state: State = State.DISABLED,
         inline_code_documentation_state: State = State.DISABLED,
@@ -104,7 +100,7 @@ class GithubRepoOrm(Base):
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
-            github_install_id=github_install_id,
+            github_installation_id=github_installation_id,
             display_name=display_name,
             api_documentation_state=api_documentation_state.value,
             inline_code_documentation_state=inline_code_documentation_state.value,

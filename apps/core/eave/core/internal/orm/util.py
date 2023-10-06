@@ -11,7 +11,10 @@ def make_team_fk() -> ForeignKeyConstraint:
 
 def make_team_composite_fk(fk_column: str, foreign_table: str) -> ForeignKeyConstraint:
     return ForeignKeyConstraint(
-        ["team_id", fk_column], [f"{foreign_table}.team_id", f"{foreign_table}.id"], ondelete="CASCADE"
+        ["team_id", fk_column],
+        [f"{foreign_table}.team_id", f"{foreign_table}.id"],
+        ondelete="CASCADE",
+        name=f"{fk_column}_{foreign_table}_id_team_id_fk",
     )
 
 
