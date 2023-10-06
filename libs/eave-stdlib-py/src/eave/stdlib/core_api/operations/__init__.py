@@ -3,7 +3,6 @@ from typing import Optional
 import pydantic
 from eave.stdlib.eave_origins import EaveApp
 from ...config import shared_config
-from pydantic import ConfigDict
 
 _base_url = shared_config.eave_internal_service_base(EaveApp.eave_api)
 

@@ -1,12 +1,16 @@
+// @ts-check
 import { Checkbox, FormControlLabel, FormGroup } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
+import * as Types from "../../types"; // eslint-disable-line no-unused-vars
+// @ts-ignore
 import classNames from "classnames";
+// @ts-ignore
 import React, { useCallback, useState } from "react";
 
 import Button from "../Button/index.jsx";
 import ExpandIcon from "../Icons/ExpandIcon.jsx";
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   outerContainer: {
     position: "relative",
     [theme.breakpoints.up("md")]: {
@@ -14,9 +18,9 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   innerContainer: {
-    color: theme.palette.background.contrastText,
-    border: `1px solid ${theme.palette.background.contrastText}`,
-    backgroundColor: theme.palette.background.main,
+    color: theme.palette.background["contrastText"],
+    border: `1px solid ${theme.palette.background["contrastText"]}`,
+    backgroundColor: theme.palette.background["main"],
     zIndex: 10,
     width: "100%",
     padding: "0 14px",
@@ -25,7 +29,7 @@ const makeClasses = makeStyles((theme) => ({
     maxHeight: 168,
     overflowY: "scroll",
     [theme.breakpoints.up("md")]: {
-      backgroundColor: theme.palette.background.light,
+      backgroundColor: theme.palette.background["light"],
       position: "absolute",
       width: 300,
       maxHeight: 256,
@@ -55,11 +59,18 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 5,
   },
   formLabels: {
-    color: theme.palette.background.contrastText,
+    color: theme.palette.background["contrastText"],
   },
 }));
 
-const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
+const GitHubRepoSelect = (
+  /** @type {{repos: Types.GithubRepo[], selectedRepoIds: string[], onSelect: function, error: any}} */ {
+    repos,
+    selectedRepoIds,
+    onSelect,
+    error,
+  },
+) => {
   const classes = makeClasses();
   const [reposExpanded, setReposExpanded] = useState(false);
   const innerContainerClass = classNames(
@@ -111,15 +122,15 @@ const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
               />
               {repos.map((repo) => (
                 <FormControlLabel
-                  key={repo.external_repo_id}
-                  value={repo.external_repo_id}
+                  key={repo.id}
+                  value={repo.id}
                   label={repo.display_name}
                   classes={{ root: classes.formLabels }}
                   onChange={handleSelect}
                   control={
                     <Checkbox
                       classes={{ root: classes.checkbox }}
-                      checked={selectedRepoIds.includes(repo.external_repo_id)}
+                      checked={selectedRepoIds.includes(repo.id)}
                     />
                   }
                 />

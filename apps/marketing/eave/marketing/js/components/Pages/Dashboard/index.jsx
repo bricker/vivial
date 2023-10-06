@@ -1,3 +1,6 @@
+// @ts-check
+import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
+// @ts-ignore
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
@@ -65,7 +68,13 @@ const Dashboard = () => {
     setAPIDocsModalIsOpen(true);
   };
 
-  const handleFeatureUpdate = ({ teamRepoIds, enabledRepoIds, feature }) => {
+  const handleFeatureUpdate = (
+    /**@type {Types.FeatureStateParams}*/ {
+      teamRepoIds,
+      enabledRepoIds,
+      feature,
+    },
+  ) => {
     updateTeamFeatureState({ teamRepoIds, enabledRepoIds, feature });
     closeModal();
   };

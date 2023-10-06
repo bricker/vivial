@@ -127,18 +127,21 @@ async def _send_event(event: typing.Any, topic_id: str, ctx: typing.Optional[_l.
             {"pubsub": {"event": str(event)}},
         )
 
-        result = await client.publish(topic=topic_path, messages=[PubsubMessage(data=data)])
+        try:
+            result = await client.publish(topic=topic_path, messages=[PubsubMessage(data=data)])
 
-        _l.eaveLogger.debug(
-            "Analytics event published",
-            ctx,
-            {
-                "pubsub": {
-                    "event": str(event),
-                    "result": list(result.message_ids),
-                }
-            },
-        )
+            _l.eaveLogger.debug(
+                "Analytics event published",
+                ctx,
+                {
+                    "pubsub": {
+                        "event": str(event),
+                        "result": list(result.message_ids),
+                    }
+                },
+            )
+        except Exception as e:
+            _l.eaveLogger.exception(e, {"pubsub": {"event": str(event)}}, ctx)
 
 
 def _safe_serialize(data: JsonObject | None, ctx: _l.LogContext | None) -> str | None:

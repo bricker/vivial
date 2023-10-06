@@ -9,7 +9,7 @@ import eave.stdlib.api_util as eave_api_util
 from eave.stdlib.core_api.operations.github import GetGithubInstallation, DeleteGithubInstallation
 from eave.stdlib.exceptions import NotFoundError
 from eave.stdlib.request_state import EaveRequestState
-from eave.stdlib.util import unwrap, ensure_uuid
+from eave.stdlib.util import ensure_uuid
 
 
 class GetGithubIntegrationEndpoint(HTTPEndpoint):
@@ -18,9 +18,11 @@ class GetGithubIntegrationEndpoint(HTTPEndpoint):
         input = GetGithubInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            installation = await eave_orm.GithubInstallationOrm.one_or_none(
+            installation = await eave_orm.GithubInstallationOrm.query(
                 session=db_session,
-                github_install_id=input.github_integration.github_install_id,
+                params=eave_orm.GithubInstallationOrm.QueryParams(
+                    github_install_id=input.github_integration.github_install_id,
+                ),
             )
 
             if not installation:
@@ -48,7 +50,7 @@ class DeleteGithubIntegrationEndpoint(HTTPEndpoint):
         async with eave_db.async_session.begin() as db_session:
             await eave_orm.GithubInstallationOrm.delete_by_github_install_id(
                 session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
+                team_id=ensure_uuid(eave_state.ctx.eave_team_id),
                 github_install_id=input.github_integration.github_install_id,
             )
 

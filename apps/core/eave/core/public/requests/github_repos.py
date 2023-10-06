@@ -30,6 +30,7 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
         input = CreateGithubRepoRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
+            # make sure this team has a github installation
             await GithubInstallationOrm.one_or_exception(
                 session=db_session,
                 team_id=ensure_uuid(eave_state.ctx.eave_team_id),

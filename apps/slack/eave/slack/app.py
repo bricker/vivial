@@ -43,8 +43,8 @@ routes = [
 
 
 async def graceful_shutdown() -> None:
-    if cache.initialized():
-        await cache.client().close()
+    if client := cache.initialized_client():
+        await client.close()
 
 
 api = Starlette(

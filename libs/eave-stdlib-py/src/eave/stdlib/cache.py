@@ -86,7 +86,7 @@ class EphemeralCache(CacheInterface):
 _PROCESS_CACHE_CLIENT: Optional[CacheInterface] = None
 
 
-def client() -> CacheInterface:
+def client() -> CacheInterface | None:
     global _PROCESS_CACHE_CLIENT
 
     if not _PROCESS_CACHE_CLIENT:
@@ -97,27 +97,31 @@ def client() -> CacheInterface:
             eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
 
             redis_tls_ca = shared_config.redis_tls_ca
-            _PROCESS_CACHE_CLIENT = redis.Redis(
-                host=host,
-                port=port,
-                db=db,
-                password=auth,
-                decode_responses=True,
-                ssl=redis_tls_ca is not None,
-                ssl_ca_data=redis_tls_ca,
-                health_check_interval=60 * 5,
-                socket_keepalive=True,
-            )
+            try:
+                _PROCESS_CACHE_CLIENT = redis.Redis(
+                    host=host,
+                    port=port,
+                    db=db,
+                    password=auth,
+                    decode_responses=True,
+                    ssl=redis_tls_ca is not None,
+                    ssl_ca_data=redis_tls_ca,
+                    health_check_interval=60 * 5,
+                    socket_keepalive=True,
+                )
+            except Exception as e:
+                eaveLogger.exception(e)
+
         else:
             _PROCESS_CACHE_CLIENT = EphemeralCache()
 
     return _PROCESS_CACHE_CLIENT
 
 
-def initialized() -> bool:
+def initialized_client() -> Optional[CacheInterface]:
     """
     Before closing a connection, check this property.
     Otherwise, if a connection wasn't previously established, you'd have to create a connection just to immediately close it.
     Because the client() function lazily creates a connection.
     """
-    return _PROCESS_CACHE_CLIENT is not None
+    return _PROCESS_CACHE_CLIENT

@@ -1,11 +1,14 @@
+// @ts-check
 import { useContext } from "react";
 import { DOC_TYPES, FEATURES, FEATURE_STATES } from "../constants.js";
 import { AppContext } from "../context/Provider.js";
+import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
 import { isHTTPError } from "../util/http-util.js";
 
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
+  /** @type {[Types.DashboardTeam, (f: (prev: Types.DashboardTeam) => Types.DashboardTeam) => void]} */
   const [team, setTeam] = teamCtx;
 
   async function getTeam() {
@@ -19,7 +22,7 @@ const useTeam = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        resp.json().then((data) => {
+        resp.json().then((/** @type {Types.GetTeamResponseBody} */ data) => {
           setTeam((prev) => ({
             ...prev,
             id: data.team?.id,
@@ -47,9 +50,11 @@ const useTeam = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        resp.json().then((data) => {
-          setTeam((prev) => ({ ...prev, repos: data.repos }));
-        });
+        resp
+          .json()
+          .then((/** @type {Types.GetGithubReposResponseBody} */ data) => {
+            setTeam((prev) => ({ ...prev, repos: data.repos }));
+          });
       })
       .catch(() => {
         setTeam((prev) => ({ ...prev, reposAreErroring: true }));
@@ -59,7 +64,12 @@ const useTeam = () => {
       });
   }
 
-  async function getTeamFeatureStates(repos) {
+  async function getTeamFeatureStates(
+    /**@type {Types.GithubRepo[] | undefined}*/ repos,
+  ) {
+    if (!repos) {
+      return;
+    }
     setTeam((prev) => ({ ...prev, featureStatesLoading: true }));
     let inlineCodeDocsEnabled = false;
     let apiDocsEnabled = false;
@@ -79,27 +89,35 @@ const useTeam = () => {
     }));
   }
 
-  async function updateTeamFeatureState({
-    teamRepoIds,
-    enabledRepoIds,
-    feature,
-  }) {
+  async function updateTeamFeatureState(
+    /**@type {Types.FeatureStateParams} */ {
+      teamRepoIds,
+      enabledRepoIds,
+      feature,
+    },
+  ) {
     setTeam((prev) => ({
       ...prev,
       featureStatesLoading: true,
       featureStatesErroring: false,
     }));
-    const repos = teamRepoIds.map((repoId) => {
-      const state = enabledRepoIds.includes(repoId)
-        ? FEATURE_STATES.ENABLED
-        : FEATURE_STATES.DISABLED;
-      return {
-        external_repo_id: repoId,
-        new_values: {
-          [feature]: state,
-        },
-      };
-    });
+    /** @type {Types.GithubRepoUpdateInput[]} */
+    const repos = teamRepoIds.map(
+      /** @type {(repoId: string) => Types.GithubRepoUpdateInput} */ (
+        repoId,
+      ) => {
+        const state = enabledRepoIds.includes(repoId)
+          ? FEATURE_STATES.ENABLED
+          : FEATURE_STATES.DISABLED;
+
+        return {
+          id: repoId,
+          new_values: {
+            [feature]: state,
+          },
+        };
+      },
+    );
     fetch("/dashboard/team/repos/update", {
       method: "POST",
       headers: {
@@ -138,12 +156,14 @@ const useTeam = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        resp.json().then((data) => {
-          setTeam((prev) => ({
-            ...prev,
-            apiDocs: sortAPIDocuments(data.documents),
-          }));
-        });
+        resp
+          .json()
+          .then((/**@type {Types.GetGithubDocumentsResponseBody}*/ data) => {
+            setTeam((prev) => ({
+              ...prev,
+              apiDocs: sortAPIDocuments(data.documents),
+            }));
+          });
       })
       .catch(() => {
         setTeam((prev) => ({ ...prev, apiDocsErroring: true }));

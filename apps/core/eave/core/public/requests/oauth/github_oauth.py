@@ -137,9 +137,12 @@ class GithubOAuthCallback(HTTPEndpoint):
     ) -> None:
         async with eave.core.internal.database.async_session.begin() as db_session:
             # try fetch existing github installation
-            github_installation_orm = await eave.core.internal.orm.GithubInstallationOrm.one_or_none(
+            github_installation_orm = await eave.core.internal.orm.GithubInstallationOrm.query(
                 session=db_session,
-                github_install_id=self.installation_id,
+                params=GithubInstallationOrm.QueryParams(
+                    team_id=self.eave_team.id,
+                    github_install_id=self.installation_id,
+                ),
             )
 
             if not github_installation_orm:
@@ -196,9 +199,20 @@ class GithubOAuthCallback(HTTPEndpoint):
         response = await QueryGithubRepos.perform(
             team_id=self.eave_team.id, origin=EaveApp.eave_api, ctx=self.eave_state.ctx
         )
+        repos = response.repos
 
         async with eave.core.internal.database.async_session.begin() as db_session:
-            for repo in response.repos:
+            github_installation_orm = await eave.core.internal.orm.GithubInstallationOrm.one_or_exception(
+                session=db_session,
+                team_id=self.eave_team.id,
+            )
+
+            if len(repos) > 0:
+                # update the GithubInstallation to set the github_owner_login property to the owner of any repository in the list (we happen to get the first one, but they should all be the same).
+                if owner := repos[0].owner:
+                    github_installation_orm.github_owner_login = owner.login
+
+            for repo in repos:
                 await self._create_local_github_repo(repo=repo, db_session=db_session)
 
     async def _create_local_github_repo(self, repo: ExternalGithubRepo, db_session: AsyncSession) -> None:

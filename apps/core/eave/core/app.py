@@ -2,7 +2,7 @@ from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration, github_repos, github_documents
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
-from eave.stdlib import cache
+from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
 from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocuments, UpsertDocument
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
@@ -372,8 +372,11 @@ routes = [
 async def graceful_shutdown() -> None:
     await async_engine.dispose()
 
-    if cache.initialized():
-        await cache.client().close()
+    try:
+        if client := cache.initialized_client():
+            await client.close()
+    except Exception as e:
+        logging.eaveLogger.exception(e)
 
 
 app = starlette.applications.Starlette(

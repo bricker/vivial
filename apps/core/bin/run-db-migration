@@ -1,11 +1,13 @@
 #!/usr/bin/env -S PYTHONPATH=. python
 
+import logging
 import os
 import click
 from eave.dev_tooling.dotenv_loader import load_merged_dotenv_files
 import alembic
 import alembic.config
 import alembic.command
+from eave.stdlib.logging import eaveLogger
 
 EAVE_HOME = os.environ["EAVE_HOME"]
 alembic_config = alembic.config.Config("alembic.ini")
@@ -14,6 +16,21 @@ alembic_config = alembic.config.Config("alembic.ini")
 @click.option("-e", "--env-file", "env_files", multiple=True, default=[f"{EAVE_HOME}/.env"])
 def upgrade(env_files: list[str]) -> None:
     load_merged_dotenv_files(files=env_files)
+
+    eave_db_name = os.environ["EAVE_DB_NAME"]
+    eave_db_host = os.environ["EAVE_DB_HOST"]
+    google_cloud_project = os.environ["GOOGLE_CLOUD_PROJECT"]
+
+    eaveLogger.fprint(logging.WARNING, "Running DB migrations!")
+    eaveLogger.fprint(logging.WARNING, f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
+    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_HOST={eave_db_host}")
+    answer = input(
+        eaveLogger.f(logging.WARNING, "Proceed? (Y/n) ")
+    )
+
+    if answer != "Y":
+        raise click.Abort()
 
     alembic.command.upgrade(
         revision="head",

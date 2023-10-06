@@ -3,6 +3,7 @@ from typing import Any
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
+from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
@@ -144,7 +145,7 @@ async def update_team_repos() -> Response:
     _assert_auth(auth_cookies)
 
     body = request.get_json()
-    repos = body["repos"]
+    repos: list[GithubRepoUpdateInput] = body["repos"]
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(
         origin=app_config.eave_origin,
