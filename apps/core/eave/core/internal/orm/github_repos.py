@@ -12,7 +12,7 @@ import eave.stdlib.util
 from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk
 
 
 class GithubRepoOrm(Base):
@@ -23,6 +23,7 @@ class GithubRepoOrm(Base):
             "id",
         ),
         make_team_fk(),
+        make_team_composite_fk("github_installation_id", "github_installations"),
         Index(
             None,
             "team_id",
@@ -33,6 +34,8 @@ class GithubRepoOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    github_installation_id: Mapped[UUID] = mapped_column()
+    """FK to github_installations"""
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
@@ -108,6 +111,7 @@ class GithubRepoOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         external_repo_id: str,
+        github_installation_id: UUID,
         display_name: Optional[str],
         api_documentation_state: State = State.DISABLED,
         inline_code_documentation_state: State = State.DISABLED,
@@ -116,6 +120,7 @@ class GithubRepoOrm(Base):
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
+            github_installation_id=github_installation_id,
             display_name=display_name,
             api_documentation_state=api_documentation_state.value,
             inline_code_documentation_state=inline_code_documentation_state.value,
