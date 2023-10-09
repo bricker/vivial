@@ -106,9 +106,9 @@ async def create_task(
 
     eave_sig_ts = signing.make_sig_ts()
 
-    team_id = headers[EAVE_TEAM_ID_HEADER] or ctx.eave_team_id
-    account_id = headers[EAVE_ACCOUNT_ID_HEADER] or ctx.eave_account_id
-    request_id = headers[EAVE_REQUEST_ID_HEADER] or ctx.eave_request_id
+    team_id = headers.get(EAVE_TEAM_ID_HEADER) or ctx.eave_team_id
+    account_id = headers.get(EAVE_ACCOUNT_ID_HEADER) or ctx.eave_account_id
+    request_id = headers.get(EAVE_REQUEST_ID_HEADER) or ctx.eave_request_id
 
     signature_message, ts = signing.build_message_to_sign(
         method="POST",
@@ -131,11 +131,11 @@ async def create_task(
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
     headers[EAVE_ORIGIN_HEADER] = origin.value
 
-    if account_id and not headers[EAVE_ACCOUNT_ID_HEADER]:
+    if account_id and not headers.get(EAVE_ACCOUNT_ID_HEADER):
         headers[EAVE_ACCOUNT_ID_HEADER] = account_id
-    if team_id and not headers[EAVE_TEAM_ID_HEADER]:
+    if team_id and not headers.get(EAVE_TEAM_ID_HEADER):
         headers[EAVE_TEAM_ID_HEADER] = team_id
-    if request_id and not headers[EAVE_REQUEST_ID_HEADER]:
+    if request_id and not headers.get(EAVE_REQUEST_ID_HEADER):
         headers[EAVE_REQUEST_ID_HEADER] = request_id
 
     client = tasks.CloudTasksAsyncClient()
