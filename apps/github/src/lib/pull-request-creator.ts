@@ -226,7 +226,7 @@ export class PullRequestCreator {
   /**
    * Open a new PR containing the input `fileChanges`, targeted at `baseBranchName`.
    * Input parameters used for PR creation details.
-   * @returns the number of the created PR
+   * @returns the created PR or `null` if there would be no PR content
    */
   public async createPullRequest({
     branchName,
@@ -240,7 +240,7 @@ export class PullRequestCreator {
     prTitle: string;
     prBody: string;
     fileChanges: FileChanges;
-  }): Promise<PullRequest> {
+  }): Promise<PullRequest | null> {
     const fqBranchName = this.ensureBranchPrefix(branchName);
     let branch = await this.getBranch(fqBranchName);
     if (!branch) {
@@ -260,11 +260,16 @@ export class PullRequestCreator {
         this.ctx,
       );
     } catch (e) {
-      eaveLogger.error(
+      await this.deleteBranch(branch!.id);
+      eaveLogger.debug(
         `Failed to create PR in ${this.repoOwner}/${this.repoName}`,
         this.ctx,
       );
-      await this.deleteBranch(branch!.id);
+
+      if ((<Error>e).message.includes("No commits between")) {
+        // this is expected for files w/ no functions
+        return null;
+      }
       throw e;
     }
 
