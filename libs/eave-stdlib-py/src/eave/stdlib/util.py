@@ -1,7 +1,8 @@
 import base64
+import contextlib
 import hashlib
 from functools import wraps
-from typing import Any, Awaitable, Callable, Optional, ParamSpec, TypeVar
+from typing import Any, Awaitable, Callable, Optional, ParamSpec, Type, TypeVar
 import uuid
 
 from eave.stdlib.typing import JsonObject
@@ -91,7 +92,7 @@ def ensure_bytes(data: str | bytes) -> bytes:
         return data
 
 
-def ensure_uuid(data: str | bytes | int | uuid.UUID) -> uuid.UUID:
+def ensure_uuid(data: str | bytes | int | uuid.UUID | None) -> uuid.UUID:
     if isinstance(data, uuid.UUID):
         return data
     elif isinstance(data, bytes):
@@ -200,3 +201,14 @@ def erasetype(data: JsonObject, key: str, default: Optional[Any] = None) -> Any:
         return v
     else:
         return None
+
+
+T = TypeVar("T")
+
+
+def suppress(e: Type[Exception], func: Callable[[], T]) -> T | None:
+    """
+    Proxy to contextlib.suppress(), but with the ability to do it on a single line
+    """
+    with contextlib.suppress(e):
+        return func()

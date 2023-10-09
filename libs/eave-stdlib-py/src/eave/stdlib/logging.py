@@ -168,6 +168,17 @@ class LogContext(JsonObject):
         self.set({"eave_account_id": value})
 
     @property
+    def eave_visitor_id(self) -> Optional[str]:
+        if v := self.get("eave_visitor_id"):
+            return str(v)
+        else:
+            return None
+
+    @eave_visitor_id.setter
+    def eave_visitor_id(self, value: Optional[str]) -> None:
+        self.set({"eave_visitor_id": value})
+
+    @property
     def eave_team_id(self) -> Optional[str]:
         if v := self.get("eave_team_id"):
             return str(v)

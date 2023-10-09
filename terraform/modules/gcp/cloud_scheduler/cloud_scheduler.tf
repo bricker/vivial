@@ -6,6 +6,11 @@ variable "region" {
   type = string
 }
 
+variable "cron_shared_secret" {
+  type      = string
+  sensitive = true
+}
+
 resource "google_cloud_scheduler_job" "run_api_documentation_job" {
   attempt_deadline = "3600s"
   description      = null
@@ -17,9 +22,9 @@ resource "google_cloud_scheduler_job" "run_api_documentation_job" {
   time_zone        = "Etc/UTC"
 
   app_engine_http_target {
-    body = "{}"
+    body = base64encode("{}")
     headers = {
-      "eave-cron-shared-secret" = "redacted"
+      "eave-cron-shared-secret" = var.cron_shared_secret
       "eave-cron-dispatch-key"  = "run-api-documentation"
       "content-type"            = "application/json"
     }

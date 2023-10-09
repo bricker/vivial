@@ -129,41 +129,60 @@ export class EaveConfig {
     return url.hostname.replace(/^www/, "");
   }
 
-  get redisConnection():
-    | { host: string; port: number; db: number }
-    | undefined {
-    const connection = process.env["REDIS_CONNECTION"];
+  async redisConnection(): Promise<
+    { host: string; port: number; db: number } | undefined
+  > {
+    const key = "REDIS_HOST_PORT";
 
-    if (connection === undefined) {
-      return undefined;
+    let value: string | undefined;
+
+    if (this.isDevelopment) {
+      value = process.env[key];
+      if (!value) {
+        return undefined;
+      }
+    } else {
+      try {
+        value = await this.getSecret(key);
+      } catch (e) {
+        return undefined;
+      }
     }
 
-    const parts = connection.split(":");
-
-    const host = parts[0] || "localhost";
-    const port = parseInt(parts[1] || "6379", 10);
-    const db = parseInt(parts[2] || "0", 10);
+    const [splithost, splitport, splitdb] = value.split(":");
+    const host = splithost || "localhost";
+    const port = parseInt(splitport || "6379", 10);
+    const db = parseInt(splitdb || "0", 10);
     return { host, port, db };
   }
 
   async redisAuth(): Promise<string | undefined> {
     const key = "REDIS_AUTH";
+
     if (this.isDevelopment) {
       // Doing it this way because it would never make sense to use the gcloud secret in local dev.
-      const value = process.env[key];
-      return value;
+      return process.env[key];
     } else {
       try {
-        const value = await this.getSecret(key);
-        return value;
-      } catch (e: unknown) {
+        return this.getSecret(key);
+      } catch {
         return undefined;
       }
     }
   }
 
-  get redisTlsCA(): string | undefined {
-    return process.env["REDIS_TLS_CA"];
+  async redisTlsCA(): Promise<string | undefined> {
+    const key = "REDIS_TLS_CA";
+
+    if (this.isDevelopment) {
+      return process.env[key];
+    } else {
+      try {
+        return this.getSecret(key);
+      } catch {
+        return undefined;
+      }
+    }
   }
 
   get openaiApiKey(): Promise<string> {

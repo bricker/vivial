@@ -1,6 +1,5 @@
 [tool.pyright]
 exclude = [
-  "**/eave_alembic/versions",
   "**/generated",
   "**/vendor",
   "**/node_modules",

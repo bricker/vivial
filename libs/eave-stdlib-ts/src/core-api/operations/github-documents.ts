@@ -11,6 +11,7 @@ import {
   GithubDocumentsQueryInput,
   GithubDocumentUpdateInput,
 } from "../models/github-documents.js";
+import { GithubRepo, GithubRepoRefInput } from "../models/github-repos.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
 export type GetGithubDocumentsRequestBody = {
@@ -37,10 +38,12 @@ export class GetGithubDocumentsOperation {
   }
 }
 export type CreateGithubDocumentRequestBody = {
+  repo: GithubRepoRefInput;
   document: GithubDocumentCreateInput;
 };
 
 export type CreateGithubDocumentResponseBody = {
+  repo: GithubRepo;
   document: GithubDocument;
 };
 

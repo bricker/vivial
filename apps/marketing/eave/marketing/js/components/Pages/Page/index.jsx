@@ -21,7 +21,7 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const Page = ({ children, simpleHeader }) => {
+const Page = ({ children = undefined, simpleHeader = undefined }) => {
   const classes = makeClasses();
   return (
     <div className={classes.container}>

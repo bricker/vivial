@@ -4,6 +4,7 @@ import {
   GetGithubDocumentsOperation,
   UpdateGithubDocumentOperation,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-documents.js";
+import { GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { updateDocumentation } from "@eave-fyi/eave-stdlib-ts/src/function-documenting.js";
 import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
@@ -97,6 +98,22 @@ export default async function handler(
   const repoName = event.repository.name;
   const repoId = event.repository.node_id.toString();
 
+  const eaveRepoResponse = await GetGithubReposOperation.perform({
+    ctx,
+    origin: appConfig.eaveOrigin,
+    teamId: eaveTeam.id,
+    input: {
+      repos: [
+        {
+          external_repo_id: repoId,
+        },
+      ],
+    },
+  });
+
+  const eaveRepo = eaveRepoResponse.repos[0];
+  assertPresence(eaveRepo);
+
   try {
     const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
       {
@@ -105,7 +122,7 @@ export default async function handler(
         teamId: eaveTeam.id,
         input: {
           query_params: {
-            external_repo_id: repoId,
+            github_repo_id: eaveRepo.id,
             pull_request_number: event.pull_request.number,
           },
         },

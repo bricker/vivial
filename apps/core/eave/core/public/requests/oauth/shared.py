@@ -1,3 +1,4 @@
+import datetime
 import http
 import re
 import typing
@@ -80,9 +81,13 @@ async def get_logged_in_eave_account(
 
     if auth_cookies_.access_token and auth_cookies_.account_id:
         async with eave.core.internal.database.async_session.begin() as db_session:
-            eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
+            eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
                 session=db_session, id=auth_cookies_.account_id, access_token=auth_cookies_.access_token
             )
+
+            if not eave_account:
+                # The access token or account ID are invalid. Treat this user as signed out.
+                return None
 
             if eave_account.auth_provider == auth_provider:
                 # If the user is logged in through this provider, then take this opportunity to update the access and refresh tokens.
@@ -116,7 +121,8 @@ async def get_existing_eave_account(
         )
 
         if eave_account:
-            # An account exists. Update the saved auth tokens.
+            # An account exists. Update the saved auth tokens and login date.
+            eave_account.last_login = datetime.datetime.utcnow()
             if access_token:
                 eave_account.access_token = access_token
             if refresh_token:

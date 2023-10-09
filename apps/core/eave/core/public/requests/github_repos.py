@@ -20,7 +20,7 @@ from eave.stdlib.core_api.operations.github_repos import (
     FeatureStateGithubReposRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
-from eave.stdlib.util import unwrap, ensure_uuid
+from eave.stdlib.util import ensure_uuid
 
 
 class CreateGithubRepoEndpoint(HTTPEndpoint):
@@ -30,15 +30,16 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
         input = CreateGithubRepoRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            github_installation = await GithubInstallationOrm.one_or_exception(
-                session=db_session, team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id))
+            # make sure this team has a github installation
+            await GithubInstallationOrm.one_or_exception(
+                session=db_session,
+                team_id=ensure_uuid(eave_state.ctx.eave_team_id),
             )
 
             gh_repo_orm = await GithubRepoOrm.create(
                 session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
+                team_id=ensure_uuid(eave_state.ctx.eave_team_id),
                 external_repo_id=input.repo.external_repo_id,
-                github_installation_id=github_installation.id,
                 display_name=input.repo.display_name,
                 api_documentation_state=input.repo.api_documentation_state,
                 inline_code_documentation_state=input.repo.inline_code_documentation_state,
@@ -63,8 +64,10 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
         async with database.async_session.begin() as db_session:
             gh_repo_orms = await GithubRepoOrm.query(
                 session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_ids=external_repo_ids,
+                params=GithubRepoOrm.QueryParams(
+                    team_id=ensure_uuid(eave_state.ctx.eave_team_id),
+                    external_repo_ids=external_repo_ids,
+                ),
             )
 
         return json_response(
@@ -85,9 +88,12 @@ class GetAllTeamsGithubRepoEndpoint(HTTPEndpoint):
 
             gh_repo_orms = await GithubRepoOrm.query(
                 session=db_session,
-                api_documentation_state=state if feature is Feature.API_DOCUMENTATION else None,
-                inline_code_documentation_state=state if feature is Feature.INLINE_CODE_DOCUMENTATION else None,
-                architecture_documentation_state=state if feature is Feature.ARCHITECTURE_DOCUMENTATION else None,
+                params=GithubRepoOrm.QueryParams(
+                    team_id=None,
+                    api_documentation_state=state if feature is Feature.API_DOCUMENTATION else None,
+                    inline_code_documentation_state=state if feature is Feature.INLINE_CODE_DOCUMENTATION else None,
+                    architecture_documentation_state=state if feature is Feature.ARCHITECTURE_DOCUMENTATION else None,
+                ),
             )
 
         return json_response(
@@ -108,7 +114,7 @@ class FeatureStateGithubReposEndpoint(HTTPEndpoint):
         async with database.async_session.begin() as db_session:
             state = await GithubRepoOrm.all_repos_match_feature_state(
                 session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
+                team_id=ensure_uuid(eave_state.ctx.eave_team_id),
                 feature=input.query_params.feature,
                 state=input.query_params.state,
             )
@@ -127,18 +133,20 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
         input = UpdateGithubReposRequest.RequestBody.parse_obj(body)
 
         # transform to dict for ease of use
-        update_values = {repo.external_repo_id: repo.new_values for repo in input.repos}
+        update_values = {repo.id: repo.new_values for repo in input.repos}
 
         async with database.async_session.begin() as db_session:
             gh_repo_orms = await GithubRepoOrm.query(
                 session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_ids=list(update_values.keys()),
+                params=GithubRepoOrm.QueryParams(
+                    team_id=ensure_uuid(eave_state.ctx.eave_team_id),
+                    ids=list(map(lambda r: r.id, input.repos)),
+                ),
             )
 
             for gh_repo_orm in gh_repo_orms:
-                assert gh_repo_orm.external_repo_id in update_values, "Received a GithubRepo ORM that was not requested"
-                new_values = update_values[gh_repo_orm.external_repo_id]
+                assert gh_repo_orm.id in update_values, "Received a GithubRepo ORM that was not requested"
+                new_values = update_values[gh_repo_orm.id]
 
                 # fire analytics event for each changed feature
                 _event_name = "eave_github_feature_state_change"
@@ -218,13 +226,13 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
         body = await request.json()
         input = DeleteGithubReposRequest.RequestBody.parse_obj(body)
 
-        external_repo_ids = [repo.external_repo_id for repo in input.repos]
+        ids = [repo.id for repo in input.repos]
 
         async with database.async_session.begin() as db_session:
-            await GithubRepoOrm.delete_by_repo_ids(
+            await GithubRepoOrm.delete_by_ids(
                 session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_ids=external_repo_ids,
+                team_id=ensure_uuid(eave_state.ctx.eave_team_id),
+                ids=ids,
             )
 
         return Response(status_code=HTTPStatus.OK)

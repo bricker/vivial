@@ -1,17 +1,18 @@
+from dataclasses import dataclass
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
+from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, Select
+from sqlalchemy import Index, PrimaryKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentValuesInput, Status, DocumentType
-from eave.stdlib.util import ensure_uuid_or_none
+from eave.stdlib.util import ensure_uuid
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk
 
 
 class GithubDocumentsOrm(Base):
@@ -19,22 +20,17 @@ class GithubDocumentsOrm(Base):
     __table_args__ = (
         PrimaryKeyConstraint(
             "team_id",
-            "external_repo_id",
             "id",
         ),
         make_team_fk(),
-        ForeignKeyConstraint(
-            ["external_repo_id"],
-            ["github_repos.external_repo_id"],
-            ondelete="CASCADE",
-        ),
-        Index(None, "team_id", "external_repo_id", "pull_request_number"),
+        make_team_composite_fk(fk_column="github_repo_id", foreign_table="github_repos"),
+        Index(None, "team_id", "github_repo_id", "pull_request_number"),
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     team_id: Mapped[UUID] = mapped_column()
-    external_repo_id: Mapped[str] = mapped_column()
-    """Github API node_id for this repo"""
+    github_repo_id: Mapped[UUID] = mapped_column()
+    """FK to github_repos table"""
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     pull_request_number: Mapped[Optional[int]] = mapped_column(server_default=None)
     """Number of the most recent PR opened for this document"""
     status: Mapped[str] = mapped_column(server_default=Status.PROCESSING.value)
@@ -54,39 +50,44 @@ class GithubDocumentsOrm(Base):
     def api_model(self) -> GithubDocument:
         return GithubDocument.from_orm(self)
 
-    class QueryParams(TypedDict):
-        id: NotRequired[UUID | str]
-        team_id: NotRequired[UUID | str]
-        external_repo_id: NotRequired[str]
-        type: NotRequired[DocumentType]
-        pull_request_number: NotRequired[int]
+    @dataclass
+    class QueryParams:
+        id: Optional[UUID | str] = None
+        team_id: Optional[UUID | str] = None
+        github_repo_id: Optional[UUID] = None
+        type: Optional[DocumentType] = None
+        pull_request_number: Optional[int] = None
 
     @classmethod
-    def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
+    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-        if team_id := ensure_uuid_or_none(kwargs.get("team_id")):
-            lookup = lookup.where(cls.team_id == team_id)
-        if external_repo_id := kwargs.get("external_repo_id"):
-            lookup = lookup.where(cls.external_repo_id == external_repo_id)
-        if id := ensure_uuid_or_none(kwargs.get("id")):
-            lookup = lookup.where(cls.id == id)
-        if type := kwargs.get("type"):
-            lookup = lookup.where(cls.type == type.value)
-        if pull_request_number := kwargs.get("pull_request_number"):
-            lookup = lookup.where(cls.pull_request_number == pull_request_number)
+        if params.team_id:
+            lookup = lookup.where(cls.team_id == ensure_uuid(params.team_id))
+
+        if params.github_repo_id:
+            lookup = lookup.where(cls.github_repo_id == params.github_repo_id)
+
+        if params.id:
+            lookup = lookup.where(cls.id == ensure_uuid(params.id))
+
+        if params.type:
+            lookup = lookup.where(cls.type == params.type.value)
+
+        if params.pull_request_number:
+            lookup = lookup.where(cls.pull_request_number == params.pull_request_number)
 
         return lookup
 
     @classmethod
-    async def query(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Sequence[Self]:
-        stmt = cls._build_query(**kwargs)
+    async def query(cls, session: AsyncSession, params: QueryParams) -> Sequence[Self]:
+        stmt = cls._build_query(params=params)
         results = (await session.scalars(stmt)).all()
         return results
 
     @classmethod
     async def one_or_exception(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self:
-        stmt = cls._build_query(team_id=team_id, id=id)
+        stmt = cls._build_query(cls.QueryParams(team_id=team_id, id=id))
         result = (await session.scalars(stmt)).one()
         return result
 
@@ -95,7 +96,7 @@ class GithubDocumentsOrm(Base):
         cls,
         session: AsyncSession,
         team_id: UUID,
-        external_repo_id: str,
+        github_repo_id: UUID,
         type: DocumentType,
         file_path: Optional[str] = None,
         api_name: Optional[str] = None,
@@ -105,7 +106,7 @@ class GithubDocumentsOrm(Base):
     ) -> Self:
         obj = cls(
             team_id=team_id,
-            external_repo_id=external_repo_id,
+            github_repo_id=github_repo_id,
             file_path=file_path,
             api_name=api_name,
             type=type.value,
