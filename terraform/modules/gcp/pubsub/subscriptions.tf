@@ -1,5 +1,5 @@
 resource "google_pubsub_subscription" "eave_dead_letter_pubsub_subscription" {
-  depends_on = [ google_pubsub_topic.eave_dead_letter_pubsub_topic ]
+  depends_on = [google_pubsub_topic.eave_dead_letter_pubsub_topic]
 
   ack_deadline_seconds         = 10
   enable_exactly_once_delivery = false

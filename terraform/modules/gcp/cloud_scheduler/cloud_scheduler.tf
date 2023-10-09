@@ -7,7 +7,7 @@ variable "region" {
 }
 
 variable "cron_shared_secret" {
-  type = string
+  type      = string
   sensitive = true
 }
 
