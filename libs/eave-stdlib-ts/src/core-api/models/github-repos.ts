@@ -14,7 +14,7 @@ export type GithubRepo = {
   team_id: string;
   id: string;
   external_repo_id: string;
-  display_name?: string;
+  display_name: string | null;
   api_documentation_state: State;
   inline_code_documentation_state: State;
   architecture_documentation_state: State;
