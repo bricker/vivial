@@ -1,9 +1,9 @@
 // @ts-check
-import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
 import useTeam from "../../../hooks/useTeam.js";
+import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 
 import APIDocumentation from "../../APIDocumentation/index.jsx";
 import ExploreFeatures from "../../ExploreFeatures/index.jsx";
@@ -18,7 +18,13 @@ import { FEATURES, FEATURE_MODAL } from "../../../constants.js";
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
-  const { team, getTeam, getTeamRepos, getTeamFeatureStates, updateTeamFeatureState } = useTeam();
+  const {
+    team,
+    getTeam,
+    getTeamRepos,
+    getTeamFeatureStates,
+    updateTeamFeatureState,
+  } = useTeam();
   const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
   const [apiDocsModalIsOpen, setAPIDocsModalIsOpen] = useState(false);
 
@@ -47,7 +53,9 @@ const Dashboard = () => {
     if (inlineDocsModalIsOpen) {
       return;
     }
-    setSearchParams({[FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS});
+    setSearchParams({
+      [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.INLINE_CODE_DOCS,
+    });
     setInlineDocsModalIsOpen(true);
   };
 
@@ -55,7 +63,7 @@ const Dashboard = () => {
     if (apiDocsModalIsOpen) {
       return;
     }
-    setSearchParams({[FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.API_DOCS});
+    setSearchParams({ [FEATURE_MODAL.ID]: FEATURE_MODAL.TYPES.API_DOCS });
     setAPIDocsModalIsOpen(true);
   };
 

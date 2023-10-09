@@ -124,7 +124,9 @@ const GitHubRepoSelect = (
                 <FormControlLabel
                   key={repo.external_repo_id}
                   value={repo.external_repo_id}
-                  label={repo["external_repo_data"]?.name || "Github Repository"}
+                  label={
+                    repo["external_repo_data"]?.name || "Github Repository"
+                  }
                   classes={{ root: classes.formLabels }}
                   onChange={handleSelect}
                   control={

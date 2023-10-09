@@ -5,7 +5,6 @@ import { AppContext } from "../context/Provider.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
 import { isHTTPError } from "../util/http-util.js";
-import { sortAPIDocuments } from "../util/document-util.js";
 
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);

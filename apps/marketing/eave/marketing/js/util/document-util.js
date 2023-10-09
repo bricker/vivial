@@ -29,4 +29,4 @@ export function sortAPIDocuments(documents) {
     }
   }
   return [...processingDocs, ...processedDocs];
-};
+}
