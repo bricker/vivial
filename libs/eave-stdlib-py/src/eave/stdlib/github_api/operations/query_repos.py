@@ -15,7 +15,7 @@ class QueryGithubRepos(GithubAppEndpoint):
         repos: list[ExternalGithubRepo]
 
     @classmethod
-    async def perform(cls, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]) -> ResponseBody:
+    async def perform(cls, team_id: uuid.UUID | str, **kwargs: Unpack[requests.CommonRequestArgs]) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=None,

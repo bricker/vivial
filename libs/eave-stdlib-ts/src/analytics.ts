@@ -5,7 +5,7 @@ import { sharedConfig } from "./config.js";
 import { AnalyticsAccount } from "./core-api/models/account.js";
 import { Team } from "./core-api/models/team.js";
 import { eaveLogger, LogContext } from "./logging.js";
-import { JsonObject } from "./types.js";
+import { JsonObject, UUID } from "./types.js";
 
 // document me
 
@@ -17,9 +17,10 @@ export interface EaveEventFields {
   event_description?: string;
   event_source?: string;
   opaque_params?: JsonObject | string;
-  eave_visitor_id?: string;
+  eave_visitor_id?: UUID;
   eave_account?: AnalyticsAccount;
   eave_team?: Team;
+  eave_team_id?: UUID;
 }
 
 export interface GPTRequestEventFields {

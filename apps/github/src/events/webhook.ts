@@ -1,19 +1,11 @@
-import { Cache, getCacheClient } from "@eave-fyi/eave-stdlib-ts/src/cache.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { GithubEventHandlerTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js";
-import {
-  LogContext,
-  eaveLogger,
-} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { createTaskFromRequest } from "@eave-fyi/eave-stdlib-ts/src/task-queue.js";
 import Express from "express";
 import { constants as httpConstants } from "node:http2";
 import { GITHUB_EVENT_QUEUE_NAME } from "../config.js";
-import { getTeamForInstallation } from "../lib/octokit-util.js";
-import {
-  GithubWebhookBody,
-  getEventHandler,
-} from "../middleware/process-webhook-payload.js";
+import { getEventHandler } from "../middleware/process-webhook-payload.js";
 
 export async function webhookEventHandler(
   req: Express.Request,
@@ -28,46 +20,6 @@ export async function webhookEventHandler(
     res.sendStatus(httpConstants.HTTP_STATUS_OK);
     return;
   }
-
-  // FIXME: event.installation not available when using local webhook forwarding
-  const eventBody = <GithubWebhookBody>req.body;
-  const installationId = eventBody.installation.id.toString();
-  const cacheKey = `github_installation:${installationId}:eave_team_id`;
-
-  let eaveTeamId: string | undefined;
-  let cacheClient: Cache | undefined;
-
-  try {
-    cacheClient = await getCacheClient();
-    const cachedTeamId = await cacheClient.get(cacheKey);
-    if (cachedTeamId) {
-      eaveTeamId = cachedTeamId.toString();
-    }
-  } catch (e: any) {
-    eaveLogger.warning("Error connecting to cache", ctx, e);
-  }
-
-  if (!eaveTeamId) {
-    const eaveTeam = await getTeamForInstallation({ installationId, ctx });
-    if (eaveTeam) {
-      eaveTeamId = eaveTeam.id;
-      if (cacheClient) {
-        await cacheClient.set(cacheKey, eaveTeamId);
-      }
-    }
-  }
-
-  if (!eaveTeamId) {
-    eaveLogger.warning(
-      `No Eave Team found for installation ID ${installationId}`,
-      ctx,
-      { installationId },
-    );
-    res.sendStatus(httpConstants.HTTP_STATUS_FORBIDDEN);
-    return;
-  }
-
-  ctx.eave_team_id = eaveTeamId;
 
   await createTaskFromRequest({
     queueName: GITHUB_EVENT_QUEUE_NAME,

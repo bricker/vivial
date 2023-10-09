@@ -1,3 +1,4 @@
+import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   EmitterWebhookEvent,
   EmitterWebhookEventName,
@@ -9,8 +10,10 @@ import pullRequestClosedHandler from "./pull-request-closed.js";
 import pushHandler from "./push.js";
 
 export type HandlerFunction = (
-  event: EmitterWebhookEvent<EmitterWebhookEventName> & any,
-  context: GitHubOperationsContext,
+  args: GitHubOperationsContext & {
+    event: EmitterWebhookEvent<EmitterWebhookEventName> & any;
+    eaveTeam: Team;
+  },
 ) => Promise<void>;
 
 export function getEventHandler({

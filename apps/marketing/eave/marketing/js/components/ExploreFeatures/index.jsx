@@ -11,6 +11,7 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 80,
     [theme.breakpoints.up("md")]: {
       padding: "0 128px",
+      marginBottom: 38,
     },
   },
   title: {
@@ -25,11 +26,8 @@ const makeClasses = makeStyles((theme) => ({
   },
   featureCard: {
     marginBottom: 42,
-    "&:last-of-type": {
-      marginBottom: 0,
-    },
     [theme.breakpoints.up("md")]: {
-      margin: "0 42px 0 0",
+      marginRight: 42,
       "&:last-of-type": {
         marginRight: 0,
       },
@@ -50,10 +48,9 @@ const ExploreFeatures = ({ onAPIDocsClick, onInlineDocsClick }) => {
         {!team.apiDocsEnabled && (
           <FeatureCard
             className={classes.featureCard}
-            // onClick={onAPIDocsClick}
+            onClick={onAPIDocsClick}
             title="API Documentation"
             description="Automate standard industry API documentation to streamline your internal processes and delight your customers."
-            comingSoon
           />
         )}
         {!team.inlineCodeDocsEnabled && (
