@@ -40,7 +40,7 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
                 session=db_session,
                 team_id=ensure_uuid(eave_state.ctx.eave_team_id),
                 external_repo_id=input.repo.external_repo_id,
-                github_installation_id=github_installation_orm,
+                github_installation_id=github_installation_orm.id,
                 display_name=input.repo.display_name,
                 api_documentation_state=input.repo.api_documentation_state,
                 inline_code_documentation_state=input.repo.inline_code_documentation_state,
