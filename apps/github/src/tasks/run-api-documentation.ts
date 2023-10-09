@@ -38,6 +38,8 @@ export async function runApiDocumentationTaskHandler(
   res: Express.Response,
 ): Promise<void> {
   const ctx = LogContext.load(res);
+  eaveLogger.debug("API documentation task started", { input: req.body }, ctx);
+
   const input = <RunApiDocumentationTaskRequestBody>req.body;
   const sharedAnalyticsParams: { [key: string]: JsonValue } = {};
 
@@ -52,7 +54,10 @@ export async function runApiDocumentationTaskHandler(
     eaveGithubRepoInput: input.repo,
   });
   sharedAnalyticsParams["eaveGithubRepo"] = coreAPIData.eaveGithubRepo;
+  sharedAnalyticsParams["eave_team"] = coreAPIData.team;
   ctx.set({ eave_team: coreAPIData.team });
+
+  eaveLogger.debug("eave core API data", sharedAnalyticsParams, ctx);
 
   assert(
     coreAPIData.eaveGithubRepo.api_documentation_state === State.ENABLED,
@@ -88,11 +93,13 @@ export async function runApiDocumentationTaskHandler(
   });
 
   if (githubAPIData.expressRootDirs.length === 0) {
+    eaveLogger.warning("no express apps detected", sharedAnalyticsParams, ctx);
+
     await logEvent(
       {
         event_name: "express_api_detection_no_apps_detected",
         event_description:
-          "The API documentation feature is enabled for this repository, but no express apps were not detected.",
+          "The API documentation feature is enabled for this repository, but no express apps were detected.",
         eave_team: coreAPIData.team,
         event_source: ANALYTICS_SOURCE,
         opaque_params: {
@@ -106,7 +113,9 @@ export async function runApiDocumentationTaskHandler(
     return;
   }
 
+
   sharedAnalyticsParams["expressRootDirs"] = githubAPIData.expressRootDirs;
+  eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
 
   const results = await Promise.allSettled(
     githubAPIData.expressRootDirs.map(async (apiRootDir) => {
@@ -125,6 +134,8 @@ export async function runApiDocumentationTaskHandler(
       });
 
       if (!expressAPIInfo.rootFile) {
+        eaveLogger.warning("no root file found", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+
         // We thought this dir contained an Express app, but couldn't find a file that initialized the express server.
         await logEvent(
           {
@@ -140,6 +151,8 @@ export async function runApiDocumentationTaskHandler(
         );
 
         if (eaveDoc) {
+          eaveLogger.warning("updating github document with status FAILED", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+
           await coreAPIData.updateGithubDocument({
             document: eaveDoc,
             newValues: { status: Status.FAILED },
@@ -150,6 +163,8 @@ export async function runApiDocumentationTaskHandler(
       }
 
       if (!expressAPIInfo.endpoints || expressAPIInfo.endpoints.length === 0) {
+        eaveLogger.warning("no express endpoints found", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+
         await logEvent(
           {
             event_name: "express_api_detection_no_endpoints",
@@ -165,6 +180,8 @@ export async function runApiDocumentationTaskHandler(
         );
 
         if (eaveDoc) {
+          eaveLogger.warning("updating github document with status FAILED", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+
           await coreAPIData.updateGithubDocument({
             document: eaveDoc,
             newValues: { status: Status.FAILED },
@@ -175,16 +192,21 @@ export async function runApiDocumentationTaskHandler(
       }
 
       if (eaveDoc) {
+        eaveLogger.debug("updating github document with status PROCESSING", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+
         eaveDoc = await coreAPIData.updateGithubDocument({
           document: eaveDoc,
           newValues: { status: Status.PROCESSING },
         });
       } else {
+        eaveLogger.debug("creating initial placeholder github document", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
         eaveDoc = await coreAPIData.createPlaceholderGithubDocument({
           apiName: expressAPIInfo.name,
           documentationFilePath: expressAPIInfo.documentationFilePath,
         });
       }
+
+      eaveLogger.debug("generating API documentation from openai", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
 
       const newDocumentContents = await generateExpressAPIDoc({
         expressAPIInfo,
@@ -209,6 +231,8 @@ export async function runApiDocumentationTaskHandler(
           { expressApiRootFile: expressAPIInfo.rootFile.path },
           ctx,
         );
+
+        eaveLogger.warning("updating github document with status FAILED", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
 
         await coreAPIData.updateGithubDocument({
           document: eaveDoc,
@@ -251,7 +275,8 @@ export async function runApiDocumentationTaskHandler(
   });
 
   if (fileAdditions.length === 0) {
-    eaveLogger.warning("No file additions", ctx);
+    eaveLogger.warning("No file additions", sharedAnalyticsParams, ctx);
+    eaveLogger.warning("updating github documents with status FAILED", sharedAnalyticsParams, ctx);
     await updateDocuments({
       coreAPIData,
       documents,
@@ -270,6 +295,8 @@ export async function runApiDocumentationTaskHandler(
     ctx,
   });
 
+  eaveLogger.debug("creating pull request", sharedAnalyticsParams, ctx);
+
   const pullRequest = await prCreator.createPullRequest({
     branchName: "refs/heads/eave/auto-docs/api",
     commitMessage: "docs: automated update",
@@ -280,12 +307,14 @@ export async function runApiDocumentationTaskHandler(
     },
   });
 
+  eaveLogger.debug("created pull request", sharedAnalyticsParams, { pullRequestNumber: pullRequest.number }, ctx);
+
   await updateDocuments({
     coreAPIData,
     documents,
     newValues: {
       pull_request_number: pullRequest.number,
-      status: Status.FAILED,
+      status: Status.PR_OPENED,
     },
   });
 }
@@ -400,7 +429,7 @@ async function generateExpressAPIDoc({
 
         eaveLogger.warning(
           "openAI didn't return API documentation",
-          { openaiResponse },
+          { openaiResponse, expressAPIInfo: expressAPIInfo.asJSON },
           ctx,
         );
         continue;
