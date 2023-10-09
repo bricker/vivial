@@ -55,7 +55,6 @@ class GithubDocumentsOrm(Base):
         id: Optional[UUID | str] = None
         team_id: Optional[UUID | str] = None
         github_repo_id: Optional[UUID] = None
-        external_repo_id: Optional[str] = None
         type: Optional[DocumentType] = None
         pull_request_number: Optional[int] = None
 
