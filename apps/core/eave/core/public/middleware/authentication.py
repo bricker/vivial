@@ -13,7 +13,7 @@ from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.middleware.development_bypass import development_bypass_allowed
 from .development_bypass import development_bypass_auth
 from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.exceptions import BadRequestError, UnauthorizedError
+from eave.stdlib.exceptions import UnauthorizedError
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
