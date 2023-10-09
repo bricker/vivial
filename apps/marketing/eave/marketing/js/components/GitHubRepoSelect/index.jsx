@@ -113,7 +113,7 @@ const GitHubRepoSelect = ({ repos, selectedRepoIds, onSelect, error }) => {
                 <FormControlLabel
                   key={repo.external_repo_id}
                   value={repo.external_repo_id}
-                  label={repo.display_name}
+                  label={repo.external_repo_data.name}
                   classes={{ root: classes.formLabels }}
                   onChange={handleSelect}
                   control={

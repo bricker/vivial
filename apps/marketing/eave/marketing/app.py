@@ -1,3 +1,4 @@
+from http.cookiejar import MozillaCookieJar
 import json
 from typing import Any
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
@@ -7,8 +8,8 @@ import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
-from eave.stdlib.core_api.models.github_documents import (GithubDocumentsQueryInput)
-# from eave.stdlib.github_api.operations.query_repos import (QueryGithubRepos)
+from eave.stdlib.core_api.models.github_documents import GithubDocumentsQueryInput
+from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 from eave.stdlib.util import unwrap
 
 from eave.stdlib.endpoints import status_payload
@@ -105,11 +106,6 @@ async def get_team() -> Response:
     return _json_response(body=eave_response.json())
 
 
-
-
-
-
-
 @app.route("/dashboard/team/repos", methods=["GET"])
 async def get_team_repos() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
@@ -120,7 +116,7 @@ async def get_team_repos() -> Response:
     team_id = unwrap(auth_cookies.team_id)
     access_token = unwrap(auth_cookies.access_token)
 
-    eave_core_api_response = await github_repos.GetGithubReposRequest.perform(
+    eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=origin,
         account_id=account_id,
         access_token=access_token,
@@ -128,26 +124,25 @@ async def get_team_repos() -> Response:
         input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
 
-    # eave_github_api_response = await QueryGithubRepos.perform(
-    #     origin=origin,
-    #     account_id=account_id,
-    #     access_token=access_token,
-    #     team_id=team_id,
-    # )
+    internal_repo_list = json.loads(eave_response.json()).get('repos')
+    if (len(internal_repo_list) == 0):
+        return _json_response(body={ 'repos': [] })
 
-    # print('*' * 100)
-    # print(eave_github_api_response)
-    # print('*' * 100)
+    external_response = await QueryGithubRepos.perform(origin=origin, team_id=team_id)
+    external_repo_list = json.loads(external_response.json()).get('repos')
+    external_repo_map = {}
+    merged_repo_list = []
 
-    return _json_response(body=eave_core_api_response.json())
+    for repo in external_repo_list:
+        external_repo_map[repo['id']] = repo
 
+    for repo in internal_repo_list:
+        repo_id = repo['external_repo_id']
+        if repo_id in external_repo_map:
+            repo['external_repo_data'] = external_repo_map[repo_id]
+            merged_repo_list.append(repo)
 
-
-
-
-
-
-
+    return _json_response(body={ 'repos': merged_repo_list })
 
 
 @app.route("/dashboard/team/repos/update", methods=["POST"])
