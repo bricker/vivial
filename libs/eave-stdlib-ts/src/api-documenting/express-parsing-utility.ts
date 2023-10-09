@@ -172,6 +172,6 @@ export class ExpressAPI {
       rootDir: this.rootDir,
       rootFile: this.rootFile?.asJSON,
       documentationFilePath: this.documentationFilePath,
-    }
+    };
   }
 }

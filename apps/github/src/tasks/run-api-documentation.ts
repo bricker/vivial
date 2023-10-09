@@ -113,7 +113,6 @@ export async function runApiDocumentationTaskHandler(
     return;
   }
 
-
   sharedAnalyticsParams["expressRootDirs"] = githubAPIData.expressRootDirs;
   eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
 
@@ -134,7 +133,12 @@ export async function runApiDocumentationTaskHandler(
       });
 
       if (!expressAPIInfo.rootFile) {
-        eaveLogger.warning("no root file found", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+        eaveLogger.warning(
+          "no root file found",
+          sharedAnalyticsParams,
+          { expressAPIInfo: expressAPIInfo.asJSON },
+          ctx,
+        );
 
         // We thought this dir contained an Express app, but couldn't find a file that initialized the express server.
         await logEvent(
@@ -151,7 +155,12 @@ export async function runApiDocumentationTaskHandler(
         );
 
         if (eaveDoc) {
-          eaveLogger.warning("updating github document with status FAILED", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+          eaveLogger.warning(
+            "updating github document with status FAILED",
+            sharedAnalyticsParams,
+            { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON },
+            ctx,
+          );
 
           await coreAPIData.updateGithubDocument({
             document: eaveDoc,
@@ -163,7 +172,12 @@ export async function runApiDocumentationTaskHandler(
       }
 
       if (!expressAPIInfo.endpoints || expressAPIInfo.endpoints.length === 0) {
-        eaveLogger.warning("no express endpoints found", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+        eaveLogger.warning(
+          "no express endpoints found",
+          sharedAnalyticsParams,
+          { expressAPIInfo: expressAPIInfo.asJSON },
+          ctx,
+        );
 
         await logEvent(
           {
@@ -180,7 +194,12 @@ export async function runApiDocumentationTaskHandler(
         );
 
         if (eaveDoc) {
-          eaveLogger.warning("updating github document with status FAILED", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+          eaveLogger.warning(
+            "updating github document with status FAILED",
+            sharedAnalyticsParams,
+            { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON },
+            ctx,
+          );
 
           await coreAPIData.updateGithubDocument({
             document: eaveDoc,
@@ -192,21 +211,36 @@ export async function runApiDocumentationTaskHandler(
       }
 
       if (eaveDoc) {
-        eaveLogger.debug("updating github document with status PROCESSING", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+        eaveLogger.debug(
+          "updating github document with status PROCESSING",
+          sharedAnalyticsParams,
+          { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON },
+          ctx,
+        );
 
         eaveDoc = await coreAPIData.updateGithubDocument({
           document: eaveDoc,
           newValues: { status: Status.PROCESSING },
         });
       } else {
-        eaveLogger.debug("creating initial placeholder github document", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+        eaveLogger.debug(
+          "creating initial placeholder github document",
+          sharedAnalyticsParams,
+          { expressAPIInfo: expressAPIInfo.asJSON },
+          ctx,
+        );
         eaveDoc = await coreAPIData.createPlaceholderGithubDocument({
           apiName: expressAPIInfo.name,
           documentationFilePath: expressAPIInfo.documentationFilePath,
         });
       }
 
-      eaveLogger.debug("generating API documentation from openai", sharedAnalyticsParams, { expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+      eaveLogger.debug(
+        "generating API documentation from openai",
+        sharedAnalyticsParams,
+        { expressAPIInfo: expressAPIInfo.asJSON },
+        ctx,
+      );
 
       const newDocumentContents = await generateExpressAPIDoc({
         expressAPIInfo,
@@ -232,7 +266,12 @@ export async function runApiDocumentationTaskHandler(
           ctx,
         );
 
-        eaveLogger.warning("updating github document with status FAILED", sharedAnalyticsParams, { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON }, ctx);
+        eaveLogger.warning(
+          "updating github document with status FAILED",
+          sharedAnalyticsParams,
+          { eaveDoc, expressAPIInfo: expressAPIInfo.asJSON },
+          ctx,
+        );
 
         await coreAPIData.updateGithubDocument({
           document: eaveDoc,
@@ -276,7 +315,11 @@ export async function runApiDocumentationTaskHandler(
 
   if (fileAdditions.length === 0) {
     eaveLogger.warning("No file additions", sharedAnalyticsParams, ctx);
-    eaveLogger.warning("updating github documents with status FAILED", sharedAnalyticsParams, ctx);
+    eaveLogger.warning(
+      "updating github documents with status FAILED",
+      sharedAnalyticsParams,
+      ctx,
+    );
     await updateDocuments({
       coreAPIData,
       documents,
@@ -307,7 +350,12 @@ export async function runApiDocumentationTaskHandler(
     },
   });
 
-  eaveLogger.debug("created pull request", sharedAnalyticsParams, { pullRequestNumber: pullRequest.number }, ctx);
+  eaveLogger.debug(
+    "created pull request",
+    sharedAnalyticsParams,
+    { pullRequestNumber: pullRequest.number },
+    ctx,
+  );
 
   await updateDocuments({
     coreAPIData,
