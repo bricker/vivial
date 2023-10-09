@@ -110,7 +110,7 @@ async def create_task(
     account_id = headers.get(EAVE_ACCOUNT_ID_HEADER) or ctx.eave_account_id
     request_id = headers.get(EAVE_REQUEST_ID_HEADER) or ctx.eave_request_id
 
-    signature_message, ts = signing.build_message_to_sign(
+    signature_message = signing.build_message_to_sign(
         method="POST",
         origin=origin,
         ts=eave_sig_ts,
