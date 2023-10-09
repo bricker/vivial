@@ -23,11 +23,11 @@ def make_route(
     endpoint: ASGI3Application,
 ) -> Route:
     if config.signature_required:
-        endpoint = SignatureVerificationASGIMiddleware(app=endpoint, audience=EaveApp.eave_api)
+        endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
 
     if config.origin_required:
         # First thing to happen when the middleware chain is kicked off
-        endpoint = OriginASGIMiddleware(app=endpoint)
+        endpoint = OriginASGIMiddleware(app=endpoint, endpoint_config=config)
 
     return Route(path=config.path, endpoint=endpoint)
 
@@ -43,8 +43,8 @@ routes = [
 
 
 async def graceful_shutdown() -> None:
-    if cache.initialized():
-        await cache.client().close()
+    if client := cache.initialized_client():
+        await client.close()
 
 
 api = Starlette(

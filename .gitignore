@@ -20,6 +20,7 @@ credentials.json
 .tmp
 .terraform*
 *.tfstate*
+*.tfvars
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist

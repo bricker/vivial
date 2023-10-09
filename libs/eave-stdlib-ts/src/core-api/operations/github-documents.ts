@@ -1,4 +1,8 @@
-import { makeRequest, RequestArgsAuthedRequest } from "../../requests.js";
+import {
+  makeRequest,
+  RequestArgsAuthedRequest,
+  RequestArgsTeamId,
+} from "../../requests.js";
 import {
   GithubDocument,
   GithubDocumentCreateInput,
@@ -7,6 +11,7 @@ import {
   GithubDocumentsQueryInput,
   GithubDocumentUpdateInput,
 } from "../models/github-documents.js";
+import { GithubRepo, GithubRepoRefInput } from "../models/github-repos.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
 export type GetGithubDocumentsRequestBody = {
@@ -22,7 +27,7 @@ export class GetGithubDocumentsOperation {
     path: "/github-documents/query",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & { input: GetGithubDocumentsRequestBody },
+    args: RequestArgsTeamId & { input: GetGithubDocumentsRequestBody },
   ): Promise<GetGithubDocumentsResponseBody> {
     const resp = await makeRequest({
       config: this.config,
@@ -33,10 +38,12 @@ export class GetGithubDocumentsOperation {
   }
 }
 export type CreateGithubDocumentRequestBody = {
+  repo: GithubRepoRefInput;
   document: GithubDocumentCreateInput;
 };
 
 export type CreateGithubDocumentResponseBody = {
+  repo: GithubRepo;
   document: GithubDocument;
 };
 
@@ -45,7 +52,7 @@ export class CreateGithubDocumentOperation {
     path: "/github-documents/create",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody },
+    args: RequestArgsTeamId & { input: CreateGithubDocumentRequestBody },
   ): Promise<CreateGithubDocumentResponseBody> {
     const resp = await makeRequest({
       config: this.config,
@@ -68,7 +75,7 @@ export class UpdateGithubDocumentOperation {
     path: "/github-documents/update",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody },
+    args: RequestArgsTeamId & { input: UpdateGithubDocumentRequestBody },
   ): Promise<UpdateGithubDocumentResponseBody> {
     const resp = await makeRequest({
       config: this.config,

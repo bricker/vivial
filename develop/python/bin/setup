@@ -32,6 +32,11 @@ function setup() (
 		python -m pip install $qflag $piploc -r requirements-dev.txt
 	fi
 
+	if test -f setup.cfg; then
+		# shellcheck disable=SC2086
+		python -m pip install $qflag $piploc -e .
+	fi
+
 	statusmsg -sp " ✔ "
 )
 

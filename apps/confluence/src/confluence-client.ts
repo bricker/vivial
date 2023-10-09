@@ -16,6 +16,7 @@ import ConnectClient, {
   RequestOpts,
 } from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
 import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
+import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { AddOn } from "atlassian-connect-express";
 import { cleanDocument } from "./api/util.js";
 import appConfig from "./config.js";
@@ -30,12 +31,16 @@ export default class ConfluenceClient extends ConnectClient {
     teamId?: string;
     clientKey?: string;
   }): Promise<ConfluenceClient> {
+    // FIXME: use real context
+    const ctx = new LogContext();
+
     const connectClient = await ConnectClient.getAuthedConnectClient({
       addon,
       product: AtlassianProduct.confluence,
       origin: appConfig.eaveOrigin,
       teamId,
       clientKey,
+      ctx,
     });
 
     return new ConfluenceClient(connectClient);

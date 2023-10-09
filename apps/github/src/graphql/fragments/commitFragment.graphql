@@ -1,0 +1,12 @@
+fragment commitFragment on Commit {
+  ...gitObjectFragment
+
+  commitMessage: message
+  additions
+  changedFilesIfAvailable
+  deletions
+  committedDate
+  tree {
+    ...treeFragment
+  }
+}

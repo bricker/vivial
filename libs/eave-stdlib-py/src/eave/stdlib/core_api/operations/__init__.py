@@ -48,9 +48,6 @@ class BaseRequestBody(pydantic.BaseModel):
 class BaseResponseBody(pydantic.BaseModel):
     _raw_response: Optional[aiohttp.ClientResponse] = None
 
-    class Config:
-        underscore_attrs_are_private = True
-
 
 class Endpoint:
     config: EndpointConfiguration

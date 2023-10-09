@@ -2,6 +2,7 @@ import {
   Feature,
   State,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   CreateGithubRepoOperation,
   FeatureStateGithubReposOperation,
@@ -9,10 +10,10 @@ import {
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
-import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { enumCases } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import { InstallationRepositoriesAddedEvent } from "@octokit/webhooks-types";
-import { GitHubOperationsContext } from "../types.js";
+import { EventHandlerArgs } from "../types.js";
 
 /**
  * Receives github webhook installation_repositories events.
@@ -22,24 +23,27 @@ import { GitHubOperationsContext } from "../types.js";
  * Inserts rows into the github_repos db table with feature activation states matching
  * the other rows in the table whenever it is given access to new repos in GitHub.
  */
-export default async function handler(
-  event: InstallationRepositoriesAddedEvent,
-  context: GitHubOperationsContext,
-) {
+export default async function handler({
+  event,
+  ctx,
+  eaveTeam,
+}: EventHandlerArgs & {
+  event: InstallationRepositoriesAddedEvent;
+}) {
   if (event.action !== "added") {
     return;
   }
-  const { ctx } = context;
 
-  await maybeAddReposToDataBase(event, ctx);
+  await maybeAddReposToDataBase({ event, ctx, eaveTeam });
 }
 
-export async function maybeAddReposToDataBase(
-  event: InstallationRepositoriesAddedEvent,
-  ctx: LogContext,
-) {
+export async function maybeAddReposToDataBase({
+  event,
+  ctx,
+  eaveTeam,
+}: CtxArg & { eaveTeam: Team; event: InstallationRepositoriesAddedEvent }) {
   const sharedReqInput = {
-    teamId: ctx.eave_team_id,
+    teamId: eaveTeam.id,
     origin: EaveApp.eave_github_app,
     ctx,
   };

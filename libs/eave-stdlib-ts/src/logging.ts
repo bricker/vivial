@@ -11,7 +11,7 @@ import {
   EAVE_REQUEST_ID_HEADER,
   EAVE_TEAM_ID_HEADER,
 } from "./headers.js";
-import { JsonObject } from "./types.js";
+import { JsonObject, JsonValue } from "./types.js";
 
 export class LogContext {
   attributes: JsonObject = {};
@@ -62,16 +62,16 @@ export class LogContext {
     this.set({ eave_request_id: value });
   }
 
-  get eave_account_id(): string {
-    return <string>this.attributes["eave_account_id"];
+  get eave_account_id(): string | undefined {
+    return <string | undefined>this.attributes["eave_account_id"];
   }
 
   set eave_account_id(value: string) {
     this.set({ eave_account_id: value });
   }
 
-  get eave_team_id(): string {
-    return <string>this.attributes["eave_team_id"];
+  get eave_team_id(): string | undefined {
+    return <string | undefined>this.attributes["eave_team_id"];
   }
 
   set eave_team_id(value: string) {
@@ -92,6 +92,10 @@ export class LogContext {
 
   set feature_name(value: string | undefined) {
     this.set({ feature_name: value });
+  }
+
+  get(attribute: string): JsonValue | undefined {
+    return this.attributes[attribute];
   }
 
   set(attributes: JsonObject): LogContext {
@@ -172,11 +176,19 @@ class EaveLogger {
   }
 
   debug(message: string, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.debug(message, this.makeExtra(...rest));
+    try {
+      this.rawLogger.debug(message, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.debug(e);
+    }
   }
 
   info(message: string, ...rest: (JsonObject | LogContext | undefined)[]) {
-    this.rawLogger.info(message, this.makeExtra(...rest));
+    try {
+      this.rawLogger.info(message, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.log(e);
+    }
   }
 
   warning(
@@ -190,7 +202,11 @@ class EaveLogger {
       msg = message;
     }
 
-    this.rawLogger.warn(msg, this.makeExtra(...rest));
+    try {
+      this.rawLogger.warn(msg, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.warn(e);
+    }
   }
 
   error(
@@ -204,7 +220,11 @@ class EaveLogger {
       msg = message;
     }
 
-    this.rawLogger.error(msg, this.makeExtra(...rest));
+    try {
+      this.rawLogger.error(msg, this.makeExtra(...rest));
+    } catch (e: any) {
+      console.error(e);
+    }
   }
 
   exception(

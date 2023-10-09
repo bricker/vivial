@@ -5,13 +5,18 @@ query (
   $refPrefix: String!
 ) {
   repository(owner: $repoOwner, name: $repoName) {
+    ...repoFragment
+
     refs(
       first: 10
       orderBy: { direction: DESC, field: TAG_COMMIT_DATE }
       refPrefix: $refPrefix
       query: $refQuery
     ) {
+      __typename
+
       nodes {
+        __typename
         name
       }
     }

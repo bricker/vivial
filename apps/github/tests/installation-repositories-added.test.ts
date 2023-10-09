@@ -1,12 +1,18 @@
 import {
   Feature,
+  GithubRepo,
   State,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   CreateGithubRepoOperation,
   FeatureStateGithubReposOperation,
   GetGithubReposOperation,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
+import {
+  GetGithubInstallationOperation,
+  GetGithubInstallationResponseBody,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
 import { RunApiDocumentationTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import {
@@ -24,13 +30,37 @@ interface TestContext extends TestContextBase {
 
 const test = anyTest as TestFn<TestContext>;
 
-function anyRepo(t: TestUtil) {
+function anyTeam(t: TestUtil): Team {
   return {
+    id: t.anystr(),
+    name: t.anystr(),
+    document_platform: null,
+  };
+}
+
+function anyRepo(t: TestUtil): GithubRepo {
+  return {
+    id: t.anystr(),
     team_id: t.anystr(),
     external_repo_id: t.anystr(),
+    display_name: null,
     inline_code_documentation_state: State.DISABLED,
     architecture_documentation_state: State.DISABLED,
     api_documentation_state: State.DISABLED,
+  };
+}
+
+function anyGithubInstallationResponse(
+  t: TestUtil,
+): GetGithubInstallationResponseBody {
+  const team_id = t.anystr();
+  return {
+    team: { id: team_id, name: t.anystr(), document_platform: null },
+    github_integration: {
+      id: t.anystr("github_installation_id"),
+      github_install_id: t.anystr(),
+      team_id,
+    },
   };
 }
 
@@ -44,15 +74,13 @@ test.beforeEach((t) => {
   };
 });
 
-test.afterEach((t) => {
+test.afterEach.always((t) => {
   t.context.sandbox.restore();
 });
 
 test.serial(
   "no existing github_repos for team should not insert rows",
   async (t) => {
-    // TODO: do something about this
-    t.context.sandbox.restore();
     // GIVEN there are no entries in github_repos db for this team
     const getGithubReposStub = t.context.sandbox
       .stub(GetGithubReposOperation, "perform")
@@ -80,7 +108,11 @@ test.serial(
         },
       ],
     };
-    await maybeAddReposToDataBase(event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN no action is taken (beyond checking for existing entries in the db)
     t.deepEqual(getGithubReposStub.callCount, 1);
@@ -93,12 +125,13 @@ test.serial(
 test.serial(
   "all repos have feature enabled then new repo will also have feature enabled",
   async (t) => {
-    // TODO: do something about this
-    t.context.sandbox.restore();
     // GIVEN this team has existing repos with all inline_code_docs feature states ENABLED
     const getGithubReposStub = t.context.sandbox
       .stub(GetGithubReposOperation, "perform")
       .returns(Promise.resolve({ repos: [anyRepo(t.context.u)] }));
+    t.context.sandbox
+      .stub(GetGithubInstallationOperation, "perform")
+      .returns(Promise.resolve(anyGithubInstallationResponse(t.context.u)));
     const featureStatesStub = t.context.sandbox.stub(
       FeatureStateGithubReposOperation,
       "perform",
@@ -123,17 +156,24 @@ test.serial(
       "perform",
     );
 
-    const event = <InstallationRepositoriesAddedEvent>{
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
           name: t.context.u.anystr("repo1 name"),
         },
       ],
-    };
+      installation: {
+        id: t.context.u.anystr(),
+      },
+    }; // InstallationRepositoriesAddedEvent;
 
     // WHEN the Eave gh app is given access to a new repo
-    await maybeAddReposToDataBase(event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the db row is created
     t.deepEqual(getGithubReposStub.callCount, 1);
@@ -160,12 +200,13 @@ test.serial(
 test.serial(
   "multiple repos added at once lead to multiple db row creations",
   async (t) => {
-    // TODO: do something about this
-    t.context.sandbox.restore();
     // GIVEN this team has existing repos with all inline_code_docs feature states ENABLED
     const getGithubReposStub = t.context.sandbox
       .stub(GetGithubReposOperation, "perform")
       .returns(Promise.resolve({ repos: [anyRepo(t.context.u)] }));
+    t.context.sandbox
+      .stub(GetGithubInstallationOperation, "perform")
+      .returns(Promise.resolve(anyGithubInstallationResponse(t.context.u)));
     const featureStatesStub = t.context.sandbox.stub(
       FeatureStateGithubReposOperation,
       "perform",
@@ -190,7 +231,7 @@ test.serial(
       "perform",
     );
 
-    const event = <InstallationRepositoriesAddedEvent>{
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
@@ -201,22 +242,50 @@ test.serial(
           name: t.context.u.anystr("repo2 name"),
         },
       ],
+      installation: {
+        id: t.context.u.anystr(),
+      },
     };
 
     // WHEN the Eave gh app is given access to multiple new repos
-    await maybeAddReposToDataBase(event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the multiple db rows are created
     t.deepEqual(getGithubReposStub.callCount, 1);
     t.deepEqual(featureStatesStub.callCount, 4);
     t.deepEqual(createGithubRepoStub.callCount, 2);
     t.assert(
-      createGithubRepoStub.alwaysCalledWith(
+      createGithubRepoStub.firstCall.calledWithMatch(
         sinon.match({
           input: {
             repo: {
               external_repo_id: t.context.u.getstr("repo1 id"),
               display_name: t.context.u.getstr("repo1 name"),
+              github_installation_id: t.context.u.getstr(
+                "github_installation_id",
+              ),
+              api_documentation_state: State.DISABLED,
+              inline_code_documentation_state: State.ENABLED,
+              architecture_documentation_state: State.DISABLED,
+            },
+          },
+        }),
+      ),
+    );
+    t.assert(
+      createGithubRepoStub.secondCall.calledWithMatch(
+        sinon.match({
+          input: {
+            repo: {
+              external_repo_id: t.context.u.getstr("repo2 id"),
+              display_name: t.context.u.getstr("repo2 name"),
+              github_installation_id: t.context.u.getstr(
+                "github_installation_id",
+              ),
               api_documentation_state: State.DISABLED,
               inline_code_documentation_state: State.ENABLED,
               architecture_documentation_state: State.DISABLED,
@@ -232,12 +301,13 @@ test.serial(
 test.serial(
   "any repo has feature disabled then new repo will not have feature enabled",
   async (t) => {
-    // TODO: do something about this
-    t.context.sandbox.restore();
     // GIVEN this team has existing repos that don't all have the ENABLED feature state for any features
     const getGithubReposStub = t.context.sandbox
       .stub(GetGithubReposOperation, "perform")
       .returns(Promise.resolve({ repos: [anyRepo(t.context.u)] }));
+    t.context.sandbox
+      .stub(GetGithubInstallationOperation, "perform")
+      .returns(Promise.resolve(anyGithubInstallationResponse(t.context.u)));
     const featureStatesStub = t.context.sandbox
       .stub(FeatureStateGithubReposOperation, "perform")
       .returns(Promise.resolve({ states_match: false }));
@@ -249,17 +319,24 @@ test.serial(
       "perform",
     );
 
-    const event = <InstallationRepositoriesAddedEvent>{
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
           name: t.context.u.anystr("repo1 name"),
         },
       ],
+      installation: {
+        id: t.context.u.anystr(),
+      },
     };
 
     // WHEN the Eave gh app is given access to a new repo
-    await maybeAddReposToDataBase(event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the db row is created w/ all features disabled
     t.deepEqual(getGithubReposStub.callCount, 1);
@@ -286,12 +363,13 @@ test.serial(
 test.serial(
   "new repos with api docs feature enabled get an initial run of the feature on creation",
   async (t) => {
-    // TODO: do something about this
-    t.context.sandbox.restore();
     // GIVEN this team has existing repos with all api_docs feature states ENABLED
     const getGithubReposStub = t.context.sandbox
       .stub(GetGithubReposOperation, "perform")
       .returns(Promise.resolve({ repos: [anyRepo(t.context.u)] }));
+    t.context.sandbox
+      .stub(GetGithubInstallationOperation, "perform")
+      .returns(Promise.resolve(anyGithubInstallationResponse(t.context.u)));
     const featureStatesStub = t.context.sandbox
       .stub(FeatureStateGithubReposOperation, "perform")
       .returns(Promise.resolve({ states_match: true }));
@@ -306,7 +384,7 @@ test.serial(
       "perform",
     );
 
-    const event = <InstallationRepositoriesAddedEvent>{
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
@@ -317,22 +395,50 @@ test.serial(
           name: t.context.u.anystr("repo2 name"),
         },
       ],
+      installation: {
+        id: t.context.u.anystr(),
+      },
     };
 
     // WHEN the Eave gh app is given access to multiple new repos
-    await maybeAddReposToDataBase(event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the multiple db rows are created and the API docs feature is triggered for each
     t.deepEqual(getGithubReposStub.callCount, 1);
     t.deepEqual(featureStatesStub.callCount, 4);
     t.deepEqual(createGithubRepoStub.callCount, 2);
     t.assert(
-      createGithubRepoStub.alwaysCalledWith(
+      createGithubRepoStub.firstCall.calledWithMatch(
         sinon.match({
           input: {
             repo: {
               external_repo_id: t.context.u.getstr("repo1 id"),
               display_name: t.context.u.getstr("repo1 name"),
+              github_installation_id: t.context.u.getstr(
+                "github_installation_id",
+              ),
+              api_documentation_state: State.ENABLED,
+              inline_code_documentation_state: State.ENABLED,
+              architecture_documentation_state: State.DISABLED,
+            },
+          },
+        }),
+      ),
+    );
+    t.assert(
+      createGithubRepoStub.secondCall.calledWithMatch(
+        sinon.match({
+          input: {
+            repo: {
+              external_repo_id: t.context.u.getstr("repo2 id"),
+              display_name: t.context.u.getstr("repo2 name"),
+              github_installation_id: t.context.u.getstr(
+                "github_installation_id",
+              ),
               api_documentation_state: State.ENABLED,
               inline_code_documentation_state: State.ENABLED,
               architecture_documentation_state: State.DISABLED,

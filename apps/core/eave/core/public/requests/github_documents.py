@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_documents import GithubDocumentsOrm
+from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -22,15 +23,24 @@ class GetGithubDocumentsEndpoint(HTTPEndpoint):
         body = await request.json()
         input = GetGithubDocumentsRequest.RequestBody.parse_obj(body)
 
-        # query can't take None values, so we only pass parameters
-        # that aren't None by destructuring a dict as kwargs
-        kwargs = {k: v for k, v in vars(input.query_params).items() if v is not None}
-
         async with database.async_session.begin() as db_session:
+            github_repo_orm = None
+            if input.query_params.github_repo_id:
+                github_repo_orm = await GithubRepoOrm.one_or_exception(
+                    session=db_session,
+                    team_id=ensure_uuid(eave_state.ctx.eave_team_id),
+                    id=input.query_params.github_repo_id,
+                )
+
             gh_doc_orms = await GithubDocumentsOrm.query(
                 session=db_session,
-                team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                **kwargs,
+                params=GithubDocumentsOrm.QueryParams(
+                    team_id=ensure_uuid(eave_state.ctx.eave_team_id),
+                    id=input.query_params.id,
+                    github_repo_id=github_repo_orm.id if github_repo_orm else None,
+                    type=input.query_params.type,
+                    pull_request_number=input.query_params.pull_request_number,
+                ),
             )
 
         return json_response(
@@ -47,10 +57,14 @@ class CreateGithubDocumentEndpoint(HTTPEndpoint):
         input = CreateGithubDocumentRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
+            gh_repo_orm = await GithubRepoOrm.one_or_exception(
+                session=db_session, team_id=ensure_uuid(eave_state.ctx.eave_team_id), id=input.repo.id
+            )
+
             gh_doc_orm = await GithubDocumentsOrm.create(
                 session=db_session,
                 team_id=ensure_uuid(unwrap(eave_state.ctx.eave_team_id)),
-                external_repo_id=input.document.external_repo_id,
+                github_repo_id=gh_repo_orm.id,
                 file_path=input.document.file_path,
                 api_name=input.document.api_name,
                 type=input.document.type,
@@ -59,6 +73,7 @@ class CreateGithubDocumentEndpoint(HTTPEndpoint):
 
         return json_response(
             CreateGithubDocumentRequest.ResponseBody(
+                repo=gh_repo_orm.api_model,
                 document=gh_doc_orm.api_model,
             )
         )

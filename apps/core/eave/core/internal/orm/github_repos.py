@@ -1,8 +1,9 @@
+from dataclasses import dataclass
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Sequence, TypedDict, Unpack, Tuple
+from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, Select
+from sqlalchemy import Index, PrimaryKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -11,7 +12,7 @@ import eave.stdlib.util
 from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
 
 from .base import Base
-from .util import make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class GithubRepoOrm(Base):
@@ -19,12 +20,19 @@ class GithubRepoOrm(Base):
     __table_args__ = (
         PrimaryKeyConstraint(
             "team_id",
-            "external_repo_id",
+            "id",
         ),
         make_team_fk(),
+        Index(
+            None,
+            "team_id",
+            "external_repo_id",
+            unique=True,
+        ),
     )
 
     team_id: Mapped[UUID] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
@@ -42,30 +50,56 @@ class GithubRepoOrm(Base):
     def api_model(self) -> GithubRepo:
         return GithubRepo.from_orm(self)
 
-    class QueryParams(TypedDict):
-        team_id: UUID | str
-        external_repo_id: NotRequired[str]
-        api_documentation_state: NotRequired[State]
-        inline_code_documentation_state: NotRequired[State]
-        architecture_documentation_state: NotRequired[State]
+    @dataclass
+    class QueryParams:
+        team_id: Optional[UUID]
+        id: Optional[UUID] = None
+        ids: Optional[list[UUID]] = None
+        external_repo_id: Optional[str] = None
+        external_repo_ids: Optional[list[str]] = None
+        api_documentation_state: Optional[State] = None
+        inline_code_documentation_state: Optional[State] = None
+        architecture_documentation_state: Optional[State] = None
+
+        def validate_or_exception(self):
+            assert eave.stdlib.util.nand(
+                self.external_repo_ids is not None, self.external_repo_id is not None
+            ), "external_repo_ids and external_repo_id are mutually exclusive inputs"
+
+            assert eave.stdlib.util.nand(
+                self.ids is not None, self.id is not None
+            ), "ids and id are mutually exclusive inputs"
 
     @classmethod
-    def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
-        team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
-        lookup = select(cls).where(cls.team_id == team_id)
+    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+        params.validate_or_exception()
+        lookup = select(cls)
 
-        if external_repo_id := kwargs.get("external_repo_id"):
-            lookup = lookup.where(cls.external_repo_id == external_repo_id)
+        if params.team_id:
+            lookup = lookup.where(cls.team_id == params.team_id)
 
-        if api_documentation_state := kwargs.get("api_documentation_state"):
-            lookup = lookup.where(cls.api_documentation_state == api_documentation_state.value)
+        if params.id:
+            lookup = lookup.where(cls.id == params.id)
 
-        if inline_code_documentation_state := kwargs.get("inline_code_documentation_state"):
-            lookup = lookup.where(cls.inline_code_documentation_state == inline_code_documentation_state.value)
+        if params.ids:
+            lookup = lookup.where(cls.id.in_(params.ids))
 
-        if architecture_documentation_state := kwargs.get("architecture_documentation_state"):
-            lookup = lookup.where(cls.architecture_documentation_state == architecture_documentation_state.value)
+        if params.external_repo_ids:
+            lookup = lookup.where(cls.external_repo_id.in_(params.external_repo_ids))
 
+        if params.external_repo_id:
+            lookup = lookup.where(cls.external_repo_id == params.external_repo_id)
+
+        if params.api_documentation_state:
+            lookup = lookup.where(cls.api_documentation_state == params.api_documentation_state.value)
+
+        if params.inline_code_documentation_state:
+            lookup = lookup.where(cls.inline_code_documentation_state == params.inline_code_documentation_state.value)
+
+        if params.architecture_documentation_state:
+            lookup = lookup.where(cls.architecture_documentation_state == params.architecture_documentation_state.value)
+
+        assert lookup.whereclause is not None, "Malformed input"
         return lookup
 
     @classmethod
@@ -94,33 +128,28 @@ class GithubRepoOrm(Base):
     @classmethod
     async def query(
         cls,
-        team_id: UUID | str,
-        external_repo_ids: Optional[list[str]],
         session: AsyncSession,
+        params: QueryParams,
     ) -> Sequence[Self]:
         """
         Get/list GithubRepos.
-        You must filter results by `team_id`, but can optionally provide a list of
+        Optionally provide a list of
         `external_repo_ids` to fetch. Providing None for `external_repo_ids` (or empty list)
         will get all repos for the provided `team_id`.
         """
-        stmt = cls._build_query(team_id=team_id)
-
-        if external_repo_ids:
-            stmt = stmt.where(cls.external_repo_id.in_(external_repo_ids))
-
+        stmt = cls._build_query(params=params)
         result = (await session.scalars(stmt)).all()
         return result
 
     @classmethod
-    async def one_or_exception(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self:
-        stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
+    async def one_or_exception(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self:
+        stmt = cls._build_query(cls.QueryParams(team_id=team_id, id=id)).limit(1)
         result = (await session.scalars(stmt)).one()
         return result
 
     @classmethod
-    async def one_or_none(cls, team_id: UUID, external_repo_id: str, session: AsyncSession) -> Self | None:
-        stmt = cls._build_query(team_id=team_id, external_repo_id=external_repo_id).limit(1)
+    async def one_or_none(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self | None:
+        stmt = cls._build_query(cls.QueryParams(team_id=team_id, id=id)).limit(1)
         result = await session.scalar(stmt)
         return result
 
@@ -133,12 +162,12 @@ class GithubRepoOrm(Base):
             self.inline_code_documentation_state = input.inline_code_documentation_state.value
 
     @classmethod
-    async def delete_by_repo_ids(cls, team_id: UUID, external_repo_ids: list[str], session: AsyncSession) -> None:
-        if len(external_repo_ids) < 1:
+    async def delete_by_ids(cls, team_id: UUID, ids: list[UUID], session: AsyncSession) -> None:
+        if len(ids) < 1:
             # no work to be done (also dont delete ALL entries for team_id)
             return
 
-        stmt = delete(cls).where(cls.team_id == team_id).where(cls.external_repo_id.in_(external_repo_ids))
+        stmt = delete(cls).where(cls.team_id == team_id).where(cls.id.in_(ids))
         await session.execute(stmt)
 
     @classmethod
@@ -152,7 +181,7 @@ class GithubRepoOrm(Base):
         most entries. However, a linear scan will be used for the feature state comparisons. Hopefully it will
         not be too expensive of a query to scan all the repos of a single team.
         """
-        stmt = cls._build_query(team_id=team_id)
+        stmt = cls._build_query(cls.QueryParams(team_id=team_id))
 
         # we find all entries for feature status NOT matching the provided one.
         # if there are 0 matches, that means all rows have the same status

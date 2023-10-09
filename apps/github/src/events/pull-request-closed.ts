@@ -1,4 +1,10 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
+import { Status } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
+import {
+  GetGithubDocumentsOperation,
+  UpdateGithubDocumentOperation,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-documents.js";
+import { GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { updateDocumentation } from "@eave-fyi/eave-stdlib-ts/src/function-documenting.js";
 import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
@@ -7,6 +13,7 @@ import { OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.
 import OpenAIClient, {
   formatprompt,
 } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/openai.js";
+import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import {
   Blob,
   PullRequest,
@@ -21,37 +28,60 @@ import path from "path";
 import { appConfig } from "../config.js";
 import * as GraphQLUtil from "../lib/graphql-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
-import { GitHubOperationsContext } from "../types.js";
+import { EventHandlerArgs } from "../types.js";
 
 /**
- * Receives github webhook pull_request events.
+ * Handles GitHub pull request events. If the event indicates that a pull request has been closed,
+ * the function logs the event and updates the status of associated documents.
+ * If the pull request was merged, the function also fetches all files from the pull request,
+ * determines which files need documentation, and updates the documentation in each file.
+ * Finally, it creates a new pull request with the updated documentation.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
  *
- * Features:
- * Checks if closed PR was merged. If so, update inline file docs
- * for each file with code changes.
+ * @param {PullRequestEvent} event - The pull request event from GitHub.
+ * @param {GitHubOperationsContext} context - The context for GitHub operations, including the Octokit instance and the current context.
+ * @throws {Error} If there is an error fetching file content or creating a pull request.
  */
-export default async function handler(
-  event: PullRequestEvent,
-  context: GitHubOperationsContext,
-) {
+export default async function handler({
+  event,
+  ctx,
+  octokit,
+  eaveTeam,
+}: EventHandlerArgs & {
+  event: PullRequestEvent;
+}) {
   if (event.action !== "closed") {
     return;
   }
-  const { ctx, octokit } = context;
+  eaveLogger.debug("Processing github pull_request event", ctx);
 
   // don't open more docs PRs from other Eave PRs getting merged
-  if (event.sender.id.toString() === (await appConfig.eaveGithubAppId)) {
+  if (
+    event.pull_request.user.type === "Bot" &&
+    event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
+  ) {
     const interaction = event.pull_request.merged ? "merged" : "closed";
-    await logEvent(
-      {
-        event_name: "github_eave_pr_interaction",
-        event_description: `A GitHub PR opened by Eave was ${interaction}`,
-        event_source: "github webhook pull_request event",
-        opaque_params: JSON.stringify({ interaction }),
-      },
-      ctx,
-    );
+    if (interaction === "merged") {
+      await logEvent(
+        {
+          event_name: "github_eave_pr_merged",
+          event_description: `A GitHub PR opened by Eave was merged`,
+          event_source: "github webhook pull_request event",
+          opaque_params: { interaction },
+        },
+        ctx,
+      );
+    } else {
+      await logEvent(
+        {
+          event_name: "github_eave_pr_closed",
+          event_description: `A GitHub PR opened by Eave was closed without merging changes`,
+          event_source: "github webhook pull_request event",
+          opaque_params: { interaction },
+        },
+        ctx,
+      );
+    }
     return;
   }
 
@@ -64,8 +94,58 @@ export default async function handler(
   const repoName = event.repository.name;
   const repoId = event.repository.node_id.toString();
 
+  const eaveRepoResponse = await GetGithubReposOperation.perform({
+    ctx,
+    origin: appConfig.eaveOrigin,
+    teamId: eaveTeam.id,
+    input: {
+      repos: [
+        {
+          external_repo_id: repoId,
+        },
+      ],
+    },
+  });
+
+  const eaveRepo = eaveRepoResponse.repos[0];
+  assertPresence(eaveRepo);
+
+  try {
+    const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
+      {
+        origin: appConfig.eaveOrigin,
+        ctx,
+        teamId: eaveTeam.id,
+        input: {
+          query_params: {
+            github_repo_id: eaveRepo.id,
+            pull_request_number: event.pull_request.number,
+          },
+        },
+      },
+    );
+
+    for (const document of associatedGithubDocuments.documents) {
+      await UpdateGithubDocumentOperation.perform({
+        origin: appConfig.eaveOrigin,
+        ctx,
+        teamId: eaveTeam.id,
+        input: {
+          document: {
+            id: document.id,
+            new_values: {
+              status: Status.PR_MERGED,
+            },
+          },
+        },
+      });
+    }
+  } catch (e: any) {
+    eaveLogger.exception(e, ctx);
+    // Allow the function to continue running
+  }
+
   const openaiClient = await OpenAIClient.getAuthedClient();
-  eaveLogger.debug("Processing github pull_request event", ctx);
 
   let keepPaginating = true;
   let filePaths: Array<string> = [];
@@ -148,6 +228,8 @@ export default async function handler(
     keepPaginating = prFilesConnection.pageInfo.hasNextPage;
   }
 
+  eaveLogger.debug("file paths", ctx, { repoId, filePaths });
+
   // update docs in each file
   const contentsQuery = await GraphQLUtil.loadQuery("getFileContentsByPath");
   const b64UpdatedContent = await Promise.all(
@@ -213,20 +295,21 @@ export default async function handler(
       octokit,
       ctx,
     });
+
+    eaveLogger.debug("creating pull request for inline code docs", ctx, {
+      repoId,
+      pull_request_number: event.pull_request.number,
+    });
+
     await prCreator.createPullRequest({
       branchName: `refs/heads/eave/auto-docs/${event.pull_request.number}`,
       commitMessage: "docs: automated update",
-      fileChanges,
-      prTitle: "docs: Eave inline code documentation update",
+      fileChanges: { additions: fileChanges },
+      prTitle: `docs: Eave inline code documentation update for #${event.pull_request.number}`,
       prBody: `Your new code docs based on changes from PR #${event.pull_request.number}`,
     });
-  } catch (error: any) {
-    eaveLogger.error(
-      `GitHub API threw an error during inline docs PR creation: ${JSON.stringify(
-        error,
-      )}`,
-      ctx,
-    );
+  } catch (e: any) {
+    eaveLogger.exception(e, ctx);
     return;
   }
 }

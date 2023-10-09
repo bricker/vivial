@@ -5,7 +5,6 @@ import {
   SubscriptionSourcePlatform,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/subscriptions.js";
 import { UpsertDocumentOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/documents.js";
-import { GetGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
 import {
   GetSubscriptionOperation,
   GetSubscriptionResponseBody,
@@ -25,7 +24,7 @@ import {
 import { PushEvent } from "@octokit/webhooks-types";
 import { appConfig } from "../config.js";
 import * as GraphQLUtil from "../lib/graphql-util.js";
-import { GitHubOperationsContext } from "../types.js";
+import { EventHandlerArgs } from "../types.js";
 
 /**
  * Receives github webhook push events.
@@ -35,11 +34,14 @@ import { GitHubOperationsContext } from "../types.js";
  * Checks if push event touched any files that Eave has subscriptions for;
  * any file subscriptions found will perform updates on connected documents.
  */
-export default async function handler(
-  event: PushEvent,
-  context: GitHubOperationsContext,
-) {
-  const { ctx, octokit } = context;
+export default async function handler({
+  event,
+  ctx,
+  octokit,
+  eaveTeam,
+}: EventHandlerArgs & {
+  event: PushEvent;
+}) {
   const event_name = "github_push_subscription_updates";
   ctx.feature_name = event_name;
   eaveLogger.debug("Processing push", ctx);
@@ -50,19 +52,6 @@ export default async function handler(
     eaveLogger.debug(`Ignoring event with ref ${event.ref}`, ctx);
     return;
   }
-
-  // fetch eave team id required for core_api requests
-  const installationId = event.installation!.id;
-  const teamResponse = await GetGithubInstallationOperation.perform({
-    ctx,
-    origin: appConfig.eaveOrigin,
-    input: {
-      github_integration: {
-        github_install_id: `${installationId}`,
-      },
-    },
-  });
-  const eaveTeamId = teamResponse.team.id;
 
   // get file content so we can document the changes
   const query = await GraphQLUtil.loadQuery("getFileContents");
@@ -96,7 +85,7 @@ export default async function handler(
             subscriptionResponse = await GetSubscriptionOperation.perform({
               ctx,
               origin: appConfig.eaveOrigin,
-              teamId: eaveTeamId,
+              teamId: eaveTeam.id,
               input: {
                 subscription: {
                   source: {
@@ -167,6 +156,7 @@ export default async function handler(
           const summarizedContent = rollingSummary({
             client: openaiClient,
             content: fileContents,
+            ctx,
           });
 
           // FIXME: Add this eslint exception to eslint config
@@ -191,6 +181,7 @@ export default async function handler(
           const document: DocumentInput = {
             title: `Description of code in ${repositoryName} ${filePath}`,
             content: openaiResponse,
+            parent: null,
           };
 
           await logEvent(
@@ -199,7 +190,7 @@ export default async function handler(
               event_description:
                 "updating a document subscribed to github file changes",
               event_source: "github webhook push event",
-              opaque_params: JSON.stringify({
+              opaque_params: {
                 repoOwner: event.repository.owner.name,
                 repoName: event.repository.name,
                 filePath: eventCommitTouchedFilename,
@@ -207,8 +198,8 @@ export default async function handler(
                 document_id:
                   subscriptionResponse.document_reference?.document_id,
                 eventId,
-              }),
-              eave_team: JSON.stringify(teamResponse.team),
+              },
+              eave_team: eaveTeam,
             },
             ctx,
           );
@@ -216,7 +207,7 @@ export default async function handler(
           await UpsertDocumentOperation.perform({
             ctx,
             origin: appConfig.eaveOrigin,
-            teamId: eaveTeamId,
+            teamId: eaveTeam.id,
             input: {
               document,
               subscriptions: [subscriptionResponse.subscription],

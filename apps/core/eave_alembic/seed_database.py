@@ -131,6 +131,7 @@ async def seed_database() -> None:
 
         gh_repo = orm.GithubRepoOrm(
             team_id=team_id,
+            github_installation_id=github.id,
             external_repo_id=f"external_repo_id{row}",
             display_name=f"repository {row}",
         )

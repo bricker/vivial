@@ -1,5 +1,6 @@
 export enum Status {
   PROCESSING = "processing",
+  FAILED = "failed",
   PR_OPENED = "pr_opened",
   PR_MERGED = "pr_merged",
 }
@@ -12,27 +13,29 @@ export enum DocumentType {
 export type GithubDocument = {
   id: string;
   team_id: string;
-  external_repo_id: string;
-  pull_request_number?: number;
+  github_repo_id: string;
+  pull_request_number: number | null;
   status: Status;
   status_updated: Date;
-  file_path?: string;
-  api_name?: string;
+  file_path: string | null;
+  api_name: string | null;
   type: DocumentType;
 };
 
 export type GithubDocumentsQueryInput = {
   id?: string;
-  external_repo_id?: string;
+  github_repo_id?: string;
   type?: DocumentType;
+  pull_request_number?: number;
+  // TODO: Validation
 };
 
 export type GithubDocumentCreateInput = {
-  external_repo_id: string;
-  file_path?: string;
-  api_name?: string;
+  file_path: string | null;
+  api_name: string | null;
   type: DocumentType;
-  pull_request_number?: number;
+  pull_request_number: number | null;
+  status: Status;
 };
 
 export type GithubDocumentValuesInput = {

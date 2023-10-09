@@ -21,6 +21,8 @@ import { CtxArg, makeRequest } from "./requests.js";
 import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 import { ExpressRoutingMethod } from "./types.js";
 
+// document me
+
 type CreateTaskSharedArgs = CtxArg & {
   queueName: string;
   targetPath: string;
@@ -108,8 +110,6 @@ export async function createTask({
     headers = {};
   }
 
-  headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = MIME_TYPE_JSON;
-
   let body: string;
   if (payload instanceof Buffer) {
     body = payload.toString();
@@ -119,35 +119,43 @@ export async function createTask({
     body = JSON.stringify(payload);
   }
 
+  const teamId = headers[EAVE_TEAM_ID_HEADER] || ctx.eave_team_id;
+  const accountId = headers[EAVE_ACCOUNT_ID_HEADER] || ctx.eave_account_id;
+  const requestId = headers[EAVE_REQUEST_ID_HEADER] || ctx.eave_request_id;
+
   const eaveSigTs = makeSigTs();
 
   const signatureMessage = buildMessageToSign({
     method: httpConstants.HTTP2_METHOD_POST,
     path: targetPath,
     ts: eaveSigTs,
-    requestId: ctx.eave_request_id,
+    requestId,
     origin,
     audience,
     payload: body,
-    teamId: ctx.eave_team_id,
-    accountId: ctx.eave_account_id,
+    teamId,
+    accountId,
     ctx,
   });
 
   const signing = Signing.new(origin);
   const signature = await signing.signBase64(signatureMessage);
 
+  headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = MIME_TYPE_JSON;
   headers[EAVE_SIGNATURE_HEADER] = signature;
-  headers[EAVE_REQUEST_ID_HEADER] = ctx.eave_request_id;
   headers[EAVE_ORIGIN_HEADER] = origin;
   headers[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
 
-  if (ctx.eave_account_id) {
-    headers[EAVE_ACCOUNT_ID_HEADER] = ctx.eave_account_id;
+  if (requestId && !headers[EAVE_REQUEST_ID_HEADER]) {
+    headers[EAVE_REQUEST_ID_HEADER] = requestId;
   }
 
-  if (ctx.eave_team_id) {
-    headers[EAVE_TEAM_ID_HEADER] = ctx.eave_team_id;
+  if (accountId && !headers[EAVE_ACCOUNT_ID_HEADER]) {
+    headers[EAVE_ACCOUNT_ID_HEADER] = accountId;
+  }
+
+  if (teamId && !headers[EAVE_TEAM_ID_HEADER]) {
+    headers[EAVE_TEAM_ID_HEADER] = teamId;
   }
 
   const client = new CloudTasksClient();
@@ -162,9 +170,11 @@ export async function createTask({
       headers,
       httpMethod: "POST",
       relativeUri: targetPath,
-      body,
+      body: Buffer.from(body).toString("base64"),
     },
   };
+
+  assert(task.appEngineHttpRequest);
 
   if (uniqueTaskId) {
     if (taskNamePrefix) {
@@ -182,11 +192,13 @@ export async function createTask({
 
   eaveLogger.debug(`Creating task on queue ${queueName}`, ctx, {
     // fields are snake cased for consistency with Python
-    task_name: task.name,
+    task: {
+      name: task.name,
+      body: task.appEngineHttpRequest.body?.toString(),
+      headers: task.appEngineHttpRequest.headers,
+    },
     queue_name: parent,
   });
-
-  assert(task.appEngineHttpRequest);
 
   if (sharedConfig.isDevelopment) {
     const host = sharedConfig.eavePublicServiceBase(origin);

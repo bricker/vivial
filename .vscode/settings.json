@@ -49,7 +49,7 @@
   },
   "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
   "eslint.experimental.useFlatConfig": false,
-  "eslint.format.enable": true,
+  "eslint.format.enable": false,
   "eslint.lintTask.enable": true,
   "eslint.codeAction.showDocumentation": {
     "enable": true
@@ -137,12 +137,6 @@
   }
   ],
   "typescript.preferences.importModuleSpecifierEnding": "js",
-  "eslint.rules.customizations": [
-    {
-      "rule": "*",
-      "severity": "downgrade"
-    }
-  ],
   "typescript.validate.enable": true,
   "eslint.run": "onSave",
   "ruff.importStrategy": "useBundled",

@@ -1,3 +1,5 @@
+// @ts-check
+import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
@@ -24,14 +26,10 @@ const Dashboard = () => {
   const showAPIDocs = team.apiDocsEnabled;
 
   const isLoading =
-    team.teamIsLoading ||
-    team.reposAreLoading ||
-    team.featureStatesLoading;
+    team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
 
   const isErroring =
-    team.teamIsErroring ||
-    team.reposAreErroring ||
-    team.featureStatesErroring;
+    team.teamIsErroring || team.reposAreErroring || team.featureStatesErroring;
 
   const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
@@ -61,7 +59,13 @@ const Dashboard = () => {
     setAPIDocsModalIsOpen(true);
   };
 
-  const handleFeatureUpdate = ({ teamRepoIds, enabledRepoIds, feature }) => {
+  const handleFeatureUpdate = (
+    /**@type {Types.FeatureStateParams}*/ {
+      teamRepoIds,
+      enabledRepoIds,
+      feature,
+    },
+  ) => {
     updateTeamFeatureState({ teamRepoIds, enabledRepoIds, feature });
     closeModal();
   };
@@ -83,6 +87,9 @@ const Dashboard = () => {
         break;
       case FEATURE_MODAL.TYPES.API_DOCS:
         openAPIDocsModal();
+        break;
+      default:
+        break;
     }
   }, [cookies]);
 
@@ -94,6 +101,9 @@ const Dashboard = () => {
         break;
       case FEATURE_MODAL.TYPES.API_DOCS:
         openAPIDocsModal();
+        break;
+      default:
+        break;
     }
   }, [searchParams]);
 

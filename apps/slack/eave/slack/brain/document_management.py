@@ -111,6 +111,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
         api_document = eave.stdlib.core_api.models.documents.DocumentInput(
             title=document_topic,
             content=documentation + document_resources,
+            parent=None,
         )
 
         current = api_document
@@ -120,6 +121,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
             p = eave.stdlib.core_api.models.documents.DocumentInput(
                 title=category,
                 content="",
+                parent=None,
             )
             current.parent = p
             current = p

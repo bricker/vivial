@@ -11,4 +11,4 @@ class DocumentSearchResult(BaseResponseModel):
 class DocumentInput(BaseInputModel):
     title: str
     content: str
-    parent: Optional["DocumentInput"] = None
+    parent: Optional["DocumentInput"]

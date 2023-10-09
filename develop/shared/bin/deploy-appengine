@@ -4,6 +4,7 @@ source "$EAVE_HOME"/develop/functions.bash
 
 function deploy() (
 	local project; project=$(^gcloudproject)
+	local promoteflag=""
 
 	while getopts "p:" argname
 	do
@@ -11,8 +12,10 @@ function deploy() (
 			p)
 				if test "$OPTARG" = "prod"; then
 					project="eave-production"
+					promoteflag="--no-promote"
 				else
 					project="eavefyi-dev"
+					promoteflag="--promote"
 				fi
 				;;
 			*)
@@ -25,12 +28,37 @@ function deploy() (
 	local appyaml="app.$project.yaml"
 	test -f "$appyaml"
 
-	local timestamp; timestamp=$(date --utc "+%Y%m%dt%H%Mz")
+	local service; service=$(yq ".service" < "$appyaml")
+
+	local timestamp; timestamp=$(date -u "+%Y%m%dt%H%Mz")
 	local gitrev; gitrev=$(git rev-parse --short HEAD)
 	local version="$timestamp-$gitrev"
 
 	gcloud --project="$project" meta list-files-for-upload | grep -v "^vendor"
-	gcloud --project="$project" app deploy --version="$version" --appyaml="$appyaml"
+	gcloud --project="$project" app deploy --version="$version" --appyaml="$appyaml" "$promoteflag"
+
+	if test "$promoteflag" == "--no-promote"; then
+
+		# FIXME: Remove hardcoded status paths/services
+		statuspath="/status"
+		case "$service" in
+			"api" | "www") statuspath="/status" ;;
+			"*") statuspath="/$service/status" ;;
+		esac
+
+		local vurl="https://$version-dot-$service-dot-$project.uc.r.appspot.com$statuspath"
+
+		local response; response=$(curl --silent --connect-timeout 30 "$vurl")
+		local status; status=$(jq .status < "$response")
+
+		if test "$status" == "OK"; then
+			gcloud app services set-traffic "$service" --splits="$version=1" --migrate
+		else
+			statusmsg -e "Deployment of ${service} version ${version} failed! See above for the error message from curl."
+			statusmsg -e "This version WILL NOT be promoted, and is receiving no traffic."
+			exit 1
+		fi
+	fi
 
 	# local service=$(cat $appyaml | yq '.service')
 	# local tagname="$service-$version"

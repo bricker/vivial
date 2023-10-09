@@ -164,6 +164,43 @@ function setupcloudsqlproxy() (
 	fi
 )
 
+function installterraform() (
+	if ! ^force && ^cmd-exists "terraform"; then
+		statusmsg -o "terraform already installed."
+	else
+		statusmsg -pa "Installing the 'terraform' command line utility."
+		statusmsg -i "The terraform CLI is used in various utility scripts in this repository."
+
+		if ^ask; then
+			case "$kernel" in
+			"linux")
+				case "$opsys" in
+				"ubuntu")
+					statusmsg -w "sudo privileges are needed to install terraform via apt"
+					sudo apt install terraform
+					;;
+				"manjarolinux")
+					statusmsg -w "sudo privileges are needed to install terraform via pacman"
+					sudo pacman -S terraform
+					;;
+				*)
+					statusmsg -e "Your operating system $opsys isn't supported. Please add support to this script!"
+					;;
+				esac
+				;;
+
+			"darwin")
+				if ^cmd-exists "brew"; then
+					brew install terraform
+				else
+					statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
+				fi
+				;;
+			esac
+		fi
+	fi
+)
+
 function installjq() (
 	if ! ^force && ^cmd-exists "jq"; then
 		statusmsg -o "jq already installed."
@@ -288,6 +325,7 @@ setupgcloud
 setupcloudsqlproxy
 installjq
 installyq
+installterraform
 installshfmt
 installshellcheck
 setupapps

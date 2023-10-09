@@ -78,10 +78,10 @@ function formatStatus(doc, repoMap) {
   const repoUrl = repo.external_repo_data.url;
   const prNumber = doc.pull_request_number;
   const prLink = `${repoUrl}/pull/${prNumber}`;
-  const prLinkStyle = {'color': '#0092C7', textDecoration: 'none'};
+  const prLinkStyle = {color: '#0092C7', textDecoration: 'none'};
   const prStatus = (status === DOC_STATUSES.PR_OPENED) ? "PR Created" : "PR Merged";
 
-  return <>{prStatus} (<a target="_blank" href={prLink} style={prLinkStyle}>#{prNumber}</a>)</>;
+  return <>{prStatus} (<a target="_blank" rel="noreferrer" href={prLink} style={prLinkStyle}>#{prNumber}</a>)</>;
 }
 
 function formatLastUpdated(doc) {
@@ -146,7 +146,7 @@ function renderContent(classes, team, compact) {
       tr.style.setProperty('background-color', "#3E3E3E");
     }
   };
-  const handleRowMouseOut = (e, doc) => {
+  const handleRowMouseOut = (e, _doc) => {
     const tr = e.target.closest('tr');
     tr.style.removeProperty('background-color');
   };

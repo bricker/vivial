@@ -1,6 +1,10 @@
+// @ts-check
 import { Dialog, IconButton, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
+import * as Types from "../../types"; // eslint-disable-line no-unused-vars
+// @ts-ignore
 import classNames from "classnames";
+// @ts-ignore
 import React, { useCallback, useState } from "react";
 import { useCookies } from "react-cookie";
 
@@ -18,10 +22,10 @@ import {
   FEEDBACK_URL,
 } from "../../constants.js";
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   paper: {
-    backgroundColor: theme.palette.background.main,
-    color: theme.palette.background.contrastText,
+    backgroundColor: theme.palette.background["main"],
+    color: theme.palette.background["contrastText"],
     width: "100%",
     height: "100%",
     maxHeight: "none",
@@ -30,7 +34,7 @@ const makeClasses = makeStyles((theme) => ({
     padding: "88px 25px",
     overflowY: "scroll",
     [theme.breakpoints.up("md")]: {
-      backgroundColor: theme.palette.background.light,
+      backgroundColor: theme.palette.background["light"],
       height: "auto",
       padding: "60px 54px 44px",
       overflowY: "visible",
@@ -179,7 +183,7 @@ const makeClasses = makeStyles((theme) => ({
   confirmationBtns: {
     marginTop: 42,
     "& > button": {
-      width: '100%',
+      width: "100%",
     },
     [theme.breakpoints.up("md")]: {
       display: "flex",
@@ -190,13 +194,13 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   disableBtn: {
-    border: `1px solid ${theme.palette.background.contrastText}`,
-    color: theme.palette.background.contrastText,
+    border: `1px solid ${theme.palette.background["contrastText"]}`,
+    color: theme.palette.background["contrastText"],
     fontSize: 20,
     width: "100%",
     marginBottom: 10,
     "&:hover": {
-      border: `1px solid ${theme.palette.background.contrastText}`,
+      border: `1px solid ${theme.palette.background["contrastText"]}`,
       backgroundColor: "transparent",
     },
     [theme.breakpoints.up("md")]: {
@@ -224,7 +228,7 @@ function renderTitle(type) {
     case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
       return "Inline Code Documentation";
     case FEATURE_MODAL.TYPES.API_DOCS:
-      return "API Documentation Automation"
+      return "API Documentation Automation";
     default:
       return "";
   }
@@ -262,13 +266,29 @@ function renderDescription(type) {
   }
 }
 
+/**
+ * @param {Types.GithubRepo[] | undefined} repos
+ * @param {string} feature
+ * @returns {string[]}
+ */
 function getEnabledRepoIds(repos, feature) {
+  if (!repos) {
+    return [];
+  }
   return repos
     .filter((repo) => repo[feature] === FEATURE_STATES.ENABLED)
-    .map((repo) => repo.external_repo_id);
+    .map((repo) => repo.id);
 }
 
-const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
+const GitHubFeatureModal = (
+  /**@type {{ onClose: () => void, onUpdate: (p: Types.FeatureStateParams) => void, open: boolean, feature: string, type: string }}*/ {
+    onClose,
+    onUpdate,
+    open,
+    feature,
+    type,
+  },
+) => {
   const classes = makeClasses();
   const [_, setCookie] = useCookies([FEATURE_MODAL.ID]);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -276,8 +296,13 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
   const [selectedRepoError, setSelectedRepoError] = useState(null);
   const { team } = useTeam();
 
-  const github = team.integrations.github_integration;
-  const githubOauthUrl = `${window.eave.apiBase}/oauth/github/authorize`;
+  const github = team.integrations?.github_integration;
+
+  /** @type {Types.GlobalEave} */
+  // @ts-ignore
+  const _globalEave = window;
+
+  const githubOauthUrl = `${_globalEave.eave.apiBase}/oauth/github/authorize`;
   const githubLogoFile = github
     ? "eave-github-installed.png"
     : "eave-github-required.png";
@@ -285,7 +310,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
     classes.githubReposText,
     !github && classes.disabledText,
   );
-  const teamRepoIds = team.repos.map((repo) => repo.external_repo_id);
+  const teamRepoIds = team.repos.map((repo) => repo.id);
   const enabledRepoIds = getEnabledRepoIds(team.repos, feature);
   const featureIsEnabled = !!enabledRepoIds.length;
   const cta = featureIsEnabled ? "Update" : "Turn On";
@@ -377,6 +402,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
         open={open}
       >
         <IconButton className={classes.closeButton} onClick={onClose}>
+          {/*@ts-ignore*/}
           <CloseIcon />
         </IconButton>
         <Typography className={classes.title} variant="h2">
@@ -407,6 +433,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
             className={classes.feedbackLink}
             href={FEEDBACK_URL}
             target="_blank"
+            rel="noreferrer"
           >
             Send Feedback
           </a>
@@ -428,6 +455,7 @@ const GitHubFeatureModal = ({ onClose, onUpdate, open, feature, type }) => {
         </Button>
       )}
       <IconButton className={classes.closeButton} onClick={onClose}>
+        {/*@ts-ignore*/}
         <CloseIcon />
       </IconButton>
       <Typography className={classes.title} variant="h2">
