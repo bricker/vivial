@@ -62,9 +62,7 @@ def downgrade() -> None:
             autoincrement=False,
             nullable=True,
         ),
-        sa.Column(
-            "forge_app_id", sa.VARCHAR(), autoincrement=False, nullable=False
-        ),
+        sa.Column("forge_app_id", sa.VARCHAR(), autoincrement=False, nullable=False),
         sa.Column(
             "forge_app_version",
             sa.VARCHAR(),
@@ -83,9 +81,7 @@ def downgrade() -> None:
             autoincrement=False,
             nullable=False,
         ),
-        sa.Column(
-            "webtrigger_url", sa.VARCHAR(), autoincrement=False, nullable=False
-        ),
+        sa.Column("webtrigger_url", sa.VARCHAR(), autoincrement=False, nullable=False),
         sa.Column(
             "created",
             postgresql.TIMESTAMP(),
@@ -99,12 +95,8 @@ def downgrade() -> None:
             autoincrement=False,
             nullable=True,
         ),
-        sa.ForeignKeyConstraint(
-            ["team_id"], ["teams.id"], name="forge_installations_team_id_fkey"
-        ),
-        sa.PrimaryKeyConstraint(
-            "forge_app_installation_id", "id", name="forge_installations_pkey"
-        ),
+        sa.ForeignKeyConstraint(["team_id"], ["teams.id"], name="forge_installations_team_id_fkey"),
+        sa.PrimaryKeyConstraint("forge_app_installation_id", "id", name="forge_installations_pkey"),
     )
     op.create_index(
         "ix_forge_installations_forge_app_installation_id",
