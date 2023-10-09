@@ -23,6 +23,7 @@ from eave.stdlib.typing import JsonArray, JsonObject
 from eave.stdlib.utm_cookies import set_tracking_cookies
 from .config import app_config
 from eave.stdlib.config import shared_config
+from eave.stdlib.logging import eaveLogger
 
 eave.stdlib.time.set_utc()
 
@@ -116,13 +117,17 @@ async def get_team_repos() -> Response:
     team_id = unwrap(auth_cookies.team_id)
     access_token = unwrap(auth_cookies.access_token)
 
-    eave_response = await github_repos.GetGithubReposRequest.perform(
-        origin=origin,
-        account_id=account_id,
-        access_token=access_token,
-        team_id=team_id,
-        input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
-    )
+    try:
+        eave_response = await github_repos.GetGithubReposRequest.perform(
+            origin=origin,
+            account_id=account_id,
+            access_token=access_token,
+            team_id=team_id,
+            input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
+        )
+    except Exception as e:
+        eaveLogger.exception(e)
+        return _json_response(body={"repos": []})
 
     internal_repo_list = eave_response.repos
     if len(internal_repo_list) == 0:
@@ -136,8 +141,8 @@ async def get_team_repos() -> Response:
     for repo in internal_repo_list:
         repo_id = repo.external_repo_id
         if repo_id in external_repo_map:
-            jsonRepo = repo.dict()
-            jsonRepo["external_repo_data"] = external_repo_map[repo_id].dict()
+            jsonRepo = json.loads(repo.json())
+            jsonRepo["external_repo_data"] = json.loads(external_repo_map[repo_id].json())
             merged_repo_list.append(jsonRepo)
 
     return _json_response(body={"repos": merged_repo_list})
