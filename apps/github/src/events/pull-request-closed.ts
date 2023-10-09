@@ -4,6 +4,7 @@ import {
   GetGithubDocumentsOperation,
   UpdateGithubDocumentOperation,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-documents.js";
+import { GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { updateDocumentation } from "@eave-fyi/eave-stdlib-ts/src/function-documenting.js";
 import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
@@ -31,10 +32,10 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { GitHubOperationsContext } from "../types.js";
 
 /**
- * Handles GitHub pull request events. If the event indicates that a pull request has been closed, 
- * the function logs the event and updates the status of associated documents. 
- * If the pull request was merged, the function also fetches all files from the pull request, 
- * determines which files need documentation, and updates the documentation in each file. 
+ * Handles GitHub pull request events. If the event indicates that a pull request has been closed,
+ * the function logs the event and updates the status of associated documents.
+ * If the pull request was merged, the function also fetches all files from the pull request,
+ * determines which files need documentation, and updates the documentation in each file.
  * Finally, it creates a new pull request with the updated documentation.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
  *
@@ -97,6 +98,22 @@ export default async function handler(
   const repoName = event.repository.name;
   const repoId = event.repository.node_id.toString();
 
+  const eaveRepoResponse = await GetGithubReposOperation.perform({
+    ctx,
+    origin: appConfig.eaveOrigin,
+    teamId: eaveTeam.id,
+    input: {
+      repos: [
+        {
+          external_repo_id: repoId,
+        },
+      ],
+    },
+  });
+
+  const eaveRepo = eaveRepoResponse.repos[0];
+  assertPresence(eaveRepo);
+
   try {
     const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
       {
@@ -105,7 +122,7 @@ export default async function handler(
         teamId: eaveTeam.id,
         input: {
           query_params: {
-            external_repo_id: repoId,
+            github_repo_id: eaveRepo.id,
             pull_request_number: event.pull_request.number,
           },
         },

@@ -23,6 +23,37 @@ export type ParsedFunction = {
 };
 
 /**
+ * Validate that `content` is syntactically valid for the programming language
+ * detected from the file extension of `filePath`.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.content - The content of the file to parse.
+ * @param {string} params.filePath - The path of the file to parse. The file extension of the source code file is expected to contain . prefix (e.g. ".js"). Used to determine the correct language grammar.
+ *
+ * @throws {Error} when `content` does not have valid syntax
+ */
+export function assertValidSyntax({
+  content,
+  filePath,
+}: {
+  content: string;
+  filePath: string;
+}) {
+  const parser = new Parser();
+  const languageGrammar = grammarForFilePathOrName(filePath);
+  if (!languageGrammar) {
+    // unable to determine syntactic correctness.
+    // This likely means that we couldnt alter `content` either
+    return;
+  }
+  parser.setLanguage(languageGrammar);
+  const ptree = parser.parse(content);
+  if (ptree.rootNode.hasError()) {
+    throw new Error("Syntax error found in file content");
+  }
+}
+
+/**
  * Parses the content of a file to extract functions and their associated documentation comments.
  *
  * @param {Object} params - The parameters for the function.

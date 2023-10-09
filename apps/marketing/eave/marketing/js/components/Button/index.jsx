@@ -26,8 +26,8 @@ const Button = ({
   variant = "contained",
   children,
   className,
-  target,
-  to,
+  target = undefined,
+  to = undefined,
   ...rest
 }) => {
   const classes = makeClasses();

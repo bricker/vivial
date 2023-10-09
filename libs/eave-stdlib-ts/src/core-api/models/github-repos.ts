@@ -12,9 +12,9 @@ export enum State {
 
 export type GithubRepo = {
   team_id: string;
+  id: string;
   external_repo_id: string;
-  github_install_id: string;
-  display_name?: string;
+  display_name: string | null;
   api_documentation_state: State;
   inline_code_documentation_state: State;
   architecture_documentation_state: State;
@@ -23,10 +23,13 @@ export type GithubRepo = {
 export type GithubRepoCreateInput = {
   external_repo_id: string;
   display_name: string;
-  github_install_id: string;
   api_documentation_state: State;
   inline_code_documentation_state: State;
   architecture_documentation_state: State;
+};
+
+export type GithubRepoRefInput = {
+  id: string;
 };
 
 export type GithubRepoListInput = {
@@ -40,12 +43,12 @@ export type GithubRepoUpdateValues = {
 };
 
 export type GithubRepoUpdateInput = {
-  external_repo_id: string;
+  id: string;
   new_values: GithubRepoUpdateValues;
 };
 
 export type GithubReposDeleteInput = {
-  external_repo_id: string;
+  id: string;
 };
 
 export type GithubReposFeatureStateInput = {

@@ -3,7 +3,6 @@ from typing import Optional
 import pydantic
 from eave.stdlib.eave_origins import EaveApp
 from ...config import shared_config
-from pydantic import ConfigDict
 
 _base_url = shared_config.eave_internal_service_base(EaveApp.eave_api)
 
@@ -48,7 +47,6 @@ class BaseRequestBody(pydantic.BaseModel):
 
 class BaseResponseBody(pydantic.BaseModel):
     _raw_response: Optional[aiohttp.ClientResponse] = None
-    model_config = ConfigDict()
 
 
 class Endpoint:

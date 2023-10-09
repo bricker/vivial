@@ -22,7 +22,7 @@ class DocumentType(StrEnum):
 class GithubDocument(BaseResponseModel):
     id: uuid.UUID
     team_id: uuid.UUID
-    external_repo_id: str
+    github_repo_id: uuid.UUID
     pull_request_number: Optional[int]
     status: Status
     status_updated: datetime.datetime
@@ -33,13 +33,13 @@ class GithubDocument(BaseResponseModel):
 
 class GithubDocumentsQueryInput(BaseInputModel):
     id: Optional[uuid.UUID] = None
-    external_repo_id: Optional[str] = None
+    github_repo_id: Optional[uuid.UUID] = None
     type: Optional[DocumentType] = None
     pull_request_number: Optional[int] = None
 
 
 class GithubDocumentCreateInput(BaseInputModel):
-    external_repo_id: str
+    github_repo_id: uuid.UUID
     type: DocumentType
     status: Status
     file_path: Optional[str]

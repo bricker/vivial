@@ -1,6 +1,6 @@
 import React from "react";
 
-const ExpandIcon = ({ color = "white", up, lg }) => {
+const ExpandIcon = ({ color = "white", up = undefined, lg = undefined }) => {
   if (lg) {
     if (up) {
       return (

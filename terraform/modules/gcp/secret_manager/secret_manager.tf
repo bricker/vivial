@@ -26,6 +26,7 @@ resource "google_secret_manager_secret" "all" {
   expire_time = null
   labels      = {}
   ttl         = null
+
   replication {
     automatic = true
   }

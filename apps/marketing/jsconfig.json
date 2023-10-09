@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "noEmit": true,
+    "allowJs": true
+  },
+  "include": ["eave/marketing/js/**/*.jsx", "eave/marketing/js/**/*.js"]
+}
