@@ -22,7 +22,7 @@ import {
   assertPresence,
   underscoreify,
 } from "@eave-fyi/eave-stdlib-ts/src/util.js";
-import { FileAddition } from "@octokit/graphql-schema";
+import { FileAddition, PullRequest } from "@octokit/graphql-schema";
 import assert from "assert";
 import Express from "express";
 import { ExpressAPIDocumentBuilder } from "../lib/api-documentation/builder.js";
@@ -270,22 +270,30 @@ export async function runApiDocumentationTaskHandler(
     ctx,
   });
 
-  const pullRequest = await prCreator.createPullRequest({
-    branchName: "refs/heads/eave/auto-docs/api",
-    commitMessage: "docs: automated update",
-    prTitle: "docs: Eave API documentation update",
-    prBody: "Your new API docs based on recent changes to your code",
-    fileChanges: {
-      additions: fileAdditions,
-    },
-  });
+  let pullRequest: PullRequest | null = null;
+  try {
+    pullRequest = await prCreator.createPullRequest({
+      branchName: `refs/heads/eave/auto-docs/api/${Date.now()}`,
+      commitMessage: "docs: automated update",
+      prTitle: "docs: Eave API documentation update",
+      prBody: "Your new API docs based on recent changes to your code",
+      fileChanges: {
+        additions: fileAdditions,
+      },
+    });
+  } catch (e) {
+    // continue to update our DB state after logging PR error
+    eaveLogger.error(<Error>e, ctx);
+  }
+
+  const status = pullRequest === null ? Status.FAILED : Status.PR_OPENED;
 
   await updateDocuments({
     coreAPIData,
     documents,
     newValues: {
-      pull_request_number: pullRequest.number,
-      status: Status.FAILED,
+      pull_request_number: pullRequest?.number,
+      status,
     },
   });
 }
