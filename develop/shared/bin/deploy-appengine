@@ -29,6 +29,10 @@ function deploy() (
 	test -f "$appyaml"
 
 	local service; service=$(yq ".service" < "$appyaml")
+	if test -z "$service"; then
+		statusmsg -e "Couldn't find the service name! Aborting."
+		exit 1
+	fi
 
 	local timestamp; timestamp=$(date -u "+%Y%m%dt%H%Mz")
 	local gitrev; gitrev=$(git rev-parse --short HEAD)
@@ -49,7 +53,7 @@ function deploy() (
 		local vurl="https://$version-dot-$service-dot-$project.uc.r.appspot.com$statuspath"
 
 		local response; response=$(curl --silent --connect-timeout 30 "$vurl")
-		statusmsg -i $response
+		statusmsg -i "$response"
 		local status; status=$(echo "$response" | jq -r .status)
 
 		if test "$status" == "OK"; then

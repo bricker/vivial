@@ -13,7 +13,7 @@ from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.middleware.development_bypass import development_bypass_allowed
 from .development_bypass import development_bypass_auth
 from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.exceptions import BadRequestError
+from eave.stdlib.exceptions import BadRequestError, UnauthorizedError
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
@@ -38,17 +38,16 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         account_id_header = eave.stdlib.api_util.get_header_value(
             scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
         )
-        if not account_id_header:
+
+        access_token = get_bearer_token(scope=scope)
+
+        if not account_id_header or not access_token:
             if not self.endpoint_config.auth_required:
                 return
             else:
-                raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
+                raise UnauthorizedError()
 
         account_id = uuid.UUID(account_id_header)
-
-        access_token = get_bearer_token(scope=scope)
-        if access_token is None:
-            raise BadRequestError("malformed or missing authorization header")
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
