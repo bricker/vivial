@@ -1,3 +1,5 @@
+import { UUID } from "../../types.js";
+
 export enum Feature {
   API_DOCUMENTATION = "api_documentation",
   INLINE_CODE_DOCUMENTATION = "inline_code_documentation",
@@ -11,8 +13,8 @@ export enum State {
 }
 
 export type GithubRepo = {
-  team_id: string;
-  id: string;
+  team_id: UUID;
+  id: UUID;
   external_repo_id: string;
   display_name: string | null;
   api_documentation_state: State;
@@ -29,7 +31,7 @@ export type GithubRepoCreateInput = {
 };
 
 export type GithubRepoRefInput = {
-  id: string;
+  id: UUID;
 };
 
 export type GithubRepoListInput = {
@@ -43,12 +45,12 @@ export type GithubRepoUpdateValues = {
 };
 
 export type GithubRepoUpdateInput = {
-  id: string;
+  id: UUID;
   new_values: GithubRepoUpdateValues;
 };
 
 export type GithubReposDeleteInput = {
-  id: string;
+  id: UUID;
 };
 
 export type GithubReposFeatureStateInput = {
