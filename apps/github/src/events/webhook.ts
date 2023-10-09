@@ -29,51 +29,12 @@ export async function webhookEventHandler(
     return;
   }
 
-  // FIXME: event.installation not available when using local webhook forwarding
-  const eventBody = <GithubWebhookBody>req.body;
-  const installationId = eventBody.installation.id.toString();
-  const cacheKey = `github_installation:${installationId}:eave_team_id`;
-
-  let eaveTeamId: string | undefined;
-  let cacheClient: Cache | undefined;
-
-  try {
-    cacheClient = await getCacheClient();
-    const cachedTeamId = await cacheClient.get(cacheKey);
-    if (cachedTeamId) {
-      eaveTeamId = cachedTeamId.toString();
-    }
-  } catch (e: any) {
-    eaveLogger.warning("Error connecting to cache", ctx, e);
-  }
-
-  if (!eaveTeamId) {
-    const eaveTeam = await getTeamForInstallation({ installationId, ctx });
-    if (eaveTeam) {
-      eaveTeamId = eaveTeam.id;
-      if (cacheClient) {
-        await cacheClient.set(cacheKey, eaveTeamId);
-      }
-    }
-  }
-
-  if (!eaveTeamId) {
-    eaveLogger.warning(
-      `No Eave Team found for installation ID ${installationId}`,
-      ctx,
-      { installationId },
-    );
-    res.sendStatus(httpConstants.HTTP_STATUS_FORBIDDEN);
-    return;
-  }
-
-  ctx.eave_team_id = eaveTeamId;
-
   await createTaskFromRequest({
     queueName: GITHUB_EVENT_QUEUE_NAME,
     targetPath: GithubEventHandlerTaskOperation.config.path,
     origin: EaveApp.eave_github_app,
     audience: EaveApp.eave_github_app,
+    teamId: eaveTeamId,
     req,
     ctx,
   });

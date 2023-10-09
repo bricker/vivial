@@ -38,3 +38,7 @@ export enum ExpressRoutingMethod {
  */
 export type Constructor = new (...args: any[]) => any;
 export type GConstructor<T = NonNullable<unknown>> = new (...args: any[]) => T;
+
+// Copied from node:crypto
+// export type UUID = `${string}-${string}-${string}-${string}-${string}`;
+export type UUID = string;

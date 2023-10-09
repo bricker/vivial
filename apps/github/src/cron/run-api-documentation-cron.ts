@@ -37,10 +37,8 @@ export async function runApiDocumentationCronHandler(
         repo: {
           external_repo_id: repo.external_repo_id,
         },
-      } satisfies RunApiDocumentationTaskRequestBody,
-      headers: {
-        [EAVE_TEAM_ID_HEADER]: repo.team_id,
-      },
+      } satisfies RunApiDocumentationTaskRequestBody, // This is for developers, to imply what the payload type is
+      teamId: repo.team_id,
       queueName: GITHUB_EVENT_QUEUE_NAME,
       targetPath: RunApiDocumentationTaskOperation.config.path,
       origin: EaveApp.eave_github_app,

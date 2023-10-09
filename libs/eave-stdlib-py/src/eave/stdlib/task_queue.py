@@ -56,6 +56,9 @@ async def create_task_from_request(
     ctx: Optional[LogContext],
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
+    team_id: Optional[str] = None,
+    account_id: Optional[str] = None,
+    request_id: Optional[str] = None,
 ) -> None:
     if not unique_task_id:
         if trace_id := request.headers.get(GCP_CLOUD_TRACE_CONTEXT):
@@ -78,6 +81,9 @@ async def create_task_from_request(
         unique_task_id=unique_task_id,
         task_name_prefix=task_name_prefix,
         headers=headers,
+        team_id=team_id,
+        account_id=account_id,
+        request_id=request_id,
         ctx=ctx,
     )
 
@@ -92,6 +98,9 @@ async def create_task(
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
     headers: Optional[dict[str, str]] = None,
+    team_id: Optional[str] = None,
+    account_id: Optional[str] = None,
+    request_id: Optional[str] = None,
 ) -> tasks.Task:
     ctx = LogContext.wrap(ctx)
 
@@ -104,8 +113,11 @@ async def create_task(
     if not headers:
         headers = {}
 
-    request_id = ctx.eave_request_id
     eave_sig_ts = signing.make_sig_ts()
+
+    team_id = team_id or headers[EAVE_TEAM_ID_HEADER] or ctx.eave_team_id
+    account_id = account_id or headers[EAVE_ACCOUNT_ID_HEADER] or ctx.eave_account_id
+    request_id = request_id or headers[EAVE_REQUEST_ID_HEADER] or ctx.eave_request_id
 
     signature_message, ts = signing.build_message_to_sign(
         method="POST",
@@ -116,8 +128,8 @@ async def create_task(
         path=target_path,
         # FIXME: The linter doesn't like this next line, with the error `Cannot access member "decode" for type "memoryview"`
         payload=body.decode(),  # type: ignore
-        team_id=ctx.eave_team_id,
-        account_id=ctx.eave_account_id,
+        team_id=team_id,
+        account_id=account_id,
         ctx=ctx,
     )
 
@@ -126,13 +138,13 @@ async def create_task(
     headers[CONTENT_TYPE] = "application/json"
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
-    headers[EAVE_REQUEST_ID_HEADER] = request_id
     headers[EAVE_ORIGIN_HEADER] = origin.value
+    headers[EAVE_REQUEST_ID_HEADER] = request_id
 
-    if ctx.eave_account_id:
-        headers[EAVE_ACCOUNT_ID_HEADER] = ctx.eave_account_id
-    if ctx.eave_team_id:
-        headers[EAVE_TEAM_ID_HEADER] = ctx.eave_team_id
+    if account_id:
+        headers[EAVE_ACCOUNT_ID_HEADER] = account_id
+    if team_id:
+        headers[EAVE_TEAM_ID_HEADER] = team_id
 
     client = tasks.CloudTasksAsyncClient()
 
