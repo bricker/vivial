@@ -1,19 +1,11 @@
-import { Cache, getCacheClient } from "@eave-fyi/eave-stdlib-ts/src/cache.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { GithubEventHandlerTaskOperation } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/event-handler-task.js";
-import {
-  LogContext,
-  eaveLogger,
-} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { createTaskFromRequest } from "@eave-fyi/eave-stdlib-ts/src/task-queue.js";
 import Express from "express";
 import { constants as httpConstants } from "node:http2";
 import { GITHUB_EVENT_QUEUE_NAME } from "../config.js";
-import { getTeamForInstallation } from "../lib/octokit-util.js";
-import {
-  GithubWebhookBody,
-  getEventHandler,
-} from "../middleware/process-webhook-payload.js";
+import { getEventHandler } from "../middleware/process-webhook-payload.js";
 
 export async function webhookEventHandler(
   req: Express.Request,
@@ -34,7 +26,6 @@ export async function webhookEventHandler(
     targetPath: GithubEventHandlerTaskOperation.config.path,
     origin: EaveApp.eave_github_app,
     audience: EaveApp.eave_github_app,
-    teamId: eaveTeamId,
     req,
     ctx,
   });

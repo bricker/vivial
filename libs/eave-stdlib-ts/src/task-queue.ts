@@ -19,7 +19,7 @@ import {
 import { LogContext, eaveLogger } from "./logging.js";
 import { CtxArg, makeRequest } from "./requests.js";
 import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
-import { ExpressRoutingMethod, UUID } from "./types.js";
+import { ExpressRoutingMethod } from "./types.js";
 
 // document me
 
@@ -30,9 +30,6 @@ type CreateTaskSharedArgs = CtxArg & {
   audience: EaveApp;
   uniqueTaskId?: string;
   taskNamePrefix?: string;
-  teamId?: UUID;
-  accountId?: UUID;
-  requestId?: UUID;
 };
 
 type CreateTaskArgs = CreateTaskSharedArgs & {
@@ -51,9 +48,6 @@ export async function createTaskFromRequest({
   audience,
   uniqueTaskId,
   taskNamePrefix,
-  teamId,
-  accountId,
-  requestId,
   req,
   ctx,
 }: CreateTaskFromRequestArgs): Promise<void> {
@@ -95,9 +89,6 @@ export async function createTaskFromRequest({
     taskNamePrefix,
     payload,
     headers,
-    teamId,
-    accountId,
-    requestId,
     ctx,
   });
 }
@@ -111,9 +102,6 @@ export async function createTask({
   audience,
   uniqueTaskId,
   taskNamePrefix,
-  teamId,
-  accountId,
-  requestId,
   ctx,
 }: CreateTaskArgs): Promise<void> {
   ctx = LogContext.wrap(ctx);
@@ -131,9 +119,9 @@ export async function createTask({
     body = JSON.stringify(payload);
   }
 
-  teamId = teamId || headers[EAVE_TEAM_ID_HEADER] || ctx.eave_team_id;
-  accountId = accountId || headers[EAVE_ACCOUNT_ID_HEADER] || ctx.eave_account_id;
-  requestId = requestId || headers[EAVE_REQUEST_ID_HEADER] || ctx.eave_request_id;
+  const teamId = headers[EAVE_TEAM_ID_HEADER] || ctx.eave_team_id;
+  const accountId = headers[EAVE_ACCOUNT_ID_HEADER] || ctx.eave_account_id;
+  const requestId = headers[EAVE_REQUEST_ID_HEADER] || ctx.eave_request_id;
 
   const eaveSigTs = makeSigTs();
 
@@ -157,9 +145,18 @@ export async function createTask({
   headers[EAVE_SIGNATURE_HEADER] = signature;
   headers[EAVE_ORIGIN_HEADER] = origin;
   headers[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
-  headers[EAVE_REQUEST_ID_HEADER] = requestId;
-  headers[EAVE_ACCOUNT_ID_HEADER] = accountId;
-  headers[EAVE_TEAM_ID_HEADER] = teamId;
+
+  if (requestId && !headers[EAVE_REQUEST_ID_HEADER]) {
+    headers[EAVE_REQUEST_ID_HEADER] = requestId;
+  }
+
+  if (accountId && !headers[EAVE_ACCOUNT_ID_HEADER]) {
+    headers[EAVE_ACCOUNT_ID_HEADER] = accountId;
+  }
+
+  if (teamId && !headers[EAVE_TEAM_ID_HEADER]) {
+    headers[EAVE_TEAM_ID_HEADER] = teamId;
+  }
 
   const client = new CloudTasksClient();
   const parent = client.queuePath(

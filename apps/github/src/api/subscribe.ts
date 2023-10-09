@@ -5,11 +5,13 @@ import {
 import { CreateSubscriptionOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/subscriptions.js";
 import { GithubRepository } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { CreateGithubResourceSubscriptionRequestBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/create-subscription.js";
+import { EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
 import {
   LogContext,
   eaveLogger,
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { Pair } from "@eave-fyi/eave-stdlib-ts/src/types.js";
+import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import { Request, Response } from "express";
 import { Octokit } from "octokit";
 import { appConfig } from "../config.js";
@@ -21,6 +23,8 @@ export async function subscribeHandler(
 ): Promise<void> {
   const ctx = LogContext.load(res);
   const octokit = await createTeamOctokitClient(req, ctx);
+  const eaveTeamId = req.header(EAVE_TEAM_ID_HEADER);
+  assertPresence(eaveTeamId);
 
   const input = <CreateGithubResourceSubscriptionRequestBody>req.body;
   if (!input.url) {
@@ -46,7 +50,7 @@ export async function subscribeHandler(
   const subResponse = await CreateSubscriptionOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
-    teamId: ctx.eave_team_id,
+    teamId: eaveTeamId,
     input: {
       subscription: {
         source: {
