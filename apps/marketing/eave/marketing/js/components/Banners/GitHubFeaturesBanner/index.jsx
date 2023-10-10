@@ -6,7 +6,7 @@ import Copy from "../../Copy/index.jsx";
 import PageSection from "../../PageSection/index.jsx";
 
 const makeClasses = makeStyles((theme) => ({
-  wrapper: {
+  container: {
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "column",
@@ -24,8 +24,15 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 41,
   },
   featureImage: {
-    // widthFn = (maxWidth) => (maxWidth - PageSection.padding*2 - featureContainer.margin*2) / numberOfFeatures
-    // min( widthFn(viewportWidth), widthFn(PageSection.maxWidth) )
+    // Allow the gh feature container image to grow w/ the window width up to
+    // the point where PageSection limits the page content width (1115px).
+    // This image maxWidth determines the width of the flexbox containers.
+    // We want each gh feature to have a max width of ~1/3 of the available content width
+    // (i.e. not overflow the page or the margins), so subtract the PageSection.padding[Horizontal] * 2 (108px)
+    // and the featureContainer.marginRight * 2 (160px) from the minimum of window width (100vw)
+    // and PageSection.maxWidth (1115px), then divide by the number of gh features we display (3).
+    // That gives the width a flexbox container should have to take up 1/3 of the available content space,
+    // up to the point where the content space stops growing with the browser view width.
     maxWidth: "min((100vw - 108px - 160px) / 3, 282px)",
     minWidth: 150,
     [theme.breakpoints.down("sm")]: {
@@ -79,9 +86,9 @@ const GitHubFeaturesBanner = ({ title, features }) => {
         />
       </div>
 
-      <div className={classes.wrapper}>
-        {features.map((feature, i) => (
-          <div key={i} className={classes.featureContainer}>
+      <div className={classes.container}>
+        {features.map((feature) => (
+          <div key={feature.title} className={classes.featureContainer}>
             <Copy variant="h2" bold={true}>
               {feature.title}
             </Copy>
