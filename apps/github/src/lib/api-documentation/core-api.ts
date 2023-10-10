@@ -19,15 +19,15 @@ import {
   eaveLogger,
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import assert from "assert";
 import { appConfig } from "../../config.js";
 import { EaveGithubRepoArg } from "./args.js";
-import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 
 type GithubDocumentTable = { [key: string]: GithubDocument };
 
 export class CoreAPIData {
-  readonly logParams: {[key:string]: JsonValue};
+  readonly logParams: { [key: string]: JsonValue };
   readonly team: Team;
   readonly eaveGithubRepo: GithubRepo;
   private readonly ctx: LogContext;
@@ -127,7 +127,7 @@ export class CoreAPIData {
       eave_github_repo: this.eaveGithubRepo,
       existing_documents: this.eaveGithubDocuments,
       eave_team: this.team,
-    }
+    };
   }
 
   async createPlaceholderGithubDocument({

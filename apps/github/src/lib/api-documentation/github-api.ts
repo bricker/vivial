@@ -2,6 +2,7 @@ import {
   LogContext,
   eaveLogger,
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import {
   Blob,
@@ -23,10 +24,9 @@ import {
   loadQuery,
 } from "../graphql-util.js";
 import { EaveGithubRepoArg, ExternalGithubRepoArg } from "./args.js";
-import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 
 export class GithubAPIData {
-  readonly logParams: {[key:string]: JsonValue};
+  readonly logParams: { [key: string]: JsonValue };
   readonly expressRootDirs: string[];
   readonly externalGithubRepo: Repository;
   private readonly ctx: LogContext;
@@ -97,7 +97,7 @@ export class GithubAPIData {
     this.logParams = {
       external_github_repo: this.externalGithubRepo,
       express_root_dirs: this.expressRootDirs,
-    }
+    };
   }
 
   async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {

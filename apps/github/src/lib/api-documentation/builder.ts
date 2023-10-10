@@ -12,7 +12,6 @@ import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import { assertIsBlob } from "../graphql-util.js";
 import { GithubAPIData } from "./github-api.js";
-import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 
 export class ExpressAPIDocumentBuilder {
   private readonly githubAPIData: GithubAPIData;
@@ -55,7 +54,11 @@ export class ExpressAPIDocumentBuilder {
     }
 
     if (!apiInfo.rootFile) {
-      eaveLogger.warning("No express API root file found", { apiRootDir, github_data: githubAPIData.logParams }, ctx);
+      eaveLogger.warning(
+        "No express API root file found",
+        { apiRootDir, github_data: githubAPIData.logParams },
+        ctx,
+      );
       return apiInfo;
     }
 
@@ -69,7 +72,11 @@ export class ExpressAPIDocumentBuilder {
     if (endpoints.length === 0) {
       eaveLogger.warning(
         "No express API endpoints found",
-        { apiRootDir, apiRootFile: apiInfo.rootFile?.asJSON, github_data: githubAPIData.logParams },
+        {
+          apiRootDir,
+          apiRootFile: apiInfo.rootFile?.asJSON,
+          github_data: githubAPIData.logParams,
+        },
         ctx,
       );
     }
@@ -274,7 +281,11 @@ export class ExpressAPIDocumentBuilder {
     filePath: string;
   }): Promise<ExpressCodeFile> {
     const file = new ExpressCodeFile({ path: filePath, contents: "" }); // empty contents as placeholder
-    eaveLogger.debug("getExpressCodeFile", { filePath, github_data: this.githubAPIData.logParams }, this.ctx);
+    eaveLogger.debug(
+      "getExpressCodeFile",
+      { filePath, github_data: this.githubAPIData.logParams },
+      this.ctx,
+    );
 
     let gitBlob = await this.githubAPIData.getFileContent({ filePath });
     if (
@@ -286,14 +297,22 @@ export class ExpressAPIDocumentBuilder {
         filePathOrName: filePath,
         to: ".ts",
       });
-      eaveLogger.debug("getExpressCodeFile - trying js -> ts conversion", { filePath, tsFilePath, github_data: this.githubAPIData.logParams }, this.ctx);
+      eaveLogger.debug(
+        "getExpressCodeFile - trying js -> ts conversion",
+        { filePath, tsFilePath, github_data: this.githubAPIData.logParams },
+        this.ctx,
+      );
       gitBlob = await this.githubAPIData.getFileContent({
         filePath: tsFilePath,
       });
     }
 
     if (!gitBlob?.text) {
-      eaveLogger.warning("getExpressCodeFile - empty file contents", { filePath, github_data: this.githubAPIData.logParams }, this.ctx);
+      eaveLogger.warning(
+        "getExpressCodeFile - empty file contents",
+        { filePath, github_data: this.githubAPIData.logParams },
+        this.ctx,
+      );
       return file;
     }
 
