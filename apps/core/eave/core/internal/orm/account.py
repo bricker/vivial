@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import typing
 import uuid
 from datetime import datetime
-from typing import Any, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Any, Optional, Self, Tuple
 from uuid import UUID
 
 import eave.stdlib.exceptions
@@ -148,9 +148,7 @@ class AccountOrm(Base):
         result = await session.scalar(lookup)
         return result
 
-    def set_tokens(
-        self, session: AsyncSession, access_token: str | None, refresh_token: str | None
-    ) -> None:
+    def set_tokens(self, session: AsyncSession, access_token: str | None, refresh_token: str | None) -> None:
         """
         The session parameter is unused but encourages the caller to use this function in an open DB session, so that the changes are applied when it's closed.
         """
@@ -191,7 +189,9 @@ class AccountOrm(Base):
                     access_token=self.access_token, refresh_token=self.refresh_token
                 )
                 eave.core.internal.oauth.google.get_userinfo(credentials=credentials)
-                self.set_tokens(session=session, access_token=credentials.token, refresh_token=credentials.refresh_token)
+                self.set_tokens(
+                    session=session, access_token=credentials.token, refresh_token=credentials.refresh_token
+                )
                 return True
             case _:
                 raise

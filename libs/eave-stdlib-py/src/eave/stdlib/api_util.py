@@ -10,6 +10,7 @@ import eave.stdlib.util as util
 from starlette.responses import Response
 from asgiref.typing import HTTPScope
 
+
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
     This function doesn't support multiple headers with the same name.
@@ -18,6 +19,7 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+
 
 def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:
     """

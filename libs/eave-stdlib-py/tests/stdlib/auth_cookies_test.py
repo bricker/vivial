@@ -30,7 +30,10 @@ class AuthCookiesTestBase(UtilityBaseTestCase):
 class AuthCookiesTest(AuthCookiesTestBase):
     async def test_set_auth_cookies_with_all_data(self):
         set_auth_cookies(
-            response=self.mock_response, team_id=self.data_team_id, account_id=self.data_account_id, access_token=self.data_access_token
+            response=self.mock_response,
+            team_id=self.data_team_id,
+            account_id=self.data_account_id,
+            access_token=self.data_access_token,
         )
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 

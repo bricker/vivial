@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Mapping, Optional
 import uuid
 
-import aiohttp
 
 from eave.stdlib.cookies import ResponseCookieMutator, delete_http_cookie, set_http_cookie
 
@@ -16,6 +15,7 @@ class AuthCookies:
     account_id: Optional[str]
     team_id: Optional[str]
     access_token: Optional[str]
+
 
 def set_auth_cookies(
     response: ResponseCookieMutator,
@@ -31,6 +31,7 @@ def set_auth_cookies(
 
     if access_token:
         set_http_cookie(key=_EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
+
 
 def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
     account_id = cookies.get(_EAVE_ACCOUNT_ID_COOKIE)

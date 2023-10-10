@@ -3,7 +3,6 @@ from typing import Any
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
-from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
@@ -132,7 +131,9 @@ async def get_team_repos() -> Response:
     if len(internal_repo_list) == 0:
         return _json_response(body={"repos": []})
 
-    external_response = await QueryGithubRepos.perform(origin=app_config.eave_origin, team_id=unwrap(auth_cookies.team_id))
+    external_response = await QueryGithubRepos.perform(
+        origin=app_config.eave_origin, team_id=unwrap(auth_cookies.team_id)
+    )
     external_repo_list = external_response.repos
     external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
     merged_repo_list: JsonArray = []

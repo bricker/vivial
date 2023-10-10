@@ -29,7 +29,7 @@ class GetAuthedAccount(HTTPEndpoint):
                 params=AccountOrm.QueryParams(
                     id=eave.stdlib.util.ensure_uuid(eave_state.ctx.eave_account_id),
                     access_token=eave.stdlib.api_util.get_bearer_token(scope=cast(HTTPScope, request.scope)),
-                )
+                ),
             )
 
         return eave.stdlib.api_util.json_response(
@@ -53,7 +53,7 @@ class GetAuthedAccountTeamIntegrations(HTTPEndpoint):
                 params=AccountOrm.QueryParams(
                     id=eave.stdlib.util.ensure_uuid(eave_state.ctx.eave_account_id),
                     access_token=eave.stdlib.api_util.get_bearer_token(scope=cast(HTTPScope, request.scope)),
-                )
+                ),
             )
             integrations = await eave_team_orm.get_integrations(session=db_session)
             destination = await eave_team_orm.get_destination(session=db_session)

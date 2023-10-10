@@ -1,8 +1,4 @@
-import {
-  makeRequest,
-  RequestArgsAuthedRequest,
-  RequestArgsTeamId,
-} from "../../requests.js";
+import { makeRequest, RequestArgsTeamId } from "../../requests.js";
 import {
   GithubDocument,
   GithubDocumentCreateInput,

@@ -287,7 +287,9 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         return account
 
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.AccountOrm | None:
-        acct = await eave.core.internal.orm.AccountOrm.one_or_none(session=session, params=AccountOrm.QueryParams(id=id))
+        acct = await eave.core.internal.orm.AccountOrm.one_or_none(
+            session=session, params=AccountOrm.QueryParams(id=id)
+        )
         return acct
 
     async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.TeamOrm | None:

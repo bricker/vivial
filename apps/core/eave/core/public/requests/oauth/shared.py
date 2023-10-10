@@ -84,11 +84,12 @@ async def get_logged_in_eave_account(
     if auth_cookies_.access_token and auth_cookies_.account_id:
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
-                session=db_session, params=AccountOrm.QueryParams(
+                session=db_session,
+                params=AccountOrm.QueryParams(
                     id=ensure_uuid(auth_cookies_.account_id),
                     access_token=auth_cookies_.access_token,
                     auth_provider=auth_provider,
-                )
+                ),
             )
 
             if not eave_account:
@@ -120,7 +121,7 @@ async def get_existing_eave_account(
             params=AccountOrm.QueryParams(
                 auth_provider=auth_provider,
                 auth_id=auth_id,
-            )
+            ),
         )
 
         if eave_account:

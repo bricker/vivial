@@ -22,7 +22,7 @@ async def development_bypass_auth(scope: HTTPScope) -> None:
             session=db_session,
             params=AccountOrm.QueryParams(
                 id=uuid.UUID(account_id),
-            )
+            ),
         )
 
     eave_state.ctx.eave_account_id = str(eave_account.id)

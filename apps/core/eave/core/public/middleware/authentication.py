@@ -1,11 +1,4 @@
-from typing import cast
-import uuid
-from starlette.datastructures import MutableHeaders
-
-from starlette.responses import Response
-from starlette.types import Message
 from eave.core.internal.orm.account import AccountOrm
-from eave.stdlib.auth_cookies import delete_auth_cookies, set_auth_cookies
 from eave.stdlib.core_api.operations import EndpointConfiguration
 
 import eave.stdlib.headers
@@ -13,7 +6,7 @@ import eave.stdlib.api_util
 import eave.stdlib.exceptions
 import eave.core.internal
 import eave.core.public
-from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, HTTPScope, Scope
+from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 from eave.stdlib.api_util import get_bearer_token
 
 from eave.stdlib.request_state import EaveRequestState
@@ -66,7 +59,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                 params=AccountOrm.QueryParams(
                     id=ensure_uuid(account_id_header),
                     access_token=access_token,
-                )
+                ),
             )
 
             if not eave_account:

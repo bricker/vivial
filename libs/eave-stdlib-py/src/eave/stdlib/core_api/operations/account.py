@@ -19,7 +19,11 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
 
     @classmethod
     async def perform(
-        cls, access_token: str, team_id: uuid.UUID, account_id: uuid.UUID | str, **kwargs: Unpack[requests.CommonRequestArgs]
+        cls,
+        access_token: str,
+        team_id: uuid.UUID,
+        account_id: uuid.UUID | str,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,

@@ -1,6 +1,5 @@
 import {
   makeRequest,
-  RequestArgsAuthedRequest,
   RequestArgsOrigin,
   RequestArgsTeamId,
 } from "../../requests.js";

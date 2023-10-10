@@ -5,7 +5,7 @@ from eave.core.internal.orm.github_installation import GithubInstallationOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
-from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies
+from eave.stdlib.auth_cookies import get_auth_cookies
 import eave.stdlib.cookies
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import ExternalGithubRepo
@@ -117,9 +117,8 @@ class GithubOAuthCallback(HTTPEndpoint):
             eave_account = await AccountOrm.one_or_none(
                 session=db_session,
                 params=AccountOrm.QueryParams(
-                    id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id),
-                    access_token=auth_cookies.access_token
-                )
+                    id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id), access_token=auth_cookies.access_token
+                ),
             )
 
             if not eave_account:
