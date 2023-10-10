@@ -83,7 +83,12 @@ export class ExpressAPIDocumentBuilder {
       );
     }
 
-    eaveLogger.debug("found express endpoints", { endpoints }, builder.logParams, ctx);
+    eaveLogger.debug(
+      "found express endpoints",
+      { endpoints },
+      builder.logParams,
+      ctx,
+    );
 
     return apiInfo;
   }
@@ -300,16 +305,14 @@ export class ExpressAPIDocumentBuilder {
     );
 
     let gitBlob = await this.githubAPIData.getFileContent({ filePath });
-    eaveLogger.debug("getExpressCodeFile -> gitBlob",
+    eaveLogger.debug(
+      "getExpressCodeFile -> gitBlob",
       { filePath, gitBlob, file: file.asJSON },
       this.logParams,
       this.ctx,
-    )
+    );
 
-    if (
-      !gitBlob &&
-      file.language === ProgrammingLanguage.javascript
-    ) {
+    if (!gitBlob && file.language === ProgrammingLanguage.javascript) {
       // either the file doesn't exist, or this is a javascript import and the source file is typescript.
       const tsFilePath = changeFileExtension({
         filePathOrName: filePath,

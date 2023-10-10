@@ -165,7 +165,9 @@ export class GithubAPIData {
     } = {
       repoOwner: this.externalGithubRepo.owner.login,
       repoName: this.externalGithubRepo.name,
-      expression: `${this.externalGithubRepo.defaultBranchRef?.name || "main"}:${filePath}`,
+      expression: `${
+        this.externalGithubRepo.defaultBranchRef?.name || "main"
+      }:${filePath}`,
     };
 
     const response = await this.octokit.graphql<{
