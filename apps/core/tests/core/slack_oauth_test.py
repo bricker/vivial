@@ -8,10 +8,12 @@ from http import HTTPStatus
 import eave.core.internal
 import eave.core.internal.oauth.google
 import eave.core.internal.oauth.slack
+from eave.core.internal.orm.account import AccountOrm
 import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
 from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.util import ensure_uuid
 
 from .base import BaseTestCase
 
@@ -139,7 +141,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
             eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
                 session=s,
-                id=uuid.UUID(account_id),
+                params=AccountOrm.QueryParams(id=ensure_uuid(account_id)),
             )
             assert eave_account
 

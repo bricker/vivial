@@ -244,7 +244,7 @@ class TestAtlassianOAuth(BaseTestCase):
 
         async with self.db_session.begin() as s:
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
-            eave_account_after = await AccountOrm.one_or_exception(session=s, id=eave_account_before.id)
+            eave_account_after = await AccountOrm.one_or_exception(session=s, params=AccountOrm.QueryParams(id=eave_account_before.id))
 
             # Test that the tokens were updated
             assert eave_account_after.access_token == self.anystring("atlassian.access_token")

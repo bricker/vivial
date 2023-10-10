@@ -1,8 +1,9 @@
 import json
 from typing import Any
-from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, forward_response_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
+from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
@@ -82,26 +83,17 @@ async def get_auth_state() -> Response:
 
 @app.route("/dashboard/me", methods=["GET"])
 async def get_user() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
-
-    eave_response = await account.GetAuthenticatedAccount.perform(
-        origin=app_config.eave_origin,
-        account_id=unwrap(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-    )
-
-    return _clean_response(eave_response)
+    response = await _get_authed_account()
+    return _clean_response(response)
 
 
 @app.route("/dashboard/team", methods=["GET"])
 async def get_team() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    authed_account = await _get_authed_account()
 
     eave_response = await team.GetTeamRequest.perform(
         origin=app_config.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
+        team_id=authed_account.account.team_id,
     )
 
     return _json_response(body=eave_response.json())
@@ -109,20 +101,12 @@ async def get_team() -> Response:
 
 @app.route("/dashboard/team/repos", methods=["GET"])
 async def get_team_repos() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
-
-    origin = app_config.eave_origin
-    account_id = unwrap(auth_cookies.account_id)
-    team_id = unwrap(auth_cookies.team_id)
-    access_token = unwrap(auth_cookies.access_token)
+    authed_account = await _get_authed_account()
 
     try:
         eave_response = await github_repos.GetGithubReposRequest.perform(
-            origin=origin,
-            account_id=account_id,
-            access_token=access_token,
-            team_id=team_id,
+            origin=app_config.eave_origin,
+            team_id=authed_account.account.team_id,
             input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
         )
     except Exception as e:
@@ -133,7 +117,7 @@ async def get_team_repos() -> Response:
     if len(internal_repo_list) == 0:
         return _json_response(body={"repos": []})
 
-    external_response = await QueryGithubRepos.perform(origin=origin, team_id=team_id)
+    external_response = await QueryGithubRepos.perform(origin=app_config.eave_origin, team_id=authed_account.account.team_id)
     external_repo_list = external_response.repos
     external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
     merged_repo_list: JsonArray = []
@@ -150,17 +134,14 @@ async def get_team_repos() -> Response:
 
 @app.route("/dashboard/team/repos/update", methods=["POST"])
 async def update_team_repos() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    authed_account = await _get_authed_account()
 
     body = request.get_json()
     repos: list[GithubRepoUpdateInput] = body["repos"]
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        account_id=unwrap(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-        team_id=unwrap(auth_cookies.team_id),
+        team_id=authed_account.account.team_id,
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
 
@@ -169,17 +150,14 @@ async def update_team_repos() -> Response:
 
 @app.route("/dashboard/team/documents", methods=["POST"])
 async def get_team_documents() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    authed_account = await _get_authed_account()
 
     body = request.get_json()
     document_type = body["document_type"]
 
     eave_response = await github_documents.GetGithubDocumentsRequest.perform(
         origin=app_config.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=unwrap(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
+        team_id=authed_account.account.team_id,
         input=github_documents.GetGithubDocumentsRequest.RequestBody(
             query_params=GithubDocumentsQueryInput(type=document_type)
         ),
@@ -204,24 +182,29 @@ def catch_all(path: str) -> Response:
     return response
 
 
+async def _get_authed_account() -> account.GetAuthenticatedAccount.ResponseBody:
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
+
+    response = await account.GetAuthenticatedAccount.perform(
+        origin=app_config.eave_origin,
+        account_id=unwrap(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+    )
+
+    return response
+
 def _assert_auth(auth_cookies: AuthCookies) -> None:
     if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:
         raise werkzeug.exceptions.Unauthorized()
 
 
 def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:
-    # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
-    access_token = eave_response.account.access_token
-    del eave_response.account.access_token
-
     response = _json_response(body=eave_response.json())
 
-    set_auth_cookies(
-        response=response,
-        access_token=access_token,  # In case the access token was refreshed
-    )
+    if raw := eave_response._raw_response:
+        forward_response_auth_cookies(from_server=raw, to_client=response)
 
-    # TODO: Forward cookies from server to client
     return response
 
 

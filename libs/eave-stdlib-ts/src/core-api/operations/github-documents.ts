@@ -94,7 +94,7 @@ export class DeleteGithubDocumentsByIdsOperation {
     path: "/github-documents/delete/id",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & {
+    args: RequestArgsTeamId & {
       input: DeleteGithubDocumentsByIdsRequestBody;
     },
   ): Promise<void> {
@@ -113,7 +113,7 @@ export class DeleteGithubDocumentsByTypeOperation {
     path: "/github-documents/delete/type",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & {
+    args: RequestArgsTeamId & {
       input: DeleteGithubDocumentsByTypeRequestBody;
     },
   ): Promise<void> {

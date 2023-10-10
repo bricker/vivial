@@ -5,7 +5,7 @@ from eave.core.internal.orm.github_installation import GithubInstallationOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
-from eave.stdlib.auth_cookies import get_auth_cookies
+from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies
 import eave.stdlib.cookies
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import ExternalGithubRepo
@@ -111,13 +111,23 @@ class GithubOAuthCallback(HTTPEndpoint):
             # This is the case where they're going through the install flow but not logged in.
             # TODO: Once we allow people to install the app before they've created an account, this is where we'd redirect them to the registration flow.
             eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", self.eave_state.ctx)
+            delete_auth_cookies(self.response)
             return shared.cancel_flow(response=self.response)
 
         async with database.async_session.begin() as db_session:
-            self.eave_account = await AccountOrm.one_or_exception(
-                session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
+            eave_account = await AccountOrm.one_or_none(
+                session=db_session,
+                params=AccountOrm.QueryParams(
+                    id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id),
+                    access_token=auth_cookies.access_token
+                )
             )
 
+            if not eave_account:
+                delete_auth_cookies(self.response)
+                return shared.cancel_flow(response=self.response)
+
+            self.eave_account = eave_account
             self.eave_team = await self.eave_account.get_team(session=db_session)
 
         shared.set_redirect(
