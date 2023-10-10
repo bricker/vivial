@@ -42,12 +42,11 @@ function deploy() (
 	gcloud --project="$project" app deploy --version="$version" --appyaml="$appyaml" "$promoteflag"
 
 	if test "$promoteflag" == "--no-promote"; then
-
 		# FIXME: Remove hardcoded status paths/services
 		statuspath="/status"
 		case "$service" in
-			"api" | "www") statuspath="/status" ;;
-			"*") statuspath="/$service/status" ;;
+			api | www) statuspath="/status" ;;
+			*) statuspath="/$service/status" ;;
 		esac
 
 		local vurl="https://$version-dot-$service-dot-$project.uc.r.appspot.com$statuspath"
