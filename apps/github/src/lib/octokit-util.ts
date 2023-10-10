@@ -80,12 +80,12 @@ export async function getInstallationId(
 export async function getTeamForInstallation({
   installationId,
   ctx,
-}: CtxArg & { installationId: string }): Promise<Team | null> {
+}: CtxArg & { installationId: string | number }): Promise<Team | null> {
   const response = await GetGithubInstallationOperation.perform({
     origin: EaveApp.eave_github_app,
     input: {
       github_integration: {
-        github_install_id: installationId,
+        github_install_id: installationId.toString(),
       },
     },
     ctx,

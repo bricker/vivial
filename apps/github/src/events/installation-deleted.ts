@@ -2,7 +2,7 @@ import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { DeleteGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
 import { InstallationDeletedEvent } from "@octokit/webhooks-types";
 import { appConfig } from "../config.js";
-import { GitHubOperationsContext } from "../types.js";
+import { EventHandlerArgs } from "../types.js";
 
 /**
  * Receives github webhook installation events.
@@ -12,14 +12,16 @@ import { GitHubOperationsContext } from "../types.js";
  * Remove the github_installation db entry for the Eave team that uninstalled the Eave GitHub app.
  * Also removes their github_repos and github_documents db entries; as if they never installed the app.
  */
-export default async function handler(
-  event: InstallationDeletedEvent,
-  context: GitHubOperationsContext,
-) {
+export default async function handler({
+  event,
+  ctx,
+  eaveTeam,
+}: EventHandlerArgs & {
+  event: InstallationDeletedEvent;
+}) {
   if (event.action !== "deleted") {
     return;
   }
-  const { ctx } = context;
 
   await logEvent(
     {
@@ -32,7 +34,7 @@ export default async function handler(
   );
 
   const sharedInput = {
-    teamId: ctx.eave_team_id,
+    teamId: eaveTeam.id,
     origin: appConfig.eaveOrigin,
     ctx,
   };

@@ -119,18 +119,22 @@ export async function createTask({
     body = JSON.stringify(payload);
   }
 
+  const teamId = headers[EAVE_TEAM_ID_HEADER] || ctx.eave_team_id;
+  const accountId = headers[EAVE_ACCOUNT_ID_HEADER] || ctx.eave_account_id;
+  const requestId = headers[EAVE_REQUEST_ID_HEADER] || ctx.eave_request_id;
+
   const eaveSigTs = makeSigTs();
 
   const signatureMessage = buildMessageToSign({
     method: httpConstants.HTTP2_METHOD_POST,
     path: targetPath,
     ts: eaveSigTs,
-    requestId: ctx.eave_request_id,
+    requestId,
     origin,
     audience,
     payload: body,
-    teamId: ctx.eave_team_id,
-    accountId: ctx.eave_account_id,
+    teamId,
+    accountId,
     ctx,
   });
 
@@ -139,16 +143,19 @@ export async function createTask({
 
   headers[httpConstants.HTTP2_HEADER_CONTENT_TYPE] = MIME_TYPE_JSON;
   headers[EAVE_SIGNATURE_HEADER] = signature;
-  headers[EAVE_REQUEST_ID_HEADER] = ctx.eave_request_id;
   headers[EAVE_ORIGIN_HEADER] = origin;
   headers[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
 
-  if (!headers[EAVE_ACCOUNT_ID_HEADER] && ctx.eave_account_id) {
-    headers[EAVE_ACCOUNT_ID_HEADER] = ctx.eave_account_id;
+  if (requestId && !headers[EAVE_REQUEST_ID_HEADER]) {
+    headers[EAVE_REQUEST_ID_HEADER] = requestId;
   }
 
-  if (!headers[EAVE_TEAM_ID_HEADER] && ctx.eave_team_id) {
-    headers[EAVE_TEAM_ID_HEADER] = ctx.eave_team_id;
+  if (accountId && !headers[EAVE_ACCOUNT_ID_HEADER]) {
+    headers[EAVE_ACCOUNT_ID_HEADER] = accountId;
+  }
+
+  if (teamId && !headers[EAVE_TEAM_ID_HEADER]) {
+    headers[EAVE_TEAM_ID_HEADER] = teamId;
   }
 
   const client = new CloudTasksClient();
