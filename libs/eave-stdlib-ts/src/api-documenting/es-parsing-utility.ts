@@ -50,7 +50,11 @@ export class ESCodeFile extends CodeFile {
       const children = this.getNodeChildMap({ node: importNode });
       const importPath = children.get("string")?.text || "";
       const importClause = children.get("import_clause")?.text;
-      const importNames = importClause?.replace(/[\s{}]/g, "").split(",").filter((s) => s) || [];
+      const importNames =
+        importClause
+          ?.replace(/[\s{}]/g, "")
+          .split(",")
+          .filter((s) => s) || [];
 
       for (const importName of importNames) {
         const fullFilePath = this.resolveRelativeFilePath({
