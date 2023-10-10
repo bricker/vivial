@@ -195,7 +195,7 @@ export async function runApiDocumentationTaskHandler(
             });
           }
 
-          throw new Error("no root file found");
+          return null;
         }
 
         if (
@@ -237,7 +237,7 @@ export async function runApiDocumentationTaskHandler(
             });
           }
 
-          throw new Error("no endpoints found");
+          return null;
         }
 
         if (eaveDoc) {
@@ -310,7 +310,8 @@ export async function runApiDocumentationTaskHandler(
             document: eaveDoc,
             newValues: { status: Status.FAILED },
           });
-          throw new Error("no API documentation generated");
+
+          return null;
         }
 
         await logEvent(
@@ -347,7 +348,7 @@ export async function runApiDocumentationTaskHandler(
     {
       results: results.map((r) => ({
         status: r.status,
-        fulfilledValue: r.status === "fulfilled" ? r.value.asJSON : undefined,
+        fulfilledValue: r.status === "fulfilled" ? r.value?.asJSON : undefined,
         rejectedReason: r.status === "rejected" ? r.reason : undefined,
       })),
     },
@@ -356,7 +357,7 @@ export async function runApiDocumentationTaskHandler(
   );
 
   const validExpressAPIs = results
-    .filter((r) => r.status === "fulfilled")
+    .filter((r) => r.status === "fulfilled" && r.value)
     .map((r) => (<PromiseFulfilledResult<ExpressAPI>>r).value);
   sharedAnalyticsParams["express_apis"] = validExpressAPIs.map((e) => e.asJSON);
   eaveLogger.debug("final express APIs", sharedAnalyticsParams, ctx);
