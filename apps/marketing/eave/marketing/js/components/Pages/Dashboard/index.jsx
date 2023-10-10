@@ -1,10 +1,9 @@
 // @ts-check
-import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
-// @ts-ignore
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
 import useTeam from "../../../hooks/useTeam.js";
+import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 
 import APIDocumentation from "../../APIDocumentation/index.jsx";
 import ExploreFeatures from "../../ExploreFeatures/index.jsx";

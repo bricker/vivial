@@ -38,9 +38,17 @@ function deploy() (
 	gcloud --project="$project" app deploy --version="$version" --appyaml="$appyaml" "$promoteflag"
 
 	if test "$promoteflag" == "--no-promote"; then
-		local vurl="https://$version-dot-$service-dot-$project.uc.r.appspot.com"
 
-		local response; response=$(curl --silent --connect-timeout 30 --retry "$vurl")
+		# FIXME: Remove hardcoded status paths/services
+		statuspath="/status"
+		case "$service" in
+			"api" | "www") statuspath="/status" ;;
+			"*") statuspath="/$service/status" ;;
+		esac
+
+		local vurl="https://$version-dot-$service-dot-$project.uc.r.appspot.com$statuspath"
+
+		local response; response=$(curl --silent --connect-timeout 30 "$vurl")
 		local status; status=$(jq .status < "$response")
 
 		if test "$status" == "OK"; then

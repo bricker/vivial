@@ -3,6 +3,7 @@ import {
   GithubRepo,
   State,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   CreateGithubRepoOperation,
   FeatureStateGithubReposOperation,
@@ -28,6 +29,14 @@ interface TestContext extends TestContextBase {
 }
 
 const test = anyTest as TestFn<TestContext>;
+
+function anyTeam(t: TestUtil): Team {
+  return {
+    id: t.anystr(),
+    name: t.anystr(),
+    document_platform: null,
+  };
+}
 
 function anyRepo(t: TestUtil): GithubRepo {
   return {
@@ -99,7 +108,11 @@ test.serial(
         },
       ],
     };
-    await maybeAddReposToDataBase(event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN no action is taken (beyond checking for existing entries in the db)
     t.deepEqual(getGithubReposStub.callCount, 1);
@@ -143,7 +156,7 @@ test.serial(
       "perform",
     );
 
-    const event = {
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
@@ -153,10 +166,14 @@ test.serial(
       installation: {
         id: t.context.u.anystr(),
       },
-    };
+    }; // InstallationRepositoriesAddedEvent;
 
     // WHEN the Eave gh app is given access to a new repo
-    await maybeAddReposToDataBase(<any>event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the db row is created
     t.deepEqual(getGithubReposStub.callCount, 1);
@@ -214,7 +231,7 @@ test.serial(
       "perform",
     );
 
-    const event = {
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
@@ -231,7 +248,11 @@ test.serial(
     };
 
     // WHEN the Eave gh app is given access to multiple new repos
-    await maybeAddReposToDataBase(<any>event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the multiple db rows are created
     t.deepEqual(getGithubReposStub.callCount, 1);
@@ -298,7 +319,7 @@ test.serial(
       "perform",
     );
 
-    const event = {
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
@@ -311,7 +332,11 @@ test.serial(
     };
 
     // WHEN the Eave gh app is given access to a new repo
-    await maybeAddReposToDataBase(<any>event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the db row is created w/ all features disabled
     t.deepEqual(getGithubReposStub.callCount, 1);
@@ -359,7 +384,7 @@ test.serial(
       "perform",
     );
 
-    const event = {
+    const event: any = {
       repositories_added: [
         {
           node_id: t.context.u.anystr("repo1 id"),
@@ -376,7 +401,11 @@ test.serial(
     };
 
     // WHEN the Eave gh app is given access to multiple new repos
-    await maybeAddReposToDataBase(<any>event, LogContext.wrap());
+    await maybeAddReposToDataBase({
+      event,
+      ctx: LogContext.wrap(),
+      eaveTeam: anyTeam(t.context.u),
+    });
 
     // THEN the multiple db rows are created and the API docs feature is triggered for each
     t.deepEqual(getGithubReposStub.callCount, 1);

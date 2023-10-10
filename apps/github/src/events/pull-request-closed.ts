@@ -27,9 +27,8 @@ import { PullRequestEvent } from "@octokit/webhooks-types";
 import path from "path";
 import { appConfig } from "../config.js";
 import * as GraphQLUtil from "../lib/graphql-util.js";
-import { getTeamForInstallation } from "../lib/octokit-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
-import { GitHubOperationsContext } from "../types.js";
+import { EventHandlerArgs } from "../types.js";
 
 /**
  * Handles GitHub pull request events. If the event indicates that a pull request has been closed,
@@ -43,14 +42,17 @@ import { GitHubOperationsContext } from "../types.js";
  * @param {GitHubOperationsContext} context - The context for GitHub operations, including the Octokit instance and the current context.
  * @throws {Error} If there is an error fetching file content or creating a pull request.
  */
-export default async function handler(
-  event: PullRequestEvent,
-  context: GitHubOperationsContext,
-) {
+export default async function handler({
+  event,
+  ctx,
+  octokit,
+  eaveTeam,
+}: EventHandlerArgs & {
+  event: PullRequestEvent;
+}) {
   if (event.action !== "closed") {
     return;
   }
-  const { ctx, octokit } = context;
   eaveLogger.debug("Processing github pull_request event", ctx);
 
   // don't open more docs PRs from other Eave PRs getting merged
@@ -87,12 +89,6 @@ export default async function handler(
   if (!event.pull_request.merged) {
     return;
   }
-
-  const installationId = event.installation?.id?.toString();
-  assertPresence(installationId);
-
-  const eaveTeam = await getTeamForInstallation({ installationId, ctx });
-  assertPresence(eaveTeam);
 
   const repoOwner = event.repository.owner.login;
   const repoName = event.repository.name;

@@ -62,16 +62,16 @@ export class LogContext {
     this.set({ eave_request_id: value });
   }
 
-  get eave_account_id(): string {
-    return <string>this.attributes["eave_account_id"];
+  get eave_account_id(): string | undefined {
+    return <string | undefined>this.attributes["eave_account_id"];
   }
 
   set eave_account_id(value: string) {
     this.set({ eave_account_id: value });
   }
 
-  get eave_team_id(): string {
-    return <string>this.attributes["eave_team_id"];
+  get eave_team_id(): string | undefined {
+    return <string | undefined>this.attributes["eave_team_id"];
   }
 
   set eave_team_id(value: string) {

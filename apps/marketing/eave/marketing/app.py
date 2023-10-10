@@ -9,8 +9,7 @@ import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
 from eave.stdlib.core_api.models.github_documents import GithubDocumentsQueryInput
-
-# from eave.stdlib.github_api.operations.query_repos import (QueryGithubRepos)
+from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 from eave.stdlib.util import unwrap
 
 from eave.stdlib.endpoints import status_payload
@@ -20,7 +19,7 @@ import eave.stdlib.time
 import werkzeug.exceptions
 from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import JsonArray, JsonObject
 from eave.stdlib.utm_cookies import set_tracking_cookies
 from .config import app_config
 from eave.stdlib.config import shared_config
@@ -117,7 +116,7 @@ async def get_team_repos() -> Response:
     team_id = unwrap(auth_cookies.team_id)
     access_token = unwrap(auth_cookies.access_token)
 
-    eave_core_api_response = await github_repos.GetGithubReposRequest.perform(
+    eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=origin,
         account_id=account_id,
         access_token=access_token,
@@ -125,18 +124,23 @@ async def get_team_repos() -> Response:
         input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
 
-    # eave_github_api_response = await QueryGithubRepos.perform(
-    #     origin=origin,
-    #     account_id=account_id,
-    #     access_token=access_token,
-    #     team_id=team_id,
-    # )
+    internal_repo_list = eave_response.repos
+    if len(internal_repo_list) == 0:
+        return _json_response(body={"repos": []})
 
-    # print('*' * 100)
-    # print(eave_github_api_response)
-    # print('*' * 100)
+    external_response = await QueryGithubRepos.perform(origin=origin, team_id=team_id)
+    external_repo_list = external_response.repos
+    external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
+    merged_repo_list: JsonArray = []
 
-    return _json_response(body=eave_core_api_response.json())
+    for repo in internal_repo_list:
+        repo_id = repo.external_repo_id
+        if repo_id in external_repo_map:
+            jsonRepo = repo.dict()
+            jsonRepo["external_repo_data"] = external_repo_map[repo_id].dict()
+            merged_repo_list.append(jsonRepo)
+
+    return _json_response(body={"repos": merged_repo_list})
 
 
 @app.route("/dashboard/team/repos/update", methods=["POST"])
