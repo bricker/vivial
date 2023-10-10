@@ -167,7 +167,7 @@ export class GithubAPIData {
 
     eaveLogger.debug(
       "getGitObject response",
-      { query, variables, response },
+      { variables, response },
       this.ctx,
     );
 

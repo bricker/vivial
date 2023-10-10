@@ -153,8 +153,10 @@ class AccountOrm(Base):
         The session parameter is unused but encourages the caller to use this function in an open DB session, so that the changes are applied when it's closed.
         """
         if access_token:
-            self.previous_access_token = self.access_token
+            if access_token != self.previous_access_token:
+                self.previous_access_token = self.access_token
             self.access_token = access_token
+
         if refresh_token:
             self.refresh_token = refresh_token
 
