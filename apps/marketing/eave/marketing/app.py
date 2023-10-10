@@ -1,6 +1,6 @@
 import json
 from typing import Any
-from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, forward_response_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
@@ -83,17 +83,29 @@ async def get_auth_state() -> Response:
 
 @app.route("/dashboard/me", methods=["GET"])
 async def get_user() -> Response:
-    response = await _get_authed_account()
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
+
+    response = await account.GetAuthenticatedAccount.perform(
+        origin=app_config.eave_origin,
+        team_id=ensure_uuid(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+    )
+
     return _clean_response(response)
 
 
 @app.route("/dashboard/team", methods=["GET"])
 async def get_team() -> Response:
-    authed_account = await _get_authed_account()
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
 
     eave_response = await team.GetTeamRequest.perform(
         origin=app_config.eave_origin,
-        team_id=authed_account.account.team_id,
+        team_id=unwrap(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
     )
 
     return _json_response(body=eave_response.json())
@@ -101,12 +113,15 @@ async def get_team() -> Response:
 
 @app.route("/dashboard/team/repos", methods=["GET"])
 async def get_team_repos() -> Response:
-    authed_account = await _get_authed_account()
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
 
     try:
         eave_response = await github_repos.GetGithubReposRequest.perform(
             origin=app_config.eave_origin,
-            team_id=authed_account.account.team_id,
+            team_id=unwrap(auth_cookies.team_id),
+            account_id=ensure_uuid(auth_cookies.account_id),
+            access_token=unwrap(auth_cookies.access_token),
             input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
         )
     except Exception as e:
@@ -117,7 +132,7 @@ async def get_team_repos() -> Response:
     if len(internal_repo_list) == 0:
         return _json_response(body={"repos": []})
 
-    external_response = await QueryGithubRepos.perform(origin=app_config.eave_origin, team_id=authed_account.account.team_id)
+    external_response = await QueryGithubRepos.perform(origin=app_config.eave_origin, team_id=unwrap(auth_cookies.team_id))
     external_repo_list = external_response.repos
     external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
     merged_repo_list: JsonArray = []
@@ -134,14 +149,17 @@ async def get_team_repos() -> Response:
 
 @app.route("/dashboard/team/repos/update", methods=["POST"])
 async def update_team_repos() -> Response:
-    authed_account = await _get_authed_account()
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
 
     body = request.get_json()
     repos: list[GithubRepoUpdateInput] = body["repos"]
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        team_id=authed_account.account.team_id,
+        team_id=unwrap(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
 
@@ -150,14 +168,17 @@ async def update_team_repos() -> Response:
 
 @app.route("/dashboard/team/documents", methods=["POST"])
 async def get_team_documents() -> Response:
-    authed_account = await _get_authed_account()
+    auth_cookies = get_auth_cookies(cookies=request.cookies)
+    _assert_auth(auth_cookies)
 
     body = request.get_json()
     document_type = body["document_type"]
 
     eave_response = await github_documents.GetGithubDocumentsRequest.perform(
         origin=app_config.eave_origin,
-        team_id=authed_account.account.team_id,
+        team_id=unwrap(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
         input=github_documents.GetGithubDocumentsRequest.RequestBody(
             query_params=GithubDocumentsQueryInput(type=document_type)
         ),
@@ -181,19 +202,6 @@ def catch_all(path: str) -> Response:
     set_tracking_cookies(cookies=request.cookies, query_params=request.args, response=response)
     return response
 
-
-async def _get_authed_account() -> account.GetAuthenticatedAccount.ResponseBody:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
-
-    response = await account.GetAuthenticatedAccount.perform(
-        origin=app_config.eave_origin,
-        account_id=ensure_uuid(auth_cookies.account_id),
-        team_id=ensure_uuid(auth_cookies.team_id),
-        access_token=unwrap(auth_cookies.access_token),
-    )
-
-    return response
 
 def _assert_auth(auth_cookies: AuthCookies) -> None:
     if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:

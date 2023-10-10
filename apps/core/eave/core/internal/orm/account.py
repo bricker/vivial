@@ -107,19 +107,19 @@ class AccountOrm(Base):
     def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
         lookup = select(cls).limit(1)
 
-        if params.id:
+        if params.id is not None:
             lookup = lookup.where(cls.id == params.id)
 
-        if params.team_id:
+        if params.team_id is not None:
             lookup = lookup.where(cls.team_id == params.team_id)
 
-        if params.auth_provider:
+        if params.auth_provider is not None:
             lookup = lookup.where(cls.auth_provider == params.auth_provider)
 
-        if params.auth_id:
+        if params.auth_id is not None:
             lookup = lookup.where(cls.auth_id == params.auth_id)
 
-        if params.access_token:
+        if params.access_token is not None:
             lookup = lookup.where(
                 or_(
                     cls.access_token == params.access_token,

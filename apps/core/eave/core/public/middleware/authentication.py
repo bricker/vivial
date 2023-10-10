@@ -36,12 +36,6 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        if not self.endpoint_config.auth_required:
-            # For security, if not required, we bypass the whole auth middleware even if auth headers are passed.
-            # Otherwise, a bad actor with only an account ID could potentially force an access token refresh, or even get an access token in the response cookies.
-            await self.app(scope, receive, send)
-            return
-
         if development_bypass_allowed(scope=scope):
             await development_bypass_auth(scope=scope)
             await self.app(scope, receive, send)
@@ -51,7 +45,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         await self.app(scope, receive, send)
 
-    async def _verify_auth(self, scope: HTTPScope) -> eave.core.internal.orm.AccountOrm | None:
+    async def _verify_auth(self, scope: HTTPScope) -> None:
         eave_state = EaveRequestState.load(scope=scope)
 
         account_id_header = eave.stdlib.api_util.get_header_value(
@@ -60,8 +54,11 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         access_token = get_bearer_token(scope=scope)
 
-        if not account_id_header or not access_token:
-            raise UnauthorizedError("missing required headers")
+        if account_id_header is None or access_token is None:
+            if not self.endpoint_config.auth_required:
+                return
+            else:
+                raise UnauthorizedError("missing required headers")
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account = await AccountOrm.one_or_none(
