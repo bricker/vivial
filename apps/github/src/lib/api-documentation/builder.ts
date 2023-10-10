@@ -130,9 +130,10 @@ export class ExpressAPIDocumentBuilder {
     }
 
     for (const call of calls) {
+      let endpointCode = `${baseCode}`;
       const isMiddleWareCall = call.text.startsWith(`${app}.use`);
       if (isMiddleWareCall) {
-        baseCode += `${call.text}\n`;
+        endpointCode += `${call.text}\n`;
       }
 
       const isRouteCall = await this.apiRootFile.testExpressRouteCall({
@@ -141,7 +142,7 @@ export class ExpressAPIDocumentBuilder {
         router,
       });
       if (isRouteCall) {
-        let endpointCode = `${baseCode}\n${call.text}\n\n`;
+        endpointCode += `${call.text}\n`;
         const nestedIdentifiers = this.apiRootFile.getUniqueIdentifiers({
           rootNode: call,
           exclusions: [app, router],
@@ -149,17 +150,17 @@ export class ExpressAPIDocumentBuilder {
         for (const identifier of nestedIdentifiers) {
           const importCode = imports.get(identifier);
           if (importCode) {
-            endpointCode += importCode;
+            endpointCode += `${importCode}\n`;
             continue;
           }
           const requireCode = requires.get(identifier);
           if (requireCode) {
-            endpointCode += requireCode;
+            endpointCode += `${requireCode}\n`;
             continue;
           }
           const declarationCode = declarations.get(identifier)?.text;
           if (declarationCode) {
-            endpointCode += `${declarationCode}\n\n`;
+            endpointCode += `${declarationCode}\n`;
           }
         }
         apiEndpoints.push(endpointCode);
@@ -198,7 +199,7 @@ export class ExpressAPIDocumentBuilder {
       for (const innerIdentifier of innerIdentifiers) {
         const innerDeclaration = declarations.get(innerIdentifier);
         const isRequire = innerDeclaration?.text.match(
-          /require\(["|'][^"|']["|']\)/,
+          /require\(["|'][^"|']+?["|']\)/,
         );
         if (innerDeclaration && !isRequire) {
           accumulator += `${innerDeclaration.text}\n\n`;

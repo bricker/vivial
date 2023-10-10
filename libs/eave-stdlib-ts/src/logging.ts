@@ -148,7 +148,7 @@ function createLogger(): winston.Logger {
     logger = winston.createLogger({
       level,
       format: winston.format.combine(
-        winston.format.simple(),
+        winston.format.json({ space: 2, deterministic: true }),
         // new RequestFormatter(),
         winston.format.colorize({
           all: true,
