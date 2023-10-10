@@ -23,8 +23,10 @@ import {
   loadQuery,
 } from "../graphql-util.js";
 import { EaveGithubRepoArg, ExternalGithubRepoArg } from "./args.js";
+import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 
 export class GithubAPIData {
+  readonly logParams: {[key:string]: JsonValue};
   readonly expressRootDirs: string[];
   readonly externalGithubRepo: Repository;
   private readonly ctx: LogContext;
@@ -91,6 +93,11 @@ export class GithubAPIData {
     this.octokit = octokit;
     this.externalGithubRepo = externalGithubRepo;
     this.expressRootDirs = expressRootDirs;
+
+    this.logParams = {
+      external_github_repo: this.externalGithubRepo,
+      express_root_dirs: this.expressRootDirs,
+    }
   }
 
   async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {
@@ -168,6 +175,7 @@ export class GithubAPIData {
     eaveLogger.debug(
       "getGitObject response",
       { variables, response },
+      { github_data: this.logParams },
       this.ctx,
     );
 

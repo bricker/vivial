@@ -53,9 +53,7 @@ export async function runApiDocumentationTaskHandler(
     ctx,
     eaveGithubRepoInput: input.repo,
   });
-  sharedAnalyticsParams["eave_github_repo"] = coreAPIData.eaveGithubRepo;
-  sharedAnalyticsParams["existing_documents"] = coreAPIData.eaveGithubDocuments;
-  sharedAnalyticsParams["eave_team"] = coreAPIData.team;
+  sharedAnalyticsParams["core_api_data"] = coreAPIData.logParams;
   ctx.set({ eave_team: coreAPIData.team });
 
   eaveLogger.debug("eave core API data", sharedAnalyticsParams, ctx);
@@ -92,9 +90,7 @@ export async function runApiDocumentationTaskHandler(
     octokit,
     eaveGithubRepo: coreAPIData.eaveGithubRepo,
   });
-  sharedAnalyticsParams["external_github_repo"] =
-    githubAPIData.externalGithubRepo;
-  sharedAnalyticsParams["express_root_dirs"] = githubAPIData.expressRootDirs;
+  sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
 
   if (githubAPIData.expressRootDirs.length === 0) {
     eaveLogger.warning("no express apps detected", sharedAnalyticsParams, ctx);
