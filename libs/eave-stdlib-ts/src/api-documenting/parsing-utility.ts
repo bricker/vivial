@@ -22,6 +22,8 @@ export class CodeFile {
     return {
       path: this.path,
       language: this.language,
+      dirname: this.dirname,
+      extname: this.extname,
     };
   }
 

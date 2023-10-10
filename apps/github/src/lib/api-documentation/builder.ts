@@ -9,11 +9,13 @@ import {
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { ProgrammingLanguage } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
 import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import { assertIsBlob } from "../graphql-util.js";
 import { GithubAPIData } from "./github-api.js";
 
 export class ExpressAPIDocumentBuilder {
+  readonly logParams: { [key: string]: JsonValue };
   private readonly githubAPIData: GithubAPIData;
   private readonly ctx: LogContext;
   private readonly apiRootFile: ExpressCodeFile;
@@ -92,6 +94,11 @@ export class ExpressAPIDocumentBuilder {
     this.githubAPIData = githubAPIData;
     this.ctx = ctx;
     this.apiRootFile = apiRootFile;
+
+    this.logParams = {
+      github_data: githubAPIData.logParams,
+      api_root_file: apiRootFile.asJSON,
+    };
   }
 
   /**
@@ -283,7 +290,8 @@ export class ExpressAPIDocumentBuilder {
     const file = new ExpressCodeFile({ path: filePath, contents: "" }); // empty contents as placeholder
     eaveLogger.debug(
       "getExpressCodeFile",
-      { filePath, github_data: this.githubAPIData.logParams },
+      { filePath },
+      this.logParams,
       this.ctx,
     );
 
@@ -299,7 +307,8 @@ export class ExpressAPIDocumentBuilder {
       });
       eaveLogger.debug(
         "getExpressCodeFile - trying js -> ts conversion",
-        { filePath, tsFilePath, github_data: this.githubAPIData.logParams },
+        { filePath, tsFilePath },
+        this.logParams,
         this.ctx,
       );
       gitBlob = await this.githubAPIData.getFileContent({
@@ -310,7 +319,8 @@ export class ExpressAPIDocumentBuilder {
     if (!gitBlob?.text) {
       eaveLogger.warning(
         "getExpressCodeFile - empty file contents",
-        { filePath, github_data: this.githubAPIData.logParams },
+        { filePath },
+        this.logParams,
         this.ctx,
       );
       return file;
