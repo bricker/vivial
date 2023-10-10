@@ -72,7 +72,6 @@ def cancel_flow(response: Response) -> Response:
 
 async def get_logged_in_eave_account(
     request: Request,
-    response: Response,
     auth_provider: AuthProvider,
     access_token: str,
     refresh_token: typing.Optional[str],
@@ -94,7 +93,6 @@ async def get_logged_in_eave_account(
 
             if not eave_account:
                 # The access token or account ID are invalid. Treat this user as signed out.
-                auth_cookies.delete_auth_cookies(response=response)
                 return None
 
             if eave_account.auth_provider == auth_provider:
@@ -225,7 +223,6 @@ async def get_or_create_eave_account(
 ) -> eave.core.internal.orm.AccountOrm:
     eave_account = await get_logged_in_eave_account(
         request=request,
-        response=response,
         auth_provider=auth_provider,
         access_token=access_token,
         refresh_token=refresh_token,

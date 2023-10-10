@@ -47,25 +47,9 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        account = await self._verify_auth(scope=scope)
-        if not account:
-            raise UnauthorizedError("invalid auth")
+        await self._verify_auth(scope=scope)
 
-        async def _send(message: ASGISendEvent) -> None:
-            if message["type"] == "http.response.start":
-                headers = MutableHeaders(raw=list(message["headers"]))
-                response = Response(headers=headers) # this is created only as a container to mutate the headers
-
-                set_auth_cookies(
-                    response=response,
-                    team_id=account.team_id,
-                    account_id=account.id,
-                    access_token=account.access_token,
-                )
-
-            await send(message)
-
-        await self.app(scope, receive, _send)
+        await self.app(scope, receive, send)
 
     async def _verify_auth(self, scope: HTTPScope) -> eave.core.internal.orm.AccountOrm | None:
         eave_state = EaveRequestState.load(scope=scope)
@@ -89,8 +73,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             )
 
             if not eave_account:
-                # Signal to the caller to delete cookies
-                return None
+                raise UnauthorizedError("invalid auth")
 
             try:
                 await eave_account.verify_oauth_or_exception(session=db_session, ctx=eave_state.ctx)
@@ -100,4 +83,3 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         eave_state.ctx.eave_account_id = str(eave_account.id)
         eave_state.ctx.eave_team_id = str(eave_account.team_id)
-        return eave_account

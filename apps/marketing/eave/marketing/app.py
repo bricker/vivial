@@ -203,8 +203,18 @@ def _assert_auth(auth_cookies: AuthCookies) -> None:
 def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
 
-    if raw := eave_response._raw_response:
-        forward_response_auth_cookies(from_server=raw, to_client=response)
+    # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
+    access_token = eave_response.account.access_token
+    del eave_response.account.access_token
+
+    response = _json_response(body=eave_response.json())
+
+    set_auth_cookies(
+        response=response,
+        access_token=access_token,  # In case the access token was refreshed
+    )
+
+    # TODO: Forward cookies from server to client
 
     return response
 

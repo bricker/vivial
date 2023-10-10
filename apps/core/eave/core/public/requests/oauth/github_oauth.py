@@ -111,7 +111,6 @@ class GithubOAuthCallback(HTTPEndpoint):
             # This is the case where they're going through the install flow but not logged in.
             # TODO: Once we allow people to install the app before they've created an account, this is where we'd redirect them to the registration flow.
             eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", self.eave_state.ctx)
-            delete_auth_cookies(self.response)
             return shared.cancel_flow(response=self.response)
 
         async with database.async_session.begin() as db_session:
@@ -124,7 +123,6 @@ class GithubOAuthCallback(HTTPEndpoint):
             )
 
             if not eave_account:
-                delete_auth_cookies(self.response)
                 return shared.cancel_flow(response=self.response)
 
             self.eave_account = eave_account

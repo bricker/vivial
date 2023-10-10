@@ -19,6 +19,7 @@ class AuthenticatedAccount(BaseResponseModel):
     team_id: uuid.UUID
     opaque_utm_params: Optional[Mapping[str, Any]]
     email: Optional[str]
+    access_token: str
 
 
 class AnalyticsAccount(BaseResponseModel):
