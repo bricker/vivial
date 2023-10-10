@@ -11,7 +11,7 @@ import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
 from eave.stdlib.core_api.models.github_documents import GithubDocumentsQueryInput
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
-from eave.stdlib.util import unwrap
+from eave.stdlib.util import ensure_uuid, unwrap
 
 from eave.stdlib.endpoints import status_payload
 import eave.stdlib.requests
@@ -188,7 +188,8 @@ async def _get_authed_account() -> account.GetAuthenticatedAccount.ResponseBody:
 
     response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
-        account_id=unwrap(auth_cookies.account_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        team_id=ensure_uuid(auth_cookies.team_id),
         access_token=unwrap(auth_cookies.access_token),
     )
 

@@ -48,21 +48,20 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             return
 
         account = await self._verify_auth(scope=scope)
+        if not account:
+            raise UnauthorizedError("invalid auth")
 
         async def _send(message: ASGISendEvent) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(raw=list(message["headers"]))
                 response = Response(headers=headers) # this is created only as a container to mutate the headers
 
-                if account:
-                    set_auth_cookies(
-                        response=response,
-                        team_id=account.team_id,
-                        account_id=account.id,
-                        access_token=account.access_token,
-                    )
-                else:
-                    delete_auth_cookies(response=response)
+                set_auth_cookies(
+                    response=response,
+                    team_id=account.team_id,
+                    account_id=account.id,
+                    access_token=account.access_token,
+                )
 
             await send(message)
 

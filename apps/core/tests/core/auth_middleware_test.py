@@ -69,6 +69,9 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.cookies["ev_account_id"] == ""
+        assert response.cookies["ev_access_token"] == ""
+        assert response.cookies["ev_team_id"] == ""
 
     async def test_required_invalid_access_token(self) -> None:
         response = await self.make_request(
@@ -78,6 +81,9 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.cookies["ev_account_id"] == ""
+        assert response.cookies["ev_access_token"] == ""
+        assert response.cookies["ev_team_id"] == ""
 
     async def test_required_valid_auth_headers(self) -> None:
         response = await self.make_request(
@@ -87,6 +93,9 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         )
 
         assert response.status_code == HTTPStatus.OK
+        assert response.cookies["ev_account_id"] == str(self._eave_account.id)
+        assert response.cookies["ev_access_token"] == self._eave_account.access_token
+        assert response.cookies["ev_team_id"] == self._eave_account.team_id
 
     async def test_previous_access_token_accepted(self) -> None:
         async with self.db_session.begin() as s:
