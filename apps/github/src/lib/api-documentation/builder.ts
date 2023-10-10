@@ -70,6 +70,7 @@ export class ExpressAPIDocumentBuilder {
       ctx,
     });
     const endpoints = await builder.findExpressAPIEndpoints();
+    apiInfo.endpoints = endpoints;
 
     if (endpoints.length === 0) {
       eaveLogger.warning(
