@@ -13,6 +13,7 @@ import path from "node:path";
 import Csharp from "tree-sitter-c-sharp";
 import Ruby from "tree-sitter-ruby";
 import Swift from "tree-sitter-swift";
+import { eaveLogger } from "../logging.js";
 import {
   ProgrammingLanguage,
   getProgrammingLanguageByFilePathOrName,
@@ -106,10 +107,13 @@ export function grammarForFilePathOrName(
   filePathOrName: string,
 ): ProgrammingLanguage | null {
   const language = getProgrammingLanguageByFilePathOrName(filePathOrName);
-  assert(
-    language,
-    `Unsupported file extension: ${path.extname(filePathOrName)}`,
-  );
+  if (!language) {
+    eaveLogger.warning("Unsupported file extension", {
+      extension: path.extname(filePathOrName),
+      filename: filePathOrName,
+    });
+    return null;
+  }
   return grammarForLanguage({ language, filePathOrName });
 }
 
