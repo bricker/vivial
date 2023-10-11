@@ -262,7 +262,7 @@ export class PullRequestCreator {
         this.ctx,
       );
     } catch (e) {
-      if ((<Error>e).message.includes("A pull request already exists for")) {
+      if ((<Error>e).message.includes("pull request already exists")) {
         await logEvent(
           {
             event_name: "eave_github_pull_request_appended",

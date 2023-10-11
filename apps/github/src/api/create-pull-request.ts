@@ -55,7 +55,7 @@ export async function createPullRequestHandler(
     prBody: input.pr_body,
   });
 
-  if (pr === null) {
+  if (!pr) {
     eaveLogger.error("Pull request could not be created for input", ctx);
     res.sendStatus(400);
     return;
