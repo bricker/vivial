@@ -1,6 +1,5 @@
 import {
   makeRequest,
-  RequestArgsAuthedRequest,
   RequestArgsOrigin,
   RequestArgsTeamId,
 } from "../../requests.js";
@@ -117,7 +116,7 @@ export class DeleteGithubRepoOperation {
     path: "/github-repos/delete",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & { input: DeleteGithubReposRequestBody },
+    args: RequestArgsTeamId & { input: DeleteGithubReposRequestBody },
   ): Promise<void> {
     await makeRequest({
       config: this.config,
@@ -139,7 +138,7 @@ export class UpdateGithubReposOperation {
     path: "/github-repos/update",
   });
   static async perform(
-    args: RequestArgsAuthedRequest & { input: UpdateGithubReposRequestBody },
+    args: RequestArgsTeamId & { input: UpdateGithubReposRequestBody },
   ): Promise<UpdateGithubReposResponseBody> {
     const resp = await makeRequest({
       config: this.config,

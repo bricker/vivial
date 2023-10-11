@@ -10,7 +10,7 @@ import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
 from eave.stdlib.core_api.models.github_documents import GithubDocumentsQueryInput
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
-from eave.stdlib.util import unwrap
+from eave.stdlib.util import ensure_uuid, unwrap
 
 from eave.stdlib.endpoints import status_payload
 import eave.stdlib.requests
@@ -23,6 +23,7 @@ from eave.stdlib.typing import JsonArray, JsonObject
 from eave.stdlib.utm_cookies import set_tracking_cookies
 from .config import app_config
 from eave.stdlib.config import shared_config
+from eave.stdlib.logging import eaveLogger
 
 eave.stdlib.time.set_utc()
 
@@ -84,13 +85,14 @@ async def get_user() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
 
-    eave_response = await account.GetAuthenticatedAccount.perform(
+    response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
-        account_id=unwrap(auth_cookies.account_id),
+        team_id=ensure_uuid(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
     )
 
-    return _clean_response(eave_response)
+    return _clean_response(response)
 
 
 @app.route("/dashboard/team", methods=["GET"])
@@ -101,6 +103,8 @@ async def get_team() -> Response:
     eave_response = await team.GetTeamRequest.perform(
         origin=app_config.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
     )
 
     return _json_response(body=eave_response.json())
@@ -111,24 +115,25 @@ async def get_team_repos() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
 
-    origin = app_config.eave_origin
-    account_id = unwrap(auth_cookies.account_id)
-    team_id = unwrap(auth_cookies.team_id)
-    access_token = unwrap(auth_cookies.access_token)
-
-    eave_response = await github_repos.GetGithubReposRequest.perform(
-        origin=origin,
-        account_id=account_id,
-        access_token=access_token,
-        team_id=team_id,
-        input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
-    )
+    try:
+        eave_response = await github_repos.GetGithubReposRequest.perform(
+            origin=app_config.eave_origin,
+            team_id=unwrap(auth_cookies.team_id),
+            account_id=ensure_uuid(auth_cookies.account_id),
+            access_token=unwrap(auth_cookies.access_token),
+            input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
+        )
+    except Exception as e:
+        eaveLogger.exception(e)
+        return _json_response(body={"repos": []})
 
     internal_repo_list = eave_response.repos
     if len(internal_repo_list) == 0:
         return _json_response(body={"repos": []})
 
-    external_response = await QueryGithubRepos.perform(origin=origin, team_id=team_id)
+    external_response = await QueryGithubRepos.perform(
+        origin=app_config.eave_origin, team_id=unwrap(auth_cookies.team_id)
+    )
     external_repo_list = external_response.repos
     external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
     merged_repo_list: JsonArray = []
@@ -136,8 +141,8 @@ async def get_team_repos() -> Response:
     for repo in internal_repo_list:
         repo_id = repo.external_repo_id
         if repo_id in external_repo_map:
-            jsonRepo = repo.dict()
-            jsonRepo["external_repo_data"] = external_repo_map[repo_id].dict()
+            jsonRepo = json.loads(repo.json())
+            jsonRepo["external_repo_data"] = json.loads(external_repo_map[repo_id].json())
             merged_repo_list.append(jsonRepo)
 
     return _json_response(body={"repos": merged_repo_list})
@@ -153,9 +158,9 @@ async def update_team_repos() -> Response:
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(
         origin=app_config.eave_origin,
-        account_id=unwrap(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
         team_id=unwrap(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
 
@@ -173,7 +178,7 @@ async def get_team_documents() -> Response:
     eave_response = await github_documents.GetGithubDocumentsRequest.perform(
         origin=app_config.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
-        account_id=unwrap(auth_cookies.account_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
         input=github_documents.GetGithubDocumentsRequest.RequestBody(
             query_params=GithubDocumentsQueryInput(type=document_type)
@@ -205,6 +210,8 @@ def _assert_auth(auth_cookies: AuthCookies) -> None:
 
 
 def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:
+    response = _json_response(body=eave_response.json())
+
     # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
     access_token = eave_response.account.access_token
     del eave_response.account.access_token
@@ -217,6 +224,7 @@ def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody)
     )
 
     # TODO: Forward cookies from server to client
+
     return response
 
 

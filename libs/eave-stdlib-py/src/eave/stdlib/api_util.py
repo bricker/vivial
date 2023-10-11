@@ -3,6 +3,7 @@ import re
 from typing import Optional
 
 import pydantic
+from eave.stdlib.exceptions import MissingRequiredHeaderError
 from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER
 
 import eave.stdlib.util as util
@@ -18,6 +19,16 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+
+
+def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:
+    """
+    Proxy to get_header_value, raises MissingRequiredHeader if header is missing
+    """
+    v = next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+    if not v:
+        raise MissingRequiredHeaderError(name)
+    return v
 
 
 def get_headers(

@@ -6,6 +6,7 @@ import uuid
 from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
 from eave.core.internal.oauth.slack import SlackIdentity
+from eave.core.internal.orm.account import AccountOrm
 
 import eave.stdlib.signing
 import eave.stdlib.eave_origins
@@ -286,7 +287,9 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         return account
 
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.AccountOrm | None:
-        acct = await eave.core.internal.orm.AccountOrm.one_or_none(session=session, id=id)
+        acct = await eave.core.internal.orm.AccountOrm.one_or_none(
+            session=session, params=AccountOrm.QueryParams(id=id)
+        )
         return acct
 
     async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.TeamOrm | None:

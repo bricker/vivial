@@ -1,3 +1,5 @@
+import { JsonDate } from "../../types.js";
+
 export enum Status {
   PROCESSING = "processing",
   FAILED = "failed",
@@ -16,7 +18,7 @@ export type GithubDocument = {
   github_repo_id: string;
   pull_request_number: number | null;
   status: Status;
-  status_updated: Date;
+  status_updated: JsonDate;
   file_path: string | null;
   api_name: string | null;
   type: DocumentType;

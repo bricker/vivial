@@ -16,6 +16,8 @@ from eave.stdlib.eave_origins import EaveApp
 
 from . import checksum
 
+GITHUB_EVENT_QUEUE_NAME = "github-events-processor"
+
 
 class EaveEnvironment(enum.StrEnum):
     development = "development"

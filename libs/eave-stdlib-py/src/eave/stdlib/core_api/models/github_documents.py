@@ -39,7 +39,6 @@ class GithubDocumentsQueryInput(BaseInputModel):
 
 
 class GithubDocumentCreateInput(BaseInputModel):
-    github_repo_id: uuid.UUID
     type: DocumentType
     status: Status
     file_path: Optional[str]

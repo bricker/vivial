@@ -15,6 +15,7 @@ export enum State {
 export type GithubRepo = {
   team_id: UUID;
   id: UUID;
+  github_installation_id: UUID;
   external_repo_id: string;
   display_name: string | null;
   api_documentation_state: State;
