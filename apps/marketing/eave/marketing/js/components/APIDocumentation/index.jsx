@@ -1,10 +1,10 @@
 // @ts-check
-import * as Types from '../../types.js'; // eslint-disable-line no-unused-vars
 import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useEffect, useState } from "react";
 import { DOC_STATUSES, MONTH_NAMES } from "../../constants.js";
 import useTeam from "../../hooks/useTeam";
+import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { mapReposById } from "../../util/repo-util.js";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
@@ -75,7 +75,10 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
-function formatStatus(/** @type {Types.GithubDocument} */ doc, /** @type {{[key: string] : Types.GithubRepo}} */ repoMap) {
+function formatStatus(
+  /** @type {Types.GithubDocument} */ doc,
+  /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
+) {
   const status = doc.status;
   if (status === DOC_STATUSES.PROCESSING) {
     return "Processing";
@@ -120,7 +123,11 @@ function formatLastUpdated(doc) {
   return `${month} ${day}, ${year}`;
 }
 
-function renderContent(classes, /** @type {Types.DashboardTeam} */ team, compact) {
+function renderContent(
+  classes,
+  /** @type {Types.DashboardTeam} */ team,
+  compact,
+) {
   const { apiDocsErroring, apiDocsLoading, apiDocsFetchCount, apiDocs, repos } =
     team;
   if (apiDocsErroring) {
