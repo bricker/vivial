@@ -1,10 +1,12 @@
-## Get Lists
+## List Management API
+
+### Get All Lists
 
 ```
 GET /v1/lists
 ```
 
-This endpoint retrieves all lists.
+Returns all lists.
 
 ### Example Request
 
@@ -26,13 +28,13 @@ fetch('/v1/lists', {
 
 ---
 
-## Get List
+### Get Specific List
 
 ```
 GET /v1/lists/:list_id
 ```
 
-This endpoint retrieves a specific list by its ID.
+Returns a specific list by its ID.
 
 ### Path Parameters
 
@@ -60,13 +62,13 @@ fetch('/v1/lists/1', {
 
 ---
 
-## Create List
+### Create List
 
 ```
 POST /v1/lists
 ```
 
-This endpoint creates a new list.
+Creates a new list.
 
 ### Example Request
 
@@ -85,13 +87,13 @@ fetch('/v1/lists', {
 
 ---
 
-## Update List
+### Update List
 
 ```
 PATCH /v1/lists/:list_id
 ```
 
-This endpoint updates a specific list by its ID.
+Updates a specific list by its ID.
 
 ### Path Parameters
 
@@ -116,13 +118,13 @@ fetch('/v1/lists/1', {
 
 ---
 
-## Delete List
+### Delete List
 
 ```
 DELETE /v1/lists/:list_id
 ```
 
-This endpoint deletes a specific list by its ID.
+Deletes a specific list by its ID.
 
 ### Path Parameters
 
@@ -144,13 +146,15 @@ fetch('/v1/lists/1', {
 
 ---
 
-## Get Users
+## User Management API
+
+### Get All Users
 
 ```
 GET /v1/users
 ```
 
-This endpoint retrieves all users.
+Returns all users.
 
 ### Example Request
 
@@ -172,13 +176,13 @@ fetch('/v1/users', {
 
 ---
 
-## Get User
+### Get Specific User
 
 ```
 GET /v1/users/:user_id
 ```
 
-This endpoint retrieves a specific user by their ID.
+Returns a specific user by their ID.
 
 ### Path Parameters
 
@@ -206,13 +210,13 @@ fetch('/v1/users/1', {
 
 ---
 
-## Create User
+### Create User
 
 ```
 POST /v1/users
 ```
 
-This endpoint creates a new user.
+Creates a new user.
 
 ### Example Request
 
@@ -231,13 +235,13 @@ fetch('/v1/users', {
 
 ---
 
-## Update User
+### Update User
 
 ```
 PATCH /v1/users/:user_id
 ```
 
-This endpoint updates a specific user by their ID.
+Updates a specific user by their ID.
 
 ### Path Parameters
 
@@ -262,13 +266,13 @@ fetch('/v1/users/1', {
 
 ---
 
-## Delete User
+### Delete User
 
 ```
 DELETE /v1/users/:user_id
 ```
 
-This endpoint deletes a specific user by their ID.
+Deletes a specific user by their ID.
 
 ### Path Parameters
 

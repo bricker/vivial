@@ -1,10 +1,10 @@
-## Webhook Event Handler
+## Comment Created Webhook
 
 ```
 POST /events
 ```
 
-This API endpoint is used to handle webhook events. It authenticates the request, logs the received webhook event, and then processes the event based on its type. Currently, it only handles "comment_created" events. For these events, it triggers the `commentCreatedEventHandler` function. If the event type is not recognized, it logs a warning and sends a 200 status response.
+This API endpoint is used to handle webhook events from Jira. It specifically handles the "comment_created" event. When a comment is created in Jira, this endpoint is triggered. It checks if the comment author is an app or a user. If it's a user, it checks if the user mentioned Eave in the comment. If Eave is mentioned, it logs the event, cleans the comment body, determines the intent of the comment, and performs a document search based on the intent. If the intent is to search, it responds with the search results.
 
 ### Path Parameters
 
@@ -20,22 +20,29 @@ fetch('http://localhost:3000/events', {
   },
   body: JSON.stringify({
     webhookEvent: 'comment_created',
-    // other necessary data...
+    comment: {
+      author: {
+        accountType: 'user'
+      },
+      body: 'Eave, can you find the documentation for this feature?'
+    }
   })
 });
 ```
 
 ### Example Response
 
-```
-HTTP/1.1 200 OK
+```javascript
+{
+  "status": 200
+}
 ```
 
 ### Response Codes
 
-**200**: The request was successful. This code is returned after the event has been processed, or if the event type is not recognized.
+**200**: The request was successful. This response code will be returned after the comment is processed, regardless of whether Eave was mentioned or not.
 
-**400**: The request was malformed. This code is returned if the payload of a "comment_created" event does not contain an issue, or if no teamId is available.
+**400**: Bad request. This response code will be returned if the payload is missing the issue or if there is no teamId available.
 
 <br />
 

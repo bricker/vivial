@@ -24,13 +24,13 @@ fetch('http://localhost:3000/events', {
 
 ### Example Response
 
-There is no response body for this endpoint. The server only logs the received event.
+No response body is returned for this endpoint.
 
 ### Response Codes
 
-**200**: The server successfully received and processed the event.
+**200**: The webhook event was received and logged successfully.
 
-**401**: The server could not authenticate the request. This usually means the request did not include a valid authentication token.
+**401**: The request was not authenticated. The client must authenticate itself to get the requested response.
 
 <br />
 
@@ -40,7 +40,7 @@ There is no response body for this endpoint. The server only logs the received e
 POST /api/spaces/query
 ```
 
-This endpoint is used to query available spaces in Confluence.
+This endpoint retrieves available spaces from the Confluence client.
 
 ### Path Parameters
 
@@ -80,9 +80,7 @@ fetch('/api/spaces/query', {
 
 ### Response Codes
 
-**200**: The request was successful and the available spaces are returned.
-
-**500**: An error occurred while processing the request.
+**200**: The available spaces were successfully retrieved.
 
 ---
 
@@ -92,7 +90,7 @@ fetch('/api/spaces/query', {
 POST /api/content/search
 ```
 
-This endpoint is used to search for content in Confluence.
+This endpoint searches for content in the Confluence client based on the provided search parameters.
 
 ### Path Parameters
 
@@ -124,11 +122,14 @@ fetch('/api/content/search', {
       "id": "1",
       "title": "Test Page",
       "space": {
-        "key": "TST"
+        "id": "1",
+        "key": "TST",
+        "name": "Test Space"
       },
       "body": {
         "storage": {
-          "value": "<p>This is a test page</p>"
+          "value": "<p>This is a test page</p>",
+          "representation": "storage"
         }
       }
     }
@@ -138,9 +139,9 @@ fetch('/api/content/search', {
 
 ### Response Codes
 
-**200**: The request was successful and the search results are returned.
+**200**: The search was successful and the results are returned.
 
-**500**: An error occurred while processing the request.
+**500**: An error occurred during the search.
 
 ---
 
@@ -150,7 +151,7 @@ fetch('/api/content/search', {
 POST /api/content/create
 ```
 
-This endpoint is used to create new content in Confluence.
+This endpoint creates new content in the Confluence client.
 
 ### Path Parameters
 
@@ -181,14 +182,17 @@ fetch('/api/content/create', {
 ```json
 {
   "content": {
-    "id": "1",
+    "id": "2",
     "title": "New Page",
     "space": {
-      "key": "TST"
+      "id": "1",
+      "key": "TST",
+      "name": "Test Space"
     },
     "body": {
       "storage": {
-        "value": "<p>This is a new page</p>"
+        "value": "<p>This is a new page</p>",
+        "representation": "storage"
       }
     }
   }
@@ -197,11 +201,9 @@ fetch('/api/content/create', {
 
 ### Response Codes
 
-**200**: The request was successful and the new content is returned.
+**200**: The content was successfully created.
 
-**400**: The specified space does not exist or does not have a homepage.
-
-**500**: An error occurred while processing the request.
+**400**: An error occurred during the creation of the content.
 
 ---
 
@@ -211,7 +213,7 @@ fetch('/api/content/create', {
 POST /api/content/update
 ```
 
-This endpoint is used to update existing content in Confluence.
+This endpoint updates existing content in the Confluence client.
 
 ### Path Parameters
 
@@ -227,7 +229,7 @@ fetch('/api/content/update', {
   },
   body: JSON.stringify({
     content: {
-      id: '1',
+      id: '2',
       body: '<p>This is an updated page</p>'
     }
   })
@@ -239,14 +241,17 @@ fetch('/api/content/update', {
 ```json
 {
   "content": {
-    "id": "1",
-    "title": "Updated Page",
+    "id": "2",
+    "title": "New Page",
     "space": {
-      "key": "TST"
+      "id": "1",
+      "key": "TST",
+      "name": "Test Space"
     },
     "body": {
       "storage": {
-        "value": "<p>This is an updated page</p>"
+        "value": "<p>This is an updated page</p>",
+        "representation": "storage"
       }
     }
   }
@@ -255,9 +260,9 @@ fetch('/api/content/update', {
 
 ### Response Codes
 
-**200**: The request was successful and the updated content is returned.
+**200**: The content was successfully updated.
 
-**500**: The specified content does not exist or an error occurred while processing the request.
+**500**: An error occurred during the update of the content.
 
 ---
 
@@ -267,7 +272,7 @@ fetch('/api/content/update', {
 POST /api/content/delete
 ```
 
-This endpoint is used to delete existing content in Confluence.
+This endpoint deletes existing content in the Confluence client.
 
 ### Path Parameters
 
@@ -283,7 +288,7 @@ fetch('/api/content/delete', {
   },
   body: JSON.stringify({
     content: {
-      content_id: '1'
+      content_id: '2'
     }
   })
 })
@@ -297,9 +302,7 @@ fetch('/api/content/delete', {
 
 ### Response Codes
 
-**200**: The request was successful and the content was deleted.
-
-**500**: An error occurred while processing the request.
+**200**: The content was successfully deleted.
 
 <br />
 
