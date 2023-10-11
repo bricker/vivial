@@ -17,7 +17,7 @@ from .base import BaseTestCase
 
 class TestGithubDocumentsRequests(BaseTestCase):
     async def create_repo(self, session: AsyncSession, team_id: UUID, index: int = 0) -> GithubRepoOrm:
-        await github_installation.GithubInstallationOrm.create(
+        gh_install = await github_installation.GithubInstallationOrm.create(
             session=session,
             team_id=team_id,
             github_install_id=self.anystr(),
@@ -28,6 +28,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
             team_id=team_id,
             external_repo_id=self.anystr(f"external_repo_id:{team_id}:{index}"),
             display_name=self.anystr(),
+            github_installation_id=gh_install.id,
         )
 
     async def create_documents(

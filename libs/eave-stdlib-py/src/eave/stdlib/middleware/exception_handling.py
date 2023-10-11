@@ -26,7 +26,7 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
         response_started = False
 
         async def _send(message: ASGISendEvent) -> None:
-            nonlocal response_started, send
+            nonlocal response_started
 
             if message["type"] == "http.response.start":
                 response_started = True

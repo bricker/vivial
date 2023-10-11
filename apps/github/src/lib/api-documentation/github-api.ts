@@ -2,6 +2,7 @@ import {
   LogContext,
   eaveLogger,
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import {
   Blob,
@@ -25,6 +26,7 @@ import {
 import { EaveGithubRepoArg, ExternalGithubRepoArg } from "./args.js";
 
 export class GithubAPIData {
+  readonly logParams: { [key: string]: JsonValue };
   readonly expressRootDirs: string[];
   readonly externalGithubRepo: Repository;
   private readonly ctx: LogContext;
@@ -62,14 +64,14 @@ export class GithubAPIData {
       });
 
       expressRootDirs = response.data.items.map((i) => path.dirname(i.path));
-    }
 
-    if (expressRootDirs.length === 0) {
-      eaveLogger.warning(
-        "No express API root file found",
-        { eaveGithubRepo },
-        ctx,
-      );
+      if (expressRootDirs.length === 0) {
+        eaveLogger.warning(
+          "No express API dir file found",
+          { eave_github_repo: eaveGithubRepo, query },
+          ctx,
+        );
+      }
     }
 
     return new GithubAPIData({
@@ -91,6 +93,14 @@ export class GithubAPIData {
     this.octokit = octokit;
     this.externalGithubRepo = externalGithubRepo;
     this.expressRootDirs = expressRootDirs;
+
+    this.logParams = {
+      external_github_repo: {
+        id: this.externalGithubRepo.id,
+        nameWithOwner: this.externalGithubRepo.nameWithOwner,
+      },
+      express_root_dirs: this.expressRootDirs,
+    };
   }
 
   async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {
@@ -158,7 +168,9 @@ export class GithubAPIData {
     } = {
       repoOwner: this.externalGithubRepo.owner.login,
       repoName: this.externalGithubRepo.name,
-      expression: `${this.externalGithubRepo.defaultBranchRef?.name}:${filePath}`,
+      expression: `${
+        this.externalGithubRepo.defaultBranchRef?.name || "main"
+      }:${filePath}`,
     };
 
     const response = await this.octokit.graphql<{
@@ -167,7 +179,8 @@ export class GithubAPIData {
 
     eaveLogger.debug(
       "getGitObject response",
-      { query, variables, response },
+      { variables, object_id: response.repository?.object?.id || null },
+      { github_data: this.logParams },
       this.ctx,
     );
 

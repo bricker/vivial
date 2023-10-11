@@ -114,10 +114,17 @@ class GithubOAuthCallback(HTTPEndpoint):
             return shared.cancel_flow(response=self.response)
 
         async with database.async_session.begin() as db_session:
-            self.eave_account = await AccountOrm.one_or_exception(
-                session=db_session, id=auth_cookies.account_id, access_token=auth_cookies.access_token
+            eave_account = await AccountOrm.one_or_none(
+                session=db_session,
+                params=AccountOrm.QueryParams(
+                    id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id), access_token=auth_cookies.access_token
+                ),
             )
 
+            if not eave_account:
+                return shared.cancel_flow(response=self.response)
+
+            self.eave_account = eave_account
             self.eave_team = await self.eave_account.get_team(session=db_session)
 
         shared.set_redirect(
@@ -256,6 +263,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             await GithubRepoOrm.create(
                 session=db_session,
                 team_id=self.eave_team.id,
+                github_installation_id=self.github_installation_orm.id,
                 external_repo_id=repo.id,
                 display_name=repo.name,
             )

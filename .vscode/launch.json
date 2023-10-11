@@ -113,7 +113,6 @@
       ],
       "program": "${workspaceFolder}/apps/github/server.ts",
       "restart": true,
-      "args": [],
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/nodemon",
       "args": [
         "--exec", "${workspaceFolder}/node_modules/.bin/tsx",

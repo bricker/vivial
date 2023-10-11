@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Mapping, Optional
 import uuid
 
+
 from eave.stdlib.cookies import ResponseCookieMutator, delete_http_cookie, set_http_cookie
 
 _EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"

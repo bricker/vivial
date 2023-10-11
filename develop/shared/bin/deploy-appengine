@@ -29,6 +29,10 @@ function deploy() (
 	test -f "$appyaml"
 
 	local service; service=$(yq ".service" < "$appyaml")
+	if test -z "$service"; then
+		statusmsg -e "Couldn't find the service name! Aborting."
+		exit 1
+	fi
 
 	local timestamp; timestamp=$(date -u "+%Y%m%dt%H%Mz")
 	local gitrev; gitrev=$(git rev-parse --short HEAD)
@@ -38,18 +42,18 @@ function deploy() (
 	gcloud --project="$project" app deploy --version="$version" --appyaml="$appyaml" "$promoteflag"
 
 	if test "$promoteflag" == "--no-promote"; then
-
 		# FIXME: Remove hardcoded status paths/services
 		statuspath="/status"
 		case "$service" in
-			"api" | "www") statuspath="/status" ;;
-			"*") statuspath="/$service/status" ;;
+			api | www) statuspath="/status" ;;
+			*) statuspath="/$service/status" ;;
 		esac
 
 		local vurl="https://$version-dot-$service-dot-$project.uc.r.appspot.com$statuspath"
 
 		local response; response=$(curl --silent --connect-timeout 30 "$vurl")
-		local status; status=$(jq .status < "$response")
+		statusmsg -i "$response"
+		local status; status=$(echo "$response" | jq -r .status)
 
 		if test "$status" == "OK"; then
 			gcloud app services set-traffic "$service" --splits="$version=1" --migrate
