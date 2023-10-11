@@ -58,7 +58,7 @@ export class ExpressAPIDocumentBuilder {
     if (!apiInfo.rootFile) {
       eaveLogger.warning(
         "No express API root file found",
-        { apiRootDir, github_data: githubAPIData.logParams },
+        { api_root_dir: apiRootDir, github_data: githubAPIData.logParams },
         ctx,
       );
       return apiInfo;
@@ -76,8 +76,8 @@ export class ExpressAPIDocumentBuilder {
       eaveLogger.warning(
         "No express API endpoints found",
         {
-          apiRootDir,
-          apiRootFile: apiInfo.rootFile?.asJSON,
+          api_root_dir: apiRootDir,
+          api_root_file: apiInfo.rootFile?.asJSON,
           github_data: githubAPIData.logParams,
         },
         ctx,
@@ -86,7 +86,12 @@ export class ExpressAPIDocumentBuilder {
 
     eaveLogger.debug(
       "found express endpoints",
-      { endpoints },
+      {
+        api_info: apiInfo.asJSON,
+        api_root_dir: apiRootDir,
+        api_root_file: apiInfo.rootFile?.asJSON,
+        github_data: githubAPIData.logParams,
+      },
       builder.logParams,
       ctx,
     );
@@ -299,9 +304,10 @@ export class ExpressAPIDocumentBuilder {
     filePath: string;
   }): Promise<ExpressCodeFile> {
     let file = new ExpressCodeFile({ path: filePath, contents: "" }); // empty contents as placeholder
+
     eaveLogger.debug(
       "getExpressCodeFile",
-      { filePath, file: file.asJSON },
+      { file_path: filePath, file: file.asJSON },
       this.logParams,
       this.ctx,
     );
@@ -309,7 +315,7 @@ export class ExpressAPIDocumentBuilder {
     let gitBlob = await this.githubAPIData.getFileContent({ filePath });
     eaveLogger.debug(
       "getExpressCodeFile -> gitBlob",
-      { filePath, gitBlob, file: file.asJSON },
+      { file_path: filePath, git_blob: { id: gitBlob?.id, truncated_text: gitBlob?.text?.slice(0, 100) }, file: file.asJSON },
       this.logParams,
       this.ctx,
     );
@@ -323,7 +329,7 @@ export class ExpressAPIDocumentBuilder {
       file = new ExpressCodeFile({ path: tsFilePath, contents: "" }); // empty contents as placeholder
       eaveLogger.debug(
         "getExpressCodeFile - trying js -> ts conversion",
-        { filePath, tsFilePath, file: file.asJSON },
+        { file_path: filePath, ts_file_path: tsFilePath, file: file.asJSON },
         this.logParams,
         this.ctx,
       );
@@ -335,7 +341,7 @@ export class ExpressAPIDocumentBuilder {
     if (!gitBlob?.text) {
       eaveLogger.warning(
         "getExpressCodeFile - empty file contents",
-        { filePath, file: file.asJSON },
+        { file_path: filePath, file: file.asJSON },
         this.logParams,
         this.ctx,
       );

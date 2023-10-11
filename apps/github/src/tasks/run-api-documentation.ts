@@ -122,7 +122,7 @@ export async function runApiDocumentationTaskHandler(
         localAnalyticsParams["api_root_dir"] = apiRootDir;
 
         eaveLogger.debug(
-          `building documentation for ${apiRootDir}`,
+          'building documentation',
           localAnalyticsParams,
           sharedAnalyticsParams,
           ctx,
@@ -535,7 +535,7 @@ async function generateExpressAPIDoc({
 
         eaveLogger.warning(
           "openAI didn't return API documentation",
-          { openaiResponse, expressAPIInfo: expressAPIInfo.asJSON },
+          { express_api_info: expressAPIInfo.asJSON },
           ctx,
         );
         continue;

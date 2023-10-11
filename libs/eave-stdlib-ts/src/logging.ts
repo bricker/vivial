@@ -179,7 +179,7 @@ class EaveLogger {
     try {
       this.rawLogger.debug(message, this.makeExtra(...rest));
     } catch (e: any) {
-      console.debug(e);
+      console.error(e);
     }
   }
 
@@ -187,7 +187,7 @@ class EaveLogger {
     try {
       this.rawLogger.info(message, this.makeExtra(...rest));
     } catch (e: any) {
-      console.log(e);
+      console.error(e);
     }
   }
 
@@ -205,7 +205,7 @@ class EaveLogger {
     try {
       this.rawLogger.warn(msg, this.makeExtra(...rest));
     } catch (e: any) {
-      console.warn(e);
+      console.error(e);
     }
   }
 

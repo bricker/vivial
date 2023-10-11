@@ -64,14 +64,14 @@ export class GithubAPIData {
       });
 
       expressRootDirs = response.data.items.map((i) => path.dirname(i.path));
-    }
 
-    if (expressRootDirs.length === 0) {
-      eaveLogger.warning(
-        "No express API root file found",
-        { eaveGithubRepo },
-        ctx,
-      );
+      if (expressRootDirs.length === 0) {
+        eaveLogger.warning(
+          "No express API dir file found",
+          { eave_github_repo: eaveGithubRepo, query },
+          ctx,
+        );
+      }
     }
 
     return new GithubAPIData({
@@ -95,7 +95,10 @@ export class GithubAPIData {
     this.expressRootDirs = expressRootDirs;
 
     this.logParams = {
-      external_github_repo: this.externalGithubRepo,
+      external_github_repo: {
+        id: this.externalGithubRepo.id,
+        nameWithOwner: this.externalGithubRepo.nameWithOwner,
+      },
       express_root_dirs: this.expressRootDirs,
     };
   }
@@ -176,7 +179,7 @@ export class GithubAPIData {
 
     eaveLogger.debug(
       "getGitObject response",
-      { variables, response },
+      { variables, object_id: response.repository?.object?.id || null},
       { github_data: this.logParams },
       this.ctx,
     );
