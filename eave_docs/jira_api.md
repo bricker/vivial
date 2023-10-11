@@ -23,7 +23,7 @@ fetch('http://localhost:3000/', {
     issue: { id: '123' },
     comment: {
       author: { accountType: 'user' },
-      body: 'Eave, can you find the documentation for this feature?',
+      body: '[~accountid:712020:d50089b8-586c-4f54-a3ad-db70381e4cae] Can you find the documentation about jelly beans?',
     },
   }),
 });
@@ -31,15 +31,13 @@ fetch('http://localhost:3000/', {
 
 ### Example Response
 
-```javascript
-{
-  "status": 200
-}
+```
+200 OK
 ```
 
 ### Response Codes
 
-**200**: The request was successful. This code is returned after the event is processed, regardless of whether Eave was mentioned in the comment or not.
+**200**: The request was successful. This code is returned after the event is processed, regardless of whether Eave was mentioned in the comment or whether the intent of the comment was to search for something.
 
 **400**: The request was malformed. This code is returned if the payload does not contain an issue or if there is no teamId available.
 
