@@ -64,6 +64,10 @@ async def init_database() -> None:
         stmt = f'CREATE DATABASE "{EAVE_DB_NAME}"'
         await connection.execute(sqlalchemy.text(stmt))
 
+    # create tables in empty db
+    async with eave.core.internal.database.async_engine.begin() as connection:
+        await connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
+
     await postgres_engine.dispose()
 
 

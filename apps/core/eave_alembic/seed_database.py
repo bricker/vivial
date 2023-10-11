@@ -95,6 +95,8 @@ async def seed_database() -> None:
             github_install_id=f"github_install_id{row}",
         )
         session.add(github)
+        await session.commit()
+        await session.refresh(github)  # necessary to populate fk relation for gh_repo
 
         atlassian = orm.AtlassianInstallationOrm(
             team_id=team_id,
@@ -141,7 +143,7 @@ async def seed_database() -> None:
 
         gh_document = orm.GithubDocumentsOrm(
             team_id=team_id,
-            external_repo_id=gh_repo.external_repo_id,
+            github_repo_id=gh_repo.id,
             type=DocumentType.API_DOCUMENT,
         )
         session.add(gh_document)
