@@ -161,7 +161,9 @@ function renderContent(
     if (filePath && !isProcessing && !isLink) {
       const repo = repoMap[doc.github_repo_id];
       const repoUrl = repo["external_repo_data"]?.url;
-      window.open(`${repoUrl}/${filePath}`);
+      if (repoUrl) {
+        window.open(`${repoUrl}/blob/main/${filePath}`);
+      }
     }
   };
   const handleRowMouseOver = (e, doc) => {
