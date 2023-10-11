@@ -1,12 +1,15 @@
+// @ts-check
 import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useEffect, useState } from "react";
 import { DOC_STATUSES, MONTH_NAMES } from "../../constants.js";
 import useTeam from "../../hooks/useTeam";
-import { mapReposByExternalId } from "../../util/repo-util.js";
+import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
+import { mapReposById } from "../../util/repo-util.js";
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
+    // @ts-ignore
     color: theme.palette.background.contrastText,
     padding: "0 25px",
     marginBottom: 80,
@@ -15,6 +18,7 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   title: {
+    // @ts-ignore
     color: theme.palette.tertiary.main,
     fontSize: 32,
     fontWeight: 400,
@@ -25,6 +29,7 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   loader: {
+    // @ts-ignore
     color: theme.palette.tertiary.main,
     textAlign: "center",
   },
@@ -52,12 +57,15 @@ const makeClasses = makeStyles((theme) => ({
     fontWeight: 700,
   },
   docTableRow: {
+    // @ts-ignore
     borderBottom: `1px solid ${theme.palette.background.contrastText}`,
   },
   compactDocView: {
+    // @ts-ignore
     borderTop: `1px solid ${theme.palette.background.contrastText}`,
   },
   compactDocRow: {
+    // @ts-ignore
     borderBottom: `1px solid ${theme.palette.background.contrastText}`,
     padding: "14px 5px",
     fontSize: 16,
@@ -67,14 +75,17 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-function formatStatus(doc, repoMap) {
+function formatStatus(
+  /** @type {Types.GithubDocument} */ doc,
+  /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
+) {
   const status = doc.status;
   if (status === DOC_STATUSES.PROCESSING) {
     return "Processing";
   }
 
-  const repo = repoMap[doc.external_repo_id];
-  const repoUrl = repo.external_repo_data.url;
+  const repo = repoMap[doc.github_repo_id];
+  const repoUrl = repo["external_repo_data"]?.url; // TODO: should separate this from repo response
   const prNumber = doc.pull_request_number;
   const prLink = `${repoUrl}/pull/${prNumber}`;
   const prLinkStyle = { color: "#0092C7", textDecoration: "none" };
@@ -112,7 +123,11 @@ function formatLastUpdated(doc) {
   return `${month} ${day}, ${year}`;
 }
 
-function renderContent(classes, team, compact) {
+function renderContent(
+  classes,
+  /** @type {Types.DashboardTeam} */ team,
+  compact,
+) {
   const { apiDocsErroring, apiDocsLoading, apiDocsFetchCount, apiDocs, repos } =
     team;
   if (apiDocsErroring) {
@@ -138,15 +153,17 @@ function renderContent(classes, team, compact) {
       </Typography>
     );
   }
-  const repoMap = mapReposByExternalId(repos);
-  const handleRowClick = (e, doc) => {
+  const repoMap = mapReposById(repos);
+  const handleRowClick = (e, /** @type {Types.GithubDocument} */ doc) => {
     const filePath = doc.file_path;
     const isProcessing = doc.status === DOC_STATUSES.PROCESSING;
     const isLink = e.target.tagName === "A";
     if (filePath && !isProcessing && !isLink) {
-      const repo = repoMap[doc.external_repo_id];
-      const repoUrl = repo.external_repo_data.url;
-      window.open(`${repoUrl}/${filePath}`);
+      const repo = repoMap[doc.github_repo_id];
+      const repoUrl = repo["external_repo_data"]?.url;
+      if (repoUrl) {
+        window.open(`${repoUrl}/blob/main/${filePath}`);
+      }
     }
   };
   const handleRowMouseOver = (e, doc) => {

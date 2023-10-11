@@ -1,12 +1,10 @@
 // @ts-check
 import { Dialog, IconButton, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import * as Types from "../../types"; // eslint-disable-line no-unused-vars
-// @ts-ignore
 import classNames from "classnames";
-// @ts-ignore
 import React, { useCallback, useState } from "react";
 import { useCookies } from "react-cookie";
+import * as Types from "../../types"; // eslint-disable-line no-unused-vars
 
 import useTeam from "../../hooks/useTeam.js";
 import { imageUrl } from "../../util/asset-util.js";
