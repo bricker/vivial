@@ -30,6 +30,17 @@ export class PullRequestCreator {
 
   private ctx: LogContext;
 
+  /**
+   * Constructs a new instance of the class.
+   *
+   * @param {Object} args - The arguments for the constructor.
+   * @param {string} args.repoName - The name of the repository.
+   * @param {string} args.repoOwner - The owner of the repository.
+   * @param {string} args.repoId - The ID of the repository.
+   * @param {string} args.baseBranchName - The name of the base branch in the repository.
+   * @param {Octokit} args.octokit - The Octokit instance to interact with GitHub.
+   * @param {LogContext} args.ctx - The logging context.
+   */
   constructor({
     repoName,
     repoOwner,
@@ -53,6 +64,14 @@ export class PullRequestCreator {
     this.baseBranchName = this.ensureBranchPrefix(baseBranchName);
   }
 
+  /**
+   * Retrieves a specific branch from a repository using the provided branch name.
+   * Utilizes GraphQL to load the 'getRef' query and execute it with the necessary parameters.
+   * If the branch does not exist, it returns null.
+   *
+   * @param branchName - The name of the branch to retrieve.
+   * @returns A Promise that resolves to the branch reference or null if the branch does not exist.
+   */
   private async getBranch(branchName: string): Promise<Ref | null> {
     const getBranchQuery = await GraphQLUtil.loadQuery("getRef");
     const getBranchParameters: {
@@ -75,8 +94,17 @@ export class PullRequestCreator {
   }
 
   /**
-   * branch off the head commit (should usually be PR merge commit)
-   * https://docs.github.com/en/graphql/reference/mutations#createref
+   * Asynchronously creates a new branch in the repository, branching off the head commit (should usually be PR merge commit).
+   *
+   * @param branchName - The name of the branch to be created.
+   *
+   * @returns A promise that resolves to the created branch reference.
+   *
+   * @throws Will throw an error if the base branch's head commit cannot be fetched or if the branch creation fails.
+   *
+   * @see {@link https://docs.github.com/en/graphql/reference/mutations#createref}
+   *
+   * @private
    */
   private async createBranch(branchName: string): Promise<Ref> {
     // get base branch head commit
@@ -126,10 +154,16 @@ export class PullRequestCreator {
   }
 
   /**
-   * commit file changes
+   * Asynchronously creates a commit on a specified branch with a given message and file changes.
+   * If there are no file changes (additions or deletions), the function will return without creating a commit.
    * https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch
    *
-   * @param fileChanges - `contents` field of each `FileChange` object must be base64 encoded
+   * @param branch - The branch on which the commit is to be created.
+   * @param message - The commit message.
+   * @param fileChanges - The changes to be committed, including file additions and deletions. `contents` field of each `FileChange` object must be base64 encoded.
+   * @returns A promise that resolves to void when the commit is successfully created.
+   *
+   * @throws Will throw an error if the commit creation fails.
    */
   private async createCommit(
     branch: Ref,
@@ -173,8 +207,14 @@ export class PullRequestCreator {
   }
 
   /**
-   * open new PR against event.pull_request.base.ref (same base as PR that triggered this event)
+   * Opens a new pull request on the specified branch, against event.pull_request.base.ref (same base as PR that triggered this event).
    * https://docs.github.com/en/graphql/reference/mutations#createpullrequest
+   *
+   * @param branch - The branch where the pull request will be opened.
+   * @param prTitle - The title of the pull request.
+   * @param prBody - The body content of the pull request.
+   * @returns A promise that resolves to the newly created pull request.
+   * @throws Will throw an error if the pull request creation fails.
    */
   private async openPullRequest(
     branch: Ref,
@@ -204,7 +244,19 @@ export class PullRequestCreator {
     return prResp.createPullRequest.pullRequest;
   }
 
-  // https://docs.github.com/en/graphql/reference/mutations#deleteref
+  /**
+   * Deletes a specific branch using its node ID.
+   *
+   * @param branchNodeId - The unique identifier of the branch to be deleted.
+   * @returns A promise that resolves when the branch deletion is complete.
+   *
+   * @remarks
+   * This method uses the `deleteBranch` query from `GraphQLUtil` and the `deleteRef` mutation from the Octokit GraphQL API.
+   * The `branchNodeId` is used as the `refNodeId` parameter in the GraphQL query.
+   *
+   * @see
+   * {@link https://docs.github.com/en/graphql/reference/mutations#deleteref | GitHub GraphQL API Documentation}
+   */
   private async deleteBranch(branchNodeId: string): Promise<void> {
     const query = await GraphQLUtil.loadQuery("deleteBranch");
     const params: {
@@ -215,6 +267,14 @@ export class PullRequestCreator {
     await this.octokit.graphql<{ resp: Mutation["deleteRef"] }>(query, params);
   }
 
+  /**
+   * Ensures the provided branch name starts with the standard GitHub branch prefix ("refs/heads/").
+   * If the branch name already starts with the prefix, it is returned as is.
+   * Otherwise, the prefix is prepended to the branch name and the resulting string is returned.
+   *
+   * @param branchName - The name of the branch to check and possibly prefix.
+   * @returns The branch name, prefixed with "refs/heads/" if it was not already.
+   */
   private ensureBranchPrefix(branchName: string): string {
     const githubBranchPrefix = "refs/heads/";
     if (branchName.startsWith(githubBranchPrefix)) {
@@ -224,9 +284,20 @@ export class PullRequestCreator {
   }
 
   /**
-   * Open a new PR containing the input `fileChanges`, targeted at `baseBranchName`.
-   * Input parameters used for PR creation details.
-   * @returns the number of the created PR
+   * Asynchronously creates a pull request on a given branch with specified changes.
+   * If the branch does not exist, it will be created.
+   * If a pull request already exists, new commits will be added to it.
+   *
+   * @param {Object} params - Parameters for creating a pull request.
+   * @param {string} params.branchName - The name of the branch.
+   * @param {string} params.commitMessage - The commit message.
+   * @param {string} params.prTitle - The title of the pull request.
+   * @param {string} params.prBody - The body text of the pull request.
+   * @param {FileChanges} params.fileChanges - The changes to be committed.
+   *
+   * @returns {Promise<PullRequest | null>} A promise that resolves to the created pull request, or null if the pull request could not be created.
+   *
+   * @throws Will throw an error if the pull request creation fails.
    */
   public async createPullRequest({
     branchName,
