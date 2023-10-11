@@ -33,6 +33,19 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 
 const ANALYTICS_SOURCE = "run api documentation cron handler";
 
+/**
+ * Handles the task of running API documentation. It loads the necessary context and input data, validates the team ID,
+ * and loads the core API data. It then checks if the API documentation feature is enabled for the repo and if the Github
+ * integration is installed for the team. If these conditions are met, it logs the event of running API documentation and
+ * loads the Github API data. If no express apps are detected, it logs the event and sends a 200 status response. If express
+ * apps are detected, it builds the API documentation for each app, updates or creates the Github document, generates the
+ * API documentation from OpenAI, and logs the relevant events. Finally, it creates a pull request with the new API documentation.
+ *
+ * @param {Express.Request} req - The request object.
+ * @param {Express.Response} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the function has completed.
+ * @throws {MissingRequiredHeaderError} - If the team ID header is missing.
+ */
 export async function runApiDocumentationTaskHandler(
   req: Express.Request,
   res: Express.Response,
@@ -420,6 +433,18 @@ export async function runApiDocumentationTaskHandler(
   });
 }
 
+/**
+ * Updates the documentation of Express APIs using the provided new values.
+ * It iterates over the given Express APIs, retrieves the corresponding Github document using the documentation file path,
+ * and updates the document with the new values.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {CoreAPIData} params.coreAPIData - The Core API data instance to interact with Github documents.
+ * @param {ExpressAPI[]} params.expressAPIs - The array of Express APIs whose documentation needs to be updated.
+ * @param {GithubDocumentValuesInput} params.newValues - The new values to update the Github documents with.
+ * @throws {Error} If the Github document corresponding to an Express API is not found.
+ * @returns {Promise<void>} A promise that resolves when all the documents have been updated.
+ */
 async function updateDocuments({
   coreAPIData,
   expressAPIs,
@@ -444,8 +469,16 @@ async function updateDocuments({
 }
 
 /**
+ * Generates API documentation for the provided Express REST API using OpenAI.
  * Given a list of Express API endpoints, this function builds up API
  * documentation by sending the endpoints to OpenAI one at a time.
+ *
+ * @param {Object} arg - An object.
+ * @param {Object} arg.expressAPIInfo - Information about the Express API.
+ * @param {Object} arg.ctx - The context object.
+ * @returns {Promise<string|null>} The generated API documentation as a string, or null if no documentation could be generated.
+ *
+ * @throws Will throw an error if the OpenAI client fails to generate the documentation.
  */
 async function generateExpressAPIDoc({
   expressAPIInfo,
@@ -549,6 +582,13 @@ async function generateExpressAPIDoc({
   return apiDoc;
 }
 
+/**
+ * Generates the file path for the documentation of a given API.
+ *
+ * @param {Object} options - The options object.
+ * @param {string} options.apiName - The name of the API.
+ * @returns {string} The file path for the API's documentation.
+ */
 function documentationFilePath({ apiName }: { apiName: string }): string {
   const basename = underscoreify(apiName);
   return `eave_docs/${basename}.md`;

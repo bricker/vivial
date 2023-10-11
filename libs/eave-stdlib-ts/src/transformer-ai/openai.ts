@@ -20,6 +20,14 @@ export const PROMPT_PREFIX =
   "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. " +
   "You are responsible for the quality and integrity of this organization's documentation.";
 
+/**
+ * Formats a series of prompts by removing common leading whitespace from each line of each prompt.
+ * If a prompt is a single line or has no common leading whitespace, it is left unchanged.
+ * The formatted prompts are then joined together with a newline character between each.
+ *
+ * @param prompts - An array of strings, each representing a prompt to be formatted.
+ * @returns A single string containing all the formatted prompts, separated by newline characters.
+ */
 export function formatprompt(...prompts: string[]): string {
   const prompt: string[] = [];
   for (const s of prompts) {
@@ -58,6 +66,14 @@ export function formatprompt(...prompts: string[]): string {
 export default class OpenAIClient {
   client: OpenAIApi;
 
+  /**
+   * Retrieves an authenticated OpenAI client.
+   *
+   * This method asynchronously fetches the OpenAI API key and organization from the shared configuration,
+   * creates a new configuration object with these values, and then initializes a new OpenAI client with this configuration.
+   *
+   * @returns {Promise<OpenAIClient>} A promise that resolves to an instance of OpenAIClient.
+   */
   static async getAuthedClient(): Promise<OpenAIClient> {
     const apiKey = await sharedConfig.openaiApiKey;
     const apiOrg = await sharedConfig.openaiApiOrg;
@@ -66,20 +82,31 @@ export default class OpenAIClient {
     return new OpenAIClient(openaiClient);
   }
 
+  /**
+   * Constructs a new instance of the class, initializing it with the provided OpenAIApi client.
+   * @param client - An instance of OpenAIApi to be used for API calls.
+   */
   constructor(client: OpenAIApi) {
     this.client = client;
   }
 
   /**
-   * Makes a request to OpenAI chat completion API.
-   * https://beta.openai.com/docs/api-reference/completions/create
-   * baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+   * Creates a chat completion using the provided parameters and context.
+   * The function makes up to three attempts to create the chat completion, with an exponential backoff strategy.
+   * It logs the request and response details, and throws an error if the model value is unexpected or if the text response is undefined.
+   * The baseTimeoutSeconds is multiplied by (2^n) for each attempt n.
    *
-   * @param parameters the main openAI API request params
-   * @param ctx log context (also used to populate important analytics fields)
-   * @param baseTimeoutSeconds API request timeout
-   * @param documentId some unique ID for the file/document this OpenAI request is for (for analytics)
-   * @returns API chat completion response string
+   * @param {Object} args - The arguments for the function.
+   * @param {CreateChatCompletionRequest} args.parameters - The parameters for the chat completion request.
+   * @param {Object} args.ctx - The context for the request, also used to populate important analytics fields.
+   * @param {number} [args.baseTimeoutSeconds=30] - The base timeout in seconds for the request.
+   * @param {string} [args.documentId] - The ID of the document, some unique ID for the file/document this OpenAI request is for (for analytics).
+   *
+   * @returns {Promise<string>} The text response from the chat completion.
+   *
+   * @throws Will throw an error if the model value is unexpected or if the text response is undefined.
+   *
+   * @see {@link https://beta.openai.com/docs/api-reference/completions/create}
    */
   async createChatCompletion({
     parameters,
@@ -161,6 +188,19 @@ export default class OpenAIClient {
   }
 }
 
+/**
+ * Logs the details of a GPT request including the parameters, duration, response, and token counts.
+ *
+ * @param parameters - The parameters used to create the chat completion request.
+ * @param duration_seconds - The duration of the request in seconds.
+ * @param response - The response from the GPT.
+ * @param input_token_count - The number of tokens in the input prompt. If not provided, it will be calculated.
+ * @param output_token_count - The number of tokens in the output response. If not provided, it will be calculated.
+ * @param document_id - The ID of the document associated with the request.
+ * @param ctx - The logging context.
+ *
+ * The function will calculate the token count if not provided and log the request using the `logGptRequest` function.
+ */
 async function logGptRequestData(
   parameters: CreateChatCompletionRequest,
   duration_seconds: number,
@@ -203,6 +243,12 @@ async function logGptRequestData(
   );
 }
 
+/**
+ * Generates a log of a chat completion response with redacted content.
+ *
+ * @param {CreateChatCompletionResponse} response - The chat completion response to be logged.
+ * @returns {any} An object containing the logged response with redacted content.
+ */
 function makeResponseLog(response: CreateChatCompletionResponse): any {
   return {
     openai_response: {
@@ -218,6 +264,12 @@ function makeResponseLog(response: CreateChatCompletionResponse): any {
   };
 }
 
+/**
+ * Creates a log of a chat completion request with redacted content.
+ *
+ * @param {CreateChatCompletionRequest} request - The chat completion request to be logged.
+ * @returns {any} An object containing the logged request with redacted message content.
+ */
 function makeRequestLog(request: CreateChatCompletionRequest): any {
   return {
     openai_request: {

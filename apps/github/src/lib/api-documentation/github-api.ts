@@ -32,6 +32,17 @@ export class GithubAPIData {
   private readonly ctx: LogContext;
   private readonly octokit: Octokit;
 
+  /**
+   * Asynchronously loads the GitHub repository and Express root directories based on the provided context and repository arguments.
+   *
+   * @param ctx - The GitHub operations context.
+   * @param octokit - The Octokit instance to interact with GitHub's API.
+   * @param eaveGithubRepo - The Eave GitHub repository argument.
+   *
+   * @returns A new instance of GithubAPIData containing the context, Octokit instance, external GitHub repository, and Express root directories.
+   *
+   * @throws Will throw an error if no Express API directory file is found.
+   */
   static async load({
     ctx,
     octokit,
@@ -82,6 +93,14 @@ export class GithubAPIData {
     });
   }
 
+  /**
+   * A private constructor that initializes the GitHubOperationsContext, ExternalGithubRepoArg, and expressRootDirs.
+   * @param {Object} args - The arguments object.
+   * @param {Object} args.ctx - The GitHubOperationsContext object.
+   * @param {Object} args.octokit - The Octokit object.
+   * @param {Object} args.externalGithubRepo - The ExternalGithubRepoArg object.
+   * @param {string[]} args.expressRootDirs - The array of express root directories.
+   */
   private constructor({
     ctx,
     octokit,
@@ -103,6 +122,16 @@ export class GithubAPIData {
     };
   }
 
+  /**
+   * Retrieves the Git tree for a specified root directory.
+   *
+   * @param {Object} params - The parameters for the function.
+   * @param {string} params.treeRootDir - The root directory of the tree to retrieve.
+   *
+   * @returns {Promise<Tree>} A promise that resolves to the Git tree for the specified root directory.
+   *
+   * @throws {Error} If the response does not contain a valid repository or tree.
+   */
   async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {
     const query = await loadQuery("getGitObject");
     const variables: {
@@ -130,6 +159,15 @@ export class GithubAPIData {
     return tree;
   }
 
+  /**
+   * An asynchronous generator function that performs a breadth-first search (BFS) on a Git tree.
+   * It yields each blob entry in the tree and recursively explores sub-trees.
+   *
+   * @param {Object} params - The parameters for the function.
+   * @param {string} params.treeRootDir - The root directory of the Git tree to be traversed.
+   * @yields {TreeEntry} - Yields each blob entry in the Git tree.
+   * @throws {AssertionError} - If the path of a sub-tree is not present.
+   */
   async *recurseGitTree({
     treeRootDir,
   }: {
@@ -155,6 +193,16 @@ export class GithubAPIData {
     }
   }
 
+  /**
+   * Retrieves the content of a file from a GitHub repository.
+   *
+   * @param {Object} params - The parameters for the function.
+   * @param {string} params.filePath - The path of the file in the repository.
+   *
+   * @returns {Promise<Blob | null>} The content of the file as a Blob if the file exists, otherwise null.
+   *
+   * @throws {Error} If the response from the GitHub API does not contain a valid repository or Blob.
+   */
   async getFileContent({
     filePath,
   }: {

@@ -37,6 +37,25 @@ export interface GPTRequestEventFields {
   document_id?: string;
 }
 
+/**
+ * Logs an event to the PubSub topic specified by `EVENT_TOPIC_ID`.
+ * The event is created using the provided `fields` and `ctx`.
+ * If `fields.opaque_params` is a string, it is directly assigned to `event.opaque_params`.
+ * If `fields.opaque_params` is undefined, `event.opaque_params` is also set to undefined.
+ * Otherwise, `event.opaque_params` is set to the JSON stringified version of `fields.opaque_params`.
+ * If `fields.eave_team` is provided, its ID and JSON stringified version are assigned to `event.eave_team_id` and `event.eave_team` respectively.
+ * If `fields.eave_team` is not provided but `ctx` contains "eave_team", the same assignments are made after attempting to cast "eave_team" to a JsonObject.
+ * Similar assignments are made for `fields.eave_account` and "eave_account" in `ctx`.
+ * `event.opaque_eave_ctx` is set to the JSON stringified version of `ctx.attributes`.
+ * `event.eave_request_id` is set to `ctx.eave_request_id`.
+ * If `event.eave_account_id` and `event.eave_team_id` are not set, they are assigned from `ctx.eave_account_id` and `ctx.eave_team_id` respectively.
+ * The event is then converted to JSON and encoded to a protobuf message.
+ * If analytics are enabled, the event is published to the PubSub topic and a debug log is written.
+ * If the event fails to publish, an exception log is written.
+ * If analytics are not enabled, a warning log is written.
+ * @param fields - The fields to be logged in the event.
+ * @param ctx - The context in which the event is being logged.
+ */
 export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   const pubSubClient = new PubSub();
 
@@ -119,6 +138,17 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
   }
 }
 
+/**
+ * Logs a GPT request event to a PubSub topic. The event is created using the provided fields and the current time.
+ * If a LogContext is provided, it is used to set the eave_request_id and eave_team_id of the event.
+ * The event is then converted to JSON and encoded as a protobuf message.
+ * If analytics are enabled, the event is published to the PubSub topic and a debug message is logged.
+ * If the event fails to publish, an exception is logged.
+ * If analytics are disabled, a warning is logged.
+ *
+ * @param fields - The fields to use when creating the GPT request event.
+ * @param ctx - Optional. The context to use when logging the event.
+ */
 export async function logGptRequest(
   fields: GPTRequestEventFields,
   ctx?: LogContext,
@@ -155,6 +185,13 @@ export async function logGptRequest(
   }
 }
 
+/**
+ * Transforms a JSON event object by adding a redacted version of the `opaque_params` field.
+ * The redacted version will only show the first 100 characters of the `opaque_params` field.
+ *
+ * @param {JsonObject} jsonEvent - The JSON event object to transform.
+ * @returns {JsonObject} The transformed JSON event object with a redacted `opaque_params` field.
+ */
 function makeLogEvent(jsonEvent: JsonObject): JsonObject {
   return {
     event: {
