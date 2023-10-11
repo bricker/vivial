@@ -162,9 +162,15 @@ export class PullRequestCreator {
     }>(createCommitMutation, createCommitParameters);
 
     eaveLogger.debug("createCommitOnBranch response", {
-      createCommitMutation,
-      createCommitParameters,
-      commitResp,
+      variables: {
+        branch: createCommitParameters.branch,
+        headOid: createCommitParameters.headOid,
+        message: createCommitParameters.message,
+        fileChangesLength: createCommitParameters.fileChanges.additions?.length,
+      },
+      response: {
+        commit_oid: commitResp.createCommitOnBranch?.commit?.oid,
+      },
     });
 
     if (!commitResp.createCommitOnBranch?.commit?.oid) {

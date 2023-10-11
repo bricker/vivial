@@ -516,7 +516,7 @@ async function generateExpressAPIDoc({
           {
             event_name: "express_api_documentation_openai_empty_response",
             event_description:
-              "OpenAI couldn't generate documentation for this API",
+              "OpenAI couldn't generate documentation for an API Endpoint",
             event_source: "express parsing utility",
             opaque_params: {
               apiName: expressAPIInfo.name,
