@@ -1,12 +1,10 @@
-## Lists API
-
-### Get Lists
+## Get Lists
 
 ```
 GET /v1/lists
 ```
 
-Fetches all lists.
+This endpoint retrieves all lists.
 
 ### Example Request
 
@@ -24,17 +22,17 @@ fetch('/v1/lists', {
 
 ### Response Codes
 
-**200**: The lists were successfully fetched.
+**200**: The lists were successfully retrieved.
 
 ---
 
-### Get List
+## Get List
 
 ```
 GET /v1/lists/:list_id
 ```
 
-Fetches a specific list by its ID.
+This endpoint retrieves a specific list by its ID.
 
 ### Path Parameters
 
@@ -56,19 +54,19 @@ fetch('/v1/lists/1', {
 
 ### Response Codes
 
-**200**: The list was successfully fetched.
+**200**: The list was successfully retrieved.
 
 **404**: The list with the provided ID does not exist.
 
 ---
 
-### Create List
+## Create List
 
 ```
 POST /v1/lists
 ```
 
-Creates a new list.
+This endpoint creates a new list.
 
 ### Example Request
 
@@ -87,13 +85,13 @@ fetch('/v1/lists', {
 
 ---
 
-### Update List
+## Update List
 
 ```
 PATCH /v1/lists/:list_id
 ```
 
-Updates a specific list by its ID.
+This endpoint updates a specific list by its ID.
 
 ### Path Parameters
 
@@ -118,13 +116,13 @@ fetch('/v1/lists/1', {
 
 ---
 
-### Delete List
+## Delete List
 
 ```
 DELETE /v1/lists/:list_id
 ```
 
-Deletes a specific list by its ID.
+This endpoint deletes a specific list by its ID.
 
 ### Path Parameters
 
@@ -146,15 +144,13 @@ fetch('/v1/lists/1', {
 
 ---
 
-## Users API
-
-### Get Users
+## Get Users
 
 ```
 GET /v1/users
 ```
 
-Fetches all users.
+This endpoint retrieves all users.
 
 ### Example Request
 
@@ -172,17 +168,17 @@ fetch('/v1/users', {
 
 ### Response Codes
 
-**200**: The users were successfully fetched.
+**200**: The users were successfully retrieved.
 
 ---
 
-### Get User
+## Get User
 
 ```
 GET /v1/users/:user_id
 ```
 
-Fetches a specific user by their ID.
+This endpoint retrieves a specific user by their ID.
 
 ### Path Parameters
 
@@ -204,19 +200,19 @@ fetch('/v1/users/1', {
 
 ### Response Codes
 
-**200**: The user was successfully fetched.
+**200**: The user was successfully retrieved.
 
 **404**: The user with the provided ID does not exist.
 
 ---
 
-### Create User
+## Create User
 
 ```
 POST /v1/users
 ```
 
-Creates a new user.
+This endpoint creates a new user.
 
 ### Example Request
 
@@ -235,13 +231,13 @@ fetch('/v1/users', {
 
 ---
 
-### Update User
+## Update User
 
 ```
 PATCH /v1/users/:user_id
 ```
 
-Updates a specific user by their ID.
+This endpoint updates a specific user by their ID.
 
 ### Path Parameters
 
@@ -266,13 +262,13 @@ fetch('/v1/users/1', {
 
 ---
 
-### Delete User
+## Delete User
 
 ```
 DELETE /v1/users/:user_id
 ```
 
-Deletes a specific user by their ID.
+This endpoint deletes a specific user by their ID.
 
 ### Path Parameters
 

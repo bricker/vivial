@@ -1,10 +1,10 @@
-## GitHub Events Endpoint
+## Github Events Endpoint
 
 ```
 POST /github/events
 ```
 
-This API endpoint is used to receive and process GitHub webhook events. It validates the headers of the incoming request, verifies the signature, and if valid, it creates a task for the event handler to process the event.
+This API endpoint is used to receive and process Github webhook events. It validates the Github webhook headers, verifies the signature, and if valid, creates a task from the request to handle the event.
 
 ### Path Parameters
 
@@ -33,7 +33,7 @@ HTTP/1.1 200 OK
 
 ### Response Codes
 
-**200**: The request was successful and the event is supported and will be processed.
+**200**: The request was successful and the event is supported.
 
 **400**: The request was unsuccessful due to missing header data from GitHub or signature verification failure.
 
