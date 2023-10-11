@@ -408,18 +408,13 @@ export async function runApiDocumentationTaskHandler(
     },
   });
 
-  eaveLogger.debug(
-    "created pull request",
-    sharedAnalyticsParams,
-    { pullRequestNumber: pullRequest.number },
-    ctx,
-  );
-
   await updateDocuments({
     coreAPIData,
     expressAPIs: validExpressAPIs,
     newValues: {
-      pull_request_number: pullRequest.number,
+      // if pullRequest is null, backend won't update the db value,
+      // which should lead to expected result of showing the previous PR number
+      pull_request_number: pullRequest?.number,
       status: Status.PR_OPENED,
     },
   });

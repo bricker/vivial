@@ -55,6 +55,12 @@ export async function createPullRequestHandler(
     prBody: input.pr_body,
   });
 
+  if (pr === null) {
+    eaveLogger.error("Pull request could not be created for input", ctx);
+    res.sendStatus(400);
+    return;
+  }
+
   const output: CreateGitHubPullRequestResponseBody = { pr_number: pr.number };
   res.json(output);
 }
