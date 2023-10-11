@@ -82,7 +82,7 @@ function formatStatus(/** @type {Types.GithubDocument} */ doc, /** @type {{[key:
   }
 
   const repo = repoMap[doc.github_repo_id];
-  const repoUrl = repo["external_repo_data"]?.url;
+  const repoUrl = repo["external_repo_data"]?.url; // TODO: should separate this from repo response
   const prNumber = doc.pull_request_number;
   const prLink = `${repoUrl}/pull/${prNumber}`;
   const prLinkStyle = { color: "#0092C7", textDecoration: "none" };
