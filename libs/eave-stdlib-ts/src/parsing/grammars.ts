@@ -19,6 +19,7 @@ import {
   stringToProgrammingLanguage,
 } from "../programming-langs/language-mapping.js";
 import { xor } from "../util.js";
+import { eaveLogger } from "../logging.js";
 
 const { typescript: Typescript, tsx } = tsPkg;
 
@@ -106,10 +107,10 @@ export function grammarForFilePathOrName(
   filePathOrName: string,
 ): ProgrammingLanguage | null {
   const language = getProgrammingLanguageByFilePathOrName(filePathOrName);
-  assert(
-    language,
-    `Unsupported file extension: ${path.extname(filePathOrName)}`,
-  );
+  if (!language) {
+    eaveLogger.debug(`Unsupported file extension: ${path.extname(filePathOrName)}`);
+    return null;
+  }
   return grammarForLanguage({ language, filePathOrName });
 }
 
