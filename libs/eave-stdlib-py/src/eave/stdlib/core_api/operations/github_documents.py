@@ -31,7 +31,7 @@ class GetGithubDocumentsRequest(CoreApiEndpoint):
         cls,
         input: RequestBody,
         team_id: uuid.UUID | str,
-        account_id: Optional[uuid.UUID | str],
+        account_id: Optional[uuid.UUID],
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
@@ -142,9 +142,9 @@ class DeleteGithubDocumentsByIdsRequest(CoreApiEndpoint):
         response = await requests.make_request(
             config=cls.config,
             input=input,
-            team_id=team_id,
             account_id=account_id,
             access_token=access_token,
+            team_id=team_id,
             **kwargs,
         )
 

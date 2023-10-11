@@ -1,13 +1,14 @@
+from dataclasses import dataclass
 import typing
 import uuid
 from datetime import datetime
-from typing import Any, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Any, Optional, Self, Tuple
 from uuid import UUID
 
 import eave.stdlib.exceptions
 import eave.core.internal
 import slack_sdk.errors
-from sqlalchemy import Index, Select, func, select
+from sqlalchemy import Index, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -58,6 +59,8 @@ class AccountOrm(Base):
     )  # This field was renamed from "oauth_token" to "access_token"
     """access token from 3rd party"""
     refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
+    previous_access_token: Mapped[Optional[str]] = mapped_column(server_default=None)
+    """When a new access token is acquired, move the previous value here. It can be used for lookup to mitigate race conditions between client and server"""
     email: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""
     last_login: Mapped[Optional[datetime]] = mapped_column(server_default=func.current_timestamp(), nullable=True)
@@ -92,50 +95,70 @@ class AccountOrm(Base):
         await session.flush()
         return obj
 
-    class _selectparams(TypedDict):
-        id: NotRequired[uuid.UUID | str]
-        team_id: NotRequired[uuid.UUID | str]
-        auth_provider: NotRequired[AuthProvider]
-        auth_id: NotRequired[str]
-        access_token: NotRequired[str]
-        refresh_token: NotRequired[str]
+    @dataclass
+    class QueryParams:
+        id: Optional[uuid.UUID] = None
+        team_id: Optional[uuid.UUID] = None
+        auth_provider: Optional[AuthProvider] = None
+        auth_id: Optional[str] = None
+        access_token: Optional[str] = None
 
     @classmethod
-    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
+    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
         lookup = select(cls).limit(1)
 
-        if id := ensure_uuid_or_none(kwargs.get("id")):
-            lookup = lookup.where(cls.id == id)
+        if params.id is not None:
+            lookup = lookup.where(cls.id == params.id)
 
-        if team_id := ensure_uuid_or_none(kwargs.get("team_id")):
-            lookup = lookup.where(cls.team_id == team_id)
+        if params.team_id is not None:
+            lookup = lookup.where(cls.team_id == params.team_id)
 
-        if auth_provider := kwargs.get("auth_provider"):
-            lookup = lookup.where(cls.auth_provider == auth_provider)
+        if params.auth_provider is not None:
+            lookup = lookup.where(cls.auth_provider == params.auth_provider)
 
-        if auth_id := kwargs.get("auth_id"):
-            lookup = lookup.where(cls.auth_id == auth_id)
+        if params.auth_id is not None:
+            lookup = lookup.where(cls.auth_id == params.auth_id)
 
-        if access_token := kwargs.get("access_token"):
-            lookup = lookup.where(cls.access_token == access_token)
-
-        if refresh_token := kwargs.get("refresh_token"):
-            lookup = lookup.where(cls.refresh_token == refresh_token)
+        if params.access_token is not None:
+            lookup = lookup.where(
+                or_(
+                    cls.access_token == params.access_token,
+                    cls.previous_access_token == params.access_token,
+                )
+            )
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
-        lookup = cls._build_select(**kwargs)
+    async def query(cls, session: AsyncSession, params: QueryParams) -> Self:
+        lookup = cls._build_query(params=params)
         result = (await session.scalars(lookup)).one()
         return result
 
     @classmethod
-    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
-        lookup = cls._build_select(**kwargs)
+    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
+        lookup = cls._build_query(params=params)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
+        lookup = cls._build_query(params=params)
         result = await session.scalar(lookup)
         return result
+
+    def set_tokens(self, session: AsyncSession, access_token: str | None, refresh_token: str | None) -> None:
+        """
+        The session parameter is unused but encourages the caller to use this function in an open DB session, so that the changes are applied when it's closed.
+        """
+        if access_token:
+            if access_token != self.previous_access_token:
+                self.previous_access_token = self.access_token
+            self.access_token = access_token
+
+        if refresh_token:
+            self.refresh_token = refresh_token
 
     async def verify_oauth_or_exception(
         self, session: AsyncSession, ctx: Optional[LogContext] = None
@@ -168,8 +191,9 @@ class AccountOrm(Base):
                     access_token=self.access_token, refresh_token=self.refresh_token
                 )
                 eave.core.internal.oauth.google.get_userinfo(credentials=credentials)
-                self.access_token = credentials.token
-                self.refresh_token = credentials.refresh_token
+                self.set_tokens(
+                    session=session, access_token=credentials.token, refresh_token=credentials.refresh_token
+                )
                 return True
             case _:
                 raise
@@ -192,8 +216,7 @@ class AccountOrm(Base):
                     refresh_token := new_tokens.get("refresh_token")
                 ):
                     eaveLogger.debug("Refreshing Slack auth tokens.", ctx)
-                    self.access_token = access_token
-                    self.refresh_token = refresh_token
+                    self.set_tokens(session=session, access_token=access_token, refresh_token=refresh_token)
                     return True
                 else:
                     raise MissingOAuthCredentialsError("slack access or refresh token")

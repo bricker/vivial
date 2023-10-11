@@ -3,6 +3,7 @@ import http
 import re
 import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from eave.core.internal.orm.account import AccountOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
@@ -20,6 +21,7 @@ from starlette.responses import Response
 import eave.core.internal
 import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
+from eave.stdlib.util import ensure_uuid
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
 
 DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
@@ -82,7 +84,12 @@ async def get_logged_in_eave_account(
     if auth_cookies_.access_token and auth_cookies_.account_id:
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
-                session=db_session, id=auth_cookies_.account_id, access_token=auth_cookies_.access_token
+                session=db_session,
+                params=AccountOrm.QueryParams(
+                    id=ensure_uuid(auth_cookies_.account_id),
+                    access_token=auth_cookies_.access_token,
+                    auth_provider=auth_provider,
+                ),
             )
 
             if not eave_account:
@@ -90,12 +97,7 @@ async def get_logged_in_eave_account(
                 return None
 
             if eave_account.auth_provider == auth_provider:
-                # If the user is logged in through this provider, then take this opportunity to update the access and refresh tokens.
-                if access_token:
-                    eave_account.access_token = access_token
-
-                if refresh_token:
-                    eave_account.refresh_token = refresh_token
+                eave_account.set_tokens(session=db_session, access_token=access_token, refresh_token=refresh_token)
 
         return eave_account
 
@@ -116,17 +118,16 @@ async def get_existing_eave_account(
     async with eave.core.internal.database.async_session.begin() as db_session:
         eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
             session=db_session,
-            auth_provider=auth_provider,
-            auth_id=auth_id,
+            params=AccountOrm.QueryParams(
+                auth_provider=auth_provider,
+                auth_id=auth_id,
+            ),
         )
 
         if eave_account:
             # An account exists. Update the saved auth tokens and login date.
             eave_account.last_login = datetime.datetime.utcnow()
-            if access_token:
-                eave_account.access_token = access_token
-            if refresh_token:
-                eave_account.refresh_token = refresh_token
+            eave_account.set_tokens(session=db_session, access_token=access_token, refresh_token=refresh_token)
 
     return eave_account
 

@@ -148,7 +148,7 @@ function createLogger(): winston.Logger {
     logger = winston.createLogger({
       level,
       format: winston.format.combine(
-        winston.format.simple(),
+        winston.format.json({ space: 2, deterministic: true }),
         // new RequestFormatter(),
         winston.format.colorize({
           all: true,
@@ -179,7 +179,7 @@ class EaveLogger {
     try {
       this.rawLogger.debug(message, this.makeExtra(...rest));
     } catch (e: any) {
-      console.debug(e);
+      console.error(e);
     }
   }
 
@@ -187,7 +187,7 @@ class EaveLogger {
     try {
       this.rawLogger.info(message, this.makeExtra(...rest));
     } catch (e: any) {
-      console.log(e);
+      console.error(e);
     }
   }
 
@@ -205,7 +205,7 @@ class EaveLogger {
     try {
       this.rawLogger.warn(msg, this.makeExtra(...rest));
     } catch (e: any) {
-      console.warn(e);
+      console.error(e);
     }
   }
 

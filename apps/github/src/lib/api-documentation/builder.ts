@@ -9,11 +9,13 @@ import {
 } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { ProgrammingLanguage } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
 import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
+import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import { assertIsBlob } from "../graphql-util.js";
 import { GithubAPIData } from "./github-api.js";
 
 export class ExpressAPIDocumentBuilder {
+  readonly logParams: { [key: string]: JsonValue };
   private readonly githubAPIData: GithubAPIData;
   private readonly ctx: LogContext;
   private readonly apiRootFile: ExpressCodeFile;
@@ -54,7 +56,11 @@ export class ExpressAPIDocumentBuilder {
     }
 
     if (!apiInfo.rootFile) {
-      eaveLogger.warning("No express API root file found", { apiRootDir }, ctx);
+      eaveLogger.warning(
+        "No express API root file found",
+        { api_root_dir: apiRootDir, github_data: githubAPIData.logParams },
+        ctx,
+      );
       return apiInfo;
     }
 
@@ -64,14 +70,31 @@ export class ExpressAPIDocumentBuilder {
       ctx,
     });
     const endpoints = await builder.findExpressAPIEndpoints();
+    apiInfo.endpoints = endpoints;
 
     if (endpoints.length === 0) {
       eaveLogger.warning(
         "No express API endpoints found",
-        { apiRootDir, apiRootFile: apiInfo.rootFile?.asJSON },
+        {
+          api_root_dir: apiRootDir,
+          api_root_file: apiInfo.rootFile?.asJSON,
+          github_data: githubAPIData.logParams,
+        },
         ctx,
       );
     }
+
+    eaveLogger.debug(
+      "found express endpoints",
+      {
+        api_info: apiInfo.asJSON,
+        api_root_dir: apiRootDir,
+        api_root_file: apiInfo.rootFile?.asJSON,
+        github_data: githubAPIData.logParams,
+      },
+      builder.logParams,
+      ctx,
+    );
 
     return apiInfo;
   }
@@ -84,6 +107,11 @@ export class ExpressAPIDocumentBuilder {
     this.githubAPIData = githubAPIData;
     this.ctx = ctx;
     this.apiRootFile = apiRootFile;
+
+    this.logParams = {
+      github_data: githubAPIData.logParams,
+      api_root_file: apiRootFile.asJSON,
+    };
   }
 
   /**
@@ -91,6 +119,8 @@ export class ExpressAPIDocumentBuilder {
    * each API endpoint in the file. It then builds the code for each endpoint.
    */
   private async findExpressAPIEndpoints(): Promise<Array<string>> {
+    eaveLogger.debug("findExpressAPIEndpoints", this.logParams, this.ctx);
+
     const calls =
       this.apiRootFile.tree.rootNode.descendantsOfType("call_expression");
     const requires = await this.buildLocalRequires();
@@ -106,9 +136,10 @@ export class ExpressAPIDocumentBuilder {
     }
 
     for (const call of calls) {
+      let endpointCode = `${baseCode}`;
       const isMiddleWareCall = call.text.startsWith(`${app}.use`);
       if (isMiddleWareCall) {
-        baseCode += `${call.text}\n`;
+        endpointCode += `${call.text}\n`;
       }
 
       const isRouteCall = await this.apiRootFile.testExpressRouteCall({
@@ -117,7 +148,7 @@ export class ExpressAPIDocumentBuilder {
         router,
       });
       if (isRouteCall) {
-        let endpointCode = `${baseCode}\n${call.text}\n\n`;
+        endpointCode += `${call.text}\n`;
         const nestedIdentifiers = this.apiRootFile.getUniqueIdentifiers({
           rootNode: call,
           exclusions: [app, router],
@@ -125,17 +156,17 @@ export class ExpressAPIDocumentBuilder {
         for (const identifier of nestedIdentifiers) {
           const importCode = imports.get(identifier);
           if (importCode) {
-            endpointCode += importCode;
+            endpointCode += `${importCode}\n`;
             continue;
           }
           const requireCode = requires.get(identifier);
           if (requireCode) {
-            endpointCode += requireCode;
+            endpointCode += `${requireCode}\n`;
             continue;
           }
           const declarationCode = declarations.get(identifier)?.text;
           if (declarationCode) {
-            endpointCode += `${declarationCode}\n\n`;
+            endpointCode += `${declarationCode}\n`;
           }
         }
         apiEndpoints.push(endpointCode);
@@ -174,7 +205,7 @@ export class ExpressAPIDocumentBuilder {
       for (const innerIdentifier of innerIdentifiers) {
         const innerDeclaration = declarations.get(innerIdentifier);
         const isRequire = innerDeclaration?.text.match(
-          /require\(["|'][^"|']["|']\)/,
+          /require\(["|'][^"|']+?["|']\)/,
         );
         if (innerDeclaration && !isRequire) {
           accumulator += `${innerDeclaration.text}\n\n`;
@@ -272,24 +303,58 @@ export class ExpressAPIDocumentBuilder {
   }: {
     filePath: string;
   }): Promise<ExpressCodeFile> {
-    const file = new ExpressCodeFile({ path: filePath, contents: "" }); // empty contents as placeholder
+    let file = new ExpressCodeFile({ path: filePath, contents: "" }); // empty contents as placeholder
+
+    eaveLogger.debug(
+      "getExpressCodeFile",
+      { file_path: filePath, file: file.asJSON },
+      this.logParams,
+      this.ctx,
+    );
 
     let gitBlob = await this.githubAPIData.getFileContent({ filePath });
-    if (
-      !gitBlob &&
-      this.apiRootFile.language === ProgrammingLanguage.javascript
-    ) {
+    eaveLogger.debug(
+      "getExpressCodeFile -> gitBlob",
+      {
+        file_path: filePath,
+        git_blob: {
+          id: gitBlob?.id,
+          truncated_text: gitBlob?.text?.slice(0, 100),
+        },
+        file: file.asJSON,
+      },
+      this.logParams,
+      this.ctx,
+    );
+
+    if (!gitBlob && file.language === ProgrammingLanguage.javascript) {
       // either the file doesn't exist, or this is a javascript import and the source file is typescript.
       const tsFilePath = changeFileExtension({
         filePathOrName: filePath,
         to: ".ts",
       });
+      file = new ExpressCodeFile({ path: tsFilePath, contents: "" }); // empty contents as placeholder
+      eaveLogger.debug(
+        "getExpressCodeFile - trying js -> ts conversion",
+        { file_path: filePath, ts_file_path: tsFilePath, file: file.asJSON },
+        this.logParams,
+        this.ctx,
+      );
       gitBlob = await this.githubAPIData.getFileContent({
         filePath: tsFilePath,
       });
     }
 
-    assertPresence(gitBlob?.text);
+    if (!gitBlob?.text) {
+      eaveLogger.warning(
+        "getExpressCodeFile - empty file contents",
+        { file_path: filePath, file: file.asJSON },
+        this.logParams,
+        this.ctx,
+      );
+      return file;
+    }
+
     file.contents = gitBlob.text;
     return file;
   }

@@ -11,7 +11,6 @@ from ... import requests
 class GetAuthenticatedAccount(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/me/query",
-        team_id_required=False,
     )
 
     class ResponseBody(BaseResponseBody):
@@ -20,13 +19,18 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
 
     @classmethod
     async def perform(
-        cls, access_token: str, account_id: uuid.UUID | str, **kwargs: Unpack[requests.CommonRequestArgs]
+        cls,
+        access_token: str,
+        team_id: uuid.UUID,
+        account_id: uuid.UUID | str,
+        **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=None,
             access_token=access_token,
             account_id=account_id,
+            team_id=team_id,
             **kwargs,
         )
 
@@ -37,7 +41,6 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
 class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/me/team/integrations/query",
-        team_id_required=False,
     )
 
     class ResponseBody(BaseResponseBody):
@@ -51,6 +54,7 @@ class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
         cls,
         access_token: str,
         account_id: uuid.UUID | str,
+        team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -58,6 +62,7 @@ class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
             input=None,
             access_token=access_token,
             account_id=account_id,
+            team_id=team_id,
             **kwargs,
         )
 

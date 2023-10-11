@@ -1,6 +1,6 @@
 import path from "node:path";
 import Parser from "tree-sitter";
-import { ExpressRoutingMethod } from "../types.js";
+import { ExpressRoutingMethod, JsonObject } from "../types.js";
 import { titleize } from "../util.js";
 import { ESCodeFile } from "./es-parsing-utility.js";
 
@@ -164,5 +164,14 @@ export class ExpressAPI {
 
   set name(v: string) {
     this.__name__ = v;
+  }
+
+  get asJSON(): JsonObject {
+    return {
+      externalRepoId: this.externalRepoId,
+      rootDir: this.rootDir,
+      rootFile: this.rootFile?.asJSON,
+      documentationFilePath: this.documentationFilePath,
+    };
   }
 }

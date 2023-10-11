@@ -22,7 +22,7 @@ from .base import BaseTestCase
 class TestGithubRepoRequests(BaseTestCase):
     async def create_repos(self, session: AsyncSession, team_id: UUID, quantity: int = 5) -> list[GithubRepoOrm]:
         orms: list[GithubRepoOrm] = []
-        await GithubInstallationOrm.create(
+        gh_install = await GithubInstallationOrm.create(
             session=session,
             team_id=team_id,
             github_install_id=self.anystr(),
@@ -35,6 +35,7 @@ class TestGithubRepoRequests(BaseTestCase):
                     team_id=team_id,
                     external_repo_id=self.anystr(f"external_repo_id:{team_id}:{i}"),
                     display_name=self.anystr(),
+                    github_installation_id=gh_install.id,
                 )
             )
         return orms
