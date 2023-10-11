@@ -13,13 +13,13 @@ import path from "node:path";
 import Csharp from "tree-sitter-c-sharp";
 import Ruby from "tree-sitter-ruby";
 import Swift from "tree-sitter-swift";
+import { eaveLogger } from "../logging.js";
 import {
   ProgrammingLanguage,
   getProgrammingLanguageByFilePathOrName,
   stringToProgrammingLanguage,
 } from "../programming-langs/language-mapping.js";
 import { xor } from "../util.js";
-import { eaveLogger } from "../logging.js";
 
 const { typescript: Typescript, tsx } = tsPkg;
 
@@ -108,7 +108,9 @@ export function grammarForFilePathOrName(
 ): ProgrammingLanguage | null {
   const language = getProgrammingLanguageByFilePathOrName(filePathOrName);
   if (!language) {
-    eaveLogger.debug(`Unsupported file extension: ${path.extname(filePathOrName)}`);
+    eaveLogger.warning("Unsupported file extension", {
+      extension: path.extname(filePathOrName),
+    });
     return null;
   }
   return grammarForLanguage({ language, filePathOrName });
