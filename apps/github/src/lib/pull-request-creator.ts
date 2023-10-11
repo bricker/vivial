@@ -162,9 +162,15 @@ export class PullRequestCreator {
     }>(createCommitMutation, createCommitParameters);
 
     eaveLogger.debug("createCommitOnBranch response", {
-      createCommitMutation,
-      createCommitParameters,
-      commitResp,
+      variables: {
+        branch: createCommitParameters.branch,
+        headOid: createCommitParameters.headOid,
+        message: createCommitParameters.message,
+        fileChangesLength: createCommitParameters.fileChanges.additions?.length,
+      },
+      response: {
+        commit_oid: commitResp.createCommitOnBranch?.commit?.oid,
+      },
     });
 
     if (!commitResp.createCommitOnBranch?.commit?.oid) {
@@ -240,14 +246,16 @@ export class PullRequestCreator {
     prTitle: string;
     prBody: string;
     fileChanges: FileChanges;
-  }): Promise<PullRequest> {
+  }): Promise<PullRequest | null> {
     const fqBranchName = this.ensureBranchPrefix(branchName);
     let branch = await this.getBranch(fqBranchName);
+    let createdNewBranch = false;
     if (!branch) {
       branch = await this.createBranch(fqBranchName);
+      createdNewBranch = true;
     }
 
-    let pr: PullRequest;
+    let pr: PullRequest | null = null;
     try {
       await this.createCommit(branch, commitMessage, fileChanges);
       pr = await this.openPullRequest(branch, prTitle, prBody);
@@ -260,11 +268,26 @@ export class PullRequestCreator {
         this.ctx,
       );
     } catch (e) {
+      if ((<Error>e).message.includes("pull request already exists")) {
+        await logEvent(
+          {
+            event_name: "eave_github_pull_request_appended",
+            event_description:
+              "Eave GitHub app added new commits to an existing PR",
+          },
+          this.ctx,
+        );
+        return pr;
+      }
       eaveLogger.error(
         `Failed to create PR in ${this.repoOwner}/${this.repoName}`,
         this.ctx,
       );
-      await this.deleteBranch(branch!.id);
+
+      // dont delete existing branches
+      if (createdNewBranch) {
+        await this.deleteBranch(branch!.id);
+      }
       throw e;
     }
 
