@@ -1,5 +1,5 @@
 // @ts-check
-import * as Types from "../types"; // eslint-disable-line no-unused-vars
+import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 
 export function mapReposById(/** @type {Types.GithubRepo[]} */ repoList) {
   /** @type {{[key: string] : Types.GithubRepo}} */
