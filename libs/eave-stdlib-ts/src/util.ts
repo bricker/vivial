@@ -12,7 +12,9 @@ export function redact(str?: string, length = 8): string | undefined {
 
   // This effectively turns an odd number into an even number, so we don't have to deal with floats
   const slicelen = Math.floor(length / 2);
-  return `${str.slice(0, slicelen)}[redacted ${strlen - (slicelen * 2)} chars]${str.slice(-slicelen)}`;
+  return `${str.slice(0, slicelen)}[redacted ${
+    strlen - slicelen * 2
+  } chars]${str.slice(-slicelen)}`;
 }
 
 export function enumCases<O extends object>(

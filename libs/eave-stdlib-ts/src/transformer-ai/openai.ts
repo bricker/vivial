@@ -10,9 +10,9 @@ import { logGptRequest } from "../analytics.js";
 import { sharedConfig } from "../config.js";
 import { LogContext, eaveLogger } from "../logging.js";
 import { CtxArg } from "../requests.js";
+import { redact } from "../util.js";
 import { modelFromString } from "./models.js";
 import * as costCounter from "./token-counter.js";
-import { redact } from "../util.js";
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -206,7 +206,7 @@ async function logGptRequestData(
 function makeResponseLog(response: CreateChatCompletionResponse): any {
   return {
     openai_response: {
-      ...<any>response,
+      ...(<any>response),
       choices: response.choices.map((c) => ({
         ...c,
         message: {
@@ -221,7 +221,7 @@ function makeResponseLog(response: CreateChatCompletionResponse): any {
 function makeRequestLog(request: CreateChatCompletionRequest): any {
   return {
     openai_request: {
-      ...<any>request,
+      ...(<any>request),
       messages: request.messages.map((m) => ({
         ...m,
         content: redact(m.content, 100),

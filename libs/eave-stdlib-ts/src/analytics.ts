@@ -108,7 +108,9 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
 
     try {
       const messageId = await topic.publishMessage({ data: protoMessage });
-      eaveLogger.debug("Analytics event published", ctx, redactedEvent, { result: [messageId] });
+      eaveLogger.debug("Analytics event published", ctx, redactedEvent, {
+        result: [messageId],
+      });
     } catch (e: any) {
       eaveLogger.exception(e, redactedEvent, ctx);
     }
@@ -142,7 +144,9 @@ export async function logGptRequest(
 
     try {
       const messageId = await topic.publishMessage({ data: protoMessage });
-      eaveLogger.debug("Analytics event published", ctx, redactedEvent, { result: [messageId] });
+      eaveLogger.debug("Analytics event published", ctx, redactedEvent, {
+        result: [messageId],
+      });
     } catch (e: any) {
       eaveLogger.exception(e, redactedEvent, ctx);
     }
@@ -157,5 +161,5 @@ function makeLogEvent(jsonEvent: JsonObject): JsonObject {
       ...jsonEvent,
       opaque_params: redact(jsonEvent["opaque_params"]?.toString(), 100),
     },
-  }
+  };
 }
