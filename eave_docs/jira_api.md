@@ -1,10 +1,10 @@
-## Webhook Event Handler
+## Jira Webhook Event
 
 ```
-POST /
+POST /events
 ```
 
-This API endpoint is used to handle webhook events. It authenticates the request, logs the event, and then processes the event based on its type. Currently, it only handles "comment_created" events. For these events, it checks if the comment author is an app, if Eave is mentioned in the comment, and if the intent of the comment is to search for something. If all these conditions are met, it performs a document search and posts a comment with the search results.
+This API endpoint receives webhook events from Jira. It specifically handles the "comment_created" event. When a comment is created in Jira, this endpoint is triggered. It checks if the comment author is an app or a user. If it's a user, it checks if the user mentioned Eave in the comment. If Eave is mentioned, it logs the event, cleans the comment body, determines the intent of the comment, and performs a document search based on the intent. If the intent is to search, it responds with the search results.
 
 ### Path Parameters
 
@@ -13,7 +13,7 @@ None
 ### Example Request
 
 ```javascript
-fetch('http://localhost:3000/', {
+fetch('http://localhost:3000/events', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ fetch('http://localhost:3000/', {
     issue: { id: '123' },
     comment: {
       author: { accountType: 'user' },
-      body: '[~accountid:712020:d50089b8-586c-4f54-a3ad-db70381e4cae] Can you find the documentation about jelly beans?',
+      body: 'Eave, can you find the documentation for this feature?',
     },
   }),
 });
@@ -31,15 +31,17 @@ fetch('http://localhost:3000/', {
 
 ### Example Response
 
-```
-200 OK
+```json
+{
+  "status": 200
+}
 ```
 
 ### Response Codes
 
-**200**: The request was successful. This code is returned after the event is processed, regardless of whether Eave was mentioned in the comment or whether the intent of the comment was to search for something.
+**200**: The request was successful. This response code will be returned after the event is processed.
 
-**400**: The request was malformed. This code is returned if the payload does not contain an issue or if there is no teamId available.
+**400**: Bad Request. This response code will be returned if the payload is missing the issue or if there is no teamId available.
 
 <br />
 
