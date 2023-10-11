@@ -68,7 +68,7 @@ export class GithubAPIData {
       if (expressRootDirs.length === 0) {
         eaveLogger.warning(
           "No express API dir file found",
-          { eave_github_repo: eaveGithubRepo, query },
+          { core_api_data: { eave_github_repo: eaveGithubRepo, }, query },
           ctx,
         );
       }

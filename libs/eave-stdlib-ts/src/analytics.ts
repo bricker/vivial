@@ -6,6 +6,7 @@ import { AnalyticsAccount } from "./core-api/models/account.js";
 import { Team } from "./core-api/models/team.js";
 import { eaveLogger, LogContext } from "./logging.js";
 import { JsonObject, UUID } from "./types.js";
+import { redact } from "./util.js";
 
 // document me
 
@@ -100,19 +101,16 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
 
   const jsonEvent = <JsonObject>EaveEvent.toJSON(event);
   const protoMessage = EaveEvent.encode(event).finish();
+  const redactedEvent = makeLogEvent(jsonEvent);
 
   if (sharedConfig.analyticsEnabled) {
-    eaveLogger.debug("Publishing analytics event", ctx, {
-      pubsub: { event: jsonEvent },
-    });
+    eaveLogger.debug("Publishing analytics event", ctx, redactedEvent);
 
     try {
       const messageId = await topic.publishMessage({ data: protoMessage });
-      eaveLogger.debug("Analytics event published", ctx, {
-        pubsub: { event: jsonEvent, result: [messageId] },
-      });
+      eaveLogger.debug("Analytics event published", ctx, redactedEvent, { result: [messageId] });
     } catch (e: any) {
-      eaveLogger.exception(e, ctx);
+      eaveLogger.exception(e, redactedEvent, ctx);
     }
   } else {
     eaveLogger.warning("Analytics disabled", { event: jsonEvent }, ctx);
@@ -137,21 +135,27 @@ export async function logGptRequest(
 
   const jsonEvent = <JsonObject>GPTRequestEvent.toJSON(event);
   const protoMessage = GPTRequestEvent.encode(event).finish();
+  const redactedEvent = makeLogEvent(jsonEvent);
 
   if (sharedConfig.analyticsEnabled) {
-    eaveLogger.debug("Publishing analytics event", ctx, {
-      pubsub: { event: jsonEvent },
-    });
+    eaveLogger.debug("Publishing analytics event", ctx, redactedEvent);
 
     try {
       const messageId = await topic.publishMessage({ data: protoMessage });
-      eaveLogger.debug("Analytics event published", ctx, {
-        pubsub: { event: jsonEvent, result: [messageId] },
-      });
+      eaveLogger.debug("Analytics event published", ctx, redactedEvent, { result: [messageId] });
     } catch (e: any) {
-      eaveLogger.exception(e, ctx);
+      eaveLogger.exception(e, redactedEvent, ctx);
     }
   } else {
-    eaveLogger.warning("Analytics disabled", { event: jsonEvent }, ctx);
+    eaveLogger.warning("Analytics disabled", jsonEvent, ctx);
+  }
+}
+
+function makeLogEvent(jsonEvent: JsonObject): JsonObject {
+  return {
+    event: {
+      ...jsonEvent,
+      opaque_params: redact(jsonEvent["opaque_params"]?.toString(), 100),
+    },
   }
 }

@@ -2,6 +2,7 @@ import {
   ChatCompletionRequestMessageRoleEnum,
   Configuration,
   CreateChatCompletionRequest,
+  CreateChatCompletionResponse,
   OpenAIApi,
 } from "openai";
 import { v4 as uuidv4 } from "uuid";
@@ -11,6 +12,7 @@ import { LogContext, eaveLogger } from "../logging.js";
 import { CtxArg } from "../requests.js";
 import { modelFromString } from "./models.js";
 import * as costCounter from "./token-counter.js";
+import { redact } from "../util.js";
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -89,6 +91,7 @@ export default class OpenAIClient {
     baseTimeoutSeconds?: number;
     documentId?: string;
   }): Promise<string> {
+    // FIXME: This mutates the input
     parameters.messages.unshift({
       role: ChatCompletionRequestMessageRoleEnum.System,
       content: PROMPT_PREFIX,
@@ -100,8 +103,8 @@ export default class OpenAIClient {
     }
 
     const logParams = {
-      openai: <any>parameters,
-      openaiRequestId: uuidv4(),
+      ...makeRequestLog(parameters),
+      openai_request_id: uuidv4(),
     };
 
     let text: string | undefined;
@@ -120,7 +123,7 @@ export default class OpenAIClient {
         eaveLogger.debug(
           "openai response",
           logParams,
-          { openaiResponse: <any>completion.data },
+          makeResponseLog(completion.data),
           ctx,
         );
         text = completion.data.choices[0]?.message?.content;
@@ -198,4 +201,31 @@ async function logGptRequestData(
     },
     ctx,
   );
+}
+
+function makeResponseLog(response: CreateChatCompletionResponse): any {
+  return {
+    openai_response: {
+      ...<any>response,
+      choices: response.choices.map((c) => ({
+        ...c,
+        message: {
+          ...c.message,
+          content: redact(c.message?.content, 100),
+        },
+      })),
+    },
+  };
+}
+
+function makeRequestLog(request: CreateChatCompletionRequest): any {
+  return {
+    openai_request: {
+      ...<any>request,
+      messages: request.messages.map((m) => ({
+        ...m,
+        content: redact(m.content, 100),
+      })),
+    },
+  };
 }
