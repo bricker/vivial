@@ -110,6 +110,7 @@ export function grammarForFilePathOrName(
   if (!language) {
     eaveLogger.warning("Unsupported file extension", {
       extension: path.extname(filePathOrName),
+      filename: filePathOrName,
     });
     return null;
   }
