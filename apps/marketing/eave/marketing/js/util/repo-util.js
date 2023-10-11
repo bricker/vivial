@@ -1,7 +1,11 @@
-export function mapReposByExternalId(repoList) {
+// @ts-check
+import * as Types from "../types"; // eslint-disable-line no-unused-vars
+
+export function mapReposById(/** @type {Types.GithubRepo[]} */ repoList) {
+  /** @type {{[key: string] : Types.GithubRepo}} */
   const repoMap = {};
   for (const repo of repoList) {
-    const externalId = repo["external_repo_id"];
+    const externalId = repo.id;
     repoMap[externalId] = repo;
   }
   return repoMap;
