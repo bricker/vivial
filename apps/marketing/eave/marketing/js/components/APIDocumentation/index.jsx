@@ -75,6 +75,16 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
+/**
+ * Formats the status of a Github document.
+ * If the document is still processing, it returns "Processing".
+ * Otherwise, it generates a link to the pull request associated with the document,
+ * and returns a string indicating whether the pull request is opened or merged.
+ *
+ * @param {Types.GithubDocument} doc - The Github document to format the status for.
+ * @param {{[key: string] : Types.GithubRepo}} repoMap - A map from Github repo IDs to Github repo data.
+ * @returns {JSX.Element} A JSX element containing the formatted status of the document.
+ */
 function formatStatus(
   /** @type {Types.GithubDocument} */ doc,
   /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
@@ -103,6 +113,15 @@ function formatStatus(
   );
 }
 
+/**
+ * Formats the 'status_updated' field of a document into a human-readable date.
+ * If the document was updated today or yesterday, it returns "Today" or "Yesterday" respectively.
+ * Otherwise, it returns the date in the format "Month Day, Year".
+ * If the document has no 'status_updated' field, it returns "-".
+ *
+ * @param {Object} doc - The document to format.
+ * @returns {string} The formatted date of the last update.
+ */
 function formatLastUpdated(doc) {
   if (!doc.status_updated) {
     return "-";
@@ -123,6 +142,15 @@ function formatLastUpdated(doc) {
   return `${month} ${day}, ${year}`;
 }
 
+/**
+ * Renders the content of the dashboard based on the state of the API documentation.
+ * It displays error messages, loading indicators, or the API documentation itself.
+ * The documentation can be displayed in a compact view or a detailed table view.
+ *
+ * @param {Object} classes - CSS classes for styling the rendered content.
+ * @param {Types.DashboardTeam} team - The team object containing API documentation details.
+ * @param {boolean} compact - A flag to determine if the content should be rendered in a compact view.
+ */
 function renderContent(
   classes,
   /** @type {Types.DashboardTeam} */ team,

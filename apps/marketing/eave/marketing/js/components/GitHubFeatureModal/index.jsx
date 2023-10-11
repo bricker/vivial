@@ -221,6 +221,12 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
+/**
+ * Returns the title for a given feature modal type.
+ *
+ * @param {string} type - The type of the feature modal.
+ * @returns {string} The title of the feature modal. Returns an empty string if the type is not recognized.
+ */
 function renderTitle(type) {
   switch (type) {
     case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
@@ -232,6 +238,17 @@ function renderTitle(type) {
   }
 }
 
+/**
+ * Renders the description for a given feature type.
+ *
+ * @param {string} type - The type of the feature for which the description is to be rendered.
+ *
+ * @returns {JSX.Element|null} A JSX element containing the description for the given feature type, or null if the feature type is not recognized.
+ *
+ * The recognized feature types are:
+ * - FEATURE_MODAL.TYPES.INLINE_CODE_DOCS: Renders a description about automating inline code documentation within GitHub files.
+ * - FEATURE_MODAL.TYPES.API_DOCS: Renders a description about automating standard industry API documentation to streamline internal processes and delight customers.
+ */
 function renderDescription(type) {
   switch (type) {
     case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
@@ -269,9 +286,11 @@ function renderDescription(type) {
 }
 
 /**
- * @param {Types.GithubRepo[] | undefined} repos
- * @param {string} feature
- * @returns {string[]}
+ * Filters the given array of repositories and returns an array of repository IDs where the specified feature is enabled.
+ *
+ * @param {Types.GithubRepo[] | undefined} repos - The array of repository objects.
+ * @param {string} feature - The feature to check for enabled state.
+ * @returns {number[]} An array of repository IDs where the specified feature is enabled.
  */
 function getEnabledRepoIds(repos, feature) {
   if (!repos) {
