@@ -1,10 +1,10 @@
 ## Webhook Event Receiver
 
 ```
-POST /
+POST /events
 ```
 
-This API endpoint is used to receive webhook events. It authenticates the request using the addon middleware, logs the event, and does not return a response.
+This API endpoint is used to receive webhook events. It authenticates the request and logs the event.
 
 ### Path Parameters
 
@@ -13,22 +13,24 @@ None
 ### Example Request
 
 ```javascript
-fetch('/', {
+fetch('/events', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ event: 'exampleEvent' })
+  body: JSON.stringify({ event: 'exampleEvent' }),
 });
 ```
 
 ### Example Response
 
-No response is returned from this endpoint.
+The endpoint does not return a response body.
 
 ### Response Codes
 
-**200**: This response code will be returned if the webhook event is received and logged successfully.
+**200**: The webhook event was received and logged successfully.
+
+**401**: Unauthorized. The request was not authenticated.
 
 <br />
 
@@ -191,7 +193,7 @@ fetch('/api/content/create', {
 
 ### Response Codes
 
-**200**: The request was successful and the new content is returned.
+**200**: The request was successful and the newly created content is returned.
 
 ---
 
