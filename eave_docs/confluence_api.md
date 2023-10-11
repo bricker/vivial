@@ -4,7 +4,7 @@
 POST /
 ```
 
-This API endpoint is used to receive webhook events. It authenticates the request and logs the event.
+This API endpoint is used to receive webhook events. It authenticates the request using the addon middleware, logs the event, and does not return a response.
 
 ### Path Parameters
 
@@ -13,7 +13,7 @@ None
 ### Example Request
 
 ```javascript
-fetch('http://localhost:3000/events', {
+fetch('/', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -24,13 +24,11 @@ fetch('http://localhost:3000/events', {
 
 ### Example Response
 
-No response body is returned for this endpoint.
+No response is returned from this endpoint.
 
 ### Response Codes
 
-**200**: The webhook event was received and logged successfully.
-
-**401**: The request was not authenticated.
+**200**: This response code will be returned if the webhook event is received and logged successfully.
 
 <br />
 
@@ -80,9 +78,7 @@ fetch('/api/spaces/query', {
 
 ### Response Codes
 
-**200**: The request was successful and the available spaces are returned in the response.
-
-**500**: An error occurred while processing the request.
+**200**: The request was successful and the available spaces are returned.
 
 ---
 
@@ -138,9 +134,7 @@ fetch('/api/content/search', {
 
 ### Response Codes
 
-**200**: The request was successful and the search results are returned in the response.
-
-**500**: An error occurred while processing the request.
+**200**: The request was successful and the search results are returned.
 
 ---
 
@@ -181,7 +175,7 @@ fetch('/api/content/create', {
 ```json
 {
   "content": {
-    "id": "1",
+    "id": "2",
     "title": "New Document",
     "space": {
       "key": "TST"
@@ -197,11 +191,7 @@ fetch('/api/content/create', {
 
 ### Response Codes
 
-**200**: The request was successful and the newly created content is returned in the response.
-
-**400**: The request was unsuccessful due to invalid input.
-
-**500**: An error occurred while processing the request.
+**200**: The request was successful and the new content is returned.
 
 ---
 
@@ -227,7 +217,7 @@ fetch('/api/content/update', {
   },
   body: JSON.stringify({
     content: {
-      id: '1',
+      id: '2',
       body: '<p>This is an updated document</p>'
     }
   })
@@ -239,8 +229,8 @@ fetch('/api/content/update', {
 ```json
 {
   "content": {
-    "id": "1",
-    "title": "Updated Document",
+    "id": "2",
+    "title": "New Document",
     "space": {
       "key": "TST"
     },
@@ -255,9 +245,7 @@ fetch('/api/content/update', {
 
 ### Response Codes
 
-**200**: The request was successful and the updated content is returned in the response.
-
-**500**: An error occurred while processing the request.
+**200**: The request was successful and the updated content is returned.
 
 ---
 
@@ -283,7 +271,7 @@ fetch('/api/content/delete', {
   },
   body: JSON.stringify({
     content: {
-      content_id: '1'
+      content_id: '2'
     }
   })
 })
@@ -298,8 +286,6 @@ fetch('/api/content/delete', {
 ### Response Codes
 
 **200**: The request was successful and the content was deleted.
-
-**500**: An error occurred while processing the request.
 
 <br />
 

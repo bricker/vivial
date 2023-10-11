@@ -1,10 +1,10 @@
 ## Webhook Event Handler
 
 ```
-POST /
+POST /events
 ```
 
-This API endpoint is used to handle webhook events. It authenticates the request, logs the received event, and then processes the event based on its type. Currently, it only handles "comment_created" events. For these events, it invokes the `commentCreatedEventHandler` function. If the event type is not recognized, it logs a warning and sends a 200 status response.
+This API endpoint receives webhook events, specifically from Jira. It handles the "comment_created" event by checking if the comment author is an app or a user. If the comment author is a user, it checks if the user mentioned Eave in the comment. If Eave is mentioned, it logs the event, cleans the comment body, determines the intent of the comment, and if the intent is to search, it performs a document search and posts a comment with the search results.
 
 ### Path Parameters
 
@@ -13,29 +13,33 @@ None
 ### Example Request
 
 ```javascript
-fetch('http://localhost:3000/', {
+fetch('http://localhost:3000/events', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     webhookEvent: 'comment_created',
-    // ...other properties of the webhook event...
+    issue: { id: '123' },
+    comment: {
+      author: { accountType: 'user' },
+      body: 'Eave, can you find documentation about jelly beans?',
+    },
   }),
 });
 ```
 
 ### Example Response
 
-```
+```javascript
 HTTP/1.1 200 OK
 ```
 
 ### Response Codes
 
-**200**: The request was successful. This code is returned after the event has been processed, or if the event type is not recognized.
+**200**: The request was successful. This response code will be returned after the event is processed, regardless of whether Eave was mentioned in the comment or not.
 
-**400**: The request was malformed. This code is returned if the payload of a "comment_created" event does not contain an issue, or if no teamId is available.
+**400**: Bad Request. This response code will be returned if the payload is missing the issue or if there is no teamId available.
 
 <br />
 

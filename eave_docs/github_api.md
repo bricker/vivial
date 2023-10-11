@@ -10,18 +10,28 @@ This API endpoint is used to receive and process Github webhook events. It valid
 
 None
 
+### Headers
+
+**x-github-delivery** (string) *required* - The unique ID of the delivery.
+
+**x-github-event** (string) *required* - The name of the event that triggered the delivery.
+
+**x-hub-signature-256** (string) *required* - The HMAC hex digest of the response body. This header will be sent if the webhook is configured with a secret.
+
+**x-github-hook-installation-target-id** (string) *required* - The ID of the app installation target.
+
 ### Example Request
 
 ```javascript
 fetch('http://localhost:3000/github/events', {
   method: 'POST',
   headers: {
-    'x-github-delivery': 'delivery_id',
-    'x-github-event': 'event_name',
-    'x-hub-signature-256': 'signature',
-    'x-github-hook-installation-target-id': 'app_id'
+    'x-github-delivery': '72d3162e-cc78-11e3-81ab-4c9367dc0958',
+    'x-github-event': 'push',
+    'x-hub-signature-256': 'sha256=4864d2759938a15468b5df9e3f605dbf2891a2a3a89e2b1e9463f37ea4a7e1e2',
+    'x-github-hook-installation-target-id': '123456'
   },
-  body: JSON.stringify({ action: 'created' })
+  body: JSON.stringify({ action: 'created', ... })
 })
 ```
 
