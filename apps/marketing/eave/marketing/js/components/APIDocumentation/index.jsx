@@ -1,5 +1,5 @@
 // @ts-check
-import * as Types from '../../types.js';
+import * as Types from '../../types.js'; // eslint-disable-line no-unused-vars
 import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useEffect, useState } from "react";
@@ -82,7 +82,7 @@ function formatStatus(/** @type {Types.GithubDocument} */ doc, /** @type {{[key:
   }
 
   const repo = repoMap[doc.github_repo_id];
-  const repoUrl = repo.external_repo_data.url;
+  const repoUrl = repo["external_repo_data"]?.url;
   const prNumber = doc.pull_request_number;
   const prLink = `${repoUrl}/pull/${prNumber}`;
   const prLinkStyle = { color: "#0092C7", textDecoration: "none" };
@@ -153,7 +153,7 @@ function renderContent(classes, /** @type {Types.DashboardTeam} */ team, compact
     const isLink = e.target.tagName === "A";
     if (filePath && !isProcessing && !isLink) {
       const repo = repoMap[doc.github_repo_id];
-      const repoUrl = repo.external_repo_data.url;
+      const repoUrl = repo["external_repo_data"]?.url;
       window.open(`${repoUrl}/${filePath}`);
     }
   };
