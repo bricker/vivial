@@ -122,7 +122,7 @@ export async function runApiDocumentationTaskHandler(
         localAnalyticsParams["api_root_dir"] = apiRootDir;
 
         eaveLogger.debug(
-          'building documentation',
+          "building documentation",
           localAnalyticsParams,
           sharedAnalyticsParams,
           ctx,

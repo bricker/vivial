@@ -315,7 +315,14 @@ export class ExpressAPIDocumentBuilder {
     let gitBlob = await this.githubAPIData.getFileContent({ filePath });
     eaveLogger.debug(
       "getExpressCodeFile -> gitBlob",
-      { file_path: filePath, git_blob: { id: gitBlob?.id, truncated_text: gitBlob?.text?.slice(0, 100) }, file: file.asJSON },
+      {
+        file_path: filePath,
+        git_blob: {
+          id: gitBlob?.id,
+          truncated_text: gitBlob?.text?.slice(0, 100),
+        },
+        file: file.asJSON,
+      },
       this.logParams,
       this.ctx,
     );

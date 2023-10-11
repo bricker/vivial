@@ -179,7 +179,7 @@ export class GithubAPIData {
 
     eaveLogger.debug(
       "getGitObject response",
-      { variables, object_id: response.repository?.object?.id || null},
+      { variables, object_id: response.repository?.object?.id || null },
       { github_data: this.logParams },
       this.ctx,
     );
