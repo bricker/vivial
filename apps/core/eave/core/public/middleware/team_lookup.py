@@ -32,8 +32,11 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
             scope=scope, name=eave.stdlib.headers.EAVE_TEAM_ID_HEADER
         )
 
-        if not team_id_header and self.endpoint_config.team_id_required:
-            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
+        if not team_id_header:
+            if not self.endpoint_config.team_id_required:
+                return
+            else:
+                raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
 
         if eave_state.ctx.eave_team_id:
             # If eave_team was already set in another middleware (eg, in auth_middleware),
