@@ -87,6 +87,7 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
     async def test_required_valid_auth_headers(self) -> None:
         response = await self.make_request(
             path="/me/query",
+            team_id=self._eave_account.team_id,
             account_id=self._eave_account.id,
             access_token=self._eave_account.access_token,
         )
