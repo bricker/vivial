@@ -4,14 +4,14 @@ from datetime import datetime
 from typing import Optional, Self, Tuple
 from uuid import UUID
 
-from sqlalchemy import Index, Select, func, select, delete
+from sqlalchemy import Index, Select, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.github import GithubInstallation, GithubInstallationPeek
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk, current_timestamp_utc
 
 
 class GithubInstallationOrm(Base):
@@ -31,8 +31,8 @@ class GithubInstallationOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     github_install_id: Mapped[str] = mapped_column(unique=True)
     github_owner_login: Mapped[str] = mapped_column(nullable=True)
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
 
     @classmethod
     async def create(

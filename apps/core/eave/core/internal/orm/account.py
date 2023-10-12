@@ -8,7 +8,7 @@ from uuid import UUID
 import eave.stdlib.exceptions
 import eave.core.internal
 import slack_sdk.errors
-from sqlalchemy import Index, Select, func, or_, select
+from sqlalchemy import Index, Select, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -22,7 +22,7 @@ from eave.stdlib.util import ensure_uuid_or_none
 
 from .base import Base
 from .team import TeamOrm
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk, current_timestamp_utc
 
 
 class AccountOrm(Base):
@@ -63,9 +63,9 @@ class AccountOrm(Base):
     """When a new access token is acquired, move the previous value here. It can be used for lookup to mitigate race conditions between client and server"""
     email: Mapped[Optional[str]] = mapped_column(server_default=None)
     """refresh token from 3rd party"""
-    last_login: Mapped[Optional[datetime]] = mapped_column(server_default=func.current_timestamp(), nullable=True)
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    last_login: Mapped[Optional[datetime]] = mapped_column(server_default=current_timestamp_utc(), nullable=True)
+    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
 
     @classmethod
     async def create(

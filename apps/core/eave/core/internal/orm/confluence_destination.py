@@ -3,7 +3,7 @@ from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 import uuid
 
-from sqlalchemy import ForeignKeyConstraint, Select, func, select
+from sqlalchemy import ForeignKeyConstraint, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from eave.core.internal.document_client import DocumentClient, DocumentMetadata
@@ -23,7 +23,7 @@ from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDe
 from eave.core.internal.config import app_config
 from eave.stdlib.logging import LogContext
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk, current_timestamp_utc
 from .. import database
 
 
@@ -39,8 +39,8 @@ class ConfluenceDestinationOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     connect_installation_id: Mapped[uuid.UUID] = mapped_column()
     space_key: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
 
     @property
     def api_model(self) -> ConfluenceDestination:

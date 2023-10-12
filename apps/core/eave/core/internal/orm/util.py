@@ -1,4 +1,5 @@
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, text
+from typing import Any
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, text, func, Function
 
 
 def make_team_fk() -> ForeignKeyConstraint:
@@ -19,6 +20,10 @@ def make_team_composite_fk(fk_column: str, foreign_table: str) -> ForeignKeyCons
 
 
 UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
+
+
+def current_timestamp_utc() -> Function[Any]:
+    return func.timezone("UTC", func.current_timestamp())
 
 
 def make_team_composite_pk() -> PrimaryKeyConstraint:

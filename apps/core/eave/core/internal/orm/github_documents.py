@@ -4,7 +4,7 @@ from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
 from sqlalchemy import Index, PrimaryKeyConstraint, Select
-from sqlalchemy import func, select, delete
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,7 +12,7 @@ from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubD
 from eave.stdlib.util import ensure_uuid
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk, current_timestamp_utc
 
 
 class GithubDocumentsOrm(Base):
@@ -35,7 +35,7 @@ class GithubDocumentsOrm(Base):
     """Number of the most recent PR opened for this document"""
     status: Mapped[str] = mapped_column(server_default=Status.PROCESSING.value)
     """Current state of API documentation for this repo. options: processing, under-review, up-to-date"""
-    status_updated: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    status_updated: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
     """Last time the `status` column was updated."""
     file_path: Mapped[Optional[str]] = mapped_column()
     """Relative file path to this document in the given repo."""
@@ -43,8 +43,8 @@ class GithubDocumentsOrm(Base):
     """Name of the API this document is documenting"""
     type: Mapped[str] = mapped_column()
     """Document type. options: api_document, architecture_document"""
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
 
     @property
     def api_model(self) -> GithubDocument:

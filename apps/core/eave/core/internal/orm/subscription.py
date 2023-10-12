@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import NotRequired, Optional, Required, Self, Sequence, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import Index, Select, func, select
+from sqlalchemy import Index, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from eave.stdlib.core_api.models.subscriptions import (
@@ -18,7 +18,7 @@ from eave.stdlib.util import ensure_uuid
 
 from .base import Base
 from .document_reference import DocumentReferenceOrm
-from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_composite_pk, make_team_fk, current_timestamp_utc
 
 
 class SubscriptionOrm(Base):
@@ -43,8 +43,8 @@ class SubscriptionOrm(Base):
     source_event: Mapped[SubscriptionSourceEvent] = mapped_column()
     source_id: Mapped[str] = mapped_column()
     document_reference_id: Mapped[Optional[UUID]] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
 
     @property
     def api_model(self) -> Subscription:

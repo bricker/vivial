@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from typing import Literal, Optional
 from uuid import UUID
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.logging import eaveLogger
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR
+from .util import UUID_DEFAULT_EXPR, current_timestamp_utc
 
 
 class ResourceMutexOrm(Base):
@@ -16,8 +16,8 @@ class ResourceMutexOrm(Base):
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, primary_key=True)
     resource_id: Mapped[UUID] = mapped_column(unique=True)
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
 
     @classmethod
     async def acquire(cls, session: AsyncSession, resource_id: UUID) -> bool:

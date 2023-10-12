@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
-from sqlalchemy import Index, Select, func, select
+from sqlalchemy import Index, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,7 +12,7 @@ from .resource_mutex import ResourceMutexOrm
 from eave.stdlib.logging import eaveLogger
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk, current_timestamp_utc
 
 
 class SlackInstallationOrm(Base):
@@ -38,8 +38,8 @@ class SlackInstallationOrm(Base):
     bot_token: Mapped[str] = mapped_column()
     bot_token_exp: Mapped[Optional[datetime]] = mapped_column()
     bot_refresh_token: Mapped[Optional[str]] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
 
     @classmethod
     async def create(
