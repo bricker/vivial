@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import Index, ScalarResult, Select, select
+from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from eave.stdlib.core_api.models.connect import (
@@ -16,7 +16,7 @@ from eave.stdlib.core_api.models.connect import (
 
 from eave.stdlib.util import ensure_uuid
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk, current_timestamp_utc
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class ConnectInstallationOrm(Base):
@@ -51,8 +51,8 @@ class ConnectInstallationOrm(Base):
     atlassian_actor_account_id: Mapped[Optional[str]] = mapped_column()
     display_url: Mapped[Optional[str]] = mapped_column()
     description: Mapped[Optional[str]] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     class QueryParams(TypedDict):
         product: NotRequired[AtlassianProduct]

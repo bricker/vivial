@@ -7,7 +7,7 @@ from eave.core.internal.orm.atlassian_installation import AtlassianInstallationO
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 import eave.stdlib.util
-from sqlalchemy import Row, Select, false, select
+from sqlalchemy import Row, Select, false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from eave.stdlib.core_api.models.connect import AtlassianProduct
@@ -19,7 +19,7 @@ from .base import Base
 from .github_installation import GithubInstallationOrm
 from .slack_installation import SlackInstallationOrm
 from .subscription import SubscriptionOrm
-from .util import UUID_DEFAULT_EXPR, current_timestamp_utc
+from .util import UUID_DEFAULT_EXPR
 from eave.stdlib.logging import eaveLogger
 
 
@@ -29,8 +29,8 @@ class TeamOrm(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
     document_platform: Mapped[Optional[DocumentPlatform]] = mapped_column(server_default=None)
-    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
     beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
 
     subscriptions: Mapped[list[SubscriptionOrm]] = relationship()

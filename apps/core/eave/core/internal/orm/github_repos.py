@@ -4,7 +4,7 @@ from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
 from sqlalchemy import Index, PrimaryKeyConstraint, Select
-from sqlalchemy import select, delete
+from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,7 +12,7 @@ import eave.stdlib.util
 from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk, current_timestamp_utc
+from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk
 
 
 class GithubRepoOrm(Base):
@@ -46,8 +46,8 @@ class GithubRepoOrm(Base):
     """Activation status of the inline code documentation feature for this repo. options: disabled, enabled, paused"""
     architecture_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
     """Activation status of the architecture documentation feature for this repo. options: disabled, enabled, paused"""
-    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @property
     def api_model(self) -> GithubRepo:

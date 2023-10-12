@@ -2,14 +2,14 @@ from datetime import datetime
 from typing import Optional, Self
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.subscriptions import DocumentReference
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk, current_timestamp_utc
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class DocumentReferenceOrm(Base):
@@ -23,8 +23,8 @@ class DocumentReferenceOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     document_id: Mapped[str] = mapped_column()
     document_url: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @property
     def api_model(self) -> DocumentReference:

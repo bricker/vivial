@@ -6,7 +6,7 @@ from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpa
 from uuid import UUID
 
 import oauthlib.oauth2.rfc6749.tokens
-from sqlalchemy import Index, Select, select
+from sqlalchemy import Index, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -15,7 +15,7 @@ from eave.stdlib.core_api.models.atlassian import AtlassianInstallation, Atlassi
 from .. import database as eave_db
 from ..oauth import atlassian as atlassian_oauth
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk, current_timestamp_utc
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class AtlassianInstallationOrm(Base):
@@ -39,8 +39,8 @@ class AtlassianInstallationOrm(Base):
     confluence_space_key: Mapped[Optional[str]] = mapped_column("confluence_space")
     """DEPRECATED"""
     oauth_token_encoded: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=current_timestamp_utc())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=current_timestamp_utc())
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     class _selectparams(TypedDict):
         id: NotRequired[uuid.UUID]
