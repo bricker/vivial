@@ -4,7 +4,7 @@
 GET /v1/lists
 ```
 
-This endpoint retrieves all lists.
+Returns all lists.
 
 ### Example Request
 
@@ -32,7 +32,7 @@ fetch('/v1/lists', {
 GET /v1/lists/:list_id
 ```
 
-This endpoint retrieves a specific list by its ID.
+Returns a specific list by its ID.
 
 ### Path Parameters
 
@@ -66,7 +66,7 @@ fetch('/v1/lists/1', {
 POST /v1/lists
 ```
 
-This endpoint creates a new list.
+Creates a new list.
 
 ### Example Request
 
@@ -91,7 +91,7 @@ fetch('/v1/lists', {
 PATCH /v1/lists/:list_id
 ```
 
-This endpoint updates a specific list by its ID.
+Updates a specific list by its ID.
 
 ### Path Parameters
 
@@ -122,7 +122,7 @@ fetch('/v1/lists/1', {
 DELETE /v1/lists/:list_id
 ```
 
-This endpoint deletes a specific list by its ID.
+Deletes a specific list by its ID.
 
 ### Path Parameters
 
@@ -150,7 +150,7 @@ fetch('/v1/lists/1', {
 GET /v1/users
 ```
 
-This endpoint retrieves all users.
+Returns all users.
 
 ### Example Request
 
@@ -178,7 +178,7 @@ fetch('/v1/users', {
 GET /v1/users/:user_id
 ```
 
-This endpoint retrieves a specific user by their ID.
+Returns a specific user by their ID.
 
 ### Path Parameters
 
@@ -212,7 +212,7 @@ fetch('/v1/users/1', {
 POST /v1/users
 ```
 
-This endpoint creates a new user.
+Creates a new user.
 
 ### Example Request
 
@@ -237,7 +237,7 @@ fetch('/v1/users', {
 PATCH /v1/users/:user_id
 ```
 
-This endpoint updates a specific user by their ID.
+Updates a specific user by their ID.
 
 ### Path Parameters
 
@@ -268,7 +268,7 @@ fetch('/v1/users/1', {
 DELETE /v1/users/:user_id
 ```
 
-This endpoint deletes a specific user by their ID.
+Deletes a specific user by their ID.
 
 ### Path Parameters
 

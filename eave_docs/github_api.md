@@ -28,10 +28,10 @@ fetch('http://localhost:3000/github/events', {
   headers: {
     'x-github-delivery': '72d3162e-cc78-11e3-81ab-4c9367dc0958',
     'x-github-event': 'push',
-    'x-hub-signature-256': 'sha256=7d38cdd689735b008b3c702edd92eea23791c5f6c39e4a9b123d0528a3752f5c',
-    'x-github-hook-installation-target-id': '123456',
+    'x-hub-signature-256': 'sha1=7d38cdd689735b008b3c702edd92eea23791c5f6',
+    'x-github-hook-installation-target-id': '123456'
   },
-  body: JSON.stringify({/* event payload */})
+  body: JSON.stringify({payload})
 })
 ```
 
