@@ -2,7 +2,7 @@
 import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useEffect, useState } from "react";
-import { DOC_STATUSES, MONTH_NAMES } from "../../constants.js";
+import { DOC_STATUSES } from "../../constants.js";
 import useTeam from "../../hooks/useTeam";
 import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { mapReposById } from "../../util/repo-util.js";
@@ -107,7 +107,9 @@ function formatLastUpdated(doc) {
   if (!doc.status_updated) {
     return "-";
   }
-  const updatedDate = new Date(doc.status_updated);
+  // assumes that the db server that generates this timestamp uses UTC time.
+  // Adding trailing 'Z' signifies UTC timezone
+  const updatedDate = new Date(doc.status_updated + "Z");
   const today = new Date();
   if (updatedDate.toDateString() === today.toDateString()) {
     return "Today";
@@ -117,10 +119,11 @@ function formatLastUpdated(doc) {
   if (updatedDate.toDateString() === yesterday.toDateString()) {
     return "Yesterday";
   }
-  const month = MONTH_NAMES[updatedDate.getMonth()];
-  const day = updatedDate.getDate();
-  const year = updatedDate.getFullYear();
-  return `${month} ${day}, ${year}`;
+  return updatedDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 function renderContent(

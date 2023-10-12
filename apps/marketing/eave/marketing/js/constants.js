@@ -32,21 +32,6 @@ export const FEATURE_MODAL = {
   },
 };
 
-export const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June ",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 export const FEEDBACK_URL = "https://forms.gle/3v5Xdz7kPya5UW9U6";
 
 export const AFFILIATE_LOGOS = {
