@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from http.cookies import Morsel, SimpleCookie
 from typing import Mapping, Optional
 import uuid
 
@@ -33,15 +34,15 @@ def set_auth_cookies(
         set_http_cookie(key=_EAVE_ACCESS_TOKEN_COOKIE, value=access_token, response=response)
 
 
-def get_auth_cookies(cookies: Mapping[str, str]) -> AuthCookies:
+def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
     account_id = cookies.get(_EAVE_ACCOUNT_ID_COOKIE)
     team_id = cookies.get(_EAVE_TEAM_ID_COOKIE)
     access_token = cookies.get(_EAVE_ACCESS_TOKEN_COOKIE)
 
     return AuthCookies(
-        account_id=account_id,
-        team_id=team_id,
-        access_token=access_token,
+        account_id=account_id.value if isinstance(account_id, Morsel) else account_id,
+        team_id=team_id.value if isinstance(team_id, Morsel) else team_id,
+        access_token=access_token.value if isinstance(access_token, Morsel) else access_token,
     )
 
 

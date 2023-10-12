@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Any
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
@@ -192,15 +193,33 @@ async def get_team_documents() -> Response:
         Status.PR_MERGED,
     ]
 
-    def status_sort(d: GithubDocument) -> float:
+    def _sort(d: GithubDocument) -> str:
+        """
+        build a string of digits, in descending significance, to create a sorting rank. For example:
+
+        d.status = PROCESSING
+        d.status_updated = 1697060933
+        d.api_name = "ABC"
+        rank = "01697060933ABC"
+        """
+        rank = ""
+
         if d.status in status_order:
-            return status_order.index(d.status)
+            rank += str(status_order.index(d.status))
         else:
             # put unrecognized status last
-            return float("inf")
+            rank += "999"
+
+        uts = int(time.mktime(d.status_updated.timetuple()))
+        rank += f"{uts}"
+
+        if d.api_name:
+            rank += d.api_name.lower()
+
+        return rank
 
     # sort documents in place
-    eave_response.documents.sort(key=status_sort)
+    eave_response.documents.sort(key=_sort)
     return _json_response(body=eave_response.json())
 
 
@@ -228,18 +247,17 @@ def _assert_auth(auth_cookies: AuthCookies) -> None:
 def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
 
-    # TODO: The server should send this back in a header or a cookie so we don't have to delete it here.
-    access_token = eave_response.account.access_token
+    # legacy, only necessary until this property is removed
     del eave_response.account.access_token
 
-    response = _json_response(body=eave_response.json())
-
-    set_auth_cookies(
-        response=response,
-        access_token=access_token,  # In case the access token was refreshed
-    )
-
-    # TODO: Forward cookies from server to client
+    if eave_response.cookies:
+        cookies = get_auth_cookies(cookies=eave_response.cookies)
+        set_auth_cookies(
+            response=response,
+            access_token=cookies.access_token,
+            account_id=cookies.account_id,
+            team_id=cookies.team_id
+        )
 
     return response
 

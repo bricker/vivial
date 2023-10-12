@@ -1,7 +1,8 @@
+from http.cookies import SimpleCookie
 import typing
 from datetime import datetime
 from typing import Any, Literal, Protocol
-
+from starlette.responses import Response
 
 from .config import shared_config
 
