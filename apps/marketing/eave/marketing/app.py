@@ -248,10 +248,7 @@ def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody)
     if eave_response.cookies:
         cookies = get_auth_cookies(cookies=eave_response.cookies)
         set_auth_cookies(
-            response=response,
-            access_token=cookies.access_token,
-            account_id=cookies.account_id,
-            team_id=cookies.team_id
+            response=response, access_token=cookies.access_token, account_id=cookies.account_id, team_id=cookies.team_id
         )
 
     return response

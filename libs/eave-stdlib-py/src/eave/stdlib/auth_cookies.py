@@ -1,11 +1,8 @@
-import base64
 from dataclasses import dataclass
 from http.cookies import Morsel, SimpleCookie
-from typing import Mapping, MutableMapping, Optional
+from typing import Mapping, Optional
 import uuid
 
-from werkzeug.datastructures import Headers as WerkzeugHeaders
-from starlette.datastructures import MutableHeaders as StarletteHeaders
 
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.typing import HTTPFrameworkResponse
@@ -22,6 +19,7 @@ class AuthCookies:
     team_id: Optional[str]
     access_token: Optional[str]
 
+
 def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
     account_id = cookies.get(_EAVE_ACCOUNT_ID_COOKIE)
     team_id = cookies.get(_EAVE_TEAM_ID_COOKIE)
@@ -34,8 +32,9 @@ def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
     return AuthCookies(
         account_id=account_id_decoded,
         team_id=team_id_decoded,
-        access_token=b64decode(access_token_decoded, urlsafe=False) if access_token_decoded else None
+        access_token=b64decode(access_token_decoded, urlsafe=False) if access_token_decoded else None,
     )
+
 
 def set_auth_cookies(
     response: HTTPFrameworkResponse,
@@ -52,6 +51,7 @@ def set_auth_cookies(
     if access_token:
         # We base64-encode this value because its format is unknown to us, and cookies with unsafe characters (eg spaces) have unexpected behavior (eg, the value is wrapped in quotes).
         set_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE, value=b64encode(access_token, urlsafe=False))
+
 
 def delete_auth_cookies(response: HTTPFrameworkResponse) -> None:
     delete_http_cookie(response=response, key=_EAVE_ACCOUNT_ID_COOKIE)

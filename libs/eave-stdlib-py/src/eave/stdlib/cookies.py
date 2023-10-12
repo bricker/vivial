@@ -1,13 +1,10 @@
-from http.cookies import SimpleCookie
-import typing
-from datetime import datetime
-from typing import Any, Literal, Optional, Protocol
 
-from eave.stdlib.typing import HTTPFrameworkResponse, StarletteResponse, WerkzeugResponse
+from eave.stdlib.typing import HTTPFrameworkResponse
 
 from .config import shared_config
 
-_ONE_YEAR_SECONDS = (60 * 60 * 24 * 365)
+_ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
+
 
 def set_http_cookie(
     response: HTTPFrameworkResponse,
@@ -25,6 +22,7 @@ def set_http_cookie(
         samesite="lax",
         max_age=_ONE_YEAR_SECONDS,
     )
+
 
 def delete_http_cookie(
     response: HTTPFrameworkResponse,

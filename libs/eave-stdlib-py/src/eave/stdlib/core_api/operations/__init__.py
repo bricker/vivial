@@ -1,4 +1,3 @@
-from http.cookies import SimpleCookie
 import aiohttp
 from typing import Optional
 import pydantic
@@ -53,9 +52,10 @@ class BaseResponseBody(pydantic.BaseModel):
     def cookies(self) -> dict[str, str] | None:
         if self._raw_response:
             # SimpleCookie is a dict but invariant with dict[str,str], so convert it here
-            return {k:v for k,v in self._raw_response.cookies}
+            return {k: v for k, v in self._raw_response.cookies}
         else:
             return None
+
 
 class Endpoint:
     config: EndpointConfiguration
