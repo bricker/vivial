@@ -75,6 +75,15 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
+/**
+ * Formats the status of a document based on its current state and associated Github repository.
+ * If the document is still being processed, it returns a simple "Processing" string.
+ * Otherwise, it generates a link to the associated pull request in the Github repository.
+ *
+ * @param {Types.GithubDocument} doc - The document whose status is to be formatted.
+ * @param {{[key: string] : Types.GithubRepo}} repoMap - A map of Github repositories, keyed by their IDs.
+ * @returns {JSX.Element} A JSX element containing the formatted status of the document.
+ */
 function formatStatus(
   /** @type {Types.GithubDocument} */ doc,
   /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
@@ -103,6 +112,15 @@ function formatStatus(
   );
 }
 
+/**
+ * Formats the 'status_updated' field of a document into a human-readable date string.
+ * If the document was updated today or yesterday, it returns "Today" or "Yesterday" respectively.
+ * Otherwise, it returns the date in the format "Month Day, Year".
+ * Assumes that the timestamp from the database server uses UTC time.
+ *
+ * @param {Object} doc - The document to format.
+ * @returns {string} The formatted last updated date.
+ */
 function formatLastUpdated(doc) {
   if (!doc.status_updated) {
     return "-";
@@ -126,6 +144,14 @@ function formatLastUpdated(doc) {
   });
 }
 
+/**
+ * Renders the content for the dashboard team view. It displays error messages, loading states, and API documentation.
+ * It also handles user interactions such as row clicks and mouse overs.
+ *
+ * @param {Object} classes - CSS classes for styling the rendered content.
+ * @param {Types.DashboardTeam} team - The team data, including API documentation and repository information.
+ * @param {boolean} compact - A flag to determine if the view should be rendered in a compact format.
+ */
 function renderContent(
   classes,
   /** @type {Types.DashboardTeam} */ team,
