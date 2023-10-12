@@ -1,10 +1,10 @@
-## Jira Webhook Event
+## Webhook Event Handler
 
 ```
-POST /events
+POST /
 ```
 
-This API endpoint receives webhook events from Jira. It specifically handles the "comment_created" event. When a comment is created in Jira, this endpoint is triggered. It checks if the comment author is an app or a user. If it's a user, it checks if the user mentioned Eave in the comment. If Eave is mentioned, it logs the event, cleans the comment body, determines the intent of the comment, and performs a document search based on the intent. If the intent is to search, it responds with the search results.
+This API endpoint is used to handle webhook events. It authenticates the request, logs the event, and then processes the event based on its type. Currently, it only handles "comment_created" events. For these events, it checks if the comment author is an app, if Eave is mentioned in the comment, and if the intent of the comment is to search for documentation. If all these conditions are met, it searches for relevant documents and posts a comment with the search results.
 
 ### Path Parameters
 
@@ -13,7 +13,7 @@ None
 ### Example Request
 
 ```javascript
-fetch('http://localhost:3000/events', {
+fetch('http://localhost:3000/', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -23,25 +23,23 @@ fetch('http://localhost:3000/events', {
     issue: { id: '123' },
     comment: {
       author: { accountType: 'user' },
-      body: 'Eave, can you find the documentation for this feature?',
-    },
-  }),
+      body: 'Can you find documentation about jelly beans? [~accountid:712020:d50089b8-586c-4f54-a3ad-db70381e4cae]'
+    }
+  })
 });
 ```
 
 ### Example Response
 
-```json
-{
-  "status": 200
-}
+```javascript
+HTTP/1.1 200 OK
 ```
 
 ### Response Codes
 
-**200**: The request was successful. This response code will be returned after the event is processed.
+**200**: The request was successful. This code is returned after the event is processed, even if the event type is not handled or if the conditions for processing the "comment_created" event are not met.
 
-**400**: Bad Request. This response code will be returned if the payload is missing the issue or if there is no teamId available.
+**400**: The request was not successful. This code is returned if the "comment_created" event does not include an issue in the payload, if there is no teamId available, or if the comment author is an app.
 
 <br />
 

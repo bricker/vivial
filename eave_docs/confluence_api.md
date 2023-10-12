@@ -28,9 +28,7 @@ No response body is returned by this endpoint.
 
 ### Response Codes
 
-**200**: The webhook event was received and logged successfully.
-
-**401**: Unauthorized. The request was not authenticated.
+**200**: This response code will be returned once the event is successfully received and logged.
 
 <br />
 
@@ -71,8 +69,8 @@ fetch('/api/spaces/query', {
     {
       "id": "2",
       "key": "PRD",
-      "name": "Product Space",
-      "description": "This is a product space"
+      "name": "Production Space",
+      "description": "This is a production space"
     }
   ]
 }
@@ -120,13 +118,16 @@ fetch('/api/content/search', {
   "results": [
     {
       "id": "1",
-      "title": "Test Page",
+      "title": "Test Document",
       "space": {
-        "key": "TST"
+        "id": "1",
+        "key": "TST",
+        "name": "Test Space"
       },
       "body": {
         "storage": {
-          "value": "<p>This is a test page</p>"
+          "value": "<p>This is a test document</p>",
+          "representation": "storage"
         }
       }
     }
@@ -162,8 +163,8 @@ fetch('/api/content/create', {
   },
   body: JSON.stringify({
     document: {
-      title: 'New Page',
-      content: '<p>This is a new page</p>'
+      title: 'New Document',
+      content: '<p>This is a new document</p>'
     },
     confluence_destination: {
       space_key: 'TST'
@@ -178,13 +179,16 @@ fetch('/api/content/create', {
 {
   "content": {
     "id": "2",
-    "title": "New Page",
+    "title": "New Document",
     "space": {
-      "key": "TST"
+      "id": "1",
+      "key": "TST",
+      "name": "Test Space"
     },
     "body": {
       "storage": {
-        "value": "<p>This is a new page</p>"
+        "value": "<p>This is a new document</p>",
+        "representation": "storage"
       }
     }
   }
@@ -193,7 +197,7 @@ fetch('/api/content/create', {
 
 ### Response Codes
 
-**200**: The request was successful and the new content is returned.
+**200**: The request was successful and the newly created content is returned.
 
 ---
 
@@ -220,7 +224,7 @@ fetch('/api/content/update', {
   body: JSON.stringify({
     content: {
       id: '2',
-      body: '<p>This is an updated page</p>'
+      body: '<p>This is an updated document</p>'
     }
   })
 })
@@ -232,13 +236,16 @@ fetch('/api/content/update', {
 {
   "content": {
     "id": "2",
-    "title": "New Page",
+    "title": "New Document",
     "space": {
-      "key": "TST"
+      "id": "1",
+      "key": "TST",
+      "name": "Test Space"
     },
     "body": {
       "storage": {
-        "value": "<p>This is an updated page</p>"
+        "value": "<p>This is an updated document</p>",
+        "representation": "storage"
       }
     }
   }
@@ -287,7 +294,7 @@ fetch('/api/content/delete', {
 
 ### Response Codes
 
-**200**: The request was successful and the content is deleted.
+**200**: The request was successful and the content was deleted.
 
 <br />
 

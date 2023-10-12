@@ -22,7 +22,7 @@ fetch('/v1/lists', {
 
 ### Response Codes
 
-**200**: The request was successful and the lists were returned.
+**200**: The lists were successfully retrieved.
 
 ---
 
@@ -54,7 +54,7 @@ fetch('/v1/lists/1', {
 
 ### Response Codes
 
-**200**: The request was successful and the list was returned.
+**200**: The list was successfully retrieved.
 
 **404**: The list with the provided ID does not exist.
 
@@ -168,7 +168,7 @@ fetch('/v1/users', {
 
 ### Response Codes
 
-**200**: The request was successful and the users were returned.
+**200**: The users were successfully retrieved.
 
 ---
 
@@ -200,7 +200,7 @@ fetch('/v1/users/1', {
 
 ### Response Codes
 
-**200**: The request was successful and the user was returned.
+**200**: The user was successfully retrieved.
 
 **404**: The user with the provided ID does not exist.
 
