@@ -256,7 +256,8 @@ export class PullRequestCreator {
       await logEvent(
         {
           event_name: "eave_pushed_to_existing_branch",
-          event_description: "Eave pushed a commit to a branch that already existed. This is normal.",
+          event_description:
+            "Eave pushed a commit to a branch that already existed. This is normal.",
           opaque_params: {
             branch: {
               id: branch.id,
@@ -349,7 +350,8 @@ export class PullRequestCreator {
           await logEvent(
             {
               event_name: "github_orphan_branch_deleted",
-              event_description: "A branch was created, but the attempt to open a pull request failed, so we deleted the branch to prevent an orphaned branch.",
+              event_description:
+                "A branch was created, but the attempt to open a pull request failed, so we deleted the branch to prevent an orphaned branch.",
               opaque_params: {
                 branch: {
                   id: branch.id,
