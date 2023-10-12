@@ -142,7 +142,7 @@ async def create_new_account_and_team(
     refresh_token: typing.Optional[str],
 ) -> eave.core.internal.orm.AccountOrm:
     eave_state = EaveRequestState.load(request=request)
-    tracking_cookies = utm_cookies.get_tracking_cookies(cookies=request.cookies)
+    tracking_cookies = utm_cookies.get_tracking_cookies(request_cookies=request.cookies)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
         eave_team = await eave.core.internal.orm.TeamOrm.create(

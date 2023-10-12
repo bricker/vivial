@@ -64,20 +64,22 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             await self._abort_unauthorized(scope, receive, send)
             return
 
-        async def _send(message: ASGISendEvent) -> None:
-            if message["type"] != "http.response.start":
-                await send(message)
+        async def _send(event: ASGISendEvent) -> None:
+            if event["type"] != "http.response.start":
+                await send(event)
                 return
 
-            headers = MutableHeaders(raw=list(message["headers"]))
-            response = Response(headers=headers) # this is created only as a container to mutate the headers
-
+            headers = MutableHeaders(raw=list(event["headers"]))
+            response = Response(headers=headers)
             set_auth_cookies(
                 response=response,
                 team_id=account.team_id,
                 account_id=account.id,
                 access_token=account.access_token,
             )
+
+            event["headers"] = response.headers.raw
+            await send(event)
 
         await self.app(scope, receive, _send)
 

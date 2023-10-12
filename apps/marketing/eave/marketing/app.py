@@ -199,8 +199,7 @@ async def get_team_documents() -> Response:
 
         d.status = PROCESSING
         d.status_updated = 1697060933
-        d.api_name = "ABC"
-        rank = "01697060933ABC"
+        rank = "01697060933"
         """
         rank = ""
 
@@ -212,10 +211,6 @@ async def get_team_documents() -> Response:
 
         uts = int(time.mktime(d.status_updated.timetuple()))
         rank += f"{uts}"
-
-        if d.api_name:
-            rank += d.api_name.lower()
-
         return rank
 
     # sort documents in place
@@ -235,7 +230,7 @@ async def logout() -> BaseResponse:
 def catch_all(path: str) -> Response:
     spa = _render_spa()
     response = make_response(spa)
-    set_tracking_cookies(cookies=request.cookies, query_params=request.args, response=response)
+    set_tracking_cookies(response=response, request_cookies=request.cookies, query_params=request.args)
     return response
 
 
