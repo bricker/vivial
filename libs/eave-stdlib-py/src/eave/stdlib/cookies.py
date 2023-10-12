@@ -1,4 +1,3 @@
-
 from eave.stdlib.typing import HTTPFrameworkResponse
 
 from .config import shared_config
