@@ -103,7 +103,7 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
             await self.save(s, self._eave_account)
 
         response = await self.make_request(
-            path="/me/query", account_id=self._eave_account.id, access_token=self.getstr("previous token")
+            path="/me/query", team_id=self._eave_account.team_id, account_id=self._eave_account.id, access_token=self.getstr("previous token")
         )
 
         assert response.status_code == HTTPStatus.OK

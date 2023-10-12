@@ -32,6 +32,9 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
             scope=scope, name=eave.stdlib.headers.EAVE_TEAM_ID_HEADER
         )
 
+        if not team_id_header and self.endpoint_config.team_id_required:
+            raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
+
         if eave_state.ctx.eave_team_id:
             # If eave_team was already set in another middleware (eg, in auth_middleware),
             # then make sure it's the same team and move on.
@@ -40,11 +43,6 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
             else:
                 raise eave.stdlib.exceptions.BadRequestError("mismatched team and account")
 
-        if not team_id_header:
-            if not self.endpoint_config.team_id_required:
-                return
-            else:
-                raise eave.stdlib.exceptions.MissingRequiredHeaderError(eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
 
         team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
         async with eave.core.internal.database.async_session.begin() as db_session:
