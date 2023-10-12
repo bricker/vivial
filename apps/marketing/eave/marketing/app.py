@@ -5,12 +5,14 @@ from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_
 
 import eave.stdlib.cookies
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
+from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
 from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentsQueryInput, Status
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
+from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.util import ensure_uuid, unwrap
 
 from eave.stdlib.endpoints import status_payload
@@ -86,14 +88,14 @@ async def get_user() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
 
-    response = await account.GetAuthenticatedAccount.perform(
+    eave_response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
         team_id=ensure_uuid(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
     )
 
-    return _clean_response(response)
+    return _make_response(eave_response)
 
 
 @app.route("/dashboard/team", methods=["GET"])
@@ -108,7 +110,7 @@ async def get_team() -> Response:
         access_token=unwrap(auth_cookies.access_token),
     )
 
-    return _json_response(body=eave_response.json())
+    return _make_response(eave_response)
 
 
 @app.route("/dashboard/team/repos", methods=["GET"])
@@ -128,9 +130,12 @@ async def get_team_repos() -> Response:
         eaveLogger.exception(e)
         return _json_response(body={"repos": []})
 
+    response = _make_response(eave_response)
+
     internal_repo_list = eave_response.repos
     if len(internal_repo_list) == 0:
-        return _json_response(body={"repos": []})
+        _set_json_response_body(response, {"repos": []})
+        return response
 
     external_response = await QueryGithubRepos.perform(
         origin=app_config.eave_origin, team_id=unwrap(auth_cookies.team_id)
@@ -146,7 +151,8 @@ async def get_team_repos() -> Response:
             jsonRepo["external_repo_data"] = json.loads(external_repo_map[repo_id].json())
             merged_repo_list.append(jsonRepo)
 
-    return _json_response(body={"repos": merged_repo_list})
+    _set_json_response_body(response, {"repos": merged_repo_list})
+    return response
 
 
 @app.route("/dashboard/team/repos/update", methods=["POST"])
@@ -165,7 +171,7 @@ async def update_team_repos() -> Response:
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
     )
 
-    return _json_response(body=eave_response.json())
+    return _make_response(eave_response)
 
 
 @app.route("/dashboard/team/documents", methods=["POST"])
@@ -186,37 +192,9 @@ async def get_team_documents() -> Response:
         ),
     )
 
-    status_order = [
-        Status.PROCESSING,
-        Status.PR_OPENED,
-        Status.FAILED,
-        Status.PR_MERGED,
-    ]
-
-    def _sort(d: GithubDocument) -> str:
-        """
-        build a string of digits, in descending significance, to create a sorting rank. For example:
-
-        d.status = PROCESSING
-        d.status_updated = 1697060933
-        rank = "01697060933"
-        """
-        rank = ""
-
-        if d.status in status_order:
-            rank += str(status_order.index(d.status))
-        else:
-            # put unrecognized status last
-            rank += "999"
-
-        uts = int(time.mktime(d.status_updated.timetuple()))
-        rank += f"{uts}"
-        return rank
-
     # sort documents in place
-    eave_response.documents.sort(key=_sort)
-    return _json_response(body=eave_response.json())
-
+    eave_response.documents.sort(key=_document_rank)
+    return _make_response(eave_response)
 
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
@@ -239,11 +217,8 @@ def _assert_auth(auth_cookies: AuthCookies) -> None:
         raise werkzeug.exceptions.Unauthorized()
 
 
-def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody) -> Response:
+def _make_response(eave_response: BaseResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
-
-    # legacy, only necessary until this property is removed
-    del eave_response.account.access_token
 
     if eave_response.cookies:
         cookies = get_auth_cookies(cookies=eave_response.cookies)
@@ -253,12 +228,40 @@ def _clean_response(eave_response: account.GetAuthenticatedAccount.ResponseBody)
 
     return response
 
-
-def _json_response(body: JsonObject | str) -> Response:
+def _set_json_response_body(response: Response, body: JsonObject | str) -> Response:
     if not isinstance(body, str):
         body = json.dumps(body)
+    response.set_data(body)
+    return response
 
-    return Response(
-        response=body,
-        mimetype="application/json",
-    )
+def _json_response(body: JsonObject | str) -> Response:
+    response = Response(mimetype=MIME_TYPE_JSON)
+    _set_json_response_body(response, body)
+    return response
+
+_status_order = [
+    Status.PROCESSING,
+    Status.PR_OPENED,
+    Status.FAILED,
+    Status.PR_MERGED,
+]
+
+def _document_rank(d: GithubDocument) -> str:
+    """
+    build a string of digits, in descending significance, to create a sorting rank. For example:
+
+    d.status = PROCESSING
+    d.status_updated = 1697060933
+    rank = "01697060933"
+    """
+    rank = ""
+
+    if d.status in _status_order:
+        rank += str(_status_order.index(d.status))
+    else:
+        # put unrecognized status last
+        rank += "999"
+
+    uts = int(time.mktime(d.status_updated.timetuple()))
+    rank += f"{uts}"
+    return rank

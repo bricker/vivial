@@ -26,3 +26,5 @@ USER_AGENT = "user-agent"
 GCP_CLOUD_TRACE_CONTEXT = "X-Cloud-Trace-Context"
 GCP_GAE_REQUEST_LOG_ID = "X-Appengine-Request-Log-Id"
 GCP_GAE_TASK_EXECUTION_COUNT = "X-AppEngine-TaskExecutionCount"
+
+MIME_TYPE_JSON = "application/json"
