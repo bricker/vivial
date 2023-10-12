@@ -6,7 +6,6 @@ import uuid
 
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.typing import HTTPFrameworkResponse
-from eave.stdlib.util import b64decode, b64encode
 
 _EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
 _EAVE_TEAM_ID_COOKIE = "ev_team_id"
@@ -32,7 +31,7 @@ def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
     return AuthCookies(
         account_id=account_id_decoded,
         team_id=team_id_decoded,
-        access_token=b64decode(access_token_decoded, urlsafe=False) if access_token_decoded else None,
+        access_token=access_token_decoded,
     )
 
 
@@ -50,7 +49,7 @@ def set_auth_cookies(
 
     if access_token:
         # We base64-encode this value because its format is unknown to us, and cookies with unsafe characters (eg spaces) have unexpected behavior (eg, the value is wrapped in quotes).
-        set_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE, value=b64encode(access_token, urlsafe=False))
+        set_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE, value=access_token)
 
 
 def delete_auth_cookies(response: HTTPFrameworkResponse) -> None:
