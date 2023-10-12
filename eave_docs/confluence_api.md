@@ -4,7 +4,7 @@
 POST /events
 ```
 
-This API endpoint receives webhook events and logs them.
+This API endpoint is used to receive webhook events. It authenticates the request using the addon middleware, logs the event, and does not return a response.
 
 ### Path Parameters
 
@@ -18,17 +18,17 @@ fetch('/events', {
   headers: {
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify({event: 'exampleEvent'})
-})
+  body: JSON.stringify({ event: 'exampleEvent' })
+});
 ```
 
 ### Example Response
 
-No response body is returned by this endpoint.
+This endpoint does not return a response.
 
 ### Response Codes
 
-**200**: This response code will be returned once the event is successfully received and logged.
+**200**: This response code will be returned if the webhook event is received successfully.
 
 <br />
 
@@ -80,6 +80,8 @@ fetch('/api/spaces/query', {
 
 **200**: The request was successful and the available spaces are returned.
 
+**500**: An error occurred while processing the request.
+
 ---
 
 ## Search Content
@@ -118,16 +120,13 @@ fetch('/api/content/search', {
   "results": [
     {
       "id": "1",
-      "title": "Test Document",
+      "title": "Test Page",
       "space": {
-        "id": "1",
-        "key": "TST",
-        "name": "Test Space"
+        "key": "TST"
       },
       "body": {
         "storage": {
-          "value": "<p>This is a test document</p>",
-          "representation": "storage"
+          "value": "<p>This is a test page</p>"
         }
       }
     }
@@ -138,6 +137,8 @@ fetch('/api/content/search', {
 ### Response Codes
 
 **200**: The request was successful and the search results are returned.
+
+**500**: An error occurred while processing the request.
 
 ---
 
@@ -163,8 +164,8 @@ fetch('/api/content/create', {
   },
   body: JSON.stringify({
     document: {
-      title: 'New Document',
-      content: '<p>This is a new document</p>'
+      title: 'New Page',
+      content: '<p>This is a new page</p>'
     },
     confluence_destination: {
       space_key: 'TST'
@@ -179,16 +180,13 @@ fetch('/api/content/create', {
 {
   "content": {
     "id": "2",
-    "title": "New Document",
+    "title": "New Page",
     "space": {
-      "id": "1",
-      "key": "TST",
-      "name": "Test Space"
+      "key": "TST"
     },
     "body": {
       "storage": {
-        "value": "<p>This is a new document</p>",
-        "representation": "storage"
+        "value": "<p>This is a new page</p>"
       }
     }
   }
@@ -197,7 +195,11 @@ fetch('/api/content/create', {
 
 ### Response Codes
 
-**200**: The request was successful and the newly created content is returned.
+**200**: The request was successful and the new content is returned.
+
+**400**: The specified space does not exist or does not have a homepage.
+
+**500**: An error occurred while processing the request.
 
 ---
 
@@ -224,7 +226,7 @@ fetch('/api/content/update', {
   body: JSON.stringify({
     content: {
       id: '2',
-      body: '<p>This is an updated document</p>'
+      body: '<p>This is an updated page</p>'
     }
   })
 })
@@ -236,16 +238,13 @@ fetch('/api/content/update', {
 {
   "content": {
     "id": "2",
-    "title": "New Document",
+    "title": "New Page",
     "space": {
-      "id": "1",
-      "key": "TST",
-      "name": "Test Space"
+      "key": "TST"
     },
     "body": {
       "storage": {
-        "value": "<p>This is an updated document</p>",
-        "representation": "storage"
+        "value": "<p>This is an updated page</p>"
       }
     }
   }
@@ -255,6 +254,8 @@ fetch('/api/content/update', {
 ### Response Codes
 
 **200**: The request was successful and the updated content is returned.
+
+**500**: The specified content does not exist or an error occurred while processing the request.
 
 ---
 
@@ -295,6 +296,8 @@ fetch('/api/content/delete', {
 ### Response Codes
 
 **200**: The request was successful and the content was deleted.
+
+**500**: An error occurred while processing the request.
 
 <br />
 

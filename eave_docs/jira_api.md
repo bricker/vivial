@@ -4,7 +4,7 @@
 POST /
 ```
 
-This API endpoint is used to handle webhook events. It authenticates the request, logs the event, and then processes the event based on its type. Currently, it only handles "comment_created" events. For these events, it checks if the comment author is an app, if Eave is mentioned in the comment, and if the intent of the comment is to search for documentation. If all these conditions are met, it searches for relevant documents and posts a comment with the search results.
+This API endpoint is used to handle webhook events. It authenticates the request, logs the event, and then processes the event based on its type. Currently, it only handles "comment_created" events. For these events, it checks if the comment author is an app, if Eave is mentioned in the comment, and if the intent of the comment is to search for something. If all these conditions are met, it performs a document search and posts a comment with the search results.
 
 ### Path Parameters
 
@@ -23,23 +23,25 @@ fetch('http://localhost:3000/', {
     issue: { id: '123' },
     comment: {
       author: { accountType: 'user' },
-      body: 'Can you find documentation about jelly beans? [~accountid:712020:d50089b8-586c-4f54-a3ad-db70381e4cae]'
-    }
-  })
+      body: 'Eave, can you find documentation about jelly beans?',
+    },
+  }),
 });
 ```
 
 ### Example Response
 
 ```javascript
-HTTP/1.1 200 OK
+{
+  "status": 200
+}
 ```
 
 ### Response Codes
 
-**200**: The request was successful. This code is returned after the event is processed, even if the event type is not handled or if the conditions for processing the "comment_created" event are not met.
+**200**: The request was successful. This code is returned after the event is processed, regardless of whether Eave was mentioned in the comment or if the intent of the comment was to search for something.
 
-**400**: The request was not successful. This code is returned if the "comment_created" event does not include an issue in the payload, if there is no teamId available, or if the comment author is an app.
+**400**: The request was unsuccessful. This code is returned if the payload is missing the issue or if there is no teamId available.
 
 <br />
 
