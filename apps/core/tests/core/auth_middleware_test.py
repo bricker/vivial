@@ -72,7 +72,7 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         assert response.status_code == HTTPStatus.UNAUTHORIZED
         assert response.cookies.get("ev_account_id") is None
         assert response.cookies.get("ev_team_id") is None
-        assert response.cookies.get("ev_access_token_b64") is None
+        assert response.cookies.get("ev_access_token") is None
 
     async def test_required_invalid_access_token(self) -> None:
         response = await self.make_request(
@@ -82,7 +82,7 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         assert response.status_code == HTTPStatus.UNAUTHORIZED
         assert response.cookies.get("ev_account_id") is None
         assert response.cookies.get("ev_team_id") is None
-        assert response.cookies.get("ev_access_token_b64") is None
+        assert response.cookies.get("ev_access_token") is None
 
     async def test_required_valid_auth_headers(self) -> None:
         response = await self.make_request(
@@ -95,7 +95,7 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         assert response.status_code == HTTPStatus.OK
         assert response.cookies.get("ev_account_id") == str(self._eave_account.id)
         assert response.cookies.get("ev_team_id") == str(self._eave_account.team_id)
-        assert response.cookies.get("ev_access_token_b64") == self.b64encode(self._eave_account.access_token, urlsafe=False)
+        assert response.cookies.get("ev_access_token") == self.b64encode(self._eave_account.access_token, urlsafe=False)
 
     async def test_previous_access_token_accepted(self) -> None:
         async with self.db_session.begin() as s:
@@ -104,11 +104,14 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
             await self.save(s, self._eave_account)
 
         response = await self.make_request(
-            path="/me/query", team_id=self._eave_account.team_id, account_id=self._eave_account.id, access_token=self.getstr("previous_token")
+            path="/me/query",
+            team_id=self._eave_account.team_id,
+            account_id=self._eave_account.id,
+            access_token=self.getstr("previous_token"),
         )
 
         assert response.status_code == HTTPStatus.OK
         assert self._eave_account.access_token == self.getstr("current_token")
         assert response.cookies.get("ev_account_id") == str(self._eave_account.id)
         assert response.cookies.get("ev_team_id") == str(self._eave_account.team_id)
-        assert response.cookies.get("ev_access_token_b64") == self.b64encode(self.getstr("current_token"), urlsafe=False)
+        assert response.cookies.get("ev_access_token") == self.b64encode(self.getstr("current_token"), urlsafe=False)

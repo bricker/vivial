@@ -43,7 +43,6 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
             else:
                 raise eave.stdlib.exceptions.BadRequestError("mismatched team and account")
 
-
         team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
         async with eave.core.internal.database.async_session.begin() as db_session:
             team = await eave.core.internal.orm.TeamOrm.one_or_exception(session=db_session, team_id=team_id)

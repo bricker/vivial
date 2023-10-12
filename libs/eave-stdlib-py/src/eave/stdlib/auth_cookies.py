@@ -13,7 +13,7 @@ from eave.stdlib.util import b64decode, b64encode
 
 _EAVE_ACCOUNT_ID_COOKIE = "ev_account_id"
 _EAVE_TEAM_ID_COOKIE = "ev_team_id"
-_EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token_b64"
+_EAVE_ACCESS_TOKEN_COOKIE = "ev_access_token"
 
 
 @dataclass

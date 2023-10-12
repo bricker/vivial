@@ -107,7 +107,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
             account_id = response.cookies.get("ev_account_id")
             assert account_id
-            assert response.cookies.get("ev_access_token_b64")
+            assert response.cookies.get("ev_access_token")
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
 
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
@@ -216,7 +216,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
             # Test that the cookies were updated
             assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token_b64") == eave_account_after.access_token
+            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
 
     async def test_google_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
@@ -254,7 +254,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
             # Test that the cookies were updated
             assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token_b64") == eave_account_after.access_token
+            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
 
     async def test_google_callback_logged_in_account_another_provider(self) -> None:
         async with self.db_session.begin() as s:
@@ -291,7 +291,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
             # Test that the cookies were NOT updated
             assert response.cookies.get("ev_account_id") == str(eave_account_before.id)
-            assert response.cookies.get("ev_access_token_b64") == eave_account_before.access_token
+            assert response.cookies.get("ev_access_token") == eave_account_before.access_token
 
     async def test_google_callback_invalid_state(self) -> None:
         response = await self.make_request(

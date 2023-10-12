@@ -35,7 +35,9 @@ class GoogleOAuthAuthorize(HTTPEndpoint):
         oauth_flow_info = eave.core.internal.oauth.google.get_oauth_flow_info()
         response = RedirectResponse(url=oauth_flow_info.authorization_url)
 
-        utm_cookies.set_tracking_cookies(response=response, request_cookies=request.cookies, query_params=request.query_params)
+        utm_cookies.set_tracking_cookies(
+            response=response, request_cookies=request.cookies, query_params=request.query_params
+        )
 
         oauth_cookies.save_state_cookie(
             response=response,

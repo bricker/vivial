@@ -10,7 +10,7 @@ import eave.stdlib.exceptions
 import eave.core.internal
 import eave.core.public
 from eave.stdlib.logging import LogContext, eaveLogger
-from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, HTTPScope, Scope
+from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, Scope
 from eave.stdlib.api_util import get_bearer_token
 from starlette.responses import Response
 from starlette.datastructures import MutableHeaders
@@ -20,7 +20,7 @@ from eave.stdlib.middleware.development_bypass import development_bypass_allowed
 from eave.stdlib.util import ensure_uuid
 from .development_bypass import development_bypass_auth
 from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.exceptions import HTTPException, UnauthorizedError
+from eave.stdlib.exceptions import UnauthorizedError
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
@@ -55,7 +55,9 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                 else:
                     raise UnauthorizedError("missing auth headers")
 
-            account = await self._verify_auth(account_id_header=account_id_header, access_token=access_token, ctx=eave_state.ctx)
+            account = await self._verify_auth(
+                account_id_header=account_id_header, access_token=access_token, ctx=eave_state.ctx
+            )
             eave_state.ctx.eave_account_id = str(account.id)
             eave_state.ctx.eave_team_id = str(account.team_id)
 
@@ -107,4 +109,6 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
     async def _abort_unauthorized(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         response = Response(status_code=HTTPStatus.UNAUTHORIZED)
         delete_auth_cookies(response=response)
-        await response(cast(starlette.types.Scope, scope), cast(starlette.types.Receive, receive), cast(starlette.types.Send, send))
+        await response(
+            cast(starlette.types.Scope, scope), cast(starlette.types.Receive, receive), cast(starlette.types.Send, send)
+        )
