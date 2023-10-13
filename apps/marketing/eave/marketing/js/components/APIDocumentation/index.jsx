@@ -89,12 +89,8 @@ function formatStatus(
   /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
 ) {
   const status = doc.status;
-  switch (doc.status) {
-    case DOC_STATUSES.PR_MERGEDSS:
-      "ok"
-      break;
-    default:
-      "ok"
+  if (status === DOC_STATUSES.PROCESSING) {
+    return "Processing";
   }
 
   const repo = repoMap[doc.github_repo_id];
