@@ -53,6 +53,7 @@ export default async function handler({
   if (event.action !== "closed") {
     return;
   }
+  ctx.feature_name = "inline_code_documentation";
   eaveLogger.debug("Processing github pull_request event", ctx);
 
   // don't open more docs PRs from other Eave PRs getting merged
@@ -61,6 +62,11 @@ export default async function handler({
     event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
   ) {
     const interaction = event.pull_request.merged ? "merged" : "closed";
+    // hack for analytics to check which feature this PR was for
+    if (event.pull_request.title.includes("API documentation")) {
+      ctx.feature_name = "api_documentation";
+    }
+
     if (interaction === "merged") {
       await logEvent(
         {

@@ -22,6 +22,7 @@ export default async function handler({
   if (event.action !== "deleted") {
     return;
   }
+  ctx.feature_name = "github_installation_deletion_cleanup"
 
   await logEvent(
     {
