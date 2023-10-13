@@ -4,6 +4,7 @@ from .config import shared_config
 
 _ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
 
+
 def set_http_cookie(
     response: HTTPFrameworkResponse,
     key: str,
