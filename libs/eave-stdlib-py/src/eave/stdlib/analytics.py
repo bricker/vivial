@@ -67,6 +67,7 @@ async def log_event(
         eave_account=serialized_account,
         eave_team=serialized_team,
         eave_request_id=ctx.eave_request_id if ctx else None,
+        feature_name=ctx.feature_name if ctx else None,
     )
 
     await _send_event(event, _EVENT_TOPIC_ID, ctx)

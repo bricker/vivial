@@ -50,6 +50,7 @@ export async function logEvent(fields: EaveEventFields, ctx: LogContext) {
     eave_visitor_id: fields.eave_visitor_id,
     eave_env: sharedConfig.eaveEnv,
     event_time: new Date().toISOString(),
+    feature_name: ctx.feature_name,
   });
 
   if (typeof fields.opaque_params === "string") {
