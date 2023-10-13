@@ -1,11 +1,17 @@
 from dataclasses import dataclass
 import re
-from typing import Mapping, Optional
+from typing import Optional
 import uuid
 
 
 from eave.stdlib.cookies import set_http_cookie
-from .typing import HTTPFrameworkRequest, HTTPFrameworkResponse, JsonObject, StarletteRequest, StarletteResponse, WerkzeugRequest
+from .typing import (
+    HTTPFrameworkRequest,
+    HTTPFrameworkResponse,
+    JsonObject,
+    StarletteRequest,
+    WerkzeugRequest,
+)
 
 _KNOWN_TRACKING_PARAMS = set(
     [
@@ -37,7 +43,8 @@ class TrackingCookies:
 
 
 def set_tracking_cookies(
-    request: HTTPFrameworkRequest, response: HTTPFrameworkResponse,
+    request: HTTPFrameworkRequest,
+    response: HTTPFrameworkResponse,
 ) -> None:
     """
     GTM gtag.js needs to be able to read these cookies in the browser,

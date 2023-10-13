@@ -40,9 +40,7 @@ class AtlassianOAuthAuthorize(HTTPEndpoint):
         flow_info = oauth_session.oauth_flow_info()
         response = RedirectResponse(url=flow_info.authorization_url)
 
-        utm_cookies.set_tracking_cookies(
-            response=response, request=request
-        )
+        utm_cookies.set_tracking_cookies(response=response, request=request)
 
         oauth_cookies.save_state_cookie(
             response=response,

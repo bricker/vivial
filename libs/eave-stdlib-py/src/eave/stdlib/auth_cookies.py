@@ -13,6 +13,7 @@ _EAVE_ACCOUNT_ID_COOKIE_NAME = f"ev_account_id_{_CURRENT_COOKIE_VERSION}"
 _EAVE_TEAM_ID_COOKIE_NAME = f"ev_team_id_{_CURRENT_COOKIE_VERSION}"
 _EAVE_ACCESS_TOKEN_COOKIE_NAME = f"ev_access_token_{_CURRENT_COOKIE_VERSION}"
 
+
 @dataclass
 class AuthCookies:
     account_id: Optional[str]
@@ -58,6 +59,7 @@ def delete_auth_cookies(response: HTTPFrameworkResponse) -> None:
     delete_http_cookie(response=response, key=_EAVE_TEAM_ID_COOKIE_NAME)
     delete_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE_NAME)
     _delete_orphan_cookies(response=response)
+
 
 def _delete_orphan_cookies(response: HTTPFrameworkResponse) -> None:
     """

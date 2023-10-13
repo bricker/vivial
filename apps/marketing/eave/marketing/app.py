@@ -196,6 +196,7 @@ async def get_team_documents() -> Response:
     eave_response.documents.sort(key=_document_rank)
     return _make_response(eave_response)
 
+
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
     response = redirect(location=app_config.eave_public_www_base, code=302)
@@ -228,16 +229,19 @@ def _make_response(eave_response: BaseResponseBody) -> Response:
 
     return response
 
+
 def _set_json_response_body(response: Response, body: JsonObject | str) -> Response:
     if not isinstance(body, str):
         body = json.dumps(body)
     response.set_data(body)
     return response
 
+
 def _json_response(body: JsonObject | str) -> Response:
     response = Response(mimetype=MIME_TYPE_JSON)
     _set_json_response_body(response, body)
     return response
+
 
 _status_order = [
     Status.PROCESSING,
@@ -245,6 +249,7 @@ _status_order = [
     Status.FAILED,
     Status.PR_MERGED,
 ]
+
 
 def _document_rank(d: GithubDocument) -> str:
     """
