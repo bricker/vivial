@@ -14,4 +14,5 @@ message EaveEvent {
   optional string eave_account = 11;
   optional string eave_team = 12;
   string eave_request_id = 13;
+  optional string feature_name = 14;
 }
