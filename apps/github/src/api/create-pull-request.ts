@@ -12,25 +12,25 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 
 /**
  * Handles the creation of a new GitHub pull request.
- *
- * @param req - The incoming request object, expected to contain necessary pull request details in the body.
- * @param res - The outgoing response object.
- *
- * The request body should contain the following properties:
- * - repo_name: The name of the repository where the pull request will be created.
- * - repo_owner: The owner of the repository.
- * - repo_id: The ID of the repository.
- * - base_branch_name: The name of the base branch for the pull request.
- * - branch_name: The name of the branch where changes have been made.
- * - pr_body: The body content of the pull request.
- * - pr_title: The title of the pull request.
- * - file_changes: The changes made to the files.
- * - commit_message: The commit message.
- *
- * If the request body does not contain all the required properties, the function will log an error and send a 400 status.
- *
- * The function uses the provided details to create a new pull request and returns the pull request number in the response body.
- *
+ * 
+ * @param req - The request object, expected to contain the necessary information for creating a pull request.
+ * @param res - The response object.
+ * 
+ * The request body should include:
+ * - `repo_name`: The name of the repository.
+ * - `repo_owner`: The owner of the repository.
+ * - `repo_id`: The ID of the repository.
+ * - `base_branch_name`: The name of the base branch.
+ * - `branch_name`: The name of the branch where changes are made.
+ * - `pr_body`: The body content of the pull request.
+ * - `pr_title`: The title of the pull request.
+ * - `file_changes`: The changes made to the files.
+ * - `commit_message`: The commit message.
+ * 
+ * If the request body does not contain all the necessary information, a 400 status code is returned.
+ * 
+ * The response body contains the number of the created pull request.
+ * 
  * @returns A promise that resolves to void.
  */
 export async function createPullRequestHandler(
