@@ -428,9 +428,7 @@ export async function runApiDocumentationTaskHandler(
     coreAPIData,
     expressAPIs: validExpressAPIs,
     newValues: {
-      // if pullRequest is null, backend won't update the db value,
-      // which should lead to expected result of showing the previous PR number
-      pull_request_number: pullRequest?.number,
+      pull_request_number: pullRequest.number,
       status: Status.PR_OPENED,
     },
   });
@@ -551,7 +549,7 @@ async function generateExpressAPIDoc({
           {
             event_name: "express_api_documentation_openai_empty_response",
             event_description:
-              "OpenAI couldn't generate documentation for this API",
+              "OpenAI couldn't generate documentation for an API Endpoint",
             event_source: "express parsing utility",
             opaque_params: {
               apiName: expressAPIInfo.name,

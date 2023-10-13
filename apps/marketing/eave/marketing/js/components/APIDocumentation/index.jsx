@@ -1,12 +1,15 @@
+// @ts-check
 import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useEffect, useState } from "react";
-import { DOC_STATUSES, MONTH_NAMES } from "../../constants.js";
+import { DOC_STATUSES } from "../../constants.js";
 import useTeam from "../../hooks/useTeam";
-import { mapReposByExternalId } from "../../util/repo-util.js";
+import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
+import { mapReposById } from "../../util/repo-util.js";
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
+    // @ts-ignore
     color: theme.palette.background.contrastText,
     padding: "0 25px",
     marginBottom: 80,
@@ -15,6 +18,7 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   title: {
+    // @ts-ignore
     color: theme.palette.tertiary.main,
     fontSize: 32,
     fontWeight: 400,
@@ -25,6 +29,7 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   loader: {
+    // @ts-ignore
     color: theme.palette.tertiary.main,
     textAlign: "center",
   },
@@ -52,12 +57,15 @@ const makeClasses = makeStyles((theme) => ({
     fontWeight: 700,
   },
   docTableRow: {
+    // @ts-ignore
     borderBottom: `1px solid ${theme.palette.background.contrastText}`,
   },
   compactDocView: {
+    // @ts-ignore
     borderTop: `1px solid ${theme.palette.background.contrastText}`,
   },
   compactDocRow: {
+    // @ts-ignore
     borderBottom: `1px solid ${theme.palette.background.contrastText}`,
     padding: "14px 5px",
     fontSize: 16,
@@ -67,14 +75,26 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-function formatStatus(doc, repoMap) {
+/**
+ * Formats the status of a document based on its current state and associated Github repository.
+ * If the document is still being processed, it returns a simple "Processing" string.
+ * Otherwise, it generates a link to the associated pull request in the Github repository.
+ *
+ * @param {Types.GithubDocument} doc - The document whose status is to be formatted.
+ * @param {{[key: string] : Types.GithubRepo}} repoMap - A map of Github repositories, keyed by their IDs.
+ * @returns {JSX.Element} A JSX element containing the formatted status of the document.
+ */
+function formatStatus(
+  /** @type {Types.GithubDocument} */ doc,
+  /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
+) {
   const status = doc.status;
   if (status === DOC_STATUSES.PROCESSING) {
     return "Processing";
   }
 
-  const repo = repoMap[doc.external_repo_id];
-  const repoUrl = repo.external_repo_data.url;
+  const repo = repoMap[doc.github_repo_id];
+  const repoUrl = repo["external_repo_data"]?.url; // TODO: should separate this from repo response
   const prNumber = doc.pull_request_number;
   const prLink = `${repoUrl}/pull/${prNumber}`;
   const prLinkStyle = { color: "#0092C7", textDecoration: "none" };
@@ -92,11 +112,22 @@ function formatStatus(doc, repoMap) {
   );
 }
 
+/**
+ * Formats the 'status_updated' field of a document into a human-readable date string.
+ * If the document was updated today or yesterday, it returns "Today" or "Yesterday" respectively.
+ * Otherwise, it returns the date in the format "Month Day, Year".
+ * Assumes that the timestamp from the database server uses UTC time.
+ *
+ * @param {Object} doc - The document to format.
+ * @returns {string} The formatted last updated date.
+ */
 function formatLastUpdated(doc) {
   if (!doc.status_updated) {
     return "-";
   }
-  const updatedDate = new Date(doc.status_updated);
+  // assumes that the db server that generates this timestamp uses UTC time.
+  // Adding trailing 'Z' signifies UTC timezone
+  const updatedDate = new Date(doc.status_updated + "Z");
   const today = new Date();
   if (updatedDate.toDateString() === today.toDateString()) {
     return "Today";
@@ -106,13 +137,26 @@ function formatLastUpdated(doc) {
   if (updatedDate.toDateString() === yesterday.toDateString()) {
     return "Yesterday";
   }
-  const month = MONTH_NAMES[updatedDate.getMonth()];
-  const day = updatedDate.getDate();
-  const year = updatedDate.getFullYear();
-  return `${month} ${day}, ${year}`;
+  return updatedDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
-function renderContent(classes, team, compact) {
+/**
+ * Renders the content for the dashboard team view. It displays error messages, loading states, and API documentation.
+ * It also handles user interactions such as row clicks and mouse overs.
+ *
+ * @param {Object} classes - CSS classes for styling the rendered content.
+ * @param {Types.DashboardTeam} team - The team data, including API documentation and repository information.
+ * @param {boolean} compact - A flag to determine if the view should be rendered in a compact format.
+ */
+function renderContent(
+  classes,
+  /** @type {Types.DashboardTeam} */ team,
+  compact,
+) {
   const { apiDocsErroring, apiDocsLoading, apiDocsFetchCount, apiDocs, repos } =
     team;
   if (apiDocsErroring) {
@@ -138,15 +182,17 @@ function renderContent(classes, team, compact) {
       </Typography>
     );
   }
-  const repoMap = mapReposByExternalId(repos);
-  const handleRowClick = (e, doc) => {
+  const repoMap = mapReposById(repos);
+  const handleRowClick = (e, /** @type {Types.GithubDocument} */ doc) => {
     const filePath = doc.file_path;
     const isProcessing = doc.status === DOC_STATUSES.PROCESSING;
     const isLink = e.target.tagName === "A";
     if (filePath && !isProcessing && !isLink) {
-      const repo = repoMap[doc.external_repo_id];
-      const repoUrl = repo.external_repo_data.url;
-      window.open(`${repoUrl}/${filePath}`);
+      const repo = repoMap[doc.github_repo_id];
+      const repoUrl = repo["external_repo_data"]?.url;
+      if (repoUrl) {
+        window.open(`${repoUrl}/blob/main/${filePath}`);
+      }
     }
   };
   const handleRowMouseOver = (e, doc) => {

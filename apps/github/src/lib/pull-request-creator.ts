@@ -196,9 +196,15 @@ export class PullRequestCreator {
     }>(createCommitMutation, createCommitParameters);
 
     eaveLogger.debug("createCommitOnBranch response", {
-      createCommitMutation,
-      createCommitParameters,
-      commitResp,
+      variables: {
+        branch: createCommitParameters.branch,
+        headOid: createCommitParameters.headOid,
+        message: createCommitParameters.message,
+        fileChangesLength: createCommitParameters.fileChanges.additions?.length,
+      },
+      response: {
+        commit_oid: commitResp.createCommitOnBranch?.commit?.oid,
+      },
     });
 
     if (!commitResp.createCommitOnBranch?.commit?.oid) {
@@ -311,51 +317,139 @@ export class PullRequestCreator {
     prTitle: string;
     prBody: string;
     fileChanges: FileChanges;
-  }): Promise<PullRequest | null> {
+  }): Promise<PullRequest> {
     const fqBranchName = this.ensureBranchPrefix(branchName);
     let branch = await this.getBranch(fqBranchName);
-    let createdNewBranch = false;
-    if (!branch) {
-      branch = await this.createBranch(fqBranchName);
-      createdNewBranch = true;
-    }
+    let createdNewBranch: boolean;
 
-    let pr: PullRequest | null = null;
-    try {
-      await this.createCommit(branch, commitMessage, fileChanges);
-      pr = await this.openPullRequest(branch, prTitle, prBody);
-
+    if (branch) {
+      createdNewBranch = false;
       await logEvent(
         {
-          event_name: "eave_github_pull_request_opened",
-          event_description: "Eave GitHub app opened a PR",
+          event_name: "eave_pushed_to_existing_branch",
+          event_description:
+            "Eave pushed a commit to a branch that already existed. This is normal.",
+          opaque_params: {
+            branch: {
+              id: branch.id,
+              name: branch.name,
+            },
+          },
         },
         this.ctx,
       );
-    } catch (e) {
-      if ((<Error>e).message.includes("pull request already exists")) {
+    } else {
+      branch = await this.createBranch(fqBranchName);
+      createdNewBranch = true;
+
+      await logEvent(
+        {
+          event_name: "eave_created_branch",
+          event_description: "Eave created a new branch and pushed a commit.",
+          opaque_params: {
+            branch: {
+              id: branch.id,
+              name: branch.name,
+            },
+          },
+        },
+        this.ctx,
+      );
+    }
+
+    await this.createCommit(branch, commitMessage, fileChanges);
+
+    let pr: PullRequest;
+
+    // fwiw, this should always be empty for a branch that was just created, so this line will implicitly skip to the `openPullRequest` block.
+    // As of writing this, the query that gets this data only fetches the 1 most recently created open pull request. The sorting/filtering here is so that if the query is changed, this logic still works as expected.
+    const mostRecentExistingPr = branch.associatedPullRequests.nodes
+      ?.filter((p) => p?.state === "OPEN")
+      .sort(sortPRsByDescendingCreatedAt)
+      .at(-1);
+    if (mostRecentExistingPr) {
+      pr = mostRecentExistingPr;
+
+      await logEvent(
+        {
+          event_name: "eave_github_pull_request_appended",
+          event_description:
+            "Eave GitHub app added new commits to an existing PR",
+          opaque_params: {
+            branch: {
+              id: branch.id,
+              name: branch.name,
+            },
+            pull_request: {
+              number: pr.number,
+              updated_at: pr.updatedAt,
+              created_at: pr.createdAt,
+            },
+          },
+        },
+        this.ctx,
+      );
+    } else {
+      try {
+        pr = await this.openPullRequest(branch, prTitle, prBody);
+
         await logEvent(
           {
-            event_name: "eave_github_pull_request_appended",
-            event_description:
-              "Eave GitHub app added new commits to an existing PR",
+            event_name: "eave_github_pull_request_opened",
+            event_description: "Eave GitHub app opened a PR",
+            opaque_params: {
+              branch: {
+                id: branch.id,
+                name: branch.name,
+              },
+              pull_request: {
+                number: pr.number,
+                updated_at: pr.updatedAt,
+                created_at: pr.createdAt,
+              },
+            },
           },
           this.ctx,
         );
-        return pr;
-      }
-      eaveLogger.error(
-        `Failed to create PR in ${this.repoOwner}/${this.repoName}`,
-        this.ctx,
-      );
+      } catch (e: any) {
+        eaveLogger.error(
+          `Failed to create PR`,
+          { repo_owner: this.repoOwner, repo_name: this.repoName },
+          this.ctx,
+        );
 
-      // dont delete existing branches
-      if (createdNewBranch) {
-        await this.deleteBranch(branch!.id);
+        // dont delete existing branches
+        if (createdNewBranch) {
+          await this.deleteBranch(branch!.id);
+
+          await logEvent(
+            {
+              event_name: "github_orphan_branch_deleted",
+              event_description:
+                "A branch was created, but the attempt to open a pull request failed, so we deleted the branch to prevent an orphaned branch.",
+              opaque_params: {
+                branch: {
+                  id: branch.id,
+                  name: branch.name,
+                },
+              },
+            },
+            this.ctx,
+          );
+        }
+
+        // re-raise
+        throw e;
       }
-      throw e;
     }
 
     return pr;
   }
+}
+
+function sortPRsByDescendingCreatedAt(
+  a: PullRequest | null,
+  b: PullRequest | null,
+): number {
+  return Date.parse(a!.createdAt) - Date.parse(b!.createdAt);
 }
