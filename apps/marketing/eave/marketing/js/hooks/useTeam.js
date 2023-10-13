@@ -13,8 +13,10 @@ const useTeam = () => {
 
   /**
    * Asynchronously fetches team data from the "/dashboard/team" endpoint.
-   * Updates the team state with the fetched data, or sets an error flag if the fetch fails.
-   * Also manages loading state flags before and after the fetch operation.
+   * Updates the team state with the fetched data, including team ID, name, and integrations.
+   * Also manages loading and error states of the team data.
+   * If an HTTP error occurs during the fetch, the error state is set to true.
+   * Regardless of success or failure, the loading state is set to false once the fetch is complete.
    */
   async function getTeam() {
     setTeam((prev) => ({
@@ -46,7 +48,7 @@ const useTeam = () => {
 
   /**
    * Asynchronously fetches the team's GitHub repositories from the server.
-   * Updates the team state to indicate when repositories are loading, have loaded, or if an error occurred during loading.
+   * Updates the team state to indicate when the repositories are loading, have loaded, or if an error occurred during loading.
    * @async
    * @function
    * @throws {Response} If the HTTP response indicates an error.
@@ -79,12 +81,12 @@ const useTeam = () => {
   /**
    * Asynchronously retrieves the feature states for a team based on the provided Github repositories.
    * It checks if API documentation and inline code documentation are enabled for each repository.
-   * The function updates the team's state to reflect the loading status and the enabled features.
+   * Updates the team's state with the loading status and the enabled features.
    *
    * @async
    * @function getTeamFeatureStates
    * @param {Types.GithubRepo[] | undefined} repos - The Github repositories to check for feature states.
-   * @returns {void} Updates the team's state but does not return a value.
+   * @returns {void}
    */
   async function getTeamFeatureStates(
     /**@type {Types.GithubRepo[] | undefined}*/ repos,
@@ -113,16 +115,19 @@ const useTeam = () => {
 
   /**
    * Asynchronously updates the state of a feature for a team's repositories.
-   * It sets the feature state to either enabled or disabled based on the provided parameters.
-   * It also handles the loading and error states during the update process.
+   * It maps through the team's repository IDs and sets the feature state to either enabled or disabled.
+   * Then, it sends a POST request to the server to update the repositories with the new feature states.
+   * If the request is successful, it fetches the updated team repositories.
+   * If an error occurs during the request, it sets the featureStatesErroring state to true.
+   * Regardless of the request outcome, it sets the featureStatesLoading state to false at the end.
    *
    * @async
    * @function updateTeamFeatureState
-   * @param {Types.FeatureStateParams} params - The parameters for updating the feature state.
+   * @param {Object} params - The parameters for updating the feature state.
    * @param {string[]} params.teamRepoIds - The IDs of the team's repositories.
    * @param {string[]} params.enabledRepoIds - The IDs of the repositories where the feature is enabled.
-   * @param {string} params.feature - The feature to update.
-   * @throws {HTTPError} If the HTTP request fails.
+   * @param {string} params.feature - The feature to update the state for.
+   * @throws {HTTPError} If the server responds with a HTTP error.
    */
   async function updateTeamFeatureState(
     /**@type {Types.FeatureStateParams} */ {
@@ -179,7 +184,7 @@ const useTeam = () => {
    * The state is updated to indicate the loading status before the fetch request, and upon receiving the response,
    * the state is updated with the fetched documents (sorted), or an error flag is set if the fetch fails.
    * Regardless of success or failure, the fetch count is incremented and the loading status is updated after the fetch.
-   * The fetch request is made to the "/dashboard/team/documents" endpoint with a POST method,
+   * The fetch request is made to the "/dashboard/team/documents" endpoint with a POST method, 
    * and the body of the request specifies that the document type is API documentation.
    */
   async function getTeamAPIDocs() {

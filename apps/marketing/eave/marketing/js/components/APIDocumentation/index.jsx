@@ -75,13 +75,13 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
 }));
 
 /**
- * Formats the status of a document based on its current state and associated Github repository.
+ * Formats the status of a Github document based on its current state and associated Github repository.
  * If the document is still being processed, it returns a simple "Processing" string.
- * Otherwise, it generates a link to the associated pull request in the Github repository.
+ * Otherwise, it generates a link to the associated pull request in the Github repository if applicable.
  *
- * @param {Types.GithubDocument} doc - The document whose status is to be formatted.
+ * @param {Types.GithubDocument} doc - The Github document whose status is to be formatted.
  * @param {{[key: string] : Types.GithubRepo}} repoMap - A map of Github repositories, keyed by their IDs.
- * @returns {JSX.Element} A JSX element containing the formatted status of the document.
+ * @returns {JSX.Element} A JSX element containing the formatted status of the document and a link to the pull request if applicable.
  */
 function formatStatus(
   /** @type {Types.GithubDocument} */ doc,
@@ -125,9 +125,10 @@ function formatStatus(
 }
 
 /**
- * Formats the 'status_updated' field of a document into a human-readable date string.
+ * Formats the 'status_updated' field of a document into a human-readable date.
  * If the document was updated today or yesterday, it returns "Today" or "Yesterday" respectively.
  * Otherwise, it returns the date in the format "Month Day, Year".
+ * If 'status_updated' is not present, it returns "-".
  * Assumes that the timestamp from the database server uses UTC time.
  *
  * @param {Object} doc - The document to format.
@@ -157,12 +158,13 @@ function formatLastUpdated(doc) {
 }
 
 /**
- * Renders the content for the dashboard team view. It displays error messages, loading states, and API documentation.
- * It also handles user interactions such as row clicks and mouse overs.
+ * Renders the content for the dashboard team view. It handles different states of API documentation fetching, displays error messages, loading states, and the documentation in a compact or detailed view. It also handles user interactions such as row clicks and mouse overs.
  *
  * @param {Object} classes - CSS classes for styling the rendered content.
- * @param {Types.DashboardTeam} team - The team data, including API documentation and repository information.
+ * @param {Types.DashboardTeam} team - The team object containing API documentation and repository information.
  * @param {boolean} compact - A flag to determine if the view should be rendered in a compact format.
+ *
+ * @returns {JSX.Element} The rendered content.
  */
 function renderContent(
   classes,
