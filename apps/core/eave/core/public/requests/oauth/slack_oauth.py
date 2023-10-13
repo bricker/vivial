@@ -29,7 +29,7 @@ class SlackOAuthAuthorize(HTTPEndpoint):
         response = RedirectResponse(url=authorization_url)
 
         utm_cookies.set_tracking_cookies(
-            response=response, request_cookies=request.cookies, query_params=request.query_params
+            response=response, request=request,
         )
 
         oauth_cookies.save_state_cookie(

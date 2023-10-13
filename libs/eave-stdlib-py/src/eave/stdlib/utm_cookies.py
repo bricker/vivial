@@ -5,7 +5,7 @@ import uuid
 
 
 from eave.stdlib.cookies import set_http_cookie
-from .typing import HTTPFrameworkResponse, JsonObject
+from .typing import HTTPFrameworkRequest, HTTPFrameworkResponse, JsonObject, StarletteRequest, StarletteResponse, WerkzeugRequest
 
 _KNOWN_TRACKING_PARAMS = set(
     [
@@ -26,8 +26,8 @@ _KNOWN_TRACKING_PARAMS = set(
 )
 
 # DON'T RENAME THESE, they are referenced in GTM by name. Changing them will break tracking.
-EAVE_COOKIE_PREFIX_UTM = "ev_utm_"
-EAVE_VISITOR_ID_COOKIE = "ev_visitor_id"
+_EAVE_COOKIE_PREFIX_UTM = "ev_utm_"
+_EAVE_VISITOR_ID_COOKIE_NAME = "ev_visitor_id"
 
 
 @dataclass
@@ -37,28 +37,36 @@ class TrackingCookies:
 
 
 def set_tracking_cookies(
-    request_cookies: Mapping[str, str], query_params: Mapping[str, str], response: HTTPFrameworkResponse
+    request: HTTPFrameworkRequest, response: HTTPFrameworkResponse,
 ) -> None:
     """
     GTM gtag.js needs to be able to read these cookies in the browser,
     so we must set httponly to False when setting analytics cookies.
     """
-    if (cookie_value := request_cookies.get(EAVE_VISITOR_ID_COOKIE)) is None or len(cookie_value) == 0:
-        set_http_cookie(response=response, key=EAVE_VISITOR_ID_COOKIE, value=str(uuid.uuid4()), httponly=False)
+    if isinstance(request, StarletteRequest):
+        query_params = request.query_params
+    elif isinstance(request, WerkzeugRequest):
+        query_params = request.args
+
+    request_cookies = request.cookies
+
+    if (cookie_value := request_cookies.get(_EAVE_VISITOR_ID_COOKIE_NAME)) is None or len(cookie_value) == 0:
+        set_http_cookie(response=response, key=_EAVE_VISITOR_ID_COOKIE_NAME, value=str(uuid.uuid4()), httponly=False)
 
     for key, value in query_params.items():
         lkey = key.lower()
         if lkey in _KNOWN_TRACKING_PARAMS or re.match("^utm_", lkey):
-            set_http_cookie(response=response, key=f"{EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, httponly=False)
+            set_http_cookie(response=response, key=f"{_EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, httponly=False)
 
 
-def get_tracking_cookies(request_cookies: Mapping[str, str]) -> TrackingCookies:
-    visitor_id = request_cookies.get(EAVE_VISITOR_ID_COOKIE)
+def get_tracking_cookies(request: HTTPFrameworkRequest) -> TrackingCookies:
+    request_cookies = request.cookies
+    visitor_id = request_cookies.get(_EAVE_VISITOR_ID_COOKIE_NAME)
     utm_params: JsonObject = {}
 
     for key, value in request_cookies.items():
-        if re.match(f"^{EAVE_COOKIE_PREFIX_UTM}", key):
-            utm_param_name = re.sub(f"^{EAVE_COOKIE_PREFIX_UTM}", "", key)
+        if re.match(f"^{_EAVE_COOKIE_PREFIX_UTM}", key):
+            utm_param_name = re.sub(f"^{_EAVE_COOKIE_PREFIX_UTM}", "", key)
             utm_params[utm_param_name] = value
 
     return TrackingCookies(

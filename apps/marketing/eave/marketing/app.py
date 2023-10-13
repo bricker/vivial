@@ -208,7 +208,7 @@ async def logout() -> BaseResponse:
 def catch_all(path: str) -> Response:
     spa = _render_spa()
     response = make_response(spa)
-    set_tracking_cookies(response=response, request_cookies=request.cookies, query_params=request.args)
+    set_tracking_cookies(response=response, request=request)
     return response
 
 
