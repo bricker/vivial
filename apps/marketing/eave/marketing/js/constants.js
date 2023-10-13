@@ -5,13 +5,7 @@ export const DOC_TYPES = {
   ARCHITECTURE_DOC: "architecture_document",
 };
 
-export const DOC_STATUSES = {
-  PROCESSING: "processing",
-  PR_OPENED: "pr_opened",
-  PR_MERGED: "pr_merged",
-};
-
-export const FEATURES = {
+export const FEATURE_STATE_PROPERTY = {
   API_DOCS: "api_documentation_state",
   INLINE_CODE_DOCS: "inline_code_documentation_state",
   ARCHITECTURE_DOCS: "architecture_documentation_state",

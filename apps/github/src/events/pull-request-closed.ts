@@ -1,5 +1,6 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { Status } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
+import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   GetGithubDocumentsOperation,
   UpdateGithubDocumentOperation,
@@ -9,6 +10,7 @@ import { updateDocumentation } from "@eave-fyi/eave-stdlib-ts/src/function-docum
 import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { isSupportedProgrammingLanguage } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
+import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
 import OpenAIClient, {
   formatprompt,
@@ -55,19 +57,24 @@ export default async function handler({
   }
   ctx.feature_name = "inline_code_documentation";
   eaveLogger.debug("Processing github pull_request event", ctx);
+  const repoOwner = event.repository.owner.login;
+  const repoName = event.repository.name;
+  const repoId = event.repository.node_id.toString();
 
   // don't open more docs PRs from other Eave PRs getting merged
   if (
     event.pull_request.user.type === "Bot" &&
     event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
   ) {
-    const interaction = event.pull_request.merged ? "merged" : "closed";
     // hack for analytics to check which feature this PR was for
     if (event.pull_request.title.includes("API documentation")) {
       ctx.feature_name = "api_documentation";
     }
 
-    if (interaction === "merged") {
+    const interaction = event.pull_request.merged
+      ? Status.PR_MERGED
+      : Status.PR_CLOSED;
+    if (interaction === Status.PR_MERGED) {
       await logEvent(
         {
           event_name: "github_eave_pr_merged",
@@ -88,67 +95,21 @@ export default async function handler({
         ctx,
       );
     }
+
+    await updateDocsPullRequestStatus({
+      repoId,
+      prNumber: event.pull_request.number,
+      eaveTeam,
+      ctx,
+      status: interaction,
+    });
+
     return;
   }
 
   // proceed only if PR commits were merged
   if (!event.pull_request.merged) {
     return;
-  }
-
-  const repoOwner = event.repository.owner.login;
-  const repoName = event.repository.name;
-  const repoId = event.repository.node_id.toString();
-
-  const eaveRepoResponse = await GetGithubReposOperation.perform({
-    ctx,
-    origin: appConfig.eaveOrigin,
-    teamId: eaveTeam.id,
-    input: {
-      repos: [
-        {
-          external_repo_id: repoId,
-        },
-      ],
-    },
-  });
-
-  const eaveRepo = eaveRepoResponse.repos[0];
-  assertPresence(eaveRepo);
-
-  try {
-    const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
-      {
-        origin: appConfig.eaveOrigin,
-        ctx,
-        teamId: eaveTeam.id,
-        input: {
-          query_params: {
-            github_repo_id: eaveRepo.id,
-            pull_request_number: event.pull_request.number,
-          },
-        },
-      },
-    );
-
-    for (const document of associatedGithubDocuments.documents) {
-      await UpdateGithubDocumentOperation.perform({
-        origin: appConfig.eaveOrigin,
-        ctx,
-        teamId: eaveTeam.id,
-        input: {
-          document: {
-            id: document.id,
-            new_values: {
-              status: Status.PR_MERGED,
-            },
-          },
-        },
-      });
-    }
-  } catch (e: any) {
-    eaveLogger.exception(e, ctx);
-    // Allow the function to continue running
   }
 
   const openaiClient = await OpenAIClient.getAuthedClient();
@@ -317,5 +278,69 @@ export default async function handler({
   } catch (e: any) {
     eaveLogger.exception(e, ctx);
     return;
+  }
+}
+
+async function updateDocsPullRequestStatus({
+  ctx,
+  eaveTeam,
+  repoId,
+  prNumber,
+  status,
+}: {
+  status: Status;
+  eaveTeam: Team;
+  repoId: string;
+  prNumber: number;
+} & CtxArg) {
+  const eaveRepoResponse = await GetGithubReposOperation.perform({
+    ctx,
+    origin: appConfig.eaveOrigin,
+    teamId: eaveTeam.id,
+    input: {
+      repos: [
+        {
+          external_repo_id: repoId,
+        },
+      ],
+    },
+  });
+
+  const eaveRepo = eaveRepoResponse.repos[0];
+  assertPresence(eaveRepo);
+
+  try {
+    const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
+      {
+        origin: appConfig.eaveOrigin,
+        ctx,
+        teamId: eaveTeam.id,
+        input: {
+          query_params: {
+            github_repo_id: eaveRepo.id,
+            pull_request_number: prNumber,
+          },
+        },
+      },
+    );
+
+    for (const document of associatedGithubDocuments.documents) {
+      await UpdateGithubDocumentOperation.perform({
+        origin: appConfig.eaveOrigin,
+        ctx,
+        teamId: eaveTeam.id,
+        input: {
+          document: {
+            id: document.id,
+            new_values: {
+              status,
+            },
+          },
+        },
+      });
+    }
+  } catch (e: any) {
+    eaveLogger.exception(e, ctx);
+    // Allow the function to continue running
   }
 }
