@@ -33,16 +33,18 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { EventHandlerArgs } from "../types.js";
 
 /**
- * Handles GitHub pull request events. If the event indicates that a pull request has been closed,
- * the function logs the event and updates the status of associated documents.
- * If the pull request was merged, the function also fetches all files from the pull request,
- * determines which files need documentation, and updates the documentation in each file.
+ * Handles GitHub pull request events. If the event indicates a pull request has been closed, it logs the event and updates the status of the documentation pull request.
+ * If the pull request was merged, it collects all the files from the pull request, filters out non-source files and files that do not need documentation, and then updates the documentation in each file.
  * Finally, it creates a new pull request with the updated documentation.
  * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
  *
- * @param {PullRequestEvent} event - The pull request event from GitHub.
- * @param {GitHubOperationsContext} context - The context for GitHub operations, including the Octokit instance and the current context.
+ * @param {Object} args - The arguments for the event handler.
+ * @param {PullRequestEvent} args.event - The pull request event.
+ * @param {Object} args.ctx - The context of the event.
+ * @param {Object} args.octokit - The Octokit instance to interact with GitHub's API.
+ * @param {Object} args.eaveTeam - The Eave team instance.
  * @throws {Error} If there is an error fetching file content or creating a pull request.
+ * @returns {Promise<void>} A promise that resolves when the function has completed.
  */
 export default async function handler({
   event,
@@ -275,6 +277,20 @@ export default async function handler({
   }
 }
 
+/**
+ * Updates the status of a pull request in the documentation.
+ *
+ * @async
+ * @function updateDocsPullRequestStatus
+ * @param {Object} arg - The argument object.
+ * @param {Status} arg.status - The new status to be set.
+ * @param {Team} arg.eaveTeam - The team that owns the repository.
+ * @param {string} arg.repoId - The ID of the repository.
+ * @param {number} arg.prNumber - The number of the pull request.
+ * @param {CtxArg} arg.ctx - The context argument.
+ * @throws Will throw an error if the operation fails.
+ * @returns {Promise<void>} Promise object represents the completion of an asynchronous operation.
+ */
 async function updateDocsPullRequestStatus({
   ctx,
   eaveTeam,
