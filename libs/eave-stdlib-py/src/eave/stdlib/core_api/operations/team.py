@@ -33,8 +33,7 @@ class GetTeamRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        return await cls.make_response(response, cls.ResponseBody)
 
 
 class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
