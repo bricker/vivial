@@ -8,10 +8,9 @@ from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.typing import HTTPFrameworkResponse
 
 # version can be changed when a force-logout is required for all users
-_CURRENT_COOKIE_VERSION = "202310"
-_EAVE_ACCOUNT_ID_COOKIE_NAME = f"ev_account_id_{_CURRENT_COOKIE_VERSION}"
-_EAVE_TEAM_ID_COOKIE_NAME = f"ev_team_id_{_CURRENT_COOKIE_VERSION}"
-_EAVE_ACCESS_TOKEN_COOKIE_NAME = f"ev_access_token_{_CURRENT_COOKIE_VERSION}"
+_EAVE_ACCOUNT_ID_COOKIE_NAME = "ev_account_id.202310"
+_EAVE_TEAM_ID_COOKIE_NAME = "ev_team_id.202310"
+_EAVE_ACCESS_TOKEN_COOKIE_NAME = "ev_access_token.202310"
 
 
 @dataclass
@@ -50,7 +49,6 @@ def set_auth_cookies(
         set_http_cookie(response=response, key=_EAVE_TEAM_ID_COOKIE_NAME, value=str(team_id))
 
     if access_token:
-        # We base64-encode this value because its format is unknown to us, and cookies with unsafe characters (eg spaces) have unexpected behavior (eg, the value is wrapped in quotes).
         set_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE_NAME, value=access_token)
 
 
