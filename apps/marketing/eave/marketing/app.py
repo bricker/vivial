@@ -8,7 +8,7 @@ import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
-from eave.stdlib.core_api.models.github_documents import GithubDocumentsQueryInput
+from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentsQueryInput, Status
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 from eave.stdlib.util import ensure_uuid, unwrap
 
@@ -185,6 +185,22 @@ async def get_team_documents() -> Response:
         ),
     )
 
+    status_order = [
+        Status.PROCESSING,
+        Status.PR_OPENED,
+        Status.FAILED,
+        Status.PR_MERGED,
+    ]
+
+    def status_sort(d: GithubDocument) -> float:
+        if d.status in status_order:
+            return status_order.index(d.status)
+        else:
+            # put unrecognized status last
+            return float("inf")
+
+    # sort documents in place
+    eave_response.documents.sort(key=status_sort)
     return _json_response(body=eave_response.json())
 
 
