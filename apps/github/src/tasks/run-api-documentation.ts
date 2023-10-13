@@ -54,7 +54,7 @@ export async function runApiDocumentationTaskHandler(
   res: Express.Response,
 ): Promise<void> {
   const ctx = LogContext.load(res);
-  ctx.feature_name = "api_documentation"
+  ctx.feature_name = "api_documentation";
   eaveLogger.debug("API documentation task started", { input: req.body }, ctx);
 
   const input = <RunApiDocumentationTaskRequestBody>req.body;
