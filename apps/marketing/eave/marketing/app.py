@@ -189,6 +189,7 @@ async def get_team_documents() -> Response:
         Status.PROCESSING,
         Status.PR_OPENED,
         Status.FAILED,
+        Status.PR_CLOSED,
         Status.PR_MERGED,
     ]
 
