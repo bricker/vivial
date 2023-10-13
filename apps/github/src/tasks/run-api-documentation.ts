@@ -412,8 +412,6 @@ export async function runApiDocumentationTaskHandler(
     coreAPIData,
     expressAPIs: validExpressAPIs,
     newValues: {
-      // if pullRequest is null, backend won't update the db value,
-      // which should lead to expected result of showing the previous PR number
       pull_request_number: pullRequest.number,
       status: Status.PR_OPENED,
     },
