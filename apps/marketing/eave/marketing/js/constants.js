@@ -7,8 +7,10 @@ export const DOC_TYPES = {
 
 export const DOC_STATUSES = {
   PROCESSING: "processing",
+  FAILED: "failed",
   PR_OPENED: "pr_opened",
   PR_MERGED: "pr_merged",
+  PR_CLOSED: "pr_closed",
 };
 
 export const FEATURES = {

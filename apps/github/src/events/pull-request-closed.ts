@@ -8,11 +8,9 @@ import {
 import { GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { updateDocumentation } from "@eave-fyi/eave-stdlib-ts/src/function-documenting.js";
 import { FileChange } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
-import {
-  LogContext,
-  eaveLogger,
-} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { isSupportedProgrammingLanguage } from "@eave-fyi/eave-stdlib-ts/src/programming-langs/language-mapping.js";
+import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { OpenAIModel } from "@eave-fyi/eave-stdlib-ts/src/transformer-ai/models.js";
 import OpenAIClient, {
   formatprompt,
@@ -67,8 +65,8 @@ export default async function handler({
     event.pull_request.user.type === "Bot" &&
     event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
   ) {
-    const interaction = event.pull_request.merged ? "merged" : "closed";
-    if (interaction === "merged") {
+    const interaction = event.pull_request.merged ? Status.PR_MERGED : Status.PR_CLOSED;
+    if (interaction === Status.PR_MERGED) {
       await logEvent(
         {
           event_name: "github_eave_pr_merged",
@@ -90,17 +88,14 @@ export default async function handler({
       );
     }
 
-    // proceed only if PR commits were merged
-    if (!event.pull_request.merged) {
-      return;
-    }
-
     await updateDocsPullRequestStatus({
       repoId,
       prNumber: event.pull_request.number,
       eaveTeam,
       ctx,
+      status: interaction,
     });
+
     return;
   }
 
@@ -283,12 +278,13 @@ async function updateDocsPullRequestStatus({
   eaveTeam,
   repoId,
   prNumber,
+  status,
 }: {
-  ctx: LogContext;
+  status: Status;
   eaveTeam: Team;
   repoId: string;
   prNumber: number;
-}) {
+} & CtxArg) {
   const eaveRepoResponse = await GetGithubReposOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
@@ -329,7 +325,7 @@ async function updateDocsPullRequestStatus({
           document: {
             id: document.id,
             new_values: {
-              status: Status.PR_MERGED,
+              status,
             },
           },
         },

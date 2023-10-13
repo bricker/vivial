@@ -88,9 +88,26 @@ function formatStatus(
   /** @type {Types.GithubDocument} */ doc,
   /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
 ) {
-  const status = doc.status;
-  if (status === DOC_STATUSES.PROCESSING) {
-    return "Processing";
+  let prStatus;
+  // status === DOC_STATUSES.PR_OPENED ? "PR Created" : "PR Merged";
+  switch (doc.status) {
+    case DOC_STATUSES.PROCESSING:
+      return <p>Processing</p>;
+    case DOC_STATUSES.FAILED:
+      return <p>Failed</p>;
+    case DOC_STATUSES.PR_OPENED:
+      prStatus = "PR Created";
+      break;
+    case DOC_STATUSES.PR_MERGED:
+      prStatus = "PR Merged";
+      break;
+    case DOC_STATUSES.PR_CLOSED:
+      prStatus = "PR Closed without merge";
+      break;
+    default:
+      // programmer error causing unknown status, just assign created for now
+      prStatus = "PR Created";
+      break;
   }
 
   const repo = repoMap[doc.github_repo_id];
@@ -98,8 +115,6 @@ function formatStatus(
   const prNumber = doc.pull_request_number;
   const prLink = `${repoUrl}/pull/${prNumber}`;
   const prLinkStyle = { color: "#0092C7", textDecoration: "none" };
-  const prStatus =
-    status === DOC_STATUSES.PR_OPENED ? "PR Created" : "PR Merged";
 
   return (
     <>
