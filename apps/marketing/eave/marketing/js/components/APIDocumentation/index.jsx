@@ -89,7 +89,6 @@ function formatStatus(
   /** @type {{[key: string] : Types.GithubRepo}} */ repoMap,
 ) {
   let prStatus;
-  // status === DOC_STATUSES.PR_OPENED ? "PR Created" : "PR Merged";
   switch (doc.status) {
     case DOC_STATUSES.PROCESSING:
       return <p>Processing</p>;

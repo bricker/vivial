@@ -65,7 +65,9 @@ export default async function handler({
     event.pull_request.user.type === "Bot" &&
     event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
   ) {
-    const interaction = event.pull_request.merged ? Status.PR_MERGED : Status.PR_CLOSED;
+    const interaction = event.pull_request.merged
+      ? Status.PR_MERGED
+      : Status.PR_CLOSED;
     if (interaction === Status.PR_MERGED) {
       await logEvent(
         {
