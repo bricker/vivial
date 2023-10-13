@@ -4,7 +4,7 @@
 POST /
 ```
 
-This API endpoint is used to receive webhook events. It authenticates the request using the addon middleware, logs the event, and does not return a response.
+This API endpoint is used to receive webhook events. It authenticates the request, logs the event, and does not return a response.
 
 ### Path Parameters
 
@@ -13,12 +13,12 @@ None
 ### Example Request
 
 ```javascript
-fetch('/', {
+fetch('http://localhost:3000/events', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ event: 'exampleEvent' })
+  body: JSON.stringify({ event: 'exampleEvent' }),
 });
 ```
 
@@ -80,7 +80,7 @@ fetch('/api/spaces/query', {
 
 ### Response Codes
 
-**200**: The request was successful and the available spaces are returned.
+**200**: The available spaces were successfully retrieved.
 
 ---
 
@@ -139,7 +139,9 @@ fetch('/api/content/search', {
 
 ### Response Codes
 
-**200**: The request was successful and the search results are returned.
+**200**: The search was successful and the results are returned.
+
+**500**: An error occurred during the search.
 
 ---
 
@@ -199,7 +201,9 @@ fetch('/api/content/create', {
 
 ### Response Codes
 
-**200**: The request was successful and the newly created content is returned.
+**200**: The content was successfully created.
+
+**400**: An error occurred during the creation of the content.
 
 ---
 
@@ -256,7 +260,9 @@ fetch('/api/content/update', {
 
 ### Response Codes
 
-**200**: The request was successful and the updated content is returned.
+**200**: The content was successfully updated.
+
+**500**: An error occurred during the update of the content.
 
 ---
 
@@ -290,13 +296,11 @@ fetch('/api/content/delete', {
 
 ### Example Response
 
-```json
-{}
-```
+No response body.
 
 ### Response Codes
 
-**200**: The request was successful and the content was deleted.
+**200**: The content was successfully deleted.
 
 <br />
 

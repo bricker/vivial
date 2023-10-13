@@ -4,7 +4,7 @@
 POST /
 ```
 
-This API endpoint is used to handle webhook events. It authenticates the request, logs the received event, and then processes the event based on its type. Currently, it only handles "comment_created" events. For these events, it triggers the `commentCreatedEventHandler` function. If the event type is not recognized, it logs a warning and sends a 200 status response.
+This API endpoint is used to handle webhook events. It authenticates the request, logs the received webhook event, and then processes the event based on its type. Currently, it only handles the "comment_created" event. If the event is not handled, it logs a warning and sends a 200 status response.
 
 ### Path Parameters
 
@@ -33,9 +33,9 @@ HTTP/1.1 200 OK
 
 ### Response Codes
 
-**200**: The request was successful. This code is returned after the event is processed, or if the event type is not recognized.
+**200**: This response code will be returned if the webhook event is successfully received and processed, or if the event type is not handled.
 
-**400**: The request was malformed or missing necessary data. This code is returned if the payload does not contain an issue, or if there is no teamId available.
+**400**: This response code will be returned if there is an error in the payload of the "comment_created" event.
 
 <br />
 

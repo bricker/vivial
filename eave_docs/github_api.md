@@ -4,7 +4,7 @@
 POST /github/events
 ```
 
-This API endpoint is used to receive and process GitHub webhook events. It validates the headers of the incoming request, verifies the signature, and if valid, it creates a task to handle the event.
+This API endpoint is used to receive and process GitHub webhook events. It validates the headers of the incoming request, verifies the signature, and if valid, it creates a task for the event handler to process the event.
 
 ### Path Parameters
 
@@ -18,7 +18,7 @@ None
 
 **x-hub-signature-256** (string) *required* - The HMAC hex digest of the response body. This header will be sent if the webhook is configured with a secret.
 
-**x-github-hook-installation-target-id** (string) *required* - The ID of the app that received the event.
+**x-github-hook-installation-target-id** (string) *required* - The ID of the app installation target.
 
 ### Example Request
 
@@ -31,7 +31,7 @@ fetch('http://localhost:3000/github/events', {
     'x-hub-signature-256': 'sha1=7d38cdd689735b008b3c702edd92eea23791c5f6',
     'x-github-hook-installation-target-id': '123456'
   },
-  body: JSON.stringify({payload})
+  body: JSON.stringify({ action: 'created', ... })
 })
 ```
 
