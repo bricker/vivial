@@ -1,5 +1,4 @@
 // @ts-check
-import { DOC_STATUSES } from "../constants.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 
 /**
@@ -22,7 +21,7 @@ export function sortAPIDocuments(documents) {
   const processedDocs = [];
 
   for (const doc of docsSortedByLastUpdated) {
-    if (doc.status === DOC_STATUSES.PROCESSING) {
+    if (doc.status === "processing") {
       processingDocs.push(doc);
     } else {
       processedDocs.push(doc);

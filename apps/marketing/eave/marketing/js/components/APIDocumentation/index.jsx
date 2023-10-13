@@ -2,7 +2,6 @@
 import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useEffect, useState } from "react";
-import { DOC_STATUSES } from "../../constants.js";
 import useTeam from "../../hooks/useTeam";
 import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { mapReposById } from "../../util/repo-util.js";
@@ -90,23 +89,22 @@ function formatStatus(
 ) {
   let prStatus;
   switch (doc.status) {
-    case DOC_STATUSES.PROCESSING:
+    case "processing":
       return <p>Processing</p>;
-    case DOC_STATUSES.FAILED:
+    case "failed":
       return <p>Failed</p>;
-    case DOC_STATUSES.PR_OPENED:
+    case "pr_opened":
       prStatus = "PR Created";
       break;
-    case DOC_STATUSES.PR_MERGED:
+    case "pr_merged":
       prStatus = "PR Merged";
       break;
-    case DOC_STATUSES.PR_CLOSED:
+    case "pr_closed":
       prStatus = "PR Closed without merge";
       break;
     default:
-      // programmer error causing unknown status, just assign created for now
-      prStatus = "PR Created";
-      break;
+      // programmer error causing unknown status
+      return <p>Processing</p>;
   }
 
   const repo = repoMap[doc.github_repo_id];
@@ -199,7 +197,7 @@ function renderContent(
   const repoMap = mapReposById(repos);
   const handleRowClick = (e, /** @type {Types.GithubDocument} */ doc) => {
     const filePath = doc.file_path;
-    const isProcessing = doc.status === DOC_STATUSES.PROCESSING;
+    const isProcessing = doc.status === "processing";
     const isLink = e.target.tagName === "A";
     if (filePath && !isProcessing && !isLink) {
       const repo = repoMap[doc.github_repo_id];
@@ -211,7 +209,7 @@ function renderContent(
   };
   const handleRowMouseOver = (e, doc) => {
     const filePath = doc.file_path;
-    const isProcessing = doc.status === DOC_STATUSES.PROCESSING;
+    const isProcessing = doc.status === "processing";
     if (filePath && !isProcessing) {
       const tr = e.target.closest("tr");
       tr.style.setProperty("background-color", "#3E3E3E");
