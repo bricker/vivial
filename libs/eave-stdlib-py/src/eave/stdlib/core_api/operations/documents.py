@@ -44,6 +44,7 @@ class UpsertDocument(CoreApiEndpoint):
         body = await cls.make_response(response, cls.ResponseBody)
         return body
 
+
 class SearchDocuments(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/documents/search",
@@ -70,6 +71,7 @@ class SearchDocuments(CoreApiEndpoint):
 
         body = await cls.make_response(response, cls.ResponseBody)
         return body
+
 
 class DeleteDocument(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(

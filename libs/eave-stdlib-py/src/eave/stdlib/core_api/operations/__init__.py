@@ -59,7 +59,9 @@ class BaseResponseBody(pydantic.BaseModel):
         else:
             return None
 
+
 T = TypeVar("T", bound=BaseResponseBody)
+
 
 class Endpoint:
     config: EndpointConfiguration

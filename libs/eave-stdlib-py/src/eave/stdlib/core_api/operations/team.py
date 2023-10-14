@@ -36,6 +36,7 @@ class GetTeamRequest(CoreApiEndpoint):
         body = await cls.make_response(response, cls.ResponseBody)
         return body
 
+
 class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/me/team/destinations/confluence/upsert",

@@ -37,6 +37,7 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
         body = await cls.make_response(response, cls.ResponseBody)
         return body
 
+
 class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/me/team/integrations/query",

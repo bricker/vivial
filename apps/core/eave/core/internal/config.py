@@ -1,7 +1,7 @@
 import json
 from functools import cached_property
 import os
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional
 
 import eave.stdlib.config
 from eave.stdlib.eave_origins import EaveApp

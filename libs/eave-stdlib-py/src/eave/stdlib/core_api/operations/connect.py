@@ -43,6 +43,7 @@ class RegisterConnectIntegrationRequest(CoreApiEndpoint):
         body = await cls.make_response(response, cls.ResponseBody)
         return body
 
+
 class QueryConnectIntegrationRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/integrations/connect/query",

@@ -3,7 +3,6 @@ import oauthlib.oauth2.rfc6749.tokens
 import http
 import json
 import re
-import unittest.mock
 import urllib.parse
 import uuid
 from http import HTTPStatus
