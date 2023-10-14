@@ -6,6 +6,12 @@ const useUser = () => {
   const { userCtx } = useContext(AppContext);
   const [user, setUser] = userCtx;
 
+  /**
+   * Asynchronously checks the user's authentication status by making a fetch request to "/authcheck".
+   * If the response indicates an HTTP error, it throws the response.
+   * If the response is successful, it updates the user's authentication status in the state.
+   * If there's an error in the process, it sets the 'authIsErroring' state to true.
+   */
   async function checkUserAuth() {
     fetch("/authcheck")
       .then((resp) => {
@@ -21,6 +27,14 @@ const useUser = () => {
       });
   }
 
+  /**
+   * Asynchronously retrieves the user's account information from the server.
+   * It updates the user state before, during, and after the fetch request.
+   * - Before the request, it sets `accountIsLoading` to true and `accountIsErroring` to false.
+   * - If the request is successful, it updates the `account` with the received data.
+   * - If the request fails, it sets `accountIsErroring` to true.
+   * - After the request (whether it succeeded or failed), it sets `accountIsLoading` to false.
+   */
   async function getUserAccount() {
     setUser((prev) => ({
       ...prev,
@@ -44,6 +58,9 @@ const useUser = () => {
       });
   }
 
+  /**
+   * Asynchronously logs the user out by redirecting to the logout page.
+   */
   async function logUserOut() {
     window.location.assign("/dashboard/logout");
   }
