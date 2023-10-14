@@ -48,7 +48,10 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
         response = RedirectResponse(url=authorization_url)
 
-        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
+        utm_cookies.set_tracking_cookies(
+            response=response,
+            request=request,
+        )
 
         oauth_cookies.save_state_cookie(
             response=response,

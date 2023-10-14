@@ -33,9 +33,8 @@ class GetTeamRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
-
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
@@ -66,22 +65,5 @@ class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
-
-
-# class UpdateTeam(CoreApiEndpoint):
-#     config = CoreApiEndpointConfiguration(
-#         path="/team/update",
-#         auth_required=False,
-#     )
-
-#     class RequestBody(BaseRequestBody):
-#         team: TeamInput
-
-#     class ResponseBody(BaseResponseBody):
-#         team: Team
-#         integrations: integrations.Integrations
-
-#     requestBodyType = RequestBody
-#     responseBodyType = ResponseBody
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

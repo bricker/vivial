@@ -1,4 +1,4 @@
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.core_api.operations import Endpoint, EndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 from ..config import shared_config
 
@@ -13,5 +13,5 @@ class ConfluenceEndpointConfiguration(EndpointConfiguration):
         return f"{_base_url}/confluence/api{self.path}"
 
 
-class ConfluenceEndpoint:
+class ConfluenceEndpoint(Endpoint):
     config: ConfluenceEndpointConfiguration

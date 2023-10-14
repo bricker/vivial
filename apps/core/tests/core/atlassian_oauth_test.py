@@ -278,7 +278,7 @@ class TestAtlassianOAuth(BaseTestCase):
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
                 "ev_account_id": str(eave_account_before.id),
-                "ev_access_token": eave_account_before.access_token,
+                "ev_access_token": self.b64encode(eave_account_before.access_token),
             },
         )
 
