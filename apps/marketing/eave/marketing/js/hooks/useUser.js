@@ -27,7 +27,7 @@ const useUser = () => {
       accountIsLoading: true,
       accountIsErroring: false,
     }));
-    fetch("/dashboard/me")
+    fetch("/dashboard/me", { method: "POST" })
       .then((resp) => {
         if (isHTTPError(resp)) {
           throw resp;

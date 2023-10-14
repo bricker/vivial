@@ -157,22 +157,31 @@ function renderContent(
   /** @type {Types.DashboardTeam} */ team,
   compact,
 ) {
-  const { apiDocsErroring, apiDocsLoading, apiDocsFetchCount, apiDocs, repos } =
+  const { apiDocsErroring, apiDocsLoading, apiDocsFetchCount, apiDocs, repos, apiDocsRequestHasSucceededAtLeastOnce } =
     team;
-  if (apiDocsErroring) {
-    return (
-      <Typography color="error" variant="h6">
-        ERROR: Unable to fetch API documentation.
-      </Typography>
-    );
+
+  /**
+   * This check:
+   * a) prevents the table from flashing every time it's loading
+   * b) prevents the whole dash from showing an error if the table already loaded but there is an error later.
+   */
+  if (apiDocsFetchCount === 0) {
+    if (apiDocsErroring && !apiDocsRequestHasSucceededAtLeastOnce) {
+      return (
+        <Typography color="error" variant="h6">
+          ERROR: Unable to fetch API documentation.
+        </Typography>
+      );
+    }
+    if (apiDocsLoading) {
+      return (
+        <div className={classes.loader}>
+          <CircularProgress color="inherit" />
+        </div>
+      );
+    }
   }
-  if (apiDocsFetchCount === 0 && apiDocsLoading) {
-    return (
-      <div className={classes.loader}>
-        <CircularProgress color="inherit" />
-      </div>
-    );
-  }
+
   if (apiDocs.length === 0) {
     return (
       <Typography color="inherit" variant="h6">
@@ -263,7 +272,7 @@ const APIDocumentation = () => {
 
   useEffect(() => {
     getTeamAPIDocs();
-    const interval = setInterval(getTeamAPIDocs, 8000);
+    const interval = setInterval(getTeamAPIDocs, 30000);
     return () => clearInterval(interval);
   }, []);
 
