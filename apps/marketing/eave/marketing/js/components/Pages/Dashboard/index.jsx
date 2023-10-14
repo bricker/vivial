@@ -13,7 +13,7 @@ import ErrorPage from "../ErrorPage/index.jsx";
 import LoadingPage from "../LoadingPage/index.jsx";
 import Page from "../Page/index.jsx";
 
-import { FEATURES, FEATURE_MODAL } from "../../../constants.js";
+import { FEATURE_MODAL, FEATURE_STATE_PROPERTY } from "../../../constants.js";
 
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -141,7 +141,7 @@ const Dashboard = () => {
       )}
       {inlineDocsModalIsOpen && (
         <GitHubFeatureModal
-          feature={FEATURES.INLINE_CODE_DOCS}
+          feature={FEATURE_STATE_PROPERTY.INLINE_CODE_DOCS}
           type={FEATURE_MODAL.TYPES.INLINE_CODE_DOCS}
           onClose={closeModal}
           onUpdate={handleFeatureUpdate}
@@ -150,7 +150,7 @@ const Dashboard = () => {
       )}
       {apiDocsModalIsOpen && (
         <GitHubFeatureModal
-          feature={FEATURES.API_DOCS}
+          feature={FEATURE_STATE_PROPERTY.API_DOCS}
           type={FEATURE_MODAL.TYPES.API_DOCS}
           onClose={closeModal}
           onUpdate={handleFeatureUpdate}

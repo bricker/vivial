@@ -247,6 +247,7 @@ _status_order = [
     Status.PROCESSING,
     Status.PR_OPENED,
     Status.FAILED,
+    Status.PR_CLOSED,
     Status.PR_MERGED,
 ]
 

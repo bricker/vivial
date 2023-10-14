@@ -12,6 +12,7 @@ class Status(StrEnum):
     FAILED = "failed"
     PR_OPENED = "pr_opened"
     PR_MERGED = "pr_merged"
+    PR_CLOSED = "pr_closed"
 
 
 class DocumentType(StrEnum):
