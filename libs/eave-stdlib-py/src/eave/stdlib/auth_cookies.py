@@ -8,9 +8,9 @@ from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.typing import HTTPFrameworkResponse
 
 # version can be changed when a force-logout is required for all users
-_EAVE_ACCOUNT_ID_COOKIE_NAME = "ev_account_id.202310"
-_EAVE_TEAM_ID_COOKIE_NAME = "ev_team_id.202310"
-_EAVE_ACCESS_TOKEN_COOKIE_NAME = "ev_access_token.202310"
+_EAVE_ACCOUNT_ID_COOKIE_NAME = "ev_account_id"
+_EAVE_TEAM_ID_COOKIE_NAME = "ev_team_id"
+_EAVE_ACCESS_TOKEN_COOKIE_NAME = "ev_access_token"
 
 
 @dataclass
@@ -56,14 +56,3 @@ def delete_auth_cookies(response: HTTPFrameworkResponse) -> None:
     delete_http_cookie(response=response, key=_EAVE_ACCOUNT_ID_COOKIE_NAME)
     delete_http_cookie(response=response, key=_EAVE_TEAM_ID_COOKIE_NAME)
     delete_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE_NAME)
-    _delete_orphan_cookies(response=response)
-
-
-def _delete_orphan_cookies(response: HTTPFrameworkResponse) -> None:
-    """
-    A temporary function to delete unused/irrelevant cookies as a courtesy to the user.
-    This can be called at any time, and the function can be removed at any time.
-    """
-    delete_http_cookie(response=response, key="ev_account_id")
-    delete_http_cookie(response=response, key="ev_team_id")
-    delete_http_cookie(response=response, key="ev_access_token")
