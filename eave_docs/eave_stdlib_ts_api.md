@@ -74,7 +74,7 @@ This endpoint creates a new list.
 fetch('/v1/lists', {
   method: 'POST',
   body: JSON.stringify({
-    list: "New List"
+    list: 'New List'
   })
 })
 ```
@@ -103,7 +103,7 @@ This endpoint updates a specific list by its ID.
 fetch('/v1/lists/1', {
   method: 'PATCH',
   body: JSON.stringify({
-    list: "Updated List"
+    list: 'Updated List'
   })
 })
 ```
@@ -220,7 +220,7 @@ This endpoint creates a new user.
 fetch('/v1/users', {
   method: 'POST',
   body: JSON.stringify({
-    user: "New User"
+    user: 'New User'
   })
 })
 ```
@@ -249,7 +249,7 @@ This endpoint updates a specific user by their ID.
 fetch('/v1/users/1', {
   method: 'PATCH',
   body: JSON.stringify({
-    user: "Updated User"
+    user: 'Updated User'
   })
 })
 ```

@@ -33,9 +33,9 @@ HTTP/1.1 200 OK
 
 ### Response Codes
 
-**200**: This response code will be returned if the webhook event is successfully received and processed, or if the event type is not handled.
+**200**: The request was successful. This response code will be returned even if the webhook event is not handled.
 
-**400**: This response code will be returned if there is an error in the payload of the "comment_created" event.
+**400**: The request was unsuccessful due to missing or incorrect data in the payload.
 
 <br />
 
