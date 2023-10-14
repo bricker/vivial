@@ -91,6 +91,7 @@ const useTeam = () => {
     setTeam((prev) => ({
       ...prev,
       featureStatesLoading: false,
+      featureStatesRequestHasSucceededAtLeastOnce: true,
       inlineCodeDocsEnabled,
       apiDocsEnabled,
     }));

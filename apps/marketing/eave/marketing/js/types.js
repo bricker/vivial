@@ -52,6 +52,7 @@
  * @property {boolean} [reposRequestHasSucceededAtLeastOnce]
  * @property {boolean} [featureStatesLoading]
  * @property {boolean} [featureStatesErroring]
+ * @property {boolean} [featureStatesRequestHasSucceededAtLeastOnce]
  * @property {boolean} [apiDocsLoading]
  * @property {boolean} [apiDocsErroring]
  * @property {boolean} [apiDocsRequestHasSucceededAtLeastOnce]
