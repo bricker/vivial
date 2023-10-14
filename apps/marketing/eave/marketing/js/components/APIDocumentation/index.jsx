@@ -169,8 +169,14 @@ function renderContent(
   /** @type {Types.DashboardTeam} */ team,
   compact,
 ) {
-  const { apiDocsErroring, apiDocsLoading, apiDocsFetchCount, apiDocs, repos, apiDocsRequestHasSucceededAtLeastOnce } =
-    team;
+  const {
+    apiDocsErroring,
+    apiDocsLoading,
+    apiDocsFetchCount,
+    apiDocs,
+    repos,
+    apiDocsRequestHasSucceededAtLeastOnce,
+  } = team;
 
   /**
    * This check:

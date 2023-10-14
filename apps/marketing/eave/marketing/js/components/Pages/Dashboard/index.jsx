@@ -40,7 +40,7 @@ const Dashboard = () => {
     team.teamRequestHasSucceededAtLeastOnce &&
     team.apiDocsRequestHasSucceededAtLeastOnce &&
     team.reposRequestHasSucceededAtLeastOnce &&
-    team.featureStatesRequestHasSucceededAtLeastOnce
+    team.featureStatesRequestHasSucceededAtLeastOnce;
 
   const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
