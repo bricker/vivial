@@ -36,8 +36,8 @@ class GetAvailableSpacesRequest(ConfluenceEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class SearchContentRequest(ConfluenceEndpoint):
@@ -66,8 +66,8 @@ class SearchContentRequest(ConfluenceEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class CreateContentRequest(ConfluenceEndpoint):
@@ -97,8 +97,8 @@ class CreateContentRequest(ConfluenceEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class UpdateContentRequest(ConfluenceEndpoint):
@@ -127,8 +127,8 @@ class UpdateContentRequest(ConfluenceEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class DeleteContentRequest(ConfluenceEndpoint):
@@ -157,4 +157,5 @@ class DeleteContentRequest(ConfluenceEndpoint):
             **kwargs,
         )
 
-        return cls.ResponseBody(_raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

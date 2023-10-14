@@ -44,8 +44,8 @@ class GetGithubDocumentsRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class CreateGithubDocumentRequest(CoreApiEndpoint):
@@ -80,8 +80,8 @@ class CreateGithubDocumentRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class UpdateGithubDocumentRequest(CoreApiEndpoint):
@@ -114,8 +114,8 @@ class UpdateGithubDocumentRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class DeleteGithubDocumentsByIdsRequest(CoreApiEndpoint):
@@ -148,7 +148,8 @@ class DeleteGithubDocumentsByIdsRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        return cls.ResponseBody(_raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class DeleteGithubDocumentsByTypeRequest(CoreApiEndpoint):
@@ -181,4 +182,5 @@ class DeleteGithubDocumentsByTypeRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        return cls.ResponseBody(_raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
