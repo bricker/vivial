@@ -1,5 +1,8 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
-import { Status } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
+import {
+  GithubDocument,
+  Status,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
 import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   GetGithubDocumentsOperation,
@@ -66,8 +69,15 @@ export default async function handler({
     event.pull_request.user.type === "Bot" &&
     event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
   ) {
-    // hack for analytics to check which feature this PR was for
-    if (event.pull_request.title.includes("API documentation")) {
+    const documents = await getAssociatedGithubDocuments({
+      eaveTeam,
+      repoId,
+      prNumber: event.pull_request.number,
+      ctx,
+    });
+
+    // if there are api document changes, we can assume this is an API docs PR
+    if (documents.length > 0) {
       ctx.feature_name = "api_documentation";
     }
 
@@ -97,8 +107,7 @@ export default async function handler({
     }
 
     await updateDocsPullRequestStatus({
-      repoId,
-      prNumber: event.pull_request.number,
+      documents,
       eaveTeam,
       ctx,
       status: interaction,
@@ -281,35 +290,42 @@ export default async function handler({
   }
 }
 
-async function updateDocsPullRequestStatus({
-  ctx,
-  eaveTeam,
+/**
+ * Gets the list of GithubDocuments that document the APIs in this repo
+ *
+ * @param repoId github gql node id of the repo
+ * @param prNumber number of the PR to search by
+ * @param eaveTeam whose team to search for matching documents in
+ * @param ctx log context
+ * @returns list of document models from backend
+ */
+async function getAssociatedGithubDocuments({
   repoId,
   prNumber,
-  status,
+  eaveTeam,
+  ctx,
 }: {
-  status: Status;
-  eaveTeam: Team;
   repoId: string;
   prNumber: number;
-} & CtxArg) {
-  const eaveRepoResponse = await GetGithubReposOperation.perform({
-    ctx,
-    origin: appConfig.eaveOrigin,
-    teamId: eaveTeam.id,
-    input: {
-      repos: [
-        {
-          external_repo_id: repoId,
-        },
-      ],
-    },
-  });
-
-  const eaveRepo = eaveRepoResponse.repos[0];
-  assertPresence(eaveRepo);
-
+  eaveTeam: Team;
+} & CtxArg): Promise<GithubDocument[]> {
   try {
+    const eaveRepoResponse = await GetGithubReposOperation.perform({
+      ctx,
+      origin: appConfig.eaveOrigin,
+      teamId: eaveTeam.id,
+      input: {
+        repos: [
+          {
+            external_repo_id: repoId,
+          },
+        ],
+      },
+    });
+
+    const eaveRepo = eaveRepoResponse.repos[0];
+    assertPresence(eaveRepo);
+
     const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
       {
         origin: appConfig.eaveOrigin,
@@ -324,7 +340,29 @@ async function updateDocsPullRequestStatus({
       },
     );
 
-    for (const document of associatedGithubDocuments.documents) {
+    return associatedGithubDocuments.documents;
+  } catch (e) {
+    eaveLogger.error(
+      "Failed to fetch associated github documents in pr closed webhook",
+      ctx,
+      { error: (<Error>e).message },
+    );
+    return [];
+  }
+}
+
+async function updateDocsPullRequestStatus({
+  ctx,
+  eaveTeam,
+  documents,
+  status,
+}: {
+  status: Status;
+  eaveTeam: Team;
+  documents: GithubDocument[];
+} & CtxArg) {
+  try {
+    for (const document of documents) {
       await UpdateGithubDocumentOperation.perform({
         origin: appConfig.eaveOrigin,
         ctx,

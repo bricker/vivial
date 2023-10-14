@@ -1,6 +1,10 @@
 // @ts-check
 import { useContext } from "react";
-import { DOC_TYPES, FEATURE_STATE_PROPERTY, FEATURE_STATES } from "../constants.js";
+import {
+  DOC_TYPES,
+  FEATURE_STATE_PROPERTY,
+  FEATURE_STATES,
+} from "../constants.js";
 import { AppContext } from "../context/Provider.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
@@ -77,7 +81,9 @@ const useTeam = () => {
       if (repo[FEATURE_STATE_PROPERTY.API_DOCS] === FEATURE_STATES.ENABLED) {
         apiDocsEnabled = true;
       }
-      if (repo[FEATURE_STATE_PROPERTY.INLINE_CODE_DOCS] === FEATURE_STATES.ENABLED) {
+      if (
+        repo[FEATURE_STATE_PROPERTY.INLINE_CODE_DOCS] === FEATURE_STATES.ENABLED
+      ) {
         inlineCodeDocsEnabled = true;
       }
     }
