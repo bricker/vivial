@@ -83,7 +83,7 @@ async def get_auth_state() -> Response:
     return _json_response(body=response_body)
 
 
-@app.route("/dashboard/me", methods=["POST"])
+@app.route("/dashboard/me", methods=["GET", "POST"])
 async def get_user() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
@@ -98,7 +98,7 @@ async def get_user() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team", methods=["POST"])
+@app.route("/dashboard/team", methods=["GET", "POST"])
 async def get_team() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
@@ -113,7 +113,7 @@ async def get_team() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team/repos", methods=["POST"])
+@app.route("/dashboard/team/repos", methods=["GET", "POST"])
 async def get_team_repos() -> Response:
     auth_cookies = get_auth_cookies(cookies=request.cookies)
     _assert_auth(auth_cookies)
