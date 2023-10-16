@@ -146,7 +146,7 @@ export default class OpenAIClient {
     }
 
     const timestampEnd = Date.now();
-    const duration_seconds = (timestampEnd - timestampStart) * 1000;
+    const duration_seconds = (timestampEnd - timestampStart) / 1000;
     await logGptRequestData(
       parameters,
       duration_seconds,

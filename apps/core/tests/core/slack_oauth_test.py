@@ -132,9 +132,9 @@ class TestSlackOAuthHandler(BaseTestCase):
                 == f"https://slack.com/app_redirect?app={self.getstr('EAVE_SLACK_APP_ID')}&team={self.getstr('team.id')}"
             )
 
-            account_id = response.cookies.get("ev_account_id")
+            account_id = response.cookies.get("ev_account_id_202310")
             assert account_id
-            assert response.cookies.get("ev_access_token")
+            assert response.cookies.get("ev_access_token_202310")
 
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
             assert (await self.count(s, eave.core.internal.orm.SlackInstallationOrm)) == 1
@@ -187,7 +187,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
 
         async with self.db_session.begin() as s:
-            account_id = response.cookies.get("ev_account_id")
+            account_id = response.cookies.get("ev_account_id_202310")
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
@@ -211,7 +211,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
 
         async with self.db_session.begin() as s:
-            account_id = response.cookies.get("ev_account_id")
+            account_id = response.cookies.get("ev_account_id_202310")
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
@@ -251,8 +251,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("authed_user.refresh_token")
 
             # Test that the cookies were updated
-            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            assert response.cookies.get("ev_account_id_202310") == str(eave_account_after.id)
+            assert response.cookies.get("ev_access_token_202310") == eave_account_after.access_token
 
     async def test_slack_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
@@ -275,8 +275,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_slack": self.anystring("state"),
-                "ev_account_id": str(eave_account_before.id),
-                "ev_access_token": eave_account_before.access_token,
+                "ev_account_id_202310": str(eave_account_before.id),
+                "ev_access_token_202310": eave_account_before.access_token,
             },
         )
 
@@ -289,8 +289,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("authed_user.refresh_token")
 
             # Test that the cookies were updated
-            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            assert response.cookies.get("ev_account_id_202310") == str(eave_account_after.id)
+            assert response.cookies.get("ev_access_token_202310") == eave_account_after.access_token
 
     async def test_slack_callback_logged_in_account_another_provider(self) -> None:
         async with self.db_session.begin() as s:
@@ -313,8 +313,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_slack": self.anystring("state"),
-                "ev_account_id": str(eave_account_before.id),
-                "ev_access_token": eave_account_before.access_token,
+                "ev_account_id_202310": str(eave_account_before.id),
+                "ev_access_token_202310": eave_account_before.access_token,
             },
         )
 
@@ -327,8 +327,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("old_refresh_token")
 
             # Test that the cookies were NOT updated
-            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            assert response.cookies.get("ev_account_id_202310") == str(eave_account_after.id)
+            assert response.cookies.get("ev_access_token_202310") == eave_account_after.access_token
 
     async def test_slack_callback_invalid_state(self) -> None:
         response = await self.make_request(
