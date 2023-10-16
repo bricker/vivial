@@ -267,11 +267,6 @@ function runQuery({
             commentStart = cap.node.startIndex;
             minStart = commentStart;
           }
-          console.log(
-            `comment is now;\n${content
-              .slice(commentStart, cap.node.endIndex)
-              .replace(/\n/g, "\\n")}`,
-          );
           commentEnd = cap.node.endIndex;
           break;
 
