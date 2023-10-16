@@ -1269,3 +1269,125 @@ test("assertValidSyntax does not throw on syntactically correct content", async 
     t.fail("assertValidSyntax did not throw for invalid content");
   }
 });
+
+test("multi-line comments that aren't neighboring aren't joined", (t) => {
+  // GIVEN string content of a file where 2 comment nodes are neighbors in the
+  // AST but not in actual code lines, and one comment is multi-line
+  // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
+  const filePath = "src/file.ts";
+  const language = ProgrammingLanguage.typescript;
+  const content = `import { appConfig } from './src/config.js';
+import * as T from '../file.js';
+
+/*
+Just a header comment
+*/
+
+/**
+ * Doc comment
+ * @param to be replaced
+ * @returns by parse code
+ */
+function foo() {
+  console.log('foo');
+}
+`;
+
+  // WHEN content parsed by tree-sitter grammars
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    filePath,
+    language,
+  });
+
+  // THEN all functions should be detected/parsed by queries
+  t.deepEqual(funcDocsArray.length, 1);
+
+  // WHEN new doc comments are written into file content
+  for (let i = 0; i < funcDocsArray.length; i += 1) {
+    funcDocsArray[i]!.updatedComment = `/**
+ * Great new docs
+ * @param Eave wrote
+ * @return very well
+ */`;
+  }
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
+
+  // THEN updated file content should keep the comments separate
+  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+import * as T from '../file.js';
+
+/*
+Just a header comment
+*/
+
+/**
+ * Great new docs
+ * @param Eave wrote
+ * @return very well
+ */
+function foo() {
+  console.log('foo');
+}
+`;
+  t.deepEqual(updatedContent, expectedUpdatedContent);
+});
+
+test("single-line comments that aren't neighboring aren't joined", (t) => {
+  // GIVEN string content of a file where 2 comment nodes are neighbors in the
+  // AST but not in actual code lines, and one comment is single-line
+  // (note: function variable string indentation is important; dont adjust to match this file's indentation level)
+  const filePath = "src/file.ts";
+  const language = ProgrammingLanguage.typescript;
+  const content = `import { appConfig } from './src/config.js';
+import * as T from '../file.js'; // eslint-disable-line no-unused-vars
+
+// unusual single line js doc comment
+// @param to be replaced
+// @returns by parse code
+function foo() {
+  console.log('foo');
+}
+`;
+
+  // WHEN content parsed by tree-sitter grammars
+  const funcDocsArray = parseFunctionsAndComments({
+    content,
+    filePath,
+    language,
+  });
+
+  // THEN all functions should be detected/parsed by queries
+  t.deepEqual(funcDocsArray.length, 1);
+
+  // WHEN new doc comments are written into file content
+  for (let i = 0; i < funcDocsArray.length; i += 1) {
+    funcDocsArray[i]!.updatedComment = `/**
+ * Great new docs
+ * @param Eave wrote
+ * @return very well
+ */`;
+  }
+  const updatedContent = writeUpdatedCommentsIntoFileString(
+    content,
+    funcDocsArray,
+  );
+
+  // THEN updated file content should keep the comments separate
+  const expectedUpdatedContent = `import { appConfig } from './src/config.js';
+import * as T from '../file.js'; // eslint-disable-line no-unused-vars
+
+/**
+ * Great new docs
+ * @param Eave wrote
+ * @return very well
+ */
+function foo() {
+  console.log('foo');
+}
+`;
+  t.deepEqual(updatedContent, expectedUpdatedContent);
+});
