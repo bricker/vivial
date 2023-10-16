@@ -42,8 +42,8 @@ class GetGithubReposRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class GetAllTeamsGithubReposRequest(CoreApiEndpoint):
@@ -67,8 +67,8 @@ class GetAllTeamsGithubReposRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class FeatureStateGithubReposRequest(CoreApiEndpoint):
@@ -100,8 +100,8 @@ class FeatureStateGithubReposRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class CreateGithubRepoRequest(CoreApiEndpoint):
@@ -134,8 +134,8 @@ class CreateGithubRepoRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class DeleteGithubReposRequest(CoreApiEndpoint):
@@ -168,7 +168,8 @@ class DeleteGithubReposRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        return cls.ResponseBody(_raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class UpdateGithubReposRequest(CoreApiEndpoint):
@@ -201,5 +202,5 @@ class UpdateGithubReposRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

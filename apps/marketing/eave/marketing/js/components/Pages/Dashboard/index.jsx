@@ -34,8 +34,13 @@ const Dashboard = () => {
   const isLoading =
     team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
 
-  const isErroring =
-    team.teamIsErroring || team.reposAreErroring || team.featureStatesErroring;
+  const isErroring = team.teamIsErroring;
+
+  const dashboardRequestsSucceededAtLeastOnce =
+    team.teamRequestHasSucceededAtLeastOnce &&
+    team.apiDocsRequestHasSucceededAtLeastOnce &&
+    team.reposRequestHasSucceededAtLeastOnce &&
+    team.featureStatesRequestHasSucceededAtLeastOnce;
 
   const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
@@ -115,7 +120,7 @@ const Dashboard = () => {
     }
   }, [searchParams]);
 
-  if (isErroring) {
+  if (isErroring && !dashboardRequestsSucceededAtLeastOnce) {
     return <ErrorPage page="dashboard" />;
   }
   if (isLoading) {

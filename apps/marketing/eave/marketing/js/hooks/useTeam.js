@@ -10,6 +10,7 @@ import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
 import { isHTTPError } from "../util/http-util.js";
 
+/** @returns {{team: Types.DashboardTeam, getTeam: any, getTeamRepos: any, getTeamAPIDocs: any, getTeamFeatureStates: any, updateTeamFeatureState: any}} */
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
   /** @type {[Types.DashboardTeam, (f: (prev: Types.DashboardTeam) => Types.DashboardTeam) => void]} */
@@ -21,7 +22,7 @@ const useTeam = () => {
       teamIsLoading: true,
       teamIsErroring: false,
     }));
-    fetch("/dashboard/team")
+    fetch("/dashboard/team", { method: "POST" })
       .then((resp) => {
         if (isHTTPError(resp)) {
           throw resp;
@@ -36,7 +37,11 @@ const useTeam = () => {
         });
       })
       .catch(() => {
-        setTeam((prev) => ({ ...prev, teamIsErroring: true }));
+        setTeam((prev) => ({
+          ...prev,
+          teamIsErroring: true,
+          teamRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
+        }));
       })
       .finally(() => {
         setTeam((prev) => ({ ...prev, teamIsLoading: false }));
@@ -49,7 +54,7 @@ const useTeam = () => {
       reposAreLoading: true,
       reposAreErroring: false,
     }));
-    fetch("/dashboard/team/repos")
+    fetch("/dashboard/team/repos", { method: "POST" })
       .then((resp) => {
         if (isHTTPError(resp)) {
           throw resp;
@@ -57,7 +62,11 @@ const useTeam = () => {
         resp
           .json()
           .then((/** @type {Types.GetGithubReposResponseBody} */ data) => {
-            setTeam((prev) => ({ ...prev, repos: data.repos }));
+            setTeam((prev) => ({
+              ...prev,
+              repos: data.repos,
+              reposRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
+            }));
           });
       })
       .catch(() => {
@@ -90,6 +99,7 @@ const useTeam = () => {
     setTeam((prev) => ({
       ...prev,
       featureStatesLoading: false,
+      featureStatesRequestHasSucceededAtLeastOnce: true,
       inlineCodeDocsEnabled,
       apiDocsEnabled,
     }));
@@ -168,6 +178,7 @@ const useTeam = () => {
             setTeam((prev) => ({
               ...prev,
               apiDocs: sortAPIDocuments(data.documents),
+              apiDocsRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
             }));
           });
       })

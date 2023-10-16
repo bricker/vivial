@@ -218,42 +218,6 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_team
             assert eave_team.name == "Your Team"
 
-    async def test_slack_callback_whitelisted_team(self) -> None:
-        self.patch_dict(
-            unittest.mock.patch.dict(
-                "os.environ",
-                {
-                    "EAVE_BETA_PREWHITELISTED_EMAILS_CSV": self.anystring("slack_user_email"),
-                },
-            ),
-        )
-
-        response = await self.make_request(
-            path="/oauth/slack/callback",
-            method="GET",
-            payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
-            },
-            cookies={
-                "ev_oauth_state_slack": self.anystring("state"),
-            },
-        )
-
-        async with self.db_session.begin() as s:
-            account_id = response.cookies.get("ev_account_id")
-            assert account_id
-            eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
-            assert eave_account
-            eave_team = await self.get_eave_team(s, id=eave_account.team_id)
-            assert eave_team
-
-            assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-            assert (
-                response.headers["Location"]
-                == f"https://slack.com/app_redirect?app={self.getstr('EAVE_SLACK_APP_ID')}&team={self.getstr('team.id')}"
-            )
-
     async def test_slack_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)

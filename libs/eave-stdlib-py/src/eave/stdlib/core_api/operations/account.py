@@ -34,8 +34,8 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
@@ -66,5 +66,5 @@ class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

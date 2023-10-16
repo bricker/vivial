@@ -28,7 +28,10 @@ class SlackOAuthAuthorize(HTTPEndpoint):
         authorization_url = eave.core.internal.oauth.slack.authorize_url_generator.generate(state)
         response = RedirectResponse(url=authorization_url)
 
-        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
+        utm_cookies.set_tracking_cookies(
+            response=response,
+            request=request,
+        )
 
         oauth_cookies.save_state_cookie(
             response=response,

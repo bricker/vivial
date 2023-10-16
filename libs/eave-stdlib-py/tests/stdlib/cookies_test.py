@@ -52,7 +52,7 @@ class CookiesTest(CookiesTestBase):
     async def test_set_analytics_cookie(self):
         key = self.anystr("cookie_key")
         value = self.anystr("cookie_value")
-        set_http_cookie(key=key, value=value, response=self.mock_response, httponly=False)
+        set_http_cookie(key=key, value=value, response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 
         assert len(cookies) == 1
@@ -63,7 +63,7 @@ class CookiesTest(CookiesTestBase):
 
     async def test_delete_analytics_cookie(self):
         key = self.anystr("cookie_key")
-        delete_http_cookie(key=key, response=self.mock_response, httponly=False)
+        delete_http_cookie(key=key, response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 
         assert len(cookies) == 1

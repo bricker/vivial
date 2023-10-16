@@ -38,8 +38,8 @@ class GetSubscriptionRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class CreateSubscriptionRequest(CoreApiEndpoint):
@@ -71,8 +71,8 @@ class CreateSubscriptionRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class DeleteSubscriptionRequest(CoreApiEndpoint):
@@ -101,4 +101,5 @@ class DeleteSubscriptionRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        return cls.ResponseBody(_raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

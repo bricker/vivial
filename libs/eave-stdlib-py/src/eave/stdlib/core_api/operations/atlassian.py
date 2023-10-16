@@ -28,6 +28,5 @@ class GetAtlassianInstallation(CoreApiEndpoint):
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(config=cls.config, input=input, **kwargs)
-
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
