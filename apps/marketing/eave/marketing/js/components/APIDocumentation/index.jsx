@@ -104,7 +104,7 @@ function formatStatus(
       break;
     default:
       // programmer error causing unknown status
-      return <p>Processing</p>;
+      return <>Processing</>;
   }
 
   const repo = repoMap[doc.github_repo_id];
