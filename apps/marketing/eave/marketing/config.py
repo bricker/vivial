@@ -1,5 +1,4 @@
 import os
-from functools import cached_property
 
 import eave.stdlib.config
 from eave.stdlib.eave_origins import EaveApp
