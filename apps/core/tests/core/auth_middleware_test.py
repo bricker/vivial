@@ -95,9 +95,7 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         assert response.status_code == HTTPStatus.OK
         assert response.cookies.get("ev_account_id_202310") == str(self._eave_account.id)
         assert response.cookies.get("ev_team_id_202310") == str(self._eave_account.team_id)
-        assert response.cookies.get("ev_access_token_202310") == self.b64encode(
-            self._eave_account.access_token, urlsafe=False
-        )
+        assert response.cookies.get("ev_access_token_202310") == self.b64encode(self._eave_account.access_token, urlsafe=False)
 
     async def test_previous_access_token_accepted(self) -> None:
         async with self.db_session.begin() as s:
@@ -116,6 +114,4 @@ class TestAuthenticationMiddlewareRequired(TestAuthenticationMiddlewareBase):
         assert self._eave_account.access_token == self.getstr("current_token")
         assert response.cookies.get("ev_account_id_202310") == str(self._eave_account.id)
         assert response.cookies.get("ev_team_id_202310") == str(self._eave_account.team_id)
-        assert response.cookies.get("ev_access_token_202310") == self.b64encode(
-            self.getstr("current_token"), urlsafe=False
-        )
+        assert response.cookies.get("ev_access_token_202310") == self.b64encode(self.getstr("current_token"), urlsafe=False)
