@@ -1,4 +1,6 @@
-## Get Lists
+## List Management API
+
+### Get All Lists
 
 ```
 GET /v1/lists
@@ -11,7 +13,7 @@ This endpoint retrieves all lists.
 ```javascript
 fetch('/v1/lists', {
   method: 'GET',
-})
+});
 ```
 
 ### Example Response
@@ -22,11 +24,11 @@ fetch('/v1/lists', {
 
 ### Response Codes
 
-**200**: The lists were successfully retrieved.
+**200**: The request was successful and the list of all lists is returned.
 
 ---
 
-## Get List
+### Get Specific List
 
 ```
 GET /v1/lists/:list_id
@@ -43,7 +45,7 @@ This endpoint retrieves a specific list by its ID.
 ```javascript
 fetch('/v1/lists/1', {
   method: 'GET',
-})
+});
 ```
 
 ### Example Response
@@ -54,13 +56,13 @@ fetch('/v1/lists/1', {
 
 ### Response Codes
 
-**200**: The list was successfully retrieved.
+**200**: The request was successful and the list is returned.
 
 **404**: The list with the provided ID does not exist.
 
 ---
 
-## Create List
+### Create List
 
 ```
 POST /v1/lists
@@ -76,7 +78,7 @@ fetch('/v1/lists', {
   body: JSON.stringify({
     list: 'New List'
   })
-})
+});
 ```
 
 ### Response Codes
@@ -85,7 +87,7 @@ fetch('/v1/lists', {
 
 ---
 
-## Update List
+### Update List
 
 ```
 PATCH /v1/lists/:list_id
@@ -105,7 +107,7 @@ fetch('/v1/lists/1', {
   body: JSON.stringify({
     list: 'Updated List'
   })
-})
+});
 ```
 
 ### Response Codes
@@ -116,7 +118,7 @@ fetch('/v1/lists/1', {
 
 ---
 
-## Delete List
+### Delete List
 
 ```
 DELETE /v1/lists/:list_id
@@ -133,7 +135,7 @@ This endpoint deletes a specific list by its ID.
 ```javascript
 fetch('/v1/lists/1', {
   method: 'DELETE',
-})
+});
 ```
 
 ### Response Codes
@@ -144,7 +146,9 @@ fetch('/v1/lists/1', {
 
 ---
 
-## Get Users
+## User Management API
+
+### Get All Users
 
 ```
 GET /v1/users
@@ -157,7 +161,7 @@ This endpoint retrieves all users.
 ```javascript
 fetch('/v1/users', {
   method: 'GET',
-})
+});
 ```
 
 ### Example Response
@@ -168,11 +172,11 @@ fetch('/v1/users', {
 
 ### Response Codes
 
-**200**: The users were successfully retrieved.
+**200**: The request was successful and the list of all users is returned.
 
 ---
 
-## Get User
+### Get Specific User
 
 ```
 GET /v1/users/:user_id
@@ -189,7 +193,7 @@ This endpoint retrieves a specific user by their ID.
 ```javascript
 fetch('/v1/users/1', {
   method: 'GET',
-})
+});
 ```
 
 ### Example Response
@@ -200,13 +204,13 @@ fetch('/v1/users/1', {
 
 ### Response Codes
 
-**200**: The user was successfully retrieved.
+**200**: The request was successful and the user is returned.
 
 **404**: The user with the provided ID does not exist.
 
 ---
 
-## Create User
+### Create User
 
 ```
 POST /v1/users
@@ -222,7 +226,7 @@ fetch('/v1/users', {
   body: JSON.stringify({
     user: 'New User'
   })
-})
+});
 ```
 
 ### Response Codes
@@ -231,7 +235,7 @@ fetch('/v1/users', {
 
 ---
 
-## Update User
+### Update User
 
 ```
 PATCH /v1/users/:user_id
@@ -251,7 +255,7 @@ fetch('/v1/users/1', {
   body: JSON.stringify({
     user: 'Updated User'
   })
-})
+});
 ```
 
 ### Response Codes
@@ -262,7 +266,7 @@ fetch('/v1/users/1', {
 
 ---
 
-## Delete User
+### Delete User
 
 ```
 DELETE /v1/users/:user_id
@@ -279,7 +283,7 @@ This endpoint deletes a specific user by their ID.
 ```javascript
 fetch('/v1/users/1', {
   method: 'DELETE',
-})
+});
 ```
 
 ### Response Codes

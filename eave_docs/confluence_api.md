@@ -4,7 +4,7 @@
 POST /events
 ```
 
-This API endpoint is used to receive webhook events. It authenticates the request using the addon middleware, logs the event, and does not return a response.
+This API endpoint receives webhook events and logs them.
 
 ### Path Parameters
 
@@ -18,17 +18,19 @@ fetch('/events', {
   headers: {
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify({ event: 'exampleEvent' })
-});
+  body: JSON.stringify({event: 'exampleEvent'})
+})
 ```
 
 ### Example Response
 
-No response is returned from this endpoint.
+No response body is returned for this endpoint.
 
 ### Response Codes
 
-**200**: This response code will be returned if the webhook event is received and logged successfully.
+**200**: The webhook event was received and logged successfully.
+
+**401**: Unauthorized. The request was not authenticated.
 
 <br />
 
@@ -120,13 +122,13 @@ fetch('/api/content/search', {
   "results": [
     {
       "id": "1",
-      "title": "Test Document",
+      "title": "Test Page",
       "space": {
         "key": "TST"
       },
       "body": {
         "storage": {
-          "value": "<p>This is a test document</p>"
+          "value": "<p>This is a test page</p>"
         }
       }
     }
@@ -164,8 +166,8 @@ fetch('/api/content/create', {
   },
   body: JSON.stringify({
     document: {
-      title: 'New Document',
-      content: '<p>This is a new document</p>'
+      title: 'New Page',
+      content: '<p>This is a new page</p>'
     },
     confluence_destination: {
       space_key: 'TST'
@@ -179,14 +181,14 @@ fetch('/api/content/create', {
 ```json
 {
   "content": {
-    "id": "1",
-    "title": "New Document",
+    "id": "3",
+    "title": "New Page",
     "space": {
       "key": "TST"
     },
     "body": {
       "storage": {
-        "value": "<p>This is a new document</p>"
+        "value": "<p>This is a new page</p>"
       }
     }
   }
@@ -225,8 +227,8 @@ fetch('/api/content/update', {
   },
   body: JSON.stringify({
     content: {
-      id: '1',
-      body: '<p>This is an updated document</p>'
+      id: '3',
+      body: '<p>This is an updated page</p>'
     }
   })
 })
@@ -237,14 +239,14 @@ fetch('/api/content/update', {
 ```json
 {
   "content": {
-    "id": "1",
-    "title": "Updated Document",
+    "id": "3",
+    "title": "New Page",
     "space": {
       "key": "TST"
     },
     "body": {
       "storage": {
-        "value": "<p>This is an updated document</p>"
+        "value": "<p>This is an updated page</p>"
       }
     }
   }
@@ -281,7 +283,7 @@ fetch('/api/content/delete', {
   },
   body: JSON.stringify({
     content: {
-      content_id: '1'
+      content_id: '3'
     }
   })
 })
