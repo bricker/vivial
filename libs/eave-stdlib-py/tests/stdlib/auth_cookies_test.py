@@ -44,8 +44,8 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_get_auth_cookies_with_all_data(self):
         cookies = get_auth_cookies(
             {
-                "ev_account_id_202310": self.data_account_id,
-                "ev_access_token_202310": self.data_access_token,
+                "ev_account_id": self.data_account_id,
+                "ev_access_token": self.data_access_token,
             }
         )
 
@@ -55,7 +55,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_get_auth_cookies_with_account_id_only(self):
         cookies = get_auth_cookies(
             {
-                "ev_account_id_202310": self.data_account_id,
+                "ev_account_id": self.data_account_id,
             }
         )
 
@@ -65,7 +65,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_get_auth_cookies_with_access_token_only(self):
         cookies = get_auth_cookies(
             {
-                "ev_access_token_202310": self.data_access_token,
+                "ev_access_token": self.data_access_token,
             }
         )
 
