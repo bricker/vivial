@@ -259,13 +259,19 @@ function runQuery({
           // this one should only contain whitespace, but MUST contain exactly one newline.
           if (
             commentEnd === undefined ||
-            !content.slice(commentEnd, cap.node.startIndex).match(/^[^\S\n]*\n[^\S\n]*$/)
+            !content
+              .slice(commentEnd, cap.node.startIndex)
+              .match(/^[^\S\n]*\n[^\S\n]*$/)
           ) {
             // begin new comment chunk (block or series of 1-line)
             commentStart = cap.node.startIndex;
             minStart = commentStart;
           }
-          console.log(`comment is now;\n${content.slice(commentStart, cap.node.endIndex).replace(/\n/g, '\\n')}`)
+          console.log(
+            `comment is now;\n${content
+              .slice(commentStart, cap.node.endIndex)
+              .replace(/\n/g, "\\n")}`,
+          );
           commentEnd = cap.node.endIndex;
           break;
 
