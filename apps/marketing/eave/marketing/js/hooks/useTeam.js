@@ -16,6 +16,12 @@ const useTeam = () => {
   /** @type {[Types.DashboardTeam, (f: (prev: Types.DashboardTeam) => Types.DashboardTeam) => void]} */
   const [team, setTeam] = teamCtx;
 
+  /**
+   * Asynchronously fetches team data from the "/dashboard/team" endpoint using a POST request.
+   * Updates the team state with the fetched data, including team ID, name, and integrations.
+   * Handles HTTP errors by setting the 'teamIsErroring' state to true.
+   * Regardless of success or failure, sets 'teamIsLoading' state to false upon completion.
+   */
   async function getTeam() {
     setTeam((prev) => ({
       ...prev,
@@ -48,6 +54,12 @@ const useTeam = () => {
       });
   }
 
+  /**
+   * Asynchronously fetches the team's repositories from the server and updates the team state accordingly.
+   * If the request is successful, the team's repositories are updated and a flag is set to indicate a successful request.
+   * If the request fails, an error flag is set.
+   * Regardless of the request outcome, the loading flag is reset at the end.
+   */
   async function getTeamRepos() {
     setTeam((prev) => ({
       ...prev,
@@ -77,6 +89,16 @@ const useTeam = () => {
       });
   }
 
+  /**
+   * Asynchronously retrieves the feature states for a team based on the provided Github repositories.
+   * It checks if API documentation and inline code documentation are enabled for each repository.
+   * Updates the team's state with the loading status, success status, and the enabled features.
+   *
+   * @async
+   * @function getTeamFeatureStates
+   * @param {Types.GithubRepo[] | undefined} repos - The Github repositories to check for feature states.
+   * @returns {void}
+   */
   async function getTeamFeatureStates(
     /**@type {Types.GithubRepo[] | undefined}*/ repos,
   ) {
@@ -105,6 +127,19 @@ const useTeam = () => {
     }));
   }
 
+  /**
+   * Asynchronously updates the state of a feature for a team's repositories.
+   * It sets the feature state to either enabled or disabled based on the provided parameters.
+   * It also handles the loading and error states during the update process.
+   *
+   * @async
+   * @function updateTeamFeatureState
+   * @param {Types.FeatureStateParams} params - An object containing the parameters for the feature state update.
+   * @param {string[]} params.teamRepoIds - An array of repository IDs associated with the team.
+   * @param {string[]} params.enabledRepoIds - An array of repository IDs where the feature is enabled.
+   * @param {string} params.feature - The feature to update the state for.
+   * @throws {HTTPError} If the HTTP request fails.
+   */
   async function updateTeamFeatureState(
     /**@type {Types.FeatureStateParams} */ {
       teamRepoIds,
@@ -155,6 +190,14 @@ const useTeam = () => {
       });
   }
 
+  /**
+   * Asynchronously fetches API documentation from the server and updates the team state accordingly.
+   * The state is initially set to loading, then updated with the fetched documents if the request is successful.
+   * If the request fails, the state is updated to reflect the error.
+   * Regardless of success or failure, the fetch count is incremented and the loading state is reset at the end.
+   * The documents are sorted before being set in the state.
+   * The state also keeps track of whether a request has succeeded at least once to continue showing the table even if a subsequent request fails.
+   */
   async function getTeamAPIDocs() {
     setTeam((prev) => ({
       ...prev,
