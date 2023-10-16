@@ -256,15 +256,16 @@ function runQuery({
           // NOTE: this matcher may be found multiple times per function, due to use of * in query.
           // Check if this matched comment is a continuation (1-line comment on next line)
           // of the previous matched comment. Characters between the end of the prev comment and start of
-          // this one should only contain whitespace, but MUST contain a newline.
+          // this one should only contain whitespace, but MUST contain exactly one newline.
           if (
             commentEnd === undefined ||
-            !content.slice(commentEnd, cap.node.startIndex).match(/\s*\n\s*/)
+            !content.slice(commentEnd, cap.node.startIndex).match(/^[^\S\n]*\n[^\S\n]*$/)
           ) {
             // begin new comment chunk (block or series of 1-line)
             commentStart = cap.node.startIndex;
-            minStart = Math.min(commentStart, minStart);
+            minStart = commentStart;
           }
+          console.log(`comment is now;\n${content.slice(commentStart, cap.node.endIndex).replace(/\n/g, '\\n')}`)
           commentEnd = cap.node.endIndex;
           break;
 
