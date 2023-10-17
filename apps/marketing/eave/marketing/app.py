@@ -34,7 +34,6 @@ from eave.stdlib.config import shared_config
 eave.stdlib.time.set_utc()
 
 app = Flask(__name__)
-app.secret_key = app_config.eave_web_session_encryption_key
 
 
 def _auth_handler(f: Callable[..., Awaitable[Response]]) -> Callable[..., Awaitable[Response]]:

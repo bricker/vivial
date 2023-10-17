@@ -118,7 +118,7 @@ const useTeam = () => {
    * @async
    * @function getTeamFeatureStates
    * @param {Types.GithubRepo[] | undefined} repos - The Github repositories to check for feature states.
-   * @returns {void}
+   * @returns {Promise<void>}
    */
   async function getTeamFeatureStates(
     /**@type {Types.GithubRepo[] | undefined}*/ repos,
@@ -155,7 +155,7 @@ const useTeam = () => {
    *
    * @async
    * @function updateTeamFeatureState
-   * @param {Types.FeatureStateParams} params - An object containing the parameters for the feature state update.
+   * @param {object} params - An object containing the parameters for the feature state update.
    * @param {string[]} params.teamRepoIds - An array of repository IDs associated with the team.
    * @param {string[]} params.enabledRepoIds - An array of repository IDs where the feature is enabled.
    * @param {string} params.feature - The feature to update the state for.
