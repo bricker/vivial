@@ -152,12 +152,11 @@ class AccountOrm(Base):
         """
         The session parameter is unused but encourages the caller to use this function in an open DB session, so that the changes are applied when it's closed.
         """
-        if access_token:
-            if access_token != self.previous_access_token:
-                self.previous_access_token = self.access_token
+        if access_token and access_token != self.access_token:
+            self.previous_access_token = self.access_token
             self.access_token = access_token
 
-        if refresh_token:
+        if refresh_token and refresh_token != self.refresh_token:
             self.refresh_token = refresh_token
 
     async def verify_oauth_or_exception(
@@ -224,6 +223,7 @@ class AccountOrm(Base):
             case AuthProvider.google:
                 # The google client automatically refreshes the access token and updates the Credentials object,
                 # So we always update the token values in the database any time the Credentials are used.
+                # See https://github.com/googleapis/google-auth-library-python-httplib2/blob/f5ed19e7e5b2b8959d16b2b1e6a6bdd6ff0c0ef6/google_auth_httplib2.py#L151-L152
                 await self.verify_oauth_or_exception(session=session, ctx=ctx)
                 return True
             case AuthProvider.atlassian:

@@ -7,9 +7,10 @@ import asyncio  # noqa
 import os  # noqa
 import importlib  # noqa
 import sqlalchemy  # noqa
+import uuid  # noqa
 
 import eave.core.internal.database  # noqa
-import eave.core.internal.orm  # noqa
+import eave.core.internal.orm as orm # noqa
 import eave.core.internal.orm.base  # noqa
 from eave.core.internal import app_config  # noqa
 from eave.stdlib.config import shared_config  # noqa
