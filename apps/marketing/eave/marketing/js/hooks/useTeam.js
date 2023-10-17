@@ -8,7 +8,7 @@ import {
 import { AppContext } from "../context/Provider.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
-import { isHTTPError } from "../util/http-util.js";
+import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
 /** @returns {{team: Types.DashboardTeam, getTeam: any, getTeamRepos: any, getTeamAPIDocs: any, getTeamFeatureStates: any, updateTeamFeatureState: any}} */
 const useTeam = () => {
@@ -28,8 +28,18 @@ const useTeam = () => {
       teamIsLoading: true,
       teamIsErroring: false,
     }));
-    fetch("/dashboard/team", { method: "POST" })
+    fetch("/dashboard/team", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    })
       .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
         if (isHTTPError(resp)) {
           throw resp;
         }
@@ -66,8 +76,19 @@ const useTeam = () => {
       reposAreLoading: true,
       reposAreErroring: false,
     }));
-    fetch("/dashboard/team/repos", { method: "POST" })
+    fetch("/dashboard/team/repos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    })
       .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+
         if (isHTTPError(resp)) {
           throw resp;
         }
@@ -177,6 +198,10 @@ const useTeam = () => {
       body: JSON.stringify({ repos }),
     })
       .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
         if (isHTTPError(resp)) {
           throw resp;
         }
@@ -212,6 +237,10 @@ const useTeam = () => {
       body: JSON.stringify({ document_type: DOC_TYPES.API_DOC }),
     })
       .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
         if (isHTTPError(resp)) {
           throw resp;
         }
