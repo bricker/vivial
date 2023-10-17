@@ -109,7 +109,31 @@ export async function runApiDocumentationTaskHandler(
   });
   sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
 
-  if (githubAPIData.expressRootDirs.length === 0) {
+  const latestCommitOnDefaultBranch = await githubAPIData.getLatestCommitOnDefaultBranch();
+  if (latestCommitOnDefaultBranch) {
+    const committedDate = Date.parse(latestCommitOnDefaultBranch.committedDate);
+    const oneDayAgo = Date.now() - (1000 * 60 * 60 * 24);
+    if (committedDate < oneDayAgo) {
+      await logEvent(
+        {
+          event_name: "api_documentation_skipped_no_commits",
+          event_description:
+            "The API documentation process was skipped because no commits were made to the default branch in the delta period",
+          eave_team: coreAPIData.team,
+          event_source: ANALYTICS_SOURCE,
+          opaque_params: {
+            ...sharedAnalyticsParams,
+          },
+        },
+        ctx,
+      );
+      res.sendStatus(200);
+      return;
+    }
+  }
+
+  const expressRootDirs = await githubAPIData.getExpressRootDirs();
+  if (expressRootDirs.length === 0) {
     eaveLogger.warning("no express apps detected", sharedAnalyticsParams, ctx);
 
     await logEvent(
@@ -133,7 +157,7 @@ export async function runApiDocumentationTaskHandler(
   eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
 
   const results = await Promise.allSettled(
-    githubAPIData.expressRootDirs.map(async (apiRootDir) => {
+    expressRootDirs.map(async (apiRootDir) => {
       try {
         const localAnalyticsParams: { [key: string]: JsonValue } = {};
         localAnalyticsParams["api_root_dir"] = apiRootDir;

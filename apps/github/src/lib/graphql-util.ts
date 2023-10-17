@@ -1,4 +1,4 @@
-import { Blob, Repository, Tree, validate } from "@octokit/graphql-schema";
+import { Blob, Commit, Repository, Tree, validate } from "@octokit/graphql-schema";
 import assert from "node:assert";
 import { promises as fs } from "node:fs";
 import GlobalCache from "../lib/cache.js";
@@ -97,4 +97,16 @@ export function assertIsRepository(
   obj: { __typename?: string } | undefined | null,
 ): asserts obj is Repository {
   assert(isRepository(obj), `expected Repository, got ${obj?.__typename}`);
+}
+
+export function isCommit(
+  obj: { __typename?: string } | undefined | null,
+): obj is Commit {
+  return obj?.__typename === "Commit";
+}
+
+export function assertIsCommit(
+  obj: { __typename?: string } | undefined | null,
+): asserts obj is Commit {
+  assert(isCommit(obj), `expected Commit, got ${obj?.__typename}`);
 }

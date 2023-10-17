@@ -6,6 +6,7 @@ import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import {
   Blob,
+  Commit,
   Query,
   Repository,
   Scalars,
@@ -20,6 +21,7 @@ import {
   assertIsRepository,
   assertIsTree,
   isBlob,
+  isCommit,
   isTree,
   loadQuery,
 } from "../graphql-util.js";
@@ -27,10 +29,12 @@ import { EaveGithubRepoArg, ExternalGithubRepoArg } from "./args.js";
 
 export class GithubAPIData {
   readonly logParams: { [key: string]: JsonValue };
-  readonly expressRootDirs: string[];
   readonly externalGithubRepo: Repository;
   private readonly ctx: LogContext;
   private readonly octokit: Octokit;
+
+  private __memo__latestCommitOnDefaultBranch__?: Commit | null;
+  private __memo__expressRootDirs__?: string[];
 
   static async load({
     ctx,
@@ -38,7 +42,6 @@ export class GithubAPIData {
     eaveGithubRepo,
   }: GitHubOperationsContext & EaveGithubRepoArg) {
     let externalGithubRepo;
-    let expressRootDirs;
 
     {
       const query = await loadQuery("getRepo");
@@ -57,28 +60,10 @@ export class GithubAPIData {
       externalGithubRepo = response.node;
     }
 
-    {
-      const query = `"\\"express\\":" in:file filename:package.json repo:${externalGithubRepo.owner.login}/${externalGithubRepo.name}`;
-      const response = await octokit.rest.search.code({
-        q: query,
-      });
-
-      expressRootDirs = response.data.items.map((i) => path.dirname(i.path));
-
-      if (expressRootDirs.length === 0) {
-        eaveLogger.warning(
-          "No express API dir file found",
-          { core_api_data: { eave_github_repo: eaveGithubRepo }, query },
-          ctx,
-        );
-      }
-    }
-
     return new GithubAPIData({
       ctx,
       octokit,
       externalGithubRepo,
-      expressRootDirs,
     });
   }
 
@@ -86,21 +71,79 @@ export class GithubAPIData {
     ctx,
     octokit,
     externalGithubRepo,
-    expressRootDirs,
-  }: GitHubOperationsContext &
-    ExternalGithubRepoArg & { expressRootDirs: string[] }) {
+  }: GitHubOperationsContext & ExternalGithubRepoArg) {
     this.ctx = ctx;
     this.octokit = octokit;
     this.externalGithubRepo = externalGithubRepo;
-    this.expressRootDirs = expressRootDirs;
 
     this.logParams = {
       external_github_repo: {
         id: this.externalGithubRepo.id,
         nameWithOwner: this.externalGithubRepo.nameWithOwner,
       },
-      express_root_dirs: this.expressRootDirs,
     };
+  }
+
+  async getExpressRootDirs(): Promise<string[]> {
+    if (this.__memo__expressRootDirs__ !== undefined) {
+      return this.__memo__expressRootDirs__;
+    }
+
+    const query = `"\\"express\\":" in:file filename:package.json repo:${this.externalGithubRepo.owner.login}/${this.externalGithubRepo.name}`;
+    const response = await this.octokit.rest.search.code({
+      q: query,
+    });
+
+    const expressRootDirs = response.data.items.map((i) => path.dirname(i.path));
+
+    if (expressRootDirs.length === 0) {
+      eaveLogger.warning(
+        "No express API dir file found",
+        this.logParams,
+        this.ctx,
+      );
+    }
+
+    this.logParams["express_root_dirs"] = expressRootDirs;
+    this.__memo__expressRootDirs__ = expressRootDirs;
+    return expressRootDirs;
+  }
+
+  async getLatestCommitOnDefaultBranch(): Promise<Commit | null> {
+    if (this.__memo__latestCommitOnDefaultBranch__ !== undefined) {
+      return this.__memo__latestCommitOnDefaultBranch__;
+    }
+
+    const query = await loadQuery("getGitObject");
+    const variables: {
+      repoOwner: Scalars["String"]["input"];
+      repoName: Scalars["String"]["input"];
+      expression: Scalars["String"]["input"];
+    } = {
+      repoOwner: this.externalGithubRepo.owner.login,
+      repoName: this.externalGithubRepo.name,
+      expression: "HEAD", // default branch by default
+    };
+
+    const response = await this.octokit.graphql<{ repository: Query["repository"] }>(
+      query,
+      variables,
+    );
+
+    assertIsRepository(response.repository);
+    if (!isCommit(response.repository.object)) {
+      return null;
+    }
+
+    let latestCommitOnDefaultBranch: Commit | null;
+    if (isCommit(response.repository.object)) {
+      latestCommitOnDefaultBranch = response.repository.object;
+    } else {
+      latestCommitOnDefaultBranch = null;
+    }
+
+    this.__memo__latestCommitOnDefaultBranch__ = latestCommitOnDefaultBranch;
+    return latestCommitOnDefaultBranch;
   }
 
   async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {
