@@ -1,6 +1,10 @@
+from functools import wraps
+from http.client import UNAUTHORIZED
 import json
 import time
-from typing import Any
+from typing import Any, Awaitable, Callable, TypeVar
+
+from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
@@ -33,6 +37,21 @@ eave.stdlib.time.set_utc()
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
 
+def _auth_handler(f: Callable[..., Awaitable[Response]]) -> Callable[..., Awaitable[Response]]:
+    @wraps(f)
+    async def wrapper(*args: Any, **kwargs: Any) -> Response:
+        try:
+            r = await f(*args, **kwargs)
+            return r
+        except ClientResponseError as e:
+            if e.code == UNAUTHORIZED:
+                response = Response(status=UNAUTHORIZED)
+                delete_auth_cookies(response)
+                return response
+            else:
+                raise
+
+    return wrapper
 
 @app.get("/status")
 def status() -> str:
@@ -84,9 +103,9 @@ async def get_auth_state() -> Response:
 
 
 @app.route("/dashboard/me", methods=["GET", "POST"])
+@_auth_handler
 async def get_user() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    auth_cookies = _get_auth_cookies()
 
     eave_response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
@@ -99,9 +118,9 @@ async def get_user() -> Response:
 
 
 @app.route("/dashboard/team", methods=["GET", "POST"])
+@_auth_handler
 async def get_team() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    auth_cookies = _get_auth_cookies()
 
     eave_response = await team.GetTeamRequest.perform(
         origin=app_config.eave_origin,
@@ -114,21 +133,17 @@ async def get_team() -> Response:
 
 
 @app.route("/dashboard/team/repos", methods=["GET", "POST"])
+@_auth_handler
 async def get_team_repos() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    auth_cookies = _get_auth_cookies()
 
-    try:
-        eave_response = await github_repos.GetGithubReposRequest.perform(
-            origin=app_config.eave_origin,
-            team_id=unwrap(auth_cookies.team_id),
-            account_id=ensure_uuid(auth_cookies.account_id),
-            access_token=unwrap(auth_cookies.access_token),
-            input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
-        )
-    except Exception as e:
-        eaveLogger.exception(e)
-        return _json_response(body={"repos": []})
+    eave_response = await github_repos.GetGithubReposRequest.perform(
+        origin=app_config.eave_origin,
+        team_id=unwrap(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+        input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
+    )
 
     response = _make_response(eave_response)
 
@@ -155,10 +170,11 @@ async def get_team_repos() -> Response:
     return response
 
 
+
 @app.route("/dashboard/team/repos/update", methods=["POST"])
+@_auth_handler
 async def update_team_repos() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    auth_cookies = _get_auth_cookies()
 
     body = request.get_json()
     repos: list[GithubRepoUpdateInput] = body["repos"]
@@ -175,9 +191,9 @@ async def update_team_repos() -> Response:
 
 
 @app.route("/dashboard/team/documents", methods=["POST"])
+@_auth_handler
 async def get_team_documents() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-    _assert_auth(auth_cookies)
+    auth_cookies = _get_auth_cookies()
 
     body = request.get_json()
     document_type = body["document_type"]
@@ -213,10 +229,12 @@ def catch_all(path: str) -> Response:
     return response
 
 
-def _assert_auth(auth_cookies: AuthCookies) -> None:
+def _get_auth_cookies() -> AuthCookies:
+    auth_cookies = get_auth_cookies(request.cookies)
     if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:
         raise werkzeug.exceptions.Unauthorized()
 
+    return auth_cookies
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
@@ -237,9 +255,10 @@ def _set_json_response_body(response: Response, body: JsonObject | str) -> Respo
     return response
 
 
-def _json_response(body: JsonObject | str) -> Response:
+def _json_response(body: JsonObject | str | None) -> Response:
     response = Response(mimetype=MIME_TYPE_JSON)
-    _set_json_response_body(response, body)
+    if body:
+        _set_json_response_body(response, body)
     return response
 
 

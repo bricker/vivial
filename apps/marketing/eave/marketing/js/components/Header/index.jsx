@@ -10,6 +10,7 @@ import Button from "../Button/index.jsx";
 import EaveLogo from "../EaveLogo/index.jsx";
 import CloseIcon from "../Icons/CloseIcon.js";
 import HamburgerIcon from "../Icons/HamburgerIcon.js";
+import { logUserOut } from "../../util/http-util.js";
 
 const makeClasses = makeStyles((theme) => ({
   outterContainer: {
@@ -101,7 +102,7 @@ const Header = ({ simpleHeader }) => {
   const classes = makeClasses();
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const { openModal } = useAuthModal();
-  const { user, logUserOut } = useUser();
+  const { user } = useUser();
   const { isAuthenticated } = user;
 
   const TopButtons = isAuthenticated ? (

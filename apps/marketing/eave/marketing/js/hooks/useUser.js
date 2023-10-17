@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { AppContext } from "../context/Provider.js";
-import { isHTTPError } from "../util/http-util.js";
+import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
 const useUser = () => {
   const { userCtx } = useContext(AppContext);
@@ -15,6 +15,11 @@ const useUser = () => {
   async function checkUserAuth() {
     fetch("/authcheck")
       .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+
         if (isHTTPError(resp)) {
           throw resp;
         }
@@ -43,6 +48,10 @@ const useUser = () => {
     }));
     fetch("/dashboard/me", { method: "POST" })
       .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
         if (isHTTPError(resp)) {
           throw resp;
         }
@@ -58,18 +67,10 @@ const useUser = () => {
       });
   }
 
-  /**
-   * Asynchronously logs the user out by redirecting to the logout page.
-   */
-  async function logUserOut() {
-    window.location.assign("/dashboard/logout");
-  }
-
   return {
     user,
     checkUserAuth,
     getUserAccount,
-    logUserOut,
   };
 };
 
