@@ -2,7 +2,7 @@ from functools import wraps
 from http.client import UNAUTHORIZED
 import json
 import time
-from typing import Any, Awaitable, Callable, TypeVar
+from typing import Any, Awaitable, Callable
 
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
@@ -30,12 +30,12 @@ from eave.stdlib.typing import JsonArray, JsonObject
 from eave.stdlib.utm_cookies import set_tracking_cookies
 from .config import app_config
 from eave.stdlib.config import shared_config
-from eave.stdlib.logging import eaveLogger
 
 eave.stdlib.time.set_utc()
 
 app = Flask(__name__)
 app.secret_key = app_config.eave_web_session_encryption_key
+
 
 def _auth_handler(f: Callable[..., Awaitable[Response]]) -> Callable[..., Awaitable[Response]]:
     @wraps(f)
@@ -52,6 +52,7 @@ def _auth_handler(f: Callable[..., Awaitable[Response]]) -> Callable[..., Awaita
                 raise
 
     return wrapper
+
 
 @app.get("/status")
 def status() -> str:
@@ -170,7 +171,6 @@ async def get_team_repos() -> Response:
     return response
 
 
-
 @app.route("/dashboard/team/repos/update", methods=["POST"])
 @_auth_handler
 async def update_team_repos() -> Response:
@@ -235,6 +235,7 @@ def _get_auth_cookies() -> AuthCookies:
         raise werkzeug.exceptions.Unauthorized()
 
     return auth_cookies
+
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
