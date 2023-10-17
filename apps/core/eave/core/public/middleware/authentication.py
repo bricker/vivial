@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import cast
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.auth_session import AuthSessionOrm
 from eave.stdlib.auth_cookies import delete_auth_cookies, set_auth_cookies
 from eave.stdlib.core_api.operations import EndpointConfiguration
 
@@ -45,10 +46,10 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
         )
 
-        access_token = get_bearer_token(scope=scope)
+        session_id = get_bearer_token(scope=scope)
 
         try:
-            if account_id_header is None or access_token is None:
+            if account_id_header is None or session_id is None:
                 if not self.endpoint_config.auth_required:
                     await self.app(scope, receive, send)
                     return
@@ -56,7 +57,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                     raise UnauthorizedError("missing auth headers")
 
             account = await self._verify_auth(
-                account_id_header=account_id_header, access_token=access_token, ctx=eave_state.ctx
+                account_id_header=account_id_header, session_id=session_id, ctx=eave_state.ctx
             )
             eave_state.ctx.eave_account_id = str(account.id)
             eave_state.ctx.eave_team_id = str(account.team_id)
@@ -77,7 +78,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                 response=response,
                 team_id=account.team_id,
                 account_id=account.id,
-                access_token=account.access_token,
+                session_id=account.session_id,
             )
 
             event["headers"] = response.headers.raw
@@ -85,18 +86,20 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         await self.app(scope, receive, _send)
 
-    async def _verify_auth(self, account_id_header: str, access_token: str, ctx: LogContext) -> AccountOrm:
+    async def _verify_auth(self, account_id_header: str, session_id: str, ctx: LogContext) -> AccountOrm:
         async with eave.core.internal.database.async_session.begin() as db_session:
-            eave_account = await AccountOrm.one_or_none(
+            auth_session = await AuthSessionOrm.one_or_none(
                 session=db_session,
-                params=AccountOrm.QueryParams(
-                    id=ensure_uuid(account_id_header),
-                    access_token=access_token,
-                ),
+                params=AuthSessionOrm.QueryParams(
+                    account_id=ensure_uuid(account_id_header),
+                    session_id=session_id,
+                )
             )
 
-            if not eave_account:
-                raise UnauthorizedError("invalid auth")
+            if not auth_session:
+                raise UnauthorizedError("invalid auth session")
+
+            eave_account = await auth_session.get_account(session=db_session)
 
             try:
                 await eave_account.verify_oauth_or_exception(session=db_session, ctx=ctx)
