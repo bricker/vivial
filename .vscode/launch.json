@@ -7,36 +7,14 @@
 
     {
       "name": "Core API",
-      "envFile": "${workspaceFolder}/.env",
       "cwd": "${workspaceFolder}/apps/core",
       "type": "python",
       "request": "launch",
-      "module": "uvicorn",
-      "args": [
-        "--port",
-        "5100",
-        "--reload",
-        "--reload-dir",
-        "eave",
-        "--reload-dir",
-        "${workspaceFolder}/libs/eave-stdlib-py",
-        "eave.core.app:app"
-      ],
+      "program": "bin/start-dev",
       "justMyCode": false,
       "consoleTitle": "Core API",
       "env": {
-        "GAE_SERVICE": "api",
-        "GAE_VERSION": "dev",
-        "TZ": "UTC",
-        "LOG_LEVEL": "DEBUG",
-        "EAVE_ENV": "development",
-        "EAVE_API_BASE_PUBLIC": "http://api.eave.run:8080",
-        "EAVE_APPS_BASE_PUBLIC": "http://apps.eave.run:8080",
-        "EAVE_WWW_BASE_PUBLIC": "http://www.eave.run:8080",
-        "EAVE_MONITORING_DISABLED": "1",
-        "EAVE_ANALYTICS_DISABLED": "1",
-        "PYTHONWARNINGS": "ignore::DeprecationWarning",
-        "PYDEVD_DISABLE_FILE_VALIDATION": "1",
+        "PYTHONPATH": ".",
       }
     },
     {
