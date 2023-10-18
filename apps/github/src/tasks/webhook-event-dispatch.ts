@@ -1,4 +1,5 @@
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import { getCachedPayload } from "@eave-fyi/eave-stdlib-ts/src/task-queue.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import Express from "express";
 import { constants as httpConstants } from "node:http2";
@@ -16,14 +17,17 @@ export async function webhookEventTaskHandler(
   res: Express.Response,
 ): Promise<void> {
   const ctx = LogContext.load(res);
-  const handler = getEventHandler(req, res);
+
+  // load the webhook event from redis
+  const event = <GithubWebhookBody>JSON.parse(await getCachedPayload(req));
+
+  const handler = getEventHandler(req, res, event);
   if (!handler) {
     res.sendStatus(httpConstants.HTTP_STATUS_OK);
     return;
   }
 
   // FIXME: event.installation not available when using local webhook forwarding
-  const event = <GithubWebhookBody>req.body;
   const installationId = event.installation.id;
   const eaveTeam = await getTeamForInstallation({ installationId, ctx });
   assertPresence(eaveTeam);
@@ -32,5 +36,5 @@ export async function webhookEventTaskHandler(
 
   const app = await githubAppClient();
   const octokit = await app.getInstallationOctokit(installationId);
-  await handler({ event: event, eaveTeam, octokit, ctx });
+  await handler({ event, eaveTeam, octokit, ctx });
 }

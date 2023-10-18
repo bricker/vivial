@@ -59,10 +59,11 @@ export function getGithubWebhookHeaders(
 export function getEventHandler(
   req: Express.Request,
   res: Express.Response,
+  eventBody: GithubWebhookBody,
 ): HandlerFunction | undefined {
   const ctx = LogContext.load(res);
   const { eventName } = getGithubWebhookHeaders(req);
-  const { action } = <GithubWebhookBody>req.body;
+  const { action } = eventBody;
   const fullEventName = [eventName, action].filter((n) => n).join(".");
 
   const handler = getEventHandlerFromRegistry({ dispatchKey: fullEventName });

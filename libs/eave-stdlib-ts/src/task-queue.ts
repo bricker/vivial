@@ -3,6 +3,7 @@ import { Request } from "express";
 import assert from "node:assert";
 import { constants as httpConstants } from "node:http2";
 import { ClientApiEndpointConfiguration } from "./api-util.js";
+import { getCacheClient } from "./cache.js";
 import { sharedConfig } from "./config.js";
 import { EaveApp } from "./eave-origins.js";
 import {
@@ -21,8 +22,6 @@ import { CtxArg, makeRequest } from "./requests.js";
 import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 import { ExpressRoutingMethod } from "./types.js";
 
-// document me
-
 type CreateTaskSharedArgs = CtxArg & {
   queueName: string;
   targetPath: string;
@@ -39,6 +38,10 @@ type CreateTaskArgs = CreateTaskSharedArgs & {
 
 type CreateTaskFromRequestArgs = CreateTaskSharedArgs & {
   req: Request;
+};
+
+type BodyCacheEntry = {
+  cacheKey: string;
 };
 
 export async function createTaskFromRequest({
@@ -64,7 +67,13 @@ export async function createTaskFromRequest({
     }
   }
 
-  const payload = req.body;
+  // keep the event in redis since GCP Task Queue can only accept 100kb task size
+  const cacheClient = await getCacheClient();
+  await cacheClient.set(ctx.eave_request_id, normalizeString(req.body), {
+    EX: 60 * 60 * 24,
+  }); // TTL 24h
+
+  const payload: BodyCacheEntry = { cacheKey: ctx.eave_request_id };
   const headers: { [key: string]: string } = {};
   // FIXME: Is there a cleaner way to do this? req.headers is a NodeJS.Dict typescript object.
   // eslint-disable-next-line no-restricted-syntax
@@ -110,14 +119,7 @@ export async function createTask({
     headers = {};
   }
 
-  let body: string;
-  if (payload instanceof Buffer) {
-    body = payload.toString();
-  } else if (typeof payload === "string") {
-    body = payload;
-  } else {
-    body = JSON.stringify(payload);
-  }
+  const body = normalizeString(payload);
 
   const teamId = headers[EAVE_TEAM_ID_HEADER] || ctx.eave_team_id;
   const accountId = headers[EAVE_ACCOUNT_ID_HEADER] || ctx.eave_account_id;
@@ -227,4 +229,32 @@ export async function createTask({
   }
 
   await client.createTask({ parent, task });
+}
+
+function normalizeString(payload: any): string {
+  let body: string;
+  if (payload instanceof Buffer) {
+    body = payload.toString();
+  } else if (typeof payload === "string") {
+    body = payload;
+  } else {
+    body = JSON.stringify(payload);
+  }
+  return body;
+}
+
+export async function getCachedPayload(req: Request): Promise<string> {
+  const cacheEntry: BodyCacheEntry = req.body;
+  if (cacheEntry.cacheKey === undefined) {
+    throw Error("Request body did not contain a cache key");
+  }
+
+  const cacheClient = await getCacheClient();
+  const cachedBody = await cacheClient.get(cacheEntry.cacheKey);
+  if (!cachedBody) {
+    throw Error(
+      "Could not find expected cached event body. Maybe the TTL needs to be extended?",
+    );
+  }
+  return normalizeString(cachedBody);
 }
