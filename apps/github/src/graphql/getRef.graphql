@@ -3,29 +3,7 @@ query ($repoOwner: String!, $repoName: String!, $refName: String!) {
     ...repoFragment
 
     ref(qualifiedName: $refName) {
-      __typename
-      id
-      name
-
-      associatedPullRequests(
-        states: OPEN
-        last: 1
-        orderBy: { direction: DESC, field: CREATED_AT }
-      ) {
-        __typename
-
-        nodes {
-          __typename
-          id
-          createdAt
-          updatedAt
-          state
-        }
-      }
-
-      target {
-        ...gitObjectFragment
-      }
+      ...refFragment
     }
   }
 }
