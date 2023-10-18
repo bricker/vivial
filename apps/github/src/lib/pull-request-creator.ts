@@ -32,7 +32,7 @@ export class PullRequestCreator {
   private ctx: LogContext;
 
   /**
-   * Constructs a new instance of the class.
+   * Constructs a new instance.
    *
    * @param {Object} args - The arguments for the constructor.
    * @param {string} args.repoName - The name of the repository.
@@ -66,12 +66,14 @@ export class PullRequestCreator {
   }
 
   /**
-   * Retrieves a specific branch from a repository using the provided branch name.
+   * Retrieves a specific branch from a repository using the provided branch name and GraphQL.
    * Utilizes GraphQL to load the 'getRef' query and execute it with the necessary parameters.
    * If the branch does not exist, it returns null.
    *
    * @param branchName - The name of the branch to retrieve.
    * @returns A Promise that resolves to the branch reference or null if the branch does not exist.
+   *
+   * @throws {Error} If the response from the GraphQL query does not contain a valid repository.
    */
   private async getBranch(branchName: string): Promise<Ref | null> {
     const getBranchQuery = await GraphQLUtil.loadQuery("getRef");
@@ -95,7 +97,7 @@ export class PullRequestCreator {
   }
 
   /**
-   * Asynchronously creates a new branch in the repository, branching off the head commit (should usually be PR merge commit).
+   * Asynchronously creates a new branch in the repository.
    *
    * @param branchName - The name of the branch to be created.
    *
@@ -157,13 +159,13 @@ export class PullRequestCreator {
   /**
    * Asynchronously creates a commit on a specified branch with a given message and file changes.
    * If there are no file changes (additions or deletions), the function will return without creating a commit.
+   * The function uses the GraphQL query "createCommitOnBranch" to create the commit.
    * https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch
    *
-   * @param branch - The branch on which the commit is to be created.
+   * @param branch - The branch on which to create the commit.
    * @param message - The commit message.
-   * @param fileChanges - The changes to be committed, including file additions and deletions. `contents` field of each `FileChange` object must be base64 encoded.
+   * @param fileChanges - The file changes to include in the commit. `contents` field of each `FileChange` object must be base64 encoded.
    * @returns A promise that resolves to void when the commit is successfully created.
-   *
    * @throws Will throw an error if the commit creation fails.
    */
   private async createCommit(
@@ -214,8 +216,7 @@ export class PullRequestCreator {
   }
 
   /**
-   * Opens a new pull request on the specified branch, against event.pull_request.base.ref (same base as PR that triggered this event).
-   * https://docs.github.com/en/graphql/reference/mutations#createpullrequest
+   * Opens a new pull request on the specified branch.
    *
    * @param branch - The branch where the pull request will be opened.
    * @param prTitle - The title of the pull request.
@@ -256,6 +257,7 @@ export class PullRequestCreator {
    *
    * @param branchNodeId - The unique identifier of the branch to be deleted.
    * @returns A promise that resolves when the branch deletion is complete.
+   * @throws Will throw an error if the deletion process fails.
    *
    * @remarks
    * This method uses the `deleteBranch` query from `GraphQLUtil` and the `deleteRef` mutation from the Octokit GraphQL API.
@@ -276,8 +278,8 @@ export class PullRequestCreator {
 
   /**
    * Ensures the provided branch name starts with the standard GitHub branch prefix ("refs/heads/").
-   * If the branch name already starts with the prefix, it is returned as is.
-   * Otherwise, the prefix is prepended to the branch name and the resulting string is returned.
+   * If the prefix is already present, the original branch name is returned.
+   * Otherwise, the prefix is added to the start of the branch name.
    *
    * @param branchName - The name of the branch to check and possibly prefix.
    * @returns The branch name, prefixed with "refs/heads/" if it was not already.
@@ -291,18 +293,17 @@ export class PullRequestCreator {
   }
 
   /**
-   * Asynchronously creates a pull request on a given branch with specified changes.
-   * If the branch does not exist, it will be created.
-   * If a pull request already exists, new commits will be added to it.
+   * Asynchronously creates a pull request on a given branch with specified changes. If the branch does not exist, it is created.
+   * If a pull request already exists for the branch, the changes are appended to it. If the pull request creation fails, the newly created branch is deleted to prevent orphan branches.
    *
-   * @param {Object} params - Parameters for creating a pull request.
+   * @param {Object} params - The parameters for creating a pull request.
    * @param {string} params.branchName - The name of the branch.
    * @param {string} params.commitMessage - The commit message.
    * @param {string} params.prTitle - The title of the pull request.
-   * @param {string} params.prBody - The body text of the pull request.
+   * @param {string} params.prBody - The body content of the pull request.
    * @param {FileChanges} params.fileChanges - The changes to be committed.
    *
-   * @returns {Promise<PullRequest | null>} A promise that resolves to the created pull request, or null if the pull request could not be created.
+   * @returns {Promise<PullRequest | null>} A promise that resolves to the created or updated pull request, or null if the pull request could not be created.
    *
    * @throws Will throw an error if the pull request creation fails.
    */
@@ -453,6 +454,14 @@ export class PullRequestCreator {
   }
 }
 
+/**
+ * Compares two pull requests by their creation dates in descending order.
+ *
+ * @param a - The first pull request to compare. Can be null.
+ * @param b - The second pull request to compare. Can be null.
+ * @returns A number indicating the sort order. If the return value is less than 0, `a` is sorted to an index lower than `b` (i.e., `a` is created later). If the return value is 0, `a` and `b` have the same creation date. If the return value is greater than 0, `a` is sorted to an index higher than `b` (i.e., `a` is created earlier).
+ * @throws {TypeError} If either `a` or `b` is null.
+ */
 function sortPRsByDescendingCreatedAt(
   a: PullRequest | null,
   b: PullRequest | null,
