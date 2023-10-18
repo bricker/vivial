@@ -13,7 +13,6 @@ import {
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-documents.js";
 import { GetGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { GetTeamOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js";
-import { GithubRepoInput } from "@eave-fyi/eave-stdlib-ts/src/github-api/models.js";
 import {
   LogContext,
   eaveLogger,
@@ -22,7 +21,6 @@ import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import assert from "assert";
 import { appConfig } from "../../config.js";
-import { EaveGithubRepoArg } from "./args.js";
 
 type GithubDocumentTable = { [key: string]: GithubDocument };
 
@@ -32,18 +30,18 @@ export class CoreAPIData {
   readonly externalRepoId: string;
   private readonly ctx: LogContext;
 
-  private __memo__eaveGithubDocuments?: GithubDocumentTable
-  private __memo__eaveTeam?: Team
-  private __memo__eaveGithubRepo?: GithubRepo
+  private __memo__eaveGithubDocuments?: GithubDocumentTable;
+  private __memo__eaveTeam?: Team;
+  private __memo__eaveGithubRepo?: GithubRepo;
 
   constructor({
     teamId,
     externalRepoId,
     ctx,
   }: CtxArg & {
-      teamId: string;
-      externalRepoId: string;
-    }) {
+    teamId: string;
+    externalRepoId: string;
+  }) {
     this.ctx = ctx;
     this.teamId = teamId;
     this.externalRepoId = externalRepoId;
@@ -58,9 +56,7 @@ export class CoreAPIData {
       origin: appConfig.eaveOrigin,
       teamId: this.teamId,
       input: {
-        repos: [
-          { external_repo_id: this.externalRepoId },
-        ],
+        repos: [{ external_repo_id: this.externalRepoId }],
       },
       ctx: this.ctx,
     });
@@ -161,7 +157,7 @@ export class CoreAPIData {
       },
     });
 
-    this.setGithubDocument({ document: response.document });
+    await this.setGithubDocument({ document: response.document });
     return response.document;
   }
 

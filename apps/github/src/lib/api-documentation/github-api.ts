@@ -25,7 +25,6 @@ import {
   isTree,
   loadQuery,
 } from "../graphql-util.js";
-import { EaveGithubRepoArg, ExternalGithubRepoArg } from "./args.js";
 
 export class GithubAPIData {
   readonly logParams: { [key: string]: JsonValue };
@@ -41,7 +40,7 @@ export class GithubAPIData {
     ctx,
     octokit,
     externalRepoId,
-  }: GitHubOperationsContext & { externalRepoId: string; }) {
+  }: GitHubOperationsContext & { externalRepoId: string }) {
     this.ctx = ctx;
     this.octokit = octokit;
     this.externalRepoId = externalRepoId;
@@ -88,7 +87,9 @@ export class GithubAPIData {
       q: query,
     });
 
-    const expressRootDirs = response.data.items.map((i) => path.dirname(i.path));
+    const expressRootDirs = response.data.items.map((i) =>
+      path.dirname(i.path),
+    );
 
     if (expressRootDirs.length === 0) {
       eaveLogger.warning(
@@ -120,10 +121,9 @@ export class GithubAPIData {
       expression: "HEAD", // default branch by default
     };
 
-    const response = await this.octokit.graphql<{ repository: Query["repository"] }>(
-      query,
-      variables,
-    );
+    const response = await this.octokit.graphql<{
+      repository: Query["repository"];
+    }>(query, variables);
 
     assertIsRepository(response.repository);
     if (!isCommit(response.repository.object)) {
@@ -151,9 +151,7 @@ export class GithubAPIData {
     } = {
       repoOwner: externalGithubRepo.owner.login,
       repoName: externalGithubRepo.name,
-      expression: `${
-        externalGithubRepo.defaultBranchRef!.name
-      }:${treeRootDir}`,
+      expression: `${externalGithubRepo.defaultBranchRef!.name}:${treeRootDir}`,
     };
 
     const response = await this.octokit.graphql<{

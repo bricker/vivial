@@ -15,7 +15,7 @@ export async function webhookEventHandler(
 
   // Quick check to make sure we have a handler for this event.
   // No use creating a background task if we know it won't do anything.
-  const handler = getEventHandler(req, res);
+  const handler = getEventHandler(req, res, req.body);
   if (!handler) {
     res.sendStatus(httpConstants.HTTP_STATUS_OK);
     return;

@@ -83,10 +83,7 @@ export async function runApiDocumentationTaskHandler(
   );
 
   const installId = await getInstallationId(eaveTeam.id, ctx);
-  assert(
-    installId,
-    `No github integration found for team ID ${eaveTeam.id}`,
-  );
+  assert(installId, `No github integration found for team ID ${eaveTeam.id}`);
 
   const octokit = await createOctokitClient(installId);
 
@@ -113,11 +110,17 @@ export async function runApiDocumentationTaskHandler(
 
   const existingGithubDocuments = await coreAPIData.getGithubDocuments();
   // If there aren't any associated github documents yet, always run the task.
-  if (existingGithubDocuments && Object.keys(existingGithubDocuments).length > 0) {
-    const latestCommitOnDefaultBranch = await githubAPIData.getLatestCommitOnDefaultBranch();
+  if (
+    existingGithubDocuments &&
+    Object.keys(existingGithubDocuments).length > 0
+  ) {
+    const latestCommitOnDefaultBranch =
+      await githubAPIData.getLatestCommitOnDefaultBranch();
     if (latestCommitOnDefaultBranch) {
-      const committedDate = Date.parse(latestCommitOnDefaultBranch.committedDate);
-      const oneDayAgo = Date.now() - (1000 * 60 * 60 * 24);
+      const committedDate = Date.parse(
+        latestCommitOnDefaultBranch.committedDate,
+      );
+      const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
       if (committedDate < oneDayAgo) {
         await logEvent(
           {
@@ -438,8 +441,7 @@ export async function runApiDocumentationTaskHandler(
     repoName: externalGithubRepo.name,
     repoOwner: externalGithubRepo.owner.login,
     repoId: externalGithubRepo.id,
-    baseBranchName:
-      externalGithubRepo.defaultBranchRef?.name || "main", // The only reason `defaultBranchRef` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
+    baseBranchName: externalGithubRepo.defaultBranchRef?.name || "main", // The only reason `defaultBranchRef` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
     octokit,
     ctx,
   });
@@ -488,18 +490,20 @@ async function updateDocuments({
   expressAPIs: ExpressAPI[];
   newValues: GithubDocumentValuesInput;
 }) {
-  await Promise.allSettled(expressAPIs.map(async (expressAPI) => {
-    if (expressAPI.documentationFilePath) {
-      const eaveDoc = await coreAPIData.getGithubDocument({
-        filePath: expressAPI.documentationFilePath,
-      });
-      assertPresence(eaveDoc);
-      await coreAPIData.updateGithubDocument({
-        document: eaveDoc,
-        newValues,
-      });
-    }
-  }));
+  await Promise.allSettled(
+    expressAPIs.map(async (expressAPI) => {
+      if (expressAPI.documentationFilePath) {
+        const eaveDoc = await coreAPIData.getGithubDocument({
+          filePath: expressAPI.documentationFilePath,
+        });
+        assertPresence(eaveDoc);
+        await coreAPIData.updateGithubDocument({
+          document: eaveDoc,
+          newValues,
+        });
+      }
+    }),
+  );
 }
 
 /**
