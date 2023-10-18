@@ -4,7 +4,7 @@
 GET /v1/lists
 ```
 
-This endpoint retrieves all lists.
+Returns all lists.
 
 ### Example Request
 
@@ -32,7 +32,7 @@ fetch('/v1/lists', {
 GET /v1/lists/:list_id
 ```
 
-This endpoint retrieves a specific list by its ID.
+Returns a specific list by its ID.
 
 ### Path Parameters
 
@@ -66,7 +66,7 @@ fetch('/v1/lists/1', {
 POST /v1/lists
 ```
 
-This endpoint creates a new list.
+Creates a new list.
 
 ### Example Request
 
@@ -74,7 +74,7 @@ This endpoint creates a new list.
 fetch('/v1/lists', {
   method: 'POST',
   body: JSON.stringify({
-    list: 'New List'
+    list: "New List"
   })
 })
 ```
@@ -91,7 +91,7 @@ fetch('/v1/lists', {
 PATCH /v1/lists/:list_id
 ```
 
-This endpoint updates a specific list by its ID.
+Updates a specific list by its ID.
 
 ### Path Parameters
 
@@ -103,7 +103,7 @@ This endpoint updates a specific list by its ID.
 fetch('/v1/lists/1', {
   method: 'PATCH',
   body: JSON.stringify({
-    list: 'Updated List'
+    list: "Updated List"
   })
 })
 ```
@@ -122,7 +122,7 @@ fetch('/v1/lists/1', {
 DELETE /v1/lists/:list_id
 ```
 
-This endpoint deletes a specific list by its ID.
+Deletes a specific list by its ID.
 
 ### Path Parameters
 
@@ -150,7 +150,7 @@ fetch('/v1/lists/1', {
 GET /v1/users
 ```
 
-This endpoint retrieves all users.
+Returns all users.
 
 ### Example Request
 
@@ -178,7 +178,7 @@ fetch('/v1/users', {
 GET /v1/users/:user_id
 ```
 
-This endpoint retrieves a specific user by their ID.
+Returns a specific user by their ID.
 
 ### Path Parameters
 
@@ -212,7 +212,7 @@ fetch('/v1/users/1', {
 POST /v1/users
 ```
 
-This endpoint creates a new user.
+Creates a new user.
 
 ### Example Request
 
@@ -220,7 +220,7 @@ This endpoint creates a new user.
 fetch('/v1/users', {
   method: 'POST',
   body: JSON.stringify({
-    user: 'New User'
+    user: "New User"
   })
 })
 ```
@@ -237,7 +237,7 @@ fetch('/v1/users', {
 PATCH /v1/users/:user_id
 ```
 
-This endpoint updates a specific user by their ID.
+Updates a specific user by their ID.
 
 ### Path Parameters
 
@@ -249,7 +249,7 @@ This endpoint updates a specific user by their ID.
 fetch('/v1/users/1', {
   method: 'PATCH',
   body: JSON.stringify({
-    user: 'Updated User'
+    user: "Updated User"
   })
 })
 ```
@@ -268,7 +268,7 @@ fetch('/v1/users/1', {
 DELETE /v1/users/:user_id
 ```
 
-This endpoint deletes a specific user by their ID.
+Deletes a specific user by their ID.
 
 ### Path Parameters
 
