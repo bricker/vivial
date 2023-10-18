@@ -111,26 +111,30 @@ export async function runApiDocumentationTaskHandler(
   });
   sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
 
-  const latestCommitOnDefaultBranch = await githubAPIData.getLatestCommitOnDefaultBranch();
-  if (latestCommitOnDefaultBranch) {
-    const committedDate = Date.parse(latestCommitOnDefaultBranch.committedDate);
-    const oneDayAgo = Date.now() - (1000 * 60 * 60 * 24);
-    if (committedDate < oneDayAgo) {
-      await logEvent(
-        {
-          event_name: "api_documentation_skipped_no_commits",
-          event_description:
-            "The API documentation process was skipped because no commits were made to the default branch in the delta period",
-          eave_team: eaveTeam,
-          event_source: ANALYTICS_SOURCE,
-          opaque_params: {
-            ...sharedAnalyticsParams,
+  const existingGithubDocuments = await coreAPIData.getGithubDocuments();
+  // If there aren't any associated github documents yet, always run the task.
+  if (existingGithubDocuments && Object.keys(existingGithubDocuments).length > 0) {
+    const latestCommitOnDefaultBranch = await githubAPIData.getLatestCommitOnDefaultBranch();
+    if (latestCommitOnDefaultBranch) {
+      const committedDate = Date.parse(latestCommitOnDefaultBranch.committedDate);
+      const oneDayAgo = Date.now() - (1000 * 60 * 60 * 24);
+      if (committedDate < oneDayAgo) {
+        await logEvent(
+          {
+            event_name: "api_documentation_skipped_no_commits",
+            event_description:
+              "The API documentation process was skipped because no commits were made to the default branch in the delta period.",
+            eave_team: eaveTeam,
+            event_source: ANALYTICS_SOURCE,
+            opaque_params: {
+              ...sharedAnalyticsParams,
+            },
           },
-        },
-        ctx,
-      );
-      res.sendStatus(200);
-      return;
+          ctx,
+        );
+        res.sendStatus(200);
+        return;
+      }
     }
   }
 
