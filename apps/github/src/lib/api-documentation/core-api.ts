@@ -28,106 +28,110 @@ type GithubDocumentTable = { [key: string]: GithubDocument };
 
 export class CoreAPIData {
   readonly logParams: { [key: string]: JsonValue };
-  readonly team: Team;
-  readonly eaveGithubRepo: GithubRepo;
+  readonly teamId: string;
+  readonly externalRepoId: string;
   private readonly ctx: LogContext;
-  readonly eaveGithubDocuments: GithubDocumentTable;
 
-  static async load({
-    ctx,
+  private __memo__eaveGithubDocuments?: GithubDocumentTable
+  private __memo__eaveTeam?: Team
+  private __memo__eaveGithubRepo?: GithubRepo
+
+  constructor({
     teamId,
-    eaveGithubRepoInput,
-  }: CtxArg & { teamId: string; eaveGithubRepoInput: GithubRepoInput }) {
-    let team: Team;
-    let eaveGithubRepo: GithubRepo;
-    const existingGithubDocuments: GithubDocumentTable = {};
-
-    {
-      const response = await GetTeamOperation.perform({
-        origin: appConfig.eaveOrigin,
-        teamId,
-        ctx,
-      });
-      team = response.team;
-    }
-
-    {
-      const response = await GetGithubReposOperation.perform({
-        origin: appConfig.eaveOrigin,
-        teamId: team.id,
-        input: {
-          repos: [eaveGithubRepoInput],
-        },
-        ctx,
-      });
-
-      if (response.repos.length > 1) {
-        eaveLogger.warning(
-          `Unexpected multiple repos for id ${eaveGithubRepoInput.external_repo_id}`,
-          ctx,
-        );
-      }
-
-      const r = response.repos[0];
-      assert(
-        r,
-        `No repo found in Eave for ID ${eaveGithubRepoInput.external_repo_id}`,
-      );
-      eaveGithubRepo = r;
-    }
-
-    {
-      const response = await GetGithubDocumentsOperation.perform({
-        input: {
-          query_params: {
-            github_repo_id: eaveGithubRepo.id,
-            type: DocumentType.API_DOCUMENT,
-          },
-        },
-        origin: appConfig.eaveOrigin,
-        teamId: team.id,
-        ctx,
-      });
-
-      response.documents.forEach((doc) => {
-        if (doc.file_path) {
-          const key = githubDocumentKey({
-            filePath: doc.file_path,
-            externalRepoId: eaveGithubRepo.external_repo_id,
-          });
-          existingGithubDocuments[key] = doc;
-        }
-      });
-    }
-
-    return new CoreAPIData({
-      team,
-      ctx,
-      eaveGithubRepo,
-      existingGithubDocuments,
-    });
-  }
-
-  private constructor({
-    team,
+    externalRepoId,
     ctx,
-    eaveGithubRepo,
-    existingGithubDocuments,
-  }: CtxArg &
-    EaveGithubRepoArg & {
-      team: Team;
-      existingGithubDocuments: GithubDocumentTable;
+  }: CtxArg & {
+      teamId: string;
+      externalRepoId: string;
     }) {
     this.ctx = ctx;
-    this.team = team;
-    this.eaveGithubRepo = eaveGithubRepo;
-    this.eaveGithubDocuments = existingGithubDocuments;
+    this.teamId = teamId;
+    this.externalRepoId = externalRepoId;
+    this.logParams = {};
+  }
 
-    this.logParams = {
-      eave_github_repo: this.eaveGithubRepo,
-      existing_documents: this.eaveGithubDocuments,
-      eave_team: this.team,
-    };
+  async getEaveGithubRepo(): Promise<GithubRepo> {
+    if (this.__memo__eaveGithubRepo !== undefined) {
+      return this.__memo__eaveGithubRepo;
+    }
+    const response = await GetGithubReposOperation.perform({
+      origin: appConfig.eaveOrigin,
+      teamId: this.teamId,
+      input: {
+        repos: [
+          { external_repo_id: this.externalRepoId },
+        ],
+      },
+      ctx: this.ctx,
+    });
+
+    if (response.repos.length > 1) {
+      eaveLogger.warning(
+        `Unexpected multiple repos for id ${this.externalRepoId}`,
+        this.ctx,
+      );
+    }
+
+    const eaveGithubRepo = response.repos[0];
+    assert(
+      eaveGithubRepo,
+      `No repo found in Eave for ID ${this.externalRepoId}`,
+    );
+
+    this.logParams["eave_github_repo"] = eaveGithubRepo;
+    this.__memo__eaveGithubRepo = eaveGithubRepo;
+    return this.__memo__eaveGithubRepo;
+  }
+
+  async getTeam(): Promise<Team> {
+    if (this.__memo__eaveTeam !== undefined) {
+      return this.__memo__eaveTeam;
+    }
+
+    const response = await GetTeamOperation.perform({
+      origin: appConfig.eaveOrigin,
+      teamId: this.teamId,
+      ctx: this.ctx,
+    });
+    const team = response.team;
+    this.logParams["eave_team"] = team;
+    this.__memo__eaveTeam = team;
+    return this.__memo__eaveTeam;
+  }
+
+  async getGithubDocuments(): Promise<GithubDocumentTable> {
+    if (this.__memo__eaveGithubDocuments !== undefined) {
+      return this.__memo__eaveGithubDocuments;
+    }
+
+    const eaveGithubRepo = await this.getEaveGithubRepo();
+    const response = await GetGithubDocumentsOperation.perform({
+      input: {
+        query_params: {
+          github_repo_id: eaveGithubRepo.id,
+          type: DocumentType.API_DOCUMENT,
+        },
+      },
+      origin: appConfig.eaveOrigin,
+      teamId: this.teamId,
+      ctx: this.ctx,
+    });
+
+    const existingGithubDocuments: GithubDocumentTable = {};
+
+    response.documents.forEach((doc) => {
+      if (doc.file_path) {
+        const key = githubDocumentKey({
+          filePath: doc.file_path,
+          externalRepoId: eaveGithubRepo.external_repo_id,
+        });
+        existingGithubDocuments[key] = doc;
+      }
+    });
+
+    this.logParams["existing_documents"] = existingGithubDocuments;
+    this.__memo__eaveGithubDocuments = existingGithubDocuments;
+    return this.__memo__eaveGithubDocuments;
   }
 
   async createPlaceholderGithubDocument({
@@ -137,13 +141,15 @@ export class CoreAPIData {
     apiName: string;
     documentationFilePath: string;
   }): Promise<GithubDocument> {
+    const eaveGithubRepo = await this.getEaveGithubRepo();
+
     const response = await CreateGithubDocumentOperation.perform({
       origin: appConfig.eaveOrigin,
       ctx: this.ctx,
-      teamId: this.team.id,
+      teamId: this.teamId,
       input: {
         repo: {
-          id: this.eaveGithubRepo.id,
+          id: eaveGithubRepo.id,
         },
         document: {
           type: DocumentType.API_DOCUMENT,
@@ -174,35 +180,39 @@ export class CoreAPIData {
         },
       },
       origin: appConfig.eaveOrigin,
-      teamId: this.team.id,
+      teamId: this.teamId,
       ctx: this.ctx,
     });
 
-    this.setGithubDocument({ document: response.document });
+    await this.setGithubDocument({ document: response.document });
     return response.document;
   }
 
-  setGithubDocument({ document }: { document: GithubDocument }) {
+  async setGithubDocument({ document }: { document: GithubDocument }) {
     if (document.file_path !== null) {
       // TODO: What to do if it's null?
       const key = githubDocumentKey({
         filePath: document.file_path,
-        externalRepoId: this.eaveGithubRepo.external_repo_id,
+        externalRepoId: this.externalRepoId,
       });
-      this.eaveGithubDocuments[key] = document;
+
+      const githubDocuments = await this.getGithubDocuments();
+      githubDocuments[key] = document;
     }
   }
 
-  getGithubDocument({
+  async getGithubDocument({
     filePath,
   }: {
     filePath: string;
-  }): GithubDocument | undefined {
+  }): Promise<GithubDocument | undefined> {
     const key = githubDocumentKey({
       filePath,
-      externalRepoId: this.eaveGithubRepo.external_repo_id,
+      externalRepoId: this.externalRepoId,
     });
-    return this.eaveGithubDocuments[key];
+
+    const githubDocuments = await this.getGithubDocuments();
+    return githubDocuments[key];
   }
 }
 

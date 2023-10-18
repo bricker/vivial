@@ -28,8 +28,9 @@ export class ExpressAPIDocumentBuilder {
     githubAPIData: GithubAPIData;
     apiRootDir: string;
   }): Promise<ExpressAPI> {
+    const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
     const apiInfo = new ExpressAPI({
-      externalRepoId: githubAPIData.externalGithubRepo.id,
+      externalRepoId: externalGithubRepo.id,
       rootDir: apiRootDir,
     });
 
