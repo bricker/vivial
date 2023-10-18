@@ -15,6 +15,7 @@ import {
 } from "@octokit/graphql-schema";
 import { Octokit } from "octokit";
 import * as GraphQLUtil from "../lib/graphql-util.js";
+import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 
 export class PullRequestCreator {
   private repoName: string;
@@ -363,6 +364,8 @@ export class PullRequestCreator {
 
     // fwiw, this should always be empty for a branch that was just created, so this line will implicitly skip to the `openPullRequest` block.
     // As of writing this, the query that gets this data only fetches the 1 most recently created open pull request. The sorting/filtering here is so that if the query is changed, this logic still works as expected.
+    assertPresence(branch.associatedPullRequests, 'associatedPullRequests unexpectedly empty');
+
     const mostRecentExistingPr = branch.associatedPullRequests.nodes
       ?.filter((p) => p?.state === "OPEN")
       .sort(sortPRsByDescendingCreatedAt)

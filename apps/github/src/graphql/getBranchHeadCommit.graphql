@@ -3,15 +3,7 @@ query ($repoOwner: String!, $repoName: String!, $branchName: String!) {
     ...repoFragment
 
     ref(qualifiedName: $branchName) {
-      __typename
-
-      target {
-        ...gitObjectFragment
-
-        ... on Commit {
-          ...commitFragment
-        }
-      }
+      ...refFragment
     }
   }
 }
