@@ -227,7 +227,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     async def make_team(self, session: AsyncSession) -> eave.core.internal.orm.TeamOrm:
         team = await eave.core.internal.orm.TeamOrm.create(
             session=session,
-            name=self.anystring("team name"),
+            name=self.anystr("team name"),
             document_platform=DocumentPlatform.confluence,
         )
 
@@ -253,19 +253,19 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             visitor_id=self.anyuuid("account.visitor_id"),
             opaque_utm_params=self.anydict("account.opaque_utm_params"),
             auth_provider=auth_provider or AuthProvider.slack,
-            auth_id=auth_id or self.anystring("account.auth_id"),
-            access_token=access_token or self.anystring("account.oauth_token"),
-            refresh_token=refresh_token or self.anystring("account.refresh_token"),
+            auth_id=auth_id or self.anystr("account.auth_id"),
+            access_token=access_token or self.anystr("account.oauth_token"),
+            refresh_token=refresh_token or self.anystr("account.refresh_token"),
         )
 
         match account.auth_provider:
             case AuthProvider.slack:
                 mock_userinfo = SlackIdentity(
                     response={
-                        "slack_user_id": self.anystring("slack.authed_user.id"),
-                        "slack_team_id": self.anystring("slack.team.id"),
-                        "email": self.anystring("slack.slack_user_email"),
-                        "given_name": self.anystring("slack.slack_given_name"),
+                        "slack_user_id": self.anystr("slack.authed_user.id"),
+                        "slack_team_id": self.anystr("slack.team.id"),
+                        "email": self.anystr("slack.slack_user_email"),
+                        "given_name": self.anystr("slack.slack_given_name"),
                     }
                 )
 
@@ -300,10 +300,10 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         self.testdata["fake_atlassian_resources"] = [
             eave.stdlib.atlassian.AtlassianAvailableResource(
                 data={
-                    "id": self.anystring("atlassian_cloud_id"),
-                    "url": self.anystring("confluence_document_response._links.base"),
-                    "avatarUrl": self.anystring("atlassian.resource.avatar"),
-                    "name": self.anystring("atlassian.resource.name"),
+                    "id": self.anystr("atlassian_cloud_id"),
+                    "url": self.anystr("confluence_document_response._links.base"),
+                    "avatarUrl": self.anystr("atlassian.resource.avatar"),
+                    "name": self.anystr("atlassian.resource.name"),
                     "scopes": [],
                 },
             )
@@ -318,10 +318,10 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         )
 
         self.testdata["fake_atlassian_token"] = {
-            "access_token": self.anystring("atlassian.access_token"),
-            "refresh_token": self.anystring("atlassian.refresh_token"),
+            "access_token": self.anystr("atlassian.access_token"),
+            "refresh_token": self.anystr("atlassian.refresh_token"),
             "expires_in": self.anyint("atlassian.expires_in"),
-            "scope": self.anystring("atlassian.scope"),
+            "scope": self.anystr("atlassian.scope"),
         }
 
         self.patch(unittest.mock.patch("eave.core.internal.oauth.atlassian.AtlassianOAuthSession.fetch_token"))
@@ -337,9 +337,9 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             data={
                 "type": "known",
                 "accountType": "atlassian",
-                "accountId": self.anystring("confluence.account_id"),
-                "displayName": self.anystring("confluence.display_name"),
-                "email": self.anystring("confluence.email"),
+                "accountId": self.anystr("confluence.account_id"),
+                "displayName": self.anystr("confluence.display_name"),
+                "email": self.anystr("confluence.email"),
             },
         )
 
