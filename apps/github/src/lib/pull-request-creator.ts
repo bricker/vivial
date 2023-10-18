@@ -109,9 +109,7 @@ export class PullRequestCreator {
    */
   private async createBranch(branchName: string): Promise<Ref> {
     // get base branch head commit
-    const getHeadCommitQuery = await GraphQLUtil.loadQuery(
-      "getRef",
-    );
+    const getHeadCommitQuery = await GraphQLUtil.loadQuery("getRef");
     const getHeadCommitParams: {
       repoName: Scalars["String"]["input"];
       repoOwner: Scalars["String"]["input"];
