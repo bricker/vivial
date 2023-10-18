@@ -21,6 +21,7 @@ import OpenAIClient, {
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import {
   Blob,
+  Mutation,
   PullRequest,
   PullRequestChangedFile,
   PullRequestChangedFileConnection,
@@ -29,8 +30,10 @@ import {
   Scalars,
 } from "@octokit/graphql-schema";
 import { PullRequestEvent } from "@octokit/webhooks-types";
+import { Octokit } from "octokit";
 import path from "path";
 import { appConfig } from "../config.js";
+import { API_BRANCH_NAME } from "../constants.js";
 import * as GraphQLUtil from "../lib/graphql-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { EventHandlerArgs } from "../types.js";
@@ -79,6 +82,16 @@ export default async function handler({
     // if there are api document changes, we can assume this is an API docs PR
     if (documents.length > 0) {
       ctx.feature_name = "api_documentation";
+
+      // on merge, delete the API docs branch to prevent conflicts from
+      // arrising on future PRs
+      if (event.pull_request.merged) {
+        await deleteApiDocsBranch({
+          octokit,
+          repoName: event.repository.name,
+          repoOwner: event.repository.owner.name!,
+        });
+      }
     }
 
     const interaction = event.pull_request.merged
@@ -381,4 +394,45 @@ async function updateDocsPullRequestStatus({
     eaveLogger.exception(e, ctx);
     // Allow the function to continue running
   }
+}
+
+async function deleteApiDocsBranch({
+  octokit,
+  repoName,
+  repoOwner,
+}: {
+  octokit: Octokit;
+  repoName: string;
+  repoOwner: string;
+}) {
+  const getBranchQuery = await GraphQLUtil.loadQuery("getRef");
+  const getBranchParameters: {
+    repoName: Scalars["String"]["input"];
+    repoOwner: Scalars["String"]["input"];
+    refName: Scalars["String"]["input"];
+  } = {
+    repoName: repoName,
+    repoOwner: repoOwner,
+    refName: API_BRANCH_NAME,
+  };
+
+  const branchResp = await octokit.graphql<{
+    repository: Query["repository"];
+  }>(getBranchQuery, getBranchParameters);
+
+  GraphQLUtil.assertIsRepository(branchResp.repository);
+  const ref = branchResp.repository.ref;
+
+  if (!ref) {
+    // branch has already been deleted for us
+    return;
+  }
+
+  const query = await GraphQLUtil.loadQuery("deleteBranch");
+  const params: {
+    refNodeId: Scalars["ID"]["input"];
+  } = {
+    refNodeId: ref.id,
+  };
+  await octokit.graphql<{ resp: Mutation["deleteRef"] }>(query, params);
 }
