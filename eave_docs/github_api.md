@@ -14,11 +14,11 @@ None
 
 **x-github-delivery** (string) *required* - The unique ID of the delivery.
 
-**x-github-event** (string) *required* - The name of the event that triggered the webhook.
+**x-github-event** (string) *required* - The name of the event that triggered the delivery.
 
-**x-hub-signature-256** (string) *required* - The HMAC hex digest of the response body, using the hook's secret as the key.
+**x-hub-signature-256** (string) *required* - The HMAC hex digest of the response body. This header will be sent if the webhook is configured with a secret.
 
-**x-github-hook-installation-target-id** (string) *required* - The ID of the Github App.
+**x-github-hook-installation-target-id** (string) *required* - The ID of the app installation target.
 
 ### Example Request
 
@@ -28,10 +28,10 @@ fetch('http://localhost:3000/github/events', {
   headers: {
     'x-github-delivery': '72d3162e-cc78-11e3-81ab-4c9367dc0958',
     'x-github-event': 'push',
-    'x-hub-signature-256': 'sha1=7d38cdd689735b008b3c702edd92eea23791c5f6',
+    'x-hub-signature-256': 'sha256=7d38cdd689735b008b3c702edd92eea23791c5f6c39e4a9b123d0528c6d2c25f',
     'x-github-hook-installation-target-id': '123456'
   },
-  body: JSON.stringify({action: 'created', ...})
+  body: JSON.stringify({/* event data */})
 })
 ```
 
