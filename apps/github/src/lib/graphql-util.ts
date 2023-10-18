@@ -1,4 +1,10 @@
-import { Blob, Commit, Repository, Tree, validate } from "@octokit/graphql-schema";
+import {
+  Blob,
+  Commit,
+  Repository,
+  Tree,
+  validate,
+} from "@octokit/graphql-schema";
 import assert from "node:assert";
 import { promises as fs } from "node:fs";
 import GlobalCache from "../lib/cache.js";
