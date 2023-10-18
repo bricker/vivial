@@ -65,25 +65,27 @@ export async function runApiDocumentationTaskHandler(
     throw new MissingRequiredHeaderError(EAVE_TEAM_ID_HEADER);
   }
 
-  const coreAPIData = await CoreAPIData.load({
+  const coreAPIData = new CoreAPIData({
     teamId,
     ctx,
-    eaveGithubRepoInput: input.repo,
+    externalRepoId: input.repo.external_repo_id,
   });
   sharedAnalyticsParams["core_api_data"] = coreAPIData.logParams;
-  ctx.set({ eave_team: coreAPIData.team });
+  const eaveTeam = await coreAPIData.getTeam();
+  ctx.set({ eave_team: eaveTeam });
 
   eaveLogger.debug("eave core API data", sharedAnalyticsParams, ctx);
 
+  const eaveGithubRepo = await coreAPIData.getEaveGithubRepo();
   assert(
-    coreAPIData.eaveGithubRepo.api_documentation_state === State.ENABLED,
-    `API documentation feature not enabled for repo ID ${coreAPIData.eaveGithubRepo.external_repo_id}`,
+    eaveGithubRepo.api_documentation_state === State.ENABLED,
+    `API documentation feature not enabled for repo ID ${eaveGithubRepo.external_repo_id}`,
   );
 
-  const installId = await getInstallationId(coreAPIData.team.id, ctx);
+  const installId = await getInstallationId(eaveTeam.id, ctx);
   assert(
     installId,
-    `No github integration found for team ID ${coreAPIData.team.id}`,
+    `No github integration found for team ID ${eaveTeam.id}`,
   );
 
   const octokit = await createOctokitClient(installId);
@@ -93,7 +95,7 @@ export async function runApiDocumentationTaskHandler(
       event_name: "run_api_documentation",
       event_description:
         "The API documentation process was kicked off for a repo",
-      eave_team: coreAPIData.team,
+      eave_team: eaveTeam,
       event_source: ANALYTICS_SOURCE,
       opaque_params: {
         ...sharedAnalyticsParams,
@@ -102,14 +104,42 @@ export async function runApiDocumentationTaskHandler(
     ctx,
   );
 
-  const githubAPIData = await GithubAPIData.load({
+  const githubAPIData = new GithubAPIData({
     ctx,
     octokit,
-    eaveGithubRepo: coreAPIData.eaveGithubRepo,
+    externalRepoId: eaveGithubRepo.external_repo_id,
   });
   sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
 
-  if (githubAPIData.expressRootDirs.length === 0) {
+  const existingGithubDocuments = await coreAPIData.getGithubDocuments();
+  // If there aren't any associated github documents yet, always run the task.
+  if (existingGithubDocuments && Object.keys(existingGithubDocuments).length > 0) {
+    const latestCommitOnDefaultBranch = await githubAPIData.getLatestCommitOnDefaultBranch();
+    if (latestCommitOnDefaultBranch) {
+      const committedDate = Date.parse(latestCommitOnDefaultBranch.committedDate);
+      const oneDayAgo = Date.now() - (1000 * 60 * 60 * 24);
+      if (committedDate < oneDayAgo) {
+        await logEvent(
+          {
+            event_name: "api_documentation_skipped_no_commits",
+            event_description:
+              "The API documentation process was skipped because no commits were made to the default branch in the delta period.",
+            eave_team: eaveTeam,
+            event_source: ANALYTICS_SOURCE,
+            opaque_params: {
+              ...sharedAnalyticsParams,
+            },
+          },
+          ctx,
+        );
+        res.sendStatus(200);
+        return;
+      }
+    }
+  }
+
+  const expressRootDirs = await githubAPIData.getExpressRootDirs();
+  if (expressRootDirs.length === 0) {
     eaveLogger.warning("no express apps detected", sharedAnalyticsParams, ctx);
 
     await logEvent(
@@ -117,7 +147,7 @@ export async function runApiDocumentationTaskHandler(
         event_name: "express_api_detection_no_apps_detected",
         event_description:
           "The API documentation feature is enabled for this repository, but no express apps were detected.",
-        eave_team: coreAPIData.team,
+        eave_team: eaveTeam,
         event_source: ANALYTICS_SOURCE,
         opaque_params: {
           ...sharedAnalyticsParams,
@@ -133,7 +163,7 @@ export async function runApiDocumentationTaskHandler(
   eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
 
   const results = await Promise.allSettled(
-    githubAPIData.expressRootDirs.map(async (apiRootDir) => {
+    expressRootDirs.map(async (apiRootDir) => {
       try {
         const localAnalyticsParams: { [key: string]: JsonValue } = {};
         localAnalyticsParams["api_root_dir"] = apiRootDir;
@@ -164,7 +194,7 @@ export async function runApiDocumentationTaskHandler(
           ctx,
         );
 
-        let eaveDoc = coreAPIData.getGithubDocument({
+        let eaveDoc = await coreAPIData.getGithubDocument({
           filePath: expressAPIInfo.documentationFilePath,
         });
         localAnalyticsParams["eave_doc"] = eaveDoc;
@@ -403,12 +433,13 @@ export async function runApiDocumentationTaskHandler(
     return;
   }
 
+  const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
   const prCreator = new PullRequestCreator({
-    repoName: githubAPIData.externalGithubRepo.name,
-    repoOwner: githubAPIData.externalGithubRepo.owner.login,
-    repoId: githubAPIData.externalGithubRepo.id,
+    repoName: externalGithubRepo.name,
+    repoOwner: externalGithubRepo.owner.login,
+    repoId: externalGithubRepo.id,
     baseBranchName:
-      githubAPIData.externalGithubRepo.defaultBranchRef?.name || "main", // The only reason `defaultBranchRef` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
+      externalGithubRepo.defaultBranchRef?.name || "main", // The only reason `defaultBranchRef` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
     octokit,
     ctx,
   });
@@ -457,9 +488,9 @@ async function updateDocuments({
   expressAPIs: ExpressAPI[];
   newValues: GithubDocumentValuesInput;
 }) {
-  for (const expressAPI of expressAPIs) {
+  await Promise.allSettled(expressAPIs.map(async (expressAPI) => {
     if (expressAPI.documentationFilePath) {
-      const eaveDoc = coreAPIData.getGithubDocument({
+      const eaveDoc = await coreAPIData.getGithubDocument({
         filePath: expressAPI.documentationFilePath,
       });
       assertPresence(eaveDoc);
@@ -468,7 +499,7 @@ async function updateDocuments({
         newValues,
       });
     }
-  }
+  }));
 }
 
 /**

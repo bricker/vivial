@@ -22,6 +22,8 @@ _OAUTH_SCOPES = [
 _REDIRECT_URI = f"{app_config.eave_public_api_base}/oauth/google/callback"
 
 
+# https://developers.google.com/identity/protocols/oauth2
+
 class GoogleIdToken:
     """
     https://developers.google.com/identity/openid-connect/openid-connect#authenticatingtheuser

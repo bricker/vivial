@@ -6,6 +6,7 @@ import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import {
   Blob,
+  Commit,
   Query,
   Repository,
   Scalars,
@@ -20,6 +21,7 @@ import {
   assertIsRepository,
   assertIsTree,
   isBlob,
+  isCommit,
   isTree,
   loadQuery,
 } from "../graphql-util.js";
@@ -27,93 +29,130 @@ import { EaveGithubRepoArg, ExternalGithubRepoArg } from "./args.js";
 
 export class GithubAPIData {
   readonly logParams: { [key: string]: JsonValue };
-  readonly expressRootDirs: string[];
-  readonly externalGithubRepo: Repository;
+  readonly externalRepoId: string;
   private readonly ctx: LogContext;
   private readonly octokit: Octokit;
 
-  static async load({
+  private __memo__latestCommitOnDefaultBranch?: Commit | null;
+  private __memo__expressRootDirs?: string[];
+  private __memo__externalGithubRepo?: Repository;
+
+  constructor({
     ctx,
     octokit,
-    eaveGithubRepo,
-  }: GitHubOperationsContext & EaveGithubRepoArg) {
-    let externalGithubRepo;
-    let expressRootDirs;
-
-    {
-      const query = await loadQuery("getRepo");
-      const variables: {
-        nodeId: Scalars["ID"]["input"];
-      } = {
-        nodeId: eaveGithubRepo.external_repo_id,
-      };
-
-      const response = await octokit.graphql<{ node: Query["node"] }>(
-        query,
-        variables,
-      );
-
-      assertIsRepository(response.node);
-      externalGithubRepo = response.node;
-    }
-
-    {
-      const query = `"\\"express\\":" in:file filename:package.json repo:${externalGithubRepo.owner.login}/${externalGithubRepo.name}`;
-      const response = await octokit.rest.search.code({
-        q: query,
-      });
-
-      expressRootDirs = response.data.items.map((i) => path.dirname(i.path));
-
-      if (expressRootDirs.length === 0) {
-        eaveLogger.warning(
-          "No express API dir file found",
-          { core_api_data: { eave_github_repo: eaveGithubRepo }, query },
-          ctx,
-        );
-      }
-    }
-
-    return new GithubAPIData({
-      ctx,
-      octokit,
-      externalGithubRepo,
-      expressRootDirs,
-    });
-  }
-
-  private constructor({
-    ctx,
-    octokit,
-    externalGithubRepo,
-    expressRootDirs,
-  }: GitHubOperationsContext &
-    ExternalGithubRepoArg & { expressRootDirs: string[] }) {
+    externalRepoId,
+  }: GitHubOperationsContext & { externalRepoId: string; }) {
     this.ctx = ctx;
     this.octokit = octokit;
-    this.externalGithubRepo = externalGithubRepo;
-    this.expressRootDirs = expressRootDirs;
+    this.externalRepoId = externalRepoId;
 
-    this.logParams = {
-      external_github_repo: {
-        id: this.externalGithubRepo.id,
-        nameWithOwner: this.externalGithubRepo.nameWithOwner,
-      },
-      express_root_dirs: this.expressRootDirs,
-    };
+    this.logParams = {};
   }
 
-  async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {
+  async getExternalGithubRepo(): Promise<Repository> {
+    if (this.__memo__externalGithubRepo !== undefined) {
+      return this.__memo__externalGithubRepo;
+    }
+
+    const query = await loadQuery("getRepo");
+    const variables: {
+      nodeId: Scalars["ID"]["input"];
+    } = {
+      nodeId: this.externalRepoId,
+    };
+
+    const response = await this.octokit.graphql<{ node: Query["node"] }>(
+      query,
+      variables,
+    );
+
+    const externalGithubRepo = response.node;
+    assertIsRepository(externalGithubRepo);
+
+    this.logParams["external_github_repo"] = {
+      id: externalGithubRepo.id,
+      nameWithOwner: externalGithubRepo.nameWithOwner,
+    };
+    this.__memo__externalGithubRepo = externalGithubRepo;
+    return this.__memo__externalGithubRepo;
+  }
+
+  async getExpressRootDirs(): Promise<string[]> {
+    if (this.__memo__expressRootDirs !== undefined) {
+      return this.__memo__expressRootDirs;
+    }
+
+    const externalGithubRepo = await this.getExternalGithubRepo();
+    const query = `"\\"express\\":" in:file filename:package.json repo:${externalGithubRepo.owner.login}/${externalGithubRepo.name}`;
+    const response = await this.octokit.rest.search.code({
+      q: query,
+    });
+
+    const expressRootDirs = response.data.items.map((i) => path.dirname(i.path));
+
+    if (expressRootDirs.length === 0) {
+      eaveLogger.warning(
+        "No express API dir file found",
+        this.logParams,
+        this.ctx,
+      );
+    }
+
+    this.logParams["express_root_dirs"] = expressRootDirs;
+    this.__memo__expressRootDirs = expressRootDirs;
+    return expressRootDirs;
+  }
+
+  async getLatestCommitOnDefaultBranch(): Promise<Commit | null> {
+    if (this.__memo__latestCommitOnDefaultBranch !== undefined) {
+      return this.__memo__latestCommitOnDefaultBranch;
+    }
+
+    const externalGithubRepo = await this.getExternalGithubRepo();
     const query = await loadQuery("getGitObject");
     const variables: {
       repoOwner: Scalars["String"]["input"];
       repoName: Scalars["String"]["input"];
       expression: Scalars["String"]["input"];
     } = {
-      repoOwner: this.externalGithubRepo.owner.login,
-      repoName: this.externalGithubRepo.name,
+      repoOwner: externalGithubRepo.owner.login,
+      repoName: externalGithubRepo.name,
+      expression: "HEAD", // default branch by default
+    };
+
+    const response = await this.octokit.graphql<{ repository: Query["repository"] }>(
+      query,
+      variables,
+    );
+
+    assertIsRepository(response.repository);
+    if (!isCommit(response.repository.object)) {
+      return null;
+    }
+
+    let latestCommitOnDefaultBranch: Commit | null;
+    if (isCommit(response.repository.object)) {
+      latestCommitOnDefaultBranch = response.repository.object;
+    } else {
+      latestCommitOnDefaultBranch = null;
+    }
+
+    this.__memo__latestCommitOnDefaultBranch = latestCommitOnDefaultBranch;
+    return latestCommitOnDefaultBranch;
+  }
+
+  async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {
+    const externalGithubRepo = await this.getExternalGithubRepo();
+    const query = await loadQuery("getGitObject");
+    const variables: {
+      repoOwner: Scalars["String"]["input"];
+      repoName: Scalars["String"]["input"];
+      expression: Scalars["String"]["input"];
+    } = {
+      repoOwner: externalGithubRepo.owner.login,
+      repoName: externalGithubRepo.name,
       expression: `${
-        this.externalGithubRepo.defaultBranchRef!.name
+        externalGithubRepo.defaultBranchRef!.name
       }:${treeRootDir}`,
     };
 
@@ -160,16 +199,17 @@ export class GithubAPIData {
   }: {
     filePath: string;
   }): Promise<Blob | null> {
+    const externalGithubRepo = await this.getExternalGithubRepo();
     const query = await loadQuery("getGitObject");
     const variables: {
       repoOwner: Scalars["String"]["input"];
       repoName: Scalars["String"]["input"];
       expression: Scalars["String"]["input"];
     } = {
-      repoOwner: this.externalGithubRepo.owner.login,
-      repoName: this.externalGithubRepo.name,
+      repoOwner: externalGithubRepo.owner.login,
+      repoName: externalGithubRepo.name,
       expression: `${
-        this.externalGithubRepo.defaultBranchRef?.name || "main"
+        externalGithubRepo.defaultBranchRef?.name || "main"
       }:${filePath}`,
     };
 

@@ -5,6 +5,10 @@ query ($repoOwner: String!, $repoName: String!, $expression: String!) {
     object(expression: $expression) {
       ...gitObjectFragment
 
+      ... on Commit {
+        ...commitFragment
+      }
+
       ... on Blob {
         ...blobFragment
       }
