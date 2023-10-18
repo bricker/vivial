@@ -5,12 +5,7 @@ mutation ($branchName: String!, $commitHeadId: GitObjectID!, $repoId: ID!) {
     __typename
 
     ref {
-      __typename
-      id
-      name
-      target {
-        ...gitObjectFragment
-      }
+      ...refFragment
     }
   }
 }

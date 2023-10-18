@@ -1,9 +1,0 @@
-query ($repoOwner: String!, $repoName: String!, $branchName: String!) {
-  repository(owner: $repoOwner, name: $repoName) {
-    ...repoFragment
-
-    ref(qualifiedName: $branchName) {
-      ...refFragment
-    }
-  }
-}

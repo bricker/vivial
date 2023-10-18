@@ -16,8 +16,7 @@ query (
       __typename
 
       nodes {
-        __typename
-        name
+        ...refFragment
       }
     }
   }
