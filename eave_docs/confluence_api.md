@@ -1,10 +1,10 @@
 ## Webhook Event Receiver
 
 ```
-POST /
+POST /events
 ```
 
-This API endpoint is used to receive webhook events. It authenticates the request and logs the event.
+This API endpoint receives webhook events and logs them.
 
 ### Path Parameters
 
@@ -13,24 +13,24 @@ None
 ### Example Request
 
 ```javascript
-fetch('http://localhost:3000/events', {
+fetch('/events', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
-  body: JSON.stringify({ event: 'exampleEvent' }),
+  body: JSON.stringify({event: 'exampleEvent'})
 })
 ```
 
 ### Example Response
 
-No response body is returned for this endpoint.
+This endpoint does not return a response body.
 
 ### Response Codes
 
 **200**: The webhook event was received and logged successfully.
 
-**401**: The request was not authenticated.
+**401**: Unauthorized. The request was not authenticated.
 
 <br />
 
@@ -40,7 +40,7 @@ No response body is returned for this endpoint.
 POST /api/spaces/query
 ```
 
-This endpoint is used to query available spaces in Confluence.
+This endpoint is used to query available spaces in the Confluence client.
 
 ### Path Parameters
 
@@ -80,7 +80,7 @@ fetch('/api/spaces/query', {
 
 ### Response Codes
 
-**200**: The request was successful and the available spaces are returned.
+**200**: The request was successful and the available spaces are returned in the response.
 
 ---
 
@@ -90,7 +90,7 @@ fetch('/api/spaces/query', {
 POST /api/content/search
 ```
 
-This endpoint is used to search for content in Confluence.
+This endpoint is used to search for content in the Confluence client.
 
 ### Path Parameters
 
@@ -139,7 +139,7 @@ fetch('/api/content/search', {
 
 ### Response Codes
 
-**200**: The request was successful and the search results are returned.
+**200**: The request was successful and the search results are returned in the response.
 
 ---
 
@@ -149,7 +149,7 @@ fetch('/api/content/search', {
 POST /api/content/create
 ```
 
-This endpoint is used to create new content in Confluence.
+This endpoint is used to create new content in the Confluence client.
 
 ### Path Parameters
 
@@ -199,7 +199,7 @@ fetch('/api/content/create', {
 
 ### Response Codes
 
-**200**: The request was successful and the newly created content is returned.
+**200**: The request was successful and the newly created content is returned in the response.
 
 ---
 
@@ -209,7 +209,7 @@ fetch('/api/content/create', {
 POST /api/content/update
 ```
 
-This endpoint is used to update existing content in Confluence.
+This endpoint is used to update existing content in the Confluence client.
 
 ### Path Parameters
 
@@ -256,7 +256,7 @@ fetch('/api/content/update', {
 
 ### Response Codes
 
-**200**: The request was successful and the updated content is returned.
+**200**: The request was successful and the updated content is returned in the response.
 
 ---
 
@@ -266,7 +266,7 @@ fetch('/api/content/update', {
 POST /api/content/delete
 ```
 
-This endpoint is used to delete existing content in Confluence.
+This endpoint is used to delete existing content in the Confluence client.
 
 ### Path Parameters
 

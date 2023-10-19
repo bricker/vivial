@@ -4,21 +4,11 @@
 POST /github/events
 ```
 
-This API endpoint is used to handle GitHub events. It validates the GitHub webhook headers, verifies the signature, and if valid, it creates a task from the request and sends it to a queue for processing.
+This API endpoint is used to handle incoming GitHub webhook events. It validates the headers of the incoming request, verifies the signature, and if valid, it creates a task for the event in the background. If the event is not supported, it logs a warning and sends a 200 OK response.
 
 ### Path Parameters
 
 None
-
-### Headers
-
-**x-github-delivery** (string) *required* - The unique ID of the delivery.
-
-**x-github-event** (string) *required* - The name of the event that triggered the webhook.
-
-**x-hub-signature-256** (string) *required* - The signature for the webhook payload, used to verify the sender.
-
-**x-github-hook-installation-target-id** (string) *required* - The ID of the GitHub App installation that the event is related to.
 
 ### Example Request
 
@@ -26,12 +16,12 @@ None
 fetch('http://localhost:3000/github/events', {
   method: 'POST',
   headers: {
-    'x-github-delivery': '72d3162e-cc78-11e3-81ab-4c9367dc0958',
-    'x-github-event': 'push',
-    'x-hub-signature-256': 'sha256=4864d2759938a15468b5df9e3f6052e4b175e5f206e55fcef3c1af731aea85f1',
-    'x-github-hook-installation-target-id': '123456'
+    'x-github-delivery': 'delivery_id',
+    'x-github-event': 'event_name',
+    'x-hub-signature-256': 'signature',
+    'x-github-hook-installation-target-id': 'app_id'
   },
-  body: JSON.stringify({/*...payload...*/})
+  body: JSON.stringify({ action: 'created' })
 })
 ```
 
@@ -43,7 +33,7 @@ HTTP/1.1 200 OK
 
 ### Response Codes
 
-**200**: The request was successful and the event is supported.
+**200**: The request was successful, and the event is either handled or not supported.
 
 **400**: The request was unsuccessful due to missing header data from GitHub or signature verification failure.
 
