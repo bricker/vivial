@@ -1,21 +1,22 @@
-#!/usr/bin/env -S PYTHONPATH=. python
+#!/usr/bin/env python
 
 import os
+import sys
 import click
-from eave.dev_tooling.dotenv_loader import load_merged_dotenv_files
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 import alembic
 import alembic.config
 import alembic.command
 
+sys.path.append('.')
+
 EAVE_HOME = os.environ["EAVE_HOME"]
 alembic_config = alembic.config.Config("alembic.ini")
+load_standard_dotenv_files()
 
 @click.command()
-@click.option("-e", "--env-file", "env_files", multiple=True, default=[f"{EAVE_HOME}/.env"])
 @click.option("-m", "--message", required=True)
-def create_revision(env_files: list[str], message: str) -> None:
-    load_merged_dotenv_files(files=env_files)
-
+def create_revision(message: str) -> None:
     alembic.command.revision(
         config=alembic_config,
         message=message,

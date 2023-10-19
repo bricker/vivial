@@ -1,22 +1,23 @@
-#!/usr/bin/env -S PYTHONPATH=. python
+#!/usr/bin/env python
 
 import logging
 import os
+import sys
 import click
-from eave.dev_tooling.dotenv_loader import load_merged_dotenv_files
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 import alembic
 import alembic.config
 import alembic.command
 from eave.stdlib.logging import eaveLogger
 
+sys.path.append('.')
+
 EAVE_HOME = os.environ["EAVE_HOME"]
 alembic_config = alembic.config.Config("alembic.ini")
+load_standard_dotenv_files()
 
 @click.command()
-@click.option("-e", "--env-file", "env_files", multiple=True, default=[f"{EAVE_HOME}/.env"])
-def upgrade(env_files: list[str]) -> None:
-    load_merged_dotenv_files(files=env_files)
-
+def upgrade() -> None:
     eave_db_name = os.environ["EAVE_DB_NAME"]
     eave_db_host = os.environ["EAVE_DB_HOST"]
     google_cloud_project = os.environ["GOOGLE_CLOUD_PROJECT"]

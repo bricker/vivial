@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from dotenv import load_dotenv
+import sys
 
 import sqlalchemy
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -9,10 +9,14 @@ from sqlalchemy.ext.asyncio import create_async_engine
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 from eave.stdlib.logging import eaveLogger
 
-load_dotenv(f"{os.getenv('EAVE_HOME')}/.env", override=False)
+sys.path.append(".")
+
+EAVE_HOME = os.environ["EAVE_HOME"]
+load_standard_dotenv_files()
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
