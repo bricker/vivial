@@ -32,8 +32,7 @@ import {
 import { PullRequestEvent } from "@octokit/webhooks-types";
 import { Octokit } from "octokit";
 import path from "path";
-import { appConfig } from "../config.js";
-import { API_BRANCH_NAME } from "../constants.js";
+import { API_BRANCH_NAME, appConfig } from "../config.js";
 import * as GraphQLUtil from "../lib/graphql-util.js";
 import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { EventHandlerArgs } from "../types.js";

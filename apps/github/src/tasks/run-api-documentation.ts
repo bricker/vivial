@@ -25,7 +25,7 @@ import {
 import { FileAddition } from "@octokit/graphql-schema";
 import assert from "assert";
 import Express from "express";
-import { API_BRANCH_NAME } from "../constants.js";
+import { API_BRANCH_NAME } from "../config.js";
 import { ExpressAPIDocumentBuilder } from "../lib/api-documentation/builder.js";
 import { CoreAPIData } from "../lib/api-documentation/core-api.js";
 import { GithubAPIData } from "../lib/api-documentation/github-api.js";
