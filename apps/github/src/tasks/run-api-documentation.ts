@@ -35,12 +35,13 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 const ANALYTICS_SOURCE = "run api documentation cron handler";
 
 /**
- * Handles the task of running API documentation. It loads the necessary context and input data, validates the team ID,
- * and loads the core API data. It then checks the state of the API documentation, retrieves the installation ID, and creates
- * an Octokit client. It logs the event of running the API documentation and loads the Github API data. If no express apps
- * are detected, it logs a warning and sends a 200 status response. If express apps are detected, it builds the API documentation
- * for each app, generates the API documentation from OpenAI, and creates or updates the Github document accordingly. It then
- * creates a pull request with the new or updated documentation.
+ * Handles the task of running API documentation. It loads the logging context, validates the team ID,
+ * retrieves the team and repository data, checks the API documentation state, and creates a GitHub client.
+ * It logs the start of the API documentation process and checks for any existing GitHub documents.
+ * If there are no new commits or no express apps detected, it skips the API documentation process.
+ * Otherwise, it detects express apps, builds the API documentation, and creates or updates the GitHub document.
+ * If the API documentation is successfully generated, it creates a pull request with the new document.
+ * If any errors occur during the process, it logs the error and updates the GitHub document status to FAILED.
  *
  * @param {Express.Request} req - The request object.
  * @param {Express.Response} res - The response object.
@@ -477,7 +478,12 @@ export async function runApiDocumentationTaskHandler(
  * @param {Object} params - The parameters for updating documents.
  * @param {CoreAPIData} params.coreAPIData - The Core API data instance.
  * @param {ExpressAPI[]} params.expressAPIs - An array of Express APIs whose documentation needs to be updated.
- * @param {GithubDocumentValuesInput} params.newValues - The new values to be updated in the documentation.
+ * @param {GithubDocumentValuesInput} params.newValues - The new values to be updated in the Github documents.
+ *
+ * If the Express API has a documentation file path, it retrieves the Github document using the Core API data instance,
+ * asserts the presence of the document, and then updates the Github document with the new values.
+ *
+ * The function performs these operations concurrently for all Express APIs using Promise.allSettled.
  *
  * @throws {Error} If the documentation for an Express API is not found.
  *
@@ -509,14 +515,19 @@ async function updateDocuments({
 }
 
 /**
- * Generates API documentation for the provided Express REST API endpoints by sending the endpoints to OpenAI one at a time.
+ * Generates API documentation for a given Express API by sending the endpoints to OpenAI one at a time.
  *
- * @param {Object} args - The arguments object.
- * @param {Object} args.expressAPIInfo - Information about the Express API.
- * @param {Object} args.ctx - The context object.
- * @returns {Promise<string|null>} The generated API documentation or null if no documentation could be generated.
+ * @param {Object} arg - An object.
+ * @param {Object} arg.expressAPIInfo - Information about the Express API.
+ * @param {Object} arg.ctx - The context.
+ * @returns {Promise<string|null>} The generated API documentation as a string, or null if no documentation could be generated.
  *
- * @throws Will throw an error if the OpenAI client fails to generate the documentation.
+ * @throws Will throw an error if the OpenAI client fails to create a chat completion.
+ *
+ * @example
+ * generateExpressAPIDoc({ expressAPIInfo: { endpoints: [...] }, ctx: {} })
+ *  .then(apiDoc => console.log(apiDoc))
+ *  .catch(error => console.error(error));
  */
 async function generateExpressAPIDoc({
   expressAPIInfo,
@@ -621,10 +632,11 @@ async function generateExpressAPIDoc({
 }
 
 /**
- * Generates the file path for the documentation of a given API.
+ * Returns the file path for the documentation of a given API.
  *
- * @param {Object} options - The options object.
- * @param {string} options.apiName - The name of the API.
+ * @param {Object} obj - An object.
+ * @param {string} obj.apiName - The name of the API.
+ *
  * @returns {string} The file path for the API's documentation.
  */
 function documentationFilePath({ apiName }: { apiName: string }): string {
