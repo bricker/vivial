@@ -71,6 +71,15 @@ class GithubOAuthCallback(HTTPEndpoint):
         request: Request,
     ) -> Response:
         self.response = Response()
+
+        # if this is a permissions update from github, just redirect to dashboard
+        if "state" not in request.query_params:
+            shared.set_redirect(
+                response=self.response,
+                location=shared.DEFAULT_REDIRECT_LOCATION,
+            )
+            return self.response
+
         self.state = state = request.query_params["state"]
 
         # Because of the GitHub redirect_uri issue described in this file, we need to get the redirect_uri from state,
