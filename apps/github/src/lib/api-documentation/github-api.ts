@@ -36,6 +36,14 @@ export class GithubAPIData {
   private __memo__expressRootDirs?: string[];
   private __memo__externalGithubRepo?: Repository;
 
+  /**
+   * Constructs a new instance of the GitHubOperations class.
+   *
+   * @param {object} params - An object containing the necessary parameters.
+   * @param {object} params.ctx - The context object.
+   * @param {object} params.octokit - The Octokit object.
+   * @param {string} params.externalRepoId - The external repository ID.
+   */
   constructor({
     ctx,
     octokit,
@@ -48,6 +56,15 @@ export class GithubAPIData {
     this.logParams = {};
   }
 
+  /**
+   * Retrieves an external GitHub repository using the repository's node ID.
+   * The repository is fetched via a GraphQL query and memoized for future use.
+   * If the repository has been previously fetched, the memoized version is returned.
+   * The function also logs the repository's ID and name with owner for tracking purposes.
+   *
+   * @returns {Promise<Repository>} A promise that resolves to the fetched GitHub repository.
+   * @throws {AssertionError} If the fetched node is not a repository.
+   */
   async getExternalGithubRepo(): Promise<Repository> {
     if (this.__memo__externalGithubRepo !== undefined) {
       return this.__memo__externalGithubRepo;
@@ -76,6 +93,13 @@ export class GithubAPIData {
     return this.__memo__externalGithubRepo;
   }
 
+  /**
+   * Asynchronously retrieves the root directories of Express applications within the project.
+   * It searches for 'package.json' files containing the term '"express":' to identify Express applications.
+   * The results are memoized for future calls.
+   * If no Express application directories are found, a warning is logged.
+   * @returns {Promise<string[]>} A promise that resolves to an array of root directory paths for Express applications.
+   */
   async getExpressRootDirs(): Promise<string[]> {
     if (this.__memo__expressRootDirs !== undefined) {
       return this.__memo__expressRootDirs;
@@ -110,6 +134,16 @@ export class GithubAPIData {
     return expressRootDirs;
   }
 
+  /**
+   * Retrieves the latest commit on the default branch of the external Github repository.
+   * If the latest commit is already memoized, it returns the memoized commit.
+   * Otherwise, it queries the Github GraphQL API to fetch the latest commit.
+   * If the fetched object is not a commit, it returns null.
+   * The fetched commit is memoized for future use.
+   *
+   * @returns {Promise<Commit | null>} The latest commit on the default branch or null if not found.
+   * @async
+   */
   async getLatestCommitOnDefaultBranch(): Promise<Commit | null> {
     if (this.__memo__latestCommitOnDefaultBranch !== undefined) {
       return this.__memo__latestCommitOnDefaultBranch;
@@ -147,6 +181,16 @@ export class GithubAPIData {
     return latestCommitOnDefaultBranch;
   }
 
+  /**
+   * Retrieves the Git tree of a specified directory from an external GitHub repository.
+   *
+   * @param {Object} params - An object containing the root directory of the tree.
+   * @param {string} params.treeRootDir - The root directory of the tree.
+   *
+   * @returns {Promise<Tree>} A promise that resolves to the Git tree of the specified directory.
+   *
+   * @throws {AssertionError} If the response from the GitHub API does not contain a valid repository or tree.
+   */
   async getGitTree({ treeRootDir }: { treeRootDir: string }): Promise<Tree> {
     const externalGithubRepo = await this.getExternalGithubRepo();
     const query = await loadQuery("getGitObject");
@@ -173,6 +217,17 @@ export class GithubAPIData {
     return tree;
   }
 
+  /**
+   * Asynchronously generates `TreeEntry` objects by recursively traversing a Git tree.
+   * The function uses Breadth-First Search (BFS) to traverse the tree.
+   *
+   * @param treeRootDir - The root directory of the Git tree to be traversed.
+   * @yields {TreeEntry} - Yields blob entries first, then recursively yields entries from subtrees.
+   *
+   * @remarks
+   * The function is designed to yield `TreeEntry` objects where `TreeEntry.object.__typename === "Blob"`.
+   * The caller is responsible for asserting this condition.
+   */
   async *recurseGitTree({
     treeRootDir,
   }: {
@@ -198,6 +253,16 @@ export class GithubAPIData {
     }
   }
 
+  /**
+   * Retrieves the content of a file from a GitHub repository.
+   *
+   * @param {Object} params - The parameters for the function.
+   * @param {string} params.filePath - The path of the file in the repository.
+   *
+   * @returns {Promise<Blob | null>} The content of the file as a Blob if it exists, otherwise null.
+   *
+   * @throws {Error} If the response from the GitHub API does not contain a valid repository or Blob.
+   */
   async getFileContent({
     filePath,
   }: {

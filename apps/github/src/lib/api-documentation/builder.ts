@@ -22,6 +22,23 @@ export class ExpressAPIDocumentBuilder {
   private readonly ctx: LogContext;
   private readonly apiRootFile: ExpressCodeFile;
 
+  /**
+   * Asynchronously builds an Express API from the provided GitHub and core API data.
+   * It fetches the external GitHub repository, creates an Express API instance, and iterates over the Git tree entries.
+   * If a valid Express root file is found, it is set as the root file of the API.
+   * If no root file is found, a warning is logged and the API instance is returned.
+   * If a root file is found, it proceeds to build the API documentation using the ExpressAPIDocumentBuilder.
+   * It then finds and sets the Express API endpoints.
+   * If no endpoints are found, a warning is logged.
+   * Finally, it logs the found Express endpoints and returns the API instance.
+   *
+   * @param {Object} args - The arguments object.
+   * @param {GithubAPIData} args.githubAPIData - The GitHub API data.
+   * @param {CoreAPIData} args.coreAPIData - The core API data.
+   * @param {Object} args.ctx - The context object.
+   * @param {string} args.apiRootDir - The root directory of the API.
+   * @returns {Promise<ExpressAPI>} - A promise that resolves to an Express API instance.
+   */
   static async buildAPI({
     githubAPIData,
     coreAPIData,
@@ -105,6 +122,14 @@ export class ExpressAPIDocumentBuilder {
     return apiInfo;
   }
 
+  /**
+   * A private constructor that initializes the instance with the provided context and API data.
+   *
+   * @param apiRootFile - An ExpressCodeFile instance representing the root file of the API.
+   * @param githubAPIData - A GithubAPIData instance containing data from the Github API.
+   * @param coreAPIData - A CoreAPIData instance containing data from the core API.
+   * @param ctx - The context in which the instance is created.
+   */
   private constructor({
     apiRootFile,
     githubAPIData,
@@ -128,8 +153,17 @@ export class ExpressAPIDocumentBuilder {
   }
 
   /**
+   * Asynchronously finds all Express API endpoints in the root file of the API.
    * Given the root file for an Express API, this function attempts to identify
-   * each API endpoint in the file. It then builds the code for each endpoint.
+   * each API endpoint in the file. It builds a list of local requires and imports,
+   * gets the declaration map of the root file, and identifies the Express app and router.
+   * It then iterates over all call expressions in the root file, and for each call that
+   * is a middleware or route call, it generates the corresponding code, including any
+   * necessary imports, requires, or declarations. It also builds the code for each endpoint.
+   *
+   * @returns {Promise<Array<string>>} A promise that resolves to an array of strings,
+   * each string being the code for an Express API endpoint.
+   * @private
    */
   private async findExpressAPIEndpoints(): Promise<Array<string>> {
     eaveLogger.debug("findExpressAPIEndpoints", this.logParams, this.ctx);
@@ -190,8 +224,17 @@ export class ExpressAPIDocumentBuilder {
   }
 
   /**
-   * Given a top-level declaration identifier, this function recursively builds
-   * up all of the local source code for that declaration.
+   * Asynchronously concatenates import declarations from a given ExpressCodeFile.
+   *
+   * This method first checks if the provided identifier is declared in the given file. If it is, the method concatenates the declaration text and recursively builds up all of the local source code for that declaration, checking for any inner identifiers that need to be imported.
+   *
+   * If the identifier is not found in the given file, the method checks for a default export and recursively concatenates the import declarations from the default exported file.
+   *
+   * @param {Object} params - The parameters for the function.
+   * @param {string} params.identifier - The identifier to search for in the ExpressCodeFile.
+   * @param {ExpressCodeFile} params.expressCodeFile - The ExpressCodeFile to search in.
+   *
+   * @returns {Promise<string>} A promise that resolves to a string of concatenated import declarations.
    */
   private async concatenateImports({
     identifier,
@@ -272,8 +315,10 @@ export class ExpressAPIDocumentBuilder {
   }
 
   /**
-   * Given a tree, builds the local source code for the top-level imports found
-   * in the tree. Returns the code in a map for convenient lookup.
+   * Asynchronously builds a map of local imports from the given tree, which represents the API root file.
+   * Each key-value pair in the map represents an identifier and its corresponding import code.
+   *
+   * @returns {Promise<Map<string, string>>} A promise that resolves to a map of identifiers to import codes.
    */
   private async buildLocalImports(): Promise<Map<string, string>> {
     const importPaths = this.apiRootFile.getLocalImportPaths();
@@ -292,8 +337,13 @@ export class ExpressAPIDocumentBuilder {
   }
 
   /**
-   * Given a tree, builds the local source code for the top-level required modules
-   * found the tree. Returns the code in a map for convenient lookup.
+   * Asynchronously builds a map of local require paths and their corresponding code from a given tree.
+   * It fetches the local require paths from the API root file, retrieves the express code file for each path,
+   * concatenates the imports, and sets the identifier and concatenated code in the map.
+   * This process is used to build the local source code for the top-level required modules found in the tree.
+   *
+   * @returns {Promise<Map<string, string>>} A promise that resolves to a map where the key is the identifier and the value is the corresponding require code.
+   * @private
    */
   private async buildLocalRequires(): Promise<Map<string, string>> {
     const requirePaths = this.apiRootFile.getLocalRequirePaths();
@@ -311,6 +361,15 @@ export class ExpressAPIDocumentBuilder {
     return requires;
   }
 
+  /**
+   * Asynchronously retrieves an ExpressCodeFile instance for a given file path.
+   * If the file does not exist or is a JavaScript import with a TypeScript source file, it attempts to retrieve the TypeScript file.
+   * If the file contents are empty, a warning is logged and an ExpressCodeFile with empty contents is returned.
+   *
+   * @param {Object} params - An object containing the file path.
+   * @param {string} params.filePath - The path of the file to retrieve.
+   * @returns {Promise<ExpressCodeFile>} A promise that resolves to an ExpressCodeFile instance.
+   */
   private async getExpressCodeFile({
     filePath,
   }: {
