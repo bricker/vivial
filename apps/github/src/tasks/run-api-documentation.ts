@@ -180,6 +180,7 @@ export async function runApiDocumentationTaskHandler(
 
         const expressAPIInfo = await ExpressAPIDocumentBuilder.buildAPI({
           githubAPIData,
+          coreAPIData,
           apiRootDir,
           ctx,
         });
