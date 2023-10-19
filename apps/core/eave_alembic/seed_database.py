@@ -28,7 +28,6 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 sys.path.append(".")
 
-EAVE_HOME = os.environ["EAVE_HOME"]
 load_standard_dotenv_files()
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")

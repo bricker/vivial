@@ -10,7 +10,6 @@ import alembic.command
 
 sys.path.append('.')
 
-EAVE_HOME = os.environ["EAVE_HOME"]
 alembic_config = alembic.config.Config("alembic.ini")
 load_standard_dotenv_files()
 
