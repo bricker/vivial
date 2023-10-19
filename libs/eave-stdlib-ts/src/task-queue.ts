@@ -256,5 +256,8 @@ export async function getCachedPayload(req: Request): Promise<string> {
       "Could not find expected cached event body. Maybe the TTL needs to be extended?",
     );
   }
+  // these cache items are single-use; prevent build-up of dead data
+  await cacheClient.del(cacheEntry.cacheKey);
+
   return normalizeString(cachedBody);
 }
