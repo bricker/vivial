@@ -317,8 +317,12 @@ const GitHubFeatureModal = (
   );
 
   const teamRepoIds = team.repos.map((repo) => repo.id);
-  const enabledRepos = team.repos?.filter((repo) => repo[feature] === FEATURE_STATES.ENABLED) || [];
-  const notEnabledRepos = team.repos?.filter((repo) => repo[feature] !== FEATURE_STATES.ENABLED) || [];
+  const enabledRepos =
+    team.repos?.filter((repo) => repo[feature] === FEATURE_STATES.ENABLED) ||
+    [];
+  const notEnabledRepos =
+    team.repos?.filter((repo) => repo[feature] !== FEATURE_STATES.ENABLED) ||
+    [];
   const sortedRepos = [...enabledRepos, ...notEnabledRepos];
 
   const enabledRepoIds = enabledRepos.map((r) => r.id);
@@ -406,7 +410,6 @@ const GitHubFeatureModal = (
     },
     [selectedRepoIds, teamRepoIds],
   );
-
 
   if (showConfirmation) {
     return (

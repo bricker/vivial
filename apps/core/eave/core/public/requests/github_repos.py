@@ -258,5 +258,6 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
 
         return Response(status_code=HTTPStatus.OK)
 
+
 def _sort_repos(repos: list[GithubRepoOrm]) -> None:
     repos.sort(key=lambda r: r.display_name.lower() if r.display_name else str(r.created))
