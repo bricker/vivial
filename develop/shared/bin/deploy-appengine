@@ -43,7 +43,7 @@ function deploy() (
 		local status; status=$(echo "$response" | jq -r .status)
 
 		if test "$status" == "OK"; then
-			gcloud app services set-traffic "$service" --splits="$version=1" --migrate
+			gcloud --project="$project" app services set-traffic "$service" --splits="$version=1" --migrate
 		else
 			statusmsg -e "Deployment of ${service} version ${version} failed! See above for the error message from curl."
 			statusmsg -e "This version WILL NOT be promoted, and is receiving no traffic."
