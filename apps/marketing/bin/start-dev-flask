@@ -1,29 +1,26 @@
 #!/usr/bin/env -S PYTHONPATH=. python
 
-import uvicorn
 import os
-
-from dotenv import load_dotenv
-
 EAVE_HOME = os.environ["EAVE_HOME"]
+
+from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(dotenv_path=os.path.join(EAVE_HOME, "develop/shared/share.env"), override=True)
 load_dotenv(dotenv_path=os.path.join(EAVE_HOME, ".env"), override=True)
 load_dotenv(dotenv_path=os.path.join(EAVE_HOME, ".eavefyi-dev.env"), override=True)
 
-os.environ["GAE_SERVICE"] = "www"
+from eave.marketing.app import app  # noqa: E402
 
 if __name__ == "__main__":
-    uvicorn.run(
-        app="eave.core.app:app",
-        port=5100,
-        reload=True,
-        reload_dirs=[
-            "eave",
-            os.path.join(os.environ["EAVE_HOME"], "libs/eave-stdlib-py"),
+    app.run(
+        port=5000,
+        use_debugger=False,
+        use_reloader=True,
+        extra_files=[
+            os.path.join(EAVE_HOME, "libs/eave-stdlib-py"),
         ],
-        reload_excludes=[
-            "**/build/",
+        exclude_patterns=[
             ".*",
-        ]
+            "**/build/",
+        ],
     )

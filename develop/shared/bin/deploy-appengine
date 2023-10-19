@@ -6,24 +6,11 @@ function deploy() (
 	local project; project=$(^gcloudproject)
 	local promoteflag=""
 
-	while getopts "p:" argname
-	do
-		case "$argname" in
-			p)
-				if test "$OPTARG" = "prod"; then
-					project="eave-production"
-					promoteflag="--no-promote"
-				else
-					project="eavefyi-dev"
-					promoteflag="--promote"
-				fi
-				;;
-			*)
-				statusmsg -e "unknown option: $argname"
-				exit 1
-				;;
-		esac
-	done
+	if test "$project" == "eave-production"; then
+		promoteflag="--no-promote"
+	else
+		promoteflag="--promote"
+	fi
 
 	local appyaml="app.$project.yaml"
 	test -f "$appyaml"
@@ -63,11 +50,6 @@ function deploy() (
 			exit 1
 		fi
 	fi
-
-	# local service=$(cat $appyaml | yq '.service')
-	# local tagname="$service-$version"
-	# git tag -am $tagname $tagname
-	# git push origin $tagname
 )
 
 deploy "$@"

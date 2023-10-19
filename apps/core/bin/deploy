@@ -2,11 +2,13 @@
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-(
+function run() (
 	cd "$(^parentpath)"
 	bin/lint
 	setup-deployment-workspace
-	bin/run-db-migration
+	bin/run-db-migration -e "${EAVE_HOME}/.$(^gcloudproject).env"
 	# gcloud builds submit --ignore-file=.gcloudignore-builder --config=cloudbuild.yaml
 	"${EAVE_HOME}"/develop/python/bin/deploy-appengine "$@"
 )
+
+run "$@"

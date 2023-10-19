@@ -7,12 +7,12 @@
 
     {
       "name": "Core API",
+      "consoleTitle": "Core API",
       "cwd": "${workspaceFolder}/apps/core",
       "type": "python",
       "request": "launch",
       "program": "bin/start-dev",
       "justMyCode": false,
-      "consoleTitle": "Core API",
       "env": {
         "PYTHONPATH": ".",
       }
@@ -82,39 +82,15 @@
     },
     {
       "name": "GitHub App",
-      "envFile": "${workspaceFolder}/.env",
+      "consoleTitle": "GitHub App",
       "cwd": "${workspaceFolder}/apps/github",
       "type": "node",
       "request": "launch",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/apps/github/server.ts",
-      "restart": true,
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/nodemon",
-      "args": [
-        "--exec", "${workspaceFolder}/node_modules/.bin/tsx",
-        "--watch", "${workspaceFolder}/apps/github/src",
-        "--watch", "${workspaceFolder}/libs/eave-stdlib-ts",
-        "--delay", "5",
-      ],
-      "consoleTitle": "GitHub App",
-      "console": "integratedTerminal",
-      "env": {
-        "PORT": "5300",
-        "GAE_SERVICE": "github",
-        "GAE_VERSION": "dev",
-        "TZ": "UTC",
-        "LOG_LEVEL": "DEBUG",
-        "EAVE_ENV": "development",
-        "EAVE_API_BASE_PUBLIC": "http://api.eave.run:8080",
-        "EAVE_APPS_BASE_PUBLIC": "http://apps.eave.run:8080",
-        "EAVE_WWW_BASE_PUBLIC": "http://www.eave.run:8080",
-        "EAVE_MONITORING_DISABLED": "1",
-        "EAVE_ANALYTICS_DISABLED": "1",
-        "NODE_ENV": "development",
-        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
-      },
+      "program": "bin/start-dev.cjs",
+      "console": "integratedTerminal"
     },
     {
       "name": "Confluence App",
@@ -189,51 +165,29 @@
       },
     },
     {
-      "name": "Marketing Website (Server)",
-      "envFile": "${workspaceFolder}/.env",
+      "name": "Website (Flask)",
+      "consoleTitle": "Website (Flask)",
       "cwd": "${workspaceFolder}/apps/marketing",
       "type": "python",
       "request": "launch",
-      "module": "flask",
-      "args": [
-        "--app",
-        "eave.marketing.app:app",
-        "run",
-        "--no-debugger",
-        "--port",
-        "5000"
-      ],
+      "program": "bin/start-dev-flask",
       "jinja": true,
-      "justMyCode": true,
-      "consoleTitle": "Marketing Website (Server)",
+      "justMyCode": false,
       "env": {
-        "GAE_SERVICE": "www",
-        "GAE_VERSION": "dev",
-        "TZ": "UTC",
-        "LOG_LEVEL": "DEBUG",
-        "EAVE_ENV": "development",
-        "EAVE_API_BASE_PUBLIC": "http://api.eave.run:8080",
-        "EAVE_APPS_BASE_PUBLIC": "http://apps.eave.run:8080",
-        "EAVE_WWW_BASE_PUBLIC": "http://www.eave.run:8080",
-        "EAVE_MONITORING_DISABLED": "1",
-        "EAVE_ANALYTICS_DISABLED": "1",
-        "PYTHONWARNINGS": "ignore::DeprecationWarning",
-        "PYDEVD_DISABLE_FILE_VALIDATION": "1",
-        "FLASK_DEBUG": "1",
+        "PYTHONPATH": "."
       }
     },
     {
-      "name": "Marketing Website (Client)",
-      "envFile": "${workspaceFolder}/.env",
+      "name": "Website (Webpack)",
+      "consoleTitle": "Website (Webpack)",
       "cwd": "${workspaceFolder}/apps/marketing",
       "type": "node",
       "request": "launch",
       "program": "./node_modules/.bin/webpack",
       "args": [
-        "-w",
+        "-w"
       ],
-      "console": "integratedTerminal",
-      "consoleTitle": "Marketing Website (Client)",
+      "console": "integratedTerminal"
     },
     {
       "name": "Debug Python Test",
@@ -261,34 +215,21 @@
   ],
   "compounds": [
     {
-      "name": "Marketing Website",
+      "name": "Website",
       "configurations": [
-        "Marketing Website (Client)",
-        "Marketing Website (Server)"
+        "Website (Flask)",
+        "Website (Webpack)"
       ],
       "stopAll": true
     },
     {
-      "name": "Core API + Marketing Website",
+      "name": "Core API + Website",
       "configurations": [
         "Core API",
-        "Marketing Website (Client)",
-        "Marketing Website (Server)",
+        "Website (Flask)",
+        "Website (Webpack)",
       ],
       "stopAll": true
-    },
-    {
-      "name": "All Services",
-      "configurations": [
-        "Core API",
-        "Slack Socket Mode",
-        "GitHub App",
-        "Confluence App",
-        "Jira App",
-        "Marketing Website (Client)",
-        "Marketing Website (Server)",
-      ],
-      "stopAll": false
     },
   ]
 }
