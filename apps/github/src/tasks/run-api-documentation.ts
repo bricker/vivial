@@ -25,6 +25,7 @@ import {
 import { FileAddition } from "@octokit/graphql-schema";
 import assert from "assert";
 import Express from "express";
+import { API_BRANCH_NAME } from "../config.js";
 import { ExpressAPIDocumentBuilder } from "../lib/api-documentation/builder.js";
 import { CoreAPIData } from "../lib/api-documentation/core-api.js";
 import { GithubAPIData } from "../lib/api-documentation/github-api.js";
@@ -449,7 +450,7 @@ export async function runApiDocumentationTaskHandler(
   eaveLogger.debug("creating pull request", sharedAnalyticsParams, ctx);
 
   const pullRequest = await prCreator.createPullRequest({
-    branchName: "refs/heads/eave/auto-docs/api",
+    branchName: API_BRANCH_NAME,
     commitMessage: "docs: automated update",
     prTitle: "docs: Eave API documentation update",
     prBody: "Your new API docs based on recent changes to your code",
