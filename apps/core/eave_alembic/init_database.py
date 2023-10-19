@@ -13,7 +13,7 @@ from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 from eave.stdlib.logging import eaveLogger
 
-sys.path.append('.')
+sys.path.append(".")
 
 EAVE_HOME = os.environ["EAVE_HOME"]
 load_standard_dotenv_files()

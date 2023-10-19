@@ -26,7 +26,7 @@ foreign keys linking correctly.
 UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 """
 
-sys.path.append('.')
+sys.path.append(".")
 
 EAVE_HOME = os.environ["EAVE_HOME"]
 load_standard_dotenv_files()
