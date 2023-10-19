@@ -38,15 +38,14 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 import { EventHandlerArgs } from "../types.js";
 
 /**
- * Handles GitHub pull request events. If the event indicates that a pull request has been closed,
- * the function logs the event and updates the status of associated documents.
- * If the pull request was merged, the function also fetches all files from the pull request,
- * determines which files need documentation, and updates the documentation in each file.
- * Finally, it creates a new pull request with the updated documentation.
- * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=closed#pull_request
+ * Handles GitHub pull request events. If the event indicates a pull request has been closed, the function checks if the pull request was opened by a bot and if it contains API documentation changes. If so, it logs the event and updates the status of the documentation pull request. If the pull request was merged, it also deletes the API docs branch to prevent conflicts. If the pull request was not opened by a bot, the function checks if it was merged. If so, it fetches all the files from the pull request, filters out the ones that don't need documentation, and updates the documentation in each file. Finally, it creates a new pull request with the updated documentation.
  *
- * @param {PullRequestEvent} event - The pull request event from GitHub.
- * @param {GitHubOperationsContext} context - The context for GitHub operations, including the Octokit instance and the current context.
+ * @param {Object} args - The arguments for the function.
+ * @param {Object} args.event - The GitHub pull request event.
+ * @param {Object} args.ctx - The context for the function.
+ * @param {Object} args.octokit - The Octokit instance for making GitHub API calls.
+ * @param {Object} args.eaveTeam - The Eave team instance.
+ * @returns {Promise<void>} - A promise that resolves when the function has finished executing.
  * @throws {Error} If there is an error fetching file content or creating a pull request.
  */
 export default async function handler({
@@ -303,13 +302,15 @@ export default async function handler({
 }
 
 /**
- * Gets the list of GithubDocuments that document the APIs in this repo
+ * Retrieves the associated Github documents for a given repository and pull request.
  *
- * @param repoId github gql node id of the repo
- * @param prNumber number of the PR to search by
- * @param eaveTeam whose team to search for matching documents in
- * @param ctx log context
- * @returns list of document models from backend
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.repoId - The ID of the Github repository.
+ * @param {number} params.prNumber - The number of the pull request.
+ * @param {Team} params.eaveTeam - The Eave team object to search for matching documents in.
+ * @param {CtxArg} params.ctx - The context argument for log context.
+ * @returns {Promise<GithubDocument[]>} A promise that resolves to an array of Github documents from backend.
+ * @throws Will throw an error if the Github repository or documents cannot be retrieved.
  */
 async function getAssociatedGithubDocuments({
   repoId,
@@ -363,6 +364,18 @@ async function getAssociatedGithubDocuments({
   }
 }
 
+/**
+ * Updates the status of a pull request for a set of documents on Github.
+ *
+ * @async
+ * @function updateDocsPullRequestStatus
+ * @param {Object} arg - The argument object.
+ * @param {Status} arg.status - The new status to be set for the documents.
+ * @param {Team} arg.eaveTeam - The team responsible for the documents.
+ * @param {GithubDocument[]} arg.documents - The array of documents to be updated.
+ * @param {CtxArg} arg.ctx - The context argument.
+ * @throws Will throw an error if the update operation fails.
+ */
 async function updateDocsPullRequestStatus({
   ctx,
   eaveTeam,
@@ -395,6 +408,18 @@ async function updateDocsPullRequestStatus({
   }
 }
 
+/**
+ * Deletes a specific API documentation branch from a given repository.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {Octokit} params.octokit - The Octokit instance to interact with GitHub's GraphQL API.
+ * @param {string} params.repoName - The name of the repository from which the branch will be deleted.
+ * @param {string} params.repoOwner - The owner of the repository from which the branch will be deleted.
+ *
+ * @returns {Promise<void>} A promise that resolves when the branch has been deleted.
+ *
+ * @throws {Error} If the repository does not exist or the branch does not exist.
+ */
 async function deleteApiDocsBranch({
   octokit,
   repoName,
