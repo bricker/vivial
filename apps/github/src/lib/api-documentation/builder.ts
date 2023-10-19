@@ -12,8 +12,8 @@ import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import { assertIsBlob } from "../graphql-util.js";
-import { GithubAPIData } from "./github-api.js";
 import { CoreAPIData } from "./core-api.js";
+import { GithubAPIData } from "./github-api.js";
 
 export class ExpressAPIDocumentBuilder {
   readonly logParams: { [key: string]: JsonValue };
@@ -110,7 +110,11 @@ export class ExpressAPIDocumentBuilder {
     githubAPIData,
     coreAPIData,
     ctx,
-  }: CtxArg & { apiRootFile: ExpressCodeFile; githubAPIData: GithubAPIData, coreAPIData: CoreAPIData }) {
+  }: CtxArg & {
+    apiRootFile: ExpressCodeFile;
+    githubAPIData: GithubAPIData;
+    coreAPIData: CoreAPIData;
+  }) {
     this.githubAPIData = githubAPIData;
     this.coreAPIData = coreAPIData;
     this.ctx = ctx;

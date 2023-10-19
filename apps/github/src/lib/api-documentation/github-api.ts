@@ -86,7 +86,12 @@ export class GithubAPIData {
     for await (const treeEntry of this.recurseGitTree({
       treeRootDir: "",
     })) {
-      if (treeEntry.name === "package.json" && isBlob(treeEntry.object) && treeEntry.object.text && /"express":/.test(treeEntry.object.text)) {
+      if (
+        treeEntry.name === "package.json" &&
+        isBlob(treeEntry.object) &&
+        treeEntry.object.text &&
+        /"express":/.test(treeEntry.object.text)
+      ) {
         assertPresence(treeEntry.path);
         expressRootDirs.push(path.dirname(treeEntry.path));
       }
