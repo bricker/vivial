@@ -12,20 +12,24 @@ import { CtxArg } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { JsonValue } from "@eave-fyi/eave-stdlib-ts/src/types.js";
 import { assertPresence } from "@eave-fyi/eave-stdlib-ts/src/util.js";
 import { assertIsBlob } from "../graphql-util.js";
+import { CoreAPIData } from "./core-api.js";
 import { GithubAPIData } from "./github-api.js";
 
 export class ExpressAPIDocumentBuilder {
   readonly logParams: { [key: string]: JsonValue };
   private readonly githubAPIData: GithubAPIData;
+  private readonly coreAPIData: CoreAPIData;
   private readonly ctx: LogContext;
   private readonly apiRootFile: ExpressCodeFile;
 
   static async buildAPI({
     githubAPIData,
+    coreAPIData,
     ctx,
     apiRootDir,
   }: CtxArg & {
     githubAPIData: GithubAPIData;
+    coreAPIData: CoreAPIData;
     apiRootDir: string;
   }): Promise<ExpressAPI> {
     const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
@@ -68,6 +72,7 @@ export class ExpressAPIDocumentBuilder {
     const builder = new ExpressAPIDocumentBuilder({
       apiRootFile: apiInfo.rootFile,
       githubAPIData,
+      coreAPIData,
       ctx,
     });
     const endpoints = await builder.findExpressAPIEndpoints();
@@ -103,14 +108,21 @@ export class ExpressAPIDocumentBuilder {
   private constructor({
     apiRootFile,
     githubAPIData,
+    coreAPIData,
     ctx,
-  }: CtxArg & { apiRootFile: ExpressCodeFile; githubAPIData: GithubAPIData }) {
+  }: CtxArg & {
+    apiRootFile: ExpressCodeFile;
+    githubAPIData: GithubAPIData;
+    coreAPIData: CoreAPIData;
+  }) {
     this.githubAPIData = githubAPIData;
+    this.coreAPIData = coreAPIData;
     this.ctx = ctx;
     this.apiRootFile = apiRootFile;
 
     this.logParams = {
       github_data: githubAPIData.logParams,
+      core_api_data: coreAPIData.logParams,
       api_root_file: apiRootFile.asJSON,
     };
   }
@@ -306,27 +318,7 @@ export class ExpressAPIDocumentBuilder {
   }): Promise<ExpressCodeFile> {
     let file = new ExpressCodeFile({ path: filePath, contents: "" }); // empty contents as placeholder
 
-    eaveLogger.debug(
-      "getExpressCodeFile",
-      { file_path: filePath, file: file.asJSON },
-      this.logParams,
-      this.ctx,
-    );
-
     let gitBlob = await this.githubAPIData.getFileContent({ filePath });
-    eaveLogger.debug(
-      "getExpressCodeFile -> gitBlob",
-      {
-        file_path: filePath,
-        git_blob: {
-          id: gitBlob?.id,
-          truncated_text: gitBlob?.text?.slice(0, 100),
-        },
-        file: file.asJSON,
-      },
-      this.logParams,
-      this.ctx,
-    );
 
     if (!gitBlob && file.language === ProgrammingLanguage.javascript) {
       // either the file doesn't exist, or this is a javascript import and the source file is typescript.
@@ -335,12 +327,6 @@ export class ExpressAPIDocumentBuilder {
         to: ".ts",
       });
       file = new ExpressCodeFile({ path: tsFilePath, contents: "" }); // empty contents as placeholder
-      eaveLogger.debug(
-        "getExpressCodeFile - trying js -> ts conversion",
-        { file_path: filePath, ts_file_path: tsFilePath, file: file.asJSON },
-        this.logParams,
-        this.ctx,
-      );
       gitBlob = await this.githubAPIData.getFileContent({
         filePath: tsFilePath,
       });

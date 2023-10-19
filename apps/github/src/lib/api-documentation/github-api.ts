@@ -81,15 +81,21 @@ export class GithubAPIData {
       return this.__memo__expressRootDirs;
     }
 
-    const externalGithubRepo = await this.getExternalGithubRepo();
-    const query = `"\\"express\\":" in:file filename:package.json repo:${externalGithubRepo.owner.login}/${externalGithubRepo.name}`;
-    const response = await this.octokit.rest.search.code({
-      q: query,
-    });
+    const expressRootDirs: string[] = [];
 
-    const expressRootDirs = response.data.items.map((i) =>
-      path.dirname(i.path),
-    );
+    for await (const treeEntry of this.recurseGitTree({
+      treeRootDir: "",
+    })) {
+      if (
+        treeEntry.name === "package.json" &&
+        isBlob(treeEntry.object) &&
+        treeEntry.object.text &&
+        /"express":/.test(treeEntry.object.text)
+      ) {
+        assertPresence(treeEntry.path);
+        expressRootDirs.push(path.dirname(treeEntry.path));
+      }
+    }
 
     if (expressRootDirs.length === 0) {
       eaveLogger.warning(
@@ -214,13 +220,6 @@ export class GithubAPIData {
     const response = await this.octokit.graphql<{
       repository: Query["repository"];
     }>(query, variables);
-
-    eaveLogger.debug(
-      "getGitObject response",
-      { variables, object_id: response.repository?.object?.id || null },
-      { github_data: this.logParams },
-      this.ctx,
-    );
 
     assertIsRepository(response.repository);
     const repository = response.repository;
