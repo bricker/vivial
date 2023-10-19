@@ -1,4 +1,3 @@
-
 import os
 import dotenv
 from eave.dev_tooling.constants import EAVE_HOME
@@ -10,8 +9,8 @@ if os.path.isfile(_deprecated_file):
 
 dotenv.load_dotenv(dotenv_path=os.path.join(EAVE_HOME, ".test.env"), override=True)
 
-import json # noqa: E402
-import uuid # noqa: E402
+import json  # noqa: E402
+import uuid  # noqa: E402
 import eave.stdlib.time  # noqa: E402
 import eave.stdlib.util  # noqa: E402
 

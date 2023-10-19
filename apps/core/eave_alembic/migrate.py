@@ -1,4 +1,3 @@
-import os
 import alembic
 import alembic.config
 import alembic.command
