@@ -84,7 +84,7 @@ export default async function handler({
       ctx.feature_name = "api_documentation";
 
       // on merge, delete the API docs branch to prevent conflicts from
-      // arrising on future PRs
+      // arising on future PRs
       if (event.pull_request.merged) {
         await deleteApiDocsBranch({
           octokit,
