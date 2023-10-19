@@ -487,11 +487,8 @@ async function codeDocsEnabledForRepo({
   const maybeRepo = repoResponse.repos.find(
     (repo) => repo.external_repo_id === repoId,
   );
-  if (
-    maybeRepo &&
+  return (
+    maybeRepo !== undefined &&
     maybeRepo.inline_code_documentation_state === State.ENABLED
-  ) {
-    return true;
-  }
-  return false;
+  );
 }
