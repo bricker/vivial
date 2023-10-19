@@ -4,13 +4,13 @@ import os
 import sys
 import time
 import socket
-from dotenv import load_dotenv
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.internal
 import eave.core.internal.orm as orm
 import eave.core.internal.orm.base
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.github_documents import DocumentType
 from eave.stdlib.core_api.models.team import DocumentPlatform
@@ -26,7 +26,10 @@ foreign keys linking correctly.
 UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 """
 
-load_dotenv(f"{os.getenv('EAVE_HOME')}/.env", override=False)
+sys.path.append('.')
+
+EAVE_HOME = os.environ["EAVE_HOME"]
+load_standard_dotenv_files()
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")

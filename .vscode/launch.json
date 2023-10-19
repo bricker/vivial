@@ -13,9 +13,6 @@
       "request": "launch",
       "program": "bin/start-dev",
       "justMyCode": false,
-      "env": {
-        "PYTHONPATH": ".",
-      }
     },
     {
       "name": "Slack App API",
@@ -173,9 +170,6 @@
       "program": "bin/start-dev-flask",
       "jinja": true,
       "justMyCode": false,
-      "env": {
-        "PYTHONPATH": "."
-      }
     },
     {
       "name": "Website (Webpack)",

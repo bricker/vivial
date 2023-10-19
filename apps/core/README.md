@@ -24,7 +24,7 @@ EAVE_DB_PASS=your_password
 EAVE_DB_CONNECTION_STRING=postgresql+asyncpg://your_user:your_password@localhost:5432/eave
 ```
 
-1. From the `apps/core/` directory (with venv active) run `PYTHONPATH=. python eave_alembic/init_database.py`
+1. From the `apps/core/` directory (with venv active) run `python eave_alembic/init_database.py`
 
 ### Cloud SQL Proxy
 
