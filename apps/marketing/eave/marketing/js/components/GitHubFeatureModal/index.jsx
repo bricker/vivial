@@ -285,22 +285,6 @@ function renderDescription(type) {
   }
 }
 
-/**
- * Filters and returns the IDs of repositories where a specific feature is enabled.
- *
- * @param {Types.GithubRepo[] | undefined} repos - The array of repository objects.
- * @param {string} feature - The feature to check for its enabled state.
- * @returns {string[]} An array of repository IDs where the given feature is enabled.
- */
-function getEnabledRepoIds(repos, feature) {
-  if (!repos) {
-    return [];
-  }
-  return repos
-    .filter((repo) => repo[feature] === FEATURE_STATES.ENABLED)
-    .map((repo) => repo.id);
-}
-
 const GitHubFeatureModal = (
   /**@type {{ onClose: () => void, onUpdate: (p: Types.FeatureStateParams) => void, open: boolean, feature: string, type: string }}*/ {
     onClose,
@@ -331,8 +315,13 @@ const GitHubFeatureModal = (
     classes.githubReposText,
     !github && classes.disabledText,
   );
+
   const teamRepoIds = team.repos.map((repo) => repo.id);
-  const enabledRepoIds = getEnabledRepoIds(team.repos, feature);
+  const enabledRepos = team.repos?.filter((repo) => repo[feature] === FEATURE_STATES.ENABLED) || [];
+  const notEnabledRepos = team.repos?.filter((repo) => repo[feature] !== FEATURE_STATES.ENABLED) || [];
+  const sortedRepos = [...enabledRepos, ...notEnabledRepos];
+
+  const enabledRepoIds = enabledRepos.map((r) => r.id);
   const featureIsEnabled = !!enabledRepoIds.length;
   const cta = featureIsEnabled ? "Update" : "Turn On";
   const [selectedRepoIds, setSelectedRepoIds] = useState(
@@ -417,6 +406,7 @@ const GitHubFeatureModal = (
     },
     [selectedRepoIds, teamRepoIds],
   );
+
 
   if (showConfirmation) {
     return (
@@ -533,7 +523,7 @@ const GitHubFeatureModal = (
           Select Individual Repositories
         </Typography>
         <GitHubRepoSelect
-          repos={team.repos}
+          repos={sortedRepos}
           selectedRepoIds={selectedRepoIds}
           error={selectedRepoError}
           onSelect={handleSelectRepo}
