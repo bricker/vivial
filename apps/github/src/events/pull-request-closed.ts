@@ -3,6 +3,10 @@ import {
   GithubDocument,
   Status,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
+import {
+  GithubRepo,
+  State,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   GetGithubDocumentsOperation,
@@ -65,6 +69,19 @@ export default async function handler({
   const repoName = event.repository.name;
   const repoId = event.repository.node_id.toString();
 
+  const eaveRepoResponse = await GetGithubReposOperation.perform({
+    ctx,
+    origin: appConfig.eaveOrigin,
+    teamId: eaveTeam.id,
+    input: {
+      repos: [
+        {
+          external_repo_id: repoId,
+        },
+      ],
+    },
+  });
+
   // don't open more docs PRs from other Eave PRs getting merged
   if (
     event.pull_request.user.type === "Bot" &&
@@ -72,7 +89,7 @@ export default async function handler({
   ) {
     const documents = await getAssociatedGithubDocuments({
       eaveTeam,
-      repoId,
+      repos: eaveRepoResponse.repos,
       prNumber: event.pull_request.number,
       ctx,
     });
@@ -129,6 +146,15 @@ export default async function handler({
 
   // proceed only if PR commits were merged
   if (!event.pull_request.merged) {
+    return;
+  }
+
+  if (
+    !(await codeDocsEnabledForRepo({
+      repos: eaveRepoResponse.repos,
+      repoId: event.repository.id.toString(),
+    }))
+  ) {
     return;
   }
 
@@ -313,30 +339,17 @@ export default async function handler({
  * @throws Will throw an error if the Github repository or documents cannot be retrieved.
  */
 async function getAssociatedGithubDocuments({
-  repoId,
+  repos,
   prNumber,
   eaveTeam,
   ctx,
 }: {
-  repoId: string;
+  repos: GithubRepo[];
   prNumber: number;
   eaveTeam: Team;
 } & CtxArg): Promise<GithubDocument[]> {
   try {
-    const eaveRepoResponse = await GetGithubReposOperation.perform({
-      ctx,
-      origin: appConfig.eaveOrigin,
-      teamId: eaveTeam.id,
-      input: {
-        repos: [
-          {
-            external_repo_id: repoId,
-          },
-        ],
-      },
-    });
-
-    const eaveRepo = eaveRepoResponse.repos[0];
+    const eaveRepo = repos[0];
     assertPresence(eaveRepo);
 
     const associatedGithubDocuments = await GetGithubDocumentsOperation.perform(
@@ -459,4 +472,18 @@ async function deleteApiDocsBranch({
     refNodeId: ref.id,
   };
   await octokit.graphql<{ resp: Mutation["deleteRef"] }>(query, params);
+}
+
+async function codeDocsEnabledForRepo({
+  repos,
+  repoId,
+}: {
+  repoId: string;
+  repos: GithubRepo[];
+}): Promise<boolean> {
+  const maybeRepo = repos.find((repo) => repo.external_repo_id === repoId);
+  return (
+    maybeRepo !== undefined &&
+    maybeRepo.inline_code_documentation_state === State.ENABLED
+  );
 }
