@@ -3,6 +3,7 @@ import {
   GithubDocument,
   Status,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
+import { State } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
 import {
   GetGithubDocumentsOperation,
@@ -129,6 +130,15 @@ export default async function handler({
 
   // proceed only if PR commits were merged
   if (!event.pull_request.merged) {
+    return;
+  }
+
+  if (
+    !(await codeDocsEnabledForRepo({
+      repoId: event.repository.id.toString(),
+      ctx,
+    }))
+  ) {
     return;
   }
 
@@ -459,4 +469,29 @@ async function deleteApiDocsBranch({
     refNodeId: ref.id,
   };
   await octokit.graphql<{ resp: Mutation["deleteRef"] }>(query, params);
+}
+
+async function codeDocsEnabledForRepo({
+  ctx,
+  repoId,
+}: CtxArg & { repoId: string }): Promise<boolean> {
+  const repoResponse = await GetGithubReposOperation.perform({
+    teamId: ctx.eave_team_id!,
+    origin: appConfig.eaveOrigin,
+    input: {
+      repos: [{ external_repo_id: repoId }],
+    },
+    ctx,
+  });
+
+  const maybeRepo = repoResponse.repos.find(
+    (repo) => repo.external_repo_id === repoId,
+  );
+  if (
+    maybeRepo &&
+    maybeRepo.inline_code_documentation_state === State.ENABLED
+  ) {
+    return true;
+  }
+  return false;
 }
