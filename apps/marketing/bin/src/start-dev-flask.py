@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 import sys
 from eave.dev_tooling.constants import EAVE_HOME
@@ -8,6 +6,8 @@ from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 sys.path.append('.')
 
 load_standard_dotenv_files()
+
+os.environ["GAE_SERVICE"] = "www"
 
 from eave.marketing.app import app  # noqa: E402
 

@@ -1,41 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env bash
 
-import logging
-import os
-import sys
-import click
-from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
-import alembic
-import alembic.config
-import alembic.command
-from eave.stdlib.logging import eaveLogger
+set -eu
 
-sys.path.append('.')
+source "${EAVE_HOME}"/develop/functions.bash
 
-alembic_config = alembic.config.Config("alembic.ini")
-load_standard_dotenv_files()
-
-@click.command()
-def upgrade() -> None:
-    eave_db_name = os.environ["EAVE_DB_NAME"]
-    eave_db_host = os.environ["EAVE_DB_HOST"]
-    google_cloud_project = os.environ["GOOGLE_CLOUD_PROJECT"]
-
-    eaveLogger.fprint(logging.WARNING, "Running DB migrations!")
-    eaveLogger.fprint(logging.WARNING, f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
-    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_HOST={eave_db_host}")
-    answer = input(
-        eaveLogger.f(logging.WARNING, "Proceed? (Y/n) ")
-    )
-
-    if answer != "Y":
-        raise click.Abort()
-
-    alembic.command.upgrade(
-        revision="head",
-        config=alembic_config,
-    )
-
-if __name__ == "__main__":
-    upgrade()
+cd "$(^parentpath)"
+python-activate-venv
+python "${EAVE_HOME}/apps/core/bin/src/run-db-migration.py" "$@"

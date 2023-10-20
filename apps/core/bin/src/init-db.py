@@ -5,6 +5,9 @@ import sys
 
 import sqlalchemy
 from sqlalchemy.ext.asyncio import create_async_engine
+import alembic
+import alembic.config
+import alembic.command
 
 import eave.core.internal
 import eave.core.internal.orm
@@ -16,6 +19,8 @@ from eave.stdlib.logging import eaveLogger
 sys.path.append(".")
 
 load_standard_dotenv_files()
+
+alembic_config = alembic.config.Config("alembic.ini")
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -70,6 +75,11 @@ async def init_database() -> None:
     # create tables in empty db
     async with eave.core.internal.database.async_engine.begin() as connection:
         await connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
+
+    alembic.command.stamp(
+        revision="head",
+        config=alembic_config,
+    )
 
     await postgres_engine.dispose()
 
