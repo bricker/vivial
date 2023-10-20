@@ -61,6 +61,7 @@ export async function runApiDocumentationTaskHandler(
 
   const input = <RunApiDocumentationTaskRequestBody>req.body;
   const sharedAnalyticsParams: { [key: string]: JsonValue } = {};
+  ctx.set({ sharedAnalyticsParams });
 
   const teamId = req.header(EAVE_TEAM_ID_HEADER);
   if (!teamId) {
@@ -109,6 +110,25 @@ export async function runApiDocumentationTaskHandler(
     externalRepoId: eaveGithubRepo.external_repo_id,
   });
   sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
+
+  const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
+  if (externalGithubRepo.isEmpty) {
+    await logEvent(
+      {
+        event_name: "api_documentation_skipped_empty_repo",
+        event_description:
+          "The API documentation process was skipped because the repository is empty.",
+        eave_team: eaveTeam,
+        event_source: ANALYTICS_SOURCE,
+        opaque_params: {
+          ...sharedAnalyticsParams,
+        },
+      },
+      ctx,
+    );
+    res.sendStatus(200);
+    return;
+  }
 
   const existingGithubDocuments = await coreAPIData.getGithubDocuments();
   // If there aren't any associated github documents yet, always run the task.
@@ -439,7 +459,6 @@ export async function runApiDocumentationTaskHandler(
     return;
   }
 
-  const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
   const prCreator = new PullRequestCreator({
     repoName: externalGithubRepo.name,
     repoOwner: externalGithubRepo.owner.login,
