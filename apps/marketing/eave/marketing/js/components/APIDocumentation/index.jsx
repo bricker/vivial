@@ -90,9 +90,9 @@ function formatStatus(
   let prStatus;
   switch (doc.status) {
     case "processing":
-      return <p>Processing</p>;
+      return <>Processing</>;
     case "failed":
-      return <p>Failed</p>;
+      return <>Failed</>;
     case "pr_opened":
       prStatus = "PR Created";
       break;
