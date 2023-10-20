@@ -21,12 +21,10 @@ function loadStandardDotenvFiles() {
   }
 }
 
-function populateEnv(/** @type {import("dotenv").DotenvPopulateInput} */ parsed) {
-  dotenv.populate(
-    process.env,
-    parsed,
-    { override: true },
-  );
+function populateEnv(
+  /** @type {import("dotenv").DotenvPopulateInput} */ parsed,
+) {
+  dotenv.populate(process.env, parsed, { override: true });
 }
 
 module.exports = { loadStandardDotenvFiles, populateEnv };

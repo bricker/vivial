@@ -2,7 +2,7 @@ import sys
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
-sys.path.append('.')
+sys.path.append(".")
 
 load_standard_dotenv_files()
 

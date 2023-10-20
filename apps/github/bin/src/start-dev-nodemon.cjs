@@ -1,6 +1,9 @@
 // @ts-check
 const nodemon = require("nodemon/lib");
-const { loadStandardDotenvFiles, populateEnv } = require("../../../../develop/javascript/dotenv-loader.cjs");
+const {
+  loadStandardDotenvFiles,
+  populateEnv,
+} = require("../../../../develop/javascript/dotenv-loader.cjs");
 const { EAVE_HOME } = require("../../../../develop/javascript/constants.cjs");
 
 loadStandardDotenvFiles();

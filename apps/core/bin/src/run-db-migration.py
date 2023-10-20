@@ -10,10 +10,11 @@ import alembic.config
 import alembic.command
 from eave.stdlib.logging import eaveLogger
 
-sys.path.append('.')
+sys.path.append(".")
 
 alembic_config = alembic.config.Config("alembic.ini")
 load_standard_dotenv_files()
+
 
 @click.command()
 def upgrade() -> None:
@@ -25,9 +26,7 @@ def upgrade() -> None:
     eaveLogger.fprint(logging.WARNING, f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
     eaveLogger.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
     eaveLogger.fprint(logging.WARNING, f"EAVE_DB_HOST={eave_db_host}")
-    answer = input(
-        eaveLogger.f(logging.WARNING, "Proceed? (Y/n) ")
-    )
+    answer = input(eaveLogger.f(logging.WARNING, "Proceed? (Y/n) "))
 
     if answer != "Y":
         raise click.Abort()
@@ -36,6 +35,7 @@ def upgrade() -> None:
         revision="head",
         config=alembic_config,
     )
+
 
 if __name__ == "__main__":
     upgrade()
