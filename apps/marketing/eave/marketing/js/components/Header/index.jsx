@@ -7,12 +7,12 @@ import { Link } from "react-router-dom";
 import { AUTH_MODAL_STATE, FEEDBACK_URL } from "../../constants.js";
 import useAuthModal from "../../hooks/useAuthModal.js";
 import useUser from "../../hooks/useUser.js";
+import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { logUserOut } from "../../util/http-util.js";
 import Button from "../Button/index.jsx";
 import EaveLogo from "../EaveLogo/index.jsx";
 import CloseIcon from "../Icons/CloseIcon.js";
 import HamburgerIcon from "../Icons/HamburgerIcon.js";
-import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   outterContainer: {

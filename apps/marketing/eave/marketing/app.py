@@ -222,16 +222,20 @@ def catch_all(path: str) -> Response:
 
     return response
 
+
 _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint"
 
-def  _set_login_state_hint_cookie(response: BaseResponse) -> None:
+
+def _set_login_state_hint_cookie(response: BaseResponse) -> None:
     # This cookie is a HINT to the client whether the user may be logged in.
     # It doesn't actually indicate the logged-in state, but the client can use this cookie to decide if it can skip some API calls, for example.
     # This cookie is set to httponly=False so the client can read it.
     set_http_cookie(response=response, key=_EAVE_LOGIN_STATE_HINT_COOKIE_NAME, value="1", httponly=False)
 
+
 def _delete_login_state_hint_cookie(response: BaseResponse) -> None:
     delete_http_cookie(response=response, key=_EAVE_LOGIN_STATE_HINT_COOKIE_NAME, httponly=False)
+
 
 def _get_auth_cookies_or_exception() -> AuthCookies:
     auth_cookies = get_auth_cookies(request.cookies)

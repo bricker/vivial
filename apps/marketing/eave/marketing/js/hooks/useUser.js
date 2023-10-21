@@ -2,8 +2,8 @@
 import { useContext } from "react";
 import { useCookies } from "react-cookie";
 import { AppContext } from "../context/Provider.js";
-import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
+import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
 const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint";
 

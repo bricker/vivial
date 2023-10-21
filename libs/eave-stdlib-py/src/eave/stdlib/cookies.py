@@ -2,6 +2,7 @@ from .time import ONE_YEAR_SECONDS
 from .typing import HTTPFrameworkResponse
 from .config import shared_config
 
+
 def set_http_cookie(
     response: HTTPFrameworkResponse,
     key: str,
