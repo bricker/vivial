@@ -1,36 +1,21 @@
+// @ts-check
 import { useContext } from "react";
+import { useCookies } from "react-cookie";
 import { AppContext } from "../context/Provider.js";
 import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
+import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 
+const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint";
+
+/** @returns {{user: Types.DashboardUser, isLoginHintSet: boolean, getUserAccount: () => Promise<void>}} */
 const useUser = () => {
   const { userCtx } = useContext(AppContext);
+  const [cookies] = useCookies([_EAVE_LOGIN_STATE_HINT_COOKIE_NAME]);
+
+  /** @type {[Types.DashboardUser, (f: (prev: Types.DashboardUser) => Types.DashboardUser) => void]} */
   const [user, setUser] = userCtx;
 
-  /**
-   * Asynchronously checks the user's authentication status by making a fetch request to "/authcheck".
-   * If the response indicates an HTTP error, it throws the response.
-   * If the response is successful, it updates the user's authentication status in the state.
-   * If there's an error in the process, it sets the 'authIsErroring' state to true.
-   */
-  async function checkUserAuth() {
-    fetch("/authcheck")
-      .then((resp) => {
-        if (isUnauthorized(resp)) {
-          logUserOut();
-          return;
-        }
-
-        if (isHTTPError(resp)) {
-          throw resp;
-        }
-        resp.json().then((data) => {
-          setUser((prev) => ({ ...prev, isAuthenticated: data.authenticated }));
-        });
-      })
-      .catch(() => {
-        setUser((prev) => ({ ...prev, authIsErroring: true }));
-      });
-  }
+  const isLoginHintSet = cookies[_EAVE_LOGIN_STATE_HINT_COOKIE_NAME] === "1";
 
   /**
    * Asynchronously retrieves the user's account information from the server.
@@ -46,7 +31,14 @@ const useUser = () => {
       accountIsLoading: true,
       accountIsErroring: false,
     }));
-    fetch("/dashboard/me", { method: "POST" })
+
+    fetch("/dashboard/me", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    })
       .then((resp) => {
         if (isUnauthorized(resp)) {
           logUserOut();
@@ -69,7 +61,7 @@ const useUser = () => {
 
   return {
     user,
-    checkUserAuth,
+    isLoginHintSet,
     getUserAccount,
   };
 };

@@ -12,7 +12,6 @@ from eave.stdlib.exceptions import UnexpectedMissingValue
 T = TypeVar("T")
 P = ParamSpec("P")
 
-
 def sync_memoized(f: Callable[..., T]) -> Callable[..., T]:
     @wraps(f)
     def wrapper(self: Any, *args: Any, **kwargs: Any) -> T:
