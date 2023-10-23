@@ -44,7 +44,7 @@ import eave.core.public.requests.github_integration
 
 from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team, status
-from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
+from .public.requests.oauth import atlassian_oauth, github_app_install, google_oauth, slack_oauth
 from .internal.database import async_engine
 from eave.stdlib.middleware import common_middlewares
 
@@ -338,23 +338,23 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/github/authorize",
+            path="/install/github/authorize",
             auth_required=False,
             signature_required=False,
             origin_required=False,
             team_id_required=False,
         ),
-        endpoint=github_oauth.GithubOAuthAuthorize,
+        endpoint=github_app_install.GithubAppInstallAuthorize,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/github/callback",
+            path="/install/github/callback",
             auth_required=False,
             signature_required=False,
             origin_required=False,
             team_id_required=False,
         ),
-        endpoint=github_oauth.GithubOAuthCallback,
+        endpoint=github_app_install.GithubAppInstallCallback,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(

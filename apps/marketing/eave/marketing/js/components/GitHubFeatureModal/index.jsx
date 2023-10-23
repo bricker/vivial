@@ -323,7 +323,7 @@ const GitHubFeatureModal = (
   // @ts-ignore
   const _globalEave = window;
 
-  const githubOauthUrl = `${_globalEave.eave.apiBase}/oauth/github/authorize`;
+  const githubInstallUrl = `${_globalEave.eave.apiBase}/install/github/authorize`;
   const githubLogoFile = github
     ? "eave-github-installed.png"
     : "eave-github-required.png";
@@ -551,7 +551,7 @@ const GitHubFeatureModal = (
           </Button>
         ) : (
           <Button
-            to={githubOauthUrl}
+            to={githubInstallUrl}
             onClick={setModalCookie}
             className={classes.ctaBtn}
             color="secondary"

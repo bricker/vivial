@@ -30,7 +30,7 @@ from eave.stdlib.logging import eaveLogger
 _AUTH_PROVIDER = AuthProvider.github
 
 
-class GithubOAuthAuthorize(HTTPEndpoint):
+class GithubAppInstallAuthorize(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         # random value for verifying request wasnt tampered with via CSRF
         token: str = oauthlib.common.generate_token()
@@ -62,7 +62,7 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         return response
 
 
-class GithubOAuthCallback(HTTPEndpoint):
+class GithubAppInstallCallback(HTTPEndpoint):
     auth_provider = _AUTH_PROVIDER
     github_installation_orm: GithubInstallationOrm
 
@@ -232,7 +232,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
             if len(repos) > 0:
                 # update the GithubInstallation to set the github_owner_login property to the owner of any repository in the list (we happen to get the first one, but they should all be the same).
-                if owner := repos[0].owner:
+                if (owner := repos[0].owner) and owner.login:
                     github_installation_orm.github_owner_login = owner.login
 
             for repo in repos:
