@@ -17,6 +17,14 @@ export type HandlerFunction = (
   },
 ) => Promise<void>;
 
+/**
+ * Retrieves the appropriate event handler based on the provided dispatch key.
+ * The keys correspond to GitHub events. A dictionary isn't used to avoid remote-code execution type attacks.
+ *
+ * @param {Object} param0 - An object containing the dispatch key.
+ * @param {string} param0.dispatchKey - The dispatch key associated with a GitHub event.
+ * @returns {HandlerFunction | undefined} The corresponding event handler function or undefined if no match is found.
+ */
 export function getEventHandler({
   dispatchKey,
 }: {

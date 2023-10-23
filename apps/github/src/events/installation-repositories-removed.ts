@@ -7,12 +7,17 @@ import { appConfig } from "../config.js";
 import { EventHandlerArgs } from "../types.js";
 
 /**
- * Receives github webhook installation_repositories.removed events.
+ * Handles the removal of installation repositories from GitHub webhook installation_repositories.removed events.
  * https://docs.github.com/en/webhooks/webhook-events-and-payloads#installation_repositories
+ * If the event action is not 'removed', the function will return without performing any operations.
+ * Otherwise, it fetches the repositories to be deleted and performs the deletion operation, removing entries from github_repos DB table that we no longer have permission to access through the GitHub API.
  *
- * Features:
- * Removes entries from github_repos DB table that we no longer have permission to access
- * through the GitHub API.
+ * @param {Object} args - The arguments for the event handler.
+ * @param {InstallationRepositoriesRemovedEvent} args.event - The event object containing the repositories to be removed.
+ * @param {Object} args.ctx - The context object.
+ * @param {Object} args.eaveTeam - The Eave team object.
+ *
+ * @returns {Promise<void>} A promise that resolves when the operation is complete.
  */
 export default async function handler({
   event,
