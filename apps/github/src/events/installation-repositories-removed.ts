@@ -1,3 +1,4 @@
+import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import {
   DeleteGithubRepoOperation,
   GetGithubReposOperation,
@@ -54,4 +55,18 @@ export default async function handler({
       }),
     },
   });
+
+  await logEvent(
+    {
+      event_name: "eave_github_app_repo_access_removed",
+      event_description:
+        "Someone revoked the Eave GitHub app's access to 1 or more repos via the GitHub website",
+      event_source: appConfig.eaveOrigin,
+      opaque_params: {
+        repoIds: event.repositories_removed.map((repo) => repo.id.toString()),
+        reposRevoked: event.repositories_removed.length,
+      },
+    },
+    ctx,
+  );
 }
