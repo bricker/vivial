@@ -166,8 +166,6 @@ export class ExpressAPIDocumentBuilder {
    * @private
    */
   private async findExpressAPIEndpoints(): Promise<Array<string>> {
-    eaveLogger.debug("findExpressAPIEndpoints", this.logParams, this.ctx);
-
     const calls =
       this.apiRootFile.tree.rootNode.descendantsOfType("call_expression");
     const requires = await this.buildLocalRequires();
