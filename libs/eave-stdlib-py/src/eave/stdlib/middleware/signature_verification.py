@@ -1,5 +1,5 @@
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.api_types import ServerApiEndpointConfiguration
 
 from eave.stdlib.eave_origins import EaveApp
 
@@ -23,12 +23,10 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     so that it can calculate the expected signature and compare it to the provided signature.
     """
 
-    audience: EaveApp
-    endpoint_config: EndpointConfiguration
+    endpoint_config: ServerApiEndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration, audience: EaveApp):
+    def __init__(self, app: ASGI3Application, endpoint_config: ServerApiEndpointConfiguration):
         super().__init__(app=app)
-        self.audience = audience
         self.endpoint_config = endpoint_config
 
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
@@ -83,7 +81,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             path=scope["path"],
             request_id=eave_state.ctx.eave_request_id,
             origin=unwrap(eave_state.ctx.eave_origin),
-            audience=self.audience,
+            audience=self.endpoint_config.audience,
             ts=eave_sig_ts,
             team_id=team_id_header,
             account_id=account_id_header,

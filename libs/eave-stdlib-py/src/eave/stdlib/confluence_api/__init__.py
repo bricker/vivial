@@ -1,17 +1,13 @@
-from eave.stdlib.core_api.operations import Endpoint, EndpointConfiguration
+from eave.stdlib.api_types import ClientApiEndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 from ..config import shared_config
 
-_base_url = shared_config.eave_internal_service_base(EaveApp.eave_confluence_app)
 
-
-class ConfluenceEndpointConfiguration(EndpointConfiguration):
-    audience = EaveApp.eave_confluence_app
-
+class ConfluenceEndpointConfiguration(ClientApiEndpointConfiguration):
     @property
-    def url(self) -> str:
-        return f"{_base_url}/confluence/api{self.path}"
+    def audience(self) -> EaveApp:
+        return EaveApp.eave_confluence_app
 
 
-class ConfluenceEndpoint(Endpoint):
+class ConfluenceApiEndpoint:
     config: ConfluenceEndpointConfiguration

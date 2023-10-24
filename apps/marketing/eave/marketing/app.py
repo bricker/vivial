@@ -5,11 +5,11 @@ import time
 from typing import Any, Awaitable, Callable
 
 from aiohttp import ClientResponseError
+from eave.stdlib.api_types import BaseResponseBody
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 
 import eave.stdlib.cookies
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
-from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos

@@ -1,8 +1,8 @@
 import pydantic
-from typing import NotRequired, Optional, Required, TypedDict, Unpack
+from typing import NotRequired, Optional, Required, Type, TypeVar, TypedDict, Unpack
 import uuid
 import aiohttp
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.api_types import BaseResponseBody, ClientRequestParameters
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.typing import JsonObject
 
@@ -24,14 +24,18 @@ class MissingParameterError(Exception):
     pass
 
 
+T = TypeVar("T", bound=BaseResponseBody)
+
+
 async def make_request(
-    config: EndpointConfiguration,
-    input: Optional[pydantic.BaseModel],
+    config: ClientRequestParameters,
+    response_type: Type[T],
+    input: Optional[pydantic.BaseModel | str],
     team_id: Optional[uuid.UUID | str] = None,
     access_token: Optional[str] = None,
     account_id: Optional[uuid.UUID | str] = None,
     **kwargs: Unpack[CommonRequestArgs],
-) -> aiohttp.ClientResponse:
+) -> T:
     origin = kwargs["origin"]
     ctx = kwargs.get("ctx")
     addl_headers = kwargs.get("addl_headers", {})
@@ -48,9 +52,14 @@ async def make_request(
         eave_headers.EAVE_SIG_TS_HEADER: str(eave_sig_ts),
     }
 
-    # The indent and separators params here ensure that the payload is as compact as possible.
-    # It's mostly a way to normalize the payload so services know what to expect.
-    payload = input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
+    if isinstance(input, str):
+        payload = input
+    else:
+        # The indent and separators params here ensure that the payload is as compact as possible.
+        # It's mostly a way to normalize the payload so services know what to expect.
+        payload = (
+            input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"
+        )  # empty JSON object
 
     if access_token:
         headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
@@ -124,4 +133,12 @@ async def make_request(
     )
 
     response.raise_for_status()
-    return response
+    r = await make_response(response=response, response_type=response_type)
+    return r
+
+
+async def make_response(response: aiohttp.ClientResponse, response_type: Type[T]) -> T:
+    response_json = await response.json()
+    r = response_type(**response_json)
+    r._raw_response = response
+    return r

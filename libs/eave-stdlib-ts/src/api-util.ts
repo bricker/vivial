@@ -8,6 +8,7 @@ import { EaveApp } from "./eave-origins.js";
 import { eaveLogger } from "./logging.js";
 import { ExpressRoutingMethod } from "./types.js";
 import { redact } from "./util.js";
+import { ServerApiEndpointConfiguration } from "./api-types.js";
 
 export function statusPayload(): StatusResponseBody {
   return {
@@ -109,57 +110,6 @@ export function getHeaders(
   });
 
   return logHeaders;
-}
-
-export abstract class ClientApiEndpointConfiguration {
-  path: string;
-  method: ExpressRoutingMethod;
-
-  abstract audience: EaveApp;
-
-  abstract get url(): string;
-
-  constructor({
-    path,
-    method = ExpressRoutingMethod.post,
-  }: {
-    path: string;
-    method?: ExpressRoutingMethod;
-  }) {
-    this.path = path;
-    this.method = method;
-  }
-}
-
-export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointConfiguration {
-  teamIdRequired: boolean;
-  authRequired: boolean;
-  originRequired: boolean;
-  signatureRequired: boolean;
-
-  abstract get middlewares(): Express.Handler[];
-
-  constructor({
-    path,
-    method = ExpressRoutingMethod.post,
-    teamIdRequired = true,
-    authRequired = true,
-    originRequired = true,
-    signatureRequired = true,
-  }: {
-    path: string;
-    method?: ExpressRoutingMethod;
-    teamIdRequired?: boolean;
-    authRequired?: boolean;
-    originRequired?: boolean;
-    signatureRequired?: boolean;
-  }) {
-    super({ path, method });
-    this.teamIdRequired = teamIdRequired;
-    this.authRequired = authRequired;
-    this.originRequired = originRequired;
-    this.signatureRequired = signatureRequired;
-  }
 }
 
 export function handlerWrapper(

@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import cast
 from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib.auth_cookies import delete_auth_cookies, set_auth_cookies
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 
 import eave.stdlib.headers
 import eave.stdlib.api_util
@@ -24,9 +24,9 @@ from eave.stdlib.exceptions import UnauthorizedError
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
-    endpoint_config: EndpointConfiguration
+    endpoint_config: CoreApiEndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+    def __init__(self, app: ASGI3Application, endpoint_config: CoreApiEndpointConfiguration) -> None:
         super().__init__(app)
         self.endpoint_config = endpoint_config
 

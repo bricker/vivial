@@ -1,4 +1,5 @@
 from typing import Optional, Unpack
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 from eave.stdlib.core_api.models import team
 from eave.stdlib.core_api.models.connect import (
     ConnectInstallation,
@@ -6,7 +7,7 @@ from eave.stdlib.core_api.models.connect import (
     RegisterConnectInstallationInput,
 )
 
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 from ... import requests
@@ -34,14 +35,12 @@ class RegisterConnectIntegrationRequest(CoreApiEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class QueryConnectIntegrationRequest(CoreApiEndpoint):
@@ -66,11 +65,9 @@ class QueryConnectIntegrationRequest(CoreApiEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

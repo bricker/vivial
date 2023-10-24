@@ -1,6 +1,5 @@
 import { Handler } from "express";
-import { ServerApiEndpointConfiguration } from "../../api-util.js";
-import { sharedConfig } from "../../config.js";
+import { ServerApiEndpointConfiguration } from "../../api-types.js";
 import { EaveApp } from "../../eave-origins.js";
 import { EAVE_ACCOUNT_ID_HEADER, EAVE_TEAM_ID_HEADER } from "../../headers.js";
 import { jsonParser } from "../../middleware/body-parser.js";
@@ -9,14 +8,8 @@ import { originMiddleware } from "../../middleware/origin.js";
 import { requireHeaders } from "../../middleware/require-headers.js";
 import { signatureVerification } from "../../middleware/signature-verification.js";
 
-const baseUrl = sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app);
-
 export class GithubAppEndpointConfiguration extends ServerApiEndpointConfiguration {
   audience = EaveApp.eave_github_app;
-
-  get url(): string {
-    return `${baseUrl}${this.path}`;
-  }
 
   get middlewares(): Handler[] {
     const m: Handler[] = [];

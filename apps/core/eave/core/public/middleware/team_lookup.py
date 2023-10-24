@@ -1,5 +1,5 @@
 import uuid
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 
 import eave.stdlib.exceptions
 import eave.stdlib.api_util
@@ -13,9 +13,9 @@ from eave.stdlib.request_state import EaveRequestState
 
 
 class TeamLookupASGIMiddleware(EaveASGIMiddleware):
-    endpoint_config: EndpointConfiguration
+    endpoint_config: CoreApiEndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+    def __init__(self, app: ASGI3Application, endpoint_config: CoreApiEndpointConfiguration) -> None:
         super().__init__(app)
         self.endpoint_config = endpoint_config
 

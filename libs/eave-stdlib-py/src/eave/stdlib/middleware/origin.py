@@ -1,6 +1,6 @@
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 
-from eave.stdlib.core_api.operations import EndpointConfiguration
+from eave.stdlib.core_api.operations import ServerApiEndpointConfiguration
 
 from .base import EaveASGIMiddleware
 from ..api_util import get_header_value
@@ -11,9 +11,9 @@ from ..request_state import EaveRequestState
 
 
 class OriginASGIMiddleware(EaveASGIMiddleware):
-    endpoint_config: EndpointConfiguration
+    endpoint_config: ServerApiEndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+    def __init__(self, app: ASGI3Application, endpoint_config: ServerApiEndpointConfiguration) -> None:
         super().__init__(app)
         self.endpoint_config = endpoint_config
 

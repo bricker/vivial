@@ -1,9 +1,10 @@
 from typing import Unpack
 import uuid
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 
 from eave.stdlib.core_api.models.documents import DocumentSearchResult
 from eave.stdlib.core_api.models.documents import DocumentInput
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models.subscriptions import DocumentReference, DocumentReferenceInput, Subscription
 from ..models.subscriptions import SubscriptionInput
@@ -34,15 +35,13 @@ class UpsertDocument(CoreApiEndpoint):
         team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class SearchDocuments(CoreApiEndpoint):
@@ -62,15 +61,13 @@ class SearchDocuments(CoreApiEndpoint):
     async def perform(
         cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class DeleteDocument(CoreApiEndpoint):
@@ -92,12 +89,10 @@ class DeleteDocument(CoreApiEndpoint):
         team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

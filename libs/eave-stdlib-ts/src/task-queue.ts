@@ -2,7 +2,6 @@ import { CloudTasksClient, protos } from "@google-cloud/tasks";
 import { Request } from "express";
 import assert from "node:assert";
 import { constants as httpConstants } from "node:http2";
-import { ClientApiEndpointConfiguration } from "./api-util.js";
 import { getCacheClient } from "./cache.js";
 import { sharedConfig } from "./config.js";
 import { EaveApp } from "./eave-origins.js";
@@ -21,6 +20,7 @@ import { LogContext, eaveLogger } from "./logging.js";
 import { CtxArg, makeRequest } from "./requests.js";
 import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 import { ExpressRoutingMethod } from "./types.js";
+import { ClientApiEndpointConfiguration, ClientRequestParameters } from "./api-types.js";
 
 type CreateTaskSharedArgs = CtxArg & {
   queueName: string;
@@ -203,9 +203,9 @@ export async function createTask({
   });
 
   if (sharedConfig.isDevelopment) {
-    const host = sharedConfig.eavePublicServiceBase(origin);
+    const host = sharedConfig.eaveInternalServiceBase(origin);
 
-    const endpointConfig: ClientApiEndpointConfiguration = {
+    const endpointConfig: ClientRequestParameters = {
       path: task.appEngineHttpRequest.relativeUri!,
       url: `${host}${task.appEngineHttpRequest.relativeUri}`,
       audience,
@@ -226,9 +226,9 @@ export async function createTask({
       input: task.appEngineHttpRequest.body,
       addlHeaders: task.appEngineHttpRequest.headers || undefined,
     });
+  } else {
+    await client.createTask({ parent, task });
   }
-
-  await client.createTask({ parent, task });
 }
 
 function normalizeString(payload: any): string {

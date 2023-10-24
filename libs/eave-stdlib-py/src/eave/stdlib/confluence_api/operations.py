@@ -1,5 +1,7 @@
 from typing import Unpack
 import uuid
+
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 from .. import requests
 from eave.stdlib.confluence_api.models import (
     ConfluenceSearchParamsInput,
@@ -10,14 +12,12 @@ from eave.stdlib.confluence_api.models import (
 from eave.stdlib.confluence_api.models import ConfluencePage, ConfluenceSpace
 from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 from eave.stdlib.core_api.models.documents import DocumentInput
-from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
-from . import ConfluenceEndpoint, ConfluenceEndpointConfiguration
+from . import ConfluenceApiEndpoint, ConfluenceEndpointConfiguration
 
 
-class GetAvailableSpacesRequest(ConfluenceEndpoint):
+class GetAvailableSpacesRequest(ConfluenceApiEndpoint):
     config = ConfluenceEndpointConfiguration(
-        path="/spaces/query",
-        auth_required=False,
+        path="/confluence/api/spaces/query",
     )
 
     class ResponseBody(BaseResponseBody):
@@ -29,21 +29,18 @@ class GetAvailableSpacesRequest(ConfluenceEndpoint):
         team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=None,
             team_id=team_id,
             **kwargs,
         )
 
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
-
-class SearchContentRequest(ConfluenceEndpoint):
+class SearchContentRequest(ConfluenceApiEndpoint):
     config = ConfluenceEndpointConfiguration(
-        path="/content/search",
-        auth_required=False,
+        path="/confluence/api/content/search",
     )
 
     class RequestBody(BaseRequestBody):
@@ -59,21 +56,18 @@ class SearchContentRequest(ConfluenceEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
 
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
-
-class CreateContentRequest(ConfluenceEndpoint):
+class CreateContentRequest(ConfluenceApiEndpoint):
     config = ConfluenceEndpointConfiguration(
-        path="/content/create",
-        auth_required=False,
+        path="/confluence/api/content/create",
     )
 
     class RequestBody(BaseRequestBody):
@@ -90,21 +84,18 @@ class CreateContentRequest(ConfluenceEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
 
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
-
-class UpdateContentRequest(ConfluenceEndpoint):
+class UpdateContentRequest(ConfluenceApiEndpoint):
     config = ConfluenceEndpointConfiguration(
-        path="/content/update",
-        auth_required=False,
+        path="/confluence/api/content/update",
     )
 
     class RequestBody(BaseRequestBody):
@@ -120,21 +111,18 @@ class UpdateContentRequest(ConfluenceEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
 
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
-
-class DeleteContentRequest(ConfluenceEndpoint):
+class DeleteContentRequest(ConfluenceApiEndpoint):
     config = ConfluenceEndpointConfiguration(
-        path="/content/delete",
-        auth_required=False,
+        path="/confluence/api/content/delete",
     )
 
     class RequestBody(BaseRequestBody):
@@ -150,12 +138,10 @@ class DeleteContentRequest(ConfluenceEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

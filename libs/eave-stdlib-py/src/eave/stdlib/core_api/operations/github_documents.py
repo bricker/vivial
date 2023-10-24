@@ -1,5 +1,6 @@
 from typing import Optional, Unpack
 import uuid
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 
 from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoRefInput
 from ... import requests
@@ -11,7 +12,7 @@ from eave.stdlib.core_api.models.github_documents import (
     GithubDocumentCreateInput,
     GithubDocumentUpdateInput,
 )
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetGithubDocumentsRequest(CoreApiEndpoint):
@@ -35,17 +36,15 @@ class GetGithubDocumentsRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class CreateGithubDocumentRequest(CoreApiEndpoint):
@@ -71,17 +70,15 @@ class CreateGithubDocumentRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class UpdateGithubDocumentRequest(CoreApiEndpoint):
@@ -105,17 +102,15 @@ class UpdateGithubDocumentRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class DeleteGithubDocumentsByIdsRequest(CoreApiEndpoint):
@@ -139,17 +134,15 @@ class DeleteGithubDocumentsByIdsRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             account_id=account_id,
             access_token=access_token,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class DeleteGithubDocumentsByTypeRequest(CoreApiEndpoint):
@@ -173,14 +166,12 @@ class DeleteGithubDocumentsByTypeRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

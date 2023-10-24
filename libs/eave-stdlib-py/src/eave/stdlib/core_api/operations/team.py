@@ -1,8 +1,10 @@
 from typing import Optional, Unpack
 import uuid
+
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 from ... import requests
 from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 from ..models import integrations
 
 
@@ -24,17 +26,15 @@ class GetTeamRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=None,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
@@ -58,13 +58,11 @@ class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
         account_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             access_token=access_token,
             account_id=account_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

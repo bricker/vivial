@@ -1,7 +1,7 @@
 from typing import Optional, Unpack
 import uuid
 from eave.stdlib import requests
-from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpointConfiguration
 
 
@@ -20,12 +20,10 @@ class GetGithubUrlContent(GithubAppEndpoint):
     async def perform(
         cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

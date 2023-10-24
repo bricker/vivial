@@ -1,17 +1,12 @@
-from eave.stdlib.config import shared_config
-from eave.stdlib.core_api.operations import Endpoint, EndpointConfiguration
+from eave.stdlib.api_types import ClientApiEndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 
-_base_url = shared_config.eave_internal_service_base(EaveApp.eave_github_app)
 
-
-class GithubAppEndpointConfiguration(EndpointConfiguration):
-    audience = EaveApp.eave_github_app
-
+class GithubAppEndpointConfiguration(ClientApiEndpointConfiguration):
     @property
-    def url(self) -> str:
-        return f"{_base_url}{self.path}"
+    def audience(self) -> EaveApp:
+        return EaveApp.eave_github_app
 
 
-class GithubAppEndpoint(Endpoint):
+class GithubAppEndpoint:
     config: GithubAppEndpointConfiguration

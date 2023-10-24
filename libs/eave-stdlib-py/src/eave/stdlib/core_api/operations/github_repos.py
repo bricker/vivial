@@ -1,5 +1,7 @@
 from typing import Unpack, Optional
 import uuid
+
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 from ... import requests
 from eave.stdlib.core_api.models.github_repos import (
     GithubRepo,
@@ -9,7 +11,7 @@ from eave.stdlib.core_api.models.github_repos import (
     GithubRepoUpdateInput,
     GithubReposFeatureStateInput,
 )
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetGithubReposRequest(CoreApiEndpoint):
@@ -33,17 +35,15 @@ class GetGithubReposRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class GetAllTeamsGithubReposRequest(CoreApiEndpoint):
@@ -61,14 +61,12 @@ class GetAllTeamsGithubReposRequest(CoreApiEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class FeatureStateGithubReposRequest(CoreApiEndpoint):
@@ -91,17 +89,15 @@ class FeatureStateGithubReposRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=None,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class CreateGithubRepoRequest(CoreApiEndpoint):
@@ -125,17 +121,15 @@ class CreateGithubRepoRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class DeleteGithubReposRequest(CoreApiEndpoint):
@@ -159,17 +153,15 @@ class DeleteGithubReposRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class UpdateGithubReposRequest(CoreApiEndpoint):
@@ -193,14 +185,12 @@ class UpdateGithubReposRequest(CoreApiEndpoint):
         access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

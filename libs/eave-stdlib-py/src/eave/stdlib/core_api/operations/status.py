@@ -1,6 +1,9 @@
 import aiohttp
 
-from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from eave.stdlib.api_types import BaseResponseBody
+from eave.stdlib.requests import make_response
+
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class Status(CoreApiEndpoint):
@@ -26,6 +29,6 @@ class Status(CoreApiEndpoint):
             )
 
             # This must remain inside of the ClientSession context, so that the body stream is still open when it is read.
-            body = await cls.make_response(response, cls.ResponseBody)
+            body = await make_response(response=response, response_type=cls.ResponseBody)
 
         return body

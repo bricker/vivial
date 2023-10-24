@@ -1,7 +1,8 @@
 from typing import Unpack
+from eave.stdlib.api_types import BaseRequestBody, BaseResponseBody
 from eave.stdlib.core_api.models.slack import SlackInstallation
 from eave.stdlib.core_api.models.slack import SlackInstallationInput
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models import team
 from ... import requests
@@ -27,11 +28,9 @@ class GetSlackInstallation(CoreApiEndpoint):
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=input,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body

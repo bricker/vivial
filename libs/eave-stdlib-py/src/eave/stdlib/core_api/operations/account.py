@@ -1,8 +1,9 @@
 from typing import Optional, Unpack
 import uuid
+from eave.stdlib.api_types import BaseResponseBody
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Destination, Team
-from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 from ..models.integrations import Integrations
 from ... import requests
@@ -25,17 +26,15 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
         account_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=None,
             access_token=access_token,
             account_id=account_id,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
 
 
 class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
@@ -57,14 +56,12 @@ class GetAuthenticatedAccountTeamIntegrations(CoreApiEndpoint):
         team_id: uuid.UUID,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        return await requests.make_request(
             config=cls.config,
+            response_type=cls.ResponseBody,
             input=None,
             access_token=access_token,
             account_id=account_id,
             team_id=team_id,
             **kwargs,
         )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
