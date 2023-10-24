@@ -1,7 +1,6 @@
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
 from eave.stdlib.api_types import ServerApiEndpointConfiguration
 
-from eave.stdlib.eave_origins import EaveApp
 
 from .base import EaveASGIMiddleware
 from .development_bypass import development_bypass_allowed

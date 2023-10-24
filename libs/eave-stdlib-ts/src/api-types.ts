@@ -1,7 +1,7 @@
 import Express from "express";
+import { sharedConfig } from "./config.js";
 import { EaveApp } from "./eave-origins.js";
 import { ExpressRoutingMethod } from "./types.js";
-import { sharedConfig } from "./config.js";
 
 export interface ClientRequestParameters {
   path: string;
@@ -10,7 +10,9 @@ export interface ClientRequestParameters {
   url: string;
 }
 
-export abstract class ClientApiEndpointConfiguration implements ClientRequestParameters {
+export abstract class ClientApiEndpointConfiguration
+  implements ClientRequestParameters
+{
   path: string;
   method: ExpressRoutingMethod;
   abstract audience: EaveApp;
@@ -35,7 +37,9 @@ export abstract class ClientApiEndpointConfiguration implements ClientRequestPar
   }
 }
 
-export abstract class ServerApiEndpointConfiguration implements ClientRequestParameters {
+export abstract class ServerApiEndpointConfiguration
+  implements ClientRequestParameters
+{
   path: string;
   method: ExpressRoutingMethod;
   teamIdRequired: boolean;

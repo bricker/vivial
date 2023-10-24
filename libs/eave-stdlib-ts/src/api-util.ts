@@ -1,14 +1,12 @@
 import Express, { IRouter, Request, Response, Router } from "express";
 import { Server } from "http";
 import { constants as httpConstants } from "node:http2";
+import { ServerApiEndpointConfiguration } from "./api-types.js";
 import { cacheInitialized, getCacheClient } from "./cache.js";
 import { sharedConfig } from "./config.js";
 import { StatusResponseBody } from "./core-api/operations/status.js";
-import { EaveApp } from "./eave-origins.js";
 import { eaveLogger } from "./logging.js";
-import { ExpressRoutingMethod } from "./types.js";
 import { redact } from "./util.js";
-import { ServerApiEndpointConfiguration } from "./api-types.js";
 
 export function statusPayload(): StatusResponseBody {
   return {

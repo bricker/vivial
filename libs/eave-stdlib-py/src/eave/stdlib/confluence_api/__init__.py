@@ -1,6 +1,5 @@
 from eave.stdlib.api_types import ClientApiEndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
-from ..config import shared_config
 
 
 class ConfluenceEndpointConfiguration(ClientApiEndpointConfiguration):

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { constants as httpConstants } from "node:http2";
+import { ClientRequestParameters } from "./api-types.js";
 import { EaveApp } from "./eave-origins.js";
 import {
   EAVE_ACCOUNT_ID_HEADER,
@@ -14,7 +15,6 @@ import { LogContext, eaveLogger } from "./logging.js";
 import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 import { JsonObject } from "./types.js";
 import { redact } from "./util.js";
-import { ClientRequestParameters } from "./api-types.js";
 
 export type ExpressHandlerArgs = {
   req: Request;

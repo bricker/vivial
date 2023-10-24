@@ -2,6 +2,7 @@ import { CloudTasksClient, protos } from "@google-cloud/tasks";
 import { Request } from "express";
 import assert from "node:assert";
 import { constants as httpConstants } from "node:http2";
+import { ClientRequestParameters } from "./api-types.js";
 import { getCacheClient } from "./cache.js";
 import { sharedConfig } from "./config.js";
 import { EaveApp } from "./eave-origins.js";
@@ -20,7 +21,6 @@ import { LogContext, eaveLogger } from "./logging.js";
 import { CtxArg, makeRequest } from "./requests.js";
 import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 import { ExpressRoutingMethod } from "./types.js";
-import { ClientApiEndpointConfiguration, ClientRequestParameters } from "./api-types.js";
 
 type CreateTaskSharedArgs = CtxArg & {
   queueName: string;
