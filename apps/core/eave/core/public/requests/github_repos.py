@@ -2,12 +2,9 @@ from http import HTTPStatus
 from eave.core.internal import database
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.github_repos import GithubRepoOrm
-from eave.stdlib.config import GITHUB_EVENT_QUEUE_NAME
 from eave.stdlib.core_api.models.github_repos import Feature, State
-from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import GithubRepoInput
 from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
-from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -22,7 +19,6 @@ from eave.stdlib.core_api.operations.github_repos import (
     FeatureStateGithubReposRequest,
 )
 from eave.stdlib.request_state import EaveRequestState
-from eave.stdlib.task_queue import create_task
 from eave.stdlib.util import ensure_uuid
 from eave.core.internal.config import app_config
 
@@ -209,21 +205,13 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                     gh_repo_orm.api_documentation_state == State.DISABLED
                     and new_values.api_documentation_state == State.ENABLED
                 ):
-                    await create_task(
+                    await RunApiDocumentationTask.perform_offline(
                         ctx=eave_state.ctx,
-                        audience=EaveApp.eave_github_app,
-                        headers={
-                            EAVE_TEAM_ID_HEADER: eave_state.ctx.eave_team_id,
-                            EAVE_REQUEST_ID_HEADER: eave_state.ctx.eave_request_id,
-                        },
                         origin=app_config.eave_origin,
-                        payload=RunApiDocumentationTask.RequestBody(
+                        input=RunApiDocumentationTask.RequestBody(
                             repo=GithubRepoInput(external_repo_id=gh_repo_orm.external_repo_id)
-                        )
-                        .json()
-                        .encode(),
-                        queue_name=GITHUB_EVENT_QUEUE_NAME,
-                        target_path=RunApiDocumentationTask.config.path,
+                        ),
+                        team_id=ensure_uuid(eave_state.ctx.eave_team_id),
                     )
 
                 gh_repo_orm.update(new_values)

@@ -3,6 +3,11 @@ import json
 from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request
+from eave.stdlib.api_types import (
+    BaseResponseBody,
+    GenericApiEndpointConfiguration,
+)
+from eave.stdlib.requests import make_request
 import eave.stdlib.signing as signing
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
@@ -92,7 +97,7 @@ async def create_task(
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
     headers: Optional[dict[str, str]] = None,
-) -> tasks.Task:
+) -> None:
     ctx = LogContext.wrap(ctx)
 
     if isinstance(payload, dict):
@@ -176,5 +181,20 @@ async def create_task(
         },
     )
 
-    t = await client.create_task(parent=parent, task=task)
-    return t
+    if shared_config.is_development:
+        await make_request(
+            config=GenericApiEndpointConfiguration(
+                path=task.app_engine_http_request.relative_uri,
+                audience=audience,
+            ),
+            input=str(task.app_engine_http_request.body),
+            response_type=BaseResponseBody,
+            origin=origin,
+            team_id=team_id,
+            account_id=account_id,
+            addl_headers=dict(task.app_engine_http_request.headers),
+            ctx=ctx,
+        )
+
+    else:
+        await client.create_task(parent=parent, task=task)
