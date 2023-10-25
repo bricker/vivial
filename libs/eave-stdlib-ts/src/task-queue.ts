@@ -33,7 +33,7 @@ type CreateTaskSharedArgs = CtxArg & {
 };
 
 type CreateTaskArgs = CreateTaskSharedArgs & {
-  payload: any;
+  payload: string;
   headers?: { [key: string]: string };
 };
 
@@ -56,7 +56,16 @@ export async function createTaskFromRequest({
   ctx,
 }: CreateTaskFromRequestArgs): Promise<void> {
   ctx = LogContext.wrap(ctx, req);
-  const payload = req.body;
+
+  // keep the event in redis since GCP Task Queue can only accept 100kb task size
+  let payload = req.body;
+  const pointerPayload: BodyCacheEntry = { cacheKey: ctx.eave_request_id };
+  const cacheClient = await getCacheClient();
+  await cacheClient.set(pointerPayload.cacheKey, makeString(payload), {
+    EX: 60 * 60 * 24,
+  }); // TTL 24h
+
+  payload = makeString(pointerPayload);
 
   if (!uniqueTaskId) {
     const traceId = req.header(GCP_CLOUD_TRACE_CONTEXT);
@@ -109,15 +118,6 @@ export async function createTask({
   ctx,
 }: CreateTaskArgs): Promise<void> {
   ctx = LogContext.wrap(ctx);
-
-  // keep the event in redis since GCP Task Queue can only accept 100kb task size
-  const pointerPayload: BodyCacheEntry = { cacheKey: ctx.eave_request_id };
-  const cacheClient = await getCacheClient();
-  await cacheClient.set(pointerPayload.cacheKey, makeString(payload), {
-    EX: 60 * 60 * 24,
-  }); // TTL 24h
-
-  payload = makeString(pointerPayload);
 
   if (!headers) {
     headers = {};
