@@ -11,6 +11,7 @@ import {
 
 import "../static/css/app.css";
 import AuthUser from "./components/AuthUser/index.jsx";
+import AuthenticationPage from "./components/Pages/AuthenticationPage/index.jsx";
 import Dashboard from "./components/Pages/Dashboard/index.jsx";
 import HomePage from "./components/Pages/HomePage/index.jsx";
 import PrivacyPage from "./components/Pages/PrivacyPage/index.jsx";
@@ -35,6 +36,8 @@ const App = () => {
               <Routes>
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/signup" element={<AuthenticationPage type="signup" />} />
+                <Route path="/login" element={<AuthenticationPage type="login" />} />
                 <Route element={<PrivateRoutes />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
