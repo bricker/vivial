@@ -1,3 +1,4 @@
+import { EphemeralCache } from "@eave-fyi/eave-stdlib-ts/src/cache.js";
 import {
   Blob,
   Commit,
@@ -7,13 +8,12 @@ import {
 } from "@octokit/graphql-schema";
 import assert from "node:assert";
 import { promises as fs } from "node:fs";
-import GlobalCache from "../lib/cache.js";
 
-// document me
+const queryCache = new EphemeralCache();
 
 export async function loadQuery(name: string): Promise<string> {
   const queryCacheKey = `query.${name}`;
-  const cachedQuery = await GlobalCache.get(queryCacheKey);
+  const cachedQuery = await queryCache.get(queryCacheKey);
   if (cachedQuery !== null) {
     return cachedQuery.toString();
   }
@@ -26,7 +26,7 @@ export async function loadQuery(name: string): Promise<string> {
     throw new Error(`GraphQL query ${name} is invalid: ${errors}`);
   }
 
-  await GlobalCache.set(queryCacheKey, fullQuery);
+  await queryCache.set(queryCacheKey, fullQuery);
   return fullQuery;
 }
 
@@ -54,13 +54,13 @@ async function prependFragments(
   for (const fragmentName of missingFragments) {
     manifest.add(fragmentName);
     const fragmentCacheKey = `fragment.${fragmentName}`;
-    let fragmentData = await GlobalCache.get(fragmentCacheKey);
+    let fragmentData = await queryCache.get(fragmentCacheKey);
     if (fragmentData === null) {
       fragmentData = await fs.readFile(
         `./src/graphql/fragments/${fragmentName}.graphql`,
         "utf-8",
       );
-      await GlobalCache.set(fragmentCacheKey, fragmentData);
+      await queryCache.set(fragmentCacheKey, fragmentData);
     }
 
     newQuery = `${fragmentData}\n\n${newQuery}`;
