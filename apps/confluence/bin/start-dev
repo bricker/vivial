@@ -3,5 +3,6 @@
 set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
+node-activate-venv
 cd "$(^parentpath)"
-"${EAVE_HOME}"/develop/javascript/_lint_base
+node ./bin/src/start-dev-nodemon.cjs

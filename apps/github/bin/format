@@ -4,7 +4,5 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-(
-	cd "$(^parentpath)"
-	"${EAVE_HOME}"/develop/javascript/_format_base
-)
+cd "$(^parentpath)"
+"${EAVE_HOME}"/develop/javascript/_format_base
