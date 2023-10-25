@@ -143,6 +143,8 @@ class GithubRepoOrm(Base):
         will get all repos for the provided `team_id`.
         """
         stmt = cls._build_query(params=params)
+        stmt = stmt.order_by(cls.display_name)
+
         result = (await session.scalars(stmt)).all()
         return result
 
