@@ -33,9 +33,9 @@ class GithubRepo(BaseResponseModel):
 class GithubRepoCreateInput(BaseInputModel):
     external_repo_id: str
     display_name: str
-    api_documentation_state: State = State.DISABLED
-    inline_code_documentation_state: State = State.DISABLED
-    architecture_documentation_state: State = State.DISABLED
+    api_documentation_state: Optional[State] = None
+    inline_code_documentation_state: Optional[State] = None
+    architecture_documentation_state: Optional[State] = None
 
 
 class GithubRepoRefInput(BaseInputModel):

@@ -40,11 +40,11 @@ class GithubRepoOrm(Base):
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
     """Human-readable reference, for display only"""
-    api_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
+    api_documentation_state: Mapped[str] = mapped_column()
     """Activation status of the API documentation feature for this repo. options: disabled, enabled, paused"""
-    inline_code_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
+    inline_code_documentation_state: Mapped[str] = mapped_column()
     """Activation status of the inline code documentation feature for this repo. options: disabled, enabled, paused"""
-    architecture_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
+    architecture_documentation_state: Mapped[str] = mapped_column()
     """Activation status of the architecture documentation feature for this repo. options: disabled, enabled, paused"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -113,18 +113,18 @@ class GithubRepoOrm(Base):
         external_repo_id: str,
         github_installation_id: UUID,
         display_name: Optional[str],
-        api_documentation_state: State = State.DISABLED,
-        inline_code_documentation_state: State = State.DISABLED,
-        architecture_documentation_state: State = State.DISABLED,
+        api_documentation_state: Optional[State] = None,
+        inline_code_documentation_state: Optional[State] = None,
+        architecture_documentation_state: Optional[State] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
             github_installation_id=github_installation_id,
             display_name=display_name,
-            api_documentation_state=api_documentation_state.value,
-            inline_code_documentation_state=inline_code_documentation_state.value,
-            architecture_documentation_state=architecture_documentation_state.value,
+            api_documentation_state=api_documentation_state or State.ENABLED.value,
+            inline_code_documentation_state=inline_code_documentation_state or State.ENABLED,
+            architecture_documentation_state=architecture_documentation_state or State.ENABLED,
         )
         session.add(obj)
         await session.flush()
@@ -201,3 +201,17 @@ class GithubRepoOrm(Base):
 
         result = (await session.scalars(stmt)).all()
         return len(result) == 0
+
+    @classmethod
+    async def resolve_feature_state(cls, team_id: UUID, feature: Feature, session: AsyncSession) -> State:
+        feature_enabled_for_all_repos = await GithubRepoOrm.all_repos_match_feature_state(
+            session=session,
+            team_id=team_id,
+            feature=feature,
+            state=State.ENABLED,
+        )
+
+        if feature_enabled_for_all_repos:
+            return State.ENABLED
+        else:
+            return State.DISABLED

@@ -1,8 +1,10 @@
 import asyncio
+from dataclasses import dataclass
 import json
 from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request
+from eave.stdlib import cache
 import eave.stdlib.signing as signing
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
@@ -17,6 +19,8 @@ from eave.stdlib.headers import (
     GCP_GAE_REQUEST_LOG_ID,
     USER_AGENT,
 )
+from eave.stdlib.time import ONE_DAY_IN_MS
+from eave.stdlib.util import compact_deterministic_json, ensure_bytes, ensure_str
 
 from .typing import JsonObject
 from .config import shared_config
@@ -45,6 +49,11 @@ async def get_queue(queue_name: str) -> tasks.Queue:
 
     queue = await client.get_queue(name=queue)
     return queue
+
+
+@dataclass
+class BodyCacheEntry:
+    cache_key: str
 
 
 async def create_task_from_request(
@@ -85,7 +94,7 @@ async def create_task_from_request(
 async def create_task(
     queue_name: str,
     target_path: str,
-    payload: JsonObject | bytes,
+    payload: JsonObject | str | bytes,
     origin: EaveApp,
     audience: EaveApp,
     ctx: Optional[LogContext],
@@ -95,11 +104,11 @@ async def create_task(
 ) -> tasks.Task:
     ctx = LogContext.wrap(ctx)
 
-    if isinstance(payload, dict):
-        # FIXME: Encrypt this; it's visible as plaintext in Cloud Tasks
-        body = json.dumps(payload).encode()
-    else:
-        body = payload
+    # Stash in redis to avoid 100kb payload size limit in Cloud Tasks
+    cache_client = cache.client_or_exception()
+    pointer_payload = BodyCacheEntry(cache_key=ctx.eave_request_id)
+    await cache_client.set(name=pointer_payload.cache_key, value=ensure_str(payload), ex=ONE_DAY_IN_MS)
+    payload = compact_deterministic_json(pointer_payload.__dict__)
 
     if not headers:
         headers = {}
@@ -118,7 +127,7 @@ async def create_task(
         request_id=request_id,
         path=target_path,
         # FIXME: The linter doesn't like this next line, with the error `Cannot access member "decode" for type "memoryview"`
-        payload=body.decode(),  # type: ignore
+        payload=payload,  # type: ignore
         team_id=team_id,
         account_id=account_id,
         ctx=ctx,
@@ -151,7 +160,7 @@ async def create_task(
             http_method=tasks.HttpMethod.POST,
             relative_uri=target_path,
             headers=headers,
-            body=body,
+            body=ensure_bytes(data=payload),
         )
     )
 
@@ -178,3 +187,18 @@ async def create_task(
 
     t = await client.create_task(parent=parent, task=task)
     return t
+
+
+async def get_cached_payload(body: str | bytes) -> str:
+    jbody = json.loads(body)
+    try:
+        pointer_payload = BodyCacheEntry(**jbody)
+    except TypeError as e:
+        eaveLogger.error("Invalid BodyCacheEntry payload!")
+        raise e
+
+    cache_client = cache.client_or_exception()
+    stashed_payload = await cache_client.get(name=pointer_payload.cache_key)
+    assert stashed_payload is not None, "Could not find expected cached event body. Maybe the TTL needs to be extended?"
+
+    return stashed_payload
