@@ -25,6 +25,7 @@ from eave.stdlib.util import ensure_uuid
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
 
 DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
+SIGNUP_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/signup" # TODO: there's no signup URL...
 
 
 def verify_oauth_state_or_exception(

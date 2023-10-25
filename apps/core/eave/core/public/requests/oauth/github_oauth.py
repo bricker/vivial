@@ -1,11 +1,13 @@
 import json
+from typing import Optional
 import urllib.parse
 from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
-from eave.stdlib.auth_cookies import get_auth_cookies
+from eave.stdlib.auth_cookies import AuthCookies, get_auth_cookies
 import eave.stdlib.cookies
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import ExternalGithubRepo
@@ -65,6 +67,8 @@ class GithubOAuthAuthorize(HTTPEndpoint):
 class GithubOAuthCallback(HTTPEndpoint):
     auth_provider = _AUTH_PROVIDER
     github_installation_orm: GithubInstallationOrm
+    eave_account: Optional[AccountOrm]
+    eave_team: Optional[TeamOrm]
 
     async def get(
         self,
@@ -72,6 +76,7 @@ class GithubOAuthCallback(HTTPEndpoint):
     ) -> Response:
         self.response = Response()
 
+        # TODO: marketplace installs wont have state set probably??
         # if this is a permissions update from github, just redirect to dashboard
         if "state" not in request.query_params:
             shared.set_redirect(
@@ -116,43 +121,52 @@ class GithubOAuthCallback(HTTPEndpoint):
             return shared.cancel_flow(response=self.response)
 
         self.installation_id = installation_id
-
         auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-        if not auth_cookies.access_token or not auth_cookies.account_id:
-            # This is the case where they're going through the install flow but not logged in.
-            # TODO: Once we allow people to install the app before they've created an account, this is where we'd redirect them to the registration flow.
-            eaveLogger.warning("Auth cookies not set in GitHub callback, can't proceed.", self.eave_state.ctx)
-            return shared.cancel_flow(response=self.response)
-
-        async with database.async_session.begin() as db_session:
-            eave_account = await AccountOrm.one_or_none(
-                session=db_session,
-                params=AccountOrm.QueryParams(
-                    id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id), access_token=auth_cookies.access_token
-                ),
-            )
-
-            if not eave_account:
-                return shared.cancel_flow(response=self.response)
-
-            self.eave_account = eave_account
-            self.eave_team = await self.eave_account.get_team(session=db_session)
-
-        shared.set_redirect(
-            response=self.response,
-            location=shared.DEFAULT_REDIRECT_LOCATION,
-        )
-
         try:
+            await self._maybe_set_account_data(auth_cookies)
             await self._update_or_create_github_installation()
-            await self._sync_github_repos()
+            if self.eave_account:
+                # TODO: run this later somehow for installs w/o team. Run when team is linked???
+                await self._sync_github_repos()
         except Exception as e:
             if shared.is_error_response(self.response):
                 return self.response
             raise e
 
         return self.response
+
+    async def _maybe_set_account_data(self, auth_cookies: AuthCookies) -> None:
+        if not auth_cookies.access_token or not auth_cookies.account_id:
+            # This is the case where they're going through the install flow but not logged in.
+            # (e.g. installing from github marketplace w/o an Eave account)
+
+            # TODO: user should be able to associate installation with any account they can log into? Or only new account?
+
+            shared.set_redirect(
+                response=self.response,
+                location=shared.SIGNUP_REDIRECT_LOCATION,
+            )
+        else:
+            async with database.async_session.begin() as db_session:
+                eave_account = await AccountOrm.one_or_none(
+                    session=db_session,
+                    params=AccountOrm.QueryParams(
+                        id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id), access_token=auth_cookies.access_token
+                    ),
+                )
+
+                if not eave_account:
+                    shared.cancel_flow(response=self.response)
+                    raise Exception("auth_cookies did not point to valid account")
+
+                self.eave_account = eave_account
+                self.eave_team = await self.eave_account.get_team(session=db_session)
+
+            shared.set_redirect(
+                response=self.response,
+                location=shared.DEFAULT_REDIRECT_LOCATION,
+            )
 
     async def _update_or_create_github_installation(
         self,
@@ -162,7 +176,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             github_installation_orm = await GithubInstallationOrm.query(
                 session=db_session,
                 params=GithubInstallationOrm.QueryParams(
-                    team_id=self.eave_team.id,
+                    team_id=self.eave_team.id if self.eave_team else None,
                     github_install_id=self.installation_id,
                 ),
             )
@@ -171,7 +185,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 # create new github installation associated with the TeamOrm
                 github_installation_orm = await GithubInstallationOrm.create(
                     session=db_session,
-                    team_id=self.eave_account.team_id,
+                    team_id=self.eave_account.team_id if self.eave_account else None,
                     github_install_id=self.installation_id,
                 )
 
@@ -179,15 +193,15 @@ class GithubOAuthCallback(HTTPEndpoint):
                     event_name="eave_application_integration",
                     event_description="An integration was added for a team",
                     event_source="core api github oauth",
-                    eave_account=self.eave_account.analytics_model,
-                    eave_team=self.eave_team.analytics_model,
+                    eave_account=self.eave_account.analytics_model if self.eave_account else None,
+                    eave_team=self.eave_team.analytics_model if self.eave_team else None,
                     opaque_params={
                         "integration_name": Integration.github.value,
                     },
                     ctx=self.eave_state.ctx,
                 )
 
-            elif github_installation_orm.team_id != self.eave_account.team_id:
+            elif self.eave_account and github_installation_orm.team_id != self.eave_account.team_id:
                 eaveLogger.warning(
                     f"A Github integration already exists with github install id {self.installation_id}",
                     self.eave_state.ctx,
@@ -196,7 +210,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     event_name="duplicate_integration_attempt",
                     event_source="core api github oauth",
                     eave_account=self.eave_account.analytics_model,
-                    eave_team=self.eave_team.analytics_model,
+                    eave_team=self.eave_team.analytics_model if self.eave_team else None,
                     opaque_params={"integration": Integration.github},
                     ctx=self.eave_state.ctx,
                 )
@@ -207,8 +221,8 @@ class GithubOAuthCallback(HTTPEndpoint):
                     event_name="eave_application_integration_updated",
                     event_description="An integration was re-installed or updated for a team",
                     event_source="core api github oauth",
-                    eave_account=self.eave_account.analytics_model,
-                    eave_team=self.eave_team.analytics_model,
+                    eave_account=self.eave_account.analytics_model if self.eave_account else None,
+                    eave_team=self.eave_team.analytics_model if self.eave_team else None,
                     opaque_params={
                         "integration_name": Integration.github.value,
                     },
@@ -218,6 +232,10 @@ class GithubOAuthCallback(HTTPEndpoint):
             self.github_installation_orm = github_installation_orm
 
     async def _sync_github_repos(self) -> None:
+        """Create github_repo entries in our DB for each of their repos we have access to through the GitHub API"""
+        # TODO: put this off until after account is linked? OR cascade optionality down to all gh orms + this endpoitn? security hole????
+        assert self.eave_account
+        assert self.eave_team
         response = await QueryGithubRepos.perform(
             team_id=self.eave_team.id, origin=EaveApp.eave_api, ctx=self.eave_state.ctx
         )
@@ -232,13 +250,15 @@ class GithubOAuthCallback(HTTPEndpoint):
 
             if len(repos) > 0:
                 # update the GithubInstallation to set the github_owner_login property to the owner of any repository in the list (we happen to get the first one, but they should all be the same).
-                if owner := repos[0].owner:
+                if (owner := repos[0].owner) and owner.login:
                     github_installation_orm.github_owner_login = owner.login
 
             for repo in repos:
                 await self._create_local_github_repo(repo=repo, db_session=db_session)
 
     async def _create_local_github_repo(self, repo: ExternalGithubRepo, db_session: AsyncSession) -> None:
+        assert self.eave_account
+        assert self.eave_team
         if repo.id is None:
             eaveLogger.error(
                 "Malformed repository object",

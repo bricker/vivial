@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from eave.stdlib.core_api.models.github import GithubInstallation, GithubInstallationPeek
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class GithubInstallationOrm(Base):
@@ -35,7 +35,7 @@ class GithubInstallationOrm(Base):
 
     @classmethod
     async def create(
-        cls, session: AsyncSession, team_id: uuid.UUID, github_install_id: str, github_owner_login: Optional[str] = None
+        cls, session: AsyncSession, team_id: Optional[uuid.UUID], github_install_id: str, github_owner_login: Optional[str] = None
     ) -> Self:
         obj = cls(
             team_id=team_id,
@@ -45,6 +45,13 @@ class GithubInstallationOrm(Base):
         session.add(obj)
         await session.flush()
         return obj
+
+    def update(
+        self, team_id: uuid.UUID,
+    ) -> Self:
+        if self.team_id == None:
+            self.team_id = team_id
+        return self
 
     @dataclass
     class QueryParams:
