@@ -85,10 +85,10 @@ export async function createTaskFromRequest({
   delete headers[httpConstants.HTTP2_HEADER_USER_AGENT];
 
   await createTask({
-    queueName,
     targetPath,
-    origin,
+    queueName,
     audience,
+    origin,
     uniqueTaskId,
     taskNamePrefix,
     payload,
