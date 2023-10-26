@@ -4,6 +4,7 @@ import urllib.parse
 from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
+from eave.core.public.exception_handlers import validation_error
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
@@ -75,38 +76,49 @@ class GithubOAuthCallback(HTTPEndpoint):
         request: Request,
     ) -> Response:
         self.response = Response()
+        self.eave_state = EaveRequestState.load(request=request)
 
-        # TODO: marketplace installs wont have state set probably??
-        # if this is a permissions update from github, just redirect to dashboard
-        if "state" not in request.query_params:
+        if "state" in request.query_params:
+            # we set this state in our /oauth/github/authorize endpoint before handing
+            # auth over to github
+            self.state = state = request.query_params["state"]
+
+            # Because of the GitHub redirect_uri issue described in this file, we need to get the redirect_uri from state,
+            # and redirect if it's on a different host.
+            # Reminder that in this scenario, the cookies from your local environment won't be available here (because we're probably at eave.fyi)
+            state_decoded = json.loads(eave.stdlib.util.b64decode(state, urlsafe=True))
+            if redirect_uri := state_decoded.get("redirect_uri"):
+                url = urllib.parse.urlparse(redirect_uri)
+                if url.hostname != request.url.hostname:
+                    qp = urllib.parse.urlencode(request.query_params)
+                    location = f"{redirect_uri}?{qp}"
+                    return shared.set_redirect(response=self.response, location=location)
+
+            shared.verify_oauth_state_or_exception(
+                state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=self.response
+            )
+
+        elif "code" in request.query_params:
+            # github marketplace installs skip the step where we set state, so manually
+            # validate the user (oauth code) has access to the app installation
+            installation_id = request.query_params.get("installation_id")
+            code = request.query_params.get("code")
+            if not installation_id or not code:
+                eaveLogger.warning(
+                    f"Missing GitHub user oauth code and/or app installation_id. Cannot proceed.",
+                    self.eave_state.ctx,
+                )
+                return shared.cancel_flow(response=self.response)
+
+            await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
+        else:
+            # unable to check validity of data received. or could just be a
+            # permissions update from gh website redirecting to our callback
             shared.set_redirect(
                 response=self.response,
                 location=shared.DEFAULT_REDIRECT_LOCATION,
             )
             return self.response
-
-        self.state = state = request.query_params["state"]
-
-        # Because of the GitHub redirect_uri issue described in this file, we need to get the redirect_uri from state,
-        # and redirect if it's on a different host.
-        # Reminder that in this scenario, the cookies from your local environment won't be available here (because we're probably at eave.fyi)
-        state_decoded = json.loads(eave.stdlib.util.b64decode(state, urlsafe=True))
-        if redirect_uri := state_decoded.get("redirect_uri"):
-            url = urllib.parse.urlparse(redirect_uri)
-            if url.hostname != request.url.hostname:
-                qp = urllib.parse.urlencode(request.query_params)
-                location = f"{redirect_uri}?{qp}"
-                return shared.set_redirect(response=self.response, location=location)
-
-        shared.verify_oauth_state_or_exception(
-            state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=self.response
-        )
-
-        # code = request.query_params.get("code")
-        # error = request.query_params.get("error")
-        # error_description = request.query_params.get("error_description")
-
-        self.eave_state = EaveRequestState.load(request=request)
 
         setup_action = request.query_params.get("setup_action")
         if setup_action not in ["install", "update"]:
@@ -127,7 +139,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             await self._maybe_set_account_data(auth_cookies)
             await self._update_or_create_github_installation()
             if self.eave_account:
-                # TODO: run this later somehow for installs w/o team. Run when team is linked???
+                # TODO: run this later somehow for installs w/o team. Run when team is linked to installation on signin/up
                 await self._sync_github_repos()
         except Exception as e:
             if shared.is_error_response(self.response):
@@ -183,6 +195,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
             if not github_installation_orm:
                 # create new github installation associated with the TeamOrm
+                # (or create a dangling installation to later associate w/ a future account)
                 github_installation_orm = await GithubInstallationOrm.create(
                     session=db_session,
                     team_id=self.eave_account.team_id if self.eave_account else None,
@@ -191,7 +204,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
                 await eave.stdlib.analytics.log_event(
                     event_name="eave_application_integration",
-                    event_description="An integration was added for a team",
+                    event_description="An integration was added",
                     event_source="core api github oauth",
                     eave_account=self.eave_account.analytics_model if self.eave_account else None,
                     eave_team=self.eave_team.analytics_model if self.eave_team else None,

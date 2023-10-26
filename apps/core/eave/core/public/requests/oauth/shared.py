@@ -3,29 +3,31 @@ import http
 import re
 import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
-from eave.core.internal.orm.account import AccountOrm
+from starlette.requests import Request
+from starlette.responses import Response
 
 import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 import eave.stdlib.slack
 import eave.stdlib.cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.config
-from starlette.requests import Request
-from starlette.responses import Response
+from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.util import ensure_uuid
+from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
 
+from eave.core.internal.orm.account import AccountOrm
 import eave.core.internal
 import eave.core.internal.oauth.state_cookies
 import eave.core.internal.orm
-from eave.stdlib.util import ensure_uuid
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
 
 DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
-SIGNUP_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/signup" # TODO: there's no signup URL...
+SIGNUP_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/signup"
 
 
 def verify_oauth_state_or_exception(
@@ -42,6 +44,28 @@ def verify_oauth_state_or_exception(
         raise eave.stdlib.exceptions.InvalidStateError()
 
     return True
+
+
+async def verify_stateless_installation_or_exception(
+    code: str,
+    installation_id: str,
+    ctx: LogContext,
+) -> None:
+    """
+    When the GitHub app is installed throught the GitHub marketplace, it doesnt give us
+    the opportunity to set/generate a state cookie for us to verify against mitm tampering,
+    so we have to manually validate that the user has access to the app installation.
+
+    code - user OAuth code for requesting an access_token
+            https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
+
+    installation_id - (Eave) github app installation id
+    """
+    await VerifyInstallation.perform(
+        input=VerifyInstallation.RequestBody(code=code, installation_id=installation_id),
+        origin=EaveApp.eave_api,
+        ctx=ctx,
+    )
 
 
 def set_redirect(response: Response, location: str) -> Response:
