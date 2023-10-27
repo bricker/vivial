@@ -45,6 +45,7 @@ def set_auth_cookies(
     if account_id:
         set_http_cookie(response=response, key=_EAVE_ACCOUNT_ID_COOKIE_NAME, value=str(account_id))
 
+
     if team_id:
         set_http_cookie(response=response, key=_EAVE_TEAM_ID_COOKIE_NAME, value=str(team_id))
 

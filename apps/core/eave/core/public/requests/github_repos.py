@@ -3,7 +3,7 @@ from eave.core.internal import database
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.stdlib.config import GITHUB_EVENT_QUEUE_NAME
-from eave.stdlib.core_api.models.github_repos import Feature, State
+from eave.stdlib.core_api.models.github_repos import Feature, FeatureState
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import GithubRepoInput
 from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
@@ -33,10 +33,8 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
         input = CreateGithubRepoRequest.RequestBody.parse_obj(body)
-        team_id = ensure_uuid(eave_state.ctx.eave_team_id)
 
         async with database.async_session.begin() as db_session:
-            # make sure this team has a github installation
             github_installation_orm = await GithubInstallationOrm.one_or_exception(
                 session=db_session,
                 team_id=ensure_uuid(eave_state.ctx.eave_team_id),
@@ -48,24 +46,9 @@ class CreateGithubRepoEndpoint(HTTPEndpoint):
                 external_repo_id=input.repo.external_repo_id,
                 github_installation_id=github_installation_orm.id,
                 display_name=input.repo.display_name,
-                api_documentation_state=input.repo.api_documentation_state
-                or (
-                    await GithubRepoOrm.resolve_feature_state(
-                        session=db_session, team_id=team_id, feature=Feature.API_DOCUMENTATION
-                    )
-                ),
-                inline_code_documentation_state=input.repo.inline_code_documentation_state
-                or (
-                    await GithubRepoOrm.resolve_feature_state(
-                        session=db_session, team_id=team_id, feature=Feature.INLINE_CODE_DOCUMENTATION
-                    )
-                ),
-                architecture_documentation_state=input.repo.architecture_documentation_state
-                or (
-                    await GithubRepoOrm.resolve_feature_state(
-                        session=db_session, team_id=team_id, feature=Feature.ARCHITECTURE_DOCUMENTATION
-                    )
-                ),
+                api_documentation_state=input.repo.api_documentation_state,
+                inline_code_documentation_state=input.repo.inline_code_documentation_state,
+                architecture_documentation_state=input.repo.architecture_documentation_state,
             )
 
         await _trigger_api_documentation(github_repo_orm=gh_repo_orm, ctx=eave_state.ctx)
@@ -225,8 +208,8 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                     )
 
                 if (
-                    gh_repo_orm.api_documentation_state == State.DISABLED
-                    and new_values.api_documentation_state == State.ENABLED
+                    gh_repo_orm.api_documentation_state == FeatureState.DISABLED
+                    and new_values.api_documentation_state == FeatureState.ENABLED
                 ):
                     await _trigger_api_documentation(github_repo_orm=gh_repo_orm, ctx=eave_state.ctx)
 

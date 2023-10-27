@@ -113,9 +113,10 @@ export class GithubAPIData {
       if (
         treeEntry.name === "package.json" &&
         isBlob(treeEntry.object) &&
-        treeEntry.object.text &&
-        /"express":/.test(treeEntry.object.text)
+        treeEntry.object.text
       ) {
+        FIXME::: JSON.parse package.json and look for express dependency
+
         assertPresence(treeEntry.path);
         expressRootDirs.push(path.dirname(treeEntry.path));
       }

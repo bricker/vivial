@@ -13,7 +13,7 @@ class Feature(enum.StrEnum):
     ARCHITECTURE_DOCUMENTATION = "architecture_documentation"
 
 
-class State(enum.StrEnum):
+class FeatureState(enum.StrEnum):
     DISABLED = "disabled"
     ENABLED = "enabled"
     PAUSED = "paused"
@@ -25,17 +25,17 @@ class GithubRepo(BaseResponseModel):
     github_installation_id: uuid.UUID
     external_repo_id: str
     display_name: Optional[str]
-    api_documentation_state: State
-    inline_code_documentation_state: State
-    architecture_documentation_state: State
+    api_documentation_state: FeatureState
+    inline_code_documentation_state: FeatureState
+    architecture_documentation_state: FeatureState
 
 
 class GithubRepoCreateInput(BaseInputModel):
     external_repo_id: str
     display_name: str
-    api_documentation_state: Optional[State] = None
-    inline_code_documentation_state: Optional[State] = None
-    architecture_documentation_state: Optional[State] = None
+    api_documentation_state: Optional[FeatureState] = None
+    inline_code_documentation_state: Optional[FeatureState] = None
+    architecture_documentation_state: Optional[FeatureState] = None
 
 
 class GithubRepoRefInput(BaseInputModel):
@@ -47,9 +47,9 @@ class GithubRepoListInput(BaseInputModel):
 
 
 class GithubRepoUpdateValues(BaseInputModel):
-    api_documentation_state: Optional[State] = None
-    inline_code_documentation_state: Optional[State] = None
-    architecture_documentation_state: Optional[State] = None
+    api_documentation_state: Optional[FeatureState] = None
+    inline_code_documentation_state: Optional[FeatureState] = None
+    architecture_documentation_state: Optional[FeatureState] = None
 
 
 class GithubRepoUpdateInput(BaseInputModel):
@@ -63,4 +63,4 @@ class GithubReposDeleteInput(BaseInputModel):
 
 class GithubReposFeatureStateInput(BaseInputModel):
     feature: Feature
-    state: State
+    state: FeatureState

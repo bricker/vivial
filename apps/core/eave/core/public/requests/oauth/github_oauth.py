@@ -136,6 +136,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             if not eave_account:
                 return shared.cancel_flow(response=self.response)
 
+            await eave_account.verify_oauth_or_exception(session=db_session, ctx=self.eave_state.ctx)
             self.eave_account = eave_account
             self.eave_team = await self.eave_account.get_team(session=db_session)
 

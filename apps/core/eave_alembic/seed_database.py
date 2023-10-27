@@ -12,7 +12,7 @@ import eave.core.internal.orm as orm
 import eave.core.internal.orm.base
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 from eave.stdlib.core_api.models.connect import AtlassianProduct
-from eave.stdlib.core_api.models.github_documents import DocumentType
+from eave.stdlib.core_api.models.github_documents import GithubDocumentType
 from eave.stdlib.core_api.models.team import DocumentPlatform
 from eave.stdlib.logging import eaveLogger
 
@@ -147,7 +147,7 @@ async def seed_database() -> None:
         gh_document = orm.GithubDocumentsOrm(
             team_id=team_id,
             github_repo_id=gh_repo.id,
-            type=DocumentType.API_DOCUMENT,
+            type=GithubDocumentType.API_DOCUMENT,
         )
         session.add(gh_document)
 

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
+from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, FeatureState, Feature
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk
@@ -60,9 +60,9 @@ class GithubRepoOrm(Base):
         ids: Optional[list[UUID]] = None
         external_repo_id: Optional[str] = None
         external_repo_ids: Optional[list[str]] = None
-        api_documentation_state: Optional[State] = None
-        inline_code_documentation_state: Optional[State] = None
-        architecture_documentation_state: Optional[State] = None
+        api_documentation_state: Optional[FeatureState] = None
+        inline_code_documentation_state: Optional[FeatureState] = None
+        architecture_documentation_state: Optional[FeatureState] = None
 
         def validate_or_exception(self):
             assert eave.stdlib.util.nand(
@@ -113,18 +113,18 @@ class GithubRepoOrm(Base):
         external_repo_id: str,
         github_installation_id: UUID,
         display_name: Optional[str],
-        api_documentation_state: Optional[State] = None,
-        inline_code_documentation_state: Optional[State] = None,
-        architecture_documentation_state: Optional[State] = None,
+        api_documentation_state: Optional[FeatureState] = None,
+        inline_code_documentation_state: Optional[FeatureState] = None,
+        architecture_documentation_state: Optional[FeatureState] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
             github_installation_id=github_installation_id,
             display_name=display_name,
-            api_documentation_state=api_documentation_state or State.ENABLED.value,
-            inline_code_documentation_state=inline_code_documentation_state or State.ENABLED,
-            architecture_documentation_state=architecture_documentation_state or State.ENABLED,
+            api_documentation_state=api_documentation_state or FeatureState.ENABLED.value,
+            inline_code_documentation_state=inline_code_documentation_state or FeatureState.ENABLED,
+            architecture_documentation_state=architecture_documentation_state or FeatureState.ENABLED,
         )
         session.add(obj)
         await session.flush()
@@ -177,7 +177,7 @@ class GithubRepoOrm(Base):
 
     @classmethod
     async def all_repos_match_feature_state(
-        cls, team_id: UUID, feature: Feature, state: State, session: AsyncSession
+        cls, team_id: UUID, feature: Feature, state: FeatureState, session: AsyncSession
     ) -> bool:
         """
         Check if for a given `team_id` all their repos have the specified `state` for a `feature`.
@@ -203,15 +203,17 @@ class GithubRepoOrm(Base):
         return len(result) == 0
 
     @classmethod
-    async def resolve_feature_state(cls, team_id: UUID, feature: Feature, session: AsyncSession) -> State:
+    async def resolve_feature_state(
+        cls, team_id: UUID, feature: Feature, session: AsyncSession
+    ) -> FeatureState:
         feature_enabled_for_all_repos = await GithubRepoOrm.all_repos_match_feature_state(
             session=session,
             team_id=team_id,
             feature=feature,
-            state=State.ENABLED,
+            state=FeatureState.ENABLED,
         )
 
         if feature_enabled_for_all_repos:
-            return State.ENABLED
+            return FeatureState.ENABLED
         else:
-            return State.DISABLED
+            return FeatureState.DISABLED

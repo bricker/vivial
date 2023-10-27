@@ -19,3 +19,4 @@ def upgrade() -> None:
     op.alter_column("github_repos", "api_documentation_state", server_default=None)
     op.alter_column("github_repos", "inline_code_documentation_state", server_default=None)
     op.alter_column("github_repos", "architecture_documentation_state", server_default=None)
+    op.alter_column("github_documents", "status", server_default=None)
