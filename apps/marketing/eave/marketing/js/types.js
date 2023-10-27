@@ -35,6 +35,10 @@
  */
 
 /**
+ * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/account.js").AuthenticatedAccount} AuthenticatedAccount
+ */
+
+/**
  * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/integrations.js").Integrations} Integrations
  */
 
@@ -64,6 +68,13 @@
  * @property {GithubDocument[]} [apiDocs]
  * @property {Integrations} [integrations]
  * @property {GithubRepo[]} [repos]
+ */
+
+/**
+ * @typedef {object} DashboardUser
+ * @property {boolean} [accountIsLoading]
+ * @property {boolean} [accountIsErroring]
+ * @property {AuthenticatedAccount} [account]
  */
 
 /** @typedef {{ teamRepoIds: string[], enabledRepoIds: string[], feature: string }} FeatureStateParams */
