@@ -1,5 +1,7 @@
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import assert from "assert";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import { loadStandardDotenvFiles } from "../../../../develop/javascript/dotenv-loader.cjs";
 import { ExpressAPIDocumentBuilder } from "../../src/lib/api-documentation/builder.js";
 import { CoreAPIData } from "../../src/lib/api-documentation/core-api.js";
