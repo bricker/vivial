@@ -8,7 +8,7 @@ function run() (
 	cd "$(^parentpath)"
 	bin/lint
 	setup-deployment-workspace
-	bin/run-db-migration -e "${EAVE_HOME}/.$(^gcloudproject).env"
+	bin/run-db-migration
 	# gcloud builds submit --ignore-file=.gcloudignore-builder --config=cloudbuild.yaml
 	"${EAVE_HOME}"/develop/python/bin/deploy-appengine "$@"
 )
