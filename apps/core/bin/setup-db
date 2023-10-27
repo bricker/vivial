@@ -4,10 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-function setup-db() (
-	run-with-dotenv python eave_alembic/init_database.py
-	run-with-dotenv python -m alembic stamp head
-	run-with-dotenv python eave_alembic/seed_database.py
-)
-
-setup-db
+python-activate-venv
+cd "$(^parentpath)"
+python ./bin/src/init-db.py
+python ./bin/src/seed-db.py
