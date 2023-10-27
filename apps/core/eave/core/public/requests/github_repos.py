@@ -75,9 +75,12 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
                 ),
             )
 
+        repo_list = list(gh_repo_orms)
+        _sort_repos(repo_list)
+
         return json_response(
             GetGithubReposRequest.ResponseBody(
-                repos=[orm.api_model for orm in gh_repo_orms],
+                repos=[orm.api_model for orm in repo_list],
             )
         )
 
@@ -101,9 +104,12 @@ class GetAllTeamsGithubRepoEndpoint(HTTPEndpoint):
                 ),
             )
 
+        repo_list = list(gh_repo_orms)
+        _sort_repos(repo_list)
+
         return json_response(
             GetAllTeamsGithubReposRequest.ResponseBody(
-                repos=[orm.api_model for orm in gh_repo_orms],
+                repos=[orm.api_model for orm in repo_list],
             )
         )
 
@@ -251,3 +257,7 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
             )
 
         return Response(status_code=HTTPStatus.OK)
+
+
+def _sort_repos(repos: list[GithubRepoOrm]) -> None:
+    repos.sort(key=lambda r: r.display_name.lower() if r.display_name else str(r.created))

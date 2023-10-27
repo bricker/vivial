@@ -45,14 +45,6 @@ const ExploreFeatures = ({ onAPIDocsClick, onInlineDocsClick }) => {
         Explore Features
       </Typography>
       <div className={classes.featureCards}>
-        {!team.apiDocsEnabled && (
-          <FeatureCard
-            className={classes.featureCard}
-            onClick={onAPIDocsClick}
-            title="API Documentation"
-            description="Automate standard industry API documentation to streamline your internal processes and delight your customers."
-          />
-        )}
         {!team.inlineCodeDocsEnabled && (
           <FeatureCard
             className={classes.featureCard}
@@ -61,6 +53,16 @@ const ExploreFeatures = ({ onAPIDocsClick, onInlineDocsClick }) => {
             description="Enable Eave to automatically summarize files and add inline documentation that updates with each code change."
           />
         )}
+
+        {!team.apiDocsEnabled && (
+          <FeatureCard
+            className={classes.featureCard}
+            onClick={onAPIDocsClick}
+            title="API Documentation"
+            description="Automate standard industry API documentation to streamline your internal processes and delight your customers."
+          />
+        )}
+
         <FeatureCard
           className={classes.featureCard}
           title="Architecture Diagrams"

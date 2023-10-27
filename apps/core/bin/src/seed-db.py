@@ -28,7 +28,6 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 sys.path.append(".")
 
-EAVE_HOME = os.environ["EAVE_HOME"]
 load_standard_dotenv_files()
 
 EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
@@ -59,9 +58,6 @@ async def seed_database() -> None:
         return
 
     print(f"Starting to seed your db {EAVE_DB_NAME}...")
-    async with eave.core.internal.database.async_engine.begin() as connection:
-        await connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
-
     session = AsyncSession(eave.core.internal.database.async_engine)
 
     num_rows = 100
