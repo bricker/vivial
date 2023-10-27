@@ -1,10 +1,13 @@
 import datetime
 import http
 import re
+import uuid
 import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
@@ -287,3 +290,37 @@ async def get_or_create_eave_account(
 
     set_redirect(response=response, location=DEFAULT_REDIRECT_LOCATION)
     return eave_account
+
+
+async def try_associate_account_with_dangling_github_installation(
+    request: Request,
+    team_id: uuid.UUID,
+) -> None:
+    # TODO: actually not this; we are setting rand state in gh installation orm instead
+    code = request.cookies.get("code")
+    installation_id = request.cookies.get("installation_id")
+
+    if not (code and installation_id):
+        return
+
+    async with eave.core.internal.database.async_session.begin() as db_session:
+        installation = await GithubInstallationOrm.query(
+            session=db_session,
+            params=eave.core.internal.orm.GithubInstallationOrm.QueryParams(
+                github_install_id=installation_id,
+            ),
+        )
+
+        if not installation:
+            return
+
+        # if the installation isnt associated w/ a team, associate w/ this one
+        team = await TeamOrm.one_or_none(
+            session=db_session,
+            team_id=team_id,
+        )
+
+        if not team:
+            return
+
+        installation.update(team_id=team_id)

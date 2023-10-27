@@ -25,7 +25,7 @@ class GetGithubIntegrationEndpoint(HTTPEndpoint):
                 ),
             )
 
-            if not installation:
+            if not installation or not installation.team_id:
                 raise NotFoundError()
 
             eave_team = await eave_orm.TeamOrm.one_or_exception(

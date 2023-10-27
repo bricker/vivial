@@ -111,6 +111,14 @@ class GithubOAuthCallback(HTTPEndpoint):
                 return shared.cancel_flow(response=self.response)
 
             await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
+
+            # set oauth code and install id in cookie so we can use it later to associate new accounts
+            # with this dangling app installation row.
+            # 8 hour expiration because that's how long the code is valid for
+            EIGHT_HOURS_FROM_NOW_IN_SECONDS = 60 * 60 * 8
+            # TODO: do we even need to set the code in this (its unused)?? should we be encrypting somehow??
+            self.response.set_cookie("code", code, httponly=True, expires=EIGHT_HOURS_FROM_NOW_IN_SECONDS)
+            self.response.set_cookie("installation_id", installation_id, httponly=True, expires=EIGHT_HOURS_FROM_NOW_IN_SECONDS)
         else:
             # unable to check validity of data received. or could just be a
             # permissions update from gh website redirecting to our callback
@@ -152,9 +160,6 @@ class GithubOAuthCallback(HTTPEndpoint):
         if not auth_cookies.access_token or not auth_cookies.account_id:
             # This is the case where they're going through the install flow but not logged in.
             # (e.g. installing from github marketplace w/o an Eave account)
-
-            # TODO: user should be able to associate installation with any account they can log into? Or only new account?
-
             shared.set_redirect(
                 response=self.response,
                 location=shared.SIGNUP_REDIRECT_LOCATION,
