@@ -30,6 +30,7 @@ class GithubInstallationOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, unique=True, primary_key=True)
     github_install_id: Mapped[str] = mapped_column(unique=True)
     github_owner_login: Mapped[str] = mapped_column(nullable=True)
+    state: Mapped[Optional[str]] = mapped_column(nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
