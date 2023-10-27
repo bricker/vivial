@@ -1,10 +1,10 @@
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
-import { loadStandardDotenvFiles } from "../../../../develop/javascript/dotenv-loader.cjs";
-import { createOctokitClient } from "../../src/lib/octokit-util.js";
-import { GithubAPIData } from "../../src/lib/api-documentation/github-api.js";
-import { CoreAPIData } from "../../src/lib/api-documentation/core-api.js";
-import { ExpressAPIDocumentBuilder } from "../../src/lib/api-documentation/builder.js";
 import assert from "assert";
+import { loadStandardDotenvFiles } from "../../../../develop/javascript/dotenv-loader.cjs";
+import { ExpressAPIDocumentBuilder } from "../../src/lib/api-documentation/builder.js";
+import { CoreAPIData } from "../../src/lib/api-documentation/core-api.js";
+import { GithubAPIData } from "../../src/lib/api-documentation/github-api.js";
+import { createOctokitClient } from "../../src/lib/octokit-util.js";
 
 loadStandardDotenvFiles();
 
@@ -47,7 +47,7 @@ async function main() {
       });
 
       console.log(expressAPIInfo);
-    })
+    }),
   );
 }
 
