@@ -6,8 +6,8 @@ from typing import Any, Awaitable, Callable
 
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 
-import eave.stdlib.cookies
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
 from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
@@ -89,23 +89,10 @@ def _render_spa(**kwargs: Any) -> str:
     )
 
 
-@app.route("/authcheck", methods=["GET"])
-async def get_auth_state() -> Response:
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
-
-    response_body: JsonObject
-    if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:
-        response_body = {"authenticated": False}
-    else:
-        response_body = {"authenticated": True}
-
-    return _json_response(body=response_body)
-
-
-@app.route("/dashboard/me", methods=["GET", "POST"])
+@app.route("/dashboard/me", methods=["POST"])
 @_auth_handler
 async def get_user() -> Response:
-    auth_cookies = _get_auth_cookies()
+    auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await account.GetAuthenticatedAccount.perform(
         origin=app_config.eave_origin,
@@ -117,10 +104,10 @@ async def get_user() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team", methods=["GET", "POST"])
+@app.route("/dashboard/team", methods=["POST"])
 @_auth_handler
 async def get_team() -> Response:
-    auth_cookies = _get_auth_cookies()
+    auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await team.GetTeamRequest.perform(
         origin=app_config.eave_origin,
@@ -132,10 +119,10 @@ async def get_team() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team/repos", methods=["GET", "POST"])
+@app.route("/dashboard/team/repos", methods=["POST"])
 @_auth_handler
 async def get_team_repos() -> Response:
-    auth_cookies = _get_auth_cookies()
+    auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await github_repos.GetGithubReposRequest.perform(
         origin=app_config.eave_origin,
@@ -173,7 +160,7 @@ async def get_team_repos() -> Response:
 @app.route("/dashboard/team/repos/update", methods=["POST"])
 @_auth_handler
 async def update_team_repos() -> Response:
-    auth_cookies = _get_auth_cookies()
+    auth_cookies = _get_auth_cookies_or_exception()
 
     body = request.get_json()
     repos: list[GithubRepoUpdateInput] = body["repos"]
@@ -192,7 +179,7 @@ async def update_team_repos() -> Response:
 @app.route("/dashboard/team/documents", methods=["POST"])
 @_auth_handler
 async def get_team_documents() -> Response:
-    auth_cookies = _get_auth_cookies()
+    auth_cookies = _get_auth_cookies_or_exception()
 
     body = request.get_json()
     document_type = body["document_type"]
@@ -216,6 +203,7 @@ async def get_team_documents() -> Response:
 async def logout() -> BaseResponse:
     response = redirect(location=app_config.eave_public_www_base, code=302)
     delete_auth_cookies(response=response)
+    _delete_login_state_hint_cookie(response=response)
     return response
 
 
@@ -225,12 +213,33 @@ def catch_all(path: str) -> Response:
     spa = _render_spa()
     response = make_response(spa)
     set_tracking_cookies(response=response, request=request)
+
+    auth_cookies = get_auth_cookies(request.cookies)
+    if auth_cookies.all_set:
+        _set_login_state_hint_cookie(response=response)
+    else:
+        _delete_login_state_hint_cookie(response=response)
+
     return response
 
 
-def _get_auth_cookies() -> AuthCookies:
+_EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint"
+
+
+def _set_login_state_hint_cookie(response: BaseResponse) -> None:
+    # This cookie is a HINT to the client whether the user may be logged in.
+    # It doesn't actually indicate the logged-in state, but the client can use this cookie to decide if it can skip some API calls, for example.
+    # This cookie is set to httponly=False so the client can read it.
+    set_http_cookie(response=response, key=_EAVE_LOGIN_STATE_HINT_COOKIE_NAME, value="1", httponly=False)
+
+
+def _delete_login_state_hint_cookie(response: BaseResponse) -> None:
+    delete_http_cookie(response=response, key=_EAVE_LOGIN_STATE_HINT_COOKIE_NAME, httponly=False)
+
+
+def _get_auth_cookies_or_exception() -> AuthCookies:
     auth_cookies = get_auth_cookies(request.cookies)
-    if not auth_cookies.access_token or not auth_cookies.account_id or not auth_cookies.team_id:
+    if not auth_cookies.all_set:
         raise werkzeug.exceptions.Unauthorized()
 
     return auth_cookies

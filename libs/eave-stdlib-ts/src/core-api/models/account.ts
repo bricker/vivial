@@ -11,7 +11,6 @@ export type AuthenticatedAccount = {
   team_id: string;
   opaque_utm_params: { [key: string]: any } | null;
   email: string | null;
-  access_token: string;
 };
 
 export type AnalyticsAccount = {
