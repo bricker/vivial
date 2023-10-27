@@ -117,7 +117,14 @@ export class GithubAPIData {
         /"express":/.test(treeEntry.object.text)
       ) {
         assertPresence(treeEntry.path);
-        expressRootDirs.push(path.dirname(treeEntry.path));
+
+        // path.dirname behaves differently depending on the input:
+        // - path.dirname("path/to/file.txt") == "path/to"
+        // - path.dirname("file.txt") == "."
+        // For git expressions, paths never start with ".", so we strip it out here.
+        let dirname = path.dirname(treeEntry.path);
+        dirname = dirname.replace(/^\.\/?/, "");
+        expressRootDirs.push(dirname);
       }
     }
 
