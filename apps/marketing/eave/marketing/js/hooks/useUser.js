@@ -19,10 +19,11 @@ const useUser = () => {
 
   /**
    * Asynchronously retrieves the user's account information from the server.
-   * It updates the user state before, during, and after the fetch request.
+   * It updates the user's state to indicate loading, success, or error.
    * - Before the request, it sets `accountIsLoading` to true and `accountIsErroring` to false.
-   * - If the request is successful, it updates the `account` with the received data.
-   * - If the request fails, it sets `accountIsErroring` to true.
+   * If the server responds with an unauthorized status, it logs the user out.
+   * If the server responds with an HTTP error, it throws an error and sets `accountIsErroring` to true.
+   * Otherwise, it updates the user's account information in the state and updates the `account` with the received data.
    * - After the request (whether it succeeded or failed), it sets `accountIsLoading` to false.
    */
   async function getUserAccount() {
