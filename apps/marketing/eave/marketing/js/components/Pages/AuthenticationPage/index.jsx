@@ -38,6 +38,10 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 36,
     textAlign: "center",
     color: "inherit",
+    fontSize: 16,
+    [theme.breakpoints.up("md")]: {
+      fontSize: 20,
+    },
   },
   loginButton: {
     color: theme.palette.background.contrastText,
@@ -50,8 +54,12 @@ const makeClasses = makeStyles((theme) => ({
       borderColor: theme.palette.background.contrastText,
       backgroundColor: theme.palette.background.light,
     },
+    fontSize: 16,
+    [theme.breakpoints.up("md")]: {
+      fontSize: 20,
+    },
   },
-  icon: {
+  authIcon: {
     width: 30,
     height: 30,
   },
@@ -63,14 +71,22 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 72,
     display: "grid",
     textAlign: "center",
-    maxWidth: 374,
+    maxWidth: 500,
     "& > a": {
       color: theme.palette.background.contrastText,
+    },
+    fontSize: 16,
+    [theme.breakpoints.up("md")]: {
+      fontSize: 20,
     },
   },
   authSwap: {
     color: "inherit",
     fontWeight: 700,
+    fontSize: 16,
+    [theme.breakpoints.up("md")]: {
+      fontSize: 20,
+    },
   },
 }));
 
@@ -103,7 +119,7 @@ const AuthenticationPage = ({ type }) => {
           to={`${window.eave.apiBase}/oauth/google/authorize`}
           className={classes.loginButton}
           variant="outlined"
-          startIcon={<GoogleIcon className={classes.icon} />}
+          startIcon={<GoogleIcon className={classes.authIcon} />}
         >
           Continue with Google
         </Button>
