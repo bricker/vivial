@@ -126,7 +126,7 @@ class RegisterConnectIntegrationEndpoint(HTTPEndpoint):
                     )
                 else:
                     await analytics.log_event(
-                        event_name="eave_connect_app_registered",
+                        event_name="eave_application_registered",
                         event_description="A connect app was registered, but has no linked team",
                         event_source="register connect integration endpoint",
                         opaque_params={

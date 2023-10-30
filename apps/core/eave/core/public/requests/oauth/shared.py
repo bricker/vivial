@@ -333,6 +333,17 @@ async def try_associate_account_with_dangling_github_installation(
 
         installation.update(team_id=team_id)
 
+    await eave.stdlib.analytics.log_event(
+        event_name="eave_application_integration_associated",
+        event_description="An existing integration was associated with an Eave Team",
+        event_source="core api oauth",
+        opaque_params={
+            "integration_name": Integration.github.value,
+            "auth_callback_url": str(request.url),
+        },
+        ctx=request_state.ctx,
+    )
+
     # now that installation is linked to an account, sync the gh repos to our db
     await sync_github_repos(team_id=team_id, ctx=request_state.ctx)
 
