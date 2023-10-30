@@ -301,7 +301,7 @@ async def try_associate_account_with_dangling_github_installation(
     team_id: uuid.UUID,
 ) -> None:
     request_state = EaveRequestState.load(request=request)
-    state_blob = request.cookies.get("install_flow_state")
+    state_blob = request.cookies.get("state_blob")
 
     if not state_blob:
         return
@@ -319,7 +319,7 @@ async def try_associate_account_with_dangling_github_installation(
         )
 
         # make sure the installation state matches the cookie state
-        if not installation or installation.state != state:
+        if not installation or installation.install_flow_state != state:
             return
 
         # if the installation isnt yet associated w/ a team, associate w/ this one

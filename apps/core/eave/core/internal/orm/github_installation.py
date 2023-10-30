@@ -41,13 +41,13 @@ class GithubInstallationOrm(Base):
         team_id: Optional[uuid.UUID],
         github_install_id: str,
         github_owner_login: Optional[str] = None,
-        state: Optional[str] = None,
+        install_flow_state: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             github_install_id=github_install_id,
             github_owner_login=github_owner_login,
-            state=state,
+            install_flow_state=install_flow_state,
         )
         session.add(obj)
         await session.flush()

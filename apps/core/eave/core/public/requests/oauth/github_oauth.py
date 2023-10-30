@@ -198,7 +198,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 # only set state cookie for installations that wont have a team_id set
                 if not self._request_logged_in():
                     EIGHT_HOURS_IN_SECONDS = 60 * 60 * 8
-                    self.response.set_cookie("install_flow_state", state, httponly=True, expires=EIGHT_HOURS_IN_SECONDS)
+                    self.response.set_cookie("state_blob", state, httponly=True, expires=EIGHT_HOURS_IN_SECONDS)
 
                 # create new github installation associated with the TeamOrm
                 # (or create a dangling installation to later associate w/ a future account)
@@ -206,7 +206,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     session=db_session,
                     team_id=self.eave_account.team_id if self.eave_account else None,
                     github_install_id=self.installation_id,
-                    state=state,
+                    install_flow_state=state,
                 )
 
                 await eave.stdlib.analytics.log_event(
