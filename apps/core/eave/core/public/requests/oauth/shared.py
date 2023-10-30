@@ -5,6 +5,7 @@ import oauthlib.common
 import uuid
 import json
 import typing
+from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from starlette.requests import Request
 from starlette.responses import Response
@@ -16,23 +17,24 @@ from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
+from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.github_api.models import ExternalGithubRepo
+from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 import eave.stdlib.slack
 import eave.stdlib.cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.config
-from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.util import ensure_uuid
 from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
-
-from eave.core.internal.orm.account import AccountOrm
-import eave.core.internal
+from eave.stdlib.core_api.models.integrations import Integration
+from eave.core.internal import app_config, database
+from eave.core.internal.orm import AccountOrm, GithubRepoOrm
 import eave.core.internal.oauth.state_cookies
-import eave.core.internal.orm
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
 
-DEFAULT_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
-SIGNUP_REDIRECT_LOCATION = f"{eave.core.internal.app_config.eave_public_www_base}/signup"
+DEFAULT_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/dashboard"
+SIGNUP_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/signup"
 
 
 def verify_oauth_state_or_exception(
@@ -298,14 +300,15 @@ async def try_associate_account_with_dangling_github_installation(
     request: Request,
     team_id: uuid.UUID,
 ) -> None:
-    stateBlob = request.cookies.get("install_flow_state")
+    request_state = EaveRequestState.load(request=request)
+    state_blob = request.cookies.get("install_flow_state")
 
-    if not stateBlob:
+    if not state_blob:
         return
 
-    stateBlob = json.loads(stateBlob)
-    state = stateBlob["install_flow_state"]
-    installation_id = stateBlob["install_id"]
+    state_blob = json.loads(state_blob)
+    state = state_blob["install_flow_state"]
+    installation_id = state_blob["install_id"]
 
     async with eave.core.internal.database.async_session.begin() as db_session:
         installation = await GithubInstallationOrm.query(
@@ -329,7 +332,83 @@ async def try_associate_account_with_dangling_github_installation(
             return
 
         installation.update(team_id=team_id)
-        # TODO: call the gh oauth method to sync repos? (move that method here to shared)
+
+    # now that installation is linked to an account, sync the gh repos to our db
+    await sync_github_repos(team_id=team_id, ctx=request_state.ctx)
+
+
+async def sync_github_repos(team_id: uuid.UUID, ctx: LogContext) -> None:
+    """Create github_repo entries in our DB for each of their repos we have access to through the GitHub API"""
+    response = await QueryGithubRepos.perform(team_id=team_id, origin=EaveApp.eave_api, ctx=ctx)
+    repos = response.repos
+
+    async with database.async_session.begin() as db_session:
+        # We're grabbing this object fresh from the database so we can update it in this function.
+        github_installation_orm = await GithubInstallationOrm.one_or_exception(
+            session=db_session,
+            team_id=team_id,
+        )
+
+        if len(repos) > 0:
+            # update the GithubInstallation to set the github_owner_login property to the owner of any repository in the list (we happen to get the first one, but they should all be the same).
+            if (owner := repos[0].owner) and owner.login:
+                github_installation_orm.github_owner_login = owner.login
+
+        for repo in repos:
+            await _create_local_github_repo(
+                repo=repo,
+                db_session=db_session,
+                team_id=team_id,
+                github_installation_orm=github_installation_orm,
+                ctx=ctx,
+            )
+
+
+async def _create_local_github_repo(
+    repo: ExternalGithubRepo,
+    db_session: AsyncSession,
+    team_id: uuid.UUID,
+    github_installation_orm: GithubInstallationOrm,
+    ctx: LogContext,
+) -> None:
+    if repo.id is None:
+        eaveLogger.error(
+            "Malformed repository object",
+            ctx,
+        )
+        return
+
+    existing_repos = await GithubRepoOrm.query(
+        session=db_session,
+        params=GithubRepoOrm.QueryParams(
+            team_id=team_id,
+            external_repo_id=repo.id,
+        ),
+    )
+    assert not len(existing_repos) > 1
+
+    existing_repo = existing_repos[0] if len(existing_repos) == 1 else None
+
+    if existing_repo:
+        await eave.stdlib.analytics.log_event(
+            event_name="repo_already_added",
+            event_description="A repo already existed when attempting to save it to the Eave database",
+            event_source="core api github oauth",
+            opaque_params={
+                "integration_name": Integration.github.value,
+                "repo_name": repo.name,
+                "repo_id": repo.id,
+            },
+            ctx=ctx,
+        )
+    else:
+        await GithubRepoOrm.create(
+            session=db_session,
+            team_id=team_id,
+            github_installation_id=github_installation_orm.id,
+            external_repo_id=repo.id,
+            display_name=repo.name,
+        )
 
 
 def generate_rand_state() -> str:

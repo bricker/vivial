@@ -1,18 +1,13 @@
 import json
 from typing import Optional
 import urllib.parse
-from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.core.public.exception_handlers import validation_error
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 from eave.stdlib.auth_cookies import AuthCookies, get_auth_cookies
 import eave.stdlib.cookies
-from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.github_api.models import ExternalGithubRepo
-from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 import eave.stdlib.util
 import eave.stdlib.analytics
 import oauthlib.common
@@ -20,7 +15,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 from eave.core.internal import app_config, database
-from eave.core.internal.orm import GithubRepoOrm, AccountOrm
+from eave.core.internal.orm import AccountOrm
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal.oauth import state_cookies as oauth_cookies
@@ -112,7 +107,6 @@ class GithubOAuthCallback(HTTPEndpoint):
                 )
                 return shared.cancel_flow(response=self.response)
 
-            # TODO: just redirect instead of fail?
             await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
         else:
             # unable to check validity of data received. or could just be a
@@ -141,9 +135,10 @@ class GithubOAuthCallback(HTTPEndpoint):
         try:
             await self._maybe_set_account_data(auth_cookies)
             await self._update_or_create_github_installation()
+            # dont link github repos to our db until we know what team to associate them w/
             if self._request_logged_in():
-                # TODO: run this later somehow for installs w/o team. Run when team is linked to installation on signin/up
-                await self._sync_github_repos()
+                assert self.eave_team # make types happy
+                await shared.sync_github_repos(team_id=self.eave_team.id, ctx=self.eave_state.ctx)
         except Exception as e:
             if shared.is_error_response(self.response):
                 return self.response
@@ -196,7 +191,6 @@ class GithubOAuthCallback(HTTPEndpoint):
             if not github_installation_orm:
                 # create state cookie we can use later to associate new accounts
                 # with a dangling app installation row
-                # @next make this a json blob w/ install id too
                 state = json.dumps(
                     {"install_flow_state": shared.generate_rand_state(), "install_id": self.installation_id}
                 )
@@ -257,74 +251,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
             self.github_installation_orm = github_installation_orm
 
-    async def _sync_github_repos(self) -> None:
-        """Create github_repo entries in our DB for each of their repos we have access to through the GitHub API"""
-        # TODO: put this off until after account is linked? OR cascade optionality down to all gh orms + this endpoitn? security hole????
-        assert self.eave_account
-        assert self.eave_team
-        response = await QueryGithubRepos.perform(
-            team_id=self.eave_team.id, origin=EaveApp.eave_api, ctx=self.eave_state.ctx
-        )
-        repos = response.repos
 
-        async with database.async_session.begin() as db_session:
-            # We're grabbing this object fresh from the database so we can update it in this function.
-            github_installation_orm = await GithubInstallationOrm.one_or_exception(
-                session=db_session,
-                team_id=self.eave_team.id,
-            )
-
-            if len(repos) > 0:
-                # update the GithubInstallation to set the github_owner_login property to the owner of any repository in the list (we happen to get the first one, but they should all be the same).
-                if (owner := repos[0].owner) and owner.login:
-                    github_installation_orm.github_owner_login = owner.login
-
-            for repo in repos:
-                await self._create_local_github_repo(repo=repo, db_session=db_session)
-
-    async def _create_local_github_repo(self, repo: ExternalGithubRepo, db_session: AsyncSession) -> None:
-        assert self.eave_account
-        assert self.eave_team
-        if repo.id is None:
-            eaveLogger.error(
-                "Malformed repository object",
-                self.eave_state.ctx,
-            )
-            return
-
-        existing_repos = await GithubRepoOrm.query(
-            session=db_session,
-            params=GithubRepoOrm.QueryParams(
-                team_id=self.eave_team.id,
-                external_repo_id=repo.id,
-            ),
-        )
-        assert not len(existing_repos) > 1
-
-        existing_repo = existing_repos[0] if len(existing_repos) == 1 else None
-
-        if existing_repo:
-            await eave.stdlib.analytics.log_event(
-                event_name="repo_already_added",
-                event_description="A repo already existed when attempting to save it to the Eave database",
-                event_source="core api github oauth",
-                eave_account=self.eave_account.analytics_model,
-                eave_team=self.eave_team.analytics_model,
-                opaque_params={
-                    "integration_name": Integration.github.value,
-                    "repo_name": repo.name,
-                    "repo_id": repo.id,
-                },
-                ctx=self.eave_state.ctx,
-            )
-        else:
-            await GithubRepoOrm.create(
-                session=db_session,
-                team_id=self.eave_team.id,
-                github_installation_id=self.github_installation_orm.id,
-                external_repo_id=repo.id,
-                display_name=repo.name,
-            )
 
     def _request_logged_in(self) -> bool:
         return self.eave_team is not None and self.eave_account is not None
