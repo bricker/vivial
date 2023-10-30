@@ -102,7 +102,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             code = request.query_params.get("code")
             if not installation_id or not code:
                 eaveLogger.warning(
-                    f"Missing GitHub user oauth code and/or app installation_id. Cannot proceed.",
+                    "Missing GitHub user oauth code and/or app installation_id. Cannot proceed.",
                     self.eave_state.ctx,
                 )
                 return shared.cancel_flow(response=self.response)
@@ -137,7 +137,7 @@ class GithubOAuthCallback(HTTPEndpoint):
             await self._update_or_create_github_installation()
             # dont link github repos to our db until we know what team to associate them w/
             if self._request_logged_in():
-                assert self.eave_team # make types happy
+                assert self.eave_team  # make types happy
                 await shared.sync_github_repos(team_id=self.eave_team.id, ctx=self.eave_state.ctx)
         except Exception as e:
             if shared.is_error_response(self.response):
@@ -250,8 +250,6 @@ class GithubOAuthCallback(HTTPEndpoint):
                 )
 
             self.github_installation_orm = github_installation_orm
-
-
 
     def _request_logged_in(self) -> bool:
         return self.eave_team is not None and self.eave_account is not None

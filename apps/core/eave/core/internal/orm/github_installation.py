@@ -57,7 +57,7 @@ class GithubInstallationOrm(Base):
         self,
         team_id: uuid.UUID,
     ) -> Self:
-        if self.team_id == None:
+        if self.team_id is None:
             self.team_id = team_id
         return self
 
