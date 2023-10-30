@@ -1,7 +1,9 @@
 import datetime
 import http
 import re
+import oauthlib.common
 import uuid
+import json
 import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from starlette.requests import Request
@@ -296,12 +298,14 @@ async def try_associate_account_with_dangling_github_installation(
     request: Request,
     team_id: uuid.UUID,
 ) -> None:
-    # TODO: actually not this; we are setting rand state in gh installation orm instead
-    code = request.cookies.get("code")
-    installation_id = request.cookies.get("installation_id")
+    stateBlob = request.cookies.get("install_flow_state")
 
-    if not (code and installation_id):
+    if not stateBlob:
         return
+
+    stateBlob = json.loads(stateBlob)
+    state = stateBlob["install_flow_state"]
+    installation_id = stateBlob["install_id"]
 
     async with eave.core.internal.database.async_session.begin() as db_session:
         installation = await GithubInstallationOrm.query(
@@ -311,10 +315,11 @@ async def try_associate_account_with_dangling_github_installation(
             ),
         )
 
-        if not installation:
+        # make sure the installation state matches the cookie state
+        if not installation or installation.state != state:
             return
 
-        # if the installation isnt associated w/ a team, associate w/ this one
+        # if the installation isnt yet associated w/ a team, associate w/ this one
         team = await TeamOrm.one_or_none(
             session=db_session,
             team_id=team_id,
@@ -324,3 +329,9 @@ async def try_associate_account_with_dangling_github_installation(
             return
 
         installation.update(team_id=team_id)
+        # TODO: call the gh oauth method to sync repos? (move that method here to shared)
+
+
+def generate_rand_state() -> str:
+    state: str = oauthlib.common.generate_token()
+    return state

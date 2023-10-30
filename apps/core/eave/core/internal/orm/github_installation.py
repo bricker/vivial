@@ -36,19 +36,26 @@ class GithubInstallationOrm(Base):
 
     @classmethod
     async def create(
-        cls, session: AsyncSession, team_id: Optional[uuid.UUID], github_install_id: str, github_owner_login: Optional[str] = None
+        cls,
+        session: AsyncSession,
+        team_id: Optional[uuid.UUID],
+        github_install_id: str,
+        github_owner_login: Optional[str] = None,
+        state: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             github_install_id=github_install_id,
             github_owner_login=github_owner_login,
+            state=state,
         )
         session.add(obj)
         await session.flush()
         return obj
 
     def update(
-        self, team_id: uuid.UUID,
+        self,
+        team_id: uuid.UUID,
     ) -> Self:
         if self.team_id == None:
             self.team_id = team_id

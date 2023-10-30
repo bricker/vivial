@@ -34,6 +34,8 @@ _AUTH_PROVIDER = AuthProvider.github
 
 
 class GithubOAuthAuthorize(HTTPEndpoint):
+    """Handles Eave for GitHub app installation requests"""
+
     async def get(self, request: Request) -> Response:
         # random value for verifying request wasnt tampered with via CSRF
         token: str = oauthlib.common.generate_token()
@@ -110,15 +112,8 @@ class GithubOAuthCallback(HTTPEndpoint):
                 )
                 return shared.cancel_flow(response=self.response)
 
+            # TODO: just redirect instead of fail?
             await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
-
-            # set oauth code and install id in cookie so we can use it later to associate new accounts
-            # with this dangling app installation row.
-            # 8 hour expiration because that's how long the code is valid for
-            EIGHT_HOURS_FROM_NOW_IN_SECONDS = 60 * 60 * 8
-            # TODO: do we even need to set the code in this (its unused)?? should we be encrypting somehow??
-            self.response.set_cookie("code", code, httponly=True, expires=EIGHT_HOURS_FROM_NOW_IN_SECONDS)
-            self.response.set_cookie("installation_id", installation_id, httponly=True, expires=EIGHT_HOURS_FROM_NOW_IN_SECONDS)
         else:
             # unable to check validity of data received. or could just be a
             # permissions update from gh website redirecting to our callback
@@ -146,7 +141,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         try:
             await self._maybe_set_account_data(auth_cookies)
             await self._update_or_create_github_installation()
-            if self.eave_account:
+            if self._request_logged_in():
                 # TODO: run this later somehow for installs w/o team. Run when team is linked to installation on signin/up
                 await self._sync_github_repos()
         except Exception as e:
@@ -199,12 +194,25 @@ class GithubOAuthCallback(HTTPEndpoint):
             )
 
             if not github_installation_orm:
+                # create state cookie we can use later to associate new accounts
+                # with a dangling app installation row
+                # @next make this a json blob w/ install id too
+                state = json.dumps(
+                    {"install_flow_state": shared.generate_rand_state(), "install_id": self.installation_id}
+                )
+
+                # only set state cookie for installations that wont have a team_id set
+                if not self._request_logged_in():
+                    EIGHT_HOURS_IN_SECONDS = 60 * 60 * 8
+                    self.response.set_cookie("install_flow_state", state, httponly=True, expires=EIGHT_HOURS_IN_SECONDS)
+
                 # create new github installation associated with the TeamOrm
                 # (or create a dangling installation to later associate w/ a future account)
                 github_installation_orm = await GithubInstallationOrm.create(
                     session=db_session,
                     team_id=self.eave_account.team_id if self.eave_account else None,
                     github_install_id=self.installation_id,
+                    state=state,
                 )
 
                 await eave.stdlib.analytics.log_event(
@@ -317,3 +325,6 @@ class GithubOAuthCallback(HTTPEndpoint):
                 external_repo_id=repo.id,
                 display_name=repo.name,
             )
+
+    def _request_logged_in(self) -> bool:
+        return self.eave_team is not None and self.eave_account is not None
