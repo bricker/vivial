@@ -79,7 +79,7 @@ const AuthenticationPage = ({ type }) => {
   // if isLoginMode is false, then we are in sign up mode
   const isLoginMode = type === "login";
   return (
-    <Page simpleHeader={true} footer={false}>
+    <Page simpleHeader={true} footer={false} compactHeader={true}>
       <section className={classes.container}>
         <img
           className={classes.logo}
