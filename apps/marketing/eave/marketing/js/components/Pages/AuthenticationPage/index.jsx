@@ -71,10 +71,6 @@ const makeClasses = makeStyles((theme) => ({
   authSwap: {
     color: "inherit",
     fontWeight: 700,
-    // fontSize: 16,
-    // [theme.breakpoints.up("sm")]: {
-    //   fontSize: 20,
-    // },
   },
 }));
 
