@@ -14,19 +14,19 @@ const makeClasses = makeStyles((theme) => ({
     justifyContent: "flex-start",
     alignItems: "center",
     flexDirection: "column",
-    padding: "0px 25px 0px",
+    padding: "0px 25px 20px",
     [theme.breakpoints.up("sm")]: {
-      padding: "0px 60px 0px",
+      padding: "0px 60px 20px",
     },
   },
   logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 24,
-    [theme.breakpoints.up("sm")]: {
-      width: 150,
-      height: 150,
-      marginBottom: 18,
+    height: "calc(100vh / 5.5)",
+    maxHeight: 150,
+    minHeight: 100,
+    marginBottom: 18,
+    [theme.breakpoints.down("sm")]: {
+      marginBottom: 24,
+      height: 100,
     },
   },
   header: {
@@ -52,7 +52,7 @@ const makeClasses = makeStyles((theme) => ({
     color: theme.palette.background.contrastText,
     borderColor: theme.palette.background.contrastText,
     width: "100%",
-    padding: "18px 54px",
+    padding: "34px 54px",
     marginBottom: 54,
     justifyContent: "center",
     "&:hover": {
@@ -73,10 +73,10 @@ const makeClasses = makeStyles((theme) => ({
   },
   disclaimer: {
     color: theme.palette.background.contrastText,
-    marginBottom: 72,
+    marginBottom: 60,
     display: "grid",
     textAlign: "center",
-    maxWidth: 500,
+    maxWidth: 400,
     "& > a": {
       color: theme.palette.background.contrastText,
     },
@@ -110,15 +110,9 @@ const AuthenticationPage = ({ type }) => {
           {isLoginMode ? "Log In" : "Create your Free Account"}
         </Typography>
         <Typography variant="subtitle2" className={classes.subheader}>
-          {isLoginMode ? (
-            "Welcome back to Eave!"
-          ) : (
-            <>
-              Early access is available via Google sign up only.
-              <br />
-              Additional account options coming soon.
-            </>
-          )}
+          {isLoginMode
+            ? "Welcome back to Eave!"
+            : "Early access is only available via Google. Additional account options coming soon."}
         </Typography>
         <Button
           to={`${window.eave.apiBase}/oauth/google/authorize`}
@@ -131,7 +125,7 @@ const AuthenticationPage = ({ type }) => {
         <Typography className={classes.disclaimer} variant="caption">
           {!isLoginMode && (
             <Typography variant="inherit">
-              By clicking “Continue” above you agree to Eave's
+              By clicking “Continue” you agree to Eave's
             </Typography>
           )}
           <Typography variant="inherit">
