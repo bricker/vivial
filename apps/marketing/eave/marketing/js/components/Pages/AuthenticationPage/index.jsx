@@ -14,6 +14,10 @@ const makeClasses = makeStyles((theme) => ({
     justifyContent: "flex-start",
     alignItems: "center",
     flexDirection: "column",
+    padding: "0px 25px 0px",
+    [theme.breakpoints.up("sm")]: {
+      padding: "0px 60px 0px",
+    },
   },
   logo: {
     width: 100,
@@ -30,6 +34,7 @@ const makeClasses = makeStyles((theme) => ({
     fontSize: 32,
     fontWeight: 700,
     marginBottom: 12,
+    textAlign: "center",
     [theme.breakpoints.up("md")]: {
       fontSize: 48,
     },
