@@ -10,7 +10,6 @@ import {
 } from "react-router-dom";
 
 import "../static/css/app.css";
-import AuthUser from "./components/AuthUser/index.jsx";
 import AuthenticationPage from "./components/Pages/AuthenticationPage/index.jsx";
 import Dashboard from "./components/Pages/Dashboard/index.jsx";
 import HomePage from "./components/Pages/HomePage/index.jsx";
@@ -30,28 +29,26 @@ const App = () => {
           <Helmet>
             <title>Eave - for your information.</title>
           </Helmet>
-          <AuthUser>
-            <Router>
-              <ScrollToTop />
-              <Routes>
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route
-                  path="/signup"
-                  element={<AuthenticationPage type="signup" />}
-                />
-                <Route
-                  path="/login"
-                  element={<AuthenticationPage type="login" />}
-                />
-                <Route element={<PrivateRoutes />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                </Route>
-                <Route path="/" element={<HomePage />} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </Router>
-          </AuthUser>
+          <Router>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route
+                path="/signup"
+                element={<AuthenticationPage type="signup" />}
+              />
+              <Route
+                path="/login"
+                element={<AuthenticationPage type="login" />}
+              />
+              <Route element={<PrivateRoutes />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Route>
+              <Route path="/" element={<HomePage />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </Router>
         </ThemeProvider>
       </AppStoreProvider>
     </CookiesProvider>
