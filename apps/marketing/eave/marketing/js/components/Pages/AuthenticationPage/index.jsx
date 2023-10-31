@@ -1,13 +1,16 @@
+// @ts-check
 import { Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
+import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 import { imageUrl } from "../../../util/asset-util.js";
 import Button from "../../Button/index.jsx";
 import GoogleIcon from "../../Icons/GoogleIcon.jsx";
 import Page from "../Page/index.jsx";
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
+    // @ts-ignore
     color: theme.palette.background.contrastText,
     width: "100vw",
     display: "flex",
@@ -49,14 +52,18 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   loginButton: {
+    // @ts-ignore
     color: theme.palette.background.contrastText,
+    // @ts-ignore
     borderColor: theme.palette.background.contrastText,
     width: "100%",
     padding: "34px 54px",
     marginBottom: 54,
     justifyContent: "center",
     "&:hover": {
+      // @ts-ignore
       borderColor: theme.palette.background.contrastText,
+      // @ts-ignore
       backgroundColor: theme.palette.background.light,
     },
     fontSize: 16,
@@ -72,12 +79,14 @@ const makeClasses = makeStyles((theme) => ({
     color: "#0092C7",
   },
   disclaimer: {
+    // @ts-ignore
     color: theme.palette.background.contrastText,
     marginBottom: 60,
     display: "grid",
     textAlign: "center",
     maxWidth: 400,
     "& > a": {
+      // @ts-ignore
       color: theme.palette.background.contrastText,
     },
     fontSize: 16,
@@ -95,9 +104,10 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const AuthenticationPage = ({ type }) => {
+const AuthenticationPage = ({/** @type {"signup" | "login"} */ type }) => {
   const classes = makeClasses();
   // if isLoginMode is false, then we are in sign up mode
+  /** @type {boolean} */
   const isLoginMode = type === "login";
   return (
     <Page simpleHeader={true} footer={false} compactHeader={true}>
@@ -115,6 +125,7 @@ const AuthenticationPage = ({ type }) => {
             : "Early access is only available via Google. Additional account options coming soon."}
         </Typography>
         <Button
+          // @ts-ignore
           to={`${window.eave.apiBase}/oauth/google/authorize`}
           className={classes.loginButton}
           variant="outlined"

@@ -1,3 +1,4 @@
+// @ts-check
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
@@ -26,6 +27,7 @@ const App = () => {
       <AppStoreProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          {/* @ts-ignore */}
           <Helmet>
             <title>Eave - for your information.</title>
           </Helmet>
