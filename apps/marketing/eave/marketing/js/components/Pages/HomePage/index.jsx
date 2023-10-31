@@ -1,3 +1,4 @@
+// @ts-check
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -49,10 +50,9 @@ const copy = {
 };
 
 const HomePage = () => {
-  const { user } = useUser();
+  const { isLoginHintSet } = useUser();
   const navigate = useNavigate();
 
-  const { isLoginHintSet } = user;
   const { hero, githubFeatures, productivity, privacy } = copy;
 
   useEffect(() => {
