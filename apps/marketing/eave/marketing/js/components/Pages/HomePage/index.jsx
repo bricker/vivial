@@ -1,3 +1,4 @@
+// @ts-check
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -49,17 +50,16 @@ const copy = {
 };
 
 const HomePage = () => {
-  const { user } = useUser();
+  const { isLoginHintSet } = useUser();
   const navigate = useNavigate();
 
-  const { isAuthenticated } = user;
   const { hero, githubFeatures, productivity, privacy } = copy;
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isLoginHintSet) {
       navigate("/dashboard");
     }
-  }, [isAuthenticated]);
+  }, [isLoginHintSet]);
 
   return (
     <Page>

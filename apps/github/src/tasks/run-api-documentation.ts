@@ -548,7 +548,7 @@ async function updateDocuments({
  *  .then(apiDoc => console.log(apiDoc))
  *  .catch(error => console.error(error));
  */
-async function generateExpressAPIDoc({
+export async function generateExpressAPIDoc({
   expressAPIInfo,
   ctx,
 }: CtxArg & { expressAPIInfo: ExpressAPI }): Promise<string | null> {

@@ -1,3 +1,4 @@
+// @ts-check
 import React, { createContext, useState } from "react";
 import { AUTH_MODAL_STATE } from "../constants.js";
 
@@ -10,8 +11,6 @@ const AppContextProvider = ({ children }) => {
   });
 
   const [user, setUser] = useState({
-    isAuthenticated: null,
-    authIsErroring: false,
     account: {},
     accountIsLoading: true,
     accountIsErroring: false,

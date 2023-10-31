@@ -4,9 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-(
-	cd "$(^parentpath)"
-	bin/lint
-	setup-deployment-workspace
-	"${EAVE_HOME}"/develop/javascript/bin/deploy-appengine "$@"
-)
+cd "$(^parentpath)"
+bin/lint
+setup-deployment-workspace
+"${EAVE_HOME}"/develop/javascript/bin/deploy-appengine "$@"
