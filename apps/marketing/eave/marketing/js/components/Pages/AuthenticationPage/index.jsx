@@ -21,7 +21,7 @@ const makeClasses = makeStyles((theme) => ({
   },
   logo: {
     height: "calc(100vh / 5.5)",
-    maxHeight: 150,
+    maxHeight: 120,
     minHeight: 100,
     marginBottom: 18,
     [theme.breakpoints.down("sm")]: {
@@ -36,7 +36,7 @@ const makeClasses = makeStyles((theme) => ({
     marginBottom: 12,
     textAlign: "center",
     [theme.breakpoints.up("md")]: {
-      fontSize: 48,
+      fontSize: 42,
     },
   },
   subheader: {
@@ -45,7 +45,7 @@ const makeClasses = makeStyles((theme) => ({
     color: "inherit",
     fontSize: 16,
     [theme.breakpoints.up("md")]: {
-      fontSize: 20,
+      fontSize: 18,
     },
   },
   loginButton: {
@@ -82,7 +82,7 @@ const makeClasses = makeStyles((theme) => ({
     },
     fontSize: 16,
     [theme.breakpoints.up("md")]: {
-      fontSize: 20,
+      fontSize: 18,
     },
   },
   authSwap: {
@@ -90,7 +90,7 @@ const makeClasses = makeStyles((theme) => ({
     fontWeight: 700,
     fontSize: 16,
     [theme.breakpoints.up("md")]: {
-      fontSize: 20,
+      fontSize: 18,
     },
   },
 }));
