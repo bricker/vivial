@@ -124,7 +124,7 @@ export function assertIsCommit(
  * Doesn't do anything, only useful for syntax highlighting of graphql query strings during development.
  * This works because the GraphQL VSCode plugin highlights strings in the `graphql` (or `gql`) tagged templates, even if it's not the "official" one.
  * Example: graphql(`query() { ... }`)
-* Note that this isn't meant to be used as a tagged template, because the parameters aren't the right type. But the GraphQL VSCode plugin highlights it anyways.
+ * Note that this isn't meant to be used as a tagged template, because the parameters aren't the right type. But the GraphQL VSCode plugin highlights it anyways.
  */
 export function graphql(v: string): string {
   return v;
