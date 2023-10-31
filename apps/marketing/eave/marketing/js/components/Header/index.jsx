@@ -104,8 +104,8 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
 }));
 
 const Header = ({
-  /** @type {boolean} */ simpleHeader,
-  /** @type {boolean} */ compactHeader,
+  /** @type {boolean} */ simpleHeader = false,
+  /** @type {boolean} */ compactHeader = false,
 }) => {
   const classes = makeClasses();
   const outterContainer = classNames(
