@@ -12,7 +12,6 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
     // @ts-ignore
     color: theme.palette.background.contrastText,
-    width: "100vw",
     display: "flex",
     justifyContent: "flex-start",
     alignItems: "center",
@@ -23,9 +22,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     },
   },
   logo: {
-    height: "calc(100vh / 5.5)",
-    maxHeight: 120,
-    minHeight: 100,
+    height: 120,
     marginBottom: 18,
     [theme.breakpoints.down("sm")]: {
       marginBottom: 24,
