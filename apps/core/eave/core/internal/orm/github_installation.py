@@ -11,13 +11,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 from eave.stdlib.core_api.models.github import GithubInstallation, GithubInstallationPeek
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class GithubInstallationOrm(Base):
     __tablename__ = "github_installations"
     __table_args__ = (
-        make_team_composite_pk(),
         make_team_fk(),
         Index(
             "eave_team_id_github_install_id",
@@ -27,10 +26,11 @@ class GithubInstallationOrm(Base):
         ),
     )
 
-    team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    team_id: Mapped[Optional[UUID]] = mapped_column()
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, unique=True, primary_key=True)
     github_install_id: Mapped[str] = mapped_column(unique=True)
     github_owner_login: Mapped[str] = mapped_column(nullable=True)
+    install_flow_state: Mapped[Optional[str]] = mapped_column(nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
