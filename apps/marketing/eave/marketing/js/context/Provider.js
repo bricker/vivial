@@ -1,6 +1,5 @@
 // @ts-check
 import React, { createContext, useState } from "react";
-import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { AUTH_MODAL_STATE } from "../constants.js";
 
 export const AppContext = createContext(null);
@@ -11,13 +10,13 @@ const AppContextProvider = ({ children }) => {
     mode: AUTH_MODAL_STATE.SIGNUP,
   });
 
-  const [/** @type {Types.DashboardUser} */ user, setUser] = useState({
+  const [user, setUser] = useState({
     account: {},
     accountIsLoading: true,
     accountIsErroring: false,
   });
 
-  const [/** @type {Types.DashboardTeam} */ team, setTeam] = useState({
+  const [team, setTeam] = useState({
     id: {},
     name: "",
     teamIsLoading: true,
