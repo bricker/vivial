@@ -334,12 +334,14 @@ async def try_associate_account_with_dangling_github_installation(
         installation.update(team_id=team_id)
 
     await eave.stdlib.analytics.log_event(
-        event_name="eave_application_integration_associated",
-        event_description="An existing integration was associated with an Eave Team",
+        event_name="eave_application_integration",
+        event_description="An integration was added for a team",
         event_source="core api oauth",
         opaque_params={
             "integration_name": Integration.github.value,
             "auth_callback_url": str(request.url),
+            "late_association": True,
+            "installation_id": installation_id,
         },
         ctx=request_state.ctx,
     )
