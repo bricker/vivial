@@ -12,7 +12,7 @@ import eave.stdlib.util
 from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class GithubRepoOrm(Base):
