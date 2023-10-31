@@ -10,7 +10,7 @@ const AppContextProvider = ({ children }) => {
   });
 
   const [user, setUser] = useState({
-    isAuthenticated: null,
+    isLoginHintSet: null,
     authIsErroring: false,
     account: {},
     accountIsLoading: true,

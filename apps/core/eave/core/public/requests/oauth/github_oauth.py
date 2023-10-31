@@ -232,7 +232,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
             if len(repos) > 0:
                 # update the GithubInstallation to set the github_owner_login property to the owner of any repository in the list (we happen to get the first one, but they should all be the same).
-                if owner := repos[0].owner:
+                if (owner := repos[0].owner) and owner.login:
                     github_installation_orm.github_owner_login = owner.login
 
             for repo in repos:

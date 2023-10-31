@@ -17,7 +17,7 @@ from google.cloud import kms
 from . import checksum
 from . import exceptions as eave_exceptions
 from . import util as eave_util
-from .logging import LogContext, eaveLogger
+from .logging import LogContext
 
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"
@@ -97,7 +97,6 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[Lo
     """
     Signs the data with GCP KMS, and returns the base64-encoded signature
     """
-    eaveLogger.debug("sign_b64", ctx)
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
@@ -135,7 +134,6 @@ def verify_signature_or_exception(
     The return value is to help you, the developer, understand that if this function doesn't throw,
     then the signature is verified.
     """
-    eaveLogger.debug("verify_signature_or_exception", ctx)
     message_bytes = eave_util.ensure_bytes(message)
     signature_bytes = base64.b64decode(signature)
 
@@ -240,8 +238,6 @@ def build_message_to_sign(
         signature_elements.append(str(account_id))
 
     signature_message = ":".join(signature_elements)
-
-    eaveLogger.debug("signature message", ctx, {"signature_message": signature_message})
     return signature_message
 
 

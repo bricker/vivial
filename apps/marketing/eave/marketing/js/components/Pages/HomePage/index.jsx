@@ -52,14 +52,14 @@ const HomePage = () => {
   const { user } = useUser();
   const navigate = useNavigate();
 
-  const { isAuthenticated } = user;
+  const { isLoginHintSet } = user;
   const { hero, githubFeatures, productivity, privacy } = copy;
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isLoginHintSet) {
       navigate("/dashboard");
     }
-  }, [isAuthenticated]);
+  }, [isLoginHintSet]);
 
   return (
     <Page>
