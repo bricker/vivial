@@ -39,9 +39,15 @@ def upgrade() -> None:
         "primary",
     )
     op.create_primary_key(
+<<<<<<< HEAD
         "pk_github_install_id",
         "github_installations",
         ["github_install_id"],
+=======
+        "pk_github_installations_id",
+        "github_installations",
+        ["id"],
+>>>>>>> 2992dfd18d486d0dbb5772f75f97eea599cc7589
     )
     op.alter_column(
         "github_installations",
@@ -62,7 +68,11 @@ def downgrade() -> None:
         nullable=False,
     )
     op.drop_constraint(
+<<<<<<< HEAD
         "pk_github_install_id",
+=======
+        "pk_github_installations_id",
+>>>>>>> 2992dfd18d486d0dbb5772f75f97eea599cc7589
         "github_installations",
         "primary",
     )
