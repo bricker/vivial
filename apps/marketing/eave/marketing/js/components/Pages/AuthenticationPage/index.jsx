@@ -101,7 +101,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
-const AuthenticationPage = ({/** @type {"signup" | "login"} */ type }) => {
+const AuthenticationPage = ({ /** @type {"signup" | "login"} */ type }) => {
   const classes = makeClasses();
   // if isLoginMode is false, then we are in sign up mode
   /** @type {boolean} */
