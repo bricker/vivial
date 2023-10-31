@@ -19,15 +19,18 @@ export async function loadQuery(name: string): Promise<string> {
   }
 
   const query = await fs.readFile(`./src/graphql/${name}.graphql`, "utf-8");
-  const fullQuery = await prependFragments(query);
+  const compiledQuery = await compileQuery(query);
+  await GlobalCache.set(queryCacheKey, compiledQuery);
+  return compiledQuery;
+}
 
-  const errors = await validate(fullQuery);
+export async function compileQuery(query: string): Promise<string> {
+  const compiledQuery = await prependFragments(query);
+  const errors = validate(compiledQuery);
   if (errors.length > 0) {
-    throw new Error(`GraphQL query ${name} is invalid: ${errors}`);
+    throw new Error(`GraphQL query is invalid: ${errors}`);
   }
-
-  await GlobalCache.set(queryCacheKey, fullQuery);
-  return fullQuery;
+  return compiledQuery;
 }
 
 async function prependFragments(
@@ -115,4 +118,14 @@ export function assertIsCommit(
   obj: { __typename?: string } | undefined | null,
 ): asserts obj is Commit {
   assert(isCommit(obj), `expected Commit, got ${obj?.__typename}`);
+}
+
+/**
+ * Doesn't do anything, only useful for syntax highlighting of graphql query strings during development.
+ * This works because the GraphQL VSCode plugin highlights strings in the `graphql` (or `gql`) tagged templates, even if it's not the "official" one.
+ * Example: graphql(`query() { ... }`)
+* Note that this isn't meant to be used as a tagged template, because the parameters aren't the right type. But the GraphQL VSCode plugin highlights it anyways.
+ */
+export function graphql(v: string): string {
+  return v;
 }
