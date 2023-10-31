@@ -65,8 +65,8 @@ async def map_url_content(
                     )
                 )
 
-    content_responses: list[Optional[GetGithubUrlContent.ResponseBody]] = await asyncio.gather(*tasks)
-    content = list(map(lambda x: x.content if x else None, content_responses))
+    content_responses: list[GetGithubUrlContent.ResponseBody] = await asyncio.gather(*tasks)
+    content = list(map(lambda x: x.content, content_responses))
     return content
 
 
@@ -89,7 +89,9 @@ async def subscribe_to_file_changes(
         )
 
     # have asyncio.gather eat any network exceptions and return them as part of result
-    completed_tasks: list[Optional[SubscriptionInfo]] = await asyncio.gather(*tasks, return_exceptions=True)
+    completed_tasks: list[Optional[SubscriptionInfo] | BaseException | Exception] = await asyncio.gather(
+        *tasks, return_exceptions=True
+    )
     # only return the successful results
     subscription_sources = [src for src in completed_tasks if type(src) is SubscriptionInfo]
     return subscription_sources
