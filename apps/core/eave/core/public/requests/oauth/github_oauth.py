@@ -193,14 +193,15 @@ class GithubOAuthCallback(HTTPEndpoint):
             if not github_installation_orm:
                 # create state cookie we can use later to associate new accounts
                 # with a dangling app installation row
-                state = json.dumps(
-                    {"install_flow_state": shared.generate_rand_state(), "install_id": self.installation_id}
+                state = shared.generate_rand_state()
+                state_blob = json.dumps(
+                    {"install_flow_state": state, "install_id": self.installation_id}
                 )
 
                 # only set state cookie for installations that wont have a team_id set
                 if not self._request_logged_in():
                     EIGHT_HOURS_IN_SECONDS = 60 * 60 * 8
-                    self.response.set_cookie("state_blob", state, httponly=True, expires=EIGHT_HOURS_IN_SECONDS)
+                    self.response.set_cookie("state_blob", state_blob, httponly=True, expires=EIGHT_HOURS_IN_SECONDS)
 
                 # create new github installation associated with the TeamOrm
                 # (or create a dangling installation to later associate w/ a future account)
