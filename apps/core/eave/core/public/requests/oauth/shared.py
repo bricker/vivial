@@ -302,7 +302,6 @@ async def try_associate_account_with_dangling_github_installation(
 ) -> None:
     request_state = EaveRequestState.load(request=request)
     state_blob = request.cookies.get("state_blob")
-    eaveLogger.debug("attempting account association with dangling github installation")
 
     if not state_blob:
         return
@@ -334,7 +333,7 @@ async def try_associate_account_with_dangling_github_installation(
 
         installation.update(team_id=team_id)
 
-    eaveLogger.debug("account associated with a github app installation")
+    eaveLogger.debug("account associated with a github app installation", request_state.ctx)
 
     await eave.stdlib.analytics.log_event(
         event_name="eave_application_integration",
@@ -379,7 +378,7 @@ async def sync_github_repos(team_id: uuid.UUID, ctx: LogContext) -> None:
                 ctx=ctx,
             )
 
-    eaveLogger.debug("synced github repos to team")
+    eaveLogger.debug("synced github repos to team", ctx)
 
 
 async def _create_local_github_repo(

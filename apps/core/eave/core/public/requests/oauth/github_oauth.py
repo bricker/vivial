@@ -117,8 +117,6 @@ class GithubOAuthCallback(HTTPEndpoint):
             )
             return self.response
 
-        eaveLogger.debug("Verified request parameters to github oauth callback")
-
         setup_action = request.query_params.get("setup_action")
         if setup_action not in ["install", "update"]:
             eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", self.eave_state.ctx)
