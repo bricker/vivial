@@ -116,7 +116,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 location=shared.DEFAULT_REDIRECT_LOCATION,
             )
             return self.response
-        
+
         eaveLogger.debug("Verified request parameters to github oauth callback")
 
         setup_action = request.query_params.get("setup_action")
@@ -194,9 +194,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 # create state cookie we can use later to associate new accounts
                 # with a dangling app installation row
                 state = shared.generate_rand_state()
-                state_blob = json.dumps(
-                    {"install_flow_state": state, "install_id": self.installation_id}
-                )
+                state_blob = json.dumps({"install_flow_state": state, "install_id": self.installation_id})
 
                 # only set state cookie for installations that wont have a team_id set
                 if not self._request_logged_in():
