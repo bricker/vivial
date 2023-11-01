@@ -6,7 +6,7 @@ import {
 import { Request, Response } from "express";
 import { Octokit } from "octokit";
 import { appConfig } from "../config.js";
-import { createOctokitClient } from "../lib/octokit-util.js";
+import { githubAppClient } from "../lib/octokit-util.js";
 
 /**
  * Manually verify a github app installation ID and OAuth user code
@@ -32,33 +32,19 @@ export async function verifyInstallation(
     }
     eaveLogger.debug("validated input");
 
-    // TODO: is there vulnerability in assuming this install id is ok to use for api auth??
-    const octokit = await createOctokitClient(
-      parseInt(input.installation_id, 10),
-    );
-    eaveLogger.debug(`created octokit ${octokit}`);
+    const appOctokit = await githubAppClient();
+    eaveLogger.debug(`created octokit ${appOctokit}`);
 
-    // TODO: test this result, no idea what the typing is on it
     // exchange code for an access token
-    // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
     const {
-      data, //: { accessToken },
-    } = await octokit.request("POST /login/oauth/access_token", {
-      client_id: appConfig.eaveGithubAppClientId,
-      client_secret: appConfig.eaveGithubAppClientSecret,
-      code: input.code,
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    });
-    eaveLogger.debug(`got access token respo: ${JSON.stringify(data)}`);
-
-    const { accessToken } = data;
+      authentication: { token },
+    } = await appOctokit.oauth.createToken({ code: input.code });
+    eaveLogger.debug(`got access token respo: ${token}`);
 
     // use access token to find list of installations the user has explicit access to
     // https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-app-installations-accessible-to-the-user-access-token
     const userOctokit = new Octokit({
-      auth: accessToken,
+      auth: token,
     });
     eaveLogger.debug(`succes build new user octokit ${userOctokit}`);
 
