@@ -116,6 +116,8 @@ class GithubOAuthCallback(HTTPEndpoint):
                 location=shared.DEFAULT_REDIRECT_LOCATION,
             )
             return self.response
+        
+        eaveLogger.debug("Verified request parameters to github oauth callback")
 
         setup_action = request.query_params.get("setup_action")
         if setup_action not in ["install", "update"]:
