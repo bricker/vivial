@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import assert from "assert";
