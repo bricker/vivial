@@ -342,6 +342,7 @@ async def try_associate_account_with_dangling_github_installation(
         event_name="eave_application_integration",
         event_description="An integration was added for a team",
         event_source="core api oauth",
+        eave_team=team.analytics_model,
         opaque_params={
             "integration_name": Integration.github.value,
             "auth_callback_url": str(request.url),
@@ -357,6 +358,8 @@ async def try_associate_account_with_dangling_github_installation(
 
 async def sync_github_repos(team_id: uuid.UUID, ctx: LogContext) -> None:
     """Create github_repo entries in our DB for each of their repos we have access to through the GitHub API"""
+    ctx.eave_team_id = str(team_id)
+
     response = await QueryGithubRepos.perform(team_id=team_id, origin=EaveApp.eave_api, ctx=ctx)
     repos = response.repos
 
