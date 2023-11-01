@@ -65,8 +65,8 @@ class GithubOAuthAuthorize(HTTPEndpoint):
 class GithubOAuthCallback(HTTPEndpoint):
     auth_provider = _AUTH_PROVIDER
     github_installation_orm: GithubInstallationOrm
-    eave_account: Optional[AccountOrm]
-    eave_team: Optional[TeamOrm]
+    eave_account: Optional[AccountOrm] = None
+    eave_team: Optional[TeamOrm] = None
 
     async def get(
         self,
