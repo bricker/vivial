@@ -307,6 +307,9 @@ async def try_associate_account_with_dangling_github_installation(
         return
 
     state_blob = json.loads(state_blob)
+
+    if "install_flow_state" not in state_blob or "install_id" not in state_blob:
+        return
     state = state_blob["install_flow_state"]
     installation_id = state_blob["install_id"]
 
