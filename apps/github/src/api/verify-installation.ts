@@ -19,70 +19,59 @@ export async function verifyInstallation(
   req: Request,
   res: Response,
 ): Promise<void> {
-  // TODO: debuging
-  try {
-    const ctx = LogContext.load(res);
+  const ctx = LogContext.load(res);
 
-    // validate input
-    const input = <VerifyInstallationRequestBody>req.body;
-    if (!(input.code && input.installation_id)) {
-      eaveLogger.error("Invalid input", ctx);
-      res.sendStatus(400);
-      return;
-    }
-    eaveLogger.debug("validated input");
-
-    const appOctokit = await githubAppClient();
-    eaveLogger.debug(`created octokit ${appOctokit}`);
-
-    // exchange code for an access token
-    const {
-      authentication: { token },
-    } = await appOctokit.oauth.createToken({ code: input.code });
-    eaveLogger.debug(`got access token respo: ${token}`);
-
-    // use access token to find list of installations the user has explicit access to
-    // https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-app-installations-accessible-to-the-user-access-token
-    const userOctokit = new Octokit({
-      auth: token,
-    });
-    eaveLogger.debug(`succes build new user octokit ${userOctokit}`);
-
-    const {
-      data: { installations: accessibleInstallations },
-    } = await userOctokit.request("GET /user/installations", {
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    });
-    eaveLogger.debug(`got back installations list: ${accessibleInstallations}`);
-
-    // verify the provided installation is in that list
-    const installation = accessibleInstallations.find(
-      (install) => install.id.toString() === input.installation_id,
-    );
-    if (installation === undefined) {
-      eaveLogger.warning(
-        "Failed to find installation_id in list of accessible GitHub app installations",
-        ctx,
-      );
-      res.sendStatus(401);
-      return;
-    }
-
-    // verify the installation is an Eave app installation
-    if (installation.app_id.toString() !== (await appConfig.eaveGithubAppId)) {
-      eaveLogger.warning(
-        "The installation_id was not an Eave GitHub app ID",
-        ctx,
-      );
-      res.send(401);
-      return;
-    }
-
-    res.sendStatus(200);
-  } catch (e: unknown) {
-    eaveLogger.error(<Error>e);
-    throw e;
+  // validate input
+  const input = <VerifyInstallationRequestBody>req.body;
+  if (!(input.code && input.installation_id)) {
+    eaveLogger.error("Invalid input", ctx);
+    res.status(400).json({ ok: false });
+    return;
   }
+
+  const appOctokit = await githubAppClient();
+
+  // exchange code for an access token
+  const {
+    authentication: { token },
+  } = await appOctokit.oauth.createToken({ code: input.code });
+
+  // use access token to find list of installations the user has explicit access to
+  // https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-app-installations-accessible-to-the-user-access-token
+  const userOctokit = new Octokit({
+    auth: token,
+  });
+
+  const {
+    data: { installations: accessibleInstallations },
+  } = await userOctokit.request("GET /user/installations", {
+    headers: {
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+  });
+
+  // verify the provided installation is in that list
+  const installation = accessibleInstallations.find(
+    (install) => install.id.toString() === input.installation_id,
+  );
+  if (installation === undefined) {
+    eaveLogger.warning(
+      "Failed to find installation_id in list of accessible GitHub app installations",
+      ctx,
+    );
+    res.status(401).json({ ok: false });
+    return;
+  }
+
+  // verify the installation is an Eave app installation
+  if (installation.app_id.toString() !== (await appConfig.eaveGithubAppId)) {
+    eaveLogger.warning(
+      "The installation_id was not an Eave GitHub app ID",
+      ctx,
+    );
+    res.status(401).json({ ok: false });
+    return;
+  }
+
+  res.status(200).json({ ok: true });
 }
