@@ -1,6 +1,6 @@
 import {
-  GithubRepoFeature,
   GithubRepo,
+  GithubRepoFeature,
   GithubRepoFeatureState,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
@@ -376,7 +376,8 @@ test.serial(
       .returns(Promise.resolve({ states_match: true }));
     const createdRepo = anyRepo(t.context.u);
     createdRepo.api_documentation_state = GithubRepoFeatureState.ENABLED;
-    createdRepo.inline_code_documentation_state = GithubRepoFeatureState.ENABLED;
+    createdRepo.inline_code_documentation_state =
+      GithubRepoFeatureState.ENABLED;
     const createGithubRepoStub = t.context.sandbox
       .stub(CreateGithubRepoOperation, "perform")
       .returns(Promise.resolve({ repo: createdRepo }));

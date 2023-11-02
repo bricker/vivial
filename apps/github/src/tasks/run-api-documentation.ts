@@ -1,8 +1,8 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { ExpressAPI } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-parsing-utility.js";
 import {
-  GithubDocumentValuesInput,
   GithubDocumentStatus,
+  GithubDocumentValuesInput,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
 import { GithubRepoFeatureState } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";

@@ -1,8 +1,8 @@
 import {
-  GithubDocumentType,
   GithubDocument,
-  GithubDocumentValuesInput,
   GithubDocumentStatus,
+  GithubDocumentType,
+  GithubDocumentValuesInput,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
 import { GithubRepo } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
