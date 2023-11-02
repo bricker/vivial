@@ -101,7 +101,7 @@ class GithubDocumentsOrm(Base):
         file_path: Optional[str] = None,
         api_name: Optional[str] = None,
         pull_request_number: Optional[int] = None,
-        status: GithubDocumentStatus = GithubDocumentStatus.PROCESSING,
+        status: Optional[GithubDocumentStatus] = None,
         status_updated: Optional[datetime] = None,
     ) -> Self:
         obj = cls(
@@ -111,7 +111,7 @@ class GithubDocumentsOrm(Base):
             api_name=api_name,
             type=type.value,
             pull_request_number=pull_request_number,
-            status=status.value,
+            status=status or GithubDocumentStatus.PROCESSING,
             status_updated=status_updated,
         )
         session.add(obj)

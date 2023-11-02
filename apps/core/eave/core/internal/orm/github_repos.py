@@ -128,8 +128,8 @@ class GithubRepoOrm(Base):
             github_installation_id=github_installation_id,
             display_name=display_name,
             api_documentation_state=api_documentation_state or FeatureState.ENABLED.value,
-            inline_code_documentation_state=inline_code_documentation_state or FeatureState.ENABLED,
-            architecture_documentation_state=architecture_documentation_state or FeatureState.ENABLED,
+            inline_code_documentation_state=inline_code_documentation_state or FeatureState.ENABLED.value,
+            architecture_documentation_state=architecture_documentation_state or FeatureState.ENABLED.value,
         )
         session.add(obj)
         await session.flush()
