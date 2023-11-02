@@ -7,13 +7,13 @@ from eave.stdlib.core_api.models import BaseResponseModel
 from eave.stdlib.core_api.models import BaseInputModel
 
 
-class Feature(enum.StrEnum):
+class GithubRepoFeature(enum.StrEnum):
     API_DOCUMENTATION = "api_documentation"
     INLINE_CODE_DOCUMENTATION = "inline_code_documentation"
     ARCHITECTURE_DOCUMENTATION = "architecture_documentation"
 
 
-class FeatureState(enum.StrEnum):
+class GibhuRepoFeatureState(enum.StrEnum):
     DISABLED = "disabled"
     ENABLED = "enabled"
     PAUSED = "paused"
@@ -25,17 +25,17 @@ class GithubRepo(BaseResponseModel):
     github_installation_id: uuid.UUID
     external_repo_id: str
     display_name: Optional[str]
-    api_documentation_state: FeatureState
-    inline_code_documentation_state: FeatureState
-    architecture_documentation_state: FeatureState
+    api_documentation_state: GibhuRepoFeatureState
+    inline_code_documentation_state: GibhuRepoFeatureState
+    architecture_documentation_state: GibhuRepoFeatureState
 
 
 class GithubRepoCreateInput(BaseInputModel):
     external_repo_id: str
     display_name: str
-    api_documentation_state: Optional[FeatureState] = None
-    inline_code_documentation_state: Optional[FeatureState] = None
-    architecture_documentation_state: Optional[FeatureState] = None
+    api_documentation_state: Optional[GibhuRepoFeatureState] = None
+    inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None
+    architecture_documentation_state: Optional[GibhuRepoFeatureState] = None
 
 
 class GithubRepoRefInput(BaseInputModel):
@@ -47,9 +47,9 @@ class GithubRepoListInput(BaseInputModel):
 
 
 class GithubRepoUpdateValues(BaseInputModel):
-    api_documentation_state: Optional[FeatureState] = None
-    inline_code_documentation_state: Optional[FeatureState] = None
-    architecture_documentation_state: Optional[FeatureState] = None
+    api_documentation_state: Optional[GibhuRepoFeatureState] = None
+    inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None
+    architecture_documentation_state: Optional[GibhuRepoFeatureState] = None
 
 
 class GithubRepoUpdateInput(BaseInputModel):
@@ -62,5 +62,5 @@ class GithubReposDeleteInput(BaseInputModel):
 
 
 class GithubReposFeatureStateInput(BaseInputModel):
-    feature: Feature
-    state: FeatureState
+    feature: GithubRepoFeature
+    state: GibhuRepoFeatureState

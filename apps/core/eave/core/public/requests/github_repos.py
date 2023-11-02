@@ -3,7 +3,7 @@ from eave.core.internal import database
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.stdlib.config import GITHUB_EVENT_QUEUE_NAME
-from eave.stdlib.core_api.models.github_repos import Feature, FeatureState
+from eave.stdlib.core_api.models.github_repos import GithubRepoFeature, GibhuRepoFeatureState
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.github_api.models import GithubRepoInput
 from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
@@ -100,9 +100,9 @@ class GetAllTeamsGithubRepoEndpoint(HTTPEndpoint):
                 session=db_session,
                 params=GithubRepoOrm.QueryParams(
                     team_id=None,
-                    api_documentation_state=state if feature is Feature.API_DOCUMENTATION else None,
-                    inline_code_documentation_state=state if feature is Feature.INLINE_CODE_DOCUMENTATION else None,
-                    architecture_documentation_state=state if feature is Feature.ARCHITECTURE_DOCUMENTATION else None,
+                    api_documentation_state=state if feature is GithubRepoFeature.API_DOCUMENTATION else None,
+                    inline_code_documentation_state=state if feature is GithubRepoFeature.INLINE_CODE_DOCUMENTATION else None,
+                    architecture_documentation_state=state if feature is GithubRepoFeature.ARCHITECTURE_DOCUMENTATION else None,
                 ),
             )
 
@@ -175,7 +175,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         event_description=_event_description,
                         event_source=_event_source,
                         opaque_params={
-                            "feature": Feature.API_DOCUMENTATION.value,
+                            "feature": GithubRepoFeature.API_DOCUMENTATION.value,
                             "new_state": new_values.api_documentation_state.value,
                             "external_repo_id": gh_repo_orm.external_repo_id,
                         },
@@ -191,7 +191,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         event_description=_event_description,
                         event_source=_event_source,
                         opaque_params={
-                            "feature": Feature.ARCHITECTURE_DOCUMENTATION.value,
+                            "feature": GithubRepoFeature.ARCHITECTURE_DOCUMENTATION.value,
                             "new_state": new_values.architecture_documentation_state.value,
                             "external_repo_id": gh_repo_orm.external_repo_id,
                         },
@@ -206,7 +206,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                         event_description=_event_description,
                         event_source=_event_source,
                         opaque_params={
-                            "feature": Feature.INLINE_CODE_DOCUMENTATION.value,
+                            "feature": GithubRepoFeature.INLINE_CODE_DOCUMENTATION.value,
                             "new_state": new_values.inline_code_documentation_state.value,
                             "external_repo_id": gh_repo_orm.external_repo_id,
                         },
@@ -214,8 +214,8 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                     )
 
                 if (
-                    gh_repo_orm.api_documentation_state == FeatureState.DISABLED
-                    and new_values.api_documentation_state == FeatureState.ENABLED
+                    gh_repo_orm.api_documentation_state == GibhuRepoFeatureState.DISABLED
+                    and new_values.api_documentation_state == GibhuRepoFeatureState.ENABLED
                 ):
                     await _trigger_api_documentation(github_repo_orm=gh_repo_orm, ctx=eave_state.ctx)
 
