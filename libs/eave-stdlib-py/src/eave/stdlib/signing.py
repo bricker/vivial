@@ -17,7 +17,7 @@ from google.cloud import kms
 from . import checksum
 from . import exceptions as eave_exceptions
 from . import util as eave_util
-from .logging import LogContext, eaveLogger
+from .logging import LogContext
 
 KMS_KEYRING_LOCATION = "global"
 KMS_KEYRING_NAME = "primary"

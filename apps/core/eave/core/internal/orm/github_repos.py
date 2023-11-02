@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
-from sqlalchemy import Index, PrimaryKeyConstraint, Select
+from sqlalchemy import Index, PrimaryKeyConstraint, ForeignKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -12,7 +12,7 @@ import eave.stdlib.util
 from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, FeatureState, Feature
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class GithubRepoOrm(Base):
@@ -23,7 +23,12 @@ class GithubRepoOrm(Base):
             "id",
         ),
         make_team_fk(),
-        make_team_composite_fk("github_installation_id", "github_installations"),
+        ForeignKeyConstraint(
+            ["github_installation_id"],
+            ["github_installations.id"],
+            ondelete="CASCADE",
+            name="github_installation_id_github_installations_fk",
+        ),
         Index(
             None,
             "team_id",
@@ -35,7 +40,7 @@ class GithubRepoOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     github_installation_id: Mapped[UUID] = mapped_column()
-    """FK to github_installations"""
+    """FK to github_installations.id"""
     external_repo_id: Mapped[str] = mapped_column(unique=True)
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
@@ -143,6 +148,8 @@ class GithubRepoOrm(Base):
         will get all repos for the provided `team_id`.
         """
         stmt = cls._build_query(params=params)
+        stmt = stmt.order_by(cls.display_name)
+
         result = (await session.scalars(stmt)).all()
         return result
 

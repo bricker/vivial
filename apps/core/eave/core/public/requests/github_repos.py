@@ -77,9 +77,12 @@ class GetGithubRepoEndpoint(HTTPEndpoint):
                 ),
             )
 
+        repo_list = list(gh_repo_orms)
+        _sort_repos(repo_list)
+
         return json_response(
             GetGithubReposRequest.ResponseBody(
-                repos=[orm.api_model for orm in gh_repo_orms],
+                repos=[orm.api_model for orm in repo_list],
             )
         )
 
@@ -103,9 +106,12 @@ class GetAllTeamsGithubRepoEndpoint(HTTPEndpoint):
                 ),
             )
 
+        repo_list = list(gh_repo_orms)
+        _sort_repos(repo_list)
+
         return json_response(
             GetAllTeamsGithubReposRequest.ResponseBody(
-                repos=[orm.api_model for orm in gh_repo_orms],
+                repos=[orm.api_model for orm in repo_list],
             )
         )
 
@@ -257,3 +263,6 @@ async def _trigger_api_documentation(github_repo_orm: GithubRepoOrm, ctx: LogCon
         },
         ctx=ctx,
     )
+
+def _sort_repos(repos: list[GithubRepoOrm]) -> None:
+    repos.sort(key=lambda r: r.display_name.lower() if r.display_name else str(r.created))

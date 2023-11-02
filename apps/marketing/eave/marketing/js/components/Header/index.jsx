@@ -1,28 +1,33 @@
+// @ts-check
 import { Drawer, IconButton } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
+import classNames from "classnames";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { AUTH_MODAL_STATE, FEEDBACK_URL } from "../../constants.js";
 import useAuthModal from "../../hooks/useAuthModal.js";
 import useUser from "../../hooks/useUser.js";
+import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { logUserOut } from "../../util/http-util.js";
 import Button from "../Button/index.jsx";
 import EaveLogo from "../EaveLogo/index.jsx";
 import CloseIcon from "../Icons/CloseIcon.js";
 import HamburgerIcon from "../Icons/HamburgerIcon.js";
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   outterContainer: {
-    marginBottom: theme.header.marginBottom,
+    marginBottom: theme["header"].marginBottom,
     width: "100%",
     zIndex: 100,
+  },
+  headerMarginScaling: {
     [theme.breakpoints.up("md")]: {
-      marginBottom: theme.header.md.marginBottom,
+      marginBottom: theme["header"].md.marginBottom,
     },
   },
   innerContainer: {
-    height: theme.header.height,
+    height: theme["header"].height,
     display: "flex",
     alignItems: "flex-start",
     justifyContent: "space-between",
@@ -30,7 +35,7 @@ const makeClasses = makeStyles((theme) => ({
     maxWidth: 1440,
     margin: "0 auto",
     [theme.breakpoints.up("md")]: {
-      height: theme.header.md.height,
+      height: theme["header"].md.height,
       alignItems: "center",
       padding: "0px 46px",
     },
@@ -49,7 +54,7 @@ const makeClasses = makeStyles((theme) => ({
     },
   },
   mobileMenu: {
-    backgroundColor: theme.palette.background.main,
+    backgroundColor: theme.palette.background["main"],
     width: "100vw",
     height: "100vh",
   },
@@ -57,7 +62,7 @@ const makeClasses = makeStyles((theme) => ({
     padding: "0px 25px",
   },
   mobileNavItem: {
-    color: theme.palette.background.contrastText,
+    color: theme.palette.background["contrastText"],
     textDecoration: "none",
     fontSize: 32,
     lineHeight: "37.5px",
@@ -81,7 +86,7 @@ const makeClasses = makeStyles((theme) => ({
     fontWeight: 700,
   },
   inlineButton: {
-    color: theme.palette.background.contrastText,
+    color: theme.palette.background["contrastText"],
     display: "inline-block",
     padding: "0px 32px",
     border: "none",
@@ -98,14 +103,20 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const Header = ({ simpleHeader }) => {
+const Header = ({
+  /** @type {boolean} */ simpleHeader = false,
+  /** @type {boolean} */ compactHeader = false,
+}) => {
   const classes = makeClasses();
+  const outterContainer = classNames(
+    classes.outterContainer,
+    !compactHeader && classes.headerMarginScaling,
+  );
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const { openModal } = useAuthModal();
-  const { user } = useUser();
-  const { isAuthenticated } = user;
+  const { isLoginHintSet } = useUser();
 
-  const TopButtons = isAuthenticated ? (
+  const TopButtons = isLoginHintSet ? (
     <>
       <a
         className={classes.inlineButton}
@@ -136,7 +147,7 @@ const Header = ({ simpleHeader }) => {
     </>
   );
 
-  const navButtons = isAuthenticated ? (
+  const navButtons = isLoginHintSet ? (
     <>
       <Link className={classes.mobileNavItem} to="/dashboard">
         Dashboard
@@ -171,7 +182,7 @@ const Header = ({ simpleHeader }) => {
   );
 
   return (
-    <header className={classes.outterContainer}>
+    <header className={outterContainer}>
       <div className={classes.innerContainer}>
         <div className={classes.logoContainer}>
           <EaveLogo />
@@ -187,7 +198,7 @@ const Header = ({ simpleHeader }) => {
             </IconButton>
             <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
               <div className={classes.mobileMenu}>
-                <div className={classes.outterContainer}>
+                <div className={outterContainer}>
                   <div className={classes.innerContainer}>
                     <div className={classes.logoContainer}>
                       <EaveLogo />

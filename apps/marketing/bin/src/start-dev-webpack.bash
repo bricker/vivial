@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 set -eu
 
 ./node_modules/.bin/webpack -w

@@ -19,6 +19,10 @@ class AuthCookies:
     team_id: Optional[str]
     access_token: Optional[str]
 
+    @property
+    def all_set(self) -> bool:
+        return bool(self.account_id and self.team_id and self.access_token)
+
 
 def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
     account_id = cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)

@@ -1,5 +1,5 @@
-from eave.stdlib.time import ONE_YEAR_IN_MS
-from eave.stdlib.typing import HTTPFrameworkResponse
+from .time import ONE_YEAR_IN_MS
+from .typing import HTTPFrameworkResponse
 
 from .config import shared_config
 

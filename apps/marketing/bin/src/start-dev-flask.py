@@ -1,13 +1,13 @@
-#!/usr/bin/env python
-
 import os
 import sys
+from eave.dev_tooling.constants import EAVE_HOME
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
-sys.path.append('.')
-EAVE_HOME = os.environ["EAVE_HOME"]
+sys.path.append(".")
 
 load_standard_dotenv_files()
+
+os.environ["GAE_SERVICE"] = "www"
 
 from eave.marketing.app import app  # noqa: E402
 
@@ -22,5 +22,8 @@ if __name__ == "__main__":
         exclude_patterns=[
             ".*",
             "**/build/",
+            "**/__pycache__",
+            "*.egg-info",
+            "**/node_modules",
         ],
     )
