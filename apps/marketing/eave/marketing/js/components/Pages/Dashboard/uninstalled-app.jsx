@@ -8,6 +8,7 @@ import Button from "../../Button/index.jsx";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
+    padding: 30,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -15,6 +16,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     color: theme.palette.background.contrastText,
   },
   title: {
+    textAlign: "center",
     fontSize: 28,
     [theme.breakpoints.up("sm")]: {
       fontSize: 36,
@@ -38,11 +40,12 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
   ctaBtn: {
     color: theme.palette.secondary.contrastText,
-    padding: "12px 120px",
+    padding: "12px 90px",
     borderRadius: "20px",
     fontSize: 24,
     [theme.breakpoints.up("sm")]: {
       fontSize: 32,
+      padding: "12px 120px",
     },
     marginBottom: 42,
   },
@@ -71,13 +74,17 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
   featureSubheader: {
     fontSize: 18,
-    marginBottom: 6,
+    marginBottom: 24,
   },
   featureContainer: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 72,
+    [theme.breakpoints.down("sm")]: {
+      flexDirection: "column",
+      marginBottom: 36,
+    },
   },
   featureDescriptionBlock: {
     padding: "0px 24px 24px 24px",
@@ -114,7 +121,7 @@ const featureText = {
     title: "API Documentation",
     subtitle:
       "Eave finds APIs, writes industry standard documentation, and keeps it updated.",
-    // TODO: currently supports section.. need <li> in grid
+    // TODO: currently supports section.. need <li> in grid (or flex)
   },
   codeDocs: {
     title: "Inline Code Documentation",
@@ -125,6 +132,8 @@ const featureText = {
 };
 
 const UninstalledGithubAppDash = () => {
+  // TODO: mobile layout changes
+
   const classes = makeClasses();
   /** @type {Types.GlobalEave} */
   // @ts-ignore
