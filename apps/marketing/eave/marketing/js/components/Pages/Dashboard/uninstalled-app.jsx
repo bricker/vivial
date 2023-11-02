@@ -10,40 +10,102 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
     display: "flex",
     flexDirection: "column",
+    alignItems: "center",
+    // @ts-ignore
+    color: theme.palette.background.contrastText,
   },
   title: {
     fontSize: 28,
-    fontWeight: 400,
     [theme.breakpoints.up("sm")]: {
       fontSize: 36,
     },
+    marginBottom: 12,
   },
   subtitle: {
+    maxWidth: 580,
+    textAlign: "center",
     fontSize: 16,
-    fontWeight: 400,
     [theme.breakpoints.up("sm")]: {
       fontSize: 18,
     },
+    marginBottom: 36,
+  },
+  caption: {
+    fontSize: 14,
+    [theme.breakpoints.up("sm")]: {
+      fontSize: 16,
+    },
   },
   ctaBtn: {
-    padding: "18px 54px",
+    color: theme.palette.secondary.contrastText,
+    padding: "12px 120px",
+    borderRadius: "20px",
+    fontSize: 24,
+    [theme.breakpoints.up("sm")]: {
+      fontSize: 32,
+    },
+    marginBottom: 42,
   },
   installFlowContainer: {
     display: "flex",
     flexDirection: "row",
+    marginBottom: 90,
   },
   installItemContainer: {
     display: "flex",
     flexDirection: "column",
+    alignItems: "center",
+    maxWidth: 180,
+    textAlign: "center",
+  },
+  installItemImage: {
+    height: 54,
+    width: 54,
+    marginBottom: 6,
+  },
+  installFlowArrowImage: {
+    width: 68,
+    height: "auto",
+    position: "relative",
+    bottom: 24,
+  },
+  featureSubheader: {
+    fontSize: 18,
+    marginBottom: 6,
   },
   featureContainer: {
     display: "flex",
     flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 72,
   },
-  feature: {
-    borderWidth: 1,
-    borderColor: "gray",
-    color: "gray",
+  featureDescriptionBlock: {
+    padding: "0px 24px 24px 24px",
+    margin: 18,
+    maxWidth: 368,
+    borderStyle: "solid",
+    borderWidth: "2px",
+    // @ts-ignore
+    borderColor: theme.palette.disabled.dark,
+    // @ts-ignore
+    color: theme.palette.disabled.dark,
+    display: "flex",
+    flexDirection: "column",
+  },
+  featureLockIcon: {
+    height: 35,
+    alignSelf: "center",
+    position: "relative",
+    bottom: 23,
+  },
+  featureDescriptionHeader: {
+    fontSize: 20,
+    fontWeight: 700,
+    [theme.breakpoints.up("sm")]: {
+      fontSize: 22,
+    },
+    textAlign: "center",
+    marginBottom: 12,
   },
 }));
 
@@ -73,8 +135,8 @@ const UninstalledGithubAppDash = () => {
   const Step = ({ /** @type {string} */ src, /** @type {string} */ text }) => {
     return (
       <div className={classes.installItemContainer}>
-        <img src={imageUrl(src)} />
-        <Typography className="">{text}</Typography>
+        <img src={imageUrl(src)} className={classes.installItemImage} />
+        <Typography className={classes.caption}>{text}</Typography>
       </div>
     );
   };
@@ -84,11 +146,13 @@ const UninstalledGithubAppDash = () => {
     /** @type {string} */ subtitle,
   }) => {
     return (
-      <div className={classes.feature}>
-        <img src={imageUrl("lock")} /> {/* TODO */}
-        <Typography>{title}</Typography>
-        <Typography>{subtitle}</Typography>
-        <Typography>
+      <div className={classes.featureDescriptionBlock}>
+        <img className={classes.featureLockIcon} src={imageUrl("lock.svg")} />
+        <Typography className={classes.featureDescriptionHeader}>
+          {title}
+        </Typography>
+        <Typography className={classes.caption}>{subtitle}</Typography>
+        <Typography className={classes.caption}>
           Currently supports:
           <br />
           TODO lang list etc
@@ -106,29 +170,36 @@ const UninstalledGithubAppDash = () => {
         The only thing you need to do is click the button below to add the Eave
         GitHub app, and Eave will do the rest.
       </Typography>
-      <Button
-        to={githubOauthUrl}
-        className={classes.ctaBtn}
-        color="secondary"
-      >
+      <Button to={githubOauthUrl} className={classes.ctaBtn} color="secondary">
         Add App
       </Button>
       <div className={classes.installFlowContainer}>
         <Step src="eave-logo-round-3x.png" text="Add the Eave App to GitHub" />
-        <img src={imageUrl("arrow")} /> {/*TODO*/}
+        <img
+          src={imageUrl("arrow.svg")}
+          className={classes.installFlowArrowImage}
+        />
         <Step
           src="eave-logo-round-3x.png"
           text="Eave Detects Documentation Needs"
         />
-        <img src={imageUrl("arrow")} />
+        <img
+          src={imageUrl("arrow.svg")}
+          className={classes.installFlowArrowImage}
+        />
         <Step
           src="eave-logo-round-3x.png"
           text="Eave Adds Docs to your Codebase in a PR"
         />
-        <img src={imageUrl("arrow")} />
+        <img
+          src={imageUrl("arrow.svg")}
+          className={classes.installFlowArrowImage}
+        />
         <Step src="eave-logo-round-3x.png" text="Your Docs Always Up to Date" />
       </div>
-      <Typography>✨ Add App to Access Features ✨</Typography>
+      <Typography className={classes.featureSubheader}>
+        ✨ Add App to Access Features ✨
+      </Typography>
       <div className={classes.featureContainer}>
         <FeatureDescription
           title={featureText.apiDocs.title}

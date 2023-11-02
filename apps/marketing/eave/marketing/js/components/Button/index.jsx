@@ -6,8 +6,8 @@ import { Link } from "react-router-dom";
 
 const makeClasses = makeStyles(() => ({
   root: {
-    width: 172,
-    height: 50,
+    minWidth: 172,
+    minHeight: 50,
     textTransform: "none",
     borderRadius: "10px",
     fontSize: 16,

@@ -36,6 +36,11 @@ export const theme = createTheme({
       light: "#363636",
       contrastText: "#FFFFFF",
     },
+    disabled: {
+      // gray
+      dark: "#9A9996",
+      light: "#5E5C64",
+    }
   },
   typography: {
     fontFamily: ["DM Sans", "sans-serif"].join(","),
