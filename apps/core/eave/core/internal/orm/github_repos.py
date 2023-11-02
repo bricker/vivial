@@ -9,7 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, GibhuRepoFeatureState, GithubRepoFeature
+from eave.stdlib.core_api.models.github_repos import (
+    GithubRepo,
+    GithubRepoUpdateValues,
+    GibhuRepoFeatureState,
+    GithubRepoFeature,
+)
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk

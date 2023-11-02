@@ -101,8 +101,12 @@ class GetAllTeamsGithubRepoEndpoint(HTTPEndpoint):
                 params=GithubRepoOrm.QueryParams(
                     team_id=None,
                     api_documentation_state=state if feature is GithubRepoFeature.API_DOCUMENTATION else None,
-                    inline_code_documentation_state=state if feature is GithubRepoFeature.INLINE_CODE_DOCUMENTATION else None,
-                    architecture_documentation_state=state if feature is GithubRepoFeature.ARCHITECTURE_DOCUMENTATION else None,
+                    inline_code_documentation_state=state
+                    if feature is GithubRepoFeature.INLINE_CODE_DOCUMENTATION
+                    else None,
+                    architecture_documentation_state=state
+                    if feature is GithubRepoFeature.ARCHITECTURE_DOCUMENTATION
+                    else None,
                 ),
             )
 
@@ -263,6 +267,7 @@ async def _trigger_api_documentation(github_repo_orm: GithubRepoOrm, ctx: LogCon
         },
         ctx=ctx,
     )
+
 
 def _sort_repos(repos: list[GithubRepoOrm]) -> None:
     repos.sort(key=lambda r: r.display_name.lower() if r.display_name else str(r.created))

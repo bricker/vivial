@@ -8,7 +8,12 @@ from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentValuesInput, GithubDocumentStatus, GithubDocumentType
+from eave.stdlib.core_api.models.github_documents import (
+    GithubDocument,
+    GithubDocumentValuesInput,
+    GithubDocumentStatus,
+    GithubDocumentType,
+)
 from eave.stdlib.util import ensure_uuid
 
 from .base import Base

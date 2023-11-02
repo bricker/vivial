@@ -36,9 +36,9 @@ export type GithubDocumentsQueryInput = {
 export type GithubDocumentCreateInput = {
   type: GithubDocumentType;
   status?: GithubDocumentStatus;
-  file_path?: string;
-  api_name?: string;
-  pull_request_number?: number;
+  file_path: string | null;
+  api_name: string | null;
+  pull_request_number: number | null;
 };
 
 export type GithubDocumentValuesInput = {
