@@ -112,7 +112,7 @@ async function getPullRequestFiles() {
   console.log(r);
 
   const headRefName = r.repository.pullRequest.headRefName;
-  const filePaths = r.repository.pullRequest.files.nodes.map((n) => n.path);
+  const filePaths = r.repository.pullRequest.files.nodes.map((n: any) => n.path);
 
   query = await compileQuery(
     graphql(`

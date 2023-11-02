@@ -1,6 +1,6 @@
 import {
-  Feature,
-  State,
+  GithubRepoFeature,
+  GithubRepoFeatureState,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { GetAllTeamGithubReposOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-repos.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
@@ -28,8 +28,8 @@ export async function runApiDocumentationCronHandler(
     ctx,
     input: {
       query_params: {
-        feature: Feature.API_DOCUMENTATION,
-        state: State.ENABLED,
+        feature: GithubRepoFeature.API_DOCUMENTATION,
+        state: GithubRepoFeatureState.ENABLED,
       },
     },
   });

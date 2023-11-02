@@ -2,9 +2,9 @@ import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { ExpressAPI } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-parsing-utility.js";
 import {
   GithubDocumentValuesInput,
-  Status,
+  GithubDocumentStatus,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
-import { State } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { GithubRepoFeatureState } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
 import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";
 import { RunApiDocumentationTaskRequestBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
@@ -81,7 +81,7 @@ export async function runApiDocumentationTaskHandler(
 
   const eaveGithubRepo = await coreAPIData.getEaveGithubRepo();
   assert(
-    eaveGithubRepo.api_documentation_state === State.ENABLED,
+    eaveGithubRepo.api_documentation_state === GithubRepoFeatureState.ENABLED,
     `API documentation feature not enabled for repo ID ${eaveGithubRepo.external_repo_id}`,
   );
 
@@ -264,7 +264,7 @@ export async function runApiDocumentationTaskHandler(
 
             await coreAPIData.updateGithubDocument({
               document: eaveDoc,
-              newValues: { status: Status.FAILED },
+              newValues: { status: GithubDocumentStatus.FAILED },
             });
           }
 
@@ -306,7 +306,7 @@ export async function runApiDocumentationTaskHandler(
 
             await coreAPIData.updateGithubDocument({
               document: eaveDoc,
-              newValues: { status: Status.FAILED },
+              newValues: { status: GithubDocumentStatus.FAILED },
             });
           }
 
@@ -323,7 +323,7 @@ export async function runApiDocumentationTaskHandler(
 
           eaveDoc = await coreAPIData.updateGithubDocument({
             document: eaveDoc,
-            newValues: { status: Status.PROCESSING },
+            newValues: { status: GithubDocumentStatus.PROCESSING },
           });
           localAnalyticsParams["eave_doc"] = eaveDoc;
         } else {
@@ -381,7 +381,7 @@ export async function runApiDocumentationTaskHandler(
 
           await coreAPIData.updateGithubDocument({
             document: eaveDoc,
-            newValues: { status: Status.FAILED },
+            newValues: { status: GithubDocumentStatus.FAILED },
           });
 
           return null;
@@ -454,7 +454,7 @@ export async function runApiDocumentationTaskHandler(
     await updateDocuments({
       coreAPIData,
       expressAPIs: validExpressAPIs,
-      newValues: { status: Status.FAILED },
+      newValues: { status: GithubDocumentStatus.FAILED },
     });
     return;
   }
@@ -485,7 +485,7 @@ export async function runApiDocumentationTaskHandler(
     expressAPIs: validExpressAPIs,
     newValues: {
       pull_request_number: pullRequest.number,
-      status: Status.PR_OPENED,
+      status: GithubDocumentStatus.PR_OPENED,
     },
   });
 }
