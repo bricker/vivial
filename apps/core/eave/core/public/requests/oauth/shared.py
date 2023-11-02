@@ -59,7 +59,7 @@ async def verify_stateless_installation_or_exception(
     ctx: LogContext,
 ) -> None:
     """
-    When the GitHub app is installed throught the GitHub marketplace, it doesnt give us
+    When the GitHub app is installed through the GitHub marketplace, it doesnt give us
     the opportunity to set/generate a state cookie for us to verify against mitm tampering,
     so we have to manually validate that the user has access to the app installation.
 
