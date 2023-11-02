@@ -41,10 +41,10 @@ class GithubDocumentsQueryInput(BaseInputModel):
 
 class GithubDocumentCreateInput(BaseInputModel):
     type: GithubDocumentType
-    status: GithubDocumentStatus
-    file_path: Optional[str]
-    api_name: Optional[str]
-    pull_request_number: Optional[int]
+    status: Optional[GithubDocumentStatus] = None
+    file_path: Optional[str] = None
+    api_name: Optional[str] = None
+    pull_request_number: Optional[int] = None
 
 
 class GithubDocumentValuesInput(BaseInputModel):

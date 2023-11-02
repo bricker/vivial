@@ -34,11 +34,11 @@ export type GithubDocumentsQueryInput = {
 };
 
 export type GithubDocumentCreateInput = {
-  file_path: string | null;
-  api_name: string | null;
   type: GithubDocumentType;
-  pull_request_number: number | null;
-  status: GithubDocumentStatus;
+  status?: GithubDocumentStatus;
+  file_path?: string;
+  api_name?: string;
+  pull_request_number?: number;
 };
 
 export type GithubDocumentValuesInput = {

@@ -65,10 +65,10 @@ export function underscoreify(str: string) {
 }
 
 export function makeString(data: any): string {
-  if (data instanceof Buffer) {
-    return data.toString();
-  } else if (typeof data === "string") {
+  if (typeof data === "string") {
     return data;
+  } else if (data instanceof Buffer) {
+    return data.toString();
   } else {
     return JSON.stringify(data);
   }

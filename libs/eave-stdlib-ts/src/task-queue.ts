@@ -33,7 +33,7 @@ type CreateTaskSharedArgs = CtxArg & {
 };
 
 type CreateTaskArgs = CreateTaskSharedArgs & {
-  payload: string;
+  payload: any;
   headers?: { [key: string]: string };
 };
 
@@ -118,6 +118,8 @@ export async function createTask({
   ctx,
 }: CreateTaskArgs): Promise<void> {
   ctx = LogContext.wrap(ctx);
+
+  payload = makeString(payload);
 
   if (!headers) {
     headers = {};

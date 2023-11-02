@@ -208,19 +208,3 @@ class GithubRepoOrm(Base):
 
         result = (await session.scalars(stmt)).all()
         return len(result) == 0
-
-    @classmethod
-    async def resolve_feature_state(
-        cls, team_id: UUID, feature: GithubRepoFeature, session: AsyncSession
-    ) -> GibhuRepoFeatureState:
-        feature_enabled_for_all_repos = await GithubRepoOrm.all_repos_match_feature_state(
-            session=session,
-            team_id=team_id,
-            feature=feature,
-            state=GibhuRepoFeatureState.ENABLED,
-        )
-
-        if feature_enabled_for_all_repos:
-            return GibhuRepoFeatureState.ENABLED
-        else:
-            return GibhuRepoFeatureState.DISABLED

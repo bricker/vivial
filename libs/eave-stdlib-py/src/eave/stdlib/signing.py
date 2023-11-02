@@ -86,11 +86,6 @@ _SIGNING_KEYS = {
         version="2",
         algorithm=SigningAlgorithm.RS256,
     ),
-    "web-session": SigningKeyDetails(
-        id="eave-web-session-encryption-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
 }
 
 
@@ -129,36 +124,6 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[Lo
 
     return eave_util.b64encode(sign_response.signature)
 
-def symmetric_encrypt_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: LogContext) -> str:
-    """
-    Signs the data with GCP KMS, and returns the base64-encoded signature
-    """
-    kms_client = kms.KeyManagementServiceClient()
-
-    key_version_name = kms_client.crypto_key_version_path(
-        project=shared_config.google_cloud_project,
-        location=KMS_KEYRING_LOCATION,
-        key_ring=KMS_KEYRING_NAME,
-        crypto_key=signing_key.id,
-        crypto_key_version=signing_key.version,
-    )
-
-    message_bytes = eave_util.ensure_bytes(data)
-    digest = hashlib.sha256(message_bytes).digest()
-    digest_crc32c = checksum.generate_checksum(data=digest)
-
-    sign_response = kms_client.asymmetric_sign(
-        request={"name": key_version_name, "digest": {"sha256": digest}, "digest_crc32c": digest_crc32c}
-    )
-
-    if sign_response.verified_digest_crc32c is False:
-        raise eave_exceptions.InvalidChecksumError()
-    if sign_response.name != key_version_name:
-        raise eave_exceptions.InvalidChecksumError()
-
-    checksum.validate_checksum_or_exception(data=sign_response.signature, checksum=sign_response.signature_crc32c)
-
-    return eave_util.b64encode(sign_response.signature)
 
 def verify_signature_or_exception(
     signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes, ctx: Optional[LogContext] = None

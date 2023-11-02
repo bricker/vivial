@@ -111,7 +111,7 @@ class GithubDocumentsOrm(Base):
             api_name=api_name,
             type=type.value,
             pull_request_number=pull_request_number,
-            status=status or GithubDocumentStatus.PROCESSING,
+            status=status or GithubDocumentStatus.PROCESSING.value,
             status_updated=status_updated,
         )
         session.add(obj)
