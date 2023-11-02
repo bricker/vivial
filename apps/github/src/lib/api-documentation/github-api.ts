@@ -110,13 +110,17 @@ export class GithubAPIData {
     for await (const treeEntry of this.recurseGitTree({
       treeRootDir: "",
     })) {
+      /**
+       * Use `match` here to cover all common ways that Express may be defined as a dependency.
+       * For example, "express" can be defined in `dependencies`, `devDependencies`, or `peerDependencies`.
+       * Instead of parsing package.json and checking each of those (and potentially missing something), we'll just do a dumb regex search.
+       */
       if (
         treeEntry.name === "package.json" &&
         isBlob(treeEntry.object) &&
-        treeEntry.object.text
+        treeEntry.object.text &&
+        /"express":/.test(treeEntry.object.text)
       ) {
-        FIXME::: JSON.parse package.json and look for express dependency
-
         assertPresence(treeEntry.path);
 
         // path.dirname behaves differently depending on the input:
