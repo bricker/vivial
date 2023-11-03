@@ -94,7 +94,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
         )
 
         await shared.try_associate_account_with_dangling_github_installation(
-            request=self.request, team_id=account.team_id
+            request=self.request, response=self.response, team_id=account.team_id
         )
 
         return self.response

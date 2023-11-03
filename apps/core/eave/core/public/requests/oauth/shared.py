@@ -310,6 +310,7 @@ def generate_and_set_state_cookie(
 
 async def try_associate_account_with_dangling_github_installation(
     request: Request,
+    response: Response,
     team_id: uuid.UUID,
 ) -> None:
     request_state = EaveRequestState.load(request=request)
@@ -317,6 +318,9 @@ async def try_associate_account_with_dangling_github_installation(
 
     if not state_blob:
         return
+
+    # delete cookie now that we've used it
+    eave.stdlib.cookies.delete_http_cookie(response=response, key=gh_app_state_cookie_name)
 
     state_blob = json.loads(state_blob)
 
@@ -333,18 +337,17 @@ async def try_associate_account_with_dangling_github_installation(
             ),
         )
 
-        # make sure the installation state matches the cookie state
         if not installation or installation.install_flow_state != state:
             eaveLogger.warning("GitHub app installation state did not match cookies state", request_state.ctx)
             return
 
-        # if the installation isnt yet associated w/ a team, associate w/ this one
         team = await TeamOrm.one_or_exception(
             session=db_session,
             team_id=team_id,
         )
 
-        installation.update(team_id=team_id, session=db_session)
+        # associate installation w/ team (and erase state value)
+        installation.update(team_id=team_id, install_flow_state=None, session=db_session)
 
     eaveLogger.debug("account associated with a github app installation", request_state.ctx)
 
