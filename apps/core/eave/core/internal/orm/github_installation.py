@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import uuid
 from datetime import datetime
-from typing import Optional, Self, Tuple
+from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 from sqlalchemy import Index, Select, func, select, delete
@@ -36,16 +36,40 @@ class GithubInstallationOrm(Base):
 
     @classmethod
     async def create(
-        cls, session: AsyncSession, team_id: uuid.UUID, github_install_id: str, github_owner_login: Optional[str] = None
+        cls,
+        session: AsyncSession,
+        team_id: Optional[uuid.UUID],
+        github_install_id: str,
+        github_owner_login: Optional[str] = None,
+        install_flow_state: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             github_install_id=github_install_id,
             github_owner_login=github_owner_login,
+            install_flow_state=install_flow_state,
         )
         session.add(obj)
         await session.flush()
         return obj
+
+    class UpdateParameters(TypedDict):
+        team_id: NotRequired[uuid.UUID]
+        install_flow_state: NotRequired[Optional[str]]
+
+    def update(
+        self,
+        session: AsyncSession,
+        **kwargs: Unpack[UpdateParameters],
+    ) -> Self:
+        """session parameter required (although unused) to indicate this should only be called w/in a db session"""
+        if self.team_id is None and (team_id := kwargs.get("team_id")):
+            self.team_id = team_id
+
+        # cant use walrus op here since we dont want to filter out passed None values
+        if "install_flow_state" in kwargs:
+            self.install_flow_state = kwargs.get("install_flow_state")
+        return self
 
     @dataclass
     class QueryParams:
