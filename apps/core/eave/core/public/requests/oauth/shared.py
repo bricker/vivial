@@ -36,6 +36,8 @@ from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
 DEFAULT_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/dashboard"
 SIGNUP_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/signup"
 
+gh_app_state_cookie_name = "ev_state_blob"
+
 
 def verify_oauth_state_or_exception(
     state: typing.Optional[str],
@@ -296,22 +298,32 @@ async def get_or_create_eave_account(
     return eave_account
 
 
+def generate_and_set_state_cookie(
+    response: Response,
+    installation_id: str,
+) -> str:
+    state = generate_rand_state()
+    state_blob = json.dumps({"install_flow_state": state, "install_id": installation_id})
+    eave.stdlib.cookies.set_http_cookie(response=response, key=gh_app_state_cookie_name, value=state_blob)
+    return state
+
+
 async def try_associate_account_with_dangling_github_installation(
     request: Request,
     team_id: uuid.UUID,
 ) -> None:
     request_state = EaveRequestState.load(request=request)
-    state_blob = request.cookies.get("state_blob")
+    state_blob = request.cookies.get(gh_app_state_cookie_name)
 
     if not state_blob:
         return
 
     state_blob = json.loads(state_blob)
 
-    if "install_flow_state" not in state_blob or "install_id" not in state_blob:
+    state = state_blob.get("install_flow_state")
+    installation_id = state_blob.get("install_id")
+    if not state or not installation_id:
         return
-    state = state_blob["install_flow_state"]
-    installation_id = state_blob["install_id"]
 
     async with eave.core.internal.database.async_session.begin() as db_session:
         installation = await GithubInstallationOrm.query(
@@ -323,18 +335,16 @@ async def try_associate_account_with_dangling_github_installation(
 
         # make sure the installation state matches the cookie state
         if not installation or installation.install_flow_state != state:
+            eaveLogger.warning("GitHub app installation state did not match cookies state", request_state.ctx)
             return
 
         # if the installation isnt yet associated w/ a team, associate w/ this one
-        team = await TeamOrm.one_or_none(
+        team = await TeamOrm.one_or_exception(
             session=db_session,
             team_id=team_id,
         )
 
-        if not team:
-            return
-
-        installation.update(team_id=team_id)
+        installation.update(team_id=team_id, session=db_session)
 
     eaveLogger.debug("account associated with a github app installation", request_state.ctx)
 

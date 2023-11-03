@@ -147,7 +147,7 @@ class GithubOAuthCallback(HTTPEndpoint):
         return self.response
 
     async def _maybe_set_account_data(self, auth_cookies: AuthCookies) -> None:
-        if not auth_cookies.access_token or not auth_cookies.account_id:
+        if not auth_cookies.all_set:
             # This is the case where they're going through the install flow but not logged in.
             # (e.g. installing from github marketplace w/o an Eave account)
             shared.set_redirect(
@@ -191,13 +191,13 @@ class GithubOAuthCallback(HTTPEndpoint):
             if not github_installation_orm:
                 # create state cookie we can use later to associate new accounts
                 # with a dangling app installation row
-                state = shared.generate_rand_state()
-                state_blob = json.dumps({"install_flow_state": state, "install_id": self.installation_id})
+                state = None
 
                 # only set state cookie for installations that wont have a team_id set
                 if not self._request_logged_in():
-                    EIGHT_HOURS_IN_SECONDS = 60 * 60 * 8
-                    self.response.set_cookie("state_blob", state_blob, httponly=True, expires=EIGHT_HOURS_IN_SECONDS)
+                    state = shared.generate_and_set_state_cookie(
+                        response=self.response, installation_id=self.installation_id
+                    )
 
                 # create new github installation associated with the TeamOrm
                 # (or create a dangling installation to later associate w/ a future account)

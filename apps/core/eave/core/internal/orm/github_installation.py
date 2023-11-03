@@ -55,8 +55,10 @@ class GithubInstallationOrm(Base):
 
     def update(
         self,
+        session: AsyncSession,
         team_id: uuid.UUID,
     ) -> Self:
+        """session parameter required (although unused) to indicate this should only be called w/in a db session"""
         if self.team_id is None:
             self.team_id = team_id
         return self
