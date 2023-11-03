@@ -25,7 +25,7 @@ export async function verifyInstallation(
   const input = <VerifyInstallationRequestBody>req.body;
   if (!(input.code && input.installation_id)) {
     eaveLogger.error("Invalid input", ctx);
-    res.status(400).json({ ok: false });
+    res.status(400).json();
     return;
   }
 
@@ -59,7 +59,7 @@ export async function verifyInstallation(
       "Failed to find installation_id in list of accessible GitHub app installations",
       ctx,
     );
-    res.status(401).json({ ok: false });
+    res.status(401).json();
     return;
   }
 
@@ -69,9 +69,9 @@ export async function verifyInstallation(
       "The installation_id was not an Eave GitHub app ID",
       ctx,
     );
-    res.status(401).json({ ok: false });
+    res.status(401).json();
     return;
   }
 
-  res.status(200).json({ ok: true });
+  res.status(200).json();
 }
