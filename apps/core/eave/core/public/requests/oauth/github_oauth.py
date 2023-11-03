@@ -75,6 +75,15 @@ class GithubOAuthCallback(HTTPEndpoint):
         self.response = Response()
         self.eave_state = EaveRequestState.load(request=request)
 
+        if "state" not in request.query_params and "code" not in request.query_params:
+            # unable to check validity of data received. or could just be a
+            # permissions update from gh website redirecting to our callback
+            shared.set_redirect(
+                response=self.response,
+                location=shared.DEFAULT_REDIRECT_LOCATION,
+            )
+            return self.response
+        
         if "state" in request.query_params:
             # we set this state in our /oauth/github/authorize endpoint before handing
             # auth over to github
@@ -95,7 +104,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=self.response
             )
 
-        elif "code" in request.query_params:
+        if "code" in request.query_params:
             # github marketplace installs skip the step where we set state, so manually
             # validate the user (oauth code) has access to the app installation
             installation_id = request.query_params.get("installation_id")
@@ -108,14 +117,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 return shared.cancel_flow(response=self.response)
 
             await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
-        else:
-            # unable to check validity of data received. or could just be a
-            # permissions update from gh website redirecting to our callback
-            shared.set_redirect(
-                response=self.response,
-                location=shared.DEFAULT_REDIRECT_LOCATION,
-            )
-            return self.response
+
 
         setup_action = request.query_params.get("setup_action")
         if setup_action not in ["install", "update"]:
