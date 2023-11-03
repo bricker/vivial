@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import assert from "assert";
@@ -112,7 +114,9 @@ async function getPullRequestFiles() {
   console.log(r);
 
   const headRefName = r.repository.pullRequest.headRefName;
-  const filePaths = r.repository.pullRequest.files.nodes.map((n) => n.path);
+  const filePaths = r.repository.pullRequest.files.nodes.map(
+    (n: any) => n.path,
+  );
 
   query = await compileQuery(
     graphql(`

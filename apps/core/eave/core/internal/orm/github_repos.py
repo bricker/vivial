@@ -9,7 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.github_repos import GithubRepo, GithubRepoUpdateValues, State, Feature
+from eave.stdlib.core_api.models.github_repos import (
+    GithubRepo,
+    GithubRepoUpdateValues,
+    GibhuRepoFeatureState,
+    GithubRepoFeature,
+)
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
@@ -45,11 +50,11 @@ class GithubRepoOrm(Base):
     """github API node_id for this repo"""
     display_name: Mapped[Optional[str]] = mapped_column()
     """Human-readable reference, for display only"""
-    api_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
+    api_documentation_state: Mapped[str] = mapped_column()
     """Activation status of the API documentation feature for this repo. options: disabled, enabled, paused"""
-    inline_code_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
+    inline_code_documentation_state: Mapped[str] = mapped_column()
     """Activation status of the inline code documentation feature for this repo. options: disabled, enabled, paused"""
-    architecture_documentation_state: Mapped[str] = mapped_column(server_default=State.DISABLED.value)
+    architecture_documentation_state: Mapped[str] = mapped_column()
     """Activation status of the architecture documentation feature for this repo. options: disabled, enabled, paused"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -65,9 +70,9 @@ class GithubRepoOrm(Base):
         ids: Optional[list[UUID]] = None
         external_repo_id: Optional[str] = None
         external_repo_ids: Optional[list[str]] = None
-        api_documentation_state: Optional[State] = None
-        inline_code_documentation_state: Optional[State] = None
-        architecture_documentation_state: Optional[State] = None
+        api_documentation_state: Optional[GibhuRepoFeatureState] = None
+        inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None
+        architecture_documentation_state: Optional[GibhuRepoFeatureState] = None
 
         def validate_or_exception(self):
             assert eave.stdlib.util.nand(
@@ -118,18 +123,18 @@ class GithubRepoOrm(Base):
         external_repo_id: str,
         github_installation_id: UUID,
         display_name: Optional[str],
-        api_documentation_state: State = State.DISABLED,
-        inline_code_documentation_state: State = State.DISABLED,
-        architecture_documentation_state: State = State.DISABLED,
+        api_documentation_state: Optional[GibhuRepoFeatureState] = None,
+        inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None,
+        architecture_documentation_state: Optional[GibhuRepoFeatureState] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
             github_installation_id=github_installation_id,
             display_name=display_name,
-            api_documentation_state=api_documentation_state.value,
-            inline_code_documentation_state=inline_code_documentation_state.value,
-            architecture_documentation_state=architecture_documentation_state.value,
+            api_documentation_state=api_documentation_state or GibhuRepoFeatureState.ENABLED.value,
+            inline_code_documentation_state=inline_code_documentation_state or GibhuRepoFeatureState.ENABLED.value,
+            architecture_documentation_state=architecture_documentation_state or GibhuRepoFeatureState.ENABLED.value,
         )
         session.add(obj)
         await session.flush()
@@ -184,7 +189,7 @@ class GithubRepoOrm(Base):
 
     @classmethod
     async def all_repos_match_feature_state(
-        cls, team_id: UUID, feature: Feature, state: State, session: AsyncSession
+        cls, team_id: UUID, feature: GithubRepoFeature, state: GibhuRepoFeatureState, session: AsyncSession
     ) -> bool:
         """
         Check if for a given `team_id` all their repos have the specified `state` for a `feature`.
@@ -199,11 +204,11 @@ class GithubRepoOrm(Base):
         # if there are 0 matches, that means all rows have the same status
         # for `feature` (or there are 0 rows)
         match feature:
-            case Feature.INLINE_CODE_DOCUMENTATION:
+            case GithubRepoFeature.INLINE_CODE_DOCUMENTATION:
                 stmt = stmt.where(cls.inline_code_documentation_state != state.value)
-            case Feature.API_DOCUMENTATION:
+            case GithubRepoFeature.API_DOCUMENTATION:
                 stmt = stmt.where(cls.api_documentation_state != state.value)
-            case Feature.ARCHITECTURE_DOCUMENTATION:
+            case GithubRepoFeature.ARCHITECTURE_DOCUMENTATION:
                 stmt = stmt.where(cls.architecture_documentation_state != state.value)
 
         result = (await session.scalars(stmt)).all()
