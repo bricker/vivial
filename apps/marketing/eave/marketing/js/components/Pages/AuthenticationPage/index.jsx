@@ -111,7 +111,7 @@ const AuthenticationPage = ({ /** @type {"signup" | "login"} */ type }) => {
       <section className={classes.container}>
         <img
           className={classes.logo}
-          src={imageUrl("eave-logo-round-3x.png")}
+          src={imageUrl("eave-logo-round.svg")}
         />
         <Typography variant="h2" className={classes.header}>
           {isLoginMode ? "Log In" : "Create your Free Account"}

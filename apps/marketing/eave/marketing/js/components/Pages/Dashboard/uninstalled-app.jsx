@@ -183,13 +183,13 @@ const UninstalledGithubAppDash = () => {
         Add App
       </Button>
       <div className={classes.installFlowContainer}>
-        <Step src="eave-logo-round-3x.png" text="Add the Eave App to GitHub" />
+        <Step src="github-icon.svg" text="Add the Eave App to GitHub" />
         <img
           src={imageUrl("arrow.svg")}
           className={classes.installFlowArrowImage}
         />
         <Step
-          src="eave-logo-round-3x.png"
+          src="eave-logo-round.svg"
           text="Eave Detects Documentation Needs"
         />
         <img
@@ -197,14 +197,14 @@ const UninstalledGithubAppDash = () => {
           className={classes.installFlowArrowImage}
         />
         <Step
-          src="eave-logo-round-3x.png"
+          src="pr-merge-circle-icon.svg"
           text="Eave Adds Docs to your Codebase in a PR"
         />
         <img
           src={imageUrl("arrow.svg")}
           className={classes.installFlowArrowImage}
         />
-        <Step src="eave-logo-round-3x.png" text="Your Docs Always Up to Date" />
+        <Step src="code-block-circle-icon.svg" text="Your Docs Always Up to Date" />
       </div>
       <Typography className={classes.featureSubheader}>
         ✨ Add App to Access Features ✨
