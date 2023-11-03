@@ -83,7 +83,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                 location=shared.DEFAULT_REDIRECT_LOCATION,
             )
             return self.response
-        
+
         if "state" in request.query_params:
             # we set this state in our /oauth/github/authorize endpoint before handing
             # auth over to github
@@ -117,7 +117,6 @@ class GithubOAuthCallback(HTTPEndpoint):
                 return shared.cancel_flow(response=self.response)
 
             await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
-
 
         setup_action = request.query_params.get("setup_action")
         if setup_action not in ["install", "update"]:
