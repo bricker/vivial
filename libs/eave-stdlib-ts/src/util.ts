@@ -63,3 +63,13 @@ export function titleize(str: string) {
 export function underscoreify(str: string) {
   return str.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
 }
+
+export function makeString(data: any): string {
+  if (typeof data === "string") {
+    return data;
+  } else if (data instanceof Buffer) {
+    return data.toString();
+  } else {
+    return JSON.stringify(data);
+  }
+}
