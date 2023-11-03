@@ -1,9 +1,6 @@
 // @ts-check
 import { useContext } from "react";
-import {
-  DOC_TYPES,
-  FEATURE_STATES,
-} from "../constants.js";
+import { DOC_TYPES, FEATURE_STATES } from "../constants.js";
 import { AppContext } from "../context/Provider.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
@@ -42,16 +39,18 @@ const useTeam = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        return resp.json().then((/** @type {Types.GetTeamResponseBody} */ data) => {
-          setTeam((prev) => ({
-            ...prev,
-            teamIsLoading: false,
-            teamRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
-            id: data.team?.id,
-            name: data.team?.name,
-            integrations: data.integrations,
-          }));
-        });
+        return resp
+          .json()
+          .then((/** @type {Types.GetTeamResponseBody} */ data) => {
+            setTeam((prev) => ({
+              ...prev,
+              teamIsLoading: false,
+              teamRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
+              id: data.team?.id,
+              name: data.team?.name,
+              integrations: data.integrations,
+            }));
+          });
       })
       .catch(() => {
         setTeam((prev) => ({
@@ -98,8 +97,15 @@ const useTeam = () => {
               reposAreLoading: false,
               reposRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
               repos: data.repos,
-              inlineCodeDocsEnabled: data.repos.some((repo) => repo.inline_code_documentation_state === FEATURE_STATES.ENABLED),
-              apiDocsEnabled: data.repos.some((repo) => repo.api_documentation_state === FEATURE_STATES.ENABLED),
+              inlineCodeDocsEnabled: data.repos.some(
+                (repo) =>
+                  repo.inline_code_documentation_state ===
+                  FEATURE_STATES.ENABLED,
+              ),
+              apiDocsEnabled: data.repos.some(
+                (repo) =>
+                  repo.api_documentation_state === FEATURE_STATES.ENABLED,
+              ),
             }));
           });
       })

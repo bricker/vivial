@@ -18,20 +18,14 @@ import { FEATURE_MODAL, FEATURE_STATE_PROPERTY } from "../../../constants.js";
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
-  const {
-    team,
-    getTeam,
-    getTeamRepos,
-    updateTeamFeatureState,
-  } = useTeam();
+  const { team, getTeam, getTeamRepos, updateTeamFeatureState } = useTeam();
   const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
   const [apiDocsModalIsOpen, setAPIDocsModalIsOpen] = useState(false);
 
   const showFeatureSettings = team.inlineCodeDocsEnabled || team.apiDocsEnabled;
   const showAPIDocs = team.apiDocsEnabled;
 
-  const isLoading =
-    team.teamIsLoading || team.reposAreLoading;
+  const isLoading = team.teamIsLoading || team.reposAreLoading;
 
   const isErroring = team.teamIsErroring;
 
@@ -40,7 +34,7 @@ const Dashboard = () => {
     team.apiDocsRequestHasSucceededAtLeastOnce &&
     team.reposRequestHasSucceededAtLeastOnce;
 
-    const closeModal = () => {
+  const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
     setSearchParams({});
     if (inlineDocsModalIsOpen) {
