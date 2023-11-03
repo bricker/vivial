@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
+load_standard_dotenv_files()
+
+# ruff: noqa: E402
+
 import logging
 import os
 import sys
 import click
-from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 import alembic
 import alembic.config
 import alembic.command
@@ -13,7 +17,6 @@ from eave.stdlib.logging import eaveLogger
 sys.path.append(".")
 
 alembic_config = alembic.config.Config("alembic.ini")
-load_standard_dotenv_files()
 
 
 @click.command()

@@ -1,7 +1,7 @@
 """remove feature state defaults
 
 Revision ID: 73b3c36dfe6f
-Revises: ab1d261ea5ed
+Revises: e04a9002c582
 Create Date: 2023-10-25 01:07:33.537448
 
 """
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "73b3c36dfe6f"
-down_revision = "ab1d261ea5ed"
+down_revision = "e04a9002c582"
 branch_labels = None
 depends_on = None
 
