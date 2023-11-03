@@ -29,7 +29,7 @@ class GetGithubIntegrationEndpoint(HTTPEndpoint):
                 ),
             )
 
-            if not installation or not installation.team_id:
+            if not installation:
                 raise NotFoundError()
 
             if not installation.team_id:
