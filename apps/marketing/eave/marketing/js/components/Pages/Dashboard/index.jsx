@@ -22,7 +22,6 @@ const Dashboard = () => {
     team,
     getTeam,
     getTeamRepos,
-    getTeamFeatureStates,
     updateTeamFeatureState,
   } = useTeam();
   const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
@@ -32,17 +31,16 @@ const Dashboard = () => {
   const showAPIDocs = team.apiDocsEnabled;
 
   const isLoading =
-    team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
+    team.teamIsLoading || team.reposAreLoading;
 
   const isErroring = team.teamIsErroring;
 
   const dashboardRequestsSucceededAtLeastOnce =
     team.teamRequestHasSucceededAtLeastOnce &&
     team.apiDocsRequestHasSucceededAtLeastOnce &&
-    team.reposRequestHasSucceededAtLeastOnce &&
-    team.featureStatesRequestHasSucceededAtLeastOnce;
+    team.reposRequestHasSucceededAtLeastOnce;
 
-  const closeModal = () => {
+    const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
     setSearchParams({});
     if (inlineDocsModalIsOpen) {
@@ -89,10 +87,6 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    getTeamFeatureStates(team.repos);
-  }, [team.repos]);
-
-  useEffect(() => {
     const featureModal = cookies && cookies[FEATURE_MODAL.ID];
     switch (featureModal) {
       case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
@@ -123,7 +117,7 @@ const Dashboard = () => {
   if (isErroring && !dashboardRequestsSucceededAtLeastOnce) {
     return <ErrorPage page="dashboard" />;
   }
-  if (isLoading) {
+  if (isLoading && !dashboardRequestsSucceededAtLeastOnce) {
     return <LoadingPage />;
   }
   return (
