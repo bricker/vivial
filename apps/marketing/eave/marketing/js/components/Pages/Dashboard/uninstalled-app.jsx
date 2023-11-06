@@ -59,13 +59,41 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     },
   },
   installFlowContainerMobile: {
-    display: "flex",
-    flexFlow: "row wrap",
-    marginBottom: 72,
-    [theme.breakpoints.up("sm")]: {
-      // TODO: i think this means neither displayed for sm
-      display: "none",
+    display: "none",
+    [theme.breakpoints.down("sm")]: {
+      display: "grid",
+      gridTemplateAreas: `'b1 b1 b1 . . b2 b2 b2'
+        'b1 b1 b1 a1 a1 b2 b2 b2'
+        'b1 b1 b1 . . b2 b2 b2'
+        '. . . . . . a2 .'
+        '. . . . . . a2 .'
+        'b4 b4 b4 . . b3 b3 b3'
+        'b4 b4 b4 a3 a3 b3 b3 b3'
+        'b4 b4 b4 . . b3 b3 b3'`,
+      gap: 20,
+      marginBottom: 72,
     },
+  },
+  gridAreaBox1: {
+    gridArea: "b1",
+  },
+  gridAreaBox2: {
+    gridArea: "b2",
+  },
+  gridAreaBox3: {
+    gridArea: "b3",
+  },
+  gridAreaBox4: {
+    gridArea: "b4",
+  },
+  gridAreaArrow1: {
+    gridArea: "a1",
+  },
+  gridAreaArrow2: {
+    gridArea: "a2",
+  },
+  gridAreaArrow3: {
+    gridArea: "a3",
   },
   installItemContainer: {
     display: "flex",
@@ -81,14 +109,21 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     marginBottom: 6,
   },
   installFlowArrowImage: {
-    width: 68,
-    height: "auto",
-    position: "relative",
-    bottom: 24,
+    width: 45,
+    height: 45,
+    [theme.breakpoints.up("sm")]: {
+      width: 68,
+    },
   },
   featureSubheader: {
     fontSize: 18,
     marginBottom: 24,
+  },
+  rotate90cw: {
+    rotate: "90deg",
+  },
+  rotate180cw: {
+    rotate: "180deg",
   },
   featureContainer: {
     display: "flex",
@@ -173,18 +208,23 @@ const featureText = {
 };
 
 const UninstalledGithubAppDash = () => {
-  // TODO: mobile layout changes
-
   const classes = makeClasses();
   /** @type {Types.GlobalEave} */
   // @ts-ignore
   const _globalEave = window;
-
   const githubOauthUrl = `${_globalEave.eave.apiBase}/oauth/github/authorize`;
 
-  const Step = ({ /** @type {string} */ src, /** @type {string} */ text }) => {
+  const arrowDesktopClasses = classNames(
+    classes.installFlowArrowImage,
+  );
+
+  const Step = ({
+    /** @type {string} */ src,
+    /** @type {string} */ text,
+    extraClasses = {},
+  }) => {
     return (
-      <div className={classes.installItemContainer}>
+      <div className={classNames(classes.installItemContainer, extraClasses)}>
         <img src={imageUrl(src)} className={classes.installItemImage} />
         <Typography className={classes.caption}>{text}</Typography>
       </div>
@@ -233,57 +273,65 @@ const UninstalledGithubAppDash = () => {
       </Button>
       <div className={classes.installFlowContainerDesktop}>
         <Step src="github-icon.svg" text="Add the Eave App to GitHub" />
-        <img
-          src={imageUrl("arrow.svg")}
-          className={classes.installFlowArrowImage}
-        />
+        <img src={imageUrl("arrow.svg")} className={arrowDesktopClasses} />
         <Step
           src="eave-logo-round.svg"
           text="Eave Detects Documentation Needs"
         />
-        <img
-          src={imageUrl("arrow.svg")}
-          className={classes.installFlowArrowImage}
-        />
+        <img src={imageUrl("arrow.svg")} className={arrowDesktopClasses} />
         <Step
           src="pr-merge-circle-icon.svg"
           text="Eave Adds Docs to your Codebase in a PR"
         />
-        <img
-          src={imageUrl("arrow.svg")}
-          className={classes.installFlowArrowImage}
-        />
+        <img src={imageUrl("arrow.svg")} className={arrowDesktopClasses} />
         <Step
           src="code-block-circle-icon.svg"
           text="Your Docs Always Up to Date"
         />
       </div>
       <div className={classes.installFlowContainerMobile}>
-        {/* TODO: make arrows rotate to correct directions. make sure flex wrap doesnt crap the bed (take arrows out of flex wrap??) */}
-        <Step src="github-icon.svg" text="Add the Eave App to GitHub" />
+        <Step
+          extraClasses={classes.gridAreaBox1}
+          src="github-icon.svg"
+          text="Add the Eave App to GitHub"
+        />
         <img
           src={imageUrl("arrow.svg")}
-          className={classes.installFlowArrowImage}
+          className={classNames(
+            classes.installFlowArrowImage,
+            classes.gridAreaArrow1,
+          )}
         />
         <Step
+          extraClasses={classes.gridAreaBox2}
           src="eave-logo-round.svg"
           text="Eave Detects Documentation Needs"
         />
         <img
           src={imageUrl("arrow.svg")}
-          className={classes.installFlowArrowImage}
+          className={classNames(
+            classes.installFlowArrowImage,
+            classes.rotate90cw,
+            classes.gridAreaArrow2,
+          )}
         />
         <Step
-          src="pr-merge-circle-icon.svg"
-          text="Eave Adds Docs to your Codebase in a PR"
+          extraClasses={classes.gridAreaBox3}
+          src="code-block-circle-icon.svg"
+          text="Your Docs Always Up to Date"
         />
         <img
           src={imageUrl("arrow.svg")}
-          className={classes.installFlowArrowImage}
+          className={classNames(
+            classes.installFlowArrowImage,
+            classes.rotate180cw,
+            classes.gridAreaArrow3,
+          )}
         />
         <Step
-          src="code-block-circle-icon.svg"
-          text="Your Docs Always Up to Date"
+          extraClasses={classes.gridAreaBox4}
+          src="pr-merge-circle-icon.svg"
+          text="Eave Adds Docs to your Codebase in a PR"
         />
       </div>
       <Typography className={classes.featureSubheader}>
