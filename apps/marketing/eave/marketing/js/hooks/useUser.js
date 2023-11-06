@@ -7,7 +7,7 @@ import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
 const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint";
 
-/** @returns {{user: Types.DashboardUser, isLoginHintSet: boolean, getUserAccount: () => Promise<void>}} */
+/** @returns {{user: Types.DashboardUser, isLoginHintSet: boolean, getUserAccount: () => void}} */
 const useUser = () => {
   const { userCtx } = useContext(AppContext);
   const [cookies] = useCookies([_EAVE_LOGIN_STATE_HINT_COOKIE_NAME]);
@@ -26,7 +26,7 @@ const useUser = () => {
    * Otherwise, it updates the user's account information in the state and updates the `account` with the received data.
    * - After the request (whether it succeeded or failed), it sets `accountIsLoading` to false.
    */
-  async function getUserAccount() {
+  function getUserAccount() {
     setUser((prev) => ({
       ...prev,
       accountIsLoading: true,
@@ -48,15 +48,20 @@ const useUser = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        resp.json().then((data) => {
-          setUser((prev) => ({ ...prev, account: data.account }));
+        return resp.json().then((data) => {
+          setUser((prev) => ({
+            ...prev,
+            accountIsLoading: false,
+            account: data.account,
+          }));
         });
       })
       .catch(() => {
-        setUser((prev) => ({ ...prev, accountIsErroring: true }));
-      })
-      .finally(() => {
-        setUser((prev) => ({ ...prev, accountIsLoading: false }));
+        setUser((prev) => ({
+          ...prev,
+          accountIsLoading: false,
+          accountIsErroring: true,
+        }));
       });
   }
 
