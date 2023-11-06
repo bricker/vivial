@@ -452,6 +452,9 @@ async def _create_local_github_repo(
             display_name=repo.name,
         )
 
+        # We need to flush the session before running the API docs task, becaused the task depends on the data being available in the database.
+        await db_session.flush()
+
         if github_repo_orm.api_documentation_state == GithubRepoFeatureState.ENABLED:
             await create_task(
                 target_path=RunApiDocumentationTask.config.path,
