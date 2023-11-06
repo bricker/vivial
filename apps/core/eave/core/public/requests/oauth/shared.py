@@ -15,7 +15,9 @@ from eave.core.internal.orm.team import TeamOrm
 import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.models.github_repos import GithubRepoFeature, GithubRepoFeatureState, GithubReposFeatureStateInput
+from eave.stdlib.core_api.models.github_repos import (
+    GithubRepoFeatureState,
+)
 from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
 from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.logging import LogContext, eaveLogger
@@ -29,7 +31,7 @@ import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.config
 from eave.stdlib.task_queue import create_task
-from eave.stdlib.util import ensure_str, ensure_uuid
+from eave.stdlib.util import ensure_uuid
 from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal import app_config, database
@@ -456,15 +458,14 @@ async def _create_local_github_repo(
                 queue_name=eave.stdlib.config.GITHUB_EVENT_QUEUE_NAME,
                 audience=EaveApp.eave_github_app,
                 origin=app_config.eave_origin,
-                payload=RunApiDocumentationTask.RequestBody(
-                    repo=GithubRepoInput(external_repo_id=repo.id)
-                ).json(),
+                payload=RunApiDocumentationTask.RequestBody(repo=GithubRepoInput(external_repo_id=repo.id)).json(),
                 headers={
                     EAVE_TEAM_ID_HEADER: str(team_id),
                     EAVE_REQUEST_ID_HEADER: ctx.eave_request_id,
                 },
                 ctx=ctx,
             )
+
 
 def generate_rand_state() -> str:
     state: str = oauthlib.common.generate_token()
