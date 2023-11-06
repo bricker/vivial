@@ -1,7 +1,9 @@
 import sys
+
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
+
 load_standard_dotenv_files()
 
 # ruff: noqa: E402
@@ -21,7 +23,6 @@ import eave.core.internal.orm
 import eave.core.internal.orm.base
 
 from eave.stdlib.logging import eaveLogger
-
 
 
 _alembic_config = alembic.config.Config("alembic.ini")
