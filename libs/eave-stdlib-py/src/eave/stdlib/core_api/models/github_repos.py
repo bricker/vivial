@@ -13,7 +13,7 @@ class GithubRepoFeature(enum.StrEnum):
     ARCHITECTURE_DOCUMENTATION = "architecture_documentation"
 
 
-class GibhuRepoFeatureState(enum.StrEnum):
+class GithubRepoFeatureState(enum.StrEnum):
     DISABLED = "disabled"
     ENABLED = "enabled"
     PAUSED = "paused"
@@ -25,17 +25,17 @@ class GithubRepo(BaseResponseModel):
     github_installation_id: uuid.UUID
     external_repo_id: str
     display_name: Optional[str]
-    api_documentation_state: GibhuRepoFeatureState
-    inline_code_documentation_state: GibhuRepoFeatureState
-    architecture_documentation_state: GibhuRepoFeatureState
+    api_documentation_state: GithubRepoFeatureState
+    inline_code_documentation_state: GithubRepoFeatureState
+    architecture_documentation_state: GithubRepoFeatureState
 
 
 class GithubRepoCreateInput(BaseInputModel):
     external_repo_id: str
     display_name: str
-    api_documentation_state: Optional[GibhuRepoFeatureState] = None
-    inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None
-    architecture_documentation_state: Optional[GibhuRepoFeatureState] = None
+    api_documentation_state: Optional[GithubRepoFeatureState] = None
+    inline_code_documentation_state: Optional[GithubRepoFeatureState] = None
+    architecture_documentation_state: Optional[GithubRepoFeatureState] = None
 
 
 class GithubRepoRefInput(BaseInputModel):
@@ -47,9 +47,9 @@ class GithubRepoListInput(BaseInputModel):
 
 
 class GithubRepoUpdateValues(BaseInputModel):
-    api_documentation_state: Optional[GibhuRepoFeatureState] = None
-    inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None
-    architecture_documentation_state: Optional[GibhuRepoFeatureState] = None
+    api_documentation_state: Optional[GithubRepoFeatureState] = None
+    inline_code_documentation_state: Optional[GithubRepoFeatureState] = None
+    architecture_documentation_state: Optional[GithubRepoFeatureState] = None
 
 
 class GithubRepoUpdateInput(BaseInputModel):
@@ -63,4 +63,4 @@ class GithubReposDeleteInput(BaseInputModel):
 
 class GithubReposFeatureStateInput(BaseInputModel):
     feature: GithubRepoFeature
-    state: GibhuRepoFeatureState
+    state: GithubRepoFeatureState

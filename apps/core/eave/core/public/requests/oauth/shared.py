@@ -15,17 +15,21 @@ from eave.core.internal.orm.team import TeamOrm
 import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.models.github_repos import GithubRepoFeature, GithubRepoFeatureState, GithubReposFeatureStateInput
+from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
+from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.github_api.models import ExternalGithubRepo
+from eave.stdlib.github_api.models import ExternalGithubRepo, GithubRepoInput
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 import eave.stdlib.slack
 import eave.stdlib.cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.config
-from eave.stdlib.util import ensure_uuid
+from eave.stdlib.task_queue import create_task
+from eave.stdlib.util import ensure_str, ensure_uuid
 from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal import app_config, database
