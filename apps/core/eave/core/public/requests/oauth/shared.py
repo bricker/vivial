@@ -442,7 +442,7 @@ async def _create_local_github_repo(
             ctx=ctx,
         )
     else:
-        await GithubRepoOrm.create(
+        github_repo_orm = await GithubRepoOrm.create(
             session=db_session,
             team_id=team_id,
             github_installation_id=github_installation_orm.id,
@@ -450,6 +450,21 @@ async def _create_local_github_repo(
             display_name=repo.name,
         )
 
+        if github_repo_orm.api_documentation_state == GithubRepoFeatureState.ENABLED:
+            await create_task(
+                target_path=RunApiDocumentationTask.config.path,
+                queue_name=eave.stdlib.config.GITHUB_EVENT_QUEUE_NAME,
+                audience=EaveApp.eave_github_app,
+                origin=app_config.eave_origin,
+                payload=RunApiDocumentationTask.RequestBody(
+                    repo=GithubRepoInput(external_repo_id=repo.id)
+                ).json(),
+                headers={
+                    EAVE_TEAM_ID_HEADER: str(team_id),
+                    EAVE_REQUEST_ID_HEADER: ctx.eave_request_id,
+                },
+                ctx=ctx,
+            )
 
 def generate_rand_state() -> str:
     state: str = oauthlib.common.generate_token()

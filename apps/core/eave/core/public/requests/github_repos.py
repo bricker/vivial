@@ -251,22 +251,23 @@ class DeleteGithubReposEndpoint(HTTPEndpoint):
 
 
 async def _trigger_api_documentation(github_repo_orm: GithubRepoOrm, ctx: LogContext) -> None:
-    assert ctx.eave_team_id, "eave_team_id unexpectedly missing"
+    if github_repo_orm.api_documentation_state == GithubRepoFeatureState.ENABLED:
+        assert ctx.eave_team_id, "eave_team_id unexpectedly missing"
 
-    await create_task(
-        target_path=RunApiDocumentationTask.config.path,
-        queue_name=GITHUB_EVENT_QUEUE_NAME,
-        audience=EaveApp.eave_github_app,
-        origin=app_config.eave_origin,
-        payload=RunApiDocumentationTask.RequestBody(
-            repo=GithubRepoInput(external_repo_id=github_repo_orm.external_repo_id)
-        ).json(),
-        headers={
-            EAVE_TEAM_ID_HEADER: ctx.eave_team_id,
-            EAVE_REQUEST_ID_HEADER: ctx.eave_request_id,
-        },
-        ctx=ctx,
-    )
+        await create_task(
+            target_path=RunApiDocumentationTask.config.path,
+            queue_name=GITHUB_EVENT_QUEUE_NAME,
+            audience=EaveApp.eave_github_app,
+            origin=app_config.eave_origin,
+            payload=RunApiDocumentationTask.RequestBody(
+                repo=GithubRepoInput(external_repo_id=github_repo_orm.external_repo_id)
+            ).json(),
+            headers={
+                EAVE_TEAM_ID_HEADER: ctx.eave_team_id,
+                EAVE_REQUEST_ID_HEADER: ctx.eave_request_id,
+            },
+            ctx=ctx,
+        )
 
 
 def _sort_repos(repos: list[GithubRepoOrm]) -> None:
