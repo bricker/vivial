@@ -1,6 +1,7 @@
 // @ts-check
 import { Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
+import classNames from "classnames";
 import React from "react";
 import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 import { imageUrl } from "../../../util/asset-util.js";
@@ -49,10 +50,22 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     },
     marginBottom: 42,
   },
-  installFlowContainer: {
+  installFlowContainerDesktop: {
     display: "flex",
     flexDirection: "row",
     marginBottom: 90,
+    [theme.breakpoints.down("sm")]: {
+      display: "none",
+    },
+  },
+  installFlowContainerMobile: {
+    display: "flex",
+    flexFlow: "row wrap",
+    marginBottom: 72,
+    [theme.breakpoints.up("sm")]: {
+      // TODO: i think this means neither displayed for sm
+      display: "none",
+    },
   },
   installItemContainer: {
     display: "flex",
@@ -60,6 +73,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     alignItems: "center",
     maxWidth: 180,
     textAlign: "center",
+    flex: 80,
   },
   installItemImage: {
     height: 54,
@@ -79,7 +93,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   featureContainer: {
     display: "flex",
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "top",
     marginBottom: 72,
     [theme.breakpoints.down("sm")]: {
       flexDirection: "column",
@@ -114,20 +128,47 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     textAlign: "center",
     marginBottom: 12,
   },
+  columnedList: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gridAutoRows: "1fr",
+    gridColumnGap: 5,
+    gridRowGap: 5,
+    textAlign: "left",
+    // negative left margin to counter-act the ul auto-indent
+    margin: "3px 0px 0px -10px",
+  },
 }));
 
 const featureText = {
+  /** @type {Types.FeatureDescriptionContent} */
   apiDocs: {
     title: "API Documentation",
     subtitle:
       "Eave finds APIs, writes industry standard documentation, and keeps it updated.",
-    // TODO: currently supports section.. need <li> in grid (or flex)
+    supportSubheader: "Express REST APIs that are written in",
+    languages: ["JavaScript", "TypeScript"],
   },
+  /** @type {Types.FeatureDescriptionContent} */
   codeDocs: {
     title: "Inline Code Documentation",
     subtitle:
       "Eave adds inline function documentation to your code on every merge.",
-    // TODO: supports section
+    supportSubheader: null,
+    languages: [
+      "C",
+      "Java",
+      "JavaScript",
+      "C++",
+      "PHP",
+      "TypeScript",
+      "Go",
+      "Kotlin",
+      "Rust",
+      "C#",
+      "Swift",
+      "Ruby",
+    ],
   },
 };
 
@@ -151,20 +192,28 @@ const UninstalledGithubAppDash = () => {
   };
 
   const FeatureDescription = ({
-    /** @type {string} */ title,
-    /** @type {string} */ subtitle,
+    /** @type {Types.FeatureDescriptionContent} */ content,
   }) => {
+    const listClasses = classNames(
+      content.languages.length > 3 && classes.columnedList,
+    );
     return (
       <div className={classes.featureDescriptionBlock}>
         <img className={classes.featureLockIcon} src={imageUrl("lock.svg")} />
         <Typography className={classes.featureDescriptionHeader}>
-          {title}
+          {content.title}
         </Typography>
-        <Typography className={classes.caption}>{subtitle}</Typography>
+        <Typography className={classes.caption}>{content.subtitle}</Typography>
         <Typography className={classes.caption}>
+          <br />
           Currently supports:
           <br />
-          TODO lang list etc
+          {content.supportSubheader !== null && content.supportSubheader}
+          <ul className={listClasses}>
+            {content.languages.map((lang) => {
+              return <li key={lang}>{lang}</li>;
+            })}
+          </ul>
         </Typography>
       </div>
     );
@@ -182,7 +231,7 @@ const UninstalledGithubAppDash = () => {
       <Button to={githubOauthUrl} className={classes.ctaBtn} color="secondary">
         Add App
       </Button>
-      <div className={classes.installFlowContainer}>
+      <div className={classes.installFlowContainerDesktop}>
         <Step src="github-icon.svg" text="Add the Eave App to GitHub" />
         <img
           src={imageUrl("arrow.svg")}
@@ -204,20 +253,45 @@ const UninstalledGithubAppDash = () => {
           src={imageUrl("arrow.svg")}
           className={classes.installFlowArrowImage}
         />
-        <Step src="code-block-circle-icon.svg" text="Your Docs Always Up to Date" />
+        <Step
+          src="code-block-circle-icon.svg"
+          text="Your Docs Always Up to Date"
+        />
+      </div>
+      <div className={classes.installFlowContainerMobile}>
+        {/* TODO: make arrows rotate to correct directions. make sure flex wrap doesnt crap the bed (take arrows out of flex wrap??) */}
+        <Step src="github-icon.svg" text="Add the Eave App to GitHub" />
+        <img
+          src={imageUrl("arrow.svg")}
+          className={classes.installFlowArrowImage}
+        />
+        <Step
+          src="eave-logo-round.svg"
+          text="Eave Detects Documentation Needs"
+        />
+        <img
+          src={imageUrl("arrow.svg")}
+          className={classes.installFlowArrowImage}
+        />
+        <Step
+          src="pr-merge-circle-icon.svg"
+          text="Eave Adds Docs to your Codebase in a PR"
+        />
+        <img
+          src={imageUrl("arrow.svg")}
+          className={classes.installFlowArrowImage}
+        />
+        <Step
+          src="code-block-circle-icon.svg"
+          text="Your Docs Always Up to Date"
+        />
       </div>
       <Typography className={classes.featureSubheader}>
         ✨ Add App to Access Features ✨
       </Typography>
       <div className={classes.featureContainer}>
-        <FeatureDescription
-          title={featureText.apiDocs.title}
-          subtitle={featureText.apiDocs.subtitle}
-        />
-        <FeatureDescription
-          title={featureText.codeDocs.title}
-          subtitle={featureText.codeDocs.subtitle}
-        />
+        <FeatureDescription content={featureText.apiDocs} />
+        <FeatureDescription content={featureText.codeDocs} />
       </div>
     </div>
   );
