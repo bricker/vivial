@@ -214,9 +214,7 @@ const UninstalledGithubAppDash = () => {
   const _globalEave = window;
   const githubOauthUrl = `${_globalEave.eave.apiBase}/oauth/github/authorize`;
 
-  const arrowDesktopClasses = classNames(
-    classes.installFlowArrowImage,
-  );
+  const arrowDesktopClasses = classNames(classes.installFlowArrowImage);
 
   const Step = ({
     /** @type {string} */ src,
