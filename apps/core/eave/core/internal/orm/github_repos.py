@@ -12,7 +12,7 @@ import eave.stdlib.util
 from eave.stdlib.core_api.models.github_repos import (
     GithubRepo,
     GithubRepoUpdateValues,
-    GibhuRepoFeatureState,
+    GithubRepoFeatureState,
     GithubRepoFeature,
 )
 
@@ -70,9 +70,9 @@ class GithubRepoOrm(Base):
         ids: Optional[list[UUID]] = None
         external_repo_id: Optional[str] = None
         external_repo_ids: Optional[list[str]] = None
-        api_documentation_state: Optional[GibhuRepoFeatureState] = None
-        inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None
-        architecture_documentation_state: Optional[GibhuRepoFeatureState] = None
+        api_documentation_state: Optional[GithubRepoFeatureState] = None
+        inline_code_documentation_state: Optional[GithubRepoFeatureState] = None
+        architecture_documentation_state: Optional[GithubRepoFeatureState] = None
 
         def validate_or_exception(self):
             assert eave.stdlib.util.nand(
@@ -123,18 +123,18 @@ class GithubRepoOrm(Base):
         external_repo_id: str,
         github_installation_id: UUID,
         display_name: Optional[str],
-        api_documentation_state: Optional[GibhuRepoFeatureState] = None,
-        inline_code_documentation_state: Optional[GibhuRepoFeatureState] = None,
-        architecture_documentation_state: Optional[GibhuRepoFeatureState] = None,
+        api_documentation_state: Optional[GithubRepoFeatureState] = None,
+        inline_code_documentation_state: Optional[GithubRepoFeatureState] = None,
+        architecture_documentation_state: Optional[GithubRepoFeatureState] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
             github_installation_id=github_installation_id,
             display_name=display_name,
-            api_documentation_state=api_documentation_state or GibhuRepoFeatureState.ENABLED.value,
-            inline_code_documentation_state=inline_code_documentation_state or GibhuRepoFeatureState.ENABLED.value,
-            architecture_documentation_state=architecture_documentation_state or GibhuRepoFeatureState.ENABLED.value,
+            api_documentation_state=api_documentation_state or GithubRepoFeatureState.ENABLED.value,
+            inline_code_documentation_state=inline_code_documentation_state or GithubRepoFeatureState.ENABLED.value,
+            architecture_documentation_state=architecture_documentation_state or GithubRepoFeatureState.ENABLED.value,
         )
         session.add(obj)
         await session.flush()
@@ -189,7 +189,7 @@ class GithubRepoOrm(Base):
 
     @classmethod
     async def all_repos_match_feature_state(
-        cls, team_id: UUID, feature: GithubRepoFeature, state: GibhuRepoFeatureState, session: AsyncSession
+        cls, team_id: UUID, feature: GithubRepoFeature, state: GithubRepoFeatureState, session: AsyncSession
     ) -> bool:
         """
         Check if for a given `team_id` all their repos have the specified `state` for a `feature`.
