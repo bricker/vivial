@@ -169,15 +169,16 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     textAlign: "center",
     marginBottom: 12,
   },
-  columnedList: {
+  languageListBase: {
+    textAlign: "left",
+    margin: "3px 0px 0px 0px",
+  },
+  languageListGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     gridAutoRows: "1fr",
     gridColumnGap: 5,
     gridRowGap: 5,
-    textAlign: "left",
-    // negative left margin to counter-act the ul auto-indent
-    margin: "3px 0px 0px -10px",
   },
 }));
 
@@ -239,7 +240,8 @@ const UninstalledGithubAppDash = () => {
     /** @type {Types.FeatureDescriptionContent} */ content,
   }) => {
     const listClasses = classNames(
-      content.languages.length > 3 && classes.columnedList,
+      classes.languageListBase,
+      content.languages.length > 3 && classes.languageListGrid,
     );
     return (
       <div className={classes.featureDescriptionBlock}>
@@ -253,12 +255,16 @@ const UninstalledGithubAppDash = () => {
           Currently supports:
           <br />
           {content.supportSubheader !== null && content.supportSubheader}
-          <ul className={listClasses}>
-            {content.languages.map((lang) => {
-              return <li key={lang}>{lang}</li>;
-            })}
-          </ul>
         </Typography>
+        <ul className={listClasses}>
+          {content.languages.map((lang) => {
+            return (
+              <li key={lang} className={classes.caption}>
+                {lang}
+              </li>
+            );
+          })}
+        </ul>
       </div>
     );
   };
