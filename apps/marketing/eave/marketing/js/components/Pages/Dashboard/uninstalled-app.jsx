@@ -20,7 +20,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     textAlign: "center",
     fontSize: 28,
     [theme.breakpoints.down("sm")]: {
-      lineHeight: 34,
+      lineHeight: "34px",
     },
     [theme.breakpoints.up("sm")]: {
       fontSize: 36,
@@ -31,6 +31,9 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     maxWidth: 580,
     textAlign: "center",
     fontSize: 16,
+    [theme.breakpoints.down("sm")]: {
+      lineHeight: "21px",
+    },
     [theme.breakpoints.up("sm")]: {
       fontSize: 18,
     },
