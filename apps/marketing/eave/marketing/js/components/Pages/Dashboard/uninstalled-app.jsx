@@ -19,6 +19,9 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   title: {
     textAlign: "center",
     fontSize: 28,
+    [theme.breakpoints.down("sm")]: {
+      lineHeight: 34,
+    },
     [theme.breakpoints.up("sm")]: {
       fontSize: 36,
     },

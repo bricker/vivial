@@ -131,7 +131,7 @@ const Dashboard = () => {
 
   if (!githubAppInstalled) {
     return (
-      <Page>
+      <Page compactHeader={true}>
         <UninstalledGithubAppDash />
       </Page>
     );
