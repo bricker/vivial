@@ -1,6 +1,6 @@
 import test from "ava";
 import {
-  assertValidSyntax,
+  contentHasValidSyntax,
   parseFunctionsAndComments,
   writeUpdatedCommentsIntoFileString,
 } from "../../src/parsing/function-parsing.js";
@@ -1214,7 +1214,7 @@ async function fizzbuzz(): Promise<string> {
 
   // WHEN syntax validity is checked
   try {
-    const funcDocsArray = assertValidSyntax({
+    const funcDocsArray = contentHasValidSyntax({
       content,
       filePath,
     });
@@ -1258,7 +1258,7 @@ test("assertValidSyntax does not throw on syntactically correct content", async 
 
   // WHEN syntax validity is checked
   try {
-    const funcDocsArray = assertValidSyntax({
+    const funcDocsArray = contentHasValidSyntax({
       content,
       filePath,
     });
