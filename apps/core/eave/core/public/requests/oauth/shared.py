@@ -15,16 +15,22 @@ from eave.core.internal.orm.team import TeamOrm
 import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.models.github_repos import (
+    GithubRepoFeatureState,
+)
+from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
+from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.github_api.models import ExternalGithubRepo
+from eave.stdlib.github_api.models import ExternalGithubRepo, GithubRepoInput
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 import eave.stdlib.slack
 import eave.stdlib.cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.config
+from eave.stdlib.task_queue import create_task
 from eave.stdlib.util import ensure_uuid
 from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
 from eave.stdlib.core_api.models.integrations import Integration
@@ -438,13 +444,30 @@ async def _create_local_github_repo(
             ctx=ctx,
         )
     else:
-        await GithubRepoOrm.create(
+        github_repo_orm = await GithubRepoOrm.create(
             session=db_session,
             team_id=team_id,
             github_installation_id=github_installation_orm.id,
             external_repo_id=repo.id,
             display_name=repo.name,
         )
+
+        # We need to flush the session before running the API docs task, becaused the task depends on the data being available in the database.
+        await db_session.flush()
+
+        if github_repo_orm.api_documentation_state == GithubRepoFeatureState.ENABLED:
+            await create_task(
+                target_path=RunApiDocumentationTask.config.path,
+                queue_name=eave.stdlib.config.GITHUB_EVENT_QUEUE_NAME,
+                audience=EaveApp.eave_github_app,
+                origin=app_config.eave_origin,
+                payload=RunApiDocumentationTask.RequestBody(repo=GithubRepoInput(external_repo_id=repo.id)).json(),
+                headers={
+                    EAVE_TEAM_ID_HEADER: str(team_id),
+                    EAVE_REQUEST_ID_HEADER: ctx.eave_request_id,
+                },
+                ctx=ctx,
+            )
 
 
 def generate_rand_state() -> str:

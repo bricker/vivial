@@ -19,13 +19,7 @@ import { FEATURE_MODAL, FEATURE_STATE_PROPERTY } from "../../../constants.js";
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
-  const {
-    team,
-    getTeam,
-    getTeamRepos,
-    getTeamFeatureStates,
-    updateTeamFeatureState,
-  } = useTeam();
+  const { team, getTeam, getTeamRepos, updateTeamFeatureState } = useTeam();
   const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
   const [apiDocsModalIsOpen, setAPIDocsModalIsOpen] = useState(false);
 
@@ -33,16 +27,14 @@ const Dashboard = () => {
   const showAPIDocs = team.apiDocsEnabled;
   const githubAppInstalled = !!team.integrations?.github_integration;
 
-  const isLoading =
-    team.teamIsLoading || team.reposAreLoading || team.featureStatesLoading;
+  const isLoading = team.teamIsLoading || team.reposAreLoading;
 
   const isErroring = team.teamIsErroring;
 
   const dashboardRequestsSucceededAtLeastOnce =
     team.teamRequestHasSucceededAtLeastOnce &&
     team.apiDocsRequestHasSucceededAtLeastOnce &&
-    team.reposRequestHasSucceededAtLeastOnce &&
-    team.featureStatesRequestHasSucceededAtLeastOnce;
+    team.reposRequestHasSucceededAtLeastOnce;
 
   const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
@@ -91,10 +83,6 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    getTeamFeatureStates(team.repos);
-  }, [team.repos]);
-
-  useEffect(() => {
     const featureModal = cookies && cookies[FEATURE_MODAL.ID];
     switch (featureModal) {
       case FEATURE_MODAL.TYPES.INLINE_CODE_DOCS:
@@ -125,7 +113,7 @@ const Dashboard = () => {
   if (isErroring && !dashboardRequestsSucceededAtLeastOnce) {
     return <ErrorPage page="dashboard" />;
   }
-  if (isLoading) {
+  if (isLoading && !dashboardRequestsSucceededAtLeastOnce) {
     return <LoadingPage />;
   }
 
