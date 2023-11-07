@@ -48,7 +48,7 @@ export function contentHasValidSyntax({
   }
   parser.setLanguage(languageGrammar);
   const ptree = parser.parse(content);
-  return ptree.rootNode.hasError();
+  return !ptree.rootNode.hasError();
 }
 
 /**

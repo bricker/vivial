@@ -1179,7 +1179,7 @@ namespace MyNamespace
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test("checkHasValidSyntax detects syntax errors in content", async (t) => {
+test("contentHasValidSyntax detects syntax errors in content", async (t) => {
   // GIVEN string content of a file is syntactically invalid
   const filePath = "src/file.ts";
   const language = ProgrammingLanguage.typescript;
@@ -1225,35 +1225,35 @@ async function fizzbuzz(): Promise<string> {
   );
 });
 
-test("heckHasValidSyntax detects syntactically correct content", async (t) => {
+test("contentHasValidSyntax detects syntactically correct content", async (t) => {
   // GIVEN string content of a file is syntactically valid
   const filePath = "src/file.ts";
   const language = ProgrammingLanguage.typescript;
   const content = `import { appConfig } from './src/config.js';
-  
-  function foo() {
-    console.log('foo');
+
+function foo() {
+  console.log('foo');
+}
+
+class MyClass {
+  bar(): string {
+    return "bar";
   }
-  
-  class MyClass {
-    bar(): string {
-      return "bar";
-    }
-  }
-  
-  export function baz(): string {
-    return "baz";
-  }
-  
-  /**
-   * Doc comment
-   * @param to be replaced
-   * @returns by parse code
-   */
-  async function fizzbuzz(): Promise<string> {
-    return 'fizzbuzz';
-  }
-  `;
+}
+
+export function baz(): string {
+  return "baz";
+}
+
+/**
+ * Doc comment
+ * @param to be replaced
+ * @returns by parse code
+ */
+async function fizzbuzz(): Promise<string> {
+  return 'fizzbuzz';
+}
+`;
 
   // WHEN syntax validity is checked
   const valid = contentHasValidSyntax({
