@@ -76,4 +76,12 @@
 
 /** @typedef {{ teamRepoIds: string[], enabledRepoIds: string[], feature: string }} FeatureStateParams */
 
+/**
+ * @typedef {object} FeatureDescriptionContent
+ * @property {string} [title]
+ * @property {string} [subtitle]
+ * @property {string | null} [supportSubheader]
+ * @property {string[]} [languages]
+ */
+
 export const Types = {};
