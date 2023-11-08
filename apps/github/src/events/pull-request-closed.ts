@@ -264,10 +264,9 @@ export default async function handler({
       const gitObject = <Blob>objectRepository?.object;
       const fileContent = gitObject?.text;
       if (!fileContent) {
-        eaveLogger.error(
-          `Error fetching file content in ${repoOwner}/${repoName}`,
-          ctx,
-        );
+        eaveLogger.error("Error fetching file content", ctx, {
+          destination: `${repoOwner}/${repoName}`,
+        });
         return null; // exits just this iteration of map
       }
 
@@ -299,6 +298,10 @@ export default async function handler({
       }
       return acc;
     }, Array<FileChange>());
+
+    if (fileChanges.length === 0) {
+      return;
+    }
 
     const prCreator = new PullRequestCreator({
       repoName,

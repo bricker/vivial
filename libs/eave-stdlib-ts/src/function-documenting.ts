@@ -1,6 +1,6 @@
 import { eaveLogger } from "./logging.js";
 import {
-  assertValidSyntax,
+  contentHasValidSyntax,
   parseFunctionsAndComments,
   writeUpdatedCommentsIntoFileString,
 } from "./parsing/function-parsing.js";
@@ -52,6 +52,15 @@ export async function updateDocumentation({
     return null;
   }
 
+  // validate that initial code is valid before spending resources updating docs
+  if (!contentHasValidSyntax({ content: currContent, filePath })) {
+    eaveLogger.error("Initial file content was invalid", ctx, {
+      language: flang,
+      filePath,
+    });
+    return null;
+  }
+
   const parsedData = parseFunctionsAndComments({
     content: currContent,
     filePath,
@@ -59,7 +68,10 @@ export async function updateDocumentation({
     ctx,
   });
   if (parsedData.length === 0) {
-    eaveLogger.error(`Unable to parse ${flang} from file ${filePath}`, ctx);
+    eaveLogger.warning("No functions found in file (matching language)", ctx, {
+      language: flang,
+      filePath,
+    });
     return null;
   }
 
@@ -155,12 +167,17 @@ export async function updateDocumentation({
   );
 
   // assert syntax check; never write syntax errors to customer code!
-  try {
-    assertValidSyntax({ content: updatedContent, filePath });
-  } catch {
-    eaveLogger.error("Eave wrote syntactically incorrect code", ctx);
-    // return existing file content with no changes
-    return currContent;
+  if (!contentHasValidSyntax({ content: updatedContent, filePath })) {
+    eaveLogger.error("Eave wrote syntactically incorrect code", ctx, {
+      language: flang,
+      filePath,
+    });
+    return null;
+  }
+
+  // no need to push updates if there was no content change
+  if (currContent === updatedContent) {
+    return null;
   }
 
   return updatedContent;
