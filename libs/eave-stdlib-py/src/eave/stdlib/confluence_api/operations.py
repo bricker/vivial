@@ -26,7 +26,7 @@ class GetAvailableSpacesRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -55,7 +55,7 @@ class SearchContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
@@ -86,7 +86,7 @@ class CreateContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
@@ -116,7 +116,7 @@ class UpdateContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
@@ -146,7 +146,7 @@ class DeleteContentRequest(ConfluenceEndpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID,
+        team_id: uuid.UUID | str,
         input: RequestBody,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:

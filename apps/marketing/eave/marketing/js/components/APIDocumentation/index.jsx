@@ -1,10 +1,11 @@
 // @ts-check
 import { CircularProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import useTeam from "../../hooks/useTeam";
 import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { mapReposById } from "../../util/repo-util.js";
+import { AppContext } from "../../context/Provider";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
@@ -157,31 +158,23 @@ function formatLastUpdated(doc) {
   });
 }
 
-/**
- * Renders the content of the dashboard based on the state of API documentation fetching. It displays error messages, loading states, and API documentation.
- * It also handles user interactions such as row clicks and mouse overs.
- * Shows a loading spinner while fetching API documentation.
- * If API documentation is empty, informs the user that Eave is searching for Express APIs.
- * If the 'compact' prop is true, renders a compact view of the API documentation.
- * Otherwise, renders a table view of the API documentation.
- *
- * @param {Object} classes - CSS classes for styling the rendered content.
- * @param {Types.DashboardTeam} team - The team object containing API documentation fetching state and repository information.
- * @param {boolean} compact - Determines whether to render a compact view or a table view of the API documentation.
- */
-function renderContent(
+function renderContent(/** @type {{ classes: object, networkState: Types.DashboardNetworkState, team: Types.DashboardTeam, compact: boolean }} */ {
   classes,
-  /** @type {Types.DashboardTeam} */ team,
+  networkState,
+  team,
   compact,
-) {
+}) {
+  const {
+    apiDocs,
+    repos,
+  } = team;
+
   const {
     apiDocsErroring,
     apiDocsLoading,
     apiDocsFetchCount,
-    apiDocs,
-    repos,
     apiDocsRequestHasSucceededAtLeastOnce,
-  } = team;
+  } = networkState;
 
   /**
    * This check:
@@ -289,6 +282,9 @@ function renderContent(
 }
 
 const APIDocumentation = () => {
+    /** @type {import("../../context/Provider.js").AppContextProps} */
+  const { dashboardNetworkStateCtx: [networkState] } = useContext(AppContext);
+
   const { team, getTeamAPIDocs } = useTeam();
   const [compact, setCompact] = useState(window.innerWidth < 900);
   const classes = makeClasses();
@@ -310,7 +306,7 @@ const APIDocumentation = () => {
       <Typography className={classes.title} variant="h2">
         API Documentation
       </Typography>
-      {renderContent(classes, team, compact)}
+      {renderContent({ classes, team, networkState, compact })}
     </section>
   );
 };

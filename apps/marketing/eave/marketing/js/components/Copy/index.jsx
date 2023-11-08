@@ -69,7 +69,7 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const Copy = ({ children, className, variant, bold }) => {
+const Copy = ({ children = undefined, className = undefined, variant = undefined, bold = undefined }) => {
   const classes = makeClasses();
   const h1Class = classNames(classes.h1, bold && classes.bold, className);
   const h2Class = classNames(classes.h2, bold && classes.bold, className);

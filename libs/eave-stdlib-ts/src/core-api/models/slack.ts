@@ -11,3 +11,10 @@ export type SlackInstallation = {
   bot_id: string;
   bot_user_id: string | null;
 };
+
+export type SlackInstallationPeek = {
+  id: string;
+  /** eave TeamOrm model id */
+  team_id: string;
+  slack_team_id: string;
+}

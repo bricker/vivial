@@ -1,11 +1,12 @@
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
 import { Integrations } from "../models/integrations.js";
-import { Team } from "../models/team.js";
+import { ConfluenceDestination, ConfluenceDestinationInput, Destination, Team } from "../models/team.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
 export type GetTeamResponseBody = {
   team: Team;
   integrations: Integrations;
+  destination: Destination;
 };
 
 export class GetTeamOperation {
@@ -19,4 +20,13 @@ export class GetTeamOperation {
     const responseData = <GetTeamResponseBody>await resp.json();
     return responseData;
   }
+}
+
+export type UpsertConfluenceDestinationAuthedRequestBody = {
+  confluence_destination: ConfluenceDestinationInput;
+}
+
+export type UpsertConfluenceDestinationAuthedResponseBody = {
+  team: Team;
+  confluence_destination: ConfluenceDestination;
 }

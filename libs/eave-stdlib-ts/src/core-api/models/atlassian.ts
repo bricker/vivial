@@ -11,3 +11,6 @@ export type AtlassianInstallation = {
   confluence_space: string | null;
   available_confluence_spaces: Array<ConfluenceSpace> | null;
 };
+
+// Typealias for naming consistency
+export type AtlassianInstallationPeek = AtlassianInstallation;
