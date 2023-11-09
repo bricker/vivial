@@ -231,7 +231,6 @@ export class GithubAPIData {
 
   /**
    * Asynchronously generates `TreeEntry` objects by recursively traversing a Git tree.
-   * The function uses Breadth-First Search (BFS) to traverse the tree.
    *
    * @param treeRootDir - The root directory of the Git tree to be traversed.
    * @yields {TreeEntry} - Yields blob entries first, then recursively yields entries from subtrees.
@@ -249,7 +248,6 @@ export class GithubAPIData {
     const blobEntries = gitTree.entries?.filter((e) => isBlob(e.object));
     const subTrees = gitTree.entries?.filter((e) => isTree(e.object));
 
-    // BFS
     if (blobEntries) {
       for (const blobEntry of blobEntries) {
         // TODO: How to design this function to return a TreeEntry narrowed to `TreeEntry.object.__typename === "Blob"`, so the caller doesn't have to assert?

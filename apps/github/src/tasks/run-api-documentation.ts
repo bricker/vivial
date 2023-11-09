@@ -224,12 +224,6 @@ export async function runApiDocumentationTaskHandler(
           filePath: expressAPIInfo.documentationFilePath,
         });
         localAnalyticsParams["eave_doc"] = eaveDoc;
-        eaveLogger.debug(
-          "existing eave doc",
-          localAnalyticsParams,
-          sharedAnalyticsParams,
-          ctx,
-        );
 
         if (!expressAPIInfo.rootFile) {
           eaveLogger.warning(
@@ -414,19 +408,6 @@ export async function runApiDocumentationTaskHandler(
         throw e;
       }
     }),
-  );
-
-  eaveLogger.debug(
-    "api doc generate promise results",
-    {
-      results: results.map((r) => ({
-        status: r.status,
-        fulfilledValue: r.status === "fulfilled" ? r.value?.asJSON : undefined,
-        rejectedReason: r.status === "rejected" ? r.reason : undefined,
-      })),
-    },
-    sharedAnalyticsParams,
-    ctx,
   );
 
   const validExpressAPIs = results
