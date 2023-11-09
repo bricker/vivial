@@ -145,7 +145,11 @@ export async function runApiDocumentationTaskHandler(
         );
         const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
         if (committedDate < oneDayAgo) {
-          eaveLogger.debug("API doc task skipped due to delta check", sharedAnalyticsParams, ctx);
+          eaveLogger.debug(
+            "API doc task skipped due to delta check",
+            sharedAnalyticsParams,
+            ctx,
+          );
           await logEvent(
             {
               event_name: "api_documentation_skipped_no_commits",
