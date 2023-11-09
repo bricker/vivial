@@ -233,6 +233,9 @@ routes = [
         config=FeatureStateGithubReposRequest.config,
         endpoint=github_repos.FeatureStateGithubReposEndpoint,
     ),
+    make_route(
+        
+    ),
     # Authenticated API endpoints.
     make_route(
         config=CreateGithubDocumentRequest.config,
