@@ -61,6 +61,7 @@ export default async function handler({
   event: PullRequestEvent;
 }) {
   if (event.action !== "closed") {
+    eaveLogger.warning("Not handling non pull_request.closed events", ctx);
     return;
   }
   ctx.feature_name = "inline_code_documentation";
@@ -87,6 +88,7 @@ export default async function handler({
     event.pull_request.user.type === "Bot" &&
     event.pull_request.user.login.toLowerCase().match("^eave-fyi.*?\\[bot\\]$")
   ) {
+    eaveLogger.debug("PR is from Eave", ctx);
     const documents = await getAssociatedGithubDocuments({
       eaveTeam,
       repos: eaveRepoResponse.repos,
@@ -146,15 +148,22 @@ export default async function handler({
 
   // proceed only if PR commits were merged
   if (!event.pull_request.merged) {
+    eaveLogger.info(
+      "PR was closed without merging commits; no further action",
+      ctx,
+    );
     return;
   }
 
   if (
     !(await codeDocsEnabledForRepo({
       repos: eaveRepoResponse.repos,
-      repoId: event.repository.id.toString(),
+      repoId: event.repository.node_id.toString(),
     }))
   ) {
+    eaveLogger.info("Code docs not enabled for repo; no further action", ctx, {
+      repoName,
+    });
     return;
   }
 
@@ -264,10 +273,9 @@ export default async function handler({
       const gitObject = <Blob>objectRepository?.object;
       const fileContent = gitObject?.text;
       if (!fileContent) {
-        eaveLogger.error(
-          `Error fetching file content in ${repoOwner}/${repoName}`,
-          ctx,
-        );
+        eaveLogger.error("Error fetching file content", ctx, {
+          destination: `${repoOwner}/${repoName}`,
+        });
         return null; // exits just this iteration of map
       }
 
@@ -299,6 +307,14 @@ export default async function handler({
       }
       return acc;
     }, Array<FileChange>());
+
+    if (fileChanges.length === 0) {
+      eaveLogger.warning(
+        "No file changes made when updating docs; no further action",
+        ctx,
+      );
+      return;
+    }
 
     const prCreator = new PullRequestCreator({
       repoName,

@@ -1,6 +1,6 @@
 import test from "ava";
 import {
-  assertValidSyntax,
+  contentHasValidSyntax,
   parseFunctionsAndComments,
   writeUpdatedCommentsIntoFileString,
 } from "../../src/parsing/function-parsing.js";
@@ -1179,7 +1179,7 @@ namespace MyNamespace
   t.deepEqual(updatedContent, expectedUpdatedContent);
 });
 
-test("assertValidSyntax throws on syntax error in content", async (t) => {
+test("contentHasValidSyntax detects syntax errors in content", async (t) => {
   // GIVEN string content of a file is syntactically invalid
   const filePath = "src/file.ts";
   const language = ProgrammingLanguage.typescript;
@@ -1213,61 +1213,59 @@ async function fizzbuzz(): Promise<string> {
 `;
 
   // WHEN syntax validity is checked
-  try {
-    const funcDocsArray = assertValidSyntax({
-      content,
-      filePath,
-    });
+  const valid = contentHasValidSyntax({
+    content,
+    filePath,
+  });
 
-    t.fail("assertValidSyntax did not throw for invalid content");
-  } catch {
-    // THEN it should throw an error
-    t.pass();
-  }
+  // THEN it should fail the validity check
+  t.assert(
+    !valid,
+    "incorrectly determined invalid content was syntactically correct",
+  );
 });
 
-test("assertValidSyntax does not throw on syntactically correct content", async (t) => {
+test("contentHasValidSyntax detects syntactically correct content", async (t) => {
   // GIVEN string content of a file is syntactically valid
   const filePath = "src/file.ts";
   const language = ProgrammingLanguage.typescript;
   const content = `import { appConfig } from './src/config.js';
-  
-  function foo() {
-    console.log('foo');
+
+function foo() {
+  console.log('foo');
+}
+
+class MyClass {
+  bar(): string {
+    return "bar";
   }
-  
-  class MyClass {
-    bar(): string {
-      return "bar";
-    }
-  }
-  
-  export function baz(): string {
-    return "baz";
-  }
-  
-  /**
-   * Doc comment
-   * @param to be replaced
-   * @returns by parse code
-   */
-  async function fizzbuzz(): Promise<string> {
-    return 'fizzbuzz';
-  }
-  `;
+}
+
+export function baz(): string {
+  return "baz";
+}
+
+/**
+ * Doc comment
+ * @param to be replaced
+ * @returns by parse code
+ */
+async function fizzbuzz(): Promise<string> {
+  return 'fizzbuzz';
+}
+`;
 
   // WHEN syntax validity is checked
-  try {
-    const funcDocsArray = assertValidSyntax({
-      content,
-      filePath,
-    });
+  const valid = contentHasValidSyntax({
+    content,
+    filePath,
+  });
 
-    // THEN it should not throw an error
-    t.pass();
-  } catch {
-    t.fail("assertValidSyntax did not throw for invalid content");
-  }
+  // THEN it should pass the validity check
+  t.assert(
+    valid,
+    "incorrectly determined valid content was syntactically incorrect",
+  );
 });
 
 test("multi-line comments that aren't neighboring aren't joined", (t) => {

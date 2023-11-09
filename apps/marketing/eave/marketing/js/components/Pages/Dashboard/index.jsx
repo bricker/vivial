@@ -12,6 +12,7 @@ import GitHubFeatureModal from "../../GitHubFeatureModal/index.jsx";
 import ErrorPage from "../ErrorPage/index.jsx";
 import LoadingPage from "../LoadingPage/index.jsx";
 import Page from "../Page/index.jsx";
+import UninstalledGithubAppDash from "./uninstalled-app.jsx";
 
 import { FEATURE_MODAL, FEATURE_STATE_PROPERTY } from "../../../constants.js";
 import { AppContext } from "../../../context/Provider.js";
@@ -29,6 +30,7 @@ const Dashboard = () => {
 
   const showFeatureSettings = team.inlineCodeDocsEnabled || team.apiDocsEnabled;
   const showAPIDocs = team.apiDocsEnabled;
+  const githubAppInstalled = !!team.integrations?.github_integration;
 
   const isLoading = networkState.teamIsLoading || networkState.reposAreLoading;
 
@@ -119,6 +121,15 @@ const Dashboard = () => {
   if (isLoading && !dashboardRequestsSucceededAtLeastOnce) {
     return <LoadingPage />;
   }
+
+  if (!githubAppInstalled) {
+    return (
+      <Page compactHeader={true}>
+        <UninstalledGithubAppDash />
+      </Page>
+    );
+  }
+
   return (
     <Page>
       {showAPIDocs && <APIDocumentation />}
