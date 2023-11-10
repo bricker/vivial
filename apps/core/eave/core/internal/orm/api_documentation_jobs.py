@@ -33,7 +33,7 @@ class ApiDocumentationJobOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    github_repo_id: Mapped[UUID] = mapped_column()
+    github_repo_id: Mapped[UUID] = mapped_column() # TODO: make part of pk? to make sure no duplicate repo entries
     """foreign key to github_repos.id"""
     state: Mapped[str] = mapped_column()
     last_result: Mapped[str] = mapped_column(server_default=LastJobResult.none)

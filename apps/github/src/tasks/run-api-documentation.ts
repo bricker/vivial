@@ -1,10 +1,15 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { ExpressAPI } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-parsing-utility.js";
 import {
+  ApiDocumentationJobState,
+  LastJobResult,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/api-documentation-jobs.js";
+import {
   GithubDocumentStatus,
   GithubDocumentValuesInput,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
 import { GithubRepoFeatureState } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { UpsertApiDocumentationJobOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/api-documentation-jobs.js";
 import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";
 import { RunApiDocumentationTaskRequestBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
@@ -25,7 +30,7 @@ import {
 import { FileAddition } from "@octokit/graphql-schema";
 import assert from "assert";
 import Express from "express";
-import { API_BRANCH_NAME } from "../config.js";
+import { API_BRANCH_NAME, appConfig } from "../config.js";
 import { ExpressAPIDocumentBuilder } from "../lib/api-documentation/builder.js";
 import { CoreAPIData } from "../lib/api-documentation/core-api.js";
 import { GithubAPIData } from "../lib/api-documentation/github-api.js";
@@ -104,7 +109,7 @@ export async function runApiDocumentationTaskHandler(
     ctx,
   );
 
-  let jobState = running;
+  let jobResult = LastJobResult.doc_created;
   try {
     const githubAPIData = new GithubAPIData({
       ctx,
@@ -164,8 +169,19 @@ export async function runApiDocumentationTaskHandler(
         }
       }
     }
-    
-    // TODO: update db to say processing 
+
+    // indicate in db that this job is processing
+    await UpsertApiDocumentationJobOperation.perform({
+      teamId,
+      origin: appConfig.eaveOrigin,
+      input: {
+        job: {
+          github_repo_id: eaveGithubRepo.id,
+          state: ApiDocumentationJobState.running,
+        },
+      },
+      ctx,
+    });
 
     const expressRootDirs = await githubAPIData.getExpressRootDirs();
     if (expressRootDirs.length === 0) {
@@ -190,7 +206,7 @@ export async function runApiDocumentationTaskHandler(
       );
 
       res.sendStatus(200);
-      // TODO: set state no apis
+      jobResult = LastJobResult.no_api_found;
       return;
     }
 
@@ -467,7 +483,7 @@ export async function runApiDocumentationTaskHandler(
         expressAPIs: validExpressAPIs,
         newValues: { status: GithubDocumentStatus.FAILED },
       });
-      // TODO: set state failed
+      jobResult = LastJobResult.error;
       return;
     }
 
@@ -501,11 +517,21 @@ export async function runApiDocumentationTaskHandler(
       },
     });
   } catch (e: unknown) {
-    // TODO: set err status
-    jobState = err
+    jobResult = LastJobResult.error;
     throw e;
   } finally {
-    // TODO: set status done if hasnt been set otherwise, then send completion event
+    await UpsertApiDocumentationJobOperation.perform({
+      teamId,
+      origin: appConfig.eaveOrigin,
+      input: {
+        job: {
+          github_repo_id: eaveGithubRepo.id,
+          state: ApiDocumentationJobState.idle,
+          last_result: jobResult,
+        },
+      },
+      ctx,
+    });
   }
 }
 

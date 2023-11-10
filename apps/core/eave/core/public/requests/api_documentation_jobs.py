@@ -22,33 +22,6 @@ from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 from eave.core.internal.config import app_config
 
-
-# TODO: dont know if need this? just creat the doc job when the repo is created w/ api docs on? or do a upsert on job run?
-class CreateApiDocumentationJobEndpoint(HTTPEndpoint):
-    async def post(self, request: Request) -> Response:
-        eave_state = EaveRequestState.load(request=request)
-        body = await request.json()
-        input = CreateApiDocumentationJobRequest.RequestBody.parse_obj(body)
-
-        async with database.async_session.begin() as db_session:
-            github_repo_orm = await GithubRepoOrm.one_or_exception(
-                session=db_session,
-                team_id=ensure_uuid(eave_state.ctx.eave_team_id),
-            )
-
-            docs_job_orm = await ApiDocumentationJobOrm.create(
-                session=db_session,
-                team_id=ensure_uuid(eave_state.ctx.eave_team_id),
-            )
-
-
-        return json_response(
-            CreateApiDocumentationJobRequest.ResponseBody(
-                job=docs_job_orm.api_model,
-            )
-        )
-
-
 class GetApiDocumentationJobEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
@@ -75,41 +48,7 @@ class GetApiDocumentationJobEndpoint(HTTPEndpoint):
         )
 
 
-# TODO: probs dont need this... just use get for both single and list (will there be any use case for fetch single??)
-class ListApiDocumentationJobEndpoint(HTTPEndpoint):
-    async def post(self, request: Request) -> Response:
-        body = await request.json()
-        input = GetAllTeamsApiDocumentationJobsRequest.RequestBody.parse_obj(body)
-
-        async with database.async_session.begin() as db_session:
-            feature = input.query_params.feature
-            state = input.query_params.state
-
-            gh_repo_orms = await ApiDocumentationJobOrm.query(
-                session=db_session,
-                params=ApiDocumentationJobOrm.QueryParams(
-                    team_id=None,
-                    api_documentation_state=state if feature is ApiDocumentationJobFeature.API_DOCUMENTATION else None,
-                    inline_code_documentation_state=state
-                    if feature is ApiDocumentationJobFeature.INLINE_CODE_DOCUMENTATION
-                    else None,
-                    architecture_documentation_state=state
-                    if feature is ApiDocumentationJobFeature.ARCHITECTURE_DOCUMENTATION
-                    else None,
-                ),
-            )
-
-        repo_list = list(gh_repo_orms)
-
-        return json_response(
-            GetAllTeamsApiDocumentationJobsRequest.ResponseBody(
-                repos=[orm.api_model for orm in repo_list],
-            )
-        )
-
-
-
-class UpdateApiDocumentationJobsEndpoint(HTTPEndpoint):
+class UpsertApiDocumentationJobsEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
@@ -120,7 +59,7 @@ class UpdateApiDocumentationJobsEndpoint(HTTPEndpoint):
         update_values = {repo.id: repo.new_values for repo in input.repos}
 
         async with database.async_session.begin() as db_session:
-            gh_repo_orms = await ApiDocumentationJobOrm.query(
+            docs_job_orms = await ApiDocumentationJobOrm.query(
                 session=db_session,
                 params=ApiDocumentationJobOrm.QueryParams(
                     team_id=ensure_uuid(eave_state.ctx.eave_team_id),
@@ -128,16 +67,12 @@ class UpdateApiDocumentationJobsEndpoint(HTTPEndpoint):
                 ),
             )
 
-            for gh_repo_orm in gh_repo_orms:
-                assert gh_repo_orm.id in update_values, "Received a ApiDocumentationJob ORM that was not requested"
-                new_values = update_values[gh_repo_orm.id]
+            for docs_job_orm in docs_job_orms:
+                assert docs_job_orm.id in update_values, "Received a ApiDocumentationJob ORM that was not requested"
+                new_values = update_values[docs_job_orm.id]
 
-                # fire analytics event for each changed feature
-                _event_name = "eave_github_feature_state_change"
-                _event_description = "An Eave GitHub App feature was activated/deactivated"
-                _event_source = "eave core api"
                 
-                gh_repo_orm.update(new_values)
+                docs_job_orm.update(new_values)
 
         return json_response(
             UpdateApiDocumentationJobsRequest.ResponseBody(
