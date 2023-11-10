@@ -10,40 +10,35 @@ from starlette.responses import Response
 from eave.stdlib.analytics import log_event
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.api_documentation_jobs import (
-    CreateApiDocumentationJobRequest,
-    GetAllTeamsApiDocumentationJobsRequest,
-    GetApiDocumentationJobsRequest,
-    UpdateApiDocumentationJobsRequest,
-    DeleteApiDocumentationJobsRequest,
-    FeatureStateApiDocumentationJobsRequest,
+    UpsertApiDocumentationJobOperation,
+    GetApiDocumentationJobsOperation,
 )
 from eave.stdlib.logging import LogContext
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 from eave.core.internal.config import app_config
 
+
 class GetApiDocumentationJobEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = GetApiDocumentationJobsRequest.RequestBody.parse_obj(body)
+        input = GetApiDocumentationJobsOperation.RequestBody.parse_obj(body)
 
-        external_repo_ids = [repo.external_repo_id for repo in repos] if (repos := input.repos) else None
+        ids = [job.id for job in jobs] if (jobs := input.jobs) else None
 
         async with database.async_session.begin() as db_session:
-            gh_repo_orms = await ApiDocumentationJobOrm.query(
+            docs_job_orms = await ApiDocumentationJobOrm.query(
                 session=db_session,
                 params=ApiDocumentationJobOrm.QueryParams(
                     team_id=ensure_uuid(eave_state.ctx.eave_team_id),
-                    external_repo_ids=external_repo_ids,
+                    ids=ids,
                 ),
             )
 
-        repo_list = list(gh_repo_orms)
-
         return json_response(
-            GetApiDocumentationJobsRequest.ResponseBody(
-                repos=[orm.api_model for orm in repo_list],
+            GetApiDocumentationJobsOperation.ResponseBody(
+                jobs=[orm.api_model for orm in list(docs_job_orms)],
             )
         )
 
@@ -52,33 +47,31 @@ class UpsertApiDocumentationJobsEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         eave_state = EaveRequestState.load(request=request)
         body = await request.json()
-        input = UpdateApiDocumentationJobsRequest.RequestBody.parse_obj(body)
+        input = UpsertApiDocumentationJobOperation.RequestBody.parse_obj(body)
         assert eave_state.ctx.eave_team_id, "eave_team_id unexpectedly missing"
-
-        # transform to dict for ease of use
-        update_values = {repo.id: repo.new_values for repo in input.repos}
+        team_id = ensure_uuid(eave_state.ctx.eave_team_id)
 
         async with database.async_session.begin() as db_session:
-            docs_job_orms = await ApiDocumentationJobOrm.query(
+            docs_job_orm = await ApiDocumentationJobOrm.one_or_none(
                 session=db_session,
                 params=ApiDocumentationJobOrm.QueryParams(
-                    team_id=ensure_uuid(eave_state.ctx.eave_team_id),
-                    ids=list(map(lambda r: r.id, input.repos)),
+                    team_id=team_id,
                 ),
             )
 
-            for docs_job_orm in docs_job_orms:
-                assert docs_job_orm.id in update_values, "Received a ApiDocumentationJob ORM that was not requested"
-                new_values = update_values[docs_job_orm.id]
+            if docs_job_orm is None:
+                docs_job_orm = await ApiDocumentationJobOrm.create(
+                    session=db_session,
+                    team_id=team_id,
+                    github_repo_id=input.job.github_repo_id,
+                    state=input.job.state,
+                )
 
-                
-                docs_job_orm.update(new_values)
+            docs_job_orm.state = input.job.state
+            docs_job_orm.last_result = input.job.last_result
 
         return json_response(
-            UpdateApiDocumentationJobsRequest.ResponseBody(
-                repos=[orm.api_model for orm in gh_repo_orms],
+            UpsertApiDocumentationJobOperation.ResponseBody(
+                job=docs_job_orm.api_model,
             )
         )
-
-
-
