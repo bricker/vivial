@@ -1,3 +1,9 @@
+import OpenAI from "openai";
+import {
+  ChatCompletion,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat/completions.js";
 import { v4 as uuidv4 } from "uuid";
 import { logGptRequest } from "../analytics.js";
 import { sharedConfig } from "../config.js";
@@ -6,9 +12,6 @@ import { CtxArg } from "../requests.js";
 import { redact } from "../util.js";
 import { modelFromString } from "./models.js";
 import * as costCounter from "./token-counter.js";
-import OpenAI from "openai";
-import { ChatCompletion, ChatCompletionCreateParamsBase, ChatCompletionCreateParamsNonStreaming, ChatCompletionMessageParam } from "openai/resources/chat/completions.js";
-import { APIPromise } from "openai/core.js";
 
 // eslint-disable-next-line operator-linebreak
 export const PROMPT_PREFIX =
@@ -91,7 +94,7 @@ export default class OpenAIClient {
         role: "system",
         content: PROMPT_PREFIX,
       },
-      ...parameters.messages
+      ...parameters.messages,
     ];
 
     parameters = { ...parameters, messages };
