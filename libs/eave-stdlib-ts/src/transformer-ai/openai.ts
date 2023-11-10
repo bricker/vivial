@@ -57,11 +57,11 @@ export function formatprompt(...prompts: string[]): string {
 export default class OpenAIClient {
   client: OpenAI;
 
-  static async getAuthedClient(): Promise<OpenAI> {
+  static async getAuthedClient(): Promise<OpenAIClient> {
     const apiKey = await sharedConfig.openaiApiKey;
     const apiOrg = await sharedConfig.openaiApiOrg;
-    const openaiClient = new OpenAI({ apiKey, organization: apiOrg });
-    return openaiClient;
+    const openai = new OpenAI({ apiKey, organization: apiOrg });
+    return new OpenAIClient(openai);
   }
 
   constructor(client: OpenAI) {
