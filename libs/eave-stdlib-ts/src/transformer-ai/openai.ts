@@ -1,10 +1,9 @@
+import OpenAI from "openai";
 import {
-  ChatCompletionRequestMessageRoleEnum,
-  Configuration,
-  CreateChatCompletionRequest,
-  CreateChatCompletionResponse,
-  OpenAIApi,
-} from "openai";
+  ChatCompletion,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat/completions.js";
 import { v4 as uuidv4 } from "uuid";
 import { logGptRequest } from "../analytics.js";
 import { sharedConfig } from "../config.js";
@@ -56,17 +55,16 @@ export function formatprompt(...prompts: string[]): string {
 }
 
 export default class OpenAIClient {
-  client: OpenAIApi;
+  client: OpenAI;
 
   static async getAuthedClient(): Promise<OpenAIClient> {
     const apiKey = await sharedConfig.openaiApiKey;
     const apiOrg = await sharedConfig.openaiApiOrg;
-    const configuration = new Configuration({ apiKey, organization: apiOrg });
-    const openaiClient = new OpenAIApi(configuration);
-    return new OpenAIClient(openaiClient);
+    const openai = new OpenAI({ apiKey, organization: apiOrg });
+    return new OpenAIClient(openai);
   }
 
-  constructor(client: OpenAIApi) {
+  constructor(client: OpenAI) {
     this.client = client;
   }
 
@@ -87,15 +85,19 @@ export default class OpenAIClient {
     baseTimeoutSeconds = 30,
     documentId = undefined,
   }: CtxArg & {
-    parameters: CreateChatCompletionRequest;
+    parameters: ChatCompletionCreateParamsNonStreaming;
     baseTimeoutSeconds?: number;
     documentId?: string;
   }): Promise<string> {
-    // FIXME: This mutates the input
-    parameters.messages.unshift({
-      role: ChatCompletionRequestMessageRoleEnum.System,
-      content: PROMPT_PREFIX,
-    });
+    const messages: ChatCompletionMessageParam[] = [
+      {
+        role: "system",
+        content: PROMPT_PREFIX,
+      },
+      ...parameters.messages,
+    ];
+
+    parameters = { ...parameters, messages };
 
     const model = modelFromString(parameters.model);
     if (!model) {
@@ -107,9 +109,9 @@ export default class OpenAIClient {
       openai_request_id: uuidv4(),
     };
 
-    let text: string | undefined;
+    let text: string | null | undefined;
     const timestampStart = Date.now();
-    let completion;
+    let completion: ChatCompletion | undefined;
 
     const maxAttempts = 3;
     for (let i = 0; i < maxAttempts; i += 1) {
@@ -117,16 +119,16 @@ export default class OpenAIClient {
 
       try {
         eaveLogger.debug("openai request", ctx, logParams);
-        completion = await this.client.createChatCompletion(parameters, {
+        completion = await this.client.chat.completions.create(parameters, {
           timeout: backoffMs,
         }); // timeout in ms
         eaveLogger.debug(
           "openai response",
           logParams,
-          makeResponseLog(completion.data),
+          makeResponseLog(completion),
           ctx,
         );
-        text = completion.data.choices[0]?.message?.content;
+        text = completion.choices[0]?.message?.content;
         break;
       } catch (e: any) {
         // Network error?
@@ -141,7 +143,7 @@ export default class OpenAIClient {
       }
     }
 
-    if (text === undefined) {
+    if (text === undefined || text === null) {
       throw new Error("openai text response is undefined");
     }
 
@@ -151,8 +153,8 @@ export default class OpenAIClient {
       parameters,
       duration_seconds,
       text,
-      completion?.request?.usage?.prompt_tokens,
-      completion?.request?.usage?.completion_tokens,
+      completion?.usage?.prompt_tokens,
+      completion?.usage?.completion_tokens,
       documentId,
       ctx,
     );
@@ -162,7 +164,7 @@ export default class OpenAIClient {
 }
 
 async function logGptRequestData(
-  parameters: CreateChatCompletionRequest,
+  parameters: ChatCompletionCreateParamsNonStreaming,
   duration_seconds: number,
   response: string,
   input_token_count?: number,
@@ -203,7 +205,7 @@ async function logGptRequestData(
   );
 }
 
-function makeResponseLog(response: CreateChatCompletionResponse): any {
+function makeResponseLog(response: ChatCompletion): any {
   return {
     openai_response: {
       ...(<any>response),
@@ -211,21 +213,42 @@ function makeResponseLog(response: CreateChatCompletionResponse): any {
         ...c,
         message: {
           ...c.message,
-          content: redact(c.message?.content, 100),
+          content: redact(c.message.content, 100),
         },
       })),
     },
   };
 }
 
-function makeRequestLog(request: CreateChatCompletionRequest): any {
+function makeRequestLog(request: ChatCompletionCreateParamsNonStreaming): any {
   return {
     openai_request: {
       ...(<any>request),
-      messages: request.messages.map((m) => ({
-        ...m,
-        content: redact(m.content, 100),
-      })),
+      messages: request.messages.map((m) => {
+        let content: string | null;
+
+        if (Array.isArray(m.content)) {
+          content = m.content
+            .map((c) => {
+              switch (c.type) {
+                case "text":
+                  return c.text;
+                case "image_url":
+                  return c.image_url;
+                default:
+                  return "";
+              }
+            })
+            .join(" ");
+        } else {
+          content = m.content;
+        }
+
+        return {
+          ...m,
+          content: redact(content, 100),
+        };
+      }),
     },
   };
 }

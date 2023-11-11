@@ -1,7 +1,7 @@
 import assert from "node:assert";
 
-export function redact(str?: string, length = 8): string | undefined {
-  if (str === undefined) {
+export function redact(str?: string | null, length = 8): string | undefined {
+  if (str === undefined || str === null) {
     return undefined;
   }
 
