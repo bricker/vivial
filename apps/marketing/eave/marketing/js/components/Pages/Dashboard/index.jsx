@@ -21,25 +21,29 @@ const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
   const { team, getTeam, getTeamRepos, updateTeamFeatureState } = useTeam();
-
-  /** @type {import("../../../context/Provider.js").AppContextProps} */
   const { dashboardNetworkStateCtx: [networkState] } = useContext(AppContext);
 
   const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
   const [apiDocsModalIsOpen, setAPIDocsModalIsOpen] = useState(false);
 
-  const showFeatureSettings = team.inlineCodeDocsEnabled || team.apiDocsEnabled;
-  const showAPIDocs = team.apiDocsEnabled;
-  const githubAppInstalled = !!team.integrations?.github_integration;
-
   const isLoading = networkState.teamIsLoading || networkState.reposAreLoading;
-
   const isErroring = networkState.teamIsErroring;
-
   const dashboardRequestsSucceededAtLeastOnce =
     networkState.teamRequestHasSucceededAtLeastOnce &&
     networkState.apiDocsRequestHasSucceededAtLeastOnce &&
     networkState.reposRequestHasSucceededAtLeastOnce;
+
+  if (isErroring && !dashboardRequestsSucceededAtLeastOnce) {
+    return <ErrorPage page="dashboard" />;
+  }
+
+  if (isLoading && !dashboardRequestsSucceededAtLeastOnce) {
+    return <LoadingPage />;
+  }
+
+  const showFeatureSettings = team?.inlineCodeDocsEnabled || team?.apiDocsEnabled;
+  const showAPIDocs = team?.apiDocsEnabled;
+  const githubAppInstalled = !!team?.integrations?.github_integration;
 
   const closeModal = () => {
     removeCookie(FEATURE_MODAL.ID);
@@ -114,13 +118,6 @@ const Dashboard = () => {
         break;
     }
   }, [searchParams]);
-
-  if (isErroring && !dashboardRequestsSucceededAtLeastOnce) {
-    return <ErrorPage page="dashboard" />;
-  }
-  if (isLoading && !dashboardRequestsSucceededAtLeastOnce) {
-    return <LoadingPage />;
-  }
 
   if (!githubAppInstalled) {
     return (

@@ -3,18 +3,16 @@ import React, { createContext, useState } from "react";
 import { AUTH_MODAL_STATE } from "../constants.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 
-export const AppContext = createContext(null);
-
 /**
  * @typedef {[Types.AuthModal, React.Dispatch<React.SetStateAction<Types.AuthModal>>]} AuthModalContext
  */
 
 /**
- * @typedef {[Types.DashboardUser, React.Dispatch<React.SetStateAction<Types.DashboardUser>>]} UserContext
+ * @typedef {[Types.DashboardUser | null, React.Dispatch<React.SetStateAction<Types.DashboardUser | null>>]} UserContext
  */
 
 /**
- * @typedef {[Types.DashboardTeam, React.Dispatch<React.SetStateAction<Types.DashboardTeam>>]} TeamContext
+ * @typedef {[Types.DashboardTeam | null, React.Dispatch<React.SetStateAction<Types.DashboardTeam | null>>]} TeamContext
  */
 
 /**
@@ -29,6 +27,10 @@ export const AppContext = createContext(null);
  * @property {NetworkStateContext} dashboardNetworkStateCtx
  */
 
+/** @type {React.Context<AppContextProps>} */
+// @ts-ignore
+export const AppContext = createContext(null); // we ignore this line because there is no sense in setting defaults for state hooks. Don't use this Context object outside of a Provider.
+
 const AppContextProvider = ({ children }) => {
   /** @type {AuthModalContext} */
   const authModalCtx = useState({
@@ -37,10 +39,10 @@ const AppContextProvider = ({ children }) => {
   });
 
   /** @type {UserContext} */
-  const userCtx = useState();
+  const userCtx = useState(null);
 
   /** @type {TeamContext} */
-  const teamCtx = useState()
+  const teamCtx = useState(null);
 
   /** @type {NetworkStateContext} */
   const dashboardNetworkStateCtx = useState({

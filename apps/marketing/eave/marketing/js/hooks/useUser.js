@@ -9,14 +9,13 @@ const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint";
 
 /**
  * @typedef {object} UserHook
- * @property {Types.DashboardUser} user
+ * @property {Types.DashboardUser | null} user
  * @property {boolean} isLoginHintSet
  * @property {() => void} getUserAccount
  */
 
 /** @returns {UserHook} */
 const useUser = () => {
-  /** @type {import("../context/Provider.js").AppContextProps} */
   const { userCtx, dashboardNetworkStateCtx } = useContext(AppContext);
   const [cookies] = useCookies([_EAVE_LOGIN_STATE_HINT_COOKIE_NAME]);
   const [user, setUser] = userCtx;
@@ -55,21 +54,19 @@ const useUser = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        return resp.json().then((data) => {
+        return resp.json().then((/** @type {Types.DashboardUser} */ data) => {
           setUser((prev) => ({
             ...prev,
-            accountIsLoading: false,
             account: data.account,
           }));
           setDashboardNetworkState((prev) => ({
             ...prev,
             accountIsLoading: false,
-            account: data.account,
           }));
         });
       })
       .catch(() => {
-        setUser((prev) => ({
+        setDashboardNetworkState((prev) => ({
           ...prev,
           accountIsLoading: false,
           accountIsErroring: true,

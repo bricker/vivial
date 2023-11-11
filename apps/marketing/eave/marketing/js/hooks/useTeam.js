@@ -8,7 +8,7 @@ import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
 /**
  * @typedef {object} TeamHook
- * @property {Types.DashboardTeam} team
+ * @property {Types.DashboardTeam | null} team
  * @property {() => void} getTeam
  * @property {() => void} getTeamRepos
  * @property {() => void} getTeamAPIDocs

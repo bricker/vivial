@@ -198,7 +198,7 @@ function renderContent(/** @type {{ classes: object, networkState: Types.Dashboa
     }
   }
 
-  if (apiDocs.length === 0) {
+  if (!apiDocs || apiDocs.length === 0) {
     return (
       <Typography color="inherit" variant="h6">
         Eave is currently searching for Express APIs within your repositories.
@@ -207,7 +207,7 @@ function renderContent(/** @type {{ classes: object, networkState: Types.Dashboa
       </Typography>
     );
   }
-  const repoMap = mapReposById(repos);
+  const repoMap = repos ? mapReposById(repos) : {};
   const handleRowClick = (e, /** @type {Types.GithubDocument} */ doc) => {
     const filePath = doc.file_path;
     const isProcessing = doc.status === "processing";
@@ -306,7 +306,7 @@ const APIDocumentation = () => {
       <Typography className={classes.title} variant="h2">
         API Documentation
       </Typography>
-      {renderContent({ classes, team, networkState, compact })}
+      {team && renderContent({ classes, team, networkState, compact })}
     </section>
   );
 };

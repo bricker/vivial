@@ -3,7 +3,6 @@ import React, { useContext, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { CircularProgress } from '@material-ui/core';
 
-import useUser from '../../../hooks/useUser.js';
 import PageSection from '../../PageSection/index.jsx';
 import Page from '../Page/index.jsx';
 import Steps from './Steps.jsx';
@@ -31,26 +30,25 @@ const Dashboard = () => {
   const { dashboardNetworkStateCtx: [networkState] } = useContext(AppContext);
 
   const {
-    accountIsLoading,
-    accountIsErroring,
+    teamIsLoading,
+    teamIsErroring,
   } = networkState;
 
-  const { user, getUserAccount } = useUser();
-  const { team } = useTeam();
+  const { team, getTeam } = useTeam();
 
   useEffect(() => {
     // fetch info
-    if (!team && !accountIsLoading) {
-      getUserAccount();
+    if (!team && !teamIsLoading) {
+      getTeam();
     }
   }, [team]);
 
   return (
     <Page>
       <PageSection wrapperClassName={classes.main}>
-        {!team || accountIsLoading ? (
+        {!team || teamIsLoading ? (
           <div className={classes.loading}>
-            {accountIsErroring ? (
+            {teamIsErroring ? (
               <Copy>something went wrong, please try again</Copy>
             ) : (
               <CircularProgress />

@@ -182,7 +182,7 @@ const Steps = () => {
   }
 
   const [step, setStep] = useState(2);
-  const [space, setSpace] = useState(team.confluenceDestination.space_key || '');
+  const [space, setSpace] = useState(team?.confluenceDestination?.space_key || '');
   const [editingSpace, setEditingSpace] = useState(false);
   const [didClickForgeButton, setDidClickForgeButton] = useState(false);
   const [didClickJiraButton, setDidClickJiraButton] = useState(false);
@@ -193,23 +193,33 @@ const Steps = () => {
   const _globalEave = window;
 
   useEffect(() => {
-    if (!team.integrations.confluence_integration && !didClickForgeButton) {
+    if (!team?.integrations?.confluence_integration && !didClickForgeButton) {
       setStep(0);
-    } else if (!team.integrations.confluence_integration) {
+      return;
+    }
+
+    if (!team?.integrations?.confluence_integration) {
       setStep(1);
-      // if user has not selected a confluence space
-    } else if (!confluenceSpaceUpdateLoading && (!team.confluenceDestination?.space_key || editingSpace || confluenceSpaceUpdateErroring)) {
-      if (!confluenceSpacesLoading && team.availableConfluenceSpaces === undefined) {
+      return;
+    }
+
+    // if user has not selected a confluence space
+    if (!confluenceSpaceUpdateLoading && (!team?.confluenceDestination?.space_key || editingSpace || confluenceSpaceUpdateErroring)) {
+      if (!confluenceSpacesLoading && team?.availableConfluenceSpaces === undefined) {
         listAvailableConfluenceSpaces();
       }
       setStep(2);
-    // if user has not linked their github, slack, or jira
-    } else if (!team.integrations.github_integration || !team.integrations.slack_integration || !team.integrations.jira_integration) {
-      setStep(3);
-    // user has linked all so we can just show a completed stepper
-    } else {
-      setStep(4);
+      return;
     }
+
+    // if user has not linked their github, slack, or jira
+    if (!team?.integrations?.github_integration || !team?.integrations?.slack_integration || !team?.integrations?.jira_integration) {
+      setStep(3);
+      return;
+    }
+
+    // user has linked all so we can just show a completed stepper
+    setStep(4);
   }, [team, confluenceSpaceUpdateLoading, didClickForgeButton, editingSpace, confluenceSpaceUpdateErroring]);
 
   const isStep3Clickable = step > 2;
@@ -315,7 +325,7 @@ const Steps = () => {
                       onChange={handleSelectChange}
                       disabled={confluenceSpaceUpdateLoading}
                     >
-                      {team.availableConfluenceSpaces?.map((spc) => {
+                      {team?.availableConfluenceSpaces?.map((spc) => {
                         return (
                           <MenuItem value={spc.key} key={spc.key}>{spc.name}</MenuItem>
                         );
@@ -346,13 +356,13 @@ const Steps = () => {
             <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={team.integrations.github_integration && <PurpleCheckIcon className={classes.connected} />}
-              disabled={!!team.integrations.github_integration}
+              startIcon={team?.integrations?.github_integration && <PurpleCheckIcon className={classes.connected} />}
+              disabled={!!team?.integrations?.github_integration}
               to={`${_globalEave.eave.apiBase}/oauth/github/authorize`}
               lg
             >
               <img
-                className={classNames(classes.githubButtonLogo, { [classes.completed]: team.integrations.github_integration })}
+                className={classNames(classes.githubButtonLogo, { [classes.completed]: team?.integrations?.github_integration })}
                 src={INTEGRATION_LOGOS.githubInline.src}
                 alt={INTEGRATION_LOGOS.githubInline.alt}
               />
@@ -360,15 +370,15 @@ const Steps = () => {
             <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={(team.integrations.slack_integration || didClickSlackButton) && <PurpleCheckIcon className={classes.connected} />}
-              disabled={!!team.integrations.slack_integration}
+              startIcon={(team?.integrations?.slack_integration || didClickSlackButton) && <PurpleCheckIcon className={classes.connected} />}
+              disabled={!!team?.integrations?.slack_integration}
               to={`${_globalEave.eave.apiBase}/oauth/slack/authorize`}
               target="_blank"
               onClick={() => handleSlackButtonClick()}
               lg
             >
               <img
-                className={classNames(classes.slackButtonLogo, { [classes.completed]: team.integrations.slack_integration || didClickSlackButton })}
+                className={classNames(classes.slackButtonLogo, { [classes.completed]: team?.integrations?.slack_integration || didClickSlackButton })}
                 src={INTEGRATION_LOGOS.slack.src}
                 alt={INTEGRATION_LOGOS.slack.alt}
               />
@@ -376,15 +386,15 @@ const Steps = () => {
             <Button
               className={classes.connectButton}
               variant="outlined"
-              startIcon={(team.integrations.jira_integration || didClickJiraButton) && <PurpleCheckIcon className={classes.connected} />}
-              disabled={!!team.integrations.jira_integration}
+              startIcon={(team?.integrations?.jira_integration || didClickJiraButton) && <PurpleCheckIcon className={classes.connected} />}
+              disabled={!!team?.integrations?.jira_integration}
               to={JIRA_APP_INSTALL_URL}
               target="_blank"
               onClick={() => handleJiraButtonClick()}
               lg
             >
               <img
-                className={classNames(classes.jiraButtonLogo, { [classes.completed]: team.integrations.jira_integration || didClickJiraButton })}
+                className={classNames(classes.jiraButtonLogo, { [classes.completed]: team?.integrations?.jira_integration || didClickJiraButton })}
                 src={INTEGRATION_LOGOS.jira.src}
                 alt={INTEGRATION_LOGOS.jira.alt}
               />
