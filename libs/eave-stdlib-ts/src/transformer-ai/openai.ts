@@ -225,7 +225,7 @@ function makeRequestLog(request: ChatCompletionCreateParamsNonStreaming): any {
     openai_request: {
       ...(<any>request),
       messages: request.messages.map((m) => {
-        let content: string | null = null;
+        let content: string | null;
 
         if (Array.isArray(m.content)) {
           content = m.content
