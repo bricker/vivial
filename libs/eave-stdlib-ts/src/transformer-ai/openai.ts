@@ -19,6 +19,14 @@ export const PROMPT_PREFIX =
   "Your job is to write, find, and organize robust, detailed documentation of this organization's information, decisions, projects, and procedures. " +
   "You are responsible for the quality and integrity of this organization's documentation.";
 
+/**
+ * Formats a series of prompts by removing common leading whitespace from each line of each prompt.
+ * If a prompt is a single line or has no common leading whitespace, it is left unchanged.
+ * The formatted prompts are then joined together with a newline character.
+ *
+ * @param prompts - An array of strings to be formatted.
+ * @returns A single string containing all the formatted prompts, separated by newline characters.
+ */
 export function formatprompt(...prompts: string[]): string {
   const prompt: string[] = [];
   for (const s of prompts) {
@@ -57,6 +65,15 @@ export function formatprompt(...prompts: string[]): string {
 export default class OpenAIClient {
   client: OpenAI;
 
+  /**
+   * Retrieves an authenticated OpenAI client.
+   *
+   * This method asynchronously fetches the API key and organization from the shared configuration,
+   * then uses these to instantiate a new OpenAI object. This object is then used to create and return
+   * a new OpenAIClient instance.
+   *
+   * @returns {Promise<OpenAIClient>} A promise that resolves to an authenticated OpenAIClient instance.
+   */
   static async getAuthedClient(): Promise<OpenAIClient> {
     const apiKey = await sharedConfig.openaiApiKey;
     const apiOrg = await sharedConfig.openaiApiOrg;
@@ -64,20 +81,31 @@ export default class OpenAIClient {
     return new OpenAIClient(openai);
   }
 
+  /**
+   * Constructs a new instance of the class, initializing it with the provided OpenAI client.
+   * @param client - An instance of OpenAI client to be used for initializing the class.
+   */
   constructor(client: OpenAI) {
     this.client = client;
   }
 
   /**
-   * Makes a request to OpenAI chat completion API.
-   * https://beta.openai.com/docs/api-reference/completions/create
-   * baseTimeoutSeconds is multiplied by (2^n) for each attempt n
+   * Creates a chat completion using the provided parameters and returns the content of the first choice message.
+   * It makes up to three attempts to create the chat completion, with an exponential backoff strategy for retries.
+   * The function logs the request and response details, and throws an error if the model value is unexpected or if the text response is undefined.
+   * The baseTimeoutSeconds is multiplied by (2^n) for each attempt n.
    *
-   * @param parameters the main openAI API request params
-   * @param ctx log context (also used to populate important analytics fields)
-   * @param baseTimeoutSeconds API request timeout
-   * @param documentId some unique ID for the file/document this OpenAI request is for (for analytics)
-   * @returns API chat completion response string
+   * @param {Object} args - The arguments for the function.
+   * @param {ChatCompletionCreateParamsNonStreaming} args.parameters - The parameters for creating the chat completion. This is the main OpenAI API request params.
+   * @param {Object} args.ctx - The context for logging. This is also used to populate important analytics fields.
+   * @param {number} [args.baseTimeoutSeconds=30] - The base timeout in seconds for the request. This is used in the exponential backoff strategy.
+   * @param {string} [args.documentId] - The ID of the document associated with the request. This is some unique ID for the file/document this OpenAI request is for (for analytics).
+   *
+   * @returns {Promise<string>} The content of the first choice message from the chat completion. This is the API chat completion response string.
+   *
+   * @throws Will throw an error if the model value is unexpected or if the text response is undefined.
+   *
+   * @see {@link https://beta.openai.com/docs/api-reference/completions/create}
    */
   async createChatCompletion({
     parameters,
@@ -163,6 +191,20 @@ export default class OpenAIClient {
   }
 }
 
+/**
+ * Logs the details of a GPT request including the parameters, duration, response, and token counts.
+ *
+ * @param parameters - The parameters for the chat completion request.
+ * @param duration_seconds - The duration of the request in seconds.
+ * @param response - The response from the GPT.
+ * @param input_token_count - The number of tokens in the input prompt. If not provided, it will be calculated.
+ * @param output_token_count - The number of tokens in the output response. If not provided, it will be calculated.
+ * @param document_id - The ID of the document associated with the request.
+ * @param ctx - The logging context.
+ *
+ * The function constructs the full prompt from the messages in the parameters, determines the model from the parameters,
+ * calculates the token counts if they are not provided, and logs the request using the `logGptRequest` function.
+ */
 async function logGptRequestData(
   parameters: ChatCompletionCreateParamsNonStreaming,
   duration_seconds: number,
@@ -205,6 +247,12 @@ async function logGptRequestData(
   );
 }
 
+/**
+ * Generates a log of a chat response with redacted content.
+ *
+ * @param {ChatCompletion} response - The chat response to be logged.
+ * @returns {any} An object containing the logged response with redacted content.
+ */
 function makeResponseLog(response: ChatCompletion): any {
   return {
     openai_response: {
@@ -220,6 +268,16 @@ function makeResponseLog(response: ChatCompletion): any {
   };
 }
 
+/**
+ * Transforms a chat completion request into a loggable format.
+ * It maps through the messages in the request, and for each message, it checks if the content is an array.
+ * If it is, it maps through the content and returns the text or image_url based on the type.
+ * If the content is not an array, it simply returns the content.
+ * The content is then redacted to a maximum length of 100 characters.
+ *
+ * @param {ChatCompletionCreateParamsNonStreaming} request - The chat completion request to be logged.
+ * @returns {any} The transformed request in a loggable format.
+ */
 function makeRequestLog(request: ChatCompletionCreateParamsNonStreaming): any {
   return {
     openai_request: {
