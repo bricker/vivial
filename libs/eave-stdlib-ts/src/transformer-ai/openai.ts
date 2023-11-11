@@ -225,9 +225,28 @@ function makeRequestLog(request: ChatCompletionCreateParamsNonStreaming): any {
     openai_request: {
       ...(<any>request),
       messages: request.messages.map((m) => {
+        let content: string | null = null;
+
+        if (Array.isArray(m.content)) {
+          content = m.content
+            .map((c) => {
+              switch (c.type) {
+                case "text":
+                  return c.text;
+                case "image_url":
+                  return c.image_url;
+                default:
+                  return "";
+              }
+            })
+            .join(" ");
+        } else {
+          content = m.content;
+        }
+
         return {
           ...m,
-          content: redact(m.content?.toString(), 100),
+          content: redact(content, 100),
         };
       }),
     },
