@@ -33,4 +33,4 @@ class ApiDocumentationJobListInput(BaseInputModel):
 class ApiDocumentationJobUpsertInput(BaseInputModel):
     github_repo_id: UUID
     state: ApiDocumentationJobState
-    last_result: Optional[LastJobResult] = None # TODO: does this need to be option?
+    last_result: Optional[LastJobResult] = None  # TODO: does this need to be option?

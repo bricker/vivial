@@ -1,11 +1,8 @@
 from eave.core.internal import database
 from eave.core.internal.orm.api_documentation_jobs import ApiDocumentationJobOrm
-from eave.core.internal.orm.github_repos import GithubRepoOrm
-from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
-from eave.stdlib.analytics import log_event
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.api_documentation_jobs import (
     UpsertApiDocumentationJobOperation,
@@ -13,7 +10,6 @@ from eave.stdlib.core_api.operations.api_documentation_jobs import (
 )
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
-from eave.core.internal.config import app_config
 
 
 class GetApiDocumentationJobEndpoint(HTTPEndpoint):
