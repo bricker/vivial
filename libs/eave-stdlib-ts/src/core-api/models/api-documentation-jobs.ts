@@ -26,5 +26,5 @@ export type ApiDocumentationJobListInput = {
 export type ApiDocumentationJobUpsertInput = {
   github_repo_id: string;
   state: ApiDocumentationJobState;
-  last_result?: LastJobResult; // TODO: does this need to be option?
+  last_result?: LastJobResult;
 };
