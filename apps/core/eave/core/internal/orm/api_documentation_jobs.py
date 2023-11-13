@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
-from sqlalchemy import Index, ForeignKeyConstraint, Select
+from sqlalchemy import Index, ForeignKeyConstraint, PrimaryKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -15,13 +15,18 @@ from eave.stdlib.core_api.models.api_documentation_jobs import (
 )
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk, make_team_composite_pk
+from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 
 class ApiDocumentationJobOrm(Base):
     __tablename__ = "api_documentation_jobs"
     __table_args__ = (
-        # make_team_composite_pk(),
+        PrimaryKeyConstraint(
+            "team_id",
+            "github_repo_id",
+            "id",
+            name="pk_team_id_github_repo_id_id",
+        ),
         make_team_fk(),
         ForeignKeyConstraint(
             ["github_repo_id"],
@@ -29,11 +34,17 @@ class ApiDocumentationJobOrm(Base):
             ondelete="CASCADE",
             name="github_repos_id_fk",
         ),
+        Index(
+            "team_id_github_repo_id_unique_idx",
+            "team_id",
+            "github_repo_id",
+            unique=True,
+        ),
     )
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    github_repo_id: Mapped[UUID] = mapped_column()  # TODO: make part of pk. to make sure no duplicate repo entries. also make composite index over team_id, github_repo_id, id 
+    github_repo_id: Mapped[UUID] = mapped_column()
     """foreign key to github_repos.id"""
     state: Mapped[str] = mapped_column()
     last_result: Mapped[str] = mapped_column(server_default=LastJobResult.none)
@@ -47,10 +58,11 @@ class ApiDocumentationJobOrm(Base):
     @dataclass
     class QueryParams:
         team_id: Optional[UUID]
+        github_repo_id: Optional[UUID] = None
         ids: Optional[list[UUID]] = None
 
         def validate_or_exception(self):
-            pass
+            assert not self.ids == []
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
@@ -59,6 +71,9 @@ class ApiDocumentationJobOrm(Base):
 
         if params.team_id:
             lookup = lookup.where(cls.team_id == params.team_id)
+
+        if params.github_repo_id:
+            lookup = lookup.where(cls.github_repo_id == params.github_repo_id)
 
         if params.ids:
             lookup = lookup.where(cls.id.in_(params.ids))
@@ -94,9 +109,10 @@ class ApiDocumentationJobOrm(Base):
         return result
 
     @classmethod
-    async def one_or_none(cls, team_id: UUID, id: UUID, session: AsyncSession) -> Self | None:
-        stmt = cls._build_query(cls.QueryParams(team_id=team_id, ids=[id])).limit(1)
-        result = await session.scalar(stmt)
+    async def one_or_none(cls, params: QueryParams, session: AsyncSession) -> Self | None:
+        query_result = await cls.query(session=session, params=params)
+        assert len(query_result) < 2, "Query unexpectedly resulted in more than one ApiDocumentationJob"
+        result = query_result[0] if len(query_result) > 0 else None
         return result
 
     def update(self, state: ApiDocumentationJobState, last_result: Optional[LastJobResult]) -> None:

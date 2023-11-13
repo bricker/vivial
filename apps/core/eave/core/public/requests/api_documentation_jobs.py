@@ -1,9 +1,7 @@
 from eave.core.internal import database
-from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.api_documentation_jobs import ApiDocumentationJobOrm
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.github_api.models import ApiDocumentationJobInput
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -13,7 +11,6 @@ from eave.stdlib.core_api.operations.api_documentation_jobs import (
     UpsertApiDocumentationJobOperation,
     GetApiDocumentationJobsOperation,
 )
-from eave.stdlib.logging import LogContext
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 from eave.core.internal.config import app_config
@@ -56,6 +53,7 @@ class UpsertApiDocumentationJobsEndpoint(HTTPEndpoint):
                 session=db_session,
                 params=ApiDocumentationJobOrm.QueryParams(
                     team_id=team_id,
+                    github_repo_id=input.job.github_repo_id,
                 ),
             )
 
@@ -66,9 +64,11 @@ class UpsertApiDocumentationJobsEndpoint(HTTPEndpoint):
                     github_repo_id=input.job.github_repo_id,
                     state=input.job.state,
                 )
-
-            docs_job_orm.state = input.job.state
-            docs_job_orm.last_result = input.job.last_result
+            else:
+                docs_job_orm.update(
+                    state=input.job.state,
+                    last_result=input.job.last_result,
+                )
 
         return json_response(
             UpsertApiDocumentationJobOperation.ResponseBody(
