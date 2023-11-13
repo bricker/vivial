@@ -1,4 +1,4 @@
-from typing import Unpack
+from typing import Optional, Unpack
 import uuid
 from eave.stdlib import requests
 from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
@@ -14,6 +14,7 @@ class RunApiDocumentationTask(GithubAppEndpoint):
 
     class RequestBody(BaseRequestBody):
         repo: GithubRepoInput
+        force: Optional[bool] = None
 
     class ResponseBody(BaseResponseBody):
         pass

@@ -40,18 +40,18 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 const ANALYTICS_SOURCE = "run api documentation cron handler";
 
 /**
- * Handles the task of running API documentation. It loads the logging context, validates the team ID,
- * retrieves the core API data, and checks if the API documentation feature is enabled for the repository.
- * If the repository is empty, it logs an event and sends a 200 status response. If there are no commits
- * made to the default branch in the delta period, it logs an event and sends a 200 status response.
- * If no express apps are detected, it logs an event and sends a 200 status response. If express apps are detected,
- * it builds the API documentation, generates the API documentation from OpenAI, and creates a pull request with the new documentation.
+ * Handles the task of running API documentation. It loads the log context, validates the team ID,
+ * retrieves the team and repository data, and checks if the API documentation feature is enabled for the repository.
+ * If the repository is empty or no Express apps are detected, it logs the event and sends a 200 status response.
+ * If there are no commits made to the default branch in the delta period, it logs an event and sends a 200 status response.
+ * For each detected Express app, it builds the API documentation, generates a new document content from OpenAI,
+ * and creates a pull request with the new documentation.
  * If any errors occur during the process, it logs the error and updates the GitHub document status to FAILED.
  *
  * @param {Express.Request} req - The request object.
  * @param {Express.Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the function has completed.
- * @throws {MissingRequiredHeaderError} - If the team ID header is missing.
+ * @throws {MissingRequiredHeaderError} - If the team ID header is missing in the request.
  * @throws {Error} - If the API documentation state is not enabled, no Github integration is found for the team ID,
  *                    no express apps are detected, no root file is found, no express endpoints are found, or the API documentation
  *                    is not generated.
@@ -137,35 +137,42 @@ export async function runApiDocumentationTaskHandler(
       return;
     }
 
-    const existingGithubDocuments = await coreAPIData.getGithubDocuments();
-    // If there aren't any associated github documents yet, always run the task.
-    if (
-      existingGithubDocuments &&
-      Object.keys(existingGithubDocuments).length > 0
-    ) {
-      const latestCommitOnDefaultBranch =
-        await githubAPIData.getLatestCommitOnDefaultBranch();
-      if (latestCommitOnDefaultBranch) {
-        const committedDate = Date.parse(
-          latestCommitOnDefaultBranch.committedDate,
-        );
-        const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
-        if (committedDate < oneDayAgo) {
-          await logEvent(
-            {
-              event_name: "api_documentation_skipped_no_commits",
-              event_description:
-                "The API documentation process was skipped because no commits were made to the default branch in the delta period.",
-              eave_team: eaveTeam,
-              event_source: ANALYTICS_SOURCE,
-              opaque_params: {
-                ...sharedAnalyticsParams,
-              },
-            },
-            ctx,
+    if (!input.force) {
+      const existingGithubDocuments = await coreAPIData.getGithubDocuments();
+      // If there aren't any associated github documents yet, always run the task.
+      if (
+        existingGithubDocuments &&
+        Object.keys(existingGithubDocuments).length > 0
+      ) {
+        const latestCommitOnDefaultBranch =
+          await githubAPIData.getLatestCommitOnDefaultBranch();
+        if (latestCommitOnDefaultBranch) {
+          const committedDate = Date.parse(
+            latestCommitOnDefaultBranch.committedDate,
           );
-          res.sendStatus(200);
-          return;
+          const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
+          if (committedDate < oneDayAgo) {
+            eaveLogger.debug(
+              "API doc task skipped due to delta check",
+              sharedAnalyticsParams,
+              ctx,
+            );
+            await logEvent(
+              {
+                event_name: "api_documentation_skipped_no_commits",
+                event_description:
+                  "The API documentation process was skipped because no commits were made to the default branch in the delta period.",
+                eave_team: eaveTeam,
+                event_source: ANALYTICS_SOURCE,
+                opaque_params: {
+                  ...sharedAnalyticsParams,
+                },
+              },
+              ctx,
+            );
+            res.sendStatus(200);
+            return;
+          }
         }
       }
     }
@@ -578,11 +585,11 @@ async function updateDocuments({
 }
 
 /**
- * Generates documentation for an Express API based on the provided information.
+ * Generates API documentation for the provided Express REST API endpoint using OpenAI.
  *
  * @param {Object} arg - An object containing the context and Express API information.
  * @param {Object} arg.ctx - The context object.
- * @param {ExpressAPI} arg.expressAPIInfo - The Express API information object.
+ * @param {Object} arg.expressAPIInfo - Information about the Express API.
  *
  * @returns {Promise<string|null>} The generated API documentation as a string, or null if no documentation could be generated.
  *
@@ -700,10 +707,11 @@ export async function generateExpressAPIDoc({
 }
 
 /**
- * Generates the file path for the documentation of a given API.
+ * Returns the file path for the documentation of a given API.
  *
- * @param {Object} options - The options object.
- * @param {string} options.apiName - The name of the API.
+ * @param {Object} obj - An object.
+ * @param {string} obj.apiName - The name of the API.
+ *
  * @returns {string} The file path for the API's documentation.
  */
 function documentationFilePath({ apiName }: { apiName: string }): string {

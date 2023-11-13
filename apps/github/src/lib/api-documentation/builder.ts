@@ -80,7 +80,11 @@ export class ExpressAPIDocumentBuilder {
     if (!apiInfo.rootFile) {
       eaveLogger.warning(
         "No express API root file found",
-        { api_root_dir: apiRootDir, github_data: githubAPIData.logParams },
+        {
+          api_root_dir: apiRootDir,
+          github_data: githubAPIData.logParams,
+          core_api_data: coreAPIData.logParams,
+        },
         ctx,
       );
       return apiInfo;
@@ -100,9 +104,8 @@ export class ExpressAPIDocumentBuilder {
         "No express API endpoints found",
         {
           api_root_dir: apiRootDir,
-          api_root_file: apiInfo.rootFile?.asJSON,
-          github_data: githubAPIData.logParams,
         },
+        builder.logParams,
         ctx,
       );
     }
@@ -112,8 +115,6 @@ export class ExpressAPIDocumentBuilder {
       {
         api_info: apiInfo.asJSON,
         api_root_dir: apiRootDir,
-        api_root_file: apiInfo.rootFile?.asJSON,
-        github_data: githubAPIData.logParams,
       },
       builder.logParams,
       ctx,

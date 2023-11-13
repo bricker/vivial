@@ -4,6 +4,7 @@ import { GithubAppEndpointConfiguration } from "./shared.js";
 
 export type RunApiDocumentationTaskRequestBody = {
   repo: GithubRepoInput;
+  force?: boolean;
 };
 
 export class RunApiDocumentationTaskOperation {
