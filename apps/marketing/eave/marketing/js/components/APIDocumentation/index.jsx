@@ -179,6 +179,9 @@ function renderContent(
     apiDocsLoading,
     apiDocsFetchCount,
     apiDocs,
+    apiDocsJobStatusErroring,
+    apiDocsJobStatusLoading,
+    apiDocsJobs,
     repos,
     apiDocsRequestHasSucceededAtLeastOnce,
   } = team;
@@ -205,6 +208,9 @@ function renderContent(
     }
   }
 
+  if (!apiDocsLoading && !apiDocsJobStatusLoading && !apiDocsJobStatusErroring) {
+    const allErrored = apiDocsJobs.every(job => job.last_result === error)
+  }
   if (apiDocs.length === 0) { // TODO: update text
     return (
       <Typography color="inherit" variant="h6">

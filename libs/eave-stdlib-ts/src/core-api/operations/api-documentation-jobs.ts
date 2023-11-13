@@ -6,11 +6,11 @@ import {
 } from "../models/api-documentation-jobs.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
-type GetApiDocumentationJobsRequestBody = {
+export type GetApiDocumentationJobsRequestBody = {
   jobs?: ApiDocumentationJobListInput[];
 };
 
-type GetApiDocumentationJobsResponseBody = {
+export type GetApiDocumentationJobsResponseBody = {
   jobs: ApiDocumentationJob[];
 };
 
@@ -30,11 +30,11 @@ export class GetApiDocumentationJobsOperation {
   }
 }
 
-type UpsertApiDocumentationJobRequestBody = {
+export type UpsertApiDocumentationJobRequestBody = {
   job: ApiDocumentationJobUpsertInput;
 };
 
-type UpsertApiDocumentationJobResponseBody = {
+export type UpsertApiDocumentationJobResponseBody = {
   job: ApiDocumentationJob;
 };
 
