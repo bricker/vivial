@@ -170,7 +170,8 @@ class GithubRepoOrm(Base):
         result = await session.scalar(stmt)
         return result
 
-    def update(self, input: GithubRepoUpdateValues) -> None:
+    def update(self, session: AsyncSession, input: GithubRepoUpdateValues) -> None:
+        """`session` intentionally unused; it is present as a hint that this function should only be called inside a db session."""
         if input.api_documentation_state is not None:
             self.api_documentation_state = input.api_documentation_state.value
         if input.architecture_documentation_state is not None:

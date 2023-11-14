@@ -1,9 +1,13 @@
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests import connect_integration, github_repos, github_documents
+from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
+from eave.stdlib.core_api.operations.api_documentation_jobs import (
+    GetApiDocumentationJobsOperation,
+    UpsertApiDocumentationJobOperation,
+)
 from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocuments, UpsertDocument
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.core_api.operations.github import GetGithubInstallation, DeleteGithubInstallation
@@ -232,6 +236,14 @@ routes = [
     make_route(
         config=FeatureStateGithubReposRequest.config,
         endpoint=github_repos.FeatureStateGithubReposEndpoint,
+    ),
+    make_route(
+        config=UpsertApiDocumentationJobOperation.config,
+        endpoint=api_documentation_jobs.UpsertApiDocumentationJobsEndpoint,
+    ),
+    make_route(
+        config=GetApiDocumentationJobsOperation.config,
+        endpoint=api_documentation_jobs.GetApiDocumentationJobEndpoint,
     ),
     # Authenticated API endpoints.
     make_route(
