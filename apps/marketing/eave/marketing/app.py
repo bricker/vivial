@@ -177,6 +177,7 @@ async def update_team_repos() -> Response:
 
     return _make_response(eave_response)
 
+
 @app.route("/dashboard/team/api-docs-jobs", method=["POST"])
 @_auth_handler
 async def get_team_docs_jobs() -> Response:
@@ -190,12 +191,11 @@ async def get_team_docs_jobs() -> Response:
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
-        input=api_documentation_jobs.GetApiDocumentationJobsOperation.RequestBody(
-            jobs=jobs
-        ),
+        input=api_documentation_jobs.GetApiDocumentationJobsOperation.RequestBody(jobs=jobs),
     )
 
     return _make_response(eave_response)
+
 
 @app.route("/dashboard/team/documents", methods=["POST"])
 @_auth_handler
