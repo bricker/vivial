@@ -110,12 +110,14 @@ class ApiDocumentationJobOrm(Base):
 
     @classmethod
     async def one_or_none(cls, params: QueryParams, session: AsyncSession) -> Self | None:
-        query_result = await cls.query(session=session, params=params)
-        assert len(query_result) < 2, "Query unexpectedly resulted in more than one ApiDocumentationJob"
-        result = query_result[0] if len(query_result) > 0 else None
+        stmt = cls._build_query(params=params)
+        result = (await session.scalars(stmt)).one_or_none()
         return result
 
-    def update(self, state: ApiDocumentationJobState, last_result: Optional[LastJobResult]) -> None:
+    def update(
+        self, session: AsyncSession, state: ApiDocumentationJobState, last_result: Optional[LastJobResult]
+    ) -> None:
+        """`session` intentionally unused; it is present as a hint that this function should only be called inside a db session."""
         if last_result is not None:
             self.last_result = last_result
         self.state = state

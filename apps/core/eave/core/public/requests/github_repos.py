@@ -223,7 +223,7 @@ class UpdateGithubReposEndpoint(HTTPEndpoint):
                 ):
                     await _trigger_api_documentation(github_repo_orm=gh_repo_orm, ctx=eave_state.ctx)
 
-                gh_repo_orm.update(new_values)
+                gh_repo_orm.update(session=db_session, input=new_values)
 
         return json_response(
             UpdateGithubReposRequest.ResponseBody(
