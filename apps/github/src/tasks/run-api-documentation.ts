@@ -109,7 +109,7 @@ export async function runApiDocumentationTaskHandler(
     ctx,
   );
 
-  let jobResult = LastJobResult.doc_created;
+  let jobResult = LastJobResult.none;
   try {
     const githubAPIData = new GithubAPIData({
       ctx,
@@ -256,12 +256,6 @@ export async function runApiDocumentationTaskHandler(
             filePath: expressAPIInfo.documentationFilePath,
           });
           localAnalyticsParams["eave_doc"] = eaveDoc;
-          eaveLogger.debug(
-            "existing eave doc",
-            localAnalyticsParams,
-            sharedAnalyticsParams,
-            ctx,
-          );
 
           if (!expressAPIInfo.rootFile) {
             eaveLogger.warning(
@@ -447,20 +441,6 @@ export async function runApiDocumentationTaskHandler(
       }),
     );
 
-    eaveLogger.debug(
-      "api doc generate promise results",
-      {
-        results: results.map((r) => ({
-          status: r.status,
-          fulfilledValue:
-            r.status === "fulfilled" ? r.value?.asJSON : undefined,
-          rejectedReason: r.status === "rejected" ? r.reason : undefined,
-        })),
-      },
-      sharedAnalyticsParams,
-      ctx,
-    );
-
     const validExpressAPIs = results
       .filter((r) => r.status === "fulfilled" && r.value)
       .map((r) => (<PromiseFulfilledResult<ExpressAPI>>r).value);
@@ -523,6 +503,8 @@ export async function runApiDocumentationTaskHandler(
         status: GithubDocumentStatus.PR_OPENED,
       },
     });
+
+    jobResult = LastJobResult.doc_created;
   } catch (e: unknown) {
     jobResult = LastJobResult.error;
     throw e;
