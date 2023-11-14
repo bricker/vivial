@@ -1,3 +1,5 @@
+export type JsonDate = string;
+
 export type JsonScalar = string | number | boolean | null | undefined;
 
 export type JsonValue = JsonScalar | JsonValue[] | { [key: string]: JsonValue };
@@ -31,3 +33,14 @@ export enum ExpressRoutingMethod {
   unlock = "unlock",
   unsubscribe = "unsubscribe",
 }
+
+/**
+ * Use for mixins
+ * https://www.typescriptlang.org/docs/handbook/mixins.html
+ */
+export type Constructor = new (...args: any[]) => any;
+export type GConstructor<T = NonNullable<unknown>> = new (...args: any[]) => T;
+
+// Copied from node:crypto
+// export type UUID = `${string}-${string}-${string}-${string}-${string}`;
+export type UUID = string;

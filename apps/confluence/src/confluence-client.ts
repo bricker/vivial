@@ -1,18 +1,46 @@
-import { ConfluenceContentBody, ConfluenceContentBodyRepresentation, ConfluenceContentStatus, ConfluenceContentType, ConfluencePage, ConfluencePageBodyWrite, ConfluenceSearchResultWithBody, ConfluenceSpace, ConfluenceSpaceContentDepth, ConfluenceSpaceStatus, ConfluenceSpaceType, SystemInfoEntity } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
-import ConnectClient, { RequestOpts } from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
+import {
+  ConfluenceContentBody,
+  ConfluenceContentBodyRepresentation,
+  ConfluenceContentStatus,
+  ConfluenceContentType,
+  ConfluencePage,
+  ConfluencePageBodyWrite,
+  ConfluenceSearchResultWithBody,
+  ConfluenceSpace,
+  ConfluenceSpaceContentDepth,
+  ConfluenceSpaceStatus,
+  ConfluenceSpaceType,
+  SystemInfoEntity,
+} from "@eave-fyi/eave-stdlib-ts/src/confluence-api/models.js";
+import ConnectClient, {
+  RequestOpts,
+} from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
 import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
+import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { AddOn } from "atlassian-connect-express";
 import { cleanDocument } from "./api/util.js";
 import appConfig from "./config.js";
 
 export default class ConfluenceClient extends ConnectClient {
-  static async getAuthedConfluenceClient({ addon, teamId, clientKey }: { addon: AddOn; teamId?: string; clientKey?: string }): Promise<ConfluenceClient> {
+  static async getAuthedConfluenceClient({
+    addon,
+    teamId,
+    clientKey,
+  }: {
+    addon: AddOn;
+    teamId?: string;
+    clientKey?: string;
+  }): Promise<ConfluenceClient> {
+    // FIXME: use real context
+    const ctx = new LogContext();
+
     const connectClient = await ConnectClient.getAuthedConnectClient({
       addon,
       product: AtlassianProduct.confluence,
       origin: appConfig.eaveOrigin,
       teamId,
       clientKey,
+      ctx,
     });
 
     return new ConfluenceClient(connectClient);
@@ -21,7 +49,11 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-spacekey-get
   */
-  async getSpaceByKey({ spaceKey }: { spaceKey: string }): Promise<ConfluenceSpace | null> {
+  async getSpaceByKey({
+    spaceKey,
+  }: {
+    spaceKey: string;
+  }): Promise<ConfluenceSpace | null> {
     const request: RequestOpts = {
       url: `/rest/api/space/${spaceKey}`,
       qs: {
@@ -42,7 +74,13 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-get
   */
-  async getPageByTitle({ space, title }: { space: ConfluenceSpace; title: string }): Promise<ConfluencePage | null> {
+  async getPageByTitle({
+    space,
+    title,
+  }: {
+    space: ConfluenceSpace;
+    title: string;
+  }): Promise<ConfluencePage | null> {
     const request: RequestOpts = {
       url: "/rest/api/content",
       qs: {
@@ -65,7 +103,11 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-get
   */
-  async getPageById({ pageId }: { pageId: string }): Promise<ConfluencePage | null> {
+  async getPageById({
+    pageId,
+  }: {
+    pageId: string;
+  }): Promise<ConfluencePage | null> {
     const request: RequestOpts = {
       url: `/rest/api/content/${pageId}`,
       qs: {
@@ -86,7 +128,11 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content---children-and-descendants/#api-wiki-rest-api-content-id-child-type-get
   */
-  async getPageChildren({ pageId }: { pageId: string | number }): Promise<ConfluencePage[]> {
+  async getPageChildren({
+    pageId,
+  }: {
+    pageId: string | number;
+  }): Promise<ConfluencePage[]> {
     const request: RequestOpts = {
       url: `/rest/api/content/${pageId}/child/${ConfluenceContentType.page}`,
       qs: {
@@ -107,7 +153,11 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-space/#api-wiki-rest-api-space-spacekey-content-type-get
   */
-  async getSpaceRootPage({ space }: { space: ConfluenceSpace }): Promise<ConfluencePage | null> {
+  async getSpaceRootPage({
+    space,
+  }: {
+    space: ConfluenceSpace;
+  }): Promise<ConfluencePage | null> {
     const request: RequestOpts = {
       url: `/rest/api/space/${space.key}/content/${ConfluenceContentType.page}`,
       qs: {
@@ -131,7 +181,17 @@ export default class ConfluenceClient extends ConnectClient {
   }
 
   /* https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-page/#api-pages-post */
-  async createPage({ space, body, title, parentId }: { space: ConfluenceSpace; title: string; body: string; parentId?: string }): Promise<ConfluencePage | null> {
+  async createPage({
+    space,
+    body,
+    title,
+    parentId,
+  }: {
+    space: ConfluenceSpace;
+    title: string;
+    body: string;
+    parentId?: string;
+  }): Promise<ConfluencePage | null> {
     const pageBody: ConfluencePageBodyWrite = {
       representation: ConfluenceContentBodyRepresentation.storage,
       value: cleanDocument(body),
@@ -207,7 +267,13 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/#api-wiki-rest-api-search-get
   */
-  async search({ cql, cqlcontext }: { cql: string; cqlcontext?: { [key: string]: any } }): Promise<ConfluenceSearchResultWithBody[]> {
+  async search({
+    cql,
+    cqlcontext,
+  }: {
+    cql: string;
+    cqlcontext?: { [key: string]: any };
+  }): Promise<ConfluenceSearchResultWithBody[]> {
     const request: RequestOpts = {
       url: "/rest/api/content/search",
       qs: {
@@ -230,7 +296,13 @@ export default class ConfluenceClient extends ConnectClient {
   /*
   https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content/#api-wiki-rest-api-content-id-put
   */
-  async updatePage({ page, body }: { page: ConfluencePage; body: string }): Promise<ConfluencePage | null> {
+  async updatePage({
+    page,
+    body,
+  }: {
+    page: ConfluencePage;
+    body: string;
+  }): Promise<ConfluencePage | null> {
     let currentVersion = page.version?.number;
     if (currentVersion === undefined) {
       currentVersion = 0;

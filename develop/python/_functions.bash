@@ -18,6 +18,8 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 				exit 1
 			fi
 
+			# Reminder that this function is expected to be run from a bin/* scripts, which are usually bash scripts,
+			# so the file being sourced here is for bash, not the user's shell.
 			# shellcheck disable=SC1091
 			source "$ved/bin/activate"
 		fi
@@ -27,13 +29,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-validate-version
 		python-activate-venv
 
-		local qflag="--quiet"
-		local mypyout=/dev/null
-		if verbose; then
-			qflag=""
-			mypyout=/dev/stdout
-		fi
-
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
@@ -41,22 +36,20 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
-		statusmsg -on "Linting $logtarget (py)..."
-		python -m ruff $qflag --config="$configfile" .
-		python -m black $qflag --config="$configfile" --check .
-		python -m mypy --config-file="$configfile" . >$mypyout
-		statusmsg -sp " ✔ "
+		statusmsg -i "Linting $logtarget (py)..."
+
+		python -m ruff --config="$configfile" .
+		python -m pyright --project "$EAVE_HOME" .
+		python -m black --config="$configfile" --check .
+
+		statusmsg -s "Linting $logtarget passed"
+		echo
 	)
 
 	function python-format() (
 		python-validate-version
 		python-activate-venv
 
-		local qflag="--quiet"
-		if verbose; then
-			qflag=""
-		fi
-
 		local target=$1
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
@@ -64,10 +57,17 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
-		statusmsg -on "Formatting $logtarget (py)..."
-		python -m ruff $qflag --fix --config="$configfile" .
-		python -m black $qflag --config="$configfile" .
-		statusmsg -sp " ✔ "
+		statusmsg -i "Formatting $logtarget (py)..."
+
+		python -m black --config="$configfile" .
+
+		# Ruff could change code semantics. The auto-formatter is intended to be completely safe.
+		# but it also removes unused import which we want.
+		# TODO: can we configure it to only fix the unused imports?
+		python -m ruff --fix --config="$configfile" .
+
+		statusmsg -s "Formatting $logtarget completed"
+		echo
 	)
 
 	function python-test() (

@@ -1,6 +1,13 @@
 import { DocumentInput } from "../core-api/models/documents.js";
 import { ConfluenceDestinationInput } from "../core-api/models/team.js";
-import { ConfluencePage, ConfluenceSearchParamsInput, ConfluenceSearchResultWithBody, ConfluenceSpace, DeleteContentInput, UpdateConfluenceContentInput } from "./models.js";
+import {
+  ConfluencePage,
+  ConfluenceSearchParamsInput,
+  ConfluenceSearchResultWithBody,
+  ConfluenceSpace,
+  DeleteContentInput,
+  UpdateConfluenceContentInput,
+} from "./models.js";
 
 export interface GetAvailableSpacesRequestBody {}
 

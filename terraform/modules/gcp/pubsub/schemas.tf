@@ -1,0 +1,1 @@
+# Schemas are managed outside of terraform

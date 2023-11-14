@@ -13,7 +13,10 @@ export async function registerDevApp({ addon }: { addon: AddOn }) {
   if (!process.env["AC_LOCAL_BASE_URL"]) {
     try {
       // TODO: Make this path configurable
-      const rawNgrokUrl = await fs.readFile(path.join(process.env["EAVE_HOME"], ".tmp/ngrokurl"), "utf-8");
+      const rawNgrokUrl = await fs.readFile(
+        path.join(process.env["EAVE_HOME"], ".tmp/ngrokurl"),
+        "utf-8",
+      );
       console.debug(`running ngrok url: ${rawNgrokUrl}`);
       const configuredUrl = new URL(addon.config.localBaseUrl());
       const ngrokUrl = new URL(rawNgrokUrl);

@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "bin/start-pm2",
+    "start": "npx pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion --name github confluence pm2.config.cjs",
     "start-dev": "pkill -n ngrok || true && nodemon ./server.ts"
   },
   "dependencies": {

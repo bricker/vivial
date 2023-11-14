@@ -1,4 +1,5 @@
 import asyncio
+import enum
 import re
 from typing import Optional
 from urllib.parse import urlparse
@@ -8,9 +9,17 @@ from eave.stdlib.github_api.operations.content import GetGithubUrlContent
 from eave.stdlib.github_api.operations.subscriptions import CreateGithubResourceSubscription
 
 from .core_api.models.subscriptions import SubscriptionInfo
-from .core_api.enums import LinkType
 
 from .eave_origins import EaveApp
+
+
+class LinkType(enum.StrEnum):
+    """
+    Link types that we support fetching content from for integration into AI documentation creation.
+    """
+
+    github = "github"
+
 
 # mapping from link type to regex for matching raw links against
 SUPPORTED_LINKS: dict[LinkType, list[str]] = {
@@ -56,8 +65,8 @@ async def map_url_content(
                     )
                 )
 
-    content_responses: list[Optional[GetGithubUrlContent.ResponseBody]] = await asyncio.gather(*tasks)
-    content = list(map(lambda x: x.content if x else None, content_responses))
+    content_responses: list[GetGithubUrlContent.ResponseBody] = await asyncio.gather(*tasks)
+    content = list(map(lambda x: x.content, content_responses))
     return content
 
 
@@ -80,7 +89,9 @@ async def subscribe_to_file_changes(
         )
 
     # have asyncio.gather eat any network exceptions and return them as part of result
-    completed_tasks: list[Optional[SubscriptionInfo]] = await asyncio.gather(*tasks, return_exceptions=True)
+    completed_tasks: list[Optional[SubscriptionInfo] | BaseException | Exception] = await asyncio.gather(
+        *tasks, return_exceptions=True
+    )
     # only return the successful results
     subscription_sources = [src for src in completed_tasks if type(src) is SubscriptionInfo]
     return subscription_sources

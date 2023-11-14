@@ -1,26 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env bash
 
-import os
-import click
-from eave.dev_tooling.dotenv_loader import load_merged_dotenv_files
-import alembic
-import alembic.config
-import alembic.command
+set -eu
 
-EAVE_HOME = os.environ["EAVE_HOME"]
-alembic_config = alembic.config.Config("alembic.ini")
+source "${EAVE_HOME}"/develop/functions.bash
 
-@click.command()
-@click.option("-e", "--env-file", "env_files", multiple=True, default=[f"{EAVE_HOME}/.env"])
-@click.option("-m", "--message", required=True)
-def create_revision(env_files: list[str], message: str) -> None:
-    load_merged_dotenv_files(files=env_files)
-
-    alembic.command.revision(
-        config=alembic_config,
-        message=message,
-        autogenerate=True,
-    )
-
-if __name__ == "__main__":
-    create_revision()
+python-activate-venv
+python "$EAVE_HOME/apps/core/bin/src/create-db-migration.py" "$@"

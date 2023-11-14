@@ -111,7 +111,13 @@ export default class Signing {
    */
   async signBase64(data: string | Buffer): Promise<string> {
     const kmsClient = new KeyManagementServiceClient();
-    const keyVersionName = kmsClient.cryptoKeyVersionPath(sharedConfig.googleCloudProject, KMS_KEYRING_LOCATION, KMS_KEYRING_NAME, this.signingKey.id, this.signingKeyVersion);
+    const keyVersionName = kmsClient.cryptoKeyVersionPath(
+      sharedConfig.googleCloudProject,
+      KMS_KEYRING_LOCATION,
+      KMS_KEYRING_NAME,
+      this.signingKey.id,
+      this.signingKeyVersion,
+    );
 
     let messageBytes: Buffer;
     if (typeof data === "string") {
@@ -158,7 +164,10 @@ export default class Signing {
       crc32cint = <number>crc32value;
     }
 
-    this.validateChecksumOrException(Buffer.from(signedResponse.signature), crc32cint);
+    this.validateChecksumOrException(
+      Buffer.from(signedResponse.signature),
+      crc32cint,
+    );
 
     return Buffer.from(signedResponse.signature.valueOf()).toString("base64");
   }
@@ -173,7 +182,10 @@ export default class Signing {
     }
   }
 
-  async verifySignatureOrException(message: string | Buffer, signature: string | Buffer): Promise<void> {
+  async verifySignatureOrException(
+    message: string | Buffer,
+    signature: string | Buffer,
+  ): Promise<void> {
     let signatureString: string;
     if (typeof signature === "string") {
       signatureString = signature;
@@ -191,7 +203,11 @@ export default class Signing {
         const verify = createVerify("RSA-SHA256");
         verify.update(message);
         verify.end();
-        isVerified = verify.verify({ key: pem, padding: RSA_PKCS1_PADDING }, signatureString, "base64");
+        isVerified = verify.verify(
+          { key: pem, padding: RSA_PKCS1_PADDING },
+          signatureString,
+          "base64",
+        );
         break;
       }
       case SigningAlgorithm.ES256: {
@@ -203,7 +219,9 @@ export default class Signing {
         break;
       }
       default:
-        throw new InvalidSignatureError(`Unsupported algorithm: ${this.signingKey.algorithm}`);
+        throw new InvalidSignatureError(
+          `Unsupported algorithm: ${this.signingKey.algorithm}`,
+        );
     }
 
     if (!isVerified) {
@@ -220,7 +238,13 @@ export default class Signing {
   private async fetchPublicKey(): Promise<string> {
     const kmsClient = new KeyManagementServiceClient();
 
-    const keyVersionName = kmsClient.cryptoKeyVersionPath(sharedConfig.googleCloudProject, KMS_KEYRING_LOCATION, KMS_KEYRING_NAME, this.signingKey.id, this.signingKeyVersion);
+    const keyVersionName = kmsClient.cryptoKeyVersionPath(
+      sharedConfig.googleCloudProject,
+      KMS_KEYRING_LOCATION,
+      KMS_KEYRING_NAME,
+      this.signingKey.id,
+      this.signingKeyVersion,
+    );
 
     const [kmsPublicKey] = await kmsClient.getPublicKey({
       name: keyVersionName,
@@ -241,7 +265,9 @@ export default class Signing {
    * @returns a public key PEM file content
    */
   private async getPublicKey(): Promise<string> {
-    const cacheKey = `${this.signingKey.id}${this.signingKey.version}${this.signingKey.algorithm.toString()}`;
+    const cacheKey = `${this.signingKey.id}${
+      this.signingKey.version
+    }${this.signingKey.algorithm.toString()}`;
     if (PUBLIC_KEYS_CACHE[cacheKey] !== undefined) {
       return PUBLIC_KEYS_CACHE[cacheKey]!;
     }
@@ -273,7 +299,15 @@ export function buildMessageToSign({
   teamId?: string;
   accountId?: string;
 }): string {
-  const signatureElements = [origin, method.toUpperCase(), audience, path, ts.toString(), requestId, payload];
+  const signatureElements = [
+    origin,
+    method.toUpperCase(),
+    audience,
+    path,
+    ts.toString(),
+    requestId,
+    payload,
+  ];
 
   if (teamId !== undefined) {
     signatureElements.push(teamId);

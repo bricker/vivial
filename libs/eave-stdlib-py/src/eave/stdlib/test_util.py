@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime, timedelta
 import json
 import os
@@ -116,16 +117,32 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getpath(self, name: str) -> str:
         return self.testdata[name]
 
+    def anystr_b64(self, name: Optional[str] = None, urlsafe: bool = False) -> str:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
+            data = str(uuid.uuid4())
+            new_value = f"{name}:{data}"
+            if urlsafe:
+                new_value = base64.urlsafe_b64encode(new_value.encode()).decode()
+            else:
+                new_value = base64.b64encode(new_value.encode()).decode()
+
+            self.testdata[name] = new_value
+
+        return self.testdata[name]
+
     def anystr(self, name: Optional[str] = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
             data = str(uuid.uuid4())
-            self.testdata[name] = f"{name}:{data}"
+            new_value = f"{name}:{data}"
+            self.testdata[name] = new_value
 
-        value: str = self.testdata[name]
-        return value
+        return self.testdata[name]
 
     def anystring(self, name: Optional[str] = None) -> str:
         """
@@ -133,8 +150,29 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         """
         return self.anystr(name=name)
 
+    def getstr_b64(self, name: str, urlsafe: bool = False) -> str:
+        v = self.testdata[name]
+
+        if urlsafe:
+            return base64.urlsafe_b64decode(v).decode()
+        else:
+            return base64.b64decode(v).decode()
+
     def getstr(self, name: str) -> str:
         return self.testdata[name]
+
+    def b64encode(self, value: str, urlsafe: bool = False) -> str:
+        b = value.encode()
+        if urlsafe:
+            return base64.urlsafe_b64encode(b).decode()
+        else:
+            return base64.b64decode(b).decode()
+
+    def b64decode(self, value: str, urlsafe: bool = False) -> str:
+        if urlsafe:
+            return base64.urlsafe_b64decode(value).decode()
+        else:
+            return base64.b64decode(value).decode()
 
     def anyjson(self, name: Optional[str] = None) -> str:
         if name is None:
@@ -203,7 +241,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             # Using `all` seems like a better way to do this, but I deliberately don't because I want
             # to fully loop through `attrs` to catch an invalid/unset attribute. Globally renaming Python attributes in an IDE
             # doesn't update string references to those attributes, so this is a trade-off where it'll be caught during the tests
-            # at runtime instead of during static analysts.
+            # at runtime instead of during static analysis.
             # all(getattr(obj1, attr) == getattr(obj2, attr) for attr in attrs)
 
             passing = True

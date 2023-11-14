@@ -16,6 +16,8 @@ from eave.stdlib.eave_origins import EaveApp
 
 from . import checksum
 
+GITHUB_EVENT_QUEUE_NAME = "github-events-processor"
+
 
 class EaveEnvironment(enum.StrEnum):
     development = "development"
@@ -159,14 +161,22 @@ class EaveConfig:
         host = parsed.hostname or "www.eave.fyi"
         return re.sub("www", "", host)
 
-    @property
+    @cached_property
     def redis_connection(self) -> Optional[tuple[str, int, str]]:
-        connection = os.getenv("REDIS_CONNECTION")
+        key = "REDIS_HOST_PORT"
+        value: str | None
 
-        if not connection:
-            return None
+        if self.is_development:
+            value = os.getenv(key)
+            if not value:
+                return None
+        else:
+            try:
+                value = self.get_secret(key)
+            except Exception:
+                return None
 
-        parts = connection.split(":")
+        parts = value.split(":")
         if len(parts) == 3:
             host, port_, db = parts
             port = int(port_)
@@ -174,8 +184,12 @@ class EaveConfig:
             host, port_ = parts
             port = int(port_)
             db = "0"
-        else:
+        elif len(parts) == 1:
             host = parts[0]
+            port = 6379
+            db = "0"
+        else:
+            host = "localhost"
             port = 6379
             db = "0"
 
@@ -184,28 +198,26 @@ class EaveConfig:
     @cached_property
     def redis_auth(self) -> Optional[str]:
         key = "REDIS_AUTH"
+
         if self.is_development:
-            value = os.getenv(key)
-            return value
+            return os.getenv(key)
         else:
             try:
-                value = self.get_secret(key)
-                return value
+                return self.get_secret(key)
             except Exception:
                 return None
 
-    @property
+    @cached_property
     def redis_tls_ca(self) -> Optional[str]:
-        return os.getenv("REDIS_TLS_CA")
+        key = "REDIS_TLS_CA"
 
-    @property
-    def eave_beta_whitelist_disabled(self) -> bool:
-        try:
-            value = self.get_secret("EAVE_BETA_WHITELIST_DISABLED")
-            return value == "1"
-        except Exception:
-            # Beta whitelist secret doesn't exist
-            return False
+        if self.is_development:
+            return os.getenv(key)
+        else:
+            try:
+                return self.get_secret(key)
+            except Exception:
+                return None
 
     @cached_property
     def eave_openai_api_key(self) -> str:

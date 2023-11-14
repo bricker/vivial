@@ -1,5 +1,13 @@
-import { makeRequest, RequestArgsAuthedRequest } from "../../requests.js";
-import { GithubDocument, GithubDocumentCreateInput, GithubDocumentsDeleteByIdsInput, GithubDocumentsDeleteByTypeInput, GithubDocumentsQueryInput, GithubDocumentUpdateInput } from "../models/github-documents.js";
+import { makeRequest, RequestArgsTeamId } from "../../requests.js";
+import {
+  GithubDocument,
+  GithubDocumentCreateInput,
+  GithubDocumentsDeleteByIdsInput,
+  GithubDocumentsDeleteByTypeInput,
+  GithubDocumentsQueryInput,
+  GithubDocumentUpdateInput,
+} from "../models/github-documents.js";
+import { GithubRepo, GithubRepoRefInput } from "../models/github-repos.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
 export type GetGithubDocumentsRequestBody = {
@@ -11,8 +19,12 @@ export type GetGithubDocumentsResponseBody = {
 };
 
 export class GetGithubDocumentsOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/query" });
-  static async perform(args: RequestArgsAuthedRequest & { input: GetGithubDocumentsRequestBody }): Promise<GetGithubDocumentsResponseBody> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-documents/query",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: GetGithubDocumentsRequestBody },
+  ): Promise<GetGithubDocumentsResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -22,16 +34,22 @@ export class GetGithubDocumentsOperation {
   }
 }
 export type CreateGithubDocumentRequestBody = {
+  repo: GithubRepoRefInput;
   document: GithubDocumentCreateInput;
 };
 
 export type CreateGithubDocumentResponseBody = {
+  repo: GithubRepo;
   document: GithubDocument;
 };
 
 export class CreateGithubDocumentOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/create" });
-  static async perform(args: RequestArgsAuthedRequest & { input: CreateGithubDocumentRequestBody }): Promise<CreateGithubDocumentResponseBody> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-documents/create",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: CreateGithubDocumentRequestBody },
+  ): Promise<CreateGithubDocumentResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -49,8 +67,12 @@ export type UpdateGithubDocumentResponseBody = {
 };
 
 export class UpdateGithubDocumentOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/update" });
-  static async perform(args: RequestArgsAuthedRequest & { input: UpdateGithubDocumentRequestBody }): Promise<UpdateGithubDocumentResponseBody> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-documents/update",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: UpdateGithubDocumentRequestBody },
+  ): Promise<UpdateGithubDocumentResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -64,8 +86,14 @@ export type DeleteGithubDocumentsByIdsRequestBody = {
 };
 
 export class DeleteGithubDocumentsByIdsOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/delete/id" });
-  static async perform(args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByIdsRequestBody }): Promise<void> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-documents/delete/id",
+  });
+  static async perform(
+    args: RequestArgsTeamId & {
+      input: DeleteGithubDocumentsByIdsRequestBody;
+    },
+  ): Promise<void> {
     await makeRequest({
       config: this.config,
       ...args,
@@ -77,8 +105,14 @@ export type DeleteGithubDocumentsByTypeRequestBody = {
 };
 
 export class DeleteGithubDocumentsByTypeOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-documents/delete/type" });
-  static async perform(args: RequestArgsAuthedRequest & { input: DeleteGithubDocumentsByTypeRequestBody }): Promise<void> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-documents/delete/type",
+  });
+  static async perform(
+    args: RequestArgsTeamId & {
+      input: DeleteGithubDocumentsByTypeRequestBody;
+    },
+  ): Promise<void> {
     await makeRequest({
       config: this.config,
       ...args,

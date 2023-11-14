@@ -1,4 +1,8 @@
-import { TestContextBase, TestUtil, mockSigning } from "@eave-fyi/eave-stdlib-ts/src/test-util.js";
+import {
+  TestContextBase,
+  TestUtil,
+  mockSigning,
+} from "@eave-fyi/eave-stdlib-ts/src/test-util.js";
 import anyTest, { TestFn } from "ava";
 import sinon from "sinon";
 import request from "supertest";
@@ -19,7 +23,9 @@ test.beforeEach((t) => {
 
   const mockConfluenceClient = new ConfluenceClient(<any>null); // client doesn't matter
   const confluenceClient = sandbox.stub(mockConfluenceClient);
-  sandbox.stub(ConfluenceClient, "getAuthedConfluenceClient").returns(Promise.resolve(confluenceClient));
+  sandbox
+    .stub(ConfluenceClient, "getAuthedConfluenceClient")
+    .returns(Promise.resolve(confluenceClient));
 
   t.context = {
     sandbox,

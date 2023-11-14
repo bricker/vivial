@@ -2,7 +2,15 @@
 
 set -eu
 
-find "$EAVE_HOME" \( -path ./.venv -o -path ./vendor \) -prune -o -type d -path ./.pytest_cache -exec rm -rf {} \;
-find "$EAVE_HOME" \( -path ./.venv -o -path ./vendor \) -prune -o -type d -path ./.ruff_cache -exec rm -rf {} \;
-find "$EAVE_HOME" \( -path ./.venv -o -path ./vendor \) -prune -o -type d -path ./.mypy_cache -exec rm -rf {} \;
-find "$EAVE_HOME" \( -path ./.venv -o -path ./vendor \) -prune -o -type d -path ./__pycache__ -exec rm -rf {} \;
+rm -rf .build
+rm -rf .tmp
+rm -rf "$EAVE_HOME/libs/eave-stdlib-py/build"
+rm -rf "$EAVE_HOME/libs/eave-pubsub-schemas/build"
+rm -rf "$EAVE_HOME/develop/python/build"
+
+find "$EAVE_HOME" -not -path ./.venv -not -path ./vendor -not -path ./node_modules -type f -name "*.egg-info" -exec rm -rf {} +
+find "$EAVE_HOME" -not -path ./.venv -not -path ./vendor -not -path ./node_modules -type f -name "*.pyc" -exec rm -rf {} +
+find "$EAVE_HOME" -not -path ./.venv -not -path ./vendor -not -path ./node_modules -type d -name .pytest_cache -exec rm -rf {} +
+find "$EAVE_HOME" -not -path ./.venv -not -path ./vendor -not -path ./node_modules -type d -name .ruff_cache -exec rm -rf {} +
+find "$EAVE_HOME" -not -path ./.venv -not -path ./vendor -not -path ./node_modules -type d -name .mypy_cache -exec rm -rf {} +
+find "$EAVE_HOME" -not -path ./.venv -not -path ./vendor -not -path ./node_modules -type d -name __pycache__ -exec rm -rf {} +

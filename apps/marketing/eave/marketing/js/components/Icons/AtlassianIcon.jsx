@@ -1,8 +1,15 @@
-import React from 'react';
+import React from "react";
 
 function AtlassianIcon({ className }) {
   return (
-    <svg role="img" aria-label="Atlassian logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 539.996 66.959" className={className} width="144">
+    <svg
+      role="img"
+      aria-label="Atlassian logo"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 539.996 66.959"
+      className={className}
+      width="144"
+    >
       <title>Atlassian</title>
       <defs>
         <linearGradient

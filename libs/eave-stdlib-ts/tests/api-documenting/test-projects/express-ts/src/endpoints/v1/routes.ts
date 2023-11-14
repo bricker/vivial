@@ -1,6 +1,18 @@
 import { Request, Response, Router } from "express";
-import { createList, deleteList, getList, getLists, updateList } from "./lists.js";
-import { createUser, deleteUser, getUser, getUsers, updateUser } from "./users.js";
+import {
+  createList,
+  deleteList,
+  getList,
+  getLists,
+  updateList,
+} from "./lists.js";
+import {
+  createUser,
+  deleteUser,
+  getUser,
+  getUsers,
+  updateUser,
+} from "./users.js";
 
 export function V1Router(): Router {
   const router = Router();

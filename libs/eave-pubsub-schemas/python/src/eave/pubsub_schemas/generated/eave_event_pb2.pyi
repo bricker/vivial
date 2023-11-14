@@ -5,7 +5,7 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class EaveEvent(_message.Message):
-    __slots__ = ["eave_account", "eave_account_id", "eave_env", "eave_request_id", "eave_team", "eave_team_id", "eave_visitor_id", "event_description", "event_name", "event_source", "event_time", "opaque_eave_ctx", "opaque_params"]
+    __slots__ = ["eave_account", "eave_account_id", "eave_env", "eave_request_id", "eave_team", "eave_team_id", "eave_visitor_id", "event_description", "event_name", "event_source", "event_time", "feature_name", "opaque_eave_ctx", "opaque_params"]
     EAVE_ACCOUNT_FIELD_NUMBER: _ClassVar[int]
     EAVE_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     EAVE_ENV_FIELD_NUMBER: _ClassVar[int]
@@ -17,6 +17,7 @@ class EaveEvent(_message.Message):
     EVENT_NAME_FIELD_NUMBER: _ClassVar[int]
     EVENT_SOURCE_FIELD_NUMBER: _ClassVar[int]
     EVENT_TIME_FIELD_NUMBER: _ClassVar[int]
+    FEATURE_NAME_FIELD_NUMBER: _ClassVar[int]
     OPAQUE_EAVE_CTX_FIELD_NUMBER: _ClassVar[int]
     OPAQUE_PARAMS_FIELD_NUMBER: _ClassVar[int]
     eave_account: str
@@ -30,6 +31,7 @@ class EaveEvent(_message.Message):
     event_name: str
     event_source: str
     event_time: str
+    feature_name: str
     opaque_eave_ctx: str
     opaque_params: str
-    def __init__(self, event_name: _Optional[str] = ..., event_description: _Optional[str] = ..., event_time: _Optional[str] = ..., event_source: _Optional[str] = ..., opaque_params: _Optional[str] = ..., eave_account_id: _Optional[str] = ..., eave_visitor_id: _Optional[str] = ..., eave_team_id: _Optional[str] = ..., eave_env: _Optional[str] = ..., opaque_eave_ctx: _Optional[str] = ..., eave_account: _Optional[str] = ..., eave_team: _Optional[str] = ..., eave_request_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, event_name: _Optional[str] = ..., event_description: _Optional[str] = ..., event_time: _Optional[str] = ..., event_source: _Optional[str] = ..., opaque_params: _Optional[str] = ..., eave_account_id: _Optional[str] = ..., eave_visitor_id: _Optional[str] = ..., eave_team_id: _Optional[str] = ..., eave_env: _Optional[str] = ..., opaque_eave_ctx: _Optional[str] = ..., eave_account: _Optional[str] = ..., eave_team: _Optional[str] = ..., eave_request_id: _Optional[str] = ..., feature_name: _Optional[str] = ...) -> None: ...

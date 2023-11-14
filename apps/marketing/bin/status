@@ -2,6 +2,4 @@
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-(
-	"${EAVE_HOME}"/develop/shared/bin/status https://www.eave.${1:-fyi}/status
-)
+"${EAVE_HOME}"/develop/shared/bin/status https://www.eave.${1:-fyi}/status

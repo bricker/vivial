@@ -12,7 +12,11 @@ const MAX_SIGNATURE_AGE = 60 * 60; // 1h
  * Note that this middleware necessarily blocks the request until the full body is received,
  * so that it can calculate the expected signature and compare it to the provided signature.
  */
-export function signatureVerification({ audience }: { audience: EaveApp }): (req: Request, res: Response, next: NextFunction) => void {
+export function signatureVerification({
+  audience,
+}: {
+  audience: EaveApp;
+}): (req: Request, res: Response, next: NextFunction) => void {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       await doSignatureVerification(req, res, audience);
@@ -27,7 +31,11 @@ export function signatureVerification({ audience }: { audience: EaveApp }): (req
   };
 }
 
-async function doSignatureVerification(req: Request, res: Response, audience: EaveApp): Promise<void> {
+async function doSignatureVerification(
+  req: Request,
+  res: Response,
+  audience: EaveApp,
+): Promise<void> {
   const ctx = LogContext.load(res);
   const signature = req.header(eaveHeaders.EAVE_SIGNATURE_HEADER);
   if (!signature) {

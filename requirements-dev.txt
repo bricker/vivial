@@ -6,7 +6,7 @@
 
 grpcio-tools==1.53.0
 protobuf==4.21.12
-mypy
+pyright
 black
 ruff
 httpx
@@ -17,6 +17,6 @@ pretty_errors
 types-requests
 types-redis
 types-protobuf
-mitmproxy @ git+https://github.com/mitmproxy/mitmproxy@main # to resolve asgiref dependency version error
+mitmproxy==10.1.1
 click
 alembic

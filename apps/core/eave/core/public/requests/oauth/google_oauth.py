@@ -1,8 +1,7 @@
 from typing import cast
-from eave.stdlib import utm_cookies
+from eave.stdlib import analytics, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 
-import eave.stdlib.core_api.enums
 import google.oauth2.credentials
 import google.oauth2.id_token
 from starlette.requests import Request
@@ -13,6 +12,7 @@ from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import LogContext
 from . import base, shared
 
 _AUTH_PROVIDER = AuthProvider.google
@@ -20,10 +20,25 @@ _AUTH_PROVIDER = AuthProvider.google
 
 class GoogleOAuthAuthorize(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
+        ctx = LogContext.wrap(scope=request.scope)
+
+        await analytics.log_event(
+            event_name="oauth_flow_started",
+            event_description="A user started the Oauth flow (login/register)",
+            event_source="google oauth authorize endpoint",
+            opaque_params={
+                "auth_provider": _AUTH_PROVIDER,
+            },
+            ctx=ctx,
+        )
+
         oauth_flow_info = eave.core.internal.oauth.google.get_oauth_flow_info()
         response = RedirectResponse(url=oauth_flow_info.authorization_url)
 
-        utm_cookies.set_tracking_cookies(cookies=request.cookies, query_params=request.query_params, response=response)
+        utm_cookies.set_tracking_cookies(
+            response=response,
+            request=request,
+        )
 
         oauth_cookies.save_state_cookie(
             response=response,
@@ -39,9 +54,20 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
 
     async def get(self, request: Request) -> Response:
         await super().get(request=request)
+        ctx = LogContext.wrap(scope=request.scope)
 
         if not self._check_valid_callback():
             return self.response
+
+        await analytics.log_event(
+            event_name="oauth_flow_completed",
+            event_description="A user completed the Oauth flow (login/register)",
+            event_source="google oauth authorize endpoint",
+            opaque_params={
+                "auth_provider": _AUTH_PROVIDER,
+            },
+            ctx=ctx,
+        )
 
         flow = eave.core.internal.oauth.google.build_flow(state=self.state)
         flow.fetch_token(code=self.code)
@@ -56,7 +82,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
         google_token = eave.core.internal.oauth.google.decode_id_token(id_token=credentials.id_token)
         eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else "Your Team"
 
-        await shared.get_or_create_eave_account(
+        account = await shared.get_or_create_eave_account(
             request=self.request,
             response=self.response,
             eave_team_name=eave_team_name,
@@ -65,6 +91,10 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             auth_id=google_token.sub,
             access_token=credentials.token,
             refresh_token=credentials.refresh_token,
+        )
+
+        await shared.try_associate_account_with_dangling_github_installation(
+            request=self.request, response=self.response, team_id=account.team_id
         )
 
         return self.response

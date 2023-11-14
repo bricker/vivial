@@ -1,152 +1,195 @@
-import React, { useState } from 'react';
-import { makeStyles } from '@material-ui/styles';
-import { IconButton, Drawer } from '@material-ui/core';
+// @ts-check
+import { Drawer, IconButton } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
+import classNames from "classnames";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { HEADER, AUTH_MODAL_STATE, FEEDBACK_URL } from '../../constants.js';
-import useAuthModal from '../../hooks/useAuthModal.js';
-import useUser from '../../hooks/useUser.js';
-import HamburgerIcon from '../Icons/HamburgerIcon.js';
-import CloseIcon from '../Icons/CloseIcon.js';
-import Button from '../Button/index.jsx';
-import EaveLogo from '../EaveLogo/index.jsx';
+import { AUTH_MODAL_STATE, FEEDBACK_URL } from "../../constants.js";
+import useAuthModal from "../../hooks/useAuthModal.js";
+import useUser from "../../hooks/useUser.js";
+import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
+import { logUserOut } from "../../util/http-util.js";
+import Button from "../Button/index.jsx";
+import EaveLogo from "../EaveLogo/index.jsx";
+import CloseIcon from "../Icons/CloseIcon.js";
+import HamburgerIcon from "../Icons/HamburgerIcon.js";
 
-const makeClasses = makeStyles((theme) => ({
+const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   outterContainer: {
-    position: 'absolute',
-    top: '0',
-    width: '100%',
+    marginBottom: theme["header"].marginBottom,
+    width: "100%",
     zIndex: 100,
   },
+  headerMarginScaling: {
+    [theme.breakpoints.up("md")]: {
+      marginBottom: theme["header"].md.marginBottom,
+    },
+  },
   innerContainer: {
-    height: HEADER.mobile.height,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0px 16px',
+    height: theme["header"].height,
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    padding: "16px",
     maxWidth: 1440,
-    margin: '0 auto',
-    [theme.breakpoints.up('md')]: {
-      height: HEADER.desktop.height,
-      padding: '0px 46px',
+    margin: "0 auto",
+    [theme.breakpoints.up("md")]: {
+      height: theme["header"].md.height,
+      alignItems: "center",
+      padding: "0px 46px",
     },
   },
   logoContainer: {
     paddingLeft: 10,
-    [theme.breakpoints.up('md')]: {
+    lineHeight: 0,
+    [theme.breakpoints.up("md")]: {
       paddingLeft: 0,
     },
   },
   menuIconBtn: {
     padding: 0,
-    [theme.breakpoints.up('md')]: {
-      display: 'none',
+    [theme.breakpoints.up("md")]: {
+      display: "none",
     },
   },
   mobileMenu: {
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: theme.palette.background.main,
+    backgroundColor: theme.palette.background["main"],
+    width: "100vw",
+    height: "100vh",
   },
   mobileNav: {
-    padding: '30px 26px',
+    padding: "0px 25px",
   },
   mobileNavItem: {
-    color: theme.palette.primary.main,
-    textDecoration: 'none',
+    color: theme.palette.background["contrastText"],
+    textDecoration: "none",
     fontSize: 32,
-    lineHeight: '37.5px',
+    lineHeight: "37.5px",
     fontWeight: 400,
-    display: 'block',
+    display: "block",
     padding: 0,
-    margin: '0 0 12px',
-    border: 'none',
-    appearance: 'none',
-    cursor: 'pointer',
-    background: 'none',
+    margin: "0 0 32px",
+    border: "none",
+    appearance: "none",
+    cursor: "pointer",
+    background: "none",
   },
   ctaContainer: {
-    display: 'none',
-    [theme.breakpoints.up('md')]: {
-      display: 'block',
+    display: "none",
+    [theme.breakpoints.up("md")]: {
+      display: "block",
       fontSize: 32,
     },
   },
+  button: {
+    fontWeight: 700,
+  },
   inlineButton: {
-    display: 'inline-block',
-    color: theme.typography.color.main,
-    padding: 0,
-    margin: '0 32px 0 0',
-    border: 'none',
-    appearance: 'none',
-    cursor: 'pointer',
-    background: 'none',
+    color: theme.palette.background["contrastText"],
+    display: "inline-block",
+    padding: "0px 32px",
+    border: "none",
+    appearance: "none",
+    cursor: "pointer",
+    background: "none",
     fontSize: 16,
-    lineHeight: '21px',
-    fontWeight: 400,
-    textDecoration: 'none',
+    lineHeight: "21px",
+    fontWeight: 700,
+    textDecoration: "none",
+  },
+  yellowHighlight: {
+    color: theme.palette.primary.main,
   },
 }));
 
-const Header = ({ simpleHeader }) => {
+const Header = ({
+  /** @type {boolean} */ simpleHeader = false,
+  /** @type {boolean} */ compactHeader = false,
+}) => {
   const classes = makeClasses();
+  const outterContainer = classNames(
+    classes.outterContainer,
+    !compactHeader && classes.headerMarginScaling,
+  );
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const { openModal } = useAuthModal();
-  const { userState, logOut } = useUser();
-  const { authenticated } = userState;
+  const { isLoginHintSet } = useUser();
 
-  const TopButtons = authenticated ? (
+  const TopButtons = isLoginHintSet ? (
     <>
-      <a className={classes.inlineButton} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
+      <a
+        className={classes.inlineButton}
+        href={FEEDBACK_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
         Send Feedback
       </a>
-      <button className={classes.inlineButton} onClick={logOut}>
+      <button className={classes.inlineButton} onClick={logUserOut}>
         Log Out
       </button>
     </>
-
   ) : (
     <>
-      <button className={classes.inlineButton} onClick={ () => openModal(AUTH_MODAL_STATE.LOGIN) }>
+      <button
+        className={classes.inlineButton}
+        onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}
+      >
         Log In
       </button>
-      <Button onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
-        Get Early Access
+      <Button
+        className={classes.button}
+        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
+      >
+        Sign Up
       </Button>
     </>
   );
 
-  const navButtons = authenticated ? (
+  const navButtons = isLoginHintSet ? (
     <>
-      <a className={classes.mobileNavItem} href={FEEDBACK_URL} target="_blank" rel="noreferrer">
+      <Link className={classes.mobileNavItem} to="/dashboard">
+        Dashboard
+      </Link>
+      <a
+        className={classes.mobileNavItem}
+        href={FEEDBACK_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
         Send Feedback
       </a>
-      <button className={classes.mobileNavItem} onClick={logOut}>
+      <button className={classes.mobileNavItem} onClick={logUserOut}>
         Log Out
       </button>
     </>
-
   ) : (
     <>
-      <button className={classes.mobileNavItem} onClick={ () => openModal(AUTH_MODAL_STATE.LOGIN) }>
-        Log In
+      <button
+        className={`${classes.mobileNavItem} ${classes.yellowHighlight}`}
+        onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
+      >
+        Sign Up
       </button>
-      <button className={classes.mobileNavItem} onClick={ () => openModal(AUTH_MODAL_STATE.SIGNUP) }>
-        Get Early Access
+      <button
+        className={classes.mobileNavItem}
+        onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}
+      >
+        Log In
       </button>
     </>
   );
 
   return (
-    <header className={classes.outterContainer}>
+    <header className={outterContainer}>
       <div className={classes.innerContainer}>
         <div className={classes.logoContainer}>
           <EaveLogo />
         </div>
         {!simpleHeader && (
           <>
-            <div className={classes.ctaContainer}>
-              {TopButtons}
-            </div>
+            <div className={classes.ctaContainer}>{TopButtons}</div>
             <IconButton
               classes={{ root: classes.menuIconBtn }}
               onClick={() => setDrawerIsOpen(true)}
@@ -155,20 +198,20 @@ const Header = ({ simpleHeader }) => {
             </IconButton>
             <Drawer open={drawerIsOpen} anchor="right" transitionDuration={600}>
               <div className={classes.mobileMenu}>
-                <div className={classes.innerContainer}>
-                  <div className={classes.logoContainer}>
-                    <EaveLogo />
+                <div className={outterContainer}>
+                  <div className={classes.innerContainer}>
+                    <div className={classes.logoContainer}>
+                      <EaveLogo />
+                    </div>
+                    <IconButton
+                      classes={{ root: classes.menuIconBtn }}
+                      onClick={() => setDrawerIsOpen(false)}
+                    >
+                      <CloseIcon />
+                    </IconButton>
                   </div>
-                  <IconButton
-                    classes={{ root: classes.menuIconBtn }}
-                    onClick={() => setDrawerIsOpen(false)}
-                  >
-                    <CloseIcon />
-                  </IconButton>
                 </div>
-                <nav className={classes.mobileNav}>
-                  {navButtons}
-                </nav>
+                <nav className={classes.mobileNav}>{navButtons}</nav>
               </div>
             </Drawer>
           </>

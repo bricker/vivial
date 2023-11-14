@@ -1,8 +1,13 @@
-import React from 'react';
+import React from "react";
 
 function PurpleCheckIcon({ className }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 21 21" className={className}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 21 21"
+      className={className}
+    >
       <path
         stroke="#512DA8"
         strokeLinecap="round"

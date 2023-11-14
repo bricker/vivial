@@ -19,7 +19,7 @@ class CreateGithubResourceSubscription(GithubAppEndpoint):
     class ResponseBody(BaseResponseBody):
         team: Team
         subscription: Subscription
-        document_reference: Optional[DocumentReference] = None
+        document_reference: Optional[DocumentReference]
 
     @classmethod
     async def perform(
@@ -32,5 +32,5 @@ class CreateGithubResourceSubscription(GithubAppEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

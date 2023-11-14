@@ -15,6 +15,7 @@ export interface EaveEvent {
   eave_account?: string | undefined;
   eave_team?: string | undefined;
   eave_request_id: string;
+  feature_name?: string | undefined;
 }
 
 function createBaseEaveEvent(): EaveEvent {
@@ -32,6 +33,7 @@ function createBaseEaveEvent(): EaveEvent {
     eave_account: undefined,
     eave_team: undefined,
     eave_request_id: "",
+    feature_name: undefined,
   };
 }
 
@@ -75,6 +77,9 @@ export const EaveEvent = {
     }
     if (message.eave_request_id !== "") {
       writer.uint32(106).string(message.eave_request_id);
+    }
+    if (message.feature_name !== undefined) {
+      writer.uint32(114).string(message.feature_name);
     }
     return writer;
   },
@@ -177,6 +182,13 @@ export const EaveEvent = {
 
           message.eave_request_id = reader.string();
           continue;
+        case 14:
+          if (tag != 114) {
+            break;
+          }
+
+          message.feature_name = reader.string();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -201,6 +213,7 @@ export const EaveEvent = {
       eave_account: isSet(object.eave_account) ? String(object.eave_account) : undefined,
       eave_team: isSet(object.eave_team) ? String(object.eave_team) : undefined,
       eave_request_id: isSet(object.eave_request_id) ? String(object.eave_request_id) : "",
+      feature_name: isSet(object.feature_name) ? String(object.feature_name) : undefined,
     };
   },
 
@@ -219,6 +232,7 @@ export const EaveEvent = {
     message.eave_account !== undefined && (obj.eave_account = message.eave_account);
     message.eave_team !== undefined && (obj.eave_team = message.eave_team);
     message.eave_request_id !== undefined && (obj.eave_request_id = message.eave_request_id);
+    message.feature_name !== undefined && (obj.feature_name = message.feature_name);
     return obj;
   },
 
@@ -241,6 +255,7 @@ export const EaveEvent = {
     message.eave_account = object.eave_account ?? undefined;
     message.eave_team = object.eave_team ?? undefined;
     message.eave_request_id = object.eave_request_id ?? "";
+    message.feature_name = object.feature_name ?? undefined;
     return message;
   },
 };

@@ -66,9 +66,9 @@ class StatusRequest(HTTPEndpoint):
 
     async def get(self, request: Request) -> Response:
         status = status_payload()
-        if eave.stdlib.cache.initialized():
+        if client := eave.stdlib.cache.client():
             try:
-                await eave.stdlib.cache.client().ping()
+                await client.ping()
             except Exception as e:
                 eaveLogger.exception(e)
                 status.status = "UNHEALTHY"

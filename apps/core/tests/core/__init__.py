@@ -1,14 +1,22 @@
-import json
 import os
-import uuid
-
 import dotenv
+from eave.dev_tooling.constants import EAVE_HOME
+
+_deprecated_file = os.path.join(EAVE_HOME, ".env.test")
+if os.path.isfile(_deprecated_file):
+    print("To standardize env filenames, .env.test is deprecated; rename to .test.env")
+    dotenv.load_dotenv(dotenv_path=os.path.join(EAVE_HOME, ".env.test"), override=True)
+
+dotenv.load_dotenv(dotenv_path=os.path.join(EAVE_HOME, ".test.env"), override=True)
+
+# ruff: noqa: E402
+
+import json
+import uuid
 import eave.stdlib.time
 import eave.stdlib.util
 
 eave.stdlib.time.set_utc()
-
-dotenv.load_dotenv(dotenv_path=os.path.join(os.environ["EAVE_HOME"], ".env.test"), override=True)
 
 os.environ["EAVE_MONITORING_DISABLED"] = "1"
 os.environ["EAVE_ANALYTICS_DISABLED"] = "1"

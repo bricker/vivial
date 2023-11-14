@@ -22,6 +22,11 @@
       "eaveOrigin": "eave_jira_app"
     },
     "port": "$PORT",
-    "whitelist": ["*.jira-dev.com", "*.atlassian.net", "*.atlassian.com", "*.jira.com"]
+    "whitelist": [
+      "*.jira-dev.com",
+      "*.atlassian.net",
+      "*.atlassian.com",
+      "*.jira.com"
+    ]
   }
 }

@@ -25,6 +25,7 @@ class Status(CoreApiEndpoint):
                 cls.config.url,
             )
 
-            response_json = await response.json()
+            # This must remain inside of the ClientSession context, so that the body stream is still open when it is read.
+            body = await cls.make_response(response, cls.ResponseBody)
 
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        return body

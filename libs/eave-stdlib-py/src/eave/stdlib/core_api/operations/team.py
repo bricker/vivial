@@ -1,4 +1,4 @@
-from typing import Unpack
+from typing import Optional, Unpack
 import uuid
 from ... import requests
 from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
@@ -20,17 +20,21 @@ class GetTeamRequest(CoreApiEndpoint):
     async def perform(
         cls,
         team_id: uuid.UUID | str,
+        account_id: Optional[uuid.UUID],
+        access_token: Optional[str],
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
             config=cls.config,
             input=None,
             team_id=team_id,
+            account_id=account_id,
+            access_token=access_token,
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
 
 
 class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
@@ -62,22 +66,5 @@ class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
-
-
-# class UpdateTeam(CoreApiEndpoint):
-#     config = CoreApiEndpointConfiguration(
-#         path="/team/update",
-#         auth_required=False,
-#     )
-
-#     class RequestBody(BaseRequestBody):
-#         team: TeamInput
-
-#     class ResponseBody(BaseResponseBody):
-#         team: Team
-#         integrations: integrations.Integrations
-
-#     requestBodyType = RequestBody
-#     responseBodyType = ResponseBody
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

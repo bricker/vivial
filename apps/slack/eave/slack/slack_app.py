@@ -57,12 +57,14 @@ async def authorize(
 
     cachekey = f"slack:{team_id}:installation"
     cached_data: str | None = None
-    try:
-        cached_data = await cache.client().get(cachekey)
-        eaveLogger.debug(f"cache hit: {cachekey}", ctx)
-    except Exception as e:
-        eaveLogger.exception(e, ctx)
-        # fall back to making the API requests
+    cache_client = cache.client()
+    if cache_client:
+        try:
+            cached_data = await cache_client.get(cachekey)
+            eaveLogger.debug(f"cache hit: {cachekey}", ctx)
+        except Exception as e:
+            eaveLogger.exception(e, ctx)
+            # fall back to making the API requests
 
     # Notes:
     # - context.bot_id, context.bot_token, and context.bot_user_id are all None in this function.
@@ -80,7 +82,8 @@ async def authorize(
             auth_response = (await client.auth_test(token=installation_data.slack_integration.bot_token)).validate()
         except Exception as e:
             eaveLogger.warning(e, ctx)
-            await cache.client().delete(cachekey)
+            if cache_client:
+                await cache_client.delete(cachekey)
             cached_data = None
             installation_data = None
             auth_response = None
@@ -106,7 +109,8 @@ async def authorize(
         try:
             # expires cache entries in 12 hours since that is the valid lifetime of a slack auth token
             ttl_12_hours = 12 * 60 * 60
-            await cache.client().set(name=cachekey, value=installation_data.json(), ex=ttl_12_hours)
+            if cache_client:
+                await cache_client.set(name=cachekey, value=installation_data.json(), ex=ttl_12_hours)
         except Exception as e:
             eaveLogger.exception(e, ctx)
 

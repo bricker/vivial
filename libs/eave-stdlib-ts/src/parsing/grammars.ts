@@ -8,10 +8,18 @@ import PHP from "tree-sitter-php";
 import Rust from "tree-sitter-rust";
 import tsPkg from "tree-sitter-typescript";
 // import Python from 'tree-sitter-python';
+import assert from "node:assert";
+import path from "node:path";
 import Csharp from "tree-sitter-c-sharp";
 import Ruby from "tree-sitter-ruby";
 import Swift from "tree-sitter-swift";
-import { ProgrammingLanguage, stringToProgrammingLanguage } from "../programming-langs/language-mapping.js";
+import { eaveLogger } from "../logging.js";
+import {
+  ProgrammingLanguage,
+  getProgrammingLanguageByFilePathOrName,
+  stringToProgrammingLanguage,
+} from "../programming-langs/language-mapping.js";
+import { xor } from "../util.js";
 
 const { typescript: Typescript, tsx } = tsPkg;
 
@@ -26,7 +34,24 @@ const { typescript: Typescript, tsx } = tsPkg;
  *                Used for fine-grained grammar selection.
  * @return a tree-sitter grammar (or null)
  */
-export function grammarForLanguage({ language, extName }: { language: string | ProgrammingLanguage; extName: string }): any {
+export function grammarForLanguage({
+  language,
+  extName,
+  filePathOrName,
+}: {
+  language: string | ProgrammingLanguage;
+  extName?: string;
+  filePathOrName?: string;
+}): ProgrammingLanguage | null {
+  assert(
+    xor(filePathOrName !== undefined, extName !== undefined),
+    "supply either filePathOrName or extName, not both",
+  );
+
+  if (filePathOrName !== undefined) {
+    extName = path.extname(filePathOrName);
+  }
+
   let pl: ProgrammingLanguage;
 
   if (typeof language === "string") {
@@ -78,6 +103,20 @@ export function grammarForLanguage({ language, extName }: { language: string | P
   }
 }
 
+export function grammarForFilePathOrName(
+  filePathOrName: string,
+): ProgrammingLanguage | null {
+  const language = getProgrammingLanguageByFilePathOrName(filePathOrName);
+  if (!language) {
+    eaveLogger.warning("Unsupported file extension", {
+      extension: path.extname(filePathOrName),
+      filename: filePathOrName,
+    });
+    return null;
+  }
+  return grammarForLanguage({ language, filePathOrName });
+}
+
 /**
  * Different tree-sitter language grammars have different names for function nodes.
  * They may also follow different syntax structures, necesitating more or fewer queries.
@@ -85,7 +124,15 @@ export function grammarForLanguage({ language, extName }: { language: string | P
  * @param language name of programming language to get queries for
  * @return array of queries for gathering all functions and their doc comments for the `language` grammar
  */
-export function getFunctionDocumentationQueries({ language, funcMatcher, commentMatcher }: { language: ProgrammingLanguage; funcMatcher: string; commentMatcher: string }): string[] {
+export function getFunctionDocumentationQueries({
+  language,
+  funcMatcher,
+  commentMatcher,
+}: {
+  language: ProgrammingLanguage;
+  funcMatcher: string;
+  commentMatcher: string;
+}): string[] {
   switch (language) {
     case ProgrammingLanguage.javascript: // js and ts grammar similar enough to share queries
     case ProgrammingLanguage.typescript:

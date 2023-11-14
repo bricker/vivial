@@ -1,5 +1,16 @@
-import { makeRequest, RequestArgsAuthedRequest, RequestArgsTeamId } from "../../requests.js";
-import { GithubRepo, GithubRepoCreateInput, GithubRepoListInput, GithubReposDeleteInput, GithubReposFeatureStateInput, GithubRepoUpdateInput } from "../models/github-repos.js";
+import {
+  makeRequest,
+  RequestArgsOrigin,
+  RequestArgsTeamId,
+} from "../../requests.js";
+import {
+  GithubRepo,
+  GithubRepoCreateInput,
+  GithubRepoListInput,
+  GithubReposDeleteInput,
+  GithubReposFeatureStateInput,
+  GithubRepoUpdateInput,
+} from "../models/github-repos.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
 export type GetGithubReposRequestBody = {
@@ -11,8 +22,12 @@ export type GetGithubReposResponseBody = {
 };
 
 export class GetGithubReposOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-repos/query" });
-  static async perform(args: RequestArgsTeamId & { input: GetGithubReposRequestBody }): Promise<GetGithubReposResponseBody> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-repos/query",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: GetGithubReposRequestBody },
+  ): Promise<GetGithubReposResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -21,6 +36,31 @@ export class GetGithubReposOperation {
     return responseData;
   }
 }
+
+export type GetAllTeamGithubReposRequestBody = {
+  query_params: GithubReposFeatureStateInput;
+};
+
+export type GetAllTeamsGithubReposResponseBody = {
+  repos: Array<GithubRepo>;
+};
+
+export class GetAllTeamGithubReposOperation {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/_/github-repos/query",
+  });
+  static async perform(
+    args: RequestArgsOrigin & { input: GetAllTeamGithubReposRequestBody },
+  ): Promise<GetAllTeamsGithubReposResponseBody> {
+    const resp = await makeRequest({
+      config: this.config,
+      ...args,
+    });
+    const responseData = <GetAllTeamsGithubReposResponseBody>await resp.json();
+    return responseData;
+  }
+}
+
 export type FeatureStateGithubReposRequestBody = {
   query_params: GithubReposFeatureStateInput;
 };
@@ -30,8 +70,12 @@ export type FeatureStateGithubReposResponseBody = {
 };
 
 export class FeatureStateGithubReposOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-repos/query/enabled" });
-  static async perform(args: RequestArgsTeamId & { input: FeatureStateGithubReposRequestBody }): Promise<FeatureStateGithubReposResponseBody> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-repos/query/enabled",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: FeatureStateGithubReposRequestBody },
+  ): Promise<FeatureStateGithubReposResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -49,8 +93,12 @@ export type CreateGithubRepoResponseBody = {
 };
 
 export class CreateGithubRepoOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-repos/create" });
-  static async perform(args: RequestArgsTeamId & { input: CreateGithubRepoRequestBody }): Promise<CreateGithubRepoResponseBody> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-repos/create",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: CreateGithubRepoRequestBody },
+  ): Promise<CreateGithubRepoResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,
@@ -64,8 +112,12 @@ export type DeleteGithubReposRequestBody = {
 };
 
 export class DeleteGithubRepoOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-repos/delete" });
-  static async perform(args: RequestArgsAuthedRequest & { input: DeleteGithubReposRequestBody }): Promise<void> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-repos/delete",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: DeleteGithubReposRequestBody },
+  ): Promise<void> {
     await makeRequest({
       config: this.config,
       ...args,
@@ -82,8 +134,12 @@ export type UpdateGithubReposResponseBody = {
 };
 
 export class UpdateGithubReposOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/github-repos/update" });
-  static async perform(args: RequestArgsAuthedRequest & { input: UpdateGithubReposRequestBody }): Promise<UpdateGithubReposResponseBody> {
+  static config = new CoreApiEndpointConfiguration({
+    path: "/github-repos/update",
+  });
+  static async perform(
+    args: RequestArgsTeamId & { input: UpdateGithubReposRequestBody },
+  ): Promise<UpdateGithubReposResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

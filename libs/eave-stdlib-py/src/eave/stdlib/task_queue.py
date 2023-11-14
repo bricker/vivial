@@ -1,8 +1,10 @@
 import asyncio
+from dataclasses import dataclass
 import json
 from typing import Any, Coroutine, Optional, TypeVar
 from google.cloud import tasks
 from starlette.requests import Request
+from eave.stdlib import cache
 import eave.stdlib.signing as signing
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
@@ -17,6 +19,8 @@ from eave.stdlib.headers import (
     GCP_GAE_REQUEST_LOG_ID,
     USER_AGENT,
 )
+from eave.stdlib.time import ONE_DAY_IN_MS
+from eave.stdlib.util import compact_deterministic_json, ensure_bytes, ensure_str
 
 from .typing import JsonObject
 from .config import shared_config
@@ -47,6 +51,11 @@ async def get_queue(queue_name: str) -> tasks.Queue:
     return queue
 
 
+@dataclass
+class BodyCacheEntry:
+    cache_key: str
+
+
 async def create_task_from_request(
     queue_name: str,
     target_path: str,
@@ -57,13 +66,21 @@ async def create_task_from_request(
     unique_task_id: Optional[str] = None,
     task_name_prefix: Optional[str] = None,
 ) -> None:
+    ctx = LogContext.wrap(ctx)
+
     if not unique_task_id:
         if trace_id := request.headers.get(GCP_CLOUD_TRACE_CONTEXT):
             unique_task_id = trace_id.split("/")[0]
         elif log_id := request.headers.get(GCP_GAE_REQUEST_LOG_ID):
             unique_task_id = log_id
 
+    # Stash in redis to avoid 100kb payload size limit in Cloud Tasks
     payload = await request.body()
+    cache_client = cache.client_or_exception()
+    pointer_payload = BodyCacheEntry(cache_key=ctx.eave_request_id)
+    await cache_client.set(name=pointer_payload.cache_key, value=ensure_str(payload), ex=ONE_DAY_IN_MS)
+    payload = compact_deterministic_json(pointer_payload.__dict__)
+
     headers = dict(request.headers)
 
     # The "user agent" is Slack Bot when coming from Slack, but for the task processor that's not the case.
@@ -85,7 +102,7 @@ async def create_task_from_request(
 async def create_task(
     queue_name: str,
     target_path: str,
-    payload: JsonObject | bytes,
+    payload: JsonObject | str | bytes,
     origin: EaveApp,
     audience: EaveApp,
     ctx: Optional[LogContext],
@@ -95,45 +112,41 @@ async def create_task(
 ) -> tasks.Task:
     ctx = LogContext.wrap(ctx)
 
-    if isinstance(payload, dict):
-        # FIXME: Encrypt this; it's visible as plaintext in Cloud Tasks
-        body = json.dumps(payload).encode()
-    else:
-        body = payload
-
     if not headers:
         headers = {}
 
-    # Slack already sets this for the incoming event request, but setting it here too to be explicit.
-    headers[CONTENT_TYPE] = "application/json"
-
-    request_id = ctx.eave_request_id
     eave_sig_ts = signing.make_sig_ts()
 
-    signature_message, ts = signing.build_message_to_sign(
+    team_id = headers.get(EAVE_TEAM_ID_HEADER) or ctx.eave_team_id
+    account_id = headers.get(EAVE_ACCOUNT_ID_HEADER) or ctx.eave_account_id
+    request_id = headers.get(EAVE_REQUEST_ID_HEADER) or ctx.eave_request_id
+
+    signature_message = signing.build_message_to_sign(
         method="POST",
         origin=origin,
         ts=eave_sig_ts,
         audience=audience,
         request_id=request_id,
         path=target_path,
-        payload=body.decode(),
-        team_id=ctx.eave_team_id,
-        account_id=ctx.eave_account_id,
+        payload=ensure_str(payload),
+        team_id=team_id,
+        account_id=account_id,
         ctx=ctx,
     )
 
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
+    headers[CONTENT_TYPE] = "application/json"
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
-    headers[EAVE_REQUEST_ID_HEADER] = request_id
     headers[EAVE_ORIGIN_HEADER] = origin.value
 
-    if ctx.eave_account_id:
-        headers[EAVE_ACCOUNT_ID_HEADER] = ctx.eave_account_id
-    if ctx.eave_team_id:
-        headers[EAVE_TEAM_ID_HEADER] = ctx.eave_team_id
+    if account_id and not headers.get(EAVE_ACCOUNT_ID_HEADER):
+        headers[EAVE_ACCOUNT_ID_HEADER] = account_id
+    if team_id and not headers.get(EAVE_TEAM_ID_HEADER):
+        headers[EAVE_TEAM_ID_HEADER] = team_id
+    if request_id and not headers.get(EAVE_REQUEST_ID_HEADER):
+        headers[EAVE_REQUEST_ID_HEADER] = request_id
 
     client = tasks.CloudTasksAsyncClient()
 
@@ -148,7 +161,7 @@ async def create_task(
             http_method=tasks.HttpMethod.POST,
             relative_uri=target_path,
             headers=headers,
-            body=body,
+            body=ensure_bytes(data=payload),
         )
     )
 
@@ -175,3 +188,18 @@ async def create_task(
 
     t = await client.create_task(parent=parent, task=task)
     return t
+
+
+async def get_cached_payload(body: str | bytes) -> str:
+    jbody = json.loads(body)
+    try:
+        pointer_payload = BodyCacheEntry(**jbody)
+    except TypeError as e:
+        eaveLogger.error("Invalid BodyCacheEntry payload!")
+        raise e
+
+    cache_client = cache.client_or_exception()
+    stashed_payload = await cache_client.get(name=pointer_payload.cache_key)
+    assert stashed_payload is not None, "Could not find expected cached event body. Maybe the TTL needs to be extended?"
+
+    return stashed_payload

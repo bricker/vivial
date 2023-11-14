@@ -6,7 +6,7 @@ shopt -s globstar
 source "${EAVE_HOME}/develop/functions.bash"
 
 (
-	for ss in {apps,libs,develop}/**/bin/lint; do
+	for ss in {apps,libs,develop,terraform}/**/bin/lint; do
 		if ^norecurse "$ss"; then
 			continue
 		fi
