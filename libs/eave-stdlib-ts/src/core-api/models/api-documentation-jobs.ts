@@ -1,12 +1,3 @@
-export type ApiDocumentationJob = {
-  id: string;
-  team_id: string;
-  /** foreign key to github_repos.id */
-  github_repo_id: string;
-  state: string;
-  last_result: string;
-};
-
 export enum LastJobResult {
   none = "none",
   doc_created = "doc_created",
@@ -18,6 +9,15 @@ export enum ApiDocumentationJobState {
   running = "running",
   idle = "idle",
 }
+
+export type ApiDocumentationJob = {
+  id: string;
+  team_id: string;
+  /** foreign key to github_repos.id */
+  github_repo_id: string;
+  state: ApiDocumentationJobState;
+  last_result: LastJobResult;
+};
 
 export type ApiDocumentationJobListInput = {
   id: string;
