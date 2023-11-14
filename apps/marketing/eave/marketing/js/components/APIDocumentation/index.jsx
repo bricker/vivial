@@ -75,13 +75,13 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
 }));
 
 /**
- * Formats the status of a Github document based on its current state and associated Github repository.
+ * Formats the status of a Github document based on its current state.
  * If the document is still being processed, it returns a simple "Processing" string.
- * Otherwise, it generates a link to the associated pull request in the Github repository if applicable.
+ * It also generates a link to the associated pull request in the Github repository if applicable.
  *
- * @param {Types.GithubDocument} doc - The Github document whose status is to be formatted.
+ * @param {Types.GithubDocument} doc - The Github document to format.
  * @param {{[key: string] : Types.GithubRepo}} repoMap - A map of Github repositories, keyed by their IDs.
- * @returns {JSX.Element} A JSX element containing the formatted status and, if applicable, a link to the associated pull request.
+ * @returns {JSX.Element} The formatted status as a JSX element, and, if applicable, a link to the associated pull request.
  */
 function formatStatus(
   /** @type {Types.GithubDocument} */ doc,
@@ -158,16 +158,16 @@ function formatLastUpdated(doc) {
 }
 
 /**
- * Renders the content of the dashboard based on the state of API documentation fetching. It displays error messages, loading states, and API documentation.
- * It also handles user interactions such as row clicks and mouse overs.
+ * Renders the content of the dashboard based on the state of API documentation fetching.
+ * Displays error message if unable to fetch API documentation.
  * Shows a loading spinner while fetching API documentation.
  * If API documentation is empty, informs the user that Eave is searching for Express APIs.
- * If the 'compact' prop is true, renders a compact view of the API documentation.
- * Otherwise, renders a table view of the API documentation.
+ * Once the API documentation is fetched, it displays the documentation in a table or compact view based on the 'compact' parameter.
+ * It also handles user interactions such as row clicks and mouse overs.
  *
  * @param {Object} classes - CSS classes for styling the rendered content.
- * @param {Types.DashboardTeam} team - The team object containing API documentation fetching state and repository information.
- * @param {boolean} compact - Determines whether to render a compact view or a table view of the API documentation.
+ * @param {Types.DashboardTeam} team - The team object containing information about API documentation fetching status and results.
+ * @param {boolean} compact - Determines if the rendered view should be in compact mode.
  */
 function renderContent(
   classes,
