@@ -7,6 +7,7 @@ from typing import Any, Awaitable, Callable
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
+from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobListInput
 
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
 from eave.stdlib.core_api.operations import BaseResponseBody
@@ -182,7 +183,7 @@ async def get_team_docs_jobs() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     body = request.get_json()
-    document_type = body["document_type"]
+    jobs = [ApiDocumentationJobListInput(id=job["id"]) for job in body["jobs"]] if "jobs" in body else None
 
     eave_response = await api_documentation_jobs.GetApiDocumentationJobsOperation.perform(
         origin=app_config.eave_origin,
@@ -190,7 +191,7 @@ async def get_team_docs_jobs() -> Response:
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
         input=api_documentation_jobs.GetApiDocumentationJobsOperation.RequestBody(
-            jobs=TODO input??
+            jobs=jobs
         ),
     )
 
