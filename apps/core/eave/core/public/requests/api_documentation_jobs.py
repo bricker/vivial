@@ -62,6 +62,7 @@ class UpsertApiDocumentationJobsEndpoint(HTTPEndpoint):
                 )
             else:
                 docs_job_orm.update(
+                    session=db_session,
                     state=input.job.state,
                     last_result=input.job.last_result,
                 )
