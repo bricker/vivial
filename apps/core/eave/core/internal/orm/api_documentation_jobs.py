@@ -15,7 +15,7 @@ from eave.stdlib.core_api.models.api_documentation_jobs import (
 )
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk
+from .util import UUID_DEFAULT_EXPR, make_team_fk, make_team_composite_fk
 
 
 class ApiDocumentationJobOrm(Base):
@@ -28,12 +28,7 @@ class ApiDocumentationJobOrm(Base):
             name="pk_team_id_github_repo_id_id",
         ),
         make_team_fk(),
-        ForeignKeyConstraint(
-            ["github_repo_id"],
-            ["github_repos.id"],
-            ondelete="CASCADE",
-            name="github_repos_id_fk",
-        ),
+        make_team_composite_fk(fk_column="github_repo_id", foreign_table="github_repos"),
         Index(
             "team_id_github_repo_id_unique_idx",
             "team_id",

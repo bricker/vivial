@@ -15,7 +15,7 @@ from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 class DocumentReferenceOrm(Base):
     __tablename__ = "document_references"
     __table_args__ = (
-        make_team_composite_pk(),
+        make_team_composite_pk(table_name="document_references"),
         make_team_fk(),
     )
 
