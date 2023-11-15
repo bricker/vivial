@@ -24,7 +24,7 @@ from .util import UUID_DEFAULT_EXPR, make_team_composite_fk, make_team_composite
 class SubscriptionOrm(Base):
     __tablename__ = "subscriptions"
     __table_args__ = (
-        make_team_composite_pk(),
+        make_team_composite_pk(table_name="subscriptions"),
         make_team_fk(),
         make_team_composite_fk("document_reference_id", "document_references"),
         Index(
