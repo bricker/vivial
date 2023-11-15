@@ -178,7 +178,7 @@ async def update_team_repos() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team/api-docs-jobs", method=["POST"])
+@app.route("/dashboard/team/api-docs-jobs", methods=["POST"])
 @_auth_handler
 async def get_team_docs_jobs() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
