@@ -1,11 +1,16 @@
-#!/usr/bin/env -S bash -eu
+#!/usr/bin/env bash
+
+set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-(
+function run() (
 	cd "$(^parentpath)"
 	bin/lint
 	setup-deployment-workspace
+	bin/run-db-migration
 	# gcloud builds submit --ignore-file=.gcloudignore-builder --config=cloudbuild.yaml
 	"${EAVE_HOME}"/develop/python/bin/deploy-appengine "$@"
 )
+
+run "$@"

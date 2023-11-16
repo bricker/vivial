@@ -1,7 +1,7 @@
-import React from 'react';
-import { withStyles } from '@material-ui/styles';
-import Copy from '../Copy/index.jsx';
-import Block from '../Block/index.js';
+import { withStyles } from "@material-ui/styles";
+import React from "react";
+import Block from "../Block/index.js";
+import Copy from "../Copy/index.jsx";
 
 class BlockStack extends React.Component {
   render() {
@@ -10,16 +10,10 @@ class BlockStack extends React.Component {
       <section className={classes.section}>
         <Copy className={classes.title} variant="h2">
           {title[0]}
-          <div>
-            {title[1]}
-          </div>
+          <div>{title[1]}</div>
         </Copy>
         {blocks.map((block) => (
-          <Block
-            copy={block.copy}
-            img={block.img}
-            key={block.copy}
-          />
+          <Block copy={block.copy} img={block.img} key={block.copy} />
         ))}
       </section>
     );
@@ -28,28 +22,28 @@ class BlockStack extends React.Component {
 
 const styles = (theme) => ({
   section: {
-    padding: '48px 30px 126px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    [theme.breakpoints.up('sm')]: {
-      padding: '100px 100px 180px',
+    padding: "48px 30px 126px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    [theme.breakpoints.up("sm")]: {
+      padding: "100px 100px 180px",
     },
   },
   title: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 48,
     maxWidth: 275,
-    [theme.breakpoints.up('sm')]: {
-      maxWidth: 'none',
+    [theme.breakpoints.up("sm")]: {
+      maxWidth: "none",
       marginBottom: 50,
     },
   },
   icon: {
-    display: 'inline-block',
+    display: "inline-block",
     width: 18,
     height: 18,
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up("sm")]: {
       width: 28,
       height: 28,
     },

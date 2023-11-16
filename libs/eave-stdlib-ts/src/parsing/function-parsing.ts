@@ -2,7 +2,12 @@ import * as crypto from "crypto";
 import Parser from "tree-sitter";
 import { LogContext, eaveLogger } from "../logging.js";
 import { ProgrammingLanguage } from "../programming-langs/language-mapping.js";
-import { getFunctionDocumentationQueries, grammarForLanguage } from "./grammars.js";
+import {
+  getFunctionDocumentationQueries,
+  grammarForFilePathOrName,
+} from "./grammars.js";
+
+// document me
 
 // TODO: handling python will require a separate implementation altogether, since this whole algorithm assumes comments come before + outside functions
 
@@ -18,18 +23,60 @@ export type ParsedFunction = {
 };
 
 /**
- * Use tree-sitter to extract functions and their doc comments from
- * the provided file `content`.
+ * Validate that `content` is syntactically valid for the programming language
+ * detected from the file extension of `filePath`.
  *
- * @param content string content of a source code file
- * @param extName file extension of the source code file. Expected to contain . prefix (e.g. ".js").
- *                Used to determine the correct language grammar.
- * @param language programming language of `content`. Used for constructing grammar queries.
- * @returns array of function data parsed from `content`
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.content - The content of the file to parse.
+ * @param {string} params.filePath - The path of the file to parse. The file extension of the source code file is expected to contain . prefix (e.g. ".js"). Used to determine the correct language grammar.
+ *
+ * @return {boolean} whether the content is percieved to be syntactically correct by tree-sitter
  */
-export function parseFunctionsAndComments({ content, extName, language, ctx = undefined }: { content: string; extName: string; language: ProgrammingLanguage; ctx?: LogContext }): ParsedFunction[] {
+export function contentHasValidSyntax({
+  content,
+  filePath,
+}: {
+  content: string;
+  filePath: string;
+}): boolean {
   const parser = new Parser();
-  const languageGrammar = grammarForLanguage({ language, extName });
+  const languageGrammar = grammarForFilePathOrName(filePath);
+  if (!languageGrammar) {
+    // unable to determine syntactic correctness.
+    // This likely means that we couldnt alter `content` either
+    return false;
+  }
+  parser.setLanguage(languageGrammar);
+  const ptree = parser.parse(content);
+  return !ptree.rootNode.hasError();
+}
+
+/**
+ * Parses the content of a file to extract functions and their associated documentation comments.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.content - The content of the file to parse.
+ * @param {string} params.filePath - The path of the file to parse. The file extension of the source code file is expected to contain . prefix (e.g. ".js"). Used to determine the correct language grammar.
+ * @param {ProgrammingLanguage} params.language - The programming language of the file. Used for constructing grammar queries.
+ * @param {LogContext} [params.ctx] - Optional logging context.
+ *
+ * @returns {ParsedFunction[]} An array of parsed functions, each with associated documentation comments if available.
+ *
+ * @throws {Error} If no grammar is found for the specified programming language.
+ */
+export function parseFunctionsAndComments({
+  content,
+  filePath,
+  language,
+  ctx = undefined,
+}: {
+  content: string;
+  filePath: string;
+  language: ProgrammingLanguage;
+  ctx?: LogContext;
+}): ParsedFunction[] {
+  const parser = new Parser();
+  const languageGrammar = grammarForFilePathOrName(filePath);
   if (!languageGrammar) {
     eaveLogger.debug(`No grammar found for ${language}`, ctx);
     return [];
@@ -43,11 +90,21 @@ export function parseFunctionsAndComments({ content, extName, language, ctx = un
   const funcMatcher = "_function";
   const commentMatcher = "_doc_comment";
 
-  const queries = getFunctionDocumentationQueries({ language, funcMatcher, commentMatcher });
+  const queries = getFunctionDocumentationQueries({
+    language,
+    funcMatcher,
+    commentMatcher,
+  });
 
   queries.forEach((queryString) => {
     const query = new Parser.Query(languageGrammar, queryString);
-    const newMapEntries = runQuery({ query, rootNode: ptree.rootNode, content, funcMatcher, commentMatcher });
+    const newMapEntries = runQuery({
+      query,
+      rootNode: ptree.rootNode,
+      content,
+      funcMatcher,
+      commentMatcher,
+    });
     fmap = {
       ...fmap,
       ...newMapEntries,
@@ -58,13 +115,19 @@ export function parseFunctionsAndComments({ content, extName, language, ctx = un
 }
 
 /**
- * Writes new doc comments into `content`, returning the updated file content string.
+ * Inserts updated comments into a given content string based on the parsed functions provided.
+ * The parsed functions are sorted from high to low to avoid invalidating other indices during insertion.
+ * If a function has an updated comment, it is indented and inserted into the content string.
+ * If the function has an existing comment, its length is considered to find the beginning of the function signature.
  *
- * @param content file string to write `fmap` comments into
- * @param parsedFunctions array of functions+comments data from `content`
- * @returns updated file content string
+ * @param {string} content - The original content string where comments are to be inserted.
+ * @param {ParsedFunction[]} parsedFunctions - An array of parsed functions with their updated comments.
+ * @returns {string} The updated content string with the inserted comments.
  */
-export function writeUpdatedCommentsIntoFileString(content: string, parsedFunctions: ParsedFunction[]): string {
+export function writeUpdatedCommentsIntoFileString(
+  content: string,
+  parsedFunctions: ParsedFunction[],
+): string {
   // sort high to low so we can insert into content string without invalidating other indices
   let newContent = content;
   parsedFunctions
@@ -79,7 +142,12 @@ export function writeUpdatedCommentsIntoFileString(content: string, parsedFuncti
         if (f.comment) {
           before = f.start + f.comment.length;
         }
-        newContent = insertDocsComment({ content: newContent, docs: f.updatedComment, after: f.start, before });
+        newContent = insertDocsComment({
+          content: newContent,
+          docs: f.updatedComment,
+          after: f.start,
+          before,
+        });
       }
     });
 
@@ -87,17 +155,28 @@ export function writeUpdatedCommentsIntoFileString(content: string, parsedFuncti
 }
 
 /**
- * Inserts docs between `after` and `before`.
- * Set a value for `before` if trying to replace an existing docstring in `content`
- * with `docs`.
+ * Inserts a documentation comment into a given content string at specified positions.
+ * Set a value for `params.before` if trying to replace an existing docstring in `params.content`
+ * with `params.docs`.
  *
- * @param content string to have docs inserted into
- * @param docs string to insert into content
- * @param after index in content to put docs after
- * @param before index in content to put docs before. (set to after if undefined)
- * @returns content with `docs` inserted
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.content - The content string where the documentation comment will be inserted.
+ * @param {string} params.docs - The documentation comment to be inserted.
+ * @param {number} params.after - The position in the content string after which the documentation comment will be inserted.
+ * @param {number} [params.before=params.after] - The position in the content string before which the documentation comment will be inserted. Defaults to the value of `params.after` if not provided.
+ * @returns {string} The content string with the inserted documentation comment.
  */
-function insertDocsComment({ content, docs, after, before }: { content: string; docs: string; after: number; before?: number }) {
+function insertDocsComment({
+  content,
+  docs,
+  after,
+  before,
+}: {
+  content: string;
+  docs: string;
+  after: number;
+  before?: number;
+}) {
   if (before === undefined) {
     before = after;
   }
@@ -114,19 +193,33 @@ function insertDocsComment({ content, docs, after, before }: { content: string; 
 }
 
 /**
- * Runs `query` on `content`, creating a mapping from hashes of function strings to
- * function data extracted from `content` by `query`.
+ * Executes a given query on a syntax tree and returns a map of parsed functions.
+ * The function parses the content of the file, identifies functions and their associated comments,
+ * and stores them in a map where the key is a hash of the function content.
  * (Hash key value allows future queries to replace parsed values for a function if
  * multiple queries match the same function; query order matters!)
  *
- * @param query match query to run on `content`. Expected to have used `funcMatcher` and `commentMatcher` for capture names.
- * @param rootNode parse tree node
- * @param content file content used to create `rootNode`. Used for extracting string content located by `query`
- * @param funcMatcher name used by `query` to capture function_declaration (or equivilant) nodes from `rootNode` tree
- * @param commentMatcher name used by `query` to capture comment nodes from `rootNode` tree
- * @return hash map object storing `query` results
+ * @param {Object} params - The parameters for the function.
+ * @param {Parser.Query} params.query - The query to be run on the syntax tree. Expected to have used `funcMatcher` and `commentMatcher` for capture names.
+ * @param {Parser.SyntaxNode} params.rootNode - The root node of the syntax tree.
+ * @param {string} params.content - The content of the file to be parsed. Used for extracting string content located by `query`.
+ * @param {string} params.funcMatcher - The name of the query capture that matches function_declaration (or equivalent) nodes from `rootNode` tree.
+ * @param {string} params.commentMatcher - The name of the query capture that matches comment nodes from `rootNode` tree.
+ * @returns {Object} A map where the keys are hashes of the function content and the values are objects containing the parsed function data.
  */
-function runQuery({ query, rootNode, content, funcMatcher, commentMatcher }: { query: Parser.Query; rootNode: Parser.SyntaxNode; content: string; funcMatcher: string; commentMatcher: string }): { [key: string]: ParsedFunction } {
+function runQuery({
+  query,
+  rootNode,
+  content,
+  funcMatcher,
+  commentMatcher,
+}: {
+  query: Parser.Query;
+  rootNode: Parser.SyntaxNode;
+  content: string;
+  funcMatcher: string;
+  commentMatcher: string;
+}): { [key: string]: ParsedFunction } {
   const fmap: { [key: string]: ParsedFunction } = {};
   const matches = query.matches(rootNode);
 
@@ -161,11 +254,16 @@ function runQuery({ query, rootNode, content, funcMatcher, commentMatcher }: { q
           // NOTE: this matcher may be found multiple times per function, due to use of * in query.
           // Check if this matched comment is a continuation (1-line comment on next line)
           // of the previous matched comment. Characters between the end of the prev comment and start of
-          // this one should only contain whitespace, but MUST contain a newline.
-          if (commentEnd === undefined || !content.slice(commentEnd, cap.node.startIndex).match(/\s*\n\s*/)) {
+          // this one should only contain whitespace, but MUST contain exactly one newline.
+          if (
+            commentEnd === undefined ||
+            !content
+              .slice(commentEnd, cap.node.startIndex)
+              .match(/^[^\S\n]*\n[^\S\n]*$/)
+          ) {
             // begin new comment chunk (block or series of 1-line)
             commentStart = cap.node.startIndex;
-            minStart = Math.min(commentStart, minStart);
+            minStart = commentStart;
           }
           commentEnd = cap.node.endIndex;
           break;
@@ -210,7 +308,11 @@ function runQuery({ query, rootNode, content, funcMatcher, commentMatcher }: { q
     */
     // ensure comment-function pairing are really next to each other (not just sibling nodes).
     // There should be nothing between the end of the doc comment and the function signature.
-    if (commentEnd && functionStart && content.slice(commentEnd, functionStart).trim() !== "") {
+    if (
+      commentEnd &&
+      functionStart &&
+      content.slice(commentEnd, functionStart).trim() !== ""
+    ) {
       // reset funcData as if comment was not set in it
       funcData.comment = undefined;
       minStart = functionStart;
@@ -220,7 +322,10 @@ function runQuery({ query, rootNode, content, funcMatcher, commentMatcher }: { q
     if (functionStart) {
       funcData.func = content.slice(functionStart, functionEnd);
       funcData.start = minStart;
-      const funcHash = crypto.createHash("md5").update(funcData.func).digest("hex");
+      const funcHash = crypto
+        .createHash("md5")
+        .update(funcData.func)
+        .digest("hex");
       fmap[funcHash] = funcData;
     }
   });
@@ -228,13 +333,13 @@ function runQuery({ query, rootNode, content, funcMatcher, commentMatcher }: { q
 }
 
 /**
- * Adds indentation (matching the level of `funcData.func`) to `funcData.updatedComment`.
- * Updates `funcData` in-place rather than returning a value.
+ * Updates the indentation of a parsed function's comment to match the function's indentation level.
+ * If the function does not have an updated comment, it will return without making changes.
  * This function only works for languages where doc comments should be at the same
  * indentation level as the function signature they document (i.e. not Python).
  *
- * @param funcData function and comment + meta data
- * @param content file content function + comment is contained in. Used for indent calculations
+ * @param {ParsedFunction} funcData - The parsed function data including its signature, start position, and updated comment.
+ * @param {string} content - The original content where the function is located.
  */
 function indentUpdatedComment(funcData: ParsedFunction, content: string) {
   if (!funcData.updatedComment) {
@@ -246,6 +351,12 @@ function indentUpdatedComment(funcData: ParsedFunction, content: string) {
   const indent = m![0];
 
   // only add leading indent on first line if indent doesnt already match
-  const needsLeadingIndent = content.slice(Math.max(funcData.start - (indent.length + 1), 0), funcData.start) !== `\n${indent}`;
-  funcData.updatedComment = `${needsLeadingIndent ? indent : ""}${funcData.updatedComment.trim().split("\n").join(`\n${indent}`)}`;
+  const needsLeadingIndent =
+    content.slice(
+      Math.max(funcData.start - (indent.length + 1), 0),
+      funcData.start,
+    ) !== `\n${indent}`;
+  funcData.updatedComment = `${
+    needsLeadingIndent ? indent : ""
+  }${funcData.updatedComment.trim().split("\n").join(`\n${indent}`)}`;
 }

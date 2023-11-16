@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "start-pm2"
+    "start": "npx pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion --name github start pm2.config.cjs"
   },
   "dependencies": {
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
@@ -9,7 +9,9 @@
     "@octokit/graphql-schema": "14.x",
     "@octokit/webhooks": "10.x",
     "express": "4.x",
-    "octokit": "2.x"
+    "octokit": "2.x",
+    "pm2": "5.x",
+    "tsx": "3.x"
   },
   "devDependencies": {
     "js-yaml": "^4.1.0"

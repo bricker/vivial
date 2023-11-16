@@ -1,24 +1,43 @@
-import ConnectClient, { RequestOpts } from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
+import ConnectClient, {
+  RequestOpts,
+} from "@eave-fyi/eave-stdlib-ts/src/connect/connect-client.js";
 import { ADFRootNode } from "@eave-fyi/eave-stdlib-ts/src/connect/types/adf.js";
 import { AtlassianProduct } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/connect.js";
+import { LogContext } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { AddOn } from "atlassian-connect-express";
 import appConfig from "./config.js";
 import { JiraComment, JiraUser } from "./types.js";
 
 export default class JiraClient extends ConnectClient {
-  static async getAuthedJiraClient({ addon, teamId, clientKey }: { addon: AddOn; teamId?: string; clientKey?: string }): Promise<JiraClient> {
+  static async getAuthedJiraClient({
+    addon,
+    teamId,
+    clientKey,
+  }: {
+    addon: AddOn;
+    teamId?: string;
+    clientKey?: string;
+  }): Promise<JiraClient> {
+    // FIXME: use real context
+    const ctx = new LogContext();
+
     const connectClient = await ConnectClient.getAuthedConnectClient({
       addon,
       product: AtlassianProduct.jira,
       origin: appConfig.eaveOrigin,
       teamId,
       clientKey,
+      ctx,
     });
 
     return new JiraClient(connectClient);
   }
 
-  async getUser({ accountId }: { accountId: string }): Promise<JiraUser | undefined> {
+  async getUser({
+    accountId,
+  }: {
+    accountId: string;
+  }): Promise<JiraUser | undefined> {
     const request: RequestOpts = {
       url: "/rest/api/3/user",
       qs: {
@@ -36,7 +55,13 @@ export default class JiraClient extends ConnectClient {
   }
 
   /* https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-comments/#api-rest-api-3-issue-issueidorkey-comment-post */
-  async postComment({ issueId, commentBody }: { issueId: string; commentBody: ADFRootNode }): Promise<JiraComment | undefined> {
+  async postComment({
+    issueId,
+    commentBody,
+  }: {
+    issueId: string;
+    commentBody: ADFRootNode;
+  }): Promise<JiraComment | undefined> {
     const request: RequestOpts = {
       url: `/rest/api/3/issue/${issueId}/comment`,
       json: true,

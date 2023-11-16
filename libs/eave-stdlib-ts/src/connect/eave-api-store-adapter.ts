@@ -1,12 +1,20 @@
 import AddOnFactory from "atlassian-connect-express";
 import { Cache, getCacheClient } from "../cache.js";
 import { AtlassianProduct } from "../core-api/models/connect.js";
-import { QueryConnectInstallationOperation, QueryConnectInstallationResponseBody, RegisterConnectInstallationResponseBody } from "../core-api/operations/connect.js";
+import {
+  QueryConnectInstallationOperation,
+  QueryConnectInstallationResponseBody,
+  RegisterConnectInstallationResponseBody,
+} from "../core-api/operations/connect.js";
 import { EaveApp } from "../eave-origins.js";
 import { LogContext, eaveLogger } from "../logging.js";
 
 type AppKey = "eave-confluence" | "eave-jira";
-type AdapterParams = { appKey: AppKey; eaveOrigin: EaveApp; productType: AtlassianProduct };
+type AdapterParams = {
+  appKey: AppKey;
+  eaveOrigin: EaveApp;
+  productType: AtlassianProduct;
+};
 
 export type EaveClientInfo = AddOnFactory.ClientInfo & {
   eaveTeamId?: string;
@@ -23,7 +31,11 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     return `confluence:${clientKey}:installation`;
   }
 
-  async cacheClientInfo(clientKey: string, clientInfo: EaveClientInfo, ctx?: LogContext) {
+  async cacheClientInfo(
+    clientKey: string,
+    clientInfo: EaveClientInfo,
+    ctx?: LogContext,
+  ) {
     const cacheKey = this.cacheKey(clientInfo.clientKey);
     try {
       eaveLogger.debug(`[store adapter] writing cache entry: ${cacheKey}`, ctx);
@@ -44,12 +56,18 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
   // However, for OAuth, the key is dynamically generated using the user identifier and scopes.
   // So, this class is completely broken with OAuth, but we don't currently use OAuth in this context.
 
-  async get(key: string, clientKey: string): Promise<AddOnFactory.ClientInfo | null> {
-    eaveLogger.debug(`[store adapter] getting credentials: ${key}, ${clientKey}`);
+  async get(
+    key: string,
+    clientKey: string,
+  ): Promise<AddOnFactory.ClientInfo | null> {
+    eaveLogger.debug(
+      `[store adapter] getting credentials: ${key}, ${clientKey}`,
+    );
     if (key !== "clientInfo") {
       throw new Error(`key not supported: ${key}`);
     }
 
+    const ctx = new LogContext();
     const cacheKey = this.cacheKey(clientKey);
     let cacheClient: Cache | undefined;
     try {
@@ -63,9 +81,18 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
         const cachedData = await cacheClient.get(cacheKey);
         if (cachedData) {
           const clientInfo = <EaveClientInfo>JSON.parse(cachedData.toString());
-          eaveLogger.debug(`[store adapter] cache hit: ${cacheKey}`, <any>clientInfo);
+          eaveLogger.debug(
+            `[store adapter] cache hit: ${cacheKey}`,
+            <any>clientInfo,
+          );
           // Do some basic validation to make sure the cached data is valid.
-          if (clientInfo.key && clientInfo.productType && clientInfo.clientKey && clientInfo.sharedSecret && clientInfo.baseUrl) {
+          if (
+            clientInfo.key &&
+            clientInfo.productType &&
+            clientInfo.clientKey &&
+            clientInfo.sharedSecret &&
+            clientInfo.baseUrl
+          ) {
             return clientInfo;
           } else {
             eaveLogger.warning(`[store adapter] Bad cache data: ${cacheKey}`);
@@ -89,6 +116,7 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
             client_key: clientKey,
           },
         },
+        ctx,
       });
 
       const clientInfo = this.buildClientInfo(response);
@@ -96,13 +124,21 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
       return clientInfo;
     } catch (e: any) {
       // HTTP error. Not Found is common, if the registration doesn't already exist.
-      eaveLogger.debug(`[store adapter] no connect install exists (this is normal): ${key}, ${clientKey}`);
+      eaveLogger.debug(
+        `[store adapter] no connect install exists (this is normal): ${key}, ${clientKey}`,
+      );
       return null;
     }
   }
 
-  async set(key: string, value: string | AddOnFactory.ClientInfo, clientKey: string): Promise<any> {
-    eaveLogger.debug(`[store adapter] setting client credentials: ${key}, ${value}, ${clientKey}`);
+  async set(
+    key: string,
+    value: string | AddOnFactory.ClientInfo,
+    clientKey: string,
+  ): Promise<any> {
+    eaveLogger.debug(
+      `[store adapter] setting client credentials: ${key}, ${value}, ${clientKey}`,
+    );
     if (key !== "clientInfo") {
       throw new Error(`key not supported: ${key}`);
     }
@@ -133,7 +169,11 @@ export class EaveApiAdapter /* implements StoreAdapter */ {
     return false;
   }
 
-  private buildClientInfo(response: QueryConnectInstallationResponseBody | RegisterConnectInstallationResponseBody): EaveClientInfo {
+  private buildClientInfo(
+    response:
+      | QueryConnectInstallationResponseBody
+      | RegisterConnectInstallationResponseBody,
+  ): EaveClientInfo {
     // The ClientInfo interface contains several properties which are non-nullable, but aren't needed for our purpose.
     // For those properties, we'll fill in with dummy values.
     return {

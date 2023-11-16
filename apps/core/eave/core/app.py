@@ -1,12 +1,16 @@
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests import connect_integration, github_repos, github_documents
+from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
-from eave.stdlib import cache
+from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
+from eave.stdlib.core_api.operations.api_documentation_jobs import (
+    GetApiDocumentationJobsOperation,
+    UpsertApiDocumentationJobOperation,
+)
 from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocuments, UpsertDocument
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
-from eave.stdlib.core_api.operations.github import GetGithubInstallation
+from eave.stdlib.core_api.operations.github import GetGithubInstallation, DeleteGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.subscriptions import (
@@ -23,6 +27,7 @@ from eave.stdlib.core_api.operations.github_documents import (
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
+    GetAllTeamsGithubReposRequest,
     GetGithubReposRequest,
     UpdateGithubReposRequest,
     DeleteGithubReposRequest,
@@ -145,21 +150,14 @@ def make_route(
     So, that's a long-winded explanation of the order of the middlewares below.
     """
 
-    if config.team_id_required:
-        # Last thing to happen before the Route handler
-        endpoint = TeamLookupASGIMiddleware(app=endpoint)
-
-    if config.auth_required:
-        endpoint = AuthASGIMiddleware(app=endpoint)
-
-    if config.signature_required:
-        # If signature is required, origin is also required.
-        assert config.origin_required
-        endpoint = SignatureVerificationASGIMiddleware(app=endpoint, audience=EaveApp.eave_api)
-
-    if config.origin_required:
-        # First thing to happen when the middleware chain is kicked off
-        endpoint = OriginASGIMiddleware(app=endpoint)
+    endpoint = TeamLookupASGIMiddleware(
+        app=endpoint, endpoint_config=config
+    )  # Last thing to happen before the Route handler
+    endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
+    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
+    endpoint = OriginASGIMiddleware(
+        app=endpoint, endpoint_config=config
+    )  # First thing to happen when the middleware chain is kicked off
 
     return Route(path=config.path, endpoint=endpoint)
 
@@ -209,7 +207,11 @@ routes = [
     ),
     make_route(
         config=GetGithubInstallation.config,
-        endpoint=eave.core.public.requests.github_integration.GithubIntegration,
+        endpoint=eave.core.public.requests.github_integration.GetGithubIntegrationEndpoint,
+    ),
+    make_route(
+        config=DeleteGithubInstallation.config,
+        endpoint=eave.core.public.requests.github_integration.DeleteGithubIntegrationEndpoint,
     ),
     make_route(
         config=GetAtlassianInstallation.config,
@@ -228,8 +230,20 @@ routes = [
         endpoint=github_repos.GetGithubRepoEndpoint,
     ),
     make_route(
+        config=GetAllTeamsGithubReposRequest.config,
+        endpoint=github_repos.GetAllTeamsGithubRepoEndpoint,
+    ),
+    make_route(
         config=FeatureStateGithubReposRequest.config,
         endpoint=github_repos.FeatureStateGithubReposEndpoint,
+    ),
+    make_route(
+        config=UpsertApiDocumentationJobOperation.config,
+        endpoint=api_documentation_jobs.UpsertApiDocumentationJobsEndpoint,
+    ),
+    make_route(
+        config=GetApiDocumentationJobsOperation.config,
+        endpoint=api_documentation_jobs.GetApiDocumentationJobEndpoint,
     ),
     # Authenticated API endpoints.
     make_route(
@@ -370,8 +384,11 @@ routes = [
 async def graceful_shutdown() -> None:
     await async_engine.dispose()
 
-    if cache.initialized():
-        await cache.client().close()
+    try:
+        if client := cache.initialized_client():
+            await client.close()
+    except Exception as e:
+        logging.eaveLogger.exception(e)
 
 
 app = starlette.applications.Starlette(

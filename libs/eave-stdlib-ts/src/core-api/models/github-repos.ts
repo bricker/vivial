@@ -1,30 +1,38 @@
-export enum Feature {
+import { UUID } from "../../types.js";
+
+export enum GithubRepoFeature {
   API_DOCUMENTATION = "api_documentation",
   INLINE_CODE_DOCUMENTATION = "inline_code_documentation",
   ARCHITECTURE_DOCUMENTATION = "architecture_documentation",
 }
 
-export enum State {
+export enum GithubRepoFeatureState {
   DISABLED = "disabled",
   ENABLED = "enabled",
   PAUSED = "paused",
 }
 
 export type GithubRepo = {
-  team_id: string;
+  team_id: UUID;
+  id: UUID;
+  github_installation_id: UUID;
   external_repo_id: string;
-  display_name?: string;
-  api_documentation_state: State;
-  inline_code_documentation_state: State;
-  architecture_documentation_state: State;
+  display_name: string | null;
+  api_documentation_state: GithubRepoFeatureState;
+  inline_code_documentation_state: GithubRepoFeatureState;
+  architecture_documentation_state: GithubRepoFeatureState;
 };
 
 export type GithubRepoCreateInput = {
   external_repo_id: string;
   display_name: string;
-  api_documentation_state: State;
-  inline_code_documentation_state: State;
-  architecture_documentation_state: State;
+  api_documentation_state?: GithubRepoFeatureState;
+  inline_code_documentation_state?: GithubRepoFeatureState;
+  architecture_documentation_state?: GithubRepoFeatureState;
+};
+
+export type GithubRepoRefInput = {
+  id: UUID;
 };
 
 export type GithubRepoListInput = {
@@ -32,21 +40,21 @@ export type GithubRepoListInput = {
 };
 
 export type GithubRepoUpdateValues = {
-  api_documentation_state?: State;
-  inline_code_documentation_state?: State;
-  architecture_documentation_state?: State;
+  api_documentation_state?: GithubRepoFeatureState;
+  inline_code_documentation_state?: GithubRepoFeatureState;
+  architecture_documentation_state?: GithubRepoFeatureState;
 };
 
 export type GithubRepoUpdateInput = {
-  external_repo_id: string;
+  id: UUID;
   new_values: GithubRepoUpdateValues;
 };
 
 export type GithubReposDeleteInput = {
-  external_repo_id: string;
+  id: UUID;
 };
 
 export type GithubReposFeatureStateInput = {
-  feature: Feature;
-  state: State;
+  feature: GithubRepoFeature;
+  state: GithubRepoFeatureState;
 };

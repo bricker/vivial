@@ -1,3 +1,4 @@
+import { CtxArg } from "../requests.js";
 import { OpenAIModel, maxTokens } from "./models.js";
 import OpenAIClient, { formatprompt } from "./openai.js";
 import { tokenCount } from "./token-counter.js";
@@ -15,8 +16,20 @@ import { tokenCount } from "./token-counter.js";
  *                  (Recommended to be less than MAX_TOKENS allowed by API)
  * @return a summary of the content in `content`
  */
-export async function rollingSummary({ client, content, threshold = undefined, model = OpenAIModel.GPT4 }: { client: OpenAIClient; content: string; threshold?: number; model?: OpenAIModel }): Promise<string> {
-  const chunkSize = threshold === undefined ? Math.floor(maxTokens(model) / 2) : threshold;
+export async function rollingSummary({
+  client,
+  content,
+  ctx,
+  threshold = undefined,
+  model = OpenAIModel.GPT4,
+}: CtxArg & {
+  client: OpenAIClient;
+  content: string;
+  threshold?: number;
+  model?: OpenAIModel;
+}): Promise<string> {
+  const chunkSize =
+    threshold === undefined ? Math.floor(maxTokens(model) / 2) : threshold;
   let summary = content;
 
   while (tokenCount(summary, model) > chunkSize) {
@@ -39,9 +52,21 @@ export async function rollingSummary({ client, content, threshold = undefined, m
     for (const chunk of chunks.filter((chnk) => chnk.length > 0)) {
       let prompt: string;
       if (newSummary.length === 0) {
-        prompt = formatprompt("Condense the following information. Maintain the important information.\n", "###", chunk, "###");
+        prompt = formatprompt(
+          "Condense the following information. Maintain the important information.\n",
+          "###",
+          chunk,
+          "###",
+        );
       } else {
-        prompt = formatprompt("Amend and expand on the following information. Maintain the important information.\n\n", "###", newSummary, "\n", chunk, "###");
+        prompt = formatprompt(
+          "Amend and expand on the following information. Maintain the important information.\n\n",
+          "###",
+          newSummary,
+          "\n",
+          chunk,
+          "###",
+        );
       }
 
       newSummary = await client.createChatCompletion({
@@ -52,6 +77,7 @@ export async function rollingSummary({ client, content, threshold = undefined, m
           frequency_penalty: 1,
           presence_penalty: 1,
         },
+        ctx,
       });
     }
 

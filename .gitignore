@@ -1,5 +1,6 @@
 .venv
-.env*
+*.env*
+!share.env
 __pycache__
 .mypy_cache
 .ruff_cache
@@ -19,6 +20,8 @@ credentials.json
 .coverage
 .tmp
 .terraform*
+*.tfstate*
+*.tfvars
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist

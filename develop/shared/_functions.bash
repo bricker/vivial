@@ -1,5 +1,8 @@
 if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
+	export CHAR_CHECK=" ✔ "
+	export CHAR_X=" X "
+
 	function ^ci() {
 		test -n "${CI:-}"
 	}
@@ -83,11 +86,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			case $msgtype in
 			off) ;;
 
+			# NOTE: different terminals have different capabilities, so before adding something here, make sure it'll work on all common terminals. For example, macOS Terminal doesn't support `dim` by default, so using `dim` here causes a failure when using the macOS Terminal.
 			debug)
 				tput -S <<-EOC
 					setaf $_cc_white
 					rev
-					dim
 				EOC
 				;;
 
@@ -412,6 +415,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			--exclude '.venv' \
 			--exclude '.ruff_cache' \
 			--exclude '.mypy_cache' \
+			--exclude '.pytest_cache' \
 			--exclude '__pycache__' \
 			--exclude '*.pyc' \
 			"$PWD" "$builddir"
@@ -439,6 +443,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	)
 
 	function ^eavepwd() (
+		# Returns the absolute path to the working directory, with the value of EAVE_HOME replaced with the literal "$EAVE_HOME", to be evaluated later.
 		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
 	)
 

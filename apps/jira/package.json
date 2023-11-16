@@ -1,14 +1,16 @@
 {
   "type": "module",
   "scripts": {
-    "start": "start-pm2"
+    "start": "npx pm2 --no-daemon --silent --no-pmx --no-automation --disable-trace --no-vizion --name jira start pm2.config.cjs"
   },
   "dependencies": {
     "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts",
     "@eave-fyi/eave-pubsub-schemas": "file:../../libs/eave-pubsub-schemas/typescript",
     "atlassian-connect-express": "8.2.0",
     "express": "4.x",
-    "helmet": "7.x"
+    "helmet": "7.x",
+    "pm2": "5.x",
+    "tsx": "3.x"
   },
   "devDependencies": {
     "longjohn": "~0.2.2",

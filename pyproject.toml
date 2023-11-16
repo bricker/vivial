@@ -1,0 +1,20 @@
+[tool.pyright]
+exclude = [
+  "**/generated",
+  "**/vendor",
+  "**/node_modules",
+  "**/__pycache__",
+  "**/build/*",
+  "**/.*",
+]
+venvPath="./.venv"
+extraPaths=[
+    "**/vendor",
+    "./libs/eave-stdlib-py/src",
+    "./libs/eave-pubsub-schemas/python/src",
+    "./apps/core",
+    "./apps/slack",
+    "./apps/marketing",
+    "./develop/python/src",
+]
+typeCheckingMode = "basic"

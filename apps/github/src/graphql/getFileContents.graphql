@@ -1,28 +1,26 @@
-query ($repoOwner: String!, $repoName: String!, $commitOid: GitObjectID!, $filePath: String!) {
+query (
+  $repoOwner: String!
+  $repoName: String!
+  $commitOid: GitObjectID!
+  $filePath: String!
+) {
   repository(owner: $repoOwner, name: $repoName) {
-    id
-    owner {
-      ... on Organization {
-        name
-      }
-    }
-    name
+    ...repoFragment
+
     object(oid: $commitOid) {
-      id
-      oid
+      ...gitObjectFragment
+
       ... on Commit {
+        ...commitFragment
+
         file(path: $filePath) {
-          oid
-          name
-          path
-          language {
-            name
-          }
+          ...treeEntryFragment
+
           object {
-            id
-            oid
+            ...gitObjectFragment
+
             ... on Blob {
-              text
+              ...blobFragment
             }
           }
         }

@@ -1,3 +1,7 @@
+from typing import cast
+
+from asgiref.typing import HTTPScope
+from eave.core.internal.orm.account import AccountOrm
 import eave.stdlib.api_util
 import eave.stdlib.util
 import eave.core.internal
@@ -21,7 +25,11 @@ class GetAuthedAccount(HTTPEndpoint):
                 session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id)
             )
             eave_account_orm = await eave.core.internal.orm.AccountOrm.one_or_exception(
-                session=db_session, id=eave.stdlib.util.unwrap(eave_state.ctx.eave_account_id)
+                session=db_session,
+                params=AccountOrm.QueryParams(
+                    id=eave.stdlib.util.ensure_uuid(eave_state.ctx.eave_account_id),
+                    access_token=eave.stdlib.api_util.get_bearer_token(scope=cast(HTTPScope, request.scope)),
+                ),
             )
 
         return eave.stdlib.api_util.json_response(
@@ -41,7 +49,11 @@ class GetAuthedAccountTeamIntegrations(HTTPEndpoint):
                 session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id)
             )
             eave_account_orm = await eave.core.internal.orm.AccountOrm.one_or_exception(
-                session=db_session, id=eave.stdlib.util.unwrap(eave_state.ctx.eave_account_id)
+                session=db_session,
+                params=AccountOrm.QueryParams(
+                    id=eave.stdlib.util.ensure_uuid(eave_state.ctx.eave_account_id),
+                    access_token=eave.stdlib.api_util.get_bearer_token(scope=cast(HTTPScope, request.scope)),
+                ),
             )
             integrations = await eave_team_orm.get_integrations(session=db_session)
             destination = await eave_team_orm.get_destination(session=db_session)

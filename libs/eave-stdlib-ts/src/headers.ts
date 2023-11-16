@@ -4,6 +4,8 @@ export const EAVE_SIGNATURE_HEADER = "eave-signature";
 export const EAVE_SIG_TS_HEADER = "eave-sig-ts";
 export const EAVE_ORIGIN_HEADER = "eave-origin";
 export const EAVE_REQUEST_ID_HEADER = "eave-request-id";
+export const EAVE_CRON_DISPATCH_KEY_HEADER = "eave-cron-dispatch-key";
+export const EAVE_CRON_SHARED_SECRET_HEADER = "eave-cron-shared-secret";
 
 /*
 This header can be used to bypass certain checks in development, like payload signing.

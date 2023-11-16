@@ -14,11 +14,11 @@ function deploy() (
 	# yalc publish [path] only accepts relative paths
 	# --quiet flag MUST be at the end, otherwise the command silently fails
 	# https://github.com/wclr/yalc/blob/ff35865652f54519d4f6da101c83c43c2277b268/src/yalc.ts#L166
-	yalc publish ../../libs/eave-stdlib-ts --replace $qflag
-	yalc add @eave-fyi/eave-stdlib-ts $qflag
+	npx yalc publish ../../libs/eave-stdlib-ts --replace $qflag
+	npx yalc add @eave-fyi/eave-stdlib-ts $qflag
 
-	yalc publish ../../libs/eave-pubsub-schemas/typescript --replace $qflag
-	yalc add @eave-fyi/eave-pubsub-schemas $qflag
+	npx yalc publish ../../libs/eave-pubsub-schemas/typescript --replace $qflag
+	npx yalc add @eave-fyi/eave-pubsub-schemas $qflag
 
 	# Remove references to the monorepo packages
 	npm prune

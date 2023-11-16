@@ -9,3 +9,4 @@ from .team import TeamOrm as TeamOrm
 from .resource_mutex import ResourceMutexOrm as ResourceMutexOrm
 from .github_documents import GithubDocumentsOrm as GithubDocumentsOrm
 from .github_repos import GithubRepoOrm as GithubRepoOrm
+from .api_documentation_jobs import ApiDocumentationJobOrm as ApiDocumentationJobOrm

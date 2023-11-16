@@ -1,5 +1,5 @@
 import aiohttp
-from typing import Optional
+from typing import Optional, TypeVar, Type
 import pydantic
 from eave.stdlib.eave_origins import EaveApp
 from ...config import shared_config
@@ -51,34 +51,30 @@ class BaseResponseBody(pydantic.BaseModel):
     class Config:
         underscore_attrs_are_private = True
 
+    @property
+    def cookies(self) -> dict[str, str] | None:
+        if self._raw_response:
+            # SimpleCookie is a dict but invariant with dict[str,str], so convert it here
+            return {k: v.value for k, v in self._raw_response.cookies.items()}
+        else:
+            return None
+
+
+T = TypeVar("T", bound=BaseResponseBody)
+
 
 class Endpoint:
     config: EndpointConfiguration
 
-    # @classmethod
-    # async def perform(
-    #     cls,
-    #     origin: EaveApp,
-    #     input: Optional[RequestBody] = None,
-    #     team_id: Optional[uuid.UUID] = None,
-    #     access_token: Optional[str] = None,
-    #     account_id: Optional[uuid.UUID] = None,
-    # ) -> ResponseBody:
-    #     response = await requests.make_request(
-    #         config=cls.config,
-    #         origin=origin,
-    #         input=input,
-    #         team_id=team_id,
-    #         access_token=access_token,
-    #         account_id=account_id,
-    #     )
-
-    #     content_length = response.headers.get(aiohttp.hdrs.CONTENT_LENGTH)
-    #     if content_length and int(content_length) > 0:
-    #         response_json = await response.json()
-    #         return cls.ResponseBody(**response_json, _raw_response=response)
-    #     else:
-    #         return cls.ResponseBody(_raw_response=response)
+    @classmethod
+    async def make_response(cls, response: aiohttp.ClientResponse, response_type: Type[T]) -> T:
+        response_json = await response.json()
+        if response_json:
+            r = response_type(**response_json)
+        else:
+            r = response_type()
+        r._raw_response = response
+        return r
 
 
 class CoreApiEndpoint(Endpoint):

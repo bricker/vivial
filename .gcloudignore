@@ -6,7 +6,7 @@
 # Don't push any "hidden" files (.git, tooling configs, etc)
 .*
 *.md
-.env*
+*.env*
 
 # Cache, build, dependencies
 __pycache__

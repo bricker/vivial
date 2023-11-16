@@ -1,4 +1,4 @@
-from typing import Unpack
+from typing import Optional, Unpack
 import uuid
 from eave.stdlib import requests
 from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
@@ -9,11 +9,12 @@ from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpoi
 
 class RunApiDocumentationTask(GithubAppEndpoint):
     config = GithubAppEndpointConfiguration(
-        path="/_/github/run-api-documentation",
+        path="/_/github/tasks/run-api-documentation",
     )
 
     class RequestBody(BaseRequestBody):
         repo: GithubRepoInput
+        force: Optional[bool] = None
 
     class ResponseBody(BaseResponseBody):
         pass
@@ -29,5 +30,5 @@ class RunApiDocumentationTask(GithubAppEndpoint):
             **kwargs,
         )
 
-        response_json = await response.json()
-        return cls.ResponseBody(**response_json, _raw_response=response)
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body

@@ -1,100 +1,104 @@
-import { imageUrl } from './asset-helpers.js';
+import { imageUrl } from "./util/asset-util.js";
 
-export const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfkmCRGUy4IRG-jRwviYNiOk9oNIfRDBjc0CogtDpYGfsOktQ/viewform?usp=sf_link';
+export const DOC_TYPES = {
+  API_DOC: "api_document",
+  ARCHITECTURE_DOC: "architecture_document",
+};
 
-export const HEADER = {
-  mobile: {
-    height: 66,
-    heightPx: '66px',
-  },
-  desktop: {
-    height: 110,
-    heightPx: '110px',
+export const FEATURE_STATE_PROPERTY = {
+  API_DOCS: "api_documentation_state",
+  INLINE_CODE_DOCS: "inline_code_documentation_state",
+  ARCHITECTURE_DOCS: "architecture_documentation_state",
+};
+
+export const FEATURE_STATES = {
+  ENABLED: "enabled",
+  DISABLED: "disabled",
+  PAUSED: "paused",
+};
+
+export const FEATURE_MODAL = {
+  ID: "feature-modal",
+  TYPES: {
+    API_DOCS: "api-documentation",
+    INLINE_CODE_DOCS: "inline-code-documentation",
+    ARCHITECTURE_DOCS: "architecture-documentation",
   },
 };
 
-export const FOOTER = {
-  mobile: {
-    height: 81,
-    heightPx: '81px',
-  },
-  desktop: {
-    height: 78,
-    heightPx: '78px',
-  },
-};
+export const FEEDBACK_URL = "https://forms.gle/3v5Xdz7kPya5UW9U6";
 
 export const AFFILIATE_LOGOS = {
   amazon: {
-    src: imageUrl('amazon-logo-3x.png'),
-    alt: 'Amazon logo',
+    src: imageUrl("amazon-logo-3x.png"),
+    alt: "Amazon logo",
   },
   paypal: {
-    src: imageUrl('paypal-logo-3x.png'),
-    alt: 'PayPal logo',
+    src: imageUrl("paypal-logo-3x.png"),
+    alt: "PayPal logo",
   },
   disney: {
-    src: imageUrl('disney-logo-3x.png'),
-    alt: 'Disney logo',
+    src: imageUrl("disney-logo-3x.png"),
+    alt: "Disney logo",
   },
   honey: {
-    src: imageUrl('honey-logo-3x.png'),
-    alt: 'Honey logo',
+    src: imageUrl("honey-logo-3x.png"),
+    alt: "Honey logo",
   },
 };
 
 export const INTEGRATION_LOGOS = {
   slack: {
-    src: imageUrl('slack-logo-3x.png'),
-    alt: 'Slack logo',
+    src: imageUrl("slack-logo-3x.png"),
+    alt: "Slack logo",
   },
   github: {
-    src: imageUrl('github-logo-3x.png'),
-    alt: 'Github logo',
+    src: imageUrl("github-logo-3x.png"),
+    alt: "Github logo",
   },
   githubInline: {
-    src: imageUrl('github-logo-inline.png'),
-    alt: 'Github logo',
+    src: imageUrl("github-logo-inline.png"),
+    alt: "Github logo",
   },
   gmail: {
-    src: imageUrl('gmail-logo-3x.png'),
-    alt: 'Gmail logo',
+    src: imageUrl("gmail-logo-3x.png"),
+    alt: "Gmail logo",
   },
   outlook: {
-    src: imageUrl('outlook-logo-3x.png'),
-    alt: 'Microsoft Outlook logo',
+    src: imageUrl("outlook-logo-3x.png"),
+    alt: "Microsoft Outlook logo",
   },
   notion: {
-    src: imageUrl('notion-logo-3x.png'),
-    alt: 'Notion logo',
+    src: imageUrl("notion-logo-3x.png"),
+    alt: "Notion logo",
   },
   figma: {
-    src: imageUrl('figma-logo-3x.png'),
-    alt: 'Figma logo',
+    src: imageUrl("figma-logo-3x.png"),
+    alt: "Figma logo",
   },
   teams: {
-    src: imageUrl('teams-logo-3x.png'),
-    alt: 'Microsoft Teams logo',
+    src: imageUrl("teams-logo-3x.png"),
+    alt: "Microsoft Teams logo",
   },
   jira: {
-    src: imageUrl('jira-logo-3x.png'),
-    alt: 'JIRA logo',
+    src: imageUrl("jira-logo-3x.png"),
+    alt: "JIRA logo",
   },
   confluence: {
-    src: imageUrl('confluence-logo-3x.png'),
-    alt: 'Confluence logo',
+    src: imageUrl("confluence-logo-3x.png"),
+    alt: "Confluence logo",
   },
   drive: {
-    src: imageUrl('google-drive-logo-3x.png'),
-    alt: 'Google Drive logo',
+    src: imageUrl("google-drive-logo-3x.png"),
+    alt: "Google Drive logo",
   },
   sharepoint: {
-    src: imageUrl('sharepoint-logo-3x.png'),
-    alt: 'Microsoft Sharepoint logo',
+    src: imageUrl("sharepoint-logo-3x.png"),
+    alt: "Microsoft Sharepoint logo",
   },
 };
 
 export const AUTH_MODAL_STATE = {
-  LOGIN: 'login',
-  SIGNUP: 'signup',
+  LOGIN: "login",
+  SIGNUP: "signup",
 };

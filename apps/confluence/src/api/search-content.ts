@@ -1,9 +1,19 @@
-import { SearchContentRequestBody, SearchContentResponseBody } from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
-import { LogContext, eaveLogger } from "@eave-fyi/eave-stdlib-ts/src/logging.js";
+import {
+  SearchContentRequestBody,
+  SearchContentResponseBody,
+} from "@eave-fyi/eave-stdlib-ts/src/confluence-api/operations.js";
+import {
+  LogContext,
+  eaveLogger,
+} from "@eave-fyi/eave-stdlib-ts/src/logging.js";
 import { ExpressHandlerArgs } from "@eave-fyi/eave-stdlib-ts/src/requests.js";
 import { ConfluenceClientArg } from "./util.js";
 
-export default async function searchContent({ req, res, confluenceClient }: ExpressHandlerArgs & ConfluenceClientArg) {
+export default async function searchContent({
+  req,
+  res,
+  confluenceClient,
+}: ExpressHandlerArgs & ConfluenceClientArg) {
   const ctx = LogContext.load(res);
   const requestBody = <SearchContentRequestBody>req.body;
 

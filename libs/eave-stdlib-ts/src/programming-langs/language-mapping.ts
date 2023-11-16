@@ -1,3 +1,5 @@
+import path from "node:path";
+import { normalizeExtName } from "../util.js";
 import extensionMap from "./generated/languages.json" assert { type: "json" };
 
 export enum ProgrammingLanguage {
@@ -21,7 +23,9 @@ export enum ProgrammingLanguage {
  * @param lang string to convert, if possible
  * @return ProgrammingLanguage enum case, or undefined if `lang` is not a case
  */
-export function stringToProgrammingLanguage(lang: string): ProgrammingLanguage | undefined {
+export function stringToProgrammingLanguage(
+  lang: string,
+): ProgrammingLanguage | undefined {
   const language = lang.toLowerCase();
   // handle languages w/ special characters in name separately
   switch (language) {
@@ -34,13 +38,19 @@ export function stringToProgrammingLanguage(lang: string): ProgrammingLanguage |
   }
 }
 
-export function getProgrammingLanguageByExtension(extName: string): ProgrammingLanguage | undefined {
-  // quality-of-life (also to prevent bugs): Accept extension with or without leading dot
-  if (extName.at(0) !== ".") {
-    extName = `.${extName}`;
-  }
+export function getProgrammingLanguageByExtension(
+  extName: string,
+): ProgrammingLanguage | undefined {
+  extName = normalizeExtName(extName);
   const lang = extensionMap[extName as keyof typeof extensionMap];
   return lang ? stringToProgrammingLanguage(lang) : undefined;
+}
+
+export function getProgrammingLanguageByFilePathOrName(
+  filePathOrName: string,
+): ProgrammingLanguage | undefined {
+  const extName = `${path.extname(filePathOrName).toLowerCase()}`;
+  return getProgrammingLanguageByExtension(extName);
 }
 
 export function isSupportedProgrammingLanguage(extName: string): boolean {

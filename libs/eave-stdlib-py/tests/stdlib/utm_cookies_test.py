@@ -5,8 +5,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.test_util import UtilityBaseTestCase
 from eave.stdlib.utm_cookies import (
-    EAVE_COOKIE_PREFIX_UTM,
-    EAVE_VISITOR_ID_COOKIE,
+    _EAVE_COOKIE_PREFIX_UTM,
+    _EAVE_VISITOR_ID_COOKIE_NAME,
     get_tracking_cookies,
     set_tracking_cookies,
 )
@@ -41,12 +41,13 @@ class UtmCookiesTestBase(UtilityBaseTestCase):
 class UtmCookiesTest(UtmCookiesTestBase):
     async def test_constants(self):
         # These cannot be changed, because the names are hardcoded in GTM. Changing these will break tracking.
-        assert EAVE_COOKIE_PREFIX_UTM == "ev_utm_"
-        assert EAVE_VISITOR_ID_COOKIE == "ev_visitor_id"
+        assert _EAVE_COOKIE_PREFIX_UTM == "ev_utm_"
+        assert _EAVE_VISITOR_ID_COOKIE_NAME == "ev_visitor_id"
 
     async def test_set_cookies_visitor_id_not_set(self):
         set_tracking_cookies(
-            cookies=self.mock_request.cookies, query_params=self.mock_request.query_params, response=self.mock_response
+            request=self.mock_request,
+            response=self.mock_response,
         )
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 
@@ -62,7 +63,8 @@ class UtmCookiesTest(UtmCookiesTestBase):
         self.mock_request.cookies.update({"ev_visitor_id": self.data_visitor_id})
 
         set_tracking_cookies(
-            cookies=self.mock_request.cookies, query_params=self.mock_request.query_params, response=self.mock_response
+            request=self.mock_request,
+            response=self.mock_response,
         )
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
         assert len(cookies) == 3
@@ -74,7 +76,8 @@ class UtmCookiesTest(UtmCookiesTestBase):
         self.mock_scope["query_string"] = f"utm_campaign={self.data_campaign}&UTM_TERM={self.data_term}"
 
         set_tracking_cookies(
-            cookies=self.mock_request.cookies, query_params=self.mock_request.query_params, response=self.mock_response
+            request=self.mock_request,
+            response=self.mock_response,
         )
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
         assert any(re.search(f"^ev_utm_utm_campaign={self.data_campaign};", v) for v in cookies)
@@ -89,7 +92,7 @@ class UtmCookiesTest(UtmCookiesTestBase):
                 "ev_utm_gclid": self.data_gclid,
             }
         )
-        cookies = get_tracking_cookies(cookies=self.mock_request.cookies)
+        cookies = get_tracking_cookies(request=self.mock_request)
 
         assert cookies.visitor_id == self.data_visitor_id
         assert cookies.utm_params.get("utm_campaign") == self.data_campaign
@@ -103,5 +106,5 @@ class UtmCookiesTest(UtmCookiesTestBase):
                 "ev_utm_utm_campaign": self.data_campaign,
             }
         )
-        cookies = get_tracking_cookies(cookies=self.mock_request.cookies)
+        cookies = get_tracking_cookies(request=self.mock_request)
         assert cookies.visitor_id is None

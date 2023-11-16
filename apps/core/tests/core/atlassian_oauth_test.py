@@ -3,7 +3,6 @@ import oauthlib.oauth2.rfc6749.tokens
 import http
 import json
 import re
-import unittest.mock
 import urllib.parse
 import uuid
 from http import HTTPStatus
@@ -184,40 +183,6 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_team
             assert eave_team.name == "Your Team"
 
-    async def test_atlassian_callback_whitelisted_team(self) -> None:
-        self.patch_dict(
-            unittest.mock.patch.dict(
-                "os.environ",
-                {
-                    "EAVE_BETA_PREWHITELISTED_EMAILS_CSV": self.anystring("confluence.email"),
-                },
-            ),
-        )
-
-        response = await self.make_request(
-            path="/oauth/atlassian/callback",
-            method="GET",
-            payload={
-                "code": self.anystring("code"),
-                "state": self.anystring("state"),
-            },
-            cookies={
-                "ev_oauth_state_atlassian": self.anystring("state"),
-            },
-        )
-
-        async with self.db_session.begin() as s:
-            account_id = response.cookies.get("ev_account_id")
-            assert account_id
-            eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
-            assert eave_account
-            eave_team = await self.get_eave_team(s, id=eave_account.team_id)
-            assert eave_team
-
-            assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
-            assert response.headers["Location"]
-            assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
-
     async def test_atlassian_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:
             eave_team = await self.make_team(s)
@@ -244,7 +209,9 @@ class TestAtlassianOAuth(BaseTestCase):
 
         async with self.db_session.begin() as s:
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
-            eave_account_after = await AccountOrm.one_or_exception(session=s, id=eave_account_before.id)
+            eave_account_after = await AccountOrm.one_or_exception(
+                session=s, params=AccountOrm.QueryParams(id=eave_account_before.id)
+            )
 
             # Test that the tokens were updated
             assert eave_account_after.access_token == self.anystring("atlassian.access_token")
@@ -276,7 +243,7 @@ class TestAtlassianOAuth(BaseTestCase):
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
                 "ev_account_id": str(eave_account_before.id),
-                "ev_access_token": eave_account_before.access_token,
+                "ev_access_token": self.b64encode(eave_account_before.access_token),
             },
         )
 

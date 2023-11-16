@@ -25,18 +25,18 @@ export default class ConnectClient {
     clientKey?: string;
   }): Promise<HostClient> {
     if (!clientKey) {
-      const connectIntegrationResponse = await QueryConnectInstallationOperation.perform({
-        origin,
-        ctx,
-        input: {
-          connect_integration: {
-            product,
-            team_id: teamId,
+      const connectIntegrationResponse =
+        await QueryConnectInstallationOperation.perform({
+          origin,
+          ctx,
+          input: {
+            connect_integration: {
+              product,
+              team_id: teamId,
+            },
           },
-        },
-      });
+        });
 
-      // eslint-disable-next-line no-param-reassign
       clientKey = connectIntegrationResponse.connect_integration.client_key;
     }
 
@@ -44,7 +44,10 @@ export default class ConnectClient {
     return client;
   }
 
-  private static getAuthedConnectClientForClientKey(clientKey: string, addon: AddOn): HostClient {
+  private static getAuthedConnectClientForClientKey(
+    clientKey: string,
+    addon: AddOn,
+  ): HostClient {
     const client = addon.httpClient({ clientKey });
     client.get = promisify<any, any>(client.get);
     client.post = promisify<any, any>(client.post);
@@ -62,7 +65,11 @@ export default class ConnectClient {
     this.client = client;
   }
 
-  async request(method: "get" | "post" | "put" | "del" | "patch" | "head", payload: RequestOpts, ctx?: LogContext): Promise<RequestResponse> {
+  async request(
+    method: "get" | "post" | "put" | "del" | "patch" | "head",
+    payload: RequestOpts,
+    ctx?: LogContext,
+  ): Promise<RequestResponse> {
     const finalPayload = {
       timeout: 1000 * 120,
       ...payload,
@@ -76,7 +83,11 @@ export default class ConnectClient {
 
   private logRequest(request: RequestOpts, ctx?: LogContext) {
     const url = request.url;
-    eaveLogger.debug(`[connect client] Request: ${url}`, { body: request.body }, ctx);
+    eaveLogger.debug(
+      `[connect client] Request: ${url}`,
+      { body: request.body },
+      ctx,
+    );
   }
 
   private logResponse(response: RequestResponse, ctx?: LogContext) {
@@ -107,6 +118,10 @@ export default class ConnectClient {
       );
     }
 
-    eaveLogger.debug("[connect client] response body", { body: response.body }, ctx);
+    eaveLogger.debug(
+      "[connect client] response body",
+      { body: response.body },
+      ctx,
+    );
   }
 }

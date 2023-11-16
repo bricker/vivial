@@ -98,3 +98,9 @@ export class DataConflictError extends BadRequestError {
     Object.setPrototypeOf(this, DataConflictError.prototype);
   }
 }
+
+export class InvalidEnumCase extends Error {
+  constructor(field = "") {
+    super(`Invalid enum case: ${field}`);
+  }
+}

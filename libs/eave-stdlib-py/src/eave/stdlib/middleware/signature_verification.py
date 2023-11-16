@@ -1,4 +1,5 @@
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+from eave.stdlib.core_api.operations import EndpointConfiguration
 
 from eave.stdlib.eave_origins import EaveApp
 
@@ -23,10 +24,12 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
     """
 
     audience: EaveApp
+    endpoint_config: EndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, audience: EaveApp):
-        super().__init__(app)
+    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration, audience: EaveApp):
+        super().__init__(app=app)
         self.audience = audience
+        self.endpoint_config = endpoint_config
 
     async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
         if scope["type"] != "http":
@@ -39,7 +42,15 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             return
 
         body = await self.read_body(scope=scope, receive=receive)
-        self._do_signature_verification(scope=scope, body=body)
+
+        try:
+            self._do_signature_verification(scope=scope, body=body)
+        except Exception as e:
+            if not development_bypass_allowed(scope=scope):
+                raise
+            else:
+                eaveLogger.exception(e)
+                eaveLogger.warning("Bypassing signature verification in dev environment")
 
         await self.app(scope, receive, send)
 
@@ -48,8 +59,11 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
         signature = get_header_value(scope=scope, name=EAVE_SIGNATURE_HEADER)
         if not signature:
-            # reject None or empty strings
-            raise MissingRequiredHeaderError(EAVE_SIGNATURE_HEADER)
+            if not self.endpoint_config.signature_required:
+                return
+            else:
+                # reject None or empty strings
+                raise MissingRequiredHeaderError(EAVE_SIGNATURE_HEADER)
 
         eave_sig_ts_header = get_header_value(scope=scope, name=EAVE_SIG_TS_HEADER)
         if not eave_sig_ts_header:

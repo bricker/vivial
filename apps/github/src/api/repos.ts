@@ -7,7 +7,10 @@ import { Request, Response } from "express";
 import { loadQuery } from "../lib/graphql-util.js";
 import { createTeamOctokitClient } from "../lib/octokit-util.js";
 
-export async function queryReposHandler(req: Request, res: Response): Promise<void> {
+export async function queryReposHandler(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const ctx = LogContext.load(res);
   const octokit = await createTeamOctokitClient(req, ctx);
 
@@ -16,7 +19,9 @@ export async function queryReposHandler(req: Request, res: Response): Promise<vo
   const repositories = response.viewer.repositories.nodes;
   assert(repositories);
 
-  const responseRepos = repositories.filter((r) => r).map((r) => convertRepoObject(r!));
+  const responseRepos = repositories
+    .filter((r) => r)
+    .map((r) => convertRepoObject(r!));
 
   const output: QueryGithubReposResponseBody = {
     repos: responseRepos,

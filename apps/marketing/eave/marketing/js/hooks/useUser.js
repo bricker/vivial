@@ -1,118 +1,74 @@
-import { useContext, useState } from 'react';
-import { AppContext } from '../context/Provider.js';
+// @ts-check
+import { useContext } from "react";
+import { useCookies } from "react-cookie";
+import { AppContext } from "../context/Provider.js";
+import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
+import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
+const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint";
+
+/** @returns {{user: Types.DashboardUser, isLoginHintSet: boolean, getUserAccount: () => void}} */
 const useUser = () => {
-  const { user } = useContext(AppContext);
-  const [userState, setUserState] = user;
-  const [availableSpaces, setAvailableSpaces] = useState(null);
-  const [getUserError, setGetUserError] = useState(null);
-  const [updateConfluenceError, setUpdateConfluenceError] = useState(null);
-  const [loadingGetUserInfo, setLoadingGetUserInfo] = useState(false);
-  const [loadingAvailableSpaces, setLoadingAvailableSpaces] = useState(false);
-  const [loadingUpdateConfluenceSpace, setLoadingUpdateConfluenceSpace] = useState(false);
+  const { userCtx } = useContext(AppContext);
+  const [cookies] = useCookies([_EAVE_LOGIN_STATE_HINT_COOKIE_NAME]);
+
+  /** @type {[Types.DashboardUser, (f: (prev: Types.DashboardUser) => Types.DashboardUser) => void]} */
+  const [user, setUser] = userCtx;
+
+  const isLoginHintSet = cookies[_EAVE_LOGIN_STATE_HINT_COOKIE_NAME] === "1";
+
+  /**
+   * Asynchronously retrieves the user's account information from the server.
+   * It updates the user's state to indicate loading, success, or error.
+   * - Before the request, it sets `accountIsLoading` to true and `accountIsErroring` to false.
+   * If the server responds with an unauthorized status, it logs the user out.
+   * If the server responds with an HTTP error, it throws an error and sets `accountIsErroring` to true.
+   * Otherwise, it updates the user's account information in the state and updates the `account` with the received data.
+   * - After the request (whether it succeeded or failed), it sets `accountIsLoading` to false.
+   */
+  function getUserAccount() {
+    setUser((prev) => ({
+      ...prev,
+      accountIsLoading: true,
+      accountIsErroring: false,
+    }));
+
+    fetch("/dashboard/me", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp.json().then((data) => {
+          setUser((prev) => ({
+            ...prev,
+            accountIsLoading: false,
+            account: data.account,
+          }));
+        });
+      })
+      .catch(() => {
+        setUser((prev) => ({
+          ...prev,
+          accountIsLoading: false,
+          accountIsErroring: true,
+        }));
+      });
+  }
 
   return {
-    userState,
-    setUserState,
-    availableSpaces,
-    loadingGetUserInfo,
-    loadingAvailableSpaces,
-    loadingUpdateConfluenceSpace,
-    getUserError,
-    updateConfluenceError,
-    checkUserAuthState: () => {
-      fetch('/authcheck', {
-        method: 'GET',
-      }).then((resp) => {
-        resp.json().then((data) => {
-          setUserState((prevState) => ({ ...prevState, authenticated: data.authenticated === true }));
-        });
-      }).catch((err) => {
-        console.error('Error during authcheck', err);
-      });
-    },
-    // gets user info
-    getUserInfo: () => {
-      setLoadingGetUserInfo(true);
-      setGetUserError(null);
-      fetch('/dashboard/me/team', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }).then((resp) => {
-        if (resp.ok === false) {
-          setGetUserError('failed to fetch team info');
-        } else {
-          resp.json().then((data) => {
-            setUserState((prevState) => ({ ...prevState, teamInfo: data }));
-          });
-        }
-        // eslint-disable-next-line no-console
-      }).catch((err) => {
-        console.error('error fetching user info', err);
-        return setGetUserError('failed to fetch team info');
-      }).finally(() => {
-        setLoadingGetUserInfo(false);
-      });
-    },
-    loadAvailableSpaces: () => {
-      setLoadingAvailableSpaces(true);
-      fetch('/dashboard/me/team/destinations/confluence/spaces/query', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }).then((resp) => {
-        if (resp.ok === false) {
-          console.error('failed to fetch available spaces');
-        } else {
-          resp.json().then((data) => {
-            setAvailableSpaces(data.confluence_spaces);
-          });
-        }
-        // eslint-disable-next-line no-console
-      }).catch((err) => {
-        // TODO: Handle error case.
-        console.error('failed to fetch available spaces', err);
-      }).finally(() => {
-        setLoadingAvailableSpaces(false);
-      });
-    },
-    // updates current selected confluence space
-    updateConfluenceSpace: (key, forgeAppInstallationId, onComplete) => {
-      setLoadingUpdateConfluenceSpace(true);
-      setUpdateConfluenceError(null);
-      fetch('/dashboard/me/team/destinations/confluence/upsert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          confluence_destination: {
-            space_key: key,
-          },
-        }),
-      }).then((resp) => {
-        // just logging this for now, will update on follow up
-        if (resp.ok === false) {
-          setUpdateConfluenceError('failed to fetch team info');
-        } else {
-          resp.json().then((data) => {
-            setUserState((prevState) => ({ ...prevState, teamInfo: data }));
-          });
-        }
-      // eslint-disable-next-line no-console
-      }).catch((err) => {
-        console.error('error setting up space', err);
-        return setUpdateConfluenceError('error setting up space');
-      }).finally(() => {
-        setLoadingUpdateConfluenceSpace(false);
-        onComplete?.();
-      });
-    },
-    // logs user out
-    logOut: () => window.location.assign('/dashboard/logout'),
+    user,
+    isLoginHintSet,
+    getUserAccount,
   };
 };
 

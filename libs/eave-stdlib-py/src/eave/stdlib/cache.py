@@ -2,6 +2,8 @@ import abc
 import time
 from typing import Optional, Protocol
 import redis.asyncio as redis
+from redis.asyncio.retry import Retry
+from redis.backoff import ConstantBackoff
 from .config import shared_config
 from .logging import eaveLogger
 
@@ -86,38 +88,50 @@ class EphemeralCache(CacheInterface):
 _PROCESS_CACHE_CLIENT: Optional[CacheInterface] = None
 
 
-def client() -> CacheInterface:
+def client() -> CacheInterface | None:
     global _PROCESS_CACHE_CLIENT
 
     if not _PROCESS_CACHE_CLIENT:
         if redis_cfg := shared_config.redis_connection:
             host, port, db = redis_cfg
             auth = shared_config.redis_auth
+            redis_tls_ca = shared_config.redis_tls_ca
+
             logauth = auth[:4] if auth else "(none)"
             eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
 
-            redis_tls_ca = shared_config.redis_tls_ca
-            _PROCESS_CACHE_CLIENT = redis.Redis(
-                host=host,
-                port=port,
-                db=db,
-                password=auth,
-                decode_responses=True,
-                ssl=redis_tls_ca is not None,
-                ssl_ca_data=redis_tls_ca,
-                health_check_interval=60 * 5,
-                socket_keepalive=True,
-            )
+            try:
+                _PROCESS_CACHE_CLIENT = redis.Redis(
+                    host=host,
+                    port=port,
+                    db=db,
+                    password=auth,
+                    decode_responses=True,
+                    ssl=redis_tls_ca is not None,
+                    ssl_ca_data=redis_tls_ca,
+                    health_check_interval=60 * 5,
+                    socket_keepalive=True,
+                    retry=Retry(retries=2, backoff=ConstantBackoff(backoff=3)),
+                )
+            except Exception as e:
+                eaveLogger.exception(e)
+
         else:
             _PROCESS_CACHE_CLIENT = EphemeralCache()
 
     return _PROCESS_CACHE_CLIENT
 
 
-def initialized() -> bool:
+def client_or_exception() -> CacheInterface:
+    cache_client = client()
+    assert cache_client is not None, "cache client unexpectedly None"
+    return cache_client
+
+
+def initialized_client() -> Optional[CacheInterface]:
     """
     Before closing a connection, check this property.
     Otherwise, if a connection wasn't previously established, you'd have to create a connection just to immediately close it.
     Because the client() function lazily creates a connection.
     """
-    return _PROCESS_CACHE_CLIENT is not None
+    return _PROCESS_CACHE_CLIENT

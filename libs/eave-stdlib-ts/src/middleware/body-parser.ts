@@ -9,13 +9,17 @@ and downstream parsers won't do any further processing.
 See here: https://github.com/expressjs/body-parser/blob/ee91374eae1555af679550b1d2fb5697d9924109/lib/types/raw.js#L56
 and here: https://github.com/expressjs/body-parser/blob/ee91374eae1555af679550b1d2fb5697d9924109/lib/read.js#L46
 */
-export function jsonParser(req: Express.Request, _res: Express.Response, next: Express.NextFunction) {
+export function jsonParser(
+  req: Express.Request,
+  _res: Express.Response,
+  next: Express.NextFunction,
+) {
   try {
     const rawBody = <Buffer>req.body;
     const parsedBody = JSON.parse(rawBody.toString());
     req.body = parsedBody;
     next();
-  } catch (e: unknown) {
+  } catch (e: any) {
     next(e);
   }
 }

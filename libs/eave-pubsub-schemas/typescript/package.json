@@ -5,10 +5,8 @@
   "files": [
     "src/"
   ],
-  "scripts": {
-    "yalc": "yalc publish --push"
-  },
   "dependencies": {
-    "protobufjs": "7.x"
+    "protobufjs": "7.x",
+    "long": "^5.2.3"
   }
 }
