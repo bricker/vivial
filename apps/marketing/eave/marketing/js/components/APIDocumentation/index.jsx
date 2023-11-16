@@ -205,7 +205,7 @@ function renderContent(
     }
   }
 
-  if (apiDocs.length === 0) {
+  if (apiDocs.length === 0) { // TODO: update text
     return (
       <Typography color="inherit" variant="h6">
         Eave is currently searching for Express APIs within your repositories.

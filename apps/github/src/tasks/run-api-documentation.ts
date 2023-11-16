@@ -1,10 +1,15 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
 import { ExpressAPI } from "@eave-fyi/eave-stdlib-ts/src/api-documenting/express-parsing-utility.js";
 import {
+  ApiDocumentationJobState,
+  LastJobResult,
+} from "@eave-fyi/eave-stdlib-ts/src/core-api/models/api-documentation-jobs.js";
+import {
   GithubDocumentStatus,
   GithubDocumentValuesInput,
 } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-documents.js";
 import { GithubRepoFeatureState } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/github-repos.js";
+import { UpsertApiDocumentationJobOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/api-documentation-jobs.js";
 import { MissingRequiredHeaderError } from "@eave-fyi/eave-stdlib-ts/src/exceptions.js";
 import { RunApiDocumentationTaskRequestBody } from "@eave-fyi/eave-stdlib-ts/src/github-api/operations/run-api-documentation-task.js";
 import { EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
@@ -25,7 +30,7 @@ import {
 import { FileAddition } from "@octokit/graphql-schema";
 import assert from "assert";
 import Express from "express";
-import { API_BRANCH_NAME } from "../config.js";
+import { API_BRANCH_NAME, appConfig } from "../config.js";
 import { ExpressAPIDocumentBuilder } from "../lib/api-documentation/builder.js";
 import { CoreAPIData } from "../lib/api-documentation/core-api.js";
 import { GithubAPIData } from "../lib/api-documentation/github-api.js";
@@ -104,378 +109,419 @@ export async function runApiDocumentationTaskHandler(
     ctx,
   );
 
-  const githubAPIData = new GithubAPIData({
-    ctx,
-    octokit,
-    externalRepoId: eaveGithubRepo.external_repo_id,
-  });
-  sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
-
-  const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
-  if (externalGithubRepo.isEmpty) {
-    await logEvent(
-      {
-        event_name: "api_documentation_skipped_empty_repo",
-        event_description:
-          "The API documentation process was skipped because the repository is empty.",
-        eave_team: eaveTeam,
-        event_source: ANALYTICS_SOURCE,
-        opaque_params: {
-          ...sharedAnalyticsParams,
-        },
-      },
+  let jobResult = LastJobResult.none;
+  try {
+    const githubAPIData = new GithubAPIData({
       ctx,
-    );
-    res.sendStatus(200);
-    return;
-  }
+      octokit,
+      externalRepoId: eaveGithubRepo.external_repo_id,
+    });
+    sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
 
-  if (!input.force) {
-    const existingGithubDocuments = await coreAPIData.getGithubDocuments();
-    // If there aren't any associated github documents yet, always run the task.
-    if (
-      existingGithubDocuments &&
-      Object.keys(existingGithubDocuments).length > 0
-    ) {
-      const latestCommitOnDefaultBranch =
-        await githubAPIData.getLatestCommitOnDefaultBranch();
-      if (latestCommitOnDefaultBranch) {
-        const committedDate = Date.parse(
-          latestCommitOnDefaultBranch.committedDate,
-        );
-        const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
-        if (committedDate < oneDayAgo) {
-          eaveLogger.debug(
-            "API doc task skipped due to delta check",
-            sharedAnalyticsParams,
-            ctx,
+    const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
+    if (externalGithubRepo.isEmpty) {
+      await logEvent(
+        {
+          event_name: "api_documentation_skipped_empty_repo",
+          event_description:
+            "The API documentation process was skipped because the repository is empty.",
+          eave_team: eaveTeam,
+          event_source: ANALYTICS_SOURCE,
+          opaque_params: {
+            ...sharedAnalyticsParams,
+          },
+        },
+        ctx,
+      );
+      res.sendStatus(200);
+      return;
+    }
+
+    if (!input.force) {
+      const existingGithubDocuments = await coreAPIData.getGithubDocuments();
+      // If there aren't any associated github documents yet, always run the task.
+      if (
+        existingGithubDocuments &&
+        Object.keys(existingGithubDocuments).length > 0
+      ) {
+        const latestCommitOnDefaultBranch =
+          await githubAPIData.getLatestCommitOnDefaultBranch();
+        if (latestCommitOnDefaultBranch) {
+          const committedDate = Date.parse(
+            latestCommitOnDefaultBranch.committedDate,
           );
-          await logEvent(
-            {
-              event_name: "api_documentation_skipped_no_commits",
-              event_description:
-                "The API documentation process was skipped because no commits were made to the default branch in the delta period.",
-              eave_team: eaveTeam,
-              event_source: ANALYTICS_SOURCE,
-              opaque_params: {
-                ...sharedAnalyticsParams,
+          const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
+          if (committedDate < oneDayAgo) {
+            eaveLogger.debug(
+              "API doc task skipped due to delta check",
+              sharedAnalyticsParams,
+              ctx,
+            );
+            await logEvent(
+              {
+                event_name: "api_documentation_skipped_no_commits",
+                event_description:
+                  "The API documentation process was skipped because no commits were made to the default branch in the delta period.",
+                eave_team: eaveTeam,
+                event_source: ANALYTICS_SOURCE,
+                opaque_params: {
+                  ...sharedAnalyticsParams,
+                },
               },
-            },
-            ctx,
-          );
-          res.sendStatus(200);
-          return;
+              ctx,
+            );
+            res.sendStatus(200);
+            return;
+          }
         }
       }
     }
-  }
 
-  const expressRootDirs = await githubAPIData.getExpressRootDirs();
-  if (expressRootDirs.length === 0) {
-    eaveLogger.warning("no express apps detected", sharedAnalyticsParams, ctx);
-
-    await logEvent(
-      {
-        event_name: "express_api_detection_no_apps_detected",
-        event_description:
-          "The API documentation feature is enabled for this repository, but no express apps were detected.",
-        eave_team: eaveTeam,
-        event_source: ANALYTICS_SOURCE,
-        opaque_params: {
-          ...sharedAnalyticsParams,
+    // indicate in db that this job is processing
+    await UpsertApiDocumentationJobOperation.perform({
+      teamId,
+      origin: appConfig.eaveOrigin,
+      input: {
+        job: {
+          github_repo_id: eaveGithubRepo.id,
+          state: ApiDocumentationJobState.running,
         },
       },
       ctx,
-    );
+    });
 
-    res.sendStatus(200);
-    return;
-  }
+    const expressRootDirs = await githubAPIData.getExpressRootDirs();
+    if (expressRootDirs.length === 0) {
+      eaveLogger.warning(
+        "no express apps detected",
+        sharedAnalyticsParams,
+        ctx,
+      );
 
-  eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
-
-  const results = await Promise.allSettled(
-    expressRootDirs.map(async (apiRootDir) => {
-      try {
-        const localAnalyticsParams: { [key: string]: JsonValue } = {};
-        localAnalyticsParams["api_root_dir"] = apiRootDir;
-
-        eaveLogger.debug(
-          "building documentation",
-          localAnalyticsParams,
-          sharedAnalyticsParams,
-          ctx,
-        );
-
-        const expressAPIInfo = await ExpressAPIDocumentBuilder.buildAPI({
-          githubAPIData,
-          coreAPIData,
-          apiRootDir,
-          ctx,
-        });
-        assertPresence(expressAPIInfo);
-
-        expressAPIInfo.documentationFilePath = documentationFilePath({
-          apiName: expressAPIInfo.name,
-        });
-
-        localAnalyticsParams["express_api_info"] = expressAPIInfo.asJSON;
-        eaveLogger.debug(
-          "express API info",
-          localAnalyticsParams,
-          sharedAnalyticsParams,
-          ctx,
-        );
-
-        let eaveDoc = await coreAPIData.getGithubDocument({
-          filePath: expressAPIInfo.documentationFilePath,
-        });
-        localAnalyticsParams["eave_doc"] = eaveDoc;
-
-        if (!expressAPIInfo.rootFile) {
-          eaveLogger.warning(
-            "no root file found",
-            localAnalyticsParams,
-            sharedAnalyticsParams,
-            ctx,
-          );
-
-          // We thought this dir contained an Express app, but couldn't find a file that initialized the express server.
-          await logEvent(
-            {
-              event_name: "express_api_detection_false_positive",
-              event_description:
-                "An express API was detected, but no root file was found.",
-              event_source: ANALYTICS_SOURCE,
-              opaque_params: {
-                ...localAnalyticsParams,
-                ...sharedAnalyticsParams,
-              },
-            },
-            ctx,
-          );
-
-          if (eaveDoc) {
-            eaveLogger.warning(
-              "updating github document with status FAILED",
-              localAnalyticsParams,
-              sharedAnalyticsParams,
-              ctx,
-            );
-
-            await coreAPIData.updateGithubDocument({
-              document: eaveDoc,
-              newValues: { status: GithubDocumentStatus.FAILED },
-            });
-          }
-
-          return null;
-        }
-
-        if (
-          !expressAPIInfo.endpoints ||
-          expressAPIInfo.endpoints.length === 0
-        ) {
-          eaveLogger.warning(
-            "no express endpoints found",
-            sharedAnalyticsParams,
-            localAnalyticsParams,
-            ctx,
-          );
-
-          await logEvent(
-            {
-              event_name: "express_api_detection_no_endpoints",
-              event_description:
-                "An express API was detected, but no endpoints were found.",
-              event_source: ANALYTICS_SOURCE,
-              opaque_params: {
-                ...sharedAnalyticsParams,
-                ...localAnalyticsParams,
-              },
-            },
-            ctx,
-          );
-
-          if (eaveDoc) {
-            eaveLogger.warning(
-              "updating github document with status FAILED",
-              sharedAnalyticsParams,
-              localAnalyticsParams,
-              ctx,
-            );
-
-            await coreAPIData.updateGithubDocument({
-              document: eaveDoc,
-              newValues: { status: GithubDocumentStatus.FAILED },
-            });
-          }
-
-          return null;
-        }
-
-        if (eaveDoc) {
-          eaveLogger.debug(
-            "updating github document with status PROCESSING",
-            sharedAnalyticsParams,
-            localAnalyticsParams,
-            ctx,
-          );
-
-          eaveDoc = await coreAPIData.updateGithubDocument({
-            document: eaveDoc,
-            newValues: { status: GithubDocumentStatus.PROCESSING },
-          });
-          localAnalyticsParams["eave_doc"] = eaveDoc;
-        } else {
-          eaveLogger.debug(
-            "creating initial placeholder github document",
-            sharedAnalyticsParams,
-            localAnalyticsParams,
-            ctx,
-          );
-          eaveDoc = await coreAPIData.createPlaceholderGithubDocument({
-            apiName: expressAPIInfo.name,
-            documentationFilePath: expressAPIInfo.documentationFilePath,
-          });
-          localAnalyticsParams["eave_doc"] = eaveDoc;
-        }
-
-        eaveLogger.debug(
-          "generating API documentation from openai",
-          sharedAnalyticsParams,
-          localAnalyticsParams,
-          ctx,
-        );
-
-        const newDocumentContents = await generateExpressAPIDoc({
-          expressAPIInfo,
-          ctx,
-        });
-        if (!newDocumentContents) {
-          await logEvent(
-            {
-              event_name: "express_api_documentation_not_generated",
-              event_description:
-                "Documentation for an express API was not generated, so the resulting document was empty. No pull request will be opened.",
-              event_source: ANALYTICS_SOURCE,
-              opaque_params: {
-                ...sharedAnalyticsParams,
-                ...localAnalyticsParams,
-              },
-            },
-            ctx,
-          );
-          eaveLogger.warning(
-            "Empty express API documentation.",
-            sharedAnalyticsParams,
-            localAnalyticsParams,
-            ctx,
-          );
-
-          eaveLogger.warning(
-            "updating github document with status FAILED",
-            sharedAnalyticsParams,
-            localAnalyticsParams,
-            ctx,
-          );
-
-          await coreAPIData.updateGithubDocument({
-            document: eaveDoc,
-            newValues: { status: GithubDocumentStatus.FAILED },
-          });
-
-          return null;
-        }
-
-        await logEvent(
-          {
-            event_name: "express_api_documentation_generated",
-            event_description:
-              "Documentation for an express API was successfully generated.",
-            event_source: ANALYTICS_SOURCE,
-            opaque_params: {
-              ...sharedAnalyticsParams,
-              ...localAnalyticsParams,
-            },
+      await logEvent(
+        {
+          event_name: "express_api_detection_no_apps_detected",
+          event_description:
+            "The API documentation feature is enabled for this repository, but no express apps were detected.",
+          eave_team: eaveTeam,
+          event_source: ANALYTICS_SOURCE,
+          opaque_params: {
+            ...sharedAnalyticsParams,
           },
-          ctx,
-        );
-        eaveLogger.debug(
-          "successfully generated API documentation",
-          sharedAnalyticsParams,
-          localAnalyticsParams,
-          ctx,
-        );
+        },
+        ctx,
+      );
 
-        expressAPIInfo.documentation = newDocumentContents;
-        return expressAPIInfo;
-      } catch (e: any) {
-        eaveLogger.exception(e, sharedAnalyticsParams, ctx);
-        throw e;
-      }
-    }),
-  );
+      res.sendStatus(200);
+      jobResult = LastJobResult.no_api_found;
+      return;
+    }
 
-  const validExpressAPIs = results
-    .filter((r) => r.status === "fulfilled" && r.value)
-    .map((r) => (<PromiseFulfilledResult<ExpressAPI>>r).value);
-  sharedAnalyticsParams["express_apis"] = validExpressAPIs.map((e) => e.asJSON);
-  eaveLogger.debug("final express APIs", sharedAnalyticsParams, ctx);
+    eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
 
-  const fileAdditions: FileAddition[] = validExpressAPIs.map((d) => {
-    assertPresence(d.documentation);
+    const results = await Promise.allSettled(
+      expressRootDirs.map(async (apiRootDir) => {
+        try {
+          const localAnalyticsParams: { [key: string]: JsonValue } = {};
+          localAnalyticsParams["api_root_dir"] = apiRootDir;
 
-    return {
-      path: d.documentationFilePath || "eave_docs.md", // TODO: This will drop it in the root of the project
-      contents: Buffer.from(d.documentation).toString("base64"),
-    };
-  });
+          eaveLogger.debug(
+            "building documentation",
+            localAnalyticsParams,
+            sharedAnalyticsParams,
+            ctx,
+          );
 
-  if (fileAdditions.length === 0) {
-    eaveLogger.warning("No file additions", sharedAnalyticsParams, ctx);
-    eaveLogger.warning(
-      "updating github documents with status FAILED",
-      sharedAnalyticsParams,
-      ctx,
+          const expressAPIInfo = await ExpressAPIDocumentBuilder.buildAPI({
+            githubAPIData,
+            coreAPIData,
+            apiRootDir,
+            ctx,
+          });
+          assertPresence(expressAPIInfo);
+
+          expressAPIInfo.documentationFilePath = documentationFilePath({
+            apiName: expressAPIInfo.name,
+          });
+
+          localAnalyticsParams["express_api_info"] = expressAPIInfo.asJSON;
+          eaveLogger.debug(
+            "express API info",
+            localAnalyticsParams,
+            sharedAnalyticsParams,
+            ctx,
+          );
+
+          let eaveDoc = await coreAPIData.getGithubDocument({
+            filePath: expressAPIInfo.documentationFilePath,
+          });
+          localAnalyticsParams["eave_doc"] = eaveDoc;
+
+          if (!expressAPIInfo.rootFile) {
+            eaveLogger.warning(
+              "no root file found",
+              localAnalyticsParams,
+              sharedAnalyticsParams,
+              ctx,
+            );
+
+            // We thought this dir contained an Express app, but couldn't find a file that initialized the express server.
+            await logEvent(
+              {
+                event_name: "express_api_detection_false_positive",
+                event_description:
+                  "An express API was detected, but no root file was found.",
+                event_source: ANALYTICS_SOURCE,
+                opaque_params: {
+                  ...localAnalyticsParams,
+                  ...sharedAnalyticsParams,
+                },
+              },
+              ctx,
+            );
+
+            if (eaveDoc) {
+              eaveLogger.warning(
+                "updating github document with status FAILED",
+                localAnalyticsParams,
+                sharedAnalyticsParams,
+                ctx,
+              );
+
+              await coreAPIData.updateGithubDocument({
+                document: eaveDoc,
+                newValues: { status: GithubDocumentStatus.FAILED },
+              });
+            }
+
+            return null;
+          }
+
+          if (
+            !expressAPIInfo.endpoints ||
+            expressAPIInfo.endpoints.length === 0
+          ) {
+            eaveLogger.warning(
+              "no express endpoints found",
+              sharedAnalyticsParams,
+              localAnalyticsParams,
+              ctx,
+            );
+
+            await logEvent(
+              {
+                event_name: "express_api_detection_no_endpoints",
+                event_description:
+                  "An express API was detected, but no endpoints were found.",
+                event_source: ANALYTICS_SOURCE,
+                opaque_params: {
+                  ...sharedAnalyticsParams,
+                  ...localAnalyticsParams,
+                },
+              },
+              ctx,
+            );
+
+            if (eaveDoc) {
+              eaveLogger.warning(
+                "updating github document with status FAILED",
+                sharedAnalyticsParams,
+                localAnalyticsParams,
+                ctx,
+              );
+
+              await coreAPIData.updateGithubDocument({
+                document: eaveDoc,
+                newValues: { status: GithubDocumentStatus.FAILED },
+              });
+            }
+
+            return null;
+          }
+
+          if (eaveDoc) {
+            eaveLogger.debug(
+              "updating github document with status PROCESSING",
+              sharedAnalyticsParams,
+              localAnalyticsParams,
+              ctx,
+            );
+
+            eaveDoc = await coreAPIData.updateGithubDocument({
+              document: eaveDoc,
+              newValues: { status: GithubDocumentStatus.PROCESSING },
+            });
+            localAnalyticsParams["eave_doc"] = eaveDoc;
+          } else {
+            eaveLogger.debug(
+              "creating initial placeholder github document",
+              sharedAnalyticsParams,
+              localAnalyticsParams,
+              ctx,
+            );
+            eaveDoc = await coreAPIData.createPlaceholderGithubDocument({
+              apiName: expressAPIInfo.name,
+              documentationFilePath: expressAPIInfo.documentationFilePath,
+            });
+            localAnalyticsParams["eave_doc"] = eaveDoc;
+          }
+
+          eaveLogger.debug(
+            "generating API documentation from openai",
+            sharedAnalyticsParams,
+            localAnalyticsParams,
+            ctx,
+          );
+
+          const newDocumentContents = await generateExpressAPIDoc({
+            expressAPIInfo,
+            ctx,
+          });
+          if (!newDocumentContents) {
+            await logEvent(
+              {
+                event_name: "express_api_documentation_not_generated",
+                event_description:
+                  "Documentation for an express API was not generated, so the resulting document was empty. No pull request will be opened.",
+                event_source: ANALYTICS_SOURCE,
+                opaque_params: {
+                  ...sharedAnalyticsParams,
+                  ...localAnalyticsParams,
+                },
+              },
+              ctx,
+            );
+            eaveLogger.warning(
+              "Empty express API documentation.",
+              sharedAnalyticsParams,
+              localAnalyticsParams,
+              ctx,
+            );
+
+            eaveLogger.warning(
+              "updating github document with status FAILED",
+              sharedAnalyticsParams,
+              localAnalyticsParams,
+              ctx,
+            );
+
+            await coreAPIData.updateGithubDocument({
+              document: eaveDoc,
+              newValues: { status: GithubDocumentStatus.FAILED },
+            });
+            return null;
+          }
+
+          await logEvent(
+            {
+              event_name: "express_api_documentation_generated",
+              event_description:
+                "Documentation for an express API was successfully generated.",
+              event_source: ANALYTICS_SOURCE,
+              opaque_params: {
+                ...sharedAnalyticsParams,
+                ...localAnalyticsParams,
+              },
+            },
+            ctx,
+          );
+          eaveLogger.debug(
+            "successfully generated API documentation",
+            sharedAnalyticsParams,
+            localAnalyticsParams,
+            ctx,
+          );
+
+          expressAPIInfo.documentation = newDocumentContents;
+          return expressAPIInfo;
+        } catch (e: any) {
+          eaveLogger.exception(e, sharedAnalyticsParams, ctx);
+          throw e;
+        }
+      }),
     );
+
+    const validExpressAPIs = results
+      .filter((r) => r.status === "fulfilled" && r.value)
+      .map((r) => (<PromiseFulfilledResult<ExpressAPI>>r).value);
+    sharedAnalyticsParams["express_apis"] = validExpressAPIs.map(
+      (e) => e.asJSON,
+    );
+    eaveLogger.debug("final express APIs", sharedAnalyticsParams, ctx);
+
+    const fileAdditions: FileAddition[] = validExpressAPIs.map((d) => {
+      assertPresence(d.documentation);
+
+      return {
+        path: d.documentationFilePath || "eave_docs.md", // TODO: This will drop it in the root of the project
+        contents: Buffer.from(d.documentation).toString("base64"),
+      };
+    });
+
+    if (fileAdditions.length === 0) {
+      eaveLogger.warning("No file additions", sharedAnalyticsParams, ctx);
+      eaveLogger.warning(
+        "updating github documents with status FAILED",
+        sharedAnalyticsParams,
+        ctx,
+      );
+      await updateDocuments({
+        coreAPIData,
+        expressAPIs: validExpressAPIs,
+        newValues: { status: GithubDocumentStatus.FAILED },
+      });
+      jobResult = LastJobResult.error;
+      return;
+    }
+
+    const prCreator = new PullRequestCreator({
+      repoName: externalGithubRepo.name,
+      repoOwner: externalGithubRepo.owner.login,
+      repoId: externalGithubRepo.id,
+      baseBranchName: externalGithubRepo.defaultBranchRef?.name || "main", // The only reason `defaultBranchRef` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
+      octokit,
+      ctx,
+    });
+
+    eaveLogger.debug("creating pull request", sharedAnalyticsParams, ctx);
+
+    const pullRequest = await prCreator.createPullRequest({
+      branchName: API_BRANCH_NAME,
+      commitMessage: "docs: automated update",
+      prTitle: "docs: Eave API documentation update",
+      prBody: "Your new API docs based on recent changes to your code",
+      fileChanges: {
+        additions: fileAdditions,
+      },
+    });
+
     await updateDocuments({
       coreAPIData,
       expressAPIs: validExpressAPIs,
-      newValues: { status: GithubDocumentStatus.FAILED },
+      newValues: {
+        pull_request_number: pullRequest.number,
+        status: GithubDocumentStatus.PR_OPENED,
+      },
     });
-    return;
+
+    jobResult = LastJobResult.doc_created;
+  } catch (e: unknown) {
+    jobResult = LastJobResult.error;
+    throw e;
+  } finally {
+    await UpsertApiDocumentationJobOperation.perform({
+      teamId,
+      origin: appConfig.eaveOrigin,
+      input: {
+        job: {
+          github_repo_id: eaveGithubRepo.id,
+          state: ApiDocumentationJobState.idle,
+          last_result: jobResult,
+        },
+      },
+      ctx,
+    });
   }
-
-  const prCreator = new PullRequestCreator({
-    repoName: externalGithubRepo.name,
-    repoOwner: externalGithubRepo.owner.login,
-    repoId: externalGithubRepo.id,
-    baseBranchName: externalGithubRepo.defaultBranchRef?.name || "main", // The only reason `defaultBranchRef` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
-    octokit,
-    ctx,
-  });
-
-  eaveLogger.debug("creating pull request", sharedAnalyticsParams, ctx);
-
-  const pullRequest = await prCreator.createPullRequest({
-    branchName: API_BRANCH_NAME,
-    commitMessage: "docs: automated update",
-    prTitle: "docs: Eave API documentation update",
-    prBody: "Your new API docs based on recent changes to your code",
-    fileChanges: {
-      additions: fileAdditions,
-    },
-  });
-
-  await updateDocuments({
-    coreAPIData,
-    expressAPIs: validExpressAPIs,
-    newValues: {
-      pull_request_number: pullRequest.number,
-      status: GithubDocumentStatus.PR_OPENED,
-    },
-  });
 }
 
 /**
