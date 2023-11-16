@@ -205,7 +205,6 @@ const useTeam = () => {
           .json()
           .then(
             (/**@type {Types.GetApiDocumentationJobsResponseBody}*/ data) => {
-              // TODO: add retries like in docs fetch?
               setTeam((prev) => ({
                 ...prev,
                 apiDocsJobs: data.jobs,
