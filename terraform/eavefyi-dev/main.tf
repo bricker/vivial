@@ -1,18 +1,24 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
+variable "cron_shared_secret" {
+  type      = string
+  sensitive = true
+}
+
 locals {
-  project_id      = "eavefyi-dev"
-  region          = "us-central1"
-  zone            = "us-central1-c"
-  billing_account = "013F5E-137CB0-B6AA2A"
-  org_id          = "482990375115"
+  project_id        = "eavefyi-dev"
+  region            = "us-central1"
+  zone              = "us-central1-c"
+  billing_account   = "013F5E-137CB0-B6AA2A"
+  org_id            = "482990375115"
+  eave_domain_apex  = "eave.dev"
 }
 
 terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "4.51.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -38,6 +44,16 @@ module "gcp_cloud_tasks" {
 
 module "gcp_cloud_scheduler" {
   source     = "../modules/gcp/cloud_scheduler"
+  cron_shared_secret = var.cron_shared_secret
+}
+
+module "gcp_gke" {
+  source     = "../modules/gcp/gke"
   project_id = local.project_id
   region     = local.region
+}
+
+module "gcp_iam" {
+  source     = "../modules/gcp/iam"
+  project_id = local.project_id
 }
