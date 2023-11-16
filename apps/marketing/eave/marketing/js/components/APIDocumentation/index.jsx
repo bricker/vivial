@@ -254,7 +254,12 @@ function renderContent(
         classes,
       });
     }
-    if (apiDocsJobs.every((job) => job.last_result === "no_api_found" || job.last_result === "error")) {
+    if (
+      apiDocsJobs.every(
+        (job) =>
+          job.last_result === "no_api_found" || job.last_result === "error",
+      )
+    ) {
       return statusMessage({
         body: `We weren’t able to detect any Express APIs to document at this time.
           We're working on expanding support for additional languages and
