@@ -1,5 +1,8 @@
 import sys
 
+from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobState, LastJobResult
+from eave.stdlib.core_api.models.github_repos import GithubRepoFeatureState
+
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -66,7 +69,7 @@ async def seed_database() -> None:
 
     num_rows = 100
 
-    # setup toolbar
+    # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
     sys.stdout.write(curr_progress)
     sys.stdout.flush()
@@ -134,13 +137,16 @@ async def seed_database() -> None:
         )
         session.add(connect_confluence)
 
-        gh_repo = orm.GithubRepoOrm(
+        gh_repo = await orm.GithubRepoOrm.create(
+            session=session,
             team_id=team_id,
             github_installation_id=github.id,
             external_repo_id=f"external_repo_id{row}",
             display_name=f"repository {row}",
+            api_documentation_state=GithubRepoFeatureState.ENABLED,
+            inline_code_documentation_state=GithubRepoFeatureState.ENABLED,
+            architecture_documentation_state=GithubRepoFeatureState.ENABLED,
         )
-        session.add(gh_repo)
         await session.commit()
         await session.refresh(gh_repo)  # necessary to populate fk relation for gh_document
 
@@ -148,8 +154,17 @@ async def seed_database() -> None:
             team_id=team_id,
             github_repo_id=gh_repo.id,
             type=GithubDocumentType.API_DOCUMENT,
+            status="processing",
         )
         session.add(gh_document)
+
+        status_job = orm.ApiDocumentationJobOrm(
+            team_id=team_id,
+            github_repo_id=gh_repo.id,
+            state=ApiDocumentationJobState.idle,
+            last_result=LastJobResult.none,
+        )
+        session.add(status_job)
 
         await session.commit()
         end = time.perf_counter()

@@ -18,7 +18,7 @@ from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 class SlackInstallationOrm(Base):
     __tablename__ = "slack_sources"
     __table_args__ = (
-        make_team_composite_pk(),
+        make_team_composite_pk(table_name="slack_sources"),
         make_team_fk(),
         Index(
             "slack_team_id_eave_team_id",
