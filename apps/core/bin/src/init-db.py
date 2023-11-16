@@ -81,11 +81,6 @@ async def init_database() -> None:
     async with eave.core.internal.database.async_engine.begin() as connection:
         await connection.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
 
-    alembic.command.stamp(
-        revision="head",
-        config=_alembic_config,
-    )
-
     await postgres_engine.dispose()
 
 

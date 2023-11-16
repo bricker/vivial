@@ -30,7 +30,7 @@ from .. import database
 class ConfluenceDestinationOrm(Base):
     __tablename__ = "confluence_destinations"
     __table_args__ = (
-        make_team_composite_pk(),
+        make_team_composite_pk(table_name="confluence_destinations"),
         make_team_fk(),
         ForeignKeyConstraint(["connect_installation_id"], ["connect_installations.id"], ondelete="CASCADE"),
     )
