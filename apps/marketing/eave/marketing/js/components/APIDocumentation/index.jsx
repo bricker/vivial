@@ -261,7 +261,7 @@ function renderContent(
       )
     ) {
       return statusMessage({
-        body: `We weren’t able to detect any Express APIs to document at this time.
+        body: `We weren't able to detect any Express APIs to document at this time.
           We're working on expanding support for additional languages and
           frameworks in the near future. Questions, comments, or requests?`,
         mailto: "Send us a message at info@eave.fyi",
