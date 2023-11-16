@@ -244,10 +244,9 @@ function renderContent(
       classes,
     });
 
-    if (apiDocsJobs.every((job) => job.state === "running")) {
+    if (!apiDocsJobs || apiDocsJobs.every((job) => job.state === "running")) {
       return processingMessage;
     }
-
     if (apiDocsJobs.every((job) => job.last_result === "error")) {
       return statusMessage({
         body: "Oops, looks like something went wrong, and we're actively investigating the issue. Please check back again shortly or feel free to",
@@ -255,7 +254,6 @@ function renderContent(
         classes,
       });
     }
-
     if (apiDocsJobs.every((job) => job.last_result === "no_api_found")) {
       return statusMessage({
         body: `We weren’t able to detect any Express APIs to document at this time.
@@ -344,12 +342,13 @@ function renderContent(
 }
 
 const APIDocumentation = () => {
-  const { team, getTeamAPIDocs } = useTeam();
+  const { team, getTeamAPIDocs, getTeamApiDocsJobsStatuses } = useTeam();
   const [compact, setCompact] = useState(window.innerWidth < 900);
   const classes = makeClasses();
 
   useEffect(() => {
     getTeamAPIDocs();
+    getTeamApiDocsJobsStatuses();
     const interval = setInterval(getTeamAPIDocs, 30000);
     return () => clearInterval(interval);
   }, []);
