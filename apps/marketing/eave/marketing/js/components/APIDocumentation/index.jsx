@@ -1,5 +1,5 @@
 // @ts-check
-import { CircularProgress, Typography } from "@material-ui/core";
+import { CircularProgress, Link, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useEffect, useState } from "react";
 import useTeam from "../../hooks/useTeam";
@@ -71,6 +71,13 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
   compactDocName: {
     fontWeight: 700,
+  },
+  statusText: {
+    fontSize: 16,
+    maxWidth: 700,
+  },
+  statusMailer: {
+    fontWeight: "bold",
   },
 }));
 
@@ -157,6 +164,23 @@ function formatLastUpdated(doc) {
   });
 }
 
+function statusMessage({
+  /** @type {string} */ body,
+  /** @type {string | undefined} */ mailto,
+  classes,
+}) {
+  return (
+    <Typography className={classes.statusText}>
+      {body}{" "}
+      {mailto !== undefined && (
+        <Link className={classes.statusMailer} href="mailto:info@eave.fyi">
+          {mailto}
+        </Link>
+      )}
+    </Typography>
+  );
+}
+
 /**
  * Renders the content of the dashboard based on the state of API documentation fetching.
  * Displays error message if unable to fetch API documentation.
@@ -179,9 +203,17 @@ function renderContent(
     apiDocsLoading,
     apiDocsFetchCount,
     apiDocs,
+    apiDocsJobStatusLoading,
+    apiDocsJobs,
     repos,
     apiDocsRequestHasSucceededAtLeastOnce,
   } = team;
+
+  const loadingWheel = (
+    <div className={classes.loader}>
+      <CircularProgress color="inherit" />
+    </div>
+  );
 
   /**
    * This check:
@@ -191,28 +223,54 @@ function renderContent(
   if (apiDocsFetchCount === 0) {
     if (apiDocsErroring && !apiDocsRequestHasSucceededAtLeastOnce) {
       return (
-        <Typography color="error" variant="h6">
+        <Typography color="error" className={classes.statusText}>
           ERROR: Unable to fetch API documentation.
         </Typography>
       );
     }
     if (apiDocsLoading) {
-      return (
-        <div className={classes.loader}>
-          <CircularProgress color="inherit" />
-        </div>
-      );
+      return loadingWheel;
     }
   }
 
-  if (apiDocs.length === 0) { // TODO: update text
-    return (
-      <Typography color="inherit" variant="h6">
-        Eave is currently searching for Express APIs within your repositories.
-        This may take some time. Please check back for any documentation
-        created.
-      </Typography>
-    );
+  // no docs created in DB yet; check job status to find why
+  if (apiDocs.length === 0) {
+    if (apiDocsJobStatusLoading) {
+      return loadingWheel;
+    }
+    const processingMessage = statusMessage({
+      body: "Eave is currently searching for Express APIs within your repositories. This may take some time. Please check back for any documentation created.",
+      mailto: undefined,
+      classes,
+    });
+
+    if (!apiDocsJobs || apiDocsJobs.every((job) => job.state === "running")) {
+      return processingMessage;
+    }
+    if (apiDocsJobs.every((job) => job.last_result === "error")) {
+      return statusMessage({
+        body: "Oops, looks like something went wrong, and we're actively investigating the issue. Please check back again shortly or feel free to",
+        mailto: "reach out to us at info@eave.fyi",
+        classes,
+      });
+    }
+    if (
+      apiDocsJobs.every(
+        (job) =>
+          job.last_result === "no_api_found" || job.last_result === "error",
+      )
+    ) {
+      return statusMessage({
+        body: `We weren't able to detect any Express APIs to document at this time.
+          We're working on expanding support for additional languages and
+          frameworks in the near future. Questions, comments, or requests?`,
+        mailto: "Send us a message at info@eave.fyi",
+        classes,
+      });
+    }
+
+    // fallback
+    return processingMessage;
   }
   const repoMap = mapReposById(repos);
   const handleRowClick = (e, /** @type {Types.GithubDocument} */ doc) => {
@@ -289,12 +347,13 @@ function renderContent(
 }
 
 const APIDocumentation = () => {
-  const { team, getTeamAPIDocs } = useTeam();
+  const { team, getTeamAPIDocs, getTeamApiDocsJobsStatuses } = useTeam();
   const [compact, setCompact] = useState(window.innerWidth < 900);
   const classes = makeClasses();
 
   useEffect(() => {
     getTeamAPIDocs();
+    getTeamApiDocsJobsStatuses();
     const interval = setInterval(getTeamAPIDocs, 30000);
     return () => clearInterval(interval);
   }, []);

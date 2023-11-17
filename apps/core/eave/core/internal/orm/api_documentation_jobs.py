@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
-from sqlalchemy import Index, ForeignKeyConstraint, PrimaryKeyConstraint, Select
+from sqlalchemy import Index, PrimaryKeyConstraint, Select
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column

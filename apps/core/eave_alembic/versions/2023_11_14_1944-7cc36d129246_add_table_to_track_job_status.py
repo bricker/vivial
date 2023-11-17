@@ -38,9 +38,9 @@ def upgrade() -> None:
         ),
         sa.Column("updated", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
-            ["github_repo_id"],
-            ["github_repos.id"],
-            name="github_repos_id_fk",
+            ["team_id", "github_repo_id"],
+            ["github_repos.team_id", "github_repos.id"],
+            name="github_repo_id_github_repos_id_team_id_fk",
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(["team_id"], ["teams.id"], ondelete="CASCADE"),

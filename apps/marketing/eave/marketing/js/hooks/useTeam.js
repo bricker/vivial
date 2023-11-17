@@ -6,7 +6,7 @@ import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
 import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
-/** @returns {{team: Types.DashboardTeam, getTeam: any, getTeamRepos: any, getTeamAPIDocs: any, updateTeamFeatureState: any}} */
+/** @returns {{team: Types.DashboardTeam, getTeam: any, getTeamRepos: any, getTeamAPIDocs: any, updateTeamFeatureState: any, getTeamApiDocsJobsStatuses: any}} */
 const useTeam = () => {
   const { teamCtx } = useContext(AppContext);
   /** @type {[Types.DashboardTeam, (f: (prev: Types.DashboardTeam) => Types.DashboardTeam) => void]} */
@@ -178,6 +178,51 @@ const useTeam = () => {
       });
   }
 
+  function getTeamApiDocsJobsStatuses() {
+    setTeam((prev) => ({
+      ...prev,
+      apiDocsJobStatusLoading: true,
+      apiDocsJobStatusErroring: false,
+    }));
+    fetch("/dashboard/team/api-docs-jobs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        /** @type {Types.GetApiDocumentationJobsRequestBody} */ {},
+      ),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp
+          .json()
+          .then(
+            (/**@type {Types.GetApiDocumentationJobsResponseBody}*/ data) => {
+              setTeam((prev) => ({
+                ...prev,
+                apiDocsJobs: data.jobs,
+                apiDocsJobStatusErroring: false,
+                apiDocsJobStatusLoading: false,
+              }));
+            },
+          );
+      })
+      .catch(() => {
+        setTeam((prev) => ({
+          ...prev,
+          apiDocsJobStatusLoading: false,
+          apiDocsJobStatusErroring: true,
+        }));
+      });
+  }
+
   /**
    * Asynchronously fetches API documentation from the server and updates the team state accordingly.
    * The state is initially set to loading, then updated with the fetched documents if the request is successful.
@@ -234,6 +279,7 @@ const useTeam = () => {
     getTeam,
     getTeamRepos,
     getTeamAPIDocs,
+    getTeamApiDocsJobsStatuses,
     updateTeamFeatureState,
   };
 };
