@@ -1,0 +1,56 @@
+steps:
+- name: python:3.11.2
+  dir: apps/core
+  entrypoint: bin/setup
+  env:
+  - EAVE_HOME=/workspace
+  - CI=1
+  - VERBOSE=1
+  - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
+  - PYTHONDONTWRITEBYTECODE=1
+
+
+- name: python:3.11.2
+  dir: apps/core
+  script: |-
+    python -m pip install -t vendor -r requirements-vendor.txt
+  env:
+  - EAVE_HOME=/workspace
+
+- name: bash
+  dir: apps/core
+  script: |-
+    cp $EAVE_HOME/.gcloudignore .
+    cp $EAVE_HOME/.gitignore .
+  env:
+  - EAVE_HOME=/workspace
+
+# - name: gcr.io/$PROJECT_ID/eave-builder-gcloudsdk
+#   dir: apps/core
+#   entrypoint: /workspace/develop/shared/bin/deploy-appengine
+#   # script: |-
+#   #   #!/usr/bin/env -S bash -eu
+#   #   gcloud meta list-files-for-upload
+#   #   if test -d "vendor"; then
+#   #     echo "vendor/..."
+#   #   fi
+# 
+#   #   version=$(cat .buildinfo/version)
+#   #   gcloud app deploy \
+#   #     --version=$version \
+#   #     --appyaml=app.$GOOGLE_CLOUD_PROJECT.yaml
+#   env:
+#   - EAVE_HOME=/workspace
+#   - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
+
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  dir: apps/core
+  args: ['-c', './bin/deploy']
+  env:
+  - EAVE_HOME=/workspace
+  - CI=1
+  - VERBOSE=1
+  - GOOGLE_CLOUD_PROJECT=$PROJECT_ID
+
+timeout: '1600s'
