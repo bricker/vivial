@@ -18,7 +18,6 @@ import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
 /** @returns {TeamHook} */
 const useTeam = () => {
-  /** @type {import("../context/Provider.js").AppContextProps} */
   const { teamCtx, dashboardNetworkStateCtx } = useContext(AppContext);
   const [team, setTeam] = teamCtx;
   const [, setDashboardNetworkState] = dashboardNetworkStateCtx;

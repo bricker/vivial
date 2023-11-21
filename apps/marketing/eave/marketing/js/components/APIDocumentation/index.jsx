@@ -341,7 +341,6 @@ function renderContent(/** @type {{ classes: object, networkState: Types.Dashboa
 }
 
 const APIDocumentation = () => {
-    /** @type {import("../../context/Provider.js").AppContextProps} */
   const { dashboardNetworkStateCtx: [networkState] } = useContext(AppContext);
   const { team, getTeamAPIDocs, getTeamApiDocsJobsStatuses } = useTeam();
   const [compact, setCompact] = useState(window.innerWidth < 900);
