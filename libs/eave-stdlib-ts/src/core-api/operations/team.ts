@@ -6,7 +6,6 @@ import { CoreApiEndpointConfiguration } from "./shared.js";
 export type GetTeamResponseBody = {
   team: Team;
   integrations: Integrations;
-  destination: Destination;
 };
 
 export class GetTeamOperation {
