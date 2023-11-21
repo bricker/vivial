@@ -7,31 +7,31 @@ from ..models import team
 from ... import requests
 
 
-class GetSlackInstallation(CoreApiEndpoint):
-    config = CoreApiEndpointConfiguration(
-        path="/integrations/slack/query",
-        auth_required=False,
-        team_id_required=False,
-    )
+# class GetSlackInstallation(CoreApiEndpoint):
+#     config = CoreApiEndpointConfiguration(
+#         path="/integrations/slack/query",
+#         auth_required=False,
+#         team_id_required=False,
+#     )
 
-    class RequestBody(BaseRequestBody):
-        slack_integration: SlackInstallationInput
+#     class RequestBody(BaseRequestBody):
+#         slack_integration: SlackInstallationInput
 
-    class ResponseBody(BaseResponseBody):
-        team: team.Team
-        slack_integration: SlackInstallation
+#     class ResponseBody(BaseResponseBody):
+#         team: team.Team
+#         slack_integration: SlackInstallation
 
-    @classmethod
-    async def perform(
-        cls,
-        input: RequestBody,
-        **kwargs: Unpack[requests.CommonRequestArgs],
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            config=cls.config,
-            input=input,
-            **kwargs,
-        )
+#     @classmethod
+#     async def perform(
+#         cls,
+#         input: RequestBody,
+#         **kwargs: Unpack[requests.CommonRequestArgs],
+#     ) -> ResponseBody:
+#         response = await requests.make_request(
+#             config=cls.config,
+#             input=input,
+#             **kwargs,
+#         )
 
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
+#         body = await cls.make_response(response, cls.ResponseBody)
+#         return body

@@ -3,9 +3,9 @@ from typing import Optional
 
 import strawberry.federation as sb
 from eave.core.graphql.types.atlassian import AtlassianInstallation
-from eave.core.graphql.types.connect import ConnectInstallation
+from eave.core.graphql.types.connect_installation import ConnectInstallation
 
-from eave.core.graphql.types.slack import SlackInstallation
+from eave.core.graphql.types.slack_installation import SlackInstallation
 
 from .github_installation import GithubInstallation
 
