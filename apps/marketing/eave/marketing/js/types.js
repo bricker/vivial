@@ -31,30 +31,6 @@
  */
 
 /**
- * @typedef {import("../../../../../libs/eave-stdlib-ts/src/confluence-api/operations.js").GetAvailableSpacesResponseBody} GetAvailableSpacesResponseBody
- */
-
-/**
- * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/team.js").ConfluenceDestinationInput} ConfluenceDestinationInput
- */
-
-/**
- * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/team.js").UpsertConfluenceDestinationAuthedRequestBody} UpsertConfluenceDestinationAuthedRequestBody
- */
-
-/**
- * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/team.js").UpsertConfluenceDestinationAuthedResponseBody} UpsertConfluenceDestinationAuthedResponseBody
- */
-
-/**
- * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/team.js").ConfluenceDestination} ConfluenceDestination
- */
-
-/**
- * @typedef {import("../../../../../libs/eave-stdlib-ts/src/confluence-api/models.js").ConfluenceSpace} ConfluenceSpace
- */
-
-/**
  * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/team.js").Team} Team
  */
 
@@ -86,8 +62,6 @@
  * @property {Integrations} [integrations]
  * @property {GithubRepo[]} [repos]
  * @property {ApiDocumentationJob[]} [apiDocsJobs]
- * @property {ConfluenceDestination} [confluenceDestination]
- * @property {ConfluenceSpace[]} [availableConfluenceSpaces]
  */
 
 /**
@@ -100,12 +74,8 @@
  * @property {boolean} reposAreErroring
  * @property {boolean} apiDocsLoading
  * @property {boolean} apiDocsErroring
- * @property {boolean} [apiDocsJobStatusLoading]
- * @property {boolean} [apiDocsJobStatusErroring]
- * @property {boolean} confluenceSpacesLoading
- * @property {boolean} confluenceSpacesErroring
- * @property {boolean} confluenceSpaceUpdateLoading
- * @property {boolean} confluenceSpaceUpdateErroring
+ * @property {boolean} apiDocsJobStatusLoading
+ * @property {boolean} apiDocsJobStatusErroring
  * @property {number} apiDocsFetchCount
  * @property {boolean} teamRequestHasSucceededAtLeastOnce
  * @property {boolean} reposRequestHasSucceededAtLeastOnce

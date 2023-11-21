@@ -220,38 +220,6 @@ async def get_team_documents() -> Response:
     eave_response.documents.sort(key=_document_rank)
     return _make_response(eave_response)
 
-@app.route("/dashboard/team/confluence-spaces/list", methods=["POST"])
-@_auth_handler
-async def list_available_confluence_spaces() -> Response:
-    await _validate_auth_cookies_or_exception()
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    eave_response = await GetAvailableSpacesRequest.perform(
-        origin=app_config.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-    )
-
-    return _make_response(eave_response)
-
-@app.route("/dashboard/team/confluence-spaces/set", methods=["POST"])
-@_auth_handler
-async def set_team_confluence_space() -> Response:
-    await _validate_auth_cookies_or_exception()
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    input = team.UpsertConfluenceDestinationAuthedRequest.RequestBody(
-        confluence_destination=ConfluenceDestinationInput(**request.get_json())
-    )
-
-    eave_response = await team.UpsertConfluenceDestinationAuthedRequest.perform(
-        origin=app_config.eave_origin,
-        account_id=unwrap(auth_cookies.account_id),
-        team_id=unwrap(auth_cookies.team_id),
-        access_token=unwrap(auth_cookies.access_token),
-        input=input,
-    )
-
-    return _make_response(eave_response)
 
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:

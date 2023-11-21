@@ -13,8 +13,6 @@ import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
  * @property {() => void} getTeamRepos
  * @property {() => void} getTeamAPIDocs
  * @property {() => void} getTeamApiDocsJobsStatuses
- * @property {() => void} listAvailableConfluenceSpaces
- * @property {(input: Types.ConfluenceDestinationInput) => void} setConfluenceSpace
  * @property {(input: Types.FeatureStateParams) => void} updateTeamFeatureState
  */
 
@@ -60,7 +58,6 @@ const useTeam = () => {
               id: data.team?.id,
               name: data.team?.name,
               integrations: data.integrations,
-              confluenceDestination: data.destination?.confluence_destination,
             }));
 
             setDashboardNetworkState((prev) => ({
@@ -76,96 +73,6 @@ const useTeam = () => {
           teamIsLoading: false,
           teamIsErroring: true,
         }));
-      });
-  }
-
-  function listAvailableConfluenceSpaces() {
-    setDashboardNetworkState((prev) => ({
-      ...prev,
-      confluenceSpacesLoading: true,
-      confluenceSpacesErroring: false,
-    }));
-    fetch("/dashboard/team/confluence-spaces/list", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}),
-    })
-      .then((resp) => {
-        if (isUnauthorized(resp)) {
-          logUserOut();
-          return;
-        }
-        if (isHTTPError(resp)) {
-          throw resp;
-        }
-        return resp
-          .json()
-          .then((/** @type {Types.GetAvailableSpacesResponseBody} */ data) => {
-            setTeam((prev) => ({
-              ...prev,
-              availableConfluenceSpaces: data.confluence_spaces,
-            }));
-
-            setDashboardNetworkState((prev) => ({
-              ...prev,
-              confluenceSpacesLoading: false,
-            }));
-          });
-      })
-      .catch(() => {
-        setDashboardNetworkState((prev) => ({
-          ...prev,
-          confluenceSpacesLoading: false,
-          confluenceSpacesErroring: true,
-        }));
-      });
-  }
-
-  function setConfluenceSpace(/** @type {Types.ConfluenceDestinationInput} */ input) {
-    setDashboardNetworkState((prev) => ({
-      ...prev,
-      confluenceSpaceUpdateLoading: true,
-      confluenceSpaceUpdateErroring: false,
-    }));
-    fetch("/dashboard/team/confluence-spaces/set", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    })
-      .then((resp) => {
-        if (isUnauthorized(resp)) {
-          logUserOut();
-          return;
-        }
-        if (isHTTPError(resp)) {
-          throw resp;
-        }
-        return resp
-          .json()
-          .then((/** @type {Types.UpsertConfluenceDestinationAuthedResponseBody} */ data) => {
-            setTeam((prev) => ({
-              ...prev,
-              confluenceDestination: data.confluence_destination,
-            }));
-
-            setDashboardNetworkState((prev) => ({
-              ...prev,
-              confluenceSpaceUpdateLoading: false,
-            }));
-          });
-      })
-      .catch(() => {
-        setDashboardNetworkState((prev) => ({
-          ...prev,
-          confluenceSpaceUpdateLoading: false,
-          confluenceSpaceUpdateErroring: true,
-        }));
-
-        // No error/loading state for this operation
       });
   }
 
@@ -398,8 +305,6 @@ const useTeam = () => {
     getTeamRepos,
     getTeamAPIDocs,
     getTeamApiDocsJobsStatuses,
-    listAvailableConfluenceSpaces,
-    setConfluenceSpace,
     updateTeamFeatureState,
   };
 };
