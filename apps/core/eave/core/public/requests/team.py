@@ -25,13 +25,11 @@ class GetTeamEndpoint(HTTPEndpoint):
             )
 
             integrations = await eave_team_orm.get_integrations(session=db_session)
-            destination = await eave_team_orm.get_destination(session=db_session)
 
         return json_response(
             GetTeamRequest.ResponseBody(
                 team=eave_team_orm.api_model,
                 integrations=integrations,
-                destination=destination,
             )
         )
 

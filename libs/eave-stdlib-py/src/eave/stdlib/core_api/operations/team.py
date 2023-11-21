@@ -15,7 +15,6 @@ class GetTeamRequest(CoreApiEndpoint):
     class ResponseBody(BaseResponseBody):
         team: Team
         integrations: integrations.Integrations
-        destination: Optional[Destination]
 
     @classmethod
     async def perform(
