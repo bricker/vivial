@@ -40,16 +40,17 @@ import { PullRequestCreator } from "../lib/pull-request-creator.js";
 const ANALYTICS_SOURCE = "run api documentation cron handler";
 
 /**
- * Handles the task of running API documentation. It loads the log context, validates the team ID,
- * retrieves the team and repository data, and checks if the API documentation feature is enabled for the repository.
- * If the repository is empty or no Express apps are detected, it logs the event and sends a 200 status response.
- * If there are no commits made to the default branch in the delta period, it logs an event and sends a 200 status response.
- * For each detected Express app, it builds the API documentation, generates a new document content from OpenAI,
- * and creates a pull request with the new documentation.
+ * Handles the task of running API documentation. It loads the logging context, validates the team ID,
+ * retrieves the necessary data from the core API, and checks the state of the Github repository.
+ * If the repository is empty or no new commits have been made, the function skips the documentation process.
+ * Otherwise, it initiates the process of generating API documentation, which includes detecting Express apps,
+ * building API information, creating or updating Github documents, and generating the actual documentation.
+ * If successful, it creates a pull request with the new documentation.
+ * The function also logs various events and updates the job state throughout the process.
  * If any errors occur during the process, it logs the error and updates the GitHub document status to FAILED.
  *
- * @param {Express.Request} req - The request object.
- * @param {Express.Response} res - The response object.
+ * @param {Express.Request} req - The Express request object.
+ * @param {Express.Response} res - The Express response object.
  * @returns {Promise<void>} - A promise that resolves when the function has completed.
  * @throws {MissingRequiredHeaderError} - If the team ID header is missing in the request.
  * @throws {Error} - If the API documentation state is not enabled, no Github integration is found for the team ID,
@@ -527,7 +528,7 @@ export async function runApiDocumentationTaskHandler(
 /**
  * Updates the documentation of the provided Express APIs using the given new values.
  * It fetches the current documentation from Github using the Core API data and the documentation file path of each Express API.
- * If the documentation file path is present, it updates the Github document with the new values.
+ * If the documentation is present, it updates the Github document with the new values.
  *
  * @async
  * @param {Object} params - The parameters for updating documents.
@@ -539,7 +540,7 @@ export async function runApiDocumentationTaskHandler(
  *
  * @throws {Error} If the documentation for an Express API is not found.
  *
- * @returns {Promise<void>} A promise that resolves when all document updates have been settled (either fulfilled or rejected).
+ * @returns {Promise<void>} A promise that settles once all the document updates have been attempted (whether they succeeded or failed).
  */
 async function updateDocuments({
   coreAPIData,
@@ -569,11 +570,11 @@ async function updateDocuments({
 /**
  * Generates API documentation for the provided Express REST API endpoint using OpenAI.
  *
- * @param {Object} arg - An object containing the context and Express API information.
+ * @param {Object} arg - The argument object.
  * @param {Object} arg.ctx - The context object.
  * @param {Object} arg.expressAPIInfo - Information about the Express API.
  *
- * @returns {Promise<string|null>} The generated API documentation as a string, or null if no documentation could be generated.
+ * @returns {Promise<string|null>} The generated API documentation or null if no documentation could be generated.
  *
  * @throws Will throw an error if the OpenAI client fails to generate the documentation.
  *
@@ -691,8 +692,8 @@ export async function generateExpressAPIDoc({
 /**
  * Returns the file path for the documentation of a given API.
  *
- * @param {Object} obj - An object.
- * @param {string} obj.apiName - The name of the API.
+ * @param {Object} options - The options object.
+ * @param {string} options.apiName - The name of the API.
  *
  * @returns {string} The file path for the API's documentation.
  */

@@ -7,6 +7,7 @@ from typing import Any, Awaitable, Callable
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
+from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobListInput
 
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
 from eave.stdlib.core_api.operations import BaseResponseBody
@@ -14,6 +15,7 @@ import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
+import eave.stdlib.core_api.operations.api_documentation_jobs as api_documentation_jobs
 from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentsQueryInput, GithubDocumentStatus
 from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 from eave.stdlib.headers import MIME_TYPE_JSON
@@ -171,6 +173,25 @@ async def update_team_repos() -> Response:
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
         input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
+    )
+
+    return _make_response(eave_response)
+
+
+@app.route("/dashboard/team/api-docs-jobs", methods=["POST"])
+@_auth_handler
+async def get_team_docs_jobs() -> Response:
+    auth_cookies = _get_auth_cookies_or_exception()
+
+    body = request.get_json()
+    jobs = [ApiDocumentationJobListInput(id=job["id"]) for job in body["jobs"]] if "jobs" in body else None
+
+    eave_response = await api_documentation_jobs.GetApiDocumentationJobsOperation.perform(
+        origin=app_config.eave_origin,
+        team_id=unwrap(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+        input=api_documentation_jobs.GetApiDocumentationJobsOperation.RequestBody(jobs=jobs),
     )
 
     return _make_response(eave_response)

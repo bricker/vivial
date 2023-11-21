@@ -6,11 +6,11 @@ import {
 } from "../models/api-documentation-jobs.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
 
-type GetApiDocumentationJobsRequestBody = {
+export type GetApiDocumentationJobsRequestBody = {
   jobs?: ApiDocumentationJobListInput[];
 };
 
-type GetApiDocumentationJobsResponseBody = {
+export type GetApiDocumentationJobsResponseBody = {
   jobs: ApiDocumentationJob[];
 };
 
@@ -18,6 +18,12 @@ export class GetApiDocumentationJobsOperation {
   static config = new CoreApiEndpointConfiguration({
     path: "/api-documentation-job/query",
   });
+  /**
+   * Performs an asynchronous request with the provided arguments.
+   *
+   * @param args - An object that contains the team ID and the input for the API documentation jobs request.
+   * @returns A promise that resolves to the response body of the API documentation jobs request.
+   */
   static async perform(
     args: RequestArgsTeamId & { input: GetApiDocumentationJobsRequestBody },
   ): Promise<GetApiDocumentationJobsResponseBody> {
@@ -30,11 +36,11 @@ export class GetApiDocumentationJobsOperation {
   }
 }
 
-type UpsertApiDocumentationJobRequestBody = {
+export type UpsertApiDocumentationJobRequestBody = {
   job: ApiDocumentationJobUpsertInput;
 };
 
-type UpsertApiDocumentationJobResponseBody = {
+export type UpsertApiDocumentationJobResponseBody = {
   job: ApiDocumentationJob;
 };
 
@@ -42,6 +48,12 @@ export class UpsertApiDocumentationJobOperation {
   static config = new CoreApiEndpointConfiguration({
     path: "/api-documentation-job/upsert",
   });
+  /**
+   * Performs an asynchronous operation to upsert API documentation job.
+   *
+   * @param args - An object that contains the team ID and the input for the upsert API documentation job request.
+   * @returns A promise that resolves to the response body of the upsert API documentation job.
+   */
   static async perform(
     args: RequestArgsTeamId & { input: UpsertApiDocumentationJobRequestBody },
   ): Promise<UpsertApiDocumentationJobResponseBody> {

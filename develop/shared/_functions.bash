@@ -407,15 +407,10 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 
 		rsync -a $vflag \
-			--exclude='.git' \
+			--exclude='.*' \
 			--exclude 'node_modules' \
-			--exclude '.yalc' \
 			--exclude 'vendor' \
 			--exclude 'dist' \
-			--exclude '.venv' \
-			--exclude '.ruff_cache' \
-			--exclude '.mypy_cache' \
-			--exclude '.pytest_cache' \
 			--exclude '__pycache__' \
 			--exclude '*.pyc' \
 			"$PWD" "$builddir"
