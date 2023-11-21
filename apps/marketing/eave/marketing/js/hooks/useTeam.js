@@ -12,6 +12,7 @@ import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
  * @property {() => void} getTeam
  * @property {() => void} getTeamRepos
  * @property {() => void} getTeamAPIDocs
+ * @property {() => void} getTeamApiDocsJobsStatuses
  * @property {() => void} listAvailableConfluenceSpaces
  * @property {(input: Types.ConfluenceDestinationInput) => void} setConfluenceSpace
  * @property {(input: Types.FeatureStateParams) => void} updateTeamFeatureState
@@ -289,6 +290,54 @@ const useTeam = () => {
       });
   }
 
+  function getTeamApiDocsJobsStatuses() {
+    setDashboardNetworkState((prev) => ({
+      ...prev,
+      apiDocsJobStatusLoading: true,
+      apiDocsJobStatusErroring: false,
+    }));
+    fetch("/dashboard/team/api-docs-jobs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        /** @type {Types.GetApiDocumentationJobsRequestBody} */ {},
+      ),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp
+          .json()
+          .then(
+            (/**@type {Types.GetApiDocumentationJobsResponseBody}*/ data) => {
+              setTeam((prev) => ({
+                ...prev,
+                apiDocsJobs: data.jobs,
+              }));
+              setDashboardNetworkState((prev) => ({
+                ...prev,
+                apiDocsJobStatusLoading: false,
+                apiDocsJobStatusErroring: false,
+              }));
+            },
+          );
+      })
+      .catch(() => {
+        setDashboardNetworkState((prev) => ({
+          ...prev,
+          apiDocsJobStatusLoading: false,
+          apiDocsJobStatusErroring: true,
+        }));
+      });
+  }
+
   /**
    * Asynchronously fetches API documentation from the server and updates the team state accordingly.
    * The state is initially set to loading, then updated with the fetched documents if the request is successful.
@@ -348,6 +397,7 @@ const useTeam = () => {
     getTeam,
     getTeamRepos,
     getTeamAPIDocs,
+    getTeamApiDocsJobsStatuses,
     listAvailableConfluenceSpaces,
     setConfluenceSpace,
     updateTeamFeatureState,

@@ -39,9 +39,9 @@ export class GithubAPIData {
   /**
    * Constructs a new instance of the GitHubOperations class.
    *
-   * @param {object} params - An object containing the necessary parameters.
-   * @param {object} params.ctx - The context object.
-   * @param {object} params.octokit - The Octokit object.
+   * @param {Object} params - An object containing the necessary parameters.
+   * @param {Object} params.ctx - The context object.
+   * @param {Object} params.octokit - The Octokit object.
    * @param {string} params.externalRepoId - The external repository ID.
    */
   constructor({
@@ -58,12 +58,13 @@ export class GithubAPIData {
 
   /**
    * Retrieves an external GitHub repository using the repository's node ID.
-   * The repository is fetched via a GraphQL query and memoized for future use.
-   * If the repository has been previously fetched, the memoized version is returned.
-   * The function also logs the repository's ID and name with owner for tracking purposes.
+   * The function first checks if the repository data is already memoized.
+   * If not, it loads a GraphQL query, executes it with the node ID as a variable,
+   * and memoizes the result for future use.
+   * It also logs the repository's ID and name with owner for tracking and debugging purposes.
    *
-   * @returns {Promise<Repository>} A promise that resolves to the fetched GitHub repository.
-   * @throws {AssertionError} If the fetched node is not a repository.
+   * @returns {Promise<Repository>} A promise that resolves to the external GitHub repository.
+   * @throws {Error} If the response from the GraphQL query is not a valid repository.
    */
   async getExternalGithubRepo(): Promise<Repository> {
     if (this.__memo__externalGithubRepo !== undefined) {
@@ -94,11 +95,12 @@ export class GithubAPIData {
   }
 
   /**
-   * Asynchronously retrieves the root directories of Express applications within the project.
-   * It searches for 'package.json' files containing the term '"express":' to identify Express applications.
+   * Asynchronously retrieves the root directories of Express applications within a project.
+   * It searches for 'package.json' files that contain 'express' as a dependency (in 'dependencies', 'devDependencies', or 'peerDependencies').
+   * The function uses a regex search instead of parsing the 'package.json' file to avoid missing any potential matches.
+   * If no Express root directories are found, a warning is logged.
    * The results are memoized for future calls.
-   * If no Express application directories are found, a warning is logged.
-   * @returns {Promise<string[]>} A promise that resolves to an array of root directory paths for Express applications.
+   * @returns {Promise<string[]>} A promise that resolves to an array of Express root directory paths.
    */
   async getExpressRootDirs(): Promise<string[]> {
     if (this.__memo__expressRootDirs !== undefined) {
@@ -148,10 +150,10 @@ export class GithubAPIData {
 
   /**
    * Retrieves the latest commit on the default branch of the external Github repository.
-   * If the latest commit is already memoized, it returns the memoized commit.
+   * If the latest commit is already memoized, it returns the memoized value.
    * Otherwise, it queries the Github GraphQL API to fetch the latest commit.
    * If the fetched object is not a commit, it returns null.
-   * The fetched commit is memoized for future use.
+   * The fetched commit is then memoized for future use.
    *
    * @returns {Promise<Commit | null>} The latest commit on the default branch or null if not found.
    * @async
@@ -196,8 +198,8 @@ export class GithubAPIData {
   /**
    * Retrieves the Git tree of a specified directory from an external GitHub repository.
    *
-   * @param {Object} params - An object containing the root directory of the tree.
-   * @param {string} params.treeRootDir - The root directory of the tree.
+   * @param {Object} params - An object.
+   * @param {string} params.treeRootDir - The root directory of the tree to retrieve.
    *
    * @returns {Promise<Tree>} A promise that resolves to the Git tree of the specified directory.
    *
@@ -230,11 +232,15 @@ export class GithubAPIData {
   }
 
   /**
-   * Asynchronously generates `TreeEntry` objects by recursively traversing a Git tree.
-   * The function uses Breadth-First Search (BFS) to traverse the tree.
+   * Asynchronously generates `TreeEntry` objects from a given git tree root directory.
+   * The function filters out blob entries and sub-trees from the git tree.
+   * For blob entries, it yields each entry directly.
+   * For sub-trees, it recursively calls itself with the sub-tree path as the new root directory.
    *
-   * @param treeRootDir - The root directory of the Git tree to be traversed.
+   * @param {Object} params - Function parameters.
+   * @param {string} params.treeRootDir - The root directory of the git tree to recurse.
    * @yields {TreeEntry} - Yields blob entries first, then recursively yields entries from subtrees.
+   * @throws {AssertionError} If a sub-tree does not have a path.
    *
    * @remarks
    * The function is designed to yield `TreeEntry` objects where `TreeEntry.object.__typename === "Blob"`.
@@ -249,7 +255,6 @@ export class GithubAPIData {
     const blobEntries = gitTree.entries?.filter((e) => isBlob(e.object));
     const subTrees = gitTree.entries?.filter((e) => isTree(e.object));
 
-    // BFS
     if (blobEntries) {
       for (const blobEntry of blobEntries) {
         // TODO: How to design this function to return a TreeEntry narrowed to `TreeEntry.object.__typename === "Blob"`, so the caller doesn't have to assert?
@@ -271,9 +276,9 @@ export class GithubAPIData {
    * @param {Object} params - The parameters for the function.
    * @param {string} params.filePath - The path of the file in the repository.
    *
-   * @returns {Promise<Blob | null>} The content of the file as a Blob if it exists, otherwise null.
+   * @returns {Promise<Blob|null>} The content of the file as a Blob if it exists, otherwise null.
    *
-   * @throws {Error} If the response from the GitHub API does not contain a valid repository or Blob.
+   * @throws {Error} If the response from the GitHub API does not match the expected structure.
    */
   async getFileContent({
     filePath,

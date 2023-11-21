@@ -28,7 +28,7 @@ from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 class AccountOrm(Base):
     __tablename__ = "accounts"
     __table_args__ = (
-        make_team_composite_pk(),
+        make_team_composite_pk(table_name="accounts"),
         make_team_fk(),
         Index(
             "auth_provider_auth_id",

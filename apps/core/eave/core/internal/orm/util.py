@@ -21,9 +21,9 @@ def make_team_composite_fk(fk_column: str, foreign_table: str) -> ForeignKeyCons
 UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
 
 
-def make_team_composite_pk() -> PrimaryKeyConstraint:
+def make_team_composite_pk(table_name: str) -> PrimaryKeyConstraint:
     return PrimaryKeyConstraint(
         "team_id",
         "id",
-        name="pk_team_id_id",
+        name=f"pk_{table_name}_team_id_id",
     )

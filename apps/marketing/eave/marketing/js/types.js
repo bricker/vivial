@@ -70,6 +70,12 @@
  * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/team.js").GetTeamResponseBody} GetTeamResponseBody
  */
 
+/** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/api-documentation-jobs.js").ApiDocumentationJob} ApiDocumentationJob */
+
+/** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/api-documentation-jobs.js").GetApiDocumentationJobsResponseBody} GetApiDocumentationJobsResponseBody */
+
+/** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/api-documentation-jobs.js").GetApiDocumentationJobsRequestBody} GetApiDocumentationJobsRequestBody */
+
 /**
  * @typedef {object} DashboardTeam
  * @property {boolean} [inlineCodeDocsEnabled]
@@ -79,6 +85,7 @@
  * @property {GithubDocument[]} [apiDocs]
  * @property {Integrations} [integrations]
  * @property {GithubRepo[]} [repos]
+ * @property {ApiDocumentationJob[]} [apiDocsJobs]
  * @property {ConfluenceDestination} [confluenceDestination]
  * @property {ConfluenceSpace[]} [availableConfluenceSpaces]
  */
@@ -93,6 +100,8 @@
  * @property {boolean} reposAreErroring
  * @property {boolean} apiDocsLoading
  * @property {boolean} apiDocsErroring
+ * @property {boolean} [apiDocsJobStatusLoading]
+ * @property {boolean} [apiDocsJobStatusErroring]
  * @property {boolean} confluenceSpacesLoading
  * @property {boolean} confluenceSpacesErroring
  * @property {boolean} confluenceSpaceUpdateLoading
