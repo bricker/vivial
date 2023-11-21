@@ -266,24 +266,6 @@ def _get_auth_cookies_or_exception() -> AuthCookies:
 
     return auth_cookies
 
-async def _validate_auth_cookies_or_exception() -> Literal[True]:
-    # This is just to validate that the logged-in account matches the given team_id.
-    # Use with endpoints that don't do their own access token validation (eg Eave Confluence API)
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    authed_account_response = await account.GetAuthenticatedAccount.perform(
-        origin=app_config.eave_origin,
-        team_id=ensure_uuid(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-    )
-
-    assert authed_account_response._raw_response
-    if not authed_account_response._raw_response.ok:
-        raise Exception("Invalid auth.")
-
-    return True
-
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
