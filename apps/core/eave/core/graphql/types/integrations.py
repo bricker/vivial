@@ -1,15 +1,15 @@
 import enum
 from typing import Optional
 
-import strawberry
+import strawberry.federation as sb
+from eave.core.graphql.types.atlassian import AtlassianInstallation
+from eave.core.graphql.types.connect import ConnectInstallation
 
-from .atlassian import AtlassianInstallationPeek
-from .github import GithubInstallationPeek
-from .slack import SlackInstallationPeek
-from .connect import ConnectInstallationPeek
-from . import BaseResponseModel
+from eave.core.graphql.types.slack import SlackInstallation
 
-@strawberry.enum
+from .github_installation import GithubInstallation
+
+@sb.enum
 class Integration(enum.StrEnum):
     """
     Apps that a Team can integrate with.
@@ -21,10 +21,10 @@ class Integration(enum.StrEnum):
     confluence = "confluence"
     jira = "jira"
 
-@strawberry.type
+@sb.type
 class Integrations:
-    github_integration: Optional[GithubInstallationPeek]
-    slack_integration: Optional[SlackInstallationPeek]
-    atlassian_integration: Optional[AtlassianInstallationPeek]
-    confluence_integration: Optional[ConnectInstallationPeek]
-    jira_integration: Optional[ConnectInstallationPeek]
+    github_integration: Optional[GithubInstallation] = sb.field(default=None)
+    slack_integration: Optional[SlackInstallation] = sb.field(default=None)
+    atlassian_integration: Optional[AtlassianInstallation] = sb.field(default=None)
+    confluence_integration: Optional[ConnectInstallation] = sb.field(default=None)
+    jira_integration: Optional[ConnectInstallation] = sb.field(default=None)

@@ -1,13 +1,12 @@
 from typing import Optional
 
-import strawberry
+import strawberry.federation as sb
 
-from . import BaseResponseModel
-from ... import typing
+from eave.stdlib.typing import JsonObject
 
 
-@strawberry.type
+@sb.type
 class ErrorResponse:
-    status_code: int
-    error_message: str
-    context: Optional[typing.JsonObject]
+    status_code: int = sb.field()
+    error_message: str = sb.field()
+    context: Optional[JsonObject] = sb.field()

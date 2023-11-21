@@ -1,22 +1,24 @@
-import strawberry
+import strawberry.federation as sb
 import uuid
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
-@strawberry.type
+@sb.type
 class SlackInstallation:
-    id: uuid.UUID
-    team_id: uuid.UUID
-    """eave TeamOrm model id"""
-    slack_team_id: str
-    bot_token: str
+    id: uuid.UUID = sb.field()
+    team_id: uuid.UUID = sb.field()
+    slack_team_id: str = sb.field()
+    bot_token: str = sb.field()
 
-@strawberry.type
-class SlackInstallationPeek:
-    id: uuid.UUID
-    team_id: uuid.UUID
-    """eave TeamOrm model id"""
-    slack_team_id: str
+    @classmethod
+    def from_orm(cls, orm: SlackInstallationOrm) -> "SlackInstallation":
+        return SlackInstallation(
+            id=orm.id,
+            team_id=orm.team_id,
+            slack_team_id=orm.slack_team_id,
+            bot_token=orm.bot_token,
+        )
 
-@strawberry.input
+@sb.input
 class SlackInstallationInput:
-    slack_team_id: str
+    slack_team_id: str = sb.field()

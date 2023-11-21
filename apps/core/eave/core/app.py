@@ -169,18 +169,18 @@ routes = [
     Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
     # Internal API Endpoints.
     # These endpoints require signature verification.
-    make_route(
-        config=UpsertDocument.config,
-        endpoint=documents.UpsertDocument,
-    ),
-    make_route(
-        config=SearchDocuments.config,
-        endpoint=documents.SearchDocuments,
-    ),
-    make_route(
-        config=DeleteDocument.config,
-        endpoint=documents.DeleteDocument,
-    ),
+    # make_route(
+    #     config=UpsertDocument.config,
+    #     endpoint=documents.UpsertDocument,
+    # ),
+    # make_route(
+    #     config=SearchDocuments.config,
+    #     endpoint=documents.SearchDocuments,
+    # ),
+    # make_route(
+    #     config=DeleteDocument.config,
+    #     endpoint=documents.DeleteDocument,
+    # ),
     make_route(
         config=CreateSubscriptionRequest.config,
         endpoint=subscriptions.CreateSubscription,
@@ -205,75 +205,76 @@ routes = [
         config=GetSlackInstallation.config,
         endpoint=slack_integration.SlackIntegration,
     ),
-    make_route(
-        config=GetGithubInstallation.config,
-        endpoint=eave.core.public.requests.github_integration.GetGithubIntegrationEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubInstallation.config,
-        endpoint=eave.core.public.requests.github_integration.DeleteGithubIntegrationEndpoint,
-    ),
-    make_route(
-        config=GetAtlassianInstallation.config,
-        endpoint=AtlassianIntegration,
-    ),
-    make_route(
-        config=GetTeamRequest.config,
-        endpoint=team.GetTeamEndpoint,
-    ),
-    make_route(
-        config=CreateGithubRepoRequest.config,
-        endpoint=github_repos.CreateGithubRepoEndpoint,
-    ),
-    make_route(
-        config=GetGithubReposRequest.config,
-        endpoint=github_repos.GetGithubRepoEndpoint,
-    ),
-    make_route(
-        config=GetAllTeamsGithubReposRequest.config,
-        endpoint=github_repos.GetAllTeamsGithubRepoEndpoint,
-    ),
-    make_route(
-        config=FeatureStateGithubReposRequest.config,
-        endpoint=github_repos.FeatureStateGithubReposEndpoint,
-    ),
-    make_route(
-        config=UpsertApiDocumentationJobOperation.config,
-        endpoint=api_documentation_jobs.UpsertApiDocumentationJobsEndpoint,
-    ),
-    make_route(
-        config=GetApiDocumentationJobsOperation.config,
-        endpoint=api_documentation_jobs.GetApiDocumentationJobEndpoint,
-    ),
+    # make_route(
+    #     config=GetGithubInstallation.config,
+    #     endpoint=eave.core.public.requests.github_integration.GetGithubIntegrationEndpoint,
+    # ),
+    # make_route(
+    #     config=DeleteGithubInstallation.config,
+    #     endpoint=eave.core.public.requests.github_integration.DeleteGithubIntegrationEndpoint,
+    # ),
+    # make_route(
+    #     config=GetAtlassianInstallation.config,
+    #     endpoint=AtlassianIntegration,
+    # ),
+    # make_route( # OK
+    #     config=GetTeamRequest.config,
+    #     endpoint=team.GetTeamEndpoint,
+    # ),
+    # make_route( # OK
+    #     config=CreateGithubRepoRequest.config,
+    #     endpoint=github_repos.CreateGithubRepoEndpoint,
+    # ),
+    # make_route( # OK
+    #     config=GetGithubReposRequest.config,
+    #     endpoint=github_repos.GetGithubRepoEndpoint,
+    # ),
+    # make_route( # OK
+    #     config=GetAllTeamsGithubReposRequest.config,
+    #     endpoint=github_repos.GetAllTeamsGithubRepoEndpoint,
+    # ),
+    # make_route(
+    #     config=UpdateGithubReposRequest.config,
+    #     endpoint=github_repos.UpdateGithubReposEndpoint,
+    # ),
+    # make_route(
+    #     config=DeleteGithubReposRequest.config,
+    #     endpoint=github_repos.DeleteGithubReposEndpoint,
+    # ),
+    # make_route(
+    #     config=FeatureStateGithubReposRequest.config,
+    #     endpoint=github_repos.FeatureStateGithubReposEndpoint,
+    # ),
+    # make_route(
+    #     config=UpsertApiDocumentationJobOperation.config,
+    #     endpoint=api_documentation_jobs.UpsertApiDocumentationJobsEndpoint,
+    # ),
+    # make_route(
+    #     config=GetApiDocumentationJobsOperation.config,
+    #     endpoint=api_documentation_jobs.GetApiDocumentationJobEndpoint,
+    # ),
     # Authenticated API endpoints.
-    make_route(
-        config=CreateGithubDocumentRequest.config,
-        endpoint=github_documents.CreateGithubDocumentEndpoint,
-    ),
-    make_route(
-        config=GetGithubDocumentsRequest.config,
-        endpoint=github_documents.GetGithubDocumentsEndpoint,
-    ),
-    make_route(
-        config=UpdateGithubDocumentRequest.config,
-        endpoint=github_documents.UpdateGithubDocumentEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubDocumentsByIdsRequest.config,
-        endpoint=github_documents.DeleteGithubDocumentsByIdsEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubDocumentsByTypeRequest.config,
-        endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
-    ),
-    make_route(
-        config=UpdateGithubReposRequest.config,
-        endpoint=github_repos.UpdateGithubReposEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubReposRequest.config,
-        endpoint=github_repos.DeleteGithubReposEndpoint,
-    ),
+    # make_route(
+    #     config=CreateGithubDocumentRequest.config,
+    #     endpoint=github_documents.CreateGithubDocumentEndpoint,
+    # ),
+    # make_route(
+    #     config=GetGithubDocumentsRequest.config,
+    #     endpoint=github_documents.GetGithubDocumentsEndpoint,
+    # ),
+    # make_route(
+    #     config=UpdateGithubDocumentRequest.config,
+    #     endpoint=github_documents.UpdateGithubDocumentEndpoint,
+    # ),
+    # make_route(
+    #     config=DeleteGithubDocumentsByIdsRequest.config,
+    #     endpoint=github_documents.DeleteGithubDocumentsByIdsEndpoint,
+    # ),
+    # make_route(
+    #     config=DeleteGithubDocumentsByTypeRequest.config,
+    #     endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
+    # ),
+
     make_route(
         config=UpsertConfluenceDestinationAuthedRequest.config,
         endpoint=team.UpsertConfluenceDestinationAuthedEndpoint,

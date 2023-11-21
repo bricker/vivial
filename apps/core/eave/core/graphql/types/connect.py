@@ -2,72 +2,67 @@ import enum
 from typing import Any, Optional
 import uuid
 import pydantic
-import strawberry
+import strawberry.federation as sb
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
-@strawberry.enum
+@sb.enum
 class AtlassianProduct(enum.StrEnum):
     jira = "jira"
     confluence = "confluence"
 
-@strawberry.type
+
+@sb.type
 class ConnectInstallation:
     """
     https://developer.atlassian.com/cloud/confluence/connect-app-descriptor/#lifecycle
     """
 
-    id: uuid.UUID
-    product: AtlassianProduct
-    client_key: str
-    base_url: str
-    org_url: str
-    shared_secret: str
-    team_id: Optional[uuid.UUID]
-    atlassian_actor_account_id: Optional[str]
-    display_url: Optional[str]
-    description: Optional[str]
+    id: uuid.UUID = sb.field()
+    product: AtlassianProduct = sb.field()
+    client_key: str = sb.field()
+    base_url: str = sb.field()
+    org_url: str = sb.field()
+    shared_secret: str = sb.field()
+    team_id: Optional[uuid.UUID] = sb.field()
+    atlassian_actor_account_id: Optional[str] = sb.field()
+    display_url: Optional[str] = sb.field()
+    description: Optional[str] = sb.field()
 
-@strawberry.type
-class ConnectInstallationPeek:
-    """
-    Connect Installation object with just basic info,
-    intended for use when building a user interface and you
-    don't need the full auth details.
-    """
+    @classmethod
+    def from_orm(cls, orm: ConnectInstallationOrm) -> "ConnectInstallation":
+        return ConnectInstallation(
+            id=orm.id,
+            product=AtlassianProduct(value=orm.product),
+            client_key=orm.client_key,
+            base_url=orm.base_url,
+            org_url=orm.org_url or ConnectInstallationOrm.make_org_url(orm.base_url),
+            shared_secret=orm.shared_secret,
+            team_id=orm.team_id,
+            atlassian_actor_account_id=orm.atlassian_actor_account_id,
+            display_url=orm.display_url,
+            description=orm.description,
+        )
 
-    id: uuid.UUID
-    product: AtlassianProduct
-    base_url: str
-    org_url: str
-    team_id: Optional[uuid.UUID]
-    display_url: Optional[str]
-    description: Optional[str]
-
-@strawberry.input
+@sb.input
 class QueryConnectInstallationInput:
-    product: AtlassianProduct
-    client_key: Optional[str]
-    team_id: Optional[uuid.UUID | str]
+    product: AtlassianProduct = sb.field()
+    client_key: Optional[str] = sb.field()
+    team_id: Optional[uuid.UUID | str] = sb.field()
 
-    @pydantic.root_validator(pre=True)
-    def validate_sparse_fields(cls, values: dict[str, Any]) -> dict[str, Any]:
-        client_key = values.get("client_key")
-        team_id = values.get("team_id")
-        assert client_key or team_id, "At least one of client_key or team_id must be specified"
-        return values
 
-@strawberry.input
+@sb.input
 class RegisterConnectInstallationInput:
     """
     These field names MUST match the field names defined in the ORM.
     It is recommended to not change these.
     """
 
-    client_key: str
-    product: AtlassianProduct
-    base_url: str
-    shared_secret: str
-    atlassian_actor_account_id: Optional[str]
-    display_url: Optional[str]
-    description: Optional[str]
+    client_key: str = sb.field()
+    product: AtlassianProduct = sb.field()
+    base_url: str = sb.field()
+    shared_secret: str = sb.field()
+    atlassian_actor_account_id: Optional[str] = sb.field()
+    display_url: Optional[str] = sb.field()
+    description: Optional[str] = sb.field()

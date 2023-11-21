@@ -5,6 +5,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@apollo/rover": "0.21.x",
     "@graphql-eslint/eslint-plugin": "3.x",
     "@types/express": "4.x",
     "@types/fast-crc32c": "2.x",

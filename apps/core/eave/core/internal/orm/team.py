@@ -14,6 +14,7 @@ from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.team import AnalyticsTeam, Destination, DocumentPlatform
 
 from eave.stdlib.core_api.models.team import Team
+from eave.core.graphql.types.team import Team as GraphQLTeam, DocumentPlatform as GraphQLDocumentPlatform
 from eave.stdlib.core_api.models.integrations import Integrations
 from .base import Base
 from .github_installation import GithubInstallationOrm

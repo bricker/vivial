@@ -70,9 +70,9 @@ class GithubRepoOrm(Base):
         ids: Optional[list[UUID]] = None
         external_repo_id: Optional[str] = None
         external_repo_ids: Optional[list[str]] = None
-        api_documentation_state: Optional[GithubRepoFeatureState] = None
-        inline_code_documentation_state: Optional[GithubRepoFeatureState] = None
-        architecture_documentation_state: Optional[GithubRepoFeatureState] = None
+        api_documentation_state: Optional[GithubRepoFeatureState | str] = None
+        inline_code_documentation_state: Optional[GithubRepoFeatureState | str] = None
+        architecture_documentation_state: Optional[GithubRepoFeatureState | str] = None
 
         def validate_or_exception(self):
             assert eave.stdlib.util.nand(
@@ -123,9 +123,9 @@ class GithubRepoOrm(Base):
         external_repo_id: str,
         github_installation_id: UUID,
         display_name: Optional[str],
-        api_documentation_state: Optional[GithubRepoFeatureState] = None,
-        inline_code_documentation_state: Optional[GithubRepoFeatureState] = None,
-        architecture_documentation_state: Optional[GithubRepoFeatureState] = None,
+        api_documentation_state: Optional[GithubRepoFeatureState | str] = None,
+        inline_code_documentation_state: Optional[GithubRepoFeatureState | str] = None,
+        architecture_documentation_state: Optional[GithubRepoFeatureState | str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,

@@ -13,7 +13,7 @@ class AtlassianInstallation(BaseResponseModel):
     team_id: uuid.UUID
     """eave TeamOrm model id"""
     atlassian_cloud_id: str
-    confluence_space_key: Optional[str]
+    confluence_space_key: Optional[str] = None
     "DEPRECATED: Always None"
     available_confluence_spaces: Optional[List[ConfluenceSpace]]
 

@@ -12,92 +12,92 @@ from ..models import team
 from ... import requests
 
 
-class UpsertDocument(CoreApiEndpoint):
-    config = CoreApiEndpointConfiguration(
-        path="/documents/upsert",
-        auth_required=False,
-    )
+# class UpsertDocument(CoreApiEndpoint):
+#     config = CoreApiEndpointConfiguration(
+#         path="/documents/upsert",
+#         auth_required=False,
+#     )
 
-    class RequestBody(BaseRequestBody):
-        document: DocumentInput
-        subscriptions: list[SubscriptionInput]
+#     class RequestBody(BaseRequestBody):
+#         document: DocumentInput
+#         subscriptions: list[SubscriptionInput]
 
-    class ResponseBody(BaseResponseBody):
-        team: team.Team
-        subscriptions: list[Subscription]
-        document_reference: DocumentReference
+#     class ResponseBody(BaseResponseBody):
+#         team: team.Team
+#         subscriptions: list[Subscription]
+#         document_reference: DocumentReference
 
-    @classmethod
-    async def perform(
-        cls,
-        input: RequestBody,
-        team_id: uuid.UUID,
-        **kwargs: Unpack[requests.CommonRequestArgs],
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            config=cls.config,
-            input=input,
-            team_id=team_id,
-            **kwargs,
-        )
+#     @classmethod
+#     async def perform(
+#         cls,
+#         input: RequestBody,
+#         team_id: uuid.UUID,
+#         **kwargs: Unpack[requests.CommonRequestArgs],
+#     ) -> ResponseBody:
+#         response = await requests.make_request(
+#             config=cls.config,
+#             input=input,
+#             team_id=team_id,
+#             **kwargs,
+#         )
 
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
-
-
-class SearchDocuments(CoreApiEndpoint):
-    config = CoreApiEndpointConfiguration(
-        path="/documents/search",
-        auth_required=False,
-    )
-
-    class RequestBody(BaseRequestBody):
-        query: str
-
-    class ResponseBody(BaseResponseBody):
-        team: team.Team
-        documents: list[DocumentSearchResult]
-
-    @classmethod
-    async def perform(
-        cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            config=cls.config,
-            input=input,
-            team_id=team_id,
-            **kwargs,
-        )
-
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
+#         body = await cls.make_response(response, cls.ResponseBody)
+#         return body
 
 
-class DeleteDocument(CoreApiEndpoint):
-    config = CoreApiEndpointConfiguration(
-        path="/documents/delete",
-        auth_required=False,
-    )
+# class SearchDocuments(CoreApiEndpoint):
+#     config = CoreApiEndpointConfiguration(
+#         path="/documents/search",
+#         auth_required=False,
+#     )
 
-    class RequestBody(BaseRequestBody):
-        document_reference: DocumentReferenceInput
+#     class RequestBody(BaseRequestBody):
+#         query: str
 
-    class ResponseBody(BaseResponseBody):
-        pass
+#     class ResponseBody(BaseResponseBody):
+#         team: team.Team
+#         documents: list[DocumentSearchResult]
 
-    @classmethod
-    async def perform(
-        cls,
-        input: RequestBody,
-        team_id: uuid.UUID,
-        **kwargs: Unpack[requests.CommonRequestArgs],
-    ) -> ResponseBody:
-        response = await requests.make_request(
-            config=cls.config,
-            input=input,
-            team_id=team_id,
-            **kwargs,
-        )
+#     @classmethod
+#     async def perform(
+#         cls, input: RequestBody, team_id: uuid.UUID, **kwargs: Unpack[requests.CommonRequestArgs]
+#     ) -> ResponseBody:
+#         response = await requests.make_request(
+#             config=cls.config,
+#             input=input,
+#             team_id=team_id,
+#             **kwargs,
+#         )
 
-        body = await cls.make_response(response, cls.ResponseBody)
-        return body
+#         body = await cls.make_response(response, cls.ResponseBody)
+#         return body
+
+
+# class DeleteDocument(CoreApiEndpoint):
+#     config = CoreApiEndpointConfiguration(
+#         path="/documents/delete",
+#         auth_required=False,
+#     )
+
+#     class RequestBody(BaseRequestBody):
+#         document_reference: DocumentReferenceInput
+
+#     class ResponseBody(BaseResponseBody):
+#         pass
+
+#     @classmethod
+#     async def perform(
+#         cls,
+#         input: RequestBody,
+#         team_id: uuid.UUID,
+#         **kwargs: Unpack[requests.CommonRequestArgs],
+#     ) -> ResponseBody:
+#         response = await requests.make_request(
+#             config=cls.config,
+#             input=input,
+#             team_id=team_id,
+#             **kwargs,
+#         )
+
+#         body = await cls.make_response(response, cls.ResponseBody)
+#         return body

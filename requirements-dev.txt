@@ -20,4 +20,4 @@ types-protobuf
 mitmproxy==10.1.1
 click
 alembic
-strawberry-graphql[debug-server]
+strawberry-graphql

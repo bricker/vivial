@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "$EAVE_HOME"/develop/functions.bash
+
+if ! ^cmd-exists "$EAVE_HOME/bin/.apollo-router"; then
+	statusmsg -pa "Installing the Apollo router binary."
+	statusmsg -i "The Apollo router binary is used to serve the federated GraphQL server."
+	statusmsg -i "It must be installed on each machine (vs. adding to git) because it's very large and kernel-specific."
+
+	if ^confirm; then
+		(
+			cd "$(mktemp -d)"
+			curl -sSL https://router.apollo.dev/download/nix/latest | sh > /dev/null
+			mv ./router "$EAVE_HOME/bin/.apollo-router"
+		)
+	fi
+fi
+
+"$EAVE_HOME/bin/.apollo-router" --supergraph schema.graphql

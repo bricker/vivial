@@ -455,5 +455,15 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	)
 
+	function ^confirm() (
+		statusmsg -wpn "Proceed? [y/n] "
+		read -r proceed
+		test "$proceed" = "y"
+	)
+
+	function ^force() {
+		test -n "$FORCE"
+	}
+
 	_SHARED_FUNCTIONS_LOADED=1
 fi

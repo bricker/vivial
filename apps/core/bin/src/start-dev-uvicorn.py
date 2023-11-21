@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import uvicorn
 import os
 import sys
@@ -16,7 +14,7 @@ os.environ["GAE_SERVICE"] = "api"
 
 if __name__ == "__main__":
     uvicorn.run(
-        app="eave.core.app:app",
+        app="eave.core.app_graphql:app",
         port=5100,
         reload=True,
         reload_includes=[

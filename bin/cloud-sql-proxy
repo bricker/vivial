@@ -8,9 +8,36 @@ function run-cloud-sql-proxy() {
 	local gcloudproject; gcloudproject="$(^gcloudproject)"
 
 	if ! ^cmd-exists "cloud-sql-proxy"; then
-		statusmsg -e "cloud-sql-proxy is not installed in your PATH."
-		statusmsg -e "Re-run the repository's setup script, otherwise visit https://cloud.google.com/sql/docs/postgres/sql-proxy for installation instructions."
-		exit 1
+		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
+		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
+
+		if ^confirm; then
+			(
+				cd "$(mktemp -d)"
+				if ^cmd-exists "gcloud"; then
+					cloudsqlproxypath=$(dirname "$(which gcloud)")
+				else
+					cloudsqlproxypath="/usr/local/bin"
+				fi
+
+				local proxyversion="2.2.0"
+				local arch
+				arch=$(get-cpu-arch-normalized-alt)
+
+				curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
+				# see if we got an error back instead of binary content
+				if test "$(head -n1 cloud-sql-proxy | cut -c 3-5)" = "xml"; then
+					statusmsg -e "Error downloading cloud-sql-proxy:"
+					cat cloud-sql-proxy
+					rm cloud-sql-proxy
+					return 1
+				fi
+				chmod +x cloud-sql-proxy
+
+				statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
+				sudo mv cloud-sql-proxy "$cloudsqlproxypath"
+			)
+		fi
 	fi
 
 	# unix socket path names must be less than 108 characters long

@@ -8,7 +8,7 @@ from sqlalchemy import Index, Select, func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.github import GithubInstallation, GithubInstallationPeek
+from eave.stdlib.core_api.models.github import GithubInstallation
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
@@ -125,7 +125,3 @@ class GithubInstallationOrm(Base):
     @property
     def api_model(self) -> GithubInstallation:
         return GithubInstallation.from_orm(self)
-
-    @property
-    def api_model_peek(self) -> GithubInstallationPeek:
-        return GithubInstallationPeek.from_orm(self)
