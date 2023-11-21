@@ -163,6 +163,7 @@ async def get_team_repos() -> Response:
 @_auth_handler
 async def update_team_repos() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
+
     body = request.get_json()
     repos: list[GithubRepoUpdateInput] = body["repos"]
 
