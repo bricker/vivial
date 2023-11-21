@@ -321,13 +321,15 @@ echo ""
 setenvvars
 setuppython
 setupnode
-setupgcloud
-setupcloudsqlproxy
-installjq
-installyq
-installterraform
-installshfmt
-installshellcheck
+if ! ^ci; then
+  setupgcloud
+  setupcloudsqlproxy
+  installjq
+  installyq
+  installterraform
+  installshfmt
+  installshellcheck
+fi
 setupapps
 
 statusmsg -s "Done!"
