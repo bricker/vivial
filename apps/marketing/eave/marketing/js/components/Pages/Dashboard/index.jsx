@@ -21,7 +21,9 @@ const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cookies, _, removeCookie] = useCookies([FEATURE_MODAL.ID]);
   const { team, getTeam, getTeamRepos, updateTeamFeatureState } = useTeam();
-  const { dashboardNetworkStateCtx: [networkState] } = useContext(AppContext);
+  const {
+    dashboardNetworkStateCtx: [networkState],
+  } = useContext(AppContext);
 
   const [inlineDocsModalIsOpen, setInlineDocsModalIsOpen] = useState(false);
   const [apiDocsModalIsOpen, setAPIDocsModalIsOpen] = useState(false);
@@ -41,7 +43,8 @@ const Dashboard = () => {
     return <LoadingPage />;
   }
 
-  const showFeatureSettings = team?.inlineCodeDocsEnabled || team?.apiDocsEnabled;
+  const showFeatureSettings =
+    team?.inlineCodeDocsEnabled || team?.apiDocsEnabled;
   const showAPIDocs = team?.apiDocsEnabled;
   const githubAppInstalled = !!team?.integrations?.github_integration;
 

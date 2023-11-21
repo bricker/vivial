@@ -19,13 +19,15 @@ const makeClasses = makeStyles((theme) => ({
   },
 }));
 
-const PageSection = (/** @type {{ children: any, alternateBackground?: string, sectionClassName?: string, wrapperClassName?: string, id?: string }} */ {
-  children,
-  alternateBackground,
-  sectionClassName,
-  wrapperClassName,
-  id,
-}) => {
+const PageSection = (
+  /** @type {{ children: any, alternateBackground?: string, sectionClassName?: string, wrapperClassName?: string, id?: string }} */ {
+    children,
+    alternateBackground,
+    sectionClassName,
+    wrapperClassName,
+    id,
+  },
+) => {
   const classes = makeClasses();
   const sectionClasslist = classNames(
     classes.section,

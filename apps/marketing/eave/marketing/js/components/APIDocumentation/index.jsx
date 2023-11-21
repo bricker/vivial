@@ -2,10 +2,10 @@
 import { CircularProgress, Link, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useContext, useEffect, useState } from "react";
+import { AppContext } from "../../context/Provider";
 import useTeam from "../../hooks/useTeam";
 import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { mapReposById } from "../../util/repo-util.js";
-import { AppContext } from "../../context/Provider";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
@@ -182,17 +182,15 @@ function statusMessage({
   );
 }
 
-function renderContent(/** @type {{ classes: object, networkState: Types.DashboardNetworkState, team: Types.DashboardTeam, compact: boolean }} */ {
-  classes,
-  networkState,
-  team,
-  compact,
-}) {
-  const {
-    apiDocs,
-    apiDocsJobs,
-    repos,
-  } = team;
+function renderContent(
+  /** @type {{ classes: object, networkState: Types.DashboardNetworkState, team: Types.DashboardTeam, compact: boolean }} */ {
+    classes,
+    networkState,
+    team,
+    compact,
+  },
+) {
+  const { apiDocs, apiDocsJobs, repos } = team;
 
   const {
     apiDocsErroring,
@@ -341,7 +339,9 @@ function renderContent(/** @type {{ classes: object, networkState: Types.Dashboa
 }
 
 const APIDocumentation = () => {
-  const { dashboardNetworkStateCtx: [networkState] } = useContext(AppContext);
+  const {
+    dashboardNetworkStateCtx: [networkState],
+  } = useContext(AppContext);
   const { team, getTeamAPIDocs, getTeamApiDocsJobsStatuses } = useTeam();
   const [compact, setCompact] = useState(window.innerWidth < 900);
   const classes = makeClasses();

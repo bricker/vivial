@@ -17,4 +17,4 @@ export type SlackInstallationPeek = {
   /** eave TeamOrm model id */
   team_id: string;
   slack_team_id: string;
-}
+};

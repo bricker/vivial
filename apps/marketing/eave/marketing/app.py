@@ -2,16 +2,14 @@ from functools import wraps
 from http.client import UNAUTHORIZED
 import json
 import time
-from typing import Any, Awaitable, Callable, Literal
+from typing import Any, Awaitable, Callable
 
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
-from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobListInput
 
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
-from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.team as team

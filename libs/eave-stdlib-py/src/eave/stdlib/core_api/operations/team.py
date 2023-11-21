@@ -1,7 +1,7 @@
 from typing import Optional, Unpack
 import uuid
 from ... import requests
-from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Destination, Team
+from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput, Team
 from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 from ..models import integrations
 

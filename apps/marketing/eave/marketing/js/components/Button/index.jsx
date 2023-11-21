@@ -22,15 +22,17 @@ const makeClasses = makeStyles(() => ({
   },
 }));
 
-const Button = (/** @type {{ children: any, className: string, to?: string, target?: string, color?: import("@material-ui/core").PropTypes.Color, variant?: "text" | "outlined" | "contained", [key:string]: any }} */{
-  children,
-  className,
-  to,
-  target,
-  color = "primary",
-  variant = "contained",
-  ...rest
-}) => {
+const Button = (
+  /** @type {{ children: any, className: string, to?: string, target?: string, color?: import("@material-ui/core").PropTypes.Color, variant?: "text" | "outlined" | "contained", [key:string]: any }} */ {
+    children,
+    className,
+    to,
+    target,
+    color = "primary",
+    variant = "contained",
+    ...rest
+  },
+) => {
   const classes = makeClasses();
   const rootClass = classNames(classes.root, className);
 

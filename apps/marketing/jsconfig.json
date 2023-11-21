@@ -3,7 +3,7 @@
     "jsx": "react",
     "noEmit": true,
     "allowJs": true,
-    "strictNullChecks": true,
+    "strictNullChecks": true
   },
   "include": ["eave/marketing/js/**/*.jsx", "eave/marketing/js/**/*.js"]
 }
