@@ -1,58 +1,58 @@
 steps:
-- name: ubuntu
-  dir: $_EAVE_HOME
-  entrypoint: bash
-  args: ['-c', 'yes', '|', '$_EAVE_HOME/bin/setup']
-  env:
-  - EAVE_HOME=$_EAVE_HOME
-  - CI=1
-  - VERBOSE=1
+  - name: ubuntu
+    dir: $_EAVE_HOME
+    entrypoint: bash
+    args: ["-c", "yes", "|", "$_EAVE_HOME/bin/setup"]
+    env:
+      - EAVE_HOME=$_EAVE_HOME
+      - CI=1
+      - VERBOSE=1
 
-- name: ubuntu
-  dir: $_EAVE_HOME
-  entrypoint: bin/lint
-  env:
-  - EAVE_HOME=$_EAVE_HOME
-  - CI=1
-  - VERBOSE=1
+  - name: ubuntu
+    dir: $_EAVE_HOME
+    entrypoint: bin/lint
+    env:
+      - EAVE_HOME=$_EAVE_HOME
+      - CI=1
+      - VERBOSE=1
 
-# TODO: start db connection
+  # TODO: start db connection
 
-# update db in preparation for running tests
-- name: python:3.11.2
-  dir: apps/core
-  entrypoint: python
-  args: ['-m', 'alembic', 'upgrade', 'head']
-  env:
-  - EAVE_HOME=$_EAVE_HOME
-  - CI=1
-  - VERBOSE=1
-  secretEnv:
-  - EAVE_DB_HOST
-  - EAVE_DB_USER
-  - EAVE_DB_PASS
-  - EAVE_DB_NAME
+  # update db in preparation for running tests
+  - name: python:3.11.2
+    dir: apps/core
+    entrypoint: python
+    args: ["-m", "alembic", "upgrade", "head"]
+    env:
+      - EAVE_HOME=$_EAVE_HOME
+      - CI=1
+      - VERBOSE=1
+    secretEnv:
+      - EAVE_DB_HOST
+      - EAVE_DB_USER
+      - EAVE_DB_PASS
+      - EAVE_DB_NAME
 
-- name: ubuntu
-  dir: $_EAVE_HOME
-  entrypoint: bin/test
-  env:
-  - EAVE_HOME=$_EAVE_HOME
-  - CI=1
-  - VERBOSE=1
+  - name: ubuntu
+    dir: $_EAVE_HOME
+    entrypoint: bin/test
+    env:
+      - EAVE_HOME=$_EAVE_HOME
+      - CI=1
+      - VERBOSE=1
 
 availableSecrets:
   secretManager:
-  - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_HOST/versions/latest
-    env: 'EAVE_DB_HOST'
-  - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_USER/versions/latest
-    env: 'EAVE_DB_USER'
-  - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_PASS/versions/latest
-    env: 'EAVE_DB_PASS'
-  - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_NAME/versions/latest
-    env: 'EAVE_DB_NAME'
+    - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_HOST/versions/latest
+      env: "EAVE_DB_HOST"
+    - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_USER/versions/latest
+      env: "EAVE_DB_USER"
+    - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_PASS/versions/latest
+      env: "EAVE_DB_PASS"
+    - versionName: projects/$PROJECT_ID/secrets/EAVE_DB_NAME/versions/latest
+      env: "EAVE_DB_NAME"
 
 substitutions:
   _EAVE_HOME: /workspace
 
-timeout: '1600s'
+timeout: "1800s"
