@@ -27,7 +27,11 @@ import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
  * @property {NetworkStateContext} dashboardNetworkStateCtx
  */
 
-/** @type {React.Context<AppContextProps>} */
+/**
+ * This Context object should only be used inside of a Provider. Outside of a Provider, it is empty and unusable.
+ *
+ * @type {React.Context<AppContextProps>}
+ */
 // @ts-ignore
 export const AppContext = createContext(null); // we ignore this line because there is no sense in setting defaults for state hooks. Don't use this Context object outside of a Provider.
 
