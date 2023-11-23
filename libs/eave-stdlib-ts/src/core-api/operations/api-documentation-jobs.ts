@@ -19,10 +19,13 @@ export class GetApiDocumentationJobsOperation {
     path: "/api-documentation-job/query",
   });
   /**
-   * Performs an asynchronous request with the provided arguments.
+   * Performs an asynchronous request using provided arguments.
    *
-   * @param args - An object that contains the team ID and the input for the API documentation jobs request.
-   * @returns A promise that resolves to the response body of the API documentation jobs request.
+   * @param args - An object that contains team ID and input as properties. The input is of type GetApiDocumentationJobsRequestBody.
+   * @returns A promise that resolves to an object of type GetApiDocumentationJobsResponseBody.
+   *
+   * @static
+   * @async
    */
   static async perform(
     args: RequestArgsTeamId & { input: GetApiDocumentationJobsRequestBody },
@@ -51,7 +54,7 @@ export class UpsertApiDocumentationJobOperation {
   /**
    * Performs an asynchronous operation to upsert API documentation job.
    *
-   * @param args - An object that contains the team ID and the input for the upsert API documentation job request.
+   * @param args - An object containing the team ID and the input for the API documentation job.
    * @returns A promise that resolves to the response body of the upsert API documentation job.
    */
   static async perform(
