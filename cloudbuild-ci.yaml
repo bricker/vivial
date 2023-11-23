@@ -1,8 +1,9 @@
+# https://console.cloud.google.com/cloud-build/triggers;region=us-central1/edit/ec977ffb-be4d-409f-bf45-d559d6f226b8?authuser=1&project=eavefyi-dev
+
 steps:
   - name: ubuntu
     dir: $_EAVE_HOME
-    entrypoint: bash
-    args: ["-c", "yes", "|", "$_EAVE_HOME/bin/setup"]
+    entrypoint: bin/setup
     env:
       - EAVE_HOME=$_EAVE_HOME
       - CI=1

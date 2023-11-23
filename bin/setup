@@ -20,6 +20,9 @@ fi
 source "${EAVE_HOME}/develop/functions.bash"
 
 function ^ask() (
+	if ^ci; then
+		return
+	fi
 	statusmsg -wpn "Should I proceed? [y/n] "
 	read -r proceed
 	test "$proceed" = "y"
@@ -322,13 +325,13 @@ setenvvars
 setuppython
 setupnode
 if ! ^ci; then
-  setupgcloud
-  setupcloudsqlproxy
-  installjq
-  installyq
-  installterraform
-  installshfmt
-  installshellcheck
+	setupgcloud
+	setupcloudsqlproxy
+	installjq
+	installyq
+	installterraform
+	installshfmt
+	installshellcheck
 fi
 setupapps
 
