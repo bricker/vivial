@@ -9,16 +9,16 @@ locals {
       host = "www.${var.eave_domain_apex}"
       path = "/status"
     },
-    eave_api = {
-      name = "Eave Core API uptime check"
-      host = "api.${var.eave_domain_apex}"
-      path = "/status"
-    },
-    eave_github = {
-      name = "Eave Github App uptime check"
-      host = "apps.${var.eave_domain_apex}"
-      path = "/github/status"
-    }
+    # eave_api = {
+    #   name = "Eave Core API uptime check"
+    #   host = "api.${var.eave_domain_apex}"
+    #   path = "/status"
+    # },
+    # eave_github = {
+    #   name = "Eave Github App uptime check"
+    #   host = "apps.${var.eave_domain_apex}"
+    #   path = "/github/status"
+    # }
   }
 }
 
