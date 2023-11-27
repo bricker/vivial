@@ -1,6 +1,11 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
-variable "cron_shared_secret" {
+variable "EAVE_GITHUB_APP_CRON_SECRET" {
+  type      = string
+  sensitive = true
+}
+
+variable "GCP_MONITORING_SLACK_AUTH_TOKEN" {
   type      = string
   sensitive = true
 }
@@ -46,13 +51,7 @@ module "gcp_cloud_scheduler" {
   source             = "../modules/gcp/cloud_scheduler"
   project_id         = local.project_id
   region             = local.region
-  cron_shared_secret = var.cron_shared_secret
-}
-
-module "gcp_memorystore" {
-  source     = "../modules/gcp/memorystore"
-  project_id = local.project_id
-  region     = local.region
+  cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
 }
 
 module "gcp_monitoring" {
@@ -60,10 +59,18 @@ module "gcp_monitoring" {
   project_id       = local.project_id
   region           = local.region
   eave_domain_apex = local.eave_domain_apex
+  slack_auth_token = var.GCP_MONITORING_SLACK_AUTH_TOKEN
+  addl_notification_channels = [
+    "projects/eave-production/notificationChannels/18048082649449908319" // bryan mobile... unable to import into terraform
+  ]
 }
 
-module "gcp_pubsub" {
-  source     = "../modules/gcp/pubsub"
+module "gcp_memorystore" {
+  source     = "../modules/gcp/memorystore"
   project_id = local.project_id
   region     = local.region
+  notification_channels = [
+    module.gcp_monitoring.slack_notification_channel_name,
+    "projects/eave-production/notificationChannels/18048082649449908319" // bryan mobile... unable to import into terraform
+  ]
 }

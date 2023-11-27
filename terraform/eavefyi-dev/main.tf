@@ -40,10 +40,3 @@ module "gcp_cloud_tasks" {
   project_id = local.project_id
   region     = local.region
 }
-
-module "gcp_cloud_scheduler" {
-  source             = "../modules/gcp/cloud_scheduler"
-  project_id         = local.project_id
-  region             = local.region
-  cron_shared_secret = var.cron_shared_secret
-}
