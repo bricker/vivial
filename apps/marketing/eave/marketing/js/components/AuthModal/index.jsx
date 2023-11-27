@@ -86,8 +86,9 @@ const AuthModal = () => {
           {/* {isLoginMode
               ? "Access your free Beta account"
               : "Early access is available via Google sign up only. Additional account options coming soon."} */}
-          Eave is not currently accepting new sign-ups. For more information,
-          contact us at info@eave.fyi.
+          Eave is not currently accepting new sign-ups.
+          <br />
+          For more information, contact us at info@eave.fyi.
         </Copy>
         {/* <Button
           to={`${window.eave.apiBase}/oauth/google/authorize`}
