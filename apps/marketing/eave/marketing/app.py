@@ -239,6 +239,7 @@ def catch_all(path: str) -> Response:
     delete_http_cookie(response=response, key="ev_team_id")
     delete_http_cookie(response=response, key="ev_access_token")
     delete_http_cookie(response=response, key="ev_login_state_hint")
+    delete_http_cookie(response=response, key="ev_ear")
     delete_http_cookie(response=response, key="visitor_id")
 
     set_tracking_cookies(response=response, request=request)
