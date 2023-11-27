@@ -1,14 +1,14 @@
+variable "cron_shared_secret" {
+  type      = string
+  sensitive = true
+}
+
 variable "project_id" {
   type = string
 }
 
 variable "region" {
   type = string
-}
-
-variable "cron_shared_secret" {
-  type      = string
-  sensitive = true
 }
 
 resource "google_cloud_scheduler_job" "run_api_documentation_job" {
