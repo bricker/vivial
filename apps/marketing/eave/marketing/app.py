@@ -233,6 +233,14 @@ async def logout() -> BaseResponse:
 def catch_all(path: str) -> Response:
     spa = _render_spa()
     response = make_response(spa)
+
+    # We changed these cookie names; This is a courtesy to the user to clean up their old cookies. This can be removed at any time.
+    delete_http_cookie(response=response, key="ev_account_id")
+    delete_http_cookie(response=response, key="ev_team_id")
+    delete_http_cookie(response=response, key="ev_access_token")
+    delete_http_cookie(response=response, key="ev_login_state_hint")
+    delete_http_cookie(response=response, key="visitor_id")
+
     set_tracking_cookies(response=response, request=request)
 
     auth_cookies = get_auth_cookies(request.cookies)
@@ -244,7 +252,7 @@ def catch_all(path: str) -> Response:
     return response
 
 
-_EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint"
+_EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint.202311"
 
 
 def _set_login_state_hint_cookie(response: BaseResponse) -> None:
