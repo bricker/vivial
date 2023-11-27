@@ -83,6 +83,9 @@ const AuthModal = () => {
           {isLoginMode ? "Log In" : "Get Free Early Access"}
         </Copy> */}
         <Copy variant="pSmall" className={classes.subheader}>
+          {/* {isLoginMode
+              ? "Access your free Beta account"
+              : "Early access is available via Google sign up only. Additional account options coming soon."} */}
           Eave is not currently accepting new sign-ups. For more information,
           contact us at info@eave.fyi.
         </Copy>
