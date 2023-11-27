@@ -1,3 +1,4 @@
+import strawberry.federation as sb
 from dataclasses import dataclass
 import uuid
 from datetime import datetime
@@ -125,3 +126,21 @@ class GithubInstallationOrm(Base):
     @property
     def api_model(self) -> GithubInstallation:
         return GithubInstallation.from_orm(self)
+
+@sb.type
+class GithubInstallation:
+    id: uuid.UUID = sb.field()
+    team_id: Optional[uuid.UUID] = sb.field()
+    github_install_id: str = sb.field()
+
+    @classmethod
+    def from_orm(cls, orm: GithubInstallationOrm) -> "GithubInstallation":
+        return GithubInstallation(
+            id=orm.id,
+            team_id=orm.team_id,
+            github_install_id=orm.github_install_id,
+        )
+
+@sb.input
+class GithubInstallationQueryInput:
+    github_install_id: str = sb.field()

@@ -1,11 +1,13 @@
+from dataclasses import dataclass
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 import uuid
 
-from sqlalchemy import ForeignKeyConstraint, Select, func, select
+from sqlalchemy import ForeignKeyConstraint, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from strawberry.unset import UNSET
 from eave.core.internal.document_client import DocumentClient, DocumentMetadata
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.stdlib.confluence_api.operations import (
@@ -42,10 +44,6 @@ class ConfluenceDestinationOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    @property
-    def api_model(self) -> ConfluenceDestination:
-        return ConfluenceDestination.from_orm(self)
-
     class InsertParams(TypedDict):
         team_id: UUID
         connect_installation_id: UUID
@@ -64,10 +62,12 @@ class ConfluenceDestinationOrm(Base):
 
     @classmethod
     async def upsert(cls, session: AsyncSession, **kwargs: Unpack[InsertParams]) -> Self:
-        existing = await cls.one_or_none(
+        existing = (await cls.query(
             session=session,
-            connect_installation_id=kwargs["connect_installation_id"],
-        )
+            params=cls.QueryParams(
+                connect_installation_id=kwargs["connect_installation_id"],
+            )
+        )).one_or_none()
         if existing:
             existing.update(space_key=kwargs["space_key"])
             await session.flush()
@@ -83,49 +83,40 @@ class ConfluenceDestinationOrm(Base):
         self.space_key = kwargs["space_key"]
         return self
 
-    class QueryParams(TypedDict):
-        id: NotRequired[UUID]
-        team_id: NotRequired[UUID]
-        connect_installation_id: NotRequired[UUID]
+    @dataclass
+    class QueryParams:
+        id: UUID = UNSET
+        team_id: UUID = UNSET
+        connect_installation_id: UUID = UNSET
 
     @classmethod
-    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
-        id = kwargs.get("id")
-        team_id = kwargs.get("team_id")
-        connect_installation_id = kwargs.get("connect_installation_id")
-
+    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
         lookup = select(cls)
 
-        if id:
-            lookup = lookup.where(cls.id == id)
+        if params.id:
+            lookup = lookup.where(cls.id == params.id)
 
-        if team_id:
-            lookup = lookup.where(cls.team_id == team_id)
+        if params.team_id:
+            lookup = lookup.where(cls.team_id == params.team_id)
 
-        if connect_installation_id:
-            lookup = lookup.where(cls.connect_installation_id == connect_installation_id)
+        if params.connect_installation_id:
+            lookup = lookup.where(cls.connect_installation_id == params.connect_installation_id)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
-        lookup = cls.query(**kwargs).limit(1)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self | None:
-        lookup = cls.query(**kwargs).limit(1)
-        result = await session.scalar(lookup)
-        return result
+    async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
+        lookup = cls._build_query(params=params)
+        results = await session.scalars(lookup)
+        return results
 
     async def get_connect_installation(self, session: AsyncSession) -> ConnectInstallationOrm:
-        obj = await ConnectInstallationOrm.one_or_exception(
+        obj = (await ConnectInstallationOrm.query(
             session=session,
             product=AtlassianProduct.confluence,
             id=self.connect_installation_id,
-        )
+        )).one()
         return obj
 
     @property

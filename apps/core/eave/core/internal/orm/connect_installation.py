@@ -1,12 +1,15 @@
+from dataclasses import dataclass
+import strawberry.federation as sb
 from urllib.parse import urlparse
 import uuid
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import Literal, NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
 from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from strawberry.unset import UNSET
 from eave.stdlib.core_api.models.connect import (
     AtlassianProduct,
     ConnectInstallation,
@@ -54,56 +57,44 @@ class ConnectInstallationOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    class QueryParams(TypedDict):
-        product: NotRequired[AtlassianProduct]
-        id: NotRequired[uuid.UUID]
-        team_id: NotRequired[uuid.UUID | str | None]
-        client_key: NotRequired[str | None]
-        org_url: NotRequired[str]
+    @dataclass
+    class QueryParams:
+        product: AtlassianProduct = UNSET
+        id: uuid.UUID = UNSET
+        team_id: uuid.UUID | str = UNSET
+        client_key: str = UNSET
+        org_url: str = UNSET
+
+        def validate_or_exception(self) -> Literal[True]:
+            assert self.product or self.id or self.team_id or self.client_key or self.org_url, "at least one parameter must be specified"
+            return True
 
     @classmethod
-    def _build_query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
+    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+        params.validate_or_exception()
         lookup = select(cls)
 
-        id = kwargs.get("id")
-        team_id = kwargs.get("team_id")
-        client_key = kwargs.get("client_key")
-        org_url = kwargs.get("org_url")
-        assert id or team_id or client_key or org_url, "at least one parameter must be specified"
+        if params.product:
+            lookup = lookup.where(cls.product == params.product)
 
-        if product := kwargs.get("product"):
-            lookup = lookup.where(cls.product == product)
+        if params.id:
+            lookup = lookup.where(cls.id == params.id)
 
-        if id:
-            lookup = lookup.where(cls.id == id)
+        if params.team_id:
+            lookup = lookup.where(cls.team_id == params.team_id)
 
-        if team_id:
-            lookup = lookup.where(cls.team_id == team_id)
+        if params.client_key:
+            lookup = lookup.where(cls.client_key == params.client_key)
 
-        if client_key:
-            lookup = lookup.where(cls.client_key == client_key)
-
-        if org_url:
-            lookup = lookup.where(cls.org_url == org_url)
+        if params.org_url:
+            lookup = lookup.where(cls.org_url == params.org_url)
 
         assert lookup.whereclause is not None
         return lookup
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
-        lookup = cls._build_query(**kwargs).limit(1)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self | None:
-        lookup = cls._build_query(**kwargs).limit(1)
-        result = await session.scalar(lookup)
-        return result
-
-    @classmethod
-    async def query(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> ScalarResult[Self]:
-        lookup = cls._build_query(**kwargs)
+    async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
+        lookup = cls._build_query(params=params)
         results = await session.scalars(lookup)
         return results
 
@@ -185,11 +176,3 @@ class ConnectInstallationOrm(Base):
             self.description = input.description
 
         return self
-
-    @property
-    def api_model(self) -> ConnectInstallation:
-        return ConnectInstallation.from_orm(self)
-
-    @property
-    def api_model_peek(self) -> ConnectInstallationPeek:
-        return ConnectInstallationPeek.from_orm(self)

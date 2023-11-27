@@ -1,3 +1,4 @@
+import strawberry.federation as sb
 from dataclasses import dataclass
 import typing
 import uuid
@@ -5,10 +6,12 @@ from datetime import datetime
 from typing import Any, Optional, Self, Tuple
 from uuid import UUID
 
+from strawberry.unset import UNSET
+
 import eave.stdlib.exceptions
 import eave.core.internal
 import slack_sdk.errors
-from sqlalchemy import Index, Select, func, or_, select
+from sqlalchemy import Index, ScalarResult, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -23,7 +26,6 @@ from eave.stdlib.util import ensure_uuid_or_none
 from .base import Base
 from .team import TeamOrm
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
-
 
 class AccountOrm(Base):
     __tablename__ = "accounts"
@@ -97,29 +99,29 @@ class AccountOrm(Base):
 
     @dataclass
     class QueryParams:
-        id: Optional[uuid.UUID] = None
-        team_id: Optional[uuid.UUID] = None
-        auth_provider: Optional[AuthProvider] = None
-        auth_id: Optional[str] = None
-        access_token: Optional[str] = None
+        id: uuid.UUID = UNSET
+        team_id: uuid.UUID = UNSET
+        auth_provider: AuthProvider = UNSET
+        auth_id: str = UNSET
+        access_token: str = UNSET
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
-        lookup = select(cls).limit(1)
+        lookup = select(cls)
 
-        if params.id is not None:
+        if params.id:
             lookup = lookup.where(cls.id == params.id)
 
-        if params.team_id is not None:
+        if params.team_id:
             lookup = lookup.where(cls.team_id == params.team_id)
 
-        if params.auth_provider is not None:
+        if params.auth_provider:
             lookup = lookup.where(cls.auth_provider == params.auth_provider)
 
-        if params.auth_id is not None:
+        if params.auth_id:
             lookup = lookup.where(cls.auth_id == params.auth_id)
 
-        if params.access_token is not None:
+        if params.access_token:
             lookup = lookup.where(
                 or_(
                     cls.access_token == params.access_token,
@@ -131,21 +133,9 @@ class AccountOrm(Base):
         return lookup
 
     @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Self:
+    async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
         lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
-        lookup = cls._build_query(params=params)
-        result = await session.scalar(lookup)
+        result = await session.scalars(lookup)
         return result
 
     def set_tokens(self, session: AsyncSession, access_token: str | None, refresh_token: str | None) -> None:
@@ -229,15 +219,3 @@ class AccountOrm(Base):
 
             case _:
                 raise  # TODO: Better error reporting. This case should never be reached though.
-
-    async def get_team(self, session: AsyncSession) -> TeamOrm:
-        team = await TeamOrm.one_or_exception(session=session, team_id=self.team_id)
-        return team
-
-    @property
-    def api_model(self) -> AuthenticatedAccount:
-        return AuthenticatedAccount.from_orm(self)
-
-    @property
-    def analytics_model(self) -> AnalyticsAccount:
-        return AnalyticsAccount.from_orm(self)

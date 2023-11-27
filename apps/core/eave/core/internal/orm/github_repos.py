@@ -1,3 +1,4 @@
+import strawberry.federation as sb
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Self, Sequence, Tuple
@@ -7,14 +8,9 @@ from sqlalchemy import Index, PrimaryKeyConstraint, ForeignKeyConstraint, Select
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from strawberry.unset import UNSET
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.github_repos import (
-    GithubRepo,
-    GithubRepoUpdateValues,
-    GithubRepoFeatureState,
-    GithubRepoFeature,
-)
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
@@ -59,28 +55,24 @@ class GithubRepoOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    @property
-    def api_model(self) -> GithubRepo:
-        return GithubRepo.from_orm(self)
-
     @dataclass
     class QueryParams:
         team_id: Optional[UUID]
-        id: Optional[UUID] = None
-        ids: Optional[list[UUID]] = None
-        external_repo_id: Optional[str] = None
-        external_repo_ids: Optional[list[str]] = None
-        api_documentation_state: Optional[GithubRepoFeatureState | str] = None
-        inline_code_documentation_state: Optional[GithubRepoFeatureState | str] = None
-        architecture_documentation_state: Optional[GithubRepoFeatureState | str] = None
+        id: UUID = UNSET
+        ids: list[UUID] = UNSET
+        external_repo_id: str = UNSET
+        external_repo_ids: list[str] = UNSET
+        api_documentation_state: str = UNSET
+        inline_code_documentation_state: str = UNSET
+        architecture_documentation_state: str = UNSET
 
         def validate_or_exception(self):
             assert eave.stdlib.util.nand(
-                self.external_repo_ids is not None, self.external_repo_id is not None
+                self.external_repo_ids is not UNSET, self.external_repo_id is not UNSET
             ), "external_repo_ids and external_repo_id are mutually exclusive inputs"
 
             assert eave.stdlib.util.nand(
-                self.ids is not None, self.id is not None
+                self.ids is not UNSET, self.id is not UNSET
             ), "ids and id are mutually exclusive inputs"
 
     @classmethod
@@ -88,29 +80,29 @@ class GithubRepoOrm(Base):
         params.validate_or_exception()
         lookup = select(cls)
 
-        if params.team_id:
+        if params.team_id is not UNSET:
             lookup = lookup.where(cls.team_id == params.team_id)
 
-        if params.id:
+        if params.id is not UNSET:
             lookup = lookup.where(cls.id == params.id)
 
-        if params.ids:
+        if params.ids is not UNSET:
             lookup = lookup.where(cls.id.in_(params.ids))
 
-        if params.external_repo_ids:
+        if params.external_repo_ids is not UNSET:
             lookup = lookup.where(cls.external_repo_id.in_(params.external_repo_ids))
 
-        if params.external_repo_id:
+        if params.external_repo_id is not UNSET:
             lookup = lookup.where(cls.external_repo_id == params.external_repo_id)
 
-        if params.api_documentation_state:
-            lookup = lookup.where(cls.api_documentation_state == params.api_documentation_state.value)
+        if params.api_documentation_state is not UNSET:
+            lookup = lookup.where(cls.api_documentation_state == params.api_documentation_state)
 
-        if params.inline_code_documentation_state:
-            lookup = lookup.where(cls.inline_code_documentation_state == params.inline_code_documentation_state.value)
+        if params.inline_code_documentation_state is not UNSET:
+            lookup = lookup.where(cls.inline_code_documentation_state == params.inline_code_documentation_state)
 
-        if params.architecture_documentation_state:
-            lookup = lookup.where(cls.architecture_documentation_state == params.architecture_documentation_state.value)
+        if params.architecture_documentation_state is not UNSET:
+            lookup = lookup.where(cls.architecture_documentation_state == params.architecture_documentation_state)
 
         assert lookup.whereclause is not None, "Malformed input"
         return lookup
@@ -123,18 +115,18 @@ class GithubRepoOrm(Base):
         external_repo_id: str,
         github_installation_id: UUID,
         display_name: Optional[str],
-        api_documentation_state: Optional[GithubRepoFeatureState | str] = None,
-        inline_code_documentation_state: Optional[GithubRepoFeatureState | str] = None,
-        architecture_documentation_state: Optional[GithubRepoFeatureState | str] = None,
+        api_documentation_state: Optional[str] = None,
+        inline_code_documentation_state: Optional[str] = None,
+        architecture_documentation_state: Optional[str] = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             external_repo_id=external_repo_id,
             github_installation_id=github_installation_id,
             display_name=display_name,
-            api_documentation_state=api_documentation_state or GithubRepoFeatureState.ENABLED.value,
-            inline_code_documentation_state=inline_code_documentation_state or GithubRepoFeatureState.ENABLED.value,
-            architecture_documentation_state=architecture_documentation_state or GithubRepoFeatureState.ENABLED.value,
+            api_documentation_state=api_documentation_state or "enabled",
+            inline_code_documentation_state=inline_code_documentation_state or "enabled",
+            architecture_documentation_state=architecture_documentation_state or "enabled",
         )
         session.add(obj)
         await session.flush()
@@ -214,3 +206,80 @@ class GithubRepoOrm(Base):
 
         result = (await session.scalars(stmt)).all()
         return len(result) == 0
+
+@sb.enum
+class GithubRepoFeature(enum.StrEnum):
+    API_DOCUMENTATION = "api_documentation"
+    INLINE_CODE_DOCUMENTATION = "inline_code_documentation"
+    ARCHITECTURE_DOCUMENTATION = "architecture_documentation"
+
+@sb.enum
+class GithubRepoFeatureState(enum.StrEnum):
+    DISABLED = "disabled"
+    ENABLED = "enabled"
+    PAUSED = "paused"
+
+@sb.type
+class GithubRepo:
+    id: uuid.UUID = sb.field()
+    team_id: uuid.UUID = sb.field()
+    github_installation_id: uuid.UUID = sb.field()
+    external_repo_id: str = sb.field()
+    display_name: Optional[str] = sb.field()
+    api_documentation_state: GithubRepoFeatureState = sb.field()
+    inline_code_documentation_state: GithubRepoFeatureState = sb.field()
+    architecture_documentation_state: GithubRepoFeatureState = sb.field()
+
+    @classmethod
+    def from_orm(cls, orm: GithubRepoOrm) -> "GithubRepo":
+        return GithubRepo(
+            id=orm.id,
+            team_id=orm.team_id,
+            github_installation_id=orm.github_installation_id,
+            external_repo_id=orm.external_repo_id,
+            display_name=orm.display_name,
+            api_documentation_state=GithubRepoFeatureState(value=orm.api_documentation_state),
+            inline_code_documentation_state=GithubRepoFeatureState(value=orm.inline_code_documentation_state),
+            architecture_documentation_state=GithubRepoFeatureState(value=orm.architecture_documentation_state),
+        )
+
+@sb.type
+class GithubRepoMutationResult(MutationResult):
+    github_repo: GithubRepo
+
+@sb.input
+class GithubRepoCreateInput:
+    external_repo_id: str = sb.field()
+    display_name: str = sb.field()
+    api_documentation_state: Optional[GithubRepoFeatureState] = sb.field()
+    inline_code_documentation_state: Optional[GithubRepoFeatureState] = sb.field()
+    architecture_documentation_state: Optional[GithubRepoFeatureState] = sb.field()
+
+
+@sb.input
+class GithubRepoRefInput:
+    id: uuid.UUID = sb.field()
+
+@sb.input
+class GithubRepoListInput:
+    external_repo_id: str = sb.field()
+
+@sb.input
+class GithubRepoUpdateValues:
+    api_documentation_state: Optional[GithubRepoFeatureState] = sb.field()
+    inline_code_documentation_state: Optional[GithubRepoFeatureState] = sb.field()
+    architecture_documentation_state: Optional[GithubRepoFeatureState] = sb.field()
+
+@sb.input
+class GithubRepoUpdateInput:
+    id: uuid.UUID = sb.field()
+    new_values: GithubRepoUpdateValues = sb.field()
+
+@sb.input
+class GithubReposDeleteInput:
+    id: uuid.UUID = sb.field()
+
+@sb.input
+class GithubReposFeatureStateInput:
+    feature: GithubRepoFeature = sb.field()
+    state: GithubRepoFeatureState = sb.field()

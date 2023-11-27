@@ -1,4 +1,6 @@
+import strawberry.federation as sb
 import asyncio
+from dataclasses import dataclass
 import json
 import uuid
 from datetime import datetime
@@ -6,9 +8,10 @@ from typing import Callable, NotRequired, Optional, Self, Tuple, TypedDict, Unpa
 from uuid import UUID
 
 import oauthlib.oauth2.rfc6749.tokens
-from sqlalchemy import Index, Select, func, select
+from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from strawberry.unset import UNSET
 
 from eave.stdlib.core_api.models.atlassian import AtlassianInstallation, AtlassianInstallationPeek
 
@@ -42,38 +45,33 @@ class AtlassianInstallationOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    class _selectparams(TypedDict):
-        id: NotRequired[uuid.UUID]
-        team_id: NotRequired[uuid.UUID]
-        atlassian_cloud_id: NotRequired[str]
+    @dataclass
+    class QueryParams:
+        id: uuid.UUID = UNSET
+        team_id: uuid.UUID = UNSET
+        atlassian_cloud_id: str = UNSET
 
     @classmethod
-    def _build_select(cls, **kwargs: Unpack[_selectparams]) -> Select[Tuple[Self]]:
-        lookup = select(cls).limit(1)
+    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+        lookup = select(cls)
 
-        if (id := kwargs.get("id")) is not None:
-            lookup = lookup.where(cls.id == id)
+        if params.id:
+            lookup = lookup.where(cls.id == params.id)
 
-        if (team_id := kwargs.get("team_id")) is not None:
-            lookup = lookup.where(cls.team_id == team_id)
+        if params.team_id:
+            lookup = lookup.where(cls.team_id == params.team_id)
 
-        if (atlassian_cloud_id := kwargs.get("atlassian_cloud_id")) is not None:
-            lookup = lookup.where(cls.atlassian_cloud_id == atlassian_cloud_id)
+        if params.atlassian_cloud_id:
+            lookup = lookup.where(cls.atlassian_cloud_id == params.atlassian_cloud_id)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
-    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self:
-        lookup = cls._build_select(**kwargs)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[_selectparams]) -> Self | None:
-        lookup = cls._build_select(**kwargs)
-        result = await session.scalar(lookup)
-        return result
+    async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
+        lookup = cls._build_query(params=params)
+        results = await session.scalars(lookup)
+        return results
 
     @classmethod
     async def create(
@@ -127,11 +125,3 @@ class AtlassianInstallationOrm(Base):
             if record:
                 record.oauth_token_encoded = json.dumps(token)
                 await db_session.commit()
-
-    @property
-    def api_model(self) -> AtlassianInstallation:
-        return AtlassianInstallation.from_orm(self)
-
-    @property
-    def api_model_peek(self) -> AtlassianInstallationPeek:
-        return AtlassianInstallationPeek.from_orm(self)

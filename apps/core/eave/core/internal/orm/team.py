@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+import enum
+import strawberry.federation as sb
 from datetime import datetime
 from typing import Any, Optional, Self, Sequence, Tuple, TypedDict, Unpack
 from uuid import UUID
@@ -23,7 +26,6 @@ from .subscription import SubscriptionOrm
 from .util import UUID_DEFAULT_EXPR
 from eave.stdlib.logging import eaveLogger
 
-
 class TeamOrm(Base):
     __tablename__ = "teams"
 
@@ -32,7 +34,6 @@ class TeamOrm(Base):
     document_platform: Mapped[Optional[DocumentPlatform]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
-    beta_whitelisted: Mapped[bool] = mapped_column(server_default=false())
 
     subscriptions: Mapped[list[SubscriptionOrm]] = relationship()
 
@@ -50,14 +51,6 @@ class TeamOrm(Base):
         session.add(obj)
         await session.flush()
         return obj
-
-    @property
-    def api_model(self) -> Team:
-        return Team.from_orm(self)
-
-    @property
-    def analytics_model(self) -> AnalyticsTeam:
-        return AnalyticsTeam.from_orm(self)
 
     async def get_document_client(self, session: AsyncSession) -> Optional[DocumentClient]:
         match self.document_platform:
@@ -90,26 +83,15 @@ class TeamOrm(Base):
             case _:
                 raise NotImplementedError(f"unsupported document platform: {self.document_platform}")
 
-    class QueryParams(TypedDict):
+    @dataclass
+    class QueryParams:
         team_id: UUID | str
 
     @classmethod
-    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
-        team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
+    def query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+        team_id = eave.stdlib.util.ensure_uuid(params.team_id)
         lookup = select(cls).where(cls.id == team_id)
         return lookup
-
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
-        lookup = cls.query(**kwargs).limit(1)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self | None:
-        lookup = cls.query(**kwargs).limit(1)
-        result = await session.scalar(lookup)
-        return result
 
     async def get_integrations(self, session: AsyncSession) -> Integrations:
         query = (

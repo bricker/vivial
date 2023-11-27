@@ -3,12 +3,14 @@ import starlette.applications
 from starlette.routing import Route
 import strawberry
 from strawberry.schema.config import StrawberryConfig
+from eave.core.graphql.mutation import Mutation
 
-from eave.core.graphql.queries import Query
+from eave.core.graphql.query import Query
 from strawberry.asgi import GraphQL
 
 schema = strawberry.federation.Schema(
     query=Query,
+    mutation=Mutation,
     enable_federation_2=True,
     config=StrawberryConfig(
         auto_camel_case=True,

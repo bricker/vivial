@@ -1,3 +1,4 @@
+import strawberry.federation as sb
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Self, Sequence, Tuple
@@ -147,3 +148,88 @@ class GithubDocumentsOrm(Base):
     async def delete_by_type(cls, team_id: UUID, type: GithubDocumentType, session: AsyncSession) -> None:
         stmt = delete(cls).where(cls.team_id == team_id).where(cls.type == type)
         await session.execute(stmt)
+
+@sb.enum
+class GithubDocumentStatus(StrEnum):
+    PROCESSING = "processing"
+    FAILED = "failed"
+    PR_OPENED = "pr_opened"
+    PR_MERGED = "pr_merged"
+    PR_CLOSED = "pr_closed"
+
+
+@sb.enum
+class GithubDocumentType(StrEnum):
+    API_DOCUMENT = "api_document"
+    ARCHITECTURE_DOCUMENT = "architecture_document"
+
+
+@sb.type
+class GithubDocument:
+    id: uuid.UUID = sb.field()
+    team_id: uuid.UUID = sb.field()
+    github_repo_id: uuid.UUID = sb.field()
+    pull_request_number: Optional[int] = sb.field()
+    status: GithubDocumentStatus = sb.field()
+    status_updated: datetime.datetime = sb.field()
+    file_path: Optional[str] = sb.field()
+    api_name: Optional[str] = sb.field()
+    type: GithubDocumentType = sb.field()
+
+    @classmethod
+    def from_orm(cls, orm: GithubDocumentsOrm) -> "GithubDocument":
+        return GithubDocument(
+            id=orm.id,
+            team_id=orm.team_id,
+            github_repo_id=orm.github_repo_id,
+            pull_request_number=orm.pull_request_number,
+            status=GithubDocumentStatus(value=orm.status),
+            status_updated=orm.status_updated,
+            file_path=orm.file_path,
+            api_name=orm.api_name,
+            type=GithubDocumentType(value=orm.type),
+        )
+
+@sb.type
+class GithubDocumentMutationResult(MutationResult):
+    github_document: GithubDocument
+
+@sb.input
+class GithubDocumentsQueryInput:
+    id: Optional[uuid.UUID] = sb.field()
+    github_repo_id: Optional[uuid.UUID] = sb.field()
+    type: Optional[GithubDocumentType] = sb.field()
+    pull_request_number: Optional[int] = sb.field()
+
+
+@sb.input
+class GithubDocumentCreateInput:
+    type: GithubDocumentType = sb.field()
+    status: Optional[GithubDocumentStatus] = sb.field()
+    file_path: Optional[str] = sb.field()
+    api_name: Optional[str] = sb.field()
+    pull_request_number: Optional[int] = sb.field()
+
+
+@sb.input
+class GithubDocumentValuesInput:
+    pull_request_number: Optional[int] = sb.field()
+    status: Optional[GithubDocumentStatus] = sb.field()
+    file_path: Optional[str] = sb.field()
+    api_name: Optional[str] = sb.field()
+
+
+@sb.input
+class GithubDocumentUpdateInput:
+    id: uuid.UUID = sb.field()
+    new_values: GithubDocumentValuesInput = sb.field()
+
+
+@sb.input
+class GithubDocumentsDeleteByIdsInput:
+    id: uuid.UUID = sb.field()
+
+
+@sb.input
+class GithubDocumentsDeleteByTypeInput:
+    type: GithubDocumentType = sb.field()

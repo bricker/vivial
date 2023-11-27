@@ -1,12 +1,14 @@
+import strawberry.federation as sb
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Self, Sequence, Tuple
 from uuid import UUID
 
-from sqlalchemy import Index, PrimaryKeyConstraint, Select
+from sqlalchemy import Index, PrimaryKeyConstraint, ScalarResult, Select
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from strawberry.unset import UNSET
 
 from eave.stdlib.core_api.models.api_documentation_jobs import (
     ApiDocumentationJob,
@@ -46,15 +48,11 @@ class ApiDocumentationJobOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    @property
-    def api_model(self) -> ApiDocumentationJob:
-        return ApiDocumentationJob.from_orm(self)
-
     @dataclass
     class QueryParams:
-        team_id: Optional[UUID]
-        github_repo_id: Optional[UUID] = None
-        ids: Optional[list[UUID]] = None
+        team_id: UUID
+        github_repo_id: UUID = UNSET
+        ids: list[UUID] = UNSET
 
         def validate_or_exception(self):
             assert not self.ids == []
@@ -98,15 +96,9 @@ class ApiDocumentationJobOrm(Base):
         cls,
         session: AsyncSession,
         params: QueryParams,
-    ) -> Sequence[Self]:
+    ) -> ScalarResult[Self]:
         stmt = cls._build_query(params=params)
-        result = (await session.scalars(stmt)).all()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, params: QueryParams, session: AsyncSession) -> Self | None:
-        stmt = cls._build_query(params=params)
-        result = (await session.scalars(stmt)).one_or_none()
+        result = await session.scalars(stmt)
         return result
 
     def update(

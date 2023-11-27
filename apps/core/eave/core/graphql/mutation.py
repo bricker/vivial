@@ -1,13 +1,13 @@
 from typing import Any, Awaitable, Coroutine
 from uuid import UUID, uuid4
 import strawberry.federation as sb
-from eave.core.graphql.types.connect_installation import ConnectInstallationMutationResult, ConnectInstallationResolvers
-from eave.core.graphql.types.documents import DocumentInput, DocumentReferenceMutationResult, DocumentResolvers, UpsertDocumentMutationResult
-from eave.core.graphql.types.github_documents import GithubDocument, GithubDocumentCreateInput, GithubDocumentMutationResult, GithubDocumentResolvers
+from eave.core.graphql.types.connect import ConnectInstallationMutationResult, ConnectInstallationResolvers
+from eave.core.graphql.types.document import DocumentInput, DocumentReferenceMutationResult, DocumentResolvers, UpsertDocumentMutationResult
+from eave.core.graphql.types.github_document import GithubDocument, GithubDocumentCreateInput, GithubDocumentMutationResult, GithubDocumentResolvers
 from eave.core.graphql.types.github_installation import GithubInstallationResolvers, delete_github_installation_resolver
-from eave.core.graphql.types.github_repos import GithubRepo, GithubRepoCreateInput, GithubRepoMutationResult, GithubRepoResolvers
+from eave.core.graphql.types.github_repo import GithubRepo, GithubRepoCreateInput, GithubRepoMutationResult, GithubRepoResolvers
 from eave.core.graphql.types.mutation_result import MutationResult
-from eave.core.graphql.types.subscriptions import DocumentReference, SubscriptionInput, SubscriptionMutationResult, SubscriptionResolvers
+from eave.core.graphql.types.subscription import DocumentReference, SubscriptionInput, SubscriptionMutationResult, SubscriptionResolvers
 import eave.core.internal.database as eave_db
 from eave.core.internal.orm.github_documents import GithubDocumentsOrm
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
