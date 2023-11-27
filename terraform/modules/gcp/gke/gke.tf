@@ -14,6 +14,7 @@ resource "google_container_cluster" "eave_services" {
   subnetwork       = "projects/${var.project_id}/regions/${var.region}/subnetworks/default"
   networking_mode  = "VPC_NATIVE"
   enable_autopilot = true
+  deletion_protection = true
 
   ip_allocation_policy {
   }

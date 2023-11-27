@@ -65,12 +65,12 @@ module "gcp_monitoring" {
   ]
 }
 
-module "gcp_memorystore" {
-  source     = "../modules/gcp/memorystore"
-  project_id = local.project_id
-  region     = local.region
-  notification_channels = [
-    module.gcp_monitoring.slack_notification_channel_name,
-    "projects/eave-production/notificationChannels/18048082649449908319" // bryan mobile... unable to import into terraform
-  ]
-}
+# module "gcp_memorystore" {
+#   source     = "../modules/gcp/memorystore"
+#   project_id = local.project_id
+#   region     = local.region
+#   notification_channels = [
+#     module.gcp_monitoring.slack_notification_channel_name,
+#     "projects/eave-production/notificationChannels/18048082649449908319" // bryan mobile... unable to import into terraform
+#   ]
+# }

@@ -49,11 +49,11 @@ module "gcp_cloud_scheduler" {
   cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
 }
 
-module "gcp_gke" {
-  source     = "../modules/gcp/gke"
-  project_id = local.project_id
-  region     = local.region
-}
+# module "gcp_gke" {
+#   source     = "../modules/gcp/gke"
+#   project_id = local.project_id
+#   region     = local.region
+# }
 
 module "gcp_iam" {
   source     = "../modules/gcp/iam"
