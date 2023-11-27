@@ -3,7 +3,7 @@ variable "project_id" {
 }
 
 resource "google_project_iam_binding" "cloud_sql_client" {
-  depends_on = [ google_service_account.app_service_accounts ]
+  depends_on = [google_service_account.app_service_accounts]
 
   project = var.project_id
   role    = "roles/cloudsql.client"

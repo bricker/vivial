@@ -1,5 +1,5 @@
 variable "slack_auth_token" {
-  type = string
+  type      = string
   sensitive = true
 }
 

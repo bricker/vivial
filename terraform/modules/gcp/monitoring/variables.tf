@@ -7,6 +7,6 @@ variable "region" {
 }
 
 variable "addl_notification_channels" {
-  type = list(string)
+  type    = list(string)
   default = []
 }

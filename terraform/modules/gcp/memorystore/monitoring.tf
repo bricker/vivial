@@ -3,7 +3,7 @@ variable "notification_channels" {
 }
 
 resource "google_monitoring_alert_policy" "redis_cpu_usage" {
-  depends_on = [ google_redis_instance.eave_redis ]
+  depends_on            = [google_redis_instance.eave_redis]
   combiner              = "OR"
   display_name          = "Cloud Redis - Redis Engine CPU utilization for eave-redis(us-central1)"
   enabled               = true
