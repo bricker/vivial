@@ -1,6 +1,6 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
-variable "cron_shared_secret" {
+variable "EAVE_GITHUB_APP_CRON_SECRET" {
   type      = string
   sensitive = true
 }
@@ -39,4 +39,11 @@ module "gcp_cloud_tasks" {
   source     = "../modules/gcp/cloud_tasks"
   project_id = local.project_id
   region     = local.region
+}
+
+module "gcp_cloud_scheduler" {
+  source             = "../modules/gcp/cloud_scheduler"
+  project_id         = local.project_id
+  region             = local.region
+  cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
 }
