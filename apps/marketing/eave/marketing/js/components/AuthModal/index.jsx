@@ -4,10 +4,8 @@ import classNames from "classnames";
 import React from "react";
 
 import useAuthModal from "../../hooks/useAuthModal.js";
-import Button from "../Button/index.jsx";
 import Copy from "../Copy/index.jsx";
 import CloseIcon from "../Icons/CloseIcon.js";
-import GoogleIcon from "../Icons/GoogleIcon.jsx";
 
 const makeClasses = makeStyles((theme) => ({
   container: {
@@ -81,15 +79,18 @@ const AuthModal = () => {
         <IconButton onClick={closeModal} className={classes.closeButton}>
           <CloseIcon />
         </IconButton>
-        <Copy variant="h2" className={classes.header}>
+        {/* <Copy variant="h2" className={classes.header}>
           {isLoginMode ? "Log In" : "Get Free Early Access"}
-        </Copy>
+        </Copy> */}
         <Copy variant="pSmall" className={classes.subheader}>
-          {isLoginMode
-            ? "Access your free Beta account"
-            : "Early access is available via Google sign up only. Additional account options coming soon."}
+          {/* {isLoginMode
+              ? "Access your free Beta account"
+              : "Early access is available via Google sign up only. Additional account options coming soon."} */}
+          Eave is not currently accepting new sign-ups.
+          <br />
+          For more information, contact us at info@eave.fyi.
         </Copy>
-        <Button
+        {/* <Button
           to={`${window.eave.apiBase}/oauth/google/authorize`}
           className={classes.loginButton}
           variant="outlined"
@@ -108,7 +109,7 @@ const AuthModal = () => {
               Privacy Policy.
             </a>
           </Copy>
-        )}
+        )} */}
       </section>
     </Dialog>
   );

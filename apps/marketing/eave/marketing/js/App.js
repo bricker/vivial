@@ -11,12 +11,9 @@ import {
 } from "react-router-dom";
 
 import "../static/css/app.css";
-import AuthenticationPage from "./components/Pages/AuthenticationPage/index.jsx";
-import Dashboard from "./components/Pages/Dashboard/index.jsx";
 import HomePage from "./components/Pages/HomePage/index.jsx";
 import PrivacyPage from "./components/Pages/PrivacyPage/index.jsx";
 import TermsPage from "./components/Pages/TermsPage/index.jsx";
-import PrivateRoutes from "./components/PrivateRoutes/index.jsx";
 import ScrollToTop from "./components/ScrollToTop/index.jsx";
 import AppStoreProvider from "./context/Provider.js";
 import { theme } from "./theme.js";
@@ -36,17 +33,17 @@ const App = () => {
             <Routes>
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
-              <Route
+              {/* <Route
                 path="/signup"
                 element={<AuthenticationPage type="signup" />}
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/login"
                 element={<AuthenticationPage type="login" />}
-              />
-              <Route element={<PrivateRoutes />}>
+              /> */}
+              {/* <Route element={<PrivateRoutes />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-              </Route>
+              </Route> */}
               <Route path="/" element={<HomePage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

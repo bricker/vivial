@@ -1,5 +1,29 @@
 // https://registry.terraform.io/modules/GoogleCloudPlatform/sql-db/google/latest
 
+variable "instance_name" {
+  type = string
+}
+
+variable "instance_tier" {
+  type = string
+}
+
+variable "instance_disk_type" {
+  type = string
+}
+
+variable "instance_disk_size" {
+  type = number
+}
+
+variable "instance_backup_enabled" {
+  type = bool
+}
+
+variable "instance_zone" {
+  type = string
+}
+
 variable "project_id" {
   type = string
 }
@@ -12,9 +36,9 @@ resource "google_sql_database_instance" "eave_pg_core" {
   database_version     = "POSTGRES_14"
   deletion_protection  = true
   encryption_key_name  = null
-  maintenance_version  = "POSTGRES_14_7.R20230530.01_04"
+  maintenance_version  = "POSTGRES_14_9.R20230830.01_01"
   master_instance_name = null
-  name                 = "eave-pg-core"
+  name                 = var.instance_name
   project              = var.project_id
   region               = var.region
   root_password        = null # sensitive
@@ -26,18 +50,18 @@ resource "google_sql_database_instance" "eave_pg_core" {
     deletion_protection_enabled = true
     disk_autoresize             = true
     disk_autoresize_limit       = 0
-    disk_size                   = 10
-    disk_type                   = "PD_SSD"
+    disk_size                   = 100
+    disk_type                   = var.instance_disk_type
     pricing_plan                = "PER_USE"
-    tier                        = "db-g1-small"
+    tier                        = var.instance_tier
     time_zone                   = null
     user_labels                 = {}
     backup_configuration {
       binary_log_enabled             = false
-      enabled                        = false
-      location                       = null
-      point_in_time_recovery_enabled = false
-      start_time                     = "08:00"
+      enabled                        = var.instance_backup_enabled
+      location                       = "us"
+      point_in_time_recovery_enabled = var.instance_backup_enabled
+      start_time                     = "05:00"
       transaction_log_retention_days = 7
       backup_retention_settings {
         retained_backups = 7
@@ -64,7 +88,7 @@ resource "google_sql_database_instance" "eave_pg_core" {
     location_preference {
       follow_gae_application = null
       secondary_zone         = null
-      zone                   = "us-central1-f"
+      zone                   = var.instance_zone
     }
     maintenance_window {
       day          = 7
@@ -76,8 +100,8 @@ resource "google_sql_database_instance" "eave_pg_core" {
       disallow_username_substring = true
       enable_password_policy      = true
       min_length                  = 16
-      password_change_interval    = "172800s"
-      reuse_interval              = 5
+      password_change_interval    = null
+      reuse_interval              = 0
     }
   }
   timeouts {

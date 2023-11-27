@@ -8,9 +8,10 @@ from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.typing import HTTPFrameworkResponse
 
 # version can be changed when a force-logout is required for all users
-_EAVE_ACCOUNT_ID_COOKIE_NAME = "ev_account_id"
-_EAVE_TEAM_ID_COOKIE_NAME = "ev_team_id"
-_EAVE_ACCESS_TOKEN_COOKIE_NAME = "ev_access_token"
+_AUTH_COOKIE_VERSION = "202311"
+_EAVE_ACCOUNT_ID_COOKIE_NAME = f"ev_account_id.{_AUTH_COOKIE_VERSION}"
+_EAVE_TEAM_ID_COOKIE_NAME = f"ev_team_id.{_AUTH_COOKIE_VERSION}"
+_EAVE_ACCESS_TOKEN_COOKIE_NAME = f"ev_access_token.{_AUTH_COOKIE_VERSION}"
 
 
 @dataclass
