@@ -1,12 +1,5 @@
-variable "project_id" {
-  type = string
-}
-
-variable "region" {
-  type = string
-}
-
 resource "google_redis_instance" "eave_redis" {
+  name                    = "eave-redis"
   alternative_location_id = null
   auth_enabled            = true
   authorized_network      = "projects/${var.project_id}/global/networks/default"
@@ -16,7 +9,6 @@ resource "google_redis_instance" "eave_redis" {
   labels                  = {}
   location_id             = null
   memory_size_gb          = 1
-  name                    = "eave-redis"
   project                 = var.project_id
   read_replicas_mode      = "READ_REPLICAS_DISABLED"
   redis_configs           = {}
