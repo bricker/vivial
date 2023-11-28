@@ -209,57 +209,13 @@ class GithubOAuthCallback(HTTPEndpoint):
                     install_flow_state=state,
                 )
 
-                if self._request_logged_in():
-                    await eave.stdlib.analytics.log_event(
-                        event_name="eave_application_integration",
-                        event_description="An integration was added for a team",
-                        event_source="core api github app install",
-                        eave_account=self.eave_account.analytics_model if self.eave_account else None,
-                        eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                        opaque_params={
-                            "integration_name": Integration.github.value,
-                        },
-                        ctx=self.eave_state.ctx,
-                    )
-                else:
-                    await eave.stdlib.analytics.log_event(
-                        event_name="eave_application_registered",
-                        event_description="An app was registered, but has no linked team",
-                        event_source="core api github app install",
-                        opaque_params={
-                            "integration_name": Integration.github.value,
-                            "installation_id": self.installation_id,
-                        },
-                        ctx=self.eave_state.ctx,
-                    )
-
             elif self.eave_account and github_installation_orm.team_id != self.eave_account.team_id:
                 eaveLogger.warning(
                     f"A Github integration already exists with github install id {self.installation_id}",
                     self.eave_state.ctx,
                 )
-                await eave.stdlib.analytics.log_event(
-                    event_name="duplicate_integration_attempt",
-                    event_source="core api github oauth",
-                    eave_account=self.eave_account.analytics_model,
-                    eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                    opaque_params={"integration": Integration.github},
-                    ctx=self.eave_state.ctx,
-                )
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                 raise Exception("Attempted to link Github integration when one already existed")
-            else:
-                await eave.stdlib.analytics.log_event(
-                    event_name="eave_application_integration_updated",
-                    event_description="An integration was re-installed or updated for a team",
-                    event_source="core api github oauth",
-                    eave_account=self.eave_account.analytics_model if self.eave_account else None,
-                    eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                    opaque_params={
-                        "integration_name": Integration.github.value,
-                    },
-                    ctx=self.eave_state.ctx,
-                )
 
             self.github_installation_orm = github_installation_orm
 
