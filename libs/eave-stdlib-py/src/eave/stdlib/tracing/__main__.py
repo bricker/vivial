@@ -6,15 +6,10 @@ from typing import TYPE_CHECKING, Any, Optional
 if TYPE_CHECKING:
     from _typeshed import TraceFunction
 
-# FIXME: Return value should be TraceFunction, but it only existing in the
 def tracefunc(fname: FrameType, event: str, arg: Any) -> Optional["TraceFunction"]:
     fargs = fname.f_code.co_varnames[:fname.f_code.co_argcount]
     kwargs = fname.f_code.co_varnames[:fname.f_code.co_kwonlyargcount]
     posargs = fname.f_code.co_varnames[:fname.f_code.co_kwonlyargcount]
-
-    # fargvals = [fname.f_locals[arg] for arg in fargs]
-    # kwargvals = [fname.f_locals[arg] for arg in kwargs]
-    # posargvals = [fname.f_locals[arg] for arg in posargs]
 
     print(
         "[TRACE]",
@@ -26,9 +21,8 @@ def tracefunc(fname: FrameType, event: str, arg: Any) -> Optional["TraceFunction
         "\n\t>> fargs=", fargs,
         "\n\t>> kwargs=", kwargs,
         "\n\t>> posargs=", posargs,
-        # "\n\t>> fargvals=", fargvals,
-        # "\n\t>> kwargargvals=", kwargvals,
-        # "\n\t>> posargvals=", posargvals,
+        "\n\t>> f_locals=", fname.f_locals, # FIXME: f_locals doesn't work with dataclasses?
+
         # "\n\t> fname.f_code.co_lnotab=", fname.f_code.co_lnotab,
         # "\n\t> fname.f_code.co_flags=", fname.f_code.co_flags,
         # "\n\t> fname.f_code.co_linetable=", fname.f_code.co_linetable,
@@ -42,10 +36,13 @@ def tracefunc(fname: FrameType, event: str, arg: Any) -> Optional["TraceFunction
 
 sys.settrace(tracefunc)
 
-@dataclass
 class Person:
     name: str
     age: int
+
+    def __init__(self, name: str, age: int) -> None:
+        self.name = name
+        self.age = age
 
 def print_name(*, person: Person, newline: bool = True) -> None:
     name = person.name
