@@ -9,7 +9,7 @@ steps:
   #     - CI=1
   #     - VERBOSE=1
 
-  # - name: node:20 # gcr.io/$PROJECT_ID/eave-builder-node
+  # - name: node:18 # gcr.io/$PROJECT_ID/eave-builder-node
   #   dir: $_EAVE_HOME
   #   entrypoint: develop/javascript/bin/setup
   #   env:
