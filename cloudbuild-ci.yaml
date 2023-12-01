@@ -1,7 +1,23 @@
 # https://console.cloud.google.com/cloud-build/triggers;region=us-central1/edit/ec977ffb-be4d-409f-bf45-d559d6f226b8?authuser=1&project=eavefyi-dev
 
 steps:
-  - name: ubuntu
+  # - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
+  #   dir: $_EAVE_HOME
+  #   entrypoint: develop/python/bin/setup
+  #   env:
+  #     - EAVE_HOME=$_EAVE_HOME
+  #     - CI=1
+  #     - VERBOSE=1
+
+  # - name: node:20 # gcr.io/$PROJECT_ID/eave-builder-node
+  #   dir: $_EAVE_HOME
+  #   entrypoint: develop/javascript/bin/setup
+  #   env:
+  #     - EAVE_HOME=$_EAVE_HOME
+  #     - CI=1
+  #     - VERBOSE=1
+
+  - name: gcr.io/$PROJECT_ID/eave-builder-node-python
     dir: $_EAVE_HOME
     entrypoint: bin/setup
     env:
@@ -9,7 +25,7 @@ steps:
       - CI=1
       - VERBOSE=1
 
-  - name: ubuntu
+  - name: gcr.io/$PROJECT_ID/eave-builder-node-python
     dir: $_EAVE_HOME
     entrypoint: bin/lint
     env:
@@ -20,21 +36,21 @@ steps:
   # TODO: start db connection
 
   # update db in preparation for running tests
-  - name: python:3.11.2
-    dir: apps/core
-    entrypoint: python
-    args: ["-m", "alembic", "upgrade", "head"]
-    env:
-      - EAVE_HOME=$_EAVE_HOME
-      - CI=1
-      - VERBOSE=1
-    secretEnv:
-      - EAVE_DB_HOST
-      - EAVE_DB_USER
-      - EAVE_DB_PASS
-      - EAVE_DB_NAME
+  # - name: python:3.11.2
+  #   dir: apps/core
+  #   entrypoint: python
+  #   args: ["-m", "alembic", "upgrade", "head"]
+  #   env:
+  #     - EAVE_HOME=$_EAVE_HOME
+  #     - CI=1
+  #     - VERBOSE=1
+  #   secretEnv:
+  #     - EAVE_DB_HOST
+  #     - EAVE_DB_USER
+  #     - EAVE_DB_PASS
+  #     - EAVE_DB_NAME
 
-  - name: ubuntu
+  - name: gcr.io/$PROJECT_ID/eave-builder-node-python
     dir: $_EAVE_HOME
     entrypoint: bin/test
     env:
