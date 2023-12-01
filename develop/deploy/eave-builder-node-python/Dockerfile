@@ -8,4 +8,4 @@ RUN apt update && \
 RUN curl https://pyenv.run | bash && \
     export PATH="$HOME/.pyenv/bin:$PATH" && \
     pyenv install 3.11.2 && \
-    alias python=python3
+    cp /usr/bin/python3 /usr/bin/python
