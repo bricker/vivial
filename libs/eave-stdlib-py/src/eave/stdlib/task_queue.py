@@ -31,11 +31,16 @@ T = TypeVar("T")
 asyncio_tasks = set[asyncio.Task[Any]]()
 
 
-def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
+def do_in_background(coro: Coroutine[Any, Any, Any]) -> None:
+    try:
+        # Assert that there is a running event loop. If not, this function won't do anything.
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return
+
     task = asyncio.create_task(coro)
     asyncio_tasks.add(task)
     task.add_done_callback(asyncio_tasks.discard)
-    return task
 
 
 async def get_queue(queue_name: str) -> tasks.Queue:
