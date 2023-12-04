@@ -4,7 +4,18 @@
   "editor.indentSize": "tabSize",
   "editor.tabSize": 2,
   "files.associations": {
-    "*.html.jinja": "jinja-html"
+    "Fastfile": "ruby",
+    "Matchfile": "ruby",
+    "Pluginfile": "ruby",
+    "Appfile": "ruby",
+    "*.schema": "json",
+    "*.swiftinterface": "swift",
+    "*.html.jinja": "jinja-html",
+    ".eave-production.env": "properties",
+    ".eavefyi-dev.env": "properties",
+    ".test.env": "properties",
+    "*.env": "properties",
+    "python.h": "c"
   },
   "files.exclude": {
     "**/__pycache__": true,
@@ -173,4 +184,5 @@
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
   "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
+  "rust-analyzer.linkedProjects": ["./libs/eave-stdlib-py/eave_tracing/Cargo.toml"]
 }

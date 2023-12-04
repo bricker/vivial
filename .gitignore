@@ -22,6 +22,8 @@ credentials.json
 .terraform*
 *.tfstate*
 *.tfvars
+Cargo.lock
+*.so
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist

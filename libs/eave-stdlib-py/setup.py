@@ -1,3 +1,5 @@
-from setuptools import setup
+from setuptools import Extension, setup
 
-setup()
+setup(
+    ext_modules=[Extension("eave.stdlib.ctracing", ["src/eave/stdlib/ctracing/ctracingmodule.c"])],
+)

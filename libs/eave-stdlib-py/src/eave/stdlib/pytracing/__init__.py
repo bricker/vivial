@@ -80,22 +80,23 @@ def _tracefunc(frame: FrameType, event: str, arg: Any) -> Optional["TraceFunctio
     https://docs.python.org/3/reference/datamodel.html#frame-objects
     """
 
+    return None
     # _debug_print_frame(frame, event, arg)
 
     # print("[trace]", event, frame.f_code.co_filename, frame.f_code.co_name)
 
-    # FIXME: Remove hardcoded filters
-    if not re.search(r"eave-monorepo/libs", frame.f_code.co_filename):
-        return None
+    # # FIXME: Remove hardcoded filters
+    # if not re.search(r"eave-monorepo/libs", frame.f_code.co_filename):
+    #     return None
 
-    if not event == "call":
-        return None
+    # if not event == "call":
+    #     return None
 
-    frame.f_trace_lines = False
-    frame.f_trace_opcodes = False
+    # frame.f_trace_lines = False
+    # frame.f_trace_opcodes = False
 
-    _queue_event(frame, event, arg)
-    return _tracefunc
+    # _queue_event(frame, event, arg)
+    # return None
 
 T = TypeVar("T")
 # TODO: Finish trace decorate
@@ -106,8 +107,11 @@ def trace(f: Any) -> Any:
     return wrapper
 
 
-def start() -> None:
+def start_tracing() -> None:
     sys.settrace(_tracefunc)
+
+def start_profiling() -> None:
+    sys.setprofile(_tracefunc)
 
 def stop() -> None:
     sys.settrace(None)
