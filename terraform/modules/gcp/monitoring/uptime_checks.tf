@@ -4,11 +4,11 @@ variable "eave_domain_apex" {
 
 locals {
   services = {
-    eave_www = {
-      name = "Eave Website uptime check"
-      host = "www.${var.eave_domain_apex}"
-      path = "/status"
-    },
+    # eave_www = {
+    #   name = "Eave Website uptime check"
+    #   host = "www.${var.eave_domain_apex}"
+    #   path = "/status"
+    # },
   }
 }
 
