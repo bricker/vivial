@@ -14,4 +14,4 @@ os.environ["EAVE_MONITORING_DISABLED"] = "1"
 # eave.stdlib.pytracing.start_profiling()
 
 # eave.stdlib.ctracing.start_tracing()
-# eave.stdlib.pytracing.start_tracing()
+eave.stdlib.pytracing.start_tracing()

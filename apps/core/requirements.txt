@@ -1,15 +1,15 @@
-uvicorn[standard]==0.21.0
-gunicorn==20.1.0
-SQLAlchemy[asyncio]==2.0.13
-asyncpg==0.27.0
-slack-sdk==3.20.2
-aiohttp==3.8.4
-google-cloud-logging==3.5.0
-google-cloud-runtimeconfig==0.33.2 # See https://github.com/googleapis/python-runtimeconfig/pull/184
-google-auth==2.16.2
-google-auth-httplib2==0.1.0
-google-auth-oauthlib==1.0.0
-requests_oauthlib==1.3.1
-oauthlib==3.2.2
-starlette==0.28.0
+uvicorn[standard]
+gunicorn
+SQLAlchemy[asyncio]
+asyncpg
+slack-sdk
+aiohttp
+google-cloud-logging
+google-cloud-runtimeconfig # See https://github.com/googleapis/python-runtimeconfig/pull/184
+google-auth
+google-auth-httplib2
+google-auth-oauthlib
+requests_oauthlib
+oauthlib
+starlette
 asgiref @ git+https://github.com/django/asgiref@7c8d31c05957bd644f9cead04206f11a0011c3d4

@@ -10,7 +10,7 @@ import re
 import sys
 import threading
 import time
-from types import FrameType
+from types import CodeType, FrameType
 from typing import TYPE_CHECKING, Any, Callable, Optional, Sequence
 from uuid import UUID, uuid4
 
@@ -106,15 +106,35 @@ def trace(f: Any) -> Any:
 
     return wrapper
 
+# https://docs.python.org/3.12/library/sys.monitoring.html#callback-function-arguments
 
+def _trace_call(code: CodeType, instruction_offset: int, callable: object, arg0: object) -> Any:
+    if arg0 is sys.monitoring.MISSING:
+        pass
+
+    return sys.monitoring.DISABLE
+
+def _trace_return(code: CodeType, instruction_offset: int, retval: object) -> Any:
+    return sys.monitoring.DISABLE
+
+def _trace_branch(code: CodeType, instruction_offset: int, destination_offset: int) -> Any:
+    return sys.monitoring.DISABLE
+
+_tool_id = 0
 def start_tracing() -> None:
-    sys.settrace(_tracefunc)
+    sys.monitoring.use_tool_id(_tool_id, "eave")
+    sys.monitoring.set_events(_tool_id, sys.monitoring.events.CALL | sys.monitoring.events.BRANCH | sys.monitoring.events.PY_RETURN)
 
-def start_profiling() -> None:
-    sys.setprofile(_tracefunc)
+    sys.monitoring.register_callback(_tool_id, sys.monitoring.events.CALL, _trace_call)
+    sys.monitoring.register_callback(_tool_id, sys.monitoring.events.BRANCH, _trace_branch)
+    sys.monitoring.register_callback(_tool_id, sys.monitoring.events.PY_RETURN, _trace_return)
 
-def stop() -> None:
-    sys.settrace(None)
+def stop_tracing() -> None:
+    sys.monitoring.free_tool_id(_tool_id)
+    sys.monitoring.set_events(_tool_id, 0)
+    sys.monitoring.register_callback(_tool_id, sys.monitoring.events.CALL, None)
+    sys.monitoring.register_callback(_tool_id, sys.monitoring.events.BRANCH, None)
+    sys.monitoring.register_callback(_tool_id, sys.monitoring.events.PY_RETURN, None)
 
 class BatchWriteQueue:
     queue: Queue
