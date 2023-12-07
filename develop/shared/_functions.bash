@@ -7,8 +7,28 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		test -n "${CI:-}"
 	}
 
+	function ^force() {
+		test -n "${FORCE:-}"
+	}
+
+	function ^onlythismodule() {
+		test -n "${_ONLY_THIS_MODULE:-}"
+	}
+
 	function ^norecurse() (
 		grep -qE "node_modules|\.venv|vendor" <<<"$1"
+	)
+
+
+	function ^ask() (
+		if test -n "${NOPROMPT:-}"; then
+			return 0
+		fi
+
+		statusmsg -wpn "$1 [y/n]"
+		echo -n " "
+		read -r proceed
+		test "$proceed" = "y"
 	)
 
 	function statusmsg() (
