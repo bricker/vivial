@@ -80,23 +80,23 @@ def _tracefunc(frame: FrameType, event: str, arg: Any) -> Optional["TraceFunctio
     https://docs.python.org/3/reference/datamodel.html#frame-objects
     """
 
-    return None
     # _debug_print_frame(frame, event, arg)
 
     # print("[trace]", event, frame.f_code.co_filename, frame.f_code.co_name)
 
-    # # FIXME: Remove hardcoded filters
-    # if not re.search(r"eave-monorepo/libs", frame.f_code.co_filename):
-    #     return None
+    # FIXME: Remove hardcoded filters
+    if not re.search(r"eave-monorepo/", frame.f_code.co_filename):
+        return None
 
-    # if not event == "call":
-    #     return None
+    if not event == "call":
+        return None
 
-    # frame.f_trace_lines = False
-    # frame.f_trace_opcodes = False
+    frame.f_trace_lines = False
+    frame.f_trace_opcodes = False
 
-    # _queue_event(frame, event, arg)
-    # return None
+    _queue_event(frame, event, arg)
+    # TODO: or ret None?
+    return _tracefunc
 
 T = TypeVar("T")
 # TODO: Finish trace decorate
@@ -112,7 +112,8 @@ def _trace_call(code: CodeType, instruction_offset: int, callable: object, arg0:
     if arg0 is sys.monitoring.MISSING:
         pass
 
-    return sys.monitoring.DISABLE
+    if not re.search(r"eave-monorepo/", frame.f_code.co_filename):
+        return sys.monitoring.DISABLE
 
 def _trace_return(code: CodeType, instruction_offset: int, retval: object) -> Any:
     return sys.monitoring.DISABLE
@@ -299,3 +300,6 @@ def _debug_print_frame(frame: FrameType, event: str, arg: Any) -> None:
 
 # person = Person(name="Bryan", age=35)
 # print_person_info(person)
+
+def start() -> None:
+    sys.settrace(_tracefunc)

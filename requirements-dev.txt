@@ -11,6 +11,7 @@ black
 ruff
 httpx
 python-dotenv[cli]
+python-dotenv
 pytest
 coverage
 pretty_errors

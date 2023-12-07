@@ -44,6 +44,7 @@ import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.routing import Route
 
+import eave.stdlib.pytracing
 import eave.core.public.requests.github_integration
 
 from .public.exception_handlers import exception_handlers
@@ -390,6 +391,7 @@ async def graceful_shutdown() -> None:
     except Exception as e:
         logging.eaveLogger.exception(e)
 
+eave.stdlib.pytracing.start_tracing()
 
 app = starlette.applications.Starlette(
     middleware=common_middlewares,
