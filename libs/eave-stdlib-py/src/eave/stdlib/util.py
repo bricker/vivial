@@ -133,12 +133,16 @@ def ensure_str(data: str | bytes | int | uuid.UUID | dict) -> str:
         return str(data)
 
 
-def compact_deterministic_json(data: dict) -> str:
-    return json.dumps(data, indent=None, separators=(",", ":"), sort_keys=True)
+def compact_json(data: Any, serializer: Callable[[Any], Any] | None = None) -> str:
+    return json.dumps(data, indent=None, separators=(",", ":"), default=serializer)
 
 
-def pretty_deterministic_json(data: dict) -> str:
-    return json.dumps(data, sort_keys=True)
+def compact_deterministic_json(data: Any, serializer: Callable[[Any], Any] | None = None) -> str:
+    return json.dumps(data, indent=None, separators=(",", ":"), sort_keys=True, default=serializer)
+
+
+def pretty_deterministic_json(data: Any, serializer: Callable[[Any], Any] | None = None) -> str:
+    return json.dumps(data, sort_keys=True, default=serializer)
 
 
 def nand(a: Any, b: Any) -> bool:
