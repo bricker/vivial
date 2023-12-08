@@ -11,10 +11,15 @@ class EventType(StrEnum):
     functionreturn = "functionreturn"
     networkin = "networkin"
     networkout = "networkout"
+    dbchange = "dbchange"
 
 
 class EventParams:
     pass
+
+@dataclass
+class PostgresDatabaseChangeEventParams(EventParams):
+    payload: str
 
 @dataclass
 class FunctionCallEventParams(EventParams):

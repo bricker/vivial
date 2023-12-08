@@ -5,6 +5,7 @@ import atexit
 from typing import Any, Callable
 from .callbacks import trace_call, trace_py_return, trace_py_start
 from .write_queue import write_queue
+from .pg_trace import start_postgresql_listener
 
 _tool_id = 0
 sys.monitoring.use_tool_id(_tool_id, "eave")
