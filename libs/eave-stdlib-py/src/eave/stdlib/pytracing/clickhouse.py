@@ -21,7 +21,7 @@ def insert(data: list[RawEvent]) -> None:
                 d.team_id,
                 d.timestamp,
                 d.event_type,
-                compact_json(d.event_params, serializer=_json_serialize),
+                compact_json(d.event_params.__dict__),
             ] for d in data
         ],
         settings={
