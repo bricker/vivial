@@ -15,27 +15,28 @@ def start_postgresql_listener(db_name: str, user_name: str, user_password: str) 
     """
     # we could alternatively take host/port instead of user/pas
     conn = psycopg2.connect(database=db_name, user=user_name, password=user_password)
-    conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+    try:
+        conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
-    # create listener
-    channel = "crud_events_channel"
-    curs = conn.cursor()
-    curs.execute(f"LISTEN {channel};")
+        # create listener
+        channel = "crud_events_channel"
+        curs = conn.cursor()
+        curs.execute(f"LISTEN {channel};")
 
-    # create notify trigger
-    trigger_fn = "crud_events_notifier"
-    trigger_name = "crud_event"
+        # create notify trigger
+        trigger_fn = "crud_events_notifier"
+        trigger_name = "crud_event"
 
-    # reflection on pg db for all tables+events, so we can set listen/notify on all of them
-    curs.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
-    table_names = curs.fetchall()
-    # https://www.postgresql.org/docs/current/sql-createtrigger.html
-    action_names = ["UPDATE", "INSERT", "DELETE", "TRUNCATE"]
-    
-    for table_name in table_names:
-        for action_name in action_names:
-            # TODO: what better data can we pass in our plpgsql function payload??? structure as JSON to parse later??
-            curs.execute(f"""
+        # reflection on pg db for all tables+events, so we can set listen/notify on all of them
+        curs.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
+        table_names = map(lambda x: x[0], curs.fetchall())
+        # https://www.postgresql.org/docs/current/sql-createtrigger.html
+        action_names = ["UPDATE", "INSERT", "DELETE"]
+        
+        for table_name in table_names:
+            for action_name in action_names:
+                # TODO: what better data can we pass in our plpgsql function payload??? structure as JSON to parse later??
+                curs.execute(f"""
 CREATE OR REPLACE FUNCTION {trigger_fn}()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -45,11 +46,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER {trigger_name}
+CREATE OR REPLACE TRIGGER {trigger_name}
 AFTER {action_name} ON {table_name}
 FOR EACH ROW
 EXECUTE FUNCTION {trigger_fn}();
 """)
+    finally:
+        conn.close()
     
     # launch worker thread to poll for notify events
     bg_thread = threading.Thread(target=_poll_for_events, args=(db_name, user_name, user_password))
@@ -64,17 +67,20 @@ def _poll_for_events(db_name: str, user_name: str, user_password: str) -> None:
 
         # recreate connection; keeping 1 connection open indefinitely not great
         conn = psycopg2.connect(database=db_name, user=user_name, password=user_password)
-        conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-        if conn.poll():
-            while conn.notifies:
-                notify = conn.notifies.pop(0)
-                print("Notification:", notify.payload)
-                write_queue.put(event=RawEvent(
-                    team_id=uuid4(),
-                    corr_id=uuid4(),
-                    timestamp=datetime.now(), # TODO this should be date at db write time, not event ack time. can it be gotten in notify function?
-                    event_type=EventType.dbchange,
-                    event_params=PostgresDatabaseChangeEventParams(
-                        payload=notify.payload,
-                    )
-                ))
+        try:
+            conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+            if conn.poll():
+                while conn.notifies:
+                    notify = conn.notifies.pop(0)
+                    print("Notification:", notify.payload)
+                    write_queue.put(event=RawEvent(
+                        team_id=uuid4(),
+                        corr_id=uuid4(),
+                        timestamp=datetime.now(), # TODO this should be date at db write time, not event ack time. can it be gotten in notify function?
+                        event_type=EventType.dbchange,
+                        event_params=PostgresDatabaseChangeEventParams(
+                            payload=notify.payload,
+                        )
+                    ))
+        finally:
+            conn.close()
