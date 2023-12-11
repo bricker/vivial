@@ -50,7 +50,7 @@ assert _GAE_ENV is None
 assert _GOOGLE_CLOUD_PROJECT != "eave-production"
 assert _GCLOUD_PROJECT != "eave-production"
 assert _EAVE_DB_NAME is not None
-# assert _EAVE_DB_NAME != "eave"
+assert _EAVE_DB_NAME != "eave"
 
 
 async def seed_database() -> None:

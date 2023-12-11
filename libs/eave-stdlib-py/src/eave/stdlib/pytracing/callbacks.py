@@ -13,7 +13,6 @@ from .write_queue import write_queue
 
 # https://docs.python.org/3.12/library/sys.monitoring.html#callback-function-arguments
 
-filter_path = "eave-monorepo/"
 DISABLE = sys.monitoring.DISABLE
 
 def trace_call(code: CodeType, instruction_offset: int, func: object, arg0: object) -> Any:
@@ -21,7 +20,7 @@ def trace_call(code: CodeType, instruction_offset: int, func: object, arg0: obje
         # uninitialized module
         return DISABLE
 
-    if not re.search(filter_path, code.co_filename):
+    if not re.search("eave-monorepo/libs/eave-stdlib-py", code.co_filename):
         return DISABLE
 
 def trace_py_start(code: CodeType, instruction_offset: int) -> Any:
@@ -32,7 +31,7 @@ def trace_py_start(code: CodeType, instruction_offset: int) -> Any:
     if not frame:
         return DISABLE
 
-    if not re.search(filter_path, code.co_filename):
+    if not re.search("eave-monorepo/libs/eave-stdlib-py", code.co_filename):
         return DISABLE
 
     argnames = (

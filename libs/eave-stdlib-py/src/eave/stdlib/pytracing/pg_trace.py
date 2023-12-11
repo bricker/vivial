@@ -9,7 +9,8 @@ from .write_queue import write_queue
 
 channel = "crud_events_channel"
 
-
+# TODO: think about how this would work w/ a distributed db system w/ replication (becuse multiple db will get the same update cascaded.)
+#    > maybe only needs to be running on the master replica
 def start_postgresql_listener(db_name: str, user_name: str, user_password: str) -> None:
     """
     listen and poll for notifications for a postgresql database (requires pg version 12+)
@@ -95,7 +96,7 @@ def _poll_for_events(db_name: str, user_name: str, user_password: str) -> None:
             # chill
             time.sleep(5)
 
-            # gotta poll db conn for any updates
+            # gotta poll db conn for any updates?
             conn.poll()
 
             while conn.notifies:
