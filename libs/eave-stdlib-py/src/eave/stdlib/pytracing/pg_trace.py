@@ -2,12 +2,15 @@ from datetime import datetime
 from uuid import uuid4
 import time
 import threading
+import atexit
+import multiprocessing
 import psycopg2
 
 from eave.stdlib.pytracing.datastructures import EventParams, EventType, RawEvent, PostgresDatabaseChangeEventParams
 from .write_queue import write_queue
 
 channel = "crud_events_channel"
+
 
 # TODO: think about how this would work w/ a distributed db system w/ replication (becuse multiple db will get the same update cascaded.)
 #    > maybe only needs to be running on the master replica
@@ -43,22 +46,27 @@ def start_postgresql_listener(db_name: str, user_name: str, user_password: str) 
                 trigger_fn = f"{trigger_fn_base}_{action_name}_{table_name}"
                 # TODO: what better data can we pass in our plpgsql function payload??? structure as JSON to parse later??
                 # payload can only be 8kb max
-                # EXECUTE
-                #  format(
-                #     'NOTIFY tab, %L',
-                #     to_char(NEW.ts, 'YYYY-MM-DD')
-                #  );
+                # NEW variable documented here: https://www.postgresql.org/docs/current/plpgsql-trigger.html
                 curs.execute(
                     f"""
 CREATE OR REPLACE FUNCTION {trigger_fn}()
 RETURNS TRIGGER AS $$
 DECLARE
     v_txt text;
+    data record;
 BEGIN
-    v_txt := format('something happened: {action_name} on {table_name}. sending message for %s, %s', TG_OP, NEW);
-    RAISE NOTICE '%', v_txt;
-    -- Notify the external application when an update occurs
+    -- capture old row data if row is deleted, otherwise capture new row data
+    IF TG_OP = 'DELETE' THEN
+        data := OLD;
+    ELSE
+        data := NEW;
+    END IF;
+
+    v_txt := format('{{"table_name": "{table_name}"", "operation": "%s", "operated_data": %s, "timestamp": "%s"}}', TG_OP, to_jsonb(data), current_timestamp);
+
+    -- Notify the event writer when an update occurs
     PERFORM pg_notify('{channel}', v_txt);
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -73,11 +81,26 @@ EXECUTE PROCEDURE {trigger_fn}();
         curs.close()
         conn.close()
 
-    # launch worker thread to poll for notify events
+    # launch worker process to poll for notify events
     write_queue.start_autoflush()
-    bg_thread = threading.Thread(target=_poll_for_events, args=(db_name, user_name, user_password))
-    bg_thread.daemon = True
-    bg_thread.start()
+    _process = multiprocessing.Process(
+        target=_poll_for_events,
+        kwargs={
+            "db_name": db_name,
+            "user_name": user_name,
+            "user_password": user_password,
+        },
+    )
+
+    def kill_event_process() -> None:
+        write_queue.stop_autoflush()
+        _process.terminate()
+
+    atexit.register(kill_event_process)
+    _process.start()
+    # bg_thread = threading.Thread(target=_poll_for_events, args=(db_name, user_name, user_password))
+    # bg_thread.daemon = True
+    # bg_thread.start()
 
 
 def _poll_for_events(db_name: str, user_name: str, user_password: str) -> None:
