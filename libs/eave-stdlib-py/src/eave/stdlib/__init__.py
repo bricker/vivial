@@ -1,3 +1,3 @@
 from . import pytracing
 
-pytracing.start_tracing()
+# pytracing.start_tracing()

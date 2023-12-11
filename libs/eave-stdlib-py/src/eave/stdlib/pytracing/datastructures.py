@@ -19,7 +19,9 @@ class EventParams:
 
 @dataclass
 class PostgresDatabaseChangeEventParams(EventParams):
-    payload: str
+    table_name: str
+    operation: str
+    operated_data: str # JSON string mapping from column names to values
 
 @dataclass
 class FunctionCallEventParams(EventParams):

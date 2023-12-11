@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from uuid import uuid4
 import time
 import threading
@@ -44,7 +45,7 @@ def start_postgresql_listener(db_name: str, user_name: str, user_password: str) 
             for action_name in action_names:
                 trigger_name = f"{trigger_name_base}_{action_name}_{table_name}"
                 trigger_fn = f"{trigger_fn_base}_{action_name}_{table_name}"
-                # TODO: what better data can we pass in our plpgsql function payload??? structure as JSON to parse later??
+                # TODO: using the sql builtin current_timestamp function may get us in trouble... sync w/ other events ts
                 # payload can only be 8kb max
                 # NEW variable documented here: https://www.postgresql.org/docs/current/plpgsql-trigger.html
                 curs.execute(
@@ -67,6 +68,7 @@ BEGIN
     -- Notify the event writer when an update occurs
     PERFORM pg_notify('{channel}', v_txt);
 
+    RAISE NOTICE '%', v_txt;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -83,27 +85,31 @@ EXECUTE PROCEDURE {trigger_fn}();
 
     # launch worker process to poll for notify events
     write_queue.start_autoflush()
-    _process = multiprocessing.Process(
-        target=_poll_for_events,
-        kwargs={
-            "db_name": db_name,
-            "user_name": user_name,
-            "user_password": user_password,
-        },
-    )
 
-    def kill_event_process() -> None:
-        write_queue.stop_autoflush()
-        _process.terminate()
+    _poll_for_events(db_name, user_name, user_password)
 
-    atexit.register(kill_event_process)
-    _process.start()
+    # _process = multiprocessing.Process(
+    #     target=_poll_for_events,
+    #     kwargs={
+    #         "db_name": db_name,
+    #         "user_name": user_name,
+    #         "user_password": user_password,
+    #     },
+    # )
+    # def kill_event_process() -> None:
+    #     write_queue.stop_autoflush()
+    #     _process.terminate()
+    # atexit.register(kill_event_process)
+    # _process.start()
+
     # bg_thread = threading.Thread(target=_poll_for_events, args=(db_name, user_name, user_password))
     # bg_thread.daemon = True
     # bg_thread.start()
 
 
 def _poll_for_events(db_name: str, user_name: str, user_password: str) -> None:
+    print("starting polling")
+
     # TODO: does psycopg2 have thread safe connection acces????
     # TODO: is possible recreate connection? keeping 1 connection open indefinitely not great
     conn = psycopg2.connect(database=db_name, user=user_name, password=user_password)
@@ -119,20 +125,25 @@ def _poll_for_events(db_name: str, user_name: str, user_password: str) -> None:
             # chill
             time.sleep(5)
 
+            print("checking for notifyication..")
+
             # gotta poll db conn for any updates?
             conn.poll()
 
             while conn.notifies:
                 notify = conn.notifies.pop(0)
-                print("Notification:", notify.payload)
+                print(f"send to clickhosue: {notify.payload}")
+                json_data = json.loads(notify.payload)
                 write_queue.put(
                     event=RawEvent(
-                        team_id=uuid4(),
+                        team_id=uuid4(), # TODO: this is still junk. not sure how to get this data yet
                         corr_id=uuid4(),
-                        timestamp=datetime.now(),  # TODO this should be date at db write time, not event ack time. can it be gotten in notify function?
+                        timestamp=json_data["timestamp"],
                         event_type=EventType.dbchange,
                         event_params=PostgresDatabaseChangeEventParams(
-                            payload=notify.payload,
+                            table_name=json_data["table_name"],
+                            operation=json_data["operation"],
+                            operated_data=json.dumps(json_data["operated_data"]),
                         ),
                     )
                 )
