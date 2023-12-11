@@ -45,6 +45,7 @@ def start_postgresql_listener(db_name: str, user_name: str, user_password: str) 
             for action_name in action_names:
                 trigger_name = f"{trigger_name_base}_{action_name}_{table_name}"
                 trigger_fn = f"{trigger_fn_base}_{action_name}_{table_name}"
+                print(f"creating {trigger_fn}\n")
                 # TODO: using the sql builtin current_timestamp function may get us in trouble... sync w/ other events ts
                 # payload can only be 8kb max
                 # NEW variable documented here: https://www.postgresql.org/docs/current/plpgsql-trigger.html
@@ -63,12 +64,11 @@ BEGIN
         data := NEW;
     END IF;
 
-    v_txt := format('{{"table_name": "{table_name}"", "operation": "%s", "operated_data": %s, "timestamp": "%s"}}', TG_OP, to_jsonb(data), current_timestamp);
+    v_txt := format('{{"table_name": "{table_name}", "operation": "%s", "operated_data": %s, "timestamp": "%s"}}', TG_OP, to_jsonb(data), current_timestamp);
 
     -- Notify the event writer when an update occurs
     PERFORM pg_notify('{channel}', v_txt);
 
-    RAISE NOTICE '%', v_txt;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -138,7 +138,7 @@ def _poll_for_events(db_name: str, user_name: str, user_password: str) -> None:
                     event=RawEvent(
                         team_id=uuid4(), # TODO: this is still junk. not sure how to get this data yet
                         corr_id=uuid4(),
-                        timestamp=json_data["timestamp"],
+                        timestamp=datetime.fromisoformat(json_data["timestamp"]),
                         event_type=EventType.dbchange,
                         event_params=PostgresDatabaseChangeEventParams(
                             table_name=json_data["table_name"],
