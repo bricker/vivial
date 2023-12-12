@@ -7,8 +7,9 @@ import atexit
 import multiprocessing
 import psycopg2
 
-from eave.stdlib.pytracing.datastructures import EventParams, EventType, RawEvent, PostgresDatabaseChangeEventParams
-from .write_queue import BatchWriteQueue, write_queue
+from eave.stdlib.pytracing.datastructures import EventType, RawEvent, PostgresDatabaseChangeEventParams
+from ..pytracing.write_queue import write_queue
+# import eave.stdlib.pgtracing.client as client
 
 channel = "crud_events_channel"
 
@@ -45,7 +46,6 @@ def start_postgresql_listener(db_name: str, user_name: str, user_password: str) 
             for action_name in action_names:
                 trigger_name = f"{trigger_name_base}_{action_name}_{table_name}"
                 trigger_fn = f"{trigger_fn_base}_{action_name}_{table_name}"
-                # print(f"creating {trigger_fn}\n")
 
                 # TODO: using the sql builtin current_timestamp function may get us in trouble... sync w/ other events ts
                 # payload can only be 8kb max
@@ -85,22 +85,23 @@ EXECUTE PROCEDURE {trigger_fn}();
         conn.close()
 
     # launch worker process to poll for notify events
+    _poll_for_events(db_name, user_name, user_password)
 
-    _process = multiprocessing.Process(
-        target=_poll_for_events,
-        kwargs={
-            "db_name": db_name,
-            "user_name": user_name,
-            "user_password": user_password,
-        },
-    )
+    # _process = multiprocessing.Process(
+    #     target=_poll_for_events,
+    #     kwargs={
+    #         "db_name": db_name,
+    #         "user_name": user_name,
+    #         "user_password": user_password,
+    #     },
+    # )
 
-    def kill_event_process() -> None:
-        write_queue.stop_autoflush()
-        _process.terminate()
+    # def kill_event_process() -> None:
+    #     write_queue.stop_autoflush()
+    #     _process.terminate()
 
-    atexit.register(kill_event_process)
-    _process.start()
+    # atexit.register(kill_event_process)
+    # _process.start()
 
 
 def _poll_for_events(
@@ -130,10 +131,8 @@ def _poll_for_events(
 
             while conn.notifies:
                 notify = conn.notifies.pop(0)
-                print(f"send to clickhosue: {notify.payload}")
                 json_data = json.loads(notify.payload)
-                write_queue.put(
-                    event=RawEvent(
+                event = RawEvent(
                         team_id=uuid4(),  # TODO: this is still junk. not sure how to get this data yet
                         corr_id=uuid4(),
                         timestamp=datetime.fromisoformat(json_data["timestamp"]),
@@ -144,6 +143,8 @@ def _poll_for_events(
                             operated_data=json.dumps(json_data["operated_data"]),
                         ),
                     )
-                )
+                
+                write_queue.put(event)
+                # client.send(event)
     finally:
         conn.close()

@@ -6,7 +6,6 @@ from typing import Any, Callable, Concatenate
 from eave.stdlib.pytracing.config import EaveConfig
 from .callbacks import eave_tracer, trace_call, trace_py_start
 from .write_queue import write_queue
-from .pg_trace import start_postgresql_listener
 
 _tool_id = 0
 

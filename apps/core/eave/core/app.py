@@ -393,11 +393,11 @@ async def graceful_shutdown() -> None:
         logging.eaveLogger.exception(e)
 
 # eave.stdlib.pytracing.start_tracing()
-eave.stdlib.pytracing.start_postgresql_listener(
-    user_name=app_config.db_user,
-    user_password=app_config.db_pass or "oops",
-    db_name=app_config.db_name,
-)
+# eave.stdlib.pytracing.start_postgresql_listener(
+#     user_name=app_config.db_user,
+#     user_password=app_config.db_pass or "oops",
+#     db_name=app_config.db_name,
+# )
 
 app = starlette.applications.Starlette(
     middleware=common_middlewares,
