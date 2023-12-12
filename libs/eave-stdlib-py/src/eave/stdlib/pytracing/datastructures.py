@@ -5,7 +5,6 @@ from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
-
 class EventType(StrEnum):
     functioncall = "functioncall"
     functionreturn = "functionreturn"

@@ -1,5 +1,7 @@
 import atexit
 import multiprocessing
+from multiprocessing.connection import Client, Connection
+import os
 
 from .datastructures import RawEvent
 from . import clickhouse
@@ -59,8 +61,7 @@ class BatchWriteQueue:
             print(e)
 
     def put(self, event: RawEvent) -> None:
-        print(">>> PUT", event)
-        self._queue.put_nowait(event)
+        self._queue.put(event, block=False)
 
 
 write_queue = BatchWriteQueue()
