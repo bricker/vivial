@@ -85,9 +85,6 @@ EXECUTE PROCEDURE {trigger_fn}();
         conn.close()
 
     # launch worker process to poll for notify events
-    write_queue.start_autoflush()
-
-    # _poll_for_events(db_name, user_name, user_password)
 
     _process = multiprocessing.Process(
         target=_poll_for_events,
@@ -95,7 +92,6 @@ EXECUTE PROCEDURE {trigger_fn}();
             "db_name": db_name,
             "user_name": user_name,
             "user_password": user_password,
-            # "write_queue": write_queue,
         },
     )
 
@@ -106,17 +102,14 @@ EXECUTE PROCEDURE {trigger_fn}();
     atexit.register(kill_event_process)
     _process.start()
 
-    # bg_thread = threading.Thread(target=_poll_for_events, args=(db_name, user_name, user_password))
-    # bg_thread.daemon = True
-    # bg_thread.start()
-
 
 def _poll_for_events(
     db_name: str,
     user_name: str,
     user_password: str,
-    # write_queue: BatchWriteQueue,
 ) -> None:
+    write_queue.start_autoflush()
+
     # TODO: does psycopg2 have thread safe connection acces????
     # TODO: is possible recreate connection? dont think so; not w/o possibly missing events. keeping 1 connection open indefinitely not great tho
     conn = psycopg2.connect(database=db_name, user=user_name, password=user_password)
