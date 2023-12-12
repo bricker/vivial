@@ -7,8 +7,11 @@ import inspect
 import re
 import sys
 from types import CodeType
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Concatenate, TypeVar
 from uuid import uuid4
+from eave.stdlib.pytracing import client
+
+from eave.stdlib.pytracing.config import EaveConfig
 
 from .datastructures import EventType, FunctionCallEventParams, RawEvent
 from .write_queue import write_queue
@@ -27,22 +30,29 @@ _ignore_modules_set = _builtins_set | _stdlib_set | _common_noisy_modules_to_ign
 # FIXME: support list, tuple, and dict; may contain unpickleable objects.
 _primitive_types = (bool, str, int, float, date, datetime, type(None))
 
-T = TypeVar("T")
 
-def scoped(scope: str | None) -> Callable[..., Callable]:
-    def inner0(f: Callable[..., T]) -> Callable[..., T]:
+def eave_tracer[**P, R](config: EaveConfig) -> Callable[
+    [
+        Callable[
+            Concatenate[EaveConfig, P],
+            R
+        ],
+    ],
+    Callable[P, R]
+]:
+    def inner0(f: Callable[Concatenate[EaveConfig, P], R]) -> Callable[P, R]:
         @functools.wraps(f)
-        def inner1(*args, **kwargs) -> T:
-            return f(scope, *args, **kwargs)
+        def inner1(*args: P.args, **kwargs: P.kwargs) -> R:
+            return f(config, *args, **kwargs)
         return inner1
     return inner0
 
-def trace_call(scope: str | None, code: CodeType, instruction_offset: int, func: Callable, arg0: object) -> Any:
+def trace_call(config: EaveConfig, code: CodeType, instruction_offset: int, func: Callable, arg0: object) -> Any:
     pass
     # print(inspect.signature(func))
     # print(inspect.getcallargs(func))
 
-def trace_py_start(scope: str | None, code: CodeType, instruction_offset: int) -> Any:
+def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) -> Any:
     if not inspect or not sys or not re:
         # uninitialized modules
         return DISABLE
@@ -51,11 +61,11 @@ def trace_py_start(scope: str | None, code: CodeType, instruction_offset: int) -
     if not module:
         return DISABLE
 
-    if _should_ignore_module(name=module.__name__, scope=scope):
+    if _should_ignore_module(name=module.__name__, scope=config.scope):
         # print("ignored module", module.__name__)
         return DISABLE
 
-    if _should_ignore_module(name=module.__package__, scope=scope):
+    if _should_ignore_module(name=module.__package__, scope=config.scope):
         # print("ignored package", module.__package__)
         return DISABLE
 
@@ -103,7 +113,8 @@ def trace_py_start(scope: str | None, code: CodeType, instruction_offset: int) -
         ),
     )
 
-    write_queue.put(data)
+    client.send(data)
+    # write_queue.put(data)
 
 def trace_py_return(code: CodeType, instruction_offset: int, retval: object) -> Any:
     return DISABLE
