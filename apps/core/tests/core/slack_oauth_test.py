@@ -14,7 +14,7 @@ import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.util import ensure_uuid
-
+from eave.stdlib.auth_cookies import _EAVE_TEAM_ID_COOKIE_NAME, _EAVE_ACCOUNT_ID_COOKIE_NAME, _EAVE_ACCESS_TOKEN_COOKIE_NAME
 from .base import BaseTestCase
 
 
@@ -77,6 +77,7 @@ class TestSlackOAuthHandler(BaseTestCase):
     async def test_slack_authorize(self) -> None:
         response = await self.make_request(
             path="/oauth/slack/authorize",
+            sign=False,
             method="GET",
             payload=None,
         )
@@ -93,6 +94,7 @@ class TestSlackOAuthHandler(BaseTestCase):
     async def test_slack_authorize_with_utm_params(self) -> None:
         response = await self.make_request(
             path="/oauth/slack/authorize",
+            sign=False,
             method="GET",
             payload={
                 "utm_campaign": self.anystr("utm_campaign"),
@@ -112,6 +114,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         response = await self.make_request(
             path="/oauth/slack/callback",
+            sign=False,
             method="GET",
             payload={
                 "code": self.anystring("code"),
@@ -132,9 +135,9 @@ class TestSlackOAuthHandler(BaseTestCase):
                 == f"https://slack.com/app_redirect?app={self.getstr('EAVE_SLACK_APP_ID')}&team={self.getstr('team.id')}"
             )
 
-            account_id = response.cookies.get("ev_account_id")
+            account_id = response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)
             assert account_id
-            assert response.cookies.get("ev_access_token")
+            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME)
 
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
             assert (await self.count(s, eave.core.internal.orm.SlackInstallationOrm)) == 1
@@ -176,6 +179,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         response = await self.make_request(
             path="/oauth/slack/callback",
+            sign=False,
             method="GET",
             payload={
                 "code": self.anystring("code"),
@@ -187,7 +191,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
 
         async with self.db_session.begin() as s:
-            account_id = response.cookies.get("ev_account_id")
+            account_id = response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
@@ -200,6 +204,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         response = await self.make_request(
             path="/oauth/slack/callback",
+            sign=False,
             method="GET",
             payload={
                 "code": self.anystring("code"),
@@ -211,7 +216,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         )
 
         async with self.db_session.begin() as s:
-            account_id = response.cookies.get("ev_account_id")
+            account_id = response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
@@ -220,6 +225,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
             eave_team = await self.make_team(s)
             eave_account_before = await self.make_account(
                 s,
@@ -232,6 +238,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         response = await self.make_request(
             path="/oauth/slack/callback",
+            sign=False,
             method="GET",
             payload={
                 "code": self.anystring("code"),
@@ -251,11 +258,12 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("authed_user.refresh_token")
 
             # Test that the cookies were updated
-            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            assert response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
+            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
 
     async def test_slack_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
             eave_team = await self.make_team(s)
             eave_account_before = await self.make_account(
                 s,
@@ -268,6 +276,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         response = await self.make_request(
             path="/oauth/slack/callback",
+            sign=False,
             method="GET",
             payload={
                 "code": self.anystring("code"),
@@ -275,8 +284,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_slack": self.anystring("state"),
-                "ev_account_id": str(eave_account_before.id),
-                "ev_access_token": eave_account_before.access_token,
+                _EAVE_ACCOUNT_ID_COOKIE_NAME: str(eave_account_before.id),
+                _EAVE_ACCESS_TOKEN_COOKIE_NAME: eave_account_before.access_token,
             },
         )
 
@@ -289,11 +298,12 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("authed_user.refresh_token")
 
             # Test that the cookies were updated
-            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            assert response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
+            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
 
     async def test_slack_callback_logged_in_account_another_provider(self) -> None:
         async with self.db_session.begin() as s:
+            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
             eave_team = await self.make_team(s)
             eave_account_before = await self.make_account(
                 s,
@@ -306,6 +316,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         response = await self.make_request(
             path="/oauth/slack/callback",
+            sign=False,
             method="GET",
             payload={
                 "code": self.anystring("code"),
@@ -313,8 +324,8 @@ class TestSlackOAuthHandler(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_slack": self.anystring("state"),
-                "ev_account_id": str(eave_account_before.id),
-                "ev_access_token": eave_account_before.access_token,
+                _EAVE_ACCOUNT_ID_COOKIE_NAME: str(eave_account_before.id),
+                _EAVE_ACCESS_TOKEN_COOKIE_NAME: eave_account_before.access_token,
             },
         )
 
@@ -327,12 +338,13 @@ class TestSlackOAuthHandler(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("old_refresh_token")
 
             # Test that the cookies were NOT updated
-            assert response.cookies.get("ev_account_id") == str(eave_account_after.id)
-            assert response.cookies.get("ev_access_token") == eave_account_after.access_token
+            assert response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
+            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
 
     async def test_slack_callback_invalid_state(self) -> None:
         response = await self.make_request(
             path="/oauth/slack/callback",
+            sign=False,
             method="GET",
             payload={
                 "code": self.anystring("code"),

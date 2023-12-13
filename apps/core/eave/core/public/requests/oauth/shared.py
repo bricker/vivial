@@ -128,7 +128,6 @@ async def get_logged_in_eave_account(
                 params=AccountOrm.QueryParams(
                     id=ensure_uuid(auth_cookies_.account_id),
                     access_token=auth_cookies_.access_token,
-                    auth_provider=auth_provider,
                 ),
             )
 

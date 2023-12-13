@@ -3,10 +3,13 @@ import unittest
 import unittest.mock
 import urllib.parse
 import uuid
+import pydantic
+import sqlalchemy
 from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
 from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
 
 import eave.stdlib.signing
 import eave.stdlib.eave_origins
@@ -94,6 +97,10 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
+        async with self.db_session.begin() as s:
+            await s.execute(sqlalchemy.delete(ResourceMutexOrm))
+
+
     async def cleanup(self) -> None:
         await super().cleanup()
 
@@ -129,7 +136,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     async def make_request(
         self,
         path: str,
-        payload: Optional[eave.stdlib.typing.JsonObject] = None,
+        payload: Optional[pydantic.BaseModel | eave.stdlib.typing.JsonObject] = None,
         method: str = "POST",
         headers: Optional[dict[str, Optional[str]]] = None,
         origin: Optional[eave.stdlib.eave_origins.EaveApp] = None,
@@ -137,6 +144,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         account_id: Optional[uuid.UUID] = None,
         access_token: Optional[str] = None,
         request_id: Optional[uuid.UUID] = None,
+        sign: bool = True,
         **kwargs: Any,
     ) -> Response:
         if headers is None:
@@ -180,15 +188,24 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             headers["eave-request-id"] = str(request_id)
 
         request_args: dict[str, Any] = {}
-        encoded_payload = json.dumps(payload) if payload else ""
+
+        if not payload:
+            encoded_payload = ""
+            query_payload = {}
+        elif isinstance(payload, pydantic.BaseModel):
+            encoded_payload = payload.json()
+            query_payload = payload.dict()
+        else:
+            encoded_payload = json.dumps(payload)
+            query_payload = payload
 
         if method == "GET":
-            data = urllib.parse.urlencode(query=payload or {})
+            data = urllib.parse.urlencode(query=query_payload)
             request_args["params"] = data
         else:
             request_args["content"] = encoded_payload
 
-        if "eave-signature" not in headers:
+        if sign and "eave-signature" not in headers:
             origin = origin or eave.stdlib.eave_origins.EaveApp.eave_www
             signature_message = eave.stdlib.signing.build_message_to_sign(
                 method=method,

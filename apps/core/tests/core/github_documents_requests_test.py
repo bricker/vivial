@@ -5,9 +5,12 @@ from eave.core.internal.orm import github_installation
 
 from eave.core.internal.orm.github_documents import GithubDocumentsOrm
 from eave.core.internal.orm.github_repos import GithubRepoOrm
-from eave.stdlib.core_api.models.github_documents import GithubDocumentType, GithubDocumentStatus
+from eave.stdlib.core_api.models.github_documents import GithubDocumentCreateInput, GithubDocumentType, GithubDocumentStatus, GithubDocumentUpdateInput, GithubDocumentValuesInput, GithubDocumentsDeleteByIdsInput, GithubDocumentsDeleteByTypeInput, GithubDocumentsQueryInput
+from eave.stdlib.core_api.models.github_repos import GithubRepoRefInput
 from eave.stdlib.core_api.operations.github_documents import (
     CreateGithubDocumentRequest,
+    DeleteGithubDocumentsByIdsRequest,
+    DeleteGithubDocumentsByTypeRequest,
     GetGithubDocumentsRequest,
     UpdateGithubDocumentRequest,
 )
@@ -45,8 +48,8 @@ class TestGithubDocumentsRequests(BaseTestCase):
                 session=session,
                 team_id=team_id,
                 github_repo_id=repo.id,
-                api_name="eave-the-best",
-                file_path="/",
+                api_name=self.anystr(),
+                file_path=self.anystr(),
                 type=GithubDocumentType.API_DOCUMENT,
             )
             orms.append(doc)
@@ -59,13 +62,13 @@ class TestGithubDocumentsRequests(BaseTestCase):
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
-            path="/github-documents/query",
-            payload={
-                "query_params": {
-                    "external_repo_id": self.getstr(f"external_repo_id:{team.id}:3"),
-                    "type": None,
-                }
-            },
+            path=GetGithubDocumentsRequest.config.path,
+            payload=GetGithubDocumentsRequest.RequestBody(
+                query_params=GithubDocumentsQueryInput(
+                    github_repo_id=orms[0].github_repo_id,
+                    type=None,
+                ),
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -74,7 +77,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = GetGithubDocumentsRequest.ResponseBody(**response.json())
         assert len(response_obj.documents) == 1
-        assert response_obj.documents[0].github_repo_id == orms[0].id
+        assert response_obj.documents[0].github_repo_id == orms[0].github_repo_id
         assert response_obj.documents[0].team_id == team.id
         assert response_obj.documents[0].type == GithubDocumentType.API_DOCUMENT
 
@@ -86,13 +89,13 @@ class TestGithubDocumentsRequests(BaseTestCase):
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
-            path="/github-documents/query",
-            payload={
-                "query_params": {
-                    "external_repo_id": None,
-                    "type": GithubDocumentType.ARCHITECTURE_DOCUMENT,
-                }
-            },
+            path=GetGithubDocumentsRequest.config.path,
+            payload=GetGithubDocumentsRequest.RequestBody(
+                query_params=GithubDocumentsQueryInput(
+                    github_repo_id=None,
+                    type=GithubDocumentType.ARCHITECTURE_DOCUMENT,
+                ),
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -101,7 +104,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = GetGithubDocumentsRequest.ResponseBody(**response.json())
         assert len(response_obj.documents) == 1
-        assert response_obj.documents[0].github_repo_id == orms[0].id
+        assert response_obj.documents[0].github_repo_id == orms[3].github_repo_id
         assert response_obj.documents[0].team_id == team.id
         assert response_obj.documents[0].type == GithubDocumentType.ARCHITECTURE_DOCUMENT
 
@@ -114,13 +117,13 @@ class TestGithubDocumentsRequests(BaseTestCase):
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
-            path="/github-documents/query",
-            payload={
-                "query_params": {
-                    "external_repo_id": None,
-                    "type": GithubDocumentType.API_DOCUMENT,
-                }
-            },
+            path=GetGithubDocumentsRequest.config.path,
+            payload=GetGithubDocumentsRequest.RequestBody(
+                query_params=GithubDocumentsQueryInput(
+                    github_repo_id=None,
+                    type=GithubDocumentType.API_DOCUMENT,
+                ),
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -143,18 +146,18 @@ class TestGithubDocumentsRequests(BaseTestCase):
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
-            path="/github-documents/update",
-            payload={
-                "document": {
-                    "id": str(docs[3].id),
-                    "new_values": {
-                        "pull_request_number": 34,
-                        "status": GithubDocumentStatus.PR_MERGED,
-                        "file_path": "new/location",
-                        "api_name": "jimmy-johns-freaky-fast-api",
-                    },
-                }
-            },
+            path=UpdateGithubDocumentRequest.config.path,
+            payload=UpdateGithubDocumentRequest.RequestBody(
+                document=GithubDocumentUpdateInput(
+                    id=docs[3].id,
+                    new_values=GithubDocumentValuesInput(
+                        pull_request_number=34,
+                        status=GithubDocumentStatus.PR_MERGED,
+                        file_path=self.anystr("file_path"),
+                        api_name=self.anystr("api_name"),
+                    ),
+                ),
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -163,12 +166,12 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = UpdateGithubDocumentRequest.ResponseBody(**response.json())
         assert response_obj.document.id == docs[3].id
-        assert response_obj.document.github_repo_id == docs[3].id
+        assert response_obj.document.github_repo_id == docs[3].github_repo_id
         assert response_obj.document.team_id == team.id
         assert response_obj.document.pull_request_number == 34
         assert response_obj.document.status == GithubDocumentStatus.PR_MERGED
-        assert response_obj.document.file_path == "new/location"
-        assert response_obj.document.api_name == "jimmy-johns-freaky-fast-api"
+        assert response_obj.document.file_path == self.getstr("file_path")
+        assert response_obj.document.api_name == self.getstr("api_name")
 
     async def test_github_documents_req_create(self) -> None:
         async with self.db_session.begin() as s:
@@ -177,16 +180,16 @@ class TestGithubDocumentsRequests(BaseTestCase):
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
-            path="/github-documents/create",
-            payload={
-                "document": {
-                    "external_repo_id": repo.external_repo_id,
-                    "pull_request_number": None,
-                    "type": GithubDocumentType.ARCHITECTURE_DOCUMENT,
-                    "file_path": "first/location",
-                    "api_name": "jimmy-johns-freaky-first-api",
-                }
-            },
+            path=CreateGithubDocumentRequest.config.path,
+            payload=CreateGithubDocumentRequest.RequestBody(
+                document=GithubDocumentCreateInput(
+                    pull_request_number=None,
+                    type=GithubDocumentType.ARCHITECTURE_DOCUMENT,
+                    file_path=self.anystr("file_path"),
+                    api_name=self.anystr("api_name"),
+                ),
+                repo=GithubRepoRefInput(id=repo.id),
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -198,8 +201,8 @@ class TestGithubDocumentsRequests(BaseTestCase):
         assert response_obj.document.github_repo_id == repo.id
         assert response_obj.document.pull_request_number is None
         assert response_obj.document.type == GithubDocumentType.ARCHITECTURE_DOCUMENT
-        assert response_obj.document.file_path == "first/location"
-        assert response_obj.document.api_name == "jimmy-johns-freaky-first-api"
+        assert response_obj.document.file_path == self.getstr("file_path")
+        assert response_obj.document.api_name == self.getstr("api_name")
 
     async def test_github_documents_req_delete_by_ids(self) -> None:
         async with self.db_session.begin() as s:
@@ -210,8 +213,12 @@ class TestGithubDocumentsRequests(BaseTestCase):
         # delete some rows from table and make sure request is successful
 
         response = await self.make_request(
-            path="/github-documents/delete/id",
-            payload={"documents": [{"id": str(orms[i].id)} for i in range(2)]},
+            path=DeleteGithubDocumentsByIdsRequest.config.path,
+            payload=DeleteGithubDocumentsByIdsRequest.RequestBody(
+                documents=[
+                    GithubDocumentsDeleteByIdsInput(id=orms[i].id) for i in range(2)
+                ],
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -222,8 +229,8 @@ class TestGithubDocumentsRequests(BaseTestCase):
         # verify that correct number of rows were deleted from the table
 
         response = await self.make_request(
-            path="/github-documents/query",
-            payload={"query_params": {}},
+            path=GetGithubDocumentsRequest.config.path,
+            payload=GetGithubDocumentsRequest.RequestBody(query_params=GithubDocumentsQueryInput()),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -244,8 +251,12 @@ class TestGithubDocumentsRequests(BaseTestCase):
         # delete some rows from table and make sure request is successful
 
         response = await self.make_request(
-            path="/github-documents/delete/type",
-            payload={"documents": {"type": GithubDocumentType.API_DOCUMENT}},
+            path=DeleteGithubDocumentsByTypeRequest.config.path,
+            payload=DeleteGithubDocumentsByTypeRequest.RequestBody(
+                documents=GithubDocumentsDeleteByTypeInput(
+                    type=GithubDocumentType.API_DOCUMENT,
+                ),
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -256,8 +267,8 @@ class TestGithubDocumentsRequests(BaseTestCase):
         # verify that correct number of rows were deleted from the table
 
         response = await self.make_request(
-            path="/github-documents/query",
-            payload={"query_params": {}},
+            path=GetGithubDocumentsRequest.config.path,
+            payload=GetGithubDocumentsRequest.RequestBody(query_params=GithubDocumentsQueryInput()),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,

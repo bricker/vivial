@@ -5,11 +5,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.stdlib.core_api.models.github_repos import (
+    GithubRepoCreateInput,
     GithubRepoFeature,
     GithubRepoFeatureState,
+    GithubRepoListInput,
+    GithubRepoUpdateInput,
+    GithubRepoUpdateValues,
+    GithubReposDeleteInput,
+    GithubReposFeatureStateInput,
 )
 from eave.stdlib.core_api.operations.github_repos import (
     CreateGithubRepoRequest,
+    DeleteGithubReposRequest,
     FeatureStateGithubReposRequest,
     GetAllTeamsGithubReposRequest,
     GetGithubReposRequest,
@@ -51,8 +58,13 @@ class TestGithubRepoRequests(BaseTestCase):
             orms2[0].api_documentation_state = GithubRepoFeatureState.ENABLED
 
         response = await self.make_request(
-            path="/_/github-repos/query",
-            payload={"query_params": {"feature": "api_documentation", "state": "enabled"}},
+            path=GetAllTeamsGithubReposRequest.config.path,
+            payload=GetAllTeamsGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.API_DOCUMENTATION,
+                    state=GithubRepoFeatureState.ENABLED,
+                ),
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -60,8 +72,13 @@ class TestGithubRepoRequests(BaseTestCase):
         assert len(response_obj.repos) == 2
 
         response = await self.make_request(
-            path="/_/github-repos/query",
-            payload={"query_params": {"feature": "api_documentation", "state": "disabled"}},
+            path=GetAllTeamsGithubReposRequest.config.path,
+            payload=GetAllTeamsGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.API_DOCUMENTATION,
+                    state=GithubRepoFeatureState.DISABLED,
+                ),
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -79,8 +96,13 @@ class TestGithubRepoRequests(BaseTestCase):
             orms2[0].inline_code_documentation_state = GithubRepoFeatureState.ENABLED
 
         response = await self.make_request(
-            path="/_/github-repos/query",
-            payload={"query_params": {"feature": "inline_code_documentation", "state": "enabled"}},
+            path=GetAllTeamsGithubReposRequest.config.path,
+            payload=GetAllTeamsGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.INLINE_CODE_DOCUMENTATION,
+                    state=GithubRepoFeatureState.ENABLED,
+                ),
+            ),
             team_id=team2.id,
         )
 
@@ -89,8 +111,13 @@ class TestGithubRepoRequests(BaseTestCase):
         assert len(response_obj.repos) == 2
 
         response = await self.make_request(
-            path="/_/github-repos/query",
-            payload={"query_params": {"feature": "inline_code_documentation", "state": "disabled"}},
+            path=GetAllTeamsGithubReposRequest.config.path,
+            payload=GetAllTeamsGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.INLINE_CODE_DOCUMENTATION,
+                    state=GithubRepoFeatureState.DISABLED,
+                ),
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -108,8 +135,13 @@ class TestGithubRepoRequests(BaseTestCase):
             orms2[0].architecture_documentation_state = GithubRepoFeatureState.ENABLED
 
         response = await self.make_request(
-            path="/_/github-repos/query",
-            payload={"query_params": {"feature": "architecture_documentation", "state": "enabled"}},
+            path=GetAllTeamsGithubReposRequest.config.path,
+            payload=GetAllTeamsGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.ARCHITECTURE_DOCUMENTATION,
+                    state=GithubRepoFeatureState.ENABLED,
+                ),
+            ),
             team_id=team2.id,
         )
 
@@ -118,8 +150,13 @@ class TestGithubRepoRequests(BaseTestCase):
         assert len(response_obj.repos) == 2
 
         response = await self.make_request(
-            path="/_/github-repos/query",
-            payload={"query_params": {"feature": "architecture_documentation", "state": "disabled"}},
+            path=GetAllTeamsGithubReposRequest.config.path,
+            payload=GetAllTeamsGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.ARCHITECTURE_DOCUMENTATION,
+                    state=GithubRepoFeatureState.DISABLED,
+                ),
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -135,14 +172,14 @@ class TestGithubRepoRequests(BaseTestCase):
             account = await self.make_account(s, team_id=team2.id)
 
         response = await self.make_request(
-            path="/github-repos/query",
-            payload={
-                "repos": [
-                    {
-                        "external_repo_id": self.getstr(f"external_repo_id:{team2.id}:3"),
-                    },
-                ]
-            },
+            path=GetGithubReposRequest.config.path,
+            payload=GetGithubReposRequest.RequestBody(
+                repos=[
+                    GithubRepoListInput(
+                        external_repo_id=self.getstr(f"external_repo_id:{team2.id}:3"),
+                    ),
+                ],
+            ),
             team_id=team2.id,
             access_token=account.access_token,
             account_id=account.id,
@@ -163,8 +200,8 @@ class TestGithubRepoRequests(BaseTestCase):
             account = await self.make_account(s, team_id=team2.id)
 
         response = await self.make_request(
-            path="/github-repos/query",
-            payload={"repos": None},
+            path=GetGithubReposRequest.config.path,
+            payload=GetGithubReposRequest.RequestBody(repos=None),
             team_id=team2.id,
             access_token=account.access_token,
             account_id=account.id,
@@ -180,22 +217,21 @@ class TestGithubRepoRequests(BaseTestCase):
     async def test_github_repo_req_create(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            gh_install = await GithubInstallationOrm.create(
+            await GithubInstallationOrm.create(
                 session=s,
                 team_id=team.id,
                 github_install_id=self.anystr(),
             )
 
         response = await self.make_request(
-            path="/github-repos/create",
-            payload={
-                "repo": {
-                    "external_repo_id": self.anystr("external_repo_id"),
-                    "github_install_id": gh_install.github_install_id,
-                    "display_name": "aaa",
-                    "inline_code_documentation_state": GithubRepoFeatureState.ENABLED.value,
-                }
-            },
+            path=CreateGithubRepoRequest.config.path,
+            payload=CreateGithubRepoRequest.RequestBody(
+                repo=GithubRepoCreateInput(
+                    external_repo_id=self.anystr("external_repo_id"),
+                    display_name=self.anystr(),
+                    inline_code_documentation_state=GithubRepoFeatureState.ENABLED,
+                ),
+            ),
             team_id=team.id,
         )
 
@@ -210,22 +246,22 @@ class TestGithubRepoRequests(BaseTestCase):
     async def test_github_repo_req_update(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            await self.create_repos(session=s, team_id=team.id)
+            orms = await self.create_repos(session=s, team_id=team.id)
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
-            path="/github-repos/update",
-            payload={
-                "repos": [
-                    {
-                        "external_repo_id": self.getstr(f"external_repo_id:{team.id}:{i}"),
-                        "new_values": {
-                            "inline_code_documentation_state": GithubRepoFeatureState.PAUSED.value,
-                        },
-                    }
-                    for i in range(2)
+            path=UpdateGithubReposRequest.config.path,
+            payload=UpdateGithubReposRequest.RequestBody(
+                repos=[
+                    GithubRepoUpdateInput(
+                        id=repo.id,
+                        new_values=GithubRepoUpdateValues(
+                            inline_code_documentation_state=GithubRepoFeatureState.PAUSED,
+                        ),
+                    )
+                    for repo in orms
                 ]
-            },
+            ),
             team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
@@ -241,14 +277,17 @@ class TestGithubRepoRequests(BaseTestCase):
     async def test_github_repo_req_delete(self) -> None:
         async with self.db_session.begin() as s:
             team = await self.make_team(s)
-            await self.create_repos(session=s, team_id=team.id)
+            orms = await self.create_repos(session=s, team_id=team.id)
             account = await self.make_account(s, team_id=team.id)
 
         response = await self.make_request(
-            path="/github-repos/delete",
-            payload={
-                "repos": [{"external_repo_id": self.getstr(f"external_repo_id:{team.id}:{i}")} for i in range(2)],
-            },
+            path=DeleteGithubReposRequest.config.path,
+            payload=DeleteGithubReposRequest.RequestBody(
+                repos=[
+                    GithubReposDeleteInput(id=repo.id)
+                    for repo in orms
+                ]
+            ),
             team_id=team.id,
             access_token=account.access_token,
             account_id=account.id,
@@ -259,8 +298,8 @@ class TestGithubRepoRequests(BaseTestCase):
         # check the correct number were deleted
 
         response = await self.make_request(
-            path="/github-repos/query",
-            payload={"repos": None},
+            path=GetGithubReposRequest.config.path,
+            payload=GetGithubReposRequest.RequestBody(repos=None),
             team_id=team.id,
             access_token=account.access_token,
             account_id=account.id,
@@ -280,13 +319,13 @@ class TestGithubRepoRequests(BaseTestCase):
         # all entries should all have matching API_DOCUMENTATION feature state
 
         response = await self.make_request(
-            path="/github-repos/query/enabled",
-            payload={
-                "query_params": {
-                    "feature": GithubRepoFeature.API_DOCUMENTATION.value,
-                    "state": GithubRepoFeatureState.DISABLED.value,
-                }
-            },
+            path=FeatureStateGithubReposRequest.config.path,
+            payload=FeatureStateGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.API_DOCUMENTATION,
+                    state=GithubRepoFeatureState.DISABLED,
+                )
+            ),
             team_id=team.id,
             access_token=account.access_token,
             account_id=account.id,
@@ -299,13 +338,13 @@ class TestGithubRepoRequests(BaseTestCase):
         # all entries should not all have matching INLINE_CODE_DOCUMENTATION feature state
 
         response = await self.make_request(
-            path="/github-repos/query/enabled",
-            payload={
-                "query_params": {
-                    "feature": GithubRepoFeature.INLINE_CODE_DOCUMENTATION.value,
-                    "state": GithubRepoFeatureState.ENABLED.value,
-                }
-            },
+            path=FeatureStateGithubReposRequest.config.path,
+            payload=FeatureStateGithubReposRequest.RequestBody(
+                query_params=GithubReposFeatureStateInput(
+                    feature=GithubRepoFeature.INLINE_CODE_DOCUMENTATION,
+                    state=GithubRepoFeatureState.ENABLED,
+                ),
+            ),
             team_id=team.id,
             access_token=account.access_token,
             account_id=account.id,
