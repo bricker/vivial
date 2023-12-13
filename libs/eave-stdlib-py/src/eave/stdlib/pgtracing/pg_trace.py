@@ -9,6 +9,7 @@ import psycopg2
 
 from eave.stdlib.pytracing.datastructures import EventType, RawEvent, PostgresDatabaseChangeEventParams
 from ..pytracing.write_queue import write_queue
+
 # import eave.stdlib.pgtracing.client as client
 
 channel = "crud_events_channel"
@@ -56,16 +57,14 @@ CREATE OR REPLACE FUNCTION {trigger_fn}()
 RETURNS TRIGGER AS $$
 DECLARE
     v_txt text;
-    data record;
 BEGIN
-    -- capture old row data if row is deleted, otherwise capture new row data
-    IF TG_OP = 'DELETE' THEN
-        data := OLD;
-    ELSE
-        data := NEW;
-    END IF;
-
-    v_txt := format('{{"table_name": "{table_name}", "operation": "%s", "operated_data": %s, "timestamp": "%s"}}', TG_OP, to_jsonb(data), current_timestamp);
+    v_txt := format(
+        '{{"table_name": "{table_name}", "operation": "%s", "new_data": %s, "old_data": %s, "timestamp": "%s"}}', 
+        TG_OP, 
+        to_jsonb(NEW), 
+        to_jsonb(OLD), 
+        current_timestamp
+    );
 
     -- Notify the event writer when an update occurs
     PERFORM pg_notify('{channel}', v_txt);
@@ -133,17 +132,18 @@ def _poll_for_events(
                 notify = conn.notifies.pop(0)
                 json_data = json.loads(notify.payload)
                 event = RawEvent(
-                        team_id=uuid4(),  # TODO: this is still junk. not sure how to get this data yet
-                        corr_id=uuid4(),
-                        timestamp=datetime.fromisoformat(json_data["timestamp"]),
-                        event_type=EventType.dbchange,
-                        event_params=PostgresDatabaseChangeEventParams(
-                            table_name=json_data["table_name"],
-                            operation=json_data["operation"],
-                            operated_data=json.dumps(json_data["operated_data"]),
-                        ),
-                    )
-                
+                    team_id=uuid4(),  # TODO: this is still junk. not sure how to get this data yet; correlate w/ session
+                    corr_id=uuid4(),
+                    timestamp=datetime.fromisoformat(json_data["timestamp"]),
+                    event_type=EventType.dbchange,
+                    event_params=PostgresDatabaseChangeEventParams(
+                        table_name=json_data["table_name"],
+                        operation=json_data["operation"],
+                        new_data=json.dumps(json_data["new_data"]),
+                        old_data=json.dumps(json_data["old_data"]),
+                    ),
+                )
+
                 write_queue.put(event)
                 # client.send(event)
     finally:

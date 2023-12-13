@@ -20,7 +20,9 @@ class EventParams:
 class PostgresDatabaseChangeEventParams(EventParams):
     table_name: str
     operation: str
-    operated_data: str # JSON string mapping from column names to values
+    # JSON string mapping from column names to values
+    new_data: str
+    old_data: str
 
 @dataclass
 class FunctionCallEventParams(EventParams):
