@@ -4,7 +4,7 @@ from typing import Optional
 
 import pydantic
 from eave.stdlib.exceptions import MissingRequiredHeaderError
-from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER
+from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER, MIME_TYPE_JSON
 
 import eave.stdlib.util as util
 from starlette.responses import Response
@@ -73,5 +73,5 @@ def get_bearer_token(scope: HTTPScope) -> str | None:
 
 
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
-    response = Response(status_code=status_code, content=model.json(), media_type="application/json")
+    response = Response(status_code=status_code, content=model.json(), media_type=MIME_TYPE_JSON)
     return response

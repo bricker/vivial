@@ -8,11 +8,20 @@ from .config import app_config
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
     host=app_config.db_host,
+    port=app_config.db_port,
     username=app_config.db_user,
     password=app_config.db_pass,
     database=app_config.db_name,
 )
-async_engine = create_async_engine(db_uri, echo=False, pool_pre_ping=True)
+async_engine = create_async_engine(db_uri,
+    echo=False,
+    pool_pre_ping=True,
+    connect_args={
+        "server_settings": {
+            "timezone": "UTC",
+        },
+    },
+)
 
 async_session = async_sessionmaker(async_engine, expire_on_commit=False)
 """
