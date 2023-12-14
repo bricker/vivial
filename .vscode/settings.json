@@ -99,7 +99,7 @@
   "git.openRepositoryInParentFolders": "always",
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml",
+    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml",
     "--rootdir=${workspaceFolder}",
     "."
   ],

@@ -50,7 +50,15 @@ async def init_database() -> None:
     # We can't connect to the database being created because, well, it doesn't exist.
     # Instead, connect to the postgres database on the host.
     postgres_uri = eave.core.internal.database.async_engine.url._replace(database="postgres")
-    postgres_engine = create_async_engine(postgres_uri, isolation_level="AUTOCOMMIT")
+    postgres_engine = create_async_engine(postgres_uri,
+        isolation_level="AUTOCOMMIT",
+        echo=True,
+        connect_args={
+            "server_settings": {
+                "timezone": "UTC",
+            },
+        },
+    )
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
 
     eaveLogger.fprint(
@@ -75,6 +83,8 @@ async def init_database() -> None:
         stmt = f'DROP DATABASE IF EXISTS "{_EAVE_DB_NAME}"'
         await connection.execute(sqlalchemy.text(stmt))
         stmt = f'CREATE DATABASE "{_EAVE_DB_NAME}"'
+        await connection.execute(sqlalchemy.text(stmt))
+        stmt = f'ALTER DATABASE "{_EAVE_DB_NAME}" SET timezone TO "UTC"'
         await connection.execute(sqlalchemy.text(stmt))
 
     # create tables in empty db

@@ -23,6 +23,22 @@ class AppConfig(eave.stdlib.config.EaveConfig):
             return self.get_secret(key)
 
     @cached_property
+    def db_port(self) -> int | None:
+        key = "EAVE_DB_PORT"
+        if self.is_development:
+            strv = os.getenv(key)
+            if strv is None:
+                return None
+            else:
+                return int(strv)
+        else:
+            try:
+                strv = self.get_secret(key)
+                return int(strv)
+            except Exception:
+                return None
+
+    @cached_property
     def db_user(self) -> str:
         key = "EAVE_DB_USER"
         if self.is_development:

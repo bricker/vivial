@@ -3,6 +3,7 @@ import helmet from "helmet";
 import { exceptionHandlingMiddleware } from "./exception-handling.js";
 import { requestLoggingMiddleware } from "./logging.js";
 import { requestIntegrityMiddleware } from "./request-integrity.js";
+import { MIME_TYPE_JSON } from "../headers.js";
 
 // This isn't included in the common middlewares so individual apps can configure it as needed.
 export const helmetMiddleware = helmet;
@@ -14,4 +15,4 @@ export const commonRequestMiddlewares = [
 
 export const commonResponseMiddlewares = [exceptionHandlingMiddleware];
 
-export const rawJsonBody = raw({ type: "application/json", limit: "5mb" });
+export const rawJsonBody = raw({ type: MIME_TYPE_JSON, limit: "5mb" });

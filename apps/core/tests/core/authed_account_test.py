@@ -47,6 +47,7 @@ class TestAuthedAccountRequests(BaseTestCase):
         response = await self.make_request(
             path="/me/query",
             payload=None,
+            team_id=account.team_id,
             account_id=account.id,
             access_token=account.access_token,
         )
@@ -81,6 +82,7 @@ class TestAuthedAccountRequests(BaseTestCase):
         response = await self.make_request(
             path="/me/query",
             payload=None,
+            team_id=account.team_id,
             account_id=account.id,
             access_token=account.access_token,
         )
@@ -111,6 +113,7 @@ class TestAuthedAccountRequests(BaseTestCase):
         response = await self.make_request(
             path="/me/team/integrations/query",
             payload=None,
+            team_id=account.team_id,
             account_id=account.id,
             access_token=account.access_token,
         )

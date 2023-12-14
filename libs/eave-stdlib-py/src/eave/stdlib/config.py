@@ -20,6 +20,7 @@ GITHUB_EVENT_QUEUE_NAME = "github-events-processor"
 
 
 class EaveEnvironment(enum.StrEnum):
+    test = "test"
     development = "development"
     production = "production"
 
@@ -49,6 +50,8 @@ class EaveConfig:
     def eave_env(self) -> EaveEnvironment:
         strenv = os.getenv("EAVE_ENV", "production")
         match strenv:
+            case "test":
+                return EaveEnvironment.test
             case "development":
                 return EaveEnvironment.development
             case "production":
@@ -234,7 +237,7 @@ class EaveConfig:
         value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
-    @property
+    @cached_property
     def eave_slack_app_id(self) -> str:
         try:
             return self.get_secret("EAVE_SLACK_APP_ID")

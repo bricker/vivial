@@ -32,7 +32,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
         assert obj.connect_integration.client_key == self.getstr("client_key")
 
         assert self.logged_event(
-            event_name="eave_connect_app_registered",
+            event_name="eave_application_registered",
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
@@ -204,7 +204,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             eave_team=team.analytics_model,
         )
 
-    async def test_Register_With_Matching_Connect_App(self) -> None:
+    async def test_register_with_matching_connect_app(self) -> None:
         """
         When a new Connect app is registered, the system should look for other existing Connect apps with the same org_url property,
         and use its team ID. The allows, for example, a Jira installation to be automatically linked to the correct Eave team.

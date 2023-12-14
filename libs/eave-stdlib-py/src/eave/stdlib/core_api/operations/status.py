@@ -6,6 +6,7 @@ from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 class Status(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/status",
+        method="GET",
         auth_required=False,
         team_id_required=False,
         signature_required=False,
@@ -21,7 +22,7 @@ class Status(CoreApiEndpoint):
     async def perform(cls) -> ResponseBody:
         async with aiohttp.ClientSession() as session:
             response = await session.request(
-                "GET",
+                cls.config.method,
                 cls.config.url,
             )
 
