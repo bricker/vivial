@@ -1,6 +1,7 @@
 import os
 import dotenv
 from eave.dev_tooling.constants import EAVE_HOME
+from eave.stdlib.config import EaveEnvironment
 
 _deprecated_file = os.path.join(EAVE_HOME, ".env.test")
 if os.path.isfile(_deprecated_file):
@@ -21,6 +22,7 @@ eave.stdlib.time.set_utc()
 os.environ["EAVE_MONITORING_DISABLED"] = "1"
 os.environ["EAVE_ANALYTICS_DISABLED"] = "1"
 
+os.environ["EAVE_ENV"] = EaveEnvironment.test
 os.environ["EAVE_API_BASE_PUBLIC"] = "https://api.eave.tests"
 os.environ["EAVE_APPS_BASE_PUBLIC"] = "https://apps.eave.tests"
 os.environ["EAVE_WWW_BASE_PUBLIC"] = "https://www.eave.tests"

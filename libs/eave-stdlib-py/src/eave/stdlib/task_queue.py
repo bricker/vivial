@@ -17,6 +17,7 @@ from eave.stdlib.headers import (
     EAVE_TEAM_ID_HEADER,
     GCP_CLOUD_TRACE_CONTEXT,
     GCP_GAE_REQUEST_LOG_ID,
+    MIME_TYPE_JSON,
     USER_AGENT,
 )
 from eave.stdlib.time import ONE_DAY_IN_MS
@@ -31,11 +32,16 @@ T = TypeVar("T")
 asyncio_tasks = set[asyncio.Task[Any]]()
 
 
-def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
+def do_in_background(coro: Coroutine[Any, Any, Any]) -> None:
+    try:
+        # Assert that there is a running event loop. If not, this function won't do anything.
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return
+
     task = asyncio.create_task(coro)
     asyncio_tasks.add(task)
     task.add_done_callback(asyncio_tasks.discard)
-    return task
 
 
 async def get_queue(queue_name: str) -> tasks.Queue:
@@ -136,7 +142,7 @@ async def create_task(
 
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
-    headers[CONTENT_TYPE] = "application/json"
+    headers[CONTENT_TYPE] = MIME_TYPE_JSON
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
     headers[EAVE_ORIGIN_HEADER] = origin.value

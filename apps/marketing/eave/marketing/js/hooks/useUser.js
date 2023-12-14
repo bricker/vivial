@@ -5,7 +5,7 @@ import { AppContext } from "../context/Provider.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
-const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint";
+const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint.202311";
 
 /** @returns {{user: Types.DashboardUser, isLoginHintSet: boolean, getUserAccount: () => void}} */
 const useUser = () => {

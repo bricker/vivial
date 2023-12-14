@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import express from "express";
+import { constants as httpConstants } from "node:http2";
 import { v4 as uuidv4 } from "uuid";
 import { EaveApp } from "./eave-origins.js";
 import { InvalidSignatureError } from "./exceptions.js";
@@ -13,6 +14,14 @@ import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 */
 import sinon from "sinon";
 import request from "supertest";
+import {
+  EAVE_ACCOUNT_ID_HEADER,
+  EAVE_ORIGIN_HEADER,
+  EAVE_REQUEST_ID_HEADER,
+  EAVE_SIGNATURE_HEADER,
+  EAVE_SIG_TS_HEADER,
+  EAVE_TEAM_ID_HEADER,
+} from "./headers.js";
 
 export class TestUtil {
   testData: { [key: string]: any } = {};
@@ -108,30 +117,32 @@ export async function makeRequest({
   const requestAgent = request(app)[method](path).type("json");
 
   if (teamId !== undefined) {
-    updatedHeaders["eave-team-id"] = teamId;
+    updatedHeaders[EAVE_TEAM_ID_HEADER] = teamId;
   }
   if (origin !== undefined) {
-    updatedHeaders["eave-origin"] = origin;
+    updatedHeaders[EAVE_ORIGIN_HEADER] = origin;
   }
   if (accountId !== undefined) {
-    updatedHeaders["eave-account-id"] = accountId;
+    updatedHeaders[EAVE_ACCOUNT_ID_HEADER] = accountId;
   }
 
   if (accessToken !== undefined) {
-    updatedHeaders["authorization"] = `Bearer ${accessToken}`;
+    updatedHeaders[
+      httpConstants.HTTP2_HEADER_AUTHORIZATION
+    ] = `Bearer ${accessToken}`;
   }
 
   let eaveSigTs: number;
-  const eaveSigTsHeader = headers?.["eave-sig-ts"];
+  const eaveSigTsHeader = headers?.[EAVE_SIG_TS_HEADER];
   if (eaveSigTsHeader) {
     eaveSigTs = parseInt(eaveSigTsHeader, 10);
   } else {
     eaveSigTs = makeSigTs();
-    updatedHeaders["eave-sig-ts"] = eaveSigTs.toString();
+    updatedHeaders[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
   }
 
-  updatedHeaders["eave-request-id"] = requestId;
-  updatedHeaders["eave-origin"] = origin;
+  updatedHeaders[EAVE_REQUEST_ID_HEADER] = requestId;
+  updatedHeaders[EAVE_ORIGIN_HEADER] = origin;
 
   let encodedPayload: string;
 
@@ -158,7 +169,7 @@ export async function makeRequest({
 
   const signing = Signing.new(origin);
   const signature = await signing.signBase64(message);
-  updatedHeaders["eave-signature"] = signature;
+  updatedHeaders[EAVE_SIGNATURE_HEADER] = signature;
 
   if (headers !== undefined) {
     Object.assign(updatedHeaders, headers);

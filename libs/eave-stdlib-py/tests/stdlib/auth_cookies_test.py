@@ -1,3 +1,4 @@
+from http.cookies import SimpleCookie
 import re
 from typing import Any
 from starlette.requests import Request
@@ -37,43 +38,74 @@ class AuthCookiesTest(AuthCookiesTestBase):
         )
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
 
-        assert len(cookies) == 2
-        assert any(re.search(f"^ev_account_id={self.data_account_id};", v) for v in cookies)
-        assert any(re.search(f"^ev_access_token={self.data_access_token};", v) for v in cookies)
+        assert len(cookies) == 3
+        assert any(re.search(f"^ev_account_id.202311={self.data_account_id};", v) for v in cookies)
+        assert any(re.search(f"^ev_access_token.202311={self.data_access_token};", v) for v in cookies)
+        assert any(re.search(f"^ev_team_id.202311={self.data_team_id};", v) for v in cookies)
 
     async def test_get_auth_cookies_with_all_data(self):
         cookies = get_auth_cookies(
-            {
-                "ev_account_id": self.data_account_id,
-                "ev_access_token": self.data_access_token,
+            cookies={
+                "ev_account_id.202311": self.data_account_id,
+                "ev_access_token.202311": self.data_access_token,
+                "ev_team_id.202311": self.data_team_id,
             }
         )
 
         assert cookies.account_id == self.data_account_id
         assert cookies.access_token == self.data_access_token
+        assert cookies.team_id == self.data_team_id
+
+    async def test_get_auth_cookies_with_simple_cookie(self):
+        cookies = get_auth_cookies(
+            cookies=SimpleCookie(
+                input={
+                    "ev_account_id.202311": self.data_account_id,
+                    "ev_access_token.202311": self.data_access_token,
+                    "ev_team_id.202311": self.data_team_id,
+                }
+            )
+        )
+
+        assert cookies.account_id == self.data_account_id
+        assert cookies.access_token == self.data_access_token
+        assert cookies.team_id == self.data_team_id
 
     async def test_get_auth_cookies_with_account_id_only(self):
         cookies = get_auth_cookies(
-            {
-                "ev_account_id": self.data_account_id,
+            cookies={
+                "ev_account_id.202311": self.data_account_id,
             }
         )
 
         assert cookies.account_id == self.data_account_id
         assert cookies.access_token is None
+        assert cookies.team_id is None
 
     async def test_get_auth_cookies_with_access_token_only(self):
         cookies = get_auth_cookies(
-            {
-                "ev_access_token": self.data_access_token,
+            cookies={
+                "ev_access_token.202311": self.data_access_token,
             }
         )
 
         assert cookies.account_id is None
         assert cookies.access_token == self.data_access_token
+        assert cookies.team_id is None
+
+    async def test_get_auth_cookies_with_team_id_only(self):
+        cookies = get_auth_cookies(
+            cookies={
+                "ev_team_id.202311": self.data_team_id,
+            }
+        )
+
+        assert cookies.account_id is None
+        assert cookies.access_token is None
+        assert cookies.team_id == self.data_team_id
 
     async def test_get_auth_cookies_with_no_data(self):
-        cookies = get_auth_cookies({})
+        cookies = get_auth_cookies(cookies={})
 
         assert cookies.account_id is None
         assert cookies.access_token is None
@@ -81,7 +113,8 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_delete_auth_cookies(self):
         delete_auth_cookies(response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
-        assert len(cookies) == 2
+        assert len(cookies) == 3
 
-        assert any(re.search('^ev_account_id="";', v) for v in cookies)
-        assert any(re.search('^ev_access_token="";', v) for v in cookies)
+        assert any(re.search('^ev_account_id.202311="";', v) for v in cookies)
+        assert any(re.search('^ev_access_token.202311="";', v) for v in cookies)
+        assert any(re.search('^ev_team_id.202311="";', v) for v in cookies)

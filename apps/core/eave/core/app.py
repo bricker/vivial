@@ -35,7 +35,6 @@ from eave.stdlib.core_api.operations.github_repos import (
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
-from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -154,7 +153,7 @@ def make_route(
         app=endpoint, endpoint_config=config
     )  # Last thing to happen before the Route handler
     endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
-    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
+    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config)
     endpoint = OriginASGIMiddleware(
         app=endpoint, endpoint_config=config
     )  # First thing to happen when the middleware chain is kicked off

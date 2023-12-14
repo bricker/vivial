@@ -1,24 +1,14 @@
-variable "project_id" { type = string }
-variable "region" { type = string }
-variable "eave_domain_apex" { type = string }
+variable "eave_domain_apex" {
+  type = string
+}
 
 locals {
   services = {
-    eave_www = {
-      name = "Eave Website uptime check"
-      host = "www.${var.eave_domain_apex}"
-      path = "/status"
-    },
-    eave_api = {
-      name = "Eave Core API uptime check"
-      host = "api.${var.eave_domain_apex}"
-      path = "/status"
-    },
-    eave_github = {
-      name = "Eave Github App uptime check"
-      host = "apps.${var.eave_domain_apex}"
-      path = "/github/status"
-    }
+    # eave_www = {
+    #   name = "Eave Website uptime check"
+    #   host = "www.${var.eave_domain_apex}"
+    #   path = "/status"
+    # },
   }
 }
 
@@ -31,6 +21,7 @@ resource "google_monitoring_uptime_check_config" "uptime-check-each" {
   project          = var.project_id
   selected_regions = []
   timeout          = "10s"
+
   content_matchers {
     content = "\"OK\""
     matcher = "MATCHES_JSON_PATH"
@@ -60,6 +51,47 @@ resource "google_monitoring_uptime_check_config" "uptime-check-each" {
       project_id = var.project_id
     }
     type = "uptime_url"
+  }
+  timeouts {
+    create = null
+    delete = null
+    update = null
+  }
+}
+
+resource "google_monitoring_alert_policy" "uptime_alert_policy_each" {
+  for_each = local.services
+  depends_on = [
+    google_monitoring_notification_channel.slack,
+    google_monitoring_uptime_check_config.uptime-check-each,
+  ]
+
+  combiner              = "OR"
+  display_name          = "${each.value.name} failure"
+  enabled               = true
+  notification_channels = concat([google_monitoring_notification_channel.slack.name], var.addl_notification_channels)
+  project               = var.project_id
+  user_labels           = {}
+  conditions {
+    display_name = "Failure of uptime ${google_monitoring_uptime_check_config.uptime-check-each[each.key].uptime_check_id}"
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      denominator_filter      = null
+      duration                = "60s"
+      evaluation_missing_data = null
+      filter                  = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id=\"${google_monitoring_uptime_check_config.uptime-check-each[each.key].uptime_check_id}\" AND resource.type=\"uptime_url\""
+      threshold_value         = 1
+      aggregations {
+        alignment_period     = "1200s"
+        cross_series_reducer = "REDUCE_COUNT_FALSE"
+        group_by_fields      = ["resource.label.*"]
+        per_series_aligner   = "ALIGN_NEXT_OLDER"
+      }
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
   }
   timeouts {
     create = null

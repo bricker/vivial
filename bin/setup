@@ -19,19 +19,6 @@ fi
 
 source "${EAVE_HOME}/develop/functions.bash"
 
-function ^ask() (
-	if ^ci; then
-		return
-	fi
-	statusmsg -wpn "Should I proceed? [y/n] "
-	read -r proceed
-	test "$proceed" = "y"
-)
-
-function ^force() {
-	test -n "$FORCE"
-}
-
 usershell=$(shellname)
 kernel=$(get-kernel-name)
 opsys=$(get-os)
@@ -43,9 +30,8 @@ function setenvvars() (
 		statusmsg -o "XDG_CONFIG_HOME already set."
 	else
 		local value="\$HOME/.config"
-		statusmsg -pa "Adding XDG_CONFIG_HOME=$value to your environment."
 		statusmsg -i "XDG_CONFIG_HOME is a standard environment variable that many programs use to store configuration."
-		if ^ask; then
+		if ^ask "Add XDG_CONFIG_HOME=$value to your environment?"; then
 			^add-shell-variable XDG_CONFIG_HOME "$value"
 		fi
 	fi
@@ -54,9 +40,8 @@ function setenvvars() (
 		statusmsg -o "XDG_DATA_HOME already set."
 	else
 		local value="\$HOME/.local/share"
-		statusmsg -pa "Adding XDG_DATA_HOME=$value to your environment."
 		statusmsg -i "XDG_DATA_HOME is a standard environment variable that many programs use to store data."
-		if ^ask; then
+		if ^ask "Add XDG_DATA_HOME=$value to your environment?"; then
 			^add-shell-variable XDG_DATA_HOME "$value"
 		fi
 	fi
@@ -65,9 +50,8 @@ function setenvvars() (
 		statusmsg -o "XDG_RUNTIME_DIR already set."
 	else
 		local value="/run/user/1000"
-		statusmsg -pa "Adding XDG_RUNTIME_DIR=$value to your environment."
 		statusmsg -i "XDG_RUNTIME_DIR is a standard environment variable that many programs use to store Unix sockets."
-		if ^ask; then
+		if ^ask "Add XDG_RUNTIME_DIR=$value to your environment?"; then
 			^add-shell-variable XDG_RUNTIME_DIR "$value"
 		fi
 	fi
@@ -77,47 +61,43 @@ function setenvvars() (
 	else
 		local value
 		value=$(pwd)
-		statusmsg -pa "Adding EAVE_HOME=$value to your environment."
 		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
-		if ^ask; then
+		if ^ask "Add EAVE_HOME=$value to your environment?"; then
 			^add-shell-variable EAVE_HOME "$value"
 		fi
 	fi
 )
 
 function setuppython() (
-	statusmsg -pa "Setting up Python virtual environment"
-	if ! ^cmd-exists pyenv; then
-		pythonpath="$(which python)"
-		statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
-		statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
-		statusmsg -w "I did not find pyenv, so I will proceed with the available python executable ($pythonpath)."
-	else
-		pyenv install -s
-		pyenv version
+	if ^ask "Setup Python virtual environment?"; then
+		if ! ^cmd-exists pyenv; then
+			pythonpath="$(which python)"
+			statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
+			statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
+			statusmsg -w "pyenv was not found on your system; proceeding with the available python executable ($pythonpath)."
+		else
+			pyenv install -s
+			pyenv version
+		fi
+
+		./$EAVE_HOME/bin/setup-py
 	fi
-
-	python -m venv --clear --upgrade-deps "$EAVE_HOME/.venv"
-	python-activate-venv
-
-	# shellcheck disable=SC2086
-	python -m pip install -r "$EAVE_HOME/requirements-dev.txt"
 )
 
 function setupnode() (
-	statusmsg -pa "Setting up Node virtual environment"
-	node-activate-venv
-	rm -rf node_modules
-	npm install
+	if ^ask "Setup Node virtual environment?"; then
+		node-activate-venv
+		rm -rf node_modules
+		npm install
+	fi
 )
 
 function setupgcloud() (
 	if ! ^force && ^cmd-exists "gcloud"; then
 		statusmsg -o "gcloud CLI already installed."
 	else
-		statusmsg -pa "Downloading and installing the gcloud CLI into $HOME/google-cloud-sdk."
 		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
-		if ^ask; then
+		if ^ask "Download and install the gcloud CLI into $HOME/google-cloud-sdk?"; then
 			cd "$tmpdir" || exit 1
 			local gcloudversion="426.0.0"
 			local arch
@@ -137,9 +117,8 @@ function setupcloudsqlproxy() (
 	if ! ^force && ^cmd-exists "cloud-sql-proxy"; then
 		statusmsg -o "CloudSQL Proxy already installed."
 	else
-		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
 		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
-		if ^ask; then
+		if ^ask "Download and install the Cloud SQL Proxy for your system?"; then
 			cd "$tmpdir" || exit 1
 			if ^cmd-exists "gcloud"; then
 				cloudsqlproxypath=$(dirname "$(which gcloud)")
@@ -171,10 +150,9 @@ function installterraform() (
 	if ! ^force && ^cmd-exists "terraform"; then
 		statusmsg -o "terraform already installed."
 	else
-		statusmsg -pa "Installing the 'terraform' command line utility."
 		statusmsg -i "The terraform CLI is used in various utility scripts in this repository."
 
-		if ^ask; then
+		if ^ask "Install the terraform command line utility?"; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -208,10 +186,9 @@ function installjq() (
 	if ! ^force && ^cmd-exists "jq"; then
 		statusmsg -o "jq already installed."
 	else
-		statusmsg -pa "Installing the 'jq' command line utility."
 		statusmsg -i "The jq program is used in many utility scripts in this repository."
 
-		if ^ask; then
+		if ^ask "Install the 'jq' command line utility?"; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -245,10 +222,9 @@ function installyq() (
 	if ! ^force && ^cmd-exists "yq"; then
 		statusmsg -o "yq already installed."
 	else
-		statusmsg -pa "Installing the 'yq' command line utility."
 		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
 
-		if ^ask; then
+		if ^ask "Install the 'yq' command line utility?"; then
 			if ^cmd-exists "brew"; then
 				brew install yq
 			else
@@ -263,10 +239,9 @@ function installshfmt() (
 	if ! ^force && ^cmd-exists "shfmt"; then
 		statusmsg -o "shfmt already installed."
 	else
-		statusmsg -pa "Installing the 'shfmt' command line utility."
 		statusmsg -i "The shfmt program is used to auto-format shell scripts"
 
-		if ^ask; then
+		if ^ask "Install the 'shfmt' command line utility?"; then
 			if ^cmd-exists "brew"; then
 				brew install shfmt
 			else
@@ -281,10 +256,9 @@ function installshellcheck() (
 	if ! ^force && ^cmd-exists "shellcheck"; then
 		statusmsg -o "shellcheck already installed."
 	else
-		statusmsg -pa "Installing the 'shellcheck' command line utility."
 		statusmsg -i "The shellcheck program is used to lint shell scripts"
 
-		if ^ask; then
+		if ^ask "Install the 'shellcheck' command line utility?"; then
 			if ^cmd-exists "brew"; then
 				brew install shellcheck
 			else
@@ -296,24 +270,24 @@ function installshellcheck() (
 )
 
 function setupapps() (
-	statusmsg -pa "Running setup scripts in develop, libs, and apps."
+	statusmsg -i "Each sub-project in this repository contains its own setup script."
 
-	if ^ask; then
+	if ^ask "Run setup scripts in develop, libs, and apps?"; then
 		cd "${EAVE_HOME}" || exit 1
 		python-activate-venv
 		node-activate-venv
 
-		for ss in {apps,libs,develop}/**/bin/setup; do
+		for ss in {apps,libs,develop}/*/bin/setup; do
 			if ^norecurse "$ss"; then
 				continue
 			fi
 			statusmsg -d "Running $ss"
-			$ss
+			_ONLY_THIS_MODULE=1 $ss
 		done
 	fi
 )
 
-statusmsg -ps "Hi! Welcome to Eave. I will help you setup this repository."
+statusmsg -ps "Hi! Welcome to Eave. This script will help you setup this repository."
 statusmsg -i "Before getting started, it is recommended to manually install a few things if you haven't already:"
 statusmsg -i "* homebrew - https://brew.sh/"
 statusmsg -i "* nvm - https://github.com/nvm-sh/nvm (sh) or https://github.com/jorgebucaran/nvm.fish (fish)"
@@ -326,7 +300,7 @@ setuppython
 setupnode
 if ! ^ci; then
 	setupgcloud
-	setupcloudsqlproxy
+	# setupcloudsqlproxy
 	installjq
 	installyq
 	installterraform
@@ -336,4 +310,10 @@ fi
 setupapps
 
 statusmsg -s "Done!"
-statusmsg -i "Now, open EAVE_HOME (this directory) in VSCode and you're ready to go. (Hint: try \`code .\`)"
+statusmsg -s "Now, open EAVE_HOME (this directory) in VSCode (recommended) and you're ready to go. (Hint: try \`code .\`)"
+
+echo ""
+
+statusmsg -o "FYI: You can set some environment variables to configure how this script runs:"
+statusmsg -o "FORCE=1 : Bypass checks"
+statusmsg -o "NOPROMPT=1 : Automatically answer yes to prompts"
