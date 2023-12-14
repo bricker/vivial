@@ -42,7 +42,7 @@ async def make_request(
     eave_sig_ts = signing.make_sig_ts()
 
     headers: dict[str, str] = {
-        eave_headers.CONTENT_TYPE: "application/json",
+        eave_headers.CONTENT_TYPE: eave_headers.MIME_TYPE_JSON,
         eave_headers.EAVE_ORIGIN_HEADER: origin.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: request_id,
         eave_headers.EAVE_SIG_TS_HEADER: str(eave_sig_ts),

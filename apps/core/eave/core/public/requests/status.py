@@ -4,6 +4,7 @@ from sqlalchemy import text
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.endpoints import status_payload
+from eave.stdlib.headers import MIME_TYPE_JSON
 
 
 from eave.stdlib.http_endpoint import HTTPEndpoint
@@ -38,7 +39,7 @@ class StatusRequest(HTTPEndpoint):
             status["status"] = "UNHEALTHY"
 
         content = json.dumps(status)
-        return Response(status_code=status_code, content=content, media_type="application/json")
+        return Response(status_code=status_code, content=content, media_type=MIME_TYPE_JSON)
 
 
 class WarmupRequest(HTTPEndpoint):

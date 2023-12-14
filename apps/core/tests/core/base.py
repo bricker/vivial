@@ -10,6 +10,7 @@ from uuid import UUID
 from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
+from eave.stdlib.headers import AUTHORIZATION_HEADER, EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIG_TS_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER
 
 import eave.stdlib.signing
 import eave.stdlib.eave_origins
@@ -150,42 +151,42 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         if headers is None:
             headers = {}
 
-        if e := headers.get("eave-sig-ts"):
+        if e := headers.get(EAVE_SIG_TS_HEADER):
             eave_sig_ts = int(e)
         else:
             eave_sig_ts = eave.stdlib.signing.make_sig_ts()
-            headers["eave-sig-ts"] = str(eave_sig_ts)
+            headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
 
         if team_id:
-            assert "eave-team-id" not in headers
-            headers["eave-team-id"] = str(team_id)
+            assert EAVE_TEAM_ID_HEADER not in headers
+            headers[EAVE_TEAM_ID_HEADER] = str(team_id)
         else:
-            v = headers.get("eave-team-id")
+            v = headers.get(EAVE_TEAM_ID_HEADER)
             team_id = uuid.UUID(v) if v else None
 
         if account_id:
-            assert "eave-account-id" not in headers
-            headers["eave-account-id"] = str(account_id)
+            assert EAVE_ACCOUNT_ID_HEADER not in headers
+            headers[EAVE_ACCOUNT_ID_HEADER] = str(account_id)
         else:
-            v = headers.get("eave-account-id")
+            v = headers.get(EAVE_ACCOUNT_ID_HEADER)
             account_id = uuid.UUID(v) if v else None
 
         if origin:
-            assert "eave-origin" not in headers
-            headers["eave-origin"] = origin.value
+            assert EAVE_ORIGIN_HEADER not in headers
+            headers[EAVE_ORIGIN_HEADER] = origin.value
         else:
-            if "eave-origin" not in headers:
+            if EAVE_ORIGIN_HEADER not in headers:
                 origin = eave.stdlib.eave_origins.EaveApp.eave_www
-                headers["eave-origin"] = origin
+                headers[EAVE_ORIGIN_HEADER] = origin
 
         if request_id:
-            assert "eave-request-id" not in headers
-            headers["eave-request-id"] = str(request_id)
-        elif "eave-request-id" in headers:
-            request_id = uuid.UUID(headers["eave-request-id"])
+            assert EAVE_REQUEST_ID_HEADER not in headers
+            headers[EAVE_REQUEST_ID_HEADER] = str(request_id)
+        elif EAVE_REQUEST_ID_HEADER in headers:
+            request_id = uuid.UUID(headers[EAVE_REQUEST_ID_HEADER])
         else:
             request_id = uuid.uuid4()
-            headers["eave-request-id"] = str(request_id)
+            headers[EAVE_REQUEST_ID_HEADER] = str(request_id)
 
         request_args: dict[str, Any] = {}
 
@@ -205,7 +206,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         else:
             request_args["content"] = encoded_payload
 
-        if sign and "eave-signature" not in headers:
+        if sign and EAVE_SIGNATURE_HEADER not in headers:
             origin = origin or eave.stdlib.eave_origins.EaveApp.eave_www
             signature_message = eave.stdlib.signing.build_message_to_sign(
                 method=method,
@@ -224,10 +225,10 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
                 data=signature_message,
             )
 
-            headers["eave-signature"] = signature
+            headers[EAVE_SIGNATURE_HEADER] = signature
 
-        if access_token and "authorization" not in headers:
-            headers["authorization"] = f"Bearer {access_token}"
+        if access_token and AUTHORIZATION_HEADER not in headers:
+            headers[AUTHORIZATION_HEADER] = f"Bearer {access_token}"
 
         clean_headers = {k: v for (k, v) in headers.items() if v is not None}
 

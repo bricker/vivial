@@ -154,7 +154,7 @@ def make_route(
         app=endpoint, endpoint_config=config
     )  # Last thing to happen before the Route handler
     endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
-    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
+    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config)
     endpoint = OriginASGIMiddleware(
         app=endpoint, endpoint_config=config
     )  # First thing to happen when the middleware chain is kicked off

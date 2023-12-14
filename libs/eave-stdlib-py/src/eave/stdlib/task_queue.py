@@ -17,6 +17,7 @@ from eave.stdlib.headers import (
     EAVE_TEAM_ID_HEADER,
     GCP_CLOUD_TRACE_CONTEXT,
     GCP_GAE_REQUEST_LOG_ID,
+    MIME_TYPE_JSON,
     USER_AGENT,
 )
 from eave.stdlib.time import ONE_DAY_IN_MS
@@ -136,7 +137,7 @@ async def create_task(
 
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
-    headers[CONTENT_TYPE] = "application/json"
+    headers[CONTENT_TYPE] = MIME_TYPE_JSON
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
     headers[EAVE_ORIGIN_HEADER] = origin.value

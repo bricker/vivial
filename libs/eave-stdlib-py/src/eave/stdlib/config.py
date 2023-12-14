@@ -237,7 +237,7 @@ class EaveConfig:
         value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
-    @property
+    @cached_property
     def eave_slack_app_id(self) -> str:
         try:
             return self.get_secret("EAVE_SLACK_APP_ID")

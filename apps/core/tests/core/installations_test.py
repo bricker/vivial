@@ -4,6 +4,10 @@ import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.github_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
+from eave.stdlib.core_api.models.atlassian import AtlassianInstallationInput
+from eave.stdlib.core_api.models.error import ErrorResponse
+from eave.stdlib.core_api.models.github import GithubInstallationInput
+from eave.stdlib.core_api.models.slack import SlackInstallationInput
 from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
 from eave.stdlib.core_api.operations.github import GetGithubInstallation
 from eave.stdlib.core_api.operations.slack import GetSlackInstallation
@@ -26,12 +30,12 @@ class TestInstallationsRequests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/slack/query",
-            payload={
-                "slack_integration": {
-                    "slack_team_id": self.anystring("slack_team_id"),
-                },
-            },
+            path=GetSlackInstallation.config.path,
+            payload=GetSlackInstallation.RequestBody(
+                slack_integration=SlackInstallationInput(
+                    slack_team_id=self.anystring("slack_team_id"),
+                )
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -54,7 +58,7 @@ class TestInstallationsRequests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/slack/query",
+            path=GetSlackInstallation.config.path,
             payload={
                 self.anystring(): {
                     self.anystring(): self.anystring(),
@@ -66,16 +70,18 @@ class TestInstallationsRequests(BaseTestCase):
 
     async def test_get_slack_installation_not_found(self) -> None:
         response = await self.make_request(
-            path="/integrations/slack/query",
-            payload={
-                "slack_integration": {
-                    "slack_team_id": self.anystring("slack_team_id"),
-                },
-            },
+            path=GetSlackInstallation.config.path,
+            payload=GetSlackInstallation.RequestBody(
+                slack_integration=SlackInstallationInput(
+                    slack_team_id=self.anystring("slack_team_id"),
+                )
+            ),
         )
 
+        response_obj = ErrorResponse(**response.json())
         assert response.status_code == HTTPStatus.NOT_FOUND
-        assert response.text == "Not Found"
+        assert response_obj.status_code == HTTPStatus.NOT_FOUND
+        assert response_obj.error_message == "Not Found"
 
     async def test_get_github_installation(self) -> None:
         async with self.db_session.begin() as s:
@@ -88,12 +94,12 @@ class TestInstallationsRequests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/github/query",
-            payload={
-                "github_integration": {
-                    "github_install_id": self.anystring("github_install_id"),
-                },
-            },
+            path=GetGithubInstallation.config.path,
+            payload=GetGithubInstallation.RequestBody(
+                github_integration=GithubInstallationInput(
+                    github_install_id=self.anystring("github_install_id"),
+                ),
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -103,16 +109,18 @@ class TestInstallationsRequests(BaseTestCase):
 
     async def test_get_github_installation_not_found(self) -> None:
         response = await self.make_request(
-            path="/integrations/github/query",
-            payload={
-                "github_integration": {
-                    "github_install_id": self.anystring("github_install_id"),
-                },
-            },
+            path=GetGithubInstallation.config.path,
+            payload=GetGithubInstallation.RequestBody(
+                github_integration=GithubInstallationInput(
+                    github_install_id=self.anystring("github_install_id"),
+                ),
+            ),
         )
 
+        response_obj = ErrorResponse(**response.json())
         assert response.status_code == HTTPStatus.NOT_FOUND
-        assert response.text == "Not Found"
+        assert response_obj.status_code == HTTPStatus.NOT_FOUND
+        assert response_obj.error_message == "Not Found"
 
     async def test_get_atlassian_installation(self) -> None:
         async with self.db_session.begin() as s:
@@ -126,12 +134,12 @@ class TestInstallationsRequests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/atlassian/query",
-            payload={
-                "atlassian_integration": {
-                    "atlassian_cloud_id": self.anystring("atlassian_cloud_id"),
-                },
-            },
+            path=GetAtlassianInstallation.config.path,
+            payload=GetAtlassianInstallation.RequestBody(
+                atlassian_integration=AtlassianInstallationInput(
+                    atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
+                ),
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -141,13 +149,15 @@ class TestInstallationsRequests(BaseTestCase):
 
     async def test_get_atlassian_installation_not_found(self) -> None:
         response = await self.make_request(
-            path="/integrations/atlassian/query",
-            payload={
-                "atlassian_integration": {
-                    "atlassian_cloud_id": self.anystring("atlassian_cloud_id"),
-                },
-            },
+            path=GetAtlassianInstallation.config.path,
+            payload=GetAtlassianInstallation.RequestBody(
+                atlassian_integration=AtlassianInstallationInput(
+                    atlassian_cloud_id=self.anystring("atlassian_cloud_id"),
+                ),
+            ),
         )
 
+        response_obj = ErrorResponse(**response.json())
         assert response.status_code == HTTPStatus.NOT_FOUND
-        assert response.text == "Not Found"
+        assert response_obj.status_code == HTTPStatus.NOT_FOUND
+        assert response_obj.error_message == "Not Found"
