@@ -1,5 +1,10 @@
 from http import HTTPStatus
-from eave.stdlib.core_api.models.subscriptions import SubscriptionInput, SubscriptionSource, SubscriptionSourceEvent, SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import (
+    SubscriptionInput,
+    SubscriptionSource,
+    SubscriptionSourceEvent,
+    SubscriptionSourcePlatform,
+)
 from eave.stdlib.core_api.operations.status import Status
 from eave.stdlib.core_api.operations.subscriptions import CreateSubscriptionRequest
 

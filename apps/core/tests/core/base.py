@@ -10,7 +10,15 @@ from uuid import UUID
 from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
-from eave.stdlib.headers import AUTHORIZATION_HEADER, EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIG_TS_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER
+from eave.stdlib.headers import (
+    AUTHORIZATION_HEADER,
+    EAVE_ACCOUNT_ID_HEADER,
+    EAVE_ORIGIN_HEADER,
+    EAVE_REQUEST_ID_HEADER,
+    EAVE_SIG_TS_HEADER,
+    EAVE_SIGNATURE_HEADER,
+    EAVE_TEAM_ID_HEADER,
+)
 
 import eave.stdlib.signing
 import eave.stdlib.eave_origins
@@ -100,7 +108,6 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         async with self.db_session.begin() as s:
             await s.execute(sqlalchemy.delete(ResourceMutexOrm))
-
 
     async def cleanup(self) -> None:
         await super().cleanup()

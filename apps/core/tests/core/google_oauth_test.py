@@ -16,7 +16,10 @@ import eave.core.internal.orm.atlassian_installation
 import eave.core.internal.orm.slack_installation
 import eave.core.internal.orm.team
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.auth_cookies import _EAVE_TEAM_ID_COOKIE_NAME, _EAVE_ACCOUNT_ID_COOKIE_NAME, _EAVE_ACCESS_TOKEN_COOKIE_NAME
+from eave.stdlib.auth_cookies import (
+    _EAVE_ACCOUNT_ID_COOKIE_NAME,
+    _EAVE_ACCESS_TOKEN_COOKIE_NAME,
+)
 from .base import BaseTestCase
 
 

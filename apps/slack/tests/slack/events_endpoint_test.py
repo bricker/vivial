@@ -1,7 +1,13 @@
 import http
 import unittest.mock
 
-from eave.stdlib.headers import EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIGNATURE_HEADER, GCP_CLOUD_TRACE_CONTEXT, GCP_GAE_REQUEST_LOG_ID
+from eave.stdlib.headers import (
+    EAVE_ORIGIN_HEADER,
+    EAVE_REQUEST_ID_HEADER,
+    EAVE_SIGNATURE_HEADER,
+    GCP_CLOUD_TRACE_CONTEXT,
+    GCP_GAE_REQUEST_LOG_ID,
+)
 from .base import BaseTestCase
 
 

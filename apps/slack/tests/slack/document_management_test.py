@@ -29,7 +29,7 @@ class DocumentManagementMixinTest(BaseTestCase):
             data={
                 "ts": self.anystr("slack ts 1"),
                 "channel": self.anystr("slack channel"),
-                "text": f"<{self.anyurl("url1")}>",
+                "text": f"<{self.anyurl('url1')}>",
                 "app_id": self.anystr("not eave app_id"),
             },
             slack_ctx=slack_context,
@@ -44,13 +44,13 @@ class DocumentManagementMixinTest(BaseTestCase):
                 {
                     "ts": self.anystr("slack ts 1"),
                     "channel": self.getstr("slack channel"),
-                    "text": f"<{self.anyurl("url2")}>",
+                    "text": f"<{self.anyurl('url2')}>",
                     "app_id": self.getstr("not eave app_id"),
                 },
                 {
                     "ts": self.anystr("slack ts 2"),
                     "channel": self.getstr("slack channel"),
-                    "text": f"<{self.anyurl("url3")}>",
+                    "text": f"<{self.anyurl('url3')}>",
                     "app_id": shared_config.eave_slack_app_id,
                 },
             ]

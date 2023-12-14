@@ -1,8 +1,6 @@
 import anyTest, { TestFn } from "ava";
-import { EaveEnvironment, sharedConfig } from "../src/config.js";
-import { EaveApp } from "../src/eave-origins.js";
-import { TestContextBase, TestUtil } from "../src/test-util.js";
 import * as headers from "../src/headers.js";
+import { TestContextBase, TestUtil } from "../src/test-util.js";
 
 const test = anyTest as TestFn<TestContextBase>;
 

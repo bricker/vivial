@@ -273,7 +273,9 @@ class TestGithubRepoRequests(BaseTestCase):
         assert response.status_code == HTTPStatus.OK
         response_obj = UpdateGithubReposRequest.ResponseBody(**response.json())
         assert len(response_obj.repos) == 5
-        assert all(repo.inline_code_documentation_state == GithubRepoFeatureState.PAUSED for repo in response_obj.repos), "Not all ORM objects got the updated value"
+        assert all(
+            repo.inline_code_documentation_state == GithubRepoFeatureState.PAUSED for repo in response_obj.repos
+        ), "Not all ORM objects got the updated value"
 
     async def test_github_repo_req_delete(self) -> None:
         async with self.db_session.begin() as s:
@@ -284,10 +286,7 @@ class TestGithubRepoRequests(BaseTestCase):
         response = await self.make_request(
             path=DeleteGithubReposRequest.config.path,
             payload=DeleteGithubReposRequest.RequestBody(
-                repos=[
-                    GithubReposDeleteInput(id=repo.id)
-                    for repo in orms[:2]
-                ]
+                repos=[GithubReposDeleteInput(id=repo.id) for repo in orms[:2]]
             ),
             team_id=team.id,
             access_token=account.access_token,

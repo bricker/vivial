@@ -5,7 +5,16 @@ from eave.core.internal.orm import github_installation
 
 from eave.core.internal.orm.github_documents import GithubDocumentsOrm
 from eave.core.internal.orm.github_repos import GithubRepoOrm
-from eave.stdlib.core_api.models.github_documents import GithubDocumentCreateInput, GithubDocumentType, GithubDocumentStatus, GithubDocumentUpdateInput, GithubDocumentValuesInput, GithubDocumentsDeleteByIdsInput, GithubDocumentsDeleteByTypeInput, GithubDocumentsQueryInput
+from eave.stdlib.core_api.models.github_documents import (
+    GithubDocumentCreateInput,
+    GithubDocumentType,
+    GithubDocumentStatus,
+    GithubDocumentUpdateInput,
+    GithubDocumentValuesInput,
+    GithubDocumentsDeleteByIdsInput,
+    GithubDocumentsDeleteByTypeInput,
+    GithubDocumentsQueryInput,
+)
 from eave.stdlib.core_api.models.github_repos import GithubRepoRefInput
 from eave.stdlib.core_api.operations.github_documents import (
     CreateGithubDocumentRequest,
@@ -215,9 +224,7 @@ class TestGithubDocumentsRequests(BaseTestCase):
         response = await self.make_request(
             path=DeleteGithubDocumentsByIdsRequest.config.path,
             payload=DeleteGithubDocumentsByIdsRequest.RequestBody(
-                documents=[
-                    GithubDocumentsDeleteByIdsInput(id=orms[i].id) for i in range(2)
-                ],
+                documents=[GithubDocumentsDeleteByIdsInput(id=orms[i].id) for i in range(2)],
             ),
             team_id=team.id,
             account_id=account.id,

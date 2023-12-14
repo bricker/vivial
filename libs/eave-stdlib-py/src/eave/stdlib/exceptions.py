@@ -44,6 +44,7 @@ class UnauthorizedError(HTTPException):
     ) -> None:
         super().__init__(status_code=HTTPStatus.UNAUTHORIZED, detail=detail, headers=headers, request_id=request_id)
 
+
 class ForbiddenError(HTTPException):
     def __init__(
         self,
