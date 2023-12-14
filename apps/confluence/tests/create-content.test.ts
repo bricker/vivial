@@ -1,3 +1,9 @@
+import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
+import {
+  EAVE_ORIGIN_HEADER,
+  EAVE_SIGNATURE_HEADER,
+  EAVE_TEAM_ID_HEADER,
+} from "@eave-fyi/eave-stdlib-ts/src/headers.js";
 import {
   TestContextBase,
   TestUtil,
@@ -8,8 +14,6 @@ import sinon from "sinon";
 import request from "supertest";
 import { app } from "../src/app.js";
 import ConfluenceClient from "../src/confluence-client.js";
-import { EAVE_ORIGIN_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
-import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 
 interface TestContext extends TestContextBase {
   sandbox: sinon.SinonSandbox;
