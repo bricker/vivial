@@ -20,7 +20,7 @@ class TestLinkHandler(UtilityBaseTestCase):
         await super().asyncSetUp()
         self.patch(
             patch=unittest.mock.patch(
-                "eave.stdlib.link_handler.github_api_client.create_subscription",
+                "eave.stdlib.link_handler.CreateGithubResourceSubscription.perform",
                 return_value=CreateSubscriptionRequest.ResponseBody(
                     team=Team(
                         id=self.anyuuid(),
@@ -43,7 +43,7 @@ class TestLinkHandler(UtilityBaseTestCase):
 
         self.patch(
             name="github_client.get_file_content",
-            patch=unittest.mock.patch("eave.stdlib.link_handler.github_api_client.get_file_content"),
+            patch=unittest.mock.patch("eave.stdlib.link_handler.GetGithubUrlContent.perform"),
         )
 
     async def test_filter_supported_links(self) -> None:
@@ -107,8 +107,8 @@ class TestLinkHandler(UtilityBaseTestCase):
     async def test_subscribe_skip_subscription(self) -> None:
         self.patch(
             patch=unittest.mock.patch(
-                "eave.stdlib.link_handler.github_api_client.create_subscription",
-                return_value=Exception("oops subscription failure"),
+                "eave.stdlib.link_handler.CreateGithubResourceSubscription.perform",
+                side_effect=Exception("oops subscription failure"),
             )
         )
 
