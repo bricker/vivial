@@ -1,7 +1,7 @@
 import http
 import unittest.mock
 
-from eave.stdlib.headers import GCP_CLOUD_TRACE_CONTEXT, GCP_GAE_REQUEST_LOG_ID
+from eave.stdlib.headers import EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIGNATURE_HEADER, GCP_CLOUD_TRACE_CONTEXT, GCP_GAE_REQUEST_LOG_ID
 from .base import BaseTestCase
 
 
@@ -82,9 +82,9 @@ class EventsEndpointTest(BaseTestCase):
             "/tasks/{}-{}".format(self.anystring("slack team ID"), self.anystring(GCP_GAE_REQUEST_LOG_ID))
         )
 
-        assert "eave-signature" in task_arg.app_engine_http_request.headers
-        assert "eave-origin" in task_arg.app_engine_http_request.headers
-        assert "eave-request-id" in task_arg.app_engine_http_request.headers
+        assert EAVE_SIGNATURE_HEADER in task_arg.app_engine_http_request.headers
+        assert EAVE_ORIGIN_HEADER in task_arg.app_engine_http_request.headers
+        assert EAVE_REQUEST_ID_HEADER in task_arg.app_engine_http_request.headers
 
     async def test_valid_event_with_trace_context_header(self) -> None:
         self._patch_signature_verification()

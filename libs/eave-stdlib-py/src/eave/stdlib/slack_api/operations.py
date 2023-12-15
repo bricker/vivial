@@ -4,6 +4,7 @@ from eave.stdlib.slack_api import SlackAppEndpoint, SlackAppEndpointConfiguratio
 class SlackEventProcessorTaskOperation(SlackAppEndpoint):
     config = SlackAppEndpointConfiguration(
         path="/_/slack/tasks/events",
+        method="POST",
         team_id_required=False,
         auth_required=False,
     )
@@ -12,6 +13,7 @@ class SlackEventProcessorTaskOperation(SlackAppEndpoint):
 class SlackWebhookOperation(SlackAppEndpoint):
     config = SlackAppEndpointConfiguration(
         path="/slack/events",
+        method="POST",
         team_id_required=False,
         auth_required=False,
         signature_required=False,

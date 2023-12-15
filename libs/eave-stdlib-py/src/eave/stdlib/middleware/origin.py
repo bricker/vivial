@@ -5,7 +5,7 @@ from eave.stdlib.core_api.operations import EndpointConfiguration
 from .base import EaveASGIMiddleware
 from ..api_util import get_header_value
 from ..headers import EAVE_ORIGIN_HEADER
-from ..exceptions import MissingRequiredHeaderError
+from ..exceptions import InvalidOriginError, MissingRequiredHeaderError
 from ..eave_origins import EaveApp
 from ..request_state import EaveRequestState
 
@@ -32,5 +32,8 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
             else:
                 raise MissingRequiredHeaderError(EAVE_ORIGIN_HEADER)
 
-        origin = EaveApp(value=origin_header)
-        eave_state.ctx.eave_origin = str(origin)
+        try:
+            origin = EaveApp(value=origin_header)
+            eave_state.ctx.eave_origin = str(origin)
+        except ValueError:
+            raise InvalidOriginError()

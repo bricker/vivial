@@ -9,4 +9,4 @@ os.environ["EAVE_WWW_BASE_PUBLIC"] = "https://www.eave.tests"
 os.environ["EAVE_ANALYTICS_DISABLED"] = "1"
 os.environ["EAVE_MONITORING_DISABLED"] = "1"
 
-pytracing.start_tracing(client_id="", client_secret="")
+# pytracing.start_tracing(client_id="", client_secret="")
