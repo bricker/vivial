@@ -1,6 +1,6 @@
-import { constants as httpConstants } from "node:http2";
 import { createHash } from "crypto";
 import express from "express";
+import { constants as httpConstants } from "node:http2";
 import { v4 as uuidv4 } from "uuid";
 import { EaveApp } from "./eave-origins.js";
 import { InvalidSignatureError } from "./exceptions.js";
@@ -14,7 +14,14 @@ import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 */
 import sinon from "sinon";
 import request from "supertest";
-import { EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_SIGNATURE_HEADER, EAVE_SIG_TS_HEADER, EAVE_TEAM_ID_HEADER } from "./headers.js";
+import {
+  EAVE_ACCOUNT_ID_HEADER,
+  EAVE_ORIGIN_HEADER,
+  EAVE_REQUEST_ID_HEADER,
+  EAVE_SIGNATURE_HEADER,
+  EAVE_SIG_TS_HEADER,
+  EAVE_TEAM_ID_HEADER,
+} from "./headers.js";
 
 export class TestUtil {
   testData: { [key: string]: any } = {};
@@ -120,7 +127,9 @@ export async function makeRequest({
   }
 
   if (accessToken !== undefined) {
-    updatedHeaders[httpConstants.HTTP2_HEADER_AUTHORIZATION] = `Bearer ${accessToken}`;
+    updatedHeaders[
+      httpConstants.HTTP2_HEADER_AUTHORIZATION
+    ] = `Bearer ${accessToken}`;
   }
 
   let eaveSigTs: number;

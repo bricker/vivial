@@ -66,6 +66,7 @@ def unauthorized(request: Request, exc: Exception) -> Response:
     delete_auth_cookies(response=response)
     return response
 
+
 def forbidden(request: Request, exc: Exception) -> Response:
     eave_state = EaveRequestState.load(request=request)
     eaveLogger.warning(exc, eave_state.ctx)

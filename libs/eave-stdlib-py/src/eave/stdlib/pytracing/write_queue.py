@@ -1,14 +1,12 @@
 import atexit
 import multiprocessing
-from multiprocessing.connection import Client, Connection
-import os
 
 from .datastructures import RawEvent
 from . import clickhouse
 
 # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
-# TODO: db writes arent super common.. maybe we also flush the queue on a timer, even if the events havent reached buffer size yet??
-_buffer_maxsize = 1
+# TODO: this is too high for db writes
+_buffer_maxsize = 1000
 
 
 def _process_queue(q: multiprocessing.Queue) -> None:

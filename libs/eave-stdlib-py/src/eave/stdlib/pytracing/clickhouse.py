@@ -1,11 +1,11 @@
-import json
 from typing import Any
 import clickhouse_connect
 import clickhouse_connect.driver.exceptions
 from eave.stdlib.pytracing.datastructures import RawEvent
 from eave.stdlib.util import compact_json
 
-chclient = clickhouse_connect.get_client(host='localhost')
+chclient = clickhouse_connect.get_client(host="localhost")
+
 
 def insert(data: list[RawEvent]) -> None:
     chclient.insert(
@@ -22,7 +22,8 @@ def insert(data: list[RawEvent]) -> None:
                 d.timestamp,
                 d.event_type,
                 compact_json(d.event_params.__dict__),
-            ] for d in data
+            ]
+            for d in data
         ],
         settings={
             "async_insert": 1,

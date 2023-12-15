@@ -13,7 +13,8 @@ db_uri = sqlalchemy.engine.url.URL.create(
     password=app_config.db_pass,
     database=app_config.db_name,
 )
-async_engine = create_async_engine(db_uri,
+async_engine = create_async_engine(
+    db_uri,
     echo=False,
     pool_pre_ping=True,
     connect_args={

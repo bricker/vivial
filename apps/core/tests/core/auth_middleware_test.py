@@ -8,7 +8,12 @@ from eave.stdlib.core_api.models.account import AuthProvider
 
 from .base import BaseTestCase
 import google.oauth2.credentials
-from eave.stdlib.auth_cookies import _EAVE_TEAM_ID_COOKIE_NAME, _EAVE_ACCOUNT_ID_COOKIE_NAME, _EAVE_ACCESS_TOKEN_COOKIE_NAME
+from eave.stdlib.auth_cookies import (
+    _EAVE_TEAM_ID_COOKIE_NAME,
+    _EAVE_ACCOUNT_ID_COOKIE_NAME,
+    _EAVE_ACCESS_TOKEN_COOKIE_NAME,
+)
+
 
 class TestAuthenticationMiddlewareBase(BaseTestCase):
     _eave_account: AccountOrm

@@ -4,8 +4,7 @@ import sys
 from typing import Any, Callable, Concatenate
 
 from eave.stdlib.pytracing.config import EaveConfig
-from .callbacks import eave_tracer, trace_call, trace_py_start
-from .write_queue import write_queue
+from .callbacks import eave_tracer, trace_py_start
 
 _tool_id = 0
 
@@ -19,9 +18,8 @@ _events: dict[int, Callable[Concatenate[EaveConfig, ...], Any]] = {
 
 _events_mask = reduce(lambda a, b: a | b, _events.keys())
 
+
 def start_tracing(
-    client_id: str,
-    client_secret: str,
     scope: str | None = None,
 ) -> None:
     """
@@ -30,10 +28,14 @@ def start_tracing(
     * scope: A module or package name prefix to scope tracing to. For example, passing `eave.stdlib` will only trace code in the `eave.stdlib` package. If set to None (default), the calling module will be used. The scope improves performance by ignoring irrelevant code. If you want to turn off scoping (not recommended), pass an empty string.
     """
 
-    config = EaveConfig(client_id=client_id, client_secret=client_secret, scope=scope)
+    config = EaveConfig(scope=scope)
 
     if config.scope is None:
-        if (frame := inspect.currentframe()) and (back := frame.f_back) and (tracemodule := inspect.getmodule(back.f_code)):
+        if (
+            (frame := inspect.currentframe())
+            and (back := frame.f_back)
+            and (tracemodule := inspect.getmodule(back.f_code))
+        ):
             config.scope = tracemodule.__package__
 
     sys.monitoring.use_tool_id(_tool_id, "eave")

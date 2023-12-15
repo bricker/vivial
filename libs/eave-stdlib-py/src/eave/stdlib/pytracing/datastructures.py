@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -50,8 +49,9 @@ class NetworkInEventParams(EventParams):
 class NetworkOutEventParams(EventParams):
     request_method: str
     request_url: str
-    request_headers: dict[str,str]
+    request_headers: dict[str, str]
     request_payload: str
+
 
 @dataclass
 class RawEvent:

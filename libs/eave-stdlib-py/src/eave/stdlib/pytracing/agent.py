@@ -82,7 +82,7 @@ def start_controller():
 
     # FIXME: Using private properties to set a timeout on socket operations.
     # This allows `listener.accept()` to be effectively non-blocking.
-    listener._listener._socket.settimeout(1)
+    listener._listener._socket.settimeout(1)  # type: ignore
     workers: list[multiprocessing.Process] = []
 
     print("Eave agent started. (Ctrl-C to stop)", os.getpid())
@@ -114,7 +114,7 @@ def start_controller():
                 break
             for worker in workers:
                 if not worker.is_alive():
-                    worker.terminate() # Actively cleanup defunct processes
+                    worker.terminate()  # Actively cleanup defunct processes
                     workers.remove(worker)
 
             try:
@@ -128,6 +128,7 @@ def start_controller():
                 continue
     finally:
         _cleanup()
+
 
 if __name__ == "__main__":
     start_controller()

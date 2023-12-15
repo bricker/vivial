@@ -1,29 +1,27 @@
 import functools
-import pickle
-from time import time
-import attr
 from datetime import date, datetime
 import inspect
 import re
 import sys
 from types import CodeType
-from typing import Any, Callable, Concatenate, TypeVar
+from typing import Any, Callable, Concatenate
 from uuid import uuid4
 from eave.stdlib.pytracing import client
 
 from eave.stdlib.pytracing.config import EaveConfig
 
 from .datastructures import EventType, FunctionCallEventParams, RawEvent
-from .write_queue import write_queue
 
 DISABLE = sys.monitoring.DISABLE
 
 _builtins_set = set(sys.builtin_module_names)
 _stdlib_set = sys.stdlib_module_names
-_common_noisy_modules_to_ignore = set((
-    "pydantic",
-    "pkg_resources",
-))
+_common_noisy_modules_to_ignore = set(
+    (
+        "pydantic",
+        "pkg_resources",
+    )
+)
 
 _ignore_modules_set = _builtins_set | _stdlib_set | _common_noisy_modules_to_ignore
 
@@ -31,21 +29,18 @@ _ignore_modules_set = _builtins_set | _stdlib_set | _common_noisy_modules_to_ign
 _primitive_types = (bool, str, int, float, date, datetime, type(None))
 
 
-def eave_tracer[**P, R](config: EaveConfig) -> Callable[
-    [
-        Callable[
-            Concatenate[EaveConfig, P],
-            R
-        ],
-    ],
-    Callable[P, R]
-]:
+def eave_tracer[
+    **P, R
+](config: EaveConfig) -> Callable[[Callable[Concatenate[EaveConfig, P], R],], Callable[P, R]]:
     def inner0(f: Callable[Concatenate[EaveConfig, P], R]) -> Callable[P, R]:
         @functools.wraps(f)
         def inner1(*args: P.args, **kwargs: P.kwargs) -> R:
             return f(config, *args, **kwargs)
+
         return inner1
+
     return inner0
+
 
 def trace_call(config: EaveConfig, code: CodeType, instruction_offset: int, func: Callable, arg0: object) -> Any:
     pass
@@ -87,7 +82,9 @@ def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) 
     # co_argcount includes co_posonlyargcount, but does _not_ include co_kwonlyargcount. It also doesn't include *args and **kwargs.
     namedargscount = code.co_argcount + code.co_kwonlyargcount
     argnames = code.co_varnames[:namedargscount]
-    argvals = {k: v for k, v in frame.f_locals.items() if k in argnames and k != "self" and isinstance(v, _primitive_types)}
+    argvals = {
+        k: v for k, v in frame.f_locals.items() if k in argnames and k != "self" and isinstance(v, _primitive_types)
+    }
 
     # nonprimitives = {k: v for k, v in frame.f_locals.items() if k in argnames and k != "self" and not isinstance(v, _primitive_types)}
     # print(nonprimitives)
@@ -98,7 +95,7 @@ def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) 
 
     team_id = uuid4()
     corr_id = uuid4()
-    timestamp=datetime.now()
+    timestamp = datetime.now()
 
     data = RawEvent(
         team_id=team_id,
@@ -116,11 +113,14 @@ def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) 
     client.send(data)
     # write_queue.put(data)
 
+
 def trace_py_return(code: CodeType, instruction_offset: int, retval: object) -> Any:
     return DISABLE
 
+
 def trace_branch(code: CodeType, instruction_offset: int, destination_offset: int) -> Any:
     return DISABLE
+
 
 def _should_ignore_module(name: str | None, scope: str | None) -> bool:
     if not name:
