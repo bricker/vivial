@@ -57,7 +57,9 @@ class UtmCookiesTest(UtmCookiesTestBase):
         assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_campaign={self.data_campaign};", v) for v in cookies)
         assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_term={self.data_term};", v) for v in cookies)
         assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}gclid={self.data_gclid};", v) for v in cookies)
-        assert any(re.search(f"^{EAVE_VISITOR_ID_COOKIE_NAME}=", v) for v in cookies)  # value is generated internal to function
+        assert any(
+            re.search(f"^{EAVE_VISITOR_ID_COOKIE_NAME}=", v) for v in cookies
+        )  # value is generated internal to function
         assert not any(re.search("ignored_param", v) for v in cookies)
 
     async def test_set_cookies_visitor_id_already_set(self):

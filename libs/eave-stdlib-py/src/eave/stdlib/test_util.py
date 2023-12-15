@@ -1,10 +1,9 @@
 import base64
 from datetime import datetime, timedelta
 import json
-import os
 import uuid
 import random
-from typing import Any, Literal, TypeVar, Optional, Union
+from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
 
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
@@ -135,7 +134,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             self.testdata[name] = new_value
 
         return self.testdata[name]
-
 
     def anystr(self, name: Optional[str] = None) -> str:
         if name is None:
@@ -296,10 +294,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         #     return v
 
         def _access_secret_version(
-            request: Optional[AccessSecretVersionRequest | dict] = None,
-            *,
-            name: Optional[str] = None,
-            **kwargs
+            request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs
         ) -> AccessSecretVersionResponse:
             if isinstance(request, AccessSecretVersionRequest):
                 name_ = request.name
@@ -316,11 +311,14 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
                 payload=SecretPayload(
                     data=data,
                     data_crc32c=data_crc32,
-                )
+                ),
             )
 
         self.patch(
-            unittest.mock.patch("google.cloud.secretmanager.SecretManagerServiceClient.access_secret_version", side_effect=_access_secret_version)
+            unittest.mock.patch(
+                "google.cloud.secretmanager.SecretManagerServiceClient.access_secret_version",
+                side_effect=_access_secret_version,
+            )
         )
 
         # self.patch(

@@ -26,9 +26,9 @@ class AuthCookies:
 
 
 def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
-    account_id = cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)
-    team_id = cookies.get(_EAVE_TEAM_ID_COOKIE_NAME)
-    access_token = cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME)
+    account_id = cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
+    team_id = cookies.get(EAVE_TEAM_ID_COOKIE_NAME)
+    access_token = cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
 
     account_id_decoded = account_id.value if isinstance(account_id, Morsel) else account_id
     team_id_decoded = team_id.value if isinstance(team_id, Morsel) else team_id
@@ -48,16 +48,16 @@ def set_auth_cookies(
     access_token: Optional[str] = None,
 ) -> None:
     if account_id:
-        set_http_cookie(response=response, key=_EAVE_ACCOUNT_ID_COOKIE_NAME, value=str(account_id))
+        set_http_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE_NAME, value=str(account_id))
 
     if team_id:
-        set_http_cookie(response=response, key=_EAVE_TEAM_ID_COOKIE_NAME, value=str(team_id))
+        set_http_cookie(response=response, key=EAVE_TEAM_ID_COOKIE_NAME, value=str(team_id))
 
     if access_token:
-        set_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE_NAME, value=access_token)
+        set_http_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE_NAME, value=access_token)
 
 
 def delete_auth_cookies(response: HTTPFrameworkResponse) -> None:
-    delete_http_cookie(response=response, key=_EAVE_ACCOUNT_ID_COOKIE_NAME)
-    delete_http_cookie(response=response, key=_EAVE_TEAM_ID_COOKIE_NAME)
-    delete_http_cookie(response=response, key=_EAVE_ACCESS_TOKEN_COOKIE_NAME)
+    delete_http_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE_NAME)
+    delete_http_cookie(response=response, key=EAVE_TEAM_ID_COOKIE_NAME)
+    delete_http_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE_NAME)
