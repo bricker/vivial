@@ -44,12 +44,14 @@ import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.routing import Route
 
+import eave.stdlib.pytracing
 import eave.core.public.requests.github_integration
 
 from .public.exception_handlers import exception_handlers
 from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team, status
 from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
 from .internal.database import async_engine
+from .internal.config import app_config
 from eave.stdlib.middleware import common_middlewares
 
 eave.stdlib.time.set_utc()
@@ -390,6 +392,12 @@ async def graceful_shutdown() -> None:
     except Exception as e:
         logging.eaveLogger.exception(e)
 
+# eave.stdlib.pytracing.start_tracing()
+# eave.stdlib.pytracing.start_postgresql_listener(
+#     user_name=app_config.db_user,
+#     user_password=app_config.db_pass or "oops",
+#     db_name=app_config.db_name,
+# )
 
 app = starlette.applications.Starlette(
     middleware=common_middlewares,

@@ -7,7 +7,8 @@ from .datastructures import RawEvent
 from . import clickhouse
 
 # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
-_buffer_maxsize = 1000
+# TODO: db writes arent super common.. maybe we also flush the queue on a timer, even if the events havent reached buffer size yet??
+_buffer_maxsize = 1
 
 
 def _process_queue(q: multiprocessing.Queue) -> None:
@@ -61,5 +62,6 @@ class BatchWriteQueue:
 
     def put(self, event: RawEvent) -> None:
         self._queue.put(event, block=False)
+
 
 write_queue = BatchWriteQueue()

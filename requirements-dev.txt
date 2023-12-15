@@ -4,6 +4,7 @@
 -e ./libs/eave-stdlib-py
 -e ${EAVE_HOME}/develop/python
 
+psycopg2
 grpcio-tools
 protobuf
 pyright

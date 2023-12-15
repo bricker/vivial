@@ -10,10 +10,19 @@ class EventType(StrEnum):
     functionreturn = "functionreturn"
     networkin = "networkin"
     networkout = "networkout"
+    dbchange = "dbchange"
 
 
 class EventParams:
     pass
+
+@dataclass
+class PostgresDatabaseChangeEventParams(EventParams):
+    table_name: str
+    operation: str
+    # JSON string mapping from column names to values
+    new_data: str | None
+    old_data: str | None
 
 @dataclass
 class FunctionCallEventParams(EventParams):
