@@ -29,9 +29,19 @@ steps:
   #     - CI=1
   #     - VERBOSE=1
 
-  - name: gcr.io/$PROJECT_ID/eave-builder-node-python
+  - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
     dir: $_EAVE_HOME
     entrypoint: bin/lint
+    args: ["python"]
+    env:
+      - EAVE_HOME=$_EAVE_HOME
+      - CI=1
+      - VERBOSE=1
+
+  - name: node:18 # gcr.io/$PROJECT_ID/eave-builder-node
+    dir: $_EAVE_HOME
+    entrypoint: bin/lint
+    args: ["javascript"]
     env:
       - EAVE_HOME=$_EAVE_HOME
       - CI=1
@@ -54,9 +64,19 @@ steps:
   #     - EAVE_DB_PASS
   #     - EAVE_DB_NAME
 
-  - name: gcr.io/$PROJECT_ID/eave-builder-node-python
+  - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
     dir: $_EAVE_HOME
     entrypoint: bin/test
+    args: ["python"]
+    env:
+      - EAVE_HOME=$_EAVE_HOME
+      - CI=1
+      - VERBOSE=1
+
+  - name: node:18 # gcr.io/$PROJECT_ID/eave-builder-node
+    dir: $_EAVE_HOME
+    entrypoint: bin/test
+    args: ["javascript"]
     env:
       - EAVE_HOME=$_EAVE_HOME
       - CI=1
