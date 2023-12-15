@@ -17,8 +17,8 @@ from eave.core.internal.orm.atlassian_installation import AtlassianInstallationO
 import eave.core.internal.orm.team
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.auth_cookies import (
-    _EAVE_ACCOUNT_ID_COOKIE_NAME,
-    _EAVE_ACCESS_TOKEN_COOKIE_NAME,
+    EAVE_ACCOUNT_ID_COOKIE_NAME,
+    EAVE_ACCESS_TOKEN_COOKIE_NAME,
 )
 
 from .base import BaseTestCase
@@ -102,9 +102,9 @@ class TestAtlassianOAuth(BaseTestCase):
             assert response.headers["Location"]
             assert response.headers["Location"] == f"{eave.core.internal.app_config.eave_public_www_base}/dashboard"
 
-            account_id = response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)
+            account_id = response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
             assert account_id
-            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.anystring("atlassian.access_token")
+            assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.anystring("atlassian.access_token")
 
             assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
             assert (await self.count(s, eave.core.internal.orm.AtlassianInstallationOrm)) == 1
@@ -152,7 +152,7 @@ class TestAtlassianOAuth(BaseTestCase):
         )
 
         async with self.db_session.begin() as s:
-            account_id = response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)
+            account_id = response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
@@ -184,7 +184,7 @@ class TestAtlassianOAuth(BaseTestCase):
         )
 
         async with self.db_session.begin() as s:
-            account_id = response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME)
+            account_id = response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
@@ -227,8 +227,8 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("atlassian.refresh_token")
 
             # Test that the cookies were updated
-            assert response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
-            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
+            assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
+            assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
 
     async def test_atlassian_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
@@ -252,8 +252,8 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
-                _EAVE_ACCOUNT_ID_COOKIE_NAME: str(eave_account_before.id),
-                _EAVE_ACCESS_TOKEN_COOKIE_NAME: eave_account_before.access_token,
+                EAVE_ACCOUNT_ID_COOKIE_NAME: str(eave_account_before.id),
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: eave_account_before.access_token,
             },
         )
 
@@ -266,8 +266,8 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("atlassian.refresh_token")
 
             # Test that the cookies were updated
-            assert response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
-            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
+            assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
+            assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
 
     async def test_atlassian_callback_logged_in_account_another_provider(self) -> None:
         async with self.db_session.begin() as s:
@@ -291,8 +291,8 @@ class TestAtlassianOAuth(BaseTestCase):
             },
             cookies={
                 "ev_oauth_state_atlassian": self.anystring("state"),
-                _EAVE_ACCOUNT_ID_COOKIE_NAME: str(eave_account_before.id),
-                _EAVE_ACCESS_TOKEN_COOKIE_NAME: eave_account_before.access_token,
+                EAVE_ACCOUNT_ID_COOKIE_NAME: str(eave_account_before.id),
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: eave_account_before.access_token,
             },
         )
 
@@ -305,8 +305,8 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_account_after.refresh_token == self.anystring("old_refresh_token")
 
             # Test that the cookies were NOT updated
-            assert response.cookies.get(_EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_before.id)
-            assert response.cookies.get(_EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_before.access_token
+            assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_before.id)
+            assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_before.access_token
 
     async def test_atlassian_callback_invalid_state(self) -> None:
         response = await self.make_request(
