@@ -1,7 +1,7 @@
 # https://console.cloud.google.com/cloud-build/triggers;region=us-central1/edit/ec977ffb-be4d-409f-bf45-d559d6f226b8?authuser=1&project=eavefyi-dev
 
 steps:
-  - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
+  - name: python:3.12.0 # gcr.io/$PROJECT_ID/eave-builder-python
     dir: $_EAVE_HOME
     entrypoint: bin/setup
     args: ["python"]
@@ -29,7 +29,7 @@ steps:
   #     - CI=1
   #     - VERBOSE=1
 
-  - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
+  - name: python:3.12.0 # gcr.io/$PROJECT_ID/eave-builder-python
     dir: $_EAVE_HOME
     entrypoint: bin/lint
     args: ["python"]
@@ -50,7 +50,7 @@ steps:
   # TODO: start db connection
 
   # update db in preparation for running tests
-  # - name: python:3.11.2
+  # - name: python:3.12.0
   #   dir: apps/core
   #   entrypoint: python
   #   args: ["-m", "alembic", "upgrade", "head"]
@@ -64,7 +64,7 @@ steps:
   #     - EAVE_DB_PASS
   #     - EAVE_DB_NAME
 
-  - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
+  - name: python:3.12.0 # gcr.io/$PROJECT_ID/eave-builder-python
     dir: $_EAVE_HOME
     entrypoint: bin/test
     args: ["python"]
