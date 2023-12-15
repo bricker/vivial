@@ -48,7 +48,6 @@ def start_postgresql_listener(db_name: str, user_name: str, user_password: str) 
                 trigger_name = f"{trigger_name_base}_{action_name}_{table_name}"
                 trigger_fn = f"{trigger_fn_base}_{action_name}_{table_name}"
 
-                # TODO: using the sql builtin current_timestamp function may get us in trouble... sync w/ other events ts
                 # payload can only be 8kb max
                 # NEW variable documented here: https://www.postgresql.org/docs/current/plpgsql-trigger.html
                 curs.execute(

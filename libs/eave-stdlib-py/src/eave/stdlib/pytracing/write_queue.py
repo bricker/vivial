@@ -5,7 +5,6 @@ from .datastructures import RawEvent
 from . import clickhouse
 
 # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
-# TODO: this is too high for db writes
 _buffer_maxsize = 1000
 
 
