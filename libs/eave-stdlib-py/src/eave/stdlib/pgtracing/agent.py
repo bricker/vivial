@@ -144,14 +144,13 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--password", help="user password to connect to db with")
 
     args = parser.parse_args()
-    
-    print("Eave postgresql agent started. (Ctrl-C to stop)", os.getpid())
 
+    print("Eave postgresql agent started. (Ctrl-C to stop)", os.getpid())
 
     start_postgresql_listener(
         db_name=args.database,
         user_name=args.username,
         user_password=args.password,
     )
-    
+
     # start_controller()

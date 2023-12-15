@@ -2,9 +2,6 @@ from datetime import datetime
 import json
 from uuid import uuid4
 import time
-import threading
-import atexit
-import multiprocessing
 import psycopg2
 
 from eave.stdlib.pytracing.datastructures import EventType, RawEvent, PostgresDatabaseChangeEventParams

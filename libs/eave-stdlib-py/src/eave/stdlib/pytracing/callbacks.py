@@ -47,6 +47,7 @@ def trace_call(config: EaveConfig, code: CodeType, instruction_offset: int, func
     # print(inspect.signature(func))
     # print(inspect.getcallargs(func))
 
+
 def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) -> Any:
     if not inspect or not sys or not re:
         # uninitialized modules

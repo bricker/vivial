@@ -1,5 +1,6 @@
 import eave.stdlib.pytracing
 
+
 class Person:
     name: str
     age: int
@@ -16,13 +17,16 @@ def print_person_name():
     p = Person("Bryan", 35)
     print(p.name)
 
+
 def print_person_age():
     p = Person("Bryan", 35)
     print(p.age)
 
+
 def print_person_repr():
     p = Person("Bryan", 35)
     print(p)
+
 
 if __name__ == "__main__":
     eave.stdlib.pytracing.start_tracing()

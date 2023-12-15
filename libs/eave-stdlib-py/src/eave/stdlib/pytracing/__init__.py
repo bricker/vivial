@@ -47,6 +47,7 @@ def start_tracing(
     sys.monitoring.set_events(_tool_id, _events_mask)
     # write_queue.start_autoflush()
 
+
 def stop_tracing() -> None:
     sys.monitoring.set_events(_tool_id, 0)
 

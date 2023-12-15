@@ -1,6 +1,3 @@
-import os
-
-
 # os.environ["EAVE_ENV"] = "development"
 # os.environ["EAVE_APPS_BASE_PUBLIC"] = "https://apps.eave.tests"
 # os.environ["EAVE_API_BASE_PUBLIC"] = "https://api.eave.tests"

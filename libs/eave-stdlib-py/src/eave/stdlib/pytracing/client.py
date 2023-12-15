@@ -4,6 +4,7 @@ from typing import Any
 
 _client: Connection | None = None
 
+
 def get_client() -> Connection:
     global _client
     if not _client:

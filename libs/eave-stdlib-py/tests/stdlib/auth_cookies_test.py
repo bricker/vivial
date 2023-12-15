@@ -7,6 +7,7 @@ from starlette.responses import Response
 from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.test_util import UtilityBaseTestCase
 
+
 class AuthCookiesTestBase(UtilityBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
@@ -25,6 +26,7 @@ class AuthCookiesTestBase(UtilityBaseTestCase):
         self.data_account_id = self.anystr("account_id")
         self.data_team_id = self.anystr("team_id")
         self.data_access_token = self.anystr("access_token")
+
 
 class AuthCookiesTest(AuthCookiesTestBase):
     async def test_set_auth_cookies_with_all_data(self):

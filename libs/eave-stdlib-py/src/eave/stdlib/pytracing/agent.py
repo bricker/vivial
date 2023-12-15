@@ -15,6 +15,7 @@ _endmsg = "EOF"
 
 _buffer_maxsize = 1000
 
+
 def _flush(buffer: list[Any]) -> None:
     print("Flushing queue, size:", len(buffer))
     buffer_copy = buffer.copy()
@@ -26,6 +27,7 @@ def _flush(buffer: list[Any]) -> None:
     else:
         buffer.clear()
         print("Done")
+
 
 def _q_processor(q: multiprocessing.Queue) -> None:
     running = True
@@ -51,6 +53,7 @@ def _q_processor(q: multiprocessing.Queue) -> None:
             if not running:
                 _flush(buffer)
                 break
+
 
 def _connection_handler(conn: Connection) -> None:
     q = multiprocessing.Queue()
