@@ -5,5 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-format "$(^parentpath)"
+	if py-allowed "$@"; then
+		python-format "$(^parentpath)"
+	fi
 )

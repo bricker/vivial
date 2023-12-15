@@ -5,5 +5,10 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 cd "$(^parentpath)"
-"${EAVE_HOME}"/develop/python/_format_base
-"${EAVE_HOME}"/develop/javascript/_format_base
+if py-allowed "$@"; then
+	"${EAVE_HOME}"/develop/python/_format_base
+fi
+
+if js-allowed "$@"; then
+	"${EAVE_HOME}"/develop/javascript/_format_base
+fi

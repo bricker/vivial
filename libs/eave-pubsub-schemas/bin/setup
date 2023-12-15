@@ -6,14 +6,24 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
-	"${EAVE_HOME}"/develop/javascript/_setup_base
-	"${EAVE_HOME}"/develop/python/_setup_base
+	if js-allowed "$@"; then
+		"${EAVE_HOME}"/develop/javascript/_setup_base
+	fi
+	if py-allowed "$@"; then
+		"${EAVE_HOME}"/develop/python/_setup_base
+	fi
 )
-(
-	cd "$(^parentpath)/typescript"
-	"${EAVE_HOME}"/develop/javascript/_setup_base
-)
-(
-	cd "$(^parentpath)/python"
-	"${EAVE_HOME}"/develop/python/_setup_base
-)
+
+if js-allowed "$@"; then
+	(
+		cd "$(^parentpath)/typescript"
+		"${EAVE_HOME}"/develop/javascript/_setup_base
+	)
+fi
+
+if py-allowed "$@"; then
+	(
+		cd "$(^parentpath)/python"
+		"${EAVE_HOME}"/develop/python/_setup_base
+	)
+fi

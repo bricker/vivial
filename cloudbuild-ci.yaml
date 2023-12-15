@@ -1,29 +1,33 @@
 # https://console.cloud.google.com/cloud-build/triggers;region=us-central1/edit/ec977ffb-be4d-409f-bf45-d559d6f226b8?authuser=1&project=eavefyi-dev
 
 steps:
-  # - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
-  #   dir: $_EAVE_HOME
-  #   entrypoint: develop/python/bin/setup
-  #   env:
-  #     - EAVE_HOME=$_EAVE_HOME
-  #     - CI=1
-  #     - VERBOSE=1
-
-  # - name: node:18 # gcr.io/$PROJECT_ID/eave-builder-node
-  #   dir: $_EAVE_HOME
-  #   entrypoint: develop/javascript/bin/setup
-  #   env:
-  #     - EAVE_HOME=$_EAVE_HOME
-  #     - CI=1
-  #     - VERBOSE=1
-
-  - name: gcr.io/$PROJECT_ID/eave-builder-node-python
+  - name: python:3.11.2 # gcr.io/$PROJECT_ID/eave-builder-python
     dir: $_EAVE_HOME
     entrypoint: bin/setup
+    args: ["python"]
     env:
       - EAVE_HOME=$_EAVE_HOME
       - CI=1
       - VERBOSE=1
+      - NOPROMPT=1
+
+  - name: node:18 # gcr.io/$PROJECT_ID/eave-builder-node
+    dir: $_EAVE_HOME
+    entrypoint: bin/setup
+    args: ["javascript"]
+    env:
+      - EAVE_HOME=$_EAVE_HOME
+      - CI=1
+      - VERBOSE=1
+      - NOPROMPT=1
+
+  # - name: gcr.io/$PROJECT_ID/eave-builder-node-python
+  #   dir: $_EAVE_HOME
+  #   entrypoint: bin/setup
+  #   env:
+  #     - EAVE_HOME=$_EAVE_HOME
+  #     - CI=1
+  #     - VERBOSE=1
 
   - name: gcr.io/$PROJECT_ID/eave-builder-node-python
     dir: $_EAVE_HOME

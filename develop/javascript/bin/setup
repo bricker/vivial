@@ -6,5 +6,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
-	"${EAVE_HOME}"/develop/javascript/_setup_base
+	if js-allowed "$@"; then
+		"${EAVE_HOME}"/develop/javascript/_setup_base
+	fi
 )

@@ -6,7 +6,9 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
-	"${EAVE_HOME}"/develop/python/_setup_base
+	if py-allowed "$@"; then
+		"${EAVE_HOME}"/develop/python/_setup_base
+	fi
 
 	if ! ^ci; then
 		"${EAVE_HOME}"/develop/shared/bin/build-dotenv eave/slack/config.py

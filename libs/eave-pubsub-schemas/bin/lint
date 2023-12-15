@@ -6,9 +6,13 @@ source "${EAVE_HOME}"/develop/functions.bash
 (
 	cd "$(^parentpath)"
 
-	python-lint .
-	node-lint .
+	if js-allowed "$@"; then
+		node-lint .
+		typescript/bin/lint
+	fi
 
-	python/bin/lint
-	typescript/bin/lint
+	if py-allowed "$@"; then
+		python-lint .
+		python/bin/lint
+	fi
 )

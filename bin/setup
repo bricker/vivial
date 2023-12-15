@@ -286,7 +286,7 @@ function setupapps() (
 				continue
 			fi
 			statusmsg -d "Running $ss"
-			_ONLY_THIS_MODULE=1 $ss
+			_ONLY_THIS_MODULE=1 $ss "$@"
 		done
 	fi
 )
@@ -300,8 +300,12 @@ statusmsg -i "* pyenv - https://github.com/pyenv/pyenv node version management. 
 echo ""
 
 setenvvars
-setuppython
-setupnode
+if py-allowed "$@"; then
+	setuppython
+fi
+if js-allowed "$@"; then
+	setupnode
+fi
 if ! ^ci; then
 	setupgcloud
 	# setupcloudsqlproxy
@@ -311,13 +315,14 @@ if ! ^ci; then
 	installshfmt
 	installshellcheck
 fi
-setupapps
+setupapps "$@"
 
 statusmsg -s "Done!"
 statusmsg -s "Now, open EAVE_HOME (this directory) in VSCode (recommended) and you're ready to go. (Hint: try \`code .\`)"
 
 echo ""
 
-statusmsg -o "FYI: You can set some environment variables to configure how this script runs:"
+statusmsg -o "FYI: You can pass either 'python' or 'javascript' as a parameter to setup only the specified dev environment."
+statusmsg -o "You can also set some environment variables to configure how this script runs:"
 statusmsg -o "FORCE=1 : Bypass checks"
 statusmsg -o "NOPROMPT=1 : Automatically answer yes to prompts"

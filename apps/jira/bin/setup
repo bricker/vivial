@@ -6,11 +6,13 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 cd "$(^parentpath)"
 
-if ! ^onlythismodule; then
-	"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/setup
-fi
+if js-allowed "$@"; then
+	if ! ^onlythismodule; then
+		"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/setup
+	fi
 
-"${EAVE_HOME}"/develop/javascript/_setup_base
+	"${EAVE_HOME}"/develop/javascript/_setup_base
+fi
 
 if ! ^ci; then
 	"${EAVE_HOME}"/develop/shared/bin/build-dotenv src/config.ts

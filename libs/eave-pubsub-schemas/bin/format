@@ -7,9 +7,13 @@ source "${EAVE_HOME}"/develop/functions.bash
 (
 	cd "$(^parentpath)"
 
-	python-format .
-	node-format .
+	if py-allowed "$@"; then
+		python-format .
+		python/bin/format
+	fi
 
-	python/bin/format
-	typescript/bin/format
+	if js-allowed "$@"; then
+		node-format .
+		typescript/bin/format
+	fi
 )

@@ -5,12 +5,13 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 cd "$(^parentpath)"
+if js-allowed "$@"; then
+	if ! ^onlythismodule; then
+		"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/setup
+	fi
 
-if ! ^onlythismodule; then
-	"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/setup
+	"${EAVE_HOME}"/develop/javascript/_setup_base
 fi
-
-"${EAVE_HOME}"/develop/javascript/_setup_base
 
 if ! ^ci; then
 	"${EAVE_HOME}"/develop/shared/bin/build-dotenv src/config.ts

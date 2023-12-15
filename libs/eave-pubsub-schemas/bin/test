@@ -6,6 +6,10 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(^parentpath)"
-	python/bin/test
-	typescript/bin/test
+	if py-allowed "$@"; then
+		python/bin/test
+	fi
+	if js-allowed "$@"; then
+		typescript/bin/test
+	fi
 )

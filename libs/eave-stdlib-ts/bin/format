@@ -5,5 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	node-format "$(^parentpath)"
+	if js-allowed "$@"; then
+		node-format "$(^parentpath)"
+	fi
 )

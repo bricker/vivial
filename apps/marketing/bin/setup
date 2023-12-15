@@ -5,9 +5,13 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 cd "$(^parentpath)"
+if py-allowed "$@"; then
+	"${EAVE_HOME}"/develop/python/_setup_base
+fi
 
-"${EAVE_HOME}"/develop/python/_setup_base
-"${EAVE_HOME}"/develop/javascript/_setup_base
+if js-allowed "$@"; then
+	"${EAVE_HOME}"/develop/javascript/_setup_base
+fi
 
 if ! ^ci; then
 	"${EAVE_HOME}"/develop/shared/bin/build-dotenv eave/marketing/config.py

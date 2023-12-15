@@ -5,7 +5,9 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	# FIXME: This gives errors about the import paths in the generated files
-	# node-lint "$(^parentpath)"
-	statusmsg -w "Skipping linting in eave-pubsub-schemas/typescript due to known failures"
+	if js-allowed "$@"; then
+		# FIXME: This gives errors about the import paths in the generated files
+		# node-lint "$(^parentpath)"
+		statusmsg -w "Skipping linting in eave-pubsub-schemas/typescript due to known failures"
+	fi
 )

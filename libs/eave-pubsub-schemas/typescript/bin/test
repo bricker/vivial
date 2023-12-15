@@ -4,4 +4,6 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-statusmsg -w "No typescript tests"
+if js-allowed "$@"; then
+	statusmsg -w "No typescript tests"
+fi

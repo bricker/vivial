@@ -470,5 +470,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	)
 
+	function js-allowed() {
+		! test "$1" = "python"
+	}
+
+	function py-allowed() {
+		! test "$1" = "javascript"
+	}
+
 	_SHARED_FUNCTIONS_LOADED=1
 fi
