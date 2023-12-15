@@ -4,8 +4,11 @@ import json
 import os
 import uuid
 import random
-from typing import Any, Literal, TypeVar, Optional
+from typing import Any, Literal, TypeVar, Optional, Union
 import unittest.mock
+
+from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
+from eave.stdlib.checksum import generate_checksum
 import eave.stdlib.util
 import eave.stdlib.exceptions
 import eave.stdlib.atlassian
@@ -133,6 +136,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         return self.testdata[name]
 
+
     def anystr(self, name: Optional[str] = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
@@ -230,6 +234,20 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getint(self, name: str) -> int:
         return self.testdata[name]
 
+    def anybytes(self, name: Optional[str] = None, encoding: str = "utf-8") -> bytes:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
+            v = uuid.uuid4()
+            data = bytes(v.hex, encoding)
+            self.testdata[name] = data
+
+        return self.testdata[name]
+
+    def getbytes(self, name: str) -> bytes:
+        return self.testdata[name]
+
     @staticmethod
     def all_same(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
         """
@@ -273,15 +291,38 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return passing
 
     def mock_google_services(self) -> None:
-        def _get_secret(name: str) -> str:
-            v: str = os.getenv(name, f"not mocked: {name}")
-            return v
-
         # def _get_runtimeconfig(name: str) -> str:
         #     v: str = os.getenv(name, f"not mocked: {name}")
         #     return v
 
-        self.patch(unittest.mock.patch("eave.stdlib.config.EaveConfig.get_secret", side_effect=_get_secret))
+        def _access_secret_version(
+            request: Optional[AccessSecretVersionRequest | dict] = None,
+            *,
+            name: Optional[str] = None,
+            **kwargs
+        ) -> AccessSecretVersionResponse:
+            if isinstance(request, AccessSecretVersionRequest):
+                name_ = request.name
+            elif isinstance(request, dict) and "name" in request:
+                name_ = request["name"]
+            else:
+                name_ = name
+
+            data = self.anybytes()
+            data_crc32 = generate_checksum(data)
+
+            return AccessSecretVersionResponse(
+                name=name_,
+                payload=SecretPayload(
+                    data=data,
+                    data_crc32c=data_crc32,
+                )
+            )
+
+        self.patch(
+            unittest.mock.patch("google.cloud.secretmanager.SecretManagerServiceClient.access_secret_version", side_effect=_access_secret_version)
+        )
+
         # self.patch(
         #     unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
         # )

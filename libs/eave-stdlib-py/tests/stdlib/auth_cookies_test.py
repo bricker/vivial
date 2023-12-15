@@ -4,7 +4,8 @@ from typing import Any
 from starlette.requests import Request
 
 from starlette.responses import Response
-from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.stdlib.auth_cookies import AUTH_COOKIE_VERSION, EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_ACCOUNT_ID_COOKIE_NAME, EAVE_TEAM_ID_COOKIE_NAME, delete_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.stdlib.headers import SET_COOKIE_HEADER
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 
@@ -29,6 +30,15 @@ class AuthCookiesTestBase(UtilityBaseTestCase):
 
 
 class AuthCookiesTest(AuthCookiesTestBase):
+    async def test_cookie_names(self):
+        """
+        The auth cookie names may be referenced in client code, eg GTM, so changing them needs consideration.
+        """
+        assert AUTH_COOKIE_VERSION == "202311"
+        assert EAVE_ACCOUNT_ID_COOKIE_NAME == "ev_account_id.202311"
+        assert EAVE_TEAM_ID_COOKIE_NAME == "ev_team_id.202311"
+        assert EAVE_ACCESS_TOKEN_COOKIE_NAME == "ev_access_token.202311"
+
     async def test_set_auth_cookies_with_all_data(self):
         set_auth_cookies(
             response=self.mock_response,
@@ -36,19 +46,19 @@ class AuthCookiesTest(AuthCookiesTestBase):
             account_id=self.data_account_id,
             access_token=self.data_access_token,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
 
         assert len(cookies) == 3
-        assert any(re.search(f"^ev_account_id.202311={self.data_account_id};", v) for v in cookies)
-        assert any(re.search(f"^ev_access_token.202311={self.data_access_token};", v) for v in cookies)
-        assert any(re.search(f"^ev_team_id.202311={self.data_team_id};", v) for v in cookies)
+        assert any(re.search(f"^{EAVE_ACCOUNT_ID_COOKIE_NAME}={self.data_account_id};", v) for v in cookies)
+        assert any(re.search(f"^{EAVE_ACCESS_TOKEN_COOKIE_NAME}={self.data_access_token};", v) for v in cookies)
+        assert any(re.search(f"^{EAVE_TEAM_ID_COOKIE_NAME}={self.data_team_id};", v) for v in cookies)
 
     async def test_get_auth_cookies_with_all_data(self):
         cookies = get_auth_cookies(
             cookies={
-                "ev_account_id.202311": self.data_account_id,
-                "ev_access_token.202311": self.data_access_token,
-                "ev_team_id.202311": self.data_team_id,
+                EAVE_ACCOUNT_ID_COOKIE_NAME: self.data_account_id,
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: self.data_access_token,
+                EAVE_TEAM_ID_COOKIE_NAME: self.data_team_id,
             }
         )
 
@@ -60,9 +70,9 @@ class AuthCookiesTest(AuthCookiesTestBase):
         cookies = get_auth_cookies(
             cookies=SimpleCookie(
                 input={
-                    "ev_account_id.202311": self.data_account_id,
-                    "ev_access_token.202311": self.data_access_token,
-                    "ev_team_id.202311": self.data_team_id,
+                    EAVE_ACCOUNT_ID_COOKIE_NAME: self.data_account_id,
+                    EAVE_ACCESS_TOKEN_COOKIE_NAME: self.data_access_token,
+                    EAVE_TEAM_ID_COOKIE_NAME: self.data_team_id,
                 }
             )
         )
@@ -74,7 +84,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_get_auth_cookies_with_account_id_only(self):
         cookies = get_auth_cookies(
             cookies={
-                "ev_account_id.202311": self.data_account_id,
+                EAVE_ACCOUNT_ID_COOKIE_NAME: self.data_account_id,
             }
         )
 
@@ -85,7 +95,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_get_auth_cookies_with_access_token_only(self):
         cookies = get_auth_cookies(
             cookies={
-                "ev_access_token.202311": self.data_access_token,
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: self.data_access_token,
             }
         )
 
@@ -96,7 +106,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_get_auth_cookies_with_team_id_only(self):
         cookies = get_auth_cookies(
             cookies={
-                "ev_team_id.202311": self.data_team_id,
+                EAVE_TEAM_ID_COOKIE_NAME: self.data_team_id,
             }
         )
 
@@ -112,9 +122,9 @@ class AuthCookiesTest(AuthCookiesTestBase):
 
     async def test_delete_auth_cookies(self):
         delete_auth_cookies(response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
         assert len(cookies) == 3
 
-        assert any(re.search('^ev_account_id.202311="";', v) for v in cookies)
-        assert any(re.search('^ev_access_token.202311="";', v) for v in cookies)
-        assert any(re.search('^ev_team_id.202311="";', v) for v in cookies)
+        assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}="";', v) for v in cookies)
+        assert any(re.search(f'^{EAVE_ACCESS_TOKEN_COOKIE_NAME}="";', v) for v in cookies)
+        assert any(re.search(f'^{EAVE_TEAM_ID_COOKIE_NAME}="";', v) for v in cookies)

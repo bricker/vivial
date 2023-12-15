@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-import path from "node:path";
+const dotenv = require("dotenv");
+const path = require("node:path");
 
 try {
   dotenv.config({

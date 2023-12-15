@@ -170,6 +170,7 @@ class EaveConfig:
         value: str | None
 
         if self.is_development:
+            # This secret should never be pulled from Google Cloud during development.
             value = os.getenv(key)
             if not value:
                 return None
@@ -291,7 +292,7 @@ class EaveConfig:
     #     return variable.text
 
     def get_secret(self, name: str) -> str:
-        # Allow overrides
+        # Allow overrides from the environment
         if name in os.environ:
             return os.environ[name]
 

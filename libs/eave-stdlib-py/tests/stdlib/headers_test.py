@@ -17,6 +17,7 @@ class HeadersTest(UtilityBaseTestCase):
         assert headers.EAVE_CRON_DISPATCH_KEY_HEADER == "eave-cron-dispatch-key"
         assert headers.EAVE_DEV_BYPASS_HEADER == "X-Google-EAVEDEV"
         assert headers.COOKIE_HEADER == "cookie"
+        assert headers.SET_COOKIE_HEADER == "set-cookie"
         assert headers.AUTHORIZATION_HEADER == "authorization"
         assert headers.HOST == "host"
         assert headers.CONTENT_TYPE == "content-type"
