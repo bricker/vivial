@@ -80,7 +80,11 @@ function setuppython() (
 			pyenv version
 		fi
 
-		./$EAVE_HOME/bin/setup-py
+		python -m venv --clear --upgrade-deps "$EAVE_HOME/.venv"
+		python-activate-venv
+
+		# shellcheck disable=SC2086
+		python -m pip install -r "$EAVE_HOME/requirements-dev.txt"
 	fi
 )
 
