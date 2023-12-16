@@ -9,7 +9,7 @@
     "@octokit/graphql-schema": "14.x",
     "@octokit/webhooks": "10.x",
     "express": "4.x",
-    "octokit": "2.x",
+    "octokit": "3.x",
     "pm2": "5.x",
     "tsx": "3.x"
   },
