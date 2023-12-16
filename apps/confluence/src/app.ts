@@ -35,12 +35,12 @@ export const addon = ace(app, {
 app.use(helmetMiddleware());
 app.use(atlassianSecurityPolicyMiddlewares);
 app.use(commonRequestMiddlewares);
+app.use("/confluence/status", StatusRouter());
 addGAELifecycleRoutes({ router: app });
 
 const rootRouter = express.Router();
 app.use("/confluence", rootRouter);
 
-rootRouter.use("/status", StatusRouter());
 rootRouter.use("/events", WebhookRouter({ addon }));
 rootRouter.use("/api", InternalApiRouter({ addon }));
 

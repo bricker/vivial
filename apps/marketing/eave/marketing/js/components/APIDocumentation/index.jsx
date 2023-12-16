@@ -1,7 +1,8 @@
 // @ts-check
 import { CircularProgress, Link, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { AppContext } from "../../context/Provider";
 import useTeam from "../../hooks/useTeam";
 import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
 import { mapReposById } from "../../util/repo-util.js";
@@ -181,33 +182,23 @@ function statusMessage({
   );
 }
 
-/**
- * Renders the content of the dashboard based on the state of API documentation fetching.
- * Displays error message if unable to fetch API documentation.
- * Shows a loading spinner while fetching API documentation.
- * If API documentation is empty, informs the user that Eave is searching for Express APIs.
- * Once the API documentation is fetched, it displays the documentation in a table or compact view based on the 'compact' parameter.
- * It also handles user interactions such as row clicks and mouse overs.
- *
- * @param {Object} classes - CSS classes for styling the rendered content.
- * @param {Types.DashboardTeam} team - The team object containing information about API documentation fetching status and results.
- * @param {boolean} compact - Determines if the rendered view should be in compact mode.
- */
 function renderContent(
-  classes,
-  /** @type {Types.DashboardTeam} */ team,
-  compact,
+  /** @type {{ classes: object, networkState: Types.DashboardNetworkState, team: Types.DashboardTeam, compact: boolean }} */ {
+    classes,
+    networkState,
+    team,
+    compact,
+  },
 ) {
+  const { apiDocs, apiDocsJobs, repos } = team;
+
   const {
     apiDocsErroring,
     apiDocsLoading,
     apiDocsFetchCount,
-    apiDocs,
     apiDocsJobStatusLoading,
-    apiDocsJobs,
-    repos,
     apiDocsRequestHasSucceededAtLeastOnce,
-  } = team;
+  } = networkState;
 
   const loadingWheel = (
     <div className={classes.loader}>
@@ -234,7 +225,7 @@ function renderContent(
   }
 
   // no docs created in DB yet; check job status to find why
-  if (apiDocs.length === 0) {
+  if (!apiDocs || apiDocs.length === 0) {
     if (apiDocsJobStatusLoading) {
       return loadingWheel;
     }
@@ -272,7 +263,8 @@ function renderContent(
     // fallback
     return processingMessage;
   }
-  const repoMap = mapReposById(repos);
+
+  const repoMap = repos ? mapReposById(repos) : {};
   const handleRowClick = (e, /** @type {Types.GithubDocument} */ doc) => {
     const filePath = doc.file_path;
     const isProcessing = doc.status === "processing";
@@ -347,6 +339,9 @@ function renderContent(
 }
 
 const APIDocumentation = () => {
+  const {
+    dashboardNetworkStateCtx: [networkState],
+  } = useContext(AppContext);
   const { team, getTeamAPIDocs, getTeamApiDocsJobsStatuses } = useTeam();
   const [compact, setCompact] = useState(window.innerWidth < 900);
   const classes = makeClasses();
@@ -369,7 +364,7 @@ const APIDocumentation = () => {
       <Typography className={classes.title} variant="h2">
         API Documentation
       </Typography>
-      {renderContent(classes, team, compact)}
+      {team && renderContent({ classes, team, networkState, compact })}
     </section>
   );
 };

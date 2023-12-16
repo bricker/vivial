@@ -40,7 +40,6 @@ class GetTeamRequest(CoreApiEndpoint):
 class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/me/team/destinations/confluence/upsert",
-        team_id_required=False,
     )
 
     class RequestBody(BaseRequestBody):
@@ -56,6 +55,7 @@ class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
         input: RequestBody,
         access_token: str,
         account_id: uuid.UUID | str,
+        team_id: uuid.UUID | str,
         **kwargs: Unpack[requests.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests.make_request(
@@ -63,6 +63,7 @@ class UpsertConfluenceDestinationAuthedRequest(CoreApiEndpoint):
             input=input,
             access_token=access_token,
             account_id=account_id,
+            team_id=team_id,
             **kwargs,
         )
 

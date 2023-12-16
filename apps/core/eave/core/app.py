@@ -6,7 +6,7 @@ from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.stdlib import cache, logging
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
+from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
 from eave.stdlib.core_api.operations.api_documentation_jobs import (
     GetApiDocumentationJobsOperation,
     UpsertApiDocumentationJobOperation,
@@ -283,10 +283,6 @@ routes = [
     make_route(
         config=GetAuthenticatedAccount.config,
         endpoint=authed_account.GetAuthedAccount,
-    ),
-    make_route(
-        config=GetAuthenticatedAccountTeamIntegrations.config,
-        endpoint=authed_account.GetAuthedAccountTeamIntegrations,
     ),
     # OAuth endpoints.
     # These endpoints don't require any verification (except the OAuth flow itself)

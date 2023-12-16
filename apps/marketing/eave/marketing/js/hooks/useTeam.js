@@ -6,11 +6,21 @@ import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { sortAPIDocuments } from "../util/document-util.js";
 import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
-/** @returns {{team: Types.DashboardTeam, getTeam: any, getTeamRepos: any, getTeamAPIDocs: any, updateTeamFeatureState: any, getTeamApiDocsJobsStatuses: any}} */
+/**
+ * @typedef {object} TeamHook
+ * @property {Types.DashboardTeam | null} team
+ * @property {() => void} getTeam
+ * @property {() => void} getTeamRepos
+ * @property {() => void} getTeamAPIDocs
+ * @property {() => void} getTeamApiDocsJobsStatuses
+ * @property {(input: Types.FeatureStateParams) => void} updateTeamFeatureState
+ */
+
+/** @returns {TeamHook} */
 const useTeam = () => {
-  const { teamCtx } = useContext(AppContext);
-  /** @type {[Types.DashboardTeam, (f: (prev: Types.DashboardTeam) => Types.DashboardTeam) => void]} */
+  const { teamCtx, dashboardNetworkStateCtx } = useContext(AppContext);
   const [team, setTeam] = teamCtx;
+  const [, setDashboardNetworkState] = dashboardNetworkStateCtx;
 
   /**
    * Asynchronously fetches team data from the "/dashboard/team" endpoint using a POST request.
@@ -21,7 +31,7 @@ const useTeam = () => {
    * Regardless of success or failure, sets 'teamIsLoading' state to false upon completion.
    */
   function getTeam() {
-    setTeam((prev) => ({
+    setDashboardNetworkState((prev) => ({
       ...prev,
       teamIsLoading: true,
       teamIsErroring: false,
@@ -46,16 +56,20 @@ const useTeam = () => {
           .then((/** @type {Types.GetTeamResponseBody} */ data) => {
             setTeam((prev) => ({
               ...prev,
-              teamIsLoading: false,
-              teamRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
               id: data.team?.id,
               name: data.team?.name,
               integrations: data.integrations,
             }));
+
+            setDashboardNetworkState((prev) => ({
+              ...prev,
+              teamIsLoading: false,
+              teamRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
+            }));
           });
       })
       .catch(() => {
-        setTeam((prev) => ({
+        setDashboardNetworkState((prev) => ({
           ...prev,
           teamIsLoading: false,
           teamIsErroring: true,
@@ -72,7 +86,7 @@ const useTeam = () => {
    * Regardless of the request outcome, the loading flag is reset at the end.
    */
   function getTeamRepos() {
-    setTeam((prev) => ({
+    setDashboardNetworkState((prev) => ({
       ...prev,
       reposAreLoading: true,
       reposAreErroring: false,
@@ -98,8 +112,6 @@ const useTeam = () => {
           .then((/** @type {Types.GetGithubReposResponseBody} */ data) => {
             setTeam((prev) => ({
               ...prev,
-              reposAreLoading: false,
-              reposRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
               repos: data.repos,
               inlineCodeDocsEnabled: data.repos.some(
                 (repo) =>
@@ -111,10 +123,16 @@ const useTeam = () => {
                   repo.api_documentation_state === FEATURE_STATES.ENABLED,
               ),
             }));
+
+            setDashboardNetworkState((prev) => ({
+              ...prev,
+              reposAreLoading: false,
+              reposRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
+            }));
           });
       })
       .catch(() => {
-        setTeam((prev) => ({
+        setDashboardNetworkState((prev) => ({
           ...prev,
           reposAreLoading: false,
           reposAreErroring: true,
@@ -192,7 +210,7 @@ const useTeam = () => {
    * In case of any other error, it updates the team state with error status.
    */
   function getTeamApiDocsJobsStatuses() {
-    setTeam((prev) => ({
+    setDashboardNetworkState((prev) => ({
       ...prev,
       apiDocsJobStatusLoading: true,
       apiDocsJobStatusErroring: false,
@@ -221,14 +239,17 @@ const useTeam = () => {
               setTeam((prev) => ({
                 ...prev,
                 apiDocsJobs: data.jobs,
-                apiDocsJobStatusErroring: false,
+              }));
+              setDashboardNetworkState((prev) => ({
+                ...prev,
                 apiDocsJobStatusLoading: false,
+                apiDocsJobStatusErroring: false,
               }));
             },
           );
       })
       .catch(() => {
-        setTeam((prev) => ({
+        setDashboardNetworkState((prev) => ({
           ...prev,
           apiDocsJobStatusLoading: false,
           apiDocsJobStatusErroring: true,
@@ -247,7 +268,7 @@ const useTeam = () => {
    * The state also keeps track of whether a request has succeeded at least once to continue showing the table even if a subsequent request fails.
    */
   function getTeamAPIDocs() {
-    setTeam((prev) => ({
+    setDashboardNetworkState((prev) => ({
       ...prev,
       apiDocsLoading: true,
       apiDocsErroring: false,
@@ -272,15 +293,18 @@ const useTeam = () => {
           .then((/**@type {Types.GetGithubDocumentsResponseBody}*/ data) => {
             setTeam((prev) => ({
               ...prev,
+              apiDocs: sortAPIDocuments(data.documents),
+            }));
+            setDashboardNetworkState((prev) => ({
+              ...prev,
               apiDocsLoading: false,
               apiDocsFetchCount: prev.apiDocsFetchCount + 1,
               apiDocsRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
-              apiDocs: sortAPIDocuments(data.documents),
             }));
           });
       })
       .catch(() => {
-        setTeam((prev) => ({
+        setDashboardNetworkState((prev) => ({
           ...prev,
           apiDocsLoading: false,
           apiDocsFetchCount: prev.apiDocsFetchCount + 1,
