@@ -1,3 +1,6 @@
+from eave.core.internal.oauth.atlassian import ATLASSIAN_OAUTH_AUTHORIZE_PATH, ATLASSIAN_OAUTH_CALLBACK_PATH
+from eave.core.internal.oauth.google import GOOGLE_OAUTH_AUTHORIZE_PATH, GOOGLE_OAUTH_CALLBACK_PATH
+from eave.core.internal.oauth.slack import SLACK_OAUTH_AUTHORIZE_PATH, SLACK_OAUTH_CALLBACK_PATH
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
@@ -35,7 +38,6 @@ from eave.stdlib.core_api.operations.github_repos import (
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
-from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -154,7 +156,7 @@ def make_route(
         app=endpoint, endpoint_config=config
     )  # Last thing to happen before the Route handler
     endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
-    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
+    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config)
     endpoint = OriginASGIMiddleware(
         app=endpoint, endpoint_config=config
     )  # First thing to happen when the middleware chain is kicked off
@@ -286,7 +288,7 @@ routes = [
     # These endpoints don't require any verification (except the OAuth flow itself)
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/google/authorize",
+            path=GOOGLE_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -296,7 +298,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/google/callback",
+            path=GOOGLE_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -306,7 +308,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/slack/authorize",
+            path=SLACK_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -316,7 +318,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/slack/callback",
+            path=SLACK_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -326,7 +328,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/atlassian/authorize",
+            path=ATLASSIAN_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -336,7 +338,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/atlassian/callback",
+            path=ATLASSIAN_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -346,7 +348,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/github/authorize",
+            path=github_oauth.GITHUB_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -356,7 +358,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/github/callback",
+            path=github_oauth.GITHUB_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,

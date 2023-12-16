@@ -24,7 +24,8 @@ def load_dotenv(path: str, override: bool = True) -> None:
 
 
 def load_standard_dotenv_files() -> None:
-    google_cloud_project = os.getenv("GOOGLE_CLOUD_PROJECT", "eavefyi-dev")
-    load_dotenv("develop/shared/share.env", override=True)
-    load_dotenv(".env", override=True)
-    load_dotenv(f".{google_cloud_project}.env", override=True)
+    eave_env = os.getenv("EAVE_ENV", "development")
+    load_dotenv(f".{eave_env}.env", override=False)
+    load_dotenv(".env", override=False)
+    load_dotenv(f"develop/shared/share.{eave_env}.env", override=False)
+    load_dotenv("develop/shared/share.env", override=False)

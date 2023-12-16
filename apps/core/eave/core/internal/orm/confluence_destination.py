@@ -20,7 +20,7 @@ from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.documents import DocumentInput, DocumentSearchResult
 
 from eave.stdlib.core_api.models.team import ConfluenceDestination, ConfluenceDestinationInput
-from eave.core.internal.config import app_config
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.logging import LogContext
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -142,7 +142,7 @@ class ConfluenceClient(DocumentClient):
     async def get_available_spaces(self, ctx: Optional[LogContext] = None) -> GetAvailableSpacesRequest.ResponseBody:
         response = await GetAvailableSpacesRequest.perform(
             ctx=ctx,
-            origin=app_config.eave_origin,
+            origin=CORE_API_APP_CONFIG.eave_origin,
             team_id=self.confluence_destination.team_id,
         )
         return response
@@ -150,7 +150,7 @@ class ConfluenceClient(DocumentClient):
     async def search_documents(self, *, query: str, ctx: Optional[LogContext] = None) -> list[DocumentSearchResult]:
         response = await SearchContentRequest.perform(
             ctx=ctx,
-            origin=app_config.eave_origin,
+            origin=CORE_API_APP_CONFIG.eave_origin,
             team_id=self.confluence_destination.team_id,
             input=SearchContentRequest.RequestBody(
                 search_params=ConfluenceSearchParamsInput(space_key=self.confluence_destination.space_key, text=query),
@@ -172,7 +172,7 @@ class ConfluenceClient(DocumentClient):
     async def delete_document(self, *, document_id: str, ctx: Optional[LogContext] = None) -> None:
         await DeleteContentRequest.perform(
             ctx=ctx,
-            origin=app_config.eave_origin,
+            origin=CORE_API_APP_CONFIG.eave_origin,
             team_id=self.confluence_destination.team_id,
             input=DeleteContentRequest.RequestBody(
                 content=DeleteContentInput(
@@ -184,7 +184,7 @@ class ConfluenceClient(DocumentClient):
     async def create_document(self, *, input: DocumentInput, ctx: Optional[LogContext] = None) -> DocumentMetadata:
         response = await CreateContentRequest.perform(
             ctx=ctx,
-            origin=app_config.eave_origin,
+            origin=CORE_API_APP_CONFIG.eave_origin,
             team_id=self.confluence_destination.team_id,
             input=CreateContentRequest.RequestBody(
                 confluence_destination=ConfluenceDestinationInput(
@@ -204,7 +204,7 @@ class ConfluenceClient(DocumentClient):
     ) -> DocumentMetadata:
         response = await UpdateContentRequest.perform(
             ctx=ctx,
-            origin=app_config.eave_origin,
+            origin=CORE_API_APP_CONFIG.eave_origin,
             team_id=self.confluence_destination.team_id,
             input=UpdateContentRequest.RequestBody(
                 content=UpdateContentInput(

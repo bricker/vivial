@@ -25,7 +25,7 @@ from eave.stdlib.logging import LogContext
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.task_queue import create_task
 from eave.stdlib.util import ensure_uuid
-from eave.core.internal.config import app_config
+from eave.core.internal.config import CORE_API_APP_CONFIG
 
 
 class CreateGithubRepoEndpoint(HTTPEndpoint):
@@ -258,7 +258,7 @@ async def _trigger_api_documentation(github_repo_orm: GithubRepoOrm, ctx: LogCon
             target_path=RunApiDocumentationTask.config.path,
             queue_name=GITHUB_EVENT_QUEUE_NAME,
             audience=EaveApp.eave_github_app,
-            origin=app_config.eave_origin,
+            origin=CORE_API_APP_CONFIG.eave_origin,
             payload=RunApiDocumentationTask.RequestBody(
                 repo=GithubRepoInput(external_repo_id=github_repo_orm.external_repo_id)
             ).json(),

@@ -15,7 +15,7 @@ from pydantic import BaseModel, HttpUrl
 from slack_bolt.async_app import AsyncBoltContext
 from slack_sdk.web.async_client import AsyncWebClient
 
-from .config import app_config
+from eave.stdlib.config import SHARED_CONFIG
 
 
 class SlackAddReactionError(Exception):
@@ -389,7 +389,7 @@ class SlackMessage:
 
     @property
     def is_eave(self) -> bool:
-        v: bool = self.app_id == app_config.eave_slack_app_id
+        v: bool = self.app_id == SHARED_CONFIG.eave_slack_app_id
         return v
 
     async def send_response(
@@ -438,7 +438,7 @@ class SlackMessage:
         await self.get_expanded_text()
         if self.user_mentions is None:
             return False
-        value = any(profile.api_app_id == app_config.eave_slack_app_id for profile in self.user_mentions)
+        value = any(profile.api_app_id == SHARED_CONFIG.eave_slack_app_id for profile in self.user_mentions)
         return value
 
     @eave_util.memoized

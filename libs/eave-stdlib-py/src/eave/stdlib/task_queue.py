@@ -17,13 +17,14 @@ from eave.stdlib.headers import (
     EAVE_TEAM_ID_HEADER,
     GCP_CLOUD_TRACE_CONTEXT,
     GCP_GAE_REQUEST_LOG_ID,
+    MIME_TYPE_JSON,
     USER_AGENT,
 )
 from eave.stdlib.time import ONE_DAY_IN_MS
 from eave.stdlib.util import compact_deterministic_json, ensure_bytes, ensure_str
 
 from .typing import JsonObject
-from .config import shared_config
+from .config import SHARED_CONFIG
 from .logging import LogContext, eaveLogger
 
 T = TypeVar("T")
@@ -31,19 +32,24 @@ T = TypeVar("T")
 asyncio_tasks = set[asyncio.Task[Any]]()
 
 
-def do_in_background(coro: Coroutine[Any, Any, T]) -> asyncio.Task[T]:
+def do_in_background(coro: Coroutine[Any, Any, Any]) -> None:
+    try:
+        # Assert that there is a running event loop. If not, this function won't do anything.
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return
+
     task = asyncio.create_task(coro)
     asyncio_tasks.add(task)
     task.add_done_callback(asyncio_tasks.discard)
-    return task
 
 
 async def get_queue(queue_name: str) -> tasks.Queue:
     client = tasks.CloudTasksAsyncClient()
 
     queue = client.queue_path(
-        project=shared_config.google_cloud_project,
-        location=shared_config.app_location,
+        project=SHARED_CONFIG.google_cloud_project,
+        location=SHARED_CONFIG.app_location,
         queue=queue_name,
     )
 
@@ -136,7 +142,7 @@ async def create_task(
 
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
-    headers[CONTENT_TYPE] = "application/json"
+    headers[CONTENT_TYPE] = MIME_TYPE_JSON
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
     headers[EAVE_ORIGIN_HEADER] = origin.value
@@ -151,8 +157,8 @@ async def create_task(
     client = tasks.CloudTasksAsyncClient()
 
     parent = client.queue_path(
-        project=shared_config.google_cloud_project,
-        location=shared_config.app_location,
+        project=SHARED_CONFIG.google_cloud_project,
+        location=SHARED_CONFIG.app_location,
         queue=queue_name,
     )
 
@@ -171,8 +177,8 @@ async def create_task(
 
         # If this isn't given, Cloud Tasks creates a unique task name automatically.
         task.name = client.task_path(
-            project=shared_config.google_cloud_project,
-            location=shared_config.app_location,
+            project=SHARED_CONFIG.google_cloud_project,
+            location=SHARED_CONFIG.app_location,
             queue=queue_name,
             task=unique_task_id,
         )

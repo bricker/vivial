@@ -3,16 +3,26 @@ import sqlalchemy.orm
 import sqlalchemy.util
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from .config import app_config
+from .config import CORE_API_APP_CONFIG
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
-    host=app_config.db_host,
-    username=app_config.db_user,
-    password=app_config.db_pass,
-    database=app_config.db_name,
+    host=CORE_API_APP_CONFIG.db_host,
+    port=CORE_API_APP_CONFIG.db_port,
+    username=CORE_API_APP_CONFIG.db_user,
+    password=CORE_API_APP_CONFIG.db_pass,
+    database=CORE_API_APP_CONFIG.db_name,
 )
-async_engine = create_async_engine(db_uri, echo=False, pool_pre_ping=True)
+async_engine = create_async_engine(
+    db_uri,
+    echo=False,
+    pool_pre_ping=True,
+    connect_args={
+        "server_settings": {
+            "timezone": "UTC",
+        },
+    },
+)
 
 async_session = async_sessionmaker(async_engine, expire_on_commit=False)
 """

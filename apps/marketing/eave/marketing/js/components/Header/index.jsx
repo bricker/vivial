@@ -132,12 +132,12 @@ const Header = ({
     </>
   ) : (
     <>
-      <button
+      {/* <button
         className={classes.inlineButton}
         onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}
       >
         Log In
-      </button>
+      </button> */}
       <Button
         className={classes.button}
         onClick={() => openModal(AUTH_MODAL_STATE.SIGNUP)}
@@ -172,12 +172,12 @@ const Header = ({
       >
         Sign Up
       </button>
-      <button
+      {/* <button
         className={classes.mobileNavItem}
         onClick={() => openModal(AUTH_MODAL_STATE.LOGIN)}
       >
         Log In
-      </button>
+      </button> */}
     </>
   );
 

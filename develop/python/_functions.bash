@@ -75,6 +75,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-activate-venv
 
 		local target=$1
+		local testfile=${2:-.}
 		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 		local exitfirst=""
 		if ^ci; then
@@ -84,7 +85,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		cd "$target" || exit 1
 		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
-		run-with-dotenv python -m pytest -c="$configfile" --rootdir=. $exitfirst .
+		python -m pytest --config-file="$configfile" --rootdir="${EAVE_HOME}" $exitfirst "$testfile"
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

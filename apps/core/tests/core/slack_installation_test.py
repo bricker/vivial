@@ -74,6 +74,10 @@ class TestSlackInstallation(BaseTestCase):
             installation_after = await self.reload(s, installation_before)
             assert installation_after
 
+            assert self.get_mock("slack.refresh_access_token_or_exception").call_count == 0
+            assert self.get_mock("ResourceMutexOrm").acquire.call_count == 0
+            assert self.get_mock("ResourceMutexOrm").release.call_count == 0
+
             await installation_after.refresh_token_or_exception(session=s)
 
             assert self.get_mock("slack.refresh_access_token_or_exception").call_count == 1
@@ -102,9 +106,13 @@ class TestSlackInstallation(BaseTestCase):
             installation_after = await self.reload(s, installation_before)
             assert installation_after
 
+            assert self.get_mock("ResourceMutexOrm").acquire.call_count == 0
+
             await installation_after.refresh_token_or_exception(session=s)
 
             assert self.get_mock("ResourceMutexOrm").acquire.call_count == 1
+            assert self.get_mock("ResourceMutexOrm").release.call_count == 0
+
             # WARNING: This assertion will fail if you're on a breakpoint for more than 60 seconds, because `acquire` automatically
             # releases stuck locks.
             assert self.get_mock("slack.refresh_access_token_or_exception").call_count == 0
@@ -112,6 +120,8 @@ class TestSlackInstallation(BaseTestCase):
             assert installation_after.bot_refresh_token == self.anystring("bot_refresh_token")
             assert installation_after.bot_token_exp
             assert installation_after.bot_token_exp == expiry
+
+            await ResourceMutexOrm.release(session=s, resource_id=installation_before.id)
 
     async def test_lock_is_released_on_error(self) -> None:
         async with self.db_session.begin() as s:

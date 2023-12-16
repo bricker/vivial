@@ -1,6 +1,6 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
-variable "cron_shared_secret" {
+variable "EAVE_GITHUB_APP_CRON_SECRET" {
   type      = string
   sensitive = true
 }
@@ -18,7 +18,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "4.51.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -46,9 +46,20 @@ module "gcp_cloud_scheduler" {
   source             = "../modules/gcp/cloud_scheduler"
   project_id         = local.project_id
   region             = local.region
-  cron_shared_secret = var.cron_shared_secret
+  cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
 }
 
 module "gcp_secret_manager" {
   source = "../modules/gcp/secret_manager"
+}
+
+# module "gcp_gke" {
+#   source     = "../modules/gcp/gke"
+#   project_id = local.project_id
+#   region     = local.region
+# }
+
+module "gcp_iam" {
+  source     = "../modules/gcp/iam"
+  project_id = local.project_id
 }

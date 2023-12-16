@@ -16,8 +16,10 @@ is present, we can be reasonably sure that this is a development machine.
 
 # Well-known request headers
 COOKIE_HEADER = "cookie"
+SET_COOKIE_HEADER = "set-cookie"
 AUTHORIZATION_HEADER = "authorization"
 HOST = "host"
+LOCATION = "location"
 CONTENT_TYPE = "content-type"
 CONTENT_LENGTH = "content-length"
 USER_AGENT = "user-agent"
@@ -28,3 +30,4 @@ GCP_GAE_REQUEST_LOG_ID = "X-Appengine-Request-Log-Id"
 GCP_GAE_TASK_EXECUTION_COUNT = "X-AppEngine-TaskExecutionCount"
 
 MIME_TYPE_JSON = "application/json"
+MIME_TYPE_TEXT = "text/plain"

@@ -1,5 +1,6 @@
 import { raw } from "express";
 import helmet from "helmet";
+import { MIME_TYPE_JSON } from "../headers.js";
 import { exceptionHandlingMiddleware } from "./exception-handling.js";
 import { requestLoggingMiddleware } from "./logging.js";
 import { requestIntegrityMiddleware } from "./request-integrity.js";
@@ -14,4 +15,4 @@ export const commonRequestMiddlewares = [
 
 export const commonResponseMiddlewares = [exceptionHandlingMiddleware];
 
-export const rawJsonBody = raw({ type: "application/json", limit: "5mb" });
+export const rawJsonBody = raw({ type: MIME_TYPE_JSON, limit: "5mb" });

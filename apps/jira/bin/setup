@@ -5,8 +5,12 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 cd "$(^parentpath)"
-"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/setup
-"${EAVE_HOME}"/develop/javascript/bin/setup
+
+if ! ^onlythismodule; then
+	"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/setup
+fi
+
+"${EAVE_HOME}"/develop/javascript/_setup_base
 
 if ! ^ci; then
 	"${EAVE_HOME}"/develop/shared/bin/build-dotenv src/config.ts

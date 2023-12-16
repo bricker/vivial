@@ -128,7 +128,7 @@ class GithubDocumentsOrm(Base):
             self.pull_request_number = pull_request_number
         if status := values.status:
             self.status = status
-            self.status_updated = datetime.now()
+            self.status_updated = datetime.utcnow()
         if file_path := values.file_path:
             self.file_path = file_path
         if api_name := values.api_name:

@@ -2,8 +2,10 @@ from http import HTTPStatus
 
 import eave.core.internal.orm.document_reference
 from eave.core.internal.orm.subscription import SubscriptionOrm
-from eave.stdlib.core_api.models.subscriptions import SubscriptionSourcePlatform
+from eave.stdlib.core_api.models.subscriptions import SubscriptionInput, SubscriptionSource, SubscriptionSourcePlatform
 from eave.stdlib.core_api.models.subscriptions import SubscriptionSourceEvent
+from eave.stdlib.core_api.operations.subscriptions import DeleteSubscriptionRequest
+from eave.stdlib.headers import EAVE_TEAM_ID_HEADER
 
 from .base import BaseTestCase
 
@@ -31,19 +33,19 @@ class TestSubscriptionsEndpoints(BaseTestCase):
 
     async def test_delete_subscription(self) -> None:
         response = await self.make_request(
-            "/subscriptions/delete",
+            DeleteSubscriptionRequest.config.path,
             headers={
-                "eave-team-id": str(self.team.id),
+                EAVE_TEAM_ID_HEADER: str(self.team.id),
             },
-            payload={
-                "subscription": {
-                    "source": {
-                        "platform": self.subscription.source.platform,
-                        "event": self.subscription.source.event,
-                        "id": self.subscription.source.id,
-                    },
-                },
-            },
+            payload=DeleteSubscriptionRequest.RequestBody(
+                subscription=SubscriptionInput(
+                    source=SubscriptionSource(
+                        platform=self.subscription.source.platform,
+                        event=self.subscription.source.event,
+                        id=self.subscription.source.id,
+                    ),
+                ),
+            ),
         )
 
         assert response.status_code == HTTPStatus.OK

@@ -3,13 +3,14 @@ import json
 from sqlalchemy import text
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.endpoints import status_payload
+from eave.stdlib.headers import MIME_TYPE_JSON
 
 
 from eave.stdlib.http_endpoint import HTTPEndpoint
 import eave.core.internal.database as eave_db
-import eave.core.internal
-from eave.stdlib.config import shared_config
+from eave.stdlib.config import SHARED_CONFIG
 
 
 class StatusRequest(HTTPEndpoint):
@@ -38,13 +39,13 @@ class StatusRequest(HTTPEndpoint):
             status["status"] = "UNHEALTHY"
 
         content = json.dumps(status)
-        return Response(status_code=status_code, content=content, media_type="application/json")
+        return Response(status_code=status_code, content=content, media_type=MIME_TYPE_JSON)
 
 
 class WarmupRequest(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
-        shared_config.preload()
-        eave.core.internal.app_config.preload()
+        SHARED_CONFIG.preload()
+        CORE_API_APP_CONFIG.preload()
         return Response(status_code=http.HTTPStatus.OK, content="OK")
 
 

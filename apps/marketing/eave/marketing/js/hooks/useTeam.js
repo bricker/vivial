@@ -24,8 +24,10 @@ const useTeam = () => {
 
   /**
    * Asynchronously fetches team data from the "/dashboard/team" endpoint using a POST request.
-   * Updates the team state with the fetched data, including team ID, name, and integrations.
-   * Handles HTTP errors by setting the 'teamIsErroring' state to true.
+   * If the response is unauthorized, it logs the user out.
+   * If there is an HTTP error, it throws the response.
+   * On successful fetch, it updates the team state with the received data, including team ID, name, and integrations.
+   * If the fetch fails, it updates the team state to indicate an error.
    * Regardless of success or failure, sets 'teamIsLoading' state to false upon completion.
    */
   function getTeam() {
@@ -77,8 +79,10 @@ const useTeam = () => {
 
   /**
    * Asynchronously fetches the team's repositories from the server and updates the team state accordingly.
-   * If the request is successful, the team's repositories are updated and a flag is set to indicate a successful request.
-   * If the request fails, an error flag is set.
+   * If the response is unauthorized, it logs the user out.
+   * If there's an HTTP error, it throws the response.
+   * On successful fetch, it updates the team's repositories, checks if inline code documentation and API documentation are enabled for any of the repositories, and a flag is set to indicate a successful request.
+   * If the fetch fails, it sets the error state.
    * Regardless of the request outcome, the loading flag is reset at the end.
    */
   function getTeamRepos() {
@@ -137,17 +141,19 @@ const useTeam = () => {
   }
 
   /**
-   * Asynchronously updates the state of a feature for a team's repositories.
-   * It sets the feature state to either enabled or disabled based on the provided parameters.
+   * Asynchronously updates the state of a feature for a team's repositories. The state is determined by whether the repository's ID is included in the list of enabled repository IDs.
+   * If the update is successful, it fetches the team's repositories again.
+   * If the update is unauthorized, it logs the user out.
+   * If the update encounters an HTTP error, it throws the response.
    * It also handles the loading and error states during the update process.
    *
    * @async
    * @function updateTeamFeatureState
-   * @param {object} params - An object containing the parameters for the feature state update.
-   * @param {string[]} params.teamRepoIds - An array of repository IDs associated with the team.
-   * @param {string[]} params.enabledRepoIds - An array of repository IDs where the feature is enabled.
-   * @param {string} params.feature - The feature to update the state for.
-   * @throws {HTTPError} If the HTTP request fails.
+   * @param {Object} params - The parameters for updating the feature state.
+   * @param {string[]} params.teamRepoIds - The IDs of the team's repositories.
+   * @param {string[]} params.enabledRepoIds - The IDs of the repositories where the feature is enabled.
+   * @param {string} params.feature - The feature to update.
+   * @throws {Response} If the update encounters an HTTP error.
    */
   function updateTeamFeatureState(
     /** @type {Types.FeatureStateParams} */ {
@@ -196,6 +202,13 @@ const useTeam = () => {
       });
   }
 
+  /**
+   * Fetches the status of API documentation jobs for the team from the server.
+   * Updates the team state with the loading status, error status, and the jobs data.
+   * If the response is unauthorized, it logs the user out.
+   * If there is an HTTP error, it throws the response.
+   * In case of any other error, it updates the team state with error status.
+   */
   function getTeamApiDocsJobsStatuses() {
     setDashboardNetworkState((prev) => ({
       ...prev,
@@ -247,9 +260,11 @@ const useTeam = () => {
   /**
    * Asynchronously fetches API documentation from the server and updates the team state accordingly.
    * The state is initially set to loading, then updated with the fetched documents if the request is successful.
-   * If the request fails, the state is updated to reflect the error.
+   * If the response is unauthorized, it logs the user out.
+   * If there's an HTTP error, it throws the response.
+   * On successful fetch, it sorts the API documents and updates the team state.
+   * If there's any other error, it sets the `apiDocsErroring` flag to true in the team state.
    * Regardless of success or failure, the fetch count is incremented and the loading state is reset at the end.
-   * The documents are sorted before being set in the state.
    * The state also keeps track of whether a request has succeeded at least once to continue showing the table even if a subsequent request fails.
    */
   function getTeamAPIDocs() {

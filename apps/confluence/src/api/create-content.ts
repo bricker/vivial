@@ -33,7 +33,7 @@ export default async function createContent({
   const space = await confluenceClient.getSpaceByKey({
     spaceKey: confluence_destination.space_key,
   });
-  if (space === null) {
+  if (!space) {
     eaveLogger.warning(
       `Space not found for key ${confluence_destination.space_key}`,
       ctx,
@@ -53,7 +53,7 @@ export default async function createContent({
 
   // If this document doesn't have any parents, then it goes in the root of the space.
   // We don't need to (and in fact, shouldn't) do any hierarchy search.
-  if (document.parent === undefined) {
+  if (!document.parent) {
     // Get a unique name for the document.
     const resolvedDocumentTitle = await resolveTitleConflict({
       confluenceClient,

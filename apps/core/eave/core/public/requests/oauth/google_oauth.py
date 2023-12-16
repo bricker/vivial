@@ -80,7 +80,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             raise MissingOAuthCredentialsError("google oauth2 credentials")
 
         google_token = eave.core.internal.oauth.google.decode_id_token(id_token=credentials.id_token)
-        eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else "Your Team"
+        eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else shared.DEFAULT_TEAM_NAME
 
         account = await shared.get_or_create_eave_account(
             request=self.request,

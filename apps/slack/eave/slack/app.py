@@ -1,5 +1,4 @@
 from asgiref.typing import ASGI3Application
-from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.requests
@@ -23,7 +22,7 @@ def make_route(
     endpoint: ASGI3Application,
 ) -> Route:
     if config.signature_required:
-        endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config, audience=EaveApp.eave_api)
+        endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config)
 
     if config.origin_required:
         # First thing to happen when the middleware chain is kicked off

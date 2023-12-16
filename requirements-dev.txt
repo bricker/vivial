@@ -4,8 +4,9 @@
 -e ./libs/eave-stdlib-py
 -e ${EAVE_HOME}/develop/python
 
-grpcio-tools==1.53.0
-protobuf==4.21.12
+psycopg2
+grpcio-tools
+protobuf
 pyright
 black
 ruff

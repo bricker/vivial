@@ -1,13 +1,17 @@
 // @ts-check
 const platformPath = require("node:path");
 const dotenv = require("dotenv");
-const { EAVE_HOME, GOOGLE_CLOUD_PROJECT } = require("./constants.cjs");
+const { EAVE_HOME } = require("./constants.cjs");
 
 function loadDotenv({ path, override = true }) {
-  dotenv.config({
-    path: platformPath.join(EAVE_HOME, path),
-    override,
-  });
+  try {
+    dotenv.config({
+      path: platformPath.join(EAVE_HOME, path),
+      override,
+    });
+  } catch (e) {
+    console.warn(`${path} env file not found`);
+  }
 }
 
 /**
@@ -20,14 +24,11 @@ function loadDotenv({ path, override = true }) {
  * All loaded variables override existing ones.
  */
 function loadStandardDotenvFiles() {
-  loadDotenv({ path: "develop/shared/share.env", override: true });
-  loadDotenv({ path: ".env", override: true });
-
-  try {
-    loadDotenv({ path: `.${GOOGLE_CLOUD_PROJECT}.env`, override: true });
-  } catch (e) {
-    console.warn(`.${GOOGLE_CLOUD_PROJECT}.env file not found`);
-  }
+  const eaveEnv = process.env["EAVE_ENV"] || "development";
+  loadDotenv({ path: `.${eaveEnv}.env`, override: false });
+  loadDotenv({ path: ".env", override: false });
+  loadDotenv({ path: `develop/shared/share.${eaveEnv}.env`, override: false });
+  loadDotenv({ path: "develop/shared/share.env", override: false });
 }
 
 /**

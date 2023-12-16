@@ -30,8 +30,8 @@ from flask import Flask, Response, make_response, redirect, render_template, req
 from werkzeug.wrappers import Response as BaseResponse
 from eave.stdlib.typing import JsonArray, JsonObject
 from eave.stdlib.utm_cookies import set_tracking_cookies
-from .config import app_config
-from eave.stdlib.config import shared_config
+from .config import MARKETING_APP_CONFIG
+from eave.stdlib.config import SHARED_CONFIG
 
 eave.stdlib.time.set_utc()
 
@@ -63,8 +63,8 @@ def status() -> str:
 
 @app.route("/_ah/warmup", methods=["GET"])
 async def warmup() -> str:
-    shared_config.preload()
-    app_config.preload()
+    SHARED_CONFIG.preload()
+    MARKETING_APP_CONFIG.preload()
     return "OK"
 
 
@@ -81,12 +81,12 @@ async def stop() -> str:
 def _render_spa(**kwargs: Any) -> str:
     return render_template(
         "index.html.jinja",
-        cookie_domain=app_config.eave_cookie_domain,
-        api_base=app_config.eave_public_api_base,
-        asset_base=app_config.asset_base,
-        analytics_enabled=app_config.analytics_enabled,
-        app_env=app_config.eave_env,
-        app_version=app_config.app_version,
+        asset_base=SHARED_CONFIG.asset_base,
+        cookie_domain=SHARED_CONFIG.eave_cookie_domain,
+        api_base=SHARED_CONFIG.eave_public_api_base,
+        analytics_enabled=SHARED_CONFIG.analytics_enabled,
+        app_env=SHARED_CONFIG.eave_env,
+        app_version=SHARED_CONFIG.app_version,
         **kwargs,
     )
 
@@ -97,7 +97,7 @@ async def get_user() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await account.GetAuthenticatedAccount.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=ensure_uuid(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -112,7 +112,7 @@ async def get_team() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await team.GetTeamRequest.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -127,7 +127,7 @@ async def get_team_repos() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await github_repos.GetGithubReposRequest.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -142,7 +142,7 @@ async def get_team_repos() -> Response:
         return response
 
     external_response = await QueryGithubRepos.perform(
-        origin=app_config.eave_origin, team_id=unwrap(auth_cookies.team_id)
+        origin=MARKETING_APP_CONFIG.eave_origin, team_id=unwrap(auth_cookies.team_id)
     )
     external_repo_list = external_response.repos
     external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
@@ -168,7 +168,7 @@ async def update_team_repos() -> Response:
     repos: list[GithubRepoUpdateInput] = body["repos"]
 
     eave_response = await github_repos.UpdateGithubReposRequest.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -187,7 +187,7 @@ async def get_team_docs_jobs() -> Response:
     jobs = [ApiDocumentationJobListInput(id=job["id"]) for job in body["jobs"]] if "jobs" in body else None
 
     eave_response = await api_documentation_jobs.GetApiDocumentationJobsOperation.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -206,7 +206,7 @@ async def get_team_documents() -> Response:
     document_type = body["document_type"]
 
     eave_response = await github_documents.GetGithubDocumentsRequest.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -222,7 +222,7 @@ async def get_team_documents() -> Response:
 
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
-    response = redirect(location=app_config.eave_public_www_base, code=302)
+    response = redirect(location=SHARED_CONFIG.eave_public_www_base, code=302)
     delete_auth_cookies(response=response)
     _delete_login_state_hint_cookie(response=response)
     return response
@@ -233,6 +233,14 @@ async def logout() -> BaseResponse:
 def catch_all(path: str) -> Response:
     spa = _render_spa()
     response = make_response(spa)
+
+    # We changed these cookie names; This is a courtesy to the user to clean up their old cookies. This can be removed at any time.
+    delete_http_cookie(response=response, key="ev_account_id")
+    delete_http_cookie(response=response, key="ev_team_id")
+    delete_http_cookie(response=response, key="ev_access_token")
+    delete_http_cookie(response=response, key="ev_login_state_hint")
+    delete_http_cookie(response=response, key="visitor_id")
+
     set_tracking_cookies(response=response, request=request)
 
     auth_cookies = get_auth_cookies(request.cookies)
@@ -244,7 +252,7 @@ def catch_all(path: str) -> Response:
     return response
 
 
-_EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint"
+_EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint.202311"
 
 
 def _set_login_state_hint_cookie(response: BaseResponse) -> None:

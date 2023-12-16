@@ -2,6 +2,7 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { EaveApp, appengineServiceName } from "./eave-origins.js";
 
 export enum EaveEnvironment {
+  test = "test",
   development = "development",
   production = "production",
 }
@@ -26,6 +27,8 @@ export class EaveConfig {
   get eaveEnv(): EaveEnvironment {
     const strenv = process.env["EAVE_ENV"] || "production";
     switch (strenv) {
+      case "test":
+        return EaveEnvironment.test;
       case "development":
         return EaveEnvironment.development;
       case "production":

@@ -13,7 +13,7 @@ from eave.stdlib import task_queue
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.stdlib.exceptions import SlackDataError, UnexpectedMissingValue
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncBoltContext
-from .config import EAVE_CTX_KEY, SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, app_config
+from .config import EAVE_CTX_KEY, SLACK_EVENT_QUEUE_NAME, TASK_EXECUTION_COUNT_CONTEXT_KEY, SLACK_APP_CONFIG
 
 from eave.stdlib.logging import LogContext, eaveLogger
 
@@ -87,7 +87,7 @@ async def event_message_handler(event: Optional[eave.stdlib.typing.JsonObject], 
     try:
         await b.process_message()
     except Exception as e:
-        if app_config.is_socketmode:
+        if SLACK_APP_CONFIG.is_socketmode:
             # In socketmode, there is no task queue.
             await b.notify_failure(e)
             raise
