@@ -19,7 +19,7 @@ from eave.stdlib.core_api.models.github_repos import (
     GithubRepoFeatureState,
 )
 from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
-from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
+from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER, LOCATION
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.eave_origins import EaveApp
@@ -34,13 +34,15 @@ from eave.stdlib.task_queue import create_task
 from eave.stdlib.util import ensure_uuid
 from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
 from eave.stdlib.core_api.models.integrations import Integration
-from eave.core.internal import app_config, database
+from eave.core.internal import CORE_API_APP_CONFIG, database
 from eave.core.internal.orm import AccountOrm, GithubRepoOrm
 import eave.core.internal.oauth.state_cookies
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
+from eave.stdlib.config import SHARED_CONFIG
 
-DEFAULT_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/dashboard"
-SIGNUP_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/signup"
+DEFAULT_TEAM_NAME = "Your Team"
+DEFAULT_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
+SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/signup"
 
 gh_app_state_cookie_name = "ev_state_blob"
 
@@ -84,13 +86,13 @@ async def verify_stateless_installation_or_exception(
 
 
 def set_redirect(response: Response, location: str) -> Response:
-    response.headers["Location"] = location
+    response.headers[LOCATION] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
 
 
 def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> Response:
-    location_header = response.headers["Location"]
+    location_header = response.headers[LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     qs.update({EAVE_ERROR_CODE_QP: [error_code.value]})
@@ -100,14 +102,14 @@ def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> R
 
 
 def is_error_response(response: Response) -> bool:
-    location_header = response.headers["Location"]
+    location_header = response.headers[LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     return qs.get(EAVE_ERROR_CODE_QP) is not None
 
 
 def cancel_flow(response: Response) -> Response:
-    return set_redirect(response=response, location=eave.core.internal.app_config.eave_public_www_base)
+    return set_redirect(response=response, location=SHARED_CONFIG.eave_public_www_base)
 
 
 async def get_logged_in_eave_account(
@@ -459,7 +461,7 @@ async def _create_local_github_repo(
                 target_path=RunApiDocumentationTask.config.path,
                 queue_name=eave.stdlib.config.GITHUB_EVENT_QUEUE_NAME,
                 audience=EaveApp.eave_github_app,
-                origin=app_config.eave_origin,
+                origin=CORE_API_APP_CONFIG.eave_origin,
                 payload=RunApiDocumentationTask.RequestBody(repo=GithubRepoInput(external_repo_id=repo.id)).json(),
                 headers={
                     EAVE_TEAM_ID_HEADER: str(team_id),

@@ -14,7 +14,7 @@ from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE
 from eave.stdlib.typing import JsonObject
 from .utm_cookies import get_tracking_cookies
 
-from .config import shared_config
+from .config import SHARED_CONFIG
 
 
 # https://stackoverflow.com/a/56944256/885036
@@ -99,17 +99,17 @@ class CustomFilter(logging.Filter):
 
 
 rootLogger = logging.getLogger()
-level = shared_config.log_level
+level = SHARED_CONFIG.log_level
 rootLogger.setLevel(level)
 
-if shared_config.is_development:
+if SHARED_CONFIG.is_development:
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
     handler.setFormatter(CustomFormatter())
     handler.addFilter(CustomFilter())
     rootLogger.addHandler(handler)
 
-if shared_config.monitoring_enabled:
+if SHARED_CONFIG.monitoring_enabled:
     # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
     client = google.cloud.logging.Client()
     client.setup_logging(log_level=level)

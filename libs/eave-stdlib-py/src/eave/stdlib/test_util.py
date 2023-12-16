@@ -13,6 +13,7 @@ import eave.stdlib.exceptions
 import eave.stdlib.atlassian
 import eave.stdlib.signing
 from eave.stdlib.typing import JsonObject
+from eave.stdlib.config import SHARED_CONFIG
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -29,6 +30,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
+        SHARED_CONFIG.reset_cached_properties()
         self.mock_google_services()
         self.mock_slack_client()
         self.mock_signing()
@@ -297,17 +299,19 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs
         ) -> AccessSecretVersionResponse:
             if isinstance(request, AccessSecretVersionRequest):
-                name_ = request.name
+                resolved_name = request.name
             elif isinstance(request, dict) and "name" in request:
-                name_ = request["name"]
+                resolved_name = request["name"]
+            elif name:
+                resolved_name = name
             else:
-                name_ = name
+                raise ValueError("bad name")
 
-            data = self.anybytes()
+            data = self.anybytes(f"secret:{resolved_name}")
             data_crc32 = generate_checksum(data)
 
             return AccessSecretVersionResponse(
-                name=name_,
+                name=resolved_name,
                 payload=SecretPayload(
                     data=data,
                     data_crc32c=data_crc32,

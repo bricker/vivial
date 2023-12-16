@@ -11,7 +11,7 @@ from eave.stdlib.core_api.models.account import AnalyticsAccount
 from eave.stdlib.core_api.models.team import AnalyticsTeam
 
 from .typing import JsonObject
-from .config import shared_config
+from .config import SHARED_CONFIG
 from . import logging as _l
 
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
@@ -61,7 +61,7 @@ async def log_event(
         eave_account_id=str(eave_account_id) if eave_account_id else None,
         eave_visitor_id=str(eave_visitor_id) if eave_visitor_id else None,
         eave_team_id=str(eave_team_id) if eave_team_id else None,
-        eave_env=shared_config.eave_env.value,
+        eave_env=SHARED_CONFIG.eave_env.value,
         opaque_params=serialized_params,
         opaque_eave_ctx=serialized_context,
         eave_account=serialized_account,
@@ -112,10 +112,10 @@ async def _send_event(event: typing.Any, topic_id: str, ctx: typing.Optional[_l.
     otherwise errors due to futures attached to separate loops.
     """
     client = PublisherAsyncClient()
-    topic_path = client.topic_path(shared_config.google_cloud_project, topic_id)
+    topic_path = client.topic_path(SHARED_CONFIG.google_cloud_project, topic_id)
     data = event.SerializeToString()
 
-    if not shared_config.analytics_enabled:
+    if not SHARED_CONFIG.analytics_enabled:
         _l.eaveLogger.warning(
             "Analytics disabled.",
             ctx,

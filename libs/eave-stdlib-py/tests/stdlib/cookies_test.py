@@ -3,7 +3,7 @@ from typing import Any
 from starlette.requests import Request
 
 from starlette.responses import Response
-from eave.stdlib.config import shared_config
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.headers import SET_COOKIE_HEADER
 from eave.stdlib.test_util import UtilityBaseTestCase
@@ -36,7 +36,7 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
         assert cookie
-        assert re.search(f"Domain={shared_config.eave_cookie_domain};", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
         assert re.search("HttpOnly;", cookie)
 
     async def test_delete_http_cookie(self):
@@ -48,7 +48,7 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f'^{key}=""', v)), None)
         assert cookie
-        assert re.search(f"Domain={shared_config.eave_cookie_domain};", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
         assert re.search("HttpOnly;", cookie)
 
     async def test_set_analytics_cookie(self):
@@ -61,7 +61,7 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
         assert cookie
-        assert re.search(f"Domain={shared_config.eave_cookie_domain};", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
 
     async def test_delete_analytics_cookie(self):
         key = self.anystr("cookie_key")
@@ -72,4 +72,4 @@ class CookiesTest(CookiesTestBase):
 
         cookie = next((v for v in cookies if re.search(f'^{key}=""', v)), None)
         assert cookie
-        assert re.search(f"Domain={shared_config.eave_cookie_domain};", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)

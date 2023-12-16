@@ -13,7 +13,7 @@ from eave.stdlib.logging import LogContext
 from eave.stdlib.analytics import log_gpt_request
 
 from ..typing import JsonObject
-from ..config import shared_config
+from ..config import SHARED_CONFIG
 from ..logging import eaveLogger
 from ..exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
 from .models import OpenAIModel
@@ -97,8 +97,8 @@ class ChatCompletionParameters:
 
 def ensure_api_key() -> None:
     if openai_sdk.api_key is None:
-        openai_sdk.api_key = shared_config.eave_openai_api_key
-        openai_sdk.organization = shared_config.eave_openai_api_org
+        openai_sdk.api_key = SHARED_CONFIG.eave_openai_api_key
+        openai_sdk.organization = SHARED_CONFIG.eave_openai_api_org
 
 
 async def chat_completion(

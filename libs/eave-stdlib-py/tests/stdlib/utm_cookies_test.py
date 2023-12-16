@@ -8,6 +8,7 @@ from eave.stdlib.test_util import UtilityBaseTestCase
 from eave.stdlib.utm_cookies import (
     EAVE_COOKIE_PREFIX_UTM,
     EAVE_VISITOR_ID_COOKIE_NAME,
+    TrackingParam,
     get_tracking_cookies,
     set_tracking_cookies,
 )
@@ -44,6 +45,20 @@ class UtmCookiesTest(UtmCookiesTestBase):
         # These cannot be changed, because the names are hardcoded in GTM. Changing these will break tracking.
         assert EAVE_COOKIE_PREFIX_UTM == "ev_utm_"
         assert EAVE_VISITOR_ID_COOKIE_NAME == "ev_visitor_id"
+
+        assert TrackingParam.gclid == "gclid"
+        assert TrackingParam.msclkid == "msclkid"
+        assert TrackingParam.fbclid == "fbclid"
+        assert TrackingParam.twclid == "twclid"
+        assert TrackingParam.li_fat_id == "li_fat_id"
+        assert TrackingParam.rdt_cid == "rdt_cid"
+        assert TrackingParam.ttclid == "ttclid"
+        assert TrackingParam.keyword == "keyword"
+        assert TrackingParam.matchtype == "matchtype"
+        assert TrackingParam.campaign == "campaign"
+        assert TrackingParam.campaign_id == "campaign_id"
+        assert TrackingParam.pid == "pid"
+        assert TrackingParam.cid == "cid"
 
     async def test_set_cookies_visitor_id_not_set(self):
         set_tracking_cookies(

@@ -3,15 +3,15 @@ import sqlalchemy.orm
 import sqlalchemy.util
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from .config import app_config
+from .config import CORE_API_APP_CONFIG
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
-    host=app_config.db_host,
-    port=app_config.db_port,
-    username=app_config.db_user,
-    password=app_config.db_pass,
-    database=app_config.db_name,
+    host=CORE_API_APP_CONFIG.db_host,
+    port=CORE_API_APP_CONFIG.db_port,
+    username=CORE_API_APP_CONFIG.db_user,
+    password=CORE_API_APP_CONFIG.db_pass,
+    database=CORE_API_APP_CONFIG.db_name,
 )
 async_engine = create_async_engine(
     db_uri,

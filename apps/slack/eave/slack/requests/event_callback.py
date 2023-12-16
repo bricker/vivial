@@ -13,7 +13,7 @@ from starlette.responses import JSONResponse, Response
 
 from eave.stdlib.typing import JsonObject
 from .. import slack_app
-from ..config import SLACK_EVENT_QUEUE_NAME, app_config
+from ..config import SLACK_EVENT_QUEUE_NAME, SLACK_APP_CONFIG
 
 
 class SlackEventCallbackHandler(HTTPEndpoint):
@@ -70,7 +70,7 @@ class SlackEventCallbackHandler(HTTPEndpoint):
 
     def _is_signature_valid(self) -> bool:
         # Verify the Slack signature, to avoid creating Tasks on the queue for invalid requests.
-        verifier = SignatureVerifier(signing_secret=app_config.eave_slack_app_signing_secret)
+        verifier = SignatureVerifier(signing_secret=SLACK_APP_CONFIG.eave_slack_app_signing_secret)
         headers = dict(self._request.headers)  # request.headers is a Mapping which is_valid_request won't accept
         return verifier.is_valid_request(body=self._raw_body, headers=headers)
 

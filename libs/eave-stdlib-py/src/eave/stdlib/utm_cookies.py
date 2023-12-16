@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import StrEnum
 import re
 from typing import Optional
 import uuid
@@ -13,23 +14,22 @@ from .typing import (
     WerkzeugRequest,
 )
 
-_KNOWN_TRACKING_PARAMS = set(
-    [
-        "gclid",
-        "msclkid",
-        "fbclid",
-        "twclid",
-        "li_fat_id",
-        "rdt_cid",
-        "ttclid",
-        "keyword",
-        "matchtype",
-        "campaign",
-        "campaign_id",
-        "pid",
-        "cid",
-    ]
-)
+
+class TrackingParam(StrEnum):
+    gclid = "gclid"
+    msclkid = "msclkid"
+    fbclid = "fbclid"
+    twclid = "twclid"
+    li_fat_id = "li_fat_id"
+    rdt_cid = "rdt_cid"
+    ttclid = "ttclid"
+    keyword = "keyword"
+    matchtype = "matchtype"
+    campaign = "campaign"
+    campaign_id = "campaign_id"
+    pid = "pid"
+    cid = "cid"
+
 
 # DON'T RENAME THESE, they are referenced in GTM by name. Changing them will break tracking.
 EAVE_COOKIE_PREFIX_UTM = "ev_utm_"
@@ -62,7 +62,7 @@ def set_tracking_cookies(
 
     for key, value in query_params.items():
         lkey = key.lower()
-        if lkey in _KNOWN_TRACKING_PARAMS or re.match("^utm_", lkey):
+        if lkey in TrackingParam or re.match("^utm_", lkey):
             set_http_cookie(response=response, key=f"{EAVE_COOKIE_PREFIX_UTM}{lkey}", value=value, httponly=False)
 
 
