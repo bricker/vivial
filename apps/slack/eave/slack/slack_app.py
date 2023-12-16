@@ -14,7 +14,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.util import redact
 
-from .config import EAVE_CTX_KEY, app_config
+from .config import EAVE_CTX_KEY, SLACK_APP_CONFIG
 
 
 class MissingSlackTeamIdError(Exception):
@@ -93,7 +93,7 @@ async def authorize(
         # Raises for non-OK response.
         installation_data = await eave_slack.GetSlackInstallation.perform(
             ctx=ctx,
-            origin=app_config.eave_origin,
+            origin=SLACK_APP_CONFIG.eave_origin,
             input=eave_slack.GetSlackInstallation.RequestBody(
                 slack_integration=eave.stdlib.core_api.models.slack.SlackInstallationInput(
                     slack_team_id=team_id,
@@ -133,7 +133,7 @@ async def authorize(
     )
 
 
-signing_secret = app_config.eave_slack_app_signing_secret
+signing_secret = SLACK_APP_CONFIG.eave_slack_app_signing_secret
 
 # A few things to note about this configuration:
 # Most importantly, this app is _not_ used directly to handle incoming event requests from Slack. It is used only during background processing.

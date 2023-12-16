@@ -1,7 +1,7 @@
 from functools import cached_property
 import os
+from eave.stdlib.config import ConfigBase, get_secret
 
-import eave.stdlib.config
 from eave.stdlib.eave_origins import EaveApp
 
 SLACK_EVENT_QUEUE_NAME = "slack-events-processor"
@@ -9,12 +9,12 @@ TASK_EXECUTION_COUNT_CONTEXT_KEY = "TASK_EXECUTION_COUNT"
 EAVE_CTX_KEY = "EAVE_CTX_KEY"
 
 
-class AppConfig(eave.stdlib.config.EaveConfig):
+class _AppConfig(ConfigBase):
     eave_origin = EaveApp.eave_slack_app
 
     @cached_property
     def eave_slack_app_signing_secret(self) -> str:
-        value: str = self.get_secret("EAVE_SLACK_APP_SIGNING_SECRET")
+        value: str = get_secret("EAVE_SLACK_APP_SIGNING_SECRET")
         return value
 
     @cached_property
@@ -22,7 +22,7 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         """
         This is for socketmode only
         """
-        value: str = self.get_secret("EAVE_SLACK_APP_SOCKETMODE_TOKEN")
+        value: str = get_secret("EAVE_SLACK_APP_SOCKETMODE_TOKEN")
         return value
 
     @property
@@ -30,4 +30,4 @@ class AppConfig(eave.stdlib.config.EaveConfig):
         return os.getenv("SLACK_SOCKETMODE") is not None
 
 
-app_config = AppConfig()
+SLACK_APP_CONFIG = _AppConfig()

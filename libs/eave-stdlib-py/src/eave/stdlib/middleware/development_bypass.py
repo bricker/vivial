@@ -1,6 +1,6 @@
 from ..api_util import get_header_value
 from ..headers import EAVE_DEV_BYPASS_HEADER
-from ..config import shared_config
+from ..config import SHARED_CONFIG
 from asgiref.typing import HTTPScope
 
 from ..logging import eaveLogger
@@ -36,9 +36,9 @@ When bypassing auth, the `Authorization` header should contain the ID of the acc
 
 
 def development_bypass_allowed(scope: HTTPScope) -> bool:
-    if not shared_config.is_development:
+    if not SHARED_CONFIG.is_development:
         return False
-    if shared_config.google_cloud_project == "eave-production":
+    if SHARED_CONFIG.google_cloud_project == "eave-production":
         return False
 
     dev_header = get_header_value(scope=scope, name=EAVE_DEV_BYPASS_HEADER)

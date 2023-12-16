@@ -16,7 +16,7 @@ from eave.stdlib.logging import eaveLogger
 from . import message_prompts
 from . import document_metadata
 from .context_building import ContextBuildingMixin
-from ..config import app_config
+from ..config import SLACK_APP_CONFIG
 
 
 class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin):
@@ -236,7 +236,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
             await documents.DeleteDocument.perform(
                 ctx=self.eave_ctx,
-                origin=app_config.eave_origin,
+                origin=SLACK_APP_CONFIG.eave_origin,
                 team_id=self.eave_team.id,
                 input=documents.DeleteDocument.RequestBody(
                     document_reference=DocumentReferenceInput(
@@ -250,7 +250,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
     ) -> documents.UpsertDocument.ResponseBody:
         response = await documents.UpsertDocument.perform(
             ctx=self.eave_ctx,
-            origin=app_config.eave_origin,
+            origin=SLACK_APP_CONFIG.eave_origin,
             team_id=self.eave_team.id,
             input=documents.UpsertDocument.RequestBody(
                 subscriptions=[
@@ -311,7 +311,7 @@ class DocumentManagementMixin(ContextBuildingMixin, SubscriptionManagementMixin)
 
         response = await documents.SearchDocuments.perform(
             ctx=self.eave_ctx,
-            origin=app_config.eave_origin,
+            origin=SLACK_APP_CONFIG.eave_origin,
             team_id=self.eave_team.id,
             input=documents.SearchDocuments.RequestBody(query=answer),
         )

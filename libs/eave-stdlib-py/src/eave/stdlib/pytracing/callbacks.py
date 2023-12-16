@@ -96,7 +96,7 @@ def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) 
 
     team_id = uuid4()
     corr_id = uuid4()
-    timestamp = datetime.now()
+    timestamp = datetime.utcnow()
 
     data = RawEvent(
         team_id=team_id,

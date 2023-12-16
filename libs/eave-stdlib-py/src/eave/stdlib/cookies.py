@@ -1,7 +1,7 @@
 from .time import ONE_YEAR_IN_MS
 from .typing import HTTPFrameworkResponse
 
-from .config import shared_config
+from .config import SHARED_CONFIG
 
 
 def set_http_cookie(
@@ -13,10 +13,10 @@ def set_http_cookie(
     response.set_cookie(
         key=key,
         value=value,
-        domain=shared_config.eave_cookie_domain,
+        domain=SHARED_CONFIG.eave_cookie_domain,
         path="/",
         httponly=httponly,
-        secure=(not shared_config.is_development),
+        secure=(not SHARED_CONFIG.is_development),
         samesite="lax",
         max_age=int(ONE_YEAR_IN_MS / 1000),
     )
@@ -29,9 +29,9 @@ def delete_http_cookie(
 ) -> None:
     response.delete_cookie(
         key=key,
-        domain=shared_config.eave_cookie_domain,
+        domain=SHARED_CONFIG.eave_cookie_domain,
         path="/",
         httponly=httponly,
-        secure=(not shared_config.is_development),
+        secure=(not SHARED_CONFIG.is_development),
         samesite="lax",
     )

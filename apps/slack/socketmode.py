@@ -11,7 +11,7 @@ import eave.stdlib.requests
 import eave.stdlib.logging
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.time
-from eave.slack.config import app_config
+from eave.slack.config import SLACK_APP_CONFIG
 from eave.slack.slack_app import app as slack_app
 from slack_sdk.socket_mode.aiohttp import SocketModeClient
 
@@ -33,7 +33,7 @@ class AsyncSocketModeWithImmediateAckHandler(AsyncSocketModeHandler):
 
 
 async def start_socket_mode() -> None:
-    app_token = app_config.eave_slack_app_socketmode_token
+    app_token = SLACK_APP_CONFIG.eave_slack_app_socketmode_token
     handler = AsyncSocketModeWithImmediateAckHandler(
         app=slack_app,
         app_token=app_token,

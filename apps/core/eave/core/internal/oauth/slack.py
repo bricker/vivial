@@ -4,12 +4,15 @@ from typing import Any, NotRequired, Optional, TypedDict
 import slack_sdk.web.async_client
 from slack_sdk.oauth import AuthorizeUrlGenerator
 
-from eave.core.internal.config import app_config
+from eave.stdlib.config import SHARED_CONFIG
+
+SLACK_OAUTH_AUTHORIZE_PATH = "/oauth/slack/authorize"
+SLACK_OAUTH_CALLBACK_PATH = "/oauth/slack/callback"
+SLACK_OAUTH_CALLBACK_URI = f"{SHARED_CONFIG.eave_public_api_base}{SLACK_OAUTH_CALLBACK_PATH}"
 
 # Build https://slack.com/oauth/v2/authorize with sufficient query parameters
-redirect_uri = f"{app_config.eave_public_api_base}/oauth/slack/callback"
 authorize_url_generator = AuthorizeUrlGenerator(
-    client_id=app_config.eave_slack_client_id,
+    client_id=SHARED_CONFIG.eave_slack_client_id,
     scopes=[
         "app_mentions:read",
         "channels:history",
@@ -43,7 +46,7 @@ authorize_url_generator = AuthorizeUrlGenerator(
         "profile",
         "email",
     ],
-    redirect_uri=redirect_uri,
+    redirect_uri=SLACK_OAUTH_CALLBACK_URI,
 )
 
 
@@ -154,10 +157,10 @@ async def get_access_token_or_exception(
 
     # Complete the installation by calling oauth.v2.access API method
     response = await client.oauth_v2_access(
-        client_id=app_config.eave_slack_client_id,
-        client_secret=app_config.eave_slack_client_secret,
+        client_id=SHARED_CONFIG.eave_slack_client_id,
+        client_secret=SHARED_CONFIG.eave_slack_client_secret,
         code=code,
-        redirect_uri=redirect_uri,
+        redirect_uri=SLACK_OAUTH_CALLBACK_URI,
     )
 
     response.validate()
@@ -171,8 +174,8 @@ async def refresh_access_token_or_exception(
     client = slack_sdk.web.async_client.AsyncWebClient()
 
     response = await client.oauth_v2_access(
-        client_id=app_config.eave_slack_client_id,
-        client_secret=app_config.eave_slack_client_secret,
+        client_id=SHARED_CONFIG.eave_slack_client_id,
+        client_secret=SHARED_CONFIG.eave_slack_client_secret,
         grant_type="refresh_token",
         refresh_token=refresh_token,
     )

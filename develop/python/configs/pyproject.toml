@@ -25,7 +25,10 @@ extend-exclude = [
 ignore-init-module-imports = true
 
 [tool.pytest.ini_options]
-addopts = "--capture=no --pythonwarnings=\"ignore::DeprecationWarning\""
+addopts = "--capture=no"
+filterwarnings = [
+  "ignore::DeprecationWarning"
+]
 pythonpath = [
   "../../../apps/core",
   "../../../apps/slack",

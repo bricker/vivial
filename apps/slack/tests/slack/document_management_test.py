@@ -4,7 +4,7 @@ from eave.stdlib.logging import LogContext
 from .base import BaseTestCase
 from eave.slack.brain.document_management import DocumentManagementMixin
 from slack_bolt.async_app import AsyncBoltContext
-from eave.stdlib.config import shared_config
+from eave.stdlib.config import SHARED_CONFIG
 import unittest.mock
 
 
@@ -51,7 +51,7 @@ class DocumentManagementMixinTest(BaseTestCase):
                     "ts": self.anystr("slack ts 2"),
                     "channel": self.getstr("slack channel"),
                     "text": f"<{self.anyurl('url3')}>",
-                    "app_id": shared_config.eave_slack_app_id,
+                    "app_id": SHARED_CONFIG.eave_slack_app_id,
                 },
             ]
         }

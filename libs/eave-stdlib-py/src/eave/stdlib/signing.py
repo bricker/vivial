@@ -10,7 +10,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
-from eave.stdlib.config import shared_config
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eave_origins import EaveApp, ExternalOrigin
 from google.cloud import kms
 
@@ -100,7 +100,7 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[Lo
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
-        project=shared_config.google_cloud_project,
+        project=SHARED_CONFIG.google_cloud_project,
         location=KMS_KEYRING_LOCATION,
         key_ring=KMS_KEYRING_NAME,
         crypto_key=signing_key.id,
@@ -174,7 +174,7 @@ def _fetch_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
-        project=shared_config.google_cloud_project,
+        project=SHARED_CONFIG.google_cloud_project,
         location=KMS_KEYRING_LOCATION,
         key_ring=KMS_KEYRING_NAME,
         crypto_key=signing_key.id,

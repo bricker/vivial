@@ -28,7 +28,7 @@ from eave.stdlib.core_api.models.team import DocumentPlatform
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import EaveOnboardingErrorCode, base, shared
 from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
-from eave.core.internal.config import app_config
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = AuthProvider.atlassian
@@ -82,7 +82,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             eave_team_name = self.atlassian_resource.name
         else:
             name = userinfo.display_name
-            eave_team_name = f"{name}'s Team" if name else "Your Team"
+            eave_team_name = f"{name}'s Team" if name else shared.DEFAULT_TEAM_NAME
 
         self.eave_account = await shared.get_or_create_eave_account(
             request=self.request,
@@ -195,7 +195,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
 
                 response = await GetAvailableSpacesRequest.perform(
                     ctx=self.eave_state.ctx,
-                    origin=app_config.eave_origin,
+                    origin=CORE_API_APP_CONFIG.eave_origin,
                     team_id=self.eave_account.team_id,
                 )
                 available_spaces = response.confluence_spaces

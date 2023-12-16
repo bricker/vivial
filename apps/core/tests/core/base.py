@@ -41,6 +41,8 @@ import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.orm
 import eave.core.internal.orm.base
+from eave.core.internal.config import CORE_API_APP_CONFIG
+from eave.stdlib.config import SHARED_CONFIG
 
 
 class AnyStandardOrm(Protocol):
@@ -86,6 +88,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
+        CORE_API_APP_CONFIG.reset_cached_properties()
 
         await _onetime_setup_db()
         engine = eave.core.internal.database.async_engine.execution_options(isolation_level="READ COMMITTED")
@@ -98,7 +101,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         # )
         self.httpclient = AsyncClient(
             app=eave.core.app.app,
-            base_url=eave.core.internal.app_config.eave_public_api_base,
+            base_url=SHARED_CONFIG.eave_public_api_base,
         )
 
         self.mock_atlassian_client()

@@ -87,7 +87,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
@@ -117,7 +117,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
@@ -144,7 +144,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=None,
             opaque_params=None,
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
@@ -178,7 +178,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=None,
             opaque_params=None,
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=None,
             eave_request_id=None,
         )
@@ -206,7 +206,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=None,
             opaque_params=str(self.data_bad_params),
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )

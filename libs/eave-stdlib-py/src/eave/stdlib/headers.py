@@ -16,8 +16,10 @@ is present, we can be reasonably sure that this is a development machine.
 
 # Well-known request headers
 COOKIE_HEADER = "cookie"
+SET_COOKIE_HEADER = "set-cookie"
 AUTHORIZATION_HEADER = "authorization"
 HOST = "host"
+LOCATION = "location"
 CONTENT_TYPE = "content-type"
 CONTENT_LENGTH = "content-length"
 USER_AGENT = "user-agent"
