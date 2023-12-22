@@ -154,6 +154,18 @@ void httpPacketArrive(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* 
 	// parse the packet
 	pcpp::Packet parsedPacket(packet);
 
+  // read the crap out of that http packet data
+  // TODO: maybe need stitching??? this could only be shwoign the 1 packet's data
+  //std::cout << "Packet data: " << packet->getRawData() << std::endl;
+  pcpp::HttpResponseLayer* res = parsedPacket.getLayerOfType<pcpp::HttpResponseLayer>();
+  if (res != nullptr) {
+    uint8_t *bodyPtr = res->getLayerPayload();
+    std::string bodyStr((char*)bodyPtr);
+    std::cout << "Http resp body: " << bodyStr << std::endl;
+  } /*else {
+    std::cout << "got null for http layer data" << std::endl;
+  }*/
+
 	HttpPacketArrivedData* data  = (HttpPacketArrivedData*)cookie;
 
 	// give the packet to the collector
@@ -164,6 +176,10 @@ void httpPacketArrive(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* 
 	{
 		data->pcapWriter->writePacket(*packet);
 	}
+}
+
+void tcpStitcher(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie) {
+    
 }
 
 /**
@@ -519,6 +535,7 @@ int main(int argc, char* argv[])
 	pcpp::AppName::init(argc, argv);
 
 	std::string interfaceNameOrIP = "";
+  // NOTE: port 80 only captures unencrypted http traffic; 443 is for encrypted https traffic
 	std::string port = "80";
 	bool printRatesPeriodically = true;
 	int printRatePeriod = DEFAULT_CALC_RATES_PERIOD_SEC;
@@ -587,8 +604,11 @@ int main(int argc, char* argv[])
 	else // analyze in live traffic mode
 	{
 		pcpp::PcapLiveDevice* dev = pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDeviceByIpOrName(interfaceNameOrIP);
-		if (dev == nullptr)
+		if (dev == nullptr) {
+      std::cout << "tried interface " << interfaceNameOrIP << std::endl;
 			EXIT_WITH_ERROR("Couldn't find interface by provided IP address or name");
+    }
+
 
 		// start capturing and analyzing traffic
 		analyzeHttpFromLiveTraffic(dev, printRatesPeriodically, printRatePeriod, savePacketsToFileName, nPort);
