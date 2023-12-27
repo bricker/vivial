@@ -154,6 +154,8 @@ void httpPacketArrive(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* 
 	// parse the packet
 	pcpp::Packet parsedPacket(packet);
 
+	std::cout << "Packet basics: " << parsedPacket.toString() << std::endl;
+
   // read the crap out of that http packet data
   // TODO: maybe need stitching??? this could only be shwoign the 1 packet's data
   //std::cout << "Packet data: " << packet->getRawData() << std::endl;
