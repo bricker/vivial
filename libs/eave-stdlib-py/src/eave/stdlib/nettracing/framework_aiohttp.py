@@ -19,14 +19,16 @@ def _aiohttp_request_wrapper_(wrapped, *args, **kwargs):
             response = await wrapped(*args, **kwargs)
 
             try:
-                trace.process_response_headers(response.headers.items())
+                # trace.process_response_headers(response.headers.items())
+                print(f"intercepted {trace}:\n{response}")
             except:
                 pass
 
             return response
         except Exception as e:
             try:
-                trace.process_response_headers(e.headers.items())  # pylint: disable=E1101
+                print(f"intercepted {trace}:\nerr: {e}")
+                # trace.process_response_headers(e.headers.items())  # pylint: disable=E1101
             except:
                 pass
 
