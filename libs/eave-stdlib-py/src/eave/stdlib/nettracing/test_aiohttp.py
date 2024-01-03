@@ -7,7 +7,7 @@ async def test_request() -> None:
     async with aiohttp.ClientSession() as sess:
         async with sess.get("https://www.google.com") as resp:
             body = await resp.text()
-            print(f"test got {body}")
+            print(f"test got {body[:50]}")
 
 trace_network()
 asyncio.run(test_request())
