@@ -1,45 +1,16 @@
-from dataclasses import dataclass
-from datetime import datetime
-from http import HTTPStatus
-from typing import Any, cast
-from uuid import UUID
+from typing import cast
 
-from aiohttp.hdrs import AUTHORIZATION
 from asgiref.typing import HTTPScope
 
 from eave.core.internal import database
-from eave.core.internal.clickhouse import clickhouse_client
 from eave.core.internal.clickhouse.dbchanges import DatabaseChangesTableHandle
-from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.github_installation import GithubInstallationOrm
-from eave.core.internal.orm.github_repos import GithubRepoOrm
-from eave.monitoring.datastructures import DataIngestRequestBody, DatabaseChangeEventPayload, EventType, RawEvent
-from eave.stdlib.analytics import log_event
-from eave.stdlib.api_util import get_bearer_token, get_header_value_or_exception, json_response
-from eave.stdlib.config import GITHUB_EVENT_QUEUE_NAME
-from eave.stdlib.core_api.models.github_repos import (
-    GithubRepoFeature,
-    GithubRepoFeatureState,
-)
-from eave.stdlib.core_api.operations.github_repos import (
-    CreateGithubRepoRequest,
-    DeleteGithubReposRequest,
-    FeatureStateGithubReposRequest,
-    GetAllTeamsGithubReposRequest,
-    GetGithubReposRequest,
-    UpdateGithubReposRequest,
-)
-from eave.stdlib.eave_origins import EaveApp
+from eave.monitoring.datastructures import DataIngestRequestBody, EventType
+from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
-from eave.stdlib.github_api.models import GithubRepoInput
-from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
-from eave.stdlib.headers import EAVE_CLIENT_ID, EAVE_CLIENT_SECRET, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
+from eave.stdlib.headers import EAVE_CLIENT_ID, EAVE_CLIENT_SECRET
 from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.logging import LogContext
-from eave.stdlib.request_state import EaveRequestState
-from eave.stdlib.task_queue import create_task
-from eave.stdlib.util import b64decode, ensure_uuid, unwrap
+from eave.stdlib.util import ensure_uuid
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -56,13 +27,15 @@ class DataIngestionEndpoint(HTTPEndpoint):
         client_secret = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_SECRET)
 
         async with database.async_session.begin() as db_session:
-            creds = (await ClientCredentialsOrm.query(
-                session=db_session,
-                params=ClientCredentialsOrm.QueryParams(
-                    id=ensure_uuid(client_id),
-                    secret=client_secret,
+            creds = (
+                await ClientCredentialsOrm.query(
+                    session=db_session,
+                    params=ClientCredentialsOrm.QueryParams(
+                        id=ensure_uuid(client_id),
+                        secret=client_secret,
+                    ),
                 )
-            )).one_or_none()
+            ).one_or_none()
 
             if not creds:
                 raise UnauthorizedError("invalid credentials")

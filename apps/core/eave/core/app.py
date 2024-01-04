@@ -181,7 +181,6 @@ routes = [
         ),
         endpoint=DataIngestionEndpoint,
     ),
-
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(

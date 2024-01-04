@@ -1,4 +1,3 @@
-
 import clickhouse_connect
 from eave.core.internal.clickhouse.dbchanges import DatabaseChangesTableHandle
 from eave.core.internal.config import CORE_API_APP_CONFIG

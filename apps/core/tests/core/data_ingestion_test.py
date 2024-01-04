@@ -1,20 +1,21 @@
-from datetime import datetime
 import http
-import json
-from textwrap import dedent
 import time
-from typing import Sequence, cast
+from typing import cast
 
 import clickhouse_connect
-from eave.core.internal.clickhouse import clickhouse_client
-from eave.core.internal.clickhouse.dbchanges import DatabaseChangesTableHandle
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.monitoring.datastructures import DataIngestRequestBody, DatabaseChangeEventPayload, DatabaseChangeOperation, EventType, RawEvent
+from eave.monitoring.datastructures import (
+    DataIngestRequestBody,
+    DatabaseChangeEventPayload,
+    DatabaseChangeOperation,
+    EventType,
+)
 from eave.stdlib.headers import EAVE_CLIENT_ID, EAVE_CLIENT_SECRET
 from .base import BaseTestCase
 
 chclient = clickhouse_connect.get_client(host=CORE_API_APP_CONFIG.clickhouse_host)
+
 
 class TestDataIngestionEndpoint(BaseTestCase):
     async def asyncSetUp(self) -> None:
@@ -44,7 +45,6 @@ class TestDataIngestionEndpoint(BaseTestCase):
         results = cast(list[str], results)
         return table_name in results
 
-
     async def test_ingest_invalid_credentials(self) -> None:
         response = await self.make_request(
             path="/ingest",
@@ -52,10 +52,7 @@ class TestDataIngestionEndpoint(BaseTestCase):
                 EAVE_CLIENT_ID: str(self.anyuuid("invalid client ID")),
                 EAVE_CLIENT_SECRET: self.anystr("invalid client secret"),
             },
-            payload=DataIngestRequestBody(
-                event_type=EventType.dbchange,
-                events=[]
-            ).to_dict()
+            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.UNAUTHORIZED
@@ -76,10 +73,7 @@ class TestDataIngestionEndpoint(BaseTestCase):
                 EAVE_CLIENT_ID: str(ro_creds.id),
                 EAVE_CLIENT_SECRET: ro_creds.secret,
             },
-            payload=DataIngestRequestBody(
-                event_type=EventType.dbchange,
-                events=[]
-            ).to_dict()
+            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.FORBIDDEN
@@ -92,11 +86,7 @@ class TestDataIngestionEndpoint(BaseTestCase):
                 EAVE_CLIENT_ID: str(self._client_credentials.id),
                 EAVE_CLIENT_SECRET: self._client_credentials.secret,
             },
-            payload=DataIngestRequestBody(
-                event_type=EventType.dbchange,
-                events=[
-                ]
-            ).to_dict()
+            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -110,10 +100,7 @@ class TestDataIngestionEndpoint(BaseTestCase):
                 EAVE_CLIENT_ID: str(self._client_credentials.id),
                 EAVE_CLIENT_SECRET: self._client_credentials.secret,
             },
-            payload=DataIngestRequestBody(
-                event_type=EventType.dbchange,
-                events=[]
-            ).to_dict()
+            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -143,7 +130,7 @@ class TestDataIngestionEndpoint(BaseTestCase):
                         old_data=None,
                     ).to_json(),
                 ],
-            ).to_dict()
+            ).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.OK
