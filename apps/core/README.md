@@ -1,43 +1,34 @@
 ## Database
 
-You can either connect to Cloud SQL using Cloud SQL proxy, or run a Postgres server locally.
+It is recommended to run a local Postgres server for development.
 
-### Cloud SQL Proxy
+### Postgres installation and setup
 
-This is recommended for development. The setup script should have installed the cloud sql proxy for you.
+This is very OS-specific and there are many options. Find your OS [here](https://www.postgresql.org/download/) and follow the instructions.
 
-1. In the [google cloud console](https://console.cloud.google.com/sql/instances/eave-pg-core-dev/users?project=eavefyi-dev), in the `eavefyi-dev` project, add your google cloud IAM user to `eave-pg-core-dev` Cloud SQL instance.
+The goal is to have a Postgres server running locally. There are many tutorials on the internet that you can follow to accomplish this.
 
-2. In your `.env` file, add:
-
-```
-EAVE_DB_USER="your IAM email"
-EAVE_DB_NAME="eave-dev-your_name"
-EAVE_DB_HOST="/run/user/1000/.cloudsqlproxy/eavefyi-dev:us-central1:eave-pg-core-dev"
-```
-
-Note that EAVE_DB_PASS is unnecessary when using Cloud SQL proxy, so deliberately omitted here.
-
-3. From the `apps/core/` directory, run `bin/setup-db`.
-
-4. From $EAVE_HOME, run `bin/cloud-sql-proxy`
-
-### Local Postgres server
-
-An alternative to running Cloud SQL Proxy, if you prefer.
-
-1. Install postgres for your operating system
-1. Start the postgres service
-1. Do any OS specific setup required to init postgres (e.g. login to postgres user and initdb)
-1. Create a database user
-1. Create a database called `eave` (make sure your db user has access)
-1. Update your `.env` file to use your local PG credentials.
-  It may look similar to this:
+To give an example, on Ubuntu these are some useful commands:
 
 ```sh
-EAVE_DB_HOST=localhost
-EAVE_DB_NAME=eave
-EAVE_DB_PORT=5432
-EAVE_DB_USER=your_user
-EAVE_DB_PASS=your_password
+sudo service postgres start
+sudo -u postgres createuser --interactive
 ```
+
+### Application configuration
+
+Update your `.env` file to add the Postgres server information and your credentials. It may look similar to this:
+
+```sh
+EAVE_DB_HOST="/var/run/postgresql"
+EAVE_DB_PORT="5433"
+EAVE_DB_USER="bryan"
+EAVE_DB_PASS="your_password"
+EAVE_DB_NAME="eave-development"
+```
+
+### Eave Database initialization
+
+Run `bin/setup-db` and follow the instructions. This will create the database, tables, and more.
+
+To setup the test database, run `EAVE_ENV=test bin/setup-db`
