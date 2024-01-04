@@ -1,4 +1,7 @@
 import http
+from eave.core.internal.orm.document_reference import DocumentReferenceOrm
+from eave.core.internal.orm.subscription import SubscriptionOrm
+from eave.core.internal.orm.team import TeamOrm
 
 import eave.pubsub_schemas
 import eave.stdlib.analytics
@@ -7,7 +10,6 @@ import eave.core.internal
 import eave.core.public
 from starlette.requests import Request
 from starlette.responses import Response
-from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.core_api.operations.documents import (
     UpsertDocument as UpsertDocumentOp,
     SearchDocuments as SearchDocumentsOp,
@@ -15,7 +17,6 @@ from eave.stdlib.core_api.operations.documents import (
 )
 import eave.core.internal.database as eave_db
 from eave.stdlib.exceptions import UnexpectedMissingValue
-from eave.core.internal.orm.subscription import SubscriptionOrm
 import eave.stdlib.api_util
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.http_endpoint import HTTPEndpoint
@@ -78,7 +79,7 @@ class UpsertDocument(HTTPEndpoint):
                     ctx=eave_state.ctx,
                 )
 
-                document_reference = await eave.core.internal.orm.DocumentReferenceOrm.create(
+                document_reference = await DocumentReferenceOrm.create(
                     session=db_session,
                     team_id=eave_team.id,
                     document_id=document_metadata.id,
@@ -135,7 +136,7 @@ class SearchDocuments(HTTPEndpoint):
         input = SearchDocumentsOp.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
-            eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
+            eave_team = await TeamOrm.one_or_exception(
                 session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id)
             )
 
@@ -172,7 +173,7 @@ class DeleteDocument(HTTPEndpoint):
         input = DeleteDocumentOp.RequestBody.parse_obj(body)
 
         async with eave.core.internal.database.async_session.begin() as db_session:
-            eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
+            eave_team = await TeamOrm.one_or_exception(
                 session=db_session, team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id)
             )
 
@@ -180,14 +181,14 @@ class DeleteDocument(HTTPEndpoint):
             if destination is None:
                 raise UnexpectedMissingValue("document destination")
 
-            document_reference = await eave.core.internal.orm.DocumentReferenceOrm.one_or_exception(
+            document_reference = await DocumentReferenceOrm.one_or_exception(
                 session=db_session,
                 team_id=eave_team.id,
                 id=input.document_reference.id,
             )
             await destination.delete_document(document_id=document_reference.document_id, ctx=eave_state.ctx)
 
-            subscriptions = await eave.core.internal.orm.SubscriptionOrm.query(
+            subscriptions = await SubscriptionOrm.query(
                 session=db_session,
                 team_id=eave_team.id,
                 document_reference_id=document_reference.id,

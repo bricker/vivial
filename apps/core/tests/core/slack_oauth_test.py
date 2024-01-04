@@ -5,14 +5,14 @@ import unittest.mock
 import uuid
 from http import HTTPStatus
 
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
+
 from eave.stdlib.config import SHARED_CONFIG
 import eave.core.internal
 import eave.core.internal.oauth.slack
 from eave.core.internal.oauth.state_cookies import EAVE_OAUTH_STATE_COOKIE_PREFIX
-from eave.core.internal.orm.account import AccountOrm
-import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.slack_installation
-import eave.core.internal.orm.team
 from eave.core.public.requests.oauth.shared import DEFAULT_TEAM_NAME
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.headers import LOCATION
@@ -116,8 +116,8 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
-            assert (await self.count(s, eave.core.internal.orm.SlackInstallationOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
+            assert (await self.count(s, SlackInstallationOrm)) == 0
 
         response = await self.make_request(
             path=eave.core.internal.oauth.slack.SLACK_OAUTH_CALLBACK_PATH,
@@ -149,22 +149,22 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
-            assert (await self.count(s, eave.core.internal.orm.SlackInstallationOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
+            assert (await self.count(s, SlackInstallationOrm)) == 1
 
-            eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
+            eave_account = await AccountOrm.one_or_none(
                 session=s,
                 params=AccountOrm.QueryParams(id=ensure_uuid(account_id)),
             )
             assert eave_account
 
-            eave_team = await eave.core.internal.orm.TeamOrm.one_or_none(
+            eave_team = await TeamOrm.one_or_none(
                 session=s,
                 team_id=eave_account.team_id,
             )
             assert eave_team
 
-            slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
+            slack_installation = await SlackInstallationOrm.one_or_none(
                 session=s, slack_team_id=self.anystring("team.id")
             )
             assert slack_installation
@@ -239,7 +239,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_existing_account(self) -> None:
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
             eave_team = await self.make_team(s)
             eave_account_before = await self.make_account(
                 s,
@@ -265,7 +265,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
@@ -278,7 +278,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
             eave_team = await self.make_team(s)
             eave_account_before = await self.make_account(
                 s,
@@ -307,7 +307,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
@@ -320,7 +320,7 @@ class TestSlackOAuthHandler(BaseTestCase):
 
     async def test_slack_callback_logged_in_account_another_provider(self) -> None:
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
             eave_team = await self.make_team(s)
             eave_account_before = await self.make_account(
                 s,
@@ -348,7 +348,7 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were NOT updated
@@ -376,8 +376,8 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
-            assert (await self.count(s, eave.core.internal.orm.TeamOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
+            assert (await self.count(s, TeamOrm)) == 0
 
     async def test_urls(self):
         assert eave.core.internal.oauth.slack.SLACK_OAUTH_AUTHORIZE_PATH == "/oauth/slack/authorize"

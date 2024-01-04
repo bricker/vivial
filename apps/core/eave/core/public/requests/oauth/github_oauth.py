@@ -1,6 +1,7 @@
 import json
 from typing import Optional
 import urllib.parse
+from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 
@@ -16,7 +17,6 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 from eave.core.internal import database
-from eave.core.internal.orm import AccountOrm
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal.oauth import state_cookies as oauth_cookies

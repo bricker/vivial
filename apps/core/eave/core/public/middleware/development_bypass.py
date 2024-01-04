@@ -18,7 +18,7 @@ async def development_bypass_auth(scope: HTTPScope) -> None:
         raise Exception()
 
     async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_account = await eave.core.internal.orm.AccountOrm.one_or_exception(
+        eave_account = await AccountOrm.one_or_exception(
             session=db_session,
             params=AccountOrm.QueryParams(
                 id=uuid.UUID(account_id),

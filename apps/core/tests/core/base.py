@@ -10,6 +10,7 @@ from uuid import UUID
 from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.headers import (
     AUTHORIZATION_HEADER,
     EAVE_ACCOUNT_ID_HEADER,
@@ -252,8 +253,8 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         return response
 
-    async def make_team(self, session: AsyncSession) -> eave.core.internal.orm.TeamOrm:
-        team = await eave.core.internal.orm.TeamOrm.create(
+    async def make_team(self, session: AsyncSession) -> TeamOrm:
+        team = await TeamOrm.create(
             session=session,
             name=self.anystr("team name"),
             document_platform=DocumentPlatform.confluence,
@@ -270,12 +271,12 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         auth_id: Optional[str] = None,
         access_token: Optional[str] = None,
         refresh_token: Optional[str] = None,
-    ) -> eave.core.internal.orm.account.AccountOrm:
+    ) -> AccountOrm:
         if not team_id:
             team = await self.make_team(session=session)
             team_id = team.id
 
-        account = await eave.core.internal.orm.account.AccountOrm.create(
+        account = await AccountOrm.create(
             session=session,
             team_id=team_id,
             visitor_id=self.anyuuid("account.visitor_id"),
@@ -314,14 +315,14 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         return account
 
-    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.AccountOrm | None:
-        acct = await eave.core.internal.orm.AccountOrm.one_or_none(
+    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
+        acct = await AccountOrm.one_or_none(
             session=session, params=AccountOrm.QueryParams(id=id)
         )
         return acct
 
-    async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.TeamOrm | None:
-        acct = await eave.core.internal.orm.TeamOrm.one_or_none(session=session, team_id=id)
+    async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> TeamOrm | None:
+        acct = await TeamOrm.one_or_none(session=session, team_id=id)
         return acct
 
     def mock_atlassian_client(self) -> None:

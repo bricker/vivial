@@ -8,15 +8,14 @@ from typing import Any
 
 import google.oauth2.credentials
 import google.oauth2.id_token
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.team import TeamOrm
 
 from eave.stdlib.config import SHARED_CONFIG
 import eave.core.internal
 import eave.core.internal.oauth.google
 import eave.core.internal.oauth.slack
 from eave.core.internal.oauth.state_cookies import EAVE_OAUTH_STATE_COOKIE_PREFIX
-import eave.core.internal.orm.atlassian_installation
-import eave.core.internal.orm.slack_installation
-import eave.core.internal.orm.team
 from eave.core.public.requests.oauth.shared import DEFAULT_REDIRECT_LOCATION, DEFAULT_TEAM_NAME
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.auth_cookies import (
@@ -92,7 +91,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
     async def test_google_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
 
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH,
@@ -121,7 +120,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
 
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
@@ -191,7 +190,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
@@ -231,7 +230,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
@@ -272,7 +271,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were NOT updated
@@ -300,8 +299,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
-            assert (await self.count(s, eave.core.internal.orm.TeamOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
+            assert (await self.count(s, TeamOrm)) == 0
 
     async def test_urls(self):
         assert eave.core.internal.oauth.google.GOOGLE_OAUTH_AUTHORIZE_PATH == "/oauth/google/authorize"
