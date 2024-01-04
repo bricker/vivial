@@ -5,6 +5,7 @@ from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
+from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
 from eave.stdlib.core_api.operations.api_documentation_jobs import (
@@ -169,6 +170,18 @@ routes = [
     Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
     Route(path="/_ah/stop", endpoint=status.StopRequest, methods=["GET"]),
     Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
+    # Public API Endpoints
+    make_route(
+        config=CoreApiEndpointConfiguration(
+            path="/ingest",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
+        endpoint=DataIngestionEndpoint,
+    ),
+
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
