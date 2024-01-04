@@ -1,4 +1,10 @@
+import gzip
+import zlib
+import aiohttp
+from aiohttp.compression_utils import ZLibDecompressor
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, Scope, HTTPScope
+from eave.stdlib.api_util import get_header_value
+from eave.stdlib.headers import ENCODING_GZIP
 
 from eave.stdlib.request_state import EaveRequestState
 
@@ -32,6 +38,15 @@ class EaveASGIMiddleware:
                 if message.get("more_body", False) is False:
                     break
 
-            eave_state.raw_request_body = body
+            encoding = get_header_value(scope=scope, name=aiohttp.hdrs.CONTENT_ENCODING)
+
+            if encoding == ENCODING_GZIP:
+                decompressor = ZLibDecompressor(encoding=encoding)
+                decompressed_body = await decompressor.decompress(body)
+                eave_state.raw_request_body = decompressed_body
+            else:
+                eave_state.raw_request_body = body
+
+            # Note: we currently do not support other compression encodings.
 
         return eave_state.raw_request_body
