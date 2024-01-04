@@ -81,6 +81,7 @@
   "python.analysis.extraPaths": [
     "vendor",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
+    "${workspaceFolder}/libs/eave-monitoring/src",
     "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/slack",
