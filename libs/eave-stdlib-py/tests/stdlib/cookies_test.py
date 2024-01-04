@@ -1,11 +1,11 @@
 import re
 from typing import Any
 from starlette.requests import Request
+import aiohttp
 
 from starlette.responses import Response
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
-from eave.stdlib.headers import SET_COOKIE_HEADER
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 
@@ -30,7 +30,7 @@ class CookiesTest(CookiesTestBase):
         key = self.anystr("cookie_key")
         value = self.anystr("cookie_value")
         set_http_cookie(key=key, value=value, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 
@@ -42,7 +42,7 @@ class CookiesTest(CookiesTestBase):
     async def test_delete_http_cookie(self):
         key = self.anystr("cookie_key")
         delete_http_cookie(key=key, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 
@@ -55,7 +55,7 @@ class CookiesTest(CookiesTestBase):
         key = self.anystr("cookie_key")
         value = self.anystr("cookie_value")
         set_http_cookie(key=key, value=value, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 
@@ -66,7 +66,7 @@ class CookiesTest(CookiesTestBase):
     async def test_delete_analytics_cookie(self):
         key = self.anystr("cookie_key")
         delete_http_cookie(key=key, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 

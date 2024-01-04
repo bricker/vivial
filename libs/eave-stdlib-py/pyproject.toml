@@ -27,4 +27,6 @@ dependencies = [
   "cryptography",
   "redis[hiredis]",
   "clickhouse-connect",
+  "multidict",
+  "aiohttp",
 ]

@@ -1,6 +1,7 @@
 import datetime
 import http
 import re
+import aiohttp
 import oauthlib.common
 import uuid
 import json
@@ -21,7 +22,7 @@ from eave.stdlib.core_api.models.github_repos import (
     GithubRepoFeatureState,
 )
 from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
-from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER, LOCATION
+from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.eave_origins import EaveApp
@@ -87,13 +88,13 @@ async def verify_stateless_installation_or_exception(
 
 
 def set_redirect(response: Response, location: str) -> Response:
-    response.headers[LOCATION] = location
+    response.headers[aiohttp.hdrs.LOCATION] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
 
 
 def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> Response:
-    location_header = response.headers[LOCATION]
+    location_header = response.headers[aiohttp.hdrs.LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     qs.update({EAVE_ERROR_CODE_QP: [error_code.value]})
@@ -103,7 +104,7 @@ def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> R
 
 
 def is_error_response(response: Response) -> bool:
-    location_header = response.headers[LOCATION]
+    location_header = response.headers[aiohttp.hdrs.LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     return qs.get(EAVE_ERROR_CODE_QP) is not None
