@@ -96,7 +96,7 @@ async def seed_database() -> None:
         await ClientCredentialsOrm.create(
             session=session,
             team_id=team_id,
-            scopes=[ClientScope.read, ClientScope.write],
+            scope=ClientScope.readwrite,
             description=f"credentials for team {team_id} (database seed)",
         )
 

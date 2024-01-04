@@ -15,14 +15,9 @@ from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class ClientScope(IntEnum):
-    readonly = 0b0001
-    writeonly = 0b0010
+    read = 0b0001
+    write = 0b0010
     readwrite = 0b0011
-
-
-SCOPE_READONLY = 0b0001
-SCOPE_WRITEONLY = SCOPE_READONLY << 1
-SCOPE_READWRITE = SCOPE_READONLY | SCOPE_WRITEONLY
 
 
 class ClientCredentialsOrm(Base):

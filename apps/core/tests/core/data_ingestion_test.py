@@ -27,7 +27,7 @@ class TestDataIngestionEndpoint(BaseTestCase):
                 session=s,
                 team_id=self._team.id,
                 description=self.anystr(),
-                scopes=[ClientScope.read, ClientScope.write],
+                scope=ClientScope.readwrite,
             )
 
         chclient.command(f"DROP DATABASE IF EXISTS {self._team.id.hex}")
@@ -64,7 +64,7 @@ class TestDataIngestionEndpoint(BaseTestCase):
                 session=s,
                 team_id=self._team.id,
                 description=self.anystr(),
-                scopes=[ClientScope.read],
+                scope=ClientScope.read,
             )
 
         response = await self.make_request(

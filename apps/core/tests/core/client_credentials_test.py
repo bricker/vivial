@@ -39,9 +39,9 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
         return qresult
 
     async def test_query_scope_readonly(self) -> None:
-        creds = await self._create_creds(ClientScope.readonly)
+        creds = await self._create_creds(ClientScope.read)
 
-        qresult = await self._query_creds(creds, ClientScope.readonly)
+        qresult = await self._query_creds(creds, ClientScope.read)
 
         assert qresult is not None
         assert qresult.scope
