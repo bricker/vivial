@@ -31,7 +31,7 @@ class AnalyticsTestBase(UtilityBaseTestCase):
         )
 
         self.data_now = datetime.utcnow()
-        self.mocks_now = self.patch(name="now", patch=unittest.mock.patch(f"{mut}.datetime", autospec=True))
+        self.mocks_now = self.patch(name="now", patch=unittest.mock.patch(f"{mut}.datetime"))
         self.mocks_now.utcnow.return_value = self.data_now
 
         self.mocks_analytics_enabled = self.patch_env({"EAVE_ANALYTICS_DISABLED": "0"})

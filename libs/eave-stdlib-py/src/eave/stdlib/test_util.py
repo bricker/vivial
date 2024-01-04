@@ -192,12 +192,16 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getjson(self, name: str) -> str:
         return self.testdata[name]
 
-    def anydict(self, name: Optional[str] = None) -> JsonObject:
+    def anydict(self, name: Optional[str] = None, deterministic_keys: bool = False) -> JsonObject:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            data: JsonObject = {f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)}
+            if deterministic_keys:
+                data: JsonObject = {f"{name}:{i}": f"{name}:{uuid.uuid4()}" for i in range(3)}
+            else:
+                data: JsonObject = {f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)}
+
             self.testdata[name] = data
 
         value: JsonObject = self.testdata[name]
@@ -331,7 +335,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def mock_slack_client(self) -> None:
         self.patch(
-            name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True)
+            name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient")
         )
 
     def mock_signing(self) -> None:

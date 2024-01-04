@@ -271,7 +271,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
             session=session,
             team_id=team_id,
             visitor_id=self.anyuuid("account.visitor_id"),
-            opaque_utm_params=self.anydict("account.opaque_utm_params"),
+            opaque_utm_params=self.anydict("account.opaque_utm_params", deterministic_keys=True),
             auth_provider=auth_provider or AuthProvider.slack,
             auth_id=auth_id or self.anystr("account.auth_id"),
             access_token=access_token or self.anystr("account.oauth_token"),

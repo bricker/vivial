@@ -16,7 +16,7 @@ class EventsEndpointTest(BaseTestCase):
         await super().asyncSetUp()
         self.patch(
             name="CloudTasksAsyncClient.create_task",
-            patch=unittest.mock.patch("eave.stdlib.task_queue.tasks.CloudTasksAsyncClient.create_task", autospec=True),
+            patch=unittest.mock.patch("eave.stdlib.task_queue.tasks.CloudTasksAsyncClient.create_task"),
         )
 
     async def test_ssl_check(self) -> None:
