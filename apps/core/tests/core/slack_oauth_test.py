@@ -5,6 +5,7 @@ import unittest.mock
 import uuid
 from http import HTTPStatus
 
+import aiohttp
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
@@ -15,7 +16,6 @@ import eave.core.internal.oauth.slack
 from eave.core.internal.oauth.state_cookies import EAVE_OAUTH_STATE_COOKIE_PREFIX
 from eave.core.public.requests.oauth.shared import DEFAULT_TEAM_NAME
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.headers import LOCATION
 from eave.stdlib.util import ensure_uuid
 from eave.stdlib.auth_cookies import (
     EAVE_ACCOUNT_ID_COOKIE_NAME,
@@ -89,11 +89,11 @@ class TestSlackOAuthHandler(BaseTestCase):
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert response.cookies.get(f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.slack}")
-        assert response.headers[LOCATION]
-        assert re.search(r"^https://slack\.com/oauth/v2/authorize", response.headers[LOCATION])
+        assert response.headers[aiohttp.hdrs.LOCATION]
+        assert re.search(r"^https://slack\.com/oauth/v2/authorize", response.headers[aiohttp.hdrs.LOCATION])
         assert re.search(
             f"redirect_uri={eave.core.internal.oauth.slack.SLACK_OAUTH_CALLBACK_URI}",
-            response.headers[LOCATION],
+            response.headers[aiohttp.hdrs.LOCATION],
         )
 
     async def test_slack_authorize_with_utm_params(self) -> None:
@@ -138,9 +138,9 @@ class TestSlackOAuthHandler(BaseTestCase):
         assert (
             response.cookies.get(f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.slack}") is None
         )  # Test the cookie was deleted
-        assert response.headers[LOCATION]
+        assert response.headers[aiohttp.hdrs.LOCATION]
         assert (
-            response.headers[LOCATION]
+            response.headers[aiohttp.hdrs.LOCATION]
             == f"https://slack.com/app_redirect?app={SHARED_CONFIG.eave_slack_app_id}&team={self.getstr('team.id')}"
         )
 

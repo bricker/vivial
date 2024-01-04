@@ -1,7 +1,9 @@
 from http import HTTPStatus
+
+import aiohttp
 from eave.stdlib.core_api.operations.status import Status
 
-from eave.stdlib.headers import CONTENT_TYPE, MIME_TYPE_JSON, MIME_TYPE_TEXT
+from eave.stdlib.headers import MIME_TYPE_JSON, MIME_TYPE_TEXT
 
 from .base import BaseTestCase
 
@@ -20,7 +22,7 @@ class TestBodyParserMiddleware(BaseTestCase):
             path=Status.config.path,
             payload=self.anydict(),
             headers={
-                CONTENT_TYPE: MIME_TYPE_JSON,
+                aiohttp.hdrs.CONTENT_TYPE: MIME_TYPE_JSON,
             },
         )
 
@@ -31,7 +33,7 @@ class TestBodyParserMiddleware(BaseTestCase):
             path=Status.config.path,
             data=self.anystring(),
             headers={
-                CONTENT_TYPE: MIME_TYPE_TEXT,
+                aiohttp.hdrs.CONTENT_TYPE: MIME_TYPE_TEXT,
             },
         )
 

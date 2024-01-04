@@ -1,4 +1,5 @@
 import asyncio
+import aiohttp
 import oauthlib.oauth2.rfc6749.tokens
 import http
 import json
@@ -22,7 +23,6 @@ from eave.stdlib.auth_cookies import (
     EAVE_ACCOUNT_ID_COOKIE_NAME,
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
 )
-from eave.stdlib.headers import LOCATION
 from eave.stdlib.utm_cookies import EAVE_COOKIE_PREFIX_UTM
 
 from .base import BaseTestCase
@@ -59,10 +59,10 @@ class TestAtlassianOAuth(BaseTestCase):
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert response.cookies.get(f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.atlassian}")
-        assert response.headers[LOCATION]
-        assert re.search(r"https://auth\.atlassian\.com/authorize", response.headers[LOCATION])
+        assert response.headers[aiohttp.hdrs.LOCATION]
+        assert re.search(r"https://auth\.atlassian\.com/authorize", response.headers[aiohttp.hdrs.LOCATION])
         redirect_uri = urllib.parse.quote(eave.core.internal.oauth.atlassian.ATLASSIAN_OAUTH_CALLBACK_URI, safe="")
-        assert re.search(f"redirect_uri={redirect_uri}", response.headers[LOCATION])
+        assert re.search(f"redirect_uri={redirect_uri}", response.headers[aiohttp.hdrs.LOCATION])
 
     async def test_atlassian_authorize_with_utm_params(self) -> None:
         response = await self.make_request(
@@ -105,8 +105,8 @@ class TestAtlassianOAuth(BaseTestCase):
         assert not response.cookies.get(
             f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.atlassian}"
         )  # Test the cookie was deleted
-        assert response.headers[LOCATION]
-        assert response.headers[LOCATION] == DEFAULT_REDIRECT_LOCATION
+        assert response.headers[aiohttp.hdrs.LOCATION]
+        assert response.headers[aiohttp.hdrs.LOCATION] == DEFAULT_REDIRECT_LOCATION
 
         account_id = response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
         assert account_id

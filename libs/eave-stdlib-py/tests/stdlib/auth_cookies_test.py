@@ -1,6 +1,7 @@
 from http.cookies import SimpleCookie
 import re
 from typing import Any
+import aiohttp
 from starlette.requests import Request
 
 from starlette.responses import Response
@@ -13,7 +14,6 @@ from eave.stdlib.auth_cookies import (
     get_auth_cookies,
     set_auth_cookies,
 )
-from eave.stdlib.headers import SET_COOKIE_HEADER
 from eave.stdlib.test_util import UtilityBaseTestCase
 
 
@@ -54,7 +54,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
             account_id=self.data_account_id,
             access_token=self.data_access_token,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 3
         assert any(re.search(f"^{EAVE_ACCOUNT_ID_COOKIE_NAME}={self.data_account_id};", v) for v in cookies)
@@ -130,7 +130,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
 
     async def test_delete_auth_cookies(self):
         delete_auth_cookies(response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
         assert len(cookies) == 3
 
         assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}="";', v) for v in cookies)

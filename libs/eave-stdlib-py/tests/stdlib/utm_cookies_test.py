@@ -1,9 +1,9 @@
 import re
 from typing import Any
 from starlette.requests import Request
+import aiohttp
 
 from starlette.responses import Response
-from eave.stdlib.headers import SET_COOKIE_HEADER
 from eave.stdlib.test_util import UtilityBaseTestCase
 from eave.stdlib.utm_cookies import (
     EAVE_COOKIE_PREFIX_UTM,
@@ -65,7 +65,7 @@ class UtmCookiesTest(UtmCookiesTestBase):
             request=self.mock_request,
             response=self.mock_response,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 4  # The fourth is visitor_id
 
@@ -84,7 +84,7 @@ class UtmCookiesTest(UtmCookiesTestBase):
             request=self.mock_request,
             response=self.mock_response,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
         assert len(cookies) == 3
 
         assert not any(re.search(f"^{EAVE_VISITOR_ID_COOKIE_NAME}", v) for v in cookies)
@@ -97,7 +97,7 @@ class UtmCookiesTest(UtmCookiesTestBase):
             request=self.mock_request,
             response=self.mock_response,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == SET_COOKIE_HEADER]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
         assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_campaign={self.data_campaign};", v) for v in cookies)
         assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_term={self.data_term}", v) for v in cookies)
 

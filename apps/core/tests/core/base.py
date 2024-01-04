@@ -3,6 +3,7 @@ import unittest
 import unittest.mock
 import urllib.parse
 import uuid
+import aiohttp
 import pydantic
 import sqlalchemy
 from typing import Any, Optional, Protocol, TypeVar
@@ -12,7 +13,6 @@ from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.headers import (
-    AUTHORIZATION_HEADER,
     EAVE_ACCOUNT_ID_HEADER,
     EAVE_ORIGIN_HEADER,
     EAVE_REQUEST_ID_HEADER,
@@ -238,8 +238,8 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
             headers[EAVE_SIGNATURE_HEADER] = signature
 
-        if access_token and AUTHORIZATION_HEADER not in headers:
-            headers[AUTHORIZATION_HEADER] = f"Bearer {access_token}"
+        if access_token and aiohttp.hdrs.AUTHORIZATION not in headers:
+            headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
 
         clean_headers = {k: v for (k, v) in headers.items() if v is not None}
 

@@ -5,6 +5,7 @@ import urllib.parse
 import uuid
 from http import HTTPStatus
 from typing import Any
+import aiohttp
 
 import google.oauth2.credentials
 import google.oauth2.id_token
@@ -22,7 +23,6 @@ from eave.stdlib.auth_cookies import (
     EAVE_ACCOUNT_ID_COOKIE_NAME,
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
 )
-from eave.stdlib.headers import LOCATION
 from eave.stdlib.utm_cookies import EAVE_COOKIE_PREFIX_UTM
 from .base import BaseTestCase
 
@@ -67,10 +67,10 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert response.cookies.get(f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}")
-        assert response.headers[LOCATION]
-        assert re.search(r"^https://accounts\.google\.com/o/oauth2/auth", response.headers[LOCATION])
+        assert response.headers[aiohttp.hdrs.LOCATION]
+        assert re.search(r"^https://accounts\.google\.com/o/oauth2/auth", response.headers[aiohttp.hdrs.LOCATION])
         redirect_uri = urllib.parse.quote(eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_URI, safe="")
-        assert re.search(redirect_uri, response.headers[LOCATION])
+        assert re.search(redirect_uri, response.headers[aiohttp.hdrs.LOCATION])
 
     async def test_google_authorize_with_utm_params(self) -> None:
         response = await self.make_request(
@@ -112,8 +112,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert not response.cookies.get(
             f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}"
         )  # Test the cookie was deleted
-        assert response.headers[LOCATION]
-        assert response.headers[LOCATION] == DEFAULT_REDIRECT_LOCATION
+        assert response.headers[aiohttp.hdrs.LOCATION]
+        assert response.headers[aiohttp.hdrs.LOCATION] == DEFAULT_REDIRECT_LOCATION
 
         account_id = response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
         assert account_id
