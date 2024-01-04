@@ -26,7 +26,6 @@ dependencies = [
   "asgiref>=3.5.2",
   "cryptography",
   "redis[hiredis]",
-  "clickhouse-connect",
   "multidict",
   "aiohttp",
 ]
