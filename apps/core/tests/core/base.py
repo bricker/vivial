@@ -1,4 +1,5 @@
 import json
+import os
 import unittest
 import unittest.mock
 import urllib.parse
@@ -8,8 +9,10 @@ import pydantic
 import sqlalchemy
 from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
+from eave.core.internal.database import init_database
 from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.base import get_base_metadata
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.headers import (
@@ -41,10 +44,8 @@ import eave.core.app
 import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.orm
-import eave.core.internal.orm.base
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
-
 
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]
@@ -63,35 +64,26 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 
 _DB_SETUP: bool = False
 
-
-async def _onetime_setup_db() -> None:
-    global _DB_SETUP
-    if _DB_SETUP:
-        return
-
-    print("Running one-time DB setup...")
-    async with eave.core.internal.database.async_session() as db_session:
-        conn = await db_session.connection()
-        await conn.run_sync(eave.core.internal.orm.base.get_base_metadata().drop_all)
-        await db_session.commit()
-
-    async with eave.core.internal.database.async_session() as db_session:
-        conn = await db_session.connection()
-        await conn.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
-        await db_session.commit()
-
-    _DB_SETUP = True
-
-
 class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
 
     async def asyncSetUp(self) -> None:
-        await super().asyncSetUp()
+        global _DB_SETUP
+
+        # Attempt to prevent running destructive database operations against non-test database
+        assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
+        assert eave.core.internal.database.async_engine.url.database == "eave-test", "Tests perform destructive database operations, and can only be run against the test database (hardcoded to be \"eave-test\""
+
+        if not _DB_SETUP:
+            print("Running one-time DB setup...")
+            await init_database()
+            _DB_SETUP = True
+
         CORE_API_APP_CONFIG.reset_cached_properties()
 
-        await _onetime_setup_db()
+        await super().asyncSetUp()
+
         engine = eave.core.internal.database.async_engine.execution_options(isolation_level="READ COMMITTED")
         self.db_session = eave.core.internal.database.async_sessionmaker(engine, expire_on_commit=False)
         # self.db_session = eave.core.internal.database.async_session
@@ -116,13 +108,12 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     async def cleanup(self) -> None:
         await super().cleanup()
 
-        tnames = ",".join([t.name for t in eave.core.internal.orm.base.get_base_metadata().sorted_tables])
+        tnames = ",".join([t.name for t in get_base_metadata().sorted_tables])
         conn = await self.db_session().connection()
-        await conn.execute(text(f"truncate {tnames} cascade").execution_options(autocommit=True))
+        await conn.execute(text(f"TRUNCATE {tnames} CASCADE").execution_options(autocommit=True))
         await conn.commit()
         await conn.close()
         await eave.core.internal.database.async_engine.dispose()
-
         await self.httpclient.aclose()
 
     async def save(self, session: AsyncSession, /, obj: J) -> J:
