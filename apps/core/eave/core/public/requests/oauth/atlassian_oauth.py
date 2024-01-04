@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
@@ -179,7 +180,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         return results.all()
 
     async def _update_eave_team_document_platform(self, session: AsyncSession) -> None:
-        eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
+        eave_team = await TeamOrm.one_or_exception(
             session=session, team_id=self.eave_account.team_id
         )
         eave_team.document_platform = DocumentPlatform.confluence
@@ -245,7 +246,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             else:
                 site_name = None
 
-            await eave.core.internal.orm.AtlassianInstallationOrm.create(
+            await AtlassianInstallationOrm.create(
                 session=db_session,
                 team_id=self.eave_account.team_id,
                 atlassian_cloud_id=self.atlassian_cloud_id,

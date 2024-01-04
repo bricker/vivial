@@ -1,4 +1,6 @@
 from starlette.requests import Request
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 import eave.stdlib.api_util as eave_api_util
 from starlette.responses import Response
 
@@ -17,7 +19,7 @@ class AtlassianIntegration(HTTPEndpoint):
         input = GetAtlassianInstallation.RequestBody.parse_obj(body)
 
         async with eave_db.async_session.begin() as db_session:
-            installation = await eave_orm.AtlassianInstallationOrm.one_or_none(
+            installation = await AtlassianInstallationOrm.one_or_none(
                 session=db_session,
                 atlassian_cloud_id=input.atlassian_integration.atlassian_cloud_id,
             )
@@ -25,7 +27,7 @@ class AtlassianIntegration(HTTPEndpoint):
             if not installation:
                 raise NotFoundError()
 
-            eave_team = await eave_orm.TeamOrm.one_or_exception(
+            eave_team = await TeamOrm.one_or_exception(
                 session=db_session,
                 team_id=installation.team_id,
             )

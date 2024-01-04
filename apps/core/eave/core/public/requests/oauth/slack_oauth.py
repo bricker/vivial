@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
@@ -114,7 +115,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             # try fetch existing slack installation
-            self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
+            self.slack_installation = await SlackInstallationOrm.one_or_none(
                 session=db_session,
                 slack_team_id=slack_team_id,
             )
@@ -145,7 +146,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     self.slack_installation.slack_team_name = slack_team_name
             else:
                 # create new slack installation associated with the TeamOrm
-                self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.create(
+                self.slack_installation = await SlackInstallationOrm.create(
                     session=db_session,
                     team_id=self.eave_account.team_id,
                     slack_team_id=slack_team_id,

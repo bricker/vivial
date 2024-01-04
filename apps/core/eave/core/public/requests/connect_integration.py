@@ -38,7 +38,7 @@ class QueryConnectIntegrationEndpoint(HTTPEndpoint):
                 return Response(status_code=http.HTTPStatus.NOT_FOUND)
 
             if installation.team_id:
-                eave_team = await eave_orm.TeamOrm.one_or_exception(
+                eave_team = await TeamOrm.one_or_exception(
                     session=db_session,
                     team_id=installation.team_id,
                 )

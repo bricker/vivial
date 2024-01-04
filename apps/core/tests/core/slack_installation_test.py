@@ -1,7 +1,7 @@
 import unittest.mock
-import eave.core.internal
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
+import eave.core.internal.orm.slack_installation
 from .base import BaseTestCase
 
 mut = eave.core.internal.orm.slack_installation.__name__

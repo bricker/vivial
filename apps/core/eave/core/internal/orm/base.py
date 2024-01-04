@@ -34,11 +34,13 @@ def _load_all() -> None:
     import os
 
     dirname = os.path.dirname(os.path.abspath(__file__))
+    dirents = os.listdir(dirname)
 
-    for f in os.listdir(dirname):
-        if f != "__init__.py" and os.path.isfile(f"{dirname}/{f}") and f[-3:] == ".py":
-            module_name, _ = os.path.splitext(f)
-            importlib.import_module(f"eave.core.internal.orm.{module_name}")
+    for f in dirents:
+        fname, ext = os.path.splitext(f)
+
+        if ext == ".py" and f != "__init__.py" and f != "base.py":
+            importlib.import_module(f"eave.core.internal.orm.{fname}")
 
 
 _base_metadata: typing.Optional[MetaData] = None

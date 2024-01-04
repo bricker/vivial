@@ -1,4 +1,5 @@
 import uuid
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.core_api.operations import EndpointConfiguration
 
 import eave.stdlib.exceptions
@@ -48,5 +49,5 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
 
         team_id = uuid.UUID(team_id_header)  # throws ValueError for invalid UUIDs
         async with eave.core.internal.database.async_session.begin() as db_session:
-            team = await eave.core.internal.orm.TeamOrm.one_or_exception(session=db_session, team_id=team_id)
+            team = await TeamOrm.one_or_exception(session=db_session, team_id=team_id)
             eave_state.ctx.eave_team_id = str(team.id)

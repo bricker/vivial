@@ -8,6 +8,8 @@ import uuid
 from http import HTTPStatus
 from eave.core.internal.oauth.state_cookies import EAVE_OAUTH_STATE_COOKIE_PREFIX
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.requests.oauth.shared import DEFAULT_REDIRECT_LOCATION, DEFAULT_TEAM_NAME
 
 import eave.stdlib.atlassian
@@ -15,8 +17,6 @@ from eave.stdlib.config import SHARED_CONFIG
 import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.oauth.google
-from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
-import eave.core.internal.orm.team
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.auth_cookies import (
     EAVE_ACCOUNT_ID_COOKIE_NAME,
@@ -83,8 +83,8 @@ class TestAtlassianOAuth(BaseTestCase):
 
     async def test_atlassian_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
-            assert (await self.count(s, eave.core.internal.orm.AtlassianInstallationOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
+            assert (await self.count(s, AtlassianInstallationOrm)) == 0
 
         response = await self.make_request(
             path=eave.core.internal.oauth.atlassian.ATLASSIAN_OAUTH_CALLBACK_PATH,
@@ -113,15 +113,15 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.anystr("atlassian.access_token")
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
-            assert (await self.count(s, eave.core.internal.orm.AtlassianInstallationOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
+            assert (await self.count(s, AtlassianInstallationOrm)) == 1
 
             eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
 
-            atlassian_installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
+            atlassian_installation = await AtlassianInstallationOrm.one_or_none(
                 session=s, atlassian_cloud_id=self.anystr("atlassian_cloud_id")
             )
             assert atlassian_installation
@@ -168,7 +168,7 @@ class TestAtlassianOAuth(BaseTestCase):
             assert eave_team
             assert eave_team.name == f"{self.getstr('confluence.display_name')}'s Team"
 
-            atlassian_installation = await eave.core.internal.orm.AtlassianInstallationOrm.one_or_none(
+            atlassian_installation = await AtlassianInstallationOrm.one_or_none(
                 session=s, atlassian_cloud_id=self.getstr("atlassian_cloud_id")
             )
 
@@ -230,7 +230,7 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await AccountOrm.one_or_exception(
                 session=s, params=AccountOrm.QueryParams(id=eave_account_before.id)
             )
@@ -273,7 +273,7 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
@@ -314,7 +314,7 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 1
+            assert (await self.count(s, AccountOrm)) == 1
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were NOT updated
@@ -342,8 +342,8 @@ class TestAtlassianOAuth(BaseTestCase):
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
 
         async with self.db_session.begin() as s:
-            assert (await self.count(s, eave.core.internal.orm.AccountOrm)) == 0
-            assert (await self.count(s, eave.core.internal.orm.TeamOrm)) == 0
+            assert (await self.count(s, AccountOrm)) == 0
+            assert (await self.count(s, TeamOrm)) == 0
 
     async def test_atlassian_default_confluence_space(self) -> None:
         self.skipTest("TODO")
