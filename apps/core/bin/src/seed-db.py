@@ -93,6 +93,13 @@ async def seed_database() -> None:
         await session.refresh(team)  # necessary to populate team.id
         team_id = team.id
 
+        await ClientCredentialsOrm.create(
+            session=session,
+            team_id=team_id,
+            scopes=[ClientScope.read, ClientScope.write],
+            description=f"credentials for team {team_id} (database seed)",
+        )
+
         # NOTE: not seeding any Subscription objects rn
 
         slack = SlackInstallationOrm(
