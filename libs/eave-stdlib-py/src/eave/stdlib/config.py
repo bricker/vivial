@@ -8,7 +8,6 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import google.cloud.secretmanager
-import google.cloud.runtimeconfig
 import google.cloud.client
 
 from eave.stdlib.eave_origins import EaveApp
