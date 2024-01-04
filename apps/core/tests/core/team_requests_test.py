@@ -5,6 +5,7 @@ from eave.core.internal.orm.confluence_destination import ConfluenceDestinationO
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 from eave.stdlib.core_api.models.connect import AtlassianProduct
+from eave.stdlib.core_api.models.team import ConfluenceDestinationInput
 
 from eave.stdlib.core_api.operations.team import GetTeamRequest, UpsertConfluenceDestinationAuthedRequest
 
@@ -32,7 +33,7 @@ class TestTeamRequests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/team/query",
+            path=GetTeamRequest.config.path,
             payload=None,
             team_id=team.id,
         )
@@ -53,7 +54,7 @@ class TestTeamRequests(BaseTestCase):
             team = await self.make_team(s)
 
         response = await self.make_request(
-            path="/team/query",
+            path=GetTeamRequest.config.path,
             payload=None,
             team_id=team.id,
         )
@@ -82,12 +83,13 @@ class UpsertConfluenceDestinationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/me/team/destinations/confluence/upsert",
-            payload={
-                "confluence_destination": {
-                    "space_key": self.anystring("space_key"),
-                },
-            },
+            path=UpsertConfluenceDestinationAuthedRequest.config.path,
+            payload=UpsertConfluenceDestinationAuthedRequest.RequestBody(
+                confluence_destination=ConfluenceDestinationInput(
+                    space_key=self.anystring("space_key"),
+                ),
+            ),
+            team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
         )
@@ -119,12 +121,13 @@ class UpsertConfluenceDestinationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/me/team/destinations/confluence/upsert",
-            payload={
-                "confluence_destination": {
-                    "space_key": self.anystring("updated space_key"),
-                },
-            },
+            path=UpsertConfluenceDestinationAuthedRequest.config.path,
+            payload=UpsertConfluenceDestinationAuthedRequest.RequestBody(
+                confluence_destination=ConfluenceDestinationInput(
+                    space_key=self.anystring("updated space_key"),
+                ),
+            ),
+            team_id=team.id,
             account_id=account.id,
             access_token=account.access_token,
         )
