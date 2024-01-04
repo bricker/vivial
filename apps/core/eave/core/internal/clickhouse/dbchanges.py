@@ -2,9 +2,8 @@ from datetime import datetime
 import json
 import re
 from textwrap import dedent
-from typing import Any, overload, override
+from typing import Any, override
 from clickhouse_connect.datatypes.base import EMPTY_TYPE_DEF, TypeDef
-import clickhouse_connect.datatypes as _ch_datatypes
 from clickhouse_connect.datatypes.temporal import DateTime64
 from clickhouse_connect.datatypes.numeric import Enum
 from clickhouse_connect.datatypes.string import String
@@ -16,25 +15,26 @@ from eave.core.internal import database
 from eave.core.internal.clickhouse import clickhouse_client
 from eave.core.internal.clickhouse.types import ClickHouseTableDefinition, ClickHouseTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
-from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation, RawEvent
+from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
 
 
 table_definition = ClickHouseTableDefinition(
-    name = "dbchanges",
-    columns = [
+    name="dbchanges",
+    columns=[
         TableColumnDef(name="table_name", ch_type=String(EMPTY_TYPE_DEF)),
         TableColumnDef(name="operation", ch_type=Enum(TypeDef(values=tuple(DatabaseChangeOperation._member_names_)))),
         TableColumnDef(name="timestamp", ch_type=DateTime64(TypeDef(values=(6, "'UTC'")))),
         TableColumnDef(name="old_data", ch_type=JSON(EMPTY_TYPE_DEF)),
         TableColumnDef(name="new_data", ch_type=JSON(EMPTY_TYPE_DEF)),
     ],
-    primary_key_columns = [
+    primary_key_columns=[
         "table_name",
         "operation",
         "timestamp",
     ],
-    engine = "MergeTree",
+    engine="MergeTree",
 )
+
 
 class DatabaseChangesTableHandle(ClickHouseTableHandle):
     table = table_definition
@@ -44,7 +44,8 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
         vevent_view_name = vevent_name.replace(" ", "_").lower()
 
         clickhouse_client.chclient.command(
-            dedent(f"""
+            dedent(
+                f"""
                 CREATE VIEW IF NOT EXISTS {self.database}.{vevent_view_name} AS
                     SELECT
                         *
@@ -60,10 +61,7 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
         )
 
         async with database.async_session.begin() as db_session:
-            vevent_query = await VirtualEventOrm.query(
-                session=db_session,
-                params=VirtualEventOrm.QueryParams()
-            )
+            vevent_query = await VirtualEventOrm.query(session=db_session, params=VirtualEventOrm.QueryParams())
 
             if not vevent_query.one_or_none():
                 await VirtualEventOrm.create(
@@ -73,7 +71,6 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
                     name=vevent_name,
                     description=f"{operation} operation on the {source_table} table.",
                 )
-
 
     @override
     async def insert(self, events: list[str]) -> None:
@@ -101,13 +98,10 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
             },
         )
 
-        unique_operations = set(
-            (e.operation, e.table_name)
-            for e in dbchange_events
-        )
+        unique_operations = set((e.operation, e.table_name) for e in dbchange_events)
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
-        for (operation, table_name) in unique_operations:
+        for operation, table_name in unique_operations:
             await self.create_vevent_view(operation=operation, source_table=table_name)
 
     @override
@@ -124,12 +118,13 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
             "table_name": event.table_name,
             "operation": event.operation,
             "timestamp": datetime.fromtimestamp(event.timestamp),
-            "new_data": { event.table_name: event.new_data },
-            "old_data": { event.table_name: event.old_data },
+            "new_data": {event.table_name: event.new_data},
+            "old_data": {event.table_name: event.old_data},
         }
 
         # This effectively puts the values in the right order.
         return [d[c.name] for c in self.table.columns]
+
 
 def _make_virtual_event_name(*, operation: str, table_name: str) -> str:
     """
@@ -143,6 +138,7 @@ def _make_virtual_event_name(*, operation: str, table_name: str) -> str:
     op_hr = DatabaseChangeOperation(value=operation.upper()).hr_past_tense
     obj_hr = _hr_table_name(table_name)
     return f"{obj_hr} {op_hr}"
+
 
 def _hr_table_name(table_name: str) -> str:
     """

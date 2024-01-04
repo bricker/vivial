@@ -1,7 +1,7 @@
 import sys
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.database import init_database
-from eave.stdlib.config import SHARED_CONFIG, EaveEnvironment
+from eave.stdlib.config import SHARED_CONFIG
 
 sys.path.append(".")
 
@@ -13,14 +13,7 @@ load_standard_dotenv_files()
 
 import asyncio
 import logging
-import os
 
-import sqlalchemy
-from sqlalchemy.ext.asyncio import create_async_engine
-import asyncpg.exceptions
-import alembic
-import alembic.config
-import alembic.command
 
 import eave.core.internal
 import eave.core.internal.orm
@@ -36,13 +29,16 @@ async def main() -> None:
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
 
     eaveLogger.fprint(
-        logging.WARNING, f"\nThis script will perform the following operations on the {CORE_API_APP_CONFIG.db_name} database:"
+        logging.WARNING,
+        f"\nThis script will perform the following operations on the {CORE_API_APP_CONFIG.db_name} database:",
     )
     eaveLogger.fprint(logging.WARNING, "- 💥 DELETES THE DATABASE 💥 (if it exists)")
     eaveLogger.fprint(logging.WARNING, "- (RE-)CREATES THE DATABASE")
 
     answer = input(
-        eaveLogger.f(logging.WARNING, f"Proceed to delete and (re-)create the {CORE_API_APP_CONFIG.db_name} database? (Y/n) ")
+        eaveLogger.f(
+            logging.WARNING, f"Proceed to delete and (re-)create the {CORE_API_APP_CONFIG.db_name} database? (Y/n) "
+        )
     )
     if answer != "Y":
         print("Aborting.")

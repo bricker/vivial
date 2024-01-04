@@ -1,5 +1,3 @@
-import gzip
-import zlib
 import aiohttp
 from aiohttp.compression_utils import ZLibDecompressor
 from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, Scope, HTTPScope

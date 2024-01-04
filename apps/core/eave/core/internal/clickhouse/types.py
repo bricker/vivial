@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from textwrap import dedent
 from uuid import UUID
@@ -7,12 +6,12 @@ from clickhouse_connect.datatypes.base import ClickHouseType
 from clickhouse_connect.driver.ddl import TableColumnDef
 
 from eave.core.internal.clickhouse import clickhouse_client
-from eave.monitoring.datastructures import RawEvent
 
 
 @dataclass
 class ClickHouseDatabase:
     name: str
+
 
 @dataclass
 class ClickHouseTableDefinition:
@@ -29,6 +28,7 @@ class ClickHouseTableDefinition:
     def column_types(self) -> list[ClickHouseType]:
         return [c.ch_type for c in self.columns]
 
+
 class ClickHouseTableHandle:
     table: ClickHouseTableDefinition
 
@@ -44,7 +44,8 @@ class ClickHouseTableHandle:
         columns = ", ".join(c.col_expr for c in self.table.columns)
 
         clickhouse_client.chclient.command(
-            dedent(f"""
+            dedent(
+                f"""
                 CREATE TABLE IF NOT EXISTS {self.database}.{self.table.name}
                 ({columns})
                 ENGINE {self.table.engine}
@@ -61,4 +62,3 @@ class ClickHouseTableHandle:
 
     async def query(self, query: str) -> None:
         ...
-

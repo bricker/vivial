@@ -11,8 +11,7 @@ chclient.command(
             "create table if not exists dev_dbchanges (",
             "timestamp DateTime64(6, 'UTC'),",
             "table_name String,",
-            "operation Enum('insert', 'update', 'delete'),"
-            "old_data JSON",
+            "operation Enum('insert', 'update', 'delete')," "old_data JSON",
             "new_data JSON ",
             ")",
             "engine MergeTree",

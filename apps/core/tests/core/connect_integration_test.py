@@ -1,7 +1,11 @@
 import http
 
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-from eave.stdlib.core_api.models.connect import AtlassianProduct, QueryConnectInstallationInput, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import (
+    AtlassianProduct,
+    QueryConnectInstallationInput,
+    RegisterConnectInstallationInput,
+)
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 from eave.stdlib.util import unwrap
 from .base import BaseTestCase

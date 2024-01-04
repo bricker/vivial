@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 import dataclasses
-from datetime import datetime
 from enum import StrEnum
-from functools import cache, cached_property
 import json
-from typing import Any, Optional, Self
-from uuid import UUID
+from typing import Any, Self
 
 
 type RawEvent = dict[str, Any]
+
 
 class DatabaseChangeOperation(StrEnum):
     INSERT = "INSERT"
@@ -25,6 +23,7 @@ class DatabaseChangeOperation(StrEnum):
             case DatabaseChangeOperation.DELETE:
                 return "Deleted"
 
+
 @dataclass
 class EventPayload:
     def to_dict(self) -> RawEvent:
@@ -32,6 +31,7 @@ class EventPayload:
 
     def to_json(self) -> str:
         return _compact_json(self.to_dict())
+
 
 @dataclass
 class DatabaseChangeEventPayload(EventPayload):
@@ -78,6 +78,7 @@ class NetworkOutEventPayload(EventPayload):
     request_headers: dict[str, str]
     request_payload: str
 
+
 class EventType(StrEnum):
     dbchange = "dbchange"
 
@@ -86,6 +87,7 @@ class EventType(StrEnum):
         match self:
             case EventType.dbchange:
                 return DatabaseChangeEventPayload
+
 
 @dataclass
 class DataIngestRequestBody:

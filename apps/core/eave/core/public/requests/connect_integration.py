@@ -1,7 +1,6 @@
 import http
 
 import eave.core.internal.database as eave_db
-import eave.core.internal.orm as eave_orm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.http_endpoint import HTTPEndpoint

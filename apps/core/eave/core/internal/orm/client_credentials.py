@@ -1,26 +1,29 @@
 from dataclasses import dataclass
-from enum import IntEnum, StrEnum
+from enum import IntEnum
 import secrets
 import uuid
 from datetime import datetime
-from typing import Optional, Self, Sequence, Tuple
-from uuid import UUID, uuid4
+from typing import Optional, Self, Tuple
+from uuid import UUID
 
-from sqlalchemy import ARRAY, Index, ScalarResult, Select, SmallInteger, String, func, or_, select
+from sqlalchemy import Index, ScalarResult, Select, SmallInteger, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
+
 class ClientScope(IntEnum):
-    readonly    = 0b0001
-    writeonly   = 0b0010
-    readwrite   = 0b0011
+    readonly = 0b0001
+    writeonly = 0b0010
+    readwrite = 0b0011
+
 
 SCOPE_READONLY = 0b0001
 SCOPE_WRITEONLY = SCOPE_READONLY << 1
 SCOPE_READWRITE = SCOPE_READONLY | SCOPE_WRITEONLY
+
 
 class ClientCredentialsOrm(Base):
     __tablename__ = "client_credentials"

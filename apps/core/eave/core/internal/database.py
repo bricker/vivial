@@ -42,6 +42,7 @@ Example::
 """
 
 if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]:
+
     async def init_database() -> None:
         """
         This function DROPS the database (EAVE_DB_NAME)!
@@ -73,7 +74,9 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         async with postgres_engine.begin() as connection:
             await connection.execute(sqlalchemy.text(f'DROP DATABASE IF EXISTS "{CORE_API_APP_CONFIG.db_name}"'))
             await connection.execute(sqlalchemy.text(f'CREATE DATABASE "{CORE_API_APP_CONFIG.db_name}"'))
-            await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{CORE_API_APP_CONFIG.db_name}" SET timezone TO "UTC"'))
+            await connection.execute(
+                sqlalchemy.text(f'ALTER DATABASE "{CORE_API_APP_CONFIG.db_name}" SET timezone TO "UTC"')
+            )
 
             try:
                 await connection.execute(sqlalchemy.text("""CREATE ROLE "eave-agent" PASSWORD 'dev'"""))
@@ -89,7 +92,9 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
 
             await connection.execute(sqlalchemy.text('GRANT CREATE ON SCHEMA "public" to "eave-agent"'))
             await connection.execute(sqlalchemy.text('GRANT TRIGGER ON ALL TABLES IN SCHEMA "public" to "eave-agent"'))
-            await connection.execute(sqlalchemy.text('GRANT EXECUTE ON ALL ROUTINES IN SCHEMA "public" to "eave-agent"'))
+            await connection.execute(
+                sqlalchemy.text('GRANT EXECUTE ON ALL ROUTINES IN SCHEMA "public" to "eave-agent"')
+            )
 
             # try:
             #     # Because the dbchange triggers are installed when the pg agent boots up, we need to re-install them here after dropping and re-creating the tables.

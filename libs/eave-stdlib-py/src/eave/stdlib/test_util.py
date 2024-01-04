@@ -334,9 +334,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         # )
 
     def mock_slack_client(self) -> None:
-        self.patch(
-            name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient")
-        )
+        self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
 
     def mock_signing(self) -> None:
         def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:

@@ -180,9 +180,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         return results.all()
 
     async def _update_eave_team_document_platform(self, session: AsyncSession) -> None:
-        eave_team = await TeamOrm.one_or_exception(
-            session=session, team_id=self.eave_account.team_id
-        )
+        eave_team = await TeamOrm.one_or_exception(session=session, team_id=self.eave_account.team_id)
         eave_team.document_platform = DocumentPlatform.confluence
 
     async def _maybe_set_default_confluence_space(self, connect_installation: ConnectInstallationOrm) -> None:

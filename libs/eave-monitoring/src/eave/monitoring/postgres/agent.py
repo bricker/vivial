@@ -1,23 +1,14 @@
 import argparse
 import asyncio
-from curses import echo
-from dataclasses import dataclass
-from datetime import datetime
-from enum import StrEnum
-import json
 import os
-from queue import Queue
 import signal
 import sys
-from textwrap import dedent
 from types import FrameType
-from typing import Any, LiteralString, cast
-from uuid import uuid4
-import time
+from typing import LiteralString, cast
 import psycopg
-from psycopg import AsyncConnection, sql
+from psycopg import sql
 
-from eave.monitoring.datastructures import RawEvent, EventType
+from eave.monitoring.datastructures import EventType
 from eave.monitoring.write_queue import BatchWriteQueue, QueueParams
 
 # payload can only be 8kb max
@@ -29,6 +20,7 @@ with open(os.path.join(_thisdir, "triggers.sql"), encoding="utf-8") as f:
 
 # TODO: think about how this would work w/ a distributed db system w/ replication (becuse multiple db will get the same update cascaded.)
 #    > maybe only needs to be running on the master replica
+
 
 async def start_agent(conninfo: str, team_id: str):
     """
@@ -50,20 +42,18 @@ async def start_agent(conninfo: str, team_id: str):
             # **IMPORTANT**
             # LISTEN registers the _current_ session as a listener. Whenever NOTIFY is invoked, only the sessions _currently_ listening on that notification channel are notified
             await curs.execute(
-                sql.SQL("\n").join([
-                    _TRIGGERS_SQL,
-                    sql.SQL("CALL eave_install_triggers();"),
-                    sql.SQL("LISTEN eave_dbchange_channel;"),
-                ])
+                sql.SQL("\n").join(
+                    [
+                        _TRIGGERS_SQL,
+                        sql.SQL("CALL eave_install_triggers();"),
+                        sql.SQL("LISTEN eave_dbchange_channel;"),
+                    ]
+                )
             )
 
         print("Eave PostgreSQL agent started (Ctrl-C to stop)")
 
-        queue_params = QueueParams(
-            event_type=EventType.dbchange,
-            maxsize=100,
-            maxage_seconds=30
-        )
+        queue_params = QueueParams(event_type=EventType.dbchange, maxsize=100, maxage_seconds=30)
 
         q = BatchWriteQueue(queue_params=queue_params)
         q.start_autoflush()

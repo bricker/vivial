@@ -47,6 +47,7 @@ import eave.core.internal.orm
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 
+
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]
 
@@ -64,6 +65,7 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 
 _DB_SETUP: bool = False
 
+
 class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
@@ -73,7 +75,9 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         # Attempt to prevent running destructive database operations against non-test database
         assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
-        assert eave.core.internal.database.async_engine.url.database == "eave-test", "Tests perform destructive database operations, and can only be run against the test database (hardcoded to be \"eave-test\""
+        assert (
+            eave.core.internal.database.async_engine.url.database == "eave-test"
+        ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test"'
 
         if not _DB_SETUP:
             print("Running one-time DB setup...")
@@ -307,9 +311,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         return account
 
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
-        acct = await AccountOrm.one_or_none(
-            session=session, params=AccountOrm.QueryParams(id=id)
-        )
+        acct = await AccountOrm.one_or_none(session=session, params=AccountOrm.QueryParams(id=id))
         return acct
 
     async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> TeamOrm | None:

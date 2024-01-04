@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 import uuid
 from datetime import datetime
-from typing import Optional, Self, Sequence, Tuple
+from typing import Optional, Self, Tuple
 from uuid import UUID
 
-from sqlalchemy import Index, ScalarResult, Select, func, select
+from sqlalchemy import ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 

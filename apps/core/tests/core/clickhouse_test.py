@@ -1,15 +1,11 @@
-from datetime import datetime
-import json
-from textwrap import dedent
 
 import clickhouse_connect
-from eave.core.internal.clickhouse import clickhouse_client
 from eave.core.internal.clickhouse.dbchanges import DatabaseChangesTableHandle
 from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.monitoring.datastructures import DatabaseChangeEventPayload, EventType, RawEvent
 from .base import BaseTestCase
 
 chclient = clickhouse_connect.get_client(host=CORE_API_APP_CONFIG.clickhouse_host)
+
 
 class TestClickhouseIntegration(BaseTestCase):
     async def asyncSetUp(self) -> None:

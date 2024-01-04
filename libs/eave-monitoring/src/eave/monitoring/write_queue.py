@@ -7,13 +7,15 @@ import time
 
 from eave.monitoring.ingestion_api import send_data
 
-from .datastructures import EventType, RawEvent
+from .datastructures import EventType
+
 
 @dataclass
 class QueueParams:
     event_type: EventType
-    maxsize: int = 0 # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
+    maxsize: int = 0  # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
     maxage_seconds: int = 30
+
 
 # TODO: sigterm handler
 async def _process_queue(q: multiprocessing.Queue, params: QueueParams) -> None:
@@ -45,6 +47,7 @@ async def _process_queue(q: multiprocessing.Queue, params: QueueParams) -> None:
             else:
                 buffer.clear()
                 lastflush = now
+
 
 def _queue_processor_event_loop(*args, **kwargs) -> None:
     asyncio.run(_process_queue(*args, **kwargs))
