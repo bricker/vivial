@@ -80,7 +80,14 @@ function setuppython() (
 			pyenv version
 		fi
 
-		python -m venv --clear --upgrade-deps "$EAVE_HOME/.venv"
+		# Fix pip cache error: https://stackoverflow.com/a/77298334/885036
+		rm -rf "${HOME}/.cache/pip/selfcheck"
+		rm -rf "${HOME}/Library/Caches/pip/selfcheck"
+
+		local ved="$EAVE_HOME/.venv"
+		rm -rf "$ved"
+
+		python -m venv --upgrade-deps "$ved"
 		python-activate-venv
 
 		# shellcheck disable=SC2086

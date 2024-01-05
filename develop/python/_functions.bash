@@ -12,7 +12,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 	function python-activate-venv() {
 		if ! ^ci; then
-			ved="${EAVE_HOME}/.venv"
+			local ved="${EAVE_HOME}/.venv"
 			if ! test -d "$ved"; then
 				statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
 				exit 1
