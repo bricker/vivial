@@ -30,8 +30,9 @@ function setenvvars() (
 		statusmsg -o "XDG_CONFIG_HOME already set."
 	else
 		local value="\$HOME/.config"
+		statusmsg -pa "Adding XDG_CONFIG_HOME=$value to your environment."
 		statusmsg -i "XDG_CONFIG_HOME is a standard environment variable that many programs use to store configuration."
-		if ^ask "Add XDG_CONFIG_HOME=$value to your environment?"; then
+		if ^confirm; then
 			^add-shell-variable XDG_CONFIG_HOME "$value"
 		fi
 	fi
@@ -40,8 +41,9 @@ function setenvvars() (
 		statusmsg -o "XDG_DATA_HOME already set."
 	else
 		local value="\$HOME/.local/share"
+		statusmsg -pa "Adding XDG_DATA_HOME=$value to your environment."
 		statusmsg -i "XDG_DATA_HOME is a standard environment variable that many programs use to store data."
-		if ^ask "Add XDG_DATA_HOME=$value to your environment?"; then
+		if ^confirm; then
 			^add-shell-variable XDG_DATA_HOME "$value"
 		fi
 	fi
@@ -50,8 +52,9 @@ function setenvvars() (
 		statusmsg -o "XDG_RUNTIME_DIR already set."
 	else
 		local value="/run/user/1000"
+		statusmsg -pa "Adding XDG_RUNTIME_DIR=$value to your environment."
 		statusmsg -i "XDG_RUNTIME_DIR is a standard environment variable that many programs use to store Unix sockets."
-		if ^ask "Add XDG_RUNTIME_DIR=$value to your environment?"; then
+		if ^confirm; then
 			^add-shell-variable XDG_RUNTIME_DIR "$value"
 		fi
 	fi
@@ -61,15 +64,17 @@ function setenvvars() (
 	else
 		local value
 		value=$(pwd)
+		statusmsg -pa "Adding EAVE_HOME=$value to your environment."
 		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
-		if ^ask "Add EAVE_HOME=$value to your environment?"; then
+		if ^confirm; then
 			^add-shell-variable EAVE_HOME "$value"
 		fi
 	fi
 )
 
 function setuppython() (
-	if ^ask "Setup Python virtual environment?"; then
+	statusmsg -pa "Setting up Python virtual environment"
+	if ^confirm; then
 		if ! ^cmd-exists pyenv; then
 			pythonpath="$(which python)"
 			statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
@@ -96,7 +101,8 @@ function setuppython() (
 )
 
 function setupnode() (
-	if ^ask "Setup Node virtual environment?"; then
+	statusmsg -pa "Setting up Node virtual environment"
+	if ^confirm; then
 		node-activate-venv
 		rm -rf node_modules
 		npm install
@@ -107,8 +113,9 @@ function setupgcloud() (
 	if ! ^force && ^cmd-exists "gcloud"; then
 		statusmsg -o "gcloud CLI already installed."
 	else
+		statusmsg -pa "Downloading and installing the gcloud CLI into $HOME/google-cloud-sdk."
 		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
-		if ^ask "Download and install the gcloud CLI into $HOME/google-cloud-sdk?"; then
+		if ^confirm; then
 			cd "$tmpdir" || exit 1
 			local gcloudversion="426.0.0"
 			local arch
@@ -124,46 +131,14 @@ function setupgcloud() (
 	fi
 )
 
-function setupcloudsqlproxy() (
-	if ! ^force && ^cmd-exists "cloud-sql-proxy"; then
-		statusmsg -o "CloudSQL Proxy already installed."
-	else
-		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
-		if ^ask "Download and install the Cloud SQL Proxy for your system?"; then
-			cd "$tmpdir" || exit 1
-			if ^cmd-exists "gcloud"; then
-				cloudsqlproxypath=$(dirname "$(which gcloud)")
-			else
-				cloudsqlproxypath="/usr/local/bin"
-			fi
-
-			local proxyversion="2.2.0"
-			local arch
-			arch=$(get-cpu-arch-normalized-alt)
-
-			curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
-			# see if we got an error back instead of binary content
-			if test "$(head -n1 cloud-sql-proxy | cut -c 3-5)" = "xml"; then
-				statusmsg -e "Error downloading cloud-sql-proxy:"
-				cat cloud-sql-proxy
-				rm cloud-sql-proxy
-				return 1
-			fi
-			chmod +x cloud-sql-proxy
-
-			statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
-			sudo mv cloud-sql-proxy "$cloudsqlproxypath"
-		fi
-	fi
-)
-
 function installterraform() (
 	if ! ^force && ^cmd-exists "terraform"; then
 		statusmsg -o "terraform already installed."
 	else
+		statusmsg -pa "Installing the 'terraform' command line utility."
 		statusmsg -i "The terraform CLI is used in various utility scripts in this repository."
 
-		if ^ask "Install the terraform command line utility?"; then
+		if ^confirm; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -197,9 +172,10 @@ function installjq() (
 	if ! ^force && ^cmd-exists "jq"; then
 		statusmsg -o "jq already installed."
 	else
+		statusmsg -pa "Installing the 'jq' command line utility."
 		statusmsg -i "The jq program is used in many utility scripts in this repository."
 
-		if ^ask "Install the 'jq' command line utility?"; then
+		if ^confirm; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -233,9 +209,10 @@ function installyq() (
 	if ! ^force && ^cmd-exists "yq"; then
 		statusmsg -o "yq already installed."
 	else
+		statusmsg -pa "Installing the 'yq' command line utility."
 		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
 
-		if ^ask "Install the 'yq' command line utility?"; then
+		if ^confirm; then
 			if ^cmd-exists "brew"; then
 				brew install yq
 			else
@@ -250,9 +227,10 @@ function installshfmt() (
 	if ! ^force && ^cmd-exists "shfmt"; then
 		statusmsg -o "shfmt already installed."
 	else
+		statusmsg -pa "Installing the 'shfmt' command line utility."
 		statusmsg -i "The shfmt program is used to auto-format shell scripts"
 
-		if ^ask "Install the 'shfmt' command line utility?"; then
+		if ^confirm; then
 			if ^cmd-exists "brew"; then
 				brew install shfmt
 			else
@@ -267,9 +245,10 @@ function installshellcheck() (
 	if ! ^force && ^cmd-exists "shellcheck"; then
 		statusmsg -o "shellcheck already installed."
 	else
+		statusmsg -pa "Installing the 'shellcheck' command line utility."
 		statusmsg -i "The shellcheck program is used to lint shell scripts"
 
-		if ^ask "Install the 'shellcheck' command line utility?"; then
+		if ^confirm; then
 			if ^cmd-exists "brew"; then
 				brew install shellcheck
 			else
@@ -281,9 +260,9 @@ function installshellcheck() (
 )
 
 function setupapps() (
-	statusmsg -i "Each sub-project in this repository contains its own setup script."
+	statusmsg -pa "Running setup scripts in develop, libs, and apps."
 
-	if ^ask "Run setup scripts in develop, libs, and apps?"; then
+	if ^confirm; then
 		cd "${EAVE_HOME}" || exit 1
 		python-activate-venv
 		node-activate-venv
@@ -310,7 +289,6 @@ setenvvars
 setuppython
 setupnode
 setupgcloud
-# setupcloudsqlproxy
 installjq
 installyq
 installterraform
