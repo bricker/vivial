@@ -277,30 +277,51 @@ function setupapps() (
 	fi
 )
 
-statusmsg -ps "Hi! Welcome to Eave. This script will help you setup this repository."
-statusmsg -i "Before getting started, it is recommended to manually install a few things if you haven't already:"
-statusmsg -i "* homebrew - https://brew.sh/"
-statusmsg -i "* nvm - https://github.com/nvm-sh/nvm (sh) or https://github.com/jorgebucaran/nvm.fish (fish)"
-statusmsg -i "* pyenv - https://github.com/pyenv/pyenv node version management.  and \"pyenv\" version management tools into your environment."
+function ^helpmsg() (
+	statusmsg -o "Usage: bin/setup [-f] [-y]"
+	statusmsg -o "  -f : force (bypass checks for existing tools)"
+	statusmsg -o "  -y : no prompts (automatically answer Y to all prompts)"
+)
 
-echo ""
+function main() (
+	while getopts "fyh" argname; do
+		case "$argname" in
+		f)
+			export FORCE=1 ;;
+		y)
+			export NOPROMPT=1 ;;
+		h)
+			^helpmsg
+			exit 0
+			;;
+		*)
+			^helpmsg
+			exit 1
+			;;
+		esac
+	done
 
-setenvvars
-setuppython
-setupnode
-setupgcloud
-installjq
-installyq
-installterraform
-installshfmt
-installshellcheck
-setupapps
+	statusmsg -ps "Hi! Welcome to Eave. This script will help you setup this repository."
+	statusmsg -pi "Before getting started, it is recommended to manually install a few things if you haven't already:"
+	statusmsg -pi "* homebrew - https://brew.sh/"
+	statusmsg -pi "* nvm - https://github.com/nvm-sh/nvm (sh) or https://github.com/jorgebucaran/nvm.fish (fish)"
+	statusmsg -pi "* pyenv - https://github.com/pyenv/pyenv node version management.  and \"pyenv\" version management tools into your environment."
 
-statusmsg -s "Done!"
-statusmsg -s "Now, open EAVE_HOME (this directory) in VSCode (recommended) and you're ready to go. (Hint: try \`code .\`)"
+	echo ""
 
-echo ""
+	setenvvars
+	setuppython
+	setupnode
+	setupgcloud
+	installjq
+	installyq
+	installterraform
+	installshfmt
+	installshellcheck
+	setupapps
 
-statusmsg -o "FYI: You can set some environment variables to configure how this script runs:"
-statusmsg -o "FORCE=1 : Bypass checks"
-statusmsg -o "NOPROMPT=1 : Automatically answer yes to prompts"
+	statusmsg -s "Done!"
+	statusmsg -s "Now, open EAVE_HOME (this directory) in VSCode (recommended) and you're ready to go. (Hint: try \`code .\`)"
+)
+
+main "$@"

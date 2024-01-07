@@ -455,7 +455,12 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	)
 
 	function ^confirm() (
-		statusmsg -wpn "Proceed? [y/n] "
+		if test -n "${NOPROMPT:-}"; then
+			exit 0
+		fi
+
+		statusmsg -wpn "Proceed? [y/n]"
+		statusmsg -no " "
 		read -r proceed
 		test "$proceed" = "y"
 	)
