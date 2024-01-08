@@ -4,6 +4,7 @@
 -e ./libs/eave-stdlib-py
 -e ${EAVE_HOME}/develop/python
 
+opentelemetry-distro # TODO: will want this as release dep ... and should keep this as narrow as possible. or build our own auto selector for instrumetation installs?
 psycopg2
 grpcio-tools
 protobuf
