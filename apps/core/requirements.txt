@@ -9,6 +9,8 @@ google-cloud-runtimeconfig # See https://github.com/googleapis/python-runtimecon
 google-auth
 google-auth-httplib2
 google-auth-oauthlib
+google-cloud-bigquery-storage
+google-cloud-bigquery
 requests_oauthlib
 oauthlib
 starlette

@@ -23,7 +23,6 @@ class DatabaseChangeOperation(StrEnum):
             case DatabaseChangeOperation.DELETE:
                 return "Deleted"
 
-
 @dataclass
 class EventPayload:
     def to_dict(self) -> RawEvent:

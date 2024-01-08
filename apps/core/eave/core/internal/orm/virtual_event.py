@@ -8,6 +8,9 @@ from sqlalchemy import ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.monitoring.datastructures import DatabaseChangeOperation
+from eave.stdlib.util import titleize
+
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
@@ -78,3 +81,17 @@ class VirtualEventOrm(Base):
         lookup = cls._build_query(params=params)
         result = await session.scalars(lookup)
         return result
+
+
+def make_virtual_event_name(*, operation: str, table_name: str) -> str:
+    """
+    >>> make_virtual_event_name(operation="INSERT", table_name="accounts")
+    'Account Created'
+    >>> make_virtual_event_name(operation="UPDATE", table_name="github_installations")
+    'Github Installation Updated'
+    >>> make_virtual_event_name(operation="DELETE", table_name="UserAccounts")
+    'User Account Deleted'
+    """
+    op_hr = DatabaseChangeOperation(value=operation.upper()).hr_past_tense
+    obj_hr = titleize(table_name)
+    return f"{obj_hr} {op_hr}"
