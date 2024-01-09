@@ -1,3 +1,5 @@
+# a dummy app for testing network tracing with
+
 from random import randint
 from flask import Flask, request
 from aiohttp import ClientSession
@@ -14,6 +16,7 @@ logger = logging.getLogger(__name__)
 async def roll_dice():
     player = request.args.get('player', default = None, type = str)
     result = str(roll())
+    
     garbo = "unset"
     async with ClientSession() as session:
         async with session.get("https://www.google.com") as resp:
