@@ -3,22 +3,7 @@ from flask import Flask, request
 from aiohttp import ClientSession
 import logging
 
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-    ConsoleSpanExporter,
-)
-from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-
-def eave_instrument(app):
-    set_tracer_provider(TracerProvider())
-    get_tracer_provider().add_span_processor(
-        BatchSpanProcessor(ConsoleSpanExporter())
-    )
-    FlaskInstrumentor.instrument_app(app)
-    AioHttpClientInstrumentor().instrument()
+from .instrument import eave_instrument
 
 app = Flask(__name__)
 eave_instrument(app)
