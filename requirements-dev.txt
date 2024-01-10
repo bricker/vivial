@@ -5,6 +5,10 @@
 -e ${EAVE_HOME}/develop/python
 
 opentelemetry-distro # TODO: will want this as release dep ... and should keep this as narrow as possible. or build our own auto selector for instrumetation installs?
+opentelemetry-api 
+opentelemetry-sdk 
+opentelemetry-exporter-otlp
+# then also other instrumentor deps (e.g. flask, aiohttp)
 psycopg2
 grpcio-tools
 protobuf
