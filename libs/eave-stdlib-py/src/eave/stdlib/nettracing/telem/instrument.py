@@ -5,7 +5,7 @@ from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
 )
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 from eave.stdlib.nettracing.telem.capture import EaveSpanExporter
 
@@ -14,7 +14,7 @@ from eave.stdlib.nettracing.telem.capture import EaveSpanExporter
 def eave_instrument(app):
     set_tracer_provider(TracerProvider())
     get_tracer_provider().add_span_processor( # type: ignore
-        BatchSpanProcessor(OTLPSpanExporter()) #EaveSpanExporter())
+        BatchSpanProcessor(OTLPSpanExporter(endpoint="http://0.0.0.0:4317")) #EaveSpanExporter())
     )
     FlaskInstrumentor.instrument_app(app)
     AioHttpClientInstrumentor().instrument()
