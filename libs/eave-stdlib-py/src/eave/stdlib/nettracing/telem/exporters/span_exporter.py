@@ -1,17 +1,8 @@
-"""
-so are we going to basically end up writing our own open telem api interface impl??
-
-curernt open telem impls predictably only capture url and http method
-
-i think well need to fork every opentelem instrumetation rerpo we care about, alter code to gather req/resp body data, bundle our fork w/ the opentelem api, and then release for customers
-(unsure if there is a 1 LOC solution for opentelem; current demo was wrapping the executable)
-"""
 import typing
 import sys
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 
-# TODO: look at https://github.com/open-telemetry/opentelemetry-python/blob/main/exporter/opentelemetry-exporter-otlp-proto-http/src/opentelemetry/exporter/otlp/proto/http/trace_exporter/__init__.py
 
 class EaveSpanExporter(SpanExporter):
     """copied base from ConsoleSpanExporter
@@ -21,11 +12,11 @@ class EaveSpanExporter(SpanExporter):
     def __init__(
         self,
         service_name: typing.Optional[str] = None,
-        out: typing.IO = sys.stdout, # TODO: should be endpoint addr instead of stdout
+        out: typing.IO = sys.stdout,  # TODO: should be endpoint addr instead of stdout
         formatter: typing.Callable[
-            [ReadableSpan], str # TODO: eventually replace ReadableSpan w/ our own dataclass
+            [ReadableSpan], str  # TODO: eventually replace ReadableSpan w/ our own dataclass
         ] = lambda span: span.to_json()
-        + '\n',
+        + "\n",
     ):
         self.out = out
         self.formatter = formatter

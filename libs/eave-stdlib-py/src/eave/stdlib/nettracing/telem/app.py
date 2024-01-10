@@ -5,7 +5,7 @@ from flask import Flask, request
 from aiohttp import ClientSession
 import logging
 
-from eave.stdlib.nettracing.telem.instrument import eave_instrument
+from eave.stdlib.nettracing.telem.instrumentors import eave_instrument
 
 app = Flask(__name__)
 eave_instrument(app)

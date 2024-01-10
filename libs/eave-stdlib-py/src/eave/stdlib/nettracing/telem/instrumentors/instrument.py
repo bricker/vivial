@@ -1,5 +1,6 @@
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+# from opentelemetry.instrumentation.flask import FlaskInstrumentor
+# from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
@@ -7,7 +8,9 @@ from opentelemetry.sdk.trace.export import (
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
-from eave.stdlib.nettracing.telem.capture import EaveSpanExporter
+from eave.stdlib.nettracing.telem.exporters.span_exporter import EaveSpanExporter
+from eave.stdlib.nettracing.telem.instrumentors.aiohttp_client import AioHttpClientInstrumentor
+from eave.stdlib.nettracing.telem.instrumentors.flask import FlaskInstrumentor
 
 # TODO: try catch adding all supported instrumentation (since we dont know what deps they have). or autodetect from sys.modules
 # https://github.com/open-telemetry/opentelemetry-python-contrib/blob/7c12ad9844ac179e3f6a493491707a9bafd06f6b/opentelemetry-instrumentation/src/opentelemetry/instrumentation/bootstrap.py#L87
