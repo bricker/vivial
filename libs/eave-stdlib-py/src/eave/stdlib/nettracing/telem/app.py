@@ -15,13 +15,17 @@ logger = logging.getLogger(__name__)
 @app.route("/rolldice")
 async def roll_dice():
     player = request.args.get('player', default = None, type = str)
-    result = str(roll())
+    result = str(randint(1, 6))
     
     garbo = "unset"
     async with ClientSession() as session:
         async with session.get("https://www.google.com") as resp:
             garbo = (await resp.text())[:10]
     logger.info(f"garbo is: {garbo}")
+
+    async with ClientSession() as session:
+        async with session.post("http://localhost:8080/makedice", data={"player": player}) as resp:
+            garbo = await resp.text()
     
     if player:
         logger.warning("%s is rolling the dice: %s", player, result)
@@ -29,9 +33,9 @@ async def roll_dice():
         logger.warning("Anonymous player is rolling the dice: %s", result)
     return result
 
-def roll():
-    return randint(1, 6)
-
+@app.post("/makedice")
+async def make_dice():
+    return "you made dice, good job"
 
 # if __name__ == "__main__":
 #     app.run(port=8080)

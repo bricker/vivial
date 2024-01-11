@@ -123,6 +123,7 @@ def create_trace_config(
         span_attributes = {
             SpanAttributes.HTTP_METHOD: http_method,
             SpanAttributes.HTTP_URL: request_url,
+            'http.request.body': [],
         }
 
         trace_config_ctx.span = trace_config_ctx.tracer.start_span(
@@ -156,7 +157,33 @@ def create_trace_config(
             trace_config_ctx.span.set_attribute(
                 SpanAttributes.HTTP_STATUS_CODE, params.response.status
             )
+            # NOTE: manually added
+            # TODO: catch UnicodeDecodeError if resp.text() isnt unicode decodable
+            trace_config_ctx.span.set_attribute(
+                'http.response.body', (await params.response.text())[:100]
+            )
         _end_trace(trace_config_ctx)
+
+    def get_chunk_handler():
+        async def on_request_chunk_sent(
+            unused_session: aiohttp.ClientSession,
+            trace_config_ctx: types.SimpleNamespace,
+            params: aiohttp.TraceRequestChunkSentParams,
+        ):
+            if trace_config_ctx.span is None:
+                return
+            
+            # build up chunks of body
+            if trace_config_ctx.span.is_recording():
+                curr_body = params.chunk
+                if "curr_body" in on_request_chunk_sent.__dict__:
+                    curr_body = on_request_chunk_sent.curr_body + params.chunk
+
+                trace_config_ctx.span.set_attribute(
+                    'http.request.body', curr_body.decode('utf-8') #TODO: try/catch
+                )
+                on_request_chunk_sent.curr_body = curr_body
+        return on_request_chunk_sent
 
     async def on_request_exception(
         unused_session: aiohttp.ClientSession,
@@ -188,6 +215,7 @@ def create_trace_config(
     trace_config.on_request_start.append(on_request_start)
     trace_config.on_request_end.append(on_request_end)
     trace_config.on_request_exception.append(on_request_exception)
+    trace_config.on_request_chunk_sent.append(get_chunk_handler())
 
     return trace_config
 
