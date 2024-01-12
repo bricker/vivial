@@ -8,8 +8,8 @@ from opentelemetry.sdk.trace.export import (
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
-from eave.stdlib.nettracing.telem.exporters.span_exporter import EaveSpanExporter
-from eave.stdlib.nettracing.telem.instrumentors import flask, aiohttp_client, starlette
+from eave.monitoring.nettracing.telem.exporters.span_exporter import EaveSpanExporter
+from eave.monitoring.nettracing.telem.instrumentors import flask, aiohttp_client, starlette
 
 
 # TODO: try catch adding all supported instrumentation (since we dont know what deps they have). or autodetect from sys.modules
