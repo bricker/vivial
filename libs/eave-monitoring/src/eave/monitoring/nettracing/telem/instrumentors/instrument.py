@@ -20,5 +20,6 @@ def eave_instrument(app):
         BatchSpanProcessor(OTLPSpanExporter(endpoint="http://0.0.0.0:4317")) #EaveSpanExporter())
     )
     flask.FlaskInstrumentor.instrument_app(app)
+    # starlette.StarletteInstrumentor.instrument_app(app)
     aiohttp_client.AioHttpClientInstrumentor().instrument()
     

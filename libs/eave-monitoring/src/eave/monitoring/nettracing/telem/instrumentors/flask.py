@@ -174,6 +174,12 @@ def _wrapped_before_request(
             request_hook(span, flask_request_environ)
 
         if span.is_recording():
+            # NOTE: added
+            req_body = flask.request.json if flask.request.is_json else flask.request.values
+            span.set_attribute(
+                'http.request.body', str(req_body)
+            )
+
             for key, value in attributes.items():
                 span.set_attribute(key, value)
             if span.is_recording() and span.kind == trace.SpanKind.SERVER:
@@ -257,6 +263,18 @@ def _wrapped_teardown_request(
 
     return _teardown_request
 
+# NOTE: added
+def _wrapped_after_request(response):
+    if flask.request: # and (
+    #     excluded_urls is None
+    #     or not excluded_urls.url_disabled(flask.request.url)
+    # ):
+        if span := flask.request.environ.get(_ENVIRON_SPAN_KEY):
+            resp_body = str(response.get_data(as_text=True))
+            span.set_attribute(
+                'http.response.body', resp_body
+            )
+    return response
 
 class _InstrumentedFlask(flask.Flask):
     _excluded_urls = None
@@ -423,6 +441,9 @@ class FlaskInstrumentor(BaseInstrumentor):
             )
             app._before_request = _before_request
             app.before_request(_before_request)
+
+            # NOTE: added
+            app.after_request(_wrapped_after_request)
 
             _teardown_request = _wrapped_teardown_request(
                 excluded_urls=excluded_urls,
