@@ -90,11 +90,12 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             # create tables in empty db
             await connection.run_sync(get_base_metadata().create_all)
 
-            await connection.execute(sqlalchemy.text('GRANT CREATE ON SCHEMA "public" to "eave-agent"'))
-            await connection.execute(sqlalchemy.text('GRANT TRIGGER ON ALL TABLES IN SCHEMA "public" to "eave-agent"'))
-            await connection.execute(
-                sqlalchemy.text('GRANT EXECUTE ON ALL ROUTINES IN SCHEMA "public" to "eave-agent"')
-            )
+            # await connection.execute(sqlalchemy.text('CREATE ROLE "eave-agent"'))
+            # await connection.execute(sqlalchemy.text('GRANT CREATE ON SCHEMA "public" to "eave-agent"'))
+            # await connection.execute(sqlalchemy.text('GRANT TRIGGER ON ALL TABLES IN SCHEMA "public" to "eave-agent"'))
+            # await connection.execute(
+            #     sqlalchemy.text('GRANT EXECUTE ON ALL ROUTINES IN SCHEMA "public" to "eave-agent"')
+            # )
 
             # try:
             #     # Because the dbchange triggers are installed when the pg agent boots up, we need to re-install them here after dropping and re-creating the tables.
