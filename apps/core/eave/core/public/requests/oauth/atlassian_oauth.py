@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
 from eave.core.internal.orm.confluence_destination import ConfluenceDestinationOrm
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
@@ -28,7 +29,7 @@ from eave.stdlib.core_api.models.team import DocumentPlatform
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import EaveOnboardingErrorCode, base, shared
 from eave.stdlib.confluence_api.operations import GetAvailableSpacesRequest
-from eave.core.internal.config import app_config
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = AuthProvider.atlassian
@@ -82,7 +83,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             eave_team_name = self.atlassian_resource.name
         else:
             name = userinfo.display_name
-            eave_team_name = f"{name}'s Team" if name else "Your Team"
+            eave_team_name = f"{name}'s Team" if name else shared.DEFAULT_TEAM_NAME
 
         self.eave_account = await shared.get_or_create_eave_account(
             request=self.request,
@@ -179,9 +180,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
         return results.all()
 
     async def _update_eave_team_document_platform(self, session: AsyncSession) -> None:
-        eave_team = await eave.core.internal.orm.TeamOrm.one_or_exception(
-            session=session, team_id=self.eave_account.team_id
-        )
+        eave_team = await TeamOrm.one_or_exception(session=session, team_id=self.eave_account.team_id)
         eave_team.document_platform = DocumentPlatform.confluence
 
     async def _maybe_set_default_confluence_space(self, connect_installation: ConnectInstallationOrm) -> None:
@@ -195,7 +194,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
 
                 response = await GetAvailableSpacesRequest.perform(
                     ctx=self.eave_state.ctx,
-                    origin=app_config.eave_origin,
+                    origin=CORE_API_APP_CONFIG.eave_origin,
                     team_id=self.eave_account.team_id,
                 )
                 available_spaces = response.confluence_spaces
@@ -245,7 +244,7 @@ class AtlassianOAuthCallback(base.BaseOAuthCallback):
             else:
                 site_name = None
 
-            await eave.core.internal.orm.AtlassianInstallationOrm.create(
+            await AtlassianInstallationOrm.create(
                 session=db_session,
                 team_id=self.eave_account.team_id,
                 atlassian_cloud_id=self.atlassian_cloud_id,

@@ -3,14 +3,14 @@ from eave.slack.brain.base import SubscriptionInfo
 import eave.stdlib.core_api.models.subscriptions
 import eave.stdlib.core_api.operations.subscriptions as eave_subscriptions
 from .communication import CommunicationMixin
-from ..config import app_config
+from ..config import SLACK_APP_CONFIG
 
 
 class SubscriptionManagementMixin(CommunicationMixin):
     async def get_subscription(self) -> eave_subscriptions.GetSubscriptionRequest.ResponseBody:
         subscription = await eave_subscriptions.GetSubscriptionRequest.perform(
             ctx=self.eave_ctx,
-            origin=app_config.eave_origin,
+            origin=SLACK_APP_CONFIG.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.GetSubscriptionRequest.RequestBody(
                 subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(
@@ -26,7 +26,7 @@ class SubscriptionManagementMixin(CommunicationMixin):
         """
         subscription = await eave_subscriptions.CreateSubscriptionRequest.perform(
             ctx=self.eave_ctx,
-            origin=app_config.eave_origin,
+            origin=SLACK_APP_CONFIG.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.CreateSubscriptionRequest.RequestBody(
                 subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(

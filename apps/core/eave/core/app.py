@@ -1,9 +1,13 @@
+from eave.core.internal.oauth.atlassian import ATLASSIAN_OAUTH_AUTHORIZE_PATH, ATLASSIAN_OAUTH_CALLBACK_PATH
+from eave.core.internal.oauth.google import GOOGLE_OAUTH_AUTHORIZE_PATH, GOOGLE_OAUTH_CALLBACK_PATH
+from eave.core.internal.oauth.slack import SLACK_OAUTH_AUTHORIZE_PATH, SLACK_OAUTH_CALLBACK_PATH
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
+from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
 from eave.stdlib import cache, logging
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount, GetAuthenticatedAccountTeamIntegrations
+from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
 from eave.stdlib.core_api.operations.api_documentation_jobs import (
     GetApiDocumentationJobsOperation,
     UpsertApiDocumentationJobOperation,
@@ -166,6 +170,17 @@ routes = [
     Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
     Route(path="/_ah/stop", endpoint=status.StopRequest, methods=["GET"]),
     Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
+    # Public API Endpoints
+    make_route(
+        config=CoreApiEndpointConfiguration(
+            path="/ingest",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
+        endpoint=DataIngestionEndpoint,
+    ),
     # Internal API Endpoints.
     # These endpoints require signature verification.
     make_route(
@@ -281,15 +296,11 @@ routes = [
         config=GetAuthenticatedAccount.config,
         endpoint=authed_account.GetAuthedAccount,
     ),
-    make_route(
-        config=GetAuthenticatedAccountTeamIntegrations.config,
-        endpoint=authed_account.GetAuthedAccountTeamIntegrations,
-    ),
     # OAuth endpoints.
     # These endpoints don't require any verification (except the OAuth flow itself)
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/google/authorize",
+            path=GOOGLE_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -299,7 +310,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/google/callback",
+            path=GOOGLE_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -309,7 +320,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/slack/authorize",
+            path=SLACK_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -319,7 +330,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/slack/callback",
+            path=SLACK_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -329,7 +340,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/atlassian/authorize",
+            path=ATLASSIAN_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -339,7 +350,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/atlassian/callback",
+            path=ATLASSIAN_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -349,7 +360,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/github/authorize",
+            path=github_oauth.GITHUB_OAUTH_AUTHORIZE_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -359,7 +370,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/github/callback",
+            path=github_oauth.GITHUB_OAUTH_CALLBACK_PATH,
             auth_required=False,
             signature_required=False,
             origin_required=False,

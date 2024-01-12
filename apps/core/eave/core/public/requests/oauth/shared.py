@@ -1,6 +1,7 @@
 import datetime
 import http
 import re
+import aiohttp
 import oauthlib.common
 import uuid
 import json
@@ -9,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.github_repos import GithubRepoOrm
 from eave.core.internal.orm.team import TeamOrm
 
 import eave.pubsub_schemas
@@ -34,13 +37,14 @@ from eave.stdlib.task_queue import create_task
 from eave.stdlib.util import ensure_uuid
 from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
 from eave.stdlib.core_api.models.integrations import Integration
-from eave.core.internal import app_config, database
-from eave.core.internal.orm import AccountOrm, GithubRepoOrm
+from eave.core.internal import CORE_API_APP_CONFIG, database
 import eave.core.internal.oauth.state_cookies
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
+from eave.stdlib.config import SHARED_CONFIG
 
-DEFAULT_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/dashboard"
-SIGNUP_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/signup"
+DEFAULT_TEAM_NAME = "Your Team"
+DEFAULT_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
+SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/signup"
 
 gh_app_state_cookie_name = "ev_state_blob"
 
@@ -84,13 +88,13 @@ async def verify_stateless_installation_or_exception(
 
 
 def set_redirect(response: Response, location: str) -> Response:
-    response.headers["Location"] = location
+    response.headers[aiohttp.hdrs.LOCATION] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
 
 
 def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> Response:
-    location_header = response.headers["Location"]
+    location_header = response.headers[aiohttp.hdrs.LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     qs.update({EAVE_ERROR_CODE_QP: [error_code.value]})
@@ -100,14 +104,14 @@ def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> R
 
 
 def is_error_response(response: Response) -> bool:
-    location_header = response.headers["Location"]
+    location_header = response.headers[aiohttp.hdrs.LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     return qs.get(EAVE_ERROR_CODE_QP) is not None
 
 
 def cancel_flow(response: Response) -> Response:
-    return set_redirect(response=response, location=eave.core.internal.app_config.eave_public_www_base)
+    return set_redirect(response=response, location=SHARED_CONFIG.eave_public_www_base)
 
 
 async def get_logged_in_eave_account(
@@ -115,7 +119,7 @@ async def get_logged_in_eave_account(
     auth_provider: AuthProvider,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
+) -> typing.Optional[AccountOrm]:
     """
     Check if the user is logged in, and if so, get the account associated with the provided access token and account ID.
     """
@@ -123,7 +127,7 @@ async def get_logged_in_eave_account(
 
     if auth_cookies_.access_token and auth_cookies_.account_id:
         async with eave.core.internal.database.async_session.begin() as db_session:
-            eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
+            eave_account = await AccountOrm.one_or_none(
                 session=db_session,
                 params=AccountOrm.QueryParams(
                     id=ensure_uuid(auth_cookies_.account_id),
@@ -149,13 +153,13 @@ async def get_existing_eave_account(
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
+) -> typing.Optional[AccountOrm]:
     """
     Check for existing account with the given provider and ID.
     Also updates access_token and refresh_token in the database.
     """
     async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
+        eave_account = await AccountOrm.one_or_none(
             session=db_session,
             params=AccountOrm.QueryParams(
                 auth_provider=auth_provider,
@@ -179,18 +183,18 @@ async def create_new_account_and_team(
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> eave.core.internal.orm.AccountOrm:
+) -> AccountOrm:
     eave_state = EaveRequestState.load(request=request)
     tracking_cookies = utm_cookies.get_tracking_cookies(request=request)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_team = await eave.core.internal.orm.TeamOrm.create(
+        eave_team = await TeamOrm.create(
             session=db_session,
             name=eave_team_name,
             document_platform=None,
         )
 
-        eave_account = await eave.core.internal.orm.AccountOrm.create(
+        eave_account = await AccountOrm.create(
             session=db_session,
             team_id=eave_team.id,
             visitor_id=tracking_cookies.visitor_id,
@@ -260,7 +264,7 @@ async def get_or_create_eave_account(
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> eave.core.internal.orm.AccountOrm:
+) -> AccountOrm:
     eave_account = await get_logged_in_eave_account(
         request=request,
         auth_provider=auth_provider,
@@ -337,7 +341,7 @@ async def try_associate_account_with_dangling_github_installation(
     async with eave.core.internal.database.async_session.begin() as db_session:
         installation = await GithubInstallationOrm.query(
             session=db_session,
-            params=eave.core.internal.orm.GithubInstallationOrm.QueryParams(
+            params=GithubInstallationOrm.QueryParams(
                 github_install_id=installation_id,
             ),
         )
@@ -459,7 +463,7 @@ async def _create_local_github_repo(
                 target_path=RunApiDocumentationTask.config.path,
                 queue_name=eave.stdlib.config.GITHUB_EVENT_QUEUE_NAME,
                 audience=EaveApp.eave_github_app,
-                origin=app_config.eave_origin,
+                origin=CORE_API_APP_CONFIG.eave_origin,
                 payload=RunApiDocumentationTask.RequestBody(repo=GithubRepoInput(external_repo_id=repo.id)).json(),
                 headers={
                     EAVE_TEAM_ID_HEADER: str(team_id),

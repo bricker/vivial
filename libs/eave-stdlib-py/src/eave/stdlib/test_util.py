@@ -1,16 +1,19 @@
 import base64
 from datetime import datetime, timedelta
 import json
-import os
 import uuid
 import random
 from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
+
+from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
+from eave.stdlib.checksum import generate_checksum
 import eave.stdlib.util
 import eave.stdlib.exceptions
 import eave.stdlib.atlassian
 import eave.stdlib.signing
 from eave.stdlib.typing import JsonObject
+from eave.stdlib.config import SHARED_CONFIG
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -27,6 +30,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
+        SHARED_CONFIG.reset_cached_properties()
         self.mock_google_services()
         self.mock_slack_client()
         self.mock_signing()
@@ -188,12 +192,16 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getjson(self, name: str) -> str:
         return self.testdata[name]
 
-    def anydict(self, name: Optional[str] = None) -> JsonObject:
+    def anydict(self, name: Optional[str] = None, deterministic_keys: bool = False) -> JsonObject:
         if name is None:
             name = str(uuid.uuid4())
 
         if name not in self.testdata:
-            data: JsonObject = {f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)}
+            if deterministic_keys:
+                data: JsonObject = {f"{name}:{i}": f"{name}:{uuid.uuid4()}" for i in range(3)}
+            else:
+                data: JsonObject = {f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)}
+
             self.testdata[name] = data
 
         value: JsonObject = self.testdata[name]
@@ -228,6 +236,20 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     def getint(self, name: str) -> int:
+        return self.testdata[name]
+
+    def anybytes(self, name: Optional[str] = None, encoding: str = "utf-8") -> bytes:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        if name not in self.testdata:
+            v = uuid.uuid4()
+            data = bytes(v.hex, encoding)
+            self.testdata[name] = data
+
+        return self.testdata[name]
+
+    def getbytes(self, name: str) -> bytes:
         return self.testdata[name]
 
     @staticmethod
@@ -273,23 +295,46 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return passing
 
     def mock_google_services(self) -> None:
-        def _get_secret(name: str) -> str:
-            v: str = os.getenv(name, f"not mocked: {name}")
-            return v
-
         # def _get_runtimeconfig(name: str) -> str:
         #     v: str = os.getenv(name, f"not mocked: {name}")
         #     return v
 
-        self.patch(unittest.mock.patch("eave.stdlib.config.EaveConfig.get_secret", side_effect=_get_secret))
+        def _access_secret_version(
+            request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs
+        ) -> AccessSecretVersionResponse:
+            if isinstance(request, AccessSecretVersionRequest):
+                resolved_name = request.name
+            elif isinstance(request, dict) and "name" in request:
+                resolved_name = request["name"]
+            elif name:
+                resolved_name = name
+            else:
+                raise ValueError("bad name")
+
+            data = self.anybytes(f"secret:{resolved_name}")
+            data_crc32 = generate_checksum(data)
+
+            return AccessSecretVersionResponse(
+                name=resolved_name,
+                payload=SecretPayload(
+                    data=data,
+                    data_crc32c=data_crc32,
+                ),
+            )
+
+        self.patch(
+            unittest.mock.patch(
+                "google.cloud.secretmanager.SecretManagerServiceClient.access_secret_version",
+                side_effect=_access_secret_version,
+            )
+        )
+
         # self.patch(
         #     unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
         # )
 
     def mock_slack_client(self) -> None:
-        self.patch(
-            name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient", autospec=True)
-        )
+        self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
 
     def mock_signing(self) -> None:
         def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:

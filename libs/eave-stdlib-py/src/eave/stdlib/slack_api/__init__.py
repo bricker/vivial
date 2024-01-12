@@ -1,8 +1,8 @@
-from eave.stdlib.config import shared_config
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import Endpoint, EndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 
-_base_url = shared_config.eave_internal_service_base(EaveApp.eave_slack_app)
+_base_url = SHARED_CONFIG.eave_internal_service_base(EaveApp.eave_slack_app)
 
 
 class SlackAppEndpointConfiguration(EndpointConfiguration):

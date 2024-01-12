@@ -8,7 +8,7 @@ from eave.stdlib import link_handler
 from eave.stdlib.exceptions import SlackDataError
 from .base import Base
 from . import message_prompts
-from ..config import app_config
+from ..config import SLACK_APP_CONFIG
 
 context_building_model = ai_model.OpenAIModel.GPT4
 
@@ -230,7 +230,7 @@ class ContextBuildingMixin(Base):
         supported_links = link_handler.filter_supported_links(urls)
 
         if supported_links:
-            links_contents = await link_handler.map_url_content(origin=app_config.eave_origin, eave_team_id=self.eave_team.id, urls=supported_links)
+            links_contents = await link_handler.map_url_content(origin=SLACK_APP_CONFIG.eave_origin, eave_team_id=self.eave_team.id, urls=supported_links)
             if links_contents:
                 # summarize the content at each link, or None where link content wasnt obtained
                 summaries: list[Optional[str]] = await asyncio.gather(
@@ -244,7 +244,7 @@ class ContextBuildingMixin(Base):
 
                 # subscribe Eave to any changes at the links we were able to read content from
                 link_subscriptions = await link_handler.subscribe_to_file_changes(
-                    origin=app_config.eave_origin,
+                    origin=SLACK_APP_CONFIG.eave_origin,
                     eave_team_id=self.eave_team.id,
                     urls=[link_info for link_info, content in zip(supported_links, summaries) if content is not None],
                 )

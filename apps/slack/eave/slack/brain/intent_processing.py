@@ -4,7 +4,7 @@ from eave.stdlib.logging import eaveLogger
 from . import message_prompts
 from .document_management import DocumentManagementMixin
 from .subscription_management import SubscriptionManagementMixin
-from ..config import app_config
+from ..config import SLACK_APP_CONFIG
 
 
 class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin):
@@ -100,7 +100,7 @@ class IntentProcessingMixin(DocumentManagementMixin, SubscriptionManagementMixin
     async def unwatch_conversation(self) -> None:
         await eave_subscriptions.DeleteSubscriptionRequest.perform(
             ctx=self.eave_ctx,
-            origin=app_config.eave_origin,
+            origin=SLACK_APP_CONFIG.eave_origin,
             team_id=self.eave_team.id,
             input=eave_subscriptions.DeleteSubscriptionRequest.RequestBody(
                 subscription=eave.stdlib.core_api.models.subscriptions.SubscriptionInput(

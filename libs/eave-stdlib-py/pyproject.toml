@@ -18,7 +18,7 @@ dependencies = [
   "google-cloud-tasks",
   "google-cloud-compute",
   "openai==0.27.2",
-  "tiktoken==0.4.0",
+  "tiktoken==0.5.*",
   "slack-sdk",
   "pydantic[email]==1.10.6",
   "starlette",
@@ -26,5 +26,6 @@ dependencies = [
   "asgiref>=3.5.2",
   "cryptography",
   "redis[hiredis]",
-  "clickhouse-connect",
+  "multidict",
+  "aiohttp",
 ]

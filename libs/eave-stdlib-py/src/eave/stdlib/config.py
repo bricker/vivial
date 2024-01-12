@@ -4,11 +4,10 @@ import os
 import re
 import sys
 from functools import cached_property
-from typing import Optional, Self
+from typing import Optional
 from urllib.parse import urlparse
 
 import google.cloud.secretmanager
-import google.cloud.runtimeconfig
 import google.cloud.client
 
 from eave.stdlib.eave_origins import EaveApp
@@ -25,8 +24,8 @@ class EaveEnvironment(enum.StrEnum):
     production = "production"
 
 
-class EaveConfig:
-    def preload(self) -> Self:
+class ConfigBase:
+    def preload(self) -> None:
         """
         This is meant to be used in a GAE warmup request to preload all of the remote configs.
         """
@@ -34,8 +33,17 @@ class EaveConfig:
             if type(attrfunc) == cached_property:
                 getattr(self, attrname)
 
-        return self
+    def reset_cached_properties(self) -> None:
+        for attrname, attrfunc in self.__class__.__dict__.items():
+            if type(attrfunc) == cached_property:
+                try:
+                    delattr(self, attrname)
+                except AttributeError:
+                    # Attribute doesn't exist, that's fine.
+                    pass
 
+
+class _EaveConfig(ConfigBase):
     @property
     def dev_mode(self) -> bool:
         return sys.flags.dev_mode
@@ -82,7 +90,7 @@ class EaveConfig:
 
     @property
     def google_cloud_project(self) -> str:
-        return self.get_required_env("GOOGLE_CLOUD_PROJECT")
+        return get_required_env("GOOGLE_CLOUD_PROJECT")
 
     @property
     def app_service(self) -> str:
@@ -95,6 +103,10 @@ class EaveConfig:
     @property
     def app_location(self) -> str:
         return os.getenv("GAE_LOCATION") or "us-central1"
+
+    @property
+    def asset_base(self) -> str:
+        return os.getenv("EAVE_ASSET_BASE", "/static")
 
     @property
     def eave_public_apps_base(self) -> str:
@@ -170,14 +182,16 @@ class EaveConfig:
         value: str | None
 
         if self.is_development:
+            # This secret should never be pulled from Google Cloud during development.
             value = os.getenv(key)
-            if not value:
-                return None
         else:
             try:
-                value = self.get_secret(key)
+                value = get_secret(key)
             except Exception:
-                return None
+                value = None
+
+        if not value:
+            return None
 
         parts = value.split(":")
         if len(parts) == 3:
@@ -206,7 +220,7 @@ class EaveConfig:
             return os.getenv(key)
         else:
             try:
-                return self.get_secret(key)
+                return get_secret(key)
             except Exception:
                 return None
 
@@ -218,95 +232,97 @@ class EaveConfig:
             return os.getenv(key)
         else:
             try:
-                return self.get_secret(key)
+                return get_secret(key)
             except Exception:
                 return None
 
     @cached_property
     def eave_openai_api_key(self) -> str:
-        value = self.get_secret("OPENAI_API_KEY")
+        value = get_secret("OPENAI_API_KEY")
         return value
 
     @cached_property
     def eave_openai_api_org(self) -> str:
-        value = self.get_secret("OPENAI_API_ORG")
+        value = get_secret("OPENAI_API_ORG")
         return value
 
     @cached_property
     def eave_slack_system_bot_token(self) -> str:
-        value = self.get_secret("SLACK_SYSTEM_BOT_TOKEN")
+        value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
     @cached_property
     def eave_slack_app_id(self) -> str:
         try:
-            return self.get_secret("EAVE_SLACK_APP_ID")
+            return get_secret("EAVE_SLACK_APP_ID")
         except Exception:
             # Fallback to the production ID, which won't change.
             return "A04HD948UHE"
 
     @cached_property
     def eave_slack_client_id(self) -> str:
-        return self.get_secret("EAVE_SLACK_APP_CLIENT_ID")
+        return get_secret("EAVE_SLACK_APP_CLIENT_ID")
 
     @cached_property
     def eave_slack_client_secret(self) -> str:
-        return self.get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
+        return get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
 
     @cached_property
     def eave_atlassian_app_client_id(self) -> str:
-        return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_ID")
+        return get_secret("EAVE_ATLASSIAN_APP_CLIENT_ID")
 
     @cached_property
     def eave_atlassian_app_client_secret(self) -> str:
-        return self.get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
+        return get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
 
     @cached_property
     def eave_github_app_public_url(self) -> str:
-        return self.get_secret("EAVE_GITHUB_APP_PUBLIC_URL")
+        return get_secret("EAVE_GITHUB_APP_PUBLIC_URL")
 
-    def get_required_env(self, name: str) -> str:
-        if name not in os.environ:
-            raise KeyError(f"{name} is a required environment variable, but is not set.")
 
+def get_secret(name: str) -> str:
+    # Allow overrides from the environment
+    if name in os.environ:
         return os.environ[name]
 
-    # TODO: Can/should we use Runtime Config? It's nifty but adds extra network requests.
-    # def get_runtimeconfig(self, name: str) -> str | None:
-    #     """
-    #     https://cloud.google.com/python/docs/reference/runtimeconfig/latest
-    #     https://github.com/googleapis/python-runtimeconfig
-    #     """
-    #     # Allow overrides
-    #     if name in os.environ:
-    #         return os.environ[name]
+    secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
+    fqname = secrets_client.secret_version_path(
+        project=SHARED_CONFIG.google_cloud_project,
+        secret=name,
+        secret_version="latest",
+    )
+    response = secrets_client.access_secret_version(request={"name": fqname})
+    data = response.payload.data
+    data_crc32c = response.payload.data_crc32c
 
-    #     client = google.cloud.runtimeconfig.Client()
-    #     config = client.config("eave-global-config")
-
-    #     variable = config.get_variable(name)
-    #     if variable is None:
-    #         return None
-
-    #     return variable.text
-
-    def get_secret(self, name: str) -> str:
-        # Allow overrides
-        if name in os.environ:
-            return os.environ[name]
-
-        secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
-        fqname = secrets_client.secret_version_path(
-            project=self.google_cloud_project,
-            secret=name,
-            secret_version="latest",
-        )
-        response = secrets_client.access_secret_version(request={"name": fqname})
-        data = response.payload.data
-        data_crc32c = response.payload.data_crc32c
-
-        checksum.validate_checksum_or_exception(data=data, checksum=data_crc32c)
-        return data.decode("UTF-8")
+    checksum.validate_checksum_or_exception(data=data, checksum=data_crc32c)
+    return data.decode("UTF-8")
 
 
-shared_config = EaveConfig()
+def get_required_env(name: str) -> str:
+    if name not in os.environ:
+        raise KeyError(f"{name} is a required environment variable, but is not set.")
+
+    return os.environ[name]
+
+
+# TODO: Can/should we use Runtime Config? It's nifty but adds extra network requests.
+# def get_runtimeconfig(self, name: str) -> str | None:
+#     """
+#     https://cloud.google.com/python/docs/reference/runtimeconfig/latest
+#     https://github.com/googleapis/python-runtimeconfig
+#     """
+#     # Allow overrides
+#     if name in os.environ:
+#         return os.environ[name]
+
+#     client = google.cloud.runtimeconfig.Client()
+#     config = client.config("eave-global-config")
+
+#     variable = config.get_variable(name)
+#     if variable is None:
+#         return None
+
+#     return variable.text
+
+SHARED_CONFIG = _EaveConfig()

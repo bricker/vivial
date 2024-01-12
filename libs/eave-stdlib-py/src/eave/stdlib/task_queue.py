@@ -2,13 +2,13 @@ import asyncio
 from dataclasses import dataclass
 import json
 from typing import Any, Coroutine, Optional, TypeVar
+import aiohttp
 from google.cloud import tasks
 from starlette.requests import Request
 from eave.stdlib import cache
 import eave.stdlib.signing as signing
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
-    CONTENT_TYPE,
     EAVE_ACCOUNT_ID_HEADER,
     EAVE_ORIGIN_HEADER,
     EAVE_REQUEST_ID_HEADER,
@@ -18,13 +18,12 @@ from eave.stdlib.headers import (
     GCP_CLOUD_TRACE_CONTEXT,
     GCP_GAE_REQUEST_LOG_ID,
     MIME_TYPE_JSON,
-    USER_AGENT,
 )
 from eave.stdlib.time import ONE_DAY_IN_MS
 from eave.stdlib.util import compact_deterministic_json, ensure_bytes, ensure_str
 
 from .typing import JsonObject
-from .config import shared_config
+from .config import SHARED_CONFIG
 from .logging import LogContext, eaveLogger
 
 T = TypeVar("T")
@@ -48,8 +47,8 @@ async def get_queue(queue_name: str) -> tasks.Queue:
     client = tasks.CloudTasksAsyncClient()
 
     queue = client.queue_path(
-        project=shared_config.google_cloud_project,
-        location=shared_config.app_location,
+        project=SHARED_CONFIG.google_cloud_project,
+        location=SHARED_CONFIG.app_location,
         queue=queue_name,
     )
 
@@ -90,7 +89,7 @@ async def create_task_from_request(
     headers = dict(request.headers)
 
     # The "user agent" is Slack Bot when coming from Slack, but for the task processor that's not the case.
-    headers.pop(USER_AGENT, None)
+    headers.pop(aiohttp.hdrs.USER_AGENT, None)
 
     await create_task(
         queue_name=queue_name,
@@ -142,7 +141,7 @@ async def create_task(
 
     signature = signing.sign_b64(signing_key=signing.get_key(origin), data=signature_message)
 
-    headers[CONTENT_TYPE] = MIME_TYPE_JSON
+    headers[aiohttp.hdrs.CONTENT_TYPE] = MIME_TYPE_JSON
     headers[EAVE_SIGNATURE_HEADER] = signature
     headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
     headers[EAVE_ORIGIN_HEADER] = origin.value
@@ -157,8 +156,8 @@ async def create_task(
     client = tasks.CloudTasksAsyncClient()
 
     parent = client.queue_path(
-        project=shared_config.google_cloud_project,
-        location=shared_config.app_location,
+        project=SHARED_CONFIG.google_cloud_project,
+        location=SHARED_CONFIG.app_location,
         queue=queue_name,
     )
 
@@ -177,8 +176,8 @@ async def create_task(
 
         # If this isn't given, Cloud Tasks creates a unique task name automatically.
         task.name = client.task_path(
-            project=shared_config.google_cloud_project,
-            location=shared_config.app_location,
+            project=SHARED_CONFIG.google_cloud_project,
+            location=SHARED_CONFIG.app_location,
             queue=queue_name,
             task=unique_task_id,
         )

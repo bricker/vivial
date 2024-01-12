@@ -16,14 +16,17 @@ class HeadersTest(UtilityBaseTestCase):
         assert headers.EAVE_REQUEST_ID_HEADER == "eave-request-id"
         assert headers.EAVE_CRON_DISPATCH_KEY_HEADER == "eave-cron-dispatch-key"
         assert headers.EAVE_DEV_BYPASS_HEADER == "X-Google-EAVEDEV"
-        assert headers.COOKIE_HEADER == "cookie"
-        assert headers.AUTHORIZATION_HEADER == "authorization"
-        assert headers.HOST == "host"
-        assert headers.CONTENT_TYPE == "content-type"
-        assert headers.CONTENT_LENGTH == "content-length"
-        assert headers.USER_AGENT == "user-agent"
+
+        # test istr
         assert headers.GCP_CLOUD_TRACE_CONTEXT == "X-Cloud-Trace-Context"
+        assert headers.GCP_CLOUD_TRACE_CONTEXT == "x-cloud-trace-context"
+
         assert headers.GCP_GAE_REQUEST_LOG_ID == "X-Appengine-Request-Log-Id"
+        assert headers.GCP_GAE_REQUEST_LOG_ID == "x-appengine-request-log-id"
+
         assert headers.GCP_GAE_TASK_EXECUTION_COUNT == "X-AppEngine-TaskExecutionCount"
+        assert headers.GCP_GAE_TASK_EXECUTION_COUNT == "x-appengine-taskexecutioncount"
+
         assert headers.MIME_TYPE_JSON == "application/json"
         assert headers.MIME_TYPE_TEXT == "text/plain"
+        assert headers.ENCODING_GZIP == "gzip"

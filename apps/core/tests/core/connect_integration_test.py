@@ -1,7 +1,11 @@
 import http
 
 from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
-from eave.stdlib.core_api.models.connect import AtlassianProduct, RegisterConnectInstallationInput
+from eave.stdlib.core_api.models.connect import (
+    AtlassianProduct,
+    QueryConnectInstallationInput,
+    RegisterConnectInstallationInput,
+)
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
 from eave.stdlib.util import unwrap
 from .base import BaseTestCase
@@ -13,18 +17,18 @@ class RegisterConnectIntegrationTests(BaseTestCase):
 
     async def test_register_new_connect_integration(self) -> None:
         response = await self.make_request(
-            path="/integrations/connect/register",
-            payload={
-                "connect_integration": {
-                    "product": "confluence",
-                    "client_key": self.anystring("client_key"),
-                    "base_url": self.anyurl("base_url"),
-                    "atlassian_actor_account_id": self.anystring("atlassian_actor_account_id"),
-                    "shared_secret": self.anystring("shared_secret"),
-                    "display_url": self.anystring("display_url"),
-                    "description": self.anystring("description"),
-                },
-            },
+            path=RegisterConnectIntegrationRequest.config.path,
+            payload=RegisterConnectIntegrationRequest.RequestBody(
+                connect_integration=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.confluence,
+                    client_key=self.anystring("client_key"),
+                    base_url=self.anyurl("base_url"),
+                    atlassian_actor_account_id=self.anystring("atlassian_actor_account_id"),
+                    shared_secret=self.anystring("shared_secret"),
+                    display_url=self.anystring("display_url"),
+                    description=self.anystring("description"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -37,7 +41,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             eave_visitor_id=None,
             eave_team_id=None,
             opaque_params={
-                "integration_name": "confluence",
+                "integration_name": AtlassianProduct.confluence,
             },
         )
 
@@ -67,18 +71,18 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/register",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.getstr("client_key"),
-                    "base_url": self.geturl("base_url"),
-                    "shared_secret": self.getstr("shared_secret"),
-                    "atlassian_actor_account_id": self.anystring("atlassian_actor_account_id"),
-                    "display_url": self.anystring("display_url"),
-                    "description": self.anystring("description"),
-                },
-            },
+            path=RegisterConnectIntegrationRequest.config.path,
+            payload=RegisterConnectIntegrationRequest.RequestBody(
+                connect_integration=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                    base_url=self.geturl("base_url"),
+                    shared_secret=self.getstr("shared_secret"),
+                    atlassian_actor_account_id=self.anystring("atlassian_actor_account_id"),
+                    display_url=self.anystring("display_url"),
+                    description=self.anystring("description"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -91,7 +95,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             eave_visitor_id=None,
             eave_team_id=None,
             opaque_params={
-                "integration_name": "jira",
+                "integration_name": AtlassianProduct.jira,
             },
         )
 
@@ -102,7 +106,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
                 client_key=self.getstr("client_key"),
             )
             assert install2 is not None
-            assert install2.product == "jira"
+            assert install2.product == AtlassianProduct.jira
             assert install2.client_key == self.getstr("client_key")
             assert install2.base_url == self.geturl("base_url")
             assert install2.atlassian_actor_account_id == self.getstr("atlassian_actor_account_id")
@@ -124,16 +128,18 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/register",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.getstr("client_key"),
-                    "base_url": self.anystring("updated base_url"),
-                    "shared_secret": self.anystring("updated shared_secret"),
-                    "atlassian_actor_account_id": self.anystring("updated atlassian_actor_account_id"),
-                },
-            },
+            path=RegisterConnectIntegrationRequest.config.path,
+            payload=RegisterConnectIntegrationRequest.RequestBody(
+                connect_integration=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                    base_url=self.anystring("updated base_url"),
+                    shared_secret=self.anystring("updated shared_secret"),
+                    atlassian_actor_account_id=self.anystring("updated atlassian_actor_account_id"),
+                    description=None,
+                    display_url=None,
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -146,7 +152,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             eave_visitor_id=None,
             eave_team_id=None,
             opaque_params={
-                "integration_name": "jira",
+                "integration_name": AtlassianProduct.jira,
             },
         )
 
@@ -157,7 +163,7 @@ class RegisterConnectIntegrationTests(BaseTestCase):
                 client_key=self.getstr("client_key"),
             )
             assert install is not None
-            assert install.product == "jira"
+            assert install.product == AtlassianProduct.jira
             assert install.client_key == self.getstr("client_key")
             assert install.base_url == self.getstr("updated base_url")
             assert install.atlassian_actor_account_id == self.getstr("updated atlassian_actor_account_id")
@@ -179,15 +185,18 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/register",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.getstr("client_key"),
-                    "base_url": self.geturl("base_url"),
-                    "shared_secret": self.getstr("shared_secret"),
-                },
-            },
+            path=RegisterConnectIntegrationRequest.config.path,
+            payload=RegisterConnectIntegrationRequest.RequestBody(
+                connect_integration=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                    base_url=self.geturl("base_url"),
+                    shared_secret=self.getstr("shared_secret"),
+                    atlassian_actor_account_id=None,
+                    description=None,
+                    display_url=None,
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -222,15 +231,18 @@ class RegisterConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/register",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.anystring("jira client_key"),
-                    "shared_secret": self.anystring("jira shared_secret"),
-                    "base_url": self.geturl("base_url") + "/jira",
-                },
-            },
+            path=RegisterConnectIntegrationRequest.config.path,
+            payload=RegisterConnectIntegrationRequest.RequestBody(
+                connect_integration=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.anystring("jira client_key"),
+                    shared_secret=self.anystring("jira shared_secret"),
+                    base_url=self.geturl("base_url") + "/jira",
+                    atlassian_actor_account_id=None,
+                    description=None,
+                    display_url=None,
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -261,18 +273,18 @@ class QueryConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/query",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.getstr("client_key"),
-                },
-            },
+            path=QueryConnectIntegrationRequest.config.path,
+            payload=QueryConnectIntegrationRequest.RequestBody(
+                connect_integration=QueryConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
         obj = QueryConnectIntegrationRequest.ResponseBody(**response.json())
-        assert obj.connect_integration.product == "jira"
+        assert obj.connect_integration.product == AtlassianProduct.jira
         assert obj.connect_integration.client_key == self.getstr("client_key")
         assert obj.team is None
 
@@ -287,13 +299,13 @@ class QueryConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/query",
-            payload={
-                "connect_integration": {
-                    "product": "confluence",
-                    "client_key": self.getstr("client_key"),
-                },
-            },
+            path=QueryConnectIntegrationRequest.config.path,
+            payload=QueryConnectIntegrationRequest.RequestBody(
+                connect_integration=QueryConnectInstallationInput(
+                    product=AtlassianProduct.confluence,
+                    client_key=self.getstr("client_key"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -312,13 +324,13 @@ class QueryConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/query",
-            payload={
-                "connect_integration": {
-                    "product": "jira",  # This is different from the object created above
-                    "client_key": self.getstr("client_key"),
-                },
-            },
+            path=QueryConnectIntegrationRequest.config.path,
+            payload=QueryConnectIntegrationRequest.RequestBody(
+                connect_integration=QueryConnectInstallationInput(
+                    product=AtlassianProduct.jira,  # This is different from the object created above
+                    client_key=self.getstr("client_key"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.NOT_FOUND
@@ -337,13 +349,13 @@ class QueryConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/query",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.getstr("client_key"),
-                },
-            },
+            path=QueryConnectIntegrationRequest.config.path,
+            payload=QueryConnectIntegrationRequest.RequestBody(
+                connect_integration=QueryConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -365,13 +377,13 @@ class QueryConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/query",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "team_id": str(team.id),
-                },
-            },
+            path=QueryConnectIntegrationRequest.config.path,
+            payload=QueryConnectIntegrationRequest.RequestBody(
+                connect_integration=QueryConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    team_id=str(team.id),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -393,13 +405,13 @@ class QueryConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/query",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.getstr("client_key"),
-                },
-            },
+            path=QueryConnectIntegrationRequest.config.path,
+            payload=QueryConnectIntegrationRequest.RequestBody(
+                connect_integration=QueryConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -421,30 +433,23 @@ class QueryConnectIntegrationTests(BaseTestCase):
             )
 
         response = await self.make_request(
-            path="/integrations/connect/query",
+            path=QueryConnectIntegrationRequest.config.path,
             payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.getstr("client_key"),
-                },
+                "bad param": {},
             },
         )
 
-        assert response.status_code == http.HTTPStatus.OK
-        obj = QueryConnectIntegrationRequest.ResponseBody(**response.json())
-        assert obj.connect_integration.client_key == self.getstr("client_key")
-        assert obj.team is not None
-        assert obj.team.id == team.id
+        assert response.status_code == http.HTTPStatus.UNPROCESSABLE_ENTITY
 
     async def test_query_when_integration_doesnt_exist(self) -> None:
         response = await self.make_request(
-            path="/integrations/connect/query",
-            payload={
-                "connect_integration": {
-                    "product": "jira",
-                    "client_key": self.anystring("client_key"),
-                },
-            },
+            path=QueryConnectIntegrationRequest.config.path,
+            payload=QueryConnectIntegrationRequest.RequestBody(
+                connect_integration=QueryConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.anystring("client_key"),
+                ),
+            ),
         )
 
         assert response.status_code == http.HTTPStatus.NOT_FOUND
@@ -472,13 +477,14 @@ class ConnectIntegrationModelTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_integration.update(
                 session=s,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": "jira",
-                        "client_key": self.getstr("client_key"),
-                        "base_url": self.geturl("base_url"),
-                        "shared_secret": self.anystring("updated shared_secret"),
-                    }
+                input=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                    base_url=self.geturl("base_url"),
+                    shared_secret=self.anystring("updated shared_secret"),
+                    atlassian_actor_account_id=None,
+                    description=None,
+                    display_url=None,
                 ),
             )
 
@@ -492,14 +498,14 @@ class ConnectIntegrationModelTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_integration.update(
                 session=s,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        "product": "jira",
-                        "client_key": self.getstr("client_key"),
-                        "shared_secret": "",
-                        "base_url": "",
-                        "display_url": None,
-                    }
+                input=RegisterConnectInstallationInput(
+                    product=AtlassianProduct.jira,
+                    client_key=self.getstr("client_key"),
+                    shared_secret="",
+                    base_url="",
+                    display_url=None,
+                    atlassian_actor_account_id=None,
+                    description=None,
                 ),
             )
 
@@ -511,15 +517,16 @@ class ConnectIntegrationModelTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_integration.update(
                 session=s,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        # TODO: It's a little awkward to pass `client_key` into this function, knowing it's not used.
-                        # Maybe this function should accept a different object, eg `UpdateJiraInstallationInput`
-                        "product": "jira",
-                        "client_key": self.anystring("updated client_key"),
-                        "shared_secret": self.getstr("shared_secret"),
-                        "base_url": self.geturl("base_url"),
-                    }
+                input=RegisterConnectInstallationInput(
+                    # TODO: It's a little awkward to pass `client_key` into this function, knowing it's not used.
+                    # Maybe this function should accept a different object, eg `UpdateJiraInstallationInput`
+                    product=AtlassianProduct.jira,
+                    client_key=self.anystring("updated client_key"),
+                    shared_secret=self.getstr("shared_secret"),
+                    base_url=self.geturl("base_url"),
+                    atlassian_actor_account_id=None,
+                    description=None,
+                    display_url=None,
                 ),
             )
 
@@ -529,15 +536,16 @@ class ConnectIntegrationModelTests(BaseTestCase):
         async with self.db_session.begin() as s:
             self._data_integration.update(
                 session=s,
-                input=RegisterConnectInstallationInput.parse_obj(
-                    {
-                        # TODO: It's a little awkward to pass `client_key` into this function, knowing it's not used.
-                        # Maybe this function should accept a different object, eg `UpdateJiraInstallationInput`
-                        "product": "confluence",
-                        "client_key": self.getstr("client_key"),
-                        "shared_secret": self.getstr("shared_secret"),
-                        "base_url": self.geturl("base_url"),
-                    }
+                input=RegisterConnectInstallationInput(
+                    # TODO: It's a little awkward to pass `client_key` into this function, knowing it's not used.
+                    # Maybe this function should accept a different object, eg `UpdateJiraInstallationInput`
+                    product=AtlassianProduct.confluence,
+                    client_key=self.getstr("client_key"),
+                    shared_secret=self.getstr("shared_secret"),
+                    base_url=self.geturl("base_url"),
+                    atlassian_actor_account_id=None,
+                    description=None,
+                    display_url=None,
                 ),
             )
 

@@ -42,7 +42,7 @@ async def make_request(
     eave_sig_ts = signing.make_sig_ts()
 
     headers: dict[str, str] = {
-        eave_headers.CONTENT_TYPE: eave_headers.MIME_TYPE_JSON,
+        aiohttp.hdrs.CONTENT_TYPE: eave_headers.MIME_TYPE_JSON,
         eave_headers.EAVE_ORIGIN_HEADER: origin.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: request_id,
         eave_headers.EAVE_SIG_TS_HEADER: str(eave_sig_ts),
@@ -53,7 +53,7 @@ async def make_request(
     payload = input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
 
     if access_token:
-        headers[eave_headers.AUTHORIZATION_HEADER] = f"Bearer {access_token}"
+        headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
 
     team_id = team_id or ctx.eave_team_id
     if team_id:

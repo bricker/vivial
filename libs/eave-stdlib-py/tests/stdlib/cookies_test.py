@@ -1,8 +1,10 @@
 import re
 from typing import Any
 from starlette.requests import Request
+import aiohttp
 
 from starlette.responses import Response
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.test_util import UtilityBaseTestCase
 
@@ -28,46 +30,46 @@ class CookiesTest(CookiesTestBase):
         key = self.anystr("cookie_key")
         value = self.anystr("cookie_value")
         set_http_cookie(key=key, value=value, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 
         cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
         assert re.search("HttpOnly;", cookie)
 
     async def test_delete_http_cookie(self):
         key = self.anystr("cookie_key")
         delete_http_cookie(key=key, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 
         cookie = next((v for v in cookies if re.search(f'^{key}=""', v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
         assert re.search("HttpOnly;", cookie)
 
     async def test_set_analytics_cookie(self):
         key = self.anystr("cookie_key")
         value = self.anystr("cookie_value")
         set_http_cookie(key=key, value=value, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 
         cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
 
     async def test_delete_analytics_cookie(self):
         key = self.anystr("cookie_key")
         delete_http_cookie(key=key, response=self.mock_response)
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if k == aiohttp.hdrs.SET_COOKIE]
 
         assert len(cookies) == 1
 
         cookie = next((v for v in cookies if re.search(f'^{key}=""', v)), None)
         assert cookie
-        assert re.search("Domain=.eave.tests;", cookie)
+        assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)

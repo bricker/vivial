@@ -18,8 +18,8 @@ import uuid  # noqa
 import eave.core.internal.database  # noqa
 import eave.core.internal.orm as orm  # noqa
 import eave.core.internal.orm.base  # noqa
-from eave.core.internal import app_config  # noqa
-from eave.stdlib.config import shared_config  # noqa
+from eave.core.internal import CORE_API_APP_CONFIG  # noqa
+from eave.stdlib.config import SHARED_CONFIG  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
 import eave.stdlib.analytics as analytics  # noqa
 

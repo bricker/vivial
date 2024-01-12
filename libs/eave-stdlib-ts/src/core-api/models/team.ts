@@ -17,3 +17,12 @@ export type TeamInput = {
 export interface ConfluenceDestinationInput {
   space_key: string;
 }
+
+export type ConfluenceDestination = {
+  id: string;
+  space_key: string | null;
+};
+
+export type Destination = {
+  confluence_destination?: ConfluenceDestination;
+};

@@ -11,7 +11,7 @@ export default (/* { projectDir } */) => {
     // https://github.com/lovell/sharp/issues/3164
     workerThreads: familySync() !== GLIBC,
     require: [
-      `${process.env["EAVE_HOME"]}/develop/javascript/es-config/ava/test-setup.js`,
+      `${process.env["EAVE_HOME"]}/develop/javascript/es-config/ava/test-setup.cjs`,
     ],
   };
 };

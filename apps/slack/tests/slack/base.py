@@ -12,6 +12,7 @@ from eave.stdlib.core_api.operations.subscriptions import GetSubscriptionRequest
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.logging import LogContext
 from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.slack.config import SLACK_APP_CONFIG
 
 
 class BaseTestCase(UtilityBaseTestCase):
@@ -23,6 +24,7 @@ class BaseTestCase(UtilityBaseTestCase):
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
+        SLACK_APP_CONFIG.reset_cached_properties()
 
         self.eave_ctx = LogContext()
         self.httpclient = AsyncClient(

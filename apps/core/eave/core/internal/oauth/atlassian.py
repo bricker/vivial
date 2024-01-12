@@ -2,6 +2,7 @@ import typing
 from dataclasses import dataclass
 from functools import cache
 from typing import cast
+from eave.stdlib.config import SHARED_CONFIG
 
 import eave.stdlib.typing
 import eave.stdlib.atlassian
@@ -11,7 +12,6 @@ from eave.stdlib.atlassian import ConfluenceUser
 
 from eave.stdlib.exceptions import ConfluenceDataError
 
-from ..config import app_config
 from .models import OAuthFlowInfo
 
 
@@ -29,15 +29,19 @@ ATLASSIAN_OAUTH_SCOPES = [
     "offline_access",
 ]
 
+ATLASSIAN_OAUTH_AUTHORIZE_PATH = "/oauth/atlassian/authorize"
+ATLASSIAN_OAUTH_CALLBACK_PATH = "/oauth/atlassian/callback"
+ATLASSIAN_OAUTH_CALLBACK_URI = f"{SHARED_CONFIG.eave_public_api_base}{ATLASSIAN_OAUTH_CALLBACK_PATH}"
+
 
 class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     def __init__(self, client=None, token=None, state=None, token_updater=None, **kwargs):  # type: ignore[no-untyped-def]
-        client_id = app_config.eave_atlassian_app_client_id
-        client_secret = app_config.eave_atlassian_app_client_secret
+        client_id = SHARED_CONFIG.eave_atlassian_app_client_id
+        client_secret = SHARED_CONFIG.eave_atlassian_app_client_secret
 
         super().__init__(
             client_id=client_id,
-            redirect_uri=f"{app_config.eave_public_api_base}/oauth/atlassian/callback",
+            redirect_uri=ATLASSIAN_OAUTH_CALLBACK_URI,
             scope=" ".join(ATLASSIAN_OAUTH_SCOPES),
             client=client,
             auto_refresh_url="https://auth.atlassian.com/oauth/token",
@@ -63,7 +67,7 @@ class AtlassianOAuthSession(requests_oauthlib.OAuth2Session):
     def fetch_token(self, code=None, authorization_response=None, body="", auth=None, username=None, password=None, method="POST", force_querystring=False, timeout=None, headers=None, verify=True, proxies=None, include_client_id=None, cert=None, **kwargs):  # type: ignore[no-untyped-def]
         return super().fetch_token(
             token_url="https://auth.atlassian.com/oauth/token",
-            client_secret=app_config.eave_atlassian_app_client_secret,
+            client_secret=SHARED_CONFIG.eave_atlassian_app_client_secret,
             code=code,
             authorization_response=authorization_response,
             body=body,

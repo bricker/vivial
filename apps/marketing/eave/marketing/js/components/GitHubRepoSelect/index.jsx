@@ -1,11 +1,9 @@
 // @ts-check
 import { Checkbox, FormControlLabel, FormGroup } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import * as Types from "../../types"; // eslint-disable-line no-unused-vars
-// @ts-ignore
 import classNames from "classnames";
-// @ts-ignore
 import React, { useCallback, useState } from "react";
+import * as Types from "../../types"; // eslint-disable-line no-unused-vars
 
 import Button from "../Button/index.jsx";
 import ExpandIcon from "../Icons/ExpandIcon.jsx";

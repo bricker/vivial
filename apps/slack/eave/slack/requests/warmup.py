@@ -2,12 +2,12 @@ import http
 from starlette.requests import Request
 from starlette.responses import Response
 from eave.stdlib.api_util import json_response
-from eave.stdlib.config import shared_config
+from eave.stdlib.config import SHARED_CONFIG
 import eave.stdlib.cache as cache
 from eave.stdlib.endpoints import status_payload
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.signing import preload_public_keys
-from ..config import app_config
+from ..config import SLACK_APP_CONFIG
 from eave.stdlib.logging import eaveLogger
 import eave.stdlib.cache
 
@@ -18,8 +18,8 @@ class WarmupRequest(HTTPEndpoint):
             "Received warmup request",
         )
 
-        shared_config.preload()
-        app_config.preload()
+        SHARED_CONFIG.preload()
+        SLACK_APP_CONFIG.preload()
         preload_public_keys()
 
         try:

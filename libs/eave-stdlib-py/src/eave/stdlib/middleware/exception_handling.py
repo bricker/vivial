@@ -7,7 +7,7 @@ from eave.stdlib.request_state import EaveRequestState
 from ..api_util import json_response
 
 from ..logging import eaveLogger
-from ..config import shared_config
+from ..config import SHARED_CONFIG
 from .base import EaveASGIMiddleware
 from ..core_api.models.error import ErrorResponse
 
@@ -38,7 +38,7 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
             eave_state = EaveRequestState.load(scope=scope)
             eaveLogger.exception(e, eave_state.ctx)
 
-            if shared_config.raise_app_exceptions:
+            if SHARED_CONFIG.raise_app_exceptions:
                 # NOTE: In development and test, this effectively converts every HTTPException into a 500 Server Error, and can make it difficult to troubleshoot request errors.
                 # That isn't great. Something to fix when possible.
                 raise

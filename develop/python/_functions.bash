@@ -12,7 +12,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 	function python-activate-venv() {
 		if ! ^ci; then
-			ved="${EAVE_HOME}/.venv"
+			local ved="${EAVE_HOME}/.venv"
 			if ! test -d "$ved"; then
 				statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
 				exit 1
@@ -85,7 +85,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		cd "$target" || exit 1
 		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
-		run-with-dotenv python -m pytest --config-file="$configfile" --rootdir="${EAVE_HOME}" $exitfirst "$testfile"
+		python -m pytest --config-file="$configfile" --rootdir="${EAVE_HOME}" $exitfirst "$testfile"
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

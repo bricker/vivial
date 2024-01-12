@@ -15,6 +15,16 @@ export type ConnectInstallation = {
   description: string | null;
 };
 
+export type ConnectInstallationPeek = {
+  id: string;
+  product: AtlassianProduct;
+  base_url: string;
+  org_url: string;
+  team_id: string | null;
+  display_url: string | null;
+  description: string | null;
+};
+
 export type RegisterConnectInstallationInput = {
   product: AtlassianProduct;
   client_key: string;

@@ -54,18 +54,6 @@
 
 /**
  * @typedef {object} DashboardTeam
- * @property {boolean} [teamIsLoading]
- * @property {boolean} [teamIsErroring]
- * @property {boolean} [reposAreLoading]
- * @property {boolean} [reposAreErroring]
- * @property {boolean} [apiDocsLoading]
- * @property {boolean} [apiDocsErroring]
- * @property {boolean} [apiDocsJobStatusLoading]
- * @property {boolean} [apiDocsJobStatusErroring]
- * @property {number} [apiDocsFetchCount]
- * @property {boolean} [teamRequestHasSucceededAtLeastOnce]
- * @property {boolean} [reposRequestHasSucceededAtLeastOnce]
- * @property {boolean} [apiDocsRequestHasSucceededAtLeastOnce]
  * @property {boolean} [inlineCodeDocsEnabled]
  * @property {boolean} [apiDocsEnabled]
  * @property {string} [id]
@@ -77,10 +65,32 @@
  */
 
 /**
+ * @typedef {object} DashboardNetworkState
+ * @property {boolean} accountIsLoading
+ * @property {boolean} accountIsErroring
+ * @property {boolean} teamIsLoading
+ * @property {boolean} teamIsErroring
+ * @property {boolean} reposAreLoading
+ * @property {boolean} reposAreErroring
+ * @property {boolean} apiDocsLoading
+ * @property {boolean} apiDocsErroring
+ * @property {boolean} apiDocsJobStatusLoading
+ * @property {boolean} apiDocsJobStatusErroring
+ * @property {number} apiDocsFetchCount
+ * @property {boolean} teamRequestHasSucceededAtLeastOnce
+ * @property {boolean} reposRequestHasSucceededAtLeastOnce
+ * @property {boolean} apiDocsRequestHasSucceededAtLeastOnce
+ */
+
+/**
  * @typedef {object} DashboardUser
- * @property {boolean} [accountIsLoading]
- * @property {boolean} [accountIsErroring]
  * @property {AuthenticatedAccount} [account]
+ */
+
+/**
+ * @typedef {object} AuthModal
+ * @property {boolean} isOpen
+ * @property {string} mode
  */
 
 /** @typedef {{ teamRepoIds: string[], enabledRepoIds: string[], feature: string }} FeatureStateParams */

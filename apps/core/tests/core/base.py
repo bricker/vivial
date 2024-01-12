@@ -1,17 +1,21 @@
 import json
+import os
 import unittest
 import unittest.mock
 import urllib.parse
 import uuid
+import aiohttp
 import pydantic
 import sqlalchemy
 from typing import Any, Optional, Protocol, TypeVar
 from uuid import UUID
+from eave.core.internal.database import init_database
 from eave.core.internal.oauth.slack import SlackIdentity
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.base import get_base_metadata
 from eave.core.internal.orm.resource_mutex import ResourceMutexOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.headers import (
-    AUTHORIZATION_HEADER,
     EAVE_ACCOUNT_ID_HEADER,
     EAVE_ORIGIN_HEADER,
     EAVE_REQUEST_ID_HEADER,
@@ -40,7 +44,8 @@ import eave.core.app
 import eave.core.internal
 import eave.core.internal.oauth.atlassian
 import eave.core.internal.orm
-import eave.core.internal.orm.base
+from eave.core.internal.config import CORE_API_APP_CONFIG
+from eave.stdlib.config import SHARED_CONFIG
 
 
 class AnyStandardOrm(Protocol):
@@ -61,33 +66,28 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 _DB_SETUP: bool = False
 
 
-async def _onetime_setup_db() -> None:
-    global _DB_SETUP
-    if _DB_SETUP:
-        return
-
-    print("Running one-time DB setup...")
-    async with eave.core.internal.database.async_session() as db_session:
-        conn = await db_session.connection()
-        await conn.run_sync(eave.core.internal.orm.base.get_base_metadata().drop_all)
-        await db_session.commit()
-
-    async with eave.core.internal.database.async_session() as db_session:
-        conn = await db_session.connection()
-        await conn.run_sync(eave.core.internal.orm.base.get_base_metadata().create_all)
-        await db_session.commit()
-
-    _DB_SETUP = True
-
-
 class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
 
     async def asyncSetUp(self) -> None:
+        global _DB_SETUP
+
+        # Attempt to prevent running destructive database operations against non-test database
+        assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
+        assert (
+            eave.core.internal.database.async_engine.url.database == "eave-test"
+        ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test"'
+
+        if not _DB_SETUP:
+            print("Running one-time DB setup...")
+            await init_database()
+            _DB_SETUP = True
+
+        CORE_API_APP_CONFIG.reset_cached_properties()
+
         await super().asyncSetUp()
 
-        await _onetime_setup_db()
         engine = eave.core.internal.database.async_engine.execution_options(isolation_level="READ COMMITTED")
         self.db_session = eave.core.internal.database.async_sessionmaker(engine, expire_on_commit=False)
         # self.db_session = eave.core.internal.database.async_session
@@ -98,7 +98,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         # )
         self.httpclient = AsyncClient(
             app=eave.core.app.app,
-            base_url=eave.core.internal.app_config.eave_public_api_base,
+            base_url=SHARED_CONFIG.eave_public_api_base,
         )
 
         self.mock_atlassian_client()
@@ -112,13 +112,12 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     async def cleanup(self) -> None:
         await super().cleanup()
 
-        tnames = ",".join([t.name for t in eave.core.internal.orm.base.get_base_metadata().sorted_tables])
+        tnames = ",".join([t.name for t in get_base_metadata().sorted_tables])
         conn = await self.db_session().connection()
-        await conn.execute(text(f"truncate {tnames} cascade").execution_options(autocommit=True))
+        await conn.execute(text(f"TRUNCATE {tnames} CASCADE").execution_options(autocommit=True))
         await conn.commit()
         await conn.close()
         await eave.core.internal.database.async_engine.dispose()
-
         await self.httpclient.aclose()
 
     async def save(self, session: AsyncSession, /, obj: J) -> J:
@@ -234,8 +233,8 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
             headers[EAVE_SIGNATURE_HEADER] = signature
 
-        if access_token and AUTHORIZATION_HEADER not in headers:
-            headers[AUTHORIZATION_HEADER] = f"Bearer {access_token}"
+        if access_token and aiohttp.hdrs.AUTHORIZATION not in headers:
+            headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
 
         clean_headers = {k: v for (k, v) in headers.items() if v is not None}
 
@@ -249,8 +248,8 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         return response
 
-    async def make_team(self, session: AsyncSession) -> eave.core.internal.orm.TeamOrm:
-        team = await eave.core.internal.orm.TeamOrm.create(
+    async def make_team(self, session: AsyncSession) -> TeamOrm:
+        team = await TeamOrm.create(
             session=session,
             name=self.anystr("team name"),
             document_platform=DocumentPlatform.confluence,
@@ -267,16 +266,16 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         auth_id: Optional[str] = None,
         access_token: Optional[str] = None,
         refresh_token: Optional[str] = None,
-    ) -> eave.core.internal.orm.account.AccountOrm:
+    ) -> AccountOrm:
         if not team_id:
             team = await self.make_team(session=session)
             team_id = team.id
 
-        account = await eave.core.internal.orm.account.AccountOrm.create(
+        account = await AccountOrm.create(
             session=session,
             team_id=team_id,
             visitor_id=self.anyuuid("account.visitor_id"),
-            opaque_utm_params=self.anydict("account.opaque_utm_params"),
+            opaque_utm_params=self.anydict("account.opaque_utm_params", deterministic_keys=True),
             auth_provider=auth_provider or AuthProvider.slack,
             auth_id=auth_id or self.anystr("account.auth_id"),
             access_token=access_token or self.anystr("account.oauth_token"),
@@ -311,14 +310,12 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
         return account
 
-    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.AccountOrm | None:
-        acct = await eave.core.internal.orm.AccountOrm.one_or_none(
-            session=session, params=AccountOrm.QueryParams(id=id)
-        )
+    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
+        acct = await AccountOrm.one_or_none(session=session, params=AccountOrm.QueryParams(id=id))
         return acct
 
-    async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> eave.core.internal.orm.TeamOrm | None:
-        acct = await eave.core.internal.orm.TeamOrm.one_or_none(session=session, team_id=id)
+    async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> TeamOrm | None:
+        acct = await TeamOrm.one_or_none(session=session, team_id=id)
         return acct
 
     def mock_atlassian_client(self) -> None:

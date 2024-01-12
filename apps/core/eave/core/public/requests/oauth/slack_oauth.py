@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 import eave.stdlib.analytics
@@ -12,7 +13,7 @@ import eave.core.internal.orm
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.models.integrations import Integration
-from eave.core.internal.config import app_config
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LogContext, eaveLogger
 
 from eave.stdlib.http_endpoint import HTTPEndpoint
@@ -71,7 +72,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         elif slack_user_name:
             eave_team_name = f"{slack_user_name}'s Team"
         else:
-            eave_team_name = "Your Team"
+            eave_team_name = shared.DEFAULT_TEAM_NAME
 
         self.eave_account = await shared.get_or_create_eave_account(
             request=self.request,
@@ -90,7 +91,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
         await self._update_or_create_slack_installation()
 
         slack_redirect_location = (
-            f"https://slack.com/app_redirect?app={app_config.eave_slack_app_id}&team={slack_team_id}"
+            f"https://slack.com/app_redirect?app={SHARED_CONFIG.eave_slack_app_id}&team={slack_team_id}"
         )
         shared.set_redirect(response=self.response, location=slack_redirect_location)
 
@@ -114,7 +115,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
 
         async with eave.core.internal.database.async_session.begin() as db_session:
             # try fetch existing slack installation
-            self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.one_or_none(
+            self.slack_installation = await SlackInstallationOrm.one_or_none(
                 session=db_session,
                 slack_team_id=slack_team_id,
             )
@@ -145,7 +146,7 @@ class SlackOAuthCallback(base.BaseOAuthCallback):
                     self.slack_installation.slack_team_name = slack_team_name
             else:
                 # create new slack installation associated with the TeamOrm
-                self.slack_installation = await eave.core.internal.orm.SlackInstallationOrm.create(
+                self.slack_installation = await SlackInstallationOrm.create(
                     session=db_session,
                     team_id=self.eave_account.team_id,
                     slack_team_id=slack_team_id,

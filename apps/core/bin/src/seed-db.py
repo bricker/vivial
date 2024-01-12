@@ -1,4 +1,13 @@
 import sys
+from eave.core.internal.orm.api_documentation_jobs import ApiDocumentationJobOrm
+from eave.core.internal.orm.atlassian_installation import AtlassianInstallationOrm
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.core.internal.orm.connect_installation import ConnectInstallationOrm
+from eave.core.internal.orm.github_documents import GithubDocumentsOrm
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.github_repos import GithubRepoOrm
+from eave.core.internal.orm.slack_installation import SlackInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 
 from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobState, LastJobResult
 from eave.stdlib.core_api.models.github_repos import GithubRepoFeatureState
@@ -20,7 +29,6 @@ import socket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.internal
-import eave.core.internal.orm as orm
 import eave.core.internal.orm.base
 from eave.stdlib.core_api.models.connect import AtlassianProduct
 from eave.stdlib.core_api.models.github_documents import GithubDocumentType
@@ -76,7 +84,7 @@ async def seed_database() -> None:
 
     for row in range(num_rows):
         start = time.perf_counter()
-        team = orm.TeamOrm(
+        team = TeamOrm(
             name=f"{socket.gethostname()}{row}",
             document_platform=DocumentPlatform.confluence,
         )
@@ -85,9 +93,16 @@ async def seed_database() -> None:
         await session.refresh(team)  # necessary to populate team.id
         team_id = team.id
 
+        await ClientCredentialsOrm.create(
+            session=session,
+            team_id=team_id,
+            scope=ClientScope.readwrite,
+            description=f"credentials for team {team_id} (database seed)",
+        )
+
         # NOTE: not seeding any Subscription objects rn
 
-        slack = orm.SlackInstallationOrm(
+        slack = SlackInstallationOrm(
             team_id=team_id,
             slack_team_id=f"slack_team_id{row}",
             bot_token="bot_token",
@@ -96,7 +111,7 @@ async def seed_database() -> None:
         )
         session.add(slack)
 
-        github = orm.GithubInstallationOrm(
+        github = GithubInstallationOrm(
             team_id=team_id,
             github_install_id=f"github_install_id{row}",
         )
@@ -104,14 +119,14 @@ async def seed_database() -> None:
         await session.commit()
         await session.refresh(github)  # necessary to populate fk relation for gh_repo
 
-        atlassian = orm.AtlassianInstallationOrm(
+        atlassian = AtlassianInstallationOrm(
             team_id=team_id,
             atlassian_cloud_id=f"atlassian_cloud_id{row}",
             oauth_token_encoded="oauth_token_encoded",
         )
         session.add(atlassian)
 
-        connect_jira = orm.ConnectInstallationOrm(
+        connect_jira = ConnectInstallationOrm(
             team_id=team_id,
             product=AtlassianProduct.jira,
             client_key=f"client_key{row}",
@@ -124,7 +139,7 @@ async def seed_database() -> None:
         )
         session.add(connect_jira)
 
-        connect_confluence = orm.ConnectInstallationOrm(
+        connect_confluence = ConnectInstallationOrm(
             team_id=team_id,
             product=AtlassianProduct.confluence,
             client_key=f"client_key{row}",
@@ -137,7 +152,7 @@ async def seed_database() -> None:
         )
         session.add(connect_confluence)
 
-        gh_repo = await orm.GithubRepoOrm.create(
+        gh_repo = await GithubRepoOrm.create(
             session=session,
             team_id=team_id,
             github_installation_id=github.id,
@@ -150,7 +165,7 @@ async def seed_database() -> None:
         await session.commit()
         await session.refresh(gh_repo)  # necessary to populate fk relation for gh_document
 
-        gh_document = orm.GithubDocumentsOrm(
+        gh_document = GithubDocumentsOrm(
             team_id=team_id,
             github_repo_id=gh_repo.id,
             type=GithubDocumentType.API_DOCUMENT,
@@ -158,7 +173,7 @@ async def seed_database() -> None:
         )
         session.add(gh_document)
 
-        status_job = orm.ApiDocumentationJobOrm(
+        status_job = ApiDocumentationJobOrm(
             team_id=team_id,
             github_repo_id=gh_repo.id,
             state=ApiDocumentationJobState.idle,
