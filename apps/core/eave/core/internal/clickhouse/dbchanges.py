@@ -14,7 +14,7 @@ from clickhouse_connect.driver.query import QueryResult
 from eave.core.internal import database
 from eave.core.internal.clickhouse import clickhouse_client
 from eave.core.internal.clickhouse.types import ClickHouseTableDefinition, ClickHouseTableHandle
-from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_name
+from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
@@ -41,8 +41,8 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
     table = table_definition
 
     async def create_vevent_view(self, *, operation: str, source_table: str) -> None:
-        vevent_name = make_virtual_event_name(operation=operation, table_name=source_table)
-        vevent_view_name = tableize(vevent_name)
+        vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
+        vevent_view_name = tableize(vevent_readable_name)
 
         clickhouse_client.chclient.command(
             dedent(
@@ -75,7 +75,7 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
                     session=db_session,
                     team_id=self.team_id,
                     view_name=vevent_view_name,
-                    name=vevent_name,
+                    readable_name=vevent_readable_name,
                     description=f"{operation} operation on the {source_table} table.",
                 )
 

@@ -24,7 +24,7 @@ class VirtualEventOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    name: Mapped[str] = mapped_column(index=True)
+    readable_name: Mapped[str] = mapped_column(index=True)
     description: Mapped[Optional[str]] = mapped_column()
     view_name: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -35,13 +35,13 @@ class VirtualEventOrm(Base):
         cls,
         session: AsyncSession,
         team_id: UUID,
-        name: str,
+        readable_name: str,
         description: Optional[str],
         view_name: str,
     ) -> Self:
         obj = cls(
             team_id=team_id,
-            name=name,
+            readable_name=readable_name,
             description=description,
             view_name=view_name,
         )
@@ -54,7 +54,7 @@ class VirtualEventOrm(Base):
     class QueryParams:
         id: Optional[uuid.UUID] = None
         team_id: Optional[uuid.UUID] = None
-        name: Optional[str] = None
+        readable_name: Optional[str] = None
         view_name: Optional[str] = None
 
     @classmethod
@@ -67,8 +67,8 @@ class VirtualEventOrm(Base):
         if params.team_id is not None:
             lookup = lookup.where(cls.team_id == params.team_id)
 
-        if params.name is not None:
-            lookup = lookup.where(cls.name == params.name)
+        if params.readable_name is not None:
+            lookup = lookup.where(cls.readable_name == params.readable_name)
 
         if params.view_name is not None:
             lookup = lookup.where(cls.view_name == params.view_name)
@@ -83,15 +83,15 @@ class VirtualEventOrm(Base):
         return result
 
 
-def make_virtual_event_name(*, operation: str, table_name: str) -> str:
+def make_virtual_event_readable_name(*, operation: str, table_name: str) -> str:
     """
-    >>> make_virtual_event_name(operation="INSERT", table_name="accounts")
+    >>> make_virtual_event_readable_name(operation="INSERT", table_name="accounts")
     'Account Created'
-    >>> make_virtual_event_name(operation="UPDATE", table_name="github_installations")
+    >>> make_virtual_event_readable_name(operation="UPDATE", table_name="github_installations")
     'Github Installation Updated'
-    >>> make_virtual_event_name(operation="DELETE", table_name="UserAccounts")
+    >>> make_virtual_event_readable_name(operation="DELETE", table_name="UserAccounts")
     'User Account Deleted'
     """
-    op_hr = DatabaseChangeOperation(value=operation.upper()).hr_past_tense
     obj_hr = titleize(table_name)
+    op_hr = DatabaseChangeOperation(value=operation.upper()).hr_past_tense
     return f"{obj_hr} {op_hr}"

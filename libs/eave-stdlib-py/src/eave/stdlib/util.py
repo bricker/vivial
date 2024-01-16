@@ -294,7 +294,7 @@ def tableize(string: str) -> str:
     >>> tableize("\"; DROP TABLES")
     'drop_tables'
     """
-    return re.sub("\\W", "_", string).lower()
+    return re.sub(r"\W", "_", string).lower()
 
 def sql_sanitized_identifier(identifier: str) -> str:
     """
@@ -310,10 +310,11 @@ def sql_sanitized_identifier(identifier: str) -> str:
     '`table_name; drop tables; --`'
     """
 
-    i = re.sub("[`\\]", "", identifier)
+    # removes backticks and backslashes (\\\\ = 1 backslash when using normal Python string)
+    i = re.sub("[`\\\\]", "", identifier)
     return f"`{i}`"
 
-def sql_sanitized_literal(literal: str, quotechar: Literal["'"] | Literal['"'] = '"') -> str:
+def sql_sanitized_literal(literal: str, quotechar: Literal["'", '"'] = '"') -> str:
     """
     >>> sql_sanitized_literal('table_name"; drop tables; --')
     '"table_name; drop tables; --"'
@@ -327,5 +328,6 @@ def sql_sanitized_literal(literal: str, quotechar: Literal["'"] | Literal['"'] =
     "'table_name; drop tables; --'"
     """
 
-    i = re.sub(f"[{quotechar}\\]", "", literal)
+    # removes the quote character (' or ") and backslashes (\\\\ = 1 backslash when using normal Python string)
+    i = re.sub(f"[{quotechar}\\\\]", "", literal)
     return f"{quotechar}{i}{quotechar}"

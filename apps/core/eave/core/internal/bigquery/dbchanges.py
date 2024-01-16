@@ -1,10 +1,12 @@
+import json
 import re
 from textwrap import dedent
 from typing import override
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
+from google.cloud.bigquery.table import RowIterator
 
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
-from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_name
+from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
 from eave.core.internal import database
 from eave.core.internal.bigquery import bq_client
@@ -51,80 +53,83 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
     table = table_definition
 
     async def create_vevent_view(self, *, operation: str, source_table: str) -> None:
-        vevent_name = make_virtual_event_name(operation=operation, table_name=source_table)
-        vevent_view_name = tableize(vevent_name)
-
-        bq_client.create_view(
-            dataset_name=self.dataset,
-            view_name=vevent_view_name,
-            view_query=dedent(
-                """
-                SELECT
-                    *
-                FROM
-                    {dataset}.{view_name}
-                WHERE
-                    `table_name` = {source_table}
-                    AND `operation` = {operation}
-                ORDER BY
-                    `timestamp` ASC
-                """.format(
-                    dataset=sql_sanitized_identifier(self.dataset),
-                    view_name=sql_sanitized_identifier(vevent_view_name),
-                    source_table=sql_sanitized_literal(source_table),
-                    operation=sql_sanitized_literal(operation),
-                )
-            ).strip(),
-        )
+        vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
+        vevent_view_name = tableize(vevent_readable_name)
 
         async with database.async_session.begin() as db_session:
-            vevent_query = await VirtualEventOrm.query(session=db_session, params=VirtualEventOrm.QueryParams())
+            vevent_query = await VirtualEventOrm.query(
+                session=db_session,
+                params=VirtualEventOrm.QueryParams(
+                    team_id=self.team_id,
+                    view_name=vevent_view_name,
+                )
+            )
 
             if not vevent_query.one_or_none():
+                bq_client.create_view(
+                    dataset_name=self.dataset_name,
+                    view_name=vevent_view_name,
+                    view_query=dedent(
+                        """
+                        SELECT
+                            *
+                        FROM
+                            {dataset}.{atom_table_name}
+                        WHERE
+                            `table_name` = {source_table}
+                            AND `operation` = {operation}
+                        ORDER BY
+                            `timestamp` ASC
+                        """.format(
+                            dataset=sql_sanitized_identifier(self.dataset_name),
+                            atom_table_name=sql_sanitized_identifier(self.table.name),
+                            source_table=sql_sanitized_literal(source_table),
+                            operation=sql_sanitized_literal(operation),
+                        )
+                    ).strip(),
+                )
+
                 await VirtualEventOrm.create(
                     session=db_session,
                     team_id=self.team_id,
                     view_name=vevent_view_name,
-                    name=vevent_name,
+                    readable_name=vevent_readable_name,
                     description=f"{operation} operation on the {source_table} table.",
                 )
 
-    # @override
-    # async def insert(self, events: list[str]) -> None:
-    #     if len(events) == 0:
-    #         return
 
-    #     dbchange_events = [DatabaseChangeEventPayload(**json.loads(e)) for e in events]
 
-    #     await clickhouse_client.create_database(name=self.database)
-    #     await self.create_table()
+    @override
+    async def insert(self, events: list[str]) -> None:
+        if len(events) == 0:
+            return
 
-    #     # Each Eave team has its own database (effectively a namespace), each with its own tables, eg `dbchanges`.
-    #     # Because the JSON columns (eg new_data) expand arbitrary JSON keys into concrete columns, sharing tables for all customers would result in every row having columns from all customers, a non-starter for both privacy and scalability. Even with columnar database, there is a soft upper limit on number of columns (on the order of 10k).
-    #     # By separating the tables, each team only has columns for their data.
-    #     # Additionally, for the dbchanges table, `new_data` and `old_data` have nested within them the name of the table, eg: `"new_data": { "teams": { "name": "...", ... } }`. This way, the columns from each database table are isolated from others, allowing us to groups the clickhouse columns by table name.
-    #     clickhouse_client.chclient.insert(
-    #         database=self.database,
-    #         table=self.table.name,
-    #         column_names=self.table.column_names,
-    #         column_types=self.table.column_types,
-    #         data=[self._format_row(e) for e in dbchange_events],
-    #         settings={
-    #             "async_insert": 1,
-    #             "wait_for_async_insert": 1,
-    #         },
-    #     )
+        dbchange_events = [DatabaseChangeEventPayload(**json.loads(e)) for e in events]
 
-    #     unique_operations = set((e.operation, e.table_name) for e in dbchange_events)
+        bq_client.create_dataset(dataset_name=self.dataset_name)
+        bq_client.create_table(
+            dataset_name=self.dataset_name,
+            table_name=self.table.name,
+            schema=self.table.schema,
+        )
 
-    #     # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
-    #     for operation, table_name in unique_operations:
-    #         await self.create_vevent_view(operation=operation, source_table=table_name)
+        bq_client.append_rows(
+            dataset_name=self.dataset_name,
+            table_name=self.table.name,
+            schema=self.table.schema,
+            rows=[e.to_dict() for e in dbchange_events],
+        )
 
-    # @override
-    # async def query(self, query: str) -> QueryResult:
-    #     results = clickhouse_client.chclient.query(query)
-    #     return results
+        unique_operations = set((e.operation, e.table_name) for e in dbchange_events)
+
+        # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
+        for operation, table_name in unique_operations:
+            await self.create_vevent_view(operation=operation, source_table=table_name)
+
+    @override
+    async def query(self, query: str) -> RowIterator:
+        results = bq_client.query(query=query)
+        return results
 
     # def _format_row(self, event: DatabaseChangeEventPayload) -> list[Any]:
     #     """

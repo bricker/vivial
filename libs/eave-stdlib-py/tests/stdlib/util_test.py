@@ -9,6 +9,20 @@ class StdlibUtilTest(UtilityBaseTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
+    async def test_sql_sanitized_identifier(self):
+        assert mut.sql_sanitized_identifier("table_name`; drop tables; --") == '`table_name; drop tables; --`'
+        assert mut.sql_sanitized_identifier("table_name```; drop tables; --") == '`table_name; drop tables; --`'
+        assert mut.sql_sanitized_identifier("`table_name`; drop tables; --") == '`table_name; drop tables; --`'
+        assert mut.sql_sanitized_identifier("`table_name; drop tables;` --`") == '`table_name; drop tables; --`'
+        assert mut.sql_sanitized_identifier("`table_name\\; drop tables;` --`") == '`table_name; drop tables; --`'
+
+    async def test_sql_sanitized_literal(self):
+        assert mut.sql_sanitized_literal('table_name"; drop tables; --') == '"table_name; drop tables; --"'
+        assert mut.sql_sanitized_literal("table_name'; drop tables; --") == '"table_name; drop tables; --"'
+        assert mut.sql_sanitized_literal('table_name"; drop tables; --', quotechar="'") == "'table_name; drop tables; --'"
+        assert mut.sql_sanitized_literal("table_name'; drop tables; --", quotechar="'") == "'table_name; drop tables; --'"
+        assert mut.sql_sanitized_literal("table_name\\'; drop tables; --", quotechar="'") == "'table_name; drop tables; --'"
+
     async def test_ensure_bytes(self):
         string = self.anystring()
         bytez = string.encode()
