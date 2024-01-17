@@ -77,7 +77,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
         assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
         assert (
             eave.core.internal.database.async_engine.url.database == "eave-test"
-        ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test"'
+        ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test")'
 
         if not _DB_SETUP:
             print("Running one-time DB setup...")
