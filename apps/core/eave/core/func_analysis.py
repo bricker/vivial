@@ -1,5 +1,32 @@
 # ruff: noqa: E402
 
+"""
+1. probelms
+How can we know what code is worth tracking?
+* arb code
+* what does it mean to be "worth tracking"?
+* functions vs lines; granularity diff
+* what data to get/how to get data about event to create if it is worth track
+
+2. problem effecs/constraints
+* should be all/mostly automated
+* can we make any assumptions about code? ie. only looking at complete fucntiosn?
+* we need to get context from somewhere
+* dont want to dup events from other sources
+
+2.5. break down probelms
+find product relevant points of interest in code [using AI somehow]
+deterimine if POI is worth tracking
+and determine if POI is already covered by http/db?
+gather data to define POI in human readable terms
+create unique ID from POI (but flex enough to not become invalidated if code changes a bit, or is moved)
+
+3. ideas
+static code analysis to gather ctx about code
+
+
+"""
+
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 from eave.stdlib.config import SHARED_CONFIG
 
@@ -263,30 +290,227 @@ funcs = [
 
 async def main():
     for f in funcs:
-        prompt = formatprompt(
-            """
-            Does this python function contain any business logic that may be valuable to a product analyst?",
+        poi_prompt = formatprompt(
+            r"""
+            Locate all points of interest (if any) in a function that we might want to fire a product analytics event from.
+            For each point of interest you find, give a name and description for the event, and the full line of the point of interest.
+            Provide your response as a JSON array of JSON objects with "name", "description", and "line" fields.
 
-            Function:
+            For example:
+            ###
+            ```
+            async def post(self, request: Request) -> Response:
+                eave_state = EaveRequestState.load(request=request)
+                body = await request.json()
+                input = UpdateGithubReposRequest.RequestBody.parse_obj(body)
+                assert eave_state.ctx.eave_team_id, "eave_team_id unexpectedly missing"
+
+                # transform to dict for ease of use
+                update_values = {repo.id: repo.new_values for repo in input.repos}
+
+                async with database.async_session.begin() as db_session:
+                    gh_repo_orms = await GithubRepoOrm.query(
+                        session=db_session,
+                        params=GithubRepoOrm.QueryParams(
+                            team_id=ensure_uuid(eave_state.ctx.eave_team_id),
+                            ids=list(map(lambda r: r.id, input.repos)),
+                        ),
+                    )
+
+                    for gh_repo_orm in gh_repo_orms:
+                        assert gh_repo_orm.id in update_values, "Received a GithubRepo ORM that was not requested"
+                        new_values = update_values[gh_repo_orm.id]
+
+                        if (
+                            gh_repo_orm.api_documentation_state == GithubRepoFeatureState.DISABLED
+                            and new_values.api_documentation_state == GithubRepoFeatureState.ENABLED
+                        ):
+                            await _trigger_api_documentation(github_repo_orm=gh_repo_orm, ctx=eave_state.ctx)
+
+                        gh_repo_orm.update(session=db_session, input=new_values)
+
+                return json_response(
+                    UpdateGithubReposRequest.ResponseBody(
+                        repos=[orm.api_model for orm in gh_repo_orms],
+                    )
+                )
+            ```
+            [
+                {
+                    "name": "github_feature_state_change",
+                    "description": "A GitHub App feature was activated/deactivated",
+                    "line": "new_values = update_values[gh_repo_orm.id]"
+                }
+            ]
+            ###
+            ###
+            ```
+            def set_http_cookie(
+                response: HTTPFrameworkResponse,
+                key: str,
+                value: str,
+                httponly: bool = True,
+            ) -> None:
+                response.set_cookie(
+                    key=key,
+                    value=value,
+                    domain=SHARED_CONFIG.eave_cookie_domain,
+                    path="/",
+                    httponly=httponly,
+                    secure=(not SHARED_CONFIG.is_development),
+                    samesite="lax",
+                    max_age=int(ONE_YEAR_IN_MS / 1000),
+                )
+            ```
+            []
+            ###
+            ###
+            ```
+            async def post(self, request: Request) -> Response:
+                eave_state = EaveRequestState.load(request=request)
+                body = await request.json()
+                input = UpsertDocumentOp.RequestBody.parse_obj(body)
+
+                async with eave_db.async_session.begin() as db_session:
+                    eave_team = await TeamOrm.one_or_exception(
+                        session=db_session,
+                        team_id=eave.stdlib.util.unwrap(eave_state.ctx.eave_team_id),
+                    )
+                    # get all subscriptions we wish to associate the new document with
+                    subscriptions = [
+                        await SubscriptionOrm.one_or_exception(
+                            team_id=eave_team.id,
+                            source=subscription.source,
+                            session=db_session,
+                        )
+                        for subscription in input.subscriptions
+                    ]
+
+                    # make sure we got even 1 subscription
+                    if len(subscriptions) < 1:
+                        raise UnexpectedMissingValue("Expected to have at least 1 subscription input")
+
+                    destination = await eave_team.get_document_client(session=db_session)
+                    if destination is None:
+                        raise UnexpectedMissingValue("document destination")
+
+                    # FIXME: boldly assuming all subscriptions have the same value for document_reference_id
+                    existing_document_reference = await subscriptions[0].get_document_reference(session=db_session)
+
+                    if existing_document_reference is None:
+                        document_metadata = await destination.create_document(input=input.document, ctx=eave_state.ctx)
+
+                        document_reference = await DocumentReferenceOrm.create(
+                            session=db_session,
+                            team_id=eave_team.id,
+                            document_id=document_metadata.id,
+                            document_url=document_metadata.url,
+                        )
+                    else:
+                        await destination.update_document(
+                            input=input.document,
+                            document_id=existing_document_reference.document_id,
+                            ctx=eave_state.ctx,
+                        )
+
+                        document_reference = existing_document_reference
+
+                    # update all subscriptions without a document reference
+                    for subscription in subscriptions:
+                        if subscription.document_reference_id is None:
+                            subscription.document_reference_id = document_reference.id
+
+                model = UpsertDocumentOp.ResponseBody(
+                    team=eave_team.api_model,
+                    subscriptions=[subscription.api_model for subscription in subscriptions],
+                    document_reference=document_reference.api_model,
+                )
+
+                return eave.stdlib.api_util.json_response(status_code=http.HTTPStatus.ACCEPTED, model=model)
+            ```
+            [
+                {
+                    "name": "created_documentation",
+                    "description": "created some documentation",
+                    "line": "document_reference = await DocumentReferenceOrm.create(",
+                },
+                {
+                    "name": "updated_documentation",
+                    "description": "updated some existing documentation",
+                    "line": "await destination.update_document(",
+                }
+            ]
             ###
             """,
-            f,
-            "###"
+            f"""
+            ###
+            ```
+            {f}
+            ```
+
+            """
         )
 
+        # TODO for each POI
         response = await openai_client.chat.completions.create(
             stream=True,
             model="gpt-4-1106-preview",
             messages=[
                 ChatCompletionUserMessageParam({
                     "role": "user",
-                    "content": prompt,
+                    "content": poi_prompt,
                 }),
             ],
         )
+        response = "".join(filter(None, [chunk.choices[0].delta.content async for chunk in response]))
+        json_resp_len = len(response)
+        json_resp_init = 0
+        while response[json_resp_len-1] != "]":
+            json_resp_len -= 1
+        while json_resp_init < json_resp_len and response[json_resp_init] != "[":
+            json_resp_init += 1
+        
+        # json parse
+        import json
+        response = response[json_resp_init:json_resp_len]
+        print(response)
+        json_resp = json.loads(response)
+        for poi in json_resp:
+            print(f"candidate poi: {poi}")
+            if poi["line"] not in f:
+                print("poi was not in func body")
+                continue
 
-        async for chunk in response:
-            print(chunk.choices[0].delta.content, end="")
+            dup_prompt = formatprompt(
+                f"""
+                Does this point of interest represent a database transaction or a network request? Respond with Yes or No.
+
+                Name: {poi["name"]}
+                Description: {poi["description"]}
+
+                Answer: 
+                """,
+            )
+
+            response = await openai_client.chat.completions.create(
+                stream=True,
+                model="gpt-4-1106-preview",
+                messages=[
+                    ChatCompletionUserMessageParam({
+                        "role": "user",
+                        "content": dup_prompt,
+                    }),
+                ],
+            )
+
+            response = "".join(filter(None, [chunk.choices[0].delta.content async for chunk in response]))
+
+            if response == "Yes":
+                print("poi was dup of http/db event")
+                continue
+
+            print(f"""poi is valid event!""")
+
 
 if __name__ == "__main__":
     print("")
