@@ -613,7 +613,11 @@ async def main():
             ```
             {f}
             ```
-            Concisely explain what the above code does in 3 sentences: 
+            Write a summary document of the actions taken by the above function.
+            Be succinct, excluding redundant or unnecessary terms like "This function ...".
+            Do not include surrounding markdown-style backticks.
+
+            1. 
             """
         )
 
