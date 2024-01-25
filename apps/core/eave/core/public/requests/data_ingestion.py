@@ -40,7 +40,7 @@ class DataIngestionEndpoint(HTTPEndpoint):
             if not creds:
                 raise UnauthorizedError("invalid credentials")
 
-            if not creds.scope & ClientScope.write > 0:
+            if not (creds.scope & ClientScope.write) > 0:
                 raise ForbiddenError("invalid scopes")
 
             await creds.touch(session=db_session)

@@ -1,18 +1,20 @@
 # ruff: noqa: E402
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
-from eave.stdlib.config import SHARED_CONFIG
 
 load_standard_dotenv_files()
 
+import warnings
+warnings.filterwarnings("ignore", message="As the c extension couldn't be imported", category=RuntimeWarning, module="google_crc32c")
 
 import asyncio
 import os
 from textwrap import dedent
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionUserMessageParam
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from eave.stdlib.transformer_ai.models import OpenAIModel
 from eave.stdlib.transformer_ai.openai_client import chat_completion, formatprompt
+from eave.stdlib.config import SHARED_CONFIG
 
 openai_client = AsyncOpenAI(
     api_key=SHARED_CONFIG.eave_openai_api_key,
@@ -200,56 +202,19 @@ funcs = [
                     )
 
                     if self._request_logged_in():
-                        await eave.stdlib.analytics.log_event(
-                            event_name="eave_application_integration",
-                            event_description="An integration was added for a team",
-                            event_source="core api github app install",
-                            eave_account=self.eave_account.analytics_model if self.eave_account else None,
-                            eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                            opaque_params={
-                                "integration_name": Integration.github.value,
-                            },
-                            ctx=self.eave_state.ctx,
-                        )
+                        print("user logged in")
                     else:
-                        await eave.stdlib.analytics.log_event(
-                            event_name="eave_application_registered",
-                            event_description="An app was registered, but has no linked team",
-                            event_source="core api github app install",
-                            opaque_params={
-                                "integration_name": Integration.github.value,
-                                "installation_id": self.installation_id,
-                            },
-                            ctx=self.eave_state.ctx,
-                        )
+                        print("user not logged in")
 
                 elif self.eave_account and github_installation_orm.team_id != self.eave_account.team_id:
                     eaveLogger.warning(
                         f"A Github integration already exists with github install id {self.installation_id}",
                         self.eave_state.ctx,
                     )
-                    await eave.stdlib.analytics.log_event(
-                        event_name="duplicate_integration_attempt",
-                        event_source="core api github oauth",
-                        eave_account=self.eave_account.analytics_model,
-                        eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                        opaque_params={"integration": Integration.github},
-                        ctx=self.eave_state.ctx,
-                    )
                     shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
                     raise Exception("Attempted to link Github integration when one already existed")
                 else:
-                    await eave.stdlib.analytics.log_event(
-                        event_name="eave_application_integration_updated",
-                        event_description="An integration was re-installed or updated for a team",
-                        event_source="core api github oauth",
-                        eave_account=self.eave_account.analytics_model if self.eave_account else None,
-                        eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                        opaque_params={
-                            "integration_name": Integration.github.value,
-                        },
-                        ctx=self.eave_state.ctx,
-                    )
+                    print("integration updated")
 
                 self.github_installation_orm = github_installation_orm
         """,
@@ -262,31 +227,76 @@ funcs = [
 ]
 
 async def main():
-    for f in funcs:
-        prompt = formatprompt(
+    f = funcs[-2]
+    # for f in funcs:
+    if True:
+        system_prompt = formatprompt(
             """
-            Does this python function contain any business logic that may be valuable to a product analyst?",
+            A product analytics event is some action in the code that may be of interest to a product manager or product analyst. The events are sent to an analytics backend like BigQuery or Redshift for further analysis. Parameters for an event are the context around the code, such as local variables or function calls.",
+            """
+        )
+
+        user_prompt = formatprompt(
+            """
+            Should this python function fire any product analytics events?
 
             Function:
-            ###
+            ```python
             """,
             f,
-            "###"
+            "```"
         )
 
         response = await openai_client.chat.completions.create(
             stream=True,
+            seed=10197118101,
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "send_analytics_event",
+                        "description": "Send an analytics event to an analytics backend",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "event_name": {
+                                    "type": "string",
+                                    "description": "A short, descriptive, unique, snake_case name for the analytics event.",
+                                },
+                                "event_description": {
+                                    "type": "string",
+                                    "description": "A brief description of what the analytics event is tracking.",
+                                },
+                                "event_parameters": {
+                                    "type": "object",
+                                    "description": "Arbitrary context about this event that can be used for filtering during analysis.",
+                                },
+                            },
+                            "required": ["event_name", "event_description"],
+                        },
+                    },
+                },
+            ],
             model="gpt-4-1106-preview",
             messages=[
+                ChatCompletionSystemMessageParam({
+                    "role": "system",
+                    "content": system_prompt,
+                }),
                 ChatCompletionUserMessageParam({
                     "role": "user",
-                    "content": prompt,
+                    "content": user_prompt,
                 }),
             ],
         )
 
         async for chunk in response:
-            print(chunk.choices[0].delta.content, end="")
+            choice = chunk.choices[0]
+            if choice.finish_reason in ["stop", "tool_call"]:
+                break
+
+            print(choice.delta.content, end="")
+            print(choice.delta.tool_calls, end="")
 
 if __name__ == "__main__":
     print("")

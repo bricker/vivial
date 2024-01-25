@@ -1,9 +1,11 @@
 # Requirements that are only installed and used during local development or in CI.
 
--e ./libs/eave-pubsub-schemas/python
--e ./libs/eave-stdlib-py
--e ./libs/eave-monitoring
+-e ${EAVE_HOME}/libs/eave-pubsub-schemas/python
+-e ${EAVE_HOME}/libs/eave-stdlib-py
 -e ${EAVE_HOME}/develop/python
+-e ${EAVE_HOME}/libs/python/eave-tracing-core-py
+-e ${EAVE_HOME}/libs/python/eave-tracing-python
+-e ${EAVE_HOME}/libs/python/eave-tracing-postgres
 
 grpcio-tools
 protobuf
@@ -21,3 +23,4 @@ types-protobuf
 mitmproxy==10.1.1
 click
 alembic
+toml

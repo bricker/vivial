@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional, Self, Tuple
 from uuid import UUID
 
-from sqlalchemy import ScalarResult, Select, func, select
+from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,13 +20,19 @@ class VirtualEventOrm(Base):
     __table_args__ = (
         make_team_composite_pk(table_name="virtual_events"),
         make_team_fk(),
+        Index(
+            "team_id_view_id",
+            "team_id",
+            "view_id",
+            unique=True,
+        ),
     )
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    readable_name: Mapped[str] = mapped_column(index=True)
+    readable_name: Mapped[str] = mapped_column()
     description: Mapped[Optional[str]] = mapped_column()
-    view_name: Mapped[str] = mapped_column()
+    view_id: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -37,13 +43,13 @@ class VirtualEventOrm(Base):
         team_id: UUID,
         readable_name: str,
         description: Optional[str],
-        view_name: str,
+        view_id: str,
     ) -> Self:
         obj = cls(
             team_id=team_id,
             readable_name=readable_name,
             description=description,
-            view_name=view_name,
+            view_id=view_id,
         )
 
         session.add(obj)
@@ -55,7 +61,7 @@ class VirtualEventOrm(Base):
         id: Optional[uuid.UUID] = None
         team_id: Optional[uuid.UUID] = None
         readable_name: Optional[str] = None
-        view_name: Optional[str] = None
+        view_id: Optional[str] = None
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
@@ -70,8 +76,8 @@ class VirtualEventOrm(Base):
         if params.readable_name is not None:
             lookup = lookup.where(cls.readable_name == params.readable_name)
 
-        if params.view_name is not None:
-            lookup = lookup.where(cls.view_name == params.view_name)
+        if params.view_id is not None:
+            lookup = lookup.where(cls.view_id == params.view_id)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
