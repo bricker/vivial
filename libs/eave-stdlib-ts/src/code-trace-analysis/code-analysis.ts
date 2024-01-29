@@ -1,376 +1,372 @@
-import * as crypto from "crypto";
-import Parser from "tree-sitter";
-import { LogContext, eaveLogger } from "../logging.js";
-import { ProgrammingLanguage } from "../programming-langs/language-mapping.js";
-import { getProgrammingLanguageByFilePathOrName } from "../programming-langs/language-mapping.js";
-import {
-  getFunctionDocumentationQueries,
-  grammarForFilePathOrName,
-} from "../parsing/grammars.js";
-import OpenAIClient, { formatprompt } from "../transformer-ai/openai.js";
-import { OpenAIModel } from "../transformer-ai/models.js";
+// run this dummy script with
+// npx tsx libs/eave-stdlib-ts/src/code-trace-analysis/code-analysis.ts 
 
+import Parser from "tree-sitter";
+import { LogContext } from "../logging.js";
+import { grammarForFilePathOrName } from "../parsing/grammars.js";
+import { OpenAIModel } from "../transformer-ai/models.js";
+import OpenAIClient, { formatprompt } from "../transformer-ai/openai.js";
 
 const funcs = [
-// String.raw`export async function runApiDocumentationTaskHandler(
-//   req: Express.Request,
-//   res: Express.Response,
-// ): Promise<void> {
-//   const ctx = LogContext.load(res);
-//   ctx.feature_name = "api_documentation";
-//   eaveLogger.debug("API documentation task started", { input: req.body }, ctx);
+  // String.raw`export async function runApiDocumentationTaskHandler(
+  //   req: Express.Request,
+  //   res: Express.Response,
+  // ): Promise<void> {
+  //   const ctx = LogContext.load(res);
+  //   ctx.feature_name = "api_documentation";
+  //   eaveLogger.debug("API documentation task started", { input: req.body }, ctx);
 
-//   const input = <RunApiDocumentationTaskRequestBody>req.body;
-//   const sharedAnalyticsParams: { [key: string]: JsonValue } = {};
-//   ctx.set({ sharedAnalyticsParams });
+  //   const input = <RunApiDocumentationTaskRequestBody>req.body;
+  //   const sharedAnalyticsParams: { [key: string]: JsonValue } = {};
+  //   ctx.set({ sharedAnalyticsParams });
 
-//   const teamId = req.header(EAVE_TEAM_ID_HEADER);
-//   if (!teamId) {
-//     throw new MissingRequiredHeaderError(EAVE_TEAM_ID_HEADER);
-//   }
+  //   const teamId = req.header(EAVE_TEAM_ID_HEADER);
+  //   if (!teamId) {
+  //     throw new MissingRequiredHeaderError(EAVE_TEAM_ID_HEADER);
+  //   }
 
-//   const coreAPIData = new CoreAPIData({
-//     teamId,
-//     ctx,
-//     externalRepoId: input.repo.external_repo_id,
-//   });
-//   sharedAnalyticsParams["core_api_data"] = coreAPIData.logParams;
-//   const eaveTeam = await coreAPIData.getTeam();
-//   ctx.set({ eave_team: eaveTeam });
+  //   const coreAPIData = new CoreAPIData({
+  //     teamId,
+  //     ctx,
+  //     externalRepoId: input.repo.external_repo_id,
+  //   });
+  //   sharedAnalyticsParams["core_api_data"] = coreAPIData.logParams;
+  //   const eaveTeam = await coreAPIData.getTeam();
+  //   ctx.set({ eave_team: eaveTeam });
 
-//   eaveLogger.debug("eave core API data", sharedAnalyticsParams, ctx);
+  //   eaveLogger.debug("eave core API data", sharedAnalyticsParams, ctx);
 
-//   const eaveGithubRepo = await coreAPIData.getEaveGithubRepo();
-//   assert(
-//     eaveGithubRepo.api_documentation_state === GithubRepoFeatureState.ENABLED,
-//     \`API documentation feature not enabled for repo ID \${eaveGithubRepo.external_repo_id}\`,
-//   );
+  //   const eaveGithubRepo = await coreAPIData.getEaveGithubRepo();
+  //   assert(
+  //     eaveGithubRepo.api_documentation_state === GithubRepoFeatureState.ENABLED,
+  //     \`API documentation feature not enabled for repo ID \${eaveGithubRepo.external_repo_id}\`,
+  //   );
 
-//   const installId = await getInstallationId(eaveTeam.id, ctx);
-//   assert(installId, \`No github integration found for team ID \${eaveTeam.id}\`);
+  //   const installId = await getInstallationId(eaveTeam.id, ctx);
+  //   assert(installId, \`No github integration found for team ID \${eaveTeam.id}\`);
 
-//   const octokit = await createOctokitClient(installId);
+  //   const octokit = await createOctokitClient(installId);
 
-//   let jobResult = LastJobResult.none;
-//   try {
-//     const githubAPIData = new GithubAPIData({
-//       ctx,
-//       octokit,
-//       externalRepoId: eaveGithubRepo.external_repo_id,
-//     });
-//     sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
+  //   let jobResult = LastJobResult.none;
+  //   try {
+  //     const githubAPIData = new GithubAPIData({
+  //       ctx,
+  //       octokit,
+  //       externalRepoId: eaveGithubRepo.external_repo_id,
+  //     });
+  //     sharedAnalyticsParams["github_data"] = githubAPIData.logParams;
 
-//     const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
-//     if (externalGithubRepo.isEmpty) {
-//       res.sendStatus(200);
-//       return;
-//     }
+  //     const externalGithubRepo = await githubAPIData.getExternalGithubRepo();
+  //     if (externalGithubRepo.isEmpty) {
+  //       res.sendStatus(200);
+  //       return;
+  //     }
 
-//     if (!input.force) {
-//       const existingGithubDocuments = await coreAPIData.getGithubDocuments();
-//       // If there aren't any associated github documents yet, always run the task.
-//       if (
-//         existingGithubDocuments &&
-//         Object.keys(existingGithubDocuments).length > 0
-//       ) {
-//         const latestCommitOnDefaultBranch =
-//           await githubAPIData.getLatestCommitOnDefaultBranch();
-//         if (latestCommitOnDefaultBranch) {
-//           const committedDate = Date.parse(
-//             latestCommitOnDefaultBranch.committedDate,
-//           );
-//           const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
-//           if (committedDate < oneDayAgo) {
-//             eaveLogger.debug(
-//               "API doc task skipped due to delta check",
-//               sharedAnalyticsParams,
-//               ctx,
-//             );
-//             res.sendStatus(200);
-//             return;
-//           }
-//         }
-//       }
-//     }
+  //     if (!input.force) {
+  //       const existingGithubDocuments = await coreAPIData.getGithubDocuments();
+  //       // If there aren't any associated github documents yet, always run the task.
+  //       if (
+  //         existingGithubDocuments &&
+  //         Object.keys(existingGithubDocuments).length > 0
+  //       ) {
+  //         const latestCommitOnDefaultBranch =
+  //           await githubAPIData.getLatestCommitOnDefaultBranch();
+  //         if (latestCommitOnDefaultBranch) {
+  //           const committedDate = Date.parse(
+  //             latestCommitOnDefaultBranch.committedDate,
+  //           );
+  //           const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24;
+  //           if (committedDate < oneDayAgo) {
+  //             eaveLogger.debug(
+  //               "API doc task skipped due to delta check",
+  //               sharedAnalyticsParams,
+  //               ctx,
+  //             );
+  //             res.sendStatus(200);
+  //             return;
+  //           }
+  //         }
+  //       }
+  //     }
 
-//     // indicate in db that this job is processing
-//     await UpsertApiDocumentationJobOperation.perform({
-//       teamId,
-//       origin: appConfig.eaveOrigin,
-//       input: {
-//         job: {
-//           github_repo_id: eaveGithubRepo.id,
-//           state: ApiDocumentationJobState.running,
-//         },
-//       },
-//       ctx,
-//     });
+  //     // indicate in db that this job is processing
+  //     await UpsertApiDocumentationJobOperation.perform({
+  //       teamId,
+  //       origin: appConfig.eaveOrigin,
+  //       input: {
+  //         job: {
+  //           github_repo_id: eaveGithubRepo.id,
+  //           state: ApiDocumentationJobState.running,
+  //         },
+  //       },
+  //       ctx,
+  //     });
 
-//     const expressRootDirs = await githubAPIData.getExpressRootDirs();
-//     if (expressRootDirs.length === 0) {
-//       eaveLogger.warning(
-//         "no express apps detected",
-//         sharedAnalyticsParams,
-//         ctx,
-//       );
+  //     const expressRootDirs = await githubAPIData.getExpressRootDirs();
+  //     if (expressRootDirs.length === 0) {
+  //       eaveLogger.warning(
+  //         "no express apps detected",
+  //         sharedAnalyticsParams,
+  //         ctx,
+  //       );
 
-//       res.sendStatus(200);
-//       jobResult = LastJobResult.no_api_found;
-//       return;
-//     }
+  //       res.sendStatus(200);
+  //       jobResult = LastJobResult.no_api_found;
+  //       return;
+  //     }
 
-//     eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
+  //     eaveLogger.debug("express apps detected", sharedAnalyticsParams, ctx);
 
-//     const results = await Promise.allSettled(
-//       expressRootDirs.map(async (apiRootDir) => {
-//         try {
-//           const localAnalyticsParams: { [key: string]: JsonValue } = {};
-//           localAnalyticsParams["api_root_dir"] = apiRootDir;
+  //     const results = await Promise.allSettled(
+  //       expressRootDirs.map(async (apiRootDir) => {
+  //         try {
+  //           const localAnalyticsParams: { [key: string]: JsonValue } = {};
+  //           localAnalyticsParams["api_root_dir"] = apiRootDir;
 
-//           eaveLogger.debug(
-//             "building documentation",
-//             localAnalyticsParams,
-//             sharedAnalyticsParams,
-//             ctx,
-//           );
+  //           eaveLogger.debug(
+  //             "building documentation",
+  //             localAnalyticsParams,
+  //             sharedAnalyticsParams,
+  //             ctx,
+  //           );
 
-//           const expressAPIInfo = await ExpressAPIDocumentBuilder.buildAPI({
-//             githubAPIData,
-//             coreAPIData,
-//             apiRootDir,
-//             ctx,
-//           });
-//           assertPresence(expressAPIInfo);
+  //           const expressAPIInfo = await ExpressAPIDocumentBuilder.buildAPI({
+  //             githubAPIData,
+  //             coreAPIData,
+  //             apiRootDir,
+  //             ctx,
+  //           });
+  //           assertPresence(expressAPIInfo);
 
-//           expressAPIInfo.documentationFilePath = documentationFilePath({
-//             apiName: expressAPIInfo.name,
-//           });
+  //           expressAPIInfo.documentationFilePath = documentationFilePath({
+  //             apiName: expressAPIInfo.name,
+  //           });
 
-//           localAnalyticsParams["express_api_info"] = expressAPIInfo.asJSON;
-//           eaveLogger.debug(
-//             "express API info",
-//             localAnalyticsParams,
-//             sharedAnalyticsParams,
-//             ctx,
-//           );
+  //           localAnalyticsParams["express_api_info"] = expressAPIInfo.asJSON;
+  //           eaveLogger.debug(
+  //             "express API info",
+  //             localAnalyticsParams,
+  //             sharedAnalyticsParams,
+  //             ctx,
+  //           );
 
-//           let eaveDoc = await coreAPIData.getGithubDocument({
-//             filePath: expressAPIInfo.documentationFilePath,
-//           });
-//           localAnalyticsParams["eave_doc"] = eaveDoc;
+  //           let eaveDoc = await coreAPIData.getGithubDocument({
+  //             filePath: expressAPIInfo.documentationFilePath,
+  //           });
+  //           localAnalyticsParams["eave_doc"] = eaveDoc;
 
-//           if (!expressAPIInfo.rootFile) {
-//             eaveLogger.warning(
-//               "no root file found",
-//               localAnalyticsParams,
-//               sharedAnalyticsParams,
-//               ctx,
-//             );
+  //           if (!expressAPIInfo.rootFile) {
+  //             eaveLogger.warning(
+  //               "no root file found",
+  //               localAnalyticsParams,
+  //               sharedAnalyticsParams,
+  //               ctx,
+  //             );
 
-//             if (eaveDoc) {
-//               eaveLogger.warning(
-//                 "updating github document with status FAILED",
-//                 localAnalyticsParams,
-//                 sharedAnalyticsParams,
-//                 ctx,
-//               );
+  //             if (eaveDoc) {
+  //               eaveLogger.warning(
+  //                 "updating github document with status FAILED",
+  //                 localAnalyticsParams,
+  //                 sharedAnalyticsParams,
+  //                 ctx,
+  //               );
 
-//               await coreAPIData.updateGithubDocument({
-//                 document: eaveDoc,
-//                 newValues: { status: GithubDocumentStatus.FAILED },
-//               });
-//             }
+  //               await coreAPIData.updateGithubDocument({
+  //                 document: eaveDoc,
+  //                 newValues: { status: GithubDocumentStatus.FAILED },
+  //               });
+  //             }
 
-//             return null;
-//           }
+  //             return null;
+  //           }
 
-//           if (
-//             !expressAPIInfo.endpoints ||
-//             expressAPIInfo.endpoints.length === 0
-//           ) {
-//             eaveLogger.warning(
-//               "no express endpoints found",
-//               sharedAnalyticsParams,
-//               localAnalyticsParams,
-//               ctx,
-//             );
+  //           if (
+  //             !expressAPIInfo.endpoints ||
+  //             expressAPIInfo.endpoints.length === 0
+  //           ) {
+  //             eaveLogger.warning(
+  //               "no express endpoints found",
+  //               sharedAnalyticsParams,
+  //               localAnalyticsParams,
+  //               ctx,
+  //             );
 
-//             if (eaveDoc) {
-//               eaveLogger.warning(
-//                 "updating github document with status FAILED",
-//                 sharedAnalyticsParams,
-//                 localAnalyticsParams,
-//                 ctx,
-//               );
+  //             if (eaveDoc) {
+  //               eaveLogger.warning(
+  //                 "updating github document with status FAILED",
+  //                 sharedAnalyticsParams,
+  //                 localAnalyticsParams,
+  //                 ctx,
+  //               );
 
-//               await coreAPIData.updateGithubDocument({
-//                 document: eaveDoc,
-//                 newValues: { status: GithubDocumentStatus.FAILED },
-//               });
-//             }
+  //               await coreAPIData.updateGithubDocument({
+  //                 document: eaveDoc,
+  //                 newValues: { status: GithubDocumentStatus.FAILED },
+  //               });
+  //             }
 
-//             return null;
-//           }
+  //             return null;
+  //           }
 
-//           if (eaveDoc) {
-//             eaveLogger.debug(
-//               "updating github document with status PROCESSING",
-//               sharedAnalyticsParams,
-//               localAnalyticsParams,
-//               ctx,
-//             );
+  //           if (eaveDoc) {
+  //             eaveLogger.debug(
+  //               "updating github document with status PROCESSING",
+  //               sharedAnalyticsParams,
+  //               localAnalyticsParams,
+  //               ctx,
+  //             );
 
-//             eaveDoc = await coreAPIData.updateGithubDocument({
-//               document: eaveDoc,
-//               newValues: { status: GithubDocumentStatus.PROCESSING },
-//             });
-//             localAnalyticsParams["eave_doc"] = eaveDoc;
-//           } else {
-//             eaveLogger.debug(
-//               "creating initial placeholder github document",
-//               sharedAnalyticsParams,
-//               localAnalyticsParams,
-//               ctx,
-//             );
-//             eaveDoc = await coreAPIData.createPlaceholderGithubDocument({
-//               apiName: expressAPIInfo.name,
-//               documentationFilePath: expressAPIInfo.documentationFilePath,
-//             });
-//             localAnalyticsParams["eave_doc"] = eaveDoc;
-//           }
+  //             eaveDoc = await coreAPIData.updateGithubDocument({
+  //               document: eaveDoc,
+  //               newValues: { status: GithubDocumentStatus.PROCESSING },
+  //             });
+  //             localAnalyticsParams["eave_doc"] = eaveDoc;
+  //           } else {
+  //             eaveLogger.debug(
+  //               "creating initial placeholder github document",
+  //               sharedAnalyticsParams,
+  //               localAnalyticsParams,
+  //               ctx,
+  //             );
+  //             eaveDoc = await coreAPIData.createPlaceholderGithubDocument({
+  //               apiName: expressAPIInfo.name,
+  //               documentationFilePath: expressAPIInfo.documentationFilePath,
+  //             });
+  //             localAnalyticsParams["eave_doc"] = eaveDoc;
+  //           }
 
-//           eaveLogger.debug(
-//             "generating API documentation from openai",
-//             sharedAnalyticsParams,
-//             localAnalyticsParams,
-//             ctx,
-//           );
+  //           eaveLogger.debug(
+  //             "generating API documentation from openai",
+  //             sharedAnalyticsParams,
+  //             localAnalyticsParams,
+  //             ctx,
+  //           );
 
-//           const newDocumentContents = await generateExpressAPIDoc({
-//             expressAPIInfo,
-//             ctx,
-//           });
-//           if (!newDocumentContents) {
-//             eaveLogger.warning(
-//               "Empty express API documentation.",
-//               sharedAnalyticsParams,
-//               localAnalyticsParams,
-//               ctx,
-//             );
+  //           const newDocumentContents = await generateExpressAPIDoc({
+  //             expressAPIInfo,
+  //             ctx,
+  //           });
+  //           if (!newDocumentContents) {
+  //             eaveLogger.warning(
+  //               "Empty express API documentation.",
+  //               sharedAnalyticsParams,
+  //               localAnalyticsParams,
+  //               ctx,
+  //             );
 
-//             eaveLogger.warning(
-//               "updating github document with status FAILED",
-//               sharedAnalyticsParams,
-//               localAnalyticsParams,
-//               ctx,
-//             );
+  //             eaveLogger.warning(
+  //               "updating github document with status FAILED",
+  //               sharedAnalyticsParams,
+  //               localAnalyticsParams,
+  //               ctx,
+  //             );
 
-//             await coreAPIData.updateGithubDocument({
-//               document: eaveDoc,
-//               newValues: { status: GithubDocumentStatus.FAILED },
-//             });
-//             return null;
-//           }
+  //             await coreAPIData.updateGithubDocument({
+  //               document: eaveDoc,
+  //               newValues: { status: GithubDocumentStatus.FAILED },
+  //             });
+  //             return null;
+  //           }
 
-//           eaveLogger.debug(
-//             "successfully generated API documentation",
-//             sharedAnalyticsParams,
-//             localAnalyticsParams,
-//             ctx,
-//           );
+  //           eaveLogger.debug(
+  //             "successfully generated API documentation",
+  //             sharedAnalyticsParams,
+  //             localAnalyticsParams,
+  //             ctx,
+  //           );
 
-//           expressAPIInfo.documentation = newDocumentContents;
-//           return expressAPIInfo;
-//         } catch (e: any) {
-//           eaveLogger.exception(e, sharedAnalyticsParams, ctx);
-//           throw e;
-//         }
-//       }),
-//     );
+  //           expressAPIInfo.documentation = newDocumentContents;
+  //           return expressAPIInfo;
+  //         } catch (e: any) {
+  //           eaveLogger.exception(e, sharedAnalyticsParams, ctx);
+  //           throw e;
+  //         }
+  //       }),
+  //     );
 
-//     const validExpressAPIs = results
-//       .filter((r) => r.status === "fulfilled" && r.value)
-//       .map((r) => (<PromiseFulfilledResult<ExpressAPI>>r).value);
-//     sharedAnalyticsParams["express_apis"] = validExpressAPIs.map(
-//       (e) => e.asJSON,
-//     );
-//     eaveLogger.debug("final express APIs", sharedAnalyticsParams, ctx);
+  //     const validExpressAPIs = results
+  //       .filter((r) => r.status === "fulfilled" && r.value)
+  //       .map((r) => (<PromiseFulfilledResult<ExpressAPI>>r).value);
+  //     sharedAnalyticsParams["express_apis"] = validExpressAPIs.map(
+  //       (e) => e.asJSON,
+  //     );
+  //     eaveLogger.debug("final express APIs", sharedAnalyticsParams, ctx);
 
-//     const fileAdditions: FileAddition[] = validExpressAPIs.map((d) => {
-//       assertPresence(d.documentation);
+  //     const fileAdditions: FileAddition[] = validExpressAPIs.map((d) => {
+  //       assertPresence(d.documentation);
 
-//       return {
-//         path: d.documentationFilePath || "eave_docs.md", // TODO: This will drop it in the root of the project
-//         contents: Buffer.from(d.documentation).toString("base64"),
-//       };
-//     });
+  //       return {
+  //         path: d.documentationFilePath || "eave_docs.md", // TODO: This will drop it in the root of the project
+  //         contents: Buffer.from(d.documentation).toString("base64"),
+  //       };
+  //     });
 
-//     if (fileAdditions.length === 0) {
-//       eaveLogger.warning("No file additions", sharedAnalyticsParams, ctx);
-//       eaveLogger.warning(
-//         "updating github documents with status FAILED",
-//         sharedAnalyticsParams,
-//         ctx,
-//       );
-//       await updateDocuments({
-//         coreAPIData,
-//         expressAPIs: validExpressAPIs,
-//         newValues: { status: GithubDocumentStatus.FAILED },
-//       });
-//       jobResult = LastJobResult.error;
-//       return;
-//     }
+  //     if (fileAdditions.length === 0) {
+  //       eaveLogger.warning("No file additions", sharedAnalyticsParams, ctx);
+  //       eaveLogger.warning(
+  //         "updating github documents with status FAILED",
+  //         sharedAnalyticsParams,
+  //         ctx,
+  //       );
+  //       await updateDocuments({
+  //         coreAPIData,
+  //         expressAPIs: validExpressAPIs,
+  //         newValues: { status: GithubDocumentStatus.FAILED },
+  //       });
+  //       jobResult = LastJobResult.error;
+  //       return;
+  //     }
 
-//     const prCreator = new PullRequestCreator({
-//       repoName: externalGithubRepo.name,
-//       repoOwner: externalGithubRepo.owner.login,
-//       repoId: externalGithubRepo.id,
-//       baseBranchName: externalGithubRepo.defaultBranchRef?.name || "main", // The only reason \`defaultBranchRef\` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
-//       octokit,
-//       ctx,
-//     });
+  //     const prCreator = new PullRequestCreator({
+  //       repoName: externalGithubRepo.name,
+  //       repoOwner: externalGithubRepo.owner.login,
+  //       repoId: externalGithubRepo.id,
+  //       baseBranchName: externalGithubRepo.defaultBranchRef?.name || "main", // The only reason \`defaultBranchRef\` would be undefined is if it wasn't specified in the query fields. But defaulting to "main" is easier than handling the runtime error and will work for most cases.
+  //       octokit,
+  //       ctx,
+  //     });
 
-//     eaveLogger.debug("creating pull request", sharedAnalyticsParams, ctx);
+  //     eaveLogger.debug("creating pull request", sharedAnalyticsParams, ctx);
 
-//     const pullRequest = await prCreator.createPullRequest({
-//       branchName: API_BRANCH_NAME,
-//       commitMessage: "docs: automated update",
-//       prTitle: "docs: Eave API documentation update",
-//       prBody: "Your new API docs based on recent changes to your code",
-//       fileChanges: {
-//         additions: fileAdditions,
-//       },
-//     });
+  //     const pullRequest = await prCreator.createPullRequest({
+  //       branchName: API_BRANCH_NAME,
+  //       commitMessage: "docs: automated update",
+  //       prTitle: "docs: Eave API documentation update",
+  //       prBody: "Your new API docs based on recent changes to your code",
+  //       fileChanges: {
+  //         additions: fileAdditions,
+  //       },
+  //     });
 
-//     await updateDocuments({
-//       coreAPIData,
-//       expressAPIs: validExpressAPIs,
-//       newValues: {
-//         pull_request_number: pullRequest.number,
-//         status: GithubDocumentStatus.PR_OPENED,
-//       },
-//     });
+  //     await updateDocuments({
+  //       coreAPIData,
+  //       expressAPIs: validExpressAPIs,
+  //       newValues: {
+  //         pull_request_number: pullRequest.number,
+  //         status: GithubDocumentStatus.PR_OPENED,
+  //       },
+  //     });
 
-//     jobResult = LastJobResult.doc_created;
-//   } catch (e: unknown) {
-//     jobResult = LastJobResult.error;
-//     throw e;
-//   } finally {
-//     await UpsertApiDocumentationJobOperation.perform({
-//       teamId,
-//       origin: appConfig.eaveOrigin,
-//       input: {
-//         job: {
-//           github_repo_id: eaveGithubRepo.id,
-//           state: ApiDocumentationJobState.idle,
-//           last_result: jobResult,
-//         },
-//       },
-//       ctx,
-//     });
-//   }
-// }`,
-String.raw`
+  //     jobResult = LastJobResult.doc_created;
+  //   } catch (e: unknown) {
+  //     jobResult = LastJobResult.error;
+  //     throw e;
+  //   } finally {
+  //     await UpsertApiDocumentationJobOperation.perform({
+  //       teamId,
+  //       origin: appConfig.eaveOrigin,
+  //       input: {
+  //         job: {
+  //           github_repo_id: eaveGithubRepo.id,
+  //           state: ApiDocumentationJobState.idle,
+  //           last_result: jobResult,
+  //         },
+  //       },
+  //       ctx,
+  //     });
+  //   }
+  // }`,
+  String.raw`
 async def get(self, request: Request) -> Response:
     # random value for verifying request wasnt tampered with via CSRF
     token: str = oauthlib.common.generate_token()
@@ -400,7 +396,7 @@ async def get(self, request: Request) -> Response:
 
     return response
 `,
-String.raw`
+  String.raw`
 async def get(
     self,
     request: Request,
@@ -481,7 +477,7 @@ async def get(
     return self.response
 `,
 
-String.raw`
+  String.raw`
 async def _maybe_set_account_data(self, auth_cookies: AuthCookies) -> None:
     if not auth_cookies.all_set:
         # This is the case where they're going through the install flow but not logged in.
@@ -512,7 +508,7 @@ async def _maybe_set_account_data(self, auth_cookies: AuthCookies) -> None:
         )
 `,
 
-String.raw`
+  String.raw`
 async def _update_or_create_github_installation(
     self,
 ) -> None:
@@ -557,15 +553,15 @@ async def _update_or_create_github_installation(
         self.github_installation_orm = github_installation_orm
 `,
 
-String.raw`
+  String.raw`
 def _request_logged_in(self) -> bool:
     return self.eave_team is not None and self.eave_account is not None
 `,
-]
+];
 
 async function main(): Promise<void> {
-  const openaiClient = await OpenAIClient.getAuthedClient()
-  const model = OpenAIModel.GPT4_PREVIEW;
+  const openaiClient = await OpenAIClient.getAuthedClient();
+  const model = OpenAIModel.GPT4;
   const ctx = new LogContext();
 
   // // load language from file extension map file
@@ -606,46 +602,89 @@ async function main(): Promise<void> {
       record code point identifier
   */
   for (const f of funcs) {
-    console.log(f)
+    console.log(f);
 
     const parser = new Parser();
     const languageGrammar = grammarForFilePathOrName("placeholder.py");
     if (!languageGrammar) {
-      eaveLogger.debug(`No grammar found for lang`, ctx);
-      return;
+      //   eaveLogger.debug(`No grammar found for lang`, ctx);
+      console.log("no grammar found");
+      continue;
     }
     parser.setLanguage(languageGrammar);
     const ptree = parser.parse(f);
 
-    // get summary of code and its actions
-    let prompt = formatprompt(
-      ``,
-    )
+    // console.log(ptree.rootNode.toString());
+    const query = new Parser.Query(languageGrammar, "(if_statement) @cond");
+    const matches = query.matches(ptree.rootNode);
 
-    let response = await openaiClient.createChatCompletion({
-      parameters: {
-        messages: [
-          // {
-          //   role: "system",
-          //   content: `You must respond with only a valid ${flang} doc comment.`,
-          // },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        model,
-        temperature: 0,
-      },
-      ctx,
+    const caps: string[] = [];
+    matches?.forEach((qmatch: Parser.QueryMatch) => {
+      console.log("got a match", qmatch);
+      qmatch.captures.forEach((cap: Parser.QueryCapture) => {
+        const conditionalCap = f.slice(cap.node.startIndex, cap.node.endIndex);
+
+        caps.push(conditionalCap);
+      });
     });
 
-    console.log(response)
+    for (const cap of caps) {
+      // get summary
+      const summ = await getSummary({
+        openaiClient,
+        model,
+        ctx,
+        content: cap,
+      });
+
+      console.log(summ);
+    }
+
+    console.log();
+    console.log();
   }
 }
 
+async function getSummary({
+  openaiClient,
+  model,
+  ctx,
+  content,
+}: {
+  openaiClient: OpenAIClient;
+  model: OpenAIModel;
+  ctx: LogContext;
+  content: string;
+}): Promise<string> {
+  // return "todo";
 
+  // get summary of code and its actions
+  const prompt = formatprompt(
+    `Summarize the purpose of the following code:`,
+    content,
+  );
 
-if (require.main === module) {
-  main().then(() => console.log("done")).catch((e) => console.error(e));
+  const response = await openaiClient.createChatCompletion({
+    parameters: {
+      messages: [
+        // {
+        //   role: "system",
+        //   content: `You must respond with only a valid ${flang} doc comment.`,
+        // },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      model,
+      temperature: 0,
+    },
+    ctx,
+  });
+
+  return response;
 }
+
+main()
+  .then(() => console.log("done"))
+  .catch((e) => console.error(e));

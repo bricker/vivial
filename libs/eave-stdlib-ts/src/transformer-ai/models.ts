@@ -3,7 +3,6 @@ export enum OpenAIModel {
   GPT_35_TURBO_16K = "gpt-3.5-turbo-16k",
   GPT4 = "gpt-4",
   // GPT4_32K = 'gpt-4-32k',
-  GPT4_PREVIEW = "gpt-4-1106-preview",
 }
 
 export function modelFromString(v: string): OpenAIModel {
