@@ -366,147 +366,147 @@ const funcs = [
   //     });
   //   }
   // }`,
-  String.raw`
-async def get(self, request: Request) -> Response:
-    # random value for verifying request wasnt tampered with via CSRF
-    token: str = oauthlib.common.generate_token()
+//   String.raw`
+// async def get(self, request: Request) -> Response:
+//     # random value for verifying request wasnt tampered with via CSRF
+//     token: str = oauthlib.common.generate_token()
 
-    # For GitHub, there is a problem: The combined Installation + Authorization flow doesn't allow us
-    # to specify a redirect_uri; it chooses the first one configured. So it always redirects to eave.fyi,
-    # which makes it practically impossible to test in development (without some proxy configuration).
-    # So instead, we're going to set a special cookie and read it on the other side (callback), and redirect if necessary.
-    # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
-    state_json = json.dumps({"token": token, "redirect_uri": GITHUB_OAUTH_CALLBACK_URI})
-    state = eave.stdlib.util.b64encode(state_json, urlsafe=True)
+//     # For GitHub, there is a problem: The combined Installation + Authorization flow doesn't allow us
+//     # to specify a redirect_uri; it chooses the first one configured. So it always redirects to eave.fyi,
+//     # which makes it practically impossible to test in development (without some proxy configuration).
+//     # So instead, we're going to set a special cookie and read it on the other side (callback), and redirect if necessary.
+//     # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
+//     state_json = json.dumps({"token": token, "redirect_uri": GITHUB_OAUTH_CALLBACK_URI})
+//     state = eave.stdlib.util.b64encode(state_json, urlsafe=True)
 
-    authorization_url = f"{SHARED_CONFIG.eave_github_app_public_url}/installations/new?state={state}"
-    # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
-    response = RedirectResponse(url=authorization_url)
+//     authorization_url = f"{SHARED_CONFIG.eave_github_app_public_url}/installations/new?state={state}"
+//     # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
+//     response = RedirectResponse(url=authorization_url)
 
-    utm_cookies.set_tracking_cookies(
-        response=response,
-        request=request,
-    )
+//     utm_cookies.set_tracking_cookies(
+//         response=response,
+//         request=request,
+//     )
 
-    oauth_cookies.save_state_cookie(
-        response=response,
-        state=state,
-        provider=_AUTH_PROVIDER,
-    )
+//     oauth_cookies.save_state_cookie(
+//         response=response,
+//         state=state,
+//         provider=_AUTH_PROVIDER,
+//     )
 
-    return response
-`,
-  String.raw`
-async def get(
-    self,
-    request: Request,
-) -> Response:
-    self.response = Response()
-    self.eave_state = EaveRequestState.load(request=request)
+//     return response
+// `,
+//   String.raw`
+// async def get(
+//     self,
+//     request: Request,
+// ) -> Response:
+//     self.response = Response()
+//     self.eave_state = EaveRequestState.load(request=request)
 
-    if "state" not in request.query_params and "code" not in request.query_params:
-        # unable to check validity of data received. or could just be a
-        # permissions update from gh website redirecting to our callback
-        shared.set_redirect(
-            response=self.response,
-            location=shared.DEFAULT_REDIRECT_LOCATION,
-        )
-        return self.response
+//     if "state" not in request.query_params and "code" not in request.query_params:
+//         # unable to check validity of data received. or could just be a
+//         # permissions update from gh website redirecting to our callback
+//         shared.set_redirect(
+//             response=self.response,
+//             location=shared.DEFAULT_REDIRECT_LOCATION,
+//         )
+//         return self.response
 
-    if "state" in request.query_params:
-        # we set this state in our /oauth/github/authorize endpoint before handing
-        # auth over to github
-        self.state = state = request.query_params["state"]
+//     if "state" in request.query_params:
+//         # we set this state in our /oauth/github/authorize endpoint before handing
+//         # auth over to github
+//         self.state = state = request.query_params["state"]
 
-        # Because of the GitHub redirect_uri issue described in this file, we need to get the redirect_uri from state,
-        # and redirect if it's on a different host.
-        # Reminder that in this scenario, the cookies from your local environment won't be available here (because we're probably at eave.fyi)
-        state_decoded = json.loads(eave.stdlib.util.b64decode(state, urlsafe=True))
-        if redirect_uri := state_decoded.get("redirect_uri"):
-            url = urllib.parse.urlparse(redirect_uri)
-            if url.hostname != request.url.hostname:
-                qp = urllib.parse.urlencode(request.query_params)
-                location = f"{redirect_uri}?{qp}"
-                return shared.set_redirect(response=self.response, location=location)
+//         # Because of the GitHub redirect_uri issue described in this file, we need to get the redirect_uri from state,
+//         # and redirect if it's on a different host.
+//         # Reminder that in this scenario, the cookies from your local environment won't be available here (because we're probably at eave.fyi)
+//         state_decoded = json.loads(eave.stdlib.util.b64decode(state, urlsafe=True))
+//         if redirect_uri := state_decoded.get("redirect_uri"):
+//             url = urllib.parse.urlparse(redirect_uri)
+//             if url.hostname != request.url.hostname:
+//                 qp = urllib.parse.urlencode(request.query_params)
+//                 location = f"{redirect_uri}?{qp}"
+//                 return shared.set_redirect(response=self.response, location=location)
 
-        shared.verify_oauth_state_or_exception(
-            state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=self.response
-        )
+//         shared.verify_oauth_state_or_exception(
+//             state=self.state, auth_provider=_AUTH_PROVIDER, request=request, response=self.response
+//         )
 
-    if "code" in request.query_params:
-        # github marketplace installs skip the step where we set state, so manually
-        # validate the user (oauth code) has access to the app installation
-        installation_id = request.query_params.get("installation_id")
-        code = request.query_params.get("code")
-        if not installation_id or not code:
-            eaveLogger.warning(
-                "Missing GitHub user oauth code and/or app installation_id. Cannot proceed.",
-                self.eave_state.ctx,
-            )
-            return shared.cancel_flow(response=self.response)
+//     if "code" in request.query_params:
+//         # github marketplace installs skip the step where we set state, so manually
+//         # validate the user (oauth code) has access to the app installation
+//         installation_id = request.query_params.get("installation_id")
+//         code = request.query_params.get("code")
+//         if not installation_id or not code:
+//             eaveLogger.warning(
+//                 "Missing GitHub user oauth code and/or app installation_id. Cannot proceed.",
+//                 self.eave_state.ctx,
+//             )
+//             return shared.cancel_flow(response=self.response)
 
-        await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
+//         await shared.verify_stateless_installation_or_exception(code, installation_id, self.eave_state.ctx)
 
-    setup_action = request.query_params.get("setup_action")
-    if setup_action not in ["install", "update"]:
-        eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", self.eave_state.ctx)
+//     setup_action = request.query_params.get("setup_action")
+//     if setup_action not in ["install", "update"]:
+//         eaveLogger.warning(f"Unexpected github setup_action: {setup_action}", self.eave_state.ctx)
 
-    installation_id = request.query_params.get("installation_id")
-    if not installation_id:
-        eaveLogger.warning(
-            f"github installation_id not provided for action {setup_action}. Cannot proceed.",
-            self.eave_state.ctx,
-        )
-        return shared.cancel_flow(response=self.response)
+//     installation_id = request.query_params.get("installation_id")
+//     if not installation_id:
+//         eaveLogger.warning(
+//             f"github installation_id not provided for action {setup_action}. Cannot proceed.",
+//             self.eave_state.ctx,
+//         )
+//         return shared.cancel_flow(response=self.response)
 
-    self.installation_id = installation_id
-    auth_cookies = get_auth_cookies(cookies=request.cookies)
+//     self.installation_id = installation_id
+//     auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-    try:
-        await self._maybe_set_account_data(auth_cookies)
-        await self._update_or_create_github_installation()
-        # dont link github repos to our db until we know what team to associate them w/
-        if self._request_logged_in():
-            assert self.eave_team  # make types happy
-            await shared.sync_github_repos(team_id=self.eave_team.id, ctx=self.eave_state.ctx)
-    except Exception as e:
-        if shared.is_error_response(self.response):
-            return self.response
-        raise e
+//     try:
+//         await self._maybe_set_account_data(auth_cookies)
+//         await self._update_or_create_github_installation()
+//         # dont link github repos to our db until we know what team to associate them w/
+//         if self._request_logged_in():
+//             assert self.eave_team  # make types happy
+//             await shared.sync_github_repos(team_id=self.eave_team.id, ctx=self.eave_state.ctx)
+//     except Exception as e:
+//         if shared.is_error_response(self.response):
+//             return self.response
+//         raise e
 
-    return self.response
-`,
+//     return self.response
+// `,
 
-  String.raw`
-async def _maybe_set_account_data(self, auth_cookies: AuthCookies) -> None:
-    if not auth_cookies.all_set:
-        # This is the case where they're going through the install flow but not logged in.
-        # (e.g. installing from github marketplace w/o an Eave account)
-        shared.set_redirect(
-            response=self.response,
-            location=shared.SIGNUP_REDIRECT_LOCATION,
-        )
-    else:
-        async with database.async_session.begin() as db_session:
-            eave_account = await AccountOrm.one_or_none(
-                session=db_session,
-                params=AccountOrm.QueryParams(
-                    id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id), access_token=auth_cookies.access_token
-                ),
-            )
+//   String.raw`
+// async def _maybe_set_account_data(self, auth_cookies: AuthCookies) -> None:
+//     if not auth_cookies.all_set:
+//         # This is the case where they're going through the install flow but not logged in.
+//         # (e.g. installing from github marketplace w/o an Eave account)
+//         shared.set_redirect(
+//             response=self.response,
+//             location=shared.SIGNUP_REDIRECT_LOCATION,
+//         )
+//     else:
+//         async with database.async_session.begin() as db_session:
+//             eave_account = await AccountOrm.one_or_none(
+//                 session=db_session,
+//                 params=AccountOrm.QueryParams(
+//                     id=eave.stdlib.util.ensure_uuid(auth_cookies.account_id), access_token=auth_cookies.access_token
+//                 ),
+//             )
 
-            if not eave_account:
-                shared.cancel_flow(response=self.response)
-                raise Exception("auth_cookies did not point to valid account")
+//             if not eave_account:
+//                 shared.cancel_flow(response=self.response)
+//                 raise Exception("auth_cookies did not point to valid account")
 
-            self.eave_account = eave_account
-            self.eave_team = await self.eave_account.get_team(session=db_session)
+//             self.eave_account = eave_account
+//             self.eave_team = await self.eave_account.get_team(session=db_session)
 
-        shared.set_redirect(
-            response=self.response,
-            location=shared.DEFAULT_REDIRECT_LOCATION,
-        )
-`,
+//         shared.set_redirect(
+//             response=self.response,
+//             location=shared.DEFAULT_REDIRECT_LOCATION,
+//         )
+// `,
 
   String.raw`
 async def _update_or_create_github_installation(
@@ -553,44 +553,16 @@ async def _update_or_create_github_installation(
         self.github_installation_orm = github_installation_orm
 `,
 
-  String.raw`
-def _request_logged_in(self) -> bool:
-    return self.eave_team is not None and self.eave_account is not None
-`,
+//   String.raw`
+// def _request_logged_in(self) -> bool:
+//     return self.eave_team is not None and self.eave_account is not None
+// `,
 ];
 
 async function main(): Promise<void> {
   const openaiClient = await OpenAIClient.getAuthedClient();
   const model = OpenAIModel.GPT4;
   const ctx = new LogContext();
-
-  // // load language from file extension map file
-  // const flang = getProgrammingLanguageByFilePathOrName(filePath);
-  // if (!flang) {
-  //   // file extension not found in the map file, which makes it impossible for us to
-  //   // put docs in a syntactially valid comment; exit early
-  //   eaveLogger.error(
-  //     `No matching language found for file path: "${filePath}"`,
-  //     ctx,
-  //   );
-  //   return null;
-  // }
-
-  // // validate that initial code is valid before spending resources updating docs
-  // if (!contentHasValidSyntax({ content: currContent, filePath })) {
-  //   eaveLogger.error("Initial file content was invalid", ctx, {
-  //     language: flang,
-  //     filePath,
-  //   });
-  //   return null;
-  // }
-
-  // const parsedData = parseFunctionsAndComments({
-  //   content: currContent,
-  //   filePath,
-  //   language: flang,
-  //   ctx,
-  // });
 
   /*
   for each function, 
@@ -602,7 +574,7 @@ async function main(): Promise<void> {
       record code point identifier
   */
   for (const f of funcs) {
-    console.log(f);
+    console.log(`=======\n${f}\n========`);
 
     const parser = new Parser();
     const languageGrammar = grammarForFilePathOrName("placeholder.py");
@@ -620,7 +592,7 @@ async function main(): Promise<void> {
 
     const caps: string[] = [];
     matches?.forEach((qmatch: Parser.QueryMatch) => {
-      console.log("got a match", qmatch);
+      // console.log("got a match", qmatch);
       qmatch.captures.forEach((cap: Parser.QueryCapture) => {
         const conditionalCap = f.slice(cap.node.startIndex, cap.node.endIndex);
 
@@ -635,13 +607,14 @@ async function main(): Promise<void> {
         model,
         ctx,
         content: cap,
+        fullContext: f,
       });
 
+      console.log(cap)
       console.log(summ);
+      console.log();
+      console.log();
     }
-
-    console.log();
-    console.log();
   }
 }
 
@@ -650,27 +623,33 @@ async function getSummary({
   model,
   ctx,
   content,
+  fullContext,
 }: {
   openaiClient: OpenAIClient;
   model: OpenAIModel;
   ctx: LogContext;
   content: string;
+  fullContext: string;
 }): Promise<string> {
   // return "todo";
 
   // get summary of code and its actions
   const prompt = formatprompt(
-    `Summarize the purpose of the following code:`,
-    content,
+    `Describe the purpose of the following code snippet. Be concise, and limit your description to just this snippet.
+
+    ###
+    ${content}
+    ###
+    `,
   );
 
   const response = await openaiClient.createChatCompletion({
     parameters: {
       messages: [
-        // {
-        //   role: "system",
-        //   content: `You must respond with only a valid ${flang} doc comment.`,
-        // },
+        {
+          role: "system",
+          content: `Use this code as context to answer any following questions:\n${fullContext}`,
+        },
         {
           role: "user",
           content: prompt,
