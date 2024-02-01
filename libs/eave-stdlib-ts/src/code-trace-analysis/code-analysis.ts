@@ -566,6 +566,11 @@ async def _update_or_create_github_installation(
 type PointOfInterest = {
   content: string;
   relLineNumber: number;
+};
+
+type VirtualEvent = {
+  name: string;
+  description: string;
   uid: string;
 };
 
@@ -574,15 +579,6 @@ async function main(): Promise<void> {
   const model = OpenAIModel.GPT4;
   const ctx = new LogContext();
 
-  /*
-  for each function, 
-    parse out whole body (+ any docs if available)
-    w/in func find root level loop/condition blocks
-
-    for each capture chunk
-      gpt summary
-      record code point identifier
-  */
   for (const f of funcs) {
     console.log(`=======\n${f}\n========`);
 
@@ -600,7 +596,7 @@ async function main(): Promise<void> {
 
     // console.log(ptree.rootNode.toString());
 
-    // captures (python specific) if/elif/else code blocks (not including conditions)
+    // captures (python specific) if/elif/else code blocks (sadly not including the first if conditions... TODO?)
     const query = new Parser.Query(languageGrammar,
       `(if_statement [
         consequence: (_) @cons
@@ -611,7 +607,7 @@ async function main(): Promise<void> {
 
     const caps: PointOfInterest[] = [];
     matches?.forEach((qmatch: Parser.QueryMatch) => {
-      console.log("got a match", qmatch);
+      // console.log("got a match", qmatch);
       qmatch.captures.forEach((cap: Parser.QueryCapture) => {
         const conditionalCap = f.slice(cap.node.startIndex, cap.node.endIndex);
         // I've chosen the last line of the capture block since if we reach the last line
@@ -626,12 +622,12 @@ async function main(): Promise<void> {
         caps.push({
           content: conditionalCap,
           relLineNumber: lineNum,
-          uid: buildUid(f, lineNum),
         });
       });
     });
 
     // return;
+    const vevents: VirtualEvent[] = [];
     for (const poi of caps) {
       // get summary
       const summ = await getSummary({
@@ -641,19 +637,33 @@ async function main(): Promise<void> {
         content: poi.content,
         fullContext: f,
       });
+      const name = await getEventName({
+        openaiClient,
+        model,
+        ctx,
+        description: summ,
+      })
 
-      console.log(poi);
-      console.log(summ);
+      const event: VirtualEvent = {
+        name,
+        description: summ,
+        uid: buildUid(f, poi.relLineNumber),
+      }
+      console.log(event)
+      vevents.push(event);
       console.log("\n=== sep ===\n");
     }
+
+    // return vevents
   }
 }
 
 /**
- * TODO: get name and description for event
- * TODO: find UID for event that can be gotten from interpreter
+ * summarizes input code `content` for an event description
  *
- * @returns good info
+ * @param content - code string to summarize purpose of
+ * @param fullContext - full function body that `content` was extracted from
+ * @returns **concise** summary of purpose of `content`
  */
 async function getSummary({
   openaiClient,
@@ -710,6 +720,47 @@ async function getSummary({
   });
 
   return response;
+}
+
+async function getEventName({
+  openaiClient,
+  model,
+  ctx,
+  description,
+}: {
+  openaiClient: OpenAIClient;
+  model: OpenAIModel;
+  ctx: LogContext;
+  description: string;
+}): Promise<string> {
+
+  const prompt = formatprompt(`
+    Come up with a name for an analytics event based on a description of that event.
+
+    Event description: "A GitHub App feature flag was activated or deactivated."
+    Event name: github_feature_state_change
+
+    Event description: "${description}"
+    Event name: `,
+  );
+
+  const response = await openaiClient.createChatCompletion({
+    parameters: {
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      model,
+      temperature: 0,
+    },
+    ctx,
+  });
+
+  // cleaning is mostly precautionary; didnt have this trouble once example was added to prompt
+  const cleanName = response.toLowerCase().replaceAll(' ', '_').replaceAll('"', '');
+  return cleanName;
 }
 
 // TODO: probably dont want to recompute funcBody hash on each call; should cache that somewhere
