@@ -1,6 +1,7 @@
 // run this dummy script with
 // npx tsx libs/eave-stdlib-ts/src/code-trace-analysis/code-analysis.ts
 
+import crypto from "crypto";
 import Parser from "tree-sitter";
 import { LogContext } from "../logging.js";
 import { grammarForFilePathOrName } from "../parsing/grammars.js";
@@ -550,6 +551,9 @@ async def _update_or_create_github_installation(
             shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
             raise Exception("Attempted to link Github integration when one already existed")
 
+        else:
+            print("just testing")
+
         self.github_installation_orm = github_installation_orm
 `,
 
@@ -589,19 +593,34 @@ async function main(): Promise<void> {
     const ptree = parser.parse(f);
 
     // console.log(ptree.rootNode.toString());
-    const query = new Parser.Query(languageGrammar, "(if_statement) @cond");
+
+    // captures (python specific) if/elif/else code blocks (not including conditions)
+    const query = new Parser.Query(languageGrammar,
+      `(if_statement [
+        consequence: (_) @cons
+        alternative: (_) @alt
+      ])`
+    );
     const matches = query.matches(ptree.rootNode);
 
     const caps: string[] = [];
     matches?.forEach((qmatch: Parser.QueryMatch) => {
-      // console.log("got a match", qmatch);
+      console.log("got a match", qmatch);
       qmatch.captures.forEach((cap: Parser.QueryCapture) => {
         const conditionalCap = f.slice(cap.node.startIndex, cap.node.endIndex);
+        const lineNum = cap.node.startPosition.row;
+        console.log(cap.node.toString())
+        console.log(conditionalCap)
+        console.log(lineNum)
+        console.log("\n=== sep ===\n");
+
+        // TODO: narrow cap range to 1 line (start or end?) to use in UID hash
 
         caps.push(conditionalCap);
       });
     });
 
+    return;
     for (const cap of caps) {
       // get summary
       const summ = await getSummary({
@@ -664,7 +683,7 @@ async function getSummary({
   const response = await openaiClient.createChatCompletion({
     parameters: {
       messages: [
-        // {
+        // { // is this actually making the responses worse???
         //   role: "system",
         //   content: `Use this code as context to answer any following questions:\n${fullContext}`,
         // },
@@ -682,6 +701,79 @@ async function getSummary({
   return response;
 }
 
+// NOTE: there is a small risk of UID collision if 2 functions happen to hash to the same strings (and the coliding line number is <= len of both functions)
+function buildUid(funcBody: string, relativeLineNum: number): string {
+  // sha1 chosen for speed of hash to avoid bottlenecking interpreter at code execution time
+  const funcHash = crypto.createHash('sha1').update(funcBody).digest('base64');
+  return `${funcHash}::${relativeLineNum}`;
+}
+
 main()
   .then(() => console.log("done"))
   .catch((e) => console.error(e));
+
+
+// (if_statement 
+//   condition: (not_operator argument: (identifier)) 
+//   (comment) 
+//   (comment) 
+//   consequence: 
+//     (block 
+//       (expression_statement 
+//         (assignment left: (identifier) right: (none))) 
+//       (comment) 
+//       (if_statement 
+//         condition: 
+//           (not_operator 
+//             argument: (call function: (attribute object: (identifier) attribute: (identifier)) arguments: (argument_list))) 
+//         consequence: 
+//           (block 
+//             (expression_statement 
+//               (assignment 
+//                 left: (identifier) 
+//                 right: (call 
+//                   function: (attribute object: (identifier) attribute: (identifier)) 
+//                   arguments: (argument_list (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier))) 
+//                   (keyword_argument 
+//                     name: (identifier) 
+//                     value: (attribute object: (identifier) attribute: (identifier))))))))) 
+//       (comment) 
+//       (comment) 
+//       (expression_statement 
+//         (assignment 
+//           left: (identifier) 
+//           right: (await 
+//             (call 
+//               function: (attribute object: (identifier) attribute: (identifier)) 
+//               arguments: (argument_list 
+//                 (keyword_argument name: (identifier) value: (identifier)) 
+//                 (keyword_argument name: (identifier) value: 
+//                   (conditional_expression 
+//                     (attribute object: (attribute object: (identifier) attribute: (identifier)) attribute: (identifier)) 
+//                     (attribute object: (identifier) attribute: (identifier)) 
+//                     (none))) 
+//                 (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier))) 
+//                 (keyword_argument name: (identifier) value: (identifier)))))))) 
+//   alternative: 
+//     (elif_clause 
+//       condition: (boolean_operator 
+//         left: (attribute object: (identifier) attribute: (identifier)) 
+//         right: (comparison_operator 
+//           (attribute object: (identifier) attribute: (identifier)) 
+//           (attribute object: (attribute object: (identifier) attribute: (identifier)) attribute: (identifier)))) 
+//       consequence: 
+//         (block 
+//           (expression_statement 
+//             (call 
+//               function: (attribute object: (identifier) attribute: (identifier)) 
+//               arguments: (argument_list 
+//                 (string 
+//                   (string_start) 
+//                   (string_content) 
+//                   (interpolation expression: (attribute object: (identifier) attribute: (identifier))) 
+//                   (string_end)) 
+//                 (attribute object: 
+//                   (attribute object: (identifier) attribute: (identifier)) 
+//                   attribute: (identifier))))) 
+//           (expression_statement 
+//             (call function: (attribute object: (identifier) attribute: (identifier)) arguments: (argument_list (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier))) (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier)))))) (raise_statement (call function: (identifier) arguments: (argument_list (string (string_start) (string_content) (string_end))))))))
