@@ -563,6 +563,12 @@ async def _update_or_create_github_installation(
   // `,
 ];
 
+type PointOfInterest = {
+  content: string;
+  relLineNumber: number;
+  uid: string;
+};
+
 async function main(): Promise<void> {
   const openaiClient = await OpenAIClient.getAuthedClient();
   const model = OpenAIModel.GPT4;
@@ -603,35 +609,40 @@ async function main(): Promise<void> {
     );
     const matches = query.matches(ptree.rootNode);
 
-    const caps: string[] = [];
+    const caps: PointOfInterest[] = [];
     matches?.forEach((qmatch: Parser.QueryMatch) => {
       console.log("got a match", qmatch);
       qmatch.captures.forEach((cap: Parser.QueryCapture) => {
         const conditionalCap = f.slice(cap.node.startIndex, cap.node.endIndex);
-        const lineNum = cap.node.startPosition.row;
-        console.log(cap.node.toString())
-        console.log(conditionalCap)
-        console.log(lineNum)
-        console.log("\n=== sep ===\n");
+        // I've chosen the last line of the capture block since if we reach the last line
+        // we know that whatever action the code is taking should be complete by then
+        // NOTE: an exception could still be thrown during the execution of the last line/expression, so maybe not a guarantee
+        const lineNum = cap.node.endPosition.row;
+        // console.log(cap.node.toString())
+        // console.log(conditionalCap)
+        // console.log(lineNum)
+        // console.log("\n=== sep ===\n");
 
-        // TODO: narrow cap range to 1 line (start or end?) to use in UID hash
-
-        caps.push(conditionalCap);
+        caps.push({
+          content: conditionalCap,
+          relLineNumber: lineNum,
+          uid: buildUid(f, lineNum),
+        });
       });
     });
 
-    return;
-    for (const cap of caps) {
+    // return;
+    for (const poi of caps) {
       // get summary
       const summ = await getSummary({
         openaiClient,
         model,
         ctx,
-        content: cap,
+        content: poi.content,
         fullContext: f,
       });
 
-      console.log(cap);
+      console.log(poi);
       console.log(summ);
       console.log("\n=== sep ===\n");
     }
@@ -701,6 +712,7 @@ async function getSummary({
   return response;
 }
 
+// TODO: probably dont want to recompute funcBody hash on each call; should cache that somewhere
 // NOTE: there is a small risk of UID collision if 2 functions happen to hash to the same strings (and the coliding line number is <= len of both functions)
 function buildUid(funcBody: string, relativeLineNum: number): string {
   // sha1 chosen for speed of hash to avoid bottlenecking interpreter at code execution time
@@ -711,69 +723,3 @@ function buildUid(funcBody: string, relativeLineNum: number): string {
 main()
   .then(() => console.log("done"))
   .catch((e) => console.error(e));
-
-
-// (if_statement 
-//   condition: (not_operator argument: (identifier)) 
-//   (comment) 
-//   (comment) 
-//   consequence: 
-//     (block 
-//       (expression_statement 
-//         (assignment left: (identifier) right: (none))) 
-//       (comment) 
-//       (if_statement 
-//         condition: 
-//           (not_operator 
-//             argument: (call function: (attribute object: (identifier) attribute: (identifier)) arguments: (argument_list))) 
-//         consequence: 
-//           (block 
-//             (expression_statement 
-//               (assignment 
-//                 left: (identifier) 
-//                 right: (call 
-//                   function: (attribute object: (identifier) attribute: (identifier)) 
-//                   arguments: (argument_list (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier))) 
-//                   (keyword_argument 
-//                     name: (identifier) 
-//                     value: (attribute object: (identifier) attribute: (identifier))))))))) 
-//       (comment) 
-//       (comment) 
-//       (expression_statement 
-//         (assignment 
-//           left: (identifier) 
-//           right: (await 
-//             (call 
-//               function: (attribute object: (identifier) attribute: (identifier)) 
-//               arguments: (argument_list 
-//                 (keyword_argument name: (identifier) value: (identifier)) 
-//                 (keyword_argument name: (identifier) value: 
-//                   (conditional_expression 
-//                     (attribute object: (attribute object: (identifier) attribute: (identifier)) attribute: (identifier)) 
-//                     (attribute object: (identifier) attribute: (identifier)) 
-//                     (none))) 
-//                 (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier))) 
-//                 (keyword_argument name: (identifier) value: (identifier)))))))) 
-//   alternative: 
-//     (elif_clause 
-//       condition: (boolean_operator 
-//         left: (attribute object: (identifier) attribute: (identifier)) 
-//         right: (comparison_operator 
-//           (attribute object: (identifier) attribute: (identifier)) 
-//           (attribute object: (attribute object: (identifier) attribute: (identifier)) attribute: (identifier)))) 
-//       consequence: 
-//         (block 
-//           (expression_statement 
-//             (call 
-//               function: (attribute object: (identifier) attribute: (identifier)) 
-//               arguments: (argument_list 
-//                 (string 
-//                   (string_start) 
-//                   (string_content) 
-//                   (interpolation expression: (attribute object: (identifier) attribute: (identifier))) 
-//                   (string_end)) 
-//                 (attribute object: 
-//                   (attribute object: (identifier) attribute: (identifier)) 
-//                   attribute: (identifier))))) 
-//           (expression_statement 
-//             (call function: (attribute object: (identifier) attribute: (identifier)) arguments: (argument_list (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier))) (keyword_argument name: (identifier) value: (attribute object: (identifier) attribute: (identifier)))))) (raise_statement (call function: (identifier) arguments: (argument_list (string (string_start) (string_content) (string_end))))))))
