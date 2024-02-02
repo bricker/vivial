@@ -682,8 +682,8 @@ async function getSummary({
 
   // get summary of code and its actions
   const prompt = formatprompt(`
-    Write 3 sentences or less summarizing the following code snippet. Be concise, keep your summary abstract 
-    (don't specifically name variables or classes from the code), and limit your summary to just this snippet.
+    Write 3 sentences or less summarizing the following code snippet in a way non-programmers could understand. Be concise, keep your summary abstract 
+    (don't specifically name variables or classes from the code), limit your summary to just this snippet, and exclude fluff words, like "The code ..." or "This piece of code ...".
 
     \`\`\`
     ${content}
@@ -758,8 +758,11 @@ async function getEventName({
     ctx,
   });
 
+  // listing an example in the prompt sometimes makes gpt create too many event/descriptions
+  let cleanName = response.split("\n")[0]!; // [0] will never be undefined
+
   // cleaning is mostly precautionary; didnt have this trouble once example was added to prompt
-  const cleanName = response.toLowerCase().replaceAll(' ', '_').replaceAll('"', '');
+  cleanName = cleanName.toLowerCase().replaceAll(' ', '_').replaceAll('"', '');
   return cleanName;
 }
 
