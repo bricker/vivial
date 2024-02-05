@@ -12,7 +12,10 @@ BEGIN
             '","new_data":' || row_to_json(NEW, FALSE) ||
             ',"old_data":null,"timestamp":"' || ts || '"}'
         );
-        RETURN NULL;
+        -- return NEW to avoid potential errors from other triggers:
+        -- "[return value of] AFTER is always ignored; it might as well be null. However, any of these types of triggers might still abort the entire operation by raising an error."
+        -- https://www.postgresql.org/docs/current/plpgsql-trigger.html
+        RETURN NEW;
 
     ELSIF (TG_OP = 'UPDATE') THEN
         PERFORM pg_notify(channel_name,
@@ -22,7 +25,7 @@ BEGIN
             ',"old_data":' || row_to_json(OLD, FALSE) ||
             ',"timestamp":"' || ts || '"}'
         );
-        RETURN NULL;
+        RETURN NEW;
 
     ELSIF (TG_OP = 'DELETE') THEN
         PERFORM pg_notify(channel_name,
@@ -31,7 +34,7 @@ BEGIN
             '","new_data":null,"old_data":' || row_to_json(OLD, FALSE) ||
             ',"timestamp":"' || ts || '"}'
         );
-        RETURN NULL;
+        RETURN NEW;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -63,4 +66,5 @@ BEGIN
         END IF;
     END LOOP;
 END;
+-- This file must end with a ';', so that appended commands work as expected
 $$ LANGUAGE plpgsql;

@@ -1,6 +1,7 @@
 #ifndef _LISTENER_
 #define _LISTENER_
+#include <libpq-fe.h>
 
-char* buildGreeting(char* name, int len);
+void startListening(PGconn* conn);
 
 #endif

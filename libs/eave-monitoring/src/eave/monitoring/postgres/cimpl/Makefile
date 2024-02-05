@@ -28,6 +28,13 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 # The -MMD and -MP flags together generate Makefiles for us!
 # These files will have .d instead of .o as the output.
 CPPFLAGS := $(INC_FLAGS) -MMD -MP
+# Include the libpq headers. postgres needs to be installed for this to work!
+CPPFLAGS += -I/usr/local/pgsql/include
+
+# Link libpq library. postgres needs to be installed for this to work!
+LDFLAGS := -L/usr/local/pgsql/lib -lpq
+
+all: clean $(BUILD_DIR)/$(TARGET_EXEC)
 
 # The final build step.
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
