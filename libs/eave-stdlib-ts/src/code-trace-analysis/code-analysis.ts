@@ -585,7 +585,7 @@ async function main(): Promise<void> {
     // TODO: tweak POI finding to be better
     // e.g. maybe include loops, but probs dont want to fire on each loop iter (thats a lot)
     const parser = new Parser();
-    const languageGrammar = grammarForFilePathOrName("placeholder.py");
+    const languageGrammar = grammarForFilePathOrName("placeholder.py"); // TODO: actually use real fname
     if (!languageGrammar) {
       //   eaveLogger.debug(`No grammar found for lang`, ctx);
       console.log("no grammar found");
