@@ -64,8 +64,10 @@ char* readSQLFile() {
 /**
  * Modifies `currSqlCommand` in place, appending any extra SQL commands
  * required to start listening for database changes.
+ *
+ * @param currSqlCommand - address of a string to append to (&char*)
  */
-char* appendListenerInvocations(char* currSqlCommand) {
+void appendListenerInvocations(char** currSqlCommand) {
     // append invocation ops to the read sql function context
   char* listenOps[2] = {
     "CALL eave_install_triggers();",
@@ -76,7 +78,7 @@ char* appendListenerInvocations(char* currSqlCommand) {
   for (int i = 0; i < opsLen; i++) {
     char* nextCmd = listenOps[i];
 
-    size_t currLen = strlen(currSqlCommand);
+    size_t currLen = strlen(*currSqlCommand);
     size_t addLen = strlen(nextCmd);
 
     // Allocate memory for the concatenated string plus the null terminator
@@ -87,12 +89,12 @@ char* appendListenerInvocations(char* currSqlCommand) {
     }
 
     // slap both those bad boys in there together
-    strcpy(buff, currSqlCommand);
+    strcpy(buff, *currSqlCommand);
     strcat(buff, nextCmd);
 
     // make buff new curr cmd
-    free(currSqlCommand);
-    currSqlCommand = buff;
+    free(*currSqlCommand);
+    *currSqlCommand = buff;
   }
 }
 
@@ -106,12 +108,19 @@ char* appendListenerInvocations(char* currSqlCommand) {
  */
 void startListening(PGconn* conn) {
   char* currSqlCommand = readSQLFile();
-  appendListenerInvocations(currSqlCommand);
+  appendListenerInvocations(&currSqlCommand);
+  // printf("%s\n", currSqlCommand);
 
   // execute the built sql commands
+  PGresult* result = PQexec(conn, currSqlCommand);
+  ExecStatusType resultStatus = PQresultStatus(result);
+  if (resultStatus != PGRES_COMMAND_OK) {
+    char* statusStr = PQresStatus(resultStatus);
+    fprintf(stderr, "Error executing listen command. Got unexpected result status %s\n", statusStr);
+    exit(EXIT_FAILURE);
+  }
 
-  printf("%s\n", currSqlCommand);
 
   free(currSqlCommand);
-
+  PQclear(result);
 }

@@ -47,5 +47,6 @@ int main(int argc, char** argv) {
 
   startListening(conn);
 
+  printf("Done (delete me!)");
   return EXIT_SUCCESS;
 }
