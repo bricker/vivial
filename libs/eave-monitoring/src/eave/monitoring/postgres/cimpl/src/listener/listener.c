@@ -3,29 +3,17 @@
 #include <string.h>
 #include <libpq-fe.h>
 
-/*
-- load triggers.sql file
-- call SQL to
-  - execute trigger function
-  - listen on channel
-
-- poll connection for notifications on channel
-- find good http library
-- on each notification
-  - create non-blocking thread/process?
-  - make web request sending atom payload to eave backend
-  - consider batching atoms to reduce req overhead?
-*/
-
 /**
  * Returns a string containing triggers.sql file content.
  * Caller is responsible for freeing the returned string.
+ * 
+ * @return file content string on success, NULL on error
  */
-char* readSQLFile() {
+static char* readSQLFile() {
   FILE* file = fopen("./src/listener/triggers.sql", "r");
   if (file == NULL) {
     perror("Error opening triggers.sql file");
-    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE); // TODO: probs dont exit from here?
   }
 
   fseek(file, 0, SEEK_END); // Move file pointer to the end to determine file size
@@ -33,26 +21,26 @@ char* readSQLFile() {
   fseek(file, 0, SEEK_SET); // Reset file pointer to the beginning
 
   if (fileSize == -1) {
-      perror("Error getting file size");
-      fclose(file);
-      return NULL;
+    perror("Error getting file size");
+    fclose(file);
+    return NULL;
   }
 
   char* buffer = malloc(fileSize + 1); // Allocate memory for the entire file plus null terminator
 
   if (buffer == NULL) {
-      perror("Memory allocation error");
-      fclose(file);
-      return NULL;
+    perror("Memory allocation error");
+    fclose(file);
+    return NULL;
   }
 
   size_t bytesRead = fread(buffer, 1, fileSize, file); // Read file into buffer
 
   if (bytesRead != (size_t)fileSize) {
-      perror("Error reading file");
-      free(buffer);
-      fclose(file);
-      return NULL;
+    perror("Error reading file");
+    free(buffer);
+    fclose(file);
+    return NULL;
   }
 
   buffer[fileSize] = '\0'; // Null-terminate the string
@@ -66,8 +54,9 @@ char* readSQLFile() {
  * required to start listening for database changes.
  *
  * @param currSqlCommand - address of a string to append to (&char*)
+ * @return 0 on success, 1 on error
  */
-void appendListenerInvocations(char** currSqlCommand) {
+static int appendListenerInvocations(char** currSqlCommand) {
     // append invocation ops to the read sql function context
   char* listenOps[2] = {
     "CALL eave_install_triggers();",
@@ -84,8 +73,8 @@ void appendListenerInvocations(char** currSqlCommand) {
     // Allocate memory for the concatenated string plus the null terminator
     char* buff = malloc(currLen + addLen + 1);
     if (buff == NULL) {
-        perror("Memory allocation error");
-        exit(EXIT_FAILURE);
+      perror("Memory allocation error");
+      return 1;
     }
 
     // slap both those bad boys in there together
@@ -96,6 +85,7 @@ void appendListenerInvocations(char** currSqlCommand) {
     free(*currSqlCommand);
     *currSqlCommand = buff;
   }
+  return 0;
 }
 
 /**
@@ -104,11 +94,15 @@ void appendListenerInvocations(char** currSqlCommand) {
  * LISTEN registers the _current_ session as a listener. Whenever NOTIFY is invoked by SQL/database, only the sessions
  * _currently_ listening on that notification channel are notified.
  *
- * @param conn - a postgres libpq database connection         
+ * @param conn - a postgres libpq database connection
+ * @return 0 on success, 1 on error
  */
-void startListening(PGconn* conn) {
+int startListening(PGconn* conn) {
   char* currSqlCommand = readSQLFile();
-  appendListenerInvocations(&currSqlCommand);
+  if (currSqlCommand == NULL) {
+    return 1;
+  }
+  if (appendListenerInvocations(&currSqlCommand)) return 1;
   // printf("%s\n", currSqlCommand);
 
   // execute the built sql commands
@@ -116,11 +110,11 @@ void startListening(PGconn* conn) {
   ExecStatusType resultStatus = PQresultStatus(result);
   if (resultStatus != PGRES_COMMAND_OK) {
     char* statusStr = PQresStatus(resultStatus);
-    fprintf(stderr, "Error executing listen command. Got unexpected result status %s\n", statusStr);
-    exit(EXIT_FAILURE);
+    fprintf(stderr, "Error executing LISTEN command. Got unexpected result status %s: %s\n", statusStr, PQerrorMessage(conn));
+    return 1;
   }
-
 
   free(currSqlCommand);
   PQclear(result);
+  return 0;
 }
