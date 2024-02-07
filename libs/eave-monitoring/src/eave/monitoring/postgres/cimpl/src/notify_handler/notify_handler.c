@@ -24,10 +24,13 @@ static int postJSONToEave(char* jsonBody) {
   }
   // TODO: update to real backend URL
   curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080");
+  struct curl_slist *headers = NULL;
+  headers = curl_slist_append(headers, "Content-Type: application/json");
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   // from man page: "This function does not accept input strings longer than CURL_MAX_INPUT_LENGTH (8 MB)"
   // (we should never reach that in practice, because pg_notify payload (where jsonBody originates)
   // can be only 8 KB maximum)
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonBody);
+  curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, jsonBody);
 
   // Perform the POST request
   CURLcode res = curl_easy_perform(curl);
@@ -63,7 +66,7 @@ int pollForNotifications(PGconn* conn) {
     // Check for any pending notifications
     while ((notify = PQnotifies(conn)) != NULL) {
       // TODO: everything past this point should be async! (thread or process)
-      printf("Received notification from channel %s: %s\n", notify->relname, notify->extra);
+      // printf("Received notification from channel %s: %s\n", notify->relname, notify->extra);
 
       // TODO: preprocessing to avoid sending PII to eave
 
