@@ -139,7 +139,7 @@ int pollForNotifications(PGconn* conn) {
         // TODO: is there anything we can do to retry later?
         fprintf(stderr, "Error allocating memory for notification data. Recovering.\n");
         PQfreemem(notify);
-        break;
+        continue;
       }
       // copy in notification body so we can free the notify pointer at end of loop
       memcpy(buff, notify->extra, jsonLen);
@@ -147,7 +147,13 @@ int pollForNotifications(PGconn* conn) {
       params->jsonBody = buff;
 
       // push notification onto queue to be handled by consumer threads
-      enqueue(notifQueue, (void*)params);
+      if (enqueue(notifQueue, (void*)params)) {
+        // recover from error; drop this event
+        // TODO: is there anything we can do to retry later?
+        fprintf(stderr, "Failed to enqueue notification data. Recovering.\n");
+        PQfreemem(notify);
+        continue;
+      }
 
       // cleanup
       PQfreemem(notify);
