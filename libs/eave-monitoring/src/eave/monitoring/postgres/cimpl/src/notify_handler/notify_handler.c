@@ -4,6 +4,12 @@
 #include <libpq-fe.h>
 #include <curl/curl.h>
 
+#define CHECK_CURLCODE_OK(res) \
+  if (res != CURLE_OK) { \
+    fprintf(stderr, "Error making network request to Eave: %s\n", curl_easy_strerror(res)); \
+    return 1; \
+  }
+
 // - poll connection for notifications on channel
 // - find good http library
 // - on each notification
@@ -17,28 +23,37 @@
  * @return 0 on success, 1 on error
  */
 static int postJSONToEave(char* jsonBody) {
-  CURL *curl = curl_easy_init();;
+  CURLcode res;
+  CURL *curl = curl_easy_init();
   if (curl == NULL) {
     fprintf(stderr, "Error initializing cURL networking client\n");
     return 1;
   }
+
   // TODO: update to real backend URL
-  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080");
-  struct curl_slist *headers = NULL;
+  res = curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080");
+  CHECK_CURLCODE_OK(res);
+
+  struct curl_slist* headers = NULL;
   headers = curl_slist_append(headers, "Content-Type: application/json");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  if (headers == NULL) {
+    fprintf(stderr, "Error creating cURL networking request\n");
+    return 1;
+  }
+  res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  CHECK_CURLCODE_OK(res);
+
   // from man page: "This function does not accept input strings longer than CURL_MAX_INPUT_LENGTH (8 MB)"
   // (we should never reach that in practice, because pg_notify payload (where jsonBody originates)
   // can be only 8 KB maximum)
-  curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, jsonBody);
+  res = curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, jsonBody);
+  CHECK_CURLCODE_OK(res);
 
   // Perform the POST request
-  CURLcode res = curl_easy_perform(curl);
-  if (res != CURLE_OK) {
-    fprintf(stderr, "Error making network request to Eave: %s\n", curl_easy_strerror(res));
-    return 1;
-  }
+  res = curl_easy_perform(curl);
+  CHECK_CURLCODE_OK(res);
 
+  curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
   return 0;
 }
