@@ -5,7 +5,7 @@ import sys
 import tempfile
 from importlib import machinery, util
 
-import functiontracing
+import _functiontrace
 
 PYTHON_TEMPLATE = """#!/bin/sh
 
@@ -67,7 +67,7 @@ def main():
         help="The directory to output trace files to",
     )
     parser.add_argument(
-        "-v", "--version", action="version", version=functiontracing.__version__
+        "-v", "--version", action="version", version=_functiontrace.__version__
     )
     parser.add_argument("script", nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -100,6 +100,7 @@ def main():
     spec = util.spec_from_loader(
         "__main__", machinery.SourceFileLoader("__main__", target_file)
     )
+    assert spec
     mod = util.module_from_spec(spec)
     sys.modules.update({"__main__": mod})
 
@@ -108,8 +109,8 @@ def main():
 
     # Setup our tracing environment, including configuring tracing features.
     if args.trace_memory:
-        functiontracing.config_tracememory()
-    functiontracing.begin_tracing(args.output_dir)
+        _functiontrace.config_tracememory()
+    _functiontrace.begin_tracing(args.output_dir)
 
     # Run their code now that we're tracing.  This must be done in the context
     # of the __main__ module we've created.
@@ -119,7 +120,7 @@ def main():
 def trace():
     # Make sure we're set up to work properly, then begin tracing.
     setup_dependencies()
-    functiontracing.begin_tracing(os.getcwd())
+    _functiontrace.begin_tracing(os.getcwd())
 
 
 if __name__ == "__main__":
