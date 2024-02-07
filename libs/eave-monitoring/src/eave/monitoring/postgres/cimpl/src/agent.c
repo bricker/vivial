@@ -16,6 +16,7 @@ static void cleanExit(PGconn* conn) {
   exit(EXIT_FAILURE);
 }
 
+// TODO: accept argv cli params
 int main(int argc, char** argv) {
   // https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
   const char* const* kw = (const char *const []){"dbname", NULL};
@@ -34,8 +35,9 @@ int main(int argc, char** argv) {
 
   // it's vital these both use the same PGconn instance
   if (startListening(conn)) cleanExit(conn);
-  pollForNotifications(conn);
+  if (pollForNotifications(conn)) cleanExit(conn);
 
+  // should never reach here
   PQfinish(conn);
   return EXIT_SUCCESS;
 }

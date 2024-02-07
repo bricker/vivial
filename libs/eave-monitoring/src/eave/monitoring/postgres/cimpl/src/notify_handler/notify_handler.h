@@ -5,7 +5,9 @@
 /**
  * Endlessly poll the db connection for notifications.
  * Precondition: Expects a LISTEN command to already have been executed on `conn`.
+ *
+ * @return 1 on error and doesn't return while successful
  */
-void pollForNotifications(PGconn* conn);
+int pollForNotifications(PGconn* conn);
 
 #endif

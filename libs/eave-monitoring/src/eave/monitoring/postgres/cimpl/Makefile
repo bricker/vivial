@@ -33,6 +33,8 @@ CPPFLAGS += -I/usr/local/pgsql/include
 
 # Link libpq library. postgres needs to be installed for this to work!
 LDFLAGS := -L/usr/local/pgsql/lib -lpq
+# link libcurl for easy networking
+LDFLAGS += -lcurl
 
 all: clean $(BUILD_DIR)/$(TARGET_EXEC)
 

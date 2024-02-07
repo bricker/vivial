@@ -5,6 +5,9 @@ DECLARE
     channel_name VARCHAR := 'eave_dbchange_channel';
     ts INTEGER := TRUNC(EXTRACT(EPOCH FROM CURRENT_TIMESTAMP));
 BEGIN
+    -- pg_notify payload can only be 8kb max (under default db config)
+    -- (i am unsure about behavior if it is given more than 8kb)
+    -- https://www.postgresql.org/docs/current/sql-notify.html
     IF (TG_OP = 'INSERT') THEN
         PERFORM pg_notify(channel_name,
             '{"table_name":"' || TG_TABLE_NAME ||
@@ -12,10 +15,6 @@ BEGIN
             '","new_data":' || row_to_json(NEW, FALSE) ||
             ',"old_data":null,"timestamp":"' || ts || '"}'
         );
-        -- return NEW to avoid potential errors from other triggers:
-        -- "[return value of] AFTER is always ignored; it might as well be null. However, any of these types of triggers might still abort the entire operation by raising an error."
-        -- https://www.postgresql.org/docs/current/plpgsql-trigger.html
-        RETURN NEW;
 
     ELSIF (TG_OP = 'UPDATE') THEN
         PERFORM pg_notify(channel_name,
@@ -25,7 +24,6 @@ BEGIN
             ',"old_data":' || row_to_json(OLD, FALSE) ||
             ',"timestamp":"' || ts || '"}'
         );
-        RETURN NEW;
 
     ELSIF (TG_OP = 'DELETE') THEN
         PERFORM pg_notify(channel_name,
@@ -34,8 +32,13 @@ BEGIN
             '","new_data":null,"old_data":' || row_to_json(OLD, FALSE) ||
             ',"timestamp":"' || ts || '"}'
         );
-        RETURN NEW;
     END IF;
+
+    -- return NEW to avoid potential errors from other triggers:
+    -- "[return value of] AFTER is always ignored; it might as well be null. However,
+    -- any of these types of triggers might still abort the entire operation by raising an error."
+    -- https://www.postgresql.org/docs/current/plpgsql-trigger.html
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -66,5 +69,5 @@ BEGIN
         END IF;
     END LOOP;
 END;
--- This file must end with a ';', so that appended commands work as expected
+-- This file must end with a ';', so that listener.c appended commands work as expected
 $$ LANGUAGE plpgsql;
