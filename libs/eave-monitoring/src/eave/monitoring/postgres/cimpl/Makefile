@@ -35,6 +35,8 @@ CPPFLAGS += -I/usr/local/pgsql/include
 LDFLAGS := -L/usr/local/pgsql/lib -lpq
 # link libcurl for easy networking
 LDFLAGS += -lcurl
+# link posix std threading
+LDFLAGS += -lpthread
 
 all: clean $(BUILD_DIR)/$(TARGET_EXEC)
 

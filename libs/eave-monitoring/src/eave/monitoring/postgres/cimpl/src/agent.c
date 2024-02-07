@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libpq-fe.h>
-#include "./listener/listener.h"
-#include "./notify_handler/notify_handler.h"
+#include "listener/listener.h"
+#include "notify_handler/notify_handler.h"
 
 /*
 Long-term improvements:

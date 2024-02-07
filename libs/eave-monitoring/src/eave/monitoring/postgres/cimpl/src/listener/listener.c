@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libpq-fe.h>
+#include "listener.h"
 
 /**
  * Returns a string containing triggers.sql file content.

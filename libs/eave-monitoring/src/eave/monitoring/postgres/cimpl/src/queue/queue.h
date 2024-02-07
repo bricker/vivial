@@ -5,7 +5,6 @@
 typedef struct qnode {
   struct qnode* next;
   void* data;
-  size_t dataSize;
 } qnode_t;
 
 typedef struct queue {
@@ -19,19 +18,23 @@ typedef struct queue {
  * A convenience initializer for a queue_t.
  * Example:
  * ```
- * queue_t* q;
+ * queue_t* q = NULL;
  * initQueue(&q);
  * // good to go!
  * ```
+ *
+ * @return 0 on success, non-zero on failure
  */
-void initQueue(queue_t** q);
+int initQueue(queue_t** q);
 
 /**
- * Adds the provided `node` to `q`.
- * Memory stored in `node->data` is assumed to be dynamic and will
+ * Adds the provided `data` to a node on the back of `q`.
+ * Memory of `data` is assumed to be dynamically allocated and will
  * become managed by `q`.
+ *
+ * @return 0 on success 1 on error
  */
-void enqueue(queue_t* q, qnode_t* node);
+int enqueue(queue_t* q, void* data);
 
 /**
  * Pop a qnode_t off the front of the `q`.
