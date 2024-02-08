@@ -3,7 +3,7 @@ from typing import cast
 from asgiref.typing import HTTPScope
 
 from eave.core.internal import database
-from eave.core.internal.clickhouse.dbchanges import DatabaseChangesTableHandle
+from eave.core.internal.bigquery.dbchanges import DatabaseChangesTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.monitoring.datastructures import DataIngestRequestBody, EventType
 from eave.stdlib.api_util import get_header_value_or_exception

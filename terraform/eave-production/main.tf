@@ -41,29 +41,29 @@ module "gcp_project" {
   org_id          = local.org_id
 }
 
-module "gcp_cloud_tasks" {
-  source     = "../modules/gcp/cloud_tasks"
-  project_id = local.project_id
-  region     = local.region
-}
+# module "gcp_cloud_tasks" {
+#   source     = "../modules/gcp/cloud_tasks"
+#   project_id = local.project_id
+#   region     = local.region
+# }
 
-module "gcp_cloud_scheduler" {
-  source             = "../modules/gcp/cloud_scheduler"
-  project_id         = local.project_id
-  region             = local.region
-  cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
-}
+# module "gcp_cloud_scheduler" {
+#   source             = "../modules/gcp/cloud_scheduler"
+#   project_id         = local.project_id
+#   region             = local.region
+#   cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
+# }
 
-module "gcp_monitoring" {
-  source           = "../modules/gcp/monitoring"
-  project_id       = local.project_id
-  region           = local.region
-  eave_domain_apex = local.eave_domain_apex
-  slack_auth_token = var.GCP_MONITORING_SLACK_AUTH_TOKEN
-  addl_notification_channels = [
-    "projects/eave-production/notificationChannels/18048082649449908319" // bryan mobile... unable to import into terraform
-  ]
-}
+# module "gcp_monitoring" {
+#   source           = "../modules/gcp/monitoring"
+#   project_id       = local.project_id
+#   region           = local.region
+#   eave_domain_apex = local.eave_domain_apex
+#   slack_auth_token = var.GCP_MONITORING_SLACK_AUTH_TOKEN
+#   addl_notification_channels = [
+#     "projects/eave-production/notificationChannels/18048082649449908319" // bryan mobile... unable to import into terraform
+#   ]
+# }
 
 # module "gcp_memorystore" {
 #   source     = "../modules/gcp/memorystore"
