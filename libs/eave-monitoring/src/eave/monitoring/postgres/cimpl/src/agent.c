@@ -67,7 +67,9 @@ static void printHelp() {
   printf("\t-d, --dbname=DBNAME\tdatabase name to connect to\n");
   printf("\t-u, --user=USER\t\tpostgresql user name to connect as\n");
   printf("\t-p, --password=PASSWORD\tpassword to be used if server demands password auth\n");
-  printf("\nProvide either a connection string, or whatever combination of the other args you require.\n");
+  printf("\nProvide either a connection string, or a dbname (plus whatever combination of the other args you require.)\n");
+  printf("Environment variables matching the all-caps names in this message will also be read,\n");
+  printf("but will be overriden by conflicting command line arguments.\n");
 }
 
 /**
@@ -163,6 +165,34 @@ static void parseArgs(int argc, char** argv, args_t* args) {
   }
 }
 
+/**
+ * Mutate `args` with values from the shell environment.
+ */
+static void setEnvVars(args_t* args) {
+  char* envVal = NULL;
+  if ((envVal = getenv("CONN"))) {
+    args->conn_str = envVal;
+  }
+  if ((envVal = getenv("HOST"))) {
+    args->host = envVal;
+  }
+  if ((envVal = getenv("HOSTADDR"))) {
+    args->hostaddr = envVal;
+  }
+  if ((envVal = getenv("PORT"))) {
+    args->port = envVal;
+  }
+  if ((envVal = getenv("DBNAME"))) {
+    args->dbname = envVal;
+  }
+  if ((envVal = getenv("USER"))) {
+    args->user = envVal;
+  }
+  if ((envVal = getenv("PASSWORD"))) {
+    args->password = envVal;
+  }
+}
+
 static PGconn* buildConnection(args_t args) {
   // fields in args_t struct + 1 (for array NULL term)
   char* kw[FIELDS_IN_ARGS_T_PLUS_ONE];
@@ -220,16 +250,18 @@ static PGconn* buildConnection(args_t args) {
 
 // postgresql://eave_db_user:secruity@localhost:5432/eave
 int main(int argc, char** argv) {
-  if (argc < 2) {
-    // TODO check env vars
-    printHelp();
-    return EXIT_SUCCESS;
-  }
-
   args_t args;
   // later behavior depends on null values in unset struct fields
   memset(&args, 0, sizeof(args_t));
+  setEnvVars(&args);
+  // cli args override env vars, so these come after
   parseArgs(argc, argv, &args);
+
+  if (args.conn_str == NULL && args.dbname == NULL) {
+    printf("Expected either a connection string or a database name to be set. See usage:\n\n");
+    printHelp();
+    exit(EXIT_SUCCESS);
+  }
 
   PGconn* conn = buildConnection(args);
   if (PQstatus(conn) != CONNECTION_OK) {
