@@ -38,7 +38,7 @@ LDFLAGS += -lcurl
 # link posix std threading
 LDFLAGS += -lpthread
 
-all: clean $(BUILD_DIR)/$(TARGET_EXEC)
+all: $(BUILD_DIR)/$(TARGET_EXEC)
 
 # The final build step.
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
