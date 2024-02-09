@@ -299,7 +299,7 @@ function makeRequestLog(request: ChatCompletionCreateParamsNonStreaming): any {
             })
             .join(" ");
         } else {
-          content = m.content;
+          content = m.content || null;
         }
 
         return {
