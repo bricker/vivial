@@ -37,7 +37,7 @@ class Column:
     def formated(self) -> sql.Composed:
         return sql.SQL("{name} {type}").format(
             name=sql.Identifier(self.name),
-            type=sql.Identifier(self.type),
+            type=sql.SQL(self.type), # type: ignore
         )
 
     @staticmethod
@@ -54,7 +54,7 @@ class Table:
     def __init__(self, name: str, cols: list[Column]):
         self.name = name
         # ensure there's a row_id column for later use in tests
-        self._columns = [Column(name="row_id", type="int")] + cols
+        self._columns = [Column(name="row_id", type="varchar(255)")] + cols
 
     @property
     def columns(self) -> list[Column]:
@@ -63,7 +63,7 @@ class Table:
 
     def formatCols(self) -> sql.Composed:
         """return cols list as a string of comma separated column names + types (for use in SQL queries)"""
-        return sql.SQL(", ").join(map(lambda c: c.formated(), self.columns))
+        return sql.SQL(", ").join(map(lambda c: c.formated(), self._columns))
 
     @staticmethod
     def randName() -> str:
@@ -133,9 +133,9 @@ async def populate_tables(session: psycopg.AsyncConnection, tables: list[Table])
                                 # separately include row_id value non-randomly so we can isolate later UPDATE and DELETE ops
                                 sql.SQL("INSERT INTO {name} VALUES ({id_val}, {other_vals})").format(
                                     name=sql.Identifier(table.name),
-                                    id_val=sql.Identifier(str(i)),
+                                    id_val=sql.Literal(str(i)),
                                     other_vals=sql.SQL(", ").join(
-                                        [sql.Identifier(gen_value(col.type)) for col in table.columns]
+                                        [sql.Literal(gen_value(col.type)) for col in table.columns]
                                     ),
                                 )
                             )
@@ -147,19 +147,19 @@ async def populate_tables(session: psycopg.AsyncConnection, tables: list[Table])
                                         [
                                             sql.SQL("{col_name} = {new_val}").format(
                                                 col_name=sql.Identifier(col.name),
-                                                new_val=sql.Identifier(gen_value(col.type)),
+                                                new_val=sql.Literal(gen_value(col.type)),
                                             )
                                             for col in table.columns
                                         ]
                                     ),
-                                    id=sql.Identifier(str(i)),
+                                    id=sql.Literal(str(i)),
                                 )
                             )
                         case Operation.DELETE:
                             await curs.execute(
                                 sql.SQL("DELETE FROM {name} WHERE row_id = {id}").format(
                                     name=sql.Identifier(table.name),
-                                    id=sql.Identifier(str(i)),
+                                    id=sql.Literal(str(i)),
                                 )
                             )
                         case _:
@@ -172,7 +172,7 @@ def print_stats(tables: list[Table]) -> None:
     # TODO: aaa
     for op in OP_LIST:
         for table in tables:
-            print(f"Peformed {NUM_ROW_OPS} {op} operations on {table.name}")
+            print(f"Peformed {NUM_ROW_OPS} {op} operations on table '{table.name}'")
 
 
 def launch_agent(
@@ -220,7 +220,7 @@ async def main(
     password: Optional[str],
 ) -> None:
     db = database or (conn.split("/")[-1] if conn else "unknown")
-    answer = input(print(f"Proceed to insert junk seed data into the {db} database? (Y/n) "))
+    answer = input(f"Proceed to insert junk seed data into the {db} database? (Y/n) ")
     if answer != "Y":
         print("Aborting.")
         return
@@ -238,7 +238,7 @@ async def main(
 
         print_stats(tables)
 
-        answer = input(print(f"Proceed to drop the created junk tables in the {db} database? (Y/n) "))
+        answer = input(f"Proceed to drop the created junk tables in the {db} database? (Y/n) ")
         if answer != "Y":
             print("Aborting.")
             return
@@ -271,5 +271,4 @@ def parse_args() -> dict[str, str]:
 
 if __name__ == "__main__":
     args = parse_args()
-    print(args)
     asyncio.run(main(**args))
