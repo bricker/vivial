@@ -3,7 +3,7 @@ import asyncio
 import argparse
 import subprocess
 import sys
-from attr import field
+from time import sleep
 import urllib3 as ul
 import os
 import random
@@ -191,7 +191,12 @@ def launch_agent(
         args += ["-p", password]
 
     # TODO: point to real bin
-    return subprocess.Popen(["../agent.py"] + args)
+    proc = subprocess.Popen(["../agent.py"] + args)
+    sleep(1)
+    if proc.poll():
+        raise Exception("Agent exited with failure!")
+
+    return proc
 
 
 async def create_connection(
@@ -228,9 +233,9 @@ async def main(
     session = await create_connection(conn, database, username, password)
 
     try:
-        tables = await build_tables(session)
-
         proc = launch_agent(conn, database, username, password)
+
+        tables = await build_tables(session)
 
         await populate_tables(session, tables)
 
