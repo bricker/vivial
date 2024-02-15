@@ -1,11 +1,11 @@
-from typing import cast
+from typing import Optional, cast
 
 from asgiref.typing import HTTPScope
 
 from eave.core.internal import database
-from eave.core.internal.bigquery.dbchanges import DatabaseChangesTableHandle
+from eave.core.internal.bigquery.dbchanges import DatabaseChangesTableHandle, BigQueryTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.monitoring.datastructures import DataIngestRequestBody, EventType
+from eave.tracing.core.datastructures import DataIngestRequestBody, EventType
 from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.headers import EAVE_CLIENT_ID, EAVE_CLIENT_SECRET
@@ -45,11 +45,13 @@ class DataIngestionEndpoint(HTTPEndpoint):
 
             await creds.touch(session=db_session)
 
+        handle: Optional[BigQueryTableHandle] = None
         match input.event_type:
             case EventType.dbchange:
                 handle = DatabaseChangesTableHandle(team_id=creds.team_id)
 
-        await handle.insert(events=input.events)
-
+        if handle:
+            await handle.insert(events=input.events)
+        
         response = Response(content="OK", status_code=200)
         return response
