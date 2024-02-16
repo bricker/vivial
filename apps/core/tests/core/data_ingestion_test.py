@@ -4,10 +4,11 @@ from typing import cast
 
 import clickhouse_connect
 from google.cloud import bigquery
+from google.cloud.bigquery.dataset import DatasetReference
 from eave.core.internal.bigquery.types import BigQueryTableHandle
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.monitoring.datastructures import (
+from eave.tracing.core.datastructures import (
     DataIngestRequestBody,
     DatabaseChangeEventPayload,
     DatabaseChangeOperation,
@@ -34,8 +35,9 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
             )
 
         handle = BigQueryTableHandle(team_id=self._team.id)
+        DatasetReference.from_string
         client.delete_dataset(
-            dataset=handle.dataset_name,
+            dataset=handle.dataset_id, # TODO: i dont think this is going to work
             delete_contents=True,
             not_found_ok=True,
         )
@@ -44,7 +46,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         await super().asyncTearDown()
         handle = BigQueryTableHandle(team_id=self._team.id)
         client.delete_dataset(
-            dataset=handle.dataset_name,
+            dataset=handle.dataset_id, # TODO: ???
             delete_contents=True,
             not_found_ok=True,
         )
@@ -52,12 +54,12 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
     def _bq_team_dataset_exists(self) -> bool:
         handle = BigQueryTableHandle(team_id=self._team.id)
-        dataset = bq_client.get_dataset(dataset_name=handle.dataset_name)
+        dataset = client.get_dataset(dataset_ref=handle.dataset_id) # TODO: ???
         return dataset is not None
 
     def _bq_table_exists(self, table_name: str) -> bool:
         handle = BigQueryTableHandle(team_id=self._team.id)
-        table = bq_client.get_table(dataset_name=handle.dataset_name, table_name=table_name)
+        table = client.get_table(table=handle.table_def.table_id) # TODO: when to use tbale_name ???
         return table is not None
 
     async def test_ingest_invalid_credentials(self) -> None:

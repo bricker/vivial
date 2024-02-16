@@ -10,7 +10,7 @@ from google.cloud.bigquery.table import RowIterator
 
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
-from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
+from eave.tracing.core.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
 from eave.core.internal import database
 from eave.core.internal.bigquery import bq_client
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize

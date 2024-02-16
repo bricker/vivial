@@ -15,7 +15,7 @@ from eave.core.internal import database
 from eave.core.internal.clickhouse import clickhouse_client
 from eave.core.internal.clickhouse.types import ClickHouseTableDefinition, ClickHouseTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
-from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
+from eave.tracing.core.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
 
@@ -74,7 +74,7 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
                 await VirtualEventOrm.create(
                     session=db_session,
                     team_id=self.team_id,
-                    view_name=vevent_view_name,
+                    view_id=vevent_view_name,
                     readable_name=vevent_readable_name,
                     description=f"{operation} operation on the {source_table} table.",
                 )
