@@ -17,7 +17,7 @@ from eave.tracing.core.datastructures import (
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID, EAVE_CLIENT_SECRET
 from .base import BaseTestCase
-from eave.core.internal.bigquery import bq_client
+from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 
 client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
 
@@ -37,7 +37,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         handle = BigQueryTableHandle(team_id=self._team.id)
         DatasetReference.from_string
         client.delete_dataset(
-            dataset=handle.dataset_id, # TODO: i dont think this is going to work
+            dataset=handle.dataset_id,
             delete_contents=True,
             not_found_ok=True,
         )
@@ -46,7 +46,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         await super().asyncTearDown()
         handle = BigQueryTableHandle(team_id=self._team.id)
         client.delete_dataset(
-            dataset=handle.dataset_id, # TODO: ???
+            dataset=handle.dataset_id,
             delete_contents=True,
             not_found_ok=True,
         )
@@ -55,14 +55,14 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
     def _bq_team_dataset_exists(self) -> bool:
         handle = BigQueryTableHandle(team_id=self._team.id)
         try:
-            dataset = client.get_dataset(dataset_ref=handle.dataset_id) # TODO: ???
+            dataset = client.get_dataset(dataset_ref=handle.dataset_id)
         except:
             return False
         return dataset is not None
 
     def _bq_table_exists(self, table_name: str) -> bool:
         handle = BigQueryTableHandle(team_id=self._team.id)
-        table = client.get_table(table=handle.table_def.table_id) # TODO: when to use tbale_name ???
+        table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_none(dataset_id=handle.dataset_id, table_id=table_name)
         return table is not None
 
     async def test_ingest_invalid_credentials(self) -> None:
@@ -128,7 +128,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
     async def test_insert_with_events_lazy_creates_db_and_tables(self) -> None:
         assert not self._bq_team_dataset_exists()
-        assert not self._bq_table_exists("dbchanges")
+        assert not self._bq_table_exists("atoms_dbchanges")
 
         response = await self.make_request(
             path="/ingest",
@@ -155,7 +155,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
         assert response.status_code == http.HTTPStatus.OK
         assert self._bq_team_dataset_exists()
-        assert self._bq_table_exists("dbchanges")
+        assert self._bq_table_exists("atoms_dbchanges")
 
 # class TestDataIngestionEndpointWithClickhouse(BaseTestCase):
 #     async def asyncSetUp(self) -> None:
