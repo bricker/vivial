@@ -54,7 +54,10 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
     def _bq_team_dataset_exists(self) -> bool:
         handle = BigQueryTableHandle(team_id=self._team.id)
-        dataset = client.get_dataset(dataset_ref=handle.dataset_id) # TODO: ???
+        try:
+            dataset = client.get_dataset(dataset_ref=handle.dataset_id) # TODO: ???
+        except:
+            return False
         return dataset is not None
 
     def _bq_table_exists(self, table_name: str) -> bool:
