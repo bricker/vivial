@@ -12,7 +12,7 @@ import {
 
 import "../static/css/app.css";
 // import HomePage from "./components/Pages/HomePage/index.jsx";
-import EventDashboard from "./components/EventDashboard/index.jsx";
+import EventDashboard from "./components/Pages/EventDashboard/index.jsx";
 import PrivacyPage from "./components/Pages/PrivacyPage/index.jsx";
 import TermsPage from "./components/Pages/TermsPage/index.jsx";
 import ScrollToTop from "./components/ScrollToTop/index.jsx";

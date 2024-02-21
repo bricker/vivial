@@ -2,7 +2,7 @@
 import { makeStyles } from "@material-ui/styles";
 import classNames from "classnames";
 import React from "react";
-import * as Types from "../../../../types.js"; // eslint-disable-line no-unused-vars
+import * as Types from "../../../../../types.js"; // eslint-disable-line no-unused-vars
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   selectedBackground: {
