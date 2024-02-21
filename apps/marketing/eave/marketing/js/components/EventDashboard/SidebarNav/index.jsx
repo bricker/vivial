@@ -1,8 +1,8 @@
 // @ts-check
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
-import * as Types from "../../types.js"; // eslint-disable-line no-unused-vars
-import { imageUrl } from "../../util/asset-util.js";
+import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
+import { imageUrl } from "../../../util/asset-util.js";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   navbar: {

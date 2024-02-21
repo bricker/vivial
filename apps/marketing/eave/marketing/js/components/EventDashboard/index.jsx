@@ -7,9 +7,10 @@ import GlossaryIcon from "../Icons/GlossaryIcon.jsx";
 import SettingsCogIcon from "../Icons/SettingsCogIcon.jsx";
 import SignOutIcon from "../Icons/SignOutIcon.jsx";
 import TeamIcon from "../Icons/TeamIcon.jsx";
-import Menu from "../SidebarNav/Menu/index.jsx";
-import MenuItem from "../SidebarNav/MenuItem/index.jsx";
-import SidebarNav from "../SidebarNav/index.jsx";
+import Menu from "./SidebarNav/Menu/index.jsx";
+import MenuItem from "./SidebarNav/MenuItem/index.jsx";
+import SidebarNav from "./SidebarNav/index.jsx";
+import EventGlossary from "./EventGlossary/index.jsx";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   container: {
@@ -79,7 +80,17 @@ const EventDashboard = () => {
           </MenuItem>
         </Menu>
       </SidebarNav>
-      <div>TODO other page content here</div>
+      {
+        (() => {
+          switch (selectedTab) {
+            case configuration: // TODO: handle these pages/actions
+            case manage:
+            case logOut: 
+            default: // glossary
+              return <EventGlossary />
+          }
+        })()
+      }
     </div>
   );
 };

@@ -15,9 +15,12 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
-const Menu = ({ /** @type {React.ReactNode} */ children }) => {
-  const classes = makeClasses();
-  return <ul className={classes.menuList}>{children}</ul>;
+const EventGlossary = () => {
+  return (
+    <div>
+      <h1>Event Glossary</h1>
+    </div>
+  );
 };
 
-export default Menu;
+export default EventGlossary;
