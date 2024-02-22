@@ -24,7 +24,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     padding: 12,
   },
   searchIcon: {
-    position: 'relative',
+    position: "relative",
     top: 3,
   },
   searchInput: {
@@ -56,12 +56,12 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
       backgroundColor: "#36363666",
       cursor: "pointer",
     },
+    "&:hover $hoverIcon": {
+      opacity: 100,
+    },
   },
   hoverIcon: {
-    display: "block",
-    "&:hover $tableRow": {
-      display: "none",
-    },
+    opacity: 0,
   },
 }));
 
