@@ -8,12 +8,14 @@ import SidePanelIcon from "../../../Icons/SidePanelIcon.jsx";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   root: {
-    padding: "24px 30px",
+    padding: "10px 24px",
   },
   header: {
-    fontSize: 32,
+    fontSize: 34,
+    fontWeight: 400,
   },
   searchBar: {
+    maxWidth: 789,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
@@ -22,6 +24,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     backgroundColor: "#f1f1f1",
     boxSizing: "border-box",
     padding: 12,
+    marginTop: 18,
   },
   searchIcon: {
     position: "relative",
@@ -38,6 +41,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   table: {
     borderCollapse: "collapse",
     fontSize: 14,
+    marginTop: 60,
   },
   tableValue: {
     textAlign: "left",
@@ -66,81 +70,81 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
-// TODO: sidepanel
+
+// TODO: sidepanel + a11y
 const EventGlossary = () => {
   const classes = makeClasses();
   const [searchValue, setSearchValue] = useState("");
-  // const [events, setEvents] = useState([]);
+  /** @typedef {{ name: string, description: string, fields: string[] }} VirtualEvent */
+  /** @type {[VirtualEvent[], React.Dispatch<React.SetStateAction<VirtualEvent[]>>]} */
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     (async () => {
       try {
         // TODO: search/filter network req
-        // setEvents();
+        setEvents([
+          {
+            name: "account_creation",
+            description:
+              "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
+            fields: [
+              "event_descritopiton",
+              "user_id",
+              "visitor_id",
+              "event_ts",
+              "publish_time",
+              "suession_id",
+              "url",
+              "source",
+              "dvice",
+              "platform",
+              "content",
+            ],
+          },
+          {
+            name: "transcription_event",
+            description:
+              "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
+            fields: [
+              "event_descritopiton",
+              "user_id",
+              "visitor_id",
+              "event_ts",
+              "publish_time",
+              "suession_id",
+              "url",
+              "source",
+              "dvice",
+              "platform",
+              "content",
+            ],
+          },
+          {
+            name: "account_update",
+            description:
+              "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
+            fields: [
+              "event_descritopiton",
+              "user_id",
+              "visitor_id",
+              "event_ts",
+              "publish_time",
+              "suession_id",
+              "url",
+              "source",
+              "dvice",
+              "platform",
+              "content",
+            ],
+          },
+        ]);
       } catch (error) {
         console.error(error);
         // TODO: set error state
       }
     })();
   }, [searchValue]);
-
-  // TODO: network request
-  const events = [
-    {
-      name: "account_creation",
-      description:
-        "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-      fields: [
-        "event_descritopiton",
-        "user_id",
-        "visitor_id",
-        "event_ts",
-        "publish_time",
-        "suession_id",
-        "url",
-        "source",
-        "dvice",
-        "platform",
-        "content",
-      ],
-    },
-    {
-      name: "transcription_event",
-      description:
-        "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-      fields: [
-        "event_descritopiton",
-        "user_id",
-        "visitor_id",
-        "event_ts",
-        "publish_time",
-        "suession_id",
-        "url",
-        "source",
-        "dvice",
-        "platform",
-        "content",
-      ],
-    },
-    {
-      name: "account_update",
-      description:
-        "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-      fields: [
-        "event_descritopiton",
-        "user_id",
-        "visitor_id",
-        "event_ts",
-        "publish_time",
-        "suession_id",
-        "url",
-        "source",
-        "dvice",
-        "platform",
-        "content",
-      ],
-    },
-  ];
 
   return (
     <div className={classes.root}>
@@ -174,6 +178,7 @@ const EventGlossary = () => {
               <tr
                 className={classNames(classes.tableRow, classes.rowHighlight)}
                 key={event.name}
+                onClick={() => {/* TODO sidepanel */}}
               >
                 <td className={classes.tableValue}>{event.name}</td>
                 <td className={classes.tableValue}>{event.description}</td>
