@@ -41,10 +41,11 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
   tableValue: {
     textAlign: "left",
-    padding: 8,
+    padding: "12px 24px",
   },
   tableHeader: {
     fontWeight: "bold",
+    fontSize: 16,
   },
   tableRow: {
     "&:nth-child(even)": {
@@ -177,7 +178,7 @@ const EventGlossary = () => {
                 <td className={classes.tableValue}>{event.name}</td>
                 <td className={classes.tableValue}>{event.description}</td>
                 <td>
-                  <span className={classes.hoverIcon}>
+                  <span className={classNames(classes.hoverIcon, classes.tableValue)}>
                     <SidePanelIcon color="#363636" />
                   </span>
                 </td>
