@@ -3,15 +3,16 @@ import { makeStyles } from "@material-ui/styles";
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import * as Types from "../../../../types.js"; // eslint-disable-line no-unused-vars
+import CloseIcon from "../../../Icons/CloseIcon.js";
 import SearchIcon from "../../../Icons/SearchIcon.jsx";
 import SidePanelIcon from "../../../Icons/SidePanelIcon.jsx";
-import CloseIcon from "../../../Icons/CloseIcon.js";
-
 
 const width = 420;
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   glossary: {
     padding: "10px 24px",
+    overflowY: 'scroll',
+    flex: 3,
   },
   header: {
     fontSize: 34,
@@ -74,25 +75,36 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   root: {
     display: "flex",
     flexDirection: "row",
-    overflow: 'hidden',
-    gap: 0,
+    wordWrap: "break-word",
+    // overflowX: "hidden",
   },
   panelContainer: {
+    position: "sticky",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
     height: "100vh",
-    width: width, //'100% / 3',
+    // width: width, // TODO?: '100% / 4',
+    maxWidth: '100vw / 3',
     backgroundColor: "#e5e9f5",
     transition: "1s cubic-bezier(.36,-0.01,0,.77)",
-    padding: 16,
+    padding: 24,
+    overflow: "auto",
+    flex: 1,
   },
   panelHidden: {
-    marginRight: -width,
+    // marginRight: -width,
+    flex: 0
   },
   closeButton: {
-    float: "right",
+    alignSelf: "flex-end",
+    cursor: "pointer",
+    border: "none",
+    backgroundColor: "transparent",
   },
 }));
 
-// TODO: sidepanel + a11y
+// TODO: a11y
 const EventGlossary = () => {
   const classes = makeClasses();
   const [searchValue, setSearchValue] = useState("");
@@ -100,8 +112,8 @@ const EventGlossary = () => {
   const [events, setEvents] = useState([]);
   /** @type {[Types.VirtualEvent, React.Dispatch<React.SetStateAction<Types.VirtualEvent>>]} */
   const [selectedEvent, setSelectedEvent] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     fields: [],
   });
   const [isOpen, setIsOpen] = useState(false);
@@ -112,67 +124,176 @@ const EventGlossary = () => {
   }
   const panelClasses = classNames(classList);
 
-
   useEffect(() => {
     (async () => {
       try {
         // TODO: search/filter network req
-        setEvents([
-          {
-            name: "account_creation",
-            description:
-              "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-            fields: [
-              "event_descritopiton",
-              "user_id",
-              "visitor_id",
-              "event_ts",
-              "publish_time",
-              "suession_id",
-              "url",
-              "source",
-              "dvice",
-              "platform",
-              "content",
-            ],
-          },
-          {
-            name: "transcription_event",
-            description:
-              "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-            fields: [
-              "event_descritopiton",
-              "user_id",
-              "visitor_id",
-              "event_ts",
-              "publish_time",
-              "suession_id",
-              "url",
-              "source",
-              "dvice",
-              "platform",
-              "content",
-            ],
-          },
-          {
-            name: "account_update",
-            description:
-              "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-            fields: [
-              "event_descritopiton",
-              "user_id",
-              "visitor_id",
-              "event_ts",
-              "publish_time",
-              "suession_id",
-              "url",
-              "source",
-              "dvice",
-              "platform",
-              "content",
-            ],
-          },
-        ]);
+        let e = [];
+        for (let i = 0; i < 10; i++) {
+          e = e.concat([
+            {
+              name: "account_creation",
+              description:
+                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
+              fields: [
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+              ],
+            },
+            {
+              name: "transcription_event",
+              description:
+                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
+              fields: [
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+              ],
+            },
+            {
+              name: "account_update",
+              description:
+                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
+              fields: [
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+              ],
+            },
+            {
+              name: "super_super_duper_magua_aultra_longgggggeset_long_boi_oft_them_all_this_event_is_the_best_bcus_ists_also_the_bigestestest_yes_event",
+              description:
+                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
+              fields: [
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+                "event_descritopiton",
+                "user_id",
+                "visitor_id",
+                "event_ts",
+                "publish_time",
+                "suession_id",
+                "url",
+                "source",
+                "dvice",
+                "platform",
+                "content",
+              ],
+            },
+          ]);
+        }
+        setEvents(e);
       } catch (error) {
         console.error(error);
         // TODO: set error/loading state
@@ -222,7 +343,9 @@ const EventGlossary = () => {
                     setIsOpen(true);
                   }}
                 >
-                  <td className={classes.tableValue}>{event.name}</td>
+                  <td className={classes.tableValue} style={{ maxWidth: 300 }}>
+                    {event.name}
+                  </td>
                   <td className={classes.tableValue}>{event.description}</td>
                   <td>
                     <span
@@ -242,6 +365,7 @@ const EventGlossary = () => {
       </div>
 
       {/* side panel */}
+      {/* TODO mobile version */}
       <div className={panelClasses}>
         <button
           className={classes.closeButton}
@@ -249,11 +373,13 @@ const EventGlossary = () => {
         >
           <CloseIcon stroke="#363636" />
         </button>
-        <h1>{selectedEvent.name}</h1>
+        <h1 style={{ wordWrap: 'break-word' }}>{selectedEvent.name}</h1>
         <p>{selectedEvent.description}</p>
-        {selectedEvent.fields.map((field) => {
-          return <p key={field}>{field}</p>;
-        })}
+        <div>
+          {selectedEvent.fields.map((field) => {
+            return <p key={field}>{field}</p>;
+          })}
+        </div>
       </div>
     </div>
   );
