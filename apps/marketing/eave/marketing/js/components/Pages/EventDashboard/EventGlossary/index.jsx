@@ -50,6 +50,9 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     textAlign: "left",
     padding: "12px 24px",
   },
+  columnWidthLimit: {
+    maxWidth: 'calc(100% / 2)', // TODO: not workign :(
+  },
   tableHeader: {
     fontWeight: "bold",
     fontSize: 16,
@@ -347,7 +350,7 @@ const EventGlossary = () => {
                     setIsOpen(true);
                   }}
                 >
-                  <td className={classes.tableValue} style={{ maxWidth: 300 }}>
+                  <td className={classNames(classes.tableValue, classes.columnWidthLimit)}>
                     {event.name}
                   </td>
                   <td className={classes.tableValue}>{event.description}</td>

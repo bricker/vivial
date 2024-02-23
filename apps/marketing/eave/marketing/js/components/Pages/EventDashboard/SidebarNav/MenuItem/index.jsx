@@ -12,11 +12,24 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     backgroundColor: "transparent",
   },
   listItem: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: 'center',
+    gap: 12,
+    fontSize: 24,
     padding: "24px 30px",
     "&:hover": {
       backgroundColor: "#0d81d988",
       cursor: "pointer",
     },
+  },
+  smallIcon: {
+    width: 28,
+    height: 28,
+  },
+  bigIcon: {
+    width: 48,
+    height: 48,
   },
 }));
 
@@ -29,12 +42,14 @@ const MenuItem = ({
 }) => {
   const classes = makeClasses();
 
+  const iconSize = expanded ? classes.bigIcon : classes.smallIcon;
+
   const background = selected
     ? classes.selectedBackground
     : classes.unselectedBackground;
   return (
     <li className={classNames(classes.listItem, background)} onClick={onClick}>
-      {children}
+      <div className={iconSize}>{children}</div>
       {expanded && <p>{label}</p>}
     </li>
   );
