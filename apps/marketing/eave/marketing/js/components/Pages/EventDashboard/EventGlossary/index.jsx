@@ -106,7 +106,10 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   panelTitle: {
     // prevent long event names from stretching out of bounds
     wordWrap: "break-word",
-    maxWidth: 'calc(100vw / 5)',
+    maxWidth: '80vw',
+    [theme.breakpoints.up('md')]: {
+      maxWidth: 'calc(100vw / 5)',
+    }
   },
 }));
 
@@ -123,12 +126,30 @@ const EventGlossary = () => {
     fields: [],
   });
   const [isOpen, setIsOpen] = useState(false);
+  const [usingMobileLayout, setUsingMobileLayout] = useState(false);
 
-  const classList = [classes.panelContainer];
+  useEffect(() => {
+    const handleResize = () => {
+      setUsingMobileLayout(window.innerWidth <= 768);
+    };
+
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", handleResize);
+    // Remove event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const panelClasses = [classes.panelContainer];
+  const glossaryClasses = [classes.glossary];
   if (!isOpen) {
-    classList.push(classes.panelHidden);
+    panelClasses.push(classes.panelHidden);
+  } else if(usingMobileLayout) {
+    glossaryClasses.push(classes.panelHidden);
   }
-  const panelClasses = classNames(classList);
 
   // Load the events from network
   useEffect(() => {
@@ -310,7 +331,7 @@ const EventGlossary = () => {
 
   return (
     <div className={classes.root}>
-      <div className={classes.glossary}>
+      <div className={classNames(glossaryClasses)}>
         <h1 className={classes.header}>Event Glossary</h1>
 
         <div className={classes.searchBar}>
@@ -372,8 +393,7 @@ const EventGlossary = () => {
       </div>
 
       {/* side panel */}
-      {/* TODO mobile version */}
-      <div className={panelClasses}>
+      <div className={classNames(panelClasses)}>
         <button
           className={classes.closeButton}
           onClick={() => setIsOpen(false)}

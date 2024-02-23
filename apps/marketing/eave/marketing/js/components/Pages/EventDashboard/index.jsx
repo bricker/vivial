@@ -45,10 +45,10 @@ const EventDashboard = () => {
   const classes = makeClasses();
 
   const [selectedTab, setSelectedTab] = useState(glossary);
-  const [isMobile, setIsMobile] = useState(false);
+  const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setUsingMobileLayout(window.innerWidth <= 768);
     };
 
     handleResize();
@@ -61,28 +61,28 @@ const EventDashboard = () => {
     };
   }, []);
 
-  const container = isMobile ? classes.mobileContainer : classes.desktopContainer;
+  const container = usingMobileLayout ? classes.mobileContainer : classes.desktopContainer;
 
   return (
     <div className={container}>
-      <SidebarNav hamburger={isMobile}>
+      <SidebarNav hamburger={usingMobileLayout}>
         <Menu>
           <MenuItem
             label="Event Glossary"
             onClick={() => setSelectedTab(glossary)}
             selected={selectedTab === glossary}
-            expanded={isMobile}
+            expanded={usingMobileLayout}
           >
             <GlossaryIcon color={iconColor(selectedTab === glossary)} />
           </MenuItem>
 
-          {!isMobile && <div className={classes.spacer}></div>}
+          {!usingMobileLayout && <div className={classes.spacer}></div>}
 
           <MenuItem
             label="Configuration"
             onClick={() => setSelectedTab(configuration)}
             selected={selectedTab === configuration}
-            expanded={isMobile}
+            expanded={usingMobileLayout}
           >
             <SettingsCogIcon color={iconColor(selectedTab === configuration)} />
           </MenuItem>
@@ -91,7 +91,7 @@ const EventDashboard = () => {
             label="Team Management"
             onClick={() => setSelectedTab(manage)}
             selected={selectedTab === manage}
-            expanded={isMobile}
+            expanded={usingMobileLayout}
           >
             <TeamIcon color={iconColor(selectedTab === manage)} />
           </MenuItem>
@@ -100,7 +100,7 @@ const EventDashboard = () => {
             label="Log Out"
             onClick={() => setSelectedTab(logOut)}
             selected={selectedTab === logOut}
-            expanded={isMobile}
+            expanded={usingMobileLayout}
           >
             <SignOutIcon color={iconColor(selectedTab === logOut)} />
           </MenuItem>
