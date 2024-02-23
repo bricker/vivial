@@ -7,11 +7,10 @@ import CloseIcon from "../../../Icons/CloseIcon.js";
 import SearchIcon from "../../../Icons/SearchIcon.jsx";
 import SidePanelIcon from "../../../Icons/SidePanelIcon.jsx";
 
-const width = 420;
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   glossary: {
     padding: "10px 24px",
-    overflowY: 'scroll',
+    overflowY: "scroll",
     flex: 3,
   },
   header: {
@@ -76,7 +75,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     display: "flex",
     flexDirection: "row",
     wordWrap: "break-word",
-    // overflowX: "hidden",
+    overflowX: "hidden",
   },
   panelContainer: {
     position: "sticky",
@@ -84,8 +83,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     flexDirection: "column",
     alignItems: "flex-start",
     height: "100vh",
-    // width: width, // TODO?: '100% / 4',
-    maxWidth: '100vw / 3',
+    maxWidth: '100vw / 4',
     backgroundColor: "#e5e9f5",
     transition: "1s cubic-bezier(.36,-0.01,0,.77)",
     padding: 24,
@@ -93,14 +91,19 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     flex: 1,
   },
   panelHidden: {
-    // marginRight: -width,
-    flex: 0
+    flex: 0,
+    padding: 0, // any padding keeps the panel visible
   },
   closeButton: {
     alignSelf: "flex-end",
     cursor: "pointer",
     border: "none",
     backgroundColor: "transparent",
+  },
+  panelTitle: {
+    // prevent long event names from stretching out of bounds
+    wordWrap: "break-word",
+    maxWidth: 'calc(100vw / 5)',
   },
 }));
 
@@ -124,6 +127,7 @@ const EventGlossary = () => {
   }
   const panelClasses = classNames(classList);
 
+  // Load the events from network
   useEffect(() => {
     (async () => {
       try {
@@ -373,7 +377,7 @@ const EventGlossary = () => {
         >
           <CloseIcon stroke="#363636" />
         </button>
-        <h1 style={{ wordWrap: 'break-word' }}>{selectedEvent.name}</h1>
+        <h1 className={classes.panelTitle}>{selectedEvent.name}</h1>
         <p>{selectedEvent.description}</p>
         <div>
           {selectedEvent.fields.map((field) => {
