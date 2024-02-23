@@ -24,7 +24,6 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
   logoSeparation: {
     marginBottom: 96,
-
   },
   hamburgerNav: {
     display: "flex",

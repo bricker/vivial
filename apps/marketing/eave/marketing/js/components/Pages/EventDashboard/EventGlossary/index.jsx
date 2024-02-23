@@ -51,7 +51,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     padding: "12px 24px",
   },
   columnWidthLimit: {
-    maxWidth: 'calc(100% / 2)', // TODO: not workign :(
+    maxWidth: 'calc(100vw / 3)',
   },
   tableHeader: {
     fontWeight: "bold",

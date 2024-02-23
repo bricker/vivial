@@ -7,6 +7,7 @@ import * as Types from "../../../../../types.js"; // eslint-disable-line no-unus
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   selectedBackground: {
     backgroundColor: "#0d81d9",
+    color: 'white'
   },
   unselectedBackground: {
     backgroundColor: "transparent",
@@ -23,14 +24,6 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
       cursor: "pointer",
     },
   },
-  smallIcon: {
-    width: 28,
-    height: 28,
-  },
-  bigIcon: {
-    width: 48,
-    height: 48,
-  },
 }));
 
 const MenuItem = ({
@@ -42,14 +35,12 @@ const MenuItem = ({
 }) => {
   const classes = makeClasses();
 
-  const iconSize = expanded ? classes.bigIcon : classes.smallIcon;
-
   const background = selected
     ? classes.selectedBackground
     : classes.unselectedBackground;
   return (
     <li className={classNames(classes.listItem, background)} onClick={onClick}>
-      <div className={iconSize}>{children}</div>
+      {children}
       {expanded && <p>{label}</p>}
     </li>
   );
