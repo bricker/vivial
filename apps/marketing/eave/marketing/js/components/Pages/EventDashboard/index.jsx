@@ -21,10 +21,10 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     height: "100vh",
   },
   mobileContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-    width: '100%',
+    display: "flex",
+    flexDirection: "column",
+    height: "100vh",
+    width: "100%",
   },
   spacer: {
     flexGrow: 1,
@@ -61,7 +61,9 @@ const EventDashboard = () => {
     };
   }, []);
 
-  const container = usingMobileLayout ? classes.mobileContainer : classes.desktopContainer;
+  const container = usingMobileLayout
+    ? classes.mobileContainer
+    : classes.desktopContainer;
 
   return (
     <div className={container}>

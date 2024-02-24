@@ -1,11 +1,11 @@
 // @ts-check
 import { makeStyles } from "@material-ui/styles";
+import classNames from "classnames";
 import React, { useState } from "react";
 import * as Types from "../../../../types.js"; // eslint-disable-line no-unused-vars
 import { imageUrl } from "../../../../util/asset-util.js";
 import CloseIcon from "../../../Icons/CloseIcon.js";
 import HamburgerIcon from "../../../Icons/HamburgerIcon.js";
-import classNames from "classnames";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   navbar: {
@@ -29,13 +29,13 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     display: "flex",
     flexDirection: "row",
     justifyContent: "flex-end",
-    alignItems: 'center',
+    alignItems: "center",
   },
   hamburgerButton: {
     border: "none",
     background: "transparent",
     margin: 24,
-    cursor: 'pointer',
+    cursor: "pointer",
   },
   coverMenu: {
     width: "100vw",
@@ -53,7 +53,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   closeButton: {
     border: "none",
     backgroundColor: "transparent",
-    cursor: 'pointer',
+    cursor: "pointer",
     margin: 24,
   },
 }));

@@ -51,7 +51,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     padding: "12px 24px",
   },
   columnWidthLimit: {
-    maxWidth: 'calc(100vw / 3)',
+    maxWidth: "calc(100vw / 3)",
   },
   tableHeader: {
     fontWeight: "bold",
@@ -86,7 +86,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     flexDirection: "column",
     alignItems: "flex-start",
     height: "100vh",
-    maxWidth: '100vw / 4',
+    maxWidth: "100vw / 4",
     backgroundColor: "#e5e9f5",
     transition: "1s cubic-bezier(.36,-0.01,0,.77)",
     padding: 24,
@@ -106,10 +106,10 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   panelTitle: {
     // prevent long event names from stretching out of bounds
     wordWrap: "break-word",
-    maxWidth: '80vw',
-    [theme.breakpoints.up('md')]: {
-      maxWidth: 'calc(100vw / 5)',
-    }
+    maxWidth: "80vw",
+    [theme.breakpoints.up("md")]: {
+      maxWidth: "calc(100vw / 5)",
+    },
   },
 }));
 
@@ -147,7 +147,7 @@ const EventGlossary = () => {
   const glossaryClasses = [classes.glossary];
   if (!isOpen) {
     panelClasses.push(classes.panelHidden);
-  } else if(usingMobileLayout) {
+  } else if (usingMobileLayout) {
     glossaryClasses.push(classes.panelHidden);
   }
 
@@ -371,7 +371,12 @@ const EventGlossary = () => {
                     setIsOpen(true);
                   }}
                 >
-                  <td className={classNames(classes.tableValue, classes.columnWidthLimit)}>
+                  <td
+                    className={classNames(
+                      classes.tableValue,
+                      classes.columnWidthLimit,
+                    )}
+                  >
                     {event.name}
                   </td>
                   <td className={classes.tableValue}>{event.description}</td>

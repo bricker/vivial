@@ -7,7 +7,7 @@ import * as Types from "../../../../../types.js"; // eslint-disable-line no-unus
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   selectedBackground: {
     backgroundColor: "#0d81d9",
-    color: 'white'
+    color: "white",
   },
   unselectedBackground: {
     backgroundColor: "transparent",
@@ -15,7 +15,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   listItem: {
     display: "flex",
     flexDirection: "row",
-    alignItems: 'center',
+    alignItems: "center",
     gap: 12,
     fontSize: 24,
     padding: "24px 30px",
