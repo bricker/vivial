@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 import { makeStyles } from "@material-ui/styles";
+import { theme } from "../../../theme.js";
 import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 import GlossaryIcon from "../../Icons/GlossaryIcon.jsx";
 import SettingsCogIcon from "../../Icons/SettingsCogIcon.jsx";
@@ -48,7 +49,7 @@ const EventDashboard = () => {
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   useEffect(() => {
     const handleResize = () => {
-      setUsingMobileLayout(window.innerWidth <= 768);
+      setUsingMobileLayout(window.innerWidth <= theme.breakpoints.values.md);
     };
 
     handleResize();

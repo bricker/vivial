@@ -2,6 +2,7 @@
 import { makeStyles } from "@material-ui/styles";
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
+import { theme } from "../../../../theme.js";
 import * as Types from "../../../../types.js"; // eslint-disable-line no-unused-vars
 import CloseIcon from "../../../Icons/CloseIcon.js";
 import SearchIcon from "../../../Icons/SearchIcon.jsx";
@@ -88,7 +89,9 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     height: "100vh",
     maxWidth: "100vw / 4",
     backgroundColor: "#e5e9f5",
-    transition: "1s cubic-bezier(.36,-0.01,0,.77)",
+    [theme.breakpoints.up("md")]: {
+      transition: "1s cubic-bezier(.36,-0.01,0,.77)",
+    },
     padding: 24,
     overflow: "auto",
     flex: 1,
@@ -130,7 +133,7 @@ const EventGlossary = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setUsingMobileLayout(window.innerWidth <= 768);
+      setUsingMobileLayout(window.innerWidth <= theme.breakpoints.values.md);
     };
 
     handleResize();
