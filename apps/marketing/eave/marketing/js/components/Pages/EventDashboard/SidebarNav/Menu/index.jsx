@@ -16,7 +16,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
 
 const Menu = ({ /** @type {React.ReactNode} */ children }) => {
   const classes = makeClasses();
-  return <ul className={classes.menuList}>{children}</ul>;
+  return <nav className={classes.menuList}>{children}</nav>;
 };
 
 export default Menu;

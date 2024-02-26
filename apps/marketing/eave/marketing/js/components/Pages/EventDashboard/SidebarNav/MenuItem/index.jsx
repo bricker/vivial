@@ -19,6 +19,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     gap: 12,
     fontSize: 24,
     padding: "24px 30px",
+    border: 'none',
     "&:hover": {
       backgroundColor: "#0d81d988",
       cursor: "pointer",
@@ -39,10 +40,14 @@ const MenuItem = ({
     ? classes.selectedBackground
     : classes.unselectedBackground;
   return (
-    <li className={classNames(classes.listItem, background)} onClick={onClick}>
+    <button
+      className={classNames(classes.listItem, background)}
+      aria-label={label}
+      onClick={onClick}
+    >
       {children}
       {expanded && <p>{label}</p>}
-    </li>
+    </button>
   );
 };
 

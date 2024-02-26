@@ -29,6 +29,9 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     boxSizing: "border-box",
     padding: 12,
     marginTop: 18,
+    "&:focus-within": {
+      outline: "2px solid",
+    },
   },
   searchIcon: {
     position: "relative",
@@ -36,9 +39,9 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
   searchInput: {
     backgroundColor: "transparent",
+    outline: "none",
     fontSize: 16,
     padding: "1px 10px",
-    outline: "none",
     border: "none",
     flexGrow: 1,
   },
@@ -116,7 +119,6 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
 }));
 
-// TODO: a11y
 const EventGlossary = () => {
   const classes = makeClasses();
   const [searchValue, setSearchValue] = useState("");
@@ -332,6 +334,15 @@ const EventGlossary = () => {
     })();
   }, [searchValue]);
 
+  // factored out as it's used in both the row onClick and onKeyPress actions
+  function rowClicked(event) {
+    setSelectedEvent(event);
+    setIsOpen(true);
+    // move kb focus to the sidepanel
+    const sidepanel = document.getElementById("glos_sidepanel");
+    sidepanel?.focus();
+  }
+
   return (
     <div className={classes.root}>
       <div className={classNames(glossaryClasses)}>
@@ -369,9 +380,14 @@ const EventGlossary = () => {
                 <tr
                   className={classNames(classes.tableRow, classes.rowHighlight)}
                   key={event.name}
-                  onClick={() => {
-                    setSelectedEvent(event);
-                    setIsOpen(true);
+                  tabIndex={0}
+                  aria-label={`${event.name}: ${event.description}`}
+                  role="button"
+                  onClick={() => rowClicked(event)}
+                  onKeyDown={(pressed) => {
+                    if (pressed.key === "Enter" || pressed.key === " ") {
+                      rowClicked(event);
+                    }
                   }}
                 >
                   <td
@@ -401,7 +417,7 @@ const EventGlossary = () => {
       </div>
 
       {/* side panel */}
-      <div className={classNames(panelClasses)}>
+      <div id="glos_sidepanel" className={classNames(panelClasses)}>
         <button
           className={classes.closeButton}
           onClick={() => setIsOpen(false)}
