@@ -2,7 +2,7 @@ from functools import wraps
 from http.client import UNAUTHORIZED
 import json
 import time
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Optional
 
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
@@ -10,8 +10,10 @@ from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobListInput
 
 from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
+from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
 from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
+import eave.stdlib.core_api.operations.virtual_event as virtual_event
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.github_repos as github_repos
 import eave.stdlib.core_api.operations.github_documents as github_documents
@@ -105,6 +107,23 @@ async def get_user() -> Response:
 
     return _make_response(eave_response)
 
+@app.route("/dashboard/virtual-events", methods=["POST"])
+@_auth_handler
+async def get_virtual_events() -> Response:
+    auth_cookies = _get_auth_cookies_or_exception()
+
+    body = request.get_json()
+    query_input: Optional[VirtualEventQueryInput] = body.get("query")
+
+    eave_response = await virtual_event.GetVirtualEventsRequest.perform(
+        origin=MARKETING_APP_CONFIG.eave_origin,
+        team_id=ensure_uuid(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+        input=virtual_event.GetVirtualEventsRequest.RequestBody(virtual_events=query_input),
+    )
+
+    return _make_response(eave_response)
 
 @app.route("/dashboard/team", methods=["POST"])
 @_auth_handler

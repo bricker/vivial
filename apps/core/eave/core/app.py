@@ -3,7 +3,7 @@ from eave.core.internal.oauth.google import GOOGLE_OAUTH_AUTHORIZE_PATH, GOOGLE_
 from eave.core.internal.oauth.slack import SLACK_OAUTH_AUTHORIZE_PATH, SLACK_OAUTH_CALLBACK_PATH
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
+from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs, virtual_event
 from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
 from eave.stdlib import cache, logging
@@ -39,6 +39,7 @@ from eave.stdlib.core_api.operations.github_repos import (
 )
 from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
 from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
+from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -260,6 +261,10 @@ routes = [
         endpoint=api_documentation_jobs.GetApiDocumentationJobEndpoint,
     ),
     # Authenticated API endpoints.
+    make_route(
+        config=GetVirtualEventsRequest.config,
+        endpoint=virtual_event.GetVirtualEventsEndpoint,
+    ),
     make_route(
         config=CreateGithubDocumentRequest.config,
         endpoint=github_documents.CreateGithubDocumentEndpoint,
