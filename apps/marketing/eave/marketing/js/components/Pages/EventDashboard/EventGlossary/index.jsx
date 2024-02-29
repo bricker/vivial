@@ -1,7 +1,10 @@
 // @ts-check
+import { CircularProgress } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import classNames from "classnames";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { AppContext } from "../../../../context/Provider.js";
+import useTeam from "../../../../hooks/useTeam.js";
 import { theme } from "../../../../theme.js";
 import * as Types from "../../../../types.js"; // eslint-disable-line no-unused-vars
 import CloseIcon from "../../../Icons/CloseIcon.js";
@@ -117,21 +120,47 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
       maxWidth: "calc(100vw / 5)",
     },
   },
+  loader: {
+    // @ts-ignore
+    color: theme.palette.background.contrastText,
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  noEventsHeader: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  error: {
+    color: theme.palette.error.main,
+    padding: "0px 30px",
+    textAlign: "center",
+    fontSize: "26px",
+  },
 }));
 
 const EventGlossary = () => {
   const classes = makeClasses();
   const [searchValue, setSearchValue] = useState("");
-  /** @type {[Types.VirtualEvent[], React.Dispatch<React.SetStateAction<Types.VirtualEvent[]>>]} */
-  const [events, setEvents] = useState([]);
   /** @type {[Types.VirtualEvent, React.Dispatch<React.SetStateAction<Types.VirtualEvent>>]} */
   const [selectedEvent, setSelectedEvent] = useState({
-    name: "",
+    readable_name: "",
     description: "",
     fields: [],
   });
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
+  const { team, getTeamVirtualEvents } = useTeam();
+  const {
+    glossaryNetworkStateCtx: [networkState],
+  } = useContext(AppContext);
+
+  // initial data load
+  useEffect(() => {
+    getTeamVirtualEvents(null);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -156,189 +185,17 @@ const EventGlossary = () => {
     glossaryClasses.push(classes.panelHidden);
   }
 
-  // Load the events from network
+  // perform search for events
   useEffect(() => {
-    (async () => {
-      try {
-        // TODO: search/filter network req
-        let e = [];
-        for (let i = 0; i < 10; i++) {
-          e = e.concat([
-            {
-              name: "account_creation",
-              description:
-                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-              fields: [
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-              ],
-            },
-            {
-              name: "transcription_event",
-              description:
-                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-              fields: [
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-              ],
-            },
-            {
-              name: "account_update",
-              description:
-                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-              fields: [
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-              ],
-            },
-            {
-              name: "super_super_duper_magua_aultra_longgggggeset_long_boi_oft_them_all_this_event_is_the_best_bcus_ists_also_the_bigestestest_yes_event",
-              description:
-                "lorm ipsum dolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsforddolormum sode dolores huerta the bean in the baurrtiyht and then the ovsford comma gamc to save the hok intht oeth big braown hbat tath the end od rfht ehreoad",
-              fields: [
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-                "event_descritopiton",
-                "user_id",
-                "visitor_id",
-                "event_ts",
-                "publish_time",
-                "suession_id",
-                "url",
-                "source",
-                "dvice",
-                "platform",
-                "content",
-              ],
-            },
-          ]);
-        }
-        setEvents(e);
-      } catch (error) {
-        console.error(error);
-        // TODO: set error/loading state
-      }
-    })();
+    setIsOpen(false);
+    getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
   function rowClicked(event) {
     setSelectedEvent(event);
     setIsOpen(true);
-    // move kb focus to the sidepanel
+    // move kb focus to the sidepanel for a11y
     const sidepanel = document.getElementById("glos_sidepanel");
     sidepanel?.focus();
   }
@@ -361,59 +218,101 @@ const EventGlossary = () => {
           />
         </div>
 
-        <table className={classes.table}>
-          <tbody>
-            <tr className={classes.tableRow}>
-              <th
-                className={classNames(classes.tableValue, classes.tableHeader)}
-              >
-                Event Name
-              </th>
-              <th
-                className={classNames(classes.tableValue, classes.tableHeader)}
-              >
-                Event Description
-              </th>
-            </tr>
-            {events.map((event) => {
-              return (
-                <tr
-                  className={classNames(classes.tableRow, classes.rowHighlight)}
-                  key={event.name}
-                  tabIndex={0}
-                  aria-label={`${event.name}: ${event.description}`}
-                  role="button"
-                  onClick={() => rowClicked(event)}
-                  onKeyDown={(pressed) => {
-                    if (pressed.key === "Enter" || pressed.key === " ") {
-                      rowClicked(event);
-                    }
-                  }}
-                >
-                  <td
-                    className={classNames(
-                      classes.tableValue,
-                      classes.columnWidthLimit,
-                    )}
-                  >
-                    {event.name}
-                  </td>
-                  <td className={classes.tableValue}>{event.description}</td>
-                  <td>
-                    <span
+        {(() => {
+          // show loading state
+          if (networkState.virtualEventsAreLoading) {
+            return (
+              <div className={classes.loader}>
+                <CircularProgress color="inherit" />
+              </div>
+            );
+          }
+          // show err state
+          if (networkState.virtualEventsAreErroring) {
+            return (
+              <div className={classes.error}>
+                ERROR: Unable to fetch virtual events{" "}
+                {searchValue ? `for searched term "${searchValue}"` : ""}
+              </div>
+            );
+          }
+          if (team?.virtualEvents) {
+            // show the virtual events table
+            return (
+              <table className={classes.table}>
+                <tbody>
+                  <tr className={classes.tableRow}>
+                    <th
                       className={classNames(
-                        classes.hoverIcon,
                         classes.tableValue,
+                        classes.tableHeader,
                       )}
                     >
-                      <SidePanelIcon color="#363636" />
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                      Event Name
+                    </th>
+                    <th
+                      className={classNames(
+                        classes.tableValue,
+                        classes.tableHeader,
+                      )}
+                    >
+                      Event Description
+                    </th>
+                  </tr>
+                  {team.virtualEvents.map((event) => {
+                    return (
+                      <tr
+                        className={classNames(
+                          classes.tableRow,
+                          classes.rowHighlight,
+                        )}
+                        key={event.readable_name}
+                        tabIndex={0}
+                        aria-label={`${event.readable_name}: ${event.description}`}
+                        role="button"
+                        onClick={() => rowClicked(event)}
+                        onKeyDown={(pressed) => {
+                          if (pressed.key === "Enter" || pressed.key === " ") {
+                            rowClicked(event);
+                          }
+                        }}
+                      >
+                        <td
+                          className={classNames(
+                            classes.tableValue,
+                            classes.columnWidthLimit,
+                          )}
+                        >
+                          {event.readable_name}
+                        </td>
+                        <td className={classes.tableValue}>
+                          {event.description}
+                        </td>
+                        <td>
+                          <span
+                            className={classNames(
+                              classes.hoverIcon,
+                              classes.tableValue,
+                            )}
+                          >
+                            <SidePanelIcon color="#363636" />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            );
+          } else {
+            // not loading/erroring and no events found
+            return (
+              <div className={classes.noEventsHeader}>
+                <h2>No virtual events found</h2>
+              </div>
+            );
+          }
+        })()}
       </div>
 
       {/* side panel */}
@@ -424,7 +323,7 @@ const EventGlossary = () => {
         >
           <CloseIcon stroke="#363636" />
         </button>
-        <h1 className={classes.panelTitle}>{selectedEvent.name}</h1>
+        <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
         <p>{selectedEvent.description}</p>
         <div>
           {selectedEvent.fields.map((field) => {

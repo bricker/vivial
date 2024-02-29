@@ -107,7 +107,7 @@ async def get_user() -> Response:
 
     return _make_response(eave_response)
 
-@app.route("/dashboard/virtual-events", methods=["POST"])
+@app.route("/dashboard/team/virtual-events", methods=["POST"])
 @_auth_handler
 async def get_virtual_events() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()

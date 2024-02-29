@@ -20,11 +20,16 @@ import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
  */
 
 /**
+ * @typedef {[Types.GlossaryNetworkState, React.Dispatch<React.SetStateAction<Types.GlossaryNetworkState>>]} GlossaryNetworkStateContext
+ */
+
+/**
  * @typedef {object} AppContextProps
  * @property {AuthModalContext} authModalCtx
  * @property {UserContext} userCtx
  * @property {TeamContext} teamCtx
  * @property {NetworkStateContext} dashboardNetworkStateCtx
+ * @property {GlossaryNetworkStateContext} glossaryNetworkStateCtx
  */
 
 /**
@@ -66,12 +71,19 @@ const AppContextProvider = ({ children }) => {
     apiDocsRequestHasSucceededAtLeastOnce: false,
   });
 
+  /** @type {GlossaryNetworkStateContext} */
+  const glossaryNetworkStateCtx = useState({
+    virtualEventsAreErroring: false,
+    virtualEventsAreLoading: true,
+  })
+
   /** @type {AppContextProps} */
   const ctx = {
     authModalCtx,
     userCtx,
     teamCtx,
     dashboardNetworkStateCtx,
+    glossaryNetworkStateCtx,
   };
 
   return <AppContext.Provider value={ctx}>{children}</AppContext.Provider>;
