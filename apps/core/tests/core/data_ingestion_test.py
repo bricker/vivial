@@ -1,11 +1,8 @@
 import http
 import time
-from typing import cast
 
-import clickhouse_connect
 from google.cloud import bigquery
 from eave.core.internal.bigquery.types import BigQueryTableHandle
-from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.monitoring.datastructures import (
     DataIngestRequestBody,
@@ -19,6 +16,7 @@ from .base import BaseTestCase
 from eave.core.internal.bigquery import bq_client
 
 client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
+
 
 class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
     async def asyncSetUp(self) -> None:
@@ -48,7 +46,6 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
             delete_contents=True,
             not_found_ok=True,
         )
-
 
     def _bq_team_dataset_exists(self) -> bool:
         handle = BigQueryTableHandle(team_id=self._team.id)
@@ -151,6 +148,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         assert response.status_code == http.HTTPStatus.OK
         assert self._bq_team_dataset_exists()
         assert self._bq_table_exists("dbchanges")
+
 
 # class TestDataIngestionEndpointWithClickhouse(BaseTestCase):
 #     async def asyncSetUp(self) -> None:

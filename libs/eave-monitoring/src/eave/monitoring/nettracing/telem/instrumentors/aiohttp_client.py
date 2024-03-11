@@ -38,9 +38,7 @@ from opentelemetry.trace.status import Status, StatusCode
 from opentelemetry.util.http import remove_url_credentials
 
 _UrlFilterT = typing.Optional[typing.Callable[[yarl.URL], str]]
-_RequestHookT = typing.Optional[
-    typing.Callable[[Span, aiohttp.TraceRequestStartParams], None]
-]
+_RequestHookT = typing.Optional[typing.Callable[[Span, aiohttp.TraceRequestStartParams], None]]
 _ResponseHookT = typing.Optional[
     typing.Callable[
         [
@@ -123,7 +121,7 @@ def create_trace_config(
         span_attributes = {
             SpanAttributes.HTTP_METHOD: http_method,
             SpanAttributes.HTTP_URL: request_url,
-            'http.request.body': [],
+            "http.request.body": [],
         }
 
         trace_config_ctx.span = trace_config_ctx.tracer.start_span(
@@ -133,9 +131,7 @@ def create_trace_config(
         if callable(request_hook):
             request_hook(trace_config_ctx.span, params)
 
-        trace_config_ctx.token = context_api.attach(
-            trace.set_span_in_context(trace_config_ctx.span)
-        )
+        trace_config_ctx.token = context_api.attach(trace.set_span_in_context(trace_config_ctx.span))
 
         inject(params.headers)
 
@@ -151,17 +147,11 @@ def create_trace_config(
             response_hook(trace_config_ctx.span, params)
 
         if trace_config_ctx.span.is_recording():
-            trace_config_ctx.span.set_status(
-                Status(http_status_to_status_code(int(params.response.status)))
-            )
-            trace_config_ctx.span.set_attribute(
-                SpanAttributes.HTTP_STATUS_CODE, params.response.status
-            )
+            trace_config_ctx.span.set_status(Status(http_status_to_status_code(int(params.response.status))))
+            trace_config_ctx.span.set_attribute(SpanAttributes.HTTP_STATUS_CODE, params.response.status)
             # NOTE: manually added
             # TODO: catch UnicodeDecodeError if resp.text() isnt unicode decodable
-            trace_config_ctx.span.set_attribute(
-                'http.response.body', (await params.response.text())[:100]
-            )
+            trace_config_ctx.span.set_attribute("http.response.body", (await params.response.text())[:100])
         _end_trace(trace_config_ctx)
 
     def get_chunk_handler():
@@ -172,17 +162,16 @@ def create_trace_config(
         ):
             if trace_config_ctx.span is None:
                 return
-            
+
             # build up chunks of body
             if trace_config_ctx.span.is_recording():
                 curr_body = params.chunk
                 if "curr_body" in on_request_chunk_sent.__dict__:
                     curr_body = on_request_chunk_sent.curr_body + params.chunk
 
-                trace_config_ctx.span.set_attribute(
-                    'http.request.body', curr_body.decode('utf-8') #TODO: try/catch
-                )
+                trace_config_ctx.span.set_attribute("http.request.body", curr_body.decode("utf-8"))  # TODO: try/catch
                 on_request_chunk_sent.curr_body = curr_body
+
         return on_request_chunk_sent
 
     async def on_request_exception(
@@ -204,13 +193,9 @@ def create_trace_config(
 
     def _trace_config_ctx_factory(**kwargs):
         kwargs.setdefault("trace_request_ctx", {})
-        return types.SimpleNamespace(
-            tracer=tracer, url_filter=url_filter, **kwargs
-        )
+        return types.SimpleNamespace(tracer=tracer, url_filter=url_filter, **kwargs)
 
-    trace_config = aiohttp.TraceConfig(
-        trace_config_ctx_factory=_trace_config_ctx_factory
-    )
+    trace_config = aiohttp.TraceConfig(trace_config_ctx_factory=_trace_config_ctx_factory)
 
     trace_config.on_request_start.append(on_request_start)
     trace_config.on_request_end.append(on_request_end)
@@ -225,9 +210,7 @@ def _instrument(
     url_filter: _UrlFilterT = None,
     request_hook: _RequestHookT = None,
     response_hook: _ResponseHookT = None,
-    trace_configs: typing.Optional[
-        typing.Sequence[aiohttp.TraceConfig]
-    ] = None,
+    trace_configs: typing.Optional[typing.Sequence[aiohttp.TraceConfig]] = None,
 ):
     """Enables tracing of all ClientSessions
 
@@ -254,9 +237,7 @@ def _instrument(
         kwargs["trace_configs"] = client_trace_configs
         return wrapped(*args, **kwargs)
 
-    wrapt.wrap_function_wrapper(
-        aiohttp.ClientSession, "__init__", instrumented_init
-    )
+    wrapt.wrap_function_wrapper(aiohttp.ClientSession, "__init__", instrumented_init)
 
 
 def _uninstrument():
@@ -269,9 +250,7 @@ def _uninstrument_session(client_session: aiohttp.ClientSession):
     # pylint: disable=protected-access
     trace_configs = client_session._trace_configs
     client_session._trace_configs = [
-        trace_config
-        for trace_config in trace_configs
-        if not hasattr(trace_config, "_is_instrumented_by_opentelemetry")
+        trace_config for trace_config in trace_configs if not hasattr(trace_config, "_is_instrumented_by_opentelemetry")
     ]
 
 

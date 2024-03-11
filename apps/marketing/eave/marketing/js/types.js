@@ -103,12 +103,11 @@
  * @property {string[]} [languages]
  */
 
-/** 
+/**
  * @typedef {object} VirtualEvent
  * @property {string} name
  * @property {string} description
  * @property {string[]} fields
  */
-
 
 export const Types = {};

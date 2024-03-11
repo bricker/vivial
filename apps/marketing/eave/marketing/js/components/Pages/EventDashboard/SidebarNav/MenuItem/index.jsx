@@ -19,7 +19,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     gap: 12,
     fontSize: 24,
     padding: "24px 30px",
-    border: 'none',
+    border: "none",
     "&:hover": {
       backgroundColor: "#0d81d988",
       cursor: "pointer",

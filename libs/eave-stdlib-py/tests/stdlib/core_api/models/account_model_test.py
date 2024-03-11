@@ -12,6 +12,3 @@ class CoreApiAccountModelTest(UtilityBaseTestCase):
         """
 
         assert AuthProvider.google == "google"
-        assert AuthProvider.slack == "slack"
-        assert AuthProvider.atlassian == "atlassian"
-        assert AuthProvider.github == "github"
