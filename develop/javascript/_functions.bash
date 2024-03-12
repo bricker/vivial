@@ -1,6 +1,7 @@
 if test -z "${_NVM_LOADED:-}"; then
 	_nvm_dir="${NVM_DIR:-$XDG_CONFIG_HOME/nvm}"
-	[ -s "$_nvm_dir/nvm.sh" ] && \. "$_nvm_dir/nvm.sh"  # This loads nvm
+	# load nvm (or-ed with true to force non-error return value)
+	([ -s "$_nvm_dir/nvm.sh" ] && \. "$_nvm_dir/nvm.sh") || true
 	_NVM_LOADED=1
 fi
 
