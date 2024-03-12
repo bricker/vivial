@@ -5,17 +5,19 @@ from google.cloud.bigquery import Dataset, SchemaField, Table
 from google.cloud.bigquery.table import RowIterator
 
 from eave.core.internal.bigquery import bq_client
-from eave.stdlib.config import SHARED_CONFIG
+
 
 class BigQueryFieldMode(StrEnum):
     REQUIRED = "REQUIRED"
     NULLABLE = "NULLABLE"
     REPEATED = "REPEATED"
 
+
 @dataclass
 class BigQueryTableDefinition:
     name: str
     schema: list[SchemaField]
+
 
 class BigQueryTableHandle:
     table: BigQueryTableDefinition
@@ -35,8 +37,6 @@ class BigQueryTableHandle:
         table = bq_client.get_table(dataset_name=self.dataset_name, table_name=self.table.name)
         return table
 
-    async def insert(self, events: list[str]) -> None:
-        ...
+    async def insert(self, events: list[str]) -> None: ...
 
-    async def query(self, query: str) -> RowIterator:
-        ...
+    async def query(self, query: str) -> RowIterator: ...

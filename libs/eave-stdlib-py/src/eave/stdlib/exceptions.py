@@ -140,14 +140,6 @@ class OpenAIDataError(Exception):
     pass
 
 
-class SlackDataError(Exception):
-    pass
-
-
-class ConfluenceDataError(Exception):
-    pass
-
-
 class SecretRetrievalError(Exception):
     pass
 

@@ -1,7 +1,7 @@
 import typing
 
 import starlette.types
-from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
+import asgiref.typing
 from starlette._utils import is_async_callable
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
@@ -14,7 +14,12 @@ class HTTPEndpoint:
     Copy of starlette's HTTPEndpoint, but with better typing.
     """
 
-    def __init__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+    def __init__(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         assert scope["type"] == "http", "only http type supported"
         self.scope = scope
         self.receive = receive

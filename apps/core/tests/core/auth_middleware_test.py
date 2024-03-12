@@ -1,6 +1,5 @@
-import unittest.mock
-
 from http import HTTPStatus
+import unittest.mock
 from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 
 from eave.core.internal.orm.account import AccountOrm
@@ -37,7 +36,10 @@ class TestAuthenticationMiddlewareBase(BaseTestCase):
             verified_email=True,
         )
 
-        self._get_userinfo_mock = self.patch(patch=unittest.mock.patch("eave.core.internal.oauth.google.get_userinfo"))
+        self.patch(
+            name="google_get_userinfo",
+            patch=unittest.mock.patch("eave.core.internal.oauth.google.get_userinfo"),
+        )
 
     def _mock_get_userinfo_token_refreshed(
         self, credentials: google.oauth2.credentials.Credentials
@@ -158,7 +160,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.getstr("current_token")
 
     async def test_access_token_not_refreshed(self) -> None:
-        self._get_userinfo_mock.side_effect = self._mock_get_userinfo_token_not_refreshed
+        self.get_mock("google_get_userinfo").side_effect = self._mock_get_userinfo_token_not_refreshed
 
         response = await self.make_request(
             path="/me/query",
@@ -175,7 +177,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         assert eave_account.access_token == self.getstr("account.oauth_token")
 
     async def test_access_token_refreshed(self) -> None:
-        self._get_userinfo_mock.side_effect = self._mock_get_userinfo_token_refreshed
+        self.get_mock("google_get_userinfo").side_effect = self._mock_get_userinfo_token_refreshed
 
         response = await self.make_request(
             path="/me/query",

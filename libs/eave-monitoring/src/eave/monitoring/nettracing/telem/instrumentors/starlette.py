@@ -45,7 +45,7 @@ from opentelemetry.instrumentation.utils import (
 )
 from opentelemetry.propagators.textmap import Getter, Setter
 from opentelemetry.semconv.metrics import MetricInstruments
-from opentelemetry.trace import Span, set_span_in_context
+from opentelemetry.trace import set_span_in_context
 from opentelemetry.trace.status import Status, StatusCode
 from opentelemetry.util.http import (
     OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SANITIZE_FIELDS,
@@ -373,7 +373,7 @@ class EaveASGIMiddleware:
             attributes=attributes,
         )
         active_requests_count_attrs = _parse_active_request_count_attrs(attributes)
-        duration_attrs = _parse_duration_attrs(attributes)        
+        duration_attrs = _parse_duration_attrs(attributes)
 
         if scope["type"] == "http":
             self.active_requests_counter.add(1, active_requests_count_attrs)
@@ -384,8 +384,8 @@ class EaveASGIMiddleware:
                 if current_span.is_recording():
                     # NOTE: i added this chunk
                     request = Request(scope=scope, receive=receive)
-                    req_body = (await request.body()).decode('utf-8') # TODO: try/catch encoding
-                    current_span.set_attribute('http.request.body', req_body)
+                    req_body = (await request.body()).decode("utf-8")  # TODO: try/catch encoding
+                    current_span.set_attribute("http.request.body", req_body)
 
                     for key, value in attributes.items():
                         current_span.set_attribute(key, value)
@@ -414,9 +414,7 @@ class EaveASGIMiddleware:
                 if response is not None:
                     print(response)
                     resp_body = await response.body()
-                    current_span.add_event(
-                        'http.response.body', resp_body
-                    )
+                    current_span.add_event("http.response.body", resp_body)
         finally:
             if scope["type"] == "http":
                 target = _collect_target_attribute(scope)

@@ -82,7 +82,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
         google_token = eave.core.internal.oauth.google.decode_id_token(id_token=credentials.id_token)
         eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else shared.DEFAULT_TEAM_NAME
 
-        account = await shared.get_or_create_eave_account(
+        await shared.get_or_create_eave_account(
             request=self.request,
             response=self.response,
             eave_team_name=eave_team_name,
@@ -91,10 +91,6 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             auth_id=google_token.sub,
             access_token=credentials.token,
             refresh_token=credentials.refresh_token,
-        )
-
-        await shared.try_associate_account_with_dangling_github_installation(
-            request=self.request, response=self.response, team_id=account.team_id
         )
 
         return self.response

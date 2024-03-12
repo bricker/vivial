@@ -1,5 +1,4 @@
 import json
-import re
 from textwrap import dedent
 from typing import override
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
@@ -7,7 +6,7 @@ from google.cloud.bigquery.table import RowIterator
 
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
-from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
+from eave.monitoring.datastructures import DatabaseChangeEventPayload
 from eave.core.internal import database
 from eave.core.internal.bigquery import bq_client
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
@@ -62,7 +61,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
                 params=VirtualEventOrm.QueryParams(
                     team_id=self.team_id,
                     view_name=vevent_view_name,
-                )
+                ),
             )
 
             if not vevent_query.one_or_none():
@@ -96,8 +95,6 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
                     readable_name=vevent_readable_name,
                     description=f"{operation} operation on the {source_table} table.",
                 )
-
-
 
     @override
     async def insert(self, events: list[str]) -> None:

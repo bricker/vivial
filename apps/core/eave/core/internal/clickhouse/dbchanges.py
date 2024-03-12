@@ -1,6 +1,5 @@
 from datetime import datetime
 import json
-import re
 from textwrap import dedent
 from typing import Any, override
 from clickhouse_connect.datatypes.base import EMPTY_TYPE_DEF, TypeDef
@@ -16,7 +15,7 @@ from eave.core.internal.clickhouse import clickhouse_client
 from eave.core.internal.clickhouse.types import ClickHouseTableDefinition, ClickHouseTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
-from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
+from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
 
 
 table_definition = ClickHouseTableDefinition(

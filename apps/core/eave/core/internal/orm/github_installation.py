@@ -4,11 +4,11 @@ from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import Index, Select, func, select, delete
+from sqlalchemy import Select, func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.github import GithubInstallation, GithubInstallationPeek
+from eave.stdlib.core_api.models.github_installation import GithubInstallation, GithubInstallationPeek
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_fk
@@ -16,17 +16,9 @@ from .util import UUID_DEFAULT_EXPR, make_team_fk
 
 class GithubInstallationOrm(Base):
     __tablename__ = "github_installations"
-    __table_args__ = (
-        make_team_fk(),
-        Index(
-            "eave_team_id_github_install_id",
-            "team_id",
-            "github_install_id",
-            unique=True,
-        ),
-    )
+    __table_args__ = (make_team_fk(),)
 
-    team_id: Mapped[Optional[UUID]] = mapped_column()
+    team_id: Mapped[Optional[UUID]] = mapped_column(nullable=True)
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, unique=True, primary_key=True)
     github_install_id: Mapped[str] = mapped_column(unique=True)
     github_owner_login: Mapped[str] = mapped_column(nullable=True)
@@ -77,8 +69,13 @@ class GithubInstallationOrm(Base):
         id: Optional[uuid.UUID] = None
         github_install_id: Optional[str] = None
 
+        def validate_or_exception(self):
+            assert self.team_id or self.id or self.github_install_id, "At least one query parameter must be given"
+
     @classmethod
     def _build_select(cls, params: QueryParams) -> Select[Tuple[Self]]:
+        params.validate_or_exception()
+
         lookup = select(cls)
 
         if params.team_id:
