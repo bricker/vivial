@@ -18,7 +18,6 @@ from starlette.responses import RedirectResponse, Response
 
 from eave.core.internal import database
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.request_state import EaveRequestState
 
@@ -142,10 +141,6 @@ class GithubOAuthCallback(HTTPEndpoint):
         try:
             await self._maybe_set_account_data(auth_cookies)
             await self._update_or_create_github_installation()
-            # dont link github repos to our db until we know what team to associate them w/
-            if self._request_logged_in():
-                assert self.eave_team  # make types happy
-                await shared.sync_github_repos(team_id=self.eave_team.id, ctx=self.eave_state.ctx)
         except Exception as e:
             if shared.is_error_response(self.response):
                 return self.response
@@ -202,7 +197,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
                 # only set state cookie for installations that wont have a team_id set
                 if not self._request_logged_in():
-                    state = shared.generate_and_set_state_cookie(
+                    state = shared.set_github_installation_state_cookie(
                         response=self.response, installation_id=self.installation_id
                     )
 
@@ -223,7 +218,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                         eave_account=self.eave_account.analytics_model if self.eave_account else None,
                         eave_team=self.eave_team.analytics_model if self.eave_team else None,
                         opaque_params={
-                            "integration_name": Integration.github.value,
+                            "integration_name": "github",
                         },
                         ctx=self.eave_state.ctx,
                     )
@@ -233,7 +228,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                         event_description="An app was registered, but has no linked team",
                         event_source="core api github app install",
                         opaque_params={
-                            "integration_name": Integration.github.value,
+                            "integration_name": "github",
                             "installation_id": self.installation_id,
                         },
                         ctx=self.eave_state.ctx,
@@ -249,7 +244,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     event_source="core api github oauth",
                     eave_account=self.eave_account.analytics_model,
                     eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                    opaque_params={"integration": Integration.github},
+                    opaque_params={"integration": "github"},
                     ctx=self.eave_state.ctx,
                 )
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
@@ -262,7 +257,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     eave_account=self.eave_account.analytics_model if self.eave_account else None,
                     eave_team=self.eave_team.analytics_model if self.eave_team else None,
                     opaque_params={
-                        "integration_name": Integration.github.value,
+                        "integration_name": "github",
                     },
                     ctx=self.eave_state.ctx,
                 )

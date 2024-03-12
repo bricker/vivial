@@ -58,7 +58,6 @@ const useTeam = () => {
               ...prev,
               id: data.team?.id,
               name: data.team?.name,
-              integrations: data.integrations,
             }));
 
             setDashboardNetworkState((prev) => ({
@@ -113,15 +112,8 @@ const useTeam = () => {
             setTeam((prev) => ({
               ...prev,
               repos: data.repos,
-              inlineCodeDocsEnabled: data.repos.some(
-                (repo) =>
-                  repo.inline_code_documentation_state ===
-                  FEATURE_STATES.ENABLED,
-              ),
-              apiDocsEnabled: data.repos.some(
-                (repo) =>
-                  repo.api_documentation_state === FEATURE_STATES.ENABLED,
-              ),
+              inlineCodeDocsEnabled: data.repos.some((_repo) => false),
+              apiDocsEnabled: data.repos.some((_repo) => false),
             }));
 
             setDashboardNetworkState((prev) => ({

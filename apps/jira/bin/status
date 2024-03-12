@@ -1,5 +1,0 @@
-#!/usr/bin/env -S bash -eu
-
-source "${EAVE_HOME}"/develop/functions.bash
-
-"${EAVE_HOME}"/develop/shared/bin/status "https://apps.eave.${1:-fyi}/jira/status"

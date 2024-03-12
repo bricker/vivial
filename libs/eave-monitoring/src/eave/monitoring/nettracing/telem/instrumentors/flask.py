@@ -84,17 +84,12 @@ def _rewrapped_app(
         wrapped_app_environ[_ENVIRON_STARTTIME_KEY] = time_ns()
         start = default_timer()
         attributes = otel_wsgi.collect_request_attributes(wrapped_app_environ)
-        active_requests_count_attrs = (
-            otel_wsgi._parse_active_request_count_attrs(attributes)
-        )
+        active_requests_count_attrs = otel_wsgi._parse_active_request_count_attrs(attributes)
         duration_attrs = otel_wsgi._parse_duration_attrs(attributes)
         active_requests_counter.add(1, active_requests_count_attrs)
 
         def _start_response(status, response_headers, *args, **kwargs):
-            if flask.request and (
-                excluded_urls is None
-                or not excluded_urls.url_disabled(flask.request.url)
-            ):
+            if flask.request and (excluded_urls is None or not excluded_urls.url_disabled(flask.request.url)):
                 span = flask.request.environ.get(_ENVIRON_SPAN_KEY)
 
                 propagator = get_global_response_propagator()
@@ -105,27 +100,17 @@ def _rewrapped_app(
                     )
 
                 if span:
-                    otel_wsgi.add_response_attributes(
-                        span, status, response_headers
-                    )
+                    otel_wsgi.add_response_attributes(span, status, response_headers)
                     status_code = otel_wsgi._parse_status_code(status)
                     if status_code is not None:
-                        duration_attrs[
-                            SpanAttributes.HTTP_STATUS_CODE
-                        ] = status_code
-                    if (
-                        span.is_recording()
-                        and span.kind == trace.SpanKind.SERVER
-                    ):
-                        custom_attributes = otel_wsgi.collect_custom_response_headers_attributes(
-                            response_headers
-                        )
+                        duration_attrs[SpanAttributes.HTTP_STATUS_CODE] = status_code
+                    if span.is_recording() and span.kind == trace.SpanKind.SERVER:
+                        custom_attributes = otel_wsgi.collect_custom_response_headers_attributes(response_headers)
                         if len(custom_attributes) > 0:
                             span.set_attributes(custom_attributes)
                 else:
                     _logger.warning(
-                        "Flask environ's OpenTelemetry span "
-                        "missing at _start_response(%s)",
+                        "Flask environ's OpenTelemetry span " "missing at _start_response(%s)",
                         status,
                     )
                 if response_hook is not None:
@@ -154,9 +139,7 @@ def _wrapped_before_request(
         flask_request_environ = flask.request.environ
         span_name = get_default_span_name()
 
-        attributes = otel_wsgi.collect_request_attributes(
-            flask_request_environ
-        )
+        attributes = otel_wsgi.collect_request_attributes(flask_request_environ)
         if flask.request.url_rule:
             # For 404 that result from no route found, etc, we
             # don't have a url_rule.
@@ -176,18 +159,12 @@ def _wrapped_before_request(
         if span.is_recording():
             # NOTE: added
             req_body = flask.request.json if flask.request.is_json else flask.request.values
-            span.set_attribute(
-                'http.request.body', str(req_body)
-            )
+            span.set_attribute("http.request.body", str(req_body))
 
             for key, value in attributes.items():
                 span.set_attribute(key, value)
             if span.is_recording() and span.kind == trace.SpanKind.SERVER:
-                custom_attributes = (
-                    otel_wsgi.collect_custom_request_headers_attributes(
-                        flask_request_environ
-                    )
-                )
+                custom_attributes = otel_wsgi.collect_custom_request_headers_attributes(flask_request_environ)
                 if len(custom_attributes) > 0:
                     span.set_attributes(custom_attributes)
 
@@ -206,20 +183,11 @@ def _wrapped_before_request(
             if flask and flask.request:
                 if commenter_options.get("framework", True):
                     flask_info["framework"] = f"flask:{flask.__version__}"
-                if (
-                    commenter_options.get("controller", True)
-                    and flask.request.endpoint
-                ):
+                if commenter_options.get("controller", True) and flask.request.endpoint:
                     flask_info["controller"] = flask.request.endpoint
-                if (
-                    commenter_options.get("route", True)
-                    and flask.request.url_rule
-                    and flask.request.url_rule.rule
-                ):
+                if commenter_options.get("route", True) and flask.request.url_rule and flask.request.url_rule.rule:
                     flask_info["route"] = flask.request.url_rule.rule
-            sqlcommenter_context = context.set_value(
-                "SQLCOMMENTER_ORM_TAGS_AND_VALUES", flask_info, current_context
-            )
+            sqlcommenter_context = context.set_value("SQLCOMMENTER_ORM_TAGS_AND_VALUES", flask_info, current_context)
             context.attach(sqlcommenter_context)
 
     return _before_request
@@ -235,9 +203,7 @@ def _wrapped_teardown_request(
 
         activation = flask.request.environ.get(_ENVIRON_ACTIVATION_KEY)
 
-        original_reqctx_ref = flask.request.environ.get(
-            _ENVIRON_REQCTX_REF_KEY
-        )
+        original_reqctx_ref = flask.request.environ.get(_ENVIRON_REQCTX_REF_KEY)
         current_reqctx_ref = _request_ctx_ref()
         if not activation or original_reqctx_ref != current_reqctx_ref:
             # This request didn't start a span, maybe because it was created in
@@ -254,27 +220,25 @@ def _wrapped_teardown_request(
         if exc is None:
             activation.__exit__(None, None, None)
         else:
-            activation.__exit__(
-                type(exc), exc, getattr(exc, "__traceback__", None)
-            )
+            activation.__exit__(type(exc), exc, getattr(exc, "__traceback__", None))
 
         if flask.request.environ.get(_ENVIRON_TOKEN, None):
             context.detach(flask.request.environ.get(_ENVIRON_TOKEN))
 
     return _teardown_request
 
+
 # NOTE: added
 def _wrapped_after_request(response):
-    if flask.request: # and (
-    #     excluded_urls is None
-    #     or not excluded_urls.url_disabled(flask.request.url)
-    # ):
+    if flask.request:  # and (
+        #     excluded_urls is None
+        #     or not excluded_urls.url_disabled(flask.request.url)
+        # ):
         if span := flask.request.environ.get(_ENVIRON_SPAN_KEY):
             resp_body = str(response.get_data(as_text=True))
-            span.set_attribute(
-                'http.response.body', resp_body
-            )
+            span.set_attribute("http.response.body", resp_body)
     return response
+
 
 class _InstrumentedFlask(flask.Flask):
     _excluded_urls = None
@@ -361,9 +325,7 @@ class FlaskInstrumentor(BaseInstrumentor):
         _InstrumentedFlask._tracer_provider = tracer_provider
         excluded_urls = kwargs.get("excluded_urls")
         _InstrumentedFlask._excluded_urls = (
-            _excluded_urls_from_env
-            if excluded_urls is None
-            else parse_excluded_urls(excluded_urls)
+            _excluded_urls_from_env if excluded_urls is None else parse_excluded_urls(excluded_urls)
         )
         enable_commenter = kwargs.get("enable_commenter", True)
         _InstrumentedFlask._enable_commenter = enable_commenter
@@ -392,11 +354,7 @@ class FlaskInstrumentor(BaseInstrumentor):
             app._is_instrumented_by_opentelemetry = False
 
         if not app._is_instrumented_by_opentelemetry:
-            excluded_urls = (
-                parse_excluded_urls(excluded_urls)
-                if excluded_urls is not None
-                else _excluded_urls_from_env
-            )
+            excluded_urls = parse_excluded_urls(excluded_urls) if excluded_urls is not None else _excluded_urls_from_env
             meter = get_meter(
                 __name__,
                 __version__,
@@ -435,9 +393,7 @@ class FlaskInstrumentor(BaseInstrumentor):
                 tracer,
                 excluded_urls=excluded_urls,
                 enable_commenter=enable_commenter,
-                commenter_options=commenter_options
-                if commenter_options
-                else {},
+                commenter_options=commenter_options if commenter_options else {},
             )
             app._before_request = _before_request
             app.before_request(_before_request)
@@ -452,9 +408,7 @@ class FlaskInstrumentor(BaseInstrumentor):
             app.teardown_request(_teardown_request)
             app._is_instrumented_by_opentelemetry = True
         else:
-            _logger.warning(
-                "Attempting to instrument Flask app while already instrumented"
-            )
+            _logger.warning("Attempting to instrument Flask app while already instrumented")
 
     @staticmethod
     def uninstrument_app(app):
@@ -467,7 +421,4 @@ class FlaskInstrumentor(BaseInstrumentor):
             del app._original_wsgi_app
             app._is_instrumented_by_opentelemetry = False
         else:
-            _logger.warning(
-                "Attempting to uninstrument Flask "
-                "app while already uninstrumented"
-            )
+            _logger.warning("Attempting to uninstrument Flask " "app while already uninstrumented")

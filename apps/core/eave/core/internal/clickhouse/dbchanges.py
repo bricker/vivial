@@ -1,6 +1,5 @@
 from datetime import datetime
 import json
-import re
 from textwrap import dedent
 from typing import Any, override
 from clickhouse_connect.datatypes.base import EMPTY_TYPE_DEF, TypeDef
@@ -14,8 +13,9 @@ from clickhouse_connect.driver.query import QueryResult
 from eave.core.internal import database
 from eave.core.internal.clickhouse import clickhouse_client
 from eave.core.internal.clickhouse.types import ClickHouseTableDefinition, ClickHouseTableHandle
-from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.monitoring.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
+from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
 
 
 table_definition = ClickHouseTableDefinition(
@@ -40,23 +40,29 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
     table = table_definition
 
     async def create_vevent_view(self, *, operation: str, source_table: str) -> None:
-        vevent_name = _make_virtual_event_name(operation=operation, table_name=source_table)
-        vevent_view_name = vevent_name.replace(" ", "_").lower()
+        vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
+        vevent_view_name = tableize(vevent_readable_name)
 
         clickhouse_client.chclient.command(
             dedent(
-                f"""
-                CREATE VIEW IF NOT EXISTS {self.database}.{vevent_view_name} AS
+                """
+                CREATE VIEW IF NOT EXISTS {database}.{view_name} AS
                     SELECT
                         *
                     FROM
-                        {self.database}.{self.table.name}
+                        {database}.{table_name}
                     WHERE
-                        table_name='{source_table}'
-                        AND operation='{operation}'
+                        `table_name` = {source_table}
+                        AND `operation` = {operation}
                     ORDER BY
-                        timestamp ASC
-                """
+                        `timestamp` ASC
+                """.format(
+                    database=sql_sanitized_identifier(self.database),
+                    view_name=sql_sanitized_identifier(vevent_view_name),
+                    table_name=sql_sanitized_identifier(self.table.name),
+                    source_table=sql_sanitized_literal(source_table),
+                    operation=sql_sanitized_literal(operation),
+                )
             ).strip(),
         )
 
@@ -68,7 +74,7 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
                     session=db_session,
                     team_id=self.team_id,
                     view_name=vevent_view_name,
-                    name=vevent_name,
+                    readable_name=vevent_readable_name,
                     description=f"{operation} operation on the {source_table} table.",
                 )
 
@@ -124,50 +130,3 @@ class DatabaseChangesTableHandle(ClickHouseTableHandle):
 
         # This effectively puts the values in the right order.
         return [d[c.name] for c in self.table.columns]
-
-
-def _make_virtual_event_name(*, operation: str, table_name: str) -> str:
-    """
-    >>> _make_virtual_event_name(operation="INSERT", table_name="accounts")
-    'Account Created'
-    >>> _make_virtual_event_name(operation="UPDATE", table_name="github_installations")
-    'Github Installation Updated'
-    >>> _make_virtual_event_name(operation="DELETE", table_name="UserAccounts")
-    'User Account Deleted'
-    """
-    op_hr = DatabaseChangeOperation(value=operation.upper()).hr_past_tense
-    obj_hr = _hr_table_name(table_name)
-    return f"{obj_hr} {op_hr}"
-
-
-def _hr_table_name(table_name: str) -> str:
-    """
-    >>> _hr_table_name("accounts")
-    'Account'
-    >>> _hr_table_name("GithubInstallations")
-    'Github Installation'
-    >>> _hr_table_name("github_installations")
-    'Github Installation'
-    >>> _hr_table_name("GitHub_Installations")
-    'Git Hub Installation'
-    """
-
-    # split on underscores
-    p0 = table_name.split("_")
-
-    parts: list[str] = []
-
-    for a in p0:
-        p1: list[str] = re.findall("[A-Z][^A-Z]*", a)
-        if len(p1) > 0:
-            parts.extend(p1)
-        else:
-            parts.append(a)
-
-    if len(parts) == 0:
-        return "UNKNOWN"
-
-    # An incorrect way to singularize a word:
-    parts[-1] = parts[-1].rstrip("s")
-    parts = [a.capitalize() for a in parts]
-    return " ".join(parts)

@@ -1,4 +1,5 @@
-from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, HTTPScope, Scope
+import asgiref.typing
+import starlette.types
 from eave.stdlib.core_api.operations import EndpointConfiguration
 
 
@@ -24,11 +25,16 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
     endpoint_config: EndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration):
+    def __init__(self, app: starlette.types.ASGIApp, endpoint_config: EndpointConfiguration):
         super().__init__(app=app)
         self.endpoint_config = endpoint_config
 
-    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+    async def run(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -51,7 +57,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
         await self.app(scope, receive, send)
 
-    def _do_signature_verification(self, scope: HTTPScope, body: bytes) -> None:
+    def _do_signature_verification(self, scope: asgiref.typing.HTTPScope, body: bytes) -> None:
         eave_state = EaveRequestState.load(scope=scope)
 
         signature = get_header_value(scope=scope, name=EAVE_SIGNATURE_HEADER)
