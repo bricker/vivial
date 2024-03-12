@@ -22,15 +22,14 @@ function setup() (
 	eavepwd=$(^eavepwd)
 	statusmsg -on "Setting up python in $eavepwd..."
 
-	if test -f requirements.txt; then
-		# shellcheck disable=SC2086
-		python -m pip install $qflag $piploc -r requirements.txt
-	fi
-
-	if test -f requirements-dev.txt; then
-		# shellcheck disable=SC2086
-		python -m pip install $qflag $piploc -r requirements-dev.txt
-	fi
+	shopt -s nullglob
+	for rf in requirements*.txt; do
+		if ! test "$rf" = requirements-vendor.txt; then
+			# shellcheck disable=SC2086
+			python -m pip install $qflag $piploc -r "$rf"
+		fi
+	done
+	shopt -u nullglob
 
 	if test -f setup.cfg || test -f setup.py || test -f pyproject.toml; then
 		# shellcheck disable=SC2086

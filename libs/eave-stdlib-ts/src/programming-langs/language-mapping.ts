@@ -15,6 +15,7 @@ export enum ProgrammingLanguage {
   php = "php",
   swift = "swift",
   csharp = "csharp",
+  python = "python",
 }
 
 /**

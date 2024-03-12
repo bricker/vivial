@@ -1,4 +1,4 @@
-from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
+import asgiref.typing
 
 
 from .base import EaveASGIMiddleware
@@ -13,7 +13,12 @@ class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
     - the request is for a supported protocol
     """
 
-    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+    async def run(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         if scope["type"] not in ALLOWED_ASGI_PROTOCOLS:
             raise BadRequestError(f"Unsupported protocol: {scope['type']}")
 

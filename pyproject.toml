@@ -14,7 +14,6 @@ extraPaths=[
     "./libs/eave-monitoring/src",
     "./libs/eave-pubsub-schemas/python/src",
     "./apps/core",
-    "./apps/slack",
     "./apps/marketing",
     "./develop/python/src",
 ]

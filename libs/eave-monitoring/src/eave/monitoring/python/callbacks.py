@@ -29,9 +29,12 @@ _ignore_modules_set = _builtins_set | _stdlib_set | _common_noisy_modules_to_ign
 _primitive_types = (bool, str, int, float, date, datetime, type(None))
 
 
-def eave_tracer[
-    **P, R
-](config: EaveConfig) -> Callable[[Callable[Concatenate[EaveConfig, P], R],], Callable[P, R]]:
+def eave_tracer[**P, R](config: EaveConfig) -> Callable[
+    [
+        Callable[Concatenate[EaveConfig, P], R],
+    ],
+    Callable[P, R],
+]:
     def inner0(f: Callable[Concatenate[EaveConfig, P], R]) -> Callable[P, R]:
         @functools.wraps(f)
         def inner1(*args: P.args, **kwargs: P.kwargs) -> R:

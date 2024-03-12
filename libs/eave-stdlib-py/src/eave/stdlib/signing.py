@@ -59,26 +59,6 @@ _SIGNING_KEYS = {
         version="1",
         algorithm=SigningAlgorithm.ES256,
     ),
-    EaveApp.eave_slack_app.value: SigningKeyDetails(
-        id="eave-slack-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
-    EaveApp.eave_atlassian_app.value: SigningKeyDetails(
-        id="eave-atlassian-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
-    EaveApp.eave_jira_app.value: SigningKeyDetails(
-        id="eave-jira-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
-    EaveApp.eave_confluence_app.value: SigningKeyDetails(
-        id="eave-confluence-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
     # This is not currently used
     ExternalOrigin.github_api_client.value: SigningKeyDetails(

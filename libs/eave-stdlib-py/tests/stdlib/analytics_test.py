@@ -8,7 +8,7 @@ from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
 from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthProvider
-from eave.stdlib.core_api.models.team import AnalyticsTeam, DocumentPlatform
+from eave.stdlib.core_api.models.team import AnalyticsTeam
 import eave.stdlib.logging as _l
 from eave.stdlib.test_util import UtilityBaseTestCase
 
@@ -39,7 +39,6 @@ class AnalyticsTestBase(UtilityBaseTestCase):
         self.data_expected_topic_path = "projects/eavefyi-dev/topics/eave_event"
         self.data_team = AnalyticsTeam(
             id=self.anyuuid(),
-            document_platform=DocumentPlatform.confluence,
             name=self.anystr(),
         )
 
@@ -214,7 +213,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_publish_in_dev(self):
-        self.get_patch("env").stop()
+        self.get_patched_dict("env").stop()
 
         await analytics.log_event(
             event_name=self.anystr("event_name"),

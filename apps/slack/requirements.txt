@@ -1,6 +1,0 @@
-slack-bolt
-uvicorn[standard]
-gunicorn
-aiohttp
-starlette
-google-cloud-runtimeconfig # See https://github.com/googleapis/python-runtimeconfig/pull/184

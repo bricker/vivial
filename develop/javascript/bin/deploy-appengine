@@ -3,7 +3,6 @@
 source "${EAVE_HOME}"/develop/functions.bash
 
 function deploy() (
-	node-validate-version
 	node-activate-venv
 
 	local qflag="--quiet"

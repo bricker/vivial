@@ -82,7 +82,7 @@ class ClientCredentialsOrm(Base):
             lookup = lookup.where(cls.secret == params.secret)
 
         if params.scope_includes is not None:
-            lookup = lookup.where((cls.scope & params.scope_includes) > 0)
+            lookup = lookup.where(cls.scope.op("&")(params.scope_includes) > 0)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup

@@ -25,14 +25,6 @@ resource "google_app_engine_service_network_settings" "www" {
   }
 }
 
-resource "google_app_engine_service_network_settings" "slack" {
-  project = var.project_id
-  service = "slack"
-  network_settings {
-    ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
-  }
-}
-
 # __generated__ by Terraform from "api"
 resource "google_app_engine_service_network_settings" "api" {
   project = var.project_id
@@ -46,24 +38,6 @@ resource "google_app_engine_service_network_settings" "api" {
 resource "google_app_engine_service_network_settings" "github" {
   project = var.project_id
   service = "github"
-  network_settings {
-    ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
-  }
-}
-
-# __generated__ by Terraform from "confluence"
-resource "google_app_engine_service_network_settings" "confluence" {
-  project = var.project_id
-  service = "confluence"
-  network_settings {
-    ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
-  }
-}
-
-# __generated__ by Terraform from "jira"
-resource "google_app_engine_service_network_settings" "jira" {
-  project = var.project_id
-  service = "jira"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
   }

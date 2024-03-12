@@ -30,7 +30,6 @@ Now, start whichever services you need, and access them using the respective dom
 
 - `http://api.eave.localhost:8080` -> Core API
 - `http://www.eave.localhost:8080` -> Website
-- `http://apps.eave.localhost:8080/slack` -> Slack app
 - `http://apps.eave.localhost:8080/github` -> GitHub app
 
 This proxy serves three primary functions:

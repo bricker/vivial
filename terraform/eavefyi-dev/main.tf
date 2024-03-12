@@ -36,22 +36,22 @@ module "gcp_project" {
   org_id          = local.org_id
 }
 
-module "gcp_cloud_tasks" {
-  source     = "../modules/gcp/cloud_tasks"
-  project_id = local.project_id
-  region     = local.region
-}
+# module "gcp_cloud_tasks" {
+#   source     = "../modules/gcp/cloud_tasks"
+#   project_id = local.project_id
+#   region     = local.region
+# }
 
-module "gcp_cloud_scheduler" {
-  source             = "../modules/gcp/cloud_scheduler"
-  project_id         = local.project_id
-  region             = local.region
-  cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
-}
+# module "gcp_cloud_scheduler" {
+#   source             = "../modules/gcp/cloud_scheduler"
+#   project_id         = local.project_id
+#   region             = local.region
+#   cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
+# }
 
-module "gcp_secret_manager" {
-  source = "../modules/gcp/secret_manager"
-}
+# module "gcp_secret_manager" {
+#   source = "../modules/gcp/secret_manager"
+# }
 
 # module "gcp_gke" {
 #   source     = "../modules/gcp/gke"
@@ -59,7 +59,7 @@ module "gcp_secret_manager" {
 #   region     = local.region
 # }
 
-module "gcp_iam" {
-  source     = "../modules/gcp/iam"
-  project_id = local.project_id
-}
+# module "gcp_iam" {
+#   source     = "../modules/gcp/iam"
+#   project_id = local.project_id
+# }

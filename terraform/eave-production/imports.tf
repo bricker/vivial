@@ -27,3 +27,8 @@
 #   to = module.gcp_monitoring.google_monitoring_notification_channel.slack
 #   id = "projects/eave-production/notificationChannels/12949516158598639712"
 # }
+
+# import {
+#   to = google_compute_ssl_certificate.default
+#   id = "projects/eave-production/global/sslCertificates/cert-subdomains-3"
+# }

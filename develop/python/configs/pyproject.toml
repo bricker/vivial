@@ -12,8 +12,6 @@ force-exclude = '''
 line-length = 120
 
 [tool.ruff]
-extend-select = ["B006"]
-ignore = ["E501"] # line-length; Black handles this
 extend-exclude = [
   "generated",
   "__pycache__",
@@ -22,16 +20,19 @@ extend-exclude = [
   "build",
   ".*",
 ]
+
+[tool.ruff.lint]
+extend-select = ["B006"]
+ignore = ["E501"] # line-length; Black handles this
 ignore-init-module-imports = true
 
 [tool.pytest.ini_options]
-addopts = "--capture=no"
+addopts = "--capture=no" # --doctest-modules --doctest-ignore-import-errors
 filterwarnings = [
   "ignore::DeprecationWarning"
 ]
 pythonpath = [
   "../../../apps/core",
-  "../../../apps/slack",
   "../../../apps/marketing",
   "../../../libs/eave-stdlib-py",
   "../../../libs/eave-monitoring"
