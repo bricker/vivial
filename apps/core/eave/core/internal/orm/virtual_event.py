@@ -8,7 +8,8 @@ from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.tracing.core.datastructures import DatabaseChangeOperation
+from eave.monitoring.datastructures import DatabaseChangeOperation
+from eave.stdlib.core_api.models.virtual_event import VirtualEvent
 from eave.stdlib.util import titleize
 
 from .base import Base
@@ -81,6 +82,10 @@ class VirtualEventOrm(Base):
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
+
+    @property
+    def api_model(self) -> VirtualEvent:
+        return VirtualEvent.from_orm(self)
 
     @classmethod
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:

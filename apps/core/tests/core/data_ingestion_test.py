@@ -1,6 +1,5 @@
 import http
 import time
-from typing import cast
 
 import clickhouse_connect
 from google.cloud import bigquery

@@ -252,30 +252,6 @@ class _EaveConfig(ConfigBase):
         return value
 
     @cached_property
-    def eave_slack_app_id(self) -> str:
-        try:
-            return get_secret("EAVE_SLACK_APP_ID")
-        except Exception:
-            # Fallback to the production ID, which won't change.
-            return "A04HD948UHE"
-
-    @cached_property
-    def eave_slack_client_id(self) -> str:
-        return get_secret("EAVE_SLACK_APP_CLIENT_ID")
-
-    @cached_property
-    def eave_slack_client_secret(self) -> str:
-        return get_secret("EAVE_SLACK_APP_CLIENT_SECRET")
-
-    @cached_property
-    def eave_atlassian_app_client_id(self) -> str:
-        return get_secret("EAVE_ATLASSIAN_APP_CLIENT_ID")
-
-    @cached_property
-    def eave_atlassian_app_client_secret(self) -> str:
-        return get_secret("EAVE_ATLASSIAN_APP_CLIENT_SECRET")
-
-    @cached_property
     def eave_github_app_public_url(self) -> str:
         return get_secret("EAVE_GITHUB_APP_PUBLIC_URL")
 

@@ -11,12 +11,6 @@
 #   text   = "..."
 # }
 
-# resource "google_runtimeconfig_variable" "EAVE_ATLASSIAN_APP_CLIENT_ID" {
-#   parent = google_runtimeconfig_config.eave-app-configs.name
-#   name   = "configs/EAVE_ATLASSIAN_APP_CLIENT_ID"
-#   text   = "..."
-# }
-
 # resource "google_runtimeconfig_variable" "EAVE_GITHUB_APP_CLIENT_ID" {
 #   parent = google_runtimeconfig_config.eave-app-configs.name
 #   name   = "configs/EAVE_GITHUB_APP_CLIENT_ID"

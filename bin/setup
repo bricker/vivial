@@ -82,6 +82,14 @@ function setuppython() (
 			statusmsg -w "pyenv was not found on your system; proceeding with the available python executable ($pythonpath)."
 		else
 			pyenv install -s
+
+			if test "$?" -ne 0; then
+				statusmsg -e "pyenv install failed."
+				statusmsg -i "Often this is due to a missing or invalid dependency. Check the following resources for potential fixes:"
+				statusmsg -i "* Suggested build environment: https://github.com/pyenv/pyenv/wiki#suggested-build-environment"
+				statusmsg -i "* \"cannot stat 'Modules/_crypt'\" (or similar): https://github.com/pyenv/pyenv/issues/2823#issuecomment-1769081965"
+			fi
+
 			pyenv version
 		fi
 
@@ -303,9 +311,9 @@ function main() (
 
 	statusmsg -ps "Hi! Welcome to Eave. This script will help you setup this repository."
 	statusmsg -pi "Before getting started, it is recommended to manually install a few things if you haven't already:"
-	statusmsg -pi "* homebrew - https://brew.sh/"
-	statusmsg -pi "* nvm - https://github.com/nvm-sh/nvm (sh) or https://github.com/jorgebucaran/nvm.fish (fish)"
-	statusmsg -pi "* pyenv - https://github.com/pyenv/pyenv node version management.  and \"pyenv\" version management tools into your environment."
+	statusmsg -pi "* homebrew (https://brew.sh) - common package manager"
+	statusmsg -pi "* nvm (https://github.com/nvm-sh/nvm) - node version management (NOTE: These scripts assume nvm for BASH is installed)"
+	statusmsg -pi "* pyenv (https://github.com/pyenv/pyenv) - python version management"
 
 	echo ""
 

@@ -10,7 +10,6 @@ from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretV
 from eave.stdlib.checksum import generate_checksum
 import eave.stdlib.util
 import eave.stdlib.exceptions
-import eave.stdlib.atlassian
 import eave.stdlib.signing
 from eave.stdlib.typing import JsonObject
 from eave.stdlib.config import SHARED_CONFIG
@@ -21,8 +20,9 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any] = {}
-    active_mocks: dict[str, Any] = {}
-    active_patches: dict[str, Any] = {}
+    active_mocks: dict[str, unittest.mock.Mock] = {}
+    _active_patches: dict[str, unittest.mock._patch] = {}
+    _active_patched_dicts: dict[str, unittest.mock._patch_dict] = {}
 
     def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
         super().__init__(methodName)
@@ -42,8 +42,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     async def cleanup(self) -> None:
         self.stop_all_patches()
         self.testdata.clear()
-        self.active_patches.clear()
         self.active_mocks.clear()
+        self._active_patches.clear()
+        self._active_patched_dicts.clear()
 
     @staticmethod
     async def mock_coroutine(value: T) -> T:
@@ -329,10 +330,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-        # self.patch(
-        #     unittest.mock.patch("eave.stdlib.config.EaveConfig.get_runtimeconfig", side_effect=_get_runtimeconfig)
-        # )
-
     def mock_slack_client(self) -> None:
         self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
 
@@ -389,7 +386,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             else:
                 name = f"{patch.target}.{patch.attribute}"
 
-        self.active_patches[name or self.anystr()] = patch
+        self._active_patches[name] = patch
         self.active_mocks[name] = m
         return m
 
@@ -400,7 +397,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def patch_dict(self, patch: unittest.mock._patch_dict, name: Optional[str] = None) -> unittest.mock.Mock:
         name = name or str(patch.in_dict)
         mock = patch.start()
-        self.active_patches[name] = patch
+        self._active_patched_dicts[name] = patch
         self.active_mocks[name] = mock
         return mock
 
@@ -408,9 +405,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.active_mocks, f"{name} is not patched!"
         return self.active_mocks[name]
 
-    def get_patch(self, name: str) -> Any:
-        assert name in self.active_patches, f"{name} is not patched!"
-        return self.active_patches[name]
+    def get_patch(self, name: str) -> unittest.mock._patch:
+        assert name in self._active_patches, f"{name} is not patched!"
+        return self._active_patches[name]
+
+    def get_patched_dict(self, name: str) -> unittest.mock._patch_dict:
+        assert name in self._active_patched_dicts, f"{name} is not patched!"
+        return self._active_patched_dicts[name]
 
     def stop_all_patches(self) -> None:
         unittest.mock.patch.stopall()

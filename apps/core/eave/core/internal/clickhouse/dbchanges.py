@@ -1,6 +1,5 @@
 from datetime import datetime
 import json
-import re
 from textwrap import dedent
 from typing import Any, override
 from clickhouse_connect.datatypes.base import EMPTY_TYPE_DEF, TypeDef

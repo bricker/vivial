@@ -328,6 +328,13 @@ def sql_sanitized_literal(literal: str, quotechar: Literal["'", '"'] = '"') -> s
     "'table_name; drop tables; --'"
     """
 
-    # removes the quote character (' or ") and backslashes (\\\\ = 1 backslash when using normal Python string)
-    i = re.sub(f"[{quotechar}\\\\]", "", literal)
+    # removes quotes and backslashes (\\\\ = 1 backslash when using normal Python string)
+    i = re.sub("['\"\\\\]", "", literal)
     return f"{quotechar}{i}{quotechar}"
+
+
+def istr_eq(a: str, b: str) -> bool:
+    """
+    Case-insensitive comparison of two strings
+    """
+    return a.lower() == b.lower()

@@ -1,44 +1,16 @@
-from eave.core.internal.oauth.atlassian import ATLASSIAN_OAUTH_AUTHORIZE_PATH, ATLASSIAN_OAUTH_CALLBACK_PATH
+from typing import cast
+
+from starlette.types import ASGIApp
 from eave.core.internal.oauth.google import GOOGLE_OAUTH_AUTHORIZE_PATH, GOOGLE_OAUTH_CALLBACK_PATH
-from eave.core.internal.oauth.slack import SLACK_OAUTH_AUTHORIZE_PATH, SLACK_OAUTH_CALLBACK_PATH
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests import connect_integration, github_repos, github_documents, api_documentation_jobs
-from eave.core.public.requests.atlassian_integration import AtlassianIntegration
 from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
-from eave.stdlib.core_api.operations.api_documentation_jobs import (
-    GetApiDocumentationJobsOperation,
-    UpsertApiDocumentationJobOperation,
-)
-from eave.stdlib.core_api.operations.documents import DeleteDocument, SearchDocuments, UpsertDocument
-from eave.stdlib.core_api.operations.atlassian import GetAtlassianInstallation
-from eave.stdlib.core_api.operations.github import GetGithubInstallation, DeleteGithubInstallation
-from eave.stdlib.core_api.operations.slack import GetSlackInstallation
+from eave.stdlib.core_api.operations.github_installation import QueryGithubInstallation, DeleteGithubInstallation
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
-from eave.stdlib.core_api.operations.subscriptions import (
-    CreateSubscriptionRequest,
-    DeleteSubscriptionRequest,
-    GetSubscriptionRequest,
-)
-from eave.stdlib.core_api.operations.github_documents import (
-    CreateGithubDocumentRequest,
-    GetGithubDocumentsRequest,
-    UpdateGithubDocumentRequest,
-    DeleteGithubDocumentsByIdsRequest,
-    DeleteGithubDocumentsByTypeRequest,
-)
-from eave.stdlib.core_api.operations.github_repos import (
-    CreateGithubRepoRequest,
-    GetAllTeamsGithubReposRequest,
-    GetGithubReposRequest,
-    UpdateGithubReposRequest,
-    DeleteGithubReposRequest,
-    FeatureStateGithubReposRequest,
-)
-from eave.stdlib.core_api.operations.team import UpsertConfluenceDestinationAuthedRequest, GetTeamRequest
-from eave.stdlib.core_api.operations.connect import QueryConnectIntegrationRequest, RegisterConnectIntegrationRequest
+from eave.stdlib.core_api.operations.team import GetTeamRequest
+from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -47,11 +19,9 @@ import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.routing import Route
 
-import eave.core.public.requests.github_integration
-
 from .public.exception_handlers import exception_handlers
-from .public.requests import authed_account, documents, noop, slack_integration, subscriptions, team, status
-from .public.requests.oauth import atlassian_oauth, github_oauth, google_oauth, slack_oauth
+from .public.requests import authed_account, noop, team, status, github_installation, virtual_event
+from .public.requests.oauth import github_oauth, google_oauth
 from .internal.database import async_engine
 from eave.stdlib.middleware import common_middlewares
 
@@ -152,17 +122,17 @@ def make_route(
 
     So, that's a long-winded explanation of the order of the middlewares below.
     """
-
-    endpoint = TeamLookupASGIMiddleware(
-        app=endpoint, endpoint_config=config
+    starlette_endpoint = cast(ASGIApp, endpoint)
+    starlette_endpoint = TeamLookupASGIMiddleware(
+        app=starlette_endpoint, endpoint_config=config
     )  # Last thing to happen before the Route handler
-    endpoint = AuthASGIMiddleware(app=endpoint, endpoint_config=config)
-    endpoint = SignatureVerificationASGIMiddleware(app=endpoint, endpoint_config=config)
-    endpoint = OriginASGIMiddleware(
-        app=endpoint, endpoint_config=config
+    starlette_endpoint = AuthASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
+    starlette_endpoint = SignatureVerificationASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
+    starlette_endpoint = OriginASGIMiddleware(
+        app=starlette_endpoint, endpoint_config=config
     )  # First thing to happen when the middleware chain is kicked off
 
-    return Route(path=config.path, endpoint=endpoint)
+    return Route(path=config.path, endpoint=starlette_endpoint)
 
 
 routes = [
@@ -170,7 +140,6 @@ routes = [
     Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
     Route(path="/_ah/stop", endpoint=status.StopRequest, methods=["GET"]),
     Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
-    # Public API Endpoints
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/ingest",
@@ -181,123 +150,26 @@ routes = [
         ),
         endpoint=DataIngestionEndpoint,
     ),
-    # Internal API Endpoints.
-    # These endpoints require signature verification.
     make_route(
-        config=UpsertDocument.config,
-        endpoint=documents.UpsertDocument,
-    ),
-    make_route(
-        config=SearchDocuments.config,
-        endpoint=documents.SearchDocuments,
-    ),
-    make_route(
-        config=DeleteDocument.config,
-        endpoint=documents.DeleteDocument,
-    ),
-    make_route(
-        config=CreateSubscriptionRequest.config,
-        endpoint=subscriptions.CreateSubscription,
-    ),
-    make_route(
-        config=GetSubscriptionRequest.config,
-        endpoint=subscriptions.GetSubscription,
-    ),
-    make_route(
-        config=DeleteSubscriptionRequest.config,
-        endpoint=subscriptions.DeleteSubscription,
-    ),
-    make_route(
-        config=RegisterConnectIntegrationRequest.config,
-        endpoint=connect_integration.RegisterConnectIntegrationEndpoint,
-    ),
-    make_route(
-        config=QueryConnectIntegrationRequest.config,
-        endpoint=connect_integration.QueryConnectIntegrationEndpoint,
-    ),
-    make_route(
-        config=GetSlackInstallation.config,
-        endpoint=slack_integration.SlackIntegration,
-    ),
-    make_route(
-        config=GetGithubInstallation.config,
-        endpoint=eave.core.public.requests.github_integration.GetGithubIntegrationEndpoint,
+        config=QueryGithubInstallation.config,
+        endpoint=github_installation.QueryGithubInstallationEndpoint,
     ),
     make_route(
         config=DeleteGithubInstallation.config,
-        endpoint=eave.core.public.requests.github_integration.DeleteGithubIntegrationEndpoint,
-    ),
-    make_route(
-        config=GetAtlassianInstallation.config,
-        endpoint=AtlassianIntegration,
+        endpoint=github_installation.DeleteGithubInstallationEndpoint,
     ),
     make_route(
         config=GetTeamRequest.config,
         endpoint=team.GetTeamEndpoint,
     ),
     make_route(
-        config=CreateGithubRepoRequest.config,
-        endpoint=github_repos.CreateGithubRepoEndpoint,
-    ),
-    make_route(
-        config=GetGithubReposRequest.config,
-        endpoint=github_repos.GetGithubRepoEndpoint,
-    ),
-    make_route(
-        config=GetAllTeamsGithubReposRequest.config,
-        endpoint=github_repos.GetAllTeamsGithubRepoEndpoint,
-    ),
-    make_route(
-        config=FeatureStateGithubReposRequest.config,
-        endpoint=github_repos.FeatureStateGithubReposEndpoint,
-    ),
-    make_route(
-        config=UpsertApiDocumentationJobOperation.config,
-        endpoint=api_documentation_jobs.UpsertApiDocumentationJobsEndpoint,
-    ),
-    make_route(
-        config=GetApiDocumentationJobsOperation.config,
-        endpoint=api_documentation_jobs.GetApiDocumentationJobEndpoint,
-    ),
-    # Authenticated API endpoints.
-    make_route(
-        config=CreateGithubDocumentRequest.config,
-        endpoint=github_documents.CreateGithubDocumentEndpoint,
-    ),
-    make_route(
-        config=GetGithubDocumentsRequest.config,
-        endpoint=github_documents.GetGithubDocumentsEndpoint,
-    ),
-    make_route(
-        config=UpdateGithubDocumentRequest.config,
-        endpoint=github_documents.UpdateGithubDocumentEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubDocumentsByIdsRequest.config,
-        endpoint=github_documents.DeleteGithubDocumentsByIdsEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubDocumentsByTypeRequest.config,
-        endpoint=github_documents.DeleteGithubDocumentsByTypeEndpoint,
-    ),
-    make_route(
-        config=UpdateGithubReposRequest.config,
-        endpoint=github_repos.UpdateGithubReposEndpoint,
-    ),
-    make_route(
-        config=DeleteGithubReposRequest.config,
-        endpoint=github_repos.DeleteGithubReposEndpoint,
-    ),
-    make_route(
-        config=UpsertConfluenceDestinationAuthedRequest.config,
-        endpoint=team.UpsertConfluenceDestinationAuthedEndpoint,
+        config=GetVirtualEventsRequest.config,
+        endpoint=virtual_event.GetVirtualEventsEndpoint,
     ),
     make_route(
         config=GetAuthenticatedAccount.config,
         endpoint=authed_account.GetAuthedAccount,
     ),
-    # OAuth endpoints.
-    # These endpoints don't require any verification (except the OAuth flow itself)
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_AUTHORIZE_PATH,
@@ -317,46 +189,6 @@ routes = [
             team_id_required=False,
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path=SLACK_OAUTH_AUTHORIZE_PATH,
-            auth_required=False,
-            signature_required=False,
-            origin_required=False,
-            team_id_required=False,
-        ),
-        endpoint=slack_oauth.SlackOAuthAuthorize,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path=SLACK_OAUTH_CALLBACK_PATH,
-            auth_required=False,
-            signature_required=False,
-            origin_required=False,
-            team_id_required=False,
-        ),
-        endpoint=slack_oauth.SlackOAuthCallback,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path=ATLASSIAN_OAUTH_AUTHORIZE_PATH,
-            auth_required=False,
-            signature_required=False,
-            origin_required=False,
-            team_id_required=False,
-        ),
-        endpoint=atlassian_oauth.AtlassianOAuthAuthorize,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path=ATLASSIAN_OAUTH_CALLBACK_PATH,
-            auth_required=False,
-            signature_required=False,
-            origin_required=False,
-            team_id_required=False,
-        ),
-        endpoint=atlassian_oauth.AtlassianOAuthCallback,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(

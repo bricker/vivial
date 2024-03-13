@@ -53,6 +53,6 @@ class DataIngestionEndpoint(HTTPEndpoint):
         if handle:
             await handle.insert(events=input.events)
         # TODO: is it worth sending back an error if we couldnt handle the event?
-        
+
         response = Response(content="OK", status_code=200)
         return response

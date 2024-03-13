@@ -14,13 +14,16 @@ import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
  * @property {() => void} getTeamAPIDocs
  * @property {() => void} getTeamApiDocsJobsStatuses
  * @property {(input: Types.FeatureStateParams) => void} updateTeamFeatureState
+ * @property {(input: Types.VirtualEventQueryInput | null) => void} getTeamVirtualEvents
  */
 
 /** @returns {TeamHook} */
 const useTeam = () => {
-  const { teamCtx, dashboardNetworkStateCtx } = useContext(AppContext);
+  const { teamCtx, dashboardNetworkStateCtx, glossaryNetworkStateCtx } =
+    useContext(AppContext);
   const [team, setTeam] = teamCtx;
   const [, setDashboardNetworkState] = dashboardNetworkStateCtx;
+  const [, setGlossaryNetworkState] = glossaryNetworkStateCtx;
 
   /**
    * Asynchronously fetches team data from the "/dashboard/team" endpoint using a POST request.
@@ -58,7 +61,6 @@ const useTeam = () => {
               ...prev,
               id: data.team?.id,
               name: data.team?.name,
-              integrations: data.integrations,
             }));
 
             setDashboardNetworkState((prev) => ({
@@ -113,15 +115,8 @@ const useTeam = () => {
             setTeam((prev) => ({
               ...prev,
               repos: data.repos,
-              inlineCodeDocsEnabled: data.repos.some(
-                (repo) =>
-                  repo.inline_code_documentation_state ===
-                  FEATURE_STATES.ENABLED,
-              ),
-              apiDocsEnabled: data.repos.some(
-                (repo) =>
-                  repo.api_documentation_state === FEATURE_STATES.ENABLED,
-              ),
+              inlineCodeDocsEnabled: data.repos.some((_repo) => false),
+              apiDocsEnabled: data.repos.some((_repo) => false),
             }));
 
             setDashboardNetworkState((prev) => ({
@@ -199,6 +194,62 @@ const useTeam = () => {
       })
       .catch(() => {
         // Currently there is no UI to handle a failure state for this operation.
+      });
+  }
+
+  /**
+   * Asynchronously fetches the team's list of virtual events for the glossary
+   * from the core API.
+   * Handles all network state for EventGlossary.jsx and sets the resulting
+   * virtual events into the team hook.
+   * The `input` parameter is passed along for event filtering on the backend.
+   * If null is provided, no filtering is expected to be done.
+   */
+  function getTeamVirtualEvents(
+    /** @type {Types.VirtualEventQueryInput | null} */ input,
+  ) {
+    setGlossaryNetworkState((prev) => ({
+      ...prev,
+      virtualEventsAreLoading: true,
+      virtualEventsAreErroring: false,
+    }));
+    fetch("/dashboard/team/virtual-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: input }),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp
+          .json()
+          .then((/** @type {Types.GetVirtualEventsResponseBody} */ data) => {
+            setTeam((prev) => ({
+              ...prev,
+              virtualEvents: data.virtual_events,
+            }));
+
+            setGlossaryNetworkState((prev) => ({
+              ...prev,
+              virtualEventsAreErroring: false,
+              virtualEventsAreLoading: false,
+            }));
+          });
+      })
+      .catch(() => {
+        setGlossaryNetworkState((prev) => ({
+          ...prev,
+          virtualEventsAreErroring: true,
+          virtualEventsAreLoading: false,
+        }));
       });
   }
 
@@ -320,6 +371,7 @@ const useTeam = () => {
     getTeamAPIDocs,
     getTeamApiDocsJobsStatuses,
     updateTeamFeatureState,
+    getTeamVirtualEvents,
   };
 };
 
