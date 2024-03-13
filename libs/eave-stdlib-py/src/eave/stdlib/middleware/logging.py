@@ -1,4 +1,4 @@
-from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, Scope
+import asgiref.typing
 
 from eave.stdlib.request_state import EaveRequestState
 
@@ -8,7 +8,12 @@ from .base import EaveASGIMiddleware
 
 
 class LoggingASGIMiddleware(EaveASGIMiddleware):
-    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+    async def run(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return

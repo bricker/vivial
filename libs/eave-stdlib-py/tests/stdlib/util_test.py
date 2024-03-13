@@ -9,19 +9,32 @@ class StdlibUtilTest(UtilityBaseTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
+    async def test_istr_eq(self):
+        assert mut.istr_eq("A", "a")
+        assert mut.istr_eq("a", "a")
+        assert mut.istr_eq("A", "A")
+        assert not mut.istr_eq("A", "b")
+
     async def test_sql_sanitized_identifier(self):
-        assert mut.sql_sanitized_identifier("table_name`; drop tables; --") == '`table_name; drop tables; --`'
-        assert mut.sql_sanitized_identifier("table_name```; drop tables; --") == '`table_name; drop tables; --`'
-        assert mut.sql_sanitized_identifier("`table_name`; drop tables; --") == '`table_name; drop tables; --`'
-        assert mut.sql_sanitized_identifier("`table_name; drop tables;` --`") == '`table_name; drop tables; --`'
-        assert mut.sql_sanitized_identifier("`table_name\\; drop tables;` --`") == '`table_name; drop tables; --`'
+        assert mut.sql_sanitized_identifier("table_name`; drop tables; --") == "`table_name; drop tables; --`"
+        assert mut.sql_sanitized_identifier("table_name```; drop tables; --") == "`table_name; drop tables; --`"
+        assert mut.sql_sanitized_identifier("`table_name`; drop tables; --") == "`table_name; drop tables; --`"
+        assert mut.sql_sanitized_identifier("`table_name; drop tables;` --`") == "`table_name; drop tables; --`"
+        assert mut.sql_sanitized_identifier("`table_name\\; drop tables;` --`") == "`table_name; drop tables; --`"
 
     async def test_sql_sanitized_literal(self):
         assert mut.sql_sanitized_literal('table_name"; drop tables; --') == '"table_name; drop tables; --"'
         assert mut.sql_sanitized_literal("table_name'; drop tables; --") == '"table_name; drop tables; --"'
-        assert mut.sql_sanitized_literal('table_name"; drop tables; --', quotechar="'") == "'table_name; drop tables; --'"
-        assert mut.sql_sanitized_literal("table_name'; drop tables; --", quotechar="'") == "'table_name; drop tables; --'"
-        assert mut.sql_sanitized_literal("table_name\\'; drop tables; --", quotechar="'") == "'table_name; drop tables; --'"
+        assert (
+            mut.sql_sanitized_literal('table_name"; drop tables; --', quotechar="'") == "'table_name; drop tables; --'"
+        )
+        assert (
+            mut.sql_sanitized_literal("table_name'; drop tables; --", quotechar="'") == "'table_name; drop tables; --'"
+        )
+        assert (
+            mut.sql_sanitized_literal("table_name\\'; drop tables; --", quotechar="'")
+            == "'table_name; drop tables; --'"
+        )
 
     async def test_ensure_bytes(self):
         string = self.anystring()

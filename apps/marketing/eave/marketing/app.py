@@ -1,25 +1,16 @@
 from functools import wraps
 from http.client import UNAUTHORIZED
 import json
-import time
 from typing import Any, Awaitable, Callable, Optional
 
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
-from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobListInput
-
-from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
 from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
 from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.virtual_event as virtual_event
 import eave.stdlib.core_api.operations.team as team
-import eave.stdlib.core_api.operations.github_repos as github_repos
-import eave.stdlib.core_api.operations.github_documents as github_documents
-import eave.stdlib.core_api.operations.api_documentation_jobs as api_documentation_jobs
-from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentsQueryInput, GithubDocumentStatus
-from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.util import ensure_uuid, unwrap
 
@@ -30,7 +21,7 @@ import eave.stdlib.time
 import werkzeug.exceptions
 from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
-from eave.stdlib.typing import JsonArray, JsonObject
+from eave.stdlib.typing import JsonObject
 from eave.stdlib.utm_cookies import set_tracking_cookies
 from .config import MARKETING_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
@@ -140,105 +131,6 @@ async def get_team() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team/repos", methods=["POST"])
-@_auth_handler
-async def get_team_repos() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    eave_response = await github_repos.GetGithubReposRequest.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-        input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
-    )
-
-    response = _make_response(eave_response)
-
-    internal_repo_list = eave_response.repos
-    if len(internal_repo_list) == 0:
-        _set_json_response_body(response, {"repos": []})
-        return response
-
-    external_response = await QueryGithubRepos.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin, team_id=unwrap(auth_cookies.team_id)
-    )
-    external_repo_list = external_response.repos
-    external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
-    merged_repo_list: JsonArray = []
-
-    for repo in internal_repo_list:
-        repo_id = repo.external_repo_id
-        if repo_id in external_repo_map:
-            jsonRepo = json.loads(repo.json())
-            jsonRepo["external_repo_data"] = json.loads(external_repo_map[repo_id].json())
-            merged_repo_list.append(jsonRepo)
-
-    _set_json_response_body(response, {"repos": merged_repo_list})
-    return response
-
-
-@app.route("/dashboard/team/repos/update", methods=["POST"])
-@_auth_handler
-async def update_team_repos() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    body = request.get_json()
-    repos: list[GithubRepoUpdateInput] = body["repos"]
-
-    eave_response = await github_repos.UpdateGithubReposRequest.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-        input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
-    )
-
-    return _make_response(eave_response)
-
-
-@app.route("/dashboard/team/api-docs-jobs", methods=["POST"])
-@_auth_handler
-async def get_team_docs_jobs() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    body = request.get_json()
-    jobs = [ApiDocumentationJobListInput(id=job["id"]) for job in body["jobs"]] if "jobs" in body else None
-
-    eave_response = await api_documentation_jobs.GetApiDocumentationJobsOperation.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-        input=api_documentation_jobs.GetApiDocumentationJobsOperation.RequestBody(jobs=jobs),
-    )
-
-    return _make_response(eave_response)
-
-
-@app.route("/dashboard/team/documents", methods=["POST"])
-@_auth_handler
-async def get_team_documents() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    body = request.get_json()
-    document_type = body["document_type"]
-
-    eave_response = await github_documents.GetGithubDocumentsRequest.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-        input=github_documents.GetGithubDocumentsRequest.RequestBody(
-            query_params=GithubDocumentsQueryInput(type=document_type)
-        ),
-    )
-
-    # sort documents in place
-    eave_response.documents.sort(key=_document_rank)
-    return _make_response(eave_response)
-
-
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
     response = redirect(location=SHARED_CONFIG.eave_public_www_base, code=302)
@@ -317,33 +209,3 @@ def _json_response(body: JsonObject | str | None) -> Response:
     if body:
         _set_json_response_body(response, body)
     return response
-
-
-_status_order = [
-    GithubDocumentStatus.PROCESSING,
-    GithubDocumentStatus.PR_OPENED,
-    GithubDocumentStatus.FAILED,
-    GithubDocumentStatus.PR_CLOSED,
-    GithubDocumentStatus.PR_MERGED,
-]
-
-
-def _document_rank(d: GithubDocument) -> str:
-    """
-    build a string of digits, in descending significance, to create a sorting rank. For example:
-
-    d.status = PROCESSING
-    d.status_updated = 1697060933
-    rank = "01697060933"
-    """
-    rank = ""
-
-    if d.status in _status_order:
-        rank += str(_status_order.index(d.status))
-    else:
-        # put unrecognized status last
-        rank += "999"
-
-    uts = int(time.mktime(d.status_updated.timetuple()))
-    rank += f"{uts}"
-    return rank

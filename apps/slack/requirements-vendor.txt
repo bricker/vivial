@@ -1,4 +1,0 @@
-# Requirements that are vendored into /vendor during deployment.
-${EAVE_HOME}/libs/eave-stdlib-py
-${EAVE_HOME}/libs/eave-monitoring
-${EAVE_HOME}/libs/eave-pubsub-schemas/python

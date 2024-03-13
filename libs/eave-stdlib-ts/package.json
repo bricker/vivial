@@ -43,7 +43,6 @@
     "winston": "3.x"
   },
   "peerDependencies": {
-    "atlassian-connect-express": "8.2.0",
     "@eave-fyi/eave-pubsub-schemas": "file:../eave-pubsub-schemas/typescript"
   },
   "eslintConfig": {

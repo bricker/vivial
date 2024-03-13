@@ -1,6 +1,6 @@
 import http
 from typing import cast
-from asgiref.typing import ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, Scope
+import asgiref.typing
 import starlette.types
 
 from eave.stdlib.request_state import EaveRequestState
@@ -18,14 +18,19 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
     which isn't the best when running on AppEngine, because AppEngine sends stderr messages to the Error Reporting API.
     """
 
-    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+    async def run(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
         response_started = False
 
-        async def _send(message: ASGISendEvent) -> None:
+        async def _send(message: asgiref.typing.ASGISendEvent) -> None:
             nonlocal response_started
 
             if message["type"] == "http.response.start":

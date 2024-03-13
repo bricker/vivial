@@ -2,8 +2,8 @@ from http import HTTPStatus
 import http
 from eave.stdlib.core_api.models.error import ErrorResponse
 
-from eave.stdlib.core_api.operations.slack import GetSlackInstallation
 from eave.stdlib.core_api.operations.status import Status
+from eave.stdlib.core_api.operations.team import GetTeamRequest
 from eave.stdlib.headers import EAVE_ORIGIN_HEADER
 
 
@@ -13,6 +13,12 @@ from .base import BaseTestCase
 # TODO: Separate tests for testing response status codes. By default, the HTTP client used for tests raises app exceptions.
 # https://github.com/encode/httpx/blob/a682f6f1c7f1c5e10c66ae5bef139aea37ef0c4e/httpx/_transports/asgi.py#L71
 class TestOriginMiddleware(BaseTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+
+        async with self.db_session.begin() as s:
+            self._team = await self.make_team(session=s)
+
     async def test_origin_bypass(self) -> None:
         response = await self.make_request(
             method=Status.config.method,
@@ -26,7 +32,8 @@ class TestOriginMiddleware(BaseTestCase):
         # FIXME: This does raise an error (MissingRequiredHeaderError), but it's caught by Starlette so not registered here
         # if using "assertRaises"
         response = await self.make_request(
-            path=GetSlackInstallation.config.path,
+            path=GetTeamRequest.config.path,
+            team_id=self._team.id,
             headers={
                 EAVE_ORIGIN_HEADER: None,
             },
@@ -39,7 +46,8 @@ class TestOriginMiddleware(BaseTestCase):
 
     async def test_invalid_origin(self) -> None:
         response = await self.make_request(
-            path=GetSlackInstallation.config.path,
+            path=GetTeamRequest.config.path,
+            team_id=self._team.id,
             headers={
                 EAVE_ORIGIN_HEADER: self.anystr("invalid origin"),
             },
