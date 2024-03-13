@@ -10,6 +10,7 @@ from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
 from eave.stdlib.core_api.operations.github_installation import QueryGithubInstallation, DeleteGithubInstallation
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.team import GetTeamRequest
+from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
 import eave.stdlib.time
@@ -19,7 +20,7 @@ from asgiref.typing import ASGI3Application
 from starlette.routing import Route
 
 from .public.exception_handlers import exception_handlers
-from .public.requests import authed_account, noop, team, status, github_installation
+from .public.requests import authed_account, noop, team, status, github_installation, virtual_event
 from .public.requests.oauth import github_oauth, google_oauth
 from .internal.database import async_engine
 from eave.stdlib.middleware import common_middlewares
@@ -160,6 +161,10 @@ routes = [
     make_route(
         config=GetTeamRequest.config,
         endpoint=team.GetTeamEndpoint,
+    ),
+    make_route(
+        config=GetVirtualEventsRequest.config,
+        endpoint=virtual_event.GetVirtualEventsEndpoint,
     ),
     make_route(
         config=GetAuthenticatedAccount.config,

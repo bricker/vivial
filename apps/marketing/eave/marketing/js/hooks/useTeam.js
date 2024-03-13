@@ -14,13 +14,16 @@ import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
  * @property {() => void} getTeamAPIDocs
  * @property {() => void} getTeamApiDocsJobsStatuses
  * @property {(input: Types.FeatureStateParams) => void} updateTeamFeatureState
+ * @property {(input: Types.VirtualEventQueryInput | null) => void} getTeamVirtualEvents
  */
 
 /** @returns {TeamHook} */
 const useTeam = () => {
-  const { teamCtx, dashboardNetworkStateCtx } = useContext(AppContext);
+  const { teamCtx, dashboardNetworkStateCtx, glossaryNetworkStateCtx } =
+    useContext(AppContext);
   const [team, setTeam] = teamCtx;
   const [, setDashboardNetworkState] = dashboardNetworkStateCtx;
+  const [, setGlossaryNetworkState] = glossaryNetworkStateCtx;
 
   /**
    * Asynchronously fetches team data from the "/dashboard/team" endpoint using a POST request.
@@ -195,6 +198,62 @@ const useTeam = () => {
   }
 
   /**
+   * Asynchronously fetches the team's list of virtual events for the glossary
+   * from the core API.
+   * Handles all network state for EventGlossary.jsx and sets the resulting
+   * virtual events into the team hook.
+   * The `input` parameter is passed along for event filtering on the backend.
+   * If null is provided, no filtering is expected to be done.
+   */
+  function getTeamVirtualEvents(
+    /** @type {Types.VirtualEventQueryInput | null} */ input,
+  ) {
+    setGlossaryNetworkState((prev) => ({
+      ...prev,
+      virtualEventsAreLoading: true,
+      virtualEventsAreErroring: false,
+    }));
+    fetch("/dashboard/team/virtual-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: input }),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp
+          .json()
+          .then((/** @type {Types.GetVirtualEventsResponseBody} */ data) => {
+            setTeam((prev) => ({
+              ...prev,
+              virtualEvents: data.virtual_events,
+            }));
+
+            setGlossaryNetworkState((prev) => ({
+              ...prev,
+              virtualEventsAreErroring: false,
+              virtualEventsAreLoading: false,
+            }));
+          });
+      })
+      .catch(() => {
+        setGlossaryNetworkState((prev) => ({
+          ...prev,
+          virtualEventsAreErroring: true,
+          virtualEventsAreLoading: false,
+        }));
+      });
+  }
+
+  /**
    * Fetches the status of API documentation jobs for the team from the server.
    * Updates the team state with the loading status, error status, and the jobs data.
    * If the response is unauthorized, it logs the user out.
@@ -312,6 +371,7 @@ const useTeam = () => {
     getTeamAPIDocs,
     getTeamApiDocsJobsStatuses,
     updateTeamFeatureState,
+    getTeamVirtualEvents,
   };
 };
 

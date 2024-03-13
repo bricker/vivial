@@ -46,6 +46,18 @@
  * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/team.js").GetTeamResponseBody} GetTeamResponseBody
  */
 
+/**
+ * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/virtual-event.js").GetVirtualEventsResponseBody} GetVirtualEventsResponseBody
+ */
+
+/**
+ * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/virtual-event.js").VirtualEvent} VirtualEvent
+ */
+
+/**
+ * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/virtual-event.js").VirtualEventQueryInput} VirtualEventQueryInput
+ */
+
 /** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/api-documentation-jobs.js").ApiDocumentationJob} ApiDocumentationJob */
 
 /** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/api-documentation-jobs.js").GetApiDocumentationJobsResponseBody} GetApiDocumentationJobsResponseBody */
@@ -62,6 +74,7 @@
  * @property {Integrations} [integrations]
  * @property {GithubRepo[]} [repos]
  * @property {ApiDocumentationJob[]} [apiDocsJobs]
+ * @property {VirtualEvent[]} [virtualEvents]
  */
 
 /**
@@ -101,6 +114,12 @@
  * @property {string} [subtitle]
  * @property {string | null} [supportSubheader]
  * @property {string[]} [languages]
+ */
+
+/**
+ * @typedef {object} GlossaryNetworkState
+ * @property {boolean} virtualEventsAreLoading
+ * @property {boolean} virtualEventsAreErroring
  */
 
 /**
