@@ -8,8 +8,6 @@ import sys
 from types import FrameType
 from typing import Any, cast
 
-from eave.stdlib.pytracing import clickhouse
-
 _sockaddr = "/tmp/eaveagent.sock"
 _endmsg = "EOF"
 

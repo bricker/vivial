@@ -69,14 +69,6 @@ class _AppConfig(ConfigBase):
             return get_secret(key)
 
     @cached_property
-    def clickhouse_host(self) -> str:
-        key = "EAVE_CLICKHOUSE_HOST"
-        if SHARED_CONFIG.is_development:
-            return os.getenv(key, "localhost")
-        else:
-            return get_secret(key)
-
-    @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
         encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
         if not encoded:
