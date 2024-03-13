@@ -1,9 +1,9 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
-variable "EAVE_GITHUB_APP_CRON_SECRET" {
-  type      = string
-  sensitive = true
-}
+# variable "EAVE_GITHUB_APP_CRON_SECRET" {
+#   type      = string
+#   sensitive = true
+# }
 
 locals {
   project_id       = "eavefyi-dev"
@@ -63,3 +63,18 @@ module "gcp_project" {
 #   source     = "../modules/gcp/iam"
 #   project_id = local.project_id
 # }
+
+module "gcp_bigquery" {
+  source = "../modules/gcp/bigquery"
+  project_id = local.project_id
+  region = local.region
+}
+
+resource "google_project_iam_binding" "bigquery_data_owner" {
+  project = local.project_id
+  role    = "roles/bigquery.dataOwner"
+
+  members = [
+    "domain:eave.fyi"
+  ]
+}

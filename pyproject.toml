@@ -11,7 +11,7 @@ venvPath="./.venv"
 extraPaths=[
     "**/vendor",
     "./libs/eave-stdlib-py/src",
-    "./libs/eave-monitoring/src",
+    "./libs/python/**/src",
     "./libs/eave-pubsub-schemas/python/src",
     "./apps/core",
     "./apps/marketing",

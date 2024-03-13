@@ -17,7 +17,6 @@ WerkzeugResponse = _WerkzeugResponse
 HTTPFrameworkRequest = StarletteRequest | WerkzeugRequest
 HTTPFrameworkResponse = StarletteResponse | WerkzeugResponse
 
-
 class NotGiven:
     """
     A sentinel singleton class used to distinguish omitted keyword arguments
@@ -44,6 +43,5 @@ class NotGiven:
     @override
     def __repr__(self) -> str:
         return "NOT_GIVEN"
-
 
 NOT_GIVEN = NotGiven()

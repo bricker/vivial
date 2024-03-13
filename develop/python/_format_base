@@ -8,7 +8,10 @@ source "${EAVE_HOME}"/develop/functions.bash
 	python-format .
 	if ! ^onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/format
-		"${EAVE_HOME}"/libs/eave-monitoring/bin/format
 		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/format
+
+		for formatter in "${EAVE_HOME}"/libs/python/*/bin/format; do
+			$formatter
+		done
 	fi
 )

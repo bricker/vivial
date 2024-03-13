@@ -1,23 +1,12 @@
 import enum
 import textwrap
-from typing import (
-    Any,
-    List,
-    Literal,
-    LiteralString,
-    Optional,
-    Union,
-    cast,
-)
+import time
+from dataclasses import asdict, dataclass
+from typing import Any, Awaitable, Callable, Concatenate, List, Literal, LiteralString, Optional, ParamSpec, TypeVar, Union, cast
 import uuid
 
 from openai import AsyncOpenAI
-from openai.types.chat import (
-    ChatCompletion,
-    ChatCompletionMessageParam,
-    ChatCompletionToolChoiceOptionParam,
-    ChatCompletionToolParam,
-)
+from openai.types.chat import ChatCompletion, ChatCompletionMessageParam, ChatCompletionToolChoiceOptionParam, ChatCompletionToolParam
 from openai.types.chat.completion_create_params import Function, FunctionCall, ResponseFormat
 
 from eave.stdlib.logging import LogContext
@@ -181,44 +170,7 @@ async def chat_completion(
             raise OpenAIDataError("no choices given")
 
     answer = str(choice.message.content).strip()
-    # timestamp_end = time.perf_counter()
-    # duration_seconds = round(timestamp_end - timestamp_start)
-    # input_tokens = usage.prompt_tokens if (usage := response.usage) else None
-    # output_tokens = usage.completion_tokens if (usage := response.usage) else None
-    # await _log_gpt_request(kwargs, answer, duration_seconds, input_tokens, output_tokens, ctx, document_id)
     return answer
-
-
-# async def _log_gpt_request(
-#     params: ChatCompletionParameters,
-#     response: str,
-#     duration_seconds: int,
-#     input_tokens: Optional[int],
-#     output_tokens: Optional[int],
-#     ctx: Optional[LogContext],
-#     document_id: Optional[str],
-# ) -> None:
-#     full_prompt = "\n".join(params.messages)
-
-#     input_tokens = token_count(full_prompt, params.model) if input_tokens is None else input_tokens
-#     output_tokens = token_count(response, params.model) if output_tokens is None else output_tokens
-
-#     prompt_cost = calculate_prompt_cost_usd(input_tokens, params.model)
-#     response_cost = calculate_response_cost_usd(output_tokens, params.model)
-
-#     await log_gpt_request(
-#         duration_seconds=duration_seconds,
-#         input_cost_usd=prompt_cost,
-#         output_cost_usd=response_cost,
-#         input_prompt=full_prompt,
-#         output_response=response,
-#         input_token_count=input_tokens,
-#         output_token_count=output_tokens,
-#         model=params.model,
-#         ctx=ctx,
-#         document_id=document_id,
-#     )
-
 
 def formatprompt(*strings: str) -> str:
     return "\n\n".join([textwrap.dedent(string).strip() for string in strings])
