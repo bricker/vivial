@@ -38,6 +38,28 @@ class JWTRegisteredClaims:
         return eave_util.b64encode(json.dumps(self.__dict__))
 
 
+@dataclass
+class TEMP_MetabaseJWTRegisteredClaims:
+    email: str
+    first_name: str
+    last_name: str
+    exp: int
+
+    @classmethod
+    def from_b64(cls, payload_encoded: str) -> Self:
+        jsonstr = eave_util.b64decode(payload_encoded)
+        jsonv = json.loads(jsonstr)
+        return cls(
+            email=jsonv["email"],
+            first_name=jsonv["first_name"],
+            last_name=jsonv["last_name"],
+            exp=jsonv["exp"],
+        )
+
+    def to_b64(self) -> str:
+        return eave_util.b64encode(json.dumps(self.__dict__))
+
+
 class JWTPurpose(enum.Enum):
     access = "access"
     refresh = "refresh"
@@ -133,6 +155,38 @@ def create_jwt(
     jwt.signature = signature_b64
     return jwt
 
+def TEMP_create_jwt_for_metabase(
+    *,
+    email: str,
+    first_name: str,
+    last_name: str,
+    purpose: JWTPurpose,
+    signing_key: signing.SigningKeyDetails,
+    exp_minutes: int = 10,
+) -> JWT:
+    # all time formats are expected to be in the format of an integer
+    # number of seconds since epoch (aka NumericDate)
+    # https://www.rfc-editor.org/rfc/rfc7519
+    now = int(time.time())
+    exp = now + (60 * exp_minutes)
+
+    jwt_header = JWTHeader(typ="JWT", alg=signing.SigningAlgorithm.HS256.value, pur=purpose.value)
+    jwt_payload = TEMP_MetabaseJWTRegisteredClaims(
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        exp=exp,
+    )
+
+    jwt = JWT(
+        header=jwt_header,
+        payload=jwt_payload,
+        signature="",
+    )
+
+    signature_b64 = signing.sign_b64(signing_key=signing_key, data=jwt.message)
+    jwt.signature = signature_b64
+    return jwt
 
 def validate_jwt_or_exception(
     jwt_encoded: str,
