@@ -1,4 +1,3 @@
-import enum
 import uuid
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
@@ -13,4 +12,3 @@ class VirtualEvent(BaseResponseModel):
 
 class VirtualEventQueryInput(BaseInputModel):
     search_term: str
-    
