@@ -1,23 +1,31 @@
 import enum
 import textwrap
-import time
-from dataclasses import asdict, dataclass
-from typing import Any, Awaitable, Callable, Concatenate, List, Literal, LiteralString, Optional, ParamSpec, TypeVar, Union, cast
+from typing import (
+    Any,
+    List,
+    Literal,
+    LiteralString,
+    Optional,
+    Union,
+    cast,
+)
 import uuid
 
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletion, ChatCompletionMessageParam, ChatCompletionToolChoiceOptionParam, ChatCompletionToolParam
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessageParam,
+    ChatCompletionToolChoiceOptionParam,
+    ChatCompletionToolParam,
+)
 from openai.types.chat.completion_create_params import Function, FunctionCall, ResponseFormat
 
 from eave.stdlib.logging import LogContext
-from eave.stdlib.analytics import log_gpt_request
 
 from ..typing import NOT_GIVEN, JsonObject, NotGiven
 from ..config import SHARED_CONFIG
 from ..logging import eaveLogger
-from ..exceptions import MaxRetryAttemptsReachedError, OpenAIDataError
-from .models import OpenAIModel
-from .token_counter import calculate_prompt_cost_usd, calculate_response_cost_usd, token_count
+from ..exceptions import OpenAIDataError
 
 
 class DocumentationType(enum.StrEnum):
@@ -159,7 +167,6 @@ async def chat_completion(
         # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
         eaveLogger.exception(e, eave_ctx, log_params)
 
-
     candidates = [c for c in response.choices if c.finish_reason == "stop"]
 
     if len(candidates) > 0:
@@ -180,6 +187,7 @@ async def chat_completion(
     # output_tokens = usage.completion_tokens if (usage := response.usage) else None
     # await _log_gpt_request(kwargs, answer, duration_seconds, input_tokens, output_tokens, ctx, document_id)
     return answer
+
 
 # async def _log_gpt_request(
 #     params: ChatCompletionParameters,

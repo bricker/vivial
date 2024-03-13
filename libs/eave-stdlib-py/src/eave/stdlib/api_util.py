@@ -48,9 +48,9 @@ def get_headers(
 
     augmented_redacted = redacted.union(
         [
-            EAVE_SIGNATURE_HEADER,
-            aiohttp.hdrs.AUTHORIZATION,
-            aiohttp.hdrs.COOKIE,
+            EAVE_SIGNATURE_HEADER.lower(),
+            aiohttp.hdrs.AUTHORIZATION.lower(),
+            aiohttp.hdrs.COOKIE.lower(),
         ]
     )
 

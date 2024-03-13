@@ -15,68 +15,6 @@
       "justMyCode": false,
     },
     {
-      "name": "Slack App API",
-      "cwd": "${workspaceFolder}/apps/slack",
-      "type": "python",
-      "request": "launch",
-      "module": "uvicorn",
-      "args": [
-        "--use-colors",
-        "--port",
-        "5200",
-        "--reload",
-        "eave.slack.app:api"
-      ],
-      "justMyCode": false,
-      "consoleTitle": "Slack App API",
-      "env": {
-        "GAE_SERVICE": "slack",
-        "GAE_VERSION": "dev",
-        "TZ": "UTC",
-        "LOG_LEVEL": "DEBUG",
-        "EAVE_ENV": "development",
-        "EAVE_API_BASE_PUBLIC": "http://api.eave.run:8080",
-        "EAVE_APPS_BASE_PUBLIC": "http://apps.eave.run:8080",
-        "EAVE_WWW_BASE_PUBLIC": "http://www.eave.run:8080",
-        "EAVE_MONITORING_DISABLED": "1",
-        "EAVE_ANALYTICS_DISABLED": "1",
-        "PYTHONWARNINGS": "ignore::DeprecationWarning",
-        "PYDEVD_DISABLE_FILE_VALIDATION": "1",
-      }
-    },
-    {
-      "name": "Slack Socket Mode",
-      "envFile": "${workspaceFolder}/.env",
-      "cwd": "${workspaceFolder}/apps/slack",
-      "type": "python",
-      "request": "launch",
-      "program": "./socketmode.py",
-      "autoReload": {
-        "enable": true,
-        "include": [
-          "**/*.py",
-        ]
-      },
-      "console": "integratedTerminal",
-      "justMyCode": true,
-      "consoleTitle": "Slack Socket Mode",
-      "env": {
-        "GAE_SERVICE": "slack (socketmode)",
-        "GAE_VERSION": "dev",
-        "TZ": "UTC",
-        "LOG_LEVEL": "DEBUG",
-        "EAVE_ENV": "development",
-        "EAVE_API_BASE_PUBLIC": "http://api.eave.run:8080",
-        "EAVE_APPS_BASE_PUBLIC": "http://apps.eave.run:8080",
-        "EAVE_WWW_BASE_PUBLIC": "http://www.eave.run:8080",
-        "EAVE_MONITORING_DISABLED": "1",
-        "EAVE_ANALYTICS_DISABLED": "1",
-        "PYTHONWARNINGS": "ignore::DeprecationWarning",
-        "PYDEVD_DISABLE_FILE_VALIDATION": "1",
-        "SLACK_SOCKETMODE": "1",
-      }
-    },
-    {
       "name": "GitHub App",
       "consoleTitle": "GitHub App",
       "cwd": "${workspaceFolder}/apps/github",
@@ -87,30 +25,6 @@
         "<node_internals>/**"
       ],
       "console": "integratedTerminal"
-    },
-    {
-      "name": "Confluence App",
-      "consoleTitle": "Confluence App",
-      "cwd": "${workspaceFolder}/apps/confluence",
-      "type": "node",
-      "request": "launch",
-      "program": "bin/src/start-dev-nodemon.cjs",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "console": "integratedTerminal"
-    },
-    {
-      "name": "Jira App",
-      "consoleTitle": "Jira App",
-      "cwd": "${workspaceFolder}/apps/jira",
-      "type": "node",
-      "request": "launch",
-      "program": "bin/src/start-dev-nodemon.cjs",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "console": "integratedTerminal",
     },
     {
       "name": "Website (Flask)",

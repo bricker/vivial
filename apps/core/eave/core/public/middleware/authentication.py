@@ -10,7 +10,7 @@ import eave.stdlib.exceptions
 import eave.core.internal
 import eave.core.public
 from eave.stdlib.logging import LogContext, eaveLogger
-from asgiref.typing import ASGI3Application, ASGIReceiveCallable, ASGISendCallable, ASGISendEvent, Scope
+import asgiref.typing
 from eave.stdlib.api_util import get_bearer_token
 from starlette.responses import Response
 from starlette.datastructures import MutableHeaders
@@ -26,11 +26,16 @@ from eave.stdlib.exceptions import UnauthorizedError
 class AuthASGIMiddleware(EaveASGIMiddleware):
     endpoint_config: EndpointConfiguration
 
-    def __init__(self, app: ASGI3Application, endpoint_config: EndpointConfiguration) -> None:
+    def __init__(self, app: starlette.types.ASGIApp, endpoint_config: EndpointConfiguration) -> None:
         super().__init__(app)
         self.endpoint_config = endpoint_config
 
-    async def __call__(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+    async def run(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -71,7 +76,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             await self._abort_unauthorized(scope, receive, send)
             return
 
-        async def _send(event: ASGISendEvent) -> None:
+        async def _send(event: asgiref.typing.ASGISendEvent) -> None:
             if event["type"] != "http.response.start":
                 await send(event)
                 return
@@ -111,7 +116,12 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         return eave_account
 
-    async def _abort_unauthorized(self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable) -> None:
+    async def _abort_unauthorized(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         response = Response(status_code=HTTPStatus.UNAUTHORIZED)
         delete_auth_cookies(response=response)
         await response(

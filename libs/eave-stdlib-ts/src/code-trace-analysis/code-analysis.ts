@@ -597,11 +597,12 @@ async function main(): Promise<void> {
     // console.log(ptree.rootNode.toString());
 
     // captures (python specific) if/elif/else code blocks (sadly not including the first if conditions... TODO?)
-    const query = new Parser.Query(languageGrammar,
+    const query = new Parser.Query(
+      languageGrammar,
       `(if_statement [
         consequence: (_) @cons
         alternative: (_) @alt
-      ])`
+      ])`,
     );
     const matches = query.matches(ptree.rootNode);
 
@@ -642,14 +643,14 @@ async function main(): Promise<void> {
         model,
         ctx,
         description: summ,
-      })
+      });
 
       const event: VirtualEvent = {
         name,
         description: summ,
         uid: buildUid(f, poi.relLineNumber),
-      }
-      console.log(event)
+      };
+      console.log(event);
       vevents.push(event);
       console.log("\n=== sep ===\n");
     }
@@ -670,7 +671,7 @@ async function getSummary({
   model,
   ctx,
   content,
-  fullContext,
+  fullContext: _fullContext,
 }: {
   openaiClient: OpenAIClient;
   model: OpenAIModel;
@@ -682,24 +683,23 @@ async function getSummary({
 
   // get summary of code and its actions
   const prompt = formatprompt(`
-    Write 3 sentences or less summarizing the following code snippet in a way non-programmers could understand. Be concise, keep your summary abstract 
+    Write 3 sentences or less summarizing the following code snippet in a way non-programmers could understand. Be concise, keep your summary abstract
     (don't specifically name variables or classes from the code), limit your summary to just this snippet, and exclude fluff words, like "The code ..." or "This piece of code ...".
 
     \`\`\`
     ${content}
     \`\`\`
-    `,
-    // This gives better step summaries, but impossible to go from random step to exact code positions..
-    // `
-    // \`\`\`
-    // ${fullContext}
-    // \`\`\`
-    // Write a summary document of the actions taken by the above function.
-    // Be succinct, excluding redundant or unnecessary terms like "This function ...".
-    // Do not include surrounding markdown-style backticks.
-    // 1. 
-    // `,
-  );
+    `);
+  // This gives better step summaries, but impossible to go from random step to exact code positions..
+  // `
+  // \`\`\`
+  // ${fullContext}
+  // \`\`\`
+  // Write a summary document of the actions taken by the above function.
+  // Be succinct, excluding redundant or unnecessary terms like "This function ...".
+  // Do not include surrounding markdown-style backticks.
+  // 1.
+  // `,
 
   const response = await openaiClient.createChatCompletion({
     parameters: {
@@ -733,7 +733,6 @@ async function getEventName({
   ctx: LogContext;
   description: string;
 }): Promise<string> {
-
   const prompt = formatprompt(`
     Come up with a name for an analytics event based on a description of that event.
 
@@ -741,8 +740,7 @@ async function getEventName({
     Event name: github_feature_state_change
 
     Event description: "${description}"
-    Event name: `,
-  );
+    Event name: `);
 
   const response = await openaiClient.createChatCompletion({
     parameters: {
@@ -762,7 +760,7 @@ async function getEventName({
   let cleanName = response.split("\n")[0]!; // [0] will never be undefined
 
   // cleaning is mostly precautionary; didnt have this trouble once example was added to prompt
-  cleanName = cleanName.toLowerCase().replaceAll(' ', '_').replaceAll('"', '');
+  cleanName = cleanName.toLowerCase().replaceAll(" ", "_").replaceAll('"', "");
   return cleanName;
 }
 
@@ -770,7 +768,7 @@ async function getEventName({
 // NOTE: there is a small risk of UID collision if 2 functions happen to hash to the same strings (and the coliding line number is <= len of both functions)
 function buildUid(funcBody: string, relativeLineNum: number): string {
   // sha1 chosen for speed of hash to avoid bottlenecking interpreter at code execution time
-  const funcHash = crypto.createHash('sha1').update(funcBody).digest('base64');
+  const funcHash = crypto.createHash("sha1").update(funcBody).digest("base64");
   return `${funcHash}::${relativeLineNum}`;
 }
 
