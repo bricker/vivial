@@ -34,7 +34,7 @@ class Column:
         self.name = name
         self.type = type
 
-    def formated(self) -> sql.Composed:
+    def formatted(self) -> sql.Composed:
         return sql.SQL("{name} {type}").format(
             name=sql.Identifier(self.name),
             type=sql.SQL(self.type), # type: ignore
@@ -63,7 +63,7 @@ class Table:
 
     def formatCols(self) -> sql.Composed:
         """return cols list as a string of comma separated column names + types (for use in SQL queries)"""
-        return sql.SQL(", ").join(map(lambda c: c.formated(), self._columns))
+        return sql.SQL(", ").join(map(lambda c: c.formatted(), self._columns))
 
     @staticmethod
     def randName() -> str:
