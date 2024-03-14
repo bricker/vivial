@@ -1,8 +1,6 @@
 from typing import cast
-import time
-import hmac
-import json
-from uuid import UUID
+import uuid
+import jwt
 from eave.stdlib import analytics, utm_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.account import AuthProvider
@@ -21,36 +19,47 @@ from eave.stdlib.logging import LogContext
 from eave.stdlib.jwt import TEMP_create_jwt_for_metabase, JWTPurpose
 from . import base, shared
 
-class TEMP_MetabaseOAuthCallback(base.BaseOAuthCallback):
+class TEMP_MetabaseOAuthCallback(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
-        await super().get(request=request)
+        # await super().get(request=request)
+        response = RedirectResponse('/')
         ctx = LogContext.wrap(scope=request.scope)
 
         account = await shared.get_or_create_eave_account(
-            request=self.request,
-            response=self.response,
+            request=request,
+            response=response,
             eave_team_name="Metabase Test Team",
             user_email="admin@eave.fyi",
             auth_provider=AuthProvider.google,
-            auth_id=str(UUID()),
+            auth_id=str(uuid.uuid4()),
             access_token="12345",
             refresh_token="12345",
         )
 
         # do metabase stuff
+        import time
+        # full_jwt = TEMP_create_jwt_for_metabase(
+        #     email=account.email or "",
+        #     first_name="Admin",
+        #     last_name="Eave",
+        #     signing_key="527d96216242062a3d2355c97690ddc584d79217d2f7abbbfcf2afa240ab556d", # TODO make secrt
+        #     purpose=JWTPurpose.access,
+        # )
+        full_jwt = jwt.encode(
+            {
+                "email": account.email or "dummy@email.com",
+                "first_name": "Admin",
+                "last_name": "Eave",
+                "exp": round(time.time()) + (60 * 10), #10min
+            },
+            "527d96216242062a3d2355c97690ddc584d79217d2f7abbbfcf2afa240ab556d", # TODO make secrt
+        ) 
 
-        jwt = TEMP_create_jwt_for_metabase(
-            email=account.email or "",
-            first_name="Admin",
-            last_name="Eave",
-            exp_minutes=10,
-            signing_key="8c1c4cb0017162745f294d4d67a8e249205f1057284809f13c8064f87c796fbf", # TODO make secrt
-            purpose=JWTPurpose.access,
-        )
-
-        return_to = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
+        # this must be a relative path to a metabase dashboard
+        # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
+        return_to = "/dashboard/1"
         shared.set_redirect(
-            response=self.response,
-            location=f"http://localhost:3000/auth/sso?jwt={jwt.signature}&return_to={return_to}"
+            response=response,
+            location=f"http://localhost:3000/auth/sso?jwt={full_jwt}&return_to={return_to}"
         )
-        return self.response
+        return response
