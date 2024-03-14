@@ -16,6 +16,7 @@ from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.jwt import create_jwt
 from eave.stdlib.logging import LogContext
 from eave.stdlib.jwt import TEMP_create_jwt_for_metabase, JWTPurpose
 from . import base, shared
@@ -97,7 +98,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             access_token=credentials.token,
             refresh_token=credentials.refresh_token,
         )
-        
+
         # do metabase stuff
 
         jwt = TEMP_create_jwt_for_metabase(
@@ -114,4 +115,5 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             response=self.response,
             location=f"http://metabase.eave.run:3000/auth/sso?jwt={jwt.signature}&return_to={return_to}"
         )
+
         return self.response

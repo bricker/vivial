@@ -5,6 +5,7 @@ from eave.core.internal.oauth.google import GOOGLE_OAUTH_AUTHORIZE_PATH, GOOGLE_
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
+from eave.core.public.requests.oauth.metabase_temp import TEMP_MetabaseOAuthCallback
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
 from eave.stdlib.core_api.operations.github_installation import QueryGithubInstallation, DeleteGithubInstallation
@@ -189,6 +190,16 @@ routes = [
             team_id_required=False,
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
+    ),
+    make_route(
+        config=CoreApiEndpointConfiguration(
+            path="/oauth/temp_metabase",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
+        endpoint=TEMP_MetabaseOAuthCallback,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
