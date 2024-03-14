@@ -36,12 +36,14 @@ class GoogleIdToken:
     sub: str
     """Google globally unique and immutable user ID"""
     given_name: typing.Optional[str]
+    family_name: typing.Optional[str]
     email: typing.Optional[str]
 
     def __init__(self, data: JsonObject) -> None:
         self.sub = erasetype(data, "sub", "")
         self.given_name = erasetype(data, "given_name")
         self.email = erasetype(data, "email")
+        self.family_name = erasetype(data, "family_name")
 
 
 @dataclass
