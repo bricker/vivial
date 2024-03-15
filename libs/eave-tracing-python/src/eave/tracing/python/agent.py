@@ -16,10 +16,11 @@ _buffer_maxsize = 1000
 
 def _flush(buffer: list[Any]) -> None:
     print("Flushing queue, size:", len(buffer))
-    buffer_copy = buffer.copy()
+    _buffer_copy = buffer.copy()
 
     try:
-        clickhouse.insert(buffer_copy)
+        # TODO: Send data to Eave API
+        pass
     except Exception as e:
         print(e)
     else:

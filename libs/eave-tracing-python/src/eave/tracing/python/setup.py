@@ -1,7 +1,7 @@
 from setuptools import setup, Extension
 import toml
 
-NAME = "eave-monitoring"
+NAME = "eave-tracing-python"
 VERSION = "0.1.0"
 
 if __name__ == "__main__":

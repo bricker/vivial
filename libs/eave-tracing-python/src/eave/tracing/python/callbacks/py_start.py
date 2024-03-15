@@ -5,7 +5,7 @@ import sys
 from types import CodeType
 from typing import Any
 from uuid import uuid4
-from eave.monitoring.python.config import EaveConfig
+from ..config import EaveConfig
 from .util import DISABLE, PRIMITIVE_TYPES, should_ignore_module
 
 def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) -> Any:

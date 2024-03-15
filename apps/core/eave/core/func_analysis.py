@@ -5,15 +5,19 @@ from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 load_standard_dotenv_files()
 
 import warnings
-warnings.filterwarnings("ignore", message="As the c extension couldn't be imported", category=RuntimeWarning, module="google_crc32c")
+
+warnings.filterwarnings(
+    "ignore", message="As the c extension couldn't be imported", category=RuntimeWarning, module="google_crc32c"
+)
 
 import asyncio
-import os
 from textwrap import dedent
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-from eave.stdlib.transformer_ai.models import OpenAIModel
-from eave.stdlib.transformer_ai.openai_client import chat_completion, formatprompt
+from openai.types.chat import (
+    ChatCompletionSystemMessageParam,
+    ChatCompletionUserMessageParam,
+)
+from eave.stdlib.transformer_ai.openai_client import formatprompt
 from eave.stdlib.config import SHARED_CONFIG
 
 openai_client = AsyncOpenAI(
@@ -54,7 +58,6 @@ funcs = [
 
             return response
         """,
-
         r"""
         async def get(
             self,
@@ -135,7 +138,6 @@ funcs = [
 
             return self.response
         """,
-
         r"""
         async def _maybe_set_account_data(self, auth_cookies: AuthCookies) -> None:
             if not auth_cookies.all_set:
@@ -166,7 +168,6 @@ funcs = [
                     location=shared.DEFAULT_REDIRECT_LOCATION,
                 )
         """,
-
         r"""
         async def _update_or_create_github_installation(
             self,
@@ -218,13 +219,13 @@ funcs = [
 
                 self.github_installation_orm = github_installation_orm
         """,
-
         r"""
         def _request_logged_in(self) -> bool:
             return self.eave_team is not None and self.eave_account is not None
-        """
+        """,
     ]
 ]
+
 
 async def main():
     f = funcs[-2]
@@ -244,7 +245,7 @@ async def main():
             ```python
             """,
             f,
-            "```"
+            "```",
         )
 
         response = await openai_client.chat.completions.create(
@@ -279,14 +280,18 @@ async def main():
             ],
             model="gpt-4-1106-preview",
             messages=[
-                ChatCompletionSystemMessageParam({
-                    "role": "system",
-                    "content": system_prompt,
-                }),
-                ChatCompletionUserMessageParam({
-                    "role": "user",
-                    "content": user_prompt,
-                }),
+                ChatCompletionSystemMessageParam(
+                    {
+                        "role": "system",
+                        "content": system_prompt,
+                    }
+                ),
+                ChatCompletionUserMessageParam(
+                    {
+                        "role": "user",
+                        "content": user_prompt,
+                    }
+                ),
             ],
         )
 
@@ -297,6 +302,7 @@ async def main():
 
             print(choice.delta.content, end="")
             print(choice.delta.tool_calls, end="")
+
 
 if __name__ == "__main__":
     print("")
