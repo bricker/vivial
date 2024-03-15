@@ -1,9 +1,10 @@
 from types import CodeType
 from typing import Any
-from eave.monitoring.python.config import EaveConfig
+
+from ..config import EaveConfig
 
 
-def trace_line(config: EaveConfig, code: CodeType, line_number: int) -> Any:
+def trace_branch(config: EaveConfig, code: CodeType, instruction_offset: int, destination_offset: int) -> Any:
     """
     https://docs.python.org/3.12/library/sys.monitoring.html#callback-function-arguments
     """

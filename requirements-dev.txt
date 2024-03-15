@@ -3,9 +3,9 @@
 -e ${EAVE_HOME}/libs/eave-pubsub-schemas/python
 -e ${EAVE_HOME}/libs/eave-stdlib-py
 -e ${EAVE_HOME}/develop/python
--e ${EAVE_HOME}/libs/python/eave-tracing-core-py
--e ${EAVE_HOME}/libs/python/eave-tracing-python
--e ${EAVE_HOME}/libs/python/eave-tracing-postgres
+-e ${EAVE_HOME}/libs/eave-tracing-core-py
+-e ${EAVE_HOME}/libs/eave-tracing-python
+-e ${EAVE_HOME}/libs/eave-tracing-postgres
 
 grpcio-tools
 protobuf

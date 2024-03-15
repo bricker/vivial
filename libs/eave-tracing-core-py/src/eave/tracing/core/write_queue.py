@@ -5,7 +5,7 @@ import multiprocessing
 from queue import Empty
 import time
 
-from eave.monitoring.ingestion_api import send_data
+from .ingestion_api import send_data
 
 from .datastructures import EventType
 

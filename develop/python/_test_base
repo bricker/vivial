@@ -9,9 +9,8 @@ source "${EAVE_HOME}"/develop/functions.bash
 	if ! ^onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/test
 		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/test
-
-		for formatter in "${EAVE_HOME}"/libs/python/*/bin/format; do
-			$formatter
-		done
+		"${EAVE_HOME}"/libs/eave-tracing-core-py/bin/test
+		"${EAVE_HOME}"/libs/eave-tracing-python/bin/test
+		"${EAVE_HOME}"/libs/eave-tracing-postgres/bin/test
 	fi
 )

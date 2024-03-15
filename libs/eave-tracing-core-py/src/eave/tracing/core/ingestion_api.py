@@ -1,7 +1,7 @@
 import aiohttp
 
-from eave.monitoring.config import EAVE_API_BASE_URL
-from eave.monitoring.datastructures import DataIngestRequestBody, EventType
+from .config import EAVE_API_BASE_URL
+from .datastructures import DataIngestRequestBody, EventType
 
 
 async def send_data(event_type: EventType, events: list[str]) -> None:
