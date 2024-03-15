@@ -249,6 +249,7 @@ def suppress(e: Type[Exception], func: Callable[[], T]) -> T | None:
     with contextlib.suppress(e):
         return func()
 
+
 def titleize(string: str) -> str:
     """
     >>> titleize("accounts")
@@ -281,6 +282,7 @@ def titleize(string: str) -> str:
     parts = [a.capitalize() for a in parts]
     return " ".join(parts)
 
+
 def tableize(string: str) -> str:
     """
     >>> tableize("Account")
@@ -295,6 +297,7 @@ def tableize(string: str) -> str:
     'drop_tables'
     """
     return re.sub(r"\W", "_", string).lower()
+
 
 def sql_sanitized_identifier(identifier: str) -> str:
     """
@@ -313,6 +316,7 @@ def sql_sanitized_identifier(identifier: str) -> str:
     # removes backticks and backslashes (\\\\ = 1 backslash when using normal Python string)
     i = re.sub("[`\\\\]", "", identifier)
     return f"`{i}`"
+
 
 def sql_sanitized_literal(literal: str, quotechar: Literal["'", '"'] = '"') -> str:
     """

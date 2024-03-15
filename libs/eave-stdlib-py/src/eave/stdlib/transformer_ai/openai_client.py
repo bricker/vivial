@@ -1,12 +1,23 @@
 import enum
 import textwrap
-import time
-from dataclasses import asdict, dataclass
-from typing import Any, Awaitable, Callable, Concatenate, List, Literal, LiteralString, Optional, ParamSpec, TypeVar, Union, cast
+from typing import (
+    Any,
+    List,
+    Literal,
+    LiteralString,
+    Optional,
+    Union,
+    cast,
+)
 import uuid
 
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletion, ChatCompletionMessageParam, ChatCompletionToolChoiceOptionParam, ChatCompletionToolParam
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessageParam,
+    ChatCompletionToolChoiceOptionParam,
+    ChatCompletionToolParam,
+)
 from openai.types.chat.completion_create_params import Function, FunctionCall, ResponseFormat
 
 from eave.stdlib.logging import LogContext
@@ -171,6 +182,7 @@ async def chat_completion(
 
     answer = str(choice.message.content).strip()
     return answer
+
 
 def formatprompt(*strings: str) -> str:
     return "\n\n".join([textwrap.dedent(string).strip() for string in strings])

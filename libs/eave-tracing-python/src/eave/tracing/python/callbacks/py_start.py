@@ -8,6 +8,7 @@ from uuid import uuid4
 from ..config import EaveConfig
 from .util import DISABLE, PRIMITIVE_TYPES, should_ignore_module
 
+
 def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) -> Any:
     """
     https://docs.python.org/3.12/library/sys.monitoring.html#callback-function-arguments
