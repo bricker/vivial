@@ -8,7 +8,7 @@ from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.monitoring.datastructures import DatabaseChangeOperation
+from eave.tracing.core.datastructures import DatabaseChangeOperation
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent
 from eave.stdlib.util import titleize
 

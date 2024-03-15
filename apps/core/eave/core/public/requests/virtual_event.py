@@ -6,7 +6,7 @@ from starlette.responses import Response
 from eave.stdlib.api_util import json_response
 import eave.stdlib.core_api.operations.virtual_event as ve
 from eave.stdlib.request_state import EaveRequestState
-from eave.stdlib.util import unwrap, ensure_uuid
+from eave.stdlib.util import ensure_uuid
 
 
 class GetVirtualEventsEndpoint(HTTPEndpoint):

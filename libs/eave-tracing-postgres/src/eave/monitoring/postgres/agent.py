@@ -9,8 +9,8 @@ from typing import LiteralString, cast
 import psycopg
 from psycopg import sql
 
-from eave.monitoring.datastructures import EventType
-from eave.monitoring.write_queue import BatchWriteQueue, QueueParams
+from eave.tracing.core.datastructures import EventType
+from eave.tracing.core.write_queue import BatchWriteQueue, QueueParams
 
 # payload can only be 8kb max
 # NEW variable documented here: https://www.postgresql.org/docs/current/plpgsql-trigger.html

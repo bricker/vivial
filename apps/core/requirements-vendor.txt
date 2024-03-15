@@ -2,4 +2,3 @@
 ${EAVE_HOME}/libs/eave-stdlib-py
 ${EAVE_HOME}/libs/eave-pubsub-schemas/python
 ${EAVE_HOME}/libs/python/eave-tracing-core-py
-${EAVE_HOME}/libs/python/eave-tracing-python
