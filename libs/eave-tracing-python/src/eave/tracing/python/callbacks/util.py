@@ -17,6 +17,7 @@ _common_noisy_modules_to_ignore = set(
 
 _ignore_modules_set = _builtins_set | _stdlib_set | _common_noisy_modules_to_ignore
 
+
 def should_ignore_module(name: str | None, scope: str | None) -> bool:
     if not name:
         return False

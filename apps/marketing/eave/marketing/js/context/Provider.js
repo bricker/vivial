@@ -75,7 +75,7 @@ const AppContextProvider = ({ children }) => {
   const glossaryNetworkStateCtx = useState({
     virtualEventsAreErroring: false,
     virtualEventsAreLoading: true,
-  })
+  });
 
   /** @type {AppContextProps} */
   const ctx = {

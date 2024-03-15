@@ -12,7 +12,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		nvm install 1>/dev/null 2>&1
+		nvm install 1>/dev/null || true
 	}
 
 	function node-lint() (

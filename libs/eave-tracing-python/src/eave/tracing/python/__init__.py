@@ -40,9 +40,13 @@ _events: dict[int, Optional[Callable[Concatenate[EaveConfig, ...], Any]]] = {
 
 _events_mask = reduce(lambda a, b: a | b, _events.keys())
 
-def eave_tracer[
-    **P, R
-](config: EaveConfig) -> Callable[[Callable[Concatenate[EaveConfig, P], R],], Callable[P, R]]:
+
+def eave_tracer[**P, R](config: EaveConfig) -> Callable[
+    [
+        Callable[Concatenate[EaveConfig, P], R],
+    ],
+    Callable[P, R],
+]:
     def inner0(f: Callable[Concatenate[EaveConfig, P], R]) -> Callable[P, R]:
         @functools.wraps(f)
         def inner1(*args: P.args, **kwargs: P.kwargs) -> R:
@@ -51,6 +55,7 @@ def eave_tracer[
         return inner1
 
     return inner0
+
 
 def start_tracing(
     scope: str | None = None,
