@@ -194,23 +194,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		local usershell
-		usershell=$(shellname)
-		case $usershell in
-		"fish")
-			if fish -c "functions -q $1"; then
-				return 0
-			else
-				return 1
-			fi
-			;;
-		"bash" | "zsh")
-			return 1
-			;;
-		*)
+		if which "$1" >/dev/null; then
 			return 0
-			;;
-		esac
+		fi
+
+		return 1
 	}
 
 	function run-in-path() (

@@ -1,18 +1,19 @@
-if test -z "${_NVM_LOADED:-}"; then
+if ! ^cmd-exists "nvm"; then
 	_nvm_dir="${NVM_DIR:-$XDG_CONFIG_HOME/nvm}"
 	# load nvm (or-ed with true to force non-error return value)
-	([ -s "$_nvm_dir/nvm.sh" ] && \. "$_nvm_dir/nvm.sh") || true
-	_NVM_LOADED=1
+	if test -s "$_nvm_dir/nvm.sh"; then
+		source "$_nvm_dir/nvm.sh"
+	fi
 fi
 
 if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 	function node-activate-venv() {
 		if ! ^cmd-exists "nvm"; then
-			statusmsg -w "automatic environment management is disabled because nvm was not found in your PATH. It is recommended to install nvm."
+			statusmsg -w "Automatic environment management is disabled because nvm isn't available from this bash script. nvm-sh (https://github.com/nvm-sh/nvm) must be installed for this to work (even if you use an incompatible shell)."
 			return 0
 		fi
 
-		nvm install 1>/dev/null || true
+		nvm install 1>/dev/null 2>&1 || statusmsg -w "nvm install failed. Proceeding anyways."
 	}
 
 	function node-lint() (
