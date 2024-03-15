@@ -50,13 +50,13 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
             not_found_ok=True,
         )
 
-
     def _bq_team_dataset_exists(self) -> bool:
         handle = BigQueryTableHandle(team_id=self._team.id)
         try:
             dataset = client.get_dataset(dataset_ref=handle.dataset_id)
-        except:
-            return False
+        except GoogleCloudError | ValueError as e:
+            self.fail(f"Unexpected Google Cloud error: {e}")
+
         return dataset is not None
 
     def _bq_table_exists(self, table_name: str) -> bool:
