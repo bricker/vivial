@@ -40,7 +40,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		python -m ruff --config="$configfile" .
 		python -m pyright --project "$EAVE_HOME" .
-		python -m black --config="$configfile" --check .
 
 		statusmsg -s "Linting $logtarget passed"
 		echo
@@ -58,8 +57,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		logtarget=$(^eavepwd)
 
 		statusmsg -i "Formatting $logtarget (py)..."
-
-		python -m black --config="$configfile" .
 
 		# Ruff could change code semantics. The auto-formatter is intended to be completely safe.
 		# but it also removes unused import which we want.
