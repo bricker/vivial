@@ -28,4 +28,5 @@ dependencies = [
   "redis[hiredis]",
   "multidict",
   "aiohttp",
+  "pyjwt",
 ]
