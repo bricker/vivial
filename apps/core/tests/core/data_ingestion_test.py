@@ -3,8 +3,8 @@ import time
 
 from google.cloud import bigquery
 from google.cloud.bigquery.dataset import DatasetReference
+from google.cloud.exceptions import GoogleCloudError
 from eave.core.internal.bigquery.types import BigQueryTableHandle
-from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.tracing.core.datastructures import (
     DataIngestRequestBody,
@@ -18,6 +18,7 @@ from .base import BaseTestCase
 from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 
 client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
+
 
 class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
     async def asyncSetUp(self) -> None:

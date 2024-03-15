@@ -23,3 +23,4 @@ types-protobuf
 mitmproxy==10.1.1
 click
 alembic
+toml

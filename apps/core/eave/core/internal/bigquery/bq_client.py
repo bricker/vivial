@@ -1,13 +1,10 @@
 import json
-import re
 from typing import Any, Mapping, Sequence
 from google.cloud import bigquery
 from google.oauth2 import service_account as _service_account
 from google.cloud.bigquery.table import RowIterator
-from google.cloud.bigquery_storage_v1.services.big_query_write import BigQueryWriteAsyncClient
-from google.cloud.bigquery_storage_v1.types import AppendRowsRequest
 import google.api_core.exceptions
-from eave.stdlib.config import SHARED_CONFIG
+
 
 class BigQueryClient:
     _bq_client: bigquery.Client
@@ -30,9 +27,11 @@ class BigQueryClient:
         )
         return r
 
-    def get_or_create_table(self, *, dataset_id: str, table_id: str, schema: list[bigquery.SchemaField]) -> bigquery.Table:
+    def get_or_create_table(
+        self, *, dataset_id: str, table_id: str, schema: list[bigquery.SchemaField]
+    ) -> bigquery.Table:
         table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
-        table.schema = schema # Doing this instead of passing into the initializer because the initializer doesn't have a type for the schema param.
+        table.schema = schema  # Doing this instead of passing into the initializer because the initializer doesn't have a type for the schema param.
 
         r = self._bq_client.create_table(
             table=table,
@@ -54,8 +53,8 @@ class BigQueryClient:
         self._bq_client.insert_rows(
             table=table,
             rows=rows,
-            ignore_unknown_values=False, # error if any row contains unknown values
-            skip_invalid_rows=False, # error if any row is invalid
+            ignore_unknown_values=False,  # error if any row contains unknown values
+            skip_invalid_rows=False,  # error if any row is invalid
         )
 
     def query(self, *, query: str) -> RowIterator:
@@ -105,6 +104,7 @@ class BigQueryClient:
         table_ref = self._construct_table_ref(dataset_id=dataset_id, table_id=table_id)
         table = bigquery.Table(table_ref=table_ref)
         return table
+
 
 EAVE_INTERNAL_BIGQUERY_ATOMS_DATASET_ID = "eave_atoms"
 EAVE_INTERNAL_BIGQUERY_CLIENT = BigQueryClient()

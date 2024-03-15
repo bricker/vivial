@@ -1,21 +1,22 @@
 from dataclasses import dataclass
 from enum import StrEnum
 from uuid import UUID
-from google.cloud.bigquery import Dataset, SchemaField, Table
-from google.cloud.bigquery.table import RowIterator
+from google.cloud.bigquery import SchemaField
 
 from eave.core.internal.bigquery import bq_client
-from eave.stdlib.config import SHARED_CONFIG
+
 
 class BigQueryFieldMode(StrEnum):
     REQUIRED = "REQUIRED"
     NULLABLE = "NULLABLE"
     REPEATED = "REPEATED"
 
+
 @dataclass(frozen=True)
 class BigQueryTableDefinition:
     table_id: str
     schema: list[SchemaField]
+
 
 class BigQueryTableHandle:
     table_def: BigQueryTableDefinition
@@ -32,5 +33,4 @@ class BigQueryTableHandle:
     def dataset_id(self) -> str:
         return f"team_{self.team_id.hex}"
 
-    async def insert(self, events: list[str]) -> None:
-        ...
+    async def insert(self, events: list[str]) -> None: ...

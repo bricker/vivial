@@ -2,18 +2,16 @@ from dataclasses import dataclass
 import dataclasses
 from datetime import datetime
 import json
-import re
 from textwrap import dedent
-from typing import Any, Optional, TypedDict, override
-from google.cloud.bigquery import SchemaField, StandardSqlTypeNames, Table
-from google.cloud.bigquery.table import RowIterator
+from typing import Any, Optional, override
+from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
-from eave.tracing.core.datastructures import DatabaseChangeEventPayload, DatabaseChangeOperation
+from eave.tracing.core.datastructures import DatabaseChangeEventPayload
 from eave.core.internal import database
-from eave.core.internal.bigquery import bq_client
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
+
 
 @dataclass(frozen=True)
 class _DatabaseChangesTableSchema:
@@ -21,11 +19,13 @@ class _DatabaseChangesTableSchema:
     Convenience class for typing input data.
     The associated BigQueryTableDefinition is authoritative.
     """
+
     table_name: str
     operation: str
     timestamp: datetime
     old_data: Optional[dict[str, Any]]
     new_data: Optional[dict[str, Any]]
+
 
 class DatabaseChangesTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -71,7 +71,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
                 params=VirtualEventOrm.QueryParams(
                     team_id=self.team_id,
                     view_id=vevent_view_id,
-                )
+                ),
             )
 
             if not vevent_query.one_or_none():
@@ -125,10 +125,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
 
         self._bq_client.append_rows(
             table=table,
-            rows=[
-                self._format_row(e)
-                for e in dbchange_events
-            ],
+            rows=[self._format_row(e) for e in dbchange_events],
         )
 
         unique_operations = set((e.operation, e.table_name) for e in dbchange_events)
