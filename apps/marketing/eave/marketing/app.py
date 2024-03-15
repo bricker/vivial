@@ -98,6 +98,7 @@ async def get_user() -> Response:
 
     return _make_response(eave_response)
 
+
 @app.route("/dashboard/team/virtual-events", methods=["POST"])
 @_auth_handler
 async def get_virtual_events() -> Response:
@@ -115,6 +116,7 @@ async def get_virtual_events() -> Response:
     )
 
     return _make_response(eave_response)
+
 
 @app.route("/dashboard/team", methods=["POST"])
 @_auth_handler

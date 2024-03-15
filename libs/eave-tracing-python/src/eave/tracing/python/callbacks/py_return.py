@@ -1,6 +1,5 @@
 from types import CodeType
 from typing import Any
-from .util import DISABLE
 from ..config import EaveConfig
 
 

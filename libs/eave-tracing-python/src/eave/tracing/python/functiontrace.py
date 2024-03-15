@@ -40,9 +40,7 @@ def setup_dependencies():
 
     # Generate wrappers for the various Python versions we support to ensure
     # they're included in our PATH.
-    wrap_pythons = ["python", "python3"] + [
-        "python3.{}".format(minor) for minor in range(6, 12)
-    ]
+    wrap_pythons = ["python", "python3"] + ["python3.{}".format(minor) for minor in range(6, 12)]
     for python in wrap_pythons:
         with open(os.path.join(tempdir, python), "w") as f:
             f.write(PYTHON_TEMPLATE.format(python=python))
@@ -66,9 +64,7 @@ def main():
         default=os.getcwd(),
         help="The directory to output trace files to",
     )
-    parser.add_argument(
-        "-v", "--version", action="version", version=_functiontrace.__version__
-    )
+    parser.add_argument("-v", "--version", action="version", version=_functiontrace.__version__)
     parser.add_argument("script", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -97,9 +93,7 @@ def main():
     # below, which needs to operate in the context of our new module.
     # NOTE: We use SourceFileLoader, rather than allowing importlib to infer
     # the proper loader, in order to support files without a .py extension.
-    spec = util.spec_from_loader(
-        "__main__", machinery.SourceFileLoader("__main__", target_file)
-    )
+    spec = util.spec_from_loader("__main__", machinery.SourceFileLoader("__main__", target_file))
     assert spec
     mod = util.module_from_spec(spec)
     sys.modules.update({"__main__": mod})
