@@ -28,6 +28,7 @@ class SigningAlgorithm(enum.Enum):
     ES256 = "ES256"
     HS256 = "HS256"
 
+
 @dataclass
 class SigningKeyDetails:
     id: str

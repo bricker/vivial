@@ -65,9 +65,9 @@ module "gcp_project" {
 # }
 
 module "gcp_bigquery" {
-  source = "../modules/gcp/bigquery"
+  source     = "../modules/gcp/bigquery"
   project_id = local.project_id
-  region = local.region
+  region     = local.region
 }
 
 resource "google_project_iam_binding" "bigquery_data_owner" {

@@ -40,7 +40,7 @@ def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) 
     # co_argcount includes co_posonlyargcount, but does _not_ include co_kwonlyargcount. It also doesn't include *args and **kwargs.
     namedargscount = code.co_argcount + code.co_kwonlyargcount
     argnames = code.co_varnames[:namedargscount]
-    argvals = {
+    _argvals = {
         k: v for k, v in frame.f_locals.items() if k in argnames and k != "self" and isinstance(v, PRIMITIVE_TYPES)
     }
 
@@ -49,11 +49,11 @@ def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) 
     # if len(argvals) > 0:
     #     print(argvals)
 
-    fclassname = code.__class__.__name__ if hasattr(code, "__class__") else None
+    _fclassname = code.__class__.__name__ if hasattr(code, "__class__") else None
 
-    team_id = uuid4()
-    corr_id = uuid4()
-    timestamp = datetime.utcnow()
+    _team_id = uuid4()
+    _corr_id = uuid4()
+    _timestamp = datetime.utcnow()
 
     # data = RawEvent(
     #     team_id=team_id,
