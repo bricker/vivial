@@ -40,7 +40,7 @@ class TEMP_MetabaseOAuthCallback(HTTPEndpoint):
 
         # this must be a relative path to a metabase dashboard
         # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
-        return_to = "/dashboard/1"
+        return_to = "/dashboard/8"
         shared.set_redirect(
             response=response, location=f"http://localhost:3000/auth/sso?jwt={full_jwt}&return_to={return_to}"
         )

@@ -67,6 +67,10 @@ const EventDashboard = () => {
     : classes.desktopContainer;
 
   return (
+    <iframe src="http://localhost:5100/oauth/temp_metabase" frameBorder="0" width="1280" height="600"></iframe>
+  );
+/*
+  return (
     <div className={container}>
       <SidebarNav hamburger={usingMobileLayout}>
         <Menu>
@@ -119,7 +123,7 @@ const EventDashboard = () => {
         }
       })()}
     </div>
-  );
+  );*/
 };
 
 export default EventDashboard;
