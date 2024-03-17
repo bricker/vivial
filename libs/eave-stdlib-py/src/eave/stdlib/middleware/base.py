@@ -26,7 +26,8 @@ class EaveASGIMiddleware(ABC):
         scope: asgiref.typing.Scope,
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
-    ) -> None: ...
+    ) -> None:
+        ...
 
     async def __call__(
         self, scope: starlette.types.Scope, receive: starlette.types.Receive, send: starlette.types.Send

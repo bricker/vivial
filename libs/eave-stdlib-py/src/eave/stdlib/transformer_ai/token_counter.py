@@ -15,7 +15,7 @@ def _input_token_cost(model: OpenAIModel) -> float:
 
     returns float price in USD
     """
-    match (model):
+    match model:
         case OpenAIModel.GPT_35_TURBO:
             return 0.0015
         case OpenAIModel.GPT_35_TURBO_16K:
@@ -31,7 +31,7 @@ def _output_token_cost(model: OpenAIModel) -> float:
 
     returns float price in USD
     """
-    match (model):
+    match model:
         case OpenAIModel.GPT_35_TURBO:
             return 0.002
         case OpenAIModel.GPT_35_TURBO_16K:

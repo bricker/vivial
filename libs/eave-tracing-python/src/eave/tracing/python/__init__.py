@@ -41,7 +41,9 @@ _events: dict[int, Optional[Callable[Concatenate[EaveConfig, ...], Any]]] = {
 _events_mask = reduce(lambda a, b: a | b, _events.keys())
 
 
-def eave_tracer[**P, R](config: EaveConfig) -> Callable[
+def eave_tracer[**P, R](
+    config: EaveConfig,
+) -> Callable[
     [
         Callable[Concatenate[EaveConfig, P], R],
     ],
