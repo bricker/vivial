@@ -36,9 +36,15 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
+		local verboseflag=""
+		if verbose; then
+			verboseflag="--verbose"
+		fi
+
 		statusmsg -i "Linting $logtarget (py)..."
 
-		python -m ruff --config="$configfile" .
+		python -m ruff check $verboseflag --config="$configfile" .
+		python -m ruff format --check $verboseflag --config="$configfile" .
 		python -m pyright --project "$EAVE_HOME" .
 
 		statusmsg -s "Linting $logtarget passed"
@@ -56,12 +62,15 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local logtarget
 		logtarget=$(^eavepwd)
 
+		local verboseflag=""
+		if verbose; then
+			verboseflag="--verbose"
+		fi
+
 		statusmsg -i "Formatting $logtarget (py)..."
 
-		# Ruff could change code semantics. The auto-formatter is intended to be completely safe.
-		# but it also removes unused import which we want.
-		# TODO: can we configure it to only fix the unused imports?
-		python -m ruff --fix --config="$configfile" .
+		python -m ruff check --fix $verboseflag --config="$configfile" .
+		python -m ruff format $verboseflag --config="$configfile" .
 
 		statusmsg -s "Formatting $logtarget completed"
 		echo

@@ -15,8 +15,6 @@ extend-select = [
 ]
 ignore-init-module-imports = true
 
-[tool.ruff.format]
-
 [tool.pytest.ini_options]
 addopts = "--capture=no" # --doctest-modules --doctest-ignore-import-errors
 filterwarnings = [
