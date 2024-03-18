@@ -4,6 +4,7 @@ import enum
 class EaveApp(enum.StrEnum):
     eave_api = "eave_api"
     eave_www = "eave_www"
+    eave_metabase = "eave_metabase"
     eave_github_app = "eave_github_app"
 
     @property
@@ -15,6 +16,8 @@ class EaveApp(enum.StrEnum):
                 return "www"
             case EaveApp.eave_github_app:
                 return "github"
+            case EaveApp.eave_metabase:
+                return "metabase"
 
 
 class ExternalOrigin(enum.StrEnum):

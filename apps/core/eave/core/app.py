@@ -5,7 +5,8 @@ from eave.core.internal.oauth.google import GOOGLE_OAUTH_AUTHORIZE_PATH, GOOGLE_
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
-from eave.core.public.requests.oauth.metabase_temp import TEMP_MetabaseOAuthCallback
+from eave.core.public.requests.oauth import metabase_embedding_sso
+from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
 from eave.stdlib.core_api.operations.github_installation import QueryGithubInstallation, DeleteGithubInstallation
@@ -193,13 +194,13 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/temp_metabase",
-            auth_required=False,
+            path=metabase_embedding_sso.METABASE_EMBEDDING_PATH,
+            auth_required=True,
             signature_required=False,
             origin_required=False,
             team_id_required=False,
         ),
-        endpoint=TEMP_MetabaseOAuthCallback,
+        endpoint=MetabaseEmbeddingSSO,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(

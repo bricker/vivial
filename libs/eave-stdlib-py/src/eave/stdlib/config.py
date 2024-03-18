@@ -121,6 +121,10 @@ class _EaveConfig(ConfigBase):
     @property
     def eave_public_www_base(self) -> str:
         return self.eave_public_service_base(EaveApp.eave_www)
+    
+    @property
+    def eave_public_metabase_base(self) -> str:
+        return self.eave_public_service_base(EaveApp.eave_metabase)
 
     def eave_public_service_base(self, service: EaveApp) -> str:
         sname = service.value.upper()
