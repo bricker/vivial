@@ -23,7 +23,7 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         # this must be a relative path to a metabase dashboard
         # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
         # TODO: read this from input req path instead of hard-coding; or if empty default to user's first dash we created
-        return_to = "/dashboard/8"
+        return_to = request.query_params.get("return_to") or "/dashboard/8"
         response = RedirectResponse("/")
 
         async with database.async_session.begin() as db_session:
