@@ -1,15 +1,18 @@
-import sys
-from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.github_installation import GithubInstallationOrm
-from eave.core.internal.orm.team import TeamOrm
+# isort: off
 
+import sys
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
-
 load_standard_dotenv_files()
 
+# isort: on
+
 # ruff: noqa: E402
+
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 
 import asyncio
 import logging

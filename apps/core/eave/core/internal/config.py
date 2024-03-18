@@ -88,4 +88,5 @@ class _AppConfig(ConfigBase):
         key = "METABASE_JWT_KEY"
         return get_secret(key)
 
+
 CORE_API_APP_CONFIG = _AppConfig()
