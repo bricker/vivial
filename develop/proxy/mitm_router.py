@@ -19,6 +19,8 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         port = 5000
     elif re.match(r"^api\.", flow.request.host):
         port = 5100
+    elif re.match(r"^metabase\.", flow.request.host):
+        port = 3000
     elif re.match(r"^apps\.", flow.request.host):
         if re.match(r"(/_)?/github", flow.request.path):
             port = 5300
