@@ -18,11 +18,18 @@ METABASE_EMBEDDING_PATH = "/oauth/metabase"
 
 class MetabaseEmbeddingSSO(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
+        """
+        Redirects request to the authenticated user's metabase instance to set SSO
+        cookies before redirecting in turn to the metabase dashboard specified in the
+        `return_to` query parameter.
+        This endpoint resolves to an HTML page on success and is intended to be the src
+        for an iframe element.
+        """
         eave_state = EaveRequestState.load(request=request)
 
         # this must be a relative path to a metabase dashboard
         # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
-        # TODO: read this from input req path instead of hard-coding; or if empty default to user's first dash we created
+        # TODO: if empty default to user's first dash we created
         return_to = request.query_params.get("return_to") or "/dashboard/8"
         response = RedirectResponse("/")
 
