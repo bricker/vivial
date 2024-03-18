@@ -262,8 +262,8 @@ class _EaveConfig(ConfigBase):
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment
-    if name in os.environ:
-        return os.environ[name]
+    if (envval := os.environ.get(name)) and envval != "(not set)":
+        return envval
 
     secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
     fqname = secrets_client.secret_version_path(
