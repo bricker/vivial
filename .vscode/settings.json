@@ -160,4 +160,5 @@
   "ruff.format.args": [
     "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
+  "ruff.organizeImports": true,
 }

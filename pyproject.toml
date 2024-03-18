@@ -20,3 +20,50 @@ extraPaths=[
     "./develop/python/src",
 ]
 typeCheckingMode = "basic"
+
+[tool.ruff]
+line-length = 120 # line length lint violations are suppressed by this configuration, but setting this line length informs the formatter.
+extend-exclude = [
+  "generated",
+  "__pycache__",
+  "node_modules",
+  "vendor",
+  "build",
+  ".*",
+]
+
+[tool.ruff.lint]
+select = [
+  "ALL",
+  # "F",
+  # "E",
+  # # "W",
+  # "I", # isort
+  # # "B",
+  # "B006", # https://docs.astral.sh/ruff/rules/mutable-argument-default/
+]
+ignore = [
+  "E501", # https://docs.astral.sh/ruff/rules/line-too-long/
+]
+ignore-init-module-imports = true
+
+[tool.pytest.ini_options]
+addopts = "--capture=no" # --doctest-modules --doctest-ignore-import-errors
+filterwarnings = [
+  "ignore::DeprecationWarning"
+]
+pythonpath = [
+  "./apps/core",
+  "./apps/marketing",
+  "./libs/eave-stdlib-py",
+  "./libs/eave-tracing-core-py",
+  "./libs/eave-tracing-python",
+  "./libs/eave-tracing-postgres",
+]
+norecursedirs = [
+  "vendor",
+  "node_modules",
+  "__pycache__",
+  "build",
+  ".*",
+]
