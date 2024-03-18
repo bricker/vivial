@@ -34,4 +34,5 @@ env_variables:
   EAVE_APPS_BASE_PUBLIC: https://apps.eave.dev
   EAVE_API_BASE_PUBLIC: https://api.eave.dev
   EAVE_WWW_BASE_PUBLIC: https://www.eave.dev
+  EAVE_METABASE_BASE_PUBLIC: https://metabase.eave.dev
   LOG_LEVEL: "DEBUG"

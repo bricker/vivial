@@ -12,6 +12,7 @@ import EventGlossary from "./EventGlossary/index.jsx";
 import Menu from "./SidebarNav/Menu/index.jsx";
 import MenuItem from "./SidebarNav/MenuItem/index.jsx";
 import SidebarNav from "./SidebarNav/index.jsx";
+import MetabaseEmbeddedDashboard from "../../MetabaseEmbeddedDashboard/index.jsx";
 
 // TODO: a11y; the tabs arent kb navable
 
@@ -67,7 +68,7 @@ const EventDashboard = () => {
     : classes.desktopContainer;
 
   return (
-    <iframe src="http://api.eave.run:8080/oauth/temp_metabase" frameBorder="0" width="1280" height="600"></iframe>
+    <MetabaseEmbeddedDashboard className={{width: 1280, height: 600}} />
   );
 /*
   return (
