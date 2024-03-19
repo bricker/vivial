@@ -38,12 +38,9 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
                 ),
             )
 
-        # TODO: set values based on authed user middleware
         full_jwt = jwt.encode(
             {
                 "email": account.email,
-                "first_name": "Admin",
-                "last_name": "Eave",
                 "exp": round(time.time()) + (60 * 10),  # 10min
             },
             CORE_API_APP_CONFIG.metabase_jwt_key,  # TODO: pull correct value for this from user team db entry (and delete this config val)
