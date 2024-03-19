@@ -33,9 +33,7 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         async with database.async_session.begin() as db_session:
             account = await AccountOrm.one_or_exception(
                 session=db_session,
-                params=AccountOrm.QueryParams(
-                    id=ensure_uuid(eave_state.ctx.eave_account_id)
-                ),
+                params=AccountOrm.QueryParams(id=ensure_uuid(eave_state.ctx.eave_account_id)),
             )
 
             metabase_instance = await MetabaseInstanceOrm.one_or_exception(

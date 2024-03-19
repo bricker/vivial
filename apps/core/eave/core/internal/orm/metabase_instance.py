@@ -26,9 +26,7 @@ class MetabaseInstanceOrm(Base):
     jwt_signing_key: Mapped[Optional[str]] = mapped_column(server_default=None)
     route_id: Mapped[Optional[uuid.UUID]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(
-        server_default=None, onupdate=func.current_timestamp()
-    )
+    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def create(
@@ -106,9 +104,5 @@ class MetabaseInstanceOrm(Base):
         return MetabaseInstance.from_orm(self)
 
     def validate_hosting_data(self):
-        assert (
-            self.jwt_signing_key is not None
-        ), "Metabase instance doesn't have a signing key"
-        assert (
-            self.route_id is not None
-        ), "Metabase instance doesn't have hosted route ID"
+        assert self.jwt_signing_key is not None, "Metabase instance doesn't have a signing key"
+        assert self.route_id is not None, "Metabase instance doesn't have hosted route ID"

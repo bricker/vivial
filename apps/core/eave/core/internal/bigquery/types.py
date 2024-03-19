@@ -33,5 +33,4 @@ class BigQueryTableHandle:
     def dataset_id(self) -> str:
         return f"team_{self.team_id.hex}"
 
-    async def insert(self, events: list[str]) -> None:
-        ...
+    async def insert(self, events: list[str]) -> None: ...

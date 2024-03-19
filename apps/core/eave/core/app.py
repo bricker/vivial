@@ -145,12 +145,8 @@ def make_route(
     starlette_endpoint = TeamLookupASGIMiddleware(
         app=starlette_endpoint, endpoint_config=config
     )  # Last thing to happen before the Route handler
-    starlette_endpoint = AuthASGIMiddleware(
-        app=starlette_endpoint, endpoint_config=config
-    )
-    starlette_endpoint = SignatureVerificationASGIMiddleware(
-        app=starlette_endpoint, endpoint_config=config
-    )
+    starlette_endpoint = AuthASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
+    starlette_endpoint = SignatureVerificationASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
     starlette_endpoint = OriginASGIMiddleware(
         app=starlette_endpoint, endpoint_config=config
     )  # First thing to happen when the middleware chain is kicked off
