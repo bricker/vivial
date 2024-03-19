@@ -8,7 +8,6 @@ from eave.core.internal.oauth.google import (
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
-from eave.core.public.requests.oauth import metabase_embedding_sso
 from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount

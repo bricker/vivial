@@ -108,7 +108,7 @@ class MetabaseInstanceOrm(Base):
     def validate_hosting_data(self):
         assert (
             self.jwt_signing_key is not None
-        ), f"Metabase instance doesn't have a signing key"
+        ), "Metabase instance doesn't have a signing key"
         assert (
             self.route_id is not None
-        ), f"Metabase instance doesn't have hosted route ID"
+        ), "Metabase instance doesn't have hosted route ID"
