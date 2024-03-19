@@ -24,7 +24,7 @@ class MetabaseInstanceOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, unique=True)
     jwt_signing_key: Mapped[Optional[str]] = mapped_column(server_default=None)
-    route_id: Mapped[Optional[str]] = mapped_column(server_default=None)
+    route_id: Mapped[Optional[uuid.UUID]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(
         server_default=None, onupdate=func.current_timestamp()
@@ -45,7 +45,7 @@ class MetabaseInstanceOrm(Base):
 
     class UpdateParameters(TypedDict):
         jwt_signing_key: NotRequired[str]
-        route_id: NotRequired[str]
+        route_id: NotRequired[uuid.UUID]
 
     def update(
         self,
