@@ -13,9 +13,6 @@ from eave.stdlib.util import ensure_uuid
 from . import shared
 
 
-METABASE_EMBEDDING_PATH = "/oauth/metabase"
-
-
 class MetabaseEmbeddingSSO(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         """
