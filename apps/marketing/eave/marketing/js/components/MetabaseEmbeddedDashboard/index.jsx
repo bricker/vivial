@@ -6,7 +6,7 @@ const MetabaseEmbeddedDashboard = ({
   /** @type {string} */ dashRoute = undefined,
 }) => {
   // route to web backend to add auth headers etc before redirecting to core api
-  let srcRoute = "/oauth/metabase";
+  let srcRoute = "/embed/metabase";
   if (dashRoute) {
     srcRoute += `?return_to=${dashRoute}`;
   }
