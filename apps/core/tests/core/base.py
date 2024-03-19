@@ -26,7 +26,6 @@ import eave.stdlib.typing
 
 from eave.stdlib.core_api.models.account import AuthProvider
 import eave.stdlib.test_util
-import eave.stdlib.jwt
 import eave.stdlib.requests
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc

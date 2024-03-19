@@ -36,12 +36,14 @@ class GoogleIdToken:
     sub: str
     """Google globally unique and immutable user ID"""
     given_name: typing.Optional[str]
+    family_name: typing.Optional[str]
     email: typing.Optional[str]
 
     def __init__(self, data: JsonObject) -> None:
         self.sub = erasetype(data, "sub", "")
         self.given_name = erasetype(data, "given_name")
         self.email = erasetype(data, "email")
+        self.family_name = erasetype(data, "family_name")
 
 
 @dataclass
@@ -73,9 +75,9 @@ class GoogleOAuthV2GetResponse:
     locale: typing.Optional[str] = None  # The user's preferred locale.
     name: typing.Optional[str] = None  # The user's full name.
     picture: typing.Optional[str] = None  # URL of the user's picture image.
-    verified_email: typing.Optional[bool] = (
-        None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
-    )
+    verified_email: typing.Optional[
+        bool
+    ] = None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
 
 
 def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOAuthV2GetResponse:

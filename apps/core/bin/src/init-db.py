@@ -1,19 +1,21 @@
+# isort: off
+
 import sys
+sys.path.append(".")
+
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
+load_standard_dotenv_files()
+
+# isort: on
+
+# ruff: noqa: E402
+
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.database import init_database
 from eave.stdlib.config import SHARED_CONFIG
 
-sys.path.append(".")
-
-from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
-
-load_standard_dotenv_files()
-
-# ruff: noqa: E402
-
 import asyncio
 import logging
-
 
 import eave.core.internal
 import eave.core.internal.orm

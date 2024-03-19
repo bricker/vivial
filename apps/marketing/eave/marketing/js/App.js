@@ -12,12 +12,12 @@ import {
 
 import "../static/css/app.css";
 // import HomePage from "./components/Pages/HomePage/index.jsx";
+import AuthenticationPage from "./components/Pages/AuthenticationPage/index.jsx";
 import EventDashboard from "./components/Pages/EventDashboard/index.jsx";
 import PrivacyPage from "./components/Pages/PrivacyPage/index.jsx";
 import TermsPage from "./components/Pages/TermsPage/index.jsx";
 import ScrollToTop from "./components/ScrollToTop/index.jsx";
 import AppContextProvider from "./context/Provider.js";
-// import AuthenticationPage from "./components/Pages/AuthenticationPage/index.jsx";
 // import PrivateRoutes from "./components/PrivateRoutes/index.jsx";
 // import Dashboard from "./components/Pages/Dashboard/index.jsx";
 import { theme } from "./theme.js";
@@ -37,10 +37,11 @@ const App = () => {
             <Routes>
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
-              {/* <Route
+              <Route
                 path="/signup"
                 element={<AuthenticationPage type="signup" />}
               />
+              {/*
               <Route
                 path="/login"
                 element={<AuthenticationPage type="login" />}

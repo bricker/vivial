@@ -10,7 +10,6 @@ from starlette.responses import RedirectResponse, Response
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
-
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from . import base, shared
@@ -92,5 +91,22 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             access_token=credentials.token,
             refresh_token=credentials.refresh_token,
         )
+
+        # do metabase stuff
+
+        # jwt = TEMP_create_jwt_for_metabase(
+        #     email=account.email or "",
+        #     first_name=google_token.given_name or "",
+        #     last_name=google_token.family_name or "",
+        #     exp_minutes=10,
+        #     signing_key="8c1c4cb0017162745f294d4d67a8e249205f1057284809f13c8064f87c796fbf", # TODO make secrt
+        #     purpose=JWTPurpose.access,
+        # )
+
+        # return_to = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
+        # shared.set_redirect(
+        #     response=self.response,
+        #     location=f"http://metabase.eave.run:3000/auth/sso?jwt={jwt.signature}&return_to={return_to}"
+        # )
 
         return self.response

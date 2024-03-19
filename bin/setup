@@ -19,7 +19,6 @@ fi
 
 source "${EAVE_HOME}/develop/functions.bash"
 
-usershell=$(shellname)
 kernel=$(get-kernel-name)
 opsys=$(get-os)
 tmpdir=/tmp/eave-setup

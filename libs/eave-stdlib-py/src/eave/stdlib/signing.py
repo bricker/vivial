@@ -26,6 +26,7 @@ KMS_KEYRING_NAME = "primary"
 class SigningAlgorithm(enum.Enum):
     RS256 = "RS256"
     ES256 = "ES256"
+    HS256 = "HS256"
 
 
 @dataclass

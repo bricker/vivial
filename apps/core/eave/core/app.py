@@ -1,18 +1,31 @@
 from typing import cast
 
 from starlette.types import ASGIApp
-from eave.core.internal.oauth.google import GOOGLE_OAUTH_AUTHORIZE_PATH, GOOGLE_OAUTH_CALLBACK_PATH
+from eave.core.internal.oauth.google import (
+    GOOGLE_OAUTH_AUTHORIZE_PATH,
+    GOOGLE_OAUTH_CALLBACK_PATH,
+)
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
+from eave.core.public.requests.oauth import metabase_embedding_sso
+from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
-from eave.stdlib.core_api.operations.github_installation import QueryGithubInstallation, DeleteGithubInstallation
+from eave.stdlib.core_api.operations.github_installation import (
+    QueryGithubInstallation,
+    DeleteGithubInstallation,
+)
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.team import GetTeamRequest
 from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
+from eave.stdlib.core_api.operations.metabase_embedding_sso import (
+    MetabaseEmbeddingSSOOperation,
+)
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
-from eave.stdlib.middleware.signature_verification import SignatureVerificationASGIMiddleware
+from eave.stdlib.middleware.signature_verification import (
+    SignatureVerificationASGIMiddleware,
+)
 import eave.stdlib.time
 import starlette.applications
 import starlette.endpoints
@@ -20,7 +33,14 @@ from asgiref.typing import ASGI3Application
 from starlette.routing import Route
 
 from .public.exception_handlers import exception_handlers
-from .public.requests import authed_account, noop, team, status, github_installation, virtual_event
+from .public.requests import (
+    authed_account,
+    noop,
+    team,
+    status,
+    github_installation,
+    virtual_event,
+)
 from .public.requests.oauth import github_oauth, google_oauth
 from .internal.database import async_engine
 from eave.stdlib.middleware import common_middlewares
@@ -126,8 +146,12 @@ def make_route(
     starlette_endpoint = TeamLookupASGIMiddleware(
         app=starlette_endpoint, endpoint_config=config
     )  # Last thing to happen before the Route handler
-    starlette_endpoint = AuthASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
-    starlette_endpoint = SignatureVerificationASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
+    starlette_endpoint = AuthASGIMiddleware(
+        app=starlette_endpoint, endpoint_config=config
+    )
+    starlette_endpoint = SignatureVerificationASGIMiddleware(
+        app=starlette_endpoint, endpoint_config=config
+    )
     starlette_endpoint = OriginASGIMiddleware(
         app=starlette_endpoint, endpoint_config=config
     )  # First thing to happen when the middleware chain is kicked off
@@ -139,7 +163,11 @@ routes = [
     Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
     Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
     Route(path="/_ah/stop", endpoint=status.StopRequest, methods=["GET"]),
-    Route(path="/status", endpoint=status.StatusRequest, methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"]),
+    Route(
+        path="/status",
+        endpoint=status.StatusRequest,
+        methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"],
+    ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/ingest",
@@ -189,6 +217,10 @@ routes = [
             team_id_required=False,
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
+    ),
+    make_route(
+        config=MetabaseEmbeddingSSOOperation.config,
+        endpoint=MetabaseEmbeddingSSO,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(

@@ -12,6 +12,7 @@ import EventGlossary from "./EventGlossary/index.jsx";
 import Menu from "./SidebarNav/Menu/index.jsx";
 import MenuItem from "./SidebarNav/MenuItem/index.jsx";
 import SidebarNav from "./SidebarNav/index.jsx";
+import MetabaseEmbeddedDashboard from "../../MetabaseEmbeddedDashboard/index.jsx";
 
 // TODO: a11y; the tabs arent kb navable
 
@@ -30,6 +31,10 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   spacer: {
     flexGrow: 1,
   },
+  mbEmbed: { // TODO: rm this
+    width: 1280, 
+    height: 600
+  }, 
 }));
 
 // sad enum replacement
@@ -66,6 +71,10 @@ const EventDashboard = () => {
     ? classes.mobileContainer
     : classes.desktopContainer;
 
+  return (
+    <MetabaseEmbeddedDashboard className={classes.mbEmbed} />
+  );
+/*
   return (
     <div className={container}>
       <SidebarNav hamburger={usingMobileLayout}>
@@ -119,7 +128,7 @@ const EventDashboard = () => {
         }
       })()}
     </div>
-  );
+  );*/
 };
 
 export default EventDashboard;

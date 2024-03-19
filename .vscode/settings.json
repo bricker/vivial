@@ -31,7 +31,7 @@
   "[python]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
-    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "charliermarsh.ruff",
   },
   "[shellscript]": {
     "editor.insertSpaces": false,
@@ -122,7 +122,7 @@
   "python.autoComplete.extraPaths": [
   ],
   "ruff.lint.args": [
-    "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
   "markdownlint.run": "onSave",
@@ -136,7 +136,7 @@
   "typescript.preferences.importModuleSpecifierEnding": "js",
   "typescript.validate.enable": true,
   "eslint.run": "onSave",
-  "ruff.importStrategy": "useBundled",
+  "ruff.importStrategy": "fromEnvironment",
   "ruff.lint.run": "onSave",
   "ruff.interpreter": [
     "${workspaceFolder}/.venv/bin/python"
@@ -154,11 +154,10 @@
   "shellcheck.customArgs": [
     "-x"
   ],
-  "black-formatter.importStrategy": "fromEnvironment",
-  "black-formatter.args": [
-    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
-  ],
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
-  "graphql-config.load.rootDir": "./apps/github/graphql.config.ts"
+  "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
+  "ruff.format.args": [
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
+  ],
 }

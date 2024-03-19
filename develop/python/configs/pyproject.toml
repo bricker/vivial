@@ -1,17 +1,5 @@
-[tool.black]
-force-exclude = '''
-(
-  generated
-  | vendor
-  | node_modules
-  | __pycache__
-  | build
-  | /\.
-)
-'''
-line-length = 120
-
 [tool.ruff]
+line-length = 120
 extend-exclude = [
   "generated",
   "__pycache__",
@@ -22,8 +10,9 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-extend-select = ["B006"]
-ignore = ["E501"] # line-length; Black handles this
+extend-select = [
+  "B006", # https://docs.astral.sh/ruff/rules/mutable-argument-default/
+]
 ignore-init-module-imports = true
 
 [tool.pytest.ini_options]
