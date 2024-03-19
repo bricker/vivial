@@ -31,6 +31,10 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   spacer: {
     flexGrow: 1,
   },
+  mbEmbed: { // TODO: rm this
+    width: 1280, 
+    height: 600
+  }, 
 }));
 
 // sad enum replacement
@@ -68,7 +72,7 @@ const EventDashboard = () => {
     : classes.desktopContainer;
 
   return (
-    <MetabaseEmbeddedDashboard className={{width: 1280, height: 600}} />
+    <MetabaseEmbeddedDashboard className={classes.mbEmbed} />
   );
 /*
   return (

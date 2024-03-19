@@ -5,8 +5,8 @@ const MetabaseEmbeddedDashboard = ({
   className,
   /** @type {string} */ dashRoute = undefined,
 }) => {
-  // TODO: dont hardcode uri domain (will we need to add website app as middleman?)
-  let srcRoute = "http://api.eave.run:8080/oauth/metabase";
+  // route to web backend to add auth headers etc before redirecting to core api
+  let srcRoute = "/oauth/metabase";
   if (dashRoute) {
     srcRoute += `?return_to=${dashRoute}`;
   }
