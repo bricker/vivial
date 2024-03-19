@@ -83,10 +83,5 @@ class _AppConfig(ConfigBase):
         client_id: str = credentials["web"]["client_id"]
         return client_id
 
-    @cached_property
-    def metabase_jwt_key(self) -> str:
-        key = "METABASE_JWT_KEY"
-        return get_secret(key)
-
 
 CORE_API_APP_CONFIG = _AppConfig()
