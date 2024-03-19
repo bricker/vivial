@@ -49,7 +49,7 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
                 "last_name": "Eave",
                 "exp": round(time.time()) + (60 * 10),  # 10min
             },
-            CORE_API_APP_CONFIG.metabase_jwt_key,  # TODO: pull correct value for this from user team db entry
+            CORE_API_APP_CONFIG.metabase_jwt_key,  # TODO: pull correct value for this from user team db entry (and delete this config val)
         )
 
         # TODO: route to proper metabase instance for user's team
