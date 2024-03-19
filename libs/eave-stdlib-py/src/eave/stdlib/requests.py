@@ -30,6 +30,7 @@ async def make_request(
     team_id: Optional[uuid.UUID | str] = None,
     access_token: Optional[str] = None,
     account_id: Optional[uuid.UUID | str] = None,
+    allow_redirects: bool = True,
     **kwargs: Unpack[CommonRequestArgs],
 ) -> aiohttp.ClientResponse:
     base_timeout_seconds = kwargs.get("base_timeout_seconds", 600)
@@ -70,6 +71,7 @@ async def make_request(
             url=config.url,
             headers=headers,
             data=payload,
+            allow_redirects=allow_redirects,
         )
 
         # Consume the body while the session is still open

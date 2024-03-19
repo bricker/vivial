@@ -137,22 +137,16 @@ async def get_team() -> Response:
 @_auth_handler
 async def embed_metabase() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
-    config = MetabaseEmbeddingSSOOperation.config
 
-    eave_headers, _ = eave.stdlib.requests.build_headers(
-        config=config,
-        payload="",
-        addl_headers={},
+    resp = await MetabaseEmbeddingSSOOperation.perform(
+        input=MetabaseEmbeddingSSOOperation.RequestBody(return_to=request.args.get("return_to")),
         origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
     )
 
-    response = make_response(redirect(config.url))
-    response.headers.extend(eave_headers)
-
-    return response
+    return await _make_redirect_response(eave_response=resp)
 
 
 
@@ -209,6 +203,17 @@ def _get_auth_cookies_or_exception() -> AuthCookies:
 
     return auth_cookies
 
+
+async def _make_redirect_response(eave_response: BaseResponseBody) -> Response:
+    assert eave_response._raw_response, "invalid eave response"
+    headers = dict(eave_response._raw_response.headers)
+    status = eave_response._raw_response.status
+    response = Response(
+        headers=headers,
+        status=status,
+    )
+
+    return response
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
     response = _json_response(body=eave_response.json())

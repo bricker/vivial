@@ -28,7 +28,7 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
         # TODO: if empty default to user's first dash we created
         return_to = request.query_params.get("return_to") or "/dashboard/8"
-        response = RedirectResponse("/")
+        response = Response()
 
         async with database.async_session.begin() as db_session:
             account = await AccountOrm.one_or_exception(
