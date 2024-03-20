@@ -1,11 +1,11 @@
 import jwt
 import time
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, Response
+from starlette.responses import Response
 
 from eave.core.internal import database
-from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
@@ -19,8 +19,8 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         Redirects request to the authenticated user's metabase instance to set SSO
         cookies before redirecting in turn to the metabase dashboard specified in the
         `return_to` query parameter.
-        This endpoint resolves to an HTML page on success and is intended to be the src
-        for an iframe element.
+        This endpoint resolves to a redirect to an HTML page on success and is intended
+        to be the src for an iframe element.
         """
         eave_state = EaveRequestState.load(request=request)
 
@@ -33,22 +33,27 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         async with database.async_session.begin() as db_session:
             account = await AccountOrm.one_or_exception(
                 session=db_session,
-                params=AccountOrm.QueryParams(
-                    id=ensure_uuid(eave_state.ctx.eave_account_id)
-                ),
+                params=AccountOrm.QueryParams(id=ensure_uuid(eave_state.ctx.eave_account_id)),
             )
+
+            metabase_instance = await MetabaseInstanceOrm.one_or_exception(
+                session=db_session,
+                team_id=account.team_id,
+            )
+            # validate instance hosting setup is complete before redirecting to instance
+            metabase_instance.validate_hosting_data()
 
         full_jwt = jwt.encode(
             {
                 "email": account.email,
                 "exp": round(time.time()) + (60 * 10),  # 10min
             },
-            CORE_API_APP_CONFIG.metabase_jwt_key,  # TODO: pull correct value for this from user team db entry (and delete this config val)
+            metabase_instance.jwt_signing_key,  # type: ignore
         )
 
-        # TODO: route to proper metabase instance for user's team
+        # route to proper metabase instance for user's team
         shared.set_redirect(
             response=response,
-            location=f"{SHARED_CONFIG.eave_public_metabase_base}/auth/sso?jwt={full_jwt}&return_to={return_to}",
+            location=f"{SHARED_CONFIG.eave_public_metabase_base}/{metabase_instance.route_id}/auth/sso?jwt={full_jwt}&return_to={return_to}",
         )
         return response

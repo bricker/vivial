@@ -1,7 +1,6 @@
 import uuid
 from typing import Optional, Unpack
 
-from aiohttp import ClientResponse
 from ... import requests
 from eave.stdlib.core_api.operations import (
     BaseRequestBody,
