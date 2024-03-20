@@ -1,15 +1,18 @@
+# isort: off
+
 import sys
-
-from eave.stdlib.core_api.models.api_documentation_jobs import ApiDocumentationJobState, LastJobResult
-from eave.stdlib.core_api.models.github_repos import GithubRepoFeatureState
-
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
-
 load_standard_dotenv_files()
 
+# isort: on
+
 # ruff: noqa: E402
+
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
 
 import asyncio
 import logging
@@ -20,11 +23,7 @@ import socket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.internal
-import eave.core.internal.orm as orm
 import eave.core.internal.orm.base
-from eave.stdlib.core_api.models.connect import AtlassianProduct
-from eave.stdlib.core_api.models.github_documents import GithubDocumentType
-from eave.stdlib.core_api.models.team import DocumentPlatform
 from eave.stdlib.logging import eaveLogger
 
 """
@@ -76,95 +75,26 @@ async def seed_database() -> None:
 
     for row in range(num_rows):
         start = time.perf_counter()
-        team = orm.TeamOrm(
+        team = TeamOrm(
             name=f"{socket.gethostname()}{row}",
-            document_platform=DocumentPlatform.confluence,
         )
         session.add(team)
         await session.commit()
         await session.refresh(team)  # necessary to populate team.id
         team_id = team.id
 
-        # NOTE: not seeding any Subscription objects rn
-
-        slack = orm.SlackInstallationOrm(
+        await ClientCredentialsOrm.create(
+            session=session,
             team_id=team_id,
-            slack_team_id=f"slack_team_id{row}",
-            bot_token="bot_token",
-            bot_refresh_token="bot_refresh_token",
-            bot_token_exp=None,
+            scope=ClientScope.readwrite,
+            description=f"credentials for team {team_id} (database seed)",
         )
-        session.add(slack)
 
-        github = orm.GithubInstallationOrm(
+        github = GithubInstallationOrm(
             team_id=team_id,
             github_install_id=f"github_install_id{row}",
         )
         session.add(github)
-        await session.commit()
-        await session.refresh(github)  # necessary to populate fk relation for gh_repo
-
-        atlassian = orm.AtlassianInstallationOrm(
-            team_id=team_id,
-            atlassian_cloud_id=f"atlassian_cloud_id{row}",
-            oauth_token_encoded="oauth_token_encoded",
-        )
-        session.add(atlassian)
-
-        connect_jira = orm.ConnectInstallationOrm(
-            team_id=team_id,
-            product=AtlassianProduct.jira,
-            client_key=f"client_key{row}",
-            shared_secret="shared_secret",
-            base_url="base_url",
-            org_url=f"org_url{row}",
-            atlassian_actor_account_id="atlassian_actor_account_id",
-            display_url=None,
-            description=None,
-        )
-        session.add(connect_jira)
-
-        connect_confluence = orm.ConnectInstallationOrm(
-            team_id=team_id,
-            product=AtlassianProduct.confluence,
-            client_key=f"client_key{row}",
-            shared_secret="shared_secret",
-            base_url="base_url",
-            org_url=f"org_url{row}",
-            atlassian_actor_account_id="atlassian_actor_account_id",
-            display_url=None,
-            description=None,
-        )
-        session.add(connect_confluence)
-
-        gh_repo = await orm.GithubRepoOrm.create(
-            session=session,
-            team_id=team_id,
-            github_installation_id=github.id,
-            external_repo_id=f"external_repo_id{row}",
-            display_name=f"repository {row}",
-            api_documentation_state=GithubRepoFeatureState.ENABLED,
-            inline_code_documentation_state=GithubRepoFeatureState.ENABLED,
-            architecture_documentation_state=GithubRepoFeatureState.ENABLED,
-        )
-        await session.commit()
-        await session.refresh(gh_repo)  # necessary to populate fk relation for gh_document
-
-        gh_document = orm.GithubDocumentsOrm(
-            team_id=team_id,
-            github_repo_id=gh_repo.id,
-            type=GithubDocumentType.API_DOCUMENT,
-            status="processing",
-        )
-        session.add(gh_document)
-
-        status_job = orm.ApiDocumentationJobOrm(
-            team_id=team_id,
-            github_repo_id=gh_repo.id,
-            state=ApiDocumentationJobState.idle,
-            last_result=LastJobResult.none,
-        )
-        session.add(status_job)
 
         await session.commit()
         end = time.perf_counter()

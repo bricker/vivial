@@ -45,6 +45,16 @@ class UnauthorizedError(HTTPException):
         super().__init__(status_code=HTTPStatus.UNAUTHORIZED, detail=detail, headers=headers, request_id=request_id)
 
 
+class ForbiddenError(HTTPException):
+    def __init__(
+        self,
+        detail: typing.Optional[str] = None,
+        headers: typing.Optional[dict[str, str]] = None,
+        request_id: typing.Optional[str] = None,
+    ) -> None:
+        super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=detail, headers=headers, request_id=request_id)
+
+
 class NotFoundError(HTTPException):
     def __init__(
         self,
@@ -88,6 +98,10 @@ class InvalidSignatureError(BadRequestError):
     pass
 
 
+class InvalidOriginError(BadRequestError):
+    pass
+
+
 class InvalidStateError(BadRequestError):
     pass
 
@@ -123,14 +137,6 @@ class UnexpectedMissingValue(Exception):
 
 
 class OpenAIDataError(Exception):
-    pass
-
-
-class SlackDataError(Exception):
-    pass
-
-
-class ConfluenceDataError(Exception):
     pass
 
 

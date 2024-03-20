@@ -3,7 +3,8 @@ import contextlib
 import hashlib
 from functools import wraps
 import json
-from typing import Any, Awaitable, Callable, Optional, ParamSpec, Type, TypeVar
+import re
+from typing import Any, Awaitable, Callable, Literal, Optional, ParamSpec, Type, TypeVar
 import uuid
 
 from eave.stdlib.typing import JsonObject
@@ -133,12 +134,25 @@ def ensure_str(data: str | bytes | int | uuid.UUID | dict) -> str:
         return str(data)
 
 
-def compact_deterministic_json(data: dict) -> str:
-    return json.dumps(data, indent=None, separators=(",", ":"), sort_keys=True)
+def compact_json(data: Any, **kwargs) -> str:
+    """
+    kwargs is forwarded to json.dumps
+    """
+    return json.dumps(data, indent=None, separators=(",", ":"), **kwargs)
 
 
-def pretty_deterministic_json(data: dict) -> str:
-    return json.dumps(data, sort_keys=True)
+def compact_deterministic_json(data: Any, **kwargs) -> str:
+    """
+    kwargs is forwarded to json.dumps
+    """
+    return json.dumps(data, indent=None, separators=(",", ":"), sort_keys=True, **kwargs)
+
+
+def pretty_deterministic_json(data: Any, **kwargs) -> str:
+    """
+    kwargs is forwarded to json.dumps
+    """
+    return json.dumps(data, sort_keys=True, **kwargs)
 
 
 def nand(a: Any, b: Any) -> bool:
@@ -234,3 +248,97 @@ def suppress(e: Type[Exception], func: Callable[[], T]) -> T | None:
     """
     with contextlib.suppress(e):
         return func()
+
+
+def titleize(string: str) -> str:
+    """
+    >>> titleize("accounts")
+    'Account'
+    >>> titleize("GithubInstallations")
+    'Github Installation'
+    >>> titleize("github_installations")
+    'Github Installation'
+    >>> titleize("GitHub_Installations")
+    'Git Hub Installation'
+    """
+
+    # split on underscores
+    p0 = string.split("_")
+
+    parts: list[str] = []
+
+    for a in p0:
+        p1: list[str] = re.findall("[A-Z][^A-Z]*", a)
+        if len(p1) > 0:
+            parts.extend(p1)
+        else:
+            parts.append(a)
+
+    if len(parts) == 0:
+        return "UNKNOWN"
+
+    # FIXME: This is an incorrect way to singularize a word
+    parts[-1] = parts[-1].rstrip("s")
+    parts = [a.capitalize() for a in parts]
+    return " ".join(parts)
+
+
+def tableize(string: str) -> str:
+    """
+    >>> tableize("Account")
+    'account'
+    >>> tableize("Github Installations")
+    'github_installations'
+    >>> tableize("github_installations")
+    'github_installations'
+    >>> tableize("Cohort 2023")
+    'cohort_2023'
+    >>> tableize("\"; DROP TABLES")
+    'drop_tables'
+    """
+    return re.sub(r"\W", "_", string).lower()
+
+
+def sql_sanitized_identifier(identifier: str) -> str:
+    """
+    >>> sql_sanitized_identifier("table_name`; drop tables; --")
+    '`table_name; drop tables; --`'
+    >>> sql_sanitized_identifier("table_name```; drop tables; --")
+    '`table_name; drop tables; --`'
+    >>> sql_sanitized_identifier("`table_name`; drop tables; --")
+    '`table_name; drop tables; --`'
+    >>> sql_sanitized_identifier("`table_name; drop tables;` --`")
+    '`table_name; drop tables; --`'
+    >>> sql_sanitized_identifier("`table_name\\; drop tables;` --`")
+    '`table_name; drop tables; --`'
+    """
+
+    # removes backticks and backslashes (\\\\ = 1 backslash when using normal Python string)
+    i = re.sub("[`\\\\]", "", identifier)
+    return f"`{i}`"
+
+
+def sql_sanitized_literal(literal: str, quotechar: Literal["'", '"'] = '"') -> str:
+    """
+    >>> sql_sanitized_literal('table_name"; drop tables; --')
+    '"table_name; drop tables; --"'
+    >>> sql_sanitized_literal("table_name'; drop tables; --")
+    '"table_name; drop tables; --"'
+    >>> sql_sanitized_literal('table_name"; drop tables; --', quotechar="'")
+    "'table_name; drop tables; --'"
+    >>> sql_sanitized_literal("table_name'; drop tables; --", quotechar="'")
+    "'table_name; drop tables; --'"
+    >>> sql_sanitized_literal("table_name\\'; drop tables; --", quotechar="'")
+    "'table_name; drop tables; --'"
+    """
+
+    # removes quotes and backslashes (\\\\ = 1 backslash when using normal Python string)
+    i = re.sub("['\"\\\\]", "", literal)
+    return f"{quotechar}{i}{quotechar}"
+
+
+def istr_eq(a: str, b: str) -> bool:
+    """
+    Case-insensitive comparison of two strings
+    """
+    return a.lower() == b.lower()

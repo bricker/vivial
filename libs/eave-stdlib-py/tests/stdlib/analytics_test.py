@@ -8,7 +8,7 @@ from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
 from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthProvider
-from eave.stdlib.core_api.models.team import AnalyticsTeam, DocumentPlatform
+from eave.stdlib.core_api.models.team import AnalyticsTeam
 import eave.stdlib.logging as _l
 from eave.stdlib.test_util import UtilityBaseTestCase
 
@@ -31,7 +31,7 @@ class AnalyticsTestBase(UtilityBaseTestCase):
         )
 
         self.data_now = datetime.utcnow()
-        self.mocks_now = self.patch(name="now", patch=unittest.mock.patch(f"{mut}.datetime", autospec=True))
+        self.mocks_now = self.patch(name="now", patch=unittest.mock.patch(f"{mut}.datetime"))
         self.mocks_now.utcnow.return_value = self.data_now
 
         self.mocks_analytics_enabled = self.patch_env({"EAVE_ANALYTICS_DISABLED": "0"})
@@ -39,7 +39,6 @@ class AnalyticsTestBase(UtilityBaseTestCase):
         self.data_expected_topic_path = "projects/eavefyi-dev/topics/eave_event"
         self.data_team = AnalyticsTeam(
             id=self.anyuuid(),
-            document_platform=DocumentPlatform.confluence,
             name=self.anystr(),
         )
 
@@ -52,6 +51,7 @@ class AnalyticsTestBase(UtilityBaseTestCase):
         )
 
         self.data_ctx = _l.LogContext()
+        self.data_ctx.feature_name = self.anystr("feature_name")
         self.data_bad_params: Any = {self.anystr("paramkey"): unserializable()}
 
 
@@ -78,6 +78,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
+            feature_name=self.getstr("feature_name"),
             eave_account_id=str(self.data_account.id),
             eave_visitor_id=str(self.data_account.visitor_id),
             eave_team_id=str(self.data_team.id),
@@ -85,7 +86,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
@@ -107,6 +108,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
+            feature_name=self.getstr("feature_name"),
             eave_account_id=str(self.data_account.id),
             eave_visitor_id=str(self.data_account.visitor_id),
             eave_team_id=str(self.data_team.id),
@@ -114,7 +116,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=self.data_team.json(),
             opaque_params=json.dumps(self.getdict("opaque_params")),
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
@@ -133,6 +135,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
+            feature_name=self.getstr("feature_name"),
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
@@ -140,7 +143,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=None,
             opaque_params=None,
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
@@ -166,6 +169,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
+            feature_name=None,
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
@@ -173,7 +177,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=None,
             opaque_params=None,
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=None,
             eave_request_id=None,
         )
@@ -193,6 +197,7 @@ class AnalyticsTest(AnalyticsTestBase):
             event_name=self.getstr("event_name"),
             event_description=self.getstr("event_description"),
             event_source=self.getstr("event_source"),
+            feature_name=self.getstr("feature_name"),
             eave_account_id=None,
             eave_visitor_id=None,
             eave_team_id=None,
@@ -200,7 +205,7 @@ class AnalyticsTest(AnalyticsTestBase):
             eave_team=None,
             opaque_params=str(self.data_bad_params),
             event_time=self.data_now.isoformat(),
-            eave_env=EaveEnvironment.development,
+            eave_env=EaveEnvironment.test,
             opaque_eave_ctx=json.dumps(self.data_ctx),
             eave_request_id=str(self.data_ctx["eave_request_id"]),
         )
@@ -208,7 +213,7 @@ class AnalyticsTest(AnalyticsTestBase):
         self.run_common_assertions()
 
     async def test_publish_in_dev(self):
-        self.get_patch("env").stop()
+        self.get_patched_dict("env").stop()
 
         await analytics.log_event(
             event_name=self.anystr("event_name"),

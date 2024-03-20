@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function setup() (
+	local eavepwd
+	eavepwd=$(^eavepwd)
+
+	if test -f "package.json"; then
+		node-activate-venv
+
+		statusmsg -on "Setting up javascript in $eavepwd..."
+
+		rm -rf node_modules
+		npm install --silent --no-progress --force
+
+		statusmsg -sp " ✔ "
+	else
+		statusmsg -wp " x (No package.json found in $eavepwd)"
+	fi
+)
+
+setup

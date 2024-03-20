@@ -1,48 +1,45 @@
 import datetime
 import http
 import re
+import aiohttp
 import oauthlib.common
 import uuid
 import json
 import typing
-from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from starlette.requests import Request
 from starlette.responses import Response
+from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.models.github_repos import (
-    GithubRepoFeatureState,
-)
-from eave.stdlib.github_api.operations.tasks import RunApiDocumentationTask
-from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.github_api.models import ExternalGithubRepo, GithubRepoInput
-from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 import eave.stdlib.slack
 import eave.stdlib.cookies
 import eave.stdlib.analytics
 import eave.stdlib.exceptions
 import eave.stdlib.config
-from eave.stdlib.task_queue import create_task
 from eave.stdlib.util import ensure_uuid
 from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
-from eave.stdlib.core_api.models.integrations import Integration
-from eave.core.internal import app_config, database
-from eave.core.internal.orm import AccountOrm, GithubRepoOrm
 import eave.core.internal.oauth.state_cookies
 from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
+from eave.stdlib.config import SHARED_CONFIG
 
-DEFAULT_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/dashboard"
-SIGNUP_REDIRECT_LOCATION = f"{app_config.eave_public_www_base}/signup"
+DEFAULT_TEAM_NAME = "Your Team"
+DEFAULT_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
+SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/signup"
 
-gh_app_state_cookie_name = "ev_state_blob"
+_GITHUB_INSTALLATION_FLOW_COOKIE_KEY = "ev_state_blob"
+
+
+class GithubInstallationFlowState(typing.TypedDict):
+    github_install_id: str
+    state: str
 
 
 def verify_oauth_state_or_exception(
@@ -84,13 +81,13 @@ async def verify_stateless_installation_or_exception(
 
 
 def set_redirect(response: Response, location: str) -> Response:
-    response.headers["Location"] = location
+    response.headers[aiohttp.hdrs.LOCATION] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
     return response
 
 
 def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> Response:
-    location_header = response.headers["Location"]
+    location_header = response.headers[aiohttp.hdrs.LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     qs.update({EAVE_ERROR_CODE_QP: [error_code.value]})
@@ -100,14 +97,14 @@ def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> R
 
 
 def is_error_response(response: Response) -> bool:
-    location_header = response.headers["Location"]
+    location_header = response.headers[aiohttp.hdrs.LOCATION]
     location = urlparse(location_header)
     qs = parse_qs(location.query)
     return qs.get(EAVE_ERROR_CODE_QP) is not None
 
 
 def cancel_flow(response: Response) -> Response:
-    return set_redirect(response=response, location=eave.core.internal.app_config.eave_public_www_base)
+    return set_redirect(response=response, location=SHARED_CONFIG.eave_public_www_base)
 
 
 async def get_logged_in_eave_account(
@@ -115,7 +112,7 @@ async def get_logged_in_eave_account(
     auth_provider: AuthProvider,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
+) -> typing.Optional[AccountOrm]:
     """
     Check if the user is logged in, and if so, get the account associated with the provided access token and account ID.
     """
@@ -123,12 +120,11 @@ async def get_logged_in_eave_account(
 
     if auth_cookies_.access_token and auth_cookies_.account_id:
         async with eave.core.internal.database.async_session.begin() as db_session:
-            eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
+            eave_account = await AccountOrm.one_or_none(
                 session=db_session,
                 params=AccountOrm.QueryParams(
                     id=ensure_uuid(auth_cookies_.account_id),
                     access_token=auth_cookies_.access_token,
-                    auth_provider=auth_provider,
                 ),
             )
 
@@ -150,13 +146,13 @@ async def get_existing_eave_account(
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> typing.Optional[eave.core.internal.orm.AccountOrm]:
+) -> typing.Optional[AccountOrm]:
     """
     Check for existing account with the given provider and ID.
     Also updates access_token and refresh_token in the database.
     """
     async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_account = await eave.core.internal.orm.AccountOrm.one_or_none(
+        eave_account = await AccountOrm.one_or_none(
             session=db_session,
             params=AccountOrm.QueryParams(
                 auth_provider=auth_provider,
@@ -180,18 +176,17 @@ async def create_new_account_and_team(
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> eave.core.internal.orm.AccountOrm:
+) -> AccountOrm:
     eave_state = EaveRequestState.load(request=request)
     tracking_cookies = utm_cookies.get_tracking_cookies(request=request)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
-        eave_team = await eave.core.internal.orm.TeamOrm.create(
+        eave_team = await TeamOrm.create(
             session=db_session,
             name=eave_team_name,
-            document_platform=None,
         )
 
-        eave_account = await eave.core.internal.orm.AccountOrm.create(
+        eave_account = await AccountOrm.create(
             session=db_session,
             team_id=eave_team.id,
             visitor_id=tracking_cookies.visitor_id,
@@ -261,7 +256,7 @@ async def get_or_create_eave_account(
     auth_id: str,
     access_token: str,
     refresh_token: typing.Optional[str],
-) -> eave.core.internal.orm.AccountOrm:
+) -> AccountOrm:
     eave_account = await get_logged_in_eave_account(
         request=request,
         auth_provider=auth_provider,
@@ -290,6 +285,12 @@ async def get_or_create_eave_account(
             refresh_token=refresh_token,
         )
 
+    await try_associate_account_with_dangling_github_installation(
+        request=request,
+        response=response,
+        team_id=eave_account.team_id,
+    )
+
     # Set the cookie in the response headers.
     # This logs the user into their Eave account,
     # or updates the cookies if they were already logged in.
@@ -304,13 +305,14 @@ async def get_or_create_eave_account(
     return eave_account
 
 
-def generate_and_set_state_cookie(
+def set_github_installation_state_cookie(
     response: Response,
     installation_id: str,
 ) -> str:
     state = generate_rand_state()
-    state_blob = json.dumps({"install_flow_state": state, "install_id": installation_id})
-    eave.stdlib.cookies.set_http_cookie(response=response, key=gh_app_state_cookie_name, value=state_blob)
+    flow_state = GithubInstallationFlowState(state=state, github_install_id=installation_id)
+    state_blob = json.dumps(flow_state)
+    eave.stdlib.cookies.set_http_cookie(response=response, key=_GITHUB_INSTALLATION_FLOW_COOKIE_KEY, value=state_blob)
     return state
 
 
@@ -320,26 +322,28 @@ async def try_associate_account_with_dangling_github_installation(
     team_id: uuid.UUID,
 ) -> None:
     request_state = EaveRequestState.load(request=request)
-    state_blob = request.cookies.get(gh_app_state_cookie_name)
+    state_blob = request.cookies.get(_GITHUB_INSTALLATION_FLOW_COOKIE_KEY)
 
     if not state_blob:
+        # No github install flow state present. This is the most common scenario.
         return
 
     # delete cookie now that we've used it
-    eave.stdlib.cookies.delete_http_cookie(response=response, key=gh_app_state_cookie_name)
+    eave.stdlib.cookies.delete_http_cookie(response=response, key=_GITHUB_INSTALLATION_FLOW_COOKIE_KEY)
 
-    state_blob = json.loads(state_blob)
+    flow_state: GithubInstallationFlowState = json.loads(state_blob)
 
-    state = state_blob.get("install_flow_state")
-    installation_id = state_blob.get("install_id")
-    if not state or not installation_id:
+    state = flow_state["state"]
+    github_install_id = flow_state["github_install_id"]
+    if not state or not github_install_id:
+        # This check is done because TypedDict behaves as regular dict at runtime. If either of these were set to None, we shouldn't proceed.
         return
 
     async with eave.core.internal.database.async_session.begin() as db_session:
         installation = await GithubInstallationOrm.query(
             session=db_session,
-            params=eave.core.internal.orm.GithubInstallationOrm.QueryParams(
-                github_install_id=installation_id,
+            params=GithubInstallationOrm.QueryParams(
+                github_install_id=github_install_id,
             ),
         )
 
@@ -363,111 +367,13 @@ async def try_associate_account_with_dangling_github_installation(
         event_source="core api oauth",
         eave_team=team.analytics_model,
         opaque_params={
-            "integration_name": Integration.github.value,
+            "integration_name": "github",
             "auth_callback_url": str(request.url),
             "late_association": True,
-            "installation_id": installation_id,
+            "installation_id": github_install_id,
         },
         ctx=request_state.ctx,
     )
-
-    # now that installation is linked to an account, sync the gh repos to our db
-    await sync_github_repos(team_id=team_id, ctx=request_state.ctx)
-
-
-async def sync_github_repos(team_id: uuid.UUID, ctx: LogContext) -> None:
-    """Create github_repo entries in our DB for each of their repos we have access to through the GitHub API"""
-    ctx.eave_team_id = str(team_id)
-
-    response = await QueryGithubRepos.perform(team_id=team_id, origin=EaveApp.eave_api, ctx=ctx)
-    repos = response.repos
-
-    async with database.async_session.begin() as db_session:
-        # We're grabbing this object fresh from the database so we can update it in this function.
-        github_installation_orm = await GithubInstallationOrm.one_or_exception(
-            session=db_session,
-            team_id=team_id,
-        )
-
-        if len(repos) > 0:
-            # update the GithubInstallation to set the github_owner_login property to the owner of any repository in the list (we happen to get the first one, but they should all be the same).
-            if (owner := repos[0].owner) and owner.login:
-                github_installation_orm.github_owner_login = owner.login
-
-        for repo in repos:
-            await _create_local_github_repo(
-                repo=repo,
-                db_session=db_session,
-                team_id=team_id,
-                github_installation_orm=github_installation_orm,
-                ctx=ctx,
-            )
-
-    eaveLogger.debug("synced github repos to team", ctx)
-
-
-async def _create_local_github_repo(
-    repo: ExternalGithubRepo,
-    db_session: AsyncSession,
-    team_id: uuid.UUID,
-    github_installation_orm: GithubInstallationOrm,
-    ctx: LogContext,
-) -> None:
-    if repo.id is None:
-        eaveLogger.error(
-            "Malformed repository object",
-            ctx,
-        )
-        return
-
-    existing_repos = await GithubRepoOrm.query(
-        session=db_session,
-        params=GithubRepoOrm.QueryParams(
-            team_id=team_id,
-            external_repo_id=repo.id,
-        ),
-    )
-    assert not len(existing_repos) > 1
-
-    existing_repo = existing_repos[0] if len(existing_repos) == 1 else None
-
-    if existing_repo:
-        await eave.stdlib.analytics.log_event(
-            event_name="repo_already_added",
-            event_description="A repo already existed when attempting to save it to the Eave database",
-            event_source="core api github oauth",
-            opaque_params={
-                "integration_name": Integration.github.value,
-                "repo_name": repo.name,
-                "repo_id": repo.id,
-            },
-            ctx=ctx,
-        )
-    else:
-        github_repo_orm = await GithubRepoOrm.create(
-            session=db_session,
-            team_id=team_id,
-            github_installation_id=github_installation_orm.id,
-            external_repo_id=repo.id,
-            display_name=repo.name,
-        )
-
-        # We need to flush the session before running the API docs task, becaused the task depends on the data being available in the database.
-        await db_session.flush()
-
-        if github_repo_orm.api_documentation_state == GithubRepoFeatureState.ENABLED:
-            await create_task(
-                target_path=RunApiDocumentationTask.config.path,
-                queue_name=eave.stdlib.config.GITHUB_EVENT_QUEUE_NAME,
-                audience=EaveApp.eave_github_app,
-                origin=app_config.eave_origin,
-                payload=RunApiDocumentationTask.RequestBody(repo=GithubRepoInput(external_repo_id=repo.id)).json(),
-                headers={
-                    EAVE_TEAM_ID_HEADER: str(team_id),
-                    EAVE_REQUEST_ID_HEADER: ctx.eave_request_id,
-                },
-                ctx=ctx,
-            )
 
 
 def generate_rand_state() -> str:

@@ -5,15 +5,21 @@ import { AppContext } from "../context/Provider.js";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 
-const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint";
+const _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint.202311";
 
-/** @returns {{user: Types.DashboardUser, isLoginHintSet: boolean, getUserAccount: () => void}} */
+/**
+ * @typedef {object} UserHook
+ * @property {Types.DashboardUser | null} user
+ * @property {boolean} isLoginHintSet
+ * @property {() => void} getUserAccount
+ */
+
+/** @returns {UserHook} */
 const useUser = () => {
-  const { userCtx } = useContext(AppContext);
+  const { userCtx, dashboardNetworkStateCtx } = useContext(AppContext);
   const [cookies] = useCookies([_EAVE_LOGIN_STATE_HINT_COOKIE_NAME]);
-
-  /** @type {[Types.DashboardUser, (f: (prev: Types.DashboardUser) => Types.DashboardUser) => void]} */
   const [user, setUser] = userCtx;
+  const [, setDashboardNetworkState] = dashboardNetworkStateCtx;
 
   const isLoginHintSet = cookies[_EAVE_LOGIN_STATE_HINT_COOKIE_NAME] === "1";
 
@@ -27,7 +33,7 @@ const useUser = () => {
    * - After the request (whether it succeeded or failed), it sets `accountIsLoading` to false.
    */
   function getUserAccount() {
-    setUser((prev) => ({
+    setDashboardNetworkState((prev) => ({
       ...prev,
       accountIsLoading: true,
       accountIsErroring: false,
@@ -48,16 +54,19 @@ const useUser = () => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        return resp.json().then((data) => {
+        return resp.json().then((/** @type {Types.DashboardUser} */ data) => {
           setUser((prev) => ({
             ...prev,
-            accountIsLoading: false,
             account: data.account,
+          }));
+          setDashboardNetworkState((prev) => ({
+            ...prev,
+            accountIsLoading: false,
           }));
         });
       })
       .catch(() => {
-        setUser((prev) => ({
+        setDashboardNetworkState((prev) => ({
           ...prev,
           accountIsLoading: false,
           accountIsErroring: true,

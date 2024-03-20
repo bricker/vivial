@@ -7,6 +7,10 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		test -n "${CI:-}"
 	}
 
+	function ^onlythismodule() {
+		test -n "${_ONLY_THIS_MODULE:-}"
+	}
+
 	function ^norecurse() (
 		grep -qE "node_modules|\.venv|vendor" <<<"$1"
 	)
@@ -190,23 +194,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			return 0
 		fi
 
-		local usershell
-		usershell=$(shellname)
-		case $usershell in
-		"fish")
-			if fish -c "functions -q $1"; then
-				return 0
-			else
-				return 1
-			fi
-			;;
-		"bash" | "zsh")
-			return 1
-			;;
-		*)
+		if which "$1" >/dev/null; then
 			return 0
-			;;
-		esac
+		fi
+
+		return 1
 	}
 
 	function run-in-path() (
@@ -407,15 +399,10 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 
 		rsync -a $vflag \
-			--exclude='.git' \
+			--exclude='.*' \
 			--exclude 'node_modules' \
-			--exclude '.yalc' \
 			--exclude 'vendor' \
 			--exclude 'dist' \
-			--exclude '.venv' \
-			--exclude '.ruff_cache' \
-			--exclude '.mypy_cache' \
-			--exclude '.pytest_cache' \
 			--exclude '__pycache__' \
 			--exclude '*.pyc' \
 			"$PWD" "$builddir"
@@ -454,6 +441,21 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			gcloud --format=json info | jq -r .config.project
 		fi
 	)
+
+	function ^confirm() (
+		if test -n "${NOPROMPT:-}"; then
+			exit 0
+		fi
+
+		statusmsg -wpn "Proceed? [y/n]"
+		statusmsg -no " "
+		read -r proceed
+		test "$proceed" = "y"
+	)
+
+	function ^force() {
+		test -n "${FORCE:-}"
+	}
 
 	_SHARED_FUNCTIONS_LOADED=1
 fi

@@ -1,10 +1,11 @@
 import http
 import re
 from typing import Optional
+import aiohttp
 
 import pydantic
 from eave.stdlib.exceptions import MissingRequiredHeaderError
-from eave.stdlib.headers import AUTHORIZATION_HEADER, COOKIE_HEADER, EAVE_SIGNATURE_HEADER
+from eave.stdlib.headers import EAVE_SIGNATURE_HEADER, MIME_TYPE_JSON
 
 import eave.stdlib.util as util
 from starlette.responses import Response
@@ -47,9 +48,9 @@ def get_headers(
 
     augmented_redacted = redacted.union(
         [
-            EAVE_SIGNATURE_HEADER,
-            AUTHORIZATION_HEADER,
-            COOKIE_HEADER,
+            EAVE_SIGNATURE_HEADER.lower(),
+            aiohttp.hdrs.AUTHORIZATION.lower(),
+            aiohttp.hdrs.COOKIE.lower(),
         ]
     )
 
@@ -61,7 +62,7 @@ def get_headers(
 
 
 def get_bearer_token(scope: HTTPScope) -> str | None:
-    auth_header = get_header_value(scope=scope, name=AUTHORIZATION_HEADER)
+    auth_header = get_header_value(scope=scope, name=aiohttp.hdrs.AUTHORIZATION)
     if auth_header is None:
         return None
 
@@ -73,5 +74,5 @@ def get_bearer_token(scope: HTTPScope) -> str | None:
 
 
 def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
-    response = Response(status_code=status_code, content=model.json(), media_type="application/json")
+    response = Response(status_code=status_code, content=model.json(), media_type=MIME_TYPE_JSON)
     return response

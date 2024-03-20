@@ -11,9 +11,11 @@ venvPath="./.venv"
 extraPaths=[
     "**/vendor",
     "./libs/eave-stdlib-py/src",
+    "./libs/eave-tracing-core-py/src",
+    "./libs/eave-tracing-postgres/src",
+    "./libs/eave-tracing-python/src",
     "./libs/eave-pubsub-schemas/python/src",
     "./apps/core",
-    "./apps/slack",
     "./apps/marketing",
     "./develop/python/src",
 ]

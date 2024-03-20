@@ -1,9 +1,8 @@
 from ..api_util import get_header_value
 from ..headers import EAVE_DEV_BYPASS_HEADER
-from ..config import shared_config
+from ..config import SHARED_CONFIG
 from asgiref.typing import HTTPScope
 
-from ..logging import eaveLogger
 
 """
 ## middleware check bypass
@@ -13,21 +12,7 @@ To bypass the signature and auth verification middlewares in development mode, t
 1. `EAVE_ENV` must be set to "development"
 1. Python "dev_mode" must be enabled. You can set `PYTHONDEVMODE=1` in your `.env` file to enable it.
 1. The `GOOGLE_CLOUD_PROJECT` must not be set to `eave-production`.
-1. A header `X-Google-EAVEDEV` exists on the request, and is set to the string you get from the following Python command:
-
-```
-$ python
->>> import os
->>> str(os.uname())
-```
-
-You'll get a string that looks something like this:
-
-```
-posix.uname_result(sysname='Linux', nodename='your computer name', release='OS release identifier', version='OS version identifier', machine='x86_64')
-```
-
-Copy that string into the `X-Google-EAVEDEV` header. It will be verified when requesting development bypass.
+1. A header `X-Google-EAVEDEV` is set to "1"
 
 ### Auth Bypass
 
@@ -36,20 +21,18 @@ When bypassing auth, the `Authorization` header should contain the ID of the acc
 
 
 def development_bypass_allowed(scope: HTTPScope) -> bool:
-    if not shared_config.is_development:
+    if not SHARED_CONFIG.is_development:
         return False
-    if shared_config.google_cloud_project == "eave-production":
+    if not SHARED_CONFIG.dev_mode:
+        return False
+    if SHARED_CONFIG.google_cloud_project == "eave-production":
         return False
 
     dev_header = get_header_value(scope=scope, name=EAVE_DEV_BYPASS_HEADER)
     if not dev_header:
         return False
 
-    import os
-
-    expected_uname = str(os.uname())
-    if dev_header == expected_uname:
-        eaveLogger.warning("Development bypass request accepted; some checks will be bypassed.")
+    if dev_header == "1":
         return True
 
-    raise Exception()
+    raise Exception("development bypass failed")

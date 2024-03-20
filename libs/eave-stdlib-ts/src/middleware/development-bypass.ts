@@ -1,35 +1,33 @@
 import { Request, Response } from "express";
 import { constants as httpConstants } from "node:http2";
-import * as os from "os";
 import { sharedConfig } from "../config.js";
 import { EAVE_DEV_BYPASS_HEADER } from "../headers.js";
 import { LogContext, eaveLogger } from "../logging.js";
 
-export function developmentBypassAllowed(req: Request, res: Response): boolean {
-  if (
-    !sharedConfig.devMode ||
-    sharedConfig.googleCloudProject === "eave-production"
-  ) {
+export function developmentBypassAllowed(
+  req: Request,
+  _res: Response,
+): boolean {
+  if (!sharedConfig.isDevelopment) {
+    return false;
+  }
+  if (!sharedConfig.devMode) {
+    return false;
+  }
+  if (sharedConfig.googleCloudProject === "eave-production") {
     return false;
   }
 
   const devHeader = req.header(EAVE_DEV_BYPASS_HEADER);
-  if (devHeader === undefined) {
+  if (!devHeader) {
     return false;
   }
 
-  const ctx = LogContext.load(res);
-  const expectedDevHeader = createDevHeaderValue();
-  if (devHeader === expectedDevHeader) {
-    eaveLogger.warning(
-      "Development bypass request accepted; some checks will be bypassed.",
-      ctx,
-    );
+  if (devHeader === "1") {
     return true;
   }
-  throw new Error(
-    `Provided dev bypass header was not accepted. Expected: ${expectedDevHeader}`,
-  );
+
+  throw new Error("development bypass failed");
 }
 
 export function developmentBypassAuth(req: Request, res: Response): void {
@@ -44,11 +42,4 @@ export function developmentBypassAuth(req: Request, res: Response): void {
   // no account lookup since we cant access orm from ts...
 
   ctx.eave_account_id = accountId;
-}
-
-/**
- * Creates a string to replicate the value of Python's `os.uname()`
- */
-function createDevHeaderValue(): string {
-  return `posix.uname_result(sysname='${os.type()}', nodename='${os.hostname()}', release='${os.release()}', version='${os.version()}', machine='${os.machine()}')`;
 }

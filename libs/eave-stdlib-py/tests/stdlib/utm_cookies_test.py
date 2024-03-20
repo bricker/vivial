@@ -1,12 +1,15 @@
 import re
 from typing import Any
 from starlette.requests import Request
+import aiohttp
 
 from starlette.responses import Response
 from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.util import istr_eq
 from eave.stdlib.utm_cookies import (
-    _EAVE_COOKIE_PREFIX_UTM,
-    _EAVE_VISITOR_ID_COOKIE_NAME,
+    EAVE_COOKIE_PREFIX_UTM,
+    EAVE_VISITOR_ID_COOKIE_NAME,
+    TrackingParam,
     get_tracking_cookies,
     set_tracking_cookies,
 )
@@ -41,36 +44,52 @@ class UtmCookiesTestBase(UtilityBaseTestCase):
 class UtmCookiesTest(UtmCookiesTestBase):
     async def test_constants(self):
         # These cannot be changed, because the names are hardcoded in GTM. Changing these will break tracking.
-        assert _EAVE_COOKIE_PREFIX_UTM == "ev_utm_"
-        assert _EAVE_VISITOR_ID_COOKIE_NAME == "ev_visitor_id"
+        assert EAVE_COOKIE_PREFIX_UTM == "ev_utm_"
+        assert EAVE_VISITOR_ID_COOKIE_NAME == "ev_visitor_id"
+
+        assert TrackingParam.gclid == "gclid"
+        assert TrackingParam.msclkid == "msclkid"
+        assert TrackingParam.fbclid == "fbclid"
+        assert TrackingParam.twclid == "twclid"
+        assert TrackingParam.li_fat_id == "li_fat_id"
+        assert TrackingParam.rdt_cid == "rdt_cid"
+        assert TrackingParam.ttclid == "ttclid"
+        assert TrackingParam.keyword == "keyword"
+        assert TrackingParam.matchtype == "matchtype"
+        assert TrackingParam.campaign == "campaign"
+        assert TrackingParam.campaign_id == "campaign_id"
+        assert TrackingParam.pid == "pid"
+        assert TrackingParam.cid == "cid"
 
     async def test_set_cookies_visitor_id_not_set(self):
         set_tracking_cookies(
             request=self.mock_request,
             response=self.mock_response,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
 
         assert len(cookies) == 4  # The fourth is visitor_id
 
-        assert any(re.search(f"^ev_utm_utm_campaign={self.data_campaign};", v) for v in cookies)
-        assert any(re.search(f"^ev_utm_utm_term={self.data_term};", v) for v in cookies)
-        assert any(re.search(f"^ev_utm_gclid={self.data_gclid};", v) for v in cookies)
-        assert any(re.search("^ev_visitor_id=", v) for v in cookies)  # value is generated internal to function
+        assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_campaign={self.data_campaign};", v) for v in cookies)
+        assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_term={self.data_term};", v) for v in cookies)
+        assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}gclid={self.data_gclid};", v) for v in cookies)
+        assert any(
+            re.search(f"^{EAVE_VISITOR_ID_COOKIE_NAME}=", v) for v in cookies
+        )  # value is generated internal to function
         assert not any(re.search("ignored_param", v) for v in cookies)
 
     async def test_set_cookies_visitor_id_already_set(self):
-        self.mock_request.cookies.update({"ev_visitor_id": self.data_visitor_id})
+        self.mock_request.cookies.update({EAVE_VISITOR_ID_COOKIE_NAME: self.data_visitor_id})
 
         set_tracking_cookies(
             request=self.mock_request,
             response=self.mock_response,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
+        cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
         assert len(cookies) == 3
 
-        assert not any(re.search("^ev_visitor_id", v) for v in cookies)
-        assert any(re.search("ev_utm_utm_campaign", v) for v in cookies)
+        assert not any(re.search(f"^{EAVE_VISITOR_ID_COOKIE_NAME}", v) for v in cookies)
+        assert any(re.search(f"{EAVE_COOKIE_PREFIX_UTM}utm_campaign", v) for v in cookies)
 
     async def test_set_cookies_case_agnostic(self):
         self.mock_scope["query_string"] = f"utm_campaign={self.data_campaign}&UTM_TERM={self.data_term}"
@@ -79,17 +98,17 @@ class UtmCookiesTest(UtmCookiesTestBase):
             request=self.mock_request,
             response=self.mock_response,
         )
-        cookies = [v for k, v in self.mock_response.headers.items() if k == "set-cookie"]
-        assert any(re.search(f"^ev_utm_utm_campaign={self.data_campaign};", v) for v in cookies)
-        assert any(re.search(f"^ev_utm_utm_term={self.data_term}", v) for v in cookies)
+        cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
+        assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_campaign={self.data_campaign};", v) for v in cookies)
+        assert any(re.search(f"^{EAVE_COOKIE_PREFIX_UTM}utm_term={self.data_term}", v) for v in cookies)
 
     async def test_get_tracking_cookies_with_visitor_id(self):
         self.mock_request.cookies.update(
             {
-                "ev_visitor_id": self.data_visitor_id,
+                EAVE_VISITOR_ID_COOKIE_NAME: self.data_visitor_id,
                 "ignored_param": self.anystr(),
-                "ev_utm_utm_campaign": self.data_campaign,
-                "ev_utm_gclid": self.data_gclid,
+                f"{EAVE_COOKIE_PREFIX_UTM}utm_campaign": self.data_campaign,
+                f"{EAVE_COOKIE_PREFIX_UTM}gclid": self.data_gclid,
             }
         )
         cookies = get_tracking_cookies(request=self.mock_request)
@@ -103,7 +122,7 @@ class UtmCookiesTest(UtmCookiesTestBase):
         self.mock_request.cookies.update(
             {
                 # ev_visitor_id not set
-                "ev_utm_utm_campaign": self.data_campaign,
+                f"{EAVE_COOKIE_PREFIX_UTM}utm_campaign": self.data_campaign,
             }
         )
         cookies = get_tracking_cookies(request=self.mock_request)

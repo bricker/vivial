@@ -19,17 +19,6 @@ fi
 
 source "${EAVE_HOME}/develop/functions.bash"
 
-function ^ask() (
-	statusmsg -wpn "Should I proceed? [y/n] "
-	read -r proceed
-	test "$proceed" = "y"
-)
-
-function ^force() {
-	test -n "$FORCE"
-}
-
-usershell=$(shellname)
 kernel=$(get-kernel-name)
 opsys=$(get-os)
 tmpdir=/tmp/eave-setup
@@ -42,7 +31,7 @@ function setenvvars() (
 		local value="\$HOME/.config"
 		statusmsg -pa "Adding XDG_CONFIG_HOME=$value to your environment."
 		statusmsg -i "XDG_CONFIG_HOME is a standard environment variable that many programs use to store configuration."
-		if ^ask; then
+		if ^confirm; then
 			^add-shell-variable XDG_CONFIG_HOME "$value"
 		fi
 	fi
@@ -53,7 +42,7 @@ function setenvvars() (
 		local value="\$HOME/.local/share"
 		statusmsg -pa "Adding XDG_DATA_HOME=$value to your environment."
 		statusmsg -i "XDG_DATA_HOME is a standard environment variable that many programs use to store data."
-		if ^ask; then
+		if ^confirm; then
 			^add-shell-variable XDG_DATA_HOME "$value"
 		fi
 	fi
@@ -64,7 +53,7 @@ function setenvvars() (
 		local value="/run/user/1000"
 		statusmsg -pa "Adding XDG_RUNTIME_DIR=$value to your environment."
 		statusmsg -i "XDG_RUNTIME_DIR is a standard environment variable that many programs use to store Unix sockets."
-		if ^ask; then
+		if ^confirm; then
 			^add-shell-variable XDG_RUNTIME_DIR "$value"
 		fi
 	fi
@@ -76,7 +65,7 @@ function setenvvars() (
 		value=$(pwd)
 		statusmsg -pa "Adding EAVE_HOME=$value to your environment."
 		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
-		if ^ask; then
+		if ^confirm; then
 			^add-shell-variable EAVE_HOME "$value"
 		fi
 	fi
@@ -84,28 +73,47 @@ function setenvvars() (
 
 function setuppython() (
 	statusmsg -pa "Setting up Python virtual environment"
-	if ! ^cmd-exists pyenv; then
-		pythonpath="$(which python)"
-		statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
-		statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
-		statusmsg -w "I did not find pyenv, so I will proceed with the available python executable ($pythonpath)."
-	else
-		pyenv install -s
-		pyenv version
+	if ^confirm; then
+		if ! ^cmd-exists pyenv; then
+			pythonpath="$(which python)"
+			statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
+			statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
+			statusmsg -w "pyenv was not found on your system; proceeding with the available python executable ($pythonpath)."
+		else
+			pyenv install -s
+
+			if test "$?" -ne 0; then
+				statusmsg -e "pyenv install failed."
+				statusmsg -i "Often this is due to a missing or invalid dependency. Check the following resources for potential fixes:"
+				statusmsg -i "* Suggested build environment: https://github.com/pyenv/pyenv/wiki#suggested-build-environment"
+				statusmsg -i "* \"cannot stat 'Modules/_crypt'\" (or similar): https://github.com/pyenv/pyenv/issues/2823#issuecomment-1769081965"
+			fi
+
+			pyenv version
+		fi
+
+		# Fix pip cache error: https://stackoverflow.com/a/77298334/885036
+		rm -rf "${HOME}/.cache/pip/selfcheck"
+		rm -rf "${HOME}/Library/Caches/pip/selfcheck"
+
+		local ved="$EAVE_HOME/.venv"
+		rm -rf "$ved"
+
+		python -m venv --upgrade-deps "$ved"
+		python-activate-venv
+
+		# shellcheck disable=SC2086
+		python -m pip install -r "$EAVE_HOME/requirements-dev.txt"
 	fi
-
-	python -m venv --clear --upgrade-deps "$EAVE_HOME/.venv"
-	python-activate-venv
-
-	# shellcheck disable=SC2086
-	python -m pip install -r "$EAVE_HOME/requirements-dev.txt"
 )
 
 function setupnode() (
 	statusmsg -pa "Setting up Node virtual environment"
-	node-activate-venv
-	rm -rf node_modules
-	npm install
+	if ^confirm; then
+		node-activate-venv
+		rm -rf node_modules
+		npm install
+	fi
 )
 
 function setupgcloud() (
@@ -114,7 +122,7 @@ function setupgcloud() (
 	else
 		statusmsg -pa "Downloading and installing the gcloud CLI into $HOME/google-cloud-sdk."
 		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
-		if ^ask; then
+		if ^confirm; then
 			cd "$tmpdir" || exit 1
 			local gcloudversion="426.0.0"
 			local arch
@@ -130,40 +138,6 @@ function setupgcloud() (
 	fi
 )
 
-function setupcloudsqlproxy() (
-	if ! ^force && ^cmd-exists "cloud-sql-proxy"; then
-		statusmsg -o "CloudSQL Proxy already installed."
-	else
-		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
-		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
-		if ^ask; then
-			cd "$tmpdir" || exit 1
-			if ^cmd-exists "gcloud"; then
-				cloudsqlproxypath=$(dirname "$(which gcloud)")
-			else
-				cloudsqlproxypath="/usr/local/bin"
-			fi
-
-			local proxyversion="2.2.0"
-			local arch
-			arch=$(get-cpu-arch-normalized-alt)
-
-			curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
-			# see if we got an error back instead of binary content
-			if test "$(head -n1 cloud-sql-proxy | cut -c 3-5)" = "xml"; then
-				statusmsg -e "Error downloading cloud-sql-proxy:"
-				cat cloud-sql-proxy
-				rm cloud-sql-proxy
-				return 1
-			fi
-			chmod +x cloud-sql-proxy
-
-			statusmsg -w "sudo privileges are needed to move the cloud-sql-proxy program into $cloudsqlproxypath"
-			sudo mv cloud-sql-proxy "$cloudsqlproxypath"
-		fi
-	fi
-)
-
 function installterraform() (
 	if ! ^force && ^cmd-exists "terraform"; then
 		statusmsg -o "terraform already installed."
@@ -171,7 +145,7 @@ function installterraform() (
 		statusmsg -pa "Installing the 'terraform' command line utility."
 		statusmsg -i "The terraform CLI is used in various utility scripts in this repository."
 
-		if ^ask; then
+		if ^confirm; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -208,7 +182,7 @@ function installjq() (
 		statusmsg -pa "Installing the 'jq' command line utility."
 		statusmsg -i "The jq program is used in many utility scripts in this repository."
 
-		if ^ask; then
+		if ^confirm; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -245,7 +219,7 @@ function installyq() (
 		statusmsg -pa "Installing the 'yq' command line utility."
 		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
 
-		if ^ask; then
+		if ^confirm; then
 			if ^cmd-exists "brew"; then
 				brew install yq
 			else
@@ -263,7 +237,7 @@ function installshfmt() (
 		statusmsg -pa "Installing the 'shfmt' command line utility."
 		statusmsg -i "The shfmt program is used to auto-format shell scripts"
 
-		if ^ask; then
+		if ^confirm; then
 			if ^cmd-exists "brew"; then
 				brew install shfmt
 			else
@@ -281,7 +255,7 @@ function installshellcheck() (
 		statusmsg -pa "Installing the 'shellcheck' command line utility."
 		statusmsg -i "The shellcheck program is used to lint shell scripts"
 
-		if ^ask; then
+		if ^confirm; then
 			if ^cmd-exists "brew"; then
 				brew install shellcheck
 			else
@@ -295,7 +269,7 @@ function installshellcheck() (
 function setupapps() (
 	statusmsg -pa "Running setup scripts in develop, libs, and apps."
 
-	if ^ask; then
+	if ^confirm; then
 		cd "${EAVE_HOME}" || exit 1
 		python-activate-venv
 		node-activate-venv
@@ -305,30 +279,56 @@ function setupapps() (
 				continue
 			fi
 			statusmsg -d "Running $ss"
-			$ss
+			_ONLY_THIS_MODULE=1 $ss
 		done
 	fi
 )
 
-statusmsg -ps "Hi! Welcome to Eave. I will help you setup this repository."
-statusmsg -i "Before getting started, it is recommended to manually install a few things if you haven't already:"
-statusmsg -i "* homebrew - https://brew.sh/"
-statusmsg -i "* nvm - https://github.com/nvm-sh/nvm (sh) or https://github.com/jorgebucaran/nvm.fish (fish)"
-statusmsg -i "* pyenv - https://github.com/pyenv/pyenv node version management.  and \"pyenv\" version management tools into your environment."
+function ^helpmsg() (
+	statusmsg -o "Usage: bin/setup [-f] [-y]"
+	statusmsg -o "  -f : force (bypass checks for existing tools)"
+	statusmsg -o "  -y : no prompts (automatically answer Y to all prompts)"
+)
 
-echo ""
+function main() (
+	while getopts "fyh" argname; do
+		case "$argname" in
+		f)
+			export FORCE=1 ;;
+		y)
+			export NOPROMPT=1 ;;
+		h)
+			^helpmsg
+			exit 0
+			;;
+		*)
+			^helpmsg
+			exit 1
+			;;
+		esac
+	done
 
-setenvvars
-setuppython
-setupnode
-setupgcloud
-setupcloudsqlproxy
-installjq
-installyq
-installterraform
-installshfmt
-installshellcheck
-setupapps
+	statusmsg -ps "Hi! Welcome to Eave. This script will help you setup this repository."
+	statusmsg -pi "Before getting started, it is recommended to manually install a few things if you haven't already:"
+	statusmsg -pi "* homebrew (https://brew.sh) - common package manager"
+	statusmsg -pi "* nvm (https://github.com/nvm-sh/nvm) - node version management (NOTE: These scripts assume nvm for BASH is installed)"
+	statusmsg -pi "* pyenv (https://github.com/pyenv/pyenv) - python version management"
 
-statusmsg -s "Done!"
-statusmsg -i "Now, open EAVE_HOME (this directory) in VSCode and you're ready to go. (Hint: try \`code .\`)"
+	echo ""
+
+	setenvvars
+	setuppython
+	setupnode
+	setupgcloud
+	installjq
+	installyq
+	installterraform
+	installshfmt
+	installshellcheck
+	setupapps
+
+	statusmsg -s "Done!"
+	statusmsg -s "Now, open EAVE_HOME (this directory) in VSCode (recommended) and you're ready to go. (Hint: try \`code .\`)"
+)
+
+main "$@"

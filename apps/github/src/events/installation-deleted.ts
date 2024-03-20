@@ -1,5 +1,5 @@
 import { logEvent } from "@eave-fyi/eave-stdlib-ts/src/analytics.js";
-import { DeleteGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
+import { DeleteGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-installation.js";
 import { InstallationDeletedEvent } from "@octokit/webhooks-types";
 import { appConfig } from "../config.js";
 import { EventHandlerArgs } from "../types.js";
@@ -44,7 +44,7 @@ export default async function handler({
   await DeleteGithubInstallationOperation.perform({
     ...sharedInput,
     input: {
-      github_integration: {
+      github_installation: {
         github_install_id: event.installation.id.toString(),
       },
     },

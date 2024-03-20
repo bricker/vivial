@@ -4,8 +4,7 @@ set -eu
 
 rm -rf .build
 rm -rf .tmp
-rm -rf "$EAVE_HOME/libs/eave-stdlib-py/build"
-rm -rf "$EAVE_HOME/libs/eave-pubsub-schemas/build"
+rm -rf "$EAVE_HOME/libs/*/build"
 rm -rf "$EAVE_HOME/develop/python/build"
 
 find "$EAVE_HOME" -not -path ./.venv -not -path ./vendor -not -path ./node_modules -type f -name "*.egg-info" -exec rm -rf {} +

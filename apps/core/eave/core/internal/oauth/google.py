@@ -7,7 +7,8 @@ import google.oauth2.id_token
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 
-from eave.core.internal.config import app_config
+from eave.core.internal.config import CORE_API_APP_CONFIG
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.typing import JsonObject
 from eave.stdlib.util import erasetype
 
@@ -19,7 +20,9 @@ _OAUTH_SCOPES = [
     "openid",
 ]
 
-_REDIRECT_URI = f"{app_config.eave_public_api_base}/oauth/google/callback"
+GOOGLE_OAUTH_AUTHORIZE_PATH = "/oauth/google/authorize"
+GOOGLE_OAUTH_CALLBACK_PATH = "/oauth/google/callback"
+GOOGLE_OAUTH_CALLBACK_URI = f"{SHARED_CONFIG.eave_public_api_base}{GOOGLE_OAUTH_CALLBACK_PATH}"
 
 
 # https://developers.google.com/identity/protocols/oauth2
@@ -33,12 +36,14 @@ class GoogleIdToken:
     sub: str
     """Google globally unique and immutable user ID"""
     given_name: typing.Optional[str]
+    family_name: typing.Optional[str]
     email: typing.Optional[str]
 
     def __init__(self, data: JsonObject) -> None:
         self.sub = erasetype(data, "sub", "")
         self.given_name = erasetype(data, "given_name")
         self.email = erasetype(data, "email")
+        self.family_name = erasetype(data, "family_name")
 
 
 @dataclass
@@ -86,7 +91,7 @@ def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOA
 
 
 def get_oauth_credentials(access_token: str, refresh_token: str) -> google.oauth2.credentials.Credentials:
-    google_oauth_client_config = app_config.eave_google_oauth_client_credentials
+    google_oauth_client_config = CORE_API_APP_CONFIG.eave_google_oauth_client_credentials
     creds = google_oauth_client_config["web"]
     token_uri = creds["token_uri"]
     client_id = creds["client_id"]
@@ -105,9 +110,9 @@ def get_oauth_credentials(access_token: str, refresh_token: str) -> google.oauth
 
 def build_flow(state: typing.Optional[str] = None) -> google_auth_oauthlib.flow.Flow:
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
-        app_config.eave_google_oauth_client_credentials,
+        CORE_API_APP_CONFIG.eave_google_oauth_client_credentials,
         scopes=_OAUTH_SCOPES,
-        redirect_uri=_REDIRECT_URI,
+        redirect_uri=GOOGLE_OAUTH_CALLBACK_URI,
         state=state,
     )
 
@@ -132,7 +137,7 @@ def get_oauth_flow_info() -> OAuthFlowInfo:
 def decode_id_token(id_token: str) -> GoogleIdToken:
     token_json = google.oauth2.id_token.verify_oauth2_token(
         id_token=id_token,
-        audience=app_config.eave_google_oauth_client_id,
+        audience=CORE_API_APP_CONFIG.eave_google_oauth_client_id,
         request=google.auth.transport.requests.Request(),
     )
 

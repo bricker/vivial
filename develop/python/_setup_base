@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function setup() (
+	python-validate-version
+	python-activate-venv
+
+	local piploc=""
+	if ^ci; then
+		piploc="--user"
+	fi
+
+	local qflag="-q -q"
+	if verbose; then
+		qflag=""
+	fi
+
+	local eavepwd
+	eavepwd=$(^eavepwd)
+	statusmsg -on "Setting up python in $eavepwd..."
+
+	shopt -s nullglob
+	for rf in requirements*.txt; do
+		if ! test "$rf" = requirements-vendor.txt; then
+			# shellcheck disable=SC2086
+			python -m pip install $qflag $piploc -r "$rf"
+		fi
+	done
+	shopt -u nullglob
+
+	if test -f setup.cfg || test -f setup.py || test -f pyproject.toml; then
+		# shellcheck disable=SC2086
+		python -m pip install $qflag $piploc -e .
+	fi
+
+	statusmsg -sp " ✔ "
+)
+
+setup

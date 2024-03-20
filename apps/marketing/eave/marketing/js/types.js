@@ -47,17 +47,25 @@
  */
 
 /**
+ * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/virtual-event.js").GetVirtualEventsResponseBody} GetVirtualEventsResponseBody
+ */
+
+/**
+ * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/virtual-event.js").VirtualEvent} VirtualEvent
+ */
+
+/**
+ * @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/virtual-event.js").VirtualEventQueryInput} VirtualEventQueryInput
+ */
+
+/** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/models/api-documentation-jobs.js").ApiDocumentationJob} ApiDocumentationJob */
+
+/** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/api-documentation-jobs.js").GetApiDocumentationJobsResponseBody} GetApiDocumentationJobsResponseBody */
+
+/** @typedef {import("../../../../../libs/eave-stdlib-ts/src/core-api/operations/api-documentation-jobs.js").GetApiDocumentationJobsRequestBody} GetApiDocumentationJobsRequestBody */
+
+/**
  * @typedef {object} DashboardTeam
- * @property {boolean} [teamIsLoading]
- * @property {boolean} [teamIsErroring]
- * @property {boolean} [reposAreLoading]
- * @property {boolean} [reposAreErroring]
- * @property {boolean} [apiDocsLoading]
- * @property {boolean} [apiDocsErroring]
- * @property {number} [apiDocsFetchCount]
- * @property {boolean} [teamRequestHasSucceededAtLeastOnce]
- * @property {boolean} [reposRequestHasSucceededAtLeastOnce]
- * @property {boolean} [apiDocsRequestHasSucceededAtLeastOnce]
  * @property {boolean} [inlineCodeDocsEnabled]
  * @property {boolean} [apiDocsEnabled]
  * @property {string} [id]
@@ -65,13 +73,37 @@
  * @property {GithubDocument[]} [apiDocs]
  * @property {Integrations} [integrations]
  * @property {GithubRepo[]} [repos]
+ * @property {ApiDocumentationJob[]} [apiDocsJobs]
+ * @property {VirtualEvent[]} [virtualEvents]
+ */
+
+/**
+ * @typedef {object} DashboardNetworkState
+ * @property {boolean} accountIsLoading
+ * @property {boolean} accountIsErroring
+ * @property {boolean} teamIsLoading
+ * @property {boolean} teamIsErroring
+ * @property {boolean} reposAreLoading
+ * @property {boolean} reposAreErroring
+ * @property {boolean} apiDocsLoading
+ * @property {boolean} apiDocsErroring
+ * @property {boolean} apiDocsJobStatusLoading
+ * @property {boolean} apiDocsJobStatusErroring
+ * @property {number} apiDocsFetchCount
+ * @property {boolean} teamRequestHasSucceededAtLeastOnce
+ * @property {boolean} reposRequestHasSucceededAtLeastOnce
+ * @property {boolean} apiDocsRequestHasSucceededAtLeastOnce
  */
 
 /**
  * @typedef {object} DashboardUser
- * @property {boolean} [accountIsLoading]
- * @property {boolean} [accountIsErroring]
  * @property {AuthenticatedAccount} [account]
+ */
+
+/**
+ * @typedef {object} AuthModal
+ * @property {boolean} isOpen
+ * @property {string} mode
  */
 
 /** @typedef {{ teamRepoIds: string[], enabledRepoIds: string[], feature: string }} FeatureStateParams */
@@ -82,6 +114,19 @@
  * @property {string} [subtitle]
  * @property {string | null} [supportSubheader]
  * @property {string[]} [languages]
+ */
+
+/**
+ * @typedef {object} GlossaryNetworkState
+ * @property {boolean} virtualEventsAreLoading
+ * @property {boolean} virtualEventsAreErroring
+ */
+
+/**
+ * @typedef {object} VirtualEvent
+ * @property {string} name
+ * @property {string} description
+ * @property {string[]} fields
  */
 
 export const Types = {};

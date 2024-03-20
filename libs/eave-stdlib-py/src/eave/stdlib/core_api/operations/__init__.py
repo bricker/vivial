@@ -2,9 +2,9 @@ import aiohttp
 from typing import Optional, TypeVar, Type
 import pydantic
 from eave.stdlib.eave_origins import EaveApp
-from ...config import shared_config
+from ...config import SHARED_CONFIG
 
-_base_url = shared_config.eave_internal_service_base(EaveApp.eave_api)
+_base_url = SHARED_CONFIG.eave_internal_service_base(EaveApp.eave_api)
 
 
 class EndpointConfiguration:

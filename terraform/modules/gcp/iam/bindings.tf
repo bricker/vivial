@@ -9,6 +9,7 @@ resource "google_project_iam_binding" "cloud_sql_client" {
   role    = "roles/cloudsql.client"
 
   members = [
+    "serviceAccount:${var.project_id}@appspot.gserviceaccount.com", // appengine
     "serviceAccount:${google_service_account.app_service_accounts["eave_core"].email}",
   ]
 }

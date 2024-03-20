@@ -1,6 +1,5 @@
 import { Team } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/team.js";
-import { GetGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github.js";
-import { GetTeamOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js";
+import { QueryGithubInstallationOperation } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/github-installation.js";
 import { EaveApp } from "@eave-fyi/eave-stdlib-ts/src/eave-origins.js";
 import { EAVE_TEAM_ID_HEADER } from "@eave-fyi/eave-stdlib-ts/src/headers.js";
 import {
@@ -62,32 +61,35 @@ export async function getInstallationId(
   eaveTeamId: string,
   ctx: LogContext,
 ): Promise<number | null> {
-  // TODO: Use /integrations/github/query endpoint instead
-  const teamResponse = await GetTeamOperation.perform({
+  const response = await QueryGithubInstallationOperation.perform({
     ctx,
     origin: appConfig.eaveOrigin,
-    teamId: eaveTeamId,
+    input: {
+      team: {
+        id: eaveTeamId,
+      },
+    },
   });
-  const ghIntegration = teamResponse.integrations.github_integration;
-  if (!ghIntegration) {
+  const installation = response.github_installation;
+  if (!installation) {
     eaveLogger.error(
-      `GitHub Integration missing for team ${teamResponse.team.id}`,
-      teamResponse,
+      `GitHub Integration missing for team ${eaveTeamId}`,
+      response,
       ctx,
     );
     return null;
   }
-  return parseInt(ghIntegration.github_install_id, 10);
+  return parseInt(installation.github_install_id, 10);
 }
 
 export async function getTeamForInstallation({
   installationId,
   ctx,
 }: CtxArg & { installationId: string | number }): Promise<Team | null> {
-  const response = await GetGithubInstallationOperation.perform({
+  const response = await QueryGithubInstallationOperation.perform({
     origin: EaveApp.eave_github_app,
     input: {
-      github_integration: {
+      github_installation: {
         github_install_id: installationId.toString(),
       },
     },

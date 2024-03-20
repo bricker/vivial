@@ -1,3 +1,32 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "eave-stdlib-py"
+version = "0.1.0"
+requires-python = ">=3.12.0"
+dependencies = [
+  "google-cloud-secret-manager",
+  "google-crc32c",
+  "google-cloud-logging",
+  "google-api-python-client",
+  "google-cloud-pubsub",
+  "google-cloud-kms",
+  "google-cloud-redis",
+  "google-cloud-runtimeconfig",
+  "google-cloud-tasks",
+  "google-cloud-compute",
+  "openai>=1.7.1",
+  "tiktoken==0.5.*",
+  "slack-sdk",
+  "pydantic[email]==1.10.6",
+  "starlette",
+  "werkzeug==3.*",
+  "asgiref>=3.5.2",
+  "cryptography",
+  "redis[hiredis]",
+  "multidict",
+  "aiohttp",
+  "pyjwt",
+]

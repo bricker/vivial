@@ -10,7 +10,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
-from eave.stdlib.config import shared_config
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eave_origins import EaveApp, ExternalOrigin
 from google.cloud import kms
 
@@ -26,6 +26,7 @@ KMS_KEYRING_NAME = "primary"
 class SigningAlgorithm(enum.Enum):
     RS256 = "RS256"
     ES256 = "ES256"
+    HS256 = "HS256"
 
 
 @dataclass
@@ -59,26 +60,6 @@ _SIGNING_KEYS = {
         version="1",
         algorithm=SigningAlgorithm.ES256,
     ),
-    EaveApp.eave_slack_app.value: SigningKeyDetails(
-        id="eave-slack-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
-    EaveApp.eave_atlassian_app.value: SigningKeyDetails(
-        id="eave-atlassian-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
-    EaveApp.eave_jira_app.value: SigningKeyDetails(
-        id="eave-jira-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
-    EaveApp.eave_confluence_app.value: SigningKeyDetails(
-        id="eave-confluence-app-signing-key",
-        version="1",
-        algorithm=SigningAlgorithm.ES256,
-    ),
     # This key was downloaded from GitHub, and then imported into KMS. It is used to sign requests between Eave and GitHub.
     # This is not currently used
     ExternalOrigin.github_api_client.value: SigningKeyDetails(
@@ -100,7 +81,7 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[Lo
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
-        project=shared_config.google_cloud_project,
+        project=SHARED_CONFIG.google_cloud_project,
         location=KMS_KEYRING_LOCATION,
         key_ring=KMS_KEYRING_NAME,
         crypto_key=signing_key.id,
@@ -174,7 +155,7 @@ def _fetch_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
     kms_client = kms.KeyManagementServiceClient()
 
     key_version_name = kms_client.crypto_key_version_path(
-        project=shared_config.google_cloud_project,
+        project=SHARED_CONFIG.google_cloud_project,
         location=KMS_KEYRING_LOCATION,
         key_ring=KMS_KEYRING_NAME,
         crypto_key=signing_key.id,

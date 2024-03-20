@@ -1,18 +1,18 @@
+import assert from "node:assert";
+import path from "node:path";
 import C from "tree-sitter-c";
+import Csharp from "tree-sitter-c-sharp";
 import Cpp from "tree-sitter-cpp";
 import Go from "tree-sitter-go";
 import Java from "tree-sitter-java";
 import JavaScript from "tree-sitter-javascript";
 import Kotlin from "tree-sitter-kotlin";
 import PHP from "tree-sitter-php";
-import Rust from "tree-sitter-rust";
-import tsPkg from "tree-sitter-typescript";
-// import Python from 'tree-sitter-python';
-import assert from "node:assert";
-import path from "node:path";
-import Csharp from "tree-sitter-c-sharp";
+import Python from "tree-sitter-python";
 import Ruby from "tree-sitter-ruby";
+import Rust from "tree-sitter-rust";
 import Swift from "tree-sitter-swift";
+import tsPkg from "tree-sitter-typescript";
 import { eaveLogger } from "../logging.js";
 import {
   ProgrammingLanguage,
@@ -88,7 +88,8 @@ export function grammarForLanguage({
       return Kotlin;
     case ProgrammingLanguage.php:
       return PHP;
-    // case 'python': return Python; // TODO: we need a special case to handle this in function-parsing.ts, so we'll cut this out for now
+    case ProgrammingLanguage.python:
+      return Python;
     case ProgrammingLanguage.ruby:
       return Ruby;
     case ProgrammingLanguage.swift:
@@ -245,7 +246,12 @@ export function getFunctionDocumentationQueries({
           (method_declaration) @${funcMatcher}
         )`,
       ];
-    // case 'python': // TODO: skipped for now for being special snowflake
+    case ProgrammingLanguage.python: // TODO: doesnt currently capture doc comment; should be inside func body in most cases..
+      return [
+        `(
+          (function_definition) @${funcMatcher}
+        )`,
+      ];
     default:
       // used to typecheck our enum cases as exhuastive
       // eslint-disable-next-line no-case-declarations

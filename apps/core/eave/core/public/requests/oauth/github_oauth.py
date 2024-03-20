@@ -1,12 +1,14 @@
 import json
 from typing import Optional
 import urllib.parse
+from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 
 import eave.pubsub_schemas
 from eave.stdlib import utm_cookies
 from eave.stdlib.auth_cookies import AuthCookies, get_auth_cookies
+from eave.stdlib.config import SHARED_CONFIG
 import eave.stdlib.cookies
 import eave.stdlib.util
 import eave.stdlib.analytics
@@ -14,10 +16,8 @@ import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
-from eave.core.internal import app_config, database
-from eave.core.internal.orm import AccountOrm
+from eave.core.internal import database
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.models.integrations import Integration
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.request_state import EaveRequestState
 
@@ -26,6 +26,12 @@ from . import EaveOnboardingErrorCode, shared
 from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = AuthProvider.github
+
+GITHUB_OAUTH_AUTHORIZE_PATH = "/oauth/github/authorize"
+
+# These are referenced in Github App configuration, they shouldn't be changed
+GITHUB_OAUTH_CALLBACK_PATH = "/oauth/github/callback"
+GITHUB_OAUTH_CALLBACK_URI = f"{SHARED_CONFIG.eave_public_api_base}{GITHUB_OAUTH_CALLBACK_PATH}"
 
 
 class GithubOAuthAuthorize(HTTPEndpoint):
@@ -40,11 +46,10 @@ class GithubOAuthAuthorize(HTTPEndpoint):
         # which makes it practically impossible to test in development (without some proxy configuration).
         # So instead, we're going to set a special cookie and read it on the other side (callback), and redirect if necessary.
         # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
-        redirect_uri = f"{app_config.eave_public_api_base}/oauth/github/callback"
-        state_json = json.dumps({"token": token, "redirect_uri": redirect_uri})
+        state_json = json.dumps({"token": token, "redirect_uri": GITHUB_OAUTH_CALLBACK_URI})
         state = eave.stdlib.util.b64encode(state_json, urlsafe=True)
 
-        authorization_url = f"{app_config.eave_github_app_public_url}/installations/new?state={state}"
+        authorization_url = f"{SHARED_CONFIG.eave_github_app_public_url}/installations/new?state={state}"
         # authorization_url = f"https://github.com/login/oauth/authorize?{qp}"
         response = RedirectResponse(url=authorization_url)
 
@@ -136,10 +141,6 @@ class GithubOAuthCallback(HTTPEndpoint):
         try:
             await self._maybe_set_account_data(auth_cookies)
             await self._update_or_create_github_installation()
-            # dont link github repos to our db until we know what team to associate them w/
-            if self._request_logged_in():
-                assert self.eave_team  # make types happy
-                await shared.sync_github_repos(team_id=self.eave_team.id, ctx=self.eave_state.ctx)
         except Exception as e:
             if shared.is_error_response(self.response):
                 return self.response
@@ -196,7 +197,7 @@ class GithubOAuthCallback(HTTPEndpoint):
 
                 # only set state cookie for installations that wont have a team_id set
                 if not self._request_logged_in():
-                    state = shared.generate_and_set_state_cookie(
+                    state = shared.set_github_installation_state_cookie(
                         response=self.response, installation_id=self.installation_id
                     )
 
@@ -217,7 +218,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                         eave_account=self.eave_account.analytics_model if self.eave_account else None,
                         eave_team=self.eave_team.analytics_model if self.eave_team else None,
                         opaque_params={
-                            "integration_name": Integration.github.value,
+                            "integration_name": "github",
                         },
                         ctx=self.eave_state.ctx,
                     )
@@ -227,7 +228,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                         event_description="An app was registered, but has no linked team",
                         event_source="core api github app install",
                         opaque_params={
-                            "integration_name": Integration.github.value,
+                            "integration_name": "github",
                             "installation_id": self.installation_id,
                         },
                         ctx=self.eave_state.ctx,
@@ -243,7 +244,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     event_source="core api github oauth",
                     eave_account=self.eave_account.analytics_model,
                     eave_team=self.eave_team.analytics_model if self.eave_team else None,
-                    opaque_params={"integration": Integration.github},
+                    opaque_params={"integration": "github"},
                     ctx=self.eave_state.ctx,
                 )
                 shared.set_error_code(response=self.response, error_code=EaveOnboardingErrorCode.already_linked)
@@ -256,7 +257,7 @@ class GithubOAuthCallback(HTTPEndpoint):
                     eave_account=self.eave_account.analytics_model if self.eave_account else None,
                     eave_team=self.eave_team.analytics_model if self.eave_team else None,
                     opaque_params={
-                        "integration_name": Integration.github.value,
+                        "integration_name": "github",
                     },
                     ctx=self.eave_state.ctx,
                 )

@@ -1,4 +1,9 @@
 # import {
+#   to = google_sql_database_instance.eave_pg_core
+#   id = "eave-pg-core-dev"
+# }
+
+# import {
 #   id = "us-central1/eave-services"
 #   to = module.gcp_gke.google_container_cluster.eave_services
 # }

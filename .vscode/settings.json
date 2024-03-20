@@ -4,7 +4,14 @@
   "editor.indentSize": "tabSize",
   "editor.tabSize": 2,
   "files.associations": {
-    "*.html.jinja": "jinja-html"
+    "Fastfile": "ruby",
+    "Matchfile": "ruby",
+    "Pluginfile": "ruby",
+    "Appfile": "ruby",
+    "*.schema": "json",
+    "*.swiftinterface": "swift",
+    "*.html.jinja": "jinja-html",
+    "*.env": "properties",
   },
   "files.exclude": {
     "**/__pycache__": true,
@@ -24,7 +31,7 @@
   "[python]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
-    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "charliermarsh.ruff",
   },
   "[shellscript]": {
     "editor.insertSpaces": false,
@@ -77,8 +84,10 @@
     "vendor",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
     "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
+    "${workspaceFolder}/libs/eave-tracing-core-py/src",
+    "${workspaceFolder}/libs/eave-tracing-python/src",
+    "${workspaceFolder}/libs/eave-tracing-postgres/src",
     "${workspaceFolder}/apps/core",
-    "${workspaceFolder}/apps/slack",
     "${workspaceFolder}/apps/marketing",
     "${workspaceFolder}/develop/python/src",
   ],
@@ -94,7 +103,7 @@
   "git.openRepositoryInParentFolders": "always",
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "-c=${workspaceFolder}/develop/python/configs/pyproject.toml",
+    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml",
     "--rootdir=${workspaceFolder}",
     "."
   ],
@@ -114,8 +123,8 @@
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
   ],
-  "ruff.args": [
-    "--config=${EAVE_HOME}/develop/python/configs/pyproject.toml"
+  "ruff.lint.args": [
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
   ],
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
   "markdownlint.run": "onSave",
@@ -125,36 +134,15 @@
   "python.analysis.gotoDefinitionInStringLiteral": true,
   "json.schemas": [
 
-  {
-    "fileMatch": [
-      "/confluence/atlassian-connect.json"
-    ],
-    "url": "https://bitbucket.org/atlassian/connect-schemas/raw/master/confluence-global-schema.json"
-  },
-  {
-    "fileMatch": [
-      "/jira/atlassian-connect.json"
-    ],
-    "url": "https://bitbucket.org/atlassian/connect-schemas/raw/master/jira-global-schema.json"
-  }
   ],
   "typescript.preferences.importModuleSpecifierEnding": "js",
   "typescript.validate.enable": true,
   "eslint.run": "onSave",
-  "ruff.importStrategy": "useBundled",
-  "ruff.run": "onSave",
+  "ruff.importStrategy": "fromEnvironment",
+  "ruff.lint.run": "onSave",
   "ruff.interpreter": [
     "${workspaceFolder}/.venv/bin/python"
   ],
-  "todo-tree.filtering.excludeGlobs": [
-    "**/node_modules/*/**",
-    "**/.venv",
-    "**/__pycache__",
-    "**/.ruff_cache",
-    "**/.mypy_cache",
-    "**/.pytest_cache"
-  ],
-  "todo-tree.tree.autoRefresh": false,
   "shellcheck.run": "onSave",
   "shellcheck.ignorePatterns": {
     "**/.venv": true,
@@ -168,11 +156,10 @@
   "shellcheck.customArgs": [
     "-x"
   ],
-  "black-formatter.importStrategy": "fromEnvironment",
-  "black-formatter.args": [
-    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
-  ],
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
   "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
+  "ruff.format.args": [
+    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
+  ],
 }

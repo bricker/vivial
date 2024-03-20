@@ -11,20 +11,21 @@ import {
 } from "react-router-dom";
 
 import "../static/css/app.css";
+// import HomePage from "./components/Pages/HomePage/index.jsx";
 import AuthenticationPage from "./components/Pages/AuthenticationPage/index.jsx";
-import Dashboard from "./components/Pages/Dashboard/index.jsx";
-import HomePage from "./components/Pages/HomePage/index.jsx";
+import EventDashboard from "./components/Pages/EventDashboard/index.jsx";
 import PrivacyPage from "./components/Pages/PrivacyPage/index.jsx";
 import TermsPage from "./components/Pages/TermsPage/index.jsx";
-import PrivateRoutes from "./components/PrivateRoutes/index.jsx";
 import ScrollToTop from "./components/ScrollToTop/index.jsx";
-import AppStoreProvider from "./context/Provider.js";
+import AppContextProvider from "./context/Provider.js";
+// import PrivateRoutes from "./components/PrivateRoutes/index.jsx";
+// import Dashboard from "./components/Pages/Dashboard/index.jsx";
 import { theme } from "./theme.js";
 
 const App = () => {
   return (
     <CookiesProvider>
-      <AppStoreProvider>
+      <AppContextProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {/* @ts-ignore */}
@@ -40,6 +41,7 @@ const App = () => {
                 path="/signup"
                 element={<AuthenticationPage type="signup" />}
               />
+              {/*
               <Route
                 path="/login"
                 element={<AuthenticationPage type="login" />}
@@ -47,12 +49,13 @@ const App = () => {
               <Route element={<PrivateRoutes />}>
                 <Route path="/dashboard" element={<Dashboard />} />
               </Route>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<HomePage />} /> */}
+              <Route path="/" element={<EventDashboard />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Router>
         </ThemeProvider>
-      </AppStoreProvider>
+      </AppContextProvider>
     </CookiesProvider>
   );
 };

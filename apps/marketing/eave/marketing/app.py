@@ -1,21 +1,17 @@
 from functools import wraps
 from http.client import UNAUTHORIZED
 import json
-import time
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Optional
 
 from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
-
-from eave.stdlib.core_api.models.github_repos import GithubRepoUpdateInput
-from eave.stdlib.core_api.operations import BaseResponseBody
+from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
+from eave.stdlib.core_api.operations import BaseResponseBody, CoreApiEndpointConfiguration
 import eave.stdlib.core_api.operations.account as account
+from eave.stdlib.core_api.operations.metabase_embedding_sso import MetabaseEmbeddingSSOOperation
+import eave.stdlib.core_api.operations.virtual_event as virtual_event
 import eave.stdlib.core_api.operations.team as team
-import eave.stdlib.core_api.operations.github_repos as github_repos
-import eave.stdlib.core_api.operations.github_documents as github_documents
-from eave.stdlib.core_api.models.github_documents import GithubDocument, GithubDocumentsQueryInput, GithubDocumentStatus
-from eave.stdlib.github_api.operations.query_repos import QueryGithubRepos
 from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.util import ensure_uuid, unwrap
 
@@ -26,10 +22,10 @@ import eave.stdlib.time
 import werkzeug.exceptions
 from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
-from eave.stdlib.typing import JsonArray, JsonObject
+from eave.stdlib.typing import JsonObject
 from eave.stdlib.utm_cookies import set_tracking_cookies
-from .config import app_config
-from eave.stdlib.config import shared_config
+from .config import MARKETING_APP_CONFIG
+from eave.stdlib.config import SHARED_CONFIG
 
 eave.stdlib.time.set_utc()
 
@@ -61,8 +57,8 @@ def status() -> str:
 
 @app.route("/_ah/warmup", methods=["GET"])
 async def warmup() -> str:
-    shared_config.preload()
-    app_config.preload()
+    SHARED_CONFIG.preload()
+    MARKETING_APP_CONFIG.preload()
     return "OK"
 
 
@@ -79,12 +75,12 @@ async def stop() -> str:
 def _render_spa(**kwargs: Any) -> str:
     return render_template(
         "index.html.jinja",
-        cookie_domain=app_config.eave_cookie_domain,
-        api_base=app_config.eave_public_api_base,
-        asset_base=app_config.asset_base,
-        analytics_enabled=app_config.analytics_enabled,
-        app_env=app_config.eave_env,
-        app_version=app_config.app_version,
+        asset_base=SHARED_CONFIG.asset_base,
+        cookie_domain=SHARED_CONFIG.eave_cookie_domain,
+        api_base=SHARED_CONFIG.eave_public_api_base,
+        analytics_enabled=SHARED_CONFIG.analytics_enabled,
+        app_env=SHARED_CONFIG.eave_env,
+        app_version=SHARED_CONFIG.app_version,
         **kwargs,
     )
 
@@ -95,10 +91,29 @@ async def get_user() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await account.GetAuthenticatedAccount.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=ensure_uuid(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
+    )
+
+    return _make_response(eave_response)
+
+
+@app.route("/dashboard/team/virtual-events", methods=["POST"])
+@_auth_handler
+async def get_virtual_events() -> Response:
+    auth_cookies = _get_auth_cookies_or_exception()
+
+    body = request.get_json()
+    query_input: Optional[VirtualEventQueryInput] = body.get("query")
+
+    eave_response = await virtual_event.GetVirtualEventsRequest.perform(
+        origin=MARKETING_APP_CONFIG.eave_origin,
+        team_id=ensure_uuid(auth_cookies.team_id),
+        account_id=ensure_uuid(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+        input=virtual_event.GetVirtualEventsRequest.RequestBody(virtual_events=query_input),
     )
 
     return _make_response(eave_response)
@@ -110,7 +125,7 @@ async def get_team() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await team.GetTeamRequest.perform(
-        origin=app_config.eave_origin,
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -118,90 +133,26 @@ async def get_team() -> Response:
 
     return _make_response(eave_response)
 
-
-@app.route("/dashboard/team/repos", methods=["POST"])
+@app.route("/embed/metabase", methods=["GET"])
 @_auth_handler
-async def get_team_repos() -> Response:
+async def embed_metabase() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
-    eave_response = await github_repos.GetGithubReposRequest.perform(
-        origin=app_config.eave_origin,
+    resp = await MetabaseEmbeddingSSOOperation.perform(
+        input=MetabaseEmbeddingSSOOperation.RequestBody(return_to=request.args.get("return_to")),
+        origin=MARKETING_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
-        input=github_repos.GetGithubReposRequest.RequestBody(repos=None),
     )
 
-    response = _make_response(eave_response)
+    return await _make_redirect_response(eave_response=resp)
 
-    internal_repo_list = eave_response.repos
-    if len(internal_repo_list) == 0:
-        _set_json_response_body(response, {"repos": []})
-        return response
-
-    external_response = await QueryGithubRepos.perform(
-        origin=app_config.eave_origin, team_id=unwrap(auth_cookies.team_id)
-    )
-    external_repo_list = external_response.repos
-    external_repo_map = {repo.id: repo for repo in external_repo_list if repo.id is not None}
-    merged_repo_list: JsonArray = []
-
-    for repo in internal_repo_list:
-        repo_id = repo.external_repo_id
-        if repo_id in external_repo_map:
-            jsonRepo = json.loads(repo.json())
-            jsonRepo["external_repo_data"] = json.loads(external_repo_map[repo_id].json())
-            merged_repo_list.append(jsonRepo)
-
-    _set_json_response_body(response, {"repos": merged_repo_list})
-    return response
-
-
-@app.route("/dashboard/team/repos/update", methods=["POST"])
-@_auth_handler
-async def update_team_repos() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    body = request.get_json()
-    repos: list[GithubRepoUpdateInput] = body["repos"]
-
-    eave_response = await github_repos.UpdateGithubReposRequest.perform(
-        origin=app_config.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-        input=github_repos.UpdateGithubReposRequest.RequestBody(repos=repos),
-    )
-
-    return _make_response(eave_response)
-
-
-@app.route("/dashboard/team/documents", methods=["POST"])
-@_auth_handler
-async def get_team_documents() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    body = request.get_json()
-    document_type = body["document_type"]
-
-    eave_response = await github_documents.GetGithubDocumentsRequest.perform(
-        origin=app_config.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
-        access_token=unwrap(auth_cookies.access_token),
-        input=github_documents.GetGithubDocumentsRequest.RequestBody(
-            query_params=GithubDocumentsQueryInput(type=document_type)
-        ),
-    )
-
-    # sort documents in place
-    eave_response.documents.sort(key=_document_rank)
-    return _make_response(eave_response)
 
 
 @app.route("/dashboard/logout", methods=["GET"])
 async def logout() -> BaseResponse:
-    response = redirect(location=app_config.eave_public_www_base, code=302)
+    response = redirect(location=SHARED_CONFIG.eave_public_www_base, code=302)
     delete_auth_cookies(response=response)
     _delete_login_state_hint_cookie(response=response)
     return response
@@ -212,6 +163,14 @@ async def logout() -> BaseResponse:
 def catch_all(path: str) -> Response:
     spa = _render_spa()
     response = make_response(spa)
+
+    # We changed these cookie names; This is a courtesy to the user to clean up their old cookies. This can be removed at any time.
+    delete_http_cookie(response=response, key="ev_account_id")
+    delete_http_cookie(response=response, key="ev_team_id")
+    delete_http_cookie(response=response, key="ev_access_token")
+    delete_http_cookie(response=response, key="ev_login_state_hint")
+    delete_http_cookie(response=response, key="visitor_id")
+
     set_tracking_cookies(response=response, request=request)
 
     auth_cookies = get_auth_cookies(request.cookies)
@@ -223,7 +182,7 @@ def catch_all(path: str) -> Response:
     return response
 
 
-_EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint"
+_EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint.202311"
 
 
 def _set_login_state_hint_cookie(response: BaseResponse) -> None:
@@ -244,6 +203,17 @@ def _get_auth_cookies_or_exception() -> AuthCookies:
 
     return auth_cookies
 
+
+async def _make_redirect_response(eave_response: BaseResponseBody) -> Response:
+    assert eave_response._raw_response, "invalid eave response"
+    headers = dict(eave_response._raw_response.headers)
+    status = eave_response._raw_response.status
+    response = Response(
+        headers=headers,
+        status=status,
+    )
+
+    return response
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
@@ -269,33 +239,3 @@ def _json_response(body: JsonObject | str | None) -> Response:
     if body:
         _set_json_response_body(response, body)
     return response
-
-
-_status_order = [
-    GithubDocumentStatus.PROCESSING,
-    GithubDocumentStatus.PR_OPENED,
-    GithubDocumentStatus.FAILED,
-    GithubDocumentStatus.PR_CLOSED,
-    GithubDocumentStatus.PR_MERGED,
-]
-
-
-def _document_rank(d: GithubDocument) -> str:
-    """
-    build a string of digits, in descending significance, to create a sorting rank. For example:
-
-    d.status = PROCESSING
-    d.status_updated = 1697060933
-    rank = "01697060933"
-    """
-    rank = ""
-
-    if d.status in _status_order:
-        rank += str(_status_order.index(d.status))
-    else:
-        # put unrecognized status last
-        rank += "999"
-
-    uts = int(time.mktime(d.status_updated.timetuple()))
-    rank += f"{uts}"
-    return rank

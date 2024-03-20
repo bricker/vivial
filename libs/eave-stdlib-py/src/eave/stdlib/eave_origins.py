@@ -4,11 +4,8 @@ import enum
 class EaveApp(enum.StrEnum):
     eave_api = "eave_api"
     eave_www = "eave_www"
+    eave_metabase = "eave_metabase"
     eave_github_app = "eave_github_app"
-    eave_slack_app = "eave_slack_app"
-    eave_atlassian_app = "eave_atlassian_app"
-    eave_jira_app = "eave_jira_app"
-    eave_confluence_app = "eave_confluence_app"
 
     @property
     def appengine_name(self) -> str:
@@ -19,14 +16,8 @@ class EaveApp(enum.StrEnum):
                 return "www"
             case EaveApp.eave_github_app:
                 return "github"
-            case EaveApp.eave_slack_app:
-                return "slack"
-            case EaveApp.eave_atlassian_app:
-                return "atlassian"
-            case EaveApp.eave_jira_app:
-                return "jira"
-            case EaveApp.eave_confluence_app:
-                return "confluence"
+            case EaveApp.eave_metabase:
+                return "metabase"
 
 
 class ExternalOrigin(enum.StrEnum):

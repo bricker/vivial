@@ -14,13 +14,14 @@ resource "google_container_cluster" "eave_services" {
   subnetwork                  = "projects/${var.project_id}/regions/${var.region}/subnetworks/default"
   networking_mode             = "VPC_NATIVE"
   enable_autopilot            = true
+  deletion_protection = true
 
   ip_allocation_policy {
   }
 
   master_authorized_networks_config {
     cidr_blocks {
-      cidr_block = "157.22.33.161/32"
+      cidr_block   = "157.22.33.161/32"
       display_name = "Bryan's Home Wifi"
     }
   }

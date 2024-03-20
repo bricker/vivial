@@ -10,7 +10,6 @@ from starlette.responses import RedirectResponse, Response
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
-
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from . import base, shared
@@ -80,9 +79,9 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             raise MissingOAuthCredentialsError("google oauth2 credentials")
 
         google_token = eave.core.internal.oauth.google.decode_id_token(id_token=credentials.id_token)
-        eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else "Your Team"
+        eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else shared.DEFAULT_TEAM_NAME
 
-        account = await shared.get_or_create_eave_account(
+        await shared.get_or_create_eave_account(
             request=self.request,
             response=self.response,
             eave_team_name=eave_team_name,
@@ -93,8 +92,21 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             refresh_token=credentials.refresh_token,
         )
 
-        await shared.try_associate_account_with_dangling_github_installation(
-            request=self.request, response=self.response, team_id=account.team_id
-        )
+        # do metabase stuff
+
+        # jwt = TEMP_create_jwt_for_metabase(
+        #     email=account.email or "",
+        #     first_name=google_token.given_name or "",
+        #     last_name=google_token.family_name or "",
+        #     exp_minutes=10,
+        #     signing_key="8c1c4cb0017162745f294d4d67a8e249205f1057284809f13c8064f87c796fbf", # TODO make secrt
+        #     purpose=JWTPurpose.access,
+        # )
+
+        # return_to = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
+        # shared.set_redirect(
+        #     response=self.response,
+        #     location=f"http://metabase.eave.run:3000/auth/sso?jwt={jwt.signature}&return_to={return_to}"
+        # )
 
         return self.response
