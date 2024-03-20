@@ -10,7 +10,7 @@ from eave.stdlib.config import EaveEnvironment
 from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthProvider
 from eave.stdlib.core_api.models.team import AnalyticsTeam
 import eave.stdlib.logging as _l
-from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.testing_util import UtilityBaseTestCase
 
 mut = analytics.__name__
 

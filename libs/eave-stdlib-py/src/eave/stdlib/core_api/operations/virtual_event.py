@@ -3,7 +3,7 @@ import uuid
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent, VirtualEventQueryInput
 from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
-from ... import requests
+from ... import requests_util
 
 
 class GetVirtualEventsRequest(CoreApiEndpoint):
@@ -24,9 +24,9 @@ class GetVirtualEventsRequest(CoreApiEndpoint):
         team_id: uuid.UUID | str,
         account_id: uuid.UUID | str,
         input: RequestBody,
-        **kwargs: Unpack[requests.CommonRequestArgs],
+        **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        response = await requests_util.make_request(
             config=cls.config,
             input=input,
             access_token=access_token,

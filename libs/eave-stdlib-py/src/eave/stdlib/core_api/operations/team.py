@@ -1,6 +1,6 @@
 from typing import Optional, Unpack
 import uuid
-from ... import requests
+from ... import requests_util
 from eave.stdlib.core_api.models.team import Team
 from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
 
@@ -20,9 +20,9 @@ class GetTeamRequest(CoreApiEndpoint):
         team_id: uuid.UUID | str,
         account_id: Optional[uuid.UUID],
         access_token: Optional[str],
-        **kwargs: Unpack[requests.CommonRequestArgs],
+        **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        response = await requests_util.make_request(
             config=cls.config,
             input=None,
             team_id=team_id,

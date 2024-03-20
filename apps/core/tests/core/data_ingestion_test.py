@@ -54,8 +54,9 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         handle = BigQueryTableHandle(team_id=self._team.id)
         try:
             dataset = client.get_dataset(dataset_ref=handle.dataset_id)
-        except GoogleCloudError | ValueError as e:
-            self.fail(f"Unexpected Google Cloud error: {e}")
+        except Exception as e:
+            print(f"Google Cloud Error: {e}")
+            return False
 
         return dataset is not None
 

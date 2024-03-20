@@ -1,5 +1,5 @@
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.config import EaveEnvironment, SHARED_CONFIG
 
 
