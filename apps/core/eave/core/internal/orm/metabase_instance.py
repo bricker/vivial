@@ -22,7 +22,7 @@ class MetabaseInstanceOrm(Base):
     )
 
     team_id: Mapped[UUID] = mapped_column()
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, unique=True)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     jwt_signing_key: Mapped[Optional[str]] = mapped_column(server_default=None)
     route_id: Mapped[Optional[uuid.UUID]] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
