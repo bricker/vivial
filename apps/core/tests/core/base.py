@@ -273,6 +273,15 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
         acct = await AccountOrm.one_or_none(session=session, params=AccountOrm.QueryParams(id=id))
         return acct
+    
+    async def get_only_eave_account(self, session: AsyncSession, /) -> AccountOrm:
+        """Get the only account in the db. Handy for getting a newly created account w/o knowing the ID"""
+        lookup = select(AccountOrm).limit(1)
+        try:
+            result = (await session.scalars(lookup)).one()
+        except Exception as e:
+            raise Exception(f"Not exactly 1 eave account in the database: {e}")
+        return result
 
     async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> TeamOrm | None:
         acct = await TeamOrm.one_or_none(session=session, team_id=id)

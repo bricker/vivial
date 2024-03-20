@@ -114,14 +114,10 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.headers[aiohttp.hdrs.LOCATION]
         assert response.headers[aiohttp.hdrs.LOCATION] == DEFAULT_REDIRECT_LOCATION
 
-        account_id = response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
-        assert account_id
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
-
         async with self.db_session.begin() as s:
             assert (await self.count(s, AccountOrm)) == 1
 
-            eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
+            eave_account = await self.get_only_eave_account(s)
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
@@ -153,9 +149,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
-        account_id = response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME)
         async with self.db_session.begin() as s:
-            eave_account = await self.get_eave_account(s, id=uuid.UUID(account_id))
+            eave_account = await self.get_only_eave_account(s)
             assert eave_account
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
@@ -196,9 +191,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert eave_account_after.access_token == self.anystr("google.token")
             assert eave_account_after.refresh_token == self.anystr("google.refresh_token")
 
-            # Test that the cookies were updated
-            assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
-            assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
 
     async def test_google_callback_logged_in_account(self) -> None:
         async with self.db_session.begin() as s:
@@ -236,9 +228,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert eave_account_after.access_token == self.anystr("google.token")
             assert eave_account_after.refresh_token == self.anystr("google.refresh_token")
 
-            # Test that the cookies were updated
-            assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
-            assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == eave_account_after.access_token
 
     async def test_google_callback_invalid_state(self) -> None:
         response = await self.make_request(
