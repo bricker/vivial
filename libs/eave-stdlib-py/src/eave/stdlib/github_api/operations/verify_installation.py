@@ -1,5 +1,5 @@
 from typing import Unpack
-from eave.stdlib import requests
+from eave.stdlib import requests_util
 from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
 from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpointConfiguration
 
@@ -19,8 +19,8 @@ class VerifyInstallation(GithubAppEndpoint):
         pass
 
     @classmethod
-    async def perform(cls, input: RequestBody, **kwargs: Unpack[requests.CommonRequestArgs]) -> ResponseBody:
-        response = await requests.make_request(
+    async def perform(cls, input: RequestBody, **kwargs: Unpack[requests_util.CommonRequestArgs]) -> ResponseBody:
+        response = await requests_util.make_request(
             config=cls.config,
             input=input,
             **kwargs,

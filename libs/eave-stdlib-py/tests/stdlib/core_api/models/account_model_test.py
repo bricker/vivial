@@ -1,5 +1,5 @@
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.testing_util import UtilityBaseTestCase
 
 
 class CoreApiAccountModelTest(UtilityBaseTestCase):

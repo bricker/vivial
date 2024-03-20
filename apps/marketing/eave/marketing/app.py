@@ -16,7 +16,7 @@ from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.util import ensure_uuid, unwrap
 
 from eave.stdlib.endpoints import status_payload
-import eave.stdlib.requests
+import eave.stdlib.requests_util
 import eave.stdlib.logging
 import eave.stdlib.time
 import werkzeug.exceptions

@@ -2,7 +2,7 @@ import uuid
 from typing import Optional, Unpack
 
 from aiohttp import ClientResponse
-from ... import requests
+from ... import requests_util
 from eave.stdlib.core_api.operations import (
     BaseRequestBody,
     BaseResponseBody,
@@ -31,9 +31,9 @@ class MetabaseEmbeddingSSOOperation(CoreApiEndpoint):
         account_id: Optional[uuid.UUID],
         access_token: Optional[str],
         input: Optional[RequestBody] = None,
-        **kwargs: Unpack[requests.CommonRequestArgs],
+        **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> BaseResponseBody:
-        response = await requests.make_request(
+        response = await requests_util.make_request(
             config=cls.config,
             input=input,
             team_id=team_id,

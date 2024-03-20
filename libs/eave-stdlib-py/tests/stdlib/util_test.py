@@ -1,5 +1,5 @@
 from eave.stdlib.exceptions import UnexpectedMissingValue
-from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.testing_util import UtilityBaseTestCase
 import eave.stdlib.util
 
 mut = eave.stdlib.util

@@ -25,8 +25,8 @@ import eave.stdlib.eave_origins
 import eave.stdlib.typing
 
 from eave.stdlib.core_api.models.account import AuthProvider
-import eave.stdlib.test_util
-import eave.stdlib.requests
+import eave.stdlib.testing_util
+import eave.stdlib.requests_util
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from httpx import AsyncClient, Response
@@ -58,7 +58,7 @@ TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
 _DB_SETUP: bool = False
 
 
-class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
+class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
 

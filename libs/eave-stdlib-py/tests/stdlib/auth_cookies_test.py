@@ -14,7 +14,7 @@ from eave.stdlib.auth_cookies import (
     get_auth_cookies,
     set_auth_cookies,
 )
-from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
 
 
