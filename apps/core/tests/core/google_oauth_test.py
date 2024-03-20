@@ -65,10 +65,28 @@ class TestGoogleOAuthHandler(BaseTestCase):
         )
 
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
+        assert response.cookies.get(f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}")
         assert response.headers[aiohttp.hdrs.LOCATION]
         assert re.search(r"^https://accounts\.google\.com/o/oauth2/auth", response.headers[aiohttp.hdrs.LOCATION])
         redirect_uri = urllib.parse.quote(eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_URI, safe="")
         assert re.search(redirect_uri, response.headers[aiohttp.hdrs.LOCATION])
+
+    async def test_google_authorize_with_utm_params(self) -> None:
+        response = await self.make_request(
+            path=eave.core.internal.oauth.google.GOOGLE_OAUTH_AUTHORIZE_PATH,
+            sign=False,
+            method="GET",
+            payload={
+                "utm_campaign": self.anystr("utm_campaign"),
+                "gclid": self.anystr("gclid"),
+                "ignored_param": self.anystr(),
+            },
+        )
+
+        assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
+        assert response.cookies.get(f"{EAVE_COOKIE_PREFIX_UTM}utm_campaign") == self.getstr("utm_campaign")
+        assert response.cookies.get(f"{EAVE_COOKIE_PREFIX_UTM}gclid") == self.getstr("gclid")
+        assert response.cookies.get(f"{EAVE_COOKIE_PREFIX_UTM}ignored_param") is None
 
     async def test_google_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
