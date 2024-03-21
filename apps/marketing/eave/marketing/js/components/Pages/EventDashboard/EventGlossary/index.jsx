@@ -23,6 +23,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   },
   searchBar: {
     maxWidth: 789,
+    minWidth: "calc(100vw / 2)",
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
@@ -121,12 +122,11 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
     },
   },
   loader: {
-    // @ts-ignore
-    color: theme.palette.background.contrastText,
-    width: "100%",
     display: "flex",
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 32,
   },
   noEventsHeader: {
     display: "flex",
@@ -146,6 +146,7 @@ const EventGlossary = () => {
   const [searchValue, setSearchValue] = useState("");
   /** @type {[Types.VirtualEvent, React.Dispatch<React.SetStateAction<Types.VirtualEvent>>]} */
   const [selectedEvent, setSelectedEvent] = useState({
+    id: "",
     readable_name: "",
     description: "",
     fields: [],
@@ -223,7 +224,7 @@ const EventGlossary = () => {
           if (networkState.virtualEventsAreLoading) {
             return (
               <div className={classes.loader}>
-                <CircularProgress color="inherit" />
+                <CircularProgress color="secondary" />
               </div>
             );
           }
@@ -236,7 +237,7 @@ const EventGlossary = () => {
               </div>
             );
           }
-          if (team?.virtualEvents) {
+          if (team?.virtualEvents?.length) {
             // show the virtual events table
             return (
               <table className={classes.table}>
@@ -326,9 +327,10 @@ const EventGlossary = () => {
         <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
         <p>{selectedEvent.description}</p>
         <div>
-          {selectedEvent.fields.map((field) => {
+          TODO add fields column to VirtualEventOrm
+          {/* {selectedEvent.fields.map((field) => {
             return <p key={field}>{field}</p>;
-          })}
+          })} */}
         </div>
       </div>
     </div>

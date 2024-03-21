@@ -5,16 +5,15 @@ import { makeStyles } from "@material-ui/styles";
 import { theme } from "../../../theme.js";
 import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 import GlossaryIcon from "../../Icons/GlossaryIcon.jsx";
+import GraphIcon from "../../Icons/GraphIcon.jsx";
 import SettingsCogIcon from "../../Icons/SettingsCogIcon.jsx";
 import SignOutIcon from "../../Icons/SignOutIcon.jsx";
 import TeamIcon from "../../Icons/TeamIcon.jsx";
+import AnalyticsDashboard from "./AnalyticsDashboard/index.jsx";
 import EventGlossary from "./EventGlossary/index.jsx";
 import Menu from "./SidebarNav/Menu/index.jsx";
 import MenuItem from "./SidebarNav/MenuItem/index.jsx";
 import SidebarNav from "./SidebarNav/index.jsx";
-import MetabaseEmbeddedDashboard from "../../MetabaseEmbeddedDashboard/index.jsx";
-
-// TODO: a11y; the tabs arent kb navable
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   desktopContainer: {
@@ -31,14 +30,11 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   spacer: {
     flexGrow: 1,
   },
-  mbEmbed: { // TODO: rm this
-    width: 1280, 
-    height: 600
-  }, 
 }));
 
 // sad enum replacement
 const glossary = "glossary";
+const insights = "insights";
 const configuration = "configuration";
 const manage = "manage";
 const logOut = "logOut";
@@ -72,13 +68,18 @@ const EventDashboard = () => {
     : classes.desktopContainer;
 
   return (
-    <MetabaseEmbeddedDashboard className={classes.mbEmbed} />
-  );
-/*
-  return (
     <div className={container}>
       <SidebarNav hamburger={usingMobileLayout}>
         <Menu>
+          <MenuItem
+            label="Insights"
+            onClick={() => setSelectedTab(insights)}
+            selected={selectedTab === insights}
+            expanded={usingMobileLayout}
+          >
+            <GraphIcon color={iconColor(selectedTab === insights)} />
+          </MenuItem>
+
           <MenuItem
             label="Event Glossary"
             onClick={() => setSelectedTab(glossary)}
@@ -120,6 +121,8 @@ const EventDashboard = () => {
       </SidebarNav>
       {(() => {
         switch (selectedTab) {
+          case insights:
+            return <AnalyticsDashboard />;
           case configuration: // TODO: handle these pages/actions
           case manage:
           case logOut:
@@ -128,7 +131,7 @@ const EventDashboard = () => {
         }
       })()}
     </div>
-  );*/
+  );
 };
 
 export default EventDashboard;

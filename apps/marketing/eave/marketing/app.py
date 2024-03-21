@@ -7,7 +7,7 @@ from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
-from eave.stdlib.core_api.operations import BaseResponseBody, CoreApiEndpointConfiguration
+from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
 from eave.stdlib.core_api.operations.metabase_embedding_sso import MetabaseEmbeddingSSOOperation
 import eave.stdlib.core_api.operations.virtual_event as virtual_event
@@ -133,6 +133,7 @@ async def get_team() -> Response:
 
     return _make_response(eave_response)
 
+
 @app.route("/embed/metabase", methods=["GET"])
 @_auth_handler
 async def embed_metabase() -> Response:
@@ -147,7 +148,6 @@ async def embed_metabase() -> Response:
     )
 
     return await _make_redirect_response(eave_response=resp)
-
 
 
 @app.route("/dashboard/logout", methods=["GET"])
@@ -214,6 +214,7 @@ async def _make_redirect_response(eave_response: BaseResponseBody) -> Response:
     )
 
     return response
+
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
     response = _json_response(body=eave_response.json())
