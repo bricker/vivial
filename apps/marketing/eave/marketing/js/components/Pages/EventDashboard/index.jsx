@@ -34,7 +34,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
 
 // sad enum replacement
 const glossary = "glossary";
-const analytics = "analytics";
+const insights = "insights";
 const configuration = "configuration";
 const manage = "manage";
 const logOut = "logOut";
@@ -72,12 +72,12 @@ const EventDashboard = () => {
       <SidebarNav hamburger={usingMobileLayout}>
         <Menu>
           <MenuItem
-            label="Analytics"
-            onClick={() => setSelectedTab(analytics)}
-            selected={selectedTab === analytics}
+            label="Insights"
+            onClick={() => setSelectedTab(insights)}
+            selected={selectedTab === insights}
             expanded={usingMobileLayout}
           >
-            <GraphIcon color={iconColor(selectedTab === analytics)} />
+            <GraphIcon color={iconColor(selectedTab === insights)} />
           </MenuItem>
 
           <MenuItem
@@ -121,7 +121,7 @@ const EventDashboard = () => {
       </SidebarNav>
       {(() => {
         switch (selectedTab) {
-          case analytics:
+          case insights:
             return <AnalyticsDashboard />;
           case configuration: // TODO: handle these pages/actions
           case manage:
