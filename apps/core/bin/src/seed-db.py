@@ -12,6 +12,8 @@ load_standard_dotenv_files()
 
 # ruff: noqa: E402
 
+from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
+from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
@@ -21,6 +23,7 @@ import logging
 import os
 import time
 import socket
+import random
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -97,6 +100,22 @@ async def seed_database() -> None:
             github_install_id=f"github_install_id{row}",
         )
         session.add(github)
+
+        await MetabaseInstanceOrm.create(
+            session=session,
+            team_id=team_id,
+        )
+
+        for eavent in range(30):
+            words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]
+            rand_desc = " ".join([words[random.randint(0, len(words)-1)] for _ in range(random.randint(5, 40))])
+            await VirtualEventOrm.create(
+                session=session,
+                team_id=team_id,
+                view_id=f"{row}.{eavent}",
+                readable_name=f"Dummy event {row}.{eavent}",
+                description=rand_desc,
+            )
 
         await session.commit()
         end = time.perf_counter()
