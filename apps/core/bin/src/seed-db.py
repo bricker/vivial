@@ -24,6 +24,7 @@ import os
 import time
 import socket
 import random
+import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -57,6 +58,40 @@ assert _EAVE_DB_NAME is not None
 assert _EAVE_DB_NAME != "eave"
 
 
+async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: AsyncSession):
+    await ClientCredentialsOrm.create(
+        session=session,
+        team_id=team_id,
+        scope=ClientScope.readwrite,
+        description=f"credentials for team {team_id} (database seed)",
+    )
+
+    github = GithubInstallationOrm(
+        team_id=team_id,
+        github_install_id=f"github_install_id{row}",
+    )
+    session.add(github)
+
+    mb_inst = await MetabaseInstanceOrm.create(
+        session=session,
+        team_id=team_id,
+    )
+    mb_inst.update(
+        session=session,
+        route_id=uuid.uuid4(),
+    )
+
+    for eavent in range(30):
+        words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]
+        rand_desc = " ".join([words[random.randint(0, len(words)-1)] for _ in range(random.randint(5, 40))])
+        await VirtualEventOrm.create(
+            session=session,
+            team_id=team_id,
+            view_id=f"{row}.{eavent}",
+            readable_name=f"Dummy event {row}.{eavent}",
+            description=rand_desc,
+        )
+
 async def seed_database() -> None:
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
     eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {_EAVE_DB_NAME} database.")
@@ -65,10 +100,10 @@ async def seed_database() -> None:
         eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {_EAVE_DB_NAME} database? (Y/n) ")
     )
     if answer != "Y":
-        print("Aborting.")
+        eaveLogger.fprint(logging.CRITICAL, "Aborting.")
         return
 
-    print(f"Starting to seed your db {_EAVE_DB_NAME}...")
+    eaveLogger.fprint(logging.INFO, f"Starting to seed your db {_EAVE_DB_NAME}...")
     session = AsyncSession(eave.core.internal.database.async_engine)
 
     num_rows = 100
@@ -86,36 +121,8 @@ async def seed_database() -> None:
         session.add(team)
         await session.commit()
         await session.refresh(team)  # necessary to populate team.id
-        team_id = team.id
 
-        await ClientCredentialsOrm.create(
-            session=session,
-            team_id=team_id,
-            scope=ClientScope.readwrite,
-            description=f"credentials for team {team_id} (database seed)",
-        )
-
-        github = GithubInstallationOrm(
-            team_id=team_id,
-            github_install_id=f"github_install_id{row}",
-        )
-        session.add(github)
-
-        await MetabaseInstanceOrm.create(
-            session=session,
-            team_id=team_id,
-        )
-
-        for eavent in range(30):
-            words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]
-            rand_desc = " ".join([words[random.randint(0, len(words)-1)] for _ in range(random.randint(5, 40))])
-            await VirtualEventOrm.create(
-                session=session,
-                team_id=team_id,
-                view_id=f"{row}.{eavent}",
-                readable_name=f"Dummy event {row}.{eavent}",
-                description=rand_desc,
-            )
+        await seed_table_entries_for_team(team_id=team.id, row=row, session=session)
 
         await session.commit()
         end = time.perf_counter()
@@ -131,8 +138,40 @@ async def seed_database() -> None:
 
     await session.close()
     await eave.core.internal.database.async_engine.dispose()
-    print("\nYour database has been seeded!")
+    eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
+
+async def seed_team(team_id: uuid.UUID):
+    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
+    eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {_EAVE_DB_NAME} database.")
+
+    answer = input(
+        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data for team {team_id} into the {_EAVE_DB_NAME} database? (Y/n) ")
+    )
+    if answer != "Y":
+        eaveLogger.fprint(logging.CRITICAL, "Aborting.")
+        return
+
+    eaveLogger.fprint(logging.INFO, f"Starting to seed your db {_EAVE_DB_NAME}...")
+    session = AsyncSession(eave.core.internal.database.async_engine)
+
+    # negative row to make sure it doesn't conflict with any other seeded entries already in db
+    await seed_table_entries_for_team(team_id=team_id, row=-1, session=session)
+
+    await session.commit()
+    await session.close()
+    await eave.core.internal.database.async_engine.dispose()
+    eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
+    eaveLogger.fprint(logging.INFO, f"(You will need to manually set a valid value for MetabaseInstanceOrm.jwt_signing_key for team {team_id})")
 
 
 if __name__ == "__main__":
-    asyncio.run(seed_database())
+    import argparse
+    parser = argparse.ArgumentParser(description="Database seeder")
+    parser.add_argument("-t", "--team_id", help="ID of an existing team to seed", type=uuid.UUID, required=False)
+    args = parser.parse_args()
+
+    team_id = args.team_id
+    if team_id:
+        asyncio.run(seed_team(team_id))
+    else:
+        asyncio.run(seed_database())
