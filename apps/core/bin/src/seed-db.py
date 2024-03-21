@@ -83,7 +83,7 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
 
     for eavent in range(30):
         words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]
-        rand_desc = " ".join([words[random.randint(0, len(words)-1)] for _ in range(random.randint(5, 40))])
+        rand_desc = " ".join([words[random.randint(0, len(words) - 1)] for _ in range(random.randint(5, 40))])
         await VirtualEventOrm.create(
             session=session,
             team_id=team_id,
@@ -91,6 +91,7 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
             readable_name=f"Dummy event {row}.{eavent}",
             description=rand_desc,
         )
+
 
 async def seed_database() -> None:
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
@@ -140,12 +141,16 @@ async def seed_database() -> None:
     await eave.core.internal.database.async_engine.dispose()
     eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
 
+
 async def seed_team(team_id: uuid.UUID):
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
     eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {_EAVE_DB_NAME} database.")
 
     answer = input(
-        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data for team {team_id} into the {_EAVE_DB_NAME} database? (Y/n) ")
+        eaveLogger.f(
+            logging.WARNING,
+            f"Proceed to insert junk seed data for team {team_id} into the {_EAVE_DB_NAME} database? (Y/n) ",
+        )
     )
     if answer != "Y":
         eaveLogger.fprint(logging.CRITICAL, "Aborting.")
@@ -161,11 +166,15 @@ async def seed_team(team_id: uuid.UUID):
     await session.close()
     await eave.core.internal.database.async_engine.dispose()
     eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
-    eaveLogger.fprint(logging.INFO, f"(You will need to manually set a valid value for MetabaseInstanceOrm.jwt_signing_key for team {team_id})")
+    eaveLogger.fprint(
+        logging.INFO,
+        f"(You will need to manually set a valid value for MetabaseInstanceOrm.jwt_signing_key for team {team_id})",
+    )
 
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Database seeder")
     parser.add_argument("-t", "--team_id", help="ID of an existing team to seed", type=uuid.UUID, required=False)
     args = parser.parse_args()

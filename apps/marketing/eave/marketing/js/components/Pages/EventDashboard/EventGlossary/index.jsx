@@ -327,9 +327,10 @@ const EventGlossary = () => {
         <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
         <p>{selectedEvent.description}</p>
         <div>
-          {selectedEvent.fields.map((field) => {
+          TODO add fields column to VirtualEventOrm
+          {/* {selectedEvent.fields.map((field) => {
             return <p key={field}>{field}</p>;
-          })}
+          })} */}
         </div>
       </div>
     </div>
