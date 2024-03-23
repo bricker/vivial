@@ -8,12 +8,12 @@ variable "region" {
 
 
 resource "google_container_cluster" "eave_services" {
-  name                        = "eave-services"
-  location                    = var.region
-  network                     = "projects/${var.project_id}/global/networks/default"
-  subnetwork                  = "projects/${var.project_id}/regions/${var.region}/subnetworks/default"
-  networking_mode             = "VPC_NATIVE"
-  enable_autopilot            = true
+  name                = "eave-services"
+  location            = var.region
+  network             = "projects/${var.project_id}/global/networks/default"
+  subnetwork          = "projects/${var.project_id}/regions/${var.region}/subnetworks/default"
+  networking_mode     = "VPC_NATIVE"
+  enable_autopilot    = true
   deletion_protection = true
 
   ip_allocation_policy {
@@ -31,8 +31,8 @@ resource "google_container_cluster" "eave_services" {
   }
 
   private_cluster_config {
-    enable_private_endpoint     = false
-    enable_private_nodes        = true
+    enable_private_endpoint = false
+    enable_private_nodes    = true
     master_global_access_config {
       enabled = false
     }
