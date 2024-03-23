@@ -24,7 +24,12 @@ resource "google_container_cluster" "eave_services" {
       cidr_block   = "157.22.33.161/32"
       display_name = "Bryan's Home Wifi"
     }
+    cidr_blocks {
+      cidr_block   = "76.146.71.81/32"
+      display_name = "Liam's Home Wifi"
+    }
   }
+
   private_cluster_config {
     enable_private_endpoint     = false
     enable_private_nodes        = true
