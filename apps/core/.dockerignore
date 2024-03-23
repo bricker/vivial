@@ -1,0 +1,42 @@
+# Include any files or directories that you don't want to be copied to your
+# container here (e.g., local build artifacts, temporary files, etc.).
+#
+# For more help, visit the .dockerignore file reference guide at
+# https://docs.docker.com/engine/reference/builder/#dockerignore-file
+
+**/.*
+**/*.env
+**/__pycache__/
+**/.pytest_cache
+**/.*_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.venv/
+**/node_modules/
+**/*.egg-info
+**/*.pyc
+**/build/
+**/.build/
+**/.cloudsqlproxy
+**/yalc.lock
+**/.yalc/
+**/.DS_Store
+**/app.*.yaml
+**/vendor/
+**/dist/
+**/credentials.json
+**/*.tgz
+**/*.log*
+**/.swc/
+**/.coverage/
+**/.tmp
+**/.terraform*
+**/*.tfstate*
+**/*.tfvars
+
+**/docker-compose*
+**/compose*
+**/Dockerfile*
+
+**/LICENSE
+**/*.md

@@ -1,0 +1,31 @@
+# Include any files or directories that you don't want to be copied to your
+# container here (e.g., local build artifacts, temporary files, etc.).
+#
+# For more help, visit the .dockerignore file reference guide at
+# https://docs.docker.com/engine/reference/builder/#dockerignore-file
+
+**/.*
+
+**/docker-compose*
+**/compose*
+**/Dockerfile*
+
+**/__pycache__
+**/*.pyc
+**/*.egg-info
+
+**/build/
+**/dist/
+
+LICENSE
+**/*.md
+
+**/tests/
+**/bin/
+**/alembic.ini
+**/eave_alembic/
+**/app.*.yaml
+**/vendor/
+terraform
+**/node_modules/
+**/yalc.lock
