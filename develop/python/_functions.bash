@@ -69,7 +69,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -i "Formatting $logtarget (py)..."
 
-		python -m ruff check --fix $verboseflag --config="$configfile" .
+		python -m ruff check --fix-only $verboseflag --config="$configfile" .
 		python -m ruff format $verboseflag --config="$configfile" .
 
 		statusmsg -s "Formatting $logtarget completed"

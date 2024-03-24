@@ -77,7 +77,7 @@
   "javascript.inlayHints.parameterNames.enabled": "none",
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
   "python.analysis.diagnosticMode": "workspace",
-  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.typeCheckingMode": "standard",
   "python.analysis.extraPaths": [
     "vendor",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
