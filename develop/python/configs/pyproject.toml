@@ -13,13 +13,54 @@ extend-exclude = [
 select = [
   "F",
   "E",
-  # "W",
+  "W",
   "I", # isort
-  # "B",
-  "B006", # https://docs.astral.sh/ruff/rules/mutable-argument-default/
+  "N",
+  "UP",
+  "ANN",
+  "ASYNC",
+  "S",
+  "BLE",
+  "FBT",
+  "B",
+  # "B006", # https://docs.astral.sh/ruff/rules/mutable-argument-default/
+  "A",
+  "COM",
+  "C4",
+  "DTZ",
+  "T10",
+  "EXE",
+  "ISC",
+  "ICN",
+  "G",
+  "PIE",
+  "T20",
+  "PYI",
+  "PT",
+  "Q",
+  "RSE",
+  "SLF",
+  "SLOT",
+  "SIM",
+  "TID",
+  "TCH",
+  "INT",
+  "ARG",
+  "PTH",
+  "PD",
+  "PL",
+  "NPY",
+  "PERF",
+  "FURB",
+  "LOG",
+  "RUF",
 ]
 ignore = [
   "E501", # https://docs.astral.sh/ruff/rules/line-too-long/
+  "S101", # https://docs.astral.sh/ruff/rules/assert/
+  "ANN101", # https://docs.astral.sh/ruff/rules/missing-type-self/
+  "ANN102", # https://docs.astral.sh/ruff/rules/missing-type-cls/
+  "PLR09", # "too many ..." checks
 ]
 ignore-init-module-imports = true
 
