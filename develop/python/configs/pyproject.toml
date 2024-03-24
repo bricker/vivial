@@ -30,7 +30,7 @@ select = [
   "C4", # flake8-comprehensions
   "DTZ", # flake8-datetimez
   "T10", # flake8-debugger
-  "EM", # flake8-errmsg
+  # "EM", # flake8-errmsg
   "EXE", # flake8-executable
   "ISC", # flake8-implicit-str-concat
   "ICN", # flake8-import-conventions
