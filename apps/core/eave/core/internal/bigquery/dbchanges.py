@@ -128,7 +128,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
             rows=[self._format_row(e) for e in dbchange_events],
         )
 
-        unique_operations = set((e.operation, e.table_name) for e in dbchange_events)
+        unique_operations = {(e.operation, e.table_name) for e in dbchange_events}
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:
