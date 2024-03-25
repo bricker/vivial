@@ -25,5 +25,6 @@ class CoreApiEndpointConfiguration(EndpointConfiguration):
             origin_required=origin_required,
         )
 
+
 class CoreApiEndpoint(Endpoint):
     config: CoreApiEndpointConfiguration

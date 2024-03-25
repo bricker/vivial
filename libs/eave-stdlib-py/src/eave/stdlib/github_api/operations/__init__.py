@@ -24,5 +24,6 @@ class GithubAppEndpointConfiguration(EndpointConfiguration):
             origin_required=origin_required,
         )
 
+
 class GithubAppEndpoint(Endpoint):
     config: GithubAppEndpointConfiguration

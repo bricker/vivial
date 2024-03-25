@@ -4,14 +4,6 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { theme } from "../../../theme.js";
 import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
-import GlossaryIcon from "../../Icons/GlossaryIcon.jsx";
-import SettingsCogIcon from "../../Icons/SettingsCogIcon.jsx";
-import SignOutIcon from "../../Icons/SignOutIcon.jsx";
-import TeamIcon from "../../Icons/TeamIcon.jsx";
-import EventGlossary from "./EventGlossary/index.jsx";
-import Menu from "./SidebarNav/Menu/index.jsx";
-import MenuItem from "./SidebarNav/MenuItem/index.jsx";
-import SidebarNav from "./SidebarNav/index.jsx";
 
 // TODO: a11y; the tabs arent kb navable
 
@@ -67,9 +59,14 @@ const EventDashboard = () => {
     : classes.desktopContainer;
 
   return (
-    <iframe src="http://api.eave.run:8080/oauth/temp_metabase" frameBorder="0" width="1280" height="600"></iframe>
+    <iframe
+      src="http://api.eave.run:8080/oauth/temp_metabase"
+      frameBorder="0"
+      width="1280"
+      height="600"
+    ></iframe>
   );
-/*
+  /*
   return (
     <div className={container}>
       <SidebarNav hamburger={usingMobileLayout}>

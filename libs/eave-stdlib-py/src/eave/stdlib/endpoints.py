@@ -14,6 +14,7 @@ def status_payload() -> status.Status.ResponseBody:
         status="OK",
     )
 
+
 class EndpointConfiguration:
     base_url: str
     path: str
@@ -71,11 +72,14 @@ class BaseResponseBody(pydantic.BaseModel):
 _SomeResponseBody = TypeVar("_SomeResponseBody", bound=BaseResponseBody)
 _SomeEndpointConfiguration = TypeVar("_SomeEndpointConfiguration", bound=EndpointConfiguration)
 
+
 class Endpoint(Generic[_SomeEndpointConfiguration]):
     config: _SomeEndpointConfiguration
 
     @classmethod
-    async def make_response(cls, response: aiohttp.ClientResponse, response_type: Type[_SomeResponseBody]) -> _SomeResponseBody:
+    async def make_response(
+        cls, response: aiohttp.ClientResponse, response_type: Type[_SomeResponseBody]
+    ) -> _SomeResponseBody:
         response_json = await response.json()
         if response_json:
             r = response_type(**response_json)
