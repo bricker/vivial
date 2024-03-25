@@ -11,7 +11,7 @@ select = [
   "F", # Pyflakes
   "E", # pycodestyle
   "W", # pycodestyle
-  "I", # isort
+  # "I", # isort
   # "N", # pep8-naming
   # "UP", # pyupgrade
   # "ANN", # flake8-annotations
@@ -145,6 +145,7 @@ ignore = [
   "TCH005", # https://docs.astral.sh/ruff/rules/empty-type-checking-block
   "PTH201", # https://docs.astral.sh/ruff/rules/path-constructor-current-directory
   "FLY002", # https://docs.astral.sh/ruff/rules/static-join-to-f-string
+  "I001", # https://docs.astral.sh/ruff/rules/unsorted-imports/
   "I002", # https://docs.astral.sh/ruff/rules/missing-required-import
   "PERF101", # https://docs.astral.sh/ruff/rules/unnecessary-list-cast
   "PERF102", # https://docs.astral.sh/ruff/rules/incorrect-dict-iterator
