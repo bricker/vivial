@@ -42,8 +42,9 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -i "Linting $logtarget (py)..."
 
-		python -m ruff check $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-lint.toml" .
-		python -m ruff format --check $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-format.toml" .
+		local ruffconfig="${EAVE_HOME}/develop/python/configs/ruff.toml"
+		python -m ruff check --fix $verboseflag --config="$ruffconfig" .
+		python -m ruff format --check $verboseflag --config="$ruffconfig" .
 		python -m pyright --project "$EAVE_HOME" .
 
 		statusmsg -s "Linting $logtarget passed"
@@ -67,9 +68,8 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -i "Formatting $logtarget (py)..."
 
-		# fix-only is redundant here because it's also set in the ruff-format.toml. It's left here for readability.
-		python -m ruff check --fix-only $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-format.toml" .
-		python -m ruff format $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-format.toml" .
+		local ruffconfig="${EAVE_HOME}/develop/python/configs/ruff.toml"
+		python -m ruff format $verboseflag --config="$ruffconfig" .
 
 		statusmsg -s "Formatting $logtarget completed"
 		echo
