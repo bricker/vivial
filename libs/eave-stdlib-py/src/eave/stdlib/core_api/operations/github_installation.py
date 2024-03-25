@@ -5,8 +5,8 @@ from eave.stdlib.core_api.models.github_installation import GithubInstallation, 
 from eave.stdlib.core_api.models.team import Team, TeamQueryInput
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
-from ... import requests
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
+from ... import requests_util
 
 
 class QueryGithubInstallation(CoreApiEndpoint):
@@ -28,9 +28,9 @@ class QueryGithubInstallation(CoreApiEndpoint):
     async def perform(
         cls,
         input: RequestBody,
-        **kwargs: Unpack[requests.CommonRequestArgs],
+        **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        response = await requests_util.make_request(
             config=cls.config,
             input=input,
             **kwargs,
@@ -57,9 +57,9 @@ class DeleteGithubInstallation(CoreApiEndpoint):
         cls,
         input: RequestBody,
         team_id: uuid.UUID,
-        **kwargs: Unpack[requests.CommonRequestArgs],
+        **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        response = await requests_util.make_request(
             config=cls.config,
             input=input,
             team_id=team_id,

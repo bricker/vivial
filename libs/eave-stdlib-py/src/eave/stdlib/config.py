@@ -122,6 +122,10 @@ class _EaveConfig(ConfigBase):
     def eave_public_www_base(self) -> str:
         return self.eave_public_service_base(EaveApp.eave_www)
 
+    @property
+    def eave_public_metabase_base(self) -> str:
+        return self.eave_public_service_base(EaveApp.eave_metabase)
+
     def eave_public_service_base(self, service: EaveApp) -> str:
         sname = service.value.upper()
         if v := os.getenv(f"{sname}_BASE_PUBLIC"):
@@ -258,8 +262,8 @@ class _EaveConfig(ConfigBase):
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment
-    if name in os.environ:
-        return os.environ[name]
+    if (envval := os.environ.get(name)) and envval != "(not set)":
+        return envval
 
     secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
     fqname = secrets_client.secret_version_path(

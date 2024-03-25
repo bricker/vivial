@@ -30,27 +30,82 @@ async def make_request(
     team_id: Optional[uuid.UUID | str] = None,
     access_token: Optional[str] = None,
     account_id: Optional[uuid.UUID | str] = None,
+    allow_redirects: bool = True,
     **kwargs: Unpack[CommonRequestArgs],
 ) -> aiohttp.ClientResponse:
-    origin = kwargs["origin"]
-    ctx = kwargs.get("ctx")
-    addl_headers = kwargs.get("addl_headers", {})
     base_timeout_seconds = kwargs.get("base_timeout_seconds", 600)
+    ctx = LogContext.wrap(kwargs.get("ctx"))
+    origin = kwargs["origin"]
+    addl_headers = kwargs.get("addl_headers", {}) or {}
+    # The indent and separators params here ensure that the payload is as compact as possible.
+    # It's mostly a way to normalize the payload so services know what to expect.
+    payload = input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
 
-    ctx = LogContext.wrap(ctx)
+    headers, request_params = build_headers(
+        config=config,
+        payload=payload,
+        ctx=ctx,
+        team_id=team_id,
+        access_token=access_token,
+        account_id=account_id,
+        origin=origin,
+        addl_headers=addl_headers,
+    )
+    headers[aiohttp.hdrs.CONTENT_TYPE] = eave_headers.MIME_TYPE_JSON
+
+    eaveLogger.info(
+        f"Client Request: {ctx.eave_request_id}: {config.method} {config.path}",
+        ctx,
+        request_params,
+    )
+
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=base_timeout_seconds)) as session:
+        response = await session.request(
+            method=config.method,
+            url=config.url,
+            headers=headers,
+            data=payload,
+            allow_redirects=allow_redirects,
+        )
+
+        # Consume the body while the session is still open
+        await response.read()
+
+    eaveLogger.info(
+        f"Client Response: {ctx.eave_request_id}: {config.method} {config.url}",
+        ctx,
+        request_params,
+        {"status": response.status},
+    )
+
+    response.raise_for_status()
+    return response
+
+
+def build_headers(
+    config: EndpointConfiguration,
+    payload: str,
+    origin: EaveApp,
+    addl_headers: dict[str, str],
+    team_id: Optional[uuid.UUID | str] = None,
+    access_token: Optional[str] = None,
+    account_id: Optional[uuid.UUID | str] = None,
+    ctx: Optional[LogContext] = None,
+) -> tuple[dict[str, str], JsonObject]:
+    """
+    Constructs Eave core api auth headers as required by `config`.
+
+    returns tuple of headers dict, followed by JsonObject used to debug logging.
+    """
+    ctx = LogContext.wrap(ctx=ctx)
     request_id = ctx.eave_request_id
     eave_sig_ts = signing.make_sig_ts()
 
     headers: dict[str, str] = {
-        aiohttp.hdrs.CONTENT_TYPE: eave_headers.MIME_TYPE_JSON,
         eave_headers.EAVE_ORIGIN_HEADER: origin.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: request_id,
         eave_headers.EAVE_SIG_TS_HEADER: str(eave_sig_ts),
     }
-
-    # The indent and separators params here ensure that the payload is as compact as possible.
-    # It's mostly a way to normalize the payload so services know what to expect.
-    payload = input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
 
     if access_token:
         headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
@@ -99,29 +154,4 @@ async def make_request(
         "url": config.url,
     }
 
-    eaveLogger.info(
-        f"Client Request: {request_id}: {config.method} {config.path}",
-        ctx,
-        request_params,
-    )
-
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=base_timeout_seconds)) as session:
-        response = await session.request(
-            method=config.method,
-            url=config.url,
-            headers=headers,
-            data=payload,
-        )
-
-        # Consume the body while the session is still open
-        await response.read()
-
-    eaveLogger.info(
-        f"Client Response: {request_id}: {config.method} {config.url}",
-        ctx,
-        request_params,
-        {"status": response.status},
-    )
-
-    response.raise_for_status()
-    return response
+    return (headers, request_params)

@@ -5,8 +5,8 @@ from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.endpoints import BaseResponseBody
 
-from ... import requests
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
+from ... import requests_util
 
 
 class GetAuthenticatedAccount(CoreApiEndpoint):
@@ -24,9 +24,9 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
         access_token: str,
         team_id: uuid.UUID | str,
         account_id: uuid.UUID | str,
-        **kwargs: Unpack[requests.CommonRequestArgs],
+        **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
-        response = await requests.make_request(
+        response = await requests_util.make_request(
             config=cls.config,
             input=None,
             access_token=access_token,

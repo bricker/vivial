@@ -4,7 +4,7 @@ from starlette.requests import Request
 import aiohttp
 
 from starlette.responses import Response
-from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
 from eave.stdlib.utm_cookies import (
     EAVE_COOKIE_PREFIX_UTM,

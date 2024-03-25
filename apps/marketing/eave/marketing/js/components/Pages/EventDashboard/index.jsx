@@ -5,8 +5,6 @@ import { makeStyles } from "@material-ui/styles";
 import { theme } from "../../../theme.js";
 import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
 
-// TODO: a11y; the tabs arent kb navable
-
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   desktopContainer: {
     display: "flex",
@@ -26,6 +24,7 @@ const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
 
 // sad enum replacement
 const glossary = "glossary";
+const insights = "insights";
 const configuration = "configuration";
 const manage = "manage";
 const logOut = "logOut";
@@ -72,6 +71,15 @@ const EventDashboard = () => {
       <SidebarNav hamburger={usingMobileLayout}>
         <Menu>
           <MenuItem
+            label="Insights"
+            onClick={() => setSelectedTab(insights)}
+            selected={selectedTab === insights}
+            expanded={usingMobileLayout}
+          >
+            <GraphIcon color={iconColor(selectedTab === insights)} />
+          </MenuItem>
+
+          <MenuItem
             label="Event Glossary"
             onClick={() => setSelectedTab(glossary)}
             selected={selectedTab === glossary}
@@ -112,6 +120,8 @@ const EventDashboard = () => {
       </SidebarNav>
       {(() => {
         switch (selectedTab) {
+          case insights:
+            return <AnalyticsDashboard />;
           case configuration: // TODO: handle these pages/actions
           case manage:
           case logOut:

@@ -8,6 +8,7 @@ import random
 from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
 
+from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 from eave.stdlib.checksum import generate_checksum
 import eave.stdlib.util
@@ -40,6 +41,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         await super().asyncSetUp()
         SHARED_CONFIG.reset_cached_properties()
         self.mock_google_services()
+        self.mock_google_auth()
         self.mock_slack_client()
         self.mock_signing()
         self.mock_analytics()
@@ -302,6 +304,26 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
                     passing = False
 
             return passing
+
+    def mock_google_auth(self):
+        self._google_userinfo_response = GoogleOAuthV2GetResponse(
+            email=self.anystr("google.email"),
+            family_name=self.anystr("google.family_name"),
+            gender=self.anystr("google.gender"),
+            given_name=self.anystr("google.given_name"),
+            hd=self.anystr("google.hd"),
+            id=self.anystr("google.id"),
+            link=self.anystr("google.link"),
+            locale=self.anystr("google.locale"),
+            name=self.anystr("google.name"),
+            picture=self.anystr("google.picture"),
+            verified_email=True,
+        )
+
+        self.patch(
+            name="google_get_userinfo",
+            patch=unittest.mock.patch("eave.core.internal.oauth.google.get_userinfo"),
+        )
 
     def mock_google_services(self) -> None:
         # def _get_runtimeconfig(name: str) -> str:

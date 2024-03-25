@@ -1,4 +1,4 @@
-from eave.stdlib.test_util import UtilityBaseTestCase
+from eave.stdlib.testing_util import UtilityBaseTestCase
 
 
 class TestTaskQueue(UtilityBaseTestCase):

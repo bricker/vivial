@@ -3,7 +3,6 @@ import time
 
 from google.cloud import bigquery
 from google.cloud.bigquery.dataset import DatasetReference
-from google.cloud.exceptions import GoogleCloudError
 from eave.core.internal.bigquery.types import BigQueryTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.tracing.core.datastructures import (
@@ -54,8 +53,9 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         handle = BigQueryTableHandle(team_id=self._team.id)
         try:
             dataset = client.get_dataset(dataset_ref=handle.dataset_id)
-        except GoogleCloudError | ValueError as e:
-            self.fail(f"Unexpected Google Cloud error: {e}")
+        except Exception as e:
+            print(f"Google Cloud Error: {e}")
+            return False
 
         return dataset is not None
 
