@@ -1,14 +1,13 @@
 import asgiref.typing
 import starlette.types
-
 from eave.stdlib.core_api.operations import EndpointConfiguration
 
-from .base import EaveASGIMiddleware
 from ..api_util import get_header_value
-from ..headers import EAVE_ORIGIN_HEADER
-from ..exceptions import InvalidOriginError, MissingRequiredHeaderError
 from ..eave_origins import EaveApp
+from ..exceptions import InvalidOriginError, MissingRequiredHeaderError
+from ..headers import EAVE_ORIGIN_HEADER
 from ..request_state import EaveRequestState
+from .base import EaveASGIMiddleware
 
 
 class OriginASGIMiddleware(EaveASGIMiddleware):

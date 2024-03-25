@@ -12,17 +12,15 @@ load_standard_dotenv_files()
 
 # ruff: noqa: E402
 
-from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.core.internal.database import init_database
-from eave.stdlib.config import SHARED_CONFIG
-
 import asyncio
 import logging
 
 import eave.core.internal
 import eave.core.internal.orm
 import eave.core.internal.orm.base
-
+from eave.core.internal.config import CORE_API_APP_CONFIG
+from eave.core.internal.database import init_database
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import eaveLogger
 
 

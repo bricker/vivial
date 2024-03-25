@@ -1,6 +1,7 @@
 import aiohttp
+from eave.stdlib.endpoints import BaseResponseBody
 
-from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class Status(CoreApiEndpoint):

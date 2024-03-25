@@ -1,32 +1,40 @@
-import base64
-from datetime import datetime, timedelta
-import json
-import uuid
-import random
-from typing import Any, Literal, TypeVar, Optional
-import unittest.mock
+# ruff: noqa: FBT001, FBT002, FBT003, S311
 
-from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
-from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
-from eave.stdlib.checksum import generate_checksum
-import eave.stdlib.util
+import base64
+import json
+import random
+import unittest.mock
+import uuid
+from datetime import datetime, timedelta
+from typing import Any, Literal, Optional, TypeVar
+
 import eave.stdlib.exceptions
 import eave.stdlib.signing
-from eave.stdlib.typing import JsonObject
+import eave.stdlib.util
+from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
+from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.typing import JsonObject
+from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
 
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
-    testdata: dict[str, Any] = {}
-    active_mocks: dict[str, unittest.mock.Mock] = {}
-    _active_patches: dict[str, unittest.mock._patch] = {}
-    _active_patched_dicts: dict[str, unittest.mock._patch_dict] = {}
+    testdata: dict[str, Any]
+    active_mocks: dict[str, unittest.mock.Mock]
+    _active_patches: dict[str, unittest.mock._patch]
+    _active_patched_dicts: dict[str, unittest.mock._patch_dict]
 
-    def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
+    def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
+
+        self.testdata = {}
+        self.active_mocks = {}
+        self._active_patches = {}
+        self._active_patched_dicts = {}
+
         self.addAsyncCleanup(self.cleanup)
 
     async def asyncSetUp(self) -> None:
@@ -297,7 +305,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
             return passing
 
-    def mock_google_auth(self):
+    def mock_google_auth(self) -> None:
         self._google_userinfo_response = GoogleOAuthV2GetResponse(
             email=self.anystr("google.email"),
             family_name=self.anystr("google.family_name"),
@@ -323,7 +331,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         #     return v
 
         def _access_secret_version(
-            request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs
+            request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs: Any
         ) -> AccessSecretVersionResponse:
             if isinstance(request, AccessSecretVersionRequest):
                 resolved_name = request.name
@@ -382,12 +390,12 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return False
 
         for call_args in mock.call_args_list:
-            args_matched = all([call_args.args[i] == v for i, v in enumerate(args)])
+            args_matched = all(call_args.args[i] == v for i, v in enumerate(args))
             opaque_params = kwargs.pop("opaque_params", None)
-            kwargs_matched = all([call_args.kwargs.get(k) == v for k, v in kwargs.items()])
+            kwargs_matched = all(call_args.kwargs.get(k) == v for k, v in kwargs.items())
             if opaque_params:
                 opaque_params_matched = all(
-                    [call_args.kwargs["opaque_params"].get(k) == v for k, v in opaque_params.items()]
+                    call_args.kwargs["opaque_params"].get(k) == v for k, v in opaque_params.items()
                 )
             else:
                 opaque_params_matched = True
@@ -398,9 +406,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         # No calls matched the given args
         return False
 
-    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:  # type:ignore
+    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:
         m = patch.start()
-        m._testMethodName = self._testMethodName
+        m._testMethodName = self._testMethodName  # noqa: SLF001
 
         if name is None:
             if hasattr(patch.target, "__name__"):

@@ -1,11 +1,11 @@
+import re
+import uuid
 from dataclasses import dataclass
 from enum import StrEnum
-import re
 from typing import Optional
-import uuid
-
 
 from eave.stdlib.cookies import set_http_cookie
+
 from .typing import (
     HTTPFrameworkRequest,
     HTTPFrameworkResponse,

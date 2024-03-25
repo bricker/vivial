@@ -1,13 +1,13 @@
 import uuid
 from typing import Optional, Unpack
 
-from ... import requests_util
 from eave.stdlib.core_api.operations import (
-    BaseRequestBody,
-    BaseResponseBody,
     CoreApiEndpoint,
     CoreApiEndpointConfiguration,
 )
+from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
+
+from ... import requests_util
 
 
 class MetabaseEmbeddingSSOOperation(CoreApiEndpoint):
@@ -43,5 +43,5 @@ class MetabaseEmbeddingSSOOperation(CoreApiEndpoint):
         )
 
         resp = BaseResponseBody()
-        resp._raw_response = response
+        resp.raw_response = response
         return resp

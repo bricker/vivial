@@ -1,16 +1,15 @@
 import uuid
 
-from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.core_api.operations import EndpointConfiguration
-
-import eave.stdlib.exceptions
-import eave.stdlib.api_util
-import eave.stdlib.headers
-import eave.core.internal
-import eave.core.public
 import asgiref.typing
 import starlette.types
 
+import eave.core.internal
+import eave.core.public
+import eave.stdlib.api_util
+import eave.stdlib.exceptions
+import eave.stdlib.headers
+from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.request_state import EaveRequestState
 

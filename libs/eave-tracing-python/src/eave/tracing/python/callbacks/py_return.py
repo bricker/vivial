@@ -1,5 +1,6 @@
 from types import CodeType
 from typing import Any
+
 from ..config import EaveConfig
 
 
@@ -7,4 +8,3 @@ def trace_py_return(config: EaveConfig, code: CodeType, instruction_offset: int,
     """
     https://docs.python.org/3.12/library/sys.monitoring.html#callback-function-arguments
     """
-    pass

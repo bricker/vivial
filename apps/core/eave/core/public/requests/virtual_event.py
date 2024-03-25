@@ -1,10 +1,11 @@
-from eave.core.internal import database
-from eave.core.internal.orm.virtual_event import VirtualEventOrm
-from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
-from eave.stdlib.api_util import json_response
+
 import eave.stdlib.core_api.operations.virtual_event as ve
+from eave.core.internal import database
+from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.api_util import json_response
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 

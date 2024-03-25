@@ -1,5 +1,6 @@
-import jwt
 import time
+
+import jwt
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -10,6 +11,7 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
+
 from . import shared
 
 

@@ -1,8 +1,8 @@
 import enum
-
-from eave.stdlib.core_api.models import BaseResponseModel
 import uuid
 from typing import Any, Mapping, Optional
+
+from eave.stdlib.core_api.models import BaseResponseModel
 
 
 class AuthProvider(enum.StrEnum):

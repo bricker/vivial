@@ -1,7 +1,7 @@
 import typing
 
-import starlette.types
 import asgiref.typing
+import starlette.types
 from starlette._utils import is_async_callable
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException

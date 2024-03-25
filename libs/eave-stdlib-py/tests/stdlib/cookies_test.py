@@ -1,13 +1,13 @@
 import re
 from typing import Any
-from starlette.requests import Request
-import aiohttp
 
-from starlette.responses import Response
+import aiohttp
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
+from starlette.requests import Request
+from starlette.responses import Response
 
 
 class CookiesTestBase(UtilityBaseTestCase):

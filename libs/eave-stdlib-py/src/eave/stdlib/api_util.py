@@ -1,15 +1,14 @@
 import http
 import re
 from typing import Optional
-import aiohttp
 
+import aiohttp
+import eave.stdlib.util as util
 import pydantic
+from asgiref.typing import HTTPScope
 from eave.stdlib.exceptions import MissingRequiredHeaderError
 from eave.stdlib.headers import EAVE_SIGNATURE_HEADER, MIME_TYPE_JSON
-
-import eave.stdlib.util as util
 from starlette.responses import Response
-from asgiref.typing import HTTPScope
 
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:

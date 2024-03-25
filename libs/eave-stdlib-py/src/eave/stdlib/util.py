@@ -1,15 +1,14 @@
 import base64
 import contextlib
 import hashlib
-from functools import wraps
 import json
 import re
-from typing import Any, Awaitable, Callable, Literal, Optional, ParamSpec, Type, TypeVar
 import uuid
+from functools import wraps
+from typing import Any, Awaitable, Callable, Literal, Optional, ParamSpec, Type, TypeVar
 
-from eave.stdlib.typing import JsonObject
-
-from eave.stdlib.exceptions import UnexpectedMissingValue
+from eave.stdlib.exceptions import UnexpectedMissingValueError
+from eave.stdlib.typing import JsonObject, JsonValue
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -60,7 +59,7 @@ def sha256hexdigest(data: str | bytes) -> str:
     return hashlib.sha256(ensure_bytes(data)).hexdigest()
 
 
-def b64encode(data: str | bytes, urlsafe: bool = False) -> str:
+def b64encode(data: str | bytes, *, urlsafe: bool = False) -> str:
     """
     base64-encode the data (utf-8 string or bytes) and return an ASCII string
     """
@@ -71,7 +70,7 @@ def b64encode(data: str | bytes, urlsafe: bool = False) -> str:
         return base64.b64encode(b).decode()
 
 
-def b64decode(data: str | bytes, urlsafe: bool = False) -> str:
+def b64decode(data: str | bytes, *, urlsafe: bool = False) -> str:
     """
     base64-decode the data (ASCII string or bytes) and return a utf8 string.
     Note that this function only works if you know that the encoded data will decode into a utf-8 string.
@@ -134,43 +133,43 @@ def ensure_str(data: str | bytes | int | uuid.UUID | dict) -> str:
         return str(data)
 
 
-def compact_json(data: Any, **kwargs) -> str:
+def compact_json(data: object, **kwargs: Any) -> str:
     """
     kwargs is forwarded to json.dumps
     """
     return json.dumps(data, indent=None, separators=(",", ":"), **kwargs)
 
 
-def compact_deterministic_json(data: Any, **kwargs) -> str:
+def compact_deterministic_json(data: object, **kwargs: Any) -> str:
     """
     kwargs is forwarded to json.dumps
     """
     return json.dumps(data, indent=None, separators=(",", ":"), sort_keys=True, **kwargs)
 
 
-def pretty_deterministic_json(data: Any, **kwargs) -> str:
+def pretty_deterministic_json(data: object, **kwargs: Any) -> str:
     """
     kwargs is forwarded to json.dumps
     """
     return json.dumps(data, sort_keys=True, **kwargs)
 
 
-def nand(a: Any, b: Any) -> bool:
+def nand(a: object, b: object) -> bool:
     """Neither or one"""
     return not (bool(a) and bool(b))
 
 
-def nor(a: Any, b: Any) -> bool:
+def nor(a: object, b: object) -> bool:
     """Exactly neither"""
     return not (bool(a) or bool(b))
 
 
-def xor(a: Any, b: Any) -> bool:
+def xor(a: object, b: object) -> bool:
     """Exactly one"""
     return bool(a) ^ bool(b)
 
 
-def xnor(a: Any, b: Any) -> bool:
+def xnor(a: object, b: object) -> bool:
     """Neither or both"""
     return not xor(a, b)
 
@@ -180,12 +179,12 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
     Unwraps an Optional object to its wrapped type.
     You should use this method when you expect the wrapped type not to be None.
     If the object is not None, returns the unwrapped object.
-    If the object is None and no default given, raises UnexpectedMissingValue
+    If the object is None and no default given, raises UnexpectedMissingValueError
     If the object is None and a default is given, logs a warning and returns the default.
     This is meant to be used when you know the object isn't None. It's a short-hand for the following verbose pattern:
 
         if (foo := result.get("foo")) is None:
-            raise UnexpectedMissingValue()
+            raise UnexpectedMissingValueError()
 
         do_something(foo)
 
@@ -215,7 +214,7 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
     """
     if value is None:
         if default is None:
-            raise UnexpectedMissingValue("force-unwrapped a None value")
+            raise UnexpectedMissingValueError("force-unwrapped a None value")
         else:
             return default
     else:
@@ -232,7 +231,7 @@ def redact(string: str | None) -> str | None:
     return f"{string[:4]}[redacted {strlen - 8} chars]{string[-4:]}"
 
 
-def erasetype(data: JsonObject, key: str, default: Optional[Any] = None) -> Any:
+def erasetype(data: JsonObject, key: str, default: Optional[JsonValue] = None) -> Any:
     if v := data.get(key, default):
         return v
     else:

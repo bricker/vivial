@@ -1,10 +1,9 @@
 from starlette.middleware import Middleware
 
-from .logging import LoggingASGIMiddleware
 from .body_parsing import BodyParsingASGIMiddleware
-from .request_integrity import RequestIntegrityASGIMiddleware
 from .exception_handling import ExceptionHandlingASGIMiddleware
-
+from .logging import LoggingASGIMiddleware
+from .request_integrity import RequestIntegrityASGIMiddleware
 
 common_middlewares = [
     Middleware(ExceptionHandlingASGIMiddleware),

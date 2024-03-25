@@ -1,9 +1,10 @@
 import json
 from typing import Any, Mapping, Sequence
-from google.cloud import bigquery
-from google.oauth2 import service_account as _service_account
-from google.cloud.bigquery.table import RowIterator
+
 import google.api_core.exceptions
+from google.cloud import bigquery
+from google.cloud.bigquery.table import RowIterator
+from google.oauth2 import service_account as _service_account
 
 
 class BigQueryClient:
@@ -49,7 +50,7 @@ class BigQueryClient:
         )
         return r
 
-    def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]):
+    def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> None:
         self._bq_client.insert_rows(
             table=table,
             rows=rows,

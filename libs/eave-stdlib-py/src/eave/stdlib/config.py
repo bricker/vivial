@@ -7,11 +7,9 @@ from functools import cached_property
 from typing import Optional
 from urllib.parse import urlparse
 
-import google.cloud.secretmanager
 import google.cloud.client
-
+import google.cloud.secretmanager
 from eave.stdlib.eave_origins import EaveApp
-
 
 from . import checksum
 
@@ -269,7 +267,7 @@ def get_secret(name: str) -> str:
     fqname = secrets_client.secret_version_path(
         project=SHARED_CONFIG.google_cloud_project,
         secret=name,
-        secret_version="latest",
+        secret_version="latest",  # noqa: S106
     )
     response = secrets_client.access_secret_version(request={"name": fqname})
     data = response.payload.data

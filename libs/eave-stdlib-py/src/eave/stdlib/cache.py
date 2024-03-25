@@ -1,9 +1,11 @@
 import abc
 import time
 from typing import Optional, Protocol
+
 import redis.asyncio as redis
 from redis.asyncio.retry import Retry
 from redis.backoff import ConstantBackoff
+
 from .config import SHARED_CONFIG
 from .logging import eaveLogger
 
@@ -46,7 +48,10 @@ class _CacheEntry:
 
 
 class EphemeralCache(CacheInterface):
-    _store: dict[str, _CacheEntry] = {}
+    _store: dict[str, _CacheEntry]
+
+    def __init__(self) -> None:
+        self._store = {}
 
     async def get(self, name: str) -> str | None:
         e = self._store.get(name)

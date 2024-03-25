@@ -1,8 +1,7 @@
 import asgiref.typing
 
-
-from .base import EaveASGIMiddleware
 from ..exceptions import BadRequestError
+from .base import EaveASGIMiddleware
 
 ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
 

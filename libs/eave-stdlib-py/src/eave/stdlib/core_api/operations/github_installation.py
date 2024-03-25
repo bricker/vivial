@@ -1,11 +1,12 @@
-from typing import Optional, Unpack
 import uuid
-from eave.stdlib.core_api.models.github_installation import GithubInstallation
-from eave.stdlib.core_api.models.github_installation import GithubInstallationQueryInput
+from typing import Optional, Unpack
+
+from eave.stdlib.core_api.models.github_installation import GithubInstallation, GithubInstallationQueryInput
 from eave.stdlib.core_api.models.team import Team, TeamQueryInput
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
 from ... import requests_util
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class QueryGithubInstallation(CoreApiEndpoint):

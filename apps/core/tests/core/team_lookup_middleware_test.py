@@ -1,6 +1,6 @@
 from http import HTTPStatus
-from eave.stdlib.core_api.operations.status import Status
 
+from eave.stdlib.core_api.operations.status import Status
 from eave.stdlib.core_api.operations.team import GetTeamRequest
 from eave.stdlib.headers import EAVE_TEAM_ID_HEADER
 
