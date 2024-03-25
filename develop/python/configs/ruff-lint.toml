@@ -1,0 +1,231 @@
+# The enabled rules in here should only be rules that you want to surface in an IDE or command line during lint checks.
+# These will generally be rules that aren't auto-fixable.
+# Anything that can be automatically fixed should go into the `ruff-format.toml` file.
+# See that file for rationale.
+
+extend = "./ruff-base.toml"
+
+[lint]
+# https://docs.astral.sh/ruff/rules/
+select = [
+  "F", # Pyflakes
+  "E", # pycodestyle
+  "W", # pycodestyle
+  "I", # isort
+  # "N", # pep8-naming
+  # "UP", # pyupgrade
+  # "ANN", # flake8-annotations
+  "ASYNC", # flake8-async
+  "S", # flake8-bandit
+  # "BLE", # flake8-blind-except
+  # "FBT", # flake8-boolean-trap
+  # "B", # flake8-bugbear
+  # "B006", # https://docs.astral.sh/ruff/rules/mutable-argument-default/
+  # "A", # flake8-builtins
+  # "COM", # flake8-commas
+  # "C4", # flake8-comprehensions
+  # "DTZ", # flake8-datetimez
+  # "T10", # flake8-debugger
+  # "EM", # flake8-errmsg
+  # "EXE", # flake8-executable
+  # "ISC", # flake8-implicit-str-concat
+  # "ICN", # flake8-import-conventions
+  # "G", # flake8-logging-format
+  # "PIE", # flake8-pie
+  # "T20", # flake8-print
+  # "PYI", # flake8-pyi
+  # "PT", # flake8-pytest-style
+  # "Q", # flake8-quotes
+  # "RSE", # flake8-raise
+  # "RET502", # https://docs.astral.sh/ruff/rules/implicit-return-value/
+  # "RET503", # https://docs.astral.sh/ruff/rules/implicit-return/
+  # "SLF", # flake8-self
+  # "SLOT", # flake8-slots
+  # "SIM", # flake8-simplify
+  # "TID", # flake8-tidy-imports
+  # "TCH", # flake8-type-checking
+  # "INT", # flake8-gettext
+  # "ARG", # flake8-unused-arguments
+  # "PTH", # flake8-use-pathlib
+  # "PD", # pandas-vet
+  # "PL", # Pylint
+  # "NPY", # NumPy
+  # "PERF", # Perflint https://pypi.org/project/perflint/
+  # "FURB", # refurb https://pypi.org/project/refurb/
+  # "LOG", # flake8-logging
+  # "RUF", # Ruff-specific rules
+]
+
+ignore = [
+  "E501", # https://docs.astral.sh/ruff/rules/line-too-long/ - not useful
+  "S101", # https://docs.astral.sh/ruff/rules/assert/ - too common in current codebase
+  "ANN101", # https://docs.astral.sh/ruff/rules/missing-type-self/ - deprecated rule
+  "ANN102", # https://docs.astral.sh/ruff/rules/missing-type-cls/ - deprecated rule
+  "PLR09", # "too many ..." checks
+  "PLW0603", # https://docs.astral.sh/ruff/rules/global-statement/ - legitimate use
+  "A003", # https://docs.astral.sh/ruff/rules/builtin-attribute-shadowing/ - too common in current codebase
+  "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/ - too common in current codebase
+
+  # The rest were automatically generated using the compile-ruff-rules script.
+  # These rules are always auto-fixable and therefore not included when linting.
+  "B009", # https://docs.astral.sh/ruff/rules/get-attr-with-constant
+  "B010", # https://docs.astral.sh/ruff/rules/set-attr-with-constant
+  "B011", # https://docs.astral.sh/ruff/rules/assert-false
+  "B013", # https://docs.astral.sh/ruff/rules/redundant-tuple-in-exception-handler
+  "B014", # https://docs.astral.sh/ruff/rules/duplicate-handler-exception
+  "B905", # https://docs.astral.sh/ruff/rules/zip-without-explicit-strict
+  "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma
+  "COM819", # https://docs.astral.sh/ruff/rules/prohibited-trailing-comma
+  "C400", # https://docs.astral.sh/ruff/rules/unnecessary-generator-list
+  "C401", # https://docs.astral.sh/ruff/rules/unnecessary-generator-set
+  "C402", # https://docs.astral.sh/ruff/rules/unnecessary-generator-dict
+  "C403", # https://docs.astral.sh/ruff/rules/unnecessary-list-comprehension-set
+  "C404", # https://docs.astral.sh/ruff/rules/unnecessary-list-comprehension-dict
+  "C405", # https://docs.astral.sh/ruff/rules/unnecessary-literal-set
+  "C406", # https://docs.astral.sh/ruff/rules/unnecessary-literal-dict
+  "C408", # https://docs.astral.sh/ruff/rules/unnecessary-collection-call
+  "C409", # https://docs.astral.sh/ruff/rules/unnecessary-literal-within-tuple-call
+  "C410", # https://docs.astral.sh/ruff/rules/unnecessary-literal-within-list-call
+  "C411", # https://docs.astral.sh/ruff/rules/unnecessary-list-call
+  "C413", # https://docs.astral.sh/ruff/rules/unnecessary-call-around-sorted
+  "C414", # https://docs.astral.sh/ruff/rules/unnecessary-double-cast-or-process
+  "C416", # https://docs.astral.sh/ruff/rules/unnecessary-comprehension
+  "C418", # https://docs.astral.sh/ruff/rules/unnecessary-literal-within-dict-call
+  "EXE004", # https://docs.astral.sh/ruff/rules/shebang-leading-whitespace
+  "FA102", # https://docs.astral.sh/ruff/rules/future-required-type-annotation
+  "G010", # https://docs.astral.sh/ruff/rules/logging-warn
+  "PIE790", # https://docs.astral.sh/ruff/rules/unnecessary-placeholder
+  "PIE794", # https://docs.astral.sh/ruff/rules/duplicate-class-field-definition
+  "PIE808", # https://docs.astral.sh/ruff/rules/unnecessary-range-start
+  "PIE810", # https://docs.astral.sh/ruff/rules/multiple-starts-ends-with
+  "PYI009", # https://docs.astral.sh/ruff/rules/pass-statement-stub-body
+  "PYI010", # https://docs.astral.sh/ruff/rules/non-empty-stub-body
+  "PYI011", # https://docs.astral.sh/ruff/rules/typed-argument-default-in-stub
+  "PYI012", # https://docs.astral.sh/ruff/rules/pass-in-class-body
+  "PYI014", # https://docs.astral.sh/ruff/rules/argument-default-in-stub
+  "PYI015", # https://docs.astral.sh/ruff/rules/assignment-default-in-stub
+  "PYI020", # https://docs.astral.sh/ruff/rules/quoted-annotation-in-stub
+  "PYI026", # https://docs.astral.sh/ruff/rules/type-alias-without-annotation
+  "PYI029", # https://docs.astral.sh/ruff/rules/str-or-repr-defined-in-stub
+  "PYI032", # https://docs.astral.sh/ruff/rules/any-eq-ne-annotation
+  "PYI053", # https://docs.astral.sh/ruff/rules/string-or-bytes-too-long
+  "PYI054", # https://docs.astral.sh/ruff/rules/numeric-literal-too-long
+  "PT001", # https://docs.astral.sh/ruff/rules/pytest-fixture-incorrect-parentheses-style
+  "PT003", # https://docs.astral.sh/ruff/rules/pytest-extraneous-scope-function
+  "PT022", # https://docs.astral.sh/ruff/rules/pytest-useless-yield-fixture
+  "PT023", # https://docs.astral.sh/ruff/rules/pytest-incorrect-mark-parentheses-style
+  "PT024", # https://docs.astral.sh/ruff/rules/pytest-unnecessary-asyncio-mark-on-fixture
+  "PT025", # https://docs.astral.sh/ruff/rules/pytest-erroneous-use-fixtures-on-fixture
+  "PT026", # https://docs.astral.sh/ruff/rules/pytest-use-fixtures-without-parameters
+  "Q000", # https://docs.astral.sh/ruff/rules/bad-quotes-inline-string
+  "Q001", # https://docs.astral.sh/ruff/rules/bad-quotes-multiline-string
+  "Q002", # https://docs.astral.sh/ruff/rules/bad-quotes-docstring
+  "Q003", # https://docs.astral.sh/ruff/rules/avoidable-escaped-quote
+  "Q004", # https://docs.astral.sh/ruff/rules/unnecessary-escaped-quote
+  "RSE102", # https://docs.astral.sh/ruff/rules/unnecessary-paren-on-raise-exception
+  "RET501", # https://docs.astral.sh/ruff/rules/unnecessary-return-none
+  "RET502", # https://docs.astral.sh/ruff/rules/implicit-return-value
+  "RET503", # https://docs.astral.sh/ruff/rules/implicit-return
+  "RET504", # https://docs.astral.sh/ruff/rules/unnecessary-assign
+  "SIM109", # https://docs.astral.sh/ruff/rules/compare-with-tuple
+  "SIM118", # https://docs.astral.sh/ruff/rules/in-dict-keys
+  "SIM201", # https://docs.astral.sh/ruff/rules/negate-equal-op
+  "SIM202", # https://docs.astral.sh/ruff/rules/negate-not-equal-op
+  "SIM208", # https://docs.astral.sh/ruff/rules/double-negation
+  "SIM211", # https://docs.astral.sh/ruff/rules/if-expr-with-false-true
+  "SIM212", # https://docs.astral.sh/ruff/rules/if-expr-with-twisted-arms
+  "SIM220", # https://docs.astral.sh/ruff/rules/expr-and-not-expr
+  "SIM221", # https://docs.astral.sh/ruff/rules/expr-or-not-expr
+  "SIM222", # https://docs.astral.sh/ruff/rules/expr-or-true
+  "SIM223", # https://docs.astral.sh/ruff/rules/expr-and-false
+  "SIM910", # https://docs.astral.sh/ruff/rules/dict-get-with-none-default
+  "SIM911", # https://docs.astral.sh/ruff/rules/zip-dict-keys-and-values
+  "TD006", # https://docs.astral.sh/ruff/rules/invalid-todo-capitalization
+  "TRIO115", # https://docs.astral.sh/ruff/rules/trio-zero-sleep-call
+  "TCH005", # https://docs.astral.sh/ruff/rules/empty-type-checking-block
+  "PTH201", # https://docs.astral.sh/ruff/rules/path-constructor-current-directory
+  "FLY002", # https://docs.astral.sh/ruff/rules/static-join-to-f-string
+  "I002", # https://docs.astral.sh/ruff/rules/missing-required-import
+  "PERF101", # https://docs.astral.sh/ruff/rules/unnecessary-list-cast
+  "PERF102", # https://docs.astral.sh/ruff/rules/incorrect-dict-iterator
+  "E703", # https://docs.astral.sh/ruff/rules/useless-semicolon
+  "E711", # https://docs.astral.sh/ruff/rules/none-comparison
+  "E712", # https://docs.astral.sh/ruff/rules/true-false-comparison
+  "E713", # https://docs.astral.sh/ruff/rules/not-in-test
+  "E714", # https://docs.astral.sh/ruff/rules/not-is-test
+  "W291", # https://docs.astral.sh/ruff/rules/trailing-whitespace
+  "W292", # https://docs.astral.sh/ruff/rules/missing-newline-at-end-of-file
+  "W293", # https://docs.astral.sh/ruff/rules/blank-line-with-whitespace
+  "W605", # https://docs.astral.sh/ruff/rules/invalid-escape-sequence
+  "D201", # https://docs.astral.sh/ruff/rules/no-blank-line-before-function
+  "D202", # https://docs.astral.sh/ruff/rules/no-blank-line-after-function
+  "D203", # https://docs.astral.sh/ruff/rules/one-blank-line-before-class
+  "D204", # https://docs.astral.sh/ruff/rules/one-blank-line-after-class
+  "D207", # https://docs.astral.sh/ruff/rules/under-indentation
+  "D208", # https://docs.astral.sh/ruff/rules/over-indentation
+  "D209", # https://docs.astral.sh/ruff/rules/new-line-after-last-paragraph
+  "D211", # https://docs.astral.sh/ruff/rules/blank-line-before-class
+  "D212", # https://docs.astral.sh/ruff/rules/multi-line-summary-first-line
+  "D213", # https://docs.astral.sh/ruff/rules/multi-line-summary-second-line
+  "D214", # https://docs.astral.sh/ruff/rules/section-not-over-indented
+  "D215", # https://docs.astral.sh/ruff/rules/section-underline-not-over-indented
+  "D400", # https://docs.astral.sh/ruff/rules/ends-in-period
+  "D403", # https://docs.astral.sh/ruff/rules/first-line-capitalized
+  "D405", # https://docs.astral.sh/ruff/rules/capitalize-section-name
+  "D406", # https://docs.astral.sh/ruff/rules/new-line-after-section-name
+  "D407", # https://docs.astral.sh/ruff/rules/dashed-underline-after-section
+  "D408", # https://docs.astral.sh/ruff/rules/section-underline-after-name
+  "D409", # https://docs.astral.sh/ruff/rules/section-underline-matches-section-length
+  "D410", # https://docs.astral.sh/ruff/rules/no-blank-line-after-section
+  "D411", # https://docs.astral.sh/ruff/rules/no-blank-line-before-section
+  "D412", # https://docs.astral.sh/ruff/rules/blank-lines-between-header-and-content
+  "D413", # https://docs.astral.sh/ruff/rules/blank-line-after-last-section
+  "D415", # https://docs.astral.sh/ruff/rules/ends-in-punctuation
+  "D416", # https://docs.astral.sh/ruff/rules/section-name-ends-in-colon
+  "F504", # https://docs.astral.sh/ruff/rules/percent-format-extra-named-arguments
+  "F541", # https://docs.astral.sh/ruff/rules/f-string-missing-placeholders
+  "F632", # https://docs.astral.sh/ruff/rules/is-literal
+  "PLC0208", # https://docs.astral.sh/ruff/rules/iteration-over-set
+  "PLC0414", # https://docs.astral.sh/ruff/rules/useless-import-alias
+  "PLE2510", # https://docs.astral.sh/ruff/rules/invalid-character-backspace
+  "PLE2512", # https://docs.astral.sh/ruff/rules/invalid-character-sub
+  "PLE2513", # https://docs.astral.sh/ruff/rules/invalid-character-esc
+  "PLE2514", # https://docs.astral.sh/ruff/rules/invalid-character-nul
+  "PLE2515", # https://docs.astral.sh/ruff/rules/invalid-character-zero-width-space
+  "PLR1701", # https://docs.astral.sh/ruff/rules/repeated-isinstance-calls
+  "PLR1711", # https://docs.astral.sh/ruff/rules/useless-return
+  "PLR1714", # https://docs.astral.sh/ruff/rules/repeated-equality-comparison
+  "PLW1510", # https://docs.astral.sh/ruff/rules/subprocess-run-without-check
+  "UP001", # https://docs.astral.sh/ruff/rules/useless-metaclass-type
+  "UP004", # https://docs.astral.sh/ruff/rules/useless-object-inheritance
+  "UP005", # https://docs.astral.sh/ruff/rules/deprecated-unittest-alias
+  "UP008", # https://docs.astral.sh/ruff/rules/super-call-with-parameters
+  "UP009", # https://docs.astral.sh/ruff/rules/utf8-encoding-declaration
+  "UP010", # https://docs.astral.sh/ruff/rules/unnecessary-future-import
+  "UP011", # https://docs.astral.sh/ruff/rules/lru-cache-without-parameters
+  "UP012", # https://docs.astral.sh/ruff/rules/unnecessary-encode-utf8
+  "UP015", # https://docs.astral.sh/ruff/rules/redundant-open-modes
+  "UP018", # https://docs.astral.sh/ruff/rules/native-literals
+  "UP021", # https://docs.astral.sh/ruff/rules/replace-universal-newlines
+  "UP023", # https://docs.astral.sh/ruff/rules/deprecated-c-element-tree
+  "UP024", # https://docs.astral.sh/ruff/rules/os-error-alias
+  "UP025", # https://docs.astral.sh/ruff/rules/unicode-kind-prefix
+  "UP026", # https://docs.astral.sh/ruff/rules/deprecated-mock-import
+  "UP027", # https://docs.astral.sh/ruff/rules/unpacked-list-comprehension
+  "UP028", # https://docs.astral.sh/ruff/rules/yield-in-for-loop
+  "UP029", # https://docs.astral.sh/ruff/rules/unnecessary-builtin-import
+  "UP033", # https://docs.astral.sh/ruff/rules/lru-cache-with-maxsize-none
+  "UP034", # https://docs.astral.sh/ruff/rules/extraneous-parentheses
+  "UP037", # https://docs.astral.sh/ruff/rules/quoted-annotation
+  "UP038", # https://docs.astral.sh/ruff/rules/non-pep604-isinstance
+  "UP039", # https://docs.astral.sh/ruff/rules/unnecessary-class-parentheses
+  "UP040", # https://docs.astral.sh/ruff/rules/non-pep695-type-alias
+  "UP041", # https://docs.astral.sh/ruff/rules/timeout-error-alias
+  "RUF010", # https://docs.astral.sh/ruff/rules/explicit-f-string-type-conversion
+  "RUF015", # https://docs.astral.sh/ruff/rules/unnecessary-iterable-allocation-for-first-element
+  "RUF017", # https://docs.astral.sh/ruff/rules/quadratic-list-summation
+  "RUF019", # https://docs.astral.sh/ruff/rules/unnecessary-key-check
+  "RUF020", # https://docs.astral.sh/ruff/rules/never-union
+  "RUF100", # https://docs.astral.sh/ruff/rules/unused-noqa
+  "TRY201", # https://docs.astral.sh/ruff/rules/verbose-raise
+]

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function always-fixable () (
+	# Rules which can always be auto-fixed should be ignored by the linter
+	python -m ruff rule \
+		--output-format=json \
+		--all \
+		| jq -r '
+			.[]
+			| select(.preview == false and .fix == "Fix is always available.")
+			| @text "  \"\(.code)\", # https://docs.astral.sh/ruff/rules/\(.name)"
+		'
+)
+
+function not-always-fixable () (
+	# Rules which can not always be auto-fixed and should raise lint errors (if selected)
+	python -m ruff rule \
+		--output-format=json \
+		--all \
+		| jq -r '
+			.[]
+			| select(.preview == false and .fix != "Fix is always available.")
+			| @text "  \"\(.code)\", # https://docs.astral.sh/ruff/rules/\(.name)"
+		'
+)
+
+if test "$1" = "always-fixable"; then
+	always-fixable
+elif test "$1" = "not-always-fixable"; then
+	not-always-fixable
+fi

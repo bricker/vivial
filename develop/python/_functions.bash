@@ -30,7 +30,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-activate-venv
 
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		cd "$target" || exit 1
 		local logtarget
@@ -43,8 +42,8 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -i "Linting $logtarget (py)..."
 
-		python -m ruff check $verboseflag --config="$configfile" .
-		python -m ruff format --check $verboseflag --config="$configfile" .
+		python -m ruff check $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-lint.toml" .
+		python -m ruff format --check $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-format.toml" .
 		python -m pyright --project "$EAVE_HOME" .
 
 		statusmsg -s "Linting $logtarget passed"
@@ -56,7 +55,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python-activate-venv
 
 		local target=$1
-		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 
 		cd "$target" || exit 1
 		local logtarget
@@ -69,8 +67,9 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		statusmsg -i "Formatting $logtarget (py)..."
 
-		python -m ruff check --fix-only $verboseflag --config="$configfile" .
-		python -m ruff format $verboseflag --config="$configfile" .
+		# fix-only is redundant here because it's also set in the ruff-format.toml. It's left here for readability.
+		python -m ruff check --fix-only $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-format.toml" .
+		python -m ruff format $verboseflag --config="${EAVE_HOME}/develop/python/configs/ruff-format.toml" .
 
 		statusmsg -s "Formatting $logtarget completed"
 		echo
@@ -82,7 +81,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local target=$1
 		local testfile=${2:-.}
-		local configfile=${EAVE_HOME}/develop/python/configs/pyproject.toml
 		local exitfirst=""
 		if ^ci; then
 			exitfirst="--exitfirst"
@@ -91,7 +89,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		cd "$target" || exit 1
 		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
-		python -m pytest --config-file="$configfile" --rootdir="${EAVE_HOME}" $exitfirst "$testfile"
+		python -m pytest --config-file="${EAVE_HOME}/develop/python/configs/pytest.pyproject.toml" --rootdir="${EAVE_HOME}" $exitfirst "$testfile"
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

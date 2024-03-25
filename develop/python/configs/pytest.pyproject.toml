@@ -1,0 +1,20 @@
+[tool.pytest.ini_options]
+addopts = "--capture=no" # --doctest-modules --doctest-ignore-import-errors
+filterwarnings = [
+  "ignore::DeprecationWarning"
+]
+pythonpath = [
+  "../../../apps/core",
+  "../../../apps/marketing",
+  "../../../libs/eave-stdlib-py",
+  "../../../libs/eave-tracing-core-py",
+  "../../../libs/eave-tracing-python",
+  "../../../libs/eave-tracing-postgres",
+]
+norecursedirs = [
+  "vendor",
+  "node_modules",
+  "__pycache__",
+  "build",
+  ".*",
+]
